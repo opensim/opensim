@@ -734,10 +734,6 @@ namespace OpenSim
             clientServer = clientNetworkServers;
             scene.LoadWorldMap();
 
-            scene.PhysicsScene.RequestAssetMethod = scene.PhysicsRequestAsset;
-            scene.PhysicsScene.SetTerrain(scene.Heightmap.GetFloatsSerialised());
-            scene.PhysicsScene.SetWaterLevel((float) regionInfo.RegionSettings.WaterHeight);
-
             return scene;
         }
 
@@ -749,11 +745,8 @@ namespace OpenSim
         protected override Scene CreateScene(RegionInfo regionInfo, ISimulationDataService simDataService,
             IEstateDataService estateDataService, AgentCircuitManager circuitManager)
         {
-            Vector3 regionExtent = new Vector3(regionInfo.RegionSizeX, regionInfo.RegionSizeY, regionInfo.RegionSizeZ);
-            PhysicsScene physicsScene = GetPhysicsScene(regionInfo.RegionName, regionExtent);
-
             return new Scene(
-                regionInfo, circuitManager, physicsScene, 
+                regionInfo, circuitManager,  
                 simDataService, estateDataService,
                 Config, m_version);
         }
@@ -795,12 +788,6 @@ namespace OpenSim
         }
 
         # region Setup methods
-
-        protected override PhysicsScene GetPhysicsScene(string osSceneIdentifier, Vector3 regionExtent)
-        {
-            return GetPhysicsScene(
-                m_configSettings.PhysicsEngine, m_configSettings.MeshEngineName, Config, osSceneIdentifier, regionExtent);
-        }
 
         /// <summary>
         /// Handler to supply the current status of this sim

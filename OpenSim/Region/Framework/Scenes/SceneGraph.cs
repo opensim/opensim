@@ -111,7 +111,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public PhysicsScene PhysicsScene
         {
-            get { return _PhyScene; }
+            get 
+            {
+                if (_PhyScene == null)
+                    _PhyScene = m_parentScene.RequestModuleInterface<PhysicsScene>();
+                return _PhyScene; 
+            }
             set
             {
                 // If we're not doing the initial set

@@ -41,10 +41,10 @@ namespace OpenSim.Tests.Common
     public class TestScene : Scene
     {
         public TestScene(
-            RegionInfo regInfo, AgentCircuitManager authen, PhysicsScene physicsScene,
+            RegionInfo regInfo, AgentCircuitManager authen, 
             ISimulationDataService simDataService, IEstateDataService estateDataService,
             IConfigSource config, string simulatorVersion)
-            : base(regInfo, authen, physicsScene, simDataService, estateDataService,
+            : base(regInfo, authen, simDataService, estateDataService,
                    config, simulatorVersion)
         {
         }

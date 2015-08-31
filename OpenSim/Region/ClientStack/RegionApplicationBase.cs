@@ -62,16 +62,6 @@ namespace OpenSim.Region.ClientStack
        
         protected abstract void Initialize();
         
-        /// <summary>
-        /// Get a new physics scene.
-        /// </summary>
-        /// 
-        /// <param name="osSceneIdentifier">
-        /// The name of the OpenSim scene this physics scene is serving.  This will be used in log messages.
-        /// </param>
-        /// <returns></returns>
-        protected abstract PhysicsScene GetPhysicsScene(string osSceneIdentifier, Vector3 regionExtent);
-        
         protected abstract ClientStackManager CreateClientStackManager();
         protected abstract Scene CreateScene(RegionInfo regionInfo, ISimulationDataService simDataService, IEstateDataService estateDataService, AgentCircuitManager circuitManager);
 
@@ -113,24 +103,5 @@ namespace OpenSim.Region.ClientStack
             base.StartupSpecific();
         }
 
-        /// <summary>
-        /// Get a new physics scene.
-        /// </summary>
-        /// <param name="engine">The name of the physics engine to use</param>
-        /// <param name="meshEngine">The name of the mesh engine to use</param>
-        /// <param name="config">The configuration data to pass to the physics and mesh engines</param>
-        /// <param name="osSceneIdentifier">
-        /// The name of the OpenSim scene this physics scene is serving.  This will be used in log messages.
-        /// </param>
-        /// <returns></returns>
-        protected PhysicsScene GetPhysicsScene(
-            string engine, string meshEngine, IConfigSource config, string osSceneIdentifier, Vector3 regionExtent)
-        {
-            PhysicsPluginManager physicsPluginManager;
-            physicsPluginManager = new PhysicsPluginManager();
-            physicsPluginManager.LoadPluginsFromAssemblies("Physics");
-            
-            return physicsPluginManager.GetPhysicsScene(engine, meshEngine, config, osSceneIdentifier, regionExtent);
-        }
     }
 }

@@ -151,12 +151,9 @@ namespace OpenSim.Tests.Common
             PhysicsPluginManager physicsPluginManager = new PhysicsPluginManager();
             physicsPluginManager.LoadPluginsFromAssembly("Physics/OpenSim.Region.PhysicsModule.BasicPhysics.dll");
             Vector3 regionExtent = new Vector3( regInfo.RegionSizeX, regInfo.RegionSizeY, regInfo.RegionSizeZ);
-            PhysicsScene physicsScene 
-                = physicsPluginManager.GetPhysicsScene(
-                    "basicphysics", "ZeroMesher", new IniConfigSource(), "test", regionExtent);
 
             TestScene testScene = new TestScene(
-                regInfo, m_acm, physicsScene, SimDataService, m_estateDataService, configSource, null);
+                regInfo, m_acm, SimDataService, m_estateDataService, configSource, null);
 
             INonSharedRegionModule godsModule = new GodsModule();
             godsModule.Initialise(new IniConfigSource());

@@ -850,10 +850,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Constructors
 
-        public Scene(RegionInfo regInfo, AgentCircuitManager authen, PhysicsScene physicsScene,
+        public Scene(RegionInfo regInfo, AgentCircuitManager authen, 
                      ISimulationDataService simDataService, IEstateDataService estateDataService,
                      IConfigSource config, string simulatorVersion)
-            : this(regInfo, physicsScene)
+            : this(regInfo)
         {
             m_config = config;
             MinFrameTicks = 89;
@@ -1192,11 +1192,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         }
 
-        public Scene(RegionInfo regInfo, PhysicsScene physicsScene)
+        public Scene(RegionInfo regInfo)
             : base(regInfo)
         {
             m_sceneGraph = new SceneGraph(this);
-            m_sceneGraph.PhysicsScene = physicsScene;
 
             // If the scene graph has an Unrecoverable error, restart this sim.
             // Currently the only thing that causes it to happen is two kinds of specific

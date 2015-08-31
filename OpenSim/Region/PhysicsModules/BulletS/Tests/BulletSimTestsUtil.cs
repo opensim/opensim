@@ -35,6 +35,7 @@ using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Region.PhysicsModules.Meshing;
+using OpenSim.Region.Framework.Interfaces;
 
 using OpenMetaverse;
 
@@ -78,22 +79,32 @@ public static class BulletSimTestsUtil
             bulletSimConfig.Set("VehicleLoggingEnabled","True");
         }
 
-        PhysicsPluginManager physicsPluginManager;
-        physicsPluginManager = new PhysicsPluginManager();
-        physicsPluginManager.LoadPluginsFromAssemblies("Physics");
-
         Vector3 regionExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
        
-        PhysicsScene pScene = physicsPluginManager.GetPhysicsScene(
-                        "BulletSim", "Meshmerizer", openSimINI, "BSTestRegion", regionExtent);
+        //PhysicsScene pScene = physicsPluginManager.GetPhysicsScene(
+        //                "BulletSim", "Meshmerizer", openSimINI, "BSTestRegion", regionExtent);
+        RegionInfo info = new RegionInfo();
+        info.RegionName = "BSTestRegion";
+        info.RegionSizeX = info.RegionSizeY = info.RegionSizeZ = Constants.RegionSize;
+        OpenSim.Region.Framework.Scenes.Scene scene = new OpenSim.Region.Framework.Scenes.Scene(info);
 
-        BSScene bsScene = pScene as BSScene;
+        IMesher mesher = new OpenSim.Region.PhysicsModules.Meshing.Meshmerizer();
+        INonSharedRegionModule mod = mesher as INonSharedRegionModule;
+        mod.Initialise(openSimINI);
+        mod.AddRegion(scene);
+        mod.RegionLoaded(scene);
+
+        BSScene pScene = new BSScene();
+        mod = (pScene as INonSharedRegionModule);
+        mod.Initialise(openSimINI);
+        mod.AddRegion(scene);
+        mod.RegionLoaded(scene);
 
         // Since the asset requestor is not initialized, any mesh or sculptie will be a cube.
         // In the future, add a fake asset fetcher to get meshes and sculpts.
         // bsScene.RequestAssetMethod = ???;
 
-        return bsScene;
+        return pScene;
     }
 
 }

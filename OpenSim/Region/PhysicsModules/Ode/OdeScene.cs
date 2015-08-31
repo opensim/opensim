@@ -585,6 +585,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
             Vector3 extent = new Vector3(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY, scene.RegionInfo.RegionSizeZ);
             Initialise();
             InitialiseFromConfig(m_config);
+            base.Initialise(scene.PhysicsRequestAsset, scene.Heightmap.GetFloatsSerialised(), (float)scene.RegionInfo.RegionSettings.WaterHeight);
+
         }
 
         public void RemoveRegion(Scene scene)

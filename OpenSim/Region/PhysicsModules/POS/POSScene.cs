@@ -85,6 +85,8 @@ namespace OpenSim.Region.PhysicsModule.POS
             PhysicsSceneName = EngineType + "/" + scene.RegionInfo.RegionName;
 
             scene.RegisterModuleInterface<PhysicsScene>(this);
+            base.Initialise(scene.PhysicsRequestAsset, scene.Heightmap.GetFloatsSerialised(), (float)scene.RegionInfo.RegionSettings.WaterHeight);
+
         }
 
         public void RemoveRegion(Scene scene)
