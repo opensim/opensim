@@ -34,7 +34,6 @@ using OMV = OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Region.PhysicsModule.ConvexDecompositionDotNet;
-using OpenSim.Region.OptionalModules.Scripting; // for ExtendedPhysics
 
 namespace OpenSim.Region.PhysicsModule.BulletS
 {

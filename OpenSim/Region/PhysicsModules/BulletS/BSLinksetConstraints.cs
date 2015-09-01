@@ -28,8 +28,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-using OpenSim.Region.OptionalModules.Scripting;
-
 using OMV = OpenMetaverse;
 
 namespace OpenSim.Region.PhysicsModule.BulletS

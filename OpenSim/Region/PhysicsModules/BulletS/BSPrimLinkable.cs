@@ -30,7 +30,6 @@ using System.Linq;
 using System.Text;
 
 using OpenSim.Framework;
-using OpenSim.Region.OptionalModules.Scripting;
 
 using OMV = OpenMetaverse;
 
