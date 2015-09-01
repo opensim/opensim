@@ -131,7 +131,7 @@ namespace OpenSim.Data.SQLite
         /// Create an asset
         /// </summary>
         /// <param name="asset">Asset Base</param>
-        override public void StoreAsset(AssetBase asset)
+        override public bool StoreAsset(AssetBase asset)
         {
             string assetName = asset.Name;
             if (asset.Name.Length > AssetBase.MAX_ASSET_NAME)
@@ -171,6 +171,7 @@ namespace OpenSim.Data.SQLite
                         cmd.Parameters.Add(new SqliteParameter(":Data", asset.Data));
 
                         cmd.ExecuteNonQuery();
+                        return true;
                     }
                 }
             }
@@ -191,6 +192,7 @@ namespace OpenSim.Data.SQLite
                         cmd.Parameters.Add(new SqliteParameter(":Data", asset.Data));
 
                         cmd.ExecuteNonQuery();
+                        return true;
                     }
                 }
             }

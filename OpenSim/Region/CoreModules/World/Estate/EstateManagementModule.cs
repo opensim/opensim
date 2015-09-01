@@ -95,6 +95,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             m_commands = new EstateManagementCommands(this);
             m_commands.Initialise();
+
+            m_regionChangeTimer.Interval = 10000;
+            m_regionChangeTimer.Elapsed += RaiseRegionInfoChange;
+            m_regionChangeTimer.AutoReset = false;
         }
         
         public void RemoveRegion(Scene scene) {}            
@@ -587,6 +591,16 @@ namespace OpenSim.Region.CoreModules.World.Estate
             IRestartModule restartModule = Scene.RequestModuleInterface<IRestartModule>();
             if (restartModule != null)
             {
+                if (timeInSeconds == -1)
+                {
+                    m_delayCount++;
+                    if (m_delayCount > 3)
+                        return;
+
+                    restartModule.DelayRestart(3600, "Restart delayed by region manager");
+                    return;
+                }
+
                 List<int> times = new List<int>();
                 while (timeInSeconds > 0)
                 {
@@ -1477,7 +1491,68 @@ namespace OpenSim.Region.CoreModules.World.Estate
             sendRegionHandshake(client);
         }
 
+<<<<<<< HEAD
         private uint GetEstateFlags()
+=======
+        public uint GetRegionFlags()
+        {
+            RegionFlags flags = RegionFlags.None;
+
+            // Fully implemented
+            //
+            if (Scene.RegionInfo.RegionSettings.AllowDamage)
+                flags |= RegionFlags.AllowDamage;
+            if (Scene.RegionInfo.RegionSettings.BlockTerraform)
+                flags |= RegionFlags.BlockTerraform;
+            if (!Scene.RegionInfo.RegionSettings.AllowLandResell)
+                flags |= RegionFlags.BlockLandResell;
+            if (Scene.RegionInfo.RegionSettings.DisableCollisions)
+                flags |= RegionFlags.SkipCollisions;
+            if (Scene.RegionInfo.RegionSettings.DisableScripts)
+                flags |= RegionFlags.SkipScripts;
+            if (Scene.RegionInfo.RegionSettings.DisablePhysics)
+                flags |= RegionFlags.SkipPhysics;
+            if (Scene.RegionInfo.RegionSettings.BlockFly)
+                flags |= RegionFlags.NoFly;
+            if (Scene.RegionInfo.RegionSettings.RestrictPushing)
+                flags |= RegionFlags.RestrictPushObject;
+            if (Scene.RegionInfo.RegionSettings.AllowLandJoinDivide)
+                flags |= RegionFlags.AllowParcelChanges;
+            if (Scene.RegionInfo.RegionSettings.BlockShowInSearch)
+                flags |= RegionFlags.BlockParcelSearch;
+            if (Scene.RegionInfo.RegionSettings.GodBlockSearch)
+                flags |= (RegionFlags)(1 << 11);
+            if (Scene.RegionInfo.RegionSettings.Casino)
+                flags |= (RegionFlags)(1 << 10);
+
+            if (Scene.RegionInfo.RegionSettings.FixedSun)
+                flags |= RegionFlags.SunFixed;
+            if (Scene.RegionInfo.RegionSettings.Sandbox)
+                flags |= RegionFlags.Sandbox;
+            if (Scene.RegionInfo.EstateSettings.AllowVoice)
+                flags |= RegionFlags.AllowVoice;
+            if (Scene.RegionInfo.EstateSettings.AllowLandmark)
+                flags |= RegionFlags.AllowLandmark;
+            if (Scene.RegionInfo.EstateSettings.AllowSetHome)
+                flags |= RegionFlags.AllowSetHome;
+            if (Scene.RegionInfo.EstateSettings.BlockDwell)
+                flags |= RegionFlags.BlockDwell;
+            if (Scene.RegionInfo.EstateSettings.ResetHomeOnTeleport)
+                flags |= RegionFlags.ResetHomeOnTeleport;
+
+
+            // TODO: SkipUpdateInterestList
+
+            // Omitted
+            //
+            // Omitted: NullLayer (what is that?)
+            // Omitted: SkipAgentAction (what does it do?)
+
+            return (uint)flags;
+        }
+
+        public uint GetEstateFlags()
+>>>>>>> avn/ubitvar
         {
             RegionFlags flags = RegionFlags.None;
 

@@ -219,8 +219,11 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public delegate void SendCloseChildAgentDelegate(UUID agentID, ulong regionHandle);
+
         /// <summary>
-        /// Closes a child agent on a given region
+        /// This Closes child agents on neighboring regions
+        /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
         /// </summary>
         protected void SendCloseChildAgent(UUID agentID, ulong regionHandle, string auth_token)
         {
@@ -248,7 +251,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             foreach (ulong handle in regionslst)
             {
-                // We must take a copy here since handle is acts like a reference when used in an iterator.
+                // We must take a copy here since handle acts like a reference when used in an iterator.
                 // This leads to race conditions if directly passed to SendCloseChildAgent with more than one neighbour region.
                 ulong handleCopy = handle;
                 Util.FireAndForget(
@@ -257,7 +260,7 @@ namespace OpenSim.Region.Framework.Scenes
                     "SceneCommunicationService.SendCloseChildAgentConnections");
             }
         }
-       
+
         public List<GridRegion> RequestNamedRegions(string name, int maxNumber)
         {
             return m_scene.GridService.GetRegionsByName(UUID.Zero, name, maxNumber);

@@ -143,8 +143,7 @@ namespace OpenSim.Tests.Performance
             // ScenePresence.SendInitialData() to reset our entire appearance.
             scene.AssetService.Store(AssetHelpers.CreateNotecardAsset(originalFace8TextureId));
 
-/*
-            afm.SetAppearance(sp, originalTe, null);
+            afm.SetAppearance(sp, originalTe, null, new WearableCacheItem[0]);
 
             INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
 
@@ -185,7 +184,6 @@ namespace OpenSim.Tests.Performance
                 endGcMemory / 1024 / 1024,
                 startGcMemory / 1024 / 1024,
                 (endGcMemory - startGcMemory) / 1024 / 1024);
-*/
         }
     }
 }

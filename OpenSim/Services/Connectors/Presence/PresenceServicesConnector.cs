@@ -313,6 +313,17 @@ namespace OpenSim.Services.Connectors
                 {
                     pinfo = new PresenceInfo((Dictionary<string, object>)replyData["result"]);
                 }
+                else
+                {
+					if (replyData["result"].ToString() == "null")
+						return null;
+
+                    m_log.DebugFormat("[PRESENCE CONNECTOR]: Invalid reply (result not dictionary) received from presence server when querying for sessionID {0}", sessionID.ToString());
+                }
+            }
+            else
+            {
+                m_log.DebugFormat("[PRESENCE CONNECTOR]: Invalid reply received from presence server when querying for sessionID {0}", sessionID.ToString());
             }
 
             return pinfo;

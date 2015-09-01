@@ -173,6 +173,11 @@ namespace OpenSim.Services.SimulationService
             m_database.RemoveRegionEnvironmentSettings(regionUUID);
         }
 
+        public UUID[] GetObjectIDs(UUID regionID)
+        {
+            return m_database.GetObjectIDs(regionID);
+        }
+
         public void SaveExtra(UUID regionID, string name, string val)
         {
             m_database.SaveExtra(regionID, name, val);

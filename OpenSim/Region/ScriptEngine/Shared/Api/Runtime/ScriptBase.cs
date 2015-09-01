@@ -33,6 +33,7 @@ using System.Threading;
 using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics; //for [DebuggerNonUserCode]
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api.Runtime;
@@ -90,6 +91,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return (int)m_Executor.GetStateEventFlags(state);
         }
 
+        [DebuggerNonUserCode]
         public void ExecuteEvent(string state, string FunctionName, object[] args)
         {
             m_Executor.ExecuteEvent(state, FunctionName, args);

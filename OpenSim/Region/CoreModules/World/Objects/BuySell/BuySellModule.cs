@@ -173,6 +173,13 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                     return false;
                 }
 
+                if ((perms & (uint)PermissionMask.Copy) == 0)
+                {
+                    if (m_dialogModule != null)
+                        m_dialogModule.SendAlertToUser(remoteClient, "This sale has been blocked by the permissions system");
+                    return false;
+                }
+
                 AssetBase asset = m_scene.CreateAsset(
                     group.GetPartName(localID),
                     group.GetPartDescription(localID),

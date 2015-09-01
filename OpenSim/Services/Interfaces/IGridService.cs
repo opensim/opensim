@@ -159,7 +159,17 @@ namespace OpenSim.Services.Interfaces
                 }
             }
             set { 
+<<<<<<< HEAD
                 if (value.EndsWith("/")) {
+=======
+                if ( value == null)
+                {
+                    m_serverURI = String.Empty;
+                    return;
+                }
+
+                if ( value.EndsWith("/") ) {
+>>>>>>> avn/ubitvar
                     m_serverURI = value;
                 } else {
                     m_serverURI = value + '/';
@@ -500,9 +510,13 @@ namespace OpenSim.Services.Interfaces
                 }
                 catch (SocketException e)
                 {
-                    throw new Exception(
+                    /*throw new Exception(
                         "Unable to resolve local hostname " + m_externalHostName + " innerException of type '" +
-                        e + "' attached to this exception", e);
+                        e + "' attached to this exception", e);*/
+                    // Don't throw a fatal exception here, instead, return Null and handle it in the caller.
+                    // Reason is, on systems such as OSgrid it has occured that known hostnames stop
+                    // resolving and thus make surrounding regions crash out with this exception.
+                    return null;
                 }
 
                 return new IPEndPoint(ia, m_internalEndPoint.Port);
@@ -525,5 +539,110 @@ namespace OpenSim.Services.Interfaces
         {
             get { return Util.UIntsToLong((uint)RegionLocX, (uint)RegionLocY); }
         }
+<<<<<<< HEAD
+=======
+
+        public Dictionary<string, object> ToKeyValuePairs()
+        {
+            Dictionary<string, object> kvp = new Dictionary<string, object>();
+            kvp["uuid"] = RegionID.ToString();
+            kvp["locX"] = RegionLocX.ToString();
+            kvp["locY"] = RegionLocY.ToString();
+            kvp["sizeX"] = RegionSizeX.ToString();
+            kvp["sizeY"] = RegionSizeY.ToString();
+            kvp["regionName"] = RegionName;
+            kvp["serverIP"] = ExternalHostName; //ExternalEndPoint.Address.ToString();
+            kvp["serverHttpPort"] = HttpPort.ToString();
+            kvp["serverURI"] = ServerURI;
+            kvp["serverPort"] = InternalEndPoint.Port.ToString();
+            kvp["regionMapTexture"] = TerrainImage.ToString();
+            kvp["parcelMapTexture"] = ParcelImage.ToString();
+            kvp["access"] = Access.ToString();
+            kvp["regionSecret"] = RegionSecret;
+            kvp["owner_uuid"] = EstateOwner.ToString();
+            kvp["Token"] = Token.ToString();
+            // Maturity doesn't seem to exist in the DB
+            return kvp;
+        }
+
+        public GridRegion(Dictionary<string, object> kvp)
+        {
+            if (kvp.ContainsKey("uuid"))
+                RegionID = new UUID((string)kvp["uuid"]);
+
+            if (kvp.ContainsKey("locX"))
+                RegionLocX = Convert.ToInt32((string)kvp["locX"]);
+
+            if (kvp.ContainsKey("locY"))
+                RegionLocY = Convert.ToInt32((string)kvp["locY"]);
+
+            if (kvp.ContainsKey("sizeX"))
+                RegionSizeX = Convert.ToInt32((string)kvp["sizeX"]);
+            else
+                RegionSizeX = (int)Constants.RegionSize;
+
+            if (kvp.ContainsKey("sizeY"))
+                RegionSizeY = Convert.ToInt32((string)kvp["sizeY"]);
+            else
+                RegionSizeY = (int)Constants.RegionSize;
+
+            if (kvp.ContainsKey("regionName"))
+                RegionName = (string)kvp["regionName"];
+
+            if (kvp.ContainsKey("access"))
+            {
+                byte access = Convert.ToByte((string)kvp["access"]);
+                Maturity = (int)Util.ConvertAccessLevelToMaturity(access);
+            }
+
+            if (kvp.ContainsKey("serverIP"))
+            {
+                //int port = 0;
+                //Int32.TryParse((string)kvp["serverPort"], out port);
+                //IPEndPoint ep = new IPEndPoint(IPAddress.Parse((string)kvp["serverIP"]), port);
+                ExternalHostName = (string)kvp["serverIP"];
+            }
+            else
+                ExternalHostName = "127.0.0.1";
+
+            if (kvp.ContainsKey("serverPort"))
+            {
+                Int32 port = 0;
+                Int32.TryParse((string)kvp["serverPort"], out port);
+                InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), port);
+            }
+
+            if (kvp.ContainsKey("serverHttpPort"))
+            {
+                UInt32 port = 0;
+                UInt32.TryParse((string)kvp["serverHttpPort"], out port);
+                HttpPort = port;
+            }
+
+            if (kvp.ContainsKey("serverURI"))
+                ServerURI = (string)kvp["serverURI"];
+
+            if (kvp.ContainsKey("regionMapTexture"))
+                UUID.TryParse((string)kvp["regionMapTexture"], out TerrainImage);
+
+            if (kvp.ContainsKey("parcelMapTexture"))
+                UUID.TryParse((string)kvp["parcelMapTexture"], out ParcelImage);
+
+            if (kvp.ContainsKey("access"))
+                Access = Byte.Parse((string)kvp["access"]);
+
+            if (kvp.ContainsKey("regionSecret"))
+                RegionSecret =(string)kvp["regionSecret"];
+
+            if (kvp.ContainsKey("owner_uuid"))
+                EstateOwner = new UUID(kvp["owner_uuid"].ToString());
+
+            if (kvp.ContainsKey("Token"))
+                Token = kvp["Token"].ToString();
+
+            // m_log.DebugFormat("{0} New GridRegion. id={1}, loc=<{2},{3}>, size=<{4},{5}>",
+            //                         LogHeader, RegionID, RegionLocX, RegionLocY, RegionSizeX, RegionSizeY);
+        }
+>>>>>>> avn/ubitvar
     }
 }

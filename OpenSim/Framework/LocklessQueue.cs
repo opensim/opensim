@@ -29,7 +29,7 @@ using System.Threading;
 
 namespace OpenSim.Framework
 {
-    public sealed class LocklessQueue<T>
+    public class LocklessQueue<T>
     {
         private sealed class SingleLinkNode
         {
@@ -41,7 +41,7 @@ namespace OpenSim.Framework
         SingleLinkNode tail;
         int count;
 
-        public int Count { get { return count; } }
+        public virtual int Count { get { return count; } }
 
         public LocklessQueue()
         {
@@ -76,7 +76,7 @@ namespace OpenSim.Framework
             Interlocked.Increment(ref count);
         }
 
-        public bool Dequeue(out T item)
+        public virtual bool Dequeue(out T item)
         {
             item = default(T);
             SingleLinkNode oldHead = null;

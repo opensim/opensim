@@ -61,9 +61,15 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         private readonly string m_firstname;
         private readonly string m_lastname;
         private readonly Vector3 m_startPos;
+<<<<<<< HEAD
         private readonly UUID m_uuid;
+=======
+        private UUID m_uuid = UUID.Random();
+>>>>>>> avn/ubitvar
         private readonly Scene m_scene;
         private readonly UUID m_ownerID;
+
+        public List<uint> SelectedObjects {get; private set;}
 
         public NPCAvatar(
             string firstname, string lastname, Vector3 position, UUID ownerID, bool senseAsAgent, Scene scene)
@@ -93,6 +99,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
             get { return m_scene; }
         }
+
+        public int PingTimeMS { get { return 0; } }
 
         public UUID OwnerID
         {
@@ -248,7 +256,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 #pragma warning disable 67
         public event Action<IClientAPI> OnLogout;
         public event ObjectPermissions OnObjectPermissions;
-
+        public event MoveItemsAndLeaveCopy OnMoveItemsAndLeaveCopy;
         public event MoneyTransferRequest OnMoneyTransferRequest;
         public event ParcelBuy OnParcelBuy;
         public event Action<IClientAPI> OnConnectionClosed;
@@ -268,6 +276,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public event ObjectDrop OnObjectDrop;
         public event StartAnim OnStartAnim;
         public event StopAnim OnStopAnim;
+        public event ChangeAnim OnChangeAnim;
         public event LinkObjects OnLinkObjects;
         public event DelinkObjects OnDelinkObjects;
         public event RequestMapBlocks OnRequestMapBlocks;
@@ -318,6 +327,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public event UpdatePrimTexture OnUpdatePrimTexture;
         public event UpdateVector OnUpdatePrimGroupPosition;
         public event UpdateVector OnUpdatePrimSinglePosition;
+        public event ClientChangeObject onClientChangeObject;
         public event UpdatePrimRotation OnUpdatePrimGroupRotation;
         public event UpdatePrimSingleRotationPosition OnUpdatePrimSingleRotationPosition;
         public event UpdatePrimSingleRotation OnUpdatePrimSingleRotation;
@@ -456,7 +466,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public event ClassifiedInfoRequest OnClassifiedInfoRequest;
         public event ClassifiedInfoUpdate OnClassifiedInfoUpdate;
         public event ClassifiedDelete OnClassifiedDelete;
-        public event ClassifiedDelete OnClassifiedGodDelete;
+        public event ClassifiedGodDelete OnClassifiedGodDelete;
 
         public event EventNotificationAddRequest OnEventNotificationAddRequest;
         public event EventNotificationRemoveRequest OnEventNotificationRemoveRequest;
@@ -495,11 +505,12 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public event GroupVoteHistoryRequest OnGroupVoteHistoryRequest;
         public event SimWideDeletesDelegate OnSimWideDeletes;
         public event SendPostcard OnSendPostcard;
+        public event ChangeInventoryItemFlags OnChangeInventoryItemFlags;
         public event MuteListEntryUpdate OnUpdateMuteListEntry;
         public event MuteListEntryRemove OnRemoveMuteListEntry;
         public event GodlikeMessage onGodlikeMessage;
         public event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdate;
-
+        public event GenericCall2 OnUpdateThrottles;
 #pragma warning restore 67
 
         #endregion
@@ -522,6 +533,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public virtual UUID AgentId
         {
             get { return m_uuid; }
+            set { m_uuid = value; }
         }
 
         public UUID SessionId
@@ -627,6 +639,17 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public virtual void SetChildAgentThrottle(byte[] throttle)
         {
         }
+
+        public virtual void SetChildAgentThrottle(byte[] throttle, float factor)
+        {
+
+        }
+
+        public void SetAgentThrottleSilent(int throttle, int setting)
+        {
+
+
+        }
         public byte[] GetThrottlesPacked(float multiplier)
         {
             return new byte[0];
@@ -663,6 +686,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public void SendGenericMessage(string method, UUID invoice, List<byte[]> message)
         {
 
+        }
+
+        public virtual bool CanSendLayerData()
+        {
+            return false;
         }
 
         public virtual void SendLayerData(float[] map)
@@ -772,6 +800,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
+        public void SendInventoryItemCreateUpdate(InventoryItemBase Item, UUID transactionID, uint callbackId)
+        {
+        }
+
         public virtual void SendRemoveInventoryItem(UUID itemID)
         {
         }
@@ -788,7 +820,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
-        public virtual void SendXferPacket(ulong xferID, uint packet, byte[] data)
+        public virtual void SendXferPacket(ulong xferID, uint packet, byte[] data, bool isTaskInventory)
         {
         }
         public virtual void SendAbortXferPacket(ulong xferID)
@@ -933,10 +965,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public void Close()
         {
-            Close(false);
+            Close(true, false);
         }
 
-        public void Close(bool force)
+        public void Close(bool sendStop, bool force)
         {
             // Remove ourselves from the scene
             m_scene.RemoveClient(AgentId, false);
@@ -1267,6 +1299,15 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public void SendPartPhysicsProprieties(ISceneEntity entity)
         {
+        }
+
+        public void SendPartFullUpdate(ISceneEntity ent, uint? parentID)
+        {
+        }
+
+        public int GetAgentThrottleSilent(int throttle)
+        {
+            return 0;
         }
 
     }

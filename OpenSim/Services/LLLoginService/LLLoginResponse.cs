@@ -55,6 +55,7 @@ namespace OpenSim.Services.LLLoginService
         public static LLFailedLoginResponse InventoryProblem;
         public static LLFailedLoginResponse DeadRegionProblem;
         public static LLFailedLoginResponse LoginBlockedProblem;
+        public static LLFailedLoginResponse UnverifiedAccountProblem;
         public static LLFailedLoginResponse AlreadyLoggedInProblem;
         public static LLFailedLoginResponse InternalError;
 
@@ -74,6 +75,10 @@ namespace OpenSim.Services.LLLoginService
                 "false");
             LoginBlockedProblem = new LLFailedLoginResponse("presence",
                 "Logins are currently restricted. Please try again later.",
+                "false");
+            UnverifiedAccountProblem = new LLFailedLoginResponse("presence",
+                "Your account has not yet been verified. Please check " +
+                "your email and click the provided link.",
                 "false");
             AlreadyLoggedInProblem = new LLFailedLoginResponse("presence",
                 "You appear to be already logged in. " +
@@ -145,6 +150,7 @@ namespace OpenSim.Services.LLLoginService
         private UUID agentID;
         private UUID sessionID;
         private UUID secureSessionID;
+        private UUID realID;
 
         // Login Flags
         private string dst;
@@ -228,8 +234,13 @@ namespace OpenSim.Services.LLLoginService
         public LLLoginResponse(UserAccount account, AgentCircuitData aCircuit, GridUserInfo pinfo,
             GridRegion destination, List<InventoryFolderBase> invSkel, FriendInfo[] friendsList, ILibraryService libService,
             string where, string startlocation, Vector3 position, Vector3 lookAt, List<InventoryItemBase> gestures, string message,
+<<<<<<< HEAD
             GridRegion home, IPEndPoint clientIP, string mapTileURL, string searchURL, string currency,
             string DSTZone, string destinationsURL, string avatarsURL, string classifiedFee, int maxAgentGroups)
+=======
+            GridRegion home, IPEndPoint clientIP, string mapTileURL, string profileURL, string openIDURL, string searchURL, string currency,
+            string DSTZone, string destinationsURL, string avatarsURL, UUID realID, string classifiedFee)
+>>>>>>> avn/ubitvar
             : this()
         {
             FillOutInventoryData(invSkel, libService);
@@ -242,6 +253,7 @@ namespace OpenSim.Services.LLLoginService
             AgentID = account.PrincipalID;
             SessionID = aCircuit.SessionID;
             SecureSessionID = aCircuit.SecureSessionID;
+            RealID = realID;
             Message = message;
             BuddList = ConvertFriendListItem(friendsList);
             StartLocation = where;
@@ -383,6 +395,7 @@ namespace OpenSim.Services.LLLoginService
         private void FillOutRegionData(GridRegion destination)
         {
             IPEndPoint endPoint = destination.ExternalEndPoint;
+            if (endPoint == null) return;
             SimAddress = endPoint.Address.ToString();
             SimPort = (uint)endPoint.Port;
             RegionX = (uint)destination.RegionLocX;
@@ -473,6 +486,7 @@ namespace OpenSim.Services.LLLoginService
             SessionID = UUID.Random();
             SecureSessionID = UUID.Random();
             AgentID = UUID.Random();
+            RealID = UUID.Zero;
 
             Hashtable InitialOutfitHash = new Hashtable();
             InitialOutfitHash["folder_name"] = "Nightclub Female";
@@ -518,6 +532,7 @@ namespace OpenSim.Services.LLLoginService
                 responseData["http_port"] = (Int32)SimHttpPort;
 
                 responseData["agent_id"] = AgentID.ToString();
+                responseData["real_id"] = RealID.ToString();
                 responseData["session_id"] = SessionID.ToString();
                 responseData["secure_session_id"] = SecureSessionID.ToString();
                 responseData["circuit_code"] = CircuitCode;
@@ -613,6 +628,7 @@ namespace OpenSim.Services.LLLoginService
                 map["sim_ip"] = OSD.FromString(SimAddress);
 
                 map["agent_id"] = OSD.FromUUID(AgentID);
+                map["real_id"] = OSD.FromUUID(RealID);
                 map["session_id"] = OSD.FromUUID(SessionID);
                 map["secure_session_id"] = OSD.FromUUID(SecureSessionID);
                 map["circuit_code"] = OSD.FromInteger(CircuitCode);
@@ -922,6 +938,12 @@ namespace OpenSim.Services.LLLoginService
         {
             get { return secureSessionID; }
             set { secureSessionID = value; }
+        }
+
+        public UUID RealID
+        {
+            get { return realID; }
+            set { realID = value; }
         }
 
         public Int32 CircuitCode

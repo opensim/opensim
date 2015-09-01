@@ -53,7 +53,11 @@ namespace OpenSim.Framework
         // should be only used as initial default value ( V1 viewers )
         public readonly static int VISUALPARAM_COUNT = 218;
 
-        public readonly static int TEXTURE_COUNT = 21;
+//        public readonly static int TEXTURE_COUNT = 21 
+        // 21 bad, make it be updated as libovm gets update
+        // also keeping in sync with it
+        public readonly static int TEXTURE_COUNT = Primitive.TextureEntry.MAX_FACES;
+
         public readonly static byte[] BAKE_INDICES = new byte[] { 8, 9, 10, 11, 19, 20 };
 
         protected int m_serial = 0;
@@ -179,11 +183,16 @@ namespace OpenSim.Framework
             m_attachments = new Dictionary<int, List<AvatarAttachment>>();
         }
 
-        public AvatarAppearance(AvatarAppearance appearance) : this(appearance, true)
+        public AvatarAppearance(AvatarAppearance appearance): this(appearance, true,true)
         {
         }
 
         public AvatarAppearance(AvatarAppearance appearance, bool copyWearables)
+            : this(appearance, copyWearables, true)
+        {
+        }
+
+        public AvatarAppearance(AvatarAppearance appearance, bool copyWearables, bool copyBaked)
         {
 //            m_log.WarnFormat("[AVATAR APPEARANCE] create from an existing appearance");
 
@@ -217,6 +226,10 @@ namespace OpenSim.Framework
             {
                 byte[] tbytes = appearance.Texture.GetBytes();
                 m_texture = new Primitive.TextureEntry(tbytes,0,tbytes.Length);
+                if (copyBaked && appearance.m_cacheitems != null)
+                    m_cacheitems = (WearableCacheItem[])appearance.m_cacheitems.Clone();
+                else
+                    m_cacheitems = null;
             }
 
             m_visualparams = null;
@@ -458,7 +471,10 @@ namespace OpenSim.Framework
 //          m_log.WarnFormat("[AVATARAPPEARANCE] set wearable {0} --> {1}:{2}",wearableId,wearable.ItemID,wearable.AssetID);
 // DEBUG OFF
             m_wearables[wearableId].Clear();
-            for (int i = 0; i < wearable.Count; i++)
+            int count = wearable.Count;
+            if (count > AvatarWearable.MAX_WEARABLES)
+                count = AvatarWearable.MAX_WEARABLES;
+            for (int i = 0; i < count; i++)
                 m_wearables[wearableId].Add(wearable[i].ItemID, wearable[i].AssetID);
         }
 
@@ -722,6 +738,13 @@ namespace OpenSim.Framework
             }
             data["textures"] = textures;
 
+            if (m_cacheitems != null)
+            {
+                OSDArray baked = WearableCacheItem.BakedToOSD(m_cacheitems);
+                if (baked != null)
+                    data["bakedcache"] = baked;
+            }
+
             // Visual Parameters
             OSDBinary visualparams = new OSDBinary(m_visualparams);
             data["visualparams"] = visualparams;
@@ -757,7 +780,12 @@ namespace OpenSim.Framework
                 if ((data != null) && (data["wearables"] != null) && (data["wearables"]).Type == OSDType.Array)
                 {
                     OSDArray wears = (OSDArray)(data["wearables"]);
-                    for (int i = 0; i < wears.Count; i++)
+
+                    int count = wears.Count;
+                    if (count > AvatarWearable.MAX_WEARABLES)
+                        count = AvatarWearable.MAX_WEARABLES;
+
+                    for (int i = 0; i < count; i++)
                         m_wearables[i] = new AvatarWearable((OSDArray)wears[i]);
                 }
                 else
@@ -781,6 +809,12 @@ namespace OpenSim.Framework
                 else
                 {
                     m_log.Warn("[AVATAR APPEARANCE]: failed to unpack textures");
+                }
+
+                if ((data != null) && (data["bakedcache"] != null) && (data["bakedcache"]).Type == OSDType.Array)
+                {
+                    OSDArray bakedOSDArray = (OSDArray)(data["bakedcache"]);
+                    m_cacheitems = WearableCacheItem.BakedFromOSD(bakedOSDArray);
                 }
 
                 // Visual Parameters
@@ -1632,7 +1666,12 @@ namespace OpenSim.Framework
             BREAST_PHYSICS_LEFTRIGHT_MAX_EFFECT = 247,
             BREAST_PHYSICS_LEFTRIGHT_SPRING= 248,
             BREAST_PHYSICS_LEFTRIGHT_GAIN = 249,
-            BREAST_PHYSICS_LEFTRIGHT_DAMPING = 250
+            BREAST_PHYSICS_LEFTRIGHT_DAMPING = 250,
+
+            // Ubit: 07/96/2013 new parameters 
+            _APPEARANCEMESSAGE_VERSION = 251,    //ID 11000
+
+            SHAPE_HOVER = 252,    //ID 11001
         }
         #endregion
     }

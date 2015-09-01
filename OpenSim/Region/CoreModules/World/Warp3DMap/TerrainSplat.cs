@@ -79,9 +79,13 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         /// <remarks>Based on the algorithm described at http://opensimulator.org/wiki/Terrain_Splatting
         /// Note we create a 256x256 dimension texture even if the actual terrain is larger.
         /// </remarks>
+<<<<<<< HEAD
         public static Bitmap Splat(ITerrainChannel terrain,
                 UUID[] textureIDs, float[] startHeights, float[] heightRanges,
                 Vector3d regionPosition, IAssetService assetService, bool textureTerrain)
+=======
+        public static Bitmap Splat(ITerrainChannel terrain, UUID[] textureIDs, float[] startHeights, float[] heightRanges, Vector3d regionPosition, IAssetService assetService, bool textureTerrain)
+>>>>>>> avn/ubitvar
         {
             Debug.Assert(textureIDs.Length == 4);
             Debug.Assert(startHeights.Length == 4);
@@ -195,12 +199,74 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                         using (SolidBrush brush = new SolidBrush(DEFAULT_TERRAIN_COLOR[i]))
                             gfx.FillRectangle(brush, 0, 0, 256, 256);
                     }
+                    else
+                    {
+                        if (detailTexture[i].Width != 256 || detailTexture[i].Height != 256)
+                        {
+                            detailTexture[i] = ResizeBitmap(detailTexture[i], 256, 256);
+                        }
+                    }
                 }
+<<<<<<< HEAD
                 else
+=======
+    
+                #region Layer Map
+    
+                float[,] layermap = new float[256 , 256];
+
+                int xFactor = terrain.Width / 256;
+                int yFactor = terrain.Height / 256;
+    
+                for (int y = 0; y < 256; y++)
+>>>>>>> avn/ubitvar
                 {
                     if (detailTexture[i].Width != 256 || detailTexture[i].Height != 256)
                     {
+<<<<<<< HEAD
                         detailTexture[i] = ResizeBitmap(detailTexture[i], 256, 256);
+=======
+                        float height = (float)terrain[x * xFactor, y * yFactor];
+    
+                        float pctX = (float)x / 255f;
+                        float pctY = (float)y / 255f;
+    
+                        // Use bilinear interpolation between the four corners of start height and 
+                        // height range to select the current values at this position
+                        float startHeight = ImageUtils.Bilinear(
+                            startHeights[0],
+                            startHeights[2],
+                            startHeights[1],
+                            startHeights[3],
+                            pctX, pctY);
+                        startHeight = Utils.Clamp(startHeight, 0f, 255f);
+    
+                        float heightRange = ImageUtils.Bilinear(
+                            heightRanges[0],
+                            heightRanges[2],
+                            heightRanges[1],
+                            heightRanges[3],
+                            pctX, pctY);
+                        heightRange = Utils.Clamp(heightRange, 0f, 255f);
+    
+                        // Generate two frequencies of perlin noise based on our global position
+                        // The magic values were taken from http://opensimulator.org/wiki/Terrain_Splatting
+                        Vector3 vec = new Vector3
+                        (
+                            ((float)regionPosition.X + (x * xFactor)) * 0.20319f,
+                            ((float)regionPosition.Y + (y * yFactor)) * 0.20319f,
+                            height * 0.25f
+                        );
+    
+                        float lowFreq = Perlin.noise2(vec.X * 0.222222f, vec.Y * 0.222222f) * 6.5f;
+                        float highFreq = Perlin.turbulence2(vec.X, vec.Y, 2f) * 2.25f;
+                        float noise = (lowFreq + highFreq) * 2f;
+    
+                        // Combine the current height, generated noise, start height, and height range parameters, then scale all of it 
+                        float layer = ((height + noise - startHeight) / heightRange) * 4f;
+                        if (Single.IsNaN(layer)) layer = 0f;
+                        layermap[x,y] = Utils.Clamp(layer, 0f, 3f);
+>>>>>>> avn/ubitvar
                     }
                 }
             }
@@ -220,6 +286,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             {
                 for (int x = 0; x < 256; x++)
                 {
+<<<<<<< HEAD
                     float height = (float)terrain[x * xFactor, y * yFactor];
 
                     float pctX = (float)x / 255f;
@@ -261,6 +328,58 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                     if (Single.IsNaN(layer))
                         layer = 0f;
                     layermap[x, y] = Utils.Clamp(layer, 0f, 3f);
+=======
+                    // Get handles to all of the texture data arrays
+                    BitmapData[] datas = new BitmapData[]
+                    {
+                        detailTexture[0].LockBits(new Rectangle(0, 0, 256, 256), ImageLockMode.ReadOnly, detailTexture[0].PixelFormat),
+                        detailTexture[1].LockBits(new Rectangle(0, 0, 256, 256), ImageLockMode.ReadOnly, detailTexture[1].PixelFormat),
+                        detailTexture[2].LockBits(new Rectangle(0, 0, 256, 256), ImageLockMode.ReadOnly, detailTexture[2].PixelFormat),
+                        detailTexture[3].LockBits(new Rectangle(0, 0, 256, 256), ImageLockMode.ReadOnly, detailTexture[3].PixelFormat)
+                    };
+    
+                    int[] comps = new int[]
+                    {
+                        (datas[0].PixelFormat == PixelFormat.Format32bppArgb) ? 4 : 3,
+                        (datas[1].PixelFormat == PixelFormat.Format32bppArgb) ? 4 : 3,
+                        (datas[2].PixelFormat == PixelFormat.Format32bppArgb) ? 4 : 3,
+                        (datas[3].PixelFormat == PixelFormat.Format32bppArgb) ? 4 : 3
+                    };
+    
+                    for (int y = 0; y < 256; y++)
+                    {
+                        for (int x = 0; x < 256; x++)
+                        {
+                            float layer = layermap[x, y];
+    
+                            // Select two textures
+                            int l0 = (int)Math.Floor(layer);
+                            int l1 = Math.Min(l0 + 1, 3);
+    
+                            byte* ptrA = (byte*)datas[l0].Scan0 + y * datas[l0].Stride + x * comps[l0];
+                            byte* ptrB = (byte*)datas[l1].Scan0 + y * datas[l1].Stride + x * comps[l1];
+                            byte* ptrO = (byte*)outputData.Scan0 + y * outputData.Stride + x * 3;
+    
+                            float aB = *(ptrA + 0);
+                            float aG = *(ptrA + 1);
+                            float aR = *(ptrA + 2);
+    
+                            float bB = *(ptrB + 0);
+                            float bG = *(ptrB + 1);
+                            float bR = *(ptrB + 2);
+    
+                            float layerDiff = layer - l0;
+    
+                            // Interpolate between the two selected textures
+                            *(ptrO + 0) = (byte)Math.Floor(aB + layerDiff * (bB - aB));
+                            *(ptrO + 1) = (byte)Math.Floor(aG + layerDiff * (bG - aG));
+                            *(ptrO + 2) = (byte)Math.Floor(aR + layerDiff * (bR - aR));
+                        }
+                    }
+    
+                    for (int i = 0; i < 4; i++)
+                        detailTexture[i].UnlockBits(datas[i]);
+>>>>>>> avn/ubitvar
                 }
             }
 
@@ -352,7 +471,10 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             b.Dispose();
             return result;
         }
+<<<<<<< HEAD
 
+=======
+>>>>>>> avn/ubitvar
         public static Bitmap SplatSimple(float[] heightmap)
         {
             const float BASE_HSV_H = 93f / 360f;

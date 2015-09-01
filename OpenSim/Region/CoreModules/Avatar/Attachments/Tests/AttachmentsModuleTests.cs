@@ -201,7 +201,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(so.Backup, Is.True);
 
             m_numberOfAttachEventsFired = 0;
-            scene.AttachmentsModule.AttachObject(sp, so, (uint)AttachmentPoint.Chest, false, true, false);
+            scene.AttachmentsModule.AttachObject(sp, so, (uint)AttachmentPoint.Chest, false, true, false, false);
 
             // Check status on scene presence
             Assert.That(sp.HasAttachments(), Is.True);
@@ -249,7 +249,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 SceneObjectGroup so = SceneHelpers.AddSceneObject(scene, "att1", sp.UUID);
 
                 m_numberOfAttachEventsFired = 0;
-                scene.AttachmentsModule.AttachObject(sp, so, (uint)AttachmentPoint.Default, false, true, false);
+                scene.AttachmentsModule.AttachObject(sp, so, (uint)AttachmentPoint.Default, false, true, false, false);
 
                 // Check status on scene presence
                 Assert.That(sp.HasAttachments(), Is.True);
@@ -282,7 +282,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             // Test wearing a different attachment from the ground.
             {
-                scene.AttachmentsModule.AttachObject(sp, so2, (uint)AttachmentPoint.Default, false, true, false);
+                scene.AttachmentsModule.AttachObject(sp, so2, (uint)AttachmentPoint.Default, false, true, false, false);
 
                 // Check status on scene presence
                 Assert.That(sp.HasAttachments(), Is.True);
@@ -315,7 +315,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             // Test rewearing an already worn attachment from ground.  Nothing should happen.
             {
-                scene.AttachmentsModule.AttachObject(sp, so2, (uint)AttachmentPoint.Default, false, true, false);
+                scene.AttachmentsModule.AttachObject(sp, so2, (uint)AttachmentPoint.Default, false, true, false, false);
 
                 // Check status on scene presence
                 Assert.That(sp.HasAttachments(), Is.True);
@@ -373,7 +373,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             sp2.AbsolutePosition = new Vector3(0, 0, 0);
             sp2.HandleAgentRequestSit(sp2.ControllingClient, sp2.UUID, so.UUID, Vector3.Zero);
 
-            scene.AttachmentsModule.AttachObject(sp, so, (uint)AttachmentPoint.Chest, false, true, false);
+            scene.AttachmentsModule.AttachObject(sp, so, (uint)AttachmentPoint.Chest, false, true, false, false);
 
             Assert.That(sp.HasAttachments(), Is.False);
             Assert.That(scene.GetSceneObjectGroups().Count, Is.EqualTo(1));
@@ -671,7 +671,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             scene.EventManager.OnChatFromWorld += OnChatFromWorld;
 
             SceneObjectGroup rezzedSo
-                = scene.AttachmentsModule.RezSingleAttachmentFromInventory(sp, userItem.ID, (uint)AttachmentPoint.Chest);
+                = (SceneObjectGroup)(scene.AttachmentsModule.RezSingleAttachmentFromInventory(sp, userItem.ID, (uint)AttachmentPoint.Chest));
 
             // Wait for chat to signal rezzed script has been started.
             m_chatEvent.WaitOne(60000);
@@ -690,7 +690,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(scriptStateNodes.Count, Is.EqualTo(1));
 
             // Re-rez the attachment to check script running state
-            SceneObjectGroup reRezzedSo = scene.AttachmentsModule.RezSingleAttachmentFromInventory(sp, userItem.ID, (uint)AttachmentPoint.Chest);
+            SceneObjectGroup reRezzedSo = (SceneObjectGroup)(scene.AttachmentsModule.RezSingleAttachmentFromInventory(sp, userItem.ID, (uint)AttachmentPoint.Chest));
 
             // Wait for chat to signal rezzed script has been started.
             m_chatEvent.WaitOne(60000);

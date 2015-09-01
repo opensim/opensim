@@ -151,7 +151,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
 
         #region ITerrainPaintableEffect Members
 
-        public void PaintEffect(ITerrainChannel map, bool[,] mask, double rx, double ry, double rz, double strength, double duration)
+        public void PaintEffect(ITerrainChannel map, bool[,] mask, double rx, double ry, double rz,
+            double strength, double duration, int startX, int endX, int startY, int endY)
         {
             strength = TerrainUtil.MetersToSphericalStrength(strength);
 
@@ -163,18 +164,23 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
             ITerrainChannel sediment = new TerrainChannel(map.Width, map.Height);
 
             // Fill with rain
-            for (x = 0; x < water.Width; x++)
-                for (y = 0; y < water.Height; y++)
-                    water[x, y] = Math.Max(0.0, TerrainUtil.SphericalFactor(x, y, rx, ry, strength) * rainHeight * duration);
+            for (x = startX; x <= endX; x++)
+            {
+                for (y = startY; y <= endY; y++)
+                {
+                    if (mask[x, y])
+                        water[x, y] = Math.Max(0.0, TerrainUtil.SphericalFactor(x, y, rx, ry, strength) * rainHeight * duration);
+                }
+            }
 
             for (int i = 0; i < rounds; i++)
             {
                 // Erode underlying terrain
-                for (x = 0; x < water.Width; x++)
+                for (x = startX; x <= endX; x++)
                 {
-                    for (y = 0; y < water.Height; y++)
+                    for (y = startY; y <= endY; y++)
                     {
-                        if (mask[x,y])
+                        if (mask[x, y])
                         {
                             const double solConst = (1.0 / rounds);
                             double sedDelta = water[x, y] * solConst;
@@ -185,9 +191,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
                 }
 
                 // Move water
-                for (x = 0; x < water.Width; x++)
+                for (x = startX; x <= endX; x++)
                 {
-                    for (y = 0; y < water.Height; y++)
+                    for (y = startY; y <= endY; y++)
                     {
                         if (water[x, y] <= 0)
                             continue;
@@ -296,7 +302,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
                         double sedimentDeposit = sediment[x, y] - waterCapacity;
                         if (sedimentDeposit > 0)
                         {
-                            if (mask[x,y])
+                            if (mask[x, y])
                             {
                                 sediment[x, y] -= sedimentDeposit;
                                 map[x, y] += sedimentDeposit;
@@ -309,10 +315,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
             // Deposit any remainder (should be minimal)
             for (x = 0; x < water.Width; x++)
                 for (y = 0; y < water.Height; y++)
-                    if (mask[x,y] && sediment[x, y] > 0)
+                    if (mask[x, y] && sediment[x, y] > 0)
                         map[x, y] += sediment[x, y];
         }
-
         #endregion
     }
 }

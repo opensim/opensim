@@ -49,6 +49,8 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 using OSDArray = OpenMetaverse.StructuredData.OSDArray;
 using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 
+using Mono.Addins;
+
 namespace OpenSim.Region.CoreModules.Avatar.Gods
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "GodsModule")]
@@ -62,6 +64,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
 
         protected Scene m_scene;
         protected IDialogModule m_dialogModule;
+
         protected IDialogModule DialogModule
         {
             get
@@ -146,6 +149,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
                 UUID godSessionID = userData["GodSessionID"].AsUUID();
                 uint kickFlags = userData["KickFlags"].AsUInteger();
                 string reason = userData["Reason"].AsString();
+
                 ScenePresence god = m_scene.GetScenePresence(godID);
                 if (god == null || god.ControllingClient.SessionId != godSessionID)
                     return String.Empty;

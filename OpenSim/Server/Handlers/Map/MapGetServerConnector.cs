@@ -29,6 +29,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Reflection;
+using System.Threading;
 
 using Nini.Config;
 using log4net;
@@ -37,6 +38,7 @@ using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Handlers.Base;
+using OpenMetaverse;
 
 namespace OpenSim.Server.Handlers.MapImage
 {
@@ -70,6 +72,8 @@ namespace OpenSim.Server.Handlers.MapImage
 
     class MapServerGetHandler : BaseStreamHandler
     {
+        public static ManualResetEvent ev = new ManualResetEvent(true);
+
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IMapImageService m_MapService;
@@ -82,10 +86,25 @@ namespace OpenSim.Server.Handlers.MapImage
 
         protected override byte[] ProcessRequest(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            byte[] result = new byte[0];
+            ev.WaitOne();
+            lock (ev)
+            {
+                ev.Reset();
+            }
 
+            byte[] result = new byte[0];
             string format = string.Empty;
-            result = m_MapService.GetMapTile(path.Trim('/'), out format);
+
+//            UUID scopeID = new UUID("07f8d88e-cd5e-4239-a0ed-843f75d09992");
+            UUID scopeID = UUID.Zero;
+
+            string[] bits = path.Trim('/').Split(new char[] {'/'});
+            if (bits.Length > 1)
+            {
+                scopeID = new UUID(bits[0]);
+                path = bits[1];
+            }
+            result = m_MapService.GetMapTile(path.Trim('/'), scopeID, out format);
             if (result.Length > 0)
             {
                 httpResponse.StatusCode = (int)HttpStatusCode.OK;
@@ -98,6 +117,11 @@ namespace OpenSim.Server.Handlers.MapImage
             {
                 httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
                 httpResponse.ContentType = "text/plain";
+            }
+
+            lock (ev)
+            {
+                ev.Set();
             }
 
             return result;

@@ -717,7 +717,7 @@ ALTER TABLE regionsettings ADD COLUMN loaded_creation_datetime int unsigned NOT 
 
 COMMIT;
 
-:VERSION 32
+:VERSION 32			#---------------------
 
 BEGIN;
 CREATE TABLE `regionwindlight` (
@@ -939,6 +939,7 @@ ALTER TABLE prims ADD COLUMN AttachedPosY double default 0;
 ALTER TABLE prims ADD COLUMN AttachedPosZ double default 0;
 ALTER TABLE primshapes ADD COLUMN LastAttachPoint int(4) not null default '0';
 COMMIT;
+<<<<<<< HEAD
 
 :VERSION 50        #---- Change LandFlags to unsigned
 
@@ -948,3 +949,5 @@ ALTER TABLE land CHANGE COLUMN LandFlags LandFlags int unsigned default null;
 
 COMMIT;
 
+=======
+>>>>>>> avn/ubitvar

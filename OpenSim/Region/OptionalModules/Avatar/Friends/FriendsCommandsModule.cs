@@ -107,7 +107,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Friends
                 m_scene.AddCommand(
                     "Friends", this, "friends show",
                     "friends show [--cache] <first-name> <last-name>",
-                    "Show the friends for the given user if they exist.\n",
+                    "Show the friends for the given user if they exist.",
                     "The --cache option will show locally cached information for that user.",
                     HandleFriendsShowCommand);
             }

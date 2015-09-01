@@ -30,10 +30,11 @@ using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using System.Reflection;
+using OpenSim.Server.Base;
+using OpenSim.Services.Interfaces;
 using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Services.Base;
-using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Services.AuthenticationService
 {
@@ -50,6 +51,12 @@ namespace OpenSim.Services.AuthenticationService
                 MethodBase.GetCurrentMethod().DeclaringType);
  
         protected IAuthenticationData m_Database;
+        protected IUserAccountService m_UserAccountService = null;
+
+        public AuthenticationServiceBase(IConfigSource config, IUserAccountService acct) : this(config)
+        {
+            m_UserAccountService = acct;
+        }
 
         public AuthenticationServiceBase(IConfigSource config) : base(config)
         {

@@ -28,6 +28,11 @@ using System.IO;
 
 using OpenSim.Framework;
 
+<<<<<<< HEAD
+=======
+using System.IO;
+using OpenSim.Framework;
+>>>>>>> avn/ubitvar
 using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Interfaces
@@ -43,7 +48,13 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Use this if you change terrain data outside of the terrain module (e.g. in osTerrainSetHeight)
         /// </summary>
         void TaintTerrain();
-        
+
+        /// <summary>
+        /// When a client initially connects, all the terrain must be pushed to the viewer.
+        /// This call causes all the terrain patches to be sent to the client.
+        /// </summary>
+        void PushTerrain(IClientAPI pClient);
+     
         /// <summary>
         /// When a client initially connects, all the terrain must be pushed to the viewer.
         /// This call causes all the terrain patches to be sent to the client.
@@ -60,6 +71,8 @@ namespace OpenSim.Region.Framework.Interfaces
         void LoadFromStream(string filename, Stream stream);
         void LoadFromStream(string filename, Vector3 displacement, float radianRotation, Vector2 rotationDisplacement, Stream stream);
         void LoadFromStream(string filename, System.Uri pathToTerrainHeightmap);
+        void LoadFromStream(string filename, Vector3 displacement,
+                                float radianRotation, Vector2 rotationDisplacement, Stream stream);
         /// <summary>
         /// Save a terrain to a stream.
         /// </summary>

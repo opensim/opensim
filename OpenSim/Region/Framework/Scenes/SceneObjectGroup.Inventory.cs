@@ -88,10 +88,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Stop and remove the scripts contained in all the prims in this group
         /// </summary>
-        /// <param name="sceneObjectBeingDeleted">
-        /// Should be true if these scripts are being removed because the scene
-        /// object is being deleted.  This will prevent spurious updates to the client.
-        /// </param>
         public void RemoveScriptInstances(bool sceneObjectBeingDeleted)
         {
             SceneObjectPart[] parts = m_parts.GetArray();
@@ -254,6 +250,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         public uint GetEffectivePermissions()
         {
+            return GetEffectivePermissions(false);
+        }
+
+        public uint GetEffectivePermissions(bool useBase)
+        {
             uint perms=(uint)(PermissionMask.Modify |
                               PermissionMask.Copy |
                               PermissionMask.Move |
@@ -265,8 +266,15 @@ namespace OpenSim.Region.Framework.Scenes
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
+<<<<<<< HEAD
 //                m_log.DebugFormat("[SCENE OBJECT GROUP INVENTORY]: Effective perms of {0} are {1}", part.Name, (OpenMetaverse.PermissionMask)part.OwnerMask);
                 ownerMask &= part.OwnerMask;
+=======
+                if (useBase)
+                    ownerMask &= part.BaseMask;
+                else
+                    ownerMask &= part.OwnerMask;
+>>>>>>> avn/ubitvar
                 perms &= part.Inventory.MaskEffectivePermissions();
             }
 
@@ -408,6 +416,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ResumeScripts()
         {
+            if (m_scene.RegionInfo.RegionSettings.DisableScripts)
+                return;
+
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
                 parts[i].Inventory.ResumeScripts();

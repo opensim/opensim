@@ -206,7 +206,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return m_remoteConnector.UpdateAgent(destination, cAgentData);
         }
 
+<<<<<<< HEAD
         public bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, string sversion, List<UUID> features, out string version, out string reason)
+=======
+        public bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, string sversion, out string version, out string reason)
+>>>>>>> avn/ubitvar
         {
             reason = "Communications failure";
             version = "Unknown";
@@ -215,12 +219,22 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                 return false;
 
             // Try local first
+<<<<<<< HEAD
             if (m_localBackend.QueryAccess(destination, agentID, agentHomeURI, viaTeleport, position, sversion, features, out version, out reason))
+=======
+            if (m_localBackend.QueryAccess(destination, agentID, agentHomeURI, viaTeleport, position, sversion, out version, out reason))
+                return true;
+>>>>>>> avn/ubitvar
                 return true;
 
             // else do the remote thing
             if (!m_localBackend.IsLocalRegion(destination.RegionID))
+<<<<<<< HEAD
                 return m_remoteConnector.QueryAccess(destination, agentID, agentHomeURI, viaTeleport, position, sversion, features, out version, out reason);
+=======
+                return m_remoteConnector.QueryAccess(destination, agentID, agentHomeURI, viaTeleport, position, sversion, out version, out reason);
+
+>>>>>>> avn/ubitvar
 
             return false;
         }
@@ -237,7 +251,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
             return false;
         }
-
 
         public bool CloseAgent(GridRegion destination, UUID id, string auth_token)
         {

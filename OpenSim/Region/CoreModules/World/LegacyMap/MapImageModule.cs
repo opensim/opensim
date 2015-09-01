@@ -104,6 +104,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 
                     terrainRenderer.Initialise(m_scene, m_config);
 
+<<<<<<< HEAD
                     mapbmp = new Bitmap((int)m_scene.Heightmap.Width, (int)m_scene.Heightmap.Height,
                                             System.Drawing.Imaging.PixelFormat.Format24bppRgb);
                     //long t = System.Environment.TickCount;
@@ -112,6 +113,16 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                     //}
                     //t = System.Environment.TickCount - t;
                     //m_log.InfoFormat("[MAPTILE] generation of 10 maptiles needed {0} ms", t);
+=======
+                mapbmp = new Bitmap((int)m_scene.Heightmap.Width, (int)m_scene.Heightmap.Height,
+                                        System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+                //long t = System.Environment.TickCount;
+                //for (int i = 0; i < 10; ++i) {
+                terrainRenderer.TerrainToBitmap(mapbmp);
+                //}
+                //t = System.Environment.TickCount - t;
+                //m_log.InfoFormat("[MAPTILE] generation of 10 maptiles needed {0} ms", t);
+>>>>>>> avn/ubitvar
 
                     if (drawPrimVolume)
                     {

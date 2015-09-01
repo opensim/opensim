@@ -64,6 +64,8 @@ namespace OpenSim.Region.ClientStack.Linden
         private Commands m_commands = new Commands();
         public ICommands Commands { get { return m_commands; } }
 
+        public event ConsoleMessage OnConsoleMessage;
+
         public void Initialise(IConfigSource source)
         {
             m_commands.AddCommand( "Help", false, "help", "help [<item>]", "Display help on a particular command or on a list of commands in a category", Help);
@@ -102,7 +104,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            if (!m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(agentID))
+            if (!m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(agentID) && !m_scene.Permissions.IsGod(agentID))
                 return;
 
             UUID capID = UUID.Random();
@@ -118,6 +120,11 @@ namespace OpenSim.Region.ClientStack.Linden
             OSD osd = OSD.FromString(message);
 
             m_eventQueue.Enqueue(EventQueueHelper.BuildEvent("SimConsoleResponse", osd), agentID);
+
+            ConsoleMessage handlerConsoleMessage = OnConsoleMessage;
+
+            if (handlerConsoleMessage != null)
+                handlerConsoleMessage( agentID, message);
         }
 
         public bool RunCommand(string command, UUID invokerID)

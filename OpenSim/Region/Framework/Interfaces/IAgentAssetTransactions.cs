@@ -36,7 +36,7 @@ namespace OpenSim.Region.Framework.Interfaces
         void HandleItemUpdateFromTransaction(IClientAPI remoteClient, UUID transactionID,
                                              InventoryItemBase item);
 
-        void HandleItemCreationFromTransaction(IClientAPI remoteClient, UUID transactionID, UUID folderID,
+        bool HandleItemCreationFromTransaction(IClientAPI remoteClient, UUID transactionID, UUID folderID,
                                                uint callbackID, string description, string name, sbyte invType,
                                                sbyte type, byte wearableType, uint nextOwnerMask);
         

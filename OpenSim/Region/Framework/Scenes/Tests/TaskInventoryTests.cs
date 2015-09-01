@@ -96,7 +96,7 @@ namespace OpenSim.Region.Framework.Tests
             Quaternion rezRot = new Quaternion(0.5f, 0.5f, 0.5f, 0.5f);
             Vector3 rezVel = new Vector3(2, 2, 2);
 
-            scene.RezObject(sop1, taskSceneObjectItem, rezPos, rezRot, rezVel, 0);
+            scene.RezObject(sop1, taskSceneObjectItem, rezPos, rezRot, rezVel, 0,false);
 
             SceneObjectGroup rezzedObject = scene.GetSceneObjectGroup("tso");
 

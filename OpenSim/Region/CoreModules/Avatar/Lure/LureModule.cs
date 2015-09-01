@@ -163,16 +163,29 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                     scene.RegionInfo.RegionHandle,
                     (uint)presence.AbsolutePosition.X,
                     (uint)presence.AbsolutePosition.Y,
-                    (uint)Math.Ceiling(presence.AbsolutePosition.Z));
+                    (uint)presence.AbsolutePosition.Z + 2);
 
             m_log.DebugFormat("[LURE MODULE]: TP invite with message {0}, type {1}", message, lureType);
 
-            GridInstantMessage m = new GridInstantMessage(scene, client.AgentId,
-                    client.FirstName+" "+client.LastName, targetid,
-                    (byte)InstantMessageDialog.RequestTeleport, false,
-                    message, dest, false, presence.AbsolutePosition,
-                    new Byte[0], true);
-                    
+            GridInstantMessage m;
+
+            if (scene.Permissions.IsAdministrator(client.AgentId) && presence.GodLevel >= 200 && (!scene.Permissions.IsAdministrator(targetid)))
+            {
+                m = new GridInstantMessage(scene, client.AgentId,
+                        client.FirstName+" "+client.LastName, targetid,
+                        (byte)InstantMessageDialog.GodLikeRequestTeleport, false,
+                        message, dest, false, presence.AbsolutePosition,
+                        new Byte[0], true);
+            }
+            else
+            {
+                m = new GridInstantMessage(scene, client.AgentId,
+                        client.FirstName+" "+client.LastName, targetid,
+                        (byte)InstantMessageDialog.RequestTeleport, false,
+                        message, dest, false, presence.AbsolutePosition,
+                        new Byte[0], true);
+            }
+
             if (m_TransferModule != null)
             {
                 m_TransferModule.SendInstantMessage(m,
@@ -207,7 +220,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
         {
             // Forward remote teleport requests
             //
-            if (msg.dialog != 22)
+            if (msg.dialog != (byte)InstantMessageDialog.RequestTeleport &&
+                msg.dialog != (byte)InstantMessageDialog.GodLikeRequestTeleport)
                 return;
 
             if (m_TransferModule != null)

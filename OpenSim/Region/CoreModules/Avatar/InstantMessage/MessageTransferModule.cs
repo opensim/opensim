@@ -50,6 +50,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Enabled = false;
+        protected string m_MessageKey = String.Empty;
         protected List<Scene> m_Scenes = new List<Scene>();
         protected Dictionary<UUID, UUID> m_UserRegionMap = new Dictionary<UUID, UUID>();
 
@@ -69,14 +70,17 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         public virtual void Initialise(IConfigSource config)
         {
             IConfig cnf = config.Configs["Messaging"];
-            if (cnf != null && cnf.GetString(
-                    "MessageTransferModule", "MessageTransferModule") !=
-                    "MessageTransferModule")
+            if (cnf != null)
             {
-                m_log.Debug("[MESSAGE TRANSFER]: Disabled by configuration");
-                return;
-            }
+                if (cnf.GetString("MessageTransferModule",
+                        "MessageTransferModule") != "MessageTransferModule")
+                {
+                    return;
+                }
 
+                m_MessageKey = cnf.GetString("MessageKey", String.Empty);
+            }
+            m_log.Debug("[MESSAGE TRANSFER]: Module enabled");
             m_Enabled = true;
         }
 
@@ -134,6 +138,9 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         public virtual void SendInstantMessage(GridInstantMessage im, MessageResultNotification result)
         {
             UUID toAgentID = new UUID(im.toAgentID);
+
+            if (toAgentID == UUID.Zero)
+                return;
 
             // Try root avatar only first
             foreach (Scene scene in m_Scenes)
@@ -249,6 +256,19 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                         && requestData.ContainsKey("position_z") && requestData.ContainsKey("region_id")
                         && requestData.ContainsKey("binary_bucket"))
                 {
+                    if (m_MessageKey != String.Empty)
+                    {
+                        XmlRpcResponse error_resp = new XmlRpcResponse();
+                        Hashtable error_respdata = new Hashtable();
+                        error_respdata["success"] = "FALSE";
+                        error_resp.Value = error_respdata;
+
+                        if (!requestData.Contains("message_key"))
+                            return error_resp;
+                        if (m_MessageKey != (string)requestData["message_key"])
+                            return error_resp;
+                    }
+
                     // Do the easy way of validating the UUIDs
                     UUID.TryParse((string)requestData["from_agent_id"], out fromAgentID);
                     UUID.TryParse((string)requestData["to_agent_id"], out toAgentID);
@@ -425,34 +445,89 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             return resp;
         }
 
+<<<<<<< HEAD
         /// <summary>
         /// delegate for sending a grid instant message asynchronously
         /// </summary>
         public delegate void GridInstantMessageDelegate(GridInstantMessage im, MessageResultNotification result);
+=======
+        private delegate void GridInstantMessageDelegate(GridInstantMessage im, MessageResultNotification result);
+>>>>>>> avn/ubitvar
 
-        protected virtual void GridInstantMessageCompleted(IAsyncResult iar)
+        private class GIM {
+            public GridInstantMessage im;
+            public MessageResultNotification result;
+        };
+
+        private Queue<GIM> pendingInstantMessages = new Queue<GIM>();
+        private int numInstantMessageThreads = 0;
+
+        private void SendGridInstantMessageViaXMLRPC(GridInstantMessage im, MessageResultNotification result)
         {
-            GridInstantMessageDelegate icon =
-                    (GridInstantMessageDelegate)iar.AsyncState;
-            icon.EndInvoke(iar);
+            lock (pendingInstantMessages) {
+                if (numInstantMessageThreads >= 4) {
+                    GIM gim = new GIM();
+                    gim.im = im;
+                    gim.result = result;
+                    pendingInstantMessages.Enqueue(gim);
+                } else {
+                    ++ numInstantMessageThreads;
+                    //m_log.DebugFormat("[SendGridInstantMessageViaXMLRPC]: ++numInstantMessageThreads={0}", numInstantMessageThreads);
+                    GridInstantMessageDelegate d = SendGridInstantMessageViaXMLRPCAsyncMain;
+                    d.BeginInvoke(im, result, GridInstantMessageCompleted, d);
+                }
+            }
         }
 
-
-        protected virtual void SendGridInstantMessageViaXMLRPC(GridInstantMessage im, MessageResultNotification result)
-        {
-            GridInstantMessageDelegate d = SendGridInstantMessageViaXMLRPCAsync;
-
+<<<<<<< HEAD
             d.BeginInvoke(im, result, GridInstantMessageCompleted, d);
+=======
+        private void GridInstantMessageCompleted(IAsyncResult iar)
+        {
+            GridInstantMessageDelegate d = (GridInstantMessageDelegate)iar.AsyncState;
+            d.EndInvoke(iar);
+>>>>>>> avn/ubitvar
         }
 
         /// <summary>
         /// Internal SendGridInstantMessage over XMLRPC method.
         /// </summary>
+<<<<<<< HEAD
         /// <remarks>
         /// This is called from within a dedicated thread.
         /// </remarks>
         private void SendGridInstantMessageViaXMLRPCAsync(GridInstantMessage im, MessageResultNotification result)
+=======
+        /// <param name="prevRegionHandle">
+        /// Pass in 0 the first time this method is called.  It will be called recursively with the last 
+        /// regionhandle tried
+        /// </param>
+        private void SendGridInstantMessageViaXMLRPCAsyncMain(GridInstantMessage im, MessageResultNotification result)
+>>>>>>> avn/ubitvar
         {
+            GIM gim;
+            do {
+                try {
+                    SendGridInstantMessageViaXMLRPCAsync(im, result, UUID.Zero);
+                } catch (Exception e) {
+                    m_log.Error("[SendGridInstantMessageViaXMLRPC]: exception " + e.Message);
+                }
+                lock (pendingInstantMessages) {
+                    if (pendingInstantMessages.Count > 0) {
+                        gim = pendingInstantMessages.Dequeue();
+                        im = gim.im;
+                        result = gim.result;
+                    } else {
+                        gim = null;
+                        -- numInstantMessageThreads;
+                        //m_log.DebugFormat("[SendGridInstantMessageViaXMLRPC]: --numInstantMessageThreads={0}", numInstantMessageThreads);
+                    }
+                }
+            } while (gim != null);
+        }
+        private void SendGridInstantMessageViaXMLRPCAsync(GridInstantMessage im, MessageResultNotification result, UUID prevRegionID)
+        {
+
             UUID toAgentID = new UUID(im.toAgentID);
             UUID regionID;
             bool needToLookupAgent;
@@ -494,6 +569,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     break;
                 }
 
+<<<<<<< HEAD
                 // Try to send the message to the agent via the retrieved region.
                 Hashtable msgdata = ConvertGridInstantMessageToXMLRPC(im);
                 msgdata["region_handle"] = 0;
@@ -501,6 +577,13 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
                 // If the message delivery was successful, then cache the entry.
                 if (imresult)
+=======
+            if (upd != null)
+            {
+                GridRegion reginfo = m_Scenes[0].GridService.GetRegionByUUID(UUID.Zero,
+                    upd.RegionID);
+                if (reginfo != null)
+>>>>>>> avn/ubitvar
                 {
                     lock (m_UserRegionMap)
                     {
@@ -622,6 +705,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             gim["position_z"] = msg.Position.Z.ToString();
             gim["region_id"] = new UUID(msg.RegionID).ToString();
             gim["binary_bucket"] = Convert.ToBase64String(msg.binaryBucket,Base64FormattingOptions.None);
+            if (m_MessageKey != String.Empty)
+                gim["message_key"] = m_MessageKey;
             return gim;
         }
 

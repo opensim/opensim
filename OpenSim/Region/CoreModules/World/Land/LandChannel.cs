@@ -40,23 +40,33 @@ namespace OpenSim.Region.CoreModules.World.Land
         //Land types set with flags in ParcelOverlay.
         //Only one of these can be used.
         public const float BAN_LINE_SAFETY_HIEGHT = 100;
-        public const byte LAND_FLAG_PROPERTY_BORDER_SOUTH = 128; //Equals 10000000
-        public const byte LAND_FLAG_PROPERTY_BORDER_WEST = 64; //Equals 01000000
 
         //RequestResults (I think these are right, they seem to work):
         public const int LAND_RESULT_MULTIPLE = 1; // The request they made contained more than a single peice of land
         public const int LAND_RESULT_SINGLE = 0; // The request they made contained only a single piece of land
 
         //ParcelSelectObjects
+        public const int LAND_SELECT_OBJECTS_OWNER = 2;
         public const int LAND_SELECT_OBJECTS_GROUP = 4;
         public const int LAND_SELECT_OBJECTS_OTHER = 8;
-        public const int LAND_SELECT_OBJECTS_OWNER = 2;
-        public const byte LAND_TYPE_IS_BEING_AUCTIONED = 5; //Equals 00000101
-        public const byte LAND_TYPE_IS_FOR_SALE = 4; //Equals 00000100
-        public const byte LAND_TYPE_OWNED_BY_GROUP = 2; //Equals 00000010
-        public const byte LAND_TYPE_OWNED_BY_OTHER = 1; //Equals 00000001
-        public const byte LAND_TYPE_OWNED_BY_REQUESTER = 3; //Equals 00000011
+
+        
         public const byte LAND_TYPE_PUBLIC = 0; //Equals 00000000
+        // types 1 to 7 are exclusive
+        public const byte LAND_TYPE_OWNED_BY_OTHER = 1; //Equals 00000001
+        public const byte LAND_TYPE_OWNED_BY_GROUP = 2; //Equals 00000010
+        public const byte LAND_TYPE_OWNED_BY_REQUESTER = 3; //Equals 00000011
+        public const byte LAND_TYPE_IS_FOR_SALE = 4; //Equals 00000100
+        public const byte LAND_TYPE_IS_BEING_AUCTIONED = 5; //Equals 00000101
+        public const byte LAND_TYPE_unused6 = 6;
+        public const byte LAND_TYPE_unused7 = 7;
+        // next are flags
+        public const byte LAND_FLAG_unused8 = 0x08; // this may become excluside in future
+        public const byte LAND_FLAG_HIDEAVATARS = 0x10;
+        public const byte LAND_FLAG_LOCALSOUND = 0x20;
+        public const byte LAND_FLAG_PROPERTY_BORDER_WEST = 0x40; //Equals 01000000
+        public const byte LAND_FLAG_PROPERTY_BORDER_SOUTH = 0x80; //Equals 10000000
+
 
         //These are other constants. Yay!
         public const int START_LAND_LOCAL_ID = 1;
@@ -203,7 +213,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                 m_landManagementModule.setParcelOtherCleanTime(remoteClient, localID, otherCleanTime);
             }
         }
-
+        public void sendClientInitialLandInfo(IClientAPI remoteClient)
+        {
+            if (m_landManagementModule != null)
+            {
+                m_landManagementModule.sendClientInitialLandInfo(remoteClient);
+            }
+        }
         #endregion
     }
 }

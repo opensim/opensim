@@ -38,6 +38,7 @@ using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Tests.Common;
 
+/*
 namespace OpenSim.Capabilities.Handlers.GetTexture.Tests
 {
     [TestFixture]
@@ -60,3 +61,4 @@ namespace OpenSim.Capabilities.Handlers.GetTexture.Tests
         }
     }
 }
+*/

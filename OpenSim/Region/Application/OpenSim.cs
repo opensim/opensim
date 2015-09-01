@@ -109,13 +109,19 @@ namespace OpenSim
                     m_timeInterval = startupConfig.GetInt("timer_Interval", 1200);
                 }
 
+                AvatarWearable.MAX_WEARABLES = startupConfig.GetInt("max_wearables", AvatarWearable.MAX_WEARABLES);
                 string asyncCallMethodStr = startupConfig.GetString("async_call_method", String.Empty);
                 FireAndForgetMethod asyncCallMethod;
                 if (!String.IsNullOrEmpty(asyncCallMethodStr) && Utils.EnumTryParse<FireAndForgetMethod>(asyncCallMethodStr, out asyncCallMethod))
                     Util.FireAndForgetMethod = asyncCallMethod;
 
+<<<<<<< HEAD
                 stpMinThreads = startupConfig.GetInt("MinPoolThreads", 15);
                 stpMaxThreads = startupConfig.GetInt("MaxPoolThreads", 300);
+=======
+                stpMinThreads = startupConfig.GetInt("MinPoolThreads", 2 );
+                stpMaxThreads = startupConfig.GetInt("MaxPoolThreads", 25);
+>>>>>>> avn/ubitvar
                 m_consolePrompt = startupConfig.GetString("ConsolePrompt", @"Region (\R) ");
             }
 
@@ -267,12 +273,20 @@ namespace OpenSim
                                           SavePrimsXml2);
 
             m_console.Commands.AddCommand("Archiving", false, "load oar",
+<<<<<<< HEAD
+=======
+
+>>>>>>> avn/ubitvar
                                           "load oar [--merge] [--skip-assets]"
                                              + " [--default-user \"User Name\"]"
                                              + " [--force-terrain] [--force-parcels]"
                                              + " [--no-objects]"
                                              + " [--rotation degrees] [--rotation-center \"<x,y,z>\"]"
+<<<<<<< HEAD
                                              + " [--displacement \"<x,y,z>\"]"                                             
+=======
+                                             + " [--displacement \"<x,y,z>\"]"
+>>>>>>> avn/ubitvar
                                              + " [<OAR path>]",
                                           "Load a region's data from an OAR archive.",
                                           "--merge will merge the OAR with the existing scene (suppresses terrain and parcel info loading).\n"
@@ -500,7 +514,7 @@ namespace OpenSim
                     if (alert != null)
                         presence.ControllingClient.Kick(alert);
                     else
-                        presence.ControllingClient.Kick("\nThe OpenSim manager kicked you out.\n");
+                        presence.ControllingClient.Kick("\nYou have been logged out by an administrator.\n");
 
                     presence.Scene.CloseAgent(presence.UUID, force);
                     break;
@@ -1028,15 +1042,25 @@ namespace OpenSim
             cdt.AddColumn("Circuit code", 12);
             cdt.AddColumn("Endpoint", 23);
             cdt.AddColumn("Active?", 7);
+            cdt.AddColumn("ChildAgent?", 7);
+            cdt.AddColumn("ping(ms)", 8);
 
             SceneManager.ForEachScene(
                 s => s.ForEachClient(
-                    c => cdt.AddRow(
-                        s.Name,
-                        c.Name,
-                        c.CircuitCode.ToString(),
-                        c.RemoteEndPoint.ToString(),                
-                        c.IsActive.ToString())));
+                    c =>
+                        {
+                            bool child = false;
+                            if(c.SceneAgent != null && c.SceneAgent.IsChildAgent)
+                                child = true;
+                            cdt.AddRow(
+                            s.Name,
+                            c.Name,
+                            c.CircuitCode.ToString(),
+                            c.RemoteEndPoint.ToString(),
+                            c.IsActive.ToString(),
+                            child.ToString(),
+                            c.PingTimeMS);
+                        }));
 
             MainConsole.Instance.Output(cdt.ToString());
         }

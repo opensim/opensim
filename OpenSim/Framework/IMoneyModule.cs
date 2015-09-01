@@ -33,7 +33,7 @@ namespace OpenSim.Framework
     public interface IMoneyModule
     {
         bool ObjectGiveMoney(UUID objectID, UUID fromID, UUID toID,
-                int amount);
+                int amount, UUID txn, out string reason);
 
         int GetBalance(UUID agentID);
         bool UploadCovered(UUID agentID, int amount);
@@ -41,6 +41,7 @@ namespace OpenSim.Framework
         void ApplyCharge(UUID agentID, int amount, MoneyTransactionType type);
         void ApplyCharge(UUID agentID, int amount, MoneyTransactionType type, string extraData);
         void ApplyUploadCharge(UUID agentID, int amount, string text);
+        void MoveMoney(UUID fromUser, UUID toUser, int amount, string text);
 
         int UploadCharge { get; }
         int GroupCreationCharge { get; }

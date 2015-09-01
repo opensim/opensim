@@ -34,7 +34,7 @@ using log4net;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 {
-    public class UserAccountCache
+    public class UserAccountCache : IUserAccountCacheModule
     {
         private const double CACHE_EXPIRATION_SECONDS = 120000.0; // 33 hours!
 
@@ -96,6 +96,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                 }
 
             return null;
+        }
+
+        public void Remove(string name)
+        {
+            if (!m_NameCache.Contains(name))
+                return;
+
+            UUID uuid = UUID.Zero;
+            if (m_NameCache.TryGetValue(name, out uuid))
+            {
+                m_NameCache.Remove(name);
+                m_UUIDCache.Remove(uuid);
+            }
         }
     }
 }

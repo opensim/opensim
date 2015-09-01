@@ -149,13 +149,75 @@ namespace OpenSim.Services.Connectors
             return false;
         }
 
-        public bool AddMapTile(int x, int y, byte[] jpgData, out string reason)
+        public bool RemoveMapTile(int x, int y, UUID scopeID, out string reason)
         {
             reason = string.Empty;
             int tickstart = Util.EnvironmentTickCount();
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             sendData["X"] = x.ToString();
             sendData["Y"] = y.ToString();
+            sendData["SCOPE"] = scopeID.ToString();
+
+            string reqString = ServerUtils.BuildQueryString(sendData);
+            string uri = m_ServerURI + "/removemap";
+
+            try
+            {
+                string reply = SynchronousRestFormsRequester.MakeRequest("POST",
+                        uri,
+                        reqString);
+                if (reply != string.Empty)
+                {
+                    Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
+
+                    if (replyData.ContainsKey("Result") && (replyData["Result"].ToString().ToLower() == "success"))
+                    {
+                        return true;
+                    }
+                    else if (replyData.ContainsKey("Result") && (replyData["Result"].ToString().ToLower() == "failure"))
+                    {
+                        m_log.DebugFormat("[MAP IMAGE CONNECTOR]: Delete failed: {0}", replyData["Message"].ToString());
+                        reason = replyData["Message"].ToString();
+                        return false;
+                    }
+                    else if (!replyData.ContainsKey("Result"))
+                    {
+                        m_log.DebugFormat("[MAP IMAGE CONNECTOR]: reply data does not contain result field");
+                    }
+                    else
+                    {
+                        m_log.DebugFormat("[MAP IMAGE CONNECTOR]: unexpected result {0}", replyData["Result"].ToString());
+                        reason = "Unexpected result " + replyData["Result"].ToString();
+                    }
+
+                }
+                else
+                {
+                    m_log.DebugFormat("[MAP IMAGE CONNECTOR]: Map post received null reply");
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[MAP IMAGE CONNECTOR]: Exception when contacting map server at {0}: {1}", uri, e.Message);
+            }
+            finally
+            {
+                // This just dumps a warning for any operation that takes more than 100 ms
+                int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
+                m_log.DebugFormat("[MAP IMAGE CONNECTOR]: map tile deleted in {0}ms", tickdiff);
+            }
+
+            return false;
+        }
+
+        public bool AddMapTile(int x, int y, byte[] jpgData, UUID scopeID, out string reason)
+        {
+            reason = string.Empty;
+            int tickstart = Util.EnvironmentTickCount();
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            sendData["X"] = x.ToString();
+            sendData["Y"] = y.ToString();
+            sendData["SCOPE"] = scopeID.ToString();
             sendData["TYPE"] = "image/jpeg";
             sendData["DATA"] = Convert.ToBase64String(jpgData);
 
@@ -216,7 +278,7 @@ namespace OpenSim.Services.Connectors
 
         }
 
-        public byte[] GetMapTile(string fileName, out string format)
+        public byte[] GetMapTile(string fileName, UUID scopeID, out string format)
         {
             format = string.Empty;
             new Exception("GetMapTile method not Implemented");

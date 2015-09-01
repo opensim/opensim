@@ -83,7 +83,7 @@ namespace OpenSim.Framework.Console
             = "To enter an argument that contains spaces, surround the argument with double quotes.\nFor example, show object name \"My long object name\"\n";
 
         public const string ItemHelpText
-= @"For more information, type 'help all' to get a list of all commands, 
+= @"For more information, type 'help' to get a list of all commands, 
   or type help <item>' where <item> is one of the following:";
 
         /// <value>
@@ -116,12 +116,14 @@ namespace OpenSim.Framework.Console
             if (helpParts.Count == 0)
             {
                 help.Add(GeneralHelpText);
+                help.AddRange(CollectAllCommandsHelp());
+            }
+            else if (helpParts.Count == 1 && helpParts[0] == "categories")
+            {
+                help.Add(""); // Will become a newline.
+                help.Add(GeneralHelpText);
                 help.Add(ItemHelpText);
                 help.AddRange(CollectModulesHelp(tree));
-            }
-            else if (helpParts.Count == 1 && helpParts[0] == "all")
-            {
-                help.AddRange(CollectAllCommandsHelp());
             }
             else
             {
@@ -145,8 +147,11 @@ namespace OpenSim.Framework.Console
             {
                 foreach (List<CommandInfo> commands in m_modulesCommands.Values)
                 {
-                    var ourHelpText = commands.ConvertAll(c => string.Format("{0} - {1}", c.help_text, c.long_help));
-                    help.AddRange(ourHelpText);
+                    foreach (CommandInfo c in commands)
+                    {
+                        if (c.long_help != String.Empty)
+                            help.Add(string.Format("{0} - {1}", c.help_text, c.long_help));
+                    }
                 }
             }
 

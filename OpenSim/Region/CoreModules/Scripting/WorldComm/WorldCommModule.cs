@@ -96,6 +96,8 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         // private static readonly ILog m_log =
         //     LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private const int DEBUG_CHANNEL = 2147483647;
+
         private ListenerManager m_listenerManager;
         private Queue m_pending;
         private Queue m_pendingQ;
@@ -366,14 +368,19 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         /// <param name='msg'>
         /// Message.
         /// </param>
-        public void DeliverMessageTo(UUID target, int channel, Vector3 pos,
-                string name, UUID id, string msg)
+        public bool DeliverMessageTo(UUID target, int channel, Vector3 pos, string name, UUID id, string msg, out string error)
         {
+            error = null;
+
+            if (channel == DEBUG_CHANNEL)
+                return true;
+
             // Is id an avatar?
             ScenePresence sp = m_scene.GetScenePresence(target);
 
             if (sp != null)
             {
+<<<<<<< HEAD
                 // ignore if a child agent this is restricted to inside one
                 // region
                 if (sp.IsChildAgent)
@@ -386,41 +393,50 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                     List<SceneObjectGroup> attachments = sp.GetAttachments();
                     if (attachments.Count == 0)
                         return;
+=======
+                // Send message to avatar
+                if (channel == 0)
+                {
+                    // Channel 0 goes to viewer ONLY
+                    m_scene.SimChat(Utils.StringToBytes(msg), ChatTypeEnum.Broadcast, 0, pos, name, id, target, false, false);
+                    return true;
+                }
+>>>>>>> avn/ubitvar
 
-                    // Get uuid of attachments
-                    List<UUID> targets = new List<UUID>();
-                    foreach (SceneObjectGroup sog in attachments)
-                    {
-                        if (!sog.IsDeleted)
-                            targets.Add(sog.UUID);
-                    }
+                List<SceneObjectGroup> attachments = sp.GetAttachments();
 
-                    // Need to check each attachment
-                    foreach (ListenerInfo li
-                            in m_listenerManager.GetListeners(UUID.Zero,
-                            channel, name, id, msg))
-                    {
-                        if (li.GetHostID().Equals(id))
-                            continue;
+                if (attachments.Count == 0)
+                    return true;
 
-                        if (m_scene.GetSceneObjectPart(
-                                li.GetHostID()) == null)
-                        {
-                            continue;
-                        }
-
-                        if (targets.Contains(li.GetHostID()))
-                            QueueMessage(new ListenerInfo(li, name, id, msg));
-                    }
+                // Get uuid of attachments
+                List<UUID> targets = new List<UUID>();
+                foreach (SceneObjectGroup sog in attachments)
+                {
+                    if (!sog.IsDeleted)
+                        targets.Add(sog.UUID);
                 }
 
-                return;
+                // Need to check each attachment
+                foreach (ListenerInfo li in m_listenerManager.GetListeners(UUID.Zero, channel, name, id, msg))
+                {
+                    if (li.GetHostID().Equals(id))
+                        continue;
+
+                    if (m_scene.GetSceneObjectPart(li.GetHostID()) == null)
+                        continue;
+
+                    if (targets.Contains(li.GetHostID()))
+                        QueueMessage(new ListenerInfo(li, name, id, msg));
+                }
+
+                return true;
             }
 
-            // No avatar found so look for an object
-            foreach (ListenerInfo li
-                    in m_listenerManager.GetListeners(UUID.Zero, channel,
-                    name, id, msg))
+            SceneObjectPart part = m_scene.GetSceneObjectPart(target);
+            if (part == null) // Not even an object
+                return true; // No error
+
+            foreach (ListenerInfo li in m_listenerManager.GetListeners(UUID.Zero, channel, name, id, msg))
             {
                 // Dont process if this message is from yourself!
                 if (li.GetHostID().Equals(id))
@@ -438,7 +454,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 }
             }
 
-            return;
+            return true;
         }
 
         protected void QueueMessage(ListenerInfo li)

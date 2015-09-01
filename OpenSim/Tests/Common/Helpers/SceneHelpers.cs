@@ -152,13 +152,22 @@ namespace OpenSim.Tests.Common
 
             PhysicsPluginManager physicsPluginManager = new PhysicsPluginManager();
             physicsPluginManager.LoadPluginsFromAssembly("Physics/OpenSim.Region.Physics.BasicPhysicsPlugin.dll");
+<<<<<<< HEAD
             Vector3 regionExtent = new Vector3( regInfo.RegionSizeX, regInfo.RegionSizeY, regInfo.RegionSizeZ);
             PhysicsScene physicsScene 
+=======
+            Vector3 regionExtent = new Vector3(regInfo.RegionSizeX, regInfo.RegionSizeY, regInfo.RegionSizeZ);
+            PhysicsScene physicsScene
+>>>>>>> avn/ubitvar
                 = physicsPluginManager.GetPhysicsScene(
                     "basicphysics", "ZeroMesher", new IniConfigSource(), "test", regionExtent);
 
             TestScene testScene = new TestScene(
+<<<<<<< HEAD
                 regInfo, m_acm, physicsScene, scs, SimDataService, m_estateDataService, configSource, null);
+=======
+                regInfo, m_acm, physicsScene, scs, m_simDataService, m_estateDataService, configSource, null);
+>>>>>>> avn/ubitvar
 
             INonSharedRegionModule godsModule = new GodsModule();
             godsModule.Initialise(new IniConfigSource());
@@ -201,7 +210,11 @@ namespace OpenSim.Tests.Common
             testScene.SetModuleInterfaces();
 
             testScene.LandChannel = new TestLandChannel(testScene);
+<<<<<<< HEAD
             testScene.LoadWorldMap();           
+=======
+            testScene.LoadWorldMap();
+>>>>>>> avn/ubitvar
 
             testScene.RegionInfo.EstateSettings = new EstateSettings();
             testScene.LoginsEnabled = true;

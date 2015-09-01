@@ -57,7 +57,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int ACTIVE = 2;
         public const int PASSIVE = 4;
         public const int SCRIPTED = 8;
-        public const int OS_NPC = 0x01000000;
 
         public const int CONTROL_FWD = 1;
         public const int CONTROL_BACK = 2;
@@ -82,6 +81,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PERMISSION_CHANGE_PERMISSIONS = 512;
         public const int PERMISSION_TRACK_CAMERA = 1024;
         public const int PERMISSION_CONTROL_CAMERA = 2048;
+        public const int PERMISSION_TELEPORT = 4096;
+        public const int PERMISSION_OVERRIDE_ANIMATIONS = 0x8000;
 
         public const int AGENT_FLYING = 1;
         public const int AGENT_ATTACHMENTS = 2;
@@ -96,6 +97,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int AGENT_CROUCHING = 1024;
         public const int AGENT_BUSY = 2048;
         public const int AGENT_ALWAYS_RUN = 4096;
+        public const int AGENT_MALE = 8192;
 
         //Particle Systems
         public const int PSYS_PART_INTERP_COLOR_MASK = 1;
@@ -353,6 +355,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int CHANGED_REGION_START = 1024; //LL Changed the constant from CHANGED_REGION_RESTART
         public const int CHANGED_MEDIA = 2048;
         public const int CHANGED_ANIMATION = 16384;
+        public const int CHANGED_POSITION = 32768;
         public const int TYPE_INVALID = 0;
         public const int TYPE_INTEGER = 1;
         public const int TYPE_FLOAT = 2;
@@ -708,7 +711,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int FRICTION = 2;
         public const int RESTITUTION = 4;
         public const int GRAVITY_MULTIPLIER = 8;
-
+        
         // extra constants for llSetPrimMediaParams
         public static readonly LSLInteger LSL_STATUS_OK = new LSLInteger(0);
         public static readonly LSLInteger LSL_STATUS_MALFORMED_PARAMS = new LSLInteger(1000);
@@ -794,6 +797,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int KFM_CMD_PLAY = 0;
         public const int KFM_CMD_STOP = 1;
         public const int KFM_CMD_PAUSE = 2;
+
+        public const string JSON_ARRAY = "JSON_ARRAY";
+        public const string JSON_OBJECT = "JSON_OBJECT";
+        public const string JSON_INVALID = "JSON_INVALID";
+        public const string JSON_NUMBER = "JSON_NUMBER";
+        public const string JSON_STRING = "JSON_STRING";
+        public const string JSON_TRUE = "JSON_TRUE";
+        public const string JSON_FALSE = "JSON_FALSE";
+        public const string JSON_NULL = "JSON_NULL";
+        public const string JSON_APPEND = "JSON_APPEND";
 
         /// <summary>
         /// process name parameter as regex

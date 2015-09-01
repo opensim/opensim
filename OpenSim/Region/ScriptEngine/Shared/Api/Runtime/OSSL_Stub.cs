@@ -440,11 +440,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osParseJSON(JSON);
         }
         
-        public Object osParseJSONNew(string JSON)
-        {
-            return m_OSSL_Functions.osParseJSONNew(JSON);
-        }
-
         public void osMessageObject(key objectUUID,string message)
         {
             m_OSSL_Functions.osMessageObject(objectUUID,message);
@@ -744,14 +739,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                 if (Position.y > ((int)Constants.RegionSize - 1))
                     Position.y = ((int)Constants.RegionSize - 1);
                  */
+<<<<<<< HEAD
                 if (Position.z > Constants.RegionHeight)
                     Position.z = Constants.RegionHeight;
+=======
+>>>>>>> avn/ubitvar
                 if (Position.x < 0)
                     Position.x = 0;
                 if (Position.y < 0)
                     Position.y = 0;
                 if (Position.z < 0)
                     Position.z = 0;
+                if (Position.z > Constants.RegionHeight)
+                    Position.z = Constants.RegionHeight;
                 prim.OSSL.llSetPos(Position);
             }
 

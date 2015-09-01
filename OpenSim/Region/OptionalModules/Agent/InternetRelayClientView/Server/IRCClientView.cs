@@ -58,6 +58,8 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public ISceneAgent SceneAgent { get; set; }
 
+        public int PingTimeMS { get { return 0; } }
+
         private string m_username;
         private string m_nick;
 
@@ -65,6 +67,8 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         private bool m_hasUser = false;
 
         private bool m_connected = true;
+
+        public List<uint> SelectedObjects {get; private set;}
 
         public IRCClientView(TcpClient client, Scene scene)
         {
@@ -671,6 +675,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public event ObjectDrop OnObjectDrop;
         public event StartAnim OnStartAnim;
         public event StopAnim OnStopAnim;
+        public event ChangeAnim OnChangeAnim;
         public event LinkObjects OnLinkObjects;
         public event DelinkObjects OnDelinkObjects;
         public event RequestMapBlocks OnRequestMapBlocks;
@@ -717,6 +722,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public event RequestObjectPropertiesFamily OnRequestObjectPropertiesFamily;
         public event UpdatePrimFlags OnUpdatePrimFlags;
         public event UpdatePrimTexture OnUpdatePrimTexture;
+        public event ClientChangeObject onClientChangeObject;
         public event UpdateVector OnUpdatePrimGroupPosition;
         public event UpdateVector OnUpdatePrimSinglePosition;
         public event UpdatePrimRotation OnUpdatePrimGroupRotation;
@@ -821,6 +827,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public event ObjectOwner OnObjectOwner;
         public event DirPlacesQuery OnDirPlacesQuery;
         public event DirFindQuery OnDirFindQuery;
+        public event MoveItemsAndLeaveCopy OnMoveItemsAndLeaveCopy;
         public event DirLandQuery OnDirLandQuery;
         public event DirPopularQuery OnDirPopularQuery;
         public event DirClassifiedQuery OnDirClassifiedQuery;
@@ -837,7 +844,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public event ClassifiedInfoRequest OnClassifiedInfoRequest;
         public event ClassifiedInfoUpdate OnClassifiedInfoUpdate;
         public event ClassifiedDelete OnClassifiedDelete;
-        public event ClassifiedDelete OnClassifiedGodDelete;
+        public event ClassifiedGodDelete OnClassifiedGodDelete;
         public event EventNotificationAddRequest OnEventNotificationAddRequest;
         public event EventNotificationRemoveRequest OnEventNotificationRemoveRequest;
         public event EventGodDelete OnEventGodDelete;
@@ -867,10 +874,12 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public event GroupVoteHistoryRequest OnGroupVoteHistoryRequest;
         public event SimWideDeletesDelegate OnSimWideDeletes;
         public event SendPostcard OnSendPostcard;
+        public event ChangeInventoryItemFlags OnChangeInventoryItemFlags;
         public event MuteListEntryUpdate OnUpdateMuteListEntry;
         public event MuteListEntryRemove OnRemoveMuteListEntry;
         public event GodlikeMessage onGodlikeMessage;
         public event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdate;
+        public event GenericCall2 OnUpdateThrottles;
 
 #pragma warning restore 67
 
@@ -888,10 +897,10 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public void Close()
         {
-            Close(false);
+            Close(true, false);
         }
 
-        public void Close(bool force)
+        public void Close(bool sendStop, bool force)
         {
             Disconnect();
         }
@@ -986,6 +995,11 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public void SendGenericMessage(string method, UUID invoice, List<byte[]> message)
         {
             
+        }
+
+        public virtual bool CanSendLayerData()
+        {
+            return false;
         }
 
         public void SendLayerData(float[] map)
@@ -1104,7 +1118,12 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public void SendInventoryItemCreateUpdate(InventoryItemBase Item, uint callbackId)
         {
-            
+
+        }
+
+        public void SendInventoryItemCreateUpdate(InventoryItemBase Item, UUID transactionID, uint callbackId)
+        {
+
         }
 
         public void SendRemoveInventoryItem(UUID itemID)
@@ -1127,7 +1146,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
-        public void SendXferPacket(ulong xferID, uint packet, byte[] data)
+        public void SendXferPacket(ulong xferID, uint packet, byte[] data, bool isTaskInventory)
         {
             
         }
@@ -1421,6 +1440,16 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         }
 
+        public virtual void SetChildAgentThrottle(byte[] throttle,float factor)
+        {
+
+        }
+
+        public void SetAgentThrottleSilent(int throttle, int setting)
+        {
+           
+
+        }
         public byte[] GetThrottlesPacked(float multiplier)
         {
             return new byte[0];
@@ -1687,5 +1716,13 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         {
         }
 
+        public void SendPartFullUpdate(ISceneEntity ent, uint? parentID)
+        {
+        }
+
+        public int GetAgentThrottleSilent(int throttle)
+        {
+            return 0;
+        }
     }
 }

@@ -72,7 +72,7 @@ namespace OpenSim.Framework
         private UUID _loadedID = UUID.Zero;
 
         private bool _ownerChanged = false;
-
+        
         public UUID AssetID {
             get {
                 return _assetID;

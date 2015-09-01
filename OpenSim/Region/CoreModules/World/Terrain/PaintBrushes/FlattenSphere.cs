@@ -35,16 +35,17 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
     {
         #region ITerrainPaintableEffect Members
 
-        public void PaintEffect(ITerrainChannel map, bool[,] mask, double rx, double ry, double rz, double strength, double duration)
+        public void PaintEffect(ITerrainChannel map, bool[,] mask, double rx, double ry, double rz,
+            double strength, double duration, int startX, int endX, int startY, int endY)
         {
             strength = TerrainUtil.MetersToSphericalStrength(strength);
 
             int x, y;
 
             // blend in map
-            for (x = 0; x < map.Width; x++)
+            for (x = startX; x <= endX; x++)
             {
-                for (y = 0; y < map.Height; y++)
+                for (y = startY; y <= endY; y++)
                 {
                     if (!mask[x,y])
                         continue;

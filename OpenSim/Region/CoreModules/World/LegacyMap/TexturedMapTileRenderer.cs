@@ -270,8 +270,14 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 
         // the heigthfield might have some jumps in values. Rendered land is smooth, though,
         // as a slope is rendered at that place. So average 4 neighbour values to emulate that.
+<<<<<<< HEAD
         private float getHeight(ITerrainChannel hm, int x, int y) {
             if (x < (hm.Width - 1) && y < (hm.Height - 1))
+=======
+        private float getHeight(ITerrainChannel hm, int x, int y)
+        {
+            if (x < ((int)Constants.RegionSize - 1) && y < ((int)Constants.RegionSize - 1))
+>>>>>>> avn/ubitvar
                 return (float)(hm[x, y] * .444 + (hm[x + 1, y] + hm[x, y + 1]) * .222 + hm[x + 1, y +1] * .112);
             else
                 return (float)hm[x, y];
@@ -289,6 +295,14 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             {
                 m_log.ErrorFormat("{0} TerrainToBitmap. Passed bitmap wrong dimensions. passed=<{1},{2}>, size=<{3},{4}>",
                     LogHeader, mapbmp.Width, mapbmp.Height, hm.Width, hm.Height);
+            }
+
+            ITerrainChannel hm = m_scene.Heightmap;
+
+            if (mapbmp.Width != hm.Width || mapbmp.Height != hm.Height)
+            {
+                m_log.ErrorFormat("{0} TerrainToBitmap. Passed bitmap wrong dimensions. passed=<{1},{2}>, size=<{3},{4}>",
+                    "[TEXTURED MAP TILE RENDERER]", mapbmp.Width, mapbmp.Height, hm.Width, hm.Height);
             }
 
             // These textures should be in the AssetCache anyway, as every client conneting to this
@@ -371,8 +385,8 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                             // first, rescale h to 0.0 - 1.0
                             hmod = (hmod - low) / (high - low);
                             // now we have to split: 0.00 => color1, 0.33 => color2, 0.67 => color3, 1.00 => color4
-                            if (hmod < 1f/3f) hsv = interpolateHSV(ref hsv1, ref hsv2, hmod * 3f);
-                            else if (hmod < 2f/3f) hsv = interpolateHSV(ref hsv2, ref hsv3, (hmod * 3f) - 1f);
+                            if (hmod < 1f / 3f) hsv = interpolateHSV(ref hsv1, ref hsv2, hmod * 3f);
+                            else if (hmod < 2f / 3f) hsv = interpolateHSV(ref hsv2, ref hsv3, (hmod * 3f) - 1f);
                             else hsv = interpolateHSV(ref hsv3, ref hsv4, (hmod * 3f) - 2f);
                         }
 

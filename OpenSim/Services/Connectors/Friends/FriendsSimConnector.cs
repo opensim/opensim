@@ -144,44 +144,48 @@ namespace OpenSim.Services.Connectors.Friends
 
         private bool Call(GridRegion region, Dictionary<string, object> sendData)
         {
-            string reqString = ServerUtils.BuildQueryString(sendData);
-            //m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: queryString = {0}", reqString);
-            if (region == null)
-                return false;
+            Util.FireAndForget(x => {
+                string reqString = ServerUtils.BuildQueryString(sendData);
+                //m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: queryString = {0}", reqString);
+                if (region == null)
+                    return;
 
-            string path = ServicePath();
-            if (!region.ServerURI.EndsWith("/"))
-                path = "/" + path;
-            string uri = region.ServerURI + path;
-//            m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: calling {0}", uri);
+                string path = ServicePath();
+                if (!region.ServerURI.EndsWith("/"))
+                    path = "/" + path;
+                string uri = region.ServerURI + path;
+                // m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: calling {0}", uri);
 
-            try
-            {
-                string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString);
-                if (reply != string.Empty)
+                try
                 {
-                    Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
-
-                    if (replyData.ContainsKey("RESULT"))
+                    string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString);
+                    if (reply != string.Empty)
                     {
-                        if (replyData["RESULT"].ToString().ToLower() == "true")
-                            return true;
+                        Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
+
+                        if (replyData.ContainsKey("RESULT"))
+                        {
+//                            if (replyData["RESULT"].ToString().ToLower() == "true")
+//                                return;
+//                            else
+                            return;
+                        }
                         else
-                            return false;
+                            m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: reply data does not contain result field");
+
                     }
                     else
-                        m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: reply data does not contain result field");
-
+                        m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: received empty reply");
                 }
-                else
-                    m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: received empty reply");
-            }
-            catch (Exception e)
-            {
-                m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: Exception when contacting remote sim at {0}: {1}", uri, e.Message);
-            }
+                catch (Exception e)
+                {
+                    m_log.DebugFormat("[FRIENDS SIM CONNECTOR]: Exception when contacting remote sim at {0}: {1}", uri, e.Message);
+                }
 
-            return false;
+                return;
+            });
+
+            return true;
         }
     }
 }

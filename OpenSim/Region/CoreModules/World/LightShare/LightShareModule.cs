@@ -190,6 +190,9 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
         public void SendProfileToClient(IClientAPI client, RegionLightShareData wl)
         {
+            if (client == null)
+                return;
+
             if (m_enableWindlight)
             {
                 if (m_scene.RegionInfo.WindlightSettings.valid)
@@ -207,8 +210,8 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
         private void EventManager_OnMakeRootAgent(ScenePresence presence)
         {
-//            m_log.Debug("[WINDLIGHT]: Sending windlight scene to new client {0}", presence.Name);
-
+            if (m_enableWindlight && m_scene.RegionInfo.WindlightSettings.valid)
+                m_log.Debug("[WINDLIGHT]: Sending windlight scene to new client");
             SendProfileToClient(presence.ControllingClient);
         }
 

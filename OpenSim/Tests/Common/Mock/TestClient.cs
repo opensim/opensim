@@ -88,7 +88,7 @@ namespace OpenSim.Tests.Common
         public event MoneyTransferRequest OnMoneyTransferRequest;
         public event ParcelBuy OnParcelBuy;
         public event Action<IClientAPI> OnConnectionClosed;
-
+        public event MoveItemsAndLeaveCopy OnMoveItemsAndLeaveCopy;
         public event ImprovedInstantMessage OnInstantMessage;
         public event ChatMessage OnChatFromClient;
         public event TextureRequest OnRequestTexture;
@@ -105,6 +105,7 @@ namespace OpenSim.Tests.Common
         public event ObjectDrop OnObjectDrop;
         public event StartAnim OnStartAnim;
         public event StopAnim OnStopAnim;
+        public event ChangeAnim OnChangeAnim;
         public event LinkObjects OnLinkObjects;
         public event DelinkObjects OnDelinkObjects;
         public event RequestMapBlocks OnRequestMapBlocks;
@@ -153,6 +154,7 @@ namespace OpenSim.Tests.Common
         public event GenericCall7 OnObjectMaterial;
         public event UpdatePrimFlags OnUpdatePrimFlags;
         public event UpdatePrimTexture OnUpdatePrimTexture;
+        public event ClientChangeObject onClientChangeObject;
         public event UpdateVector OnUpdatePrimGroupPosition;
         public event UpdateVector OnUpdatePrimSinglePosition;
         public event UpdatePrimRotation OnUpdatePrimGroupRotation;
@@ -295,7 +297,7 @@ namespace OpenSim.Tests.Common
         public event ClassifiedInfoRequest OnClassifiedInfoRequest;
         public event ClassifiedInfoUpdate OnClassifiedInfoUpdate;
         public event ClassifiedDelete OnClassifiedDelete;
-        public event ClassifiedDelete OnClassifiedGodDelete;
+        public event ClassifiedGodDelete OnClassifiedGodDelete;
 
         public event EventNotificationAddRequest OnEventNotificationAddRequest;
         public event EventNotificationRemoveRequest OnEventNotificationRemoveRequest;
@@ -334,11 +336,12 @@ namespace OpenSim.Tests.Common
         public event GroupVoteHistoryRequest OnGroupVoteHistoryRequest;
         public event SimWideDeletesDelegate OnSimWideDeletes;
         public event SendPostcard OnSendPostcard;
+        public event ChangeInventoryItemFlags OnChangeInventoryItemFlags;
         public event MuteListEntryUpdate OnUpdateMuteListEntry;
         public event MuteListEntryRemove OnRemoveMuteListEntry;
         public event GodlikeMessage onGodlikeMessage;
         public event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdate;
-
+        public event GenericCall2 OnUpdateThrottles;
 #pragma warning restore 67
 
         /// <value>
@@ -386,6 +389,8 @@ namespace OpenSim.Tests.Common
         {
             get { return FirstName + " " + LastName; }
         }
+
+        public int PingTimeMS { get { return 0; } }
 
         public bool IsActive
         {
@@ -447,6 +452,8 @@ namespace OpenSim.Tests.Common
         {
             get { return new IPEndPoint(IPAddress.Loopback, (ushort)m_circuitCode); }
         }
+
+        public List<uint> SelectedObjects {get; private set;}
 
         /// <summary>
         /// Constructor
@@ -570,8 +577,25 @@ namespace OpenSim.Tests.Common
             ReceivedKills.AddRange(localID);
         }
 
+        public void SendPartFullUpdate(ISceneEntity ent, uint? parentID)
+        {
+        }
+
         public virtual void SetChildAgentThrottle(byte[] throttle)
         {
+        }
+
+        public virtual void SetChildAgentThrottle(byte[] throttle, float factor)
+        {
+        }
+
+        public void SetAgentThrottleSilent(int throttle, int setting)
+        {
+        }
+
+        public int GetAgentThrottleSilent(int throttle)
+        {
+            return 0;
         }
 
         public byte[] GetThrottlesPacked(float multiplier)
@@ -606,6 +630,11 @@ namespace OpenSim.Tests.Common
         public void SendGenericMessage(string method, UUID invoice, List<byte[]> message)
         {
 
+        }
+
+        public virtual bool CanSendLayerData()
+        {
+            return false;
         }
 
         public virtual void SendLayerData(float[] map)
@@ -755,6 +784,10 @@ namespace OpenSim.Tests.Common
         {
         }
 
+        public void SendInventoryItemCreateUpdate(InventoryItemBase Item, UUID transactionID, uint callbackId)
+        {
+        }
+
         public virtual void SendRemoveInventoryItem(UUID itemID)
         {
         }
@@ -771,7 +804,7 @@ namespace OpenSim.Tests.Common
         {
         }
 
-        public virtual void SendXferPacket(ulong xferID, uint packet, byte[] data)
+        public virtual void SendXferPacket(ulong xferID, uint packet, byte[] data, bool isTaskInventory)
         {
         }
 
@@ -966,10 +999,10 @@ namespace OpenSim.Tests.Common
 
         public void Close()
         {
-            Close(false);
+            Close(true, false);
         }
 
-        public void Close(bool force)
+        public void Close(bool sendStop, bool force)
         {
             // Fire the callback for this connection closing
             // This is necesary to get the presence detector to notice that a client has logged out.
@@ -1318,6 +1351,5 @@ namespace OpenSim.Tests.Common
         public void SendPartPhysicsProprieties(ISceneEntity entity)
         {
         }
-
     }
 }

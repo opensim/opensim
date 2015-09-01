@@ -27,6 +27,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Timers;
 using log4net;
 using Mono.Addins;
 using Nini.Config;
@@ -43,6 +44,10 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
     {
         private static readonly ILog m_log = LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
+
+        private Timer m_logTimer = new Timer(10000);
+        private List<GridInstantMessage> m_logData = new List<GridInstantMessage>();
+        private string m_restUrl;
 
         /// <value>
         /// Is this module enabled?
@@ -63,9 +68,12 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                         "InstantMessageModule", "InstantMessageModule") !=
                         "InstantMessageModule")
                     return;
+                m_restUrl = config.Configs["Messaging"].GetString("LogURL", String.Empty);
             }
             
             m_enabled = true;
+            m_logTimer.AutoReset = false;
+            m_logTimer.Elapsed += LogTimerElapsed;
         }
 
         public void AddRegion(Scene scene)
@@ -150,6 +158,9 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         {
             byte dialog = im.dialog;
 
+            if (client != null && dialog == (byte)InstantMessageDialog.MessageFromAgent)
+                LogInstantMesssage(im);
+
             if (dialog != (byte)InstantMessageDialog.MessageFromAgent
                 && dialog != (byte)InstantMessageDialog.StartTyping
                 && dialog != (byte)InstantMessageDialog.StopTyping
@@ -158,6 +169,32 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             {
                 return;
             }
+
+            //DateTime dt = DateTime.UtcNow;
+
+            // Ticks from UtcNow, but make it look like local. Evil, huh?
+            //dt = DateTime.SpecifyKind(dt, DateTimeKind.Local);
+
+            //try
+            //{
+            //    // Convert that to the PST timezone
+            //    TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("America/Los_Angeles");
+            //    dt = TimeZoneInfo.ConvertTime(dt, timeZoneInfo);
+            //}
+            //catch
+            //{
+            //    //m_log.Info("[OFFLINE MESSAGING]: No PST timezone found on this machine. Saving with local timestamp.");
+            //}
+
+            //// And make it look local again to fool the unix time util
+            //dt = DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+
+            // If client is null, this message comes from storage and IS offline
+            if (client != null)
+                im.offline = 0;
+
+            if (im.offline == 0)
+                im.timestamp = (uint)Util.UnixTimeSinceEpoch();
 
             if (m_TransferModule != null)
             {
@@ -201,6 +238,36 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             // via grid again
             //
             OnInstantMessage(null, msg);
+        }
+
+        private void LogInstantMesssage(GridInstantMessage im)
+        {
+            if (m_logData.Count < 20)
+            {
+                // Restart the log write timer
+                m_logTimer.Stop();
+            }
+            if (!m_logTimer.Enabled)
+                m_logTimer.Start();
+
+            lock (m_logData)
+            {
+                m_logData.Add(im);
+            }
+        }
+
+        private void LogTimerElapsed(object source, ElapsedEventArgs e)
+        {
+            lock (m_logData)
+            {
+                if (m_restUrl != String.Empty && m_logData.Count > 0)
+                {
+                    bool success = SynchronousRestObjectRequester.MakeRequest<List<GridInstantMessage>, bool>("POST", m_restUrl + "/LogMessages/", m_logData);
+                    if (!success)
+                        m_log.ErrorFormat("[INSTANT MESSAGE]: Failed to save log data");
+                }
+                m_logData.Clear();
+            }
         }
     }
 }

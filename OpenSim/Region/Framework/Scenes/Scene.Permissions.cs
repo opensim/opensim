@@ -70,7 +70,7 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool IsGridGodHandler(UUID user, Scene requestFromScene);
     public delegate bool IsAdministratorHandler(UUID user);
     public delegate bool EditParcelHandler(UUID user, ILandObject parcel, Scene scene);
-    public delegate bool EditParcelPropertiesHandler(UUID user, ILandObject parcel, GroupPowers p, Scene scene);
+    public delegate bool EditParcelPropertiesHandler(UUID user, ILandObject parcel, GroupPowers p, Scene scene, bool allowManager);
     public delegate bool SellParcelHandler(UUID user, ILandObject parcel, Scene scene);
     public delegate bool AbandonParcelHandler(UUID user, ILandObject parcel, Scene scene);
     public delegate bool ReclaimParcelHandler(UUID user, ILandObject parcel, Scene scene);
@@ -763,7 +763,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region EDIT PARCEL
 
-        public bool CanEditParcelProperties(UUID user, ILandObject parcel, GroupPowers p)
+        public bool CanEditParcelProperties(UUID user, ILandObject parcel, GroupPowers p, bool allowManager)
         {
             EditParcelPropertiesHandler handler = OnEditParcelProperties;
             if (handler != null)
@@ -771,7 +771,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (EditParcelPropertiesHandler h in list)
                 {
-                    if (h(user, parcel, p, m_scene) == false)
+                    if (h(user, parcel, p, m_scene, allowManager) == false)
                         return false;
                 }
             }

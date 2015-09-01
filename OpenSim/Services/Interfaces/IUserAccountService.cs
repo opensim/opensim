@@ -91,6 +91,7 @@ namespace OpenSim.Services.Interfaces
         public int UserLevel;
         public int UserFlags;
         public string UserTitle;
+        public string UserCountry;
         public Boolean LocalToGrid = true;
 
         public Dictionary<string, object> ServiceURLs;
@@ -120,6 +121,8 @@ namespace OpenSim.Services.Interfaces
                 UserFlags = Convert.ToInt32(kvp["UserFlags"].ToString());
             if (kvp.ContainsKey("UserTitle"))
                 UserTitle = kvp["UserTitle"].ToString();
+            if (kvp.ContainsKey("UserCountry"))
+                UserCountry = kvp["UserCountry"].ToString();
             if (kvp.ContainsKey("LocalToGrid"))
                 Boolean.TryParse(kvp["LocalToGrid"].ToString(), out LocalToGrid);
 
@@ -155,6 +158,7 @@ namespace OpenSim.Services.Interfaces
             result["UserLevel"] = UserLevel.ToString();
             result["UserFlags"] = UserFlags.ToString();
             result["UserTitle"] = UserTitle;
+            result["UserCountry"] = UserCountry;
             result["LocalToGrid"] = LocalToGrid.ToString();
 
             string str = string.Empty;
@@ -182,6 +186,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="query"></param>
         /// <returns></returns>
         List<UserAccount> GetUserAccounts(UUID scopeID, string query);
+        List<UserAccount> GetUserAccountsWhere(UUID scopeID, string where);
 
         /// <summary>
         /// Store the data given, wich replaces the stored data, therefore must be complete.

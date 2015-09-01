@@ -271,18 +271,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                                                            
                     if (asset != null)
                     {
-                        if (m_options.ContainsKey("verbose"))
-                            m_log.InfoFormat("[ARCHIVER]: Writing asset {0}", id);
-
+//                        m_log.DebugFormat("[ARCHIVER]: Writing asset {0}", id);
                         m_foundAssetUuids.Add(asset.FullID);
 
                         m_assetsArchiver.WriteAsset(PostProcess(asset));
                     }
                     else
                     {
-                        if (m_options.ContainsKey("verbose"))
-                            m_log.InfoFormat("[ARCHIVER]: Recording asset {0} as not found", id);
-
+//                        m_log.DebugFormat("[ARCHIVER]: Recording asset {0} as not found", id);
                         m_notFoundAssetUuids.Add(new UUID(id));
                     }
         

@@ -69,7 +69,11 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <summary>
         /// Minimum land unit size in region co-ordinates.
         /// </summary>
+<<<<<<< HEAD
         public const int LandUnit = 4;
+=======
+        public const int landUnit = 4;
+>>>>>>> avn/ubitvar
 
         private static readonly string remoteParcelRequestPath = "0009/";
 
@@ -89,20 +93,30 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <value>
         /// Land objects keyed by local id
         /// </value>
-        private readonly Dictionary<int, ILandObject> m_landList = new Dictionary<int, ILandObject>();
+//        private readonly Dictionary<int, ILandObject> m_landList = new Dictionary<int, ILandObject>();
+
+        //ubit: removed the readonly so i can move it around
+        private Dictionary<int, ILandObject> m_landList = new Dictionary<int, ILandObject>();
 
         private int m_lastLandLocalID = LandChannel.START_LAND_LOCAL_ID - 1;
 
         private bool m_allowedForcefulBans = true;
+        private UUID DefaultGodParcelGroup;
+        private string DefaultGodParcelName;
 
         // caches ExtendedLandData
         private Cache parcelInfoCache;
+<<<<<<< HEAD
 
 
         /// <summary>
         /// Record positions that avatar's are currently being forced to move to due to parcel entry restrictions.
         /// </summary>
         private Dictionary<UUID, Vector3> forcedPosition = new Dictionary<UUID, Vector3>();
+=======
+        private Dictionary<UUID, Vector3> forcedPosition =
+                new Dictionary<UUID, Vector3>();
+>>>>>>> avn/ubitvar
 
         // Enables limiting parcel layer info transmission when doing simple updates
         private bool shouldLimitParcelLayerInfoToViewDistance { get; set; }
@@ -118,6 +132,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void Initialise(IConfigSource source)
         {
+<<<<<<< HEAD
             shouldLimitParcelLayerInfoToViewDistance = true;
             parcelLayerViewDistance = 128;
             IConfig landManagementConfig = source.Configs["LandManagement"];
@@ -125,13 +140,24 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 shouldLimitParcelLayerInfoToViewDistance = landManagementConfig.GetBoolean("LimitParcelLayerUpdateDistance", shouldLimitParcelLayerInfoToViewDistance);
                 parcelLayerViewDistance = landManagementConfig.GetInt("ParcelLayerViewDistance", parcelLayerViewDistance);
+=======
+            IConfig cnf = source.Configs["LandManagement"];
+            if (cnf != null)
+            {
+                DefaultGodParcelGroup = new UUID(cnf.GetString("DefaultAdministratorGroupUUID", UUID.Zero.ToString()));
+                DefaultGodParcelName = cnf.GetString("DefaultAdministratorParcelName", "Default Parcel");
+>>>>>>> avn/ubitvar
             }
         }
 
         public void AddRegion(Scene scene)
         {
             m_scene = scene;
+<<<<<<< HEAD
             m_landIDList = new int[m_scene.RegionInfo.RegionSizeX / LandUnit, m_scene.RegionInfo.RegionSizeY / LandUnit];
+=======
+            m_landIDList = new int[m_scene.RegionInfo.RegionSizeX / landUnit, m_scene.RegionInfo.RegionSizeY / landUnit];
+>>>>>>> avn/ubitvar
             landChannel = new LandChannel(scene, this);
 
             parcelInfoCache = new Cache();
@@ -154,7 +180,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_scene.EventManager.OnIncomingLandDataFromStorage += EventManagerOnIncomingLandDataFromStorage;
             m_scene.EventManager.OnSetAllowForcefulBan += EventManagerOnSetAllowedForcefulBan;            
             m_scene.EventManager.OnRegisterCaps += EventManagerOnRegisterCaps;
-
+           
             lock (m_scene)
             {
                 m_scene.LandChannel = (ILandChannel)landChannel;
@@ -204,13 +230,14 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnParcelFreezeUser += ClientOnParcelFreezeUser;
             client.OnSetStartLocationRequest += ClientOnSetHome;
 
-
+/*  avatar is still a child here position is unknown
             EntityBase presenceEntity;
             if (m_scene.Entities.TryGetValue(client.AgentId, out presenceEntity) && presenceEntity is ScenePresence)
             {
                 SendLandUpdate((ScenePresence)presenceEntity, true);
                 SendParcelOverlay(client);
             }
+*/
         }
 
         public void EventMakeChildAgent(ScenePresence avatar)
@@ -220,48 +247,6 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         void ClientOnPreAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
-            //If we are forcing a position for them to go
-            if (forcedPosition.ContainsKey(remoteClient.AgentId))
-            {
-                ScenePresence clientAvatar = m_scene.GetScenePresence(remoteClient.AgentId);
-
-                //Putting the user into flying, both keeps the avatar in fligth when it bumps into something and stopped from going another direction AND
-                //When the avatar walks into a ban line on the ground, it prevents getting stuck
-                agentData.ControlFlags = (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
-
-                //Make sure we stop if they get about to the right place to prevent yoyo and prevents getting stuck on banlines
-                if (Vector3.Distance(clientAvatar.AbsolutePosition, forcedPosition[remoteClient.AgentId]) < .2)
-                {
-//                    m_log.DebugFormat(
-//                        "[LAND MANAGEMENT MODULE]: Stopping force position of {0} because {1} is close enough to {2}",
-//                        clientAvatar.Name, clientAvatar.AbsolutePosition, forcedPosition[remoteClient.AgentId]);
-
-                    forcedPosition.Remove(remoteClient.AgentId);
-                }
-                //if we are far away, teleport
-                else if (Vector3.Distance(clientAvatar.AbsolutePosition, forcedPosition[remoteClient.AgentId]) > 3)
-                {
-                    Vector3 forcePosition = forcedPosition[remoteClient.AgentId];
-//                    m_log.DebugFormat(
-//                        "[LAND MANAGEMENT MODULE]: Teleporting out {0} because {1} is too far from avatar position {2}",
-//                        clientAvatar.Name, clientAvatar.AbsolutePosition, forcePosition);
-
-                    m_scene.RequestTeleportLocation(remoteClient, m_scene.RegionInfo.RegionHandle,
-                        forcePosition, clientAvatar.Lookat, (uint)Constants.TeleportFlags.ForceRedirect);
-
-                    forcedPosition.Remove(remoteClient.AgentId);
-                }
-                else
-                {
-//                    m_log.DebugFormat(
-//                        "[LAND MANAGEMENT MODULE]: Forcing {0} from {1} to {2}",
-//                        clientAvatar.Name, clientAvatar.AbsolutePosition, forcedPosition[remoteClient.AgentId]);
-
-                    //Forces them toward the forced position we want if they aren't there yet
-                    agentData.UseClientAgentPosition = true;
-                    agentData.ClientAgentPosition = forcedPosition[remoteClient.AgentId];
-                }
-            }
         }
 
         public void Close()
@@ -314,7 +299,11 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 m_landList.Clear();
                 m_lastLandLocalID = LandChannel.START_LAND_LOCAL_ID - 1;
+<<<<<<< HEAD
                 m_landIDList = new int[m_scene.RegionInfo.RegionSizeX / LandUnit, m_scene.RegionInfo.RegionSizeY / LandUnit];
+=======
+                m_landIDList = new int[m_scene.RegionInfo.RegionSizeX / landUnit, m_scene.RegionInfo.RegionSizeY / landUnit];
+>>>>>>> avn/ubitvar
             }
         }
         
@@ -324,16 +313,22 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <returns>The parcel created.</returns>
         protected ILandObject CreateDefaultParcel()
         {
+<<<<<<< HEAD
             m_log.DebugFormat(
                 "[LAND MANAGEMENT MODULE]: Creating default parcel for region {0}", m_scene.RegionInfo.RegionName);
             
             ILandObject fullSimParcel = new LandObject(UUID.Zero, false, m_scene);                                                
+=======
+            m_log.DebugFormat("{0} Creating default parcel for region {1}", LogHeader, m_scene.RegionInfo.RegionName);
+
+            ILandObject fullSimParcel = new LandObject(UUID.Zero, false, m_scene);
+>>>>>>> avn/ubitvar
             fullSimParcel.SetLandBitmap(fullSimParcel.GetSquareLandBitmap(0, 0,
                                             (int)m_scene.RegionInfo.RegionSizeX, (int)m_scene.RegionInfo.RegionSizeY));
             fullSimParcel.LandData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
             fullSimParcel.LandData.ClaimDate = Util.UnixTimeSinceEpoch();
-            
-            return AddLandObject(fullSimParcel);            
+
+            return AddLandObject(fullSimParcel);
         }
 
         public List<ILandObject> AllParcels()
@@ -382,10 +377,17 @@ namespace OpenSim.Region.CoreModules.World.Land
         private void ForceAvatarToPosition(ScenePresence avatar, Vector3? position)
         {
             if (m_scene.Permissions.IsGod(avatar.UUID)) return;
-            if (position.HasValue)
-            {
-                forcedPosition[avatar.ControllingClient.AgentId] = (Vector3)position;
-            }
+
+            if (!position.HasValue)
+                return;
+
+// land should have no word on avatar physics
+//            bool isFlying = avatar.PhysicsActor.Flying;
+//            avatar.RemoveFromPhysicalScene();
+
+            avatar.AbsolutePosition = (Vector3)position;
+
+//            avatar.AddToPhysicalScene(isFlying);
         }
 
         public void SendYouAreRestrictedNotice(ScenePresence avatar)
@@ -405,36 +407,14 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
 
                 if (parcelAvatarIsEntering != null)
-                {
-                    if (avatar.AbsolutePosition.Z < LandChannel.BAN_LINE_SAFETY_HIEGHT)
-                    {
-                        if (parcelAvatarIsEntering.IsBannedFromLand(avatar.UUID))
-                        {
-                            SendYouAreBannedNotice(avatar);
-                            ForceAvatarToPosition(avatar, m_scene.GetNearestAllowedPosition(avatar));
-                        }
-                        else if (parcelAvatarIsEntering.IsRestrictedFromLand(avatar.UUID))
-                        {
-                            SendYouAreRestrictedNotice(avatar);
-                            ForceAvatarToPosition(avatar, m_scene.GetNearestAllowedPosition(avatar));
-                        }
-                        else
-                        {
-                            avatar.sentMessageAboutRestrictedParcelFlyingDown = true;
-                        }
-                    }
-                    else
-                    {
-                        avatar.sentMessageAboutRestrictedParcelFlyingDown = true;
-                    }
-                }
+                    EnforceBans(parcelAvatarIsEntering, avatar);
             }
         }
 
         public void SendOutNearestBanLine(IClientAPI client)
         {
             ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
-            if (sp == null || sp.IsChildAgent)
+            if (sp == null)
                 return;
 
             List<ILandObject> checkLandParcels = ParcelsNearPoint(sp.AbsolutePosition);
@@ -454,32 +434,49 @@ namespace OpenSim.Region.CoreModules.World.Land
             return;
         }
 
+        public void sendClientInitialLandInfo(IClientAPI remoteClient)
+        {
+            ScenePresence avatar;
+
+            if (!m_scene.TryGetScenePresence(remoteClient.AgentId, out avatar))
+                return;
+
+
+            if (!avatar.IsChildAgent)
+            {
+                ILandObject over = GetLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
+                if (over == null)
+                    return;
+
+                avatar.currentParcelUUID = over.LandData.GlobalID;
+                over.SendLandUpdateToClient(avatar.ControllingClient);
+            }
+            SendParcelOverlay(remoteClient);
+        }
+
         public void SendLandUpdate(ScenePresence avatar, bool force)
         {
+<<<<<<< HEAD
             ILandObject over = GetLandObject((int)Math.Min(((int)m_scene.RegionInfo.RegionSizeX - 1), Math.Max(0, Math.Round(avatar.AbsolutePosition.X))),
                                              (int)Math.Min(((int)m_scene.RegionInfo.RegionSizeY - 1), Math.Max(0, Math.Round(avatar.AbsolutePosition.Y))));
+=======
+            if (avatar.IsChildAgent)
+                return;
+
+            ILandObject over = GetLandObjectClipedXY(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
+>>>>>>> avn/ubitvar
 
             if (over != null)
             {
-                if (force)
+                bool NotsameID = (avatar.currentParcelUUID != over.LandData.GlobalID);
+                if (force || NotsameID)
                 {
-                    if (!avatar.IsChildAgent)
-                    {
-                        over.SendLandUpdateToClient(avatar.ControllingClient);
-                        m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar, over.LandData.LocalID,
-                                                                            m_scene.RegionInfo.RegionID);
-                    }
-                }
-
-                if (avatar.currentParcelUUID != over.LandData.GlobalID)
-                {
-                    if (!avatar.IsChildAgent)
-                    {
-                        over.SendLandUpdateToClient(avatar.ControllingClient);
-                        avatar.currentParcelUUID = over.LandData.GlobalID;
-                        m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar, over.LandData.LocalID,
-                                                                            m_scene.RegionInfo.RegionID);
-                    }
+                    over.SendLandUpdateToClient(avatar.ControllingClient);
+// sl doesnt seem to send this now, as it used 2
+//                    SendParcelOverlay(avatar.ControllingClient);
+                    avatar.currentParcelUUID = over.LandData.GlobalID;
+                    m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar, over.LandData.LocalID,
+                                                                        m_scene.RegionInfo.RegionID);
                 }
             }
         }
@@ -531,6 +528,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     //when we are finally in a safe place, lets release the forced position lock
                     forcedPosition.Remove(clientAvatar.ControllingClient.AgentId);
                 }
+				EnforceBans(parcel, clientAvatar);
             }
         }
 
@@ -589,7 +587,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     requiredPowers = GroupPowers.LandManageBanned;
 
                 if (m_scene.Permissions.CanEditParcelProperties(agentID,
-                        land, requiredPowers))
+                        land, requiredPowers, false))
                 {
                     land.UpdateAccessList(flags, transactionID, sequenceID,
                             sections, entries, remote_client);
@@ -623,20 +621,28 @@ namespace OpenSim.Region.CoreModules.World.Land
                 new_land.LandData.LocalID = newLandLocalID;
 
                 bool[,] landBitmap = new_land.GetLandBitmap();
+<<<<<<< HEAD
                 // m_log.DebugFormat("{0} AddLandObject. new_land.bitmapSize=({1},{2}). newLocalID={3}",
                 //                 LogHeader, landBitmap.GetLength(0), landBitmap.GetLength(1), newLandLocalID);
 
+=======
+>>>>>>> avn/ubitvar
                 if (landBitmap.GetLength(0) != m_landIDList.GetLength(0) || landBitmap.GetLength(1) != m_landIDList.GetLength(1))
                 {
                     // Going to variable sized regions can cause mismatches
                     m_log.ErrorFormat("{0} AddLandObject. Added land bitmap different size than region ID map. bitmapSize=({1},{2}), landIDSize=({3},{4})",
+<<<<<<< HEAD
                         LogHeader, landBitmap.GetLength(0), landBitmap.GetLength(1), m_landIDList.GetLength(0), m_landIDList.GetLength(1) );
+=======
+                        LogHeader, landBitmap.GetLength(0), landBitmap.GetLength(1), m_landIDList.GetLength(0), m_landIDList.GetLength(1));
+>>>>>>> avn/ubitvar
                 }
                 else
                 {
                     // If other land objects still believe that they occupy any parts of the same space, 
                     // then do not allow the add to proceed.
                     for (int x = 0; x < landBitmap.GetLength(0); x++)
+<<<<<<< HEAD
                     {
                         for (int y = 0; y < landBitmap.GetLength(1); y++)
                         {
@@ -663,15 +669,50 @@ namespace OpenSim.Region.CoreModules.World.Land
                     }
 
                     for (int x = 0; x < landBitmap.GetLength(0); x++)
+=======
+>>>>>>> avn/ubitvar
                     {
                         for (int y = 0; y < landBitmap.GetLength(1); y++)
                         {
                             if (landBitmap[x, y])
                             {
+<<<<<<< HEAD
                                 // m_log.DebugFormat(
                                 //     "[LAND MANAGEMENT MODULE]: Registering parcel {0} for land co-ord ({1}, {2}) on {3}", 
                                 //     new_land.LandData.Name, x, y, m_scene.RegionInfo.RegionName);
                                     
+=======
+                                int lastRecordedLandId = m_landIDList[x, y];
+
+                                if (lastRecordedLandId > 0)
+                                {
+                                    ILandObject lastRecordedLo = m_landList[lastRecordedLandId];
+
+                                    if (lastRecordedLo.LandBitmap[x, y])
+                                    {
+                                        m_log.ErrorFormat(
+                                            "{0}: Cannot add parcel \"{1}\", local ID {2} at tile {3},{4} because this is still occupied by parcel \"{5}\", local ID {6} in {7}",
+                                            LogHeader, new_land.LandData.Name, new_land.LandData.LocalID, x, y,
+                                            lastRecordedLo.LandData.Name, lastRecordedLo.LandData.LocalID, m_scene.Name);
+
+                                        return null;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    for (int x = 0; x < landBitmap.GetLength(0); x++)
+                    {
+                        for (int y = 0; y < landBitmap.GetLength(1); y++)
+                        {
+                            if (landBitmap[x, y])
+                            {
+                                //                            m_log.DebugFormat(
+                                //                                "[LAND MANAGEMENT MODULE]: Registering parcel {0} for land co-ord ({1}, {2}) on {3}", 
+                                //                                new_land.LandData.Name, x, y, m_scene.RegionInfo.RegionName);
+
+>>>>>>> avn/ubitvar
                                 m_landIDList[x, y] = newLandLocalID;
                             }
                         }
@@ -723,27 +764,28 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// </summary>        
         public void Clear(bool setupDefaultParcel)
         {
-            List<ILandObject> parcels;
+            Dictionary<int, ILandObject> landworkList;
+            // move to work pointer since we are deleting it all
             lock (m_landList)
             {
-                parcels = new List<ILandObject>(m_landList.Values);
+                landworkList = m_landList;
+                m_landList = new Dictionary<int, ILandObject>();
             }
 
-            foreach (ILandObject lo in parcels)
+            // this 2 methods have locks (now)
+            ResetSimLandObjects();
+
+            if (setupDefaultParcel)
+                CreateDefaultParcel();
+
+            // fire outside events unlocked
+            foreach (ILandObject lo in landworkList.Values)
             {
                 //m_scene.SimulationDataService.RemoveLandObject(lo.LandData.GlobalID);
                 m_scene.EventManager.TriggerLandObjectRemoved(lo.LandData.GlobalID);
             }
+            landworkList.Clear();
 
-            lock (m_landList)
-            {
-                m_landList.Clear();
-
-                ResetSimLandObjects();
-            }
-            
-            if (setupDefaultParcel)
-                CreateDefaultParcel();
         }
 
         private void performFinalLandJoin(ILandObject master, ILandObject slave)
@@ -787,6 +829,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <returns>Land object at the point supplied</returns>
         public ILandObject GetLandObject(float x_float, float y_float)
         {
+<<<<<<< HEAD
             return GetLandObject((int)x_float, (int)y_float, true /* returnNullIfLandObjectNotFound */);
             /*
             int x;
@@ -812,9 +855,31 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 return null;
             }
+=======
+            return GetLandObject((int)x_float, (int)y_float, true);
+        }
 
-            lock (m_landList)
+        // if x,y is off region this will return the parcel at cliped x,y
+        // as did code it replaces
+        public ILandObject GetLandObjectClipedXY(float x, float y)
+        {
+            //do clip inline
+            int avx = (int)x;
+            if (avx < 0)
+                avx = 0;
+            else if (avx >= m_scene.RegionInfo.RegionSizeX)
+                avx = (int)Constants.RegionSize - 1;
+
+            int avy = (int)y;
+            if (avy < 0)
+                avy = 0;
+            else if (avy >= m_scene.RegionInfo.RegionSizeY)
+                avy = (int)Constants.RegionSize - 1;
+>>>>>>> avn/ubitvar
+
+            lock (m_landIDList)
             {
+<<<<<<< HEAD
                 // Corner case. If an autoreturn happens during sim startup
                 // we will come here with the list uninitialized
                 //
@@ -837,6 +902,16 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
                 
                 return null;
+=======
+                try
+                {
+                    return m_landList[m_landIDList[avx / landUnit, avy / landUnit]];
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    return null;
+                }
+>>>>>>> avn/ubitvar
             }
              */
         }
@@ -848,6 +923,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             return GetLandObject(x, y, false /* returnNullIfLandObjectNotFound */);
         }
 
+<<<<<<< HEAD
         /// <summary>
         /// Given a region position, return the parcel land object for that location
         /// </summary>
@@ -862,19 +938,53 @@ namespace OpenSim.Region.CoreModules.World.Land
         private ILandObject GetLandObject(int x, int y, bool returnNullIfLandObjectOutsideBounds)
         {
             if (x >= m_scene.RegionInfo.RegionSizeX || y >=  m_scene.RegionInfo.RegionSizeY || x < 0 || y < 0)
+=======
+        public ILandObject GetLandObject(int x, int y, bool returnNullIfLandObjectOutsideBounds)
+        {
+            if (x >= m_scene.RegionInfo.RegionSizeX || y >= m_scene.RegionInfo.RegionSizeY || x < 0 || y < 0)
+>>>>>>> avn/ubitvar
             {
                 // These exceptions here will cause a lot of complaints from the users specifically because
                 // they happen every time at border crossings
                 if (returnNullIfLandObjectOutsideBounds)
                     return null;
                 else
+<<<<<<< HEAD
                     throw new Exception(
                         String.Format("{0} GetLandObject for non-existent position. Region={1}, pos=<{2},{3}",
                                                 LogHeader, m_scene.RegionInfo.RegionName, x, y)
                 );
+=======
+                    throw new Exception("Error: Parcel not found at point " + x + ", " + y);
+            }
+
+            lock (m_landIDList)
+            {
+                try
+                {
+                        return m_landList[m_landIDList[x / 4, y / 4]];
+                }
+                catch (IndexOutOfRangeException)
+                {
+                        return null;
+                }
+>>>>>>> avn/ubitvar
             }
 
             return m_landList[m_landIDList[x / 4, y / 4]];
+        }
+
+        // Create a 'parcel is here' bitmap for the parcel identified by the passed landID
+        private bool[,] CreateBitmapForID(int landID)
+        {
+            bool[,] ret = new bool[m_landIDList.GetLength(0), m_landIDList.GetLength(1)];
+
+            for (int xx = 0; xx < m_landIDList.GetLength(0); xx++)
+                for (int yy = 0; yy < m_landIDList.GetLength(0); yy++)
+                    if (m_landIDList[xx, yy] == landID)
+                        ret[xx, yy] = true;
+
+            return ret;
         }
 
         // Create a 'parcel is here' bitmap for the parcel identified by the passed landID
@@ -1033,7 +1143,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             //If we are still here, then they are subdividing within one piece of land
             //Check owner
-            if (!m_scene.Permissions.CanEditParcelProperties(attempting_user_id, startLandObject, GroupPowers.LandDivideJoin))
+            if (!m_scene.Permissions.CanEditParcelProperties(attempting_user_id, startLandObject, GroupPowers.LandDivideJoin, true))
             {
                 return;
             }
@@ -1043,6 +1153,8 @@ namespace OpenSim.Region.CoreModules.World.Land
             newLand.LandData.Name = newLand.LandData.Name;
             newLand.LandData.GlobalID = UUID.Random();
             newLand.LandData.Dwell = 0;
+            // Clear "Show in search" on the cut out parcel to prevent double-charging
+            newLand.LandData.Flags &= ~(uint)ParcelFlags.ShowDirectory;
 
             newLand.SetLandBitmap(newLand.GetSquareLandBitmap(start_x, start_y, end_x, end_y));
 
@@ -1057,12 +1169,19 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             //Now add the new land object
             ILandObject result = AddLandObject(newLand);
+<<<<<<< HEAD
 
             if (result != null)
             {
                 UpdateLandObject(startLandObject.LandData.LocalID, startLandObject.LandData);
                 result.SendLandUpdateToAvatarsOverMe();
             }
+=======
+            UpdateLandObject(startLandObject.LandData.LocalID, startLandObject.LandData);
+            result.SendLandUpdateToAvatarsOverMe();
+            startLandObject.SendLandUpdateToAvatarsOverMe();
+            m_scene.ForEachClient(SendParcelOverlay);
+>>>>>>> avn/ubitvar
         }
 
         /// <summary>
@@ -1104,7 +1223,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 return;
             }
-            if (!m_scene.Permissions.CanEditParcelProperties(attempting_user_id, masterLandObject, GroupPowers.LandDivideJoin))
+            if (!m_scene.Permissions.CanEditParcelProperties(attempting_user_id, masterLandObject, GroupPowers.LandDivideJoin, true))
             {
                 return;
             }
@@ -1127,6 +1246,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
 
             masterLandObject.SendLandUpdateToAvatarsOverMe();
+            m_scene.ForEachClient(SendParcelOverlay);
         }
 
         public void Join(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
@@ -1143,11 +1263,14 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         #region Parcel Updating
 
+<<<<<<< HEAD
         // Send parcel layer info for the whole region
         public void SendParcelOverlay(IClientAPI remote_client)
         {
             SendParcelOverlay(remote_client, 0, 0, (int)Constants.MaximumRegionSize);
         }
+=======
+>>>>>>> avn/ubitvar
 
         /// <summary>
         /// Send the parcel overlay blocks to the client. We send the overlay packets
@@ -1164,11 +1287,15 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <param name="layerViewDistance">Distance from x,y position to send parcel layer info</param>
         private  void SendParcelOverlay(IClientAPI remote_client, int xPlace, int yPlace, int layerViewDistance)
         {
+            if (remote_client.SceneAgent.PresenceType == PresenceType.Npc)
+                return;
+
             const int LAND_BLOCKS_PER_PACKET = 1024;
 
             byte[] byteArray = new byte[LAND_BLOCKS_PER_PACKET];
             int byteArrayCount = 0;
             int sequenceID = 0;
+<<<<<<< HEAD
 
             int xLow = 0;
             int xHigh = (int)m_scene.RegionInfo.RegionSizeX;
@@ -1182,6 +1309,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                 int txHigh = xPlace + layerViewDistance;
                 // If the distance is outside the region area, move the view distance to ba all in the region
                 if (txLow < xLow)
+=======
+
+            // Layer data is in landUnit (4m) chunks
+            for (int y = 0; y < m_scene.RegionInfo.RegionSizeY; y += landUnit)
+            {
+                for (int x = 0; x < m_scene.RegionInfo.RegionSizeX; x += landUnit)
+>>>>>>> avn/ubitvar
                 {
                     txLow = xLow;
                     txHigh = Math.Min(yLow + (layerViewDistance * 2), xHigh);
@@ -1194,6 +1328,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 xLow = txLow;
                 xHigh = txHigh;
 
+<<<<<<< HEAD
                 int tyLow = yPlace - layerViewDistance;
                 int tyHigh = yPlace + layerViewDistance;
                 if (tyLow < yLow)
@@ -1211,6 +1346,9 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
             // m_log.DebugFormat("{0} SendParcelOverlay: place=<{1},{2}>, vDist={3}, xLH=<{4},{5}, yLH=<{6},{7}>",
             //     LogHeader, xPlace, yPlace, layerViewDistance, xLow, xHigh, yLow, yHigh);
+=======
+                    ILandObject currentParcelBlock = GetLandObject(x, y);
+>>>>>>> avn/ubitvar
 
             // Layer data is in landUnit (4m) chunks
             for (int y = yLow; y < yHigh / Constants.TerrainPatchSize * (Constants.TerrainPatchSize / LandUnit); y++)
@@ -1221,6 +1359,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     byteArrayCount++;
                     if (byteArrayCount >= LAND_BLOCKS_PER_PACKET)
                     {
+<<<<<<< HEAD
                         // m_log.DebugFormat("{0} SendParcelOverlay, sending packet, bytes={1}", LogHeader, byteArray.Length);
                         remote_client.SendLandParcelOverlay(byteArray, sequenceID);
                         byteArrayCount = 0;
@@ -1298,6 +1437,95 @@ namespace OpenSim.Region.CoreModules.World.Land
                     tempByte = Convert.ToByte(tempByte | LandChannel.LAND_FLAG_PROPERTY_BORDER_SOUTH);
                 }
 
+=======
+                        // types 
+                        if (currentParcelBlock.LandData.OwnerID == remote_client.AgentId)
+                        {
+                            //Owner Flag
+                            tempByte = (byte)LandChannel.LAND_TYPE_OWNED_BY_REQUESTER;
+                        }
+                        else if (currentParcelBlock.LandData.IsGroupOwned && remote_client.IsGroupMember(currentParcelBlock.LandData.GroupID))
+                        {
+                            tempByte = (byte)LandChannel.LAND_TYPE_OWNED_BY_GROUP;
+                        }
+                        else if (currentParcelBlock.LandData.SalePrice > 0 &&
+                                 (currentParcelBlock.LandData.AuthBuyerID == UUID.Zero ||
+                                  currentParcelBlock.LandData.AuthBuyerID == remote_client.AgentId))
+                        {
+                            //Sale type
+                            tempByte = (byte)LandChannel.LAND_TYPE_IS_FOR_SALE;
+                        }
+                        else if (currentParcelBlock.LandData.OwnerID == UUID.Zero)
+                        {
+                            //Public type 
+                            tempByte = (byte)LandChannel.LAND_TYPE_PUBLIC; // this does nothing, its zero
+                        }
+                        // LAND_TYPE_IS_BEING_AUCTIONED still unsuported
+                        else
+                        {
+                            //Other Flag
+                            tempByte = (byte)LandChannel.LAND_TYPE_OWNED_BY_OTHER;
+                        }
+
+                        // now flags
+                        // border control
+
+                        ILandObject westParcel = null;
+                        ILandObject southParcel = null;
+                        if (x > 0)
+                        {
+                            westParcel = GetLandObject((x - 1), y);
+                        }
+                        if (y > 0)
+                        {
+                            southParcel = GetLandObject(x, (y - 1));
+                        }
+
+                        if (x == 0)
+                        {
+                            tempByte |= (byte)LandChannel.LAND_FLAG_PROPERTY_BORDER_WEST;
+                        }
+                        else if (westParcel != null && westParcel != currentParcelBlock)
+                        {
+                            tempByte |= (byte)LandChannel.LAND_FLAG_PROPERTY_BORDER_WEST;
+                        }
+
+                        if (y == 0)
+                        {
+                            tempByte |= (byte)LandChannel.LAND_FLAG_PROPERTY_BORDER_SOUTH;
+                        }
+                        else if (southParcel != null && southParcel != currentParcelBlock)
+                        {
+                            tempByte |= (byte)LandChannel.LAND_FLAG_PROPERTY_BORDER_SOUTH;
+                        }
+
+                        // local sound
+                        if ((currentParcelBlock.LandData.Flags & (uint)ParcelFlags.SoundLocal) != 0)
+                            tempByte |= (byte)LandChannel.LAND_FLAG_LOCALSOUND;
+
+                        // hide avatars
+                        if (!currentParcelBlock.LandData.SeeAVs)
+                            tempByte |= (byte)LandChannel.LAND_FLAG_HIDEAVATARS;
+
+
+                        byteArray[byteArrayCount] = tempByte;
+                        byteArrayCount++;
+                        if (byteArrayCount >= LAND_BLOCKS_PER_PACKET)
+                        {
+                            remote_client.SendLandParcelOverlay(byteArray, sequenceID);
+                            byteArrayCount = 0;
+                            sequenceID++;
+                            byteArray = new byte[LAND_BLOCKS_PER_PACKET];
+                        }
+                    }
+                }
+
+            }
+
+            if (byteArrayCount > 0)
+            {
+                remote_client.SendLandParcelOverlay(byteArray, sequenceID);
+>>>>>>> avn/ubitvar
             }
 
             return tempByte;
@@ -1320,8 +1548,11 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (!temp.Contains(currentParcel))
                         {
-                            currentParcel.ForceUpdateLandInfo();
-                            temp.Add(currentParcel);
+                            if (!currentParcel.IsEitherBannedOrRestricted(remote_client.AgentId))
+                            {
+                                currentParcel.ForceUpdateLandInfo();
+                                temp.Add(currentParcel);
+                            }
                         }
                     }
                 }
@@ -1338,8 +1569,50 @@ namespace OpenSim.Region.CoreModules.World.Land
                 temp[i].SendLandProperties(sequence_id, snap_selection, requestResult, remote_client);
             }
 
+<<<<<<< HEAD
             // Also send the layer data around the point of interest
             SendParcelOverlay(remote_client, (start_x + end_x) / 2, (start_y + end_y) / 2, parcelLayerViewDistance);
+=======
+//            SendParcelOverlay(remote_client);
+        }
+
+        public void UpdateLandProperties(ILandObject land, LandUpdateArgs args, IClientAPI remote_client)
+        {
+            bool snap_selection = false;
+            bool needOverlay = false;
+            if (land.UpdateLandProperties(args, remote_client, out snap_selection, out needOverlay))
+            {
+                //the proprieties to who changed them
+                ScenePresence av = m_scene.GetScenePresence(remote_client.AgentId);
+                if(av.IsChildAgent || land != GetLandObject(av.AbsolutePosition.X, av.AbsolutePosition.Y))
+                    land.SendLandProperties(-10000, false, LandChannel.LAND_RESULT_SINGLE, remote_client);
+                else
+                    land.SendLandProperties(0, false, LandChannel.LAND_RESULT_SINGLE, remote_client);
+
+                UUID parcelID = land.LandData.GlobalID;
+                m_scene.ForEachScenePresence(delegate(ScenePresence avatar)
+                 {
+                     if (avatar.IsDeleted || avatar.isNPC)
+                         return;
+
+                     IClientAPI client = avatar.ControllingClient;
+                     if (needOverlay)
+                         SendParcelOverlay(client);
+
+                     if (avatar.IsChildAgent)
+                         return;
+
+                     ILandObject aland = GetLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
+                     if (aland != null)
+                     {
+                         if (client != remote_client && land == aland)
+                             aland.SendLandProperties(0, false, LandChannel.LAND_RESULT_SINGLE, client);
+                     }
+                     if (avatar.currentParcelUUID == parcelID)
+                         avatar.currentParcelUUID = parcelID; // force parcel flags review
+                 });
+            }
+>>>>>>> avn/ubitvar
         }
 
         public void ClientOnParcelPropertiesUpdateRequest(LandUpdateArgs args, int localID, IClientAPI remote_client)
@@ -1352,7 +1625,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             if (land != null)
             {
-                land.UpdateLandProperties(args, remote_client);
+                UpdateLandProperties(land, args, remote_client);
                 m_scene.EventManager.TriggerOnParcelPropertiesUpdateRequest(args, localID, remote_client);
             }
         }
@@ -1408,7 +1681,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                     land.LandData.GroupID = UUID.Zero;
                     land.LandData.IsGroupOwned = false;
                     land.LandData.Flags &= ~(uint) (ParcelFlags.ForSale | ParcelFlags.ForSaleObjects | ParcelFlags.SellParcelObjects | ParcelFlags.ShowDirectory);
-
                     m_scene.ForEachClient(SendParcelOverlay);
                     land.SendLandUpdateToClient(true, remote_client);
                     UpdateLandObject(land.LandData.LocalID, land.LandData);
@@ -1459,7 +1731,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                     land.LandData.SalePrice = 0;
                     land.LandData.AuthBuyerID = UUID.Zero;
                     land.LandData.Flags &= ~(uint) (ParcelFlags.ForSale | ParcelFlags.ForSaleObjects | ParcelFlags.SellParcelObjects | ParcelFlags.ShowDirectory);
-
                     m_scene.ForEachClient(SendParcelOverlay);
                     land.SendLandUpdateToClient(true, remote_client);
                     UpdateLandObject(land.LandData.LocalID, land.LandData);
@@ -1545,9 +1816,12 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private void EventManagerOnIncomingLandDataFromStorage(List<LandData> data)
         {
-//            m_log.DebugFormat(
-//                "[LAND MANAGMENT MODULE]: Processing {0} incoming parcels on {1}", data.Count, m_scene.Name);
+            lock (m_landList)
+            {
+                for (int i = 0; i < data.Count; i++)
+                    IncomingLandObjectFromStorage(data[i]);
 
+<<<<<<< HEAD
             // Prevent race conditions from any auto-creation of new parcels for varregions whilst we are still loading
             // the existing parcels.
             lock (m_landList)
@@ -1559,13 +1833,23 @@ namespace OpenSim.Region.CoreModules.World.Land
                 for (int y = 0; y < m_scene.RegionInfo.RegionSizeY / Constants.TerrainPatchSize * (Constants.TerrainPatchSize / LandUnit); y++)
                 {
                     for (int x = 0; x < m_scene.RegionInfo.RegionSizeX / Constants.TerrainPatchSize * (Constants.TerrainPatchSize / LandUnit); x++)
+=======
+                // Layer data is in landUnit (4m) chunks
+                for (int y = 0; y < m_scene.RegionInfo.RegionSizeY / Constants.TerrainPatchSize * (Constants.TerrainPatchSize / landUnit); y++)
+                {
+                    for (int x = 0; x < m_scene.RegionInfo.RegionSizeX / Constants.TerrainPatchSize * (Constants.TerrainPatchSize / landUnit); x++)
+>>>>>>> avn/ubitvar
                     {
                         if (m_landIDList[x, y] == 0)
                         {
                             if (m_landList.Count == 1)
                             {
                                 m_log.DebugFormat(
+<<<<<<< HEAD
                                     "[{0}]: Auto-extending land parcel as landID at {1},{2} is 0 and only one land parcel is present in {3}", 
+=======
+                                    "[{0}]: Auto-extending land parcel as landID at {1},{2} is 0 and only one land parcel is present in {3}",
+>>>>>>> avn/ubitvar
                                     LogHeader, x, y, m_scene.Name);
 
                                 int onlyParcelID = 0;
@@ -1588,11 +1872,19 @@ namespace OpenSim.Region.CoreModules.World.Land
                             else if (m_landList.Count > 1)
                             {
                                 m_log.DebugFormat(
+<<<<<<< HEAD
                                     "{0}: Auto-creating land parcel as landID at {1},{2} is 0 and more than one land parcel is present in {3}", 
                                     LogHeader, x, y, m_scene.Name);
 
                                 // There are several other parcels so we must create a new one for the unassigned space
                                 ILandObject newLand = new LandObject(UUID.Zero, false, m_scene);                                                
+=======
+                                    "{0}: Auto-creating land parcel as landID at {1},{2} is 0 and more than one land parcel is present in {3}",
+                                    LogHeader, x, y, m_scene.Name);
+
+                                // There are several other parcels so we must create a new one for the unassigned space
+                                ILandObject newLand = new LandObject(UUID.Zero, false, m_scene);
+>>>>>>> avn/ubitvar
                                 // Claim all the unclaimed "0" ids
                                 newLand.SetLandBitmap(CreateBitmapForID(0));
                                 newLand.LandData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
@@ -1603,7 +1895,11 @@ namespace OpenSim.Region.CoreModules.World.Land
                             {
                                 // We should never reach this point as the separate code path when no land data exists should have fired instead.
                                 m_log.WarnFormat(
+<<<<<<< HEAD
                                     "{0}: Ignoring request to auto-create parcel in {1} as there are no other parcels present", 
+=======
+                                    "{0}: Ignoring request to auto-create parcel in {1} as there are no other parcels present",
+>>>>>>> avn/ubitvar
                                     LogHeader, m_scene.Name);
                             }
                         }
@@ -1614,9 +1910,16 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private void IncomingLandObjectFromStorage(LandData data)
         {
+<<<<<<< HEAD
             ILandObject new_land = new LandObject(data, m_scene);
+=======
+
+            ILandObject new_land = new LandObject(data.OwnerID, data.IsGroupOwned, m_scene);
+            new_land.LandData = data.Copy();
+>>>>>>> avn/ubitvar
             new_land.SetLandBitmapFromByteArray();            
             AddLandObject(new_land);
+//            new_land.SendLandUpdateToAvatarsOverMe();
         }
 
         public void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient)
@@ -1773,6 +2076,19 @@ namespace OpenSim.Region.CoreModules.World.Land
             land_update.ObscureMusic = properties.ObscureMusic;
             land_update.ObscureMedia = properties.ObscureMedia;
 
+            if (args.ContainsKey("see_avs"))
+            {
+                land_update.SeeAVs = args["see_avs"].AsBoolean();
+                land_update.AnyAVSounds = args["any_av_sounds"].AsBoolean();
+                land_update.GroupAVSounds = args["group_av_sounds"].AsBoolean();
+            }
+            else
+            {
+                land_update.SeeAVs = true;
+                land_update.AnyAVSounds = true;
+                land_update.GroupAVSounds = true;
+            }
+
             ILandObject land;
             lock (m_landList)
             {
@@ -1781,13 +2097,14 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             if (land != null)
             {
-                land.UpdateLandProperties(land_update, client);
+                UpdateLandProperties(land,land_update, client);               
                 m_scene.EventManager.TriggerOnParcelPropertiesUpdateRequest(land_update, parcelID, client);
             }
             else
             {
                 m_log.WarnFormat("[LAND MANAGEMENT MODULE]: Unable to find parcelID {0}", parcelID);
             }
+
             return LLSDHelpers.SerialiseLLSDReply(new LLSDEmpty());
         }
         // we cheat here: As we don't have (and want) a grid-global parcel-store, we can't return the
@@ -1940,14 +2257,93 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             if (land == null) return;
 
-            if (!m_scene.Permissions.CanEditParcelProperties(remoteClient.AgentId, land, GroupPowers.LandOptions))
+            if (!m_scene.Permissions.CanEditParcelProperties(remoteClient.AgentId, land, GroupPowers.LandOptions, false))
                 return;
 
             land.LandData.OtherCleanTime = otherCleanTime;
 
             UpdateLandObject(localID, land.LandData);
         }
-        
+
+        public void ClientOnParcelGodMark(IClientAPI client, UUID god, int landID)
+        {
+            ILandObject land = null;
+            List<ILandObject> Land = ((Scene)client.Scene).LandChannel.AllParcels();
+            foreach (ILandObject landObject in Land)
+            {
+                if (landObject.LandData.LocalID == landID)
+                {
+                    land = landObject;
+                }
+            }
+            land.DeedToGroup(DefaultGodParcelGroup);
+            land.LandData.Name = DefaultGodParcelName;
+            land.SendLandUpdateToAvatarsOverMe();
+        }
+
+        private void ClientOnSimWideDeletes(IClientAPI client, UUID agentID, int flags, UUID targetID)
+        {
+            ScenePresence SP;
+            ((Scene)client.Scene).TryGetScenePresence(client.AgentId, out SP);
+            List<SceneObjectGroup> returns = new List<SceneObjectGroup>();
+            if (SP.UserLevel != 0)
+            {
+                if (flags == 0) //All parcels, scripted or not
+                {
+                    ((Scene)client.Scene).ForEachSOG(delegate(SceneObjectGroup e)
+                    {
+                        if (e.OwnerID == targetID)
+                        {
+                            returns.Add(e);
+                        }
+                    }
+                                                    );
+                }
+                if (flags == 4) //All parcels, scripted object
+                {
+                    ((Scene)client.Scene).ForEachSOG(delegate(SceneObjectGroup e)
+                    {
+                        if (e.OwnerID == targetID)
+                        {
+                            if (e.ContainsScripts())
+                            {
+                                returns.Add(e);
+                            }
+                        }
+                    }
+                    );
+                }
+                if (flags == 4) //not target parcel, scripted object
+                {
+                    ((Scene)client.Scene).ForEachSOG(delegate(SceneObjectGroup e)
+                    {
+                        if (e.OwnerID == targetID)
+                        {
+                            ILandObject landobject = ((Scene)client.Scene).LandChannel.GetLandObject(e.AbsolutePosition.X, e.AbsolutePosition.Y);
+                            if (landobject.LandData.OwnerID != e.OwnerID)
+                            {
+                                if (e.ContainsScripts())
+                                {
+                                    returns.Add(e);
+                                }
+                            }
+                        }
+                    }
+                                                    );
+                }
+                foreach (SceneObjectGroup ol in returns)
+                {
+                    ReturnObject(ol, client);
+                }
+            }
+        }
+        public void ReturnObject(SceneObjectGroup obj, IClientAPI client)
+        {
+            SceneObjectGroup[] objs = new SceneObjectGroup[1];
+            objs[0] = obj;
+            ((Scene)client.Scene).returnObjects(objs, client.AgentId);
+        }
+
         Dictionary<UUID, System.Threading.Timer> Timers = new Dictionary<UUID, System.Threading.Timer>();
 
         public void ClientOnParcelFreezeUser(IClientAPI client, UUID parcelowner, uint flags, UUID target)
@@ -1961,7 +2357,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (targetAvatar.UserLevel == 0)
             {
                 ILandObject land = ((Scene)client.Scene).LandChannel.GetLandObject(targetAvatar.AbsolutePosition.X, targetAvatar.AbsolutePosition.Y);
-                if (!((Scene)client.Scene).Permissions.CanEditParcelProperties(client.AgentId, land, GroupPowers.LandEjectAndFreeze))
+                if (!((Scene)client.Scene).Permissions.CanEditParcelProperties(client.AgentId, land, GroupPowers.LandEjectAndFreeze, true))
                     return;
                 if (flags == 0)
                 {
@@ -1983,7 +2379,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
             }
         }
-
         private void OnEndParcelFrozen(object avatar)
         {
             ScenePresence targetAvatar = (ScenePresence)avatar;
@@ -1993,6 +2388,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             Timers.Remove(targetAvatar.UUID);
             targetAvatar.ControllingClient.SendAgentAlertMessage("The freeze has worn off; you may go about your business.", false);
         }
+
 
         public void ClientOnParcelEjectUser(IClientAPI client, UUID parcelowner, uint flags, UUID target)
         {
@@ -2010,15 +2406,16 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             // Check if you even have permission to do this
             ILandObject land = m_scene.LandChannel.GetLandObject(targetAvatar.AbsolutePosition.X, targetAvatar.AbsolutePosition.Y);
-            if (!m_scene.Permissions.CanEditParcelProperties(client.AgentId, land, GroupPowers.LandEjectAndFreeze) &&
+            if (!m_scene.Permissions.CanEditParcelProperties(client.AgentId, land, GroupPowers.LandEjectAndFreeze, true) &&
                 !m_scene.Permissions.IsAdministrator(client.AgentId))
                 return;
+
             Vector3 pos = m_scene.GetNearestAllowedPosition(targetAvatar, land);
 
             targetAvatar.TeleportWithMomentum(pos, null);
             targetAvatar.ControllingClient.SendAlertMessage("You have been ejected by " + parcelManager.Firstname + " " + parcelManager.Lastname);
             parcelManager.ControllingClient.SendAlertMessage("Avatar Ejected.");
-
+            
             if ((flags & 1) != 0) // Ban TODO: Remove magic number
             {
                 LandAccessEntry entry = new LandAccessEntry();
@@ -2171,6 +2568,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private void AppendParcelsSummaryReport(StringBuilder report)
         {           
+<<<<<<< HEAD
             report.AppendFormat("Land information for {0}\n", m_scene.Name);
 
             ConsoleDisplayTable cdt = new ConsoleDisplayTable();
@@ -2180,12 +2578,24 @@ namespace OpenSim.Region.CoreModules.World.Land
             cdt.AddColumn("Starts", ConsoleDisplayUtil.VectorSize);
             cdt.AddColumn("Ends", ConsoleDisplayUtil.VectorSize);
             cdt.AddColumn("Owner", ConsoleDisplayUtil.UserNameSize);
+=======
+            report.AppendFormat("Land information for {0}\n", m_scene.RegionInfo.RegionName);            
+            report.AppendFormat(
+                "{0,-20} {1,-10} {2,-9} {3,-18} {4,-18} {5,-20}\n",
+                "Parcel Name",
+                "Local ID",
+                "Area",
+                "AABBMin",
+                "AABBMax",
+                "Owner");
+>>>>>>> avn/ubitvar
             
             lock (m_landList)
             {
                 foreach (ILandObject lo in m_landList.Values)
                 {
                     LandData ld = lo.LandData;
+<<<<<<< HEAD
                     string ownerName;
                     if (ld.IsGroupOwned)
                     {
@@ -2198,6 +2608,35 @@ namespace OpenSim.Region.CoreModules.World.Land
                     }
                     cdt.AddRow(
                         ld.Name, ld.LocalID, ld.Area, lo.StartPoint, lo.EndPoint, ownerName);
+=======
+                    
+                    report.AppendFormat(
+                        "{0,-20} {1,-10} {2,-9} {3,-18} {4,-18} {5,-20}\n", 
+                        ld.Name, ld.LocalID, ld.Area, ld.AABBMin, ld.AABBMax, m_userManager.GetUserName(ld.OwnerID));
+                }
+            }
+           
+        }         
+
+        public void EnforceBans(ILandObject land, ScenePresence avatar)
+        {
+            if (avatar.AbsolutePosition.Z > LandChannel.BAN_LINE_SAFETY_HIEGHT)
+                return;
+
+            if (land.IsEitherBannedOrRestricted(avatar.UUID))
+            {
+                if (land.ContainsPoint(Convert.ToInt32(avatar.lastKnownAllowedPosition.X), Convert.ToInt32(avatar.lastKnownAllowedPosition.Y)))
+                {
+                    Vector3? pos = m_scene.GetNearestAllowedPosition(avatar);
+                    if (pos == null)
+                        m_scene.TeleportClientHome(avatar.UUID, avatar.ControllingClient);
+                    else
+                        ForceAvatarToPosition(avatar, (Vector3)pos);
+                }
+                else
+                {
+                    ForceAvatarToPosition(avatar, avatar.lastKnownAllowedPosition);
+>>>>>>> avn/ubitvar
                 }
             }
 
@@ -2214,8 +2653,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             cdl.AddRow("Description", ld.Description);
             cdl.AddRow("Snapshot ID", ld.SnapshotID);
             cdl.AddRow("Area", ld.Area);
-            cdl.AddRow("Starts", lo.StartPoint);
-            cdl.AddRow("Ends", lo.EndPoint);
             cdl.AddRow("AABB Min", ld.AABBMin);
             cdl.AddRow("AABB Max", ld.AABBMax);
             string ownerName;

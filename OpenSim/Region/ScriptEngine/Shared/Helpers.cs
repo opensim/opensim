@@ -35,6 +35,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.CoreModules;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.ScriptEngine.Shared
@@ -120,6 +121,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             Type = 0;
             Velocity = new LSL_Types.Vector3();
             initializeSurfaceTouch();
+            Country = String.Empty;
         }
 
         public UUID Key;
@@ -150,6 +152,8 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
         private int touchFace;
         public int TouchFace { get { return touchFace; } }
+
+        public string Country;
 
         // This can be done in two places including the constructor
         // so be carefull what gets added here
@@ -198,6 +202,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return;
 
                 Name = presence.Firstname + " " + presence.Lastname;
+                UserAccount account = scene.UserAccountService.GetUserAccount(scene.RegionInfo.ScopeID, Key);
+                if (account != null)
+                    Country = account.UserCountry;
+
                 Owner = Key;
                 Position = new LSL_Types.Vector3(presence.AbsolutePosition);
                 Rotation = new LSL_Types.Quaternion(
@@ -207,22 +215,27 @@ namespace OpenSim.Region.ScriptEngine.Shared
                         presence.Rotation.W);
                 Velocity = new LSL_Types.Vector3(presence.Velocity);
 
-                if (presence.PresenceType != PresenceType.Npc)
-                {
-                    Type = AGENT;
-                }
-                else
-                {
-                    Type = OS_NPC;
+                Type = 0x01; // Avatar
+                if (presence.PresenceType == PresenceType.Npc)
+                    Type = 0x20;
 
-                    INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
-                    INPC npcData = npcModule.GetNPC(presence.UUID, presence.Scene);
+                // Cope Impl. We don't use OS_NPC.
+                //if (presence.PresenceType != PresenceType.Npc)
+                //{
+                //    Type = AGENT;
+                //}
+                //else
+                //{
+                //    Type = OS_NPC;
 
-                    if (npcData.SenseAsAgent)
-                    {
-                        Type |= AGENT;
-                    }
-                }
+                //    INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
+                //    INPC npcData = npcModule.GetNPC(presence.UUID, presence.Scene);
+
+                //    if (npcData.SenseAsAgent)
+                //    {
+                //        Type |= AGENT;
+                //    }
+                //}
 
                 if (presence.Velocity != Vector3.Zero)
                     Type |= ACTIVE;

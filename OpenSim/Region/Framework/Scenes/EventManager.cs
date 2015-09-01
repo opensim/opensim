@@ -80,6 +80,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event OnTerrainTaintedDelegate OnTerrainTainted;
 
         public delegate void OnTerrainTickDelegate();
+        public delegate void OnTerrainCheckUpdatesDelegate();
 
         /// <summary>
         /// Triggered if the terrain has been edited
@@ -89,6 +90,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// but is used by core solely to update the physics engine.
         /// </remarks>
         public event OnTerrainTickDelegate OnTerrainTick;
+        public event OnTerrainCheckUpdatesDelegate OnTerrainCheckUpdates;
+
+        public delegate void OnTerrainUpdateDelegate();
+
+        public event OnTerrainUpdateDelegate OnTerrainUpdate;
 
         public delegate void OnBackupDelegate(ISimulationDataService datastore, bool forceBackup);
 
@@ -339,8 +345,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// in <see cref="Scene.SetScriptRunning"/>
         /// via <see cref="OpenSim.Framework.IClientAPI.OnSetScriptRunning"/>,
         /// via <see cref="OpenSim.Region.ClientStack.LindenUDP.HandleSetScriptRunning"/>
-        /// XXX: This is only triggered when it is the client that starts the script, not in other situations where
-        /// a script is started, unlike OnStopScript!
         /// </remarks>
         public event StartScript OnStartScript;
 
@@ -354,7 +358,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// in <see cref="SceneObjectPartInventory.CreateScriptInstance"/>,
         /// <see cref="SceneObjectPartInventory.StopScriptInstance"/>,
         /// <see cref="Scene.SetScriptRunning"/>
-        /// XXX: This is triggered when a sciprt is stopped for any reason, unlike OnStartScript!
         /// </remarks>
         public event StopScript OnStopScript;
 
@@ -857,6 +860,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public event ParcelPrimCountTainted OnParcelPrimCountTainted;
         public event GetScriptRunning OnGetScriptRunning;
+
+        public delegate void ThrottleUpdate(ScenePresence scenePresence);
+
+        public event ThrottleUpdate OnThrottleUpdate;
 
         /// <summary>
         /// RegisterCapsEvent is called by Scene after the Caps object
@@ -1377,7 +1384,9 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
+//                        m_log.ErrorFormat("[EVENT MANAGER]: OnRemovePresenceDelegate: {0}",d.Target.ToString());
                         d(agentId);
+//                        m_log.ErrorFormat("[EVENT MANAGER]: OnRemovePresenceDelegate done ");
                     }
                     catch (Exception e)
                     {
@@ -1451,6 +1460,26 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
+        public void TriggerTerrainUpdate()
+        {
+            OnTerrainUpdateDelegate handlerTerrainUpdate = OnTerrainUpdate;
+            if (handlerTerrainUpdate != null)
+            {
+                foreach (OnTerrainUpdateDelegate d in handlerTerrainUpdate.GetInvocationList())
+                {
+                    try
+                    {
+                        d();
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerTerrainUpdate failed - continuing.  {0} {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
 
         public void TriggerTerrainTick()
         {
@@ -1467,6 +1496,27 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m_log.ErrorFormat(
                             "[EVENT MANAGER]: Delegate for TriggerTerrainTick failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerTerrainCheckUpdates()
+        {
+            OnTerrainCheckUpdatesDelegate TerrainCheckUpdates = OnTerrainCheckUpdates;
+            if (TerrainCheckUpdates != null)
+            {
+                foreach (OnTerrainCheckUpdatesDelegate d in TerrainCheckUpdates.GetInvocationList())
+                {
+                    try
+                    {
+                        d();
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TerrainCheckUpdates failed - continuing.  {0} {1}",
                             e.Message, e.StackTrace);
                     }
                 }
@@ -1808,6 +1858,7 @@ namespace OpenSim.Region.Framework.Scenes
                         m_log.ErrorFormat(
                             "[EVENT MANAGER]: Delegate for TriggerRemoveScript failed - continuing.  {0} {1}", 
                             e.Message, e.StackTrace);
+                        m_log.ErrorFormat(Environment.StackTrace);
                     }
                 }
             }
@@ -2073,7 +2124,10 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
+//                        m_log.ErrorFormat("[EVENT MANAGER]: TriggerClientClosed: {0}", d.Target.ToString());
                         d(ClientID, scene);
+//                        m_log.ErrorFormat("[EVENT MANAGER]: TriggerClientClosed done ");
+                        
                     }
                     catch (Exception e)
                     {
@@ -3107,6 +3161,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (Action<Scene> d in handler.GetInvocationList())
                 {
+                    m_log.InfoFormat("[EVENT MANAGER]: TriggerSceneShuttingDown invoque {0}", d.Method.Name.ToString());
                     try
                     {
                         d(s);
@@ -3119,6 +3174,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
+            m_log.Info("[EVENT MANAGER]: TriggerSceneShuttingDown done");
         }
 
         public void TriggerOnRegionStarted(Scene scene)
@@ -3307,6 +3363,15 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
+            }
+        }
+
+        public void TriggerThrottleUpdate(ScenePresence scenePresence)
+        {
+            ThrottleUpdate handler = OnThrottleUpdate;
+            if (handler != null)
+            {
+                handler(scenePresence);
             }
         }
 

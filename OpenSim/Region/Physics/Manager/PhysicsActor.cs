@@ -43,7 +43,8 @@ namespace OpenSim.Region.Physics.Manager
         Unknown = 0,
         Agent = 1,
         Prim = 2,
-        Ground = 3
+        Ground = 3,
+        Water = 4
     }
 
     public enum PIDHoverType
@@ -59,15 +60,41 @@ namespace OpenSim.Region.Physics.Manager
         public Vector3 Position;
         public Vector3 SurfaceNormal;
         public float PenetrationDepth;
+        public float RelativeSpeed;
+        public bool CharacterFeet;
 
         public ContactPoint(Vector3 position, Vector3 surfaceNormal, float penetrationDepth)
         {
             Position = position;
             SurfaceNormal = surfaceNormal;
             PenetrationDepth = penetrationDepth;
+            RelativeSpeed = 0f; // for now let this one be set explicity
+            CharacterFeet = true;  // keep other plugins work as before
+        }
+
+        public ContactPoint(Vector3 position, Vector3 surfaceNormal, float penetrationDepth, bool feet)
+        {
+            Position = position;
+            SurfaceNormal = surfaceNormal;
+            PenetrationDepth = penetrationDepth;
+            RelativeSpeed = 0f; // for now let this one be set explicity
+            CharacterFeet = feet;  // keep other plugins work as before
         }
     }
 
+    public struct ContactData
+    {
+        public float mu;
+        public float bounce;
+        public bool softcolide;
+
+        public ContactData(float _mu, float _bounce, bool _softcolide)
+        {
+            mu = _mu;
+            bounce = _bounce;
+            softcolide = _softcolide;
+        }
+    }
     /// <summary>
     /// Used to pass collision information to OnCollisionUpdate listeners.
     /// </summary>
@@ -99,7 +126,7 @@ namespace OpenSim.Region.Physics.Manager
                 m_objCollisionList.Add(localID, contact);
             }
             else
-            {
+            {              
                 if (m_objCollisionList[localID].PenetrationDepth < contact.PenetrationDepth)
                     m_objCollisionList[localID] = contact;
             }
@@ -135,6 +162,8 @@ namespace OpenSim.Region.Physics.Manager
         /// </summary>
         public event CollisionUpdate OnCollisionUpdate;
 
+        public virtual void SetVehicle(object vdata) { }
+
         public event OutOfBounds OnOutOfBounds;
 #pragma warning restore 67
 
@@ -142,10 +171,31 @@ namespace OpenSim.Region.Physics.Manager
         {
             get { return new NullPhysicsActor(); }
         }
+   
+        public virtual bool Building { get; set; }
+
+        public virtual void getContactData(ref ContactData cdata)
+        {
+            cdata.mu = 0;
+            cdata.bounce = 0;
+        }
 
         public abstract bool Stopped { get; }
 
         public abstract Vector3 Size { get; set; }
+
+        public virtual void setAvatarSize(Vector3 size, float feetOffset)
+        {
+            Size = size;
+        }
+
+        public virtual bool Phantom { get; set; }
+
+        public virtual bool IsVolumeDtc
+        {
+            get { return false; }
+            set { return; }
+        }
 
         public virtual byte PhysicsShapeType { get; set; }
 
@@ -169,7 +219,7 @@ namespace OpenSim.Region.Physics.Manager
         /// XXX: Bizarrely, this cannot be "Terrain" or "Water" right now unless it really is simulating terrain or
         /// water.  This is not a problem due to the formatting of names given by prims and avatars.
         /// </remarks>
-        public string Name { get; protected set; }
+        public string Name { get; set; }
 
         /// <summary>
         /// This is being used by ODE joint code.
@@ -253,6 +303,51 @@ namespace OpenSim.Region.Physics.Manager
         public abstract Vector3 GeometricCenter { get; }
         public abstract Vector3 CenterOfMass { get; }
 
+        public virtual Vector3 OOBsize
+        {
+            get
+                {
+                Vector3 s=Size;
+                s.X *=0.5f;
+                s.Y *=0.5f;
+                s.Z *=0.5f;
+                return s;
+                } 
+        }
+
+        public virtual Vector3 OOBoffset
+        {
+            get
+            {
+                return Vector3.Zero;
+            }
+        }
+
+        public virtual float OOBRadiusSQ
+        {
+            get
+            {
+                return Size.LengthSquared() * 0.25f; // ((0.5^2)
+            }
+        }
+
+
+        public virtual float PhysicsCost
+        {
+            get
+            {
+                return 0.1f;
+            }
+        }
+
+        public virtual float StreamCost
+        {
+            get
+            {
+                return 1.0f;
+            }
+        }
+
         /// <summary>
         /// The desired velocity of this actor.
         /// </summary>
@@ -314,6 +409,12 @@ namespace OpenSim.Region.Physics.Manager
         public abstract void UnSubscribeEvents();
         public abstract bool SubscribedEvents();
 
+        public virtual void AddCollisionEvent(uint CollidedWith, ContactPoint contact) { }
+
+        // Warning in a parent part it returns itself, not null
+        public virtual PhysicsActor ParentActor { get { return this; } }
+        
+
         // Extendable interface for new, physics engine specific operations
         public virtual object Extension(string pFunct, params object[] pParams)
         {
@@ -324,9 +425,11 @@ namespace OpenSim.Region.Physics.Manager
 
     public class NullPhysicsActor : PhysicsActor
     {
+        private ActorTypes m_actorType = ActorTypes.Unknown;
+
         public override bool Stopped
         {
-            get{ return false; }
+            get{ return true; }
         }
 
         public override Vector3 Position
@@ -343,6 +446,7 @@ namespace OpenSim.Region.Physics.Manager
 
         public override uint LocalID
         {
+            get { return 0; }
             set { return; }
         }
 
@@ -402,50 +506,17 @@ namespace OpenSim.Region.Physics.Manager
             set { return; }
         }
 
-        public override void VehicleFloatParam(int param, float value)
-        {
+        public override void VehicleFloatParam(int param, float value) {}
+        public override void VehicleVectorParam(int param, Vector3 value) { }
+        public override void VehicleRotationParam(int param, Quaternion rotation) { }
+        public override void VehicleFlags(int param, bool remove) { }
+        public override void SetVolumeDetect(int param) {}
+        public override void SetMaterial(int material) {}
+        public override Vector3 CenterOfMass { get { return Vector3.Zero; }}
 
-        }
+        public override Vector3 GeometricCenter { get { return Vector3.Zero; }}
 
-        public override void VehicleVectorParam(int param, Vector3 value)
-        {
-
-        }
-
-        public override void VehicleRotationParam(int param, Quaternion rotation)
-        {
-
-        }
-
-        public override void VehicleFlags(int param, bool remove)
-        {
-            
-        }
-
-        public override void SetVolumeDetect(int param)
-        {
-
-        }
-
-        public override void SetMaterial(int material)
-        {
-            
-        }
-
-        public override Vector3 CenterOfMass
-        {
-            get { return Vector3.Zero; }
-        }
-
-        public override Vector3 GeometricCenter
-        {
-            get { return Vector3.Zero; }
-        }
-
-        public override PrimitiveBaseShape Shape
-        {
-            set { return; }
-        }
+        public override PrimitiveBaseShape Shape { set { return; }}
 
         public override Vector3 Velocity
         {
@@ -465,9 +536,7 @@ namespace OpenSim.Region.Physics.Manager
             set { }
         }
 
-        public override void CrossingFailure()
-        {
-        }
+        public override void CrossingFailure() {}
 
         public override Quaternion Orientation
         {
@@ -507,8 +576,20 @@ namespace OpenSim.Region.Physics.Manager
 
         public override int PhysicsActorType
         {
-            get { return (int) ActorTypes.Unknown; }
-            set { return; }
+            get { return (int)m_actorType; }
+            set {               
+                ActorTypes type = (ActorTypes)value;
+                switch (type)
+                {
+                    case ActorTypes.Ground:
+                    case ActorTypes.Water:
+                        m_actorType = type;
+                        break;
+                    default:
+                        m_actorType = ActorTypes.Unknown;
+                        break;
+                }
+            }
         }
 
         public override bool Kinematic
@@ -517,26 +598,11 @@ namespace OpenSim.Region.Physics.Manager
             set { return; }
         }
 
-        public override void link(PhysicsActor obj)
-        {
-        }
-
-        public override void delink()
-        {
-        }
-
-        public override void LockAngularMotion(Vector3 axis)
-        {
-        }
-
-        public override void AddForce(Vector3 force, bool pushforce)
-        {
-        }
-
-        public override void AddAngularForce(Vector3 force, bool pushforce)
-        {
-            
-        }
+        public override void link(PhysicsActor obj) { }
+        public override void delink() { }
+        public override void LockAngularMotion(Vector3 axis) { }
+        public override void AddForce(Vector3 force, bool pushforce) { }
+        public override void AddAngularForce(Vector3 force, bool pushforce) { }
 
         public override Vector3 RotationalVelocity
         {
@@ -564,21 +630,10 @@ namespace OpenSim.Region.Physics.Manager
         public override float APIDStrength { set { return; } }
         public override float APIDDamping { set { return; } }
         
-        public override void SetMomentum(Vector3 momentum)
-        {
-        }
+        public override void SetMomentum(Vector3 momentum) { }
 
-        public override void SubscribeEvents(int ms)
-        {
-
-        }
-        public override void UnSubscribeEvents()
-        {
-
-        }
-        public override bool SubscribedEvents()
-        {
-            return false;
-        }
+        public override void SubscribeEvents(int ms) { }
+        public override void UnSubscribeEvents() { }
+        public override bool SubscribedEvents() { return false; }
     }
 }

@@ -158,7 +158,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         /// <param name="type"></param>
         /// <param name="wearableType"></param>
         /// <param name="nextOwnerMask"></param>
-        public void HandleItemCreationFromTransaction(IClientAPI remoteClient,
+        public bool HandleItemCreationFromTransaction(IClientAPI remoteClient,
                 UUID transactionID, UUID folderID, uint callbackID,
                 string description, string name, sbyte invType,
                 sbyte type, byte wearableType, uint nextOwnerMask)
@@ -169,7 +169,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             AgentAssetTransactions transactions =
                     GetUserTransactions(remoteClient.AgentId);
 
-            transactions.RequestCreateInventoryItem(remoteClient, transactionID,
+            return transactions.RequestCreateInventoryItem(remoteClient, transactionID,
                     folderID, callbackID, description, name, invType, type,
                     wearableType, nextOwnerMask);
         }

@@ -43,6 +43,7 @@ namespace OpenSim.Region.Framework.Interfaces
     public enum UserMode : int
     {
         Normal = 0,
+        RegionManager = 2,
         God = 3
     }
 

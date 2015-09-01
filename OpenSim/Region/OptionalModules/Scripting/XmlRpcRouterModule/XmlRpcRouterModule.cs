@@ -98,7 +98,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcRouterModule
 
         public void RegisterNewReceiver(IScriptModule scriptEngine, UUID channel, UUID objectID, UUID itemID, string uri)
         {
-            scriptEngine.PostScriptEvent(itemID, "xmlrpc_uri", new Object[] {uri});
+            if (m_Enabled)
+            {
+                scriptEngine.PostScriptEvent(itemID, "xmlrpc_uri", new Object[] { uri });
+            }
         }
 
         public void UnRegisterReceiver(string channelID, UUID itemID)

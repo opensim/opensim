@@ -185,6 +185,9 @@ namespace OpenSim.Server.Handlers.GridUser
 
             GridUserInfo guinfo = m_GridUserService.GetGridUserInfo(user);
 
+            if (guinfo == null)
+                return FailureResult();
+
             Dictionary<string, object> result = new Dictionary<string, object>();
             if (guinfo != null)
                 result["result"] = guinfo.ToKeyValuePairs();

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
@@ -25,6 +26,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+=======
+////////////////////////////////////////////////////////////////
+//
+// (c) 2009, 2010 Careminster Limited and Melanie Thielker
+//
+// All rights reserved
+//
+>>>>>>> avn/ubitvar
 using System;
 using Nini.Config;
 

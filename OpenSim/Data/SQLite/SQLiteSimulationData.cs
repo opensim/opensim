@@ -2013,6 +2013,7 @@ namespace OpenSim.Data.SQLite
             return entry;
         }
 
+        /*
         /// <summary>
         ///
         /// </summary>
@@ -2942,6 +2943,11 @@ namespace OpenSim.Data.SQLite
                     Console.WriteLine();
                 }
             }
+        }
+
+        public UUID[] GetObjectIDs(UUID regionID)
+        {
+            return new UUID[0];
         }
 
         public void SaveExtra(UUID regionID, string name, string value)

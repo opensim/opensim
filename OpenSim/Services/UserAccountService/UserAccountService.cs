@@ -176,6 +176,10 @@ namespace OpenSim.Services.UserAccountService
                 Int32.TryParse(d.Data["UserLevel"], out u.UserLevel);
             if (d.Data.ContainsKey("UserFlags") && d.Data["UserFlags"] != null)
                 Int32.TryParse(d.Data["UserFlags"], out u.UserFlags);
+            if (d.Data.ContainsKey("UserCountry") && d.Data["UserCountry"] != null)
+                u.UserCountry = d.Data["UserCountry"].ToString();
+            else
+                u.UserTitle = string.Empty;
 
             if (d.Data.ContainsKey("ServiceURLs") && d.Data["ServiceURLs"] != null)
             {
@@ -301,7 +305,22 @@ namespace OpenSim.Services.UserAccountService
 
         public List<UserAccount> GetUserAccounts(UUID scopeID, string query)
         {
-            UserAccountData[] d = m_Database.GetUsers(scopeID, query);
+            UserAccountData[] d = m_Database.GetUsers(scopeID, query.Trim());
+
+            if (d == null)
+                return new List<UserAccount>();
+
+            List<UserAccount> ret = new List<UserAccount>();
+
+            foreach (UserAccountData data in d)
+                ret.Add(MakeUserAccount(data));
+
+            return ret;
+        }
+
+        public List<UserAccount> GetUserAccountsWhere(UUID scopeID, string where)
+        {
+            UserAccountData[] d = m_Database.GetUsersWhere(scopeID, where);
 
             if (d == null)
                 return new List<UserAccount>();

@@ -249,6 +249,49 @@ namespace OpenSim.Framework.Monitoring
                                 (s) => { s.Value = Math.Round(MemoryWatchdog.LastHeapAllocationRate * 1000d / 1024d / 1024d, 3); });
             MakeStat("AverageHeapAllocationRate", null, "MB/sec", ContainerMemory,
                                 (s) => { s.Value = Math.Round(MemoryWatchdog.AverageHeapAllocationRate * 1000d / 1024d / 1024d, 3); });
+
+            MakeStat("ProcessResident", null, "MB", ContainerProcess,
+                                (s) =>
+                                {
+                                    Process myprocess = Process.GetCurrentProcess();
+                                    myprocess.Refresh();
+                                    s.Value = Math.Round(Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0);
+                                });
+            MakeStat("ProcessPaged", null, "MB", ContainerProcess,
+                                (s) =>
+                                {
+                                    Process myprocess = Process.GetCurrentProcess();
+                                    myprocess.Refresh();
+                                    s.Value = Math.Round(Process.GetCurrentProcess().PagedMemorySize64 / 1024.0 / 1024.0);
+                                });
+            MakeStat("ProcessVirtual", null, "MB", ContainerProcess,
+                                (s) =>
+                                {
+                                    Process myprocess = Process.GetCurrentProcess();
+                                    myprocess.Refresh();
+                                    s.Value = Math.Round(Process.GetCurrentProcess().VirtualMemorySize64 / 1024.0 / 1024.0);
+                                });
+            MakeStat("PeakProcessResident", null, "MB", ContainerProcess,
+                                (s) =>
+                                {
+                                    Process myprocess = Process.GetCurrentProcess();
+                                    myprocess.Refresh();
+                                    s.Value = Math.Round(Process.GetCurrentProcess().PeakWorkingSet64 / 1024.0 / 1024.0);
+                                });
+            MakeStat("PeakProcessPaged", null, "MB", ContainerProcess,
+                                (s) =>
+                                {
+                                    Process myprocess = Process.GetCurrentProcess();
+                                    myprocess.Refresh();
+                                    s.Value = Math.Round(Process.GetCurrentProcess().PeakPagedMemorySize64 / 1024.0 / 1024.0);
+                                });
+            MakeStat("PeakProcessVirtual", null, "MB", ContainerProcess,
+                                (s) =>
+                                {
+                                    Process myprocess = Process.GetCurrentProcess();
+                                    myprocess.Refresh();
+                                    s.Value = Math.Round(Process.GetCurrentProcess().PeakVirtualMemorySize64 / 1024.0 / 1024.0);
+                                });
         }
 
         // Notes on performance counters: 

@@ -49,6 +49,7 @@ namespace OpenSim.Region.Framework.Scenes
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static string LogHeader = "[TERRAIN CHANNEL]";
+<<<<<<< HEAD
 
         protected TerrainData m_terrainData;
 
@@ -57,6 +58,16 @@ namespace OpenSim.Region.Framework.Scenes
         public int Height { get { return m_terrainData.SizeY; } } // Y dimension
         public int Altitude { get { return m_terrainData.SizeZ; } } // Y dimension
 
+=======
+
+        protected TerrainData m_terrainData;
+
+        public int Width { get { return m_terrainData.SizeX; } }  // X dimension
+        // Unfortunately, for historical reasons, in this module 'Width' is X and 'Height' is Y
+        public int Height { get { return m_terrainData.SizeY; } } // Y dimension
+        public int Altitude { get { return m_terrainData.SizeZ; } } // Y dimension
+
+>>>>>>> avn/ubitvar
         // Default, not-often-used builder
         public TerrainChannel()
         {
@@ -157,7 +168,15 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (Double.IsNaN(value) || Double.IsInfinity(value))
                     return;
+<<<<<<< HEAD
 
+=======
+                if (value < 0)
+                    value = 0;
+                else
+                    if (value > 655.35)
+                        value = 655.35;
+>>>>>>> avn/ubitvar
                 m_terrainData[x, y] = (float)value;
             }
         }
@@ -363,8 +382,13 @@ namespace OpenSim.Region.Framework.Scenes
             public int SizeY;
             public int SizeZ;
             public float CompressionFactor;
+<<<<<<< HEAD
             public int[] Map;
             public TerrainChannelXMLPackage(int pX, int pY, int pZ, float pCompressionFactor, int[] pMap)
+=======
+            public float[] Map;
+            public TerrainChannelXMLPackage(int pX, int pY, int pZ, float pCompressionFactor, float[] pMap)
+>>>>>>> avn/ubitvar
             {
                 Version = 1;
                 SizeX = pX;
@@ -395,10 +419,17 @@ namespace OpenSim.Region.Framework.Scenes
         // Fill the heightmap with the center bump terrain
         private void PinHeadIsland()
         {
+<<<<<<< HEAD
+=======
+            float cx = m_terrainData.SizeX * 0.5f;
+            float cy = m_terrainData.SizeY * 0.5f;
+            float h;
+>>>>>>> avn/ubitvar
             for (int x = 0; x < Width; x++)
             {
                 for (int y = 0; y < Height; y++)
                 {
+<<<<<<< HEAD
                     m_terrainData[x, y] = (float)TerrainUtil.PerlinNoise2D(x, y, 2, 0.125) * 10;
                     float spherFacA = (float)(TerrainUtil.SphericalFactor(x, y, m_terrainData.SizeX / 2.0, m_terrainData.SizeY / 2.0, 50) * 0.01d);
                     float spherFacB = (float)(TerrainUtil.SphericalFactor(x, y, m_terrainData.SizeX / 2.0, m_terrainData.SizeY / 2.0, 100) * 0.001d);
@@ -406,6 +437,17 @@ namespace OpenSim.Region.Framework.Scenes
                         m_terrainData[x, y]= spherFacA;
                     if (m_terrainData[x, y]< spherFacB)
                         m_terrainData[x, y] = spherFacB;
+=======
+ //                   h = (float)TerrainUtil.PerlinNoise2D(x, y, 2, 0.125) * 10;
+                    h = 1.0f;
+                    float spherFacA = (float)(TerrainUtil.SphericalFactor(x, y, cx, cy, 50) * 0.01d);
+                    float spherFacB = (float)(TerrainUtil.SphericalFactor(x, y, cx, cy, 100) * 0.001d);
+                    if (h < spherFacA)
+                        h = spherFacA;
+                    if (h < spherFacB)
+                        h = spherFacB;
+                    m_terrainData[x, y] = h;
+>>>>>>> avn/ubitvar
                 }
             }
         }

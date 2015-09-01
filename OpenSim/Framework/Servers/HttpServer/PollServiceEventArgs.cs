@@ -52,7 +52,9 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             LongPoll = 0,
             LslHttp = 1,
-            Inventory = 2
+            Inventory = 2,
+            Texture = 3, 
+            Mesh = 4
         }
 
         public string Url { get; set; }

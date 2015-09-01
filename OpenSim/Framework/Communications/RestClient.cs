@@ -389,9 +389,32 @@ namespace OpenSim.Framework.Communications
                         }
                     }
 
+                    if (_response != null)
+                        _response.Close();
+
                     return null;
                 }
 
+<<<<<<< HEAD
+=======
+                using (Stream src = _response.GetResponseStream())
+                {
+                    int length = src.Read(_readbuf, 0, BufferSize);
+                    while (length > 0)
+                    {
+                        _resource.Write(_readbuf, 0, length);
+                        length = src.Read(_readbuf, 0, BufferSize);
+                    }
+                }
+
+                // TODO! Implement timeout, without killing the server
+                // this line implements the timeout, if there is a timeout, the callback fires and the request becomes aborted
+                //ThreadPool.RegisterWaitForSingleObject(responseAsyncResult.AsyncWaitHandle, new WaitOrTimerCallback(TimeoutCallback), _request, DefaultTimeout, true);
+
+//                _allDone.WaitOne();
+                if (_response != null)
+                    _response.Close();
+>>>>>>> avn/ubitvar
                 if (_asyncException != null)
                     throw _asyncException;
 
@@ -413,7 +436,7 @@ namespace OpenSim.Framework.Communications
             _request = (HttpWebRequest) WebRequest.Create(buildUri());
             _request.KeepAlive = false;
             _request.ContentType = "application/xml";
-            _request.Timeout = 900000;
+            _request.Timeout = 30000;
             _request.Method = RequestMethod;
             _asyncException = null;
             _request.ContentLength = src.Length;
@@ -421,6 +444,7 @@ namespace OpenSim.Framework.Communications
                 auth.AddAuthorization(_request.Headers);
 
             src.Seek(0, SeekOrigin.Begin);
+<<<<<<< HEAD
 
             int reqnum = WebUtil.RequestNumber++;
             if (WebUtil.DebugLevel >= 3)
@@ -433,9 +457,22 @@ namespace OpenSim.Framework.Communications
             byte[] buf = new byte[1024];
             int length = src.Read(buf, 0, 1024);
             while (length > 0)
+=======
+            m_log.Info("[REST]: Seek is ok");
+
+            using (Stream dst = _request.GetRequestStream())
+>>>>>>> avn/ubitvar
             {
-                dst.Write(buf, 0, length);
-                length = src.Read(buf, 0, 1024);
+                m_log.Info("[REST]: GetRequestStream is ok");
+
+                byte[] buf = new byte[1024];
+                int length = src.Read(buf, 0, 1024);
+                m_log.Info("[REST]: First Read is ok");
+                while (length > 0)
+                {
+                    dst.Write(buf, 0, length);
+                    length = src.Read(buf, 0, 1024);
+                }
             }
 
             try
@@ -469,6 +506,9 @@ namespace OpenSim.Framework.Communications
             }
 
             _response.Close();
+
+            if (_response != null)
+                _response.Close();
 
 //            IAsyncResult responseAsyncResult = _request.BeginGetResponse(new AsyncCallback(ResponseIsReadyDelegate), _request);
 

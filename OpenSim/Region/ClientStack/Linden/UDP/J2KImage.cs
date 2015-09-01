@@ -234,6 +234,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             m_stopPacket = TexturePacketCount();
                         }
 
+                        //Give them at least two packets, to play nice with some broken viewers (SL also behaves this way)
+                        if (m_stopPacket == 1 && m_layers[0].End > FIRST_PACKET_SIZE) m_stopPacket++;
+
                         m_currentPacket = StartPacket;
                     }
                 }

@@ -555,7 +555,9 @@ public class BSShapeMesh : BSShape
         {
             meshData = physicsScene.mesher.CreateMesh(prim.PhysObjectName, pbs, size, lod,
                                             false,  // say it is not physical so a bounding box is not built
-                                            false   // do not cache the mesh and do not use previously built versions
+                                            false,   // do not cache the mesh and do not use previously built versions
+                                            false,
+                                            false
                                             );
         }
 
@@ -712,7 +714,7 @@ public class BSShapeHull : BSShape
         lock (physicsScene.mesher)
         {
             // Pass true for physicalness as this prevents the creation of bounding box which is not needed
-            meshData = physicsScene.mesher.CreateMesh(prim.PhysObjectName, pbs, size, lod, true /* isPhysical */, false /* shouldCache */);
+            meshData = physicsScene.mesher.CreateMesh(prim.PhysObjectName, pbs, size, lod, true /* isPhysical */, false /* shouldCache */, false, false);
 
             // If we should use the asset's hull info, fetch it out of the locked mesher
             if (meshData != null && BSParam.ShouldUseAssetHulls)

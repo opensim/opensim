@@ -29,6 +29,8 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Timers;
+using System.IO;
+using System.Diagnostics;
 using System.Threading;
 using System.Collections.Generic;
 using log4net;
@@ -57,13 +59,24 @@ namespace OpenSim.Region.CoreModules.World.Region
         protected UUID m_Initiator;
         protected bool m_Notice = false;
         protected IDialogModule m_DialogModule = null;
+        protected string m_MarkerPath = String.Empty;
+        private int[] m_CurrentAlerts = null;
 
         public void Initialise(IConfigSource config)
         {
+            IConfig restartConfig = config.Configs["RestartModule"];
+            if (restartConfig != null)
+            {
+                m_MarkerPath = restartConfig.GetString("MarkerPath", String.Empty);
+            }
         }
 
         public void AddRegion(Scene scene)
         {
+            if (m_MarkerPath != String.Empty)
+                File.Delete(Path.Combine(m_MarkerPath,
+                        scene.RegionInfo.RegionID.ToString()));
+
             m_Scene = scene;
             
             scene.RegisterModuleInterface<IRestartModule>(this);
@@ -118,10 +131,14 @@ namespace OpenSim.Region.CoreModules.World.Region
         public void ScheduleRestart(UUID initiator, string message, int[] alerts, bool notice)
         {
             if (m_CountdownTimer != null)
-                return;
+            {
+                m_CountdownTimer.Stop();
+                m_CountdownTimer = null;
+            }
 
             if (alerts == null)
             {
+                CreateMarkerFile();
                 m_Scene.RestartNow();
                 return;
             }
@@ -129,25 +146,28 @@ namespace OpenSim.Region.CoreModules.World.Region
             m_Message = message;
             m_Initiator = initiator;
             m_Notice = notice;
+            m_CurrentAlerts = alerts;
             m_Alerts = new List<int>(alerts);
             m_Alerts.Sort();
             m_Alerts.Reverse();
 
             if (m_Alerts[0] == 0)
             {
+                CreateMarkerFile();
                 m_Scene.RestartNow();
                 return;
             }
 
-            int nextInterval = DoOneNotice();
+            int nextInterval = DoOneNotice(true);
 
             SetTimer(nextInterval);
         }
 
-        public int DoOneNotice()
+        public int DoOneNotice(bool sendOut)
         {
             if (m_Alerts.Count == 0 || m_Alerts[0] == 0)
             {
+                CreateMarkerFile();
                 m_Scene.RestartNow();
                 return 0;
             }
@@ -168,34 +188,37 @@ namespace OpenSim.Region.CoreModules.World.Region
 
             m_Alerts.RemoveAt(0);
 
-            int minutes = currentAlert / 60;
-            string currentAlertString = String.Empty;
-            if (minutes > 0)
+            if (sendOut)
             {
-                if (minutes == 1)
-                    currentAlertString += "1 minute";
-                else
-                    currentAlertString += String.Format("{0} minutes", minutes);
+                int minutes = currentAlert / 60;
+                string currentAlertString = String.Empty;
+                if (minutes > 0)
+                {
+                    if (minutes == 1)
+                        currentAlertString += "1 minute";
+                    else
+                        currentAlertString += String.Format("{0} minutes", minutes);
+                    if ((currentAlert % 60) != 0)
+                        currentAlertString += " and ";
+                }
                 if ((currentAlert % 60) != 0)
-                    currentAlertString += " and ";
-            }
-            if ((currentAlert % 60) != 0)
-            {
-                int seconds = currentAlert % 60;
-                if (seconds == 1)
-                    currentAlertString += "1 second";
-                else
-                    currentAlertString += String.Format("{0} seconds", seconds);
-            }
+                {
+                    int seconds = currentAlert % 60;
+                    if (seconds == 1)
+                        currentAlertString += "1 second";
+                    else
+                        currentAlertString += String.Format("{0} seconds", seconds);
+                }
 
-            string msg = String.Format(m_Message, currentAlertString);
+                string msg = String.Format(m_Message, currentAlertString);
 
-            if (m_DialogModule != null && msg != String.Empty)
-            {
-                if (m_Notice)
-                    m_DialogModule.SendGeneralAlert(msg);
-                else
-                    m_DialogModule.SendNotificationToUsersInRegion(m_Initiator, "System", msg);
+                if (m_DialogModule != null && msg != String.Empty)
+                {
+                    if (m_Notice)
+                        m_DialogModule.SendGeneralAlert(msg);
+                    else
+                        m_DialogModule.SendNotificationToUsersInRegion(m_Initiator, "System", msg);
+                }
             }
 
             return currentAlert - nextAlert;
@@ -226,7 +249,27 @@ namespace OpenSim.Region.CoreModules.World.Region
 
         private void OnTimer(object source, ElapsedEventArgs e)
         {
-            SetTimer(DoOneNotice());
+            int nextInterval = DoOneNotice(true);
+
+            SetTimer(nextInterval);
+        }
+
+        public void DelayRestart(int seconds, string message)
+        {
+            if (m_CountdownTimer == null)
+                return;
+
+            m_CountdownTimer.Stop();
+            m_CountdownTimer = null;
+
+            m_Alerts = new List<int>(m_CurrentAlerts);
+            m_Alerts.Add(seconds);
+            m_Alerts.Sort();
+            m_Alerts.Reverse();
+
+            int nextInterval = DoOneNotice(false);
+
+            SetTimer(nextInterval);
         }
 
         public void AbortRestart(string message)
@@ -236,8 +279,12 @@ namespace OpenSim.Region.CoreModules.World.Region
                 m_CountdownTimer.Stop();
                 m_CountdownTimer = null;
                 if (m_DialogModule != null && message != String.Empty)
-                    m_DialogModule.SendGeneralAlert(message);
+                    m_DialogModule.SendNotificationToUsersInRegion(UUID.Zero, "System", message);
+                    //m_DialogModule.SendGeneralAlert(message);
             }
+            if (m_MarkerPath != String.Empty)
+                File.Delete(Path.Combine(m_MarkerPath,
+                        m_Scene.RegionInfo.RegionID.ToString()));
         }
         
         private void HandleRegionRestart(string module, string[] args)
@@ -281,6 +328,26 @@ namespace OpenSim.Region.CoreModules.World.Region
                 "Region {0} scheduled for restart in {1} seconds", m_Scene.Name, times.Sum());
 
             ScheduleRestart(UUID.Zero, args[3], times.ToArray(), notice);
+        }
+
+        protected void CreateMarkerFile()
+        {
+            if (m_MarkerPath == String.Empty)
+                return;
+
+            string path = Path.Combine(m_MarkerPath, m_Scene.RegionInfo.RegionID.ToString());
+            try
+            {
+                string pidstring = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
+                FileStream fs = File.Create(path);
+                System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+                Byte[] buf = enc.GetBytes(pidstring);
+                fs.Write(buf, 0, buf.Length);
+                fs.Close();
+            }
+            catch (Exception)
+            {
+            }
         }
     }
 }

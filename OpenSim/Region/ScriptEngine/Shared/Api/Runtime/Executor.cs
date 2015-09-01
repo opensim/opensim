@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics; //for [DebuggerNonUserCode]
 using System.Reflection;
 using System.Runtime.Remoting.Lifetime;
 using OpenSim.Region.ScriptEngine.Shared;
@@ -133,6 +134,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return (eventFlags);
         }
 
+        [DebuggerNonUserCode]
         public void ExecuteEvent(string state, string FunctionName, object[] args)
         {
             // IMPORTANT: Types and MemberInfo-derived objects require a LOT of memory.

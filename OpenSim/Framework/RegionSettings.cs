@@ -482,6 +482,28 @@ namespace OpenSim.Framework
             set { m_LoadedCreationID = value; }
         }
 
+        private bool m_GodBlockSearch = false;
+        public bool GodBlockSearch
+        {
+            get { return m_GodBlockSearch; }
+            set { m_GodBlockSearch = value; }
+        }
+
+        private bool m_Casino = false;
+        public bool Casino
+        {
+            get { return m_Casino; }
+            set { m_Casino = value; }
+        }
+
+        // Telehub support
+        private bool m_TelehubEnabled = false;
+        public bool HasTelehub
+        {
+            get { return m_TelehubEnabled; }
+            set { m_TelehubEnabled = value; }
+        }
+
         /// <summary>
         /// Connected Telehub object
         /// </summary>

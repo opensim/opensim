@@ -60,6 +60,14 @@ namespace OpenSim.Region.Physics.Manager
             m_log.Info("[PHYSICS]: Added meshing engine: " + plugHard.GetName());
         }
 
+        // Legacy method for simulators before extent was passed
+        public PhysicsScene GetPhysicsScene(string physEngineName, string meshEngineName,
+                                    IConfigSource config, string regionName)
+        {
+            Vector3 extent = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
+            return GetPhysicsScene(physEngineName, meshEngineName, config, regionName, extent);
+        }
+
         /// <summary>
         /// Get a physics scene for the given physics engine and mesher.
         /// </summary>

@@ -207,7 +207,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (m_ParcelCounts.TryGetValue(landData.GlobalID, out parcelCounts))
             {
                 UUID landOwner = landData.OwnerID;
-                int partCount = obj.Parts.Length;
+                int partCount = obj.GetPartCount();
 
                 m_SimwideCounts[landOwner] += partCount;
                 if (parcelCounts.Users.ContainsKey(obj.OwnerID))

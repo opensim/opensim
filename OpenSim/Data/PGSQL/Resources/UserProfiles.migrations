@@ -81,6 +81,7 @@ CREATE TABLE userdata (
 
 commit;
 
+<<<<<<< HEAD
 :VERSION 3        # -------------------------------
 begin;
 CREATE TABLE usersettings (
@@ -153,3 +154,5 @@ BEGIN;
 ALTER TABLE usersettings ALTER COLUMN imviaemail SET DATA TYPE boolean USING CASE WHEN false THEN false ELSE true END;
 
 COMMIT;
+=======
+>>>>>>> avn/ubitvar

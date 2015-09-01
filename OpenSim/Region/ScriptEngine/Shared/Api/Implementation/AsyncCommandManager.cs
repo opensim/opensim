@@ -28,9 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading;
-using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Monitoring;
@@ -39,6 +37,8 @@ using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api.Plugins;
 using Timer=OpenSim.Region.ScriptEngine.Shared.Api.Plugins.Timer;
+using System.Reflection;
+using log4net;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api
 {
@@ -269,6 +269,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <param name="itemID"></param>
         public static void RemoveScript(IScriptEngine engine, uint localID, UUID itemID)
         {
+            // Remove a specific script
 //            m_log.DebugFormat("[ASYNC COMMAND MANAGER]: Removing facilities for script {0}", itemID);
 
             lock (staticLock)
@@ -282,7 +283,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // Remove from: HttpRequest
                 IHttpRequestModule iHttpReq = engine.World.RequestModuleInterface<IHttpRequestModule>();
                 if (iHttpReq != null)
-                    iHttpReq.StopHttpRequestsForScript(itemID);
+                    iHttpReq.StopHttpRequest(localID, itemID);
 
                 IWorldComm comms = engine.World.RequestModuleInterface<IWorldComm>();
                 if (comms != null)
@@ -384,6 +385,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 else
                     return null;
             }
+        }
+
+        public static void StateChange(IScriptEngine engine, uint localID, UUID itemID)
+        {
+            // Remove a specific script
+
+            // Remove dataserver events
+            m_Dataserver[engine].RemoveEvents(localID, itemID);
+
+            IWorldComm comms = engine.World.RequestModuleInterface<IWorldComm>();
+            if (comms != null)
+                comms.DeleteListener(itemID);
+
+            IXMLRPC xmlrpc = engine.World.RequestModuleInterface<IXMLRPC>();
+            if (xmlrpc != null)
+            {
+                xmlrpc.DeleteChannels(itemID);
+                xmlrpc.CancelSRDRequests(itemID);
+            }
+
+            // Remove Sensors
+            m_SensorRepeat[engine].UnSetSenseRepeaterEvents(localID, itemID);
+
         }
 
         public static Object[] GetSerializationData(IScriptEngine engine, UUID itemID)

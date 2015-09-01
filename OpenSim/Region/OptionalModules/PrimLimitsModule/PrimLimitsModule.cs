@@ -135,30 +135,49 @@ namespace OpenSim.Region.OptionalModules
 
         private bool CanObjectEnter(UUID objectID, bool enteringRegion, Vector3 newPoint, Scene scene)
         {
+            if (newPoint.X < -1f || newPoint.X > (scene.RegionInfo.RegionSizeX + 1) ||
+                newPoint.Y < -1f || newPoint.Y > (scene.RegionInfo.RegionSizeY) )
+                return true;
+
             SceneObjectPart obj = scene.GetSceneObjectPart(objectID);
-            Vector3 oldPoint = obj.GroupPosition;
-            int objectCount = obj.ParentGroup.PrimCount;
-            ILandObject oldParcel = scene.LandChannel.GetLandObject(oldPoint.X, oldPoint.Y);
+
+            if (obj == null)
+                return false;
+
+            // Prim counts are determined by the location of the root prim.  if we're
+            // moving a child prim, just let it pass
+            if (!obj.IsRoot)
+            {
+                return true;
+            }
+
             ILandObject newParcel = scene.LandChannel.GetLandObject(newPoint.X, newPoint.Y);
 
+<<<<<<< HEAD
             // newParcel will be null only if it outside of our current region.  If this is the case, then the
             // receiving permissions will perform the check.
             if (newParcel == null)
                 return true;
 
             // The prim hasn't crossed a region boundary so we don't need to worry
+=======
+            if (newParcel == null)
+                return true;
+
+            Vector3 oldPoint = obj.GroupPosition;
+            ILandObject oldParcel = scene.LandChannel.GetLandObject(oldPoint.X, oldPoint.Y);
+            
+            // The prim hasn't crossed a region boundry so we don't need to worry
+>>>>>>> avn/ubitvar
             // about prim counts here
-            if(oldParcel.Equals(newParcel))
+            if(oldParcel != null && oldParcel.Equals(newParcel))
             {
                 return true;
             }
 
-            // Prim counts are determined by the location of the root prim.  if we're
-            // moving a child prim, just let it pass
-            if(!obj.IsRoot)
-            {
-                return true;
-            }
+            int objectCount = obj.ParentGroup.PrimCount;
+            int usedPrims = newParcel.PrimCounts.Total;
+            int simulatorCapacity = newParcel.GetSimulatorMaxPrimCount();
 
             // TODO: Add Special Case here for temporary prims
 

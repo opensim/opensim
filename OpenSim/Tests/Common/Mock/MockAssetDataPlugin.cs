@@ -54,9 +54,10 @@ namespace OpenSim.Tests.Common
             return assets.Find(x=>x.FullID == uuid);
         }
 
-        public void StoreAsset(AssetBase asset)
+        public bool StoreAsset(AssetBase asset)
         {
             assets.Add(asset);
+            return true;
         }
 
         public List<AssetMetadata> FetchAssetMetadataSet(int start, int count) { return new List<AssetMetadata>(count); }

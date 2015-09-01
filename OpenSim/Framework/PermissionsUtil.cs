@@ -72,8 +72,8 @@ namespace OpenSim.Framework
         /// <param name="mainPerms">The permissions variable to modify.</param>
         public static void ApplyFoldedPermissions(uint foldedPerms, ref uint mainPerms)
         {
-            if ((foldedPerms & 7) == 0)
-                return; // assume that if the folded permissions are 0 then this means that they weren't actually recorded
+//            if ((foldedPerms & 7) == 0)
+//                return; // assume that if the folded permissions are 0 then this means that they weren't actually recorded
 
             if ((foldedPerms & ((uint)PermissionMask.Copy >> 13)) == 0)
                 mainPerms &= ~(uint)PermissionMask.Copy;

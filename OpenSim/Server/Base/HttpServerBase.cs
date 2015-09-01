@@ -40,7 +40,7 @@ namespace OpenSim.Server.Base
 {
     public class HttpServerBase : ServicesServerBase
     {
-//        private static readonly ILog m_Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private uint m_consolePort;
 
@@ -70,6 +70,7 @@ namespace OpenSim.Server.Base
 
             bool ssl_main = networkConfig.GetBoolean("https_main",false);
             bool ssl_listener = networkConfig.GetBoolean("https_listener",false);
+            bool ssl_external = networkConfig.GetBoolean("https_external",false);
 
             m_consolePort = (uint)networkConfig.GetInt("ConsolePort", 0);
 
@@ -115,6 +116,7 @@ namespace OpenSim.Server.Base
             {
                 uint https_port = (uint)networkConfig.GetInt("https_port", 0);
 
+<<<<<<< HEAD
                 string cert_path = networkConfig.GetString("cert_path",String.Empty);
                 if (cert_path == String.Empty)
                 {
@@ -127,9 +129,31 @@ namespace OpenSim.Server.Base
                 {
                     System.Console.WriteLine("ERROR: Password for X509 certificate is missing, server can't start.");
                     Environment.Exit(1);
-                }
+=======
+                m_log.WarnFormat("[SSL]: External flag is {0}", ssl_external);
+                if (!ssl_external)
+                {
+                    string cert_path = networkConfig.GetString("cert_path",String.Empty);
+                    if ( cert_path == String.Empty )
+                    {
+                        System.Console.WriteLine("Path to X509 certificate is missing, server can't start.");
+                        Thread.CurrentThread.Abort();
+                    }
+                    string cert_pass = networkConfig.GetString("cert_pass",String.Empty);
+                    if ( cert_pass == String.Empty )
+                    {
+                        System.Console.WriteLine("Password for X509 certificate is missing, server can't start.");
+                        Thread.CurrentThread.Abort();
+                    }
 
-                MainServer.AddHttpServer(new BaseHttpServer(https_port, ssl_listener, cert_path, cert_pass));
+                    MainServer.AddHttpServer(new BaseHttpServer(https_port, ssl_listener, cert_path, cert_pass));
+                }
+                else
+                {
+                    m_log.WarnFormat("[SSL]: SSL port is active but no SSL is used because external SSL was requested.");
+                    MainServer.AddHttpServer(new BaseHttpServer(https_port));
+>>>>>>> avn/ubitvar
+                }
             }
         }
 

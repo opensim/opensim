@@ -142,10 +142,6 @@
     ;; from the selected region_info_source.
     ; allow_regionless = false
 
-    ;# {MaxPrimUndos} {} {Maximum number of undos avialable for position, rotation and scale changes of each prim} {} 20
-    ;; Increasing the number of undos available number will increase memory usage.
-    MaxPrimUndos = 20
-
     ;# {NonPhysicalPrimMin} {} {Minimum size of nonphysical prims?} {} 0.001
     ;; Minimum size for non-physical prims.  Affects resizing of existing 
     ;; prims.  This can be overridden in the region config file (as 

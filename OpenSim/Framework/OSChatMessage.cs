@@ -51,12 +51,11 @@ namespace OpenSim.Framework
         protected object m_senderObject;
         protected ChatTypeEnum m_type;
         protected UUID m_fromID;
-        protected UUID m_toID;
+        protected UUID m_destination = UUID.Zero;
 
         public OSChatMessage()
         {
             m_position = new Vector3();
-            m_toID = UUID.Zero;
         }
 
         /// <summary>
@@ -104,15 +103,6 @@ namespace OpenSim.Framework
             set { m_from = value; }
         }
 
-        /// <summary>
-        /// The name of the sender (needed for scripts)
-        /// </summary>
-        public string To
-        {
-            get { return m_from; }
-            set { m_from = value; }
-        }
-
         #region IEventArgs Members
 
         /// TODO: Sender and SenderObject should just be Sender and of
@@ -142,13 +132,10 @@ namespace OpenSim.Framework
             set { m_fromID = value; }
         }
 
-        /// <summary>
-        /// The single recipient or all if not set.
-        /// </summary>
-        public UUID TargetUUID
+        public UUID Destination
         {
-            get { return m_toID; }
-            set { m_toID = value; }
+            get { return m_destination; }
+            set { m_destination = value; }
         }
 
         /// <summary>

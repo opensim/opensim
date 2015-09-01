@@ -77,8 +77,13 @@ namespace OpenSim.Region.ClientStack.Linden
             llsdSimInfo.Add("Handle", new OSDBinary(ulongToByteArray(handle)));
             llsdSimInfo.Add("IP", new OSDBinary(endPoint.Address.GetAddressBytes()));
             llsdSimInfo.Add("Port", new OSDInteger(endPoint.Port));
+<<<<<<< HEAD
             llsdSimInfo.Add("RegionSizeX", OSD.FromUInteger((uint) regionSizeX));
             llsdSimInfo.Add("RegionSizeY", OSD.FromUInteger((uint) regionSizeY));
+=======
+            llsdSimInfo.Add("RegionSizeX", OSD.FromUInteger((uint)regionSizeX));
+            llsdSimInfo.Add("RegionSizeY", OSD.FromUInteger((uint)regionSizeY));
+>>>>>>> avn/ubitvar
 
             OSDArray arr = new OSDArray(1);
             arr.Add(llsdSimInfo);
@@ -157,6 +162,12 @@ namespace OpenSim.Region.ClientStack.Linden
                         uint locationID, uint flags, string capsURL, UUID agentID,
                         int regionSizeX, int regionSizeY)
         {
+            // not sure why flags get overwritten here
+            if ((flags & (uint)TeleportFlags.IsFlying) != 0)
+                flags = (uint)TeleportFlags.ViaLocation | (uint)TeleportFlags.IsFlying;
+            else
+                flags = (uint)TeleportFlags.ViaLocation;
+
             OSDMap info = new OSDMap();
             info.Add("AgentID", OSD.FromUUID(agentID));
             info.Add("LocationID", OSD.FromInteger(4)); // TODO what is this?
@@ -165,7 +176,12 @@ namespace OpenSim.Region.ClientStack.Linden
             info.Add("SimAccess", OSD.FromInteger(simAccess));
             info.Add("SimIP", OSD.FromBinary(regionExternalEndPoint.Address.GetAddressBytes()));
             info.Add("SimPort", OSD.FromInteger(regionExternalEndPoint.Port));
+<<<<<<< HEAD
             info.Add("TeleportFlags", OSD.FromULong(1L << 4)); // AgentManager.TeleportFlags.ViaLocation
+=======
+//            info.Add("TeleportFlags", OSD.FromULong(1L << 4)); // AgentManager.TeleportFlags.ViaLocation
+            info.Add("TeleportFlags", OSD.FromUInteger(flags));
+>>>>>>> avn/ubitvar
             info.Add("RegionSizeX", OSD.FromUInteger((uint)regionSizeX));
             info.Add("RegionSizeY", OSD.FromUInteger((uint)regionSizeY));
 
@@ -204,8 +220,8 @@ namespace OpenSim.Region.ClientStack.Linden
                                   {"sim-ip-and-port", new OSDString(simIpAndPort)},
                                   {"seed-capability", new OSDString(seedcap)},
                                   {"region-handle", OSD.FromULong(regionHandle)},
-                                  {"region-size-x", OSD.FromInteger(regionSizeX)},
-                                  {"region-size-y", OSD.FromInteger(regionSizeY)}
+                                  {"region-size-x", OSD.FromUInteger((uint)regionSizeX)},
+                                  {"region-size-y", OSD.FromUInteger((uint)regionSizeY)}
                               };
 
             return BuildEvent("EstablishAgentCommunication", body);
@@ -412,7 +428,7 @@ namespace OpenSim.Region.ClientStack.Linden
         public static OSD partPhysicsProperties(uint localID, byte physhapetype,
                         float density, float friction, float bounce, float gravmod)
         {
-
+            
             OSDMap physinfo = new OSDMap(6);
             physinfo["LocalID"] = localID;
             physinfo["Density"] = density;

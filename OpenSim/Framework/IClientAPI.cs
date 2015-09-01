@@ -64,13 +64,14 @@ namespace OpenSim.Framework
 
     public delegate void NetworkStats(int inPackets, int outPackets, int unAckedBytes);
 
-    public delegate void CachedTextureRequest(IClientAPI remoteClient, int serial, List<CachedTextureRequestArg> cachedTextureRequest);
-
     public delegate void SetAppearance(IClientAPI remoteClient, Primitive.TextureEntry textureEntry, byte[] visualParams, Vector3 AvSize, WearableCacheItem[] CacheItems);
+    public delegate void CachedTextureRequest(IClientAPI remoteClient, int serial, List<CachedTextureRequestArg> cachedTextureRequest);
 
     public delegate void StartAnim(IClientAPI remoteClient, UUID animID);
 
     public delegate void StopAnim(IClientAPI remoteClient, UUID animID);
+
+    public delegate void ChangeAnim(UUID animID, bool addOrRemove, bool sendPack);
 
     public delegate void LinkObjects(IClientAPI remoteClient, uint parent, List<uint> children);
 
@@ -131,6 +132,8 @@ namespace OpenSim.Framework
     public delegate void UpdatePrimTexture(uint localID, byte[] texture, IClientAPI remoteClient);
 
     public delegate void UpdateVector(uint localID, Vector3 pos, IClientAPI remoteClient);
+
+    public delegate void ClientChangeObject(uint localID, object data ,IClientAPI remoteClient);
 
     public delegate void UpdatePrimRotation(uint localID, Quaternion rot, IClientAPI remoteClient);
 
@@ -267,6 +270,9 @@ namespace OpenSim.Framework
 
     public delegate void MoveInventoryItem(
         IClientAPI remoteClient, List<InventoryItemBase> items);
+
+    public delegate void MoveItemsAndLeaveCopy(
+        IClientAPI remoteClient, List<InventoryItemBase> items, UUID destFolder);
 
     public delegate void RemoveInventoryItem(
         IClientAPI remoteClient, List<UUID> itemIDs);
@@ -443,6 +449,7 @@ namespace OpenSim.Framework
     public delegate void ClassifiedInfoRequest(UUID classifiedID, IClientAPI client);
     public delegate void ClassifiedInfoUpdate(UUID classifiedID, uint category, string name, string description, UUID parcelID, uint parentEstate, UUID snapshotID, Vector3 globalPos, byte classifiedFlags, int price, IClientAPI client);
     public delegate void ClassifiedDelete(UUID classifiedID, IClientAPI client);
+    public delegate void ClassifiedGodDelete(UUID classifiedID, UUID queryID, IClientAPI client);
 
     public delegate void EventNotificationAddRequest(uint EventID, IClientAPI client);
     public delegate void EventNotificationRemoveRequest(uint EventID, IClientAPI client);
@@ -465,9 +472,9 @@ namespace OpenSim.Framework
 
     public delegate void AgentFOV(IClientAPI client, float verticalAngle);
     
-    public delegate void MuteListEntryUpdate(IClientAPI client, UUID MuteID, string Name, int Flags,UUID AgentID);
+    public delegate void MuteListEntryUpdate(IClientAPI client, UUID MuteID, string Name, int type, uint flags);
     
-    public delegate void MuteListEntryRemove(IClientAPI client, UUID MuteID, string Name, UUID AgentID);
+    public delegate void MuteListEntryRemove(IClientAPI client, UUID MuteID, string Name);
     
     public delegate void AvatarInterestReply(IClientAPI client,UUID target, uint wantmask, string wanttext, uint skillsmask, string skillstext, string languages);
     
@@ -505,6 +512,7 @@ namespace OpenSim.Framework
     public delegate void SimWideDeletesDelegate(IClientAPI client,UUID agentID, int flags, UUID targetID);
     
     public delegate void SendPostcard(IClientAPI client);
+    public delegate void ChangeInventoryItemFlags(IClientAPI client, UUID itemID, uint flags);
 
     #endregion
 
@@ -734,6 +742,8 @@ namespace OpenSim.Framework
 
         IScene Scene { get; }
 
+        List<uint> SelectedObjects { get; }
+
         // [Obsolete("LLClientView Specific - Replace with ???")]
         int NextAnimationSequenceNumber { get; }
 
@@ -746,6 +756,8 @@ namespace OpenSim.Framework
         /// True if the client is active (sending and receiving new UDP messages).  False if the client is being closed.
         /// </summary>
         bool IsActive { get; set; }
+
+        int PingTimeMS { get; }
 
         /// <summary>
         /// Set if the client is closing due to a logout request
@@ -794,6 +806,7 @@ namespace OpenSim.Framework
         event ObjectDrop OnObjectDrop;
         event StartAnim OnStartAnim;
         event StopAnim OnStopAnim;
+        event ChangeAnim OnChangeAnim;
         event LinkObjects OnLinkObjects;
         event DelinkObjects OnDelinkObjects;
         event RequestMapBlocks OnRequestMapBlocks;
@@ -860,6 +873,7 @@ namespace OpenSim.Framework
         event RequestObjectPropertiesFamily OnRequestObjectPropertiesFamily;
         event UpdatePrimFlags OnUpdatePrimFlags;
         event UpdatePrimTexture OnUpdatePrimTexture;
+        event ClientChangeObject onClientChangeObject;
         event UpdateVector OnUpdatePrimGroupPosition;
         event UpdateVector OnUpdatePrimSinglePosition;
         event UpdatePrimRotation OnUpdatePrimGroupRotation;
@@ -884,6 +898,7 @@ namespace OpenSim.Framework
         event RequestTaskInventory OnRequestTaskInventory;
         event UpdateInventoryItem OnUpdateInventoryItem;
         event CopyInventoryItem OnCopyInventoryItem;
+        event MoveItemsAndLeaveCopy OnMoveItemsAndLeaveCopy;
         event MoveInventoryItem OnMoveInventoryItem;
         event RemoveInventoryFolder OnRemoveInventoryFolder;
         event RemoveInventoryItem OnRemoveInventoryItem;
@@ -1002,7 +1017,7 @@ namespace OpenSim.Framework
         event ClassifiedInfoRequest OnClassifiedInfoRequest;
         event ClassifiedInfoUpdate OnClassifiedInfoUpdate;
         event ClassifiedDelete OnClassifiedDelete;
-        event ClassifiedDelete OnClassifiedGodDelete;
+        event ClassifiedGodDelete OnClassifiedGodDelete;
 
         event EventNotificationAddRequest OnEventNotificationAddRequest;
         event EventNotificationRemoveRequest OnEventNotificationRemoveRequest;
@@ -1041,11 +1056,12 @@ namespace OpenSim.Framework
         event GroupVoteHistoryRequest OnGroupVoteHistoryRequest;
         event SimWideDeletesDelegate OnSimWideDeletes;
         event SendPostcard OnSendPostcard;
+        event ChangeInventoryItemFlags OnChangeInventoryItemFlags;
         event MuteListEntryUpdate OnUpdateMuteListEntry;
         event MuteListEntryRemove OnRemoveMuteListEntry;
         event GodlikeMessage onGodlikeMessage;
         event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdate;
-
+        event GenericCall2 OnUpdateThrottles;
         /// <summary>
         /// Set the debug level at which packet output should be printed to console.
         /// </summary>
@@ -1066,7 +1082,7 @@ namespace OpenSim.Framework
         /// If true, attempts the close without checking active status.  You do not want to try this except as a last
         /// ditch attempt where Active == false but the ScenePresence still exists.
         /// </param>
-        void Close(bool force);
+        void Close(bool sendStop, bool force);
 
         void Kick(string message);
         
@@ -1102,6 +1118,8 @@ namespace OpenSim.Framework
         /// <param name="localID"></param>
         void SendKillObject(List<uint> localID);
 
+        void SendPartFullUpdate(ISceneEntity ent, uint? parentID);
+
         void SendAnimations(UUID[] animID, int[] seqs, UUID sourceAgentId, UUID[] objectIDs);
         void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args);
 
@@ -1124,6 +1142,8 @@ namespace OpenSim.Framework
 
         void SendGenericMessage(string method, UUID invoice, List<string> message);
         void SendGenericMessage(string method, UUID invoice, List<byte[]> message);
+
+        bool CanSendLayerData();
 
         void SendLayerData(float[] map);
         void SendLayerData(int px, int py, float[] map);
@@ -1168,6 +1188,10 @@ namespace OpenSim.Framework
         void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations);
 
         void SetChildAgentThrottle(byte[] throttle);
+        void SetChildAgentThrottle(byte[] throttle,float factor);
+
+        void SetAgentThrottleSilent(int throttle, int setting);
+        int GetAgentThrottleSilent(int throttle);
 
         void SendAvatarDataImmediate(ISceneEntity avatar);
 
@@ -1192,6 +1216,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="Item"></param>
         void SendInventoryItemCreateUpdate(InventoryItemBase Item, uint callbackId);
+        void SendInventoryItemCreateUpdate(InventoryItemBase Item, UUID transactionID, uint callbackId);
 
         void SendRemoveInventoryItem(UUID itemID);
 
@@ -1211,7 +1236,7 @@ namespace OpenSim.Framework
         /// <param name="node"></param>
         void SendBulkUpdateInventory(InventoryNodeBase node);
 
-        void SendXferPacket(ulong xferID, uint packet, byte[] data);
+        void SendXferPacket(ulong xferID, uint packet, byte[] data, bool isTaskInventory);
 
         void SendAbortXferPacket(ulong xferID);
 

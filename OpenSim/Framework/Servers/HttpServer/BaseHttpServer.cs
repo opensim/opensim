@@ -403,6 +403,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         StreamReader reader = new StreamReader(requestStream, encoding);
 
                         string requestBody = reader.ReadToEnd();
+                        reader.Close();
 
                         Hashtable keysvals = new Hashtable();
                         Hashtable headervals = new Hashtable();
@@ -460,7 +461,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             
             OSHttpResponse resp = new OSHttpResponse(new HttpResponse(context, request),context);
-            resp.ReuseContext = true;
+            resp.ReuseContext = false;
             HandleRequest(req, resp);           
 
             // !!!HACK ALERT!!!
@@ -759,7 +760,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 // Every month or so this will wrap and give bad numbers, not really a problem
                 // since its just for reporting
                 int tickdiff = requestEndTick - requestStartTick;
-                if (tickdiff > 3000 && requestHandler != null && requestHandler.Name != "GetTexture")
+                if (tickdiff > 3000 && (requestHandler == null || requestHandler.Name == null || requestHandler.Name != "GetTexture"))
                 {
                     m_log.InfoFormat(
                         "[LOGHTTP] Slow handling of {0} {1} {2} {3} {4} from {5} took {6}ms",
@@ -1024,6 +1025,19 @@ namespace OpenSim.Framework.Servers.HttpServer
             string responseString = String.Empty;
             XmlRpcRequest xmlRprcRequest = null;
 
+            bool gridproxy = false;
+            if (requestBody.Contains("encoding=\"utf-8"))
+            {
+                int channelindx = -1;
+                int optionsindx = requestBody.IndexOf(">options<");
+                if(optionsindx >0)
+                {
+                    channelindx = requestBody.IndexOf(">channel<");
+                    if (optionsindx < channelindx)
+                        gridproxy = true;
+                }
+            }
+
             try
             {
                 xmlRprcRequest = (XmlRpcRequest) (new XmlRpcRequestDeserializer()).Deserialize(requestBody);
@@ -1081,6 +1095,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                         }
                         xmlRprcRequest.Params.Add(request.Headers.Get(xff)); // Param[3]
 
+                        if (gridproxy)
+                            xmlRprcRequest.Params.Add("gridproxy");  // Param[4]
                         try
                         {
                             xmlRpcResponse = method(xmlRprcRequest, request.RemoteIPEndPoint);
@@ -1732,10 +1748,40 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         internal byte[] DoHTTPGruntWork(Hashtable responsedata, OSHttpResponse response)
         {
-            //m_log.Info("[BASE HTTP SERVER]: Doing HTTP Grunt work with response");
-            int responsecode = (int)responsedata["int_response_code"];
-            string responseString = (string)responsedata["str_response_string"];
-            string contentType = (string)responsedata["content_type"];
+            int responsecode;
+            string responseString = String.Empty;
+            byte[] responseData = null;
+            string contentType;
+
+            if (responsedata == null)
+            {
+                responsecode = 500;
+                responseString = "No response could be obtained";
+                contentType = "text/plain";
+                responsedata = new Hashtable();
+            }
+            else
+            {
+                try
+                {
+                    //m_log.Info("[BASE HTTP SERVER]: Doing HTTP Grunt work with response");
+                    responsecode = (int)responsedata["int_response_code"];
+                    if (responsedata["bin_response_data"] != null)
+                        responseData = (byte[])responsedata["bin_response_data"];
+                    else
+                        responseString = (string)responsedata["str_response_string"];
+                    contentType = (string)responsedata["content_type"];
+                    if (responseString == null)
+                        responseString = String.Empty;
+                }
+                catch
+                {
+                    responsecode = 500;
+                    responseString = "No response could be obtained";
+                    contentType = "text/plain";
+                    responsedata = new Hashtable();
+                }
+            }
 
             if (responsedata.ContainsKey("error_status_text"))
             {
@@ -1780,25 +1826,40 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             response.AddHeader("Content-Type", contentType);
 
+            if (responsedata.ContainsKey("headers"))
+            {
+                Hashtable headerdata = (Hashtable)responsedata["headers"];
+
+                foreach (string header in headerdata.Keys)
+                    response.AddHeader(header, (string)headerdata[header]);
+            }
+
             byte[] buffer;
 
-            if (!(contentType.Contains("image")
-                || contentType.Contains("x-shockwave-flash")
-                || contentType.Contains("application/x-oar")
-                || contentType.Contains("application/vnd.ll.mesh")))
+            if (responseData != null)
             {
-                // Text
-                buffer = Encoding.UTF8.GetBytes(responseString);
+                buffer = responseData;
             }
             else
             {
-                // Binary!
-                buffer = Convert.FromBase64String(responseString);
-            }
+                if (!(contentType.Contains("image")
+                    || contentType.Contains("x-shockwave-flash")
+                    || contentType.Contains("application/x-oar")
+                    || contentType.Contains("application/vnd.ll.mesh")))
+                {
+                    // Text
+                    buffer = Encoding.UTF8.GetBytes(responseString);
+                }
+                else
+                {
+                    // Binary!
+                    buffer = Convert.FromBase64String(responseString);
+                }
 
-            response.SendChunked = false;
-            response.ContentLength64 = buffer.Length;
-            response.ContentEncoding = Encoding.UTF8;
+                response.SendChunked = false;
+                response.ContentLength64 = buffer.Length;
+                response.ContentEncoding = Encoding.UTF8;
+            }
 
             return buffer;
         }
@@ -1886,9 +1947,14 @@ namespace OpenSim.Framework.Servers.HttpServer
                 m_httpListener2.Start(64);
 
                 // Long Poll Service Manager with 3 worker threads a 25 second timeout for no events
+<<<<<<< HEAD
                 PollServiceRequestManager = new PollServiceRequestManager(this, performPollResponsesAsync, 3, 25000);
                 PollServiceRequestManager.Start();
 
+=======
+                m_PollServiceManager = new PollServiceRequestManager(this, 4, 25000);
+                m_PollServiceManager.Start();
+>>>>>>> avn/ubitvar
                 HTTPDRunning = true;
 
                 //HttpListenerContext context;
@@ -1937,7 +2003,9 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void httpServerException(object source, Exception exception)
         {
-            m_log.Error(String.Format("[BASE HTTP SERVER]: {0} had an exception: {1} ", source.ToString(), exception.Message), exception);
+            if (source.ToString() == "HttpServer.HttpListener" && exception.ToString().StartsWith("Mono.Security.Protocol.Tls.TlsException"))
+                return;
+            m_log.ErrorFormat("[BASE HTTP SERVER]: {0} had an exception {1}", source.ToString(), exception.ToString());
            /*
             if (HTTPDRunning)// && NotSocketErrors > 5)
             {
@@ -1984,6 +2052,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void RemoveHTTPHandler(string httpMethod, string path)
         {
+            if (path == null) return; // Caps module isn't loaded, tries to remove handler where path = null
             lock (m_HTTPHandlers)
             {
                 if (httpMethod != null && httpMethod.Length == 0)

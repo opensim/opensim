@@ -144,7 +144,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         // Avatar Info Commands
         string osGetAgentIP(string agent);
         LSL_List osGetAgents();
-
+        
         // Teleport commands
         void osTeleportAgent(string agent, string regionName, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat);
         void osTeleportAgent(string agent, int regionX, int regionY, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat);
@@ -261,7 +261,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         string osGetSimulatorVersion();
         LSL_Integer osCheckODE();
         string osGetPhysicsEngineType();
-        Object osParseJSONNew(string JSON);
         Hashtable osParseJSON(string JSON);
 
         void osMessageObject(key objectUUID,string message);

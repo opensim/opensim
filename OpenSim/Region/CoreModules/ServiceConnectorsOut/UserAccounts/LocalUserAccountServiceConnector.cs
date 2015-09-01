@@ -129,6 +129,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
             // FIXME: Why do we bother setting this module and caching up if we just end up registering the inner
             // user account service?!
             scene.RegisterModuleInterface<IUserAccountService>(UserAccountService);
+            scene.RegisterModuleInterface<IUserAccountCacheModule>(m_Cache);
         }
 
         public void RemoveRegion(Scene scene)
@@ -179,6 +180,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
         public UserAccount GetUserAccount(UUID scopeID, string Email)
         {
             return UserAccountService.GetUserAccount(scopeID, Email);
+        }
+
+        public List<UserAccount> GetUserAccountsWhere(UUID scopeID, string query)
+        {
+            return null;
         }
 
         public List<UserAccount> GetUserAccounts(UUID scopeID, string query)

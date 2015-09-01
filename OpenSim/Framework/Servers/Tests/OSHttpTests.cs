@@ -41,7 +41,331 @@ namespace OpenSim.Framework.Servers.Tests
 {
     [TestFixture]
     public class OSHttpTests : OpenSimTestCase
+<<<<<<< HEAD
     {       
+=======
+    {
+        // we need an IHttpClientContext for our tests
+        public class TestHttpClientContext: IHttpClientContext
+        {
+            private bool _secured;
+            public bool IsSecured
+            {
+                get { return _secured; }
+            }
+            public bool Secured
+            {
+                get { return _secured; }
+            }
+
+            public TestHttpClientContext(bool secured)
+            {
+                _secured = secured;
+            }
+
+            public void Disconnect(SocketError error) {}
+            public void Respond(string httpVersion, HttpStatusCode statusCode, string reason, string body) {}
+            public void Respond(string httpVersion, HttpStatusCode statusCode, string reason) {}
+            public void Respond(string body) {}
+            public void Send(byte[] buffer) {}
+            public void Send(byte[] buffer, int offset, int size) {}
+            public void Respond(string httpVersion, HttpStatusCode statusCode, string reason, string body, string contentType) {}
+            public void Close() { }
+            public bool EndWhenDone { get { return false;} set { return;}}
+
+            public HTTPNetworkContext GiveMeTheNetworkStreamIKnowWhatImDoing()
+            {
+                return new HTTPNetworkContext();
+            }
+
+            public event EventHandler<DisconnectedEventArgs> Disconnected = delegate { };
+            /// <summary>
+            /// A request have been received in the context.
+            /// </summary>
+            public event EventHandler<RequestEventArgs> RequestReceived = delegate { };
+
+            public bool CanSend { get { return true; } }
+            public string RemoteEndPoint { get { return ""; } }
+            public string RemoteEndPointAddress { get { return ""; } }
+            public string RemoteEndPointPort { get { return ""; } }
+        }
+
+        public class TestHttpRequest: IHttpRequest
+        {
+            private string _uriPath;
+            public bool BodyIsComplete 
+            { 
+                get { return true; } 
+            }
+            public string[] AcceptTypes 
+            { 
+                get {return _acceptTypes; }
+            }
+            private string[] _acceptTypes;
+            public Stream Body 
+            { 
+                get { return _body; } 
+                set { _body = value;} 
+            }
+            private Stream _body;
+            public ConnectionType Connection 
+            { 
+                get { return _connection; }
+                set { _connection = value; }
+            }
+            private ConnectionType _connection;
+            public int ContentLength 
+            { 
+                get { return _contentLength; }
+                set { _contentLength = value; }
+            }
+            private int _contentLength;
+            public NameValueCollection Headers 
+            { 
+                get { return _headers; }
+            }
+            private NameValueCollection _headers = new NameValueCollection();
+            public string HttpVersion 
+            { 
+                get { return _httpVersion; }
+                set { _httpVersion = value; }
+            }
+            private string _httpVersion = null;
+            public string Method 
+            { 
+                get { return _method; }
+                set { _method = value; }
+            }
+            private string _method = null;
+            public HttpInput QueryString 
+            { 
+                get { return _queryString;  }
+            }
+            private HttpInput _queryString = null;
+            public Uri Uri 
+            { 
+                get { return _uri; }
+                set { _uri = value; } 
+            }
+            private Uri _uri = null;
+            public string[] UriParts 
+            { 
+                get { return _uri.Segments; }
+            }
+            public HttpParam Param 
+            { 
+                get { return null; } 
+            }
+            public HttpForm Form 
+            { 
+                get { return null; } 
+            }
+            public bool IsAjax 
+            { 
+                get { return false; } 
+            }
+            public RequestCookies Cookies 
+            { 
+                get { return null; } 
+            }
+
+            public TestHttpRequest() {}
+
+            public TestHttpRequest(string contentEncoding, string contentType, string userAgent, 
+                                   string remoteAddr, string remotePort, string[] acceptTypes,
+                                   ConnectionType connectionType, int contentLength, Uri uri) 
+            {
+                _headers["content-encoding"] = contentEncoding;
+                _headers["content-type"] = contentType;
+                _headers["user-agent"] = userAgent;
+                _headers["remote_addr"] = remoteAddr;
+                _headers["remote_port"] = remotePort;
+
+                _acceptTypes = acceptTypes;
+                _connection = connectionType;
+                _contentLength = contentLength;
+                _uri = uri;
+            }
+
+            public void DecodeBody(FormDecoderProvider providers) {}
+            public void SetCookies(RequestCookies cookies) {}
+            public void AddHeader(string name, string value)
+            {
+                _headers.Add(name, value);
+            }
+            public int AddToBody(byte[] bytes, int offset, int length) 
+            {
+                return 0;
+            }
+            public void Clear() {}
+
+            public object Clone()
+            {
+                TestHttpRequest clone = new TestHttpRequest();
+                clone._acceptTypes = _acceptTypes;
+                clone._connection = _connection;
+                clone._contentLength = _contentLength;
+                clone._uri = _uri;
+                clone._headers = new NameValueCollection(_headers);
+
+                return clone;
+            }
+            public IHttpResponse CreateResponse(IHttpClientContext context)
+            {
+                return new HttpResponse(context, this);
+            }
+            /// <summary>
+            /// Path and query (will be merged with the host header) and put in Uri
+            /// </summary>
+            /// <see cref="Uri"/>
+            public string UriPath
+            {
+                get { return _uriPath; }
+                set
+                {
+                    _uriPath = value;
+                   
+                }
+            }
+
+        }
+
+        public class TestHttpResponse: IHttpResponse
+        {
+            public Stream Body 
+            {
+                get { return _body; }
+
+                set { _body = value; }
+            }
+            private Stream _body;
+
+            public string ProtocolVersion 
+            { 
+                get { return _protocolVersion; }
+                set { _protocolVersion = value; }
+            }
+            private string _protocolVersion;
+
+            public bool Chunked 
+            {
+                get { return _chunked; }
+
+                set { _chunked = value; }
+            }
+            private bool _chunked;
+
+            public ConnectionType Connection 
+            {
+                get { return _connection; }
+
+                set { _connection = value; }
+            }
+            private ConnectionType _connection;
+
+            public Encoding Encoding 
+            {
+                get { return _encoding; }
+
+                set { _encoding = value; }
+            }
+            private Encoding _encoding;
+
+            public int KeepAlive 
+            {
+                get { return _keepAlive; }
+
+                set { _keepAlive = value; }
+            }
+            private int _keepAlive;
+
+            public HttpStatusCode Status 
+            {
+                get { return _status; }
+
+                set { _status = value; }
+            }
+            private HttpStatusCode _status;
+
+            public string Reason 
+            {
+                get { return _reason; }
+
+                set { _reason = value; }
+            }
+            private string _reason;
+
+            public long ContentLength 
+            {
+                get { return _contentLength; }
+
+                set { _contentLength = value; }
+            }
+            private long _contentLength;
+
+            public string ContentType 
+            {
+                get { return _contentType; }
+
+                set { _contentType = value; }
+            }
+            private string _contentType;
+
+            public bool HeadersSent 
+            {
+                get { return _headersSent; }
+            }
+            private bool _headersSent;
+
+            public bool Sent 
+            {
+                get { return _sent; }
+            }
+            private bool _sent;
+
+            public ResponseCookies Cookies 
+            {
+                get { return _cookies; }
+            }
+            private ResponseCookies _cookies = null;
+
+            public TestHttpResponse()
+            {
+                _headersSent = false;
+                _sent = false;
+            }
+
+            public void AddHeader(string name, string value) {}
+            public void Send() 
+            {
+                if (!_headersSent) SendHeaders();
+                if (_sent) throw new InvalidOperationException("stuff already sent");
+                _sent = true;
+            }
+
+            public void SendBody(byte[] buffer, int offset, int count) 
+            {
+                if (!_headersSent) SendHeaders();
+                _sent = true;
+            }
+            public void SendBody(byte[] buffer) 
+            {
+                if (!_headersSent) SendHeaders();
+                _sent = true;
+            }
+
+            public void SendHeaders() 
+            {
+                if (_headersSent) throw new InvalidOperationException("headers already sent");
+                _headersSent = true;
+            }
+
+            public void Redirect(Uri uri) {}
+            public void Redirect(string url) {}
+        }
+
+        
+>>>>>>> avn/ubitvar
         public OSHttpRequest req0;
         public OSHttpRequest req1;
 

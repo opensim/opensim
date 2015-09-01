@@ -160,6 +160,8 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                     {
                         byte[] fileData = NewFiles[fileName].Data;
                         XferDownLoad transaction = new XferDownLoad(fileName, fileData, xferID, remoteClient);
+                        if (fileName.StartsWith("inventory_"))
+                            transaction.isTaskInventory = true;
 
                         Transfers.Add(xferID, transaction);
 
@@ -243,6 +245,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
             public uint Packet = 0;
             public uint Serial = 1;
             public ulong XferID = 0;
+            public bool isTaskInventory = false;
 
             public XferDownLoad(string fileName, byte[] data, ulong xferID, IClientAPI client)
             {
@@ -268,7 +271,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                     byte[] transferData = new byte[Data.Length + 4];
                     Array.Copy(Utils.IntToBytes(Data.Length), 0, transferData, 0, 4);
                     Array.Copy(Data, 0, transferData, 4, Data.Length);
-                    Client.SendXferPacket(XferID, 0 + 0x80000000, transferData);
+                    Client.SendXferPacket(XferID, 0 + 0x80000000, transferData, isTaskInventory);
                     complete = true;
                 }
                 else
@@ -276,7 +279,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                     byte[] transferData = new byte[1000 + 4];
                     Array.Copy(Utils.IntToBytes(Data.Length), 0, transferData, 0, 4);
                     Array.Copy(Data, 0, transferData, 4, 1000);
-                    Client.SendXferPacket(XferID, 0, transferData);
+                    Client.SendXferPacket(XferID, 0, transferData, isTaskInventory);
                     Packet++;
                     DataPointer = 1000;
                 }
@@ -297,7 +300,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                     {
                         byte[] transferData = new byte[1000];
                         Array.Copy(Data, DataPointer, transferData, 0, 1000);
-                        Client.SendXferPacket(XferID, Packet, transferData);
+                        Client.SendXferPacket(XferID, Packet, transferData, isTaskInventory);
                         Packet++;
                         DataPointer += 1000;
                     }
@@ -306,7 +309,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                         byte[] transferData = new byte[Data.Length - DataPointer];
                         Array.Copy(Data, DataPointer, transferData, 0, Data.Length - DataPointer);
                         uint endPacket = Packet |= (uint) 0x80000000;
-                        Client.SendXferPacket(XferID, endPacket, transferData);
+                        Client.SendXferPacket(XferID, endPacket, transferData, isTaskInventory);
                         Packet++;
                         DataPointer += (Data.Length - DataPointer);
 

@@ -239,6 +239,17 @@ namespace OpenSim.Framework.Monitoring
             return sb.ToString();
         }
 
+        public virtual OSDMap ToBriefOSDMap()
+        {
+            OSDMap ret = new OSDMap();
+
+            ret.Add("Value", OSD.FromReal(Value));
+
+            double lastChangeOverTime, averageChangeOverTime;
+
+            return ret;
+        }
+
         public virtual OSDMap ToOSDMap()
         {
             OSDMap ret = new OSDMap();

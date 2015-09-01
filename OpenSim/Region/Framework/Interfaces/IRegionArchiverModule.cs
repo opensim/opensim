@@ -127,7 +127,12 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="requestId">If supplied, this request Id is later returned in the saved event</param>
         /// <param name="options">
         /// Dictionary of options.
+<<<<<<< HEAD
         /// </param>
         void DearchiveRegion(Stream loadStream, Guid requestId, Dictionary<string,object> options);
+=======
+        /// </param>    
+        void DearchiveRegion(Stream loadStream, Guid requestId, Dictionary<string, object> options);
+>>>>>>> avn/ubitvar
     }
 }

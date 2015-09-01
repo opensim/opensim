@@ -112,6 +112,10 @@ namespace OpenSim
 
         public List<IApplicationPlugin> m_plugins = new List<IApplicationPlugin>();
 
+        private List<string> m_permsModules;
+
+        private bool m_securePermissionsLoading = true;
+
         /// <value>
         /// The config information passed into the OpenSimulator region server.
         /// </value>
@@ -228,6 +232,14 @@ namespace OpenSim
                     CreatePIDFile(pidFile);
                 
                 userStatsURI = startupConfig.GetString("Stats_URI", String.Empty);
+
+                m_securePermissionsLoading = startupConfig.GetBoolean("SecurePermissionsLoading", true);
+
+                string permissionModules = Util.GetConfigVarFromSections<string>(Config, "permissionmodules",
+                    new string[] { "Startup", "Permissions" }, "DefaultPermissionsModule");
+
+                m_permsModules = new List<string>(permissionModules.Split(','));
+
                 managedStatsURI = startupConfig.GetString("ManagedStatsRemoteFetchURI", String.Empty);
             }
 
@@ -264,11 +276,21 @@ namespace OpenSim
 
             base.StartupSpecific();
 
+<<<<<<< HEAD
             if (EnableInitialPluginLoad)
                 LoadPlugins();
 
             // We still want to post initalize any plugins even if loading has been disabled since a test may have
             // inserted them manually.
+=======
+            LoadPlugins();
+
+            if (m_plugins.Count == 0) // We failed to load any modules. Mono Addins glitch!
+            {
+                Environment.Exit(1);
+            }
+
+>>>>>>> avn/ubitvar
             foreach (IApplicationPlugin plugin in m_plugins)
                 plugin.PostInitialise();
 
@@ -290,10 +312,10 @@ namespace OpenSim
                                               "help " + capitalizedTopic,
                                               "Get help on plugin command '" + topic + "'",
                                               HandleCommanderHelp);
-                console.Commands.AddCommand(capitalizedTopic, false, "help " + capitalizedTopic,
-                                              "help " + capitalizedTopic,
-                                              "Get help on plugin command '" + topic + "'",
-                                              HandleCommanderHelp);
+//                console.Commands.AddCommand(capitalizedTopic, false, "help " + capitalizedTopic,
+//                                              "help " + capitalizedTopic,
+//                                              "Get help on plugin command '" + topic + "'",
+//                                              HandleCommanderHelp);
 
                 ICommander commander = null;
 
@@ -420,7 +442,32 @@ namespace OpenSim
             }
             else m_log.Error("[REGIONMODULES]: The new RegionModulesController is missing...");
 
+            if (m_securePermissionsLoading)
+            {
+                foreach (string s in m_permsModules)
+                {
+                    if (!scene.RegionModules.ContainsKey(s))
+                    {
+                        m_log.Fatal("[MODULES]: Required module " + s + " not found.");
+                        Environment.Exit(0);
+                    }
+                }
+
+                m_log.InfoFormat("[SCENE]: Secure permissions loading enabled, modules loaded: {0}", String.Join(" ", m_permsModules.ToArray()));
+            }
+
             scene.SetModuleInterfaces();
+// First Step of bootreport sequence
+            if (scene.SnmpService != null)
+            {
+                scene.SnmpService.ColdStart(1,scene);
+                scene.SnmpService.LinkDown(scene);
+            }
+
+            if (scene.SnmpService != null)
+            {
+                scene.SnmpService.BootInfo("Loading prins", scene);
+            }
 
             while (regionInfo.EstateSettings.EstateOwner == UUID.Zero && MainConsole.Instance != null)
                 SetUpEstateOwner(scene);
@@ -434,6 +481,11 @@ namespace OpenSim
             scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
             scene.EventManager.TriggerParcelPrimCountUpdate();
 
+            if (scene.SnmpService != null)
+            {
+                scene.SnmpService.BootInfo("Grid Registration in progress", scene);
+            } 
+
             try
             {
                 scene.RegisterRegionWithGrid();
@@ -444,14 +496,28 @@ namespace OpenSim
                     "[STARTUP]: Registration of region with grid failed, aborting startup due to {0} {1}", 
                     e.Message, e.StackTrace);
 
+                if (scene.SnmpService != null)
+                {
+                    scene.SnmpService.Critical("Grid registration failed. Startup aborted.", scene);
+                }
                 // Carrying on now causes a lot of confusion down the
                 // line - we need to get the user's attention
                 Environment.Exit(1);
             }
 
+            if (scene.SnmpService != null)
+            {
+                scene.SnmpService.BootInfo("Grid Registration done", scene);
+            }
+
             // We need to do this after we've initialized the
             // scripting engines.
             scene.CreateScriptInstances();
+
+            if (scene.SnmpService != null)
+            {
+                scene.SnmpService.BootInfo("ScriptEngine started", scene);
+            }
 
             SceneManager.Add(scene);
 
@@ -464,9 +530,19 @@ namespace OpenSim
                 }
             }
 
+            if (scene.SnmpService != null)
+            {
+                scene.SnmpService.BootInfo("Initializing region modules", scene);
+            }
             scene.EventManager.OnShutdown += delegate() { ShutdownRegion(scene); };
 
             mscene = scene;
+
+            if (scene.SnmpService != null)
+            {
+                scene.SnmpService.BootInfo("The region is operational", scene);
+                scene.SnmpService.LinkUp(scene);
+            }
 
             return clientServers;
         }
@@ -583,6 +659,11 @@ namespace OpenSim
         private void ShutdownRegion(Scene scene)
         {
             m_log.DebugFormat("[SHUTDOWN]: Shutting down region {0}", scene.RegionInfo.RegionName);
+            if (scene.SnmpService != null)
+            {
+                scene.SnmpService.BootInfo("The region is shutting down", scene);
+                scene.SnmpService.LinkDown(scene);
+            }
             IRegionModulesController controller;
             if (ApplicationRegistry.TryGet<IRegionModulesController>(out controller))
             {
@@ -751,7 +832,10 @@ namespace OpenSim
         {
             Vector3 regionExtent = new Vector3(regionInfo.RegionSizeX, regionInfo.RegionSizeY, regionInfo.RegionSizeZ);
             PhysicsScene physicsScene = GetPhysicsScene(regionInfo.RegionName, regionExtent);
+<<<<<<< HEAD
 
+=======
+>>>>>>> avn/ubitvar
             SceneCommunicationService sceneGridService = new SceneCommunicationService();
 
             return new Scene(

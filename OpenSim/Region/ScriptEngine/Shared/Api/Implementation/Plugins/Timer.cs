@@ -123,25 +123,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             if (Timers.Count == 0)
                 return;
 
+            Dictionary<string, TimerInfo> tvals;
             lock (TimerListLock)
             {
                 // Go through all timers
-                Dictionary<string, TimerInfo>.ValueCollection tvals = Timers.Values;
-                foreach (TimerInfo ts in tvals)
-                {
-                    // Time has passed?
-                    if (ts.next < DateTime.Now.Ticks)
-                    {
-                        //m_log.Debug("Time has passed: Now: " + DateTime.Now.Ticks + ", Passed: " + ts.next);
-                        // Add it to queue
-                        m_CmdManager.m_ScriptEngine.PostScriptEvent(ts.itemID,
-                                new EventParams("timer", new Object[0],
-                                new DetectParams[0]));
-                        // set next interval
+                tvals = new Dictionary<string, TimerInfo>(Timers);
+            }
 
-                        //ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
-                        ts.next = DateTime.Now.Ticks + ts.interval;
-                    }
+            foreach (TimerInfo ts in tvals.Values)
+            {
+                // Time has passed?
+                if (ts.next < DateTime.Now.Ticks)
+                {
+                    //m_log.Debug("Time has passed: Now: " + DateTime.Now.Ticks + ", Passed: " + ts.next);
+                    // Add it to queue
+                    m_CmdManager.m_ScriptEngine.PostScriptEvent(ts.itemID,
+                            new EventParams("timer", new Object[0],
+                            new DetectParams[0]));
+                    // set next interval
+
+                    //ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
+                    ts.next = DateTime.Now.Ticks + ts.interval;
                 }
             }
         }

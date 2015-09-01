@@ -48,6 +48,18 @@ namespace OpenSim.Region.CoreModules.World.Sound
 
         private Scene m_scene;
 
+        public enum SoundFlags: byte
+        {
+            NONE =         0,
+            LOOP =         1 << 0,
+            SYNC_MASTER =  1<<1,
+            SYNC_SLAVE =   1<<2,
+            SYNC_PENDING = 1<<3,
+            QUEUE =        1<<4,
+            STOP =         1<<5,
+            SYNC_MASK = SYNC_MASTER | SYNC_SLAVE | SYNC_PENDING
+        }
+
         public bool Enabled { get; private set; }
 
         public float MaxDistance { get; private set; }
@@ -124,26 +136,30 @@ namespace OpenSim.Region.CoreModules.World.Sound
             if (radius == 0)
                 radius = MaxDistance;
 
-            m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
+            if (part.SoundQueueing)
+                flags |= (byte)SoundFlags.QUEUE;
+
+            if (grp.IsAttachment)
             {
-                double dis = Util.GetDistanceTo(sp.AbsolutePosition, position);
-                if (dis > MaxDistance) // Max audio distance
+                ScenePresence ssp = null;
+                if (!m_scene.TryGetScenePresence(grp.AttachedAvatar, out ssp))
                     return;
 
-                if (grp.IsAttachment)
+                if (!ssp.ParcelAllowThisAvatarSounds)
+                    return;
+
+                if (grp.HasPrivateAttachmentPoint)
                 {
-                    if (grp.HasPrivateAttachmentPoint && sp.ControllingClient.AgentId != grp.OwnerID)
-                        return;
-
-                    if (sp.ControllingClient.AgentId == grp.OwnerID)
-                        dis = 0;
+                    ssp.ControllingClient.SendPlayAttachedSound(soundID, objectID,
+                        ownerID, (float)gain, flags);
+                    return;
                 }
+            }
 
-                // Scale by distance
-                double thisSpGain = gain * ((radius - dis) / radius);
-
+            m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
+            {
                 sp.ControllingClient.SendPlayAttachedSound(soundID, objectID,
-                        ownerID, (float)thisSpGain, flags);
+                        ownerID, (float)gain, flags);
             });
         }
 
@@ -151,20 +167,33 @@ namespace OpenSim.Region.CoreModules.World.Sound
             UUID soundId, UUID ownerID, UUID objectID, UUID parentID, double gain, Vector3 position, UInt64 handle, float radius)
         {
             SceneObjectPart part;
+            ScenePresence ssp = null;
             if (!m_scene.TryGetSceneObjectPart(objectID, out part))
             {
-                ScenePresence sp;
-                if (!m_scene.TryGetScenePresence(ownerID, out sp))
+                if (!m_scene.TryGetScenePresence(ownerID, out ssp))
+                    return;
+                if (!ssp.ParcelAllowThisAvatarSounds)
                     return;
             }
             else
             {
                 SceneObjectGroup grp = part.ParentGroup;
 
-                if (grp.IsAttachment && grp.AttachmentPoint > 30)
+                if (grp.IsAttachment)
                 {
-                    objectID = ownerID;
-                    parentID = ownerID;
+                    if (!m_scene.TryGetScenePresence(grp.AttachedAvatar, out ssp))
+                        return;
+
+                    if (!ssp.ParcelAllowThisAvatarSounds)
+                        return;
+
+                    if (grp.HasPrivateAttachmentPoint)
+                    {
+                        ssp.ControllingClient.SendTriggeredSound(soundId, ownerID,
+                                objectID, parentID, handle, position,
+                                (float)gain);
+                        return;
+                    }
                 }
             }
 
@@ -174,16 +203,12 @@ namespace OpenSim.Region.CoreModules.World.Sound
             m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
                 double dis = Util.GetDistanceTo(sp.AbsolutePosition, position);
-
-                if (dis > MaxDistance) // Max audio distance
+                if (dis > radius) // Max audio distance
                     return;
-
-                // Scale by distance
-                double thisSpGain = gain * ((radius - dis) / radius);
 
                 sp.ControllingClient.SendTriggeredSound(soundId, ownerID,
                         objectID, parentID, handle, position,
-                        (float)thisSpGain);
+                        (float)gain);
             });
         }
 
@@ -198,40 +223,13 @@ namespace OpenSim.Region.CoreModules.World.Sound
 
         private static void StopSound(SceneObjectPart m_host)
         {
-            m_host.AdjustSoundGain(0);
-            // Xantor 20080528: Clear prim data of sound instead
-            if (m_host.ParentGroup.LoopSoundSlavePrims.Contains(m_host))
-            {
-                if (m_host.ParentGroup.LoopSoundMasterPrim == m_host)
-                {
-                    foreach (SceneObjectPart part in m_host.ParentGroup.LoopSoundSlavePrims)
-                    {
-                        part.Sound = UUID.Zero;
-                        part.SoundFlags = 1 << 5;
-                        part.SoundRadius = 0;
-                        part.ScheduleFullUpdate();
-                        part.SendFullUpdateToAllClients();
-                    }
-                    m_host.ParentGroup.LoopSoundMasterPrim = null;
-                    m_host.ParentGroup.LoopSoundSlavePrims.Clear();
-                }
-                else
-                {
-                    m_host.Sound = UUID.Zero;
-                    m_host.SoundFlags = 1 << 5;
-                    m_host.SoundRadius = 0;
-                    m_host.ScheduleFullUpdate();
-                    m_host.SendFullUpdateToAllClients();
-                }
-            }
-            else
-            {
-                m_host.Sound = UUID.Zero;
-                m_host.SoundFlags = 1 << 5;
-                m_host.SoundRadius = 0;
-                m_host.ScheduleFullUpdate();
-                m_host.SendFullUpdateToAllClients();
-            }
+//            m_host.AdjustSoundGain(0);
+            m_host.Sound = UUID.Zero;
+            m_host.SoundFlags = (byte)SoundFlags.STOP;
+            m_host.SoundRadius = 0;
+            m_host.SoundGain = 0;
+            m_host.ScheduleFullUpdate();
+            m_host.SendFullUpdateToAllClients();
         }
 
         public virtual void PreloadSound(UUID objectID, UUID soundID, float radius)
@@ -248,7 +246,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
 
             m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
             {
-                if (!(Util.GetDistanceTo(sp.AbsolutePosition, part.AbsolutePosition) >= MaxDistance))
+                if (Util.GetDistanceTo(sp.AbsolutePosition, part.AbsolutePosition) < radius)
                     sp.ControllingClient.SendPreLoadSound(objectID, objectID, soundID);
             });
         }
@@ -262,21 +260,24 @@ namespace OpenSim.Region.CoreModules.World.Sound
         // 20080530 Updated to remove code duplication
         // 20080530 Stop sound if there is one, otherwise volume only changes don't work
         public void LoopSound(UUID objectID, UUID soundID,
-                double volume, double radius, bool isMaster)
+                double volume, double radius, bool isMaster, bool isSlave)
         {
             SceneObjectPart m_host;
             if (!m_scene.TryGetSceneObjectPart(objectID, out m_host))
                 return;
 
+            byte iflags = 1; // looping
             if (isMaster)
-                m_host.ParentGroup.LoopSoundMasterPrim = m_host;
-
-            if (m_host.Sound != UUID.Zero)
-                StopSound(m_host);
+                iflags |= (byte)SoundFlags.SYNC_MASTER;
+            // TODO check viewer seems to accept both
+            if (isSlave)
+                iflags |= (byte)SoundFlags.SYNC_SLAVE;
+            if (m_host.SoundQueueing)
+                iflags |= (byte)SoundFlags.QUEUE;
 
             m_host.Sound = soundID;
             m_host.SoundGain = volume;
-            m_host.SoundFlags = 1;      // looping
+            m_host.SoundFlags = iflags;      
             m_host.SoundRadius = radius;
 
             m_host.ScheduleFullUpdate();
@@ -301,42 +302,19 @@ namespace OpenSim.Region.CoreModules.World.Sound
             Vector3 position = part.AbsolutePosition; // region local
             ulong regionHandle = m_scene.RegionInfo.RegionHandle;
 
-            if (useMaster)
-            {
-                if (isMaster)
-                {
-                    if (triggered)
-                        TriggerSound(soundID, part.OwnerID, part.UUID, parentID, volume, position, regionHandle, radius);
-                    else
-                        PlayAttachedSound(soundID, part.OwnerID, part.UUID, volume, position, flags, radius);
-                    part.ParentGroup.PlaySoundMasterPrim = part;
-                    if (triggered)
-                        TriggerSound(soundID, part.OwnerID, part.UUID, parentID, volume, position, regionHandle, radius);
-                    else
-                        PlayAttachedSound(soundID, part.OwnerID, part.UUID, volume, position, flags, radius);
-                    foreach (SceneObjectPart prim in part.ParentGroup.PlaySoundSlavePrims)
-                    {
-                        position = prim.AbsolutePosition; // region local
-                        if (triggered)
-                            TriggerSound(soundID, part.OwnerID, prim.UUID, parentID, volume, position, regionHandle, radius);
-                        else
-                            PlayAttachedSound(soundID, part.OwnerID, prim.UUID, volume, position, flags, radius);
-                    }
-                    part.ParentGroup.PlaySoundSlavePrims.Clear();
-                    part.ParentGroup.PlaySoundMasterPrim = null;
-                }
-                else
-                {
-                    part.ParentGroup.PlaySoundSlavePrims.Add(part);
-                }
-            }
+            if(triggered)
+                TriggerSound(soundID, part.OwnerID, part.UUID, parentID, volume, position, regionHandle, radius);
             else
             {
-                if (triggered)
-                    TriggerSound(soundID, part.OwnerID, part.UUID, parentID, volume, position, regionHandle, radius);
-                else
-                    PlayAttachedSound(soundID, part.OwnerID, part.UUID, volume, position, flags, radius);
-            }
+                byte bflags = 0;
+                
+                if (isMaster)
+                    bflags |= (byte)SoundFlags.SYNC_MASTER;
+                // TODO check viewer seems to accept both
+                if (useMaster)
+                    bflags |= (byte)SoundFlags.SYNC_SLAVE;
+                PlayAttachedSound(soundID, part.OwnerID, part.UUID, volume, position, bflags, radius);
+            } 
         }
 
         public void TriggerSoundLimited(UUID objectID, UUID sound,

@@ -299,7 +299,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                             id, m_mod.Scene.RegionInfo.RegionName, currentState));
             }
 
-            int count = 200;
+            int count = 400;
 
             // There should be no race condition here since no other code should be removing the agent transfer or
             // changing the state to another other than Transferring => ReceivedAtDestination.

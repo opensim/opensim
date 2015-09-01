@@ -112,6 +112,7 @@ namespace OpenSim.Services.Connectors.Simulation
 
             if (destination == null)
             {
+                reason = "Destination not found";
                 m_log.Debug("[REMOTE SIMULATION CONNECTOR]: Given destination is null");
                 return false;
             }
@@ -282,7 +283,13 @@ namespace OpenSim.Services.Connectors.Simulation
         }
 
 
+<<<<<<< HEAD
         public bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, string myversion, List<UUID> featuresAvailable, out string version, out string reason)
+=======
+        /// <summary>
+        /// </summary>
+        public bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, string myversion, out string version, out string reason)
+>>>>>>> avn/ubitvar
         {
             reason = "Failed to contact destination";
             version = "Unknown";
@@ -299,6 +306,7 @@ namespace OpenSim.Services.Connectors.Simulation
             request.Add("viaTeleport", OSD.FromBoolean(viaTeleport));
             request.Add("position", OSD.FromString(position.ToString()));
             request.Add("my_version", OSD.FromString(myversion));
+<<<<<<< HEAD
 
             OSDArray features = new OSDArray();
             foreach (UUID feature in featuresAvailable)
@@ -306,6 +314,8 @@ namespace OpenSim.Services.Connectors.Simulation
 
             request.Add("features", features);
 
+=======
+>>>>>>> avn/ubitvar
             if (agentHomeURI != null)
                 request.Add("agent_home_uri", OSD.FromString(agentHomeURI));
 
@@ -356,6 +366,7 @@ namespace OpenSim.Services.Connectors.Simulation
                     return false;
                 }
 
+<<<<<<< HEAD
 
                 featuresAvailable.Clear();
 
@@ -366,6 +377,11 @@ namespace OpenSim.Services.Connectors.Simulation
                     foreach (OSD o in array)
                         featuresAvailable.Add(new UUID(o.AsString()));
                 }
+=======
+                OSDMap resp = (OSDMap)result["_Result"];
+                success = resp["success"].AsBoolean();
+                reason = resp["reason"].AsString();
+>>>>>>> avn/ubitvar
 
                 return success;
             }
@@ -451,12 +467,17 @@ namespace OpenSim.Services.Connectors.Simulation
                 args["destination_name"] = OSD.FromString(destination.RegionName);
                 args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
 
+<<<<<<< HEAD
                 OSDMap result = WebUtil.PostToService(uri, args, 40000, false);
 
                 if (result == null)
                     return false;
                 bool success = result["success"].AsBoolean();
                 if (!success)
+=======
+                OSDMap response = WebUtil.PostToService(uri, args, 40000);
+                if (response["Success"] == "False")
+>>>>>>> avn/ubitvar
                     return false;
             }
             catch (Exception e)

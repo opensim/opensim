@@ -336,6 +336,104 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             }
         }
 
+<<<<<<< HEAD
+=======
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="uuid"></param>
+        /// <param name="names">Caller please provide a properly instantiated array for names, string[2]</param>
+        /// <returns></returns>
+        private bool TryGetUserNames(UUID uuid, string[] names)
+        {
+            if (names == null)
+                names = new string[2];
+
+            if (TryGetUserNamesFromCache(uuid, names))
+                return true;
+
+            if (TryGetUserNamesFromServices(uuid, names))
+                return true;
+
+            return false;
+        }
+
+        private bool TryGetUserNamesFromCache(UUID uuid, string[] names)
+        {
+            lock (m_UserCache)
+            {
+                if (m_UserCache.ContainsKey(uuid))
+                {
+                    names[0] = m_UserCache[uuid].FirstName;
+                    names[1] = m_UserCache[uuid].LastName;
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Try to get the names bound to the given uuid, from the services.
+        /// </summary>
+        /// <returns>True if the name was found, false if not.</returns>
+        /// <param name='uuid'></param>
+        /// <param name='names'>The array of names if found.  If not found, then names[0] = "Unknown" and names[1] = "User"</param>
+        private bool TryGetUserNamesFromServices(UUID uuid, string[] names)
+        {
+            UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(UUID.Zero, uuid);
+
+            if (account != null)
+            {
+                names[0] = account.FirstName;
+                names[1] = account.LastName;
+
+                UserData user = new UserData();
+                user.FirstName = account.FirstName;
+                user.LastName = account.LastName;
+
+                lock (m_UserCache)
+                    m_UserCache[uuid] = user;
+
+                return true;
+            }
+            else
+            {
+                // Let's try the GridUser service
+                GridUserInfo uInfo = m_Scenes[0].GridUserService.GetGridUserInfo(uuid.ToString());
+                if (uInfo != null)
+                {
+                    string url, first, last, tmp;
+                    UUID u;
+                    if (Util.ParseUniversalUserIdentifier(uInfo.UserID, out u, out url, out first, out last, out tmp))
+                    {
+                        AddUser(uuid, first, last, url);
+
+                        if (m_UserCache.ContainsKey(uuid))
+                        {
+                            names[0] = m_UserCache[uuid].FirstName;
+                            names[1] = m_UserCache[uuid].LastName;
+
+                            return true;
+                        }
+                    }
+                    else
+                        m_log.DebugFormat("[USER MANAGEMENT MODULE]: Unable to parse UUI {0}", uInfo.UserID);
+                }
+//                else
+//                {
+//                    m_log.DebugFormat("[USER MANAGEMENT MODULE]: No grid user found for {0}", uuid);
+//                }
+
+                names[0] = "Unknown";
+                names[1] = "UserUMMTGUN9";
+
+                return false;
+            }
+        }
+
+>>>>>>> avn/ubitvar
         #region IUserManagement
 
         public UUID GetUserIdByName(string name)

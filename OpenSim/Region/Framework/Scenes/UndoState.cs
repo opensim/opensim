@@ -27,202 +27,307 @@
 
 using System;
 using System.Reflection;
+using System.Collections.Generic;
 using log4net;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes
 {
     public class UndoState
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        const int UNDOEXPIRESECONDS = 300; // undo expire time   (nice to have it came from a ini later)
 
-        public Vector3 Position = Vector3.Zero;
-        public Vector3 Scale = Vector3.Zero;
-        public Quaternion Rotation = Quaternion.Identity;
-
-        /// <summary>
-        /// Is this undo state for an entire group?
-        /// </summary>
-        public bool ForGroup;
-
+        public ObjectChangeData data;
+        public DateTime creationtime;
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="part"></param>
-        /// <param name="forGroup">True if the undo is for an entire group</param>
-        public UndoState(SceneObjectPart part, bool forGroup)
+        /// <param name="change">bit field with what is changed</param>
+        /// 
+        public UndoState(SceneObjectPart part, ObjectChangeType change)
         {
-            if (part.ParentID == 0)
+            data = new ObjectChangeData();
+            data.change = change;
+            creationtime = DateTime.UtcNow;
+
+            if (part.ParentGroup.RootPart == part)
             {
-                ForGroup = forGroup;
-
-//                    if (ForGroup)
-                    Position = part.ParentGroup.AbsolutePosition;
-//                    else
-//                        Position = part.OffsetPosition;
-
-//                    m_log.DebugFormat(
-//                        "[UNDO STATE]: Storing undo position {0} for root part", Position);
-
-                Rotation = part.RotationOffset;
-
-//                    m_log.DebugFormat(
-//                        "[UNDO STATE]: Storing undo rotation {0} for root part", Rotation);
-
-                Scale = part.Shape.Scale;
-
-//                    m_log.DebugFormat(
-//                        "[UNDO STATE]: Storing undo scale {0} for root part", Scale);
+                if ((change & ObjectChangeType.Position) != 0)
+                    data.position = part.ParentGroup.AbsolutePosition;
+                if ((change & ObjectChangeType.Rotation) != 0)
+                    data.rotation = part.RotationOffset;
+                if ((change & ObjectChangeType.Scale) != 0)
+                    data.scale = part.Shape.Scale;
             }
             else
             {
-                Position = part.OffsetPosition;
-//                    m_log.DebugFormat(
-//                        "[UNDO STATE]: Storing undo position {0} for child part", Position);
-
-                Rotation = part.RotationOffset;
-//                    m_log.DebugFormat(
-//                        "[UNDO STATE]: Storing undo rotation {0} for child part", Rotation);
-
-                Scale = part.Shape.Scale;
-//                    m_log.DebugFormat(
-//                        "[UNDO STATE]: Storing undo scale {0} for child part", Scale);
+                if ((change & ObjectChangeType.Position) != 0)
+                    data.position = part.OffsetPosition;
+                if ((change & ObjectChangeType.Rotation) != 0)
+                    data.rotation = part.RotationOffset;
+                if ((change & ObjectChangeType.Scale) != 0)
+                    data.scale = part.Shape.Scale;
             }
+        }
+        /// <summary>
+        /// check if undo or redo is too old 
+        /// </summary>
+
+        public bool checkExpire()
+        {
+            TimeSpan t = DateTime.UtcNow - creationtime;
+            if (t.Seconds > UNDOEXPIRESECONDS)
+                return true;
+            return false;
+        }
+
+        /// <summary>
+        /// updates undo or redo creation time to now
+        /// </summary>
+        public void updateExpire()
+        {
+            creationtime = DateTime.UtcNow;
         }
 
         /// <summary>
         /// Compare the relevant state in the given part to this state.
         /// </summary>
         /// <param name="part"></param>
-        /// <returns>true if both the part's position, rotation and scale match those in this undo state.  False otherwise.</returns>
-        public bool Compare(SceneObjectPart part)
+        /// <returns>true what fiels and related data are equal, False otherwise.</returns>
+        /// 
+        public bool Compare(SceneObjectPart part, ObjectChangeType change)    
         {
+            if (data.change != change) // if diferent targets, then they are diferent
+                return false;
+
             if (part != null)
             {
                 if (part.ParentID == 0)
-                    return
-                        Position == part.ParentGroup.AbsolutePosition
-                            && Rotation == part.RotationOffset
-                            && Scale == part.Shape.Scale;
+                {
+                    if ((change & ObjectChangeType.Position) != 0 && data.position != part.ParentGroup.AbsolutePosition)
+                        return false;
+                }
                 else
-                    return
-                        Position == part.OffsetPosition
-                            && Rotation == part.RotationOffset
-                            && Scale == part.Shape.Scale;
-            }
+                {
+                    if ((change & ObjectChangeType.Position) != 0 && data.position != part.OffsetPosition)
+                        return false;
+                }
 
+                if ((change & ObjectChangeType.Rotation) != 0 && data.rotation != part.RotationOffset)
+                    return false;
+                if ((change & ObjectChangeType.Rotation) != 0 && data.scale == part.Shape.Scale)
+                    return false;
+                return true;
+
+            }
             return false;
         }
 
-        public void PlaybackState(SceneObjectPart part)
+        /// <summary>
+        /// executes the undo or redo to a part or its group
+        /// </summary>
+        /// <param name="part"></param>
+        /// 
+
+        public void PlayState(SceneObjectPart part)
         {
             part.Undoing = true;
 
-            if (part.ParentID == 0)
+            SceneObjectGroup grp = part.ParentGroup;
+
+            if (grp != null)
             {
-//                    m_log.DebugFormat(
-//                        "[UNDO STATE]: Undoing position to {0} for root part {1} {2}",
-//                        Position, part.Name, part.LocalId);
-
-                if (Position != Vector3.Zero)
-                {
-                    if (ForGroup)
-                        part.ParentGroup.AbsolutePosition = Position;
-                    else
-                        part.ParentGroup.UpdateRootPosition(Position);
-                }
-
-//                    m_log.DebugFormat(
-//                        "[UNDO STATE]: Undoing rotation {0} to {1} for root part {2} {3}",
-//                        part.RotationOffset, Rotation, part.Name, part.LocalId);
-
-                if (ForGroup)
-                    part.UpdateRotation(Rotation);
-                else
-                    part.ParentGroup.UpdateRootRotation(Rotation);
-
-                if (Scale != Vector3.Zero)
-                {
-//                        m_log.DebugFormat(
-//                            "[UNDO STATE]: Undoing scale {0} to {1} for root part {2} {3}",
-//                            part.Shape.Scale, Scale, part.Name, part.LocalId);
-
-                    if (ForGroup)
-                        part.ParentGroup.GroupResize(Scale);
-                    else
-                        part.Resize(Scale);
-                }
-
-                part.ParentGroup.ScheduleGroupForTerseUpdate();
+                grp.doChangeObject(part, data);              
             }
-            else
-            {
-                // Note: Updating these properties on sop automatically schedules an update if needed
-                if (Position != Vector3.Zero)
-                {
-//                        m_log.DebugFormat(
-//                            "[UNDO STATE]: Undoing position {0} to {1} for child part {2} {3}",
-//                            part.OffsetPosition, Position, part.Name, part.LocalId);
-
-                    part.OffsetPosition = Position;
-                }
-
-//                    m_log.DebugFormat(
-//                        "[UNDO STATE]: Undoing rotation {0} to {1} for child part {2} {3}",
-//                        part.RotationOffset, Rotation, part.Name, part.LocalId);
-
-                part.UpdateRotation(Rotation);
-
-                if (Scale != Vector3.Zero)
-                {
-//                        m_log.DebugFormat(
-//                            "[UNDO STATE]: Undoing scale {0} to {1} for child part {2} {3}",
-//                            part.Shape.Scale, Scale, part.Name, part.LocalId);
-
-                    part.Resize(Scale);
-                }
-            }
-
             part.Undoing = false;
         }
+    }
 
-        public void PlayfwdState(SceneObjectPart part)
+    public class UndoRedoState
+    {
+        int size;
+        public LinkedList<UndoState> m_redo = new LinkedList<UndoState>();
+        public LinkedList<UndoState> m_undo = new LinkedList<UndoState>();
+
+        /// <summary>
+        /// creates a new UndoRedoState with default states memory size
+        /// </summary>
+
+        public UndoRedoState()
         {
-            part.Undoing = true;
+            size = 5;
+        }
 
-            if (part.ParentID == 0)
+        /// <summary>
+        /// creates a new UndoRedoState with states memory having indicated size
+        /// </summary>
+        /// <param name="size"></param>
+
+        public UndoRedoState(int _size)
+        {
+            if (_size < 3)
+                size = 3;
+            else
+                size = _size;
+        }
+
+        /// <summary>
+        /// returns number of undo entries in memory
+        /// </summary>
+
+        public int Count
+        {
+            get { return m_undo.Count; }
+        }
+
+        /// <summary>
+        /// clears all undo and redo entries
+        /// </summary>
+
+        public void Clear()
+        {
+            m_undo.Clear();
+            m_redo.Clear();
+        }
+
+        /// <summary>
+        /// adds a new state undo to part or its group, with changes indicated by what bits
+        /// </summary>
+        /// <param name="part"></param>
+        /// <param name="change">bit field with what is changed</param>
+
+        public void StoreUndo(SceneObjectPart part, ObjectChangeType change)
+        {
+            lock (m_undo)
             {
-                if (Position != Vector3.Zero)
-                    part.ParentGroup.AbsolutePosition = Position;
+                UndoState last;
 
-                if (Rotation != Quaternion.Identity)
-                    part.UpdateRotation(Rotation);
-
-                if (Scale != Vector3.Zero)
+                if (m_redo.Count > 0) // last code seems to clear redo on every new undo
                 {
-                    if (ForGroup)
-                        part.ParentGroup.GroupResize(Scale);
-                    else
-                        part.Resize(Scale);
+                    m_redo.Clear();
                 }
 
-                part.ParentGroup.ScheduleGroupForTerseUpdate();
+                if (m_undo.Count > 0)
+                {
+                    // check expired entry
+                    last = m_undo.First.Value;
+                    if (last != null && last.checkExpire())
+                        m_undo.Clear();
+                    else
+                    {
+                        // see if we actually have a change
+                        if (last != null)
+                        {
+                            if (last.Compare(part, change))
+                                return;
+                        }
+                    }
+                }
+
+                // limite size
+                while (m_undo.Count >= size)
+                    m_undo.RemoveLast();
+
+                UndoState nUndo = new UndoState(part, change);
+                m_undo.AddFirst(nUndo);
             }
-            else
+        }
+
+        /// <summary>
+        /// executes last state undo to part or its group
+        /// current state is pushed into redo
+        /// </summary>
+        /// <param name="part"></param>
+
+        public void Undo(SceneObjectPart part)
+        {
+            lock (m_undo)
             {
-                // Note: Updating these properties on sop automatically schedules an update if needed
-                if (Position != Vector3.Zero)
-                    part.OffsetPosition = Position;
+                UndoState nUndo;
 
-                if (Rotation != Quaternion.Identity)
-                    part.UpdateRotation(Rotation);
+                // expire redo
+                if (m_redo.Count > 0)
+                {
+                    nUndo = m_redo.First.Value;
+                    if (nUndo != null && nUndo.checkExpire())
+                        m_redo.Clear();
+                }
 
-                if (Scale != Vector3.Zero)
-                    part.Resize(Scale);
+                if (m_undo.Count > 0)
+                {
+                    UndoState goback = m_undo.First.Value;
+                    // check expired
+                    if (goback != null && goback.checkExpire())
+                    {
+                        m_undo.Clear();
+                        return;
+                    }
+
+                    if (goback != null)
+                    {
+                        m_undo.RemoveFirst();
+
+                        // redo limite size
+                        while (m_redo.Count >= size)
+                            m_redo.RemoveLast();
+
+                        nUndo = new UndoState(part, goback.data.change); // new value in part should it be full goback copy?
+                        m_redo.AddFirst(nUndo);
+
+                        goback.PlayState(part);
+                    }
+                }
             }
+        }
 
-            part.Undoing = false;
+        /// <summary>
+        /// executes last state redo to part or its group
+        /// current state is pushed into undo
+        /// </summary>
+        /// <param name="part"></param>
+
+        public void Redo(SceneObjectPart part)
+        {
+            lock (m_undo)
+            {
+                UndoState nUndo;
+
+                // expire undo
+                if (m_undo.Count > 0)
+                {
+                    nUndo = m_undo.First.Value;
+                    if (nUndo != null && nUndo.checkExpire())
+                        m_undo.Clear();
+                }
+
+                if (m_redo.Count > 0)
+                {
+                    UndoState gofwd = m_redo.First.Value;
+                    // check expired
+                    if (gofwd != null && gofwd.checkExpire())
+                    {
+                        m_redo.Clear();
+                        return;
+                    }
+
+                    if (gofwd != null)
+                    {
+                        m_redo.RemoveFirst();
+
+                        // limite undo size
+                        while (m_undo.Count >= size)
+                            m_undo.RemoveLast();
+
+                        nUndo = new UndoState(part, gofwd.data.change);   // new value in part should it be full gofwd copy?
+                        m_undo.AddFirst(nUndo);
+
+                        gofwd.PlayState(part);
+                    }
+                }
+            }
         }
     }
 

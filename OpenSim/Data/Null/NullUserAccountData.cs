@@ -193,5 +193,10 @@ namespace OpenSim.Data.Null
 
             return false;
         }
+
+        public UserAccountData[] GetUsersWhere(UUID scopeID, string where)
+        {
+            return null;
+        }
     }
 }

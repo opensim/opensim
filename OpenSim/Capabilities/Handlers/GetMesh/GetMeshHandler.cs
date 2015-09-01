@@ -44,26 +44,64 @@ namespace OpenSim.Capabilities.Handlers
     public class GetMeshHandler : BaseStreamHandler
     {
         private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+                   LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         private IAssetService m_assetService;
 
-        // TODO: Change this to a config option
-        private string m_RedirectURL = null;
-
-        public GetMeshHandler(string path, IAssetService assService, string name, string description, string redirectURL)
-            : base("GET", path, name, description)
+        public const string DefaultFormat = "vnd.ll.mesh";
+        
+        public GetMeshHandler(IAssetService assService)
         {
             m_assetService = assService;
             m_RedirectURL = redirectURL;
             if (m_RedirectURL != null && !m_RedirectURL.EndsWith("/"))
                 m_RedirectURL += "/";
         }
+        public Hashtable Handle(Hashtable request)
+        {
+            Hashtable ret = new Hashtable();
+            ret["int_response_code"] = (int)System.Net.HttpStatusCode.NotFound;
+            ret["content_type"] = "text/plain";
+            ret["keepalive"] = false;
+            ret["reusecontext"] = false;
+            ret["int_bytes"] = 0;
+            ret["int_lod"] = 0;
+            string MeshStr = (string)request["mesh_id"];
+            
 
-        protected override byte[] ProcessRequest(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+            //m_log.DebugFormat("[GETMESH]: called {0}", MeshStr);
+
+            if (m_assetService == null)
+            {
+                m_log.Error("[GETMESH]: Cannot fetch mesh " + MeshStr + " without an asset service");
+            }
+
+            UUID meshID;
+            if (!String.IsNullOrEmpty(MeshStr) && UUID.TryParse(MeshStr, out meshID))
+            {
+                //                m_log.DebugFormat("[GETMESH]: Received request for mesh id {0}", meshID);
+
+               
+                ret = ProcessGetMesh(request, UUID.Zero, null);
+                       
+                
+            }
+            else
+            {
+                m_log.Warn("[GETMESH]: Failed to parse a mesh_id from GetMesh request: " + (string)request["uri"]);
+            }
+
+            
+            return ret;
+        }
+        public Hashtable ProcessGetMesh(Hashtable request, UUID AgentId, Caps cap)
         {
             // Try to parse the texture ID from the request URL
             NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
             string textureStr = query.GetOne("mesh_id");
+            responsedata["reusecontext"] = false;
+            responsedata["int_lod"] = 0;
+            responsedata["int_bytes"] = 0;
 
             if (m_assetService == null)
             {
@@ -160,40 +198,121 @@ namespace OpenSim.Capabilities.Handlers
                     // sending back the last byte instead of an error status
                     if (start >= texture.Data.Length)
                     {
-                        response.StatusCode = (int)System.Net.HttpStatusCode.PartialContent;
-                        response.ContentType = texture.Metadata.ContentType;
-                    }
-                    else
-                    {
-                        // Handle the case where no second range value was given.  This is equivalent to requesting
-                        // the rest of the entity.
-                        if (end == -1)
-                            end = int.MaxValue;
 
-                        end = Utils.Clamp(end, 0, texture.Data.Length - 1);
-                        start = Utils.Clamp(start, 0, end);
-                        int len = end - start + 1;
+                        Hashtable headers = new Hashtable();
+                        responsedata["headers"] = headers;
 
-                        if (0 == start && len == texture.Data.Length)
+                        string range = String.Empty;
+
+                        if (((Hashtable)request["headers"])["range"] != null)
+                            range = (string)((Hashtable)request["headers"])["range"];
+
+                        else if (((Hashtable)request["headers"])["Range"] != null)
+                            range = (string)((Hashtable)request["headers"])["Range"];
+
+                        if (!String.IsNullOrEmpty(range)) // Mesh Asset LOD // Physics
                         {
-                            response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                             // Range request
+                            int start, end;
+                            if (TryParseRange(range, out start, out end))
+                            {
+                                 // Before clamping start make sure we can satisfy it in order to avoid
+                    // sending back the last byte instead of an error status
+                                if (start >= mesh.Data.Length)
+                                {
+                                    responsedata["int_response_code"] = 404; //501; //410; //404;
+                                    responsedata["content_type"] = "text/plain";
+                                    responsedata["keepalive"] = false;
+                                    responsedata["str_response_string"] = "This range doesnt exist.";
+                                    responsedata["reusecontext"] = false;
+                                    responsedata["int_lod"] = 3;
+                                    return responsedata;
+                                }
+                                else
+                                {
+                                    end = Utils.Clamp(end, 0, mesh.Data.Length - 1);
+                                    start = Utils.Clamp(start, 0, end);
+                                    int len = end - start + 1;
+
+                                    //m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);
+
+                                    if (start > 20000)
+                                    {
+                                        responsedata["int_lod"] = 3;
+                                    }
+                                    else if (start < 4097)
+                                    {
+                                        responsedata["int_lod"] = 1;
+                                    }
+                                    else
+                                    {
+                                        responsedata["int_lod"] = 2;
+                                    }
+
+                                    
+                                    if (start == 0 && len == mesh.Data.Length) // well redudante maybe
+                                    {
+                                        responsedata["int_response_code"] = (int) System.Net.HttpStatusCode.OK;
+                                        responsedata["bin_response_data"] = mesh.Data;
+                                        responsedata["int_bytes"] = mesh.Data.Length;
+                                        responsedata["reusecontext"] = false;
+                                        responsedata["int_lod"] = 3;
+                                        
+                                    }
+                                    else
+                                    {
+                                        responsedata["int_response_code"] =
+                                            (int) System.Net.HttpStatusCode.PartialContent;
+                                        headers["Content-Range"] = String.Format("bytes {0}-{1}/{2}", start, end,
+                                                                                 mesh.Data.Length);
+
+                                        byte[] d = new byte[len];
+                                        Array.Copy(mesh.Data, start, d, 0, len);
+                                        responsedata["bin_response_data"] = d;
+                                        responsedata["int_bytes"] = len;
+                                        responsedata["reusecontext"] = false;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                m_log.Warn("[GETMESH]: Failed to parse a range from GetMesh request, sending full asset: " + (string)request["uri"]);
+                                responsedata["str_response_string"] = Convert.ToBase64String(mesh.Data);
+                                responsedata["content_type"] = "application/vnd.ll.mesh";
+                                responsedata["int_response_code"] = 200;
+                                responsedata["reusecontext"] = false;
+                                responsedata["int_lod"] = 3;
+                            }
                         }
                         else
                         {
-                            response.StatusCode = (int)System.Net.HttpStatusCode.PartialContent;
-                            response.AddHeader("Content-Range", String.Format("bytes {0}-{1}/{2}", start, end, texture.Data.Length));
+                            responsedata["str_response_string"] = Convert.ToBase64String(mesh.Data);
+                            responsedata["content_type"] = "application/vnd.ll.mesh";
+                            responsedata["int_response_code"] = 200;
+                            responsedata["reusecontext"] = false;
+                            responsedata["int_lod"] = 3;
                         }
-                        
-                        response.ContentLength = len;
-                        response.ContentType = "application/vnd.ll.mesh";
-    
-                        response.Body.Write(texture.Data, start, len);
+                    }
+                    else
+                    {
+                        responsedata["int_response_code"] = 404; //501; //410; //404;
+                        responsedata["content_type"] = "text/plain";
+                        responsedata["keepalive"] = false;
+                        responsedata["str_response_string"] = "Unfortunately, this asset isn't a mesh.";
+                        responsedata["reusecontext"] = false;
+                        responsedata["int_lod"] = 1;
+                        return responsedata;
                     }
                 }
                 else
                 {
-                    m_log.Warn("[GETMESH]: Malformed Range header: " + range);
-                    response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
+                    responsedata["int_response_code"] = 404; //501; //410; //404;
+                    responsedata["content_type"] = "text/plain";
+                    responsedata["keepalive"] = false;
+                    responsedata["str_response_string"] = "Your Mesh wasn't found.  Sorry!";
+                    responsedata["reusecontext"] = false;
+                    responsedata["int_lod"] = 0;
+                    return responsedata;
                 }
             }
             else 
@@ -243,6 +362,21 @@ namespace OpenSim.Capabilities.Handlers
                     {
                         return true;
                     }
+                }
+            }
+
+            start = end = 0;
+            return false;
+        }
+        private bool TryParseRange(string header, out int start, out int end)
+        {
+            if (header.StartsWith("bytes="))
+            {
+                string[] rangeValues = header.Substring(6).Split('-');
+                if (rangeValues.Length == 2)
+                {
+                    if (Int32.TryParse(rangeValues[0], out start) && Int32.TryParse(rangeValues[1], out end))
+                        return true;
                 }
             }
 

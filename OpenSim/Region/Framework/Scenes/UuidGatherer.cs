@@ -120,12 +120,52 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="uuid">UUID.</param>
         public bool AddForInspection(UUID uuid)
         {
+<<<<<<< HEAD
             if (m_assetUuidsToInspect.Contains(uuid))
                 return false;
 
 //            m_log.DebugFormat("[UUID GATHERER]: Adding asset {0} for inspection", uuid);
 
             m_assetUuidsToInspect.Enqueue(uuid);
+=======
+            try
+            {               
+                assetUuids[assetUuid] = assetType;
+    
+                if ((sbyte)AssetType.Bodypart == assetType || (sbyte)AssetType.Clothing == assetType)
+                {
+                    GetWearableAssetUuids(assetUuid, assetUuids);
+                }
+                else if ((sbyte)AssetType.Gesture == assetType)
+                {
+                    GetGestureAssetUuids(assetUuid, assetUuids);
+                }
+                else if ((sbyte)AssetType.Notecard == assetType)
+                {
+                    GetTextEmbeddedAssetUuids(assetUuid, assetUuids);
+                }
+                else if ((sbyte)AssetType.LSLText == assetType)
+                {
+                    GetTextEmbeddedAssetUuids(assetUuid, assetUuids);
+                }
+                else if ((sbyte)OpenSimAssetType.Material == assetType)
+                {
+                    GetMaterialAssetUuids(assetUuid, assetUuids);
+                }
+                else if ((sbyte)AssetType.Object == assetType)
+                {
+                    GetSceneObjectAssetUuids(assetUuid, assetUuids);
+                }
+            }
+            catch (Exception)
+            {
+                m_log.ErrorFormat(
+                    "[UUID GATHERER]: Failed to gather uuids for asset id {0}, type {1}", 
+                    assetUuid, assetType);
+                throw;
+            }
+        }
+>>>>>>> avn/ubitvar
 
             return true;
         }

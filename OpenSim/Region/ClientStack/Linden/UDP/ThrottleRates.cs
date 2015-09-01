@@ -69,6 +69,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Amount of the texture throttle to steal for the task throttle</summary>
         public double CannibalizeTextureRate;
 
+        public int ClientMaxRate;
+        public float BrustTime;
+
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -88,7 +91,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 Texture = throttleConfig.GetInt("texture_default", 18500);
                 Asset = throttleConfig.GetInt("asset_default", 10500);
 
-                Total = throttleConfig.GetInt("client_throttle_max_bps", 0);
+                Total = Resend + Land + Wind + Cloud + Task + Texture + Asset;
+                // 3000000 bps default max
+                ClientMaxRate = throttleConfig.GetInt("client_throttle_max_bps", 375000);
+                if (ClientMaxRate > 1000000)
+                    ClientMaxRate = 1000000; // no more than 8Mbps
+
+                BrustTime = (float)throttleConfig.GetInt("client_throttle_burtsTimeMS", 10);
+                BrustTime *= 1e-3f;
 
                 AdaptiveThrottlesEnabled = throttleConfig.GetBoolean("enable_adaptive_throttles", false);
                 MinimumAdaptiveThrottleRate = throttleConfig.GetInt("adaptive_throttle_min_bps", 32000);

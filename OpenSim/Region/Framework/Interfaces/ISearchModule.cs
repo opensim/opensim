@@ -31,6 +31,6 @@ namespace OpenSim.Framework
 {
     public interface ISearchModule
     {
-
+        void Refresh();
     }
 }

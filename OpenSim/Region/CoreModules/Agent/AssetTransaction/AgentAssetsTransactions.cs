@@ -152,7 +152,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             }
         }
 
-        public void RequestCreateInventoryItem(IClientAPI remoteClient,
+        public bool RequestCreateInventoryItem(IClientAPI remoteClient,
                 UUID transactionID, UUID folderID, uint callbackID,
                 string description, string name, sbyte invType,
                sbyte type, byte wearableType, uint nextOwnerMask)
@@ -162,6 +162,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             uploader.RequestCreateInventoryItem(
                 remoteClient, folderID, callbackID,
                 description, name, invType, type, wearableType, nextOwnerMask);
+
+            return true;
         }
 
         public void RequestUpdateTaskInventoryItem(IClientAPI remoteClient,
@@ -170,6 +172,17 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         {
             AssetXferUploader uploader = RequestXferUploader(transactionID);
 
+            // Here we need to get the old asset to extract the
+            // texture UUIDs if it's a wearable.
+            if (item.Type == (int)AssetType.Bodypart ||
+                item.Type == (int)AssetType.Clothing ||
+                item.Type == (int)CustomAssetType.AnimationSet)
+            {
+                AssetBase oldAsset = m_Scene.AssetService.Get(item.AssetID.ToString());
+                if (oldAsset != null)
+                    uploader.SetOldData(oldAsset.Data);
+            }
+
             uploader.RequestUpdateTaskInventoryItem(remoteClient, item);
         }
 
@@ -177,6 +190,17 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 UUID transactionID, InventoryItemBase item)
         {
             AssetXferUploader uploader = RequestXferUploader(transactionID);
+
+            // Here we need to get the old asset to extract the
+            // texture UUIDs if it's a wearable.
+            if (item.AssetType == (int)AssetType.Bodypart ||
+                item.AssetType == (int)AssetType.Clothing ||
+                item.AssetType == (int)CustomAssetType.AnimationSet)
+            {
+                AssetBase oldAsset = m_Scene.AssetService.Get(item.AssetID.ToString());
+                if (oldAsset != null)
+                    uploader.SetOldData(oldAsset.Data);
+            }
 
             uploader.RequestUpdateInventoryItem(remoteClient, item);
         }

@@ -30,12 +30,15 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework.Capabilities
 {
+
     [LLSDType("MAP")]
     public class LLSDAssetUploadComplete
     {
         public string new_asset = String.Empty;
         public UUID new_inventory_item = UUID.Zero;
+//        public UUID new_texture_folder_id = UUID.Zero;
         public string state = String.Empty;
+        public LLSDAssetUploadError error = null;
         //public bool success = false;
 
         public LLSDAssetUploadComplete()

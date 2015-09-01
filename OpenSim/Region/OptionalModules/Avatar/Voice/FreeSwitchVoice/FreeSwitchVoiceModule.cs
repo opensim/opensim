@@ -575,7 +575,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
         public Hashtable FreeSwitchSLVoiceGetPreloginHTTPHandler(Hashtable request)
         {
-            m_log.Debug("[FreeSwitchVoice]: FreeSwitchSLVoiceGetPreloginHTTPHandler called");
+//            m_log.Debug("[FreeSwitchVoice] FreeSwitchSLVoiceGetPreloginHTTPHandler called");
 
             Hashtable response = new Hashtable();
             response["content_type"] = "text/xml";
@@ -726,7 +726,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         
         public Hashtable FreeSwitchSLVoiceSigninHTTPHandler(Hashtable request)
         {
-            m_log.Debug("[FreeSwitchVoice]: FreeSwitchSLVoiceSigninHTTPHandler called");
+            //m_log.Debug("[FreeSwitchVoice] FreeSwitchSLVoiceSigninHTTPHandler called");
 //            string requestbody = (string)request["body"];
 //            string uri = (string)request["uri"];
 //            string contenttype = (string)request["content-type"];

@@ -140,7 +140,8 @@ namespace OpenSim.Data.Null
             {
                 foreach (RegionData r in m_regionData.Values)
                 {
-                    if (r.posX == posX && r.posY == posY)
+                    if (posX >= r.posX && posX < r.posX + r.sizeX
+                        && posY >= r.posY && posY < r.posY + r.sizeY)
                         ret.Add(r);
                 }
             }
@@ -176,8 +177,9 @@ namespace OpenSim.Data.Null
             {
                 foreach (RegionData r in m_regionData.Values)
                 {
-                    if (r.posX >= startX && r.posX <= endX && r.posY >= startY && r.posY <= endY)
-                        ret.Add(r);
+                    if (r.posX + r.sizeX > startX && r.posX <= endX
+                         && r.posY + r.sizeX > startY && r.posY <= endY)
+                         ret.Add(r);
                 }
             }
 

@@ -909,7 +909,17 @@ namespace OpenSim.Region.Physics.Meshing
             return CreateMesh(primName, primShape, size, lod, false, true);
         }
 
+        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool shouldCache, bool convex, bool forOde)
+        {
+            return CreateMesh(primName, primShape, size, lod, false);
+        }
+
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical)
+        {
+            return CreateMesh(primName, primShape, size, lod, isPhysical, true);
+        }
+
+        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex, bool forOde)
         {
             return CreateMesh(primName, primShape, size, lod, isPhysical, true);
         }
@@ -967,5 +977,13 @@ namespace OpenSim.Region.Physics.Meshing
 
             return mesh;
         }
+        public IMesh GetMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex)
+        {
+            return null;
+        }
+
+        public void ReleaseMesh(IMesh imesh) { }
+        public void ExpireReleaseMeshs() { }
+        public void ExpireFileCache() { }
     }
 }

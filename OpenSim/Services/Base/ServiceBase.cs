@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -46,6 +47,7 @@ namespace OpenSim.Services.Base
 
         public T LoadPlugin<T>(string dllName, Object[] args) where T:class
         {
+<<<<<<< HEAD
             // The path:type separator : is unfortunate because it collides
             // with Windows paths like C:\...
             // When the path provided includes the drive, this fails.
@@ -53,6 +55,11 @@ namespace OpenSim.Services.Base
             string pathRoot = Path.GetPathRoot(dllName);
             string noRoot = dllName.Substring(pathRoot.Length);
             string[] parts = noRoot.Split(new char[] {':'});
+=======
+            string pathRoot = Path.GetPathRoot(dllName);
+            string noRoot = dllName.Substring(pathRoot.Length);
+            string[] parts = noRoot.Split(new char[] { ':' });
+>>>>>>> avn/ubitvar
 
             dllName = pathRoot + parts[0];
 

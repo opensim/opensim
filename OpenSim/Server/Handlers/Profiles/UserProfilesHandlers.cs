@@ -380,6 +380,7 @@ namespace OpenSim.Server.Handlers
         }
         #endregion Interests
 
+<<<<<<< HEAD
         #region User Preferences
         public bool UserPreferencesRequest(OSDMap json, ref JsonRpcResponse response)
         {
@@ -433,6 +434,8 @@ namespace OpenSim.Server.Handlers
         }
         #endregion User Preferences
 
+=======
+>>>>>>> avn/ubitvar
         #region Utility
         public bool AvatarImageAssetsRequest(OSDMap json, ref JsonRpcResponse response)
         {

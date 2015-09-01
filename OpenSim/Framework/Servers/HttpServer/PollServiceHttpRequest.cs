@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using HttpServer;
@@ -44,6 +45,24 @@ namespace OpenSim.Framework.Servers.HttpServer
         public readonly IHttpRequest Request;
         public readonly int RequestTime;
         public readonly UUID RequestID;
+        public int  contextHash;
+
+        private void GenContextHash()
+        {
+            Random rnd = new Random();
+            contextHash = 0;
+            if (Request.Headers["remote_addr"] != null)
+                contextHash = (Request.Headers["remote_addr"]).GetHashCode() << 16;
+            else
+                contextHash = rnd.Next() << 16;
+            if (Request.Headers["remote_port"] != null)
+            {
+                string[] strPorts = Request.Headers["remote_port"].Split(new char[] { ',' });
+                contextHash += Int32.Parse(strPorts[0]);
+            }
+            else
+                contextHash += rnd.Next() & 0xffff;
+        }
 
         public PollServiceHttpRequest(
             PollServiceEventArgs pPollServiceArgs, IHttpClientContext pHttpContext, IHttpRequest pRequest)
@@ -53,6 +72,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             Request = pRequest;
             RequestTime = System.Environment.TickCount;
             RequestID = UUID.Random();
+            GenContextHash();
         }
 
         internal void DoHTTPGruntWork(BaseHttpServer server, Hashtable responsedata)
@@ -65,6 +85,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             response.SendChunked = false;
             response.ContentLength64 = buffer.Length;
             response.ContentEncoding = Encoding.UTF8;
+            response.ReuseContext = false;
 
             try
             {
@@ -92,6 +113,45 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                 PollServiceArgs.RequestsHandled++;
             }
+        }
+
+        internal void DoHTTPstop(BaseHttpServer server)
+        {
+            OSHttpResponse response
+                = new OSHttpResponse(new HttpResponse(HttpContext, Request), HttpContext);
+
+            response.SendChunked = false;
+            response.ContentLength64 = 0;
+            response.ContentEncoding = Encoding.UTF8;
+            response.ReuseContext = false;
+            response.KeepAlive = false;
+            response.SendChunked = false;
+            response.StatusCode = 503;
+
+            try
+            {
+                response.OutputStream.Flush();
+                response.Send();
+            }
+            catch (Exception e)
+            {
+            }
+        }
+    }
+
+    class PollServiceHttpRequestComparer : IEqualityComparer<PollServiceHttpRequest>
+    {
+        public bool Equals(PollServiceHttpRequest b1, PollServiceHttpRequest b2)
+        {
+            if (b1.contextHash != b2.contextHash)
+                return false;
+            bool b = Object.ReferenceEquals(b1.HttpContext, b2.HttpContext);
+            return b;
+        }
+
+        public int GetHashCode(PollServiceHttpRequest b2)
+        {
+            return (int)b2.contextHash;
         }
     }
 }

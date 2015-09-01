@@ -34,6 +34,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using OpenSim.Services.Connectors;
+using OpenSim.Framework;
 
 using OpenMetaverse;
 
@@ -103,6 +104,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                 return;
 
             scene.RegisterModuleInterface<IUserAccountService>(this);
+            scene.RegisterModuleInterface<IUserAccountCacheModule>(m_Cache);
+
+            scene.EventManager.OnNewClient += OnNewClient;
         }
 
         public void RemoveRegion(Scene scene)
@@ -115,6 +119,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
         {
             if (!m_Enabled)
                 return;
+        }
+
+        // When a user actually enters the sim, clear them from
+        // cache so the sim will have the current values for
+        // flags, title, etc. And country, don't forget country!
+        private void OnNewClient(IClientAPI client)
+        {
+            m_Cache.Remove(client.Name);
         }
 
         #region Overwritten methods from IUserAccountService

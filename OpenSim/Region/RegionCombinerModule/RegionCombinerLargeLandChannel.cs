@@ -196,6 +196,7 @@ namespace OpenSim.Region.RegionCombinerModule
             RootRegionLandChannel.SetParcelOtherCleanTime(remoteClient, localID, otherCleanTime);
         }
 
+        public void sendClientInitialLandInfo(IClientAPI remoteClient) { }
         #endregion
     }
 }

@@ -100,10 +100,14 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 m_log.Error("[USER AGENT CONNECTOR]: No Server URI named in section UserAgentService");
                 throw new Exception("UserAgent connector init error");
             }
+<<<<<<< HEAD
 
             m_ServerURL = m_ServerURLHost = serviceURI;
             if (!m_ServerURL.EndsWith("/"))
                 m_ServerURL += "/";
+=======
+            m_ServerURL = serviceURI;
+>>>>>>> avn/ubitvar
 
             //m_log.DebugFormat("[USER AGENT CONNECTOR]: new connector to {0}", m_ServerURL);
         }

@@ -61,6 +61,15 @@ namespace OpenSim.Framework
     public enum PermissionMask : uint
     { 
         None = 0,
+
+        // folded perms
+        foldedTransfer = 1,
+        foldedModify = 1 << 1,
+        foldedCopy = 1 << 2,
+
+        foldedMask = 0x07,
+
+        //
         Transfer = 1 << 13,
         Modify = 1 << 14,
         Copy = 1 << 15,
@@ -267,14 +276,12 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="a">A 3d vector</param>
         /// <returns>A new vector which is normalized form of the vector</returns>
-        /// <remarks>The vector paramater cannot be <0,0,0></remarks>
+        
         public static Vector3 GetNormalizedVector(Vector3 a)
         {
-            if (IsZeroVector(a))
-                throw new ArgumentException("Vector paramater cannot be a zero vector.");
-
-            float Mag = (float) GetMagnitude(a);
-            return new Vector3(a.X / Mag, a.Y / Mag, a.Z / Mag);
+            Vector3 v = new Vector3(a.X, a.Y, a.Z);
+            v.Normalize();
+            return v;
         }
 
         /// <summary>
@@ -641,19 +648,25 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
+
         public static string Md5Hash(string data)
         {
-            byte[] dataMd5 = ComputeMD5Hash(data);
+            return Md5Hash(data, Encoding.Default);
+        }
+
+        public static string Md5Hash(string data, Encoding encoding)
+        {
+            byte[] dataMd5 = ComputeMD5Hash(data, encoding);
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < dataMd5.Length; i++)
                 sb.AppendFormat("{0:x2}", dataMd5[i]);
             return sb.ToString();
         }
 
-        private static byte[] ComputeMD5Hash(string data)
+        private static byte[] ComputeMD5Hash(string data, Encoding encoding)
         {
             MD5 md5 = MD5.Create();
-            return md5.ComputeHash(Encoding.Default.GetBytes(data));
+            return md5.ComputeHash(encoding.GetBytes(data));
         }
 
         /// <summary>
@@ -661,6 +674,12 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
+
+        public static string SHA1Hash(string data, Encoding enc)
+        {
+            return SHA1Hash(enc.GetBytes(data));
+        }
+
         public static string SHA1Hash(string data)
         {
             return SHA1Hash(Encoding.Default.GetBytes(data));
@@ -714,17 +733,26 @@ namespace OpenSim.Framework
         /// <param name="oldy">Old region y-coord</param>
         /// <param name="newy">New region y-coord</param>
         /// <returns></returns>        
-        public static bool IsOutsideView(float drawdist, uint oldx, uint newx, uint oldy, uint newy)
+        public static bool IsOutsideView(float drawdist, uint oldx, uint newx, uint oldy, uint newy, 
+            int oldsizex, int oldsizey, int newsizex, int newsizey)
         {
-            int dd = (int)((drawdist + Constants.RegionSize - 1) / Constants.RegionSize);
+            // we still need to make sure we see new region  1stNeighbors
 
-            int startX = (int)oldx - dd;
-            int startY = (int)oldy - dd;
+            oldx *= Constants.RegionSize;
+            newx *= Constants.RegionSize;
+            if (oldx + oldsizex + drawdist < newx)
+                return true;
+            if (newx + newsizex + drawdist < oldx)
+                return true;
 
-            int endX = (int)oldx + dd;
-            int endY = (int)oldy + dd;
+            oldy *= Constants.RegionSize;
+            newy *= Constants.RegionSize;
+            if (oldy + oldsizey + drawdist < newy)
+                return true;
+            if (newy + newsizey + drawdist< oldy)
+                return true;
 
-            return (newx < startX || endX < newx || newy < startY || endY < newy);
+            return false;
         }
 
         public static string FieldToString(byte[] bytes)
@@ -802,6 +830,16 @@ namespace OpenSim.Framework
             }
 
             return output.ToString();
+        }
+
+        /// <summary>
+        /// Converts a URL to a IPAddress
+        /// </summary>
+        /// <param name="url">URL Standard Format</param>
+        /// <returns>A resolved IP Address</returns>
+        public static IPAddress GetHostFromURL(string url)
+        {
+            return GetHostFromDNS(url.Split(new char[] {'/', ':'})[3]);
         }
 
         /// <summary>
@@ -1063,6 +1101,25 @@ namespace OpenSim.Framework
             {
                 config.Configs[(string) row[0]].Set(row.Table.Columns[i].ColumnName, row[i]);
             }
+        }
+
+        public static string GetConfigVarWithDefaultSection(IConfigSource config, string varname, string section)
+        {
+            // First, check the Startup section, the default section
+            IConfig cnf = config.Configs["Startup"];
+            if (cnf == null)
+                return string.Empty;
+            string val = cnf.GetString(varname, string.Empty);
+
+            // Then check for an overwrite of the default in the given section
+            if (!string.IsNullOrEmpty(section))
+            {
+                cnf = config.Configs[section];
+                if (cnf != null)
+                    val = cnf.GetString(varname, val);
+            }
+
+            return val;
         }
 
         /// <summary>
@@ -1388,6 +1445,46 @@ namespace OpenSim.Framework
             return ret;
         }
 
+        public static string Compress(string text)
+        {
+            byte[] buffer = Util.UTF8.GetBytes(text);
+            MemoryStream memory = new MemoryStream();
+            using (GZipStream compressor = new GZipStream(memory, CompressionMode.Compress, true))
+            {
+                compressor.Write(buffer, 0, buffer.Length);
+            }
+
+            memory.Position = 0;
+           
+            byte[] compressed = new byte[memory.Length];
+            memory.Read(compressed, 0, compressed.Length);
+
+            byte[] compressedBuffer = new byte[compressed.Length + 4];
+            Buffer.BlockCopy(compressed, 0, compressedBuffer, 4, compressed.Length);
+            Buffer.BlockCopy(BitConverter.GetBytes(buffer.Length), 0, compressedBuffer, 0, 4);
+            return Convert.ToBase64String(compressedBuffer);
+        }
+
+        public static string Decompress(string compressedText)
+        {
+            byte[] compressedBuffer = Convert.FromBase64String(compressedText);
+            using (MemoryStream memory = new MemoryStream())
+            {
+                int msgLength = BitConverter.ToInt32(compressedBuffer, 0);
+                memory.Write(compressedBuffer, 4, compressedBuffer.Length - 4);
+
+                byte[] buffer = new byte[msgLength];
+
+                memory.Position = 0;
+                using (GZipStream decompressor = new GZipStream(memory, CompressionMode.Decompress))
+                {
+                    decompressor.Read(buffer, 0, buffer.Length);
+                }
+
+                return Util.UTF8.GetString(buffer);
+            }
+        }
+
         /// <summary>
         /// Copy data from one stream to another, leaving the read position of both streams at the beginning.
         /// </summary>
@@ -1524,19 +1621,19 @@ namespace OpenSim.Framework
         {
             string os = String.Empty;
 
-            if (Environment.OSVersion.Platform != PlatformID.Unix)
-            {
-                os = Environment.OSVersion.ToString();
-            }
-            else
-            {
-                os = ReadEtcIssue();
-            }
-                      
-            if (os.Length > 45)
-            {
-                os = os.Substring(0, 45);
-            }
+//            if (Environment.OSVersion.Platform != PlatformID.Unix)
+//            {
+//                os = Environment.OSVersion.ToString();
+//            }
+//            else
+//            {
+//                os = ReadEtcIssue();
+//            }
+//                      
+//            if (os.Length > 45)
+//            {
+//                os = os.Substring(0, 45);
+//            }
             
             return os;
         }
@@ -1589,6 +1686,69 @@ namespace OpenSim.Framework
             displayConnectionString += connectionString.Substring(passEndPosition, connectionString.Length - passEndPosition);
 
             return displayConnectionString;
+        }
+
+        public static T ReadSettingsFromIniFile<T>(IConfig config, T settingsClass)
+        {
+            Type settingsType = settingsClass.GetType();
+
+            FieldInfo[] fieldInfos = settingsType.GetFields();
+            foreach (FieldInfo fieldInfo in fieldInfos)
+            {
+                if (!fieldInfo.IsStatic)
+                {
+                    if (fieldInfo.FieldType == typeof(System.String))
+                    {
+                        fieldInfo.SetValue(settingsClass, config.Get(fieldInfo.Name, (string)fieldInfo.GetValue(settingsClass)));
+                    }
+                    else if (fieldInfo.FieldType == typeof(System.Boolean))
+                    {
+                        fieldInfo.SetValue(settingsClass, config.GetBoolean(fieldInfo.Name, (bool)fieldInfo.GetValue(settingsClass)));
+                    }
+                    else if (fieldInfo.FieldType == typeof(System.Int32))
+                    {
+                        fieldInfo.SetValue(settingsClass, config.GetInt(fieldInfo.Name, (int)fieldInfo.GetValue(settingsClass)));
+                    }
+                    else if (fieldInfo.FieldType == typeof(System.Single))
+                    {
+                        fieldInfo.SetValue(settingsClass, config.GetFloat(fieldInfo.Name, (float)fieldInfo.GetValue(settingsClass)));
+                    }
+                    else if (fieldInfo.FieldType == typeof(System.UInt32))
+                    {
+                        fieldInfo.SetValue(settingsClass, Convert.ToUInt32(config.Get(fieldInfo.Name, ((uint)fieldInfo.GetValue(settingsClass)).ToString())));
+                    }
+                }
+            }
+
+            PropertyInfo[] propertyInfos = settingsType.GetProperties();
+            foreach (PropertyInfo propInfo in propertyInfos)
+            {
+                if ((propInfo.CanRead) && (propInfo.CanWrite))
+                {
+                    if (propInfo.PropertyType == typeof(System.String))
+                    {
+                        propInfo.SetValue(settingsClass, config.Get(propInfo.Name, (string)propInfo.GetValue(settingsClass, null)), null);
+                    }
+                    else if (propInfo.PropertyType == typeof(System.Boolean))
+                    {
+                        propInfo.SetValue(settingsClass, config.GetBoolean(propInfo.Name, (bool)propInfo.GetValue(settingsClass, null)), null);
+                    }
+                    else if (propInfo.PropertyType == typeof(System.Int32))
+                    {
+                        propInfo.SetValue(settingsClass, config.GetInt(propInfo.Name, (int)propInfo.GetValue(settingsClass, null)), null);
+                    }
+                    else if (propInfo.PropertyType == typeof(System.Single))
+                    {
+                        propInfo.SetValue(settingsClass, config.GetFloat(propInfo.Name, (float)propInfo.GetValue(settingsClass, null)), null);
+                    }
+                    if (propInfo.PropertyType == typeof(System.UInt32))
+                    {
+                        propInfo.SetValue(settingsClass, Convert.ToUInt32(config.Get(propInfo.Name, ((uint)propInfo.GetValue(settingsClass, null)).ToString())), null);
+                    }
+                }
+            }
+
+            return settingsClass;
         }
 
         public static string Base64ToString(string str)
@@ -1645,7 +1805,7 @@ namespace OpenSim.Framework
 
         public static Guid GetHashGuid(string data, string salt)
         {
-            byte[] hash = ComputeMD5Hash(data + salt);
+            byte[] hash = ComputeMD5Hash(data + salt, Encoding.Default);
 
             //string s = BitConverter.ToString(hash);
 
@@ -1790,6 +1950,32 @@ namespace OpenSim.Framework
             }
 
             return found.ToArray();
+        }
+
+        public static string ServerURI(string uri)
+        {
+            if (uri == string.Empty)
+                return string.Empty;
+
+            // Get rid of eventual slashes at the end
+            uri = uri.TrimEnd('/');
+
+            IPAddress ipaddr1 = null;
+            string port1 = "";
+            try
+            {
+                ipaddr1 = Util.GetHostFromURL(uri);
+            }
+            catch { }
+
+            try
+            {
+                port1 = uri.Split(new char[] { ':' })[2];
+            }
+            catch { }
+
+            // We tried our best to convert the domain names to IP addresses
+            return (ipaddr1 != null) ? "http://" + ipaddr1.ToString() + ":" + port1 : uri;
         }
 
         /// <summary>
@@ -1970,6 +2156,11 @@ namespace OpenSim.Framework
             }
         }
 
+        public static void FireAndForget(System.Threading.WaitCallback callback)
+        {
+            FireAndForget(callback, null);
+        }
+
         public static void InitThreadPool(int minThreads, int maxThreads)
         {
             if (maxThreads < 2)
@@ -1986,7 +2177,7 @@ namespace OpenSim.Framework
 
             STPStartInfo startInfo = new STPStartInfo();
             startInfo.ThreadPoolName = "Util";
-            startInfo.IdleTimeout = 2000;
+            startInfo.IdleTimeout = 20000;
             startInfo.MaxWorkerThreads = maxThreads;
             startInfo.MinWorkerThreads = minThreads;
 

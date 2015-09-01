@@ -132,6 +132,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             for (byte i = 0; i < visualParams.Length; i++)
                 visualParams[i] = i;
 
+<<<<<<< HEAD
             Primitive.TextureEntry bakedTextureEntry = new Primitive.TextureEntry(TestHelpers.ParseTail(0x10));
             uint eyesFaceIndex = (uint)AppearanceManager.BakeTypeToAgentTextureIndex(BakeType.Eyes);
             Primitive.TextureEntryFace eyesFace = bakedTextureEntry.CreateFace(eyesFaceIndex);
@@ -144,6 +145,12 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             afm.SetAppearance(sp, bakedTextureEntry, visualParams, null);
     
             Assert.That(rebakeRequestsReceived, Is.EqualTo(0));
+=======
+            afm.SetAppearance(sp, new Primitive.TextureEntry(TestHelpers.ParseTail(0x10)), visualParams, new WearableCacheItem[0]);
+
+            // TODO: Check baked texture
+            Assert.AreEqual(visualParams, sp.Appearance.VisualParams);
+>>>>>>> avn/ubitvar
         }
 
         [Test]
@@ -181,7 +188,11 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             Primitive.TextureEntryFace eyesFace = bakedTextureEntry.CreateFace(eyesFaceIndex);
             eyesFace.TextureID = eyesTextureId;
 
+<<<<<<< HEAD
             afm.SetAppearance(sp, bakedTextureEntry, visualParams, null);
+=======
+            afm.SetAppearance(sp, bakedTextureEntry, visualParams, new WearableCacheItem[0]);
+>>>>>>> avn/ubitvar
             afm.SaveBakedTextures(userId);
 //            Dictionary<BakeType, Primitive.TextureEntryFace> bakedTextures = afm.GetBakedTextureFaces(userId);
 

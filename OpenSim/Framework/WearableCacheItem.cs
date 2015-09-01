@@ -43,12 +43,13 @@ namespace OpenSim.Framework
 
         public static WearableCacheItem[] GetDefaultCacheItem()
         {
-            int itemmax = 21;
+            int itemmax = AvatarAppearance.TEXTURE_COUNT;
             WearableCacheItem[] retitems = new WearableCacheItem[itemmax];
             for (uint i=0;i<itemmax;i++)
-                retitems[i] = new WearableCacheItem() {CacheId = UUID.Zero, TextureID = UUID.Zero, TextureIndex = i + 1};
-            return retitems;
+                retitems[i] = new WearableCacheItem() {CacheId = UUID.Zero, TextureID = UUID.Zero, TextureIndex = i};
+            return retitems;          
         }
+
         public static WearableCacheItem[] FromOSD(OSD pInput, IImprovedAssetCache dataCache)
         {
             List<WearableCacheItem> ret = new List<WearableCacheItem>();
@@ -98,6 +99,7 @@ namespace OpenSim.Framework
             return ret.ToArray();
 
         }
+
         public static OSD ToOSD(WearableCacheItem[] pcacheItems, IImprovedAssetCache dataCache)
         {
             OSDArray arr = new OSDArray();
@@ -124,6 +126,68 @@ namespace OpenSim.Framework
             }
             return arr;
         }
+
+        public static OSDArray BakedToOSD(WearableCacheItem[] pcacheItems)
+        {
+            if (pcacheItems.Length < AvatarAppearance.BAKE_INDICES[AvatarAppearance.BAKE_INDICES.Length - 1])
+                return null;
+
+            OSDArray arr = new OSDArray();
+
+            for (int i = 0; i < AvatarAppearance.BAKE_INDICES.Length; i++)
+            {
+                int idx = AvatarAppearance.BAKE_INDICES[i];
+
+                WearableCacheItem item = pcacheItems[idx];
+
+                OSDMap itemmap = new OSDMap();
+                itemmap.Add("textureindex", OSD.FromUInteger(item.TextureIndex));
+                itemmap.Add("cacheid", OSD.FromUUID(item.CacheId));
+                itemmap.Add("textureid", OSD.FromUUID(item.TextureID));
+/*
+                if (item.TextureAsset != null)
+                {
+                    itemmap.Add("assetdata", OSD.FromBinary(item.TextureAsset.Data));
+                    itemmap.Add("assetcreator", OSD.FromString(item.TextureAsset.CreatorID));
+                    itemmap.Add("assetname", OSD.FromString(item.TextureAsset.Name));
+                }
+ */
+                arr.Add(itemmap);
+            }
+            return arr;
+        }
+
+        public static WearableCacheItem[] BakedFromOSD(OSD pInput)
+        {
+            WearableCacheItem[] pcache = WearableCacheItem.GetDefaultCacheItem();
+
+            if (pInput.Type == OSDType.Array)
+            {
+                OSDArray itemarray = (OSDArray)pInput;
+                foreach (OSDMap item in itemarray)
+                {
+                    int idx = (int)item["textureindex"].AsUInteger();
+                    if (idx < 0 || idx > pcache.Length)
+                        continue;
+                    pcache[idx].CacheId = item["cacheid"].AsUUID();
+                    pcache[idx].TextureID = item["textureid"].AsUUID();
+/*
+                    if (item.ContainsKey("assetdata"))
+                    {
+                        AssetBase asset = new AssetBase(item["textureid"].AsUUID(), "BakedTexture", (sbyte)AssetType.Texture, UUID.Zero.ToString());
+                        asset.Temporary = true;
+                        asset.Local = true;
+                        asset.Data = item["assetdata"].AsBinary();
+                        pcache[idx].TextureAsset = asset;
+                    }
+                    else
+ */ 
+                        pcache[idx].TextureAsset = null;
+                }
+            }
+            return pcache;
+        }
+
         public static WearableCacheItem SearchTextureIndex(uint pTextureIndex,WearableCacheItem[] pcacheItems)
         {
             for (int i = 0; i < pcacheItems.Length; i++)

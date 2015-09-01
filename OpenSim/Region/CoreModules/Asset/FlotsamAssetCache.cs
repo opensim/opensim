@@ -594,6 +594,11 @@ namespace OpenSim.Region.CoreModules.Asset
                         dir, dirSize);
                 }
             }
+            catch (DirectoryNotFoundException)
+            {
+                // If we get here, another node on the same box has
+                // already removed the directory. Continue with next.
+            }
             catch (Exception e)
             {
                 m_log.Warn(

@@ -167,10 +167,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             npcAvatar.CircuitCode = (uint)Util.RandomClass.Next(0,
                     int.MaxValue);
 
-            m_log.DebugFormat(
-                "[NPC MODULE]: Creating NPC {0} {1} {2}, owner={3}, senseAsAgent={4} at {5} in {6}",
-                firstname, lastname, npcAvatar.AgentId, owner,
-                senseAsAgent, position, scene.RegionInfo.RegionName);
+//            m_log.DebugFormat(
+//                "[NPC MODULE]: Creating NPC {0} {1} {2}, owner={3}, senseAsAgent={4} at {5} in {6}",
+//                firstname, lastname, npcAvatar.AgentId, owner, senseAsAgent, position, scene.RegionInfo.RegionName);
 
             AgentCircuitData acd = new AgentCircuitData();
             acd.AgentID = npcAvatar.AgentId;
@@ -192,36 +191,31 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             }
             */
 
-            lock (m_avatars)
-            {
-                scene.AuthenticateHandler.AddNewCircuit(npcAvatar.CircuitCode,
-                        acd);
-                scene.AddNewAgent(npcAvatar, PresenceType.Npc);
+//            ManualResetEvent ev = new ManualResetEvent(false);
 
-                ScenePresence sp;
-                if (scene.TryGetScenePresence(npcAvatar.AgentId, out sp))
+//            Util.FireAndForget(delegate(object x) {
+                lock (m_avatars)
                 {
-                    /*
-                    m_log.DebugFormat(
-                            "[NPC MODULE]: Successfully retrieved scene presence for NPC {0} {1}",
-                            sp.Name, sp.UUID);
-                    */
+                    scene.AuthenticateHandler.AddNewCircuit(npcAvatar.CircuitCode, acd);
+                    scene.AddNewAgent(npcAvatar, PresenceType.Npc);
 
-                    sp.CompleteMovement(npcAvatar, false);
-                    m_avatars.Add(npcAvatar.AgentId, npcAvatar);
-                    m_log.DebugFormat("[NPC MODULE]: Created NPC {0} {1}", npcAvatar.AgentId, sp.Name);
-
-                    return npcAvatar.AgentId;
+                    ScenePresence sp;
+                    if (scene.TryGetScenePresence(npcAvatar.AgentId, out sp))
+                    {
+                        
+                        sp.CompleteMovement(npcAvatar, false);
+                        m_avatars.Add(npcAvatar.AgentId, npcAvatar);
+//                        m_log.DebugFormat("[NPC MODULE]: Created NPC {0} {1}", npcAvatar.AgentId, sp.Name);
+                    }
                 }
-                else
-                {
-                    m_log.WarnFormat(
-                        "[NPC MODULE]: Could not find scene presence for NPC {0} {1}",
-                        sp.Name, sp.UUID);
+//                ev.Set();
+//            });
 
-                    return UUID.Zero;
-                }
-            }
+//            ev.WaitOne();
+
+//            m_log.DebugFormat("[NPC MODULE]: Created NPC with id {0}", npcAvatar.AgentId);
+
+            return npcAvatar.AgentId;
         }
 
         public bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos,
@@ -436,9 +430,15 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             {
                 NPCAvatar av;
                 if (m_avatars.TryGetValue(npcID, out av))
+                {
+                    if (npcID == callerID)
+                        return true;
                     return CheckPermissions(av, callerID);
+                }
                 else
+                {
                     return false;
+                }
             }
         }
 
@@ -457,8 +457,12 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         /// <returns>true if they do, false if they don't.</returns>
         private bool CheckPermissions(NPCAvatar av, UUID callerID)
         {
+<<<<<<< HEAD
             return callerID == UUID.Zero || av.OwnerID == UUID.Zero ||
                 av.OwnerID == callerID  || av.AgentId == callerID;
+=======
+            return callerID == UUID.Zero || av.OwnerID == UUID.Zero || av.OwnerID == callerID || av.AgentId == callerID;
+>>>>>>> avn/ubitvar
         }
     }
 }

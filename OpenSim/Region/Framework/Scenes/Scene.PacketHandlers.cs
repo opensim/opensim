@@ -50,7 +50,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name='targetID'></param>
         /// <param name='fromAgent'></param>
         /// <param name='broadcast'></param>
-        protected void SimChat(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
+        public void SimChat(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
                                UUID fromID, UUID targetID, bool fromAgent, bool broadcast)
         {
             OSChatMessage args = new OSChatMessage();
@@ -61,6 +61,7 @@ namespace OpenSim.Region.Framework.Scenes
             args.Position = fromPos;
             args.SenderUUID = fromID;
             args.Scene = this;
+            args.Destination = targetID;
 
             if (fromAgent)
             {
@@ -75,7 +76,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             args.From = fromName;
-            args.TargetUUID = targetID;
+            //args.
 
 //            m_log.DebugFormat(
 //                "[SCENE]: Sending message {0} on channel {1}, type {2} from {3}, broadcast {4}",
@@ -86,7 +87,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 EventManager.TriggerOnChatFromWorld(this, args);
         }
-
+        
         protected void SimChat(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
                                UUID fromID, bool fromAgent, bool broadcast)
         {
@@ -130,19 +131,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SimChat(message, type, channel, fromPos, fromName, fromID, fromAgent, true);
         }
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="type"></param>
-        /// <param name="fromPos"></param>
-        /// <param name="fromName"></param>
-        /// <param name="fromAgentID"></param>
-        /// <param name="targetID"></param>
-        public void SimChatToAgent(UUID targetID, byte[] message, Vector3 fromPos, string fromName, UUID fromID, bool fromAgent)
-        {
-            SimChat(message, ChatTypeEnum.Say, 0, fromPos, fromName, fromID, targetID, fromAgent, false);
-        }
 
         /// <summary>
         ///
@@ -179,27 +167,47 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         public void SelectPrim(uint primLocalID, IClientAPI remoteClient)
         {
+            /*
+                        SceneObjectPart part = GetSceneObjectPart(primLocalID);
+
+                        if (null == part)
+                            return;
+
+                        if (part.IsRoot)
+                        {
+                            SceneObjectGroup sog = part.ParentGroup;
+                            sog.SendPropertiesToClient(remoteClient);
+
+                            // A prim is only tainted if it's allowed to be edited by the person clicking it.
+                            if (Permissions.CanEditObject(sog.UUID, remoteClient.AgentId)
+                                || Permissions.CanMoveObject(sog.UUID, remoteClient.AgentId))
+                            {
+                                sog.IsSelected = true;
+                                EventManager.TriggerParcelPrimCountTainted();
+                            }
+                        }
+                        else
+                        {
+                             part.SendPropertiesToClient(remoteClient);
+                        }
+             */
             SceneObjectPart part = GetSceneObjectPart(primLocalID);
 
             if (null == part)
                 return;
 
-            if (part.IsRoot)
-            {
-                SceneObjectGroup sog = part.ParentGroup;
-                sog.SendPropertiesToClient(remoteClient);
-                sog.IsSelected = true;
+            SceneObjectGroup sog = part.ParentGroup;
+            if (sog == null)
+                return;
 
-                // A prim is only tainted if it's allowed to be edited by the person clicking it.
-                if (Permissions.CanEditObject(sog.UUID, remoteClient.AgentId)
-                    || Permissions.CanMoveObject(sog.UUID, remoteClient.AgentId))
-                {
-                    EventManager.TriggerParcelPrimCountTainted();
-                }
-            }
-            else
+            part.SendPropertiesToClient(remoteClient);
+
+            // A prim is only tainted if it's allowed to be edited by the person clicking it.
+            if (Permissions.CanEditObject(sog.UUID, remoteClient.AgentId)
+                || Permissions.CanMoveObject(sog.UUID, remoteClient.AgentId))
             {
-                 part.SendPropertiesToClient(remoteClient);
+                part.IsSelected = true;
+                EventManager.TriggerParcelPrimCountTainted();
             }
         }
 
@@ -252,7 +260,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart part = GetSceneObjectPart(primLocalID);
             if (part == null)
                 return;
-            
+ /*           
             // A deselect packet contains all the local prims being deselected.  However, since selection is still
             // group based we only want the root prim to trigger a full update - otherwise on objects with many prims
             // we end up sending many duplicate ObjectUpdates
@@ -263,7 +271,9 @@ namespace OpenSim.Region.Framework.Scenes
             // handled by group, but by prim. Legacy cruft.
             // TODO: Make selection flagging per prim!
             //
-            part.ParentGroup.IsSelected = false;
+            if (Permissions.CanEditObject(part.ParentGroup.UUID, remoteClient.AgentId)
+                || Permissions.CanMoveObject(part.ParentGroup.UUID, remoteClient.AgentId))
+                part.ParentGroup.IsSelected = false;
             
             part.ParentGroup.ScheduleGroupForFullUpdate();
 
@@ -280,6 +290,26 @@ namespace OpenSim.Region.Framework.Scenes
                         part.UUID, remoteClient.AgentId))
                     EventManager.TriggerParcelPrimCountTainted();
             }
+  */
+
+            bool oldgprSelect = part.ParentGroup.IsSelected;
+
+            // This is wrong, wrong, wrong. Selection should not be
+            // handled by group, but by prim. Legacy cruft.
+            // TODO: Make selection flagging per prim!
+            //
+            if (Permissions.CanEditObject(part.ParentGroup.UUID, remoteClient.AgentId)
+                || Permissions.CanMoveObject(part.ParentGroup.UUID, remoteClient.AgentId))
+            {
+                part.IsSelected = false;
+                if (!part.ParentGroup.IsAttachment && oldgprSelect != part.ParentGroup.IsSelected)
+                    EventManager.TriggerParcelPrimCountTainted();
+            }
+
+            // restore targetOmega
+            if (part.AngularVelocity != Vector3.Zero)
+                part.ScheduleTerseUpdate();     
+
         }
 
         public virtual void ProcessMoneyTransferRequest(UUID source, UUID destination, int amount, 
@@ -434,11 +464,25 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 });
         }
-
+        
         private bool ShouldSendDiscardableEffect(IClientAPI thisClient, ScenePresence other)
         {
             return Vector3.Distance(other.CameraPosition, thisClient.SceneAgent.AbsolutePosition) < 10;
         }
+
+        private class DescendentsRequestData
+        {
+            public IClientAPI RemoteClient;
+            public UUID FolderID;
+            public UUID OwnerID;
+            public bool FetchFolders;
+            public bool FetchItems;
+            public int SortOrder;
+        }
+
+        private Queue<DescendentsRequestData> m_descendentsRequestQueue = new Queue<DescendentsRequestData>();
+        private Object m_descendentsRequestLock = new Object();
+        private bool m_descendentsRequestProcessing = false;
 
         /// <summary>
         /// Tell the client about the various child items and folders contained in the requested folder.
@@ -476,17 +520,38 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            // We're going to send the reply async, because there may be
-            // an enormous quantity of packets -- basically the entire inventory!
-            // We don't want to block the client thread while all that is happening.
-            SendInventoryDelegate d = SendInventoryAsync;
-            d.BeginInvoke(remoteClient, folderID, ownerID, fetchFolders, fetchItems, sortOrder, SendInventoryComplete, d);
+            lock (m_descendentsRequestLock)
+            {
+                if (!m_descendentsRequestProcessing)
+                {
+                    m_descendentsRequestProcessing = true;
+
+                    // We're going to send the reply async, because there may be
+                    // an enormous quantity of packets -- basically the entire inventory!
+                    // We don't want to block the client thread while all that is happening.
+                    SendInventoryDelegate d = SendInventoryAsync;
+                    d.BeginInvoke(remoteClient, folderID, ownerID, fetchFolders, fetchItems, sortOrder, SendInventoryComplete, d);
+
+                    return;
+                }
+
+                DescendentsRequestData req = new DescendentsRequestData();
+                req.RemoteClient = remoteClient;
+                req.FolderID = folderID;
+                req.OwnerID = ownerID;
+                req.FetchFolders = fetchFolders;
+                req.FetchItems = fetchItems;
+                req.SortOrder = sortOrder;
+
+                m_descendentsRequestQueue.Enqueue(req);
+            }
         }
 
         delegate void SendInventoryDelegate(IClientAPI remoteClient, UUID folderID, UUID ownerID, bool fetchFolders, bool fetchItems, int sortOrder);
 
         void SendInventoryAsync(IClientAPI remoteClient, UUID folderID, UUID ownerID, bool fetchFolders, bool fetchItems, int sortOrder)
         {
+<<<<<<< HEAD
             try
             {
                 SendInventoryUpdate(remoteClient, new InventoryFolderBase(folderID), fetchFolders, fetchItems);
@@ -497,12 +562,31 @@ namespace OpenSim.Region.Framework.Scenes
                     string.Format(
                         "[AGENT INVENTORY]: Error in SendInventoryAsync() for {0} with folder ID {1}.  Exception  ", e));
             }
+=======
+            Thread.Sleep(20);
+            SendInventoryUpdate(remoteClient, new InventoryFolderBase(folderID), fetchFolders, fetchItems);
+>>>>>>> avn/ubitvar
         }
 
         void SendInventoryComplete(IAsyncResult iar)
         {
             SendInventoryDelegate d = (SendInventoryDelegate)iar.AsyncState;
             d.EndInvoke(iar);
+
+            lock (m_descendentsRequestLock)
+            {
+                if (m_descendentsRequestQueue.Count > 0)
+                {
+                    DescendentsRequestData req = m_descendentsRequestQueue.Dequeue();
+
+                    d = SendInventoryAsync;
+                    d.BeginInvoke(req.RemoteClient, req.FolderID, req.OwnerID, req.FetchFolders, req.FetchItems, req.SortOrder, SendInventoryComplete, d);
+
+                    return;
+                }
+
+                m_descendentsRequestProcessing = false;
+            }
         }
         
         /// <summary>

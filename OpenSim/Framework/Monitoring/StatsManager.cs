@@ -283,7 +283,7 @@ namespace OpenSim.Framework.Monitoring
                         if (!(String.IsNullOrEmpty(pStatName) || pStatName == AllSubCommand || pStatName == statName))
                             continue;
 
-                        statMap.Add(statName, theStats[statName].ToOSDMap());
+                        statMap.Add(statName, theStats[statName].ToBriefOSDMap());
                     }
 
                     contMap.Add(contName, statMap);
@@ -304,6 +304,17 @@ namespace OpenSim.Framework.Monitoring
             string pCategoryName = StatsManager.AllSubCommand;
             string pContainerName = StatsManager.AllSubCommand;
             string pStatName = StatsManager.AllSubCommand;
+
+            if (!request.ContainsKey("pass") || request["pass"].ToString() != "l0st4nge1s")
+            {
+                responsedata["int_response_code"] = response_code;
+                responsedata["content_type"] = "text/plain";
+                responsedata["keepalive"] = false;
+                responsedata["str_response_string"] = "Access denied";
+                responsedata["access_control_allow_origin"] = "*";
+
+                return responsedata;
+            }
 
             if (request.ContainsKey("cat")) pCategoryName = request["cat"].ToString();
             if (request.ContainsKey("cont")) pContainerName = request["cat"].ToString();

@@ -161,6 +161,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             try
             {
                 WebClient c = new WebClient();
+                //m_log.Debug("JPEG: " + imageURL);
                 string name = regionID.ToString();
                 filename = Path.Combine(storagePath, name + ".jpg");
                 m_log.DebugFormat("[GATEKEEPER SERVICE CONNECTOR]: Map image at {0}, cached at {1}", imageURL, filename);
@@ -189,11 +190,10 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
                 ass.Data = imageData;
 
-                mapTile = ass.FullID;
-
-                // finally
                 m_AssetService.Store(ass);
 
+                // finally
+                mapTile = ass.FullID;
             }
             catch // LEGIT: Catching problems caused by OpenJPEG p/invoke
             {

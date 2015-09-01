@@ -91,6 +91,11 @@ namespace OpenSim.Region.Framework.Scenes
                 return 0;
 
             uint priority;
+
+
+            // HACK 
+            return GetPriorityByBestAvatarResponsiveness(client, entity);
+
             
             switch (m_scene.UpdatePrioritizationScheme)
             {
@@ -157,30 +162,31 @@ namespace OpenSim.Region.Framework.Scenes
 
         private uint GetPriorityByBestAvatarResponsiveness(IClientAPI client, ISceneEntity entity)
         {
-            uint pqueue = ComputeDistancePriority(client,entity,true);
+            uint pqueue = 2; // keep compiler happy
 
             ScenePresence presence = m_scene.GetScenePresence(client.AgentId);
             if (presence != null)
             {
-                if (!presence.IsChildAgent)
-                {
-                    // All avatars other than our own go into pqueue 1
-                    if (entity is ScenePresence)
-                        return 1;
-                    
-                    if (entity is SceneObjectPart)
-                    {
-                        // Attachments are high priority, 
-                        if (((SceneObjectPart)entity).ParentGroup.IsAttachment)
-                            return 1;
+                // All avatars other than our own go into pqueue 1
+                if (entity is ScenePresence)
+                    return 1;
 
-                        // Non physical prims are lower priority than physical prims
-                        PhysicsActor physActor = ((SceneObjectPart)entity).ParentGroup.RootPart.PhysActor;
-                        if (physActor == null || !physActor.IsPhysical)
-                            pqueue++;
-                    }
+                if (entity is SceneObjectPart)
+                {
+                    // Attachments are high priority, 
+                    if (((SceneObjectPart)entity).ParentGroup.IsAttachment)
+                        return 2;
+
+                    pqueue = ComputeDistancePriority(client, entity, false);
+
+                    // Non physical prims are lower priority than physical prims
+                    PhysicsActor physActor = ((SceneObjectPart)entity).ParentGroup.RootPart.PhysActor;
+                    if (physActor == null || !physActor.IsPhysical)
+                        pqueue++;
                 }
             }
+            else
+                pqueue = ComputeDistancePriority(client, entity, false);
 
             return pqueue;
         }
@@ -212,25 +218,43 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // Use the camera position for local agents and avatar position for remote agents
-            Vector3 presencePos = (presence.IsChildAgent) ?
-                presence.AbsolutePosition :
-                presence.CameraPosition;
+            // Why would I want that? They could be camming but I still see them at the
+            // avatar position, so why should I update them as if they were at their
+            // camera positions? Makes no sense!
+            // TODO: Fix this mess
+            //Vector3 presencePos = (presence.IsChildAgent) ?
+            //    presence.AbsolutePosition :
+            //    presence.CameraPosition;
+
+            Vector3 presencePos = presence.AbsolutePosition;
 
             // Compute the distance... 
             double distance = Vector3.Distance(presencePos, entityPos);
 
             // And convert the distance to a priority queue, this computation gives queues
             // at 10, 20, 40, 80, 160, 320, 640, and 1280m
-            uint pqueue = PriorityQueue.NumberOfImmediateQueues;
+            uint pqueue = PriorityQueue.NumberOfImmediateQueues + 1; // reserve attachments queue
             uint queues = PriorityQueue.NumberOfQueues - PriorityQueue.NumberOfImmediateQueues;
-            
+/*            
             for (int i = 0; i < queues - 1; i++)
             {
-                if (distance < 10 * Math.Pow(2.0,i))
+                if (distance < 30 * Math.Pow(2.0,i))
                     break;
                 pqueue++;
             }
-            
+*/
+            if (distance > 10f)
+            {
+                float tmp = (float)Math.Log((double)distance) * 1.4426950408889634073599246810019f - 3.3219280948873623478703194294894f;
+                // for a map identical to original:
+                // now 
+                // 1st constant is 1/(log(2)) (natural log) so we get log2(distance)
+                // 2st constant makes it be log2(distance/10)
+                pqueue += (uint)tmp;
+                if (pqueue > queues - 1)
+                    pqueue = queues - 1;
+            }
+
             // If this is a root agent, then determine front & back
             // Bump up the priority queue (drop the priority) for any objects behind the avatar
             if (useFrontBack && ! presence.IsChildAgent)

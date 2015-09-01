@@ -139,6 +139,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authentication
 
         #region IAuthenticationService
 
+        public string Authenticate(UUID principalID, string password, int lifetime, out UUID realID)
+        {
+            // Not implemented at the regions
+            realID = UUID.Zero;
+            return string.Empty; 
+        }
+
         public string Authenticate(UUID principalID, string password, int lifetime)
         {
             // Not implemented at the regions

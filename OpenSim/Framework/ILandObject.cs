@@ -68,7 +68,7 @@ namespace OpenSim.Framework
         void SendLandUpdateToAvatarsOverMe();
 
         void SendLandProperties(int sequence_id, bool snap_selection, int request_result, IClientAPI remote_client);
-        void UpdateLandProperties(LandUpdateArgs args, IClientAPI remote_client);
+        bool UpdateLandProperties(LandUpdateArgs args, IClientAPI remote_client, out bool snap_selection, out bool needOverlay);
         bool IsEitherBannedOrRestricted(UUID avatar);
         bool IsBannedFromLand(UUID avatar);
         bool CanBeOnThisLand(UUID avatar, float posHeight);

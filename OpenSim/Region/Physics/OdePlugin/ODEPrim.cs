@@ -2955,7 +2955,14 @@ Console.WriteLine(" JointCreateFixed");
                     m_log.WarnFormat("[PHYSICS]: Got NaN PIDTarget from Scene on Object {0}", Name);
             } 
         }
+<<<<<<< HEAD
         public override bool PIDActive { get; set; }
+=======
+        // os version
+        //public override bool PIDActive {get { return m_usePID; } set { m_usePID = value; } }
+        public override bool PIDActive { set { m_usePID = value; } }
+
+>>>>>>> avn/ubitvar
         public override float PIDTau { set { m_PIDTau = value; } }
 
         public override float PIDHoverHeight { set { m_PIDHoverHeight = value; ; } }
@@ -3352,7 +3359,14 @@ Console.WriteLine(" JointCreateFixed");
                         RequestAssetDelegate assetProvider = _parent_scene.RequestAssetMethod;
                         if (assetProvider != null)
                             assetProvider(_pbs.SculptTexture, MeshAssetReceived);
+<<<<<<< HEAD
                     }, null, "ODEPrim.CheckMeshAsset");
+=======
+                    // os version
+                    //}, null, "ODEPrim.CheckMeshAsset");
+                    // avn
+                    });
+>>>>>>> avn/ubitvar
             }
         }
 

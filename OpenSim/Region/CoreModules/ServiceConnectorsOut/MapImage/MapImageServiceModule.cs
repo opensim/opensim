@@ -53,7 +53,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
     /// </remarks>
 
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "MapImageServiceModule")]
+<<<<<<< HEAD
     public class MapImageServiceModule : IMapImageUploadModule, ISharedRegionModule
+=======
+    public class MapImageServiceModule : ISharedRegionModule, IMapImageUploadModule
+>>>>>>> avn/ubitvar
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -93,9 +97,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
             if (config == null)
                 return;
 
+<<<<<<< HEAD
             int refreshminutes = Convert.ToInt32(config.GetString("RefreshTime"));
             
             // if refresh is less than zero, disable the module
+=======
+            int refreshminutes = Convert.ToInt32(config.GetString("RefreshTime", "-1"));
+>>>>>>> avn/ubitvar
             if (refreshminutes < 0)
             {
                 m_log.WarnFormat("[MAP IMAGE SERVICE MODULE]: Negative refresh time given in config. Module disabled.");
@@ -128,7 +136,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
                 m_refreshTimer.Interval = m_refreshtime;
                 m_refreshTimer.Elapsed += new ElapsedEventHandler(HandleMaptileRefresh);
 
+<<<<<<< HEAD
                 m_log.InfoFormat("[MAP IMAGE SERVICE MODULE]: enabled with refresh time {0} min and service object {1}",
+=======
+            if (m_refreshtime > 0)
+            {
+                m_refreshTimer.Enabled = true;
+                m_refreshTimer.AutoReset = true;
+                m_refreshTimer.Interval = m_refreshtime;
+                m_refreshTimer.Elapsed += new ElapsedEventHandler(HandleMaptileRefresh);
+            }
+
+            m_log.InfoFormat("[MAP IMAGE SERVICE MODULE]: enabled with refresh time {0} min and service object {1}",
+>>>>>>> avn/ubitvar
                              refreshminutes, service);
             }
             else 
@@ -154,7 +174,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
             // v2 Map generation on startup is now handled by scene to allow bmp to be shared with
             // v1 service and not generate map tiles twice as was previous behavior
             //scene.EventManager.OnRegionReadyStatusChange += s => { if (s.Ready) UploadMapTile(s); };
+<<<<<<< HEAD
 
+=======
+>>>>>>> avn/ubitvar
             scene.RegisterModuleInterface<IMapImageUploadModule>(this);
         }
 
@@ -212,9 +235,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
             // If the region/maptile is legacy sized, just upload the one tile like it has always been done
             if (mapTile.Width == Constants.RegionSize && mapTile.Height == Constants.RegionSize)
             {
+<<<<<<< HEAD
                 ConvertAndUploadMaptile(mapTile,
                                         scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY,
                                         scene.RegionInfo.RegionName);
+=======
+                ConvertAndUploadMaptile(mapTile, scene,
+                                        scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY,
+										scene.RegionInfo.RegionName);
+>>>>>>> avn/ubitvar
             }
             else
             {
@@ -234,10 +263,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
                             (int)Constants.RegionSize, (int)Constants.RegionSize);
                         using (Bitmap subMapTile = mapTile.Clone(rect, mapTile.PixelFormat))
                         {
+<<<<<<< HEAD
                             ConvertAndUploadMaptile(subMapTile,
                                                     scene.RegionInfo.RegionLocX + (xx / Constants.RegionSize),
                                                     scene.RegionInfo.RegionLocY + (yy / Constants.RegionSize),
                                                     scene.Name);
+=======
+                            ConvertAndUploadMaptile(subMapTile, scene,
+                                                    scene.RegionInfo.RegionLocX + (xx / Constants.RegionSize),
+                                                    scene.RegionInfo.RegionLocY + (yy / Constants.RegionSize),
+													scene.Name);
+>>>>>>> avn/ubitvar
                         }
                     }
                 }
@@ -247,8 +283,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
         ///<summary>
         ///
         ///</summary>
-        private void UploadMapTile(IScene scene)
+        public void UploadMapTile(IScene scene)
         {
+<<<<<<< HEAD
+=======
+            m_log.DebugFormat("{0}: upload maptile for {1}", LogHeader, scene.RegionInfo.RegionName);
+
+>>>>>>> avn/ubitvar
             // Create a JPG map tile and upload it to the AddMapTile API
             IMapImageGenerator tileGenerator = scene.RequestModuleInterface<IMapImageGenerator>();
             if (tileGenerator == null)
@@ -259,6 +300,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
 
             using (Bitmap mapTile = tileGenerator.CreateMapTile())
             {
+<<<<<<< HEAD
                 if (mapTile != null)
                 {
                     UploadMapTile(scene, mapTile);
@@ -274,6 +316,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
         {
             byte[] jpgData = Utils.EmptyBytes;
 
+=======
+                // XXX: The MapImageModule will return a null if the user has chosen not to create map tiles and there
+                // is no static map tile.
+                if (mapTile == null)
+                    return;
+
+                UploadMapTile(scene, mapTile);
+            }
+        }
+
+        private void ConvertAndUploadMaptile(Image tileImage, IScene scene, uint locX, uint locY, string regionName)
+        {
+            byte[] jpgData = Utils.EmptyBytes;
+
+>>>>>>> avn/ubitvar
             using (MemoryStream stream = new MemoryStream())
             {
                 tileImage.Save(stream, ImageFormat.Jpeg);
@@ -282,7 +339,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
             if (jpgData != Utils.EmptyBytes)
             {
                 string reason = string.Empty;
+<<<<<<< HEAD
                 if (!m_MapService.AddMapTile((int)locX, (int)locY, jpgData, out reason))
+=======
+                if (!m_MapService.AddMapTile((int)locX, (int)locY, jpgData, scene.RegionInfo.ScopeID, out reason))
+>>>>>>> avn/ubitvar
                 {
                     m_log.DebugFormat("{0} Unable to upload tile image for {1} at {2}-{3}: {4}", LogHeader,
                         regionName, locX, locY, reason);
@@ -290,7 +351,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
             }
             else
             {
+<<<<<<< HEAD
                 m_log.WarnFormat("{0} Tile image generation failed for region {1}", LogHeader, regionName);
+=======
+                m_log.WarnFormat("{0} Tile image generation failed for region {1}", LogHeader, scene.RegionInfo.RegionName);
+>>>>>>> avn/ubitvar
             }
         }
     }

@@ -49,10 +49,21 @@ namespace OpenSim.Services.AuthenticationService
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
+ 
+        public WebkeyAuthenticationService(IConfigSource config, IUserAccountService userService) :
+                base(config, userService)
+        {
+        }
 
         public WebkeyAuthenticationService(IConfigSource config) :
             base(config)
         {
+        }
+
+        public string Authenticate(UUID principalID, string password, int lifetime, out UUID realID)
+        {
+            realID = UUID.Zero;
+            return Authenticate(principalID, password, lifetime);
         }
 
         public string Authenticate(UUID principalID, string password, int lifetime)

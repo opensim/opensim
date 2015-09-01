@@ -67,6 +67,7 @@ namespace OpenSim.Services.Interfaces
         // various services.
         //
         string Authenticate(UUID principalID, string password, int lifetime);
+        string Authenticate(UUID principalID, string password, int lifetime, out UUID realID);
 
         //////////////////////////////////////////////////////
         // Verification

@@ -138,9 +138,9 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             }
         }
 
-        protected override List<MapBlockData> GetAndSendBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
+        protected override List<MapBlockData> GetAndSendBlocksInternal(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
         {
-            List<MapBlockData>  mapBlocks = base.GetAndSendBlocks(remoteClient, minX, minY, maxX, maxY, flag);
+            List<MapBlockData>  mapBlocks = base.GetAndSendBlocksInternal(remoteClient, minX, minY, maxX, maxY, flag);
             lock (m_SeenMapBlocks)
             {
                 if (!m_SeenMapBlocks.ContainsKey(remoteClient.AgentId))

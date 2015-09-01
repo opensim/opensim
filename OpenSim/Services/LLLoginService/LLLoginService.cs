@@ -151,7 +151,8 @@ namespace OpenSim.Services.LLLoginService
             Object[] args = new Object[] { config };
             m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(accountService, args);
             m_GridUserService = ServerUtils.LoadPlugin<IGridUserService>(gridUserService, args);
-            m_AuthenticationService = ServerUtils.LoadPlugin<IAuthenticationService>(authService, args);
+            Object[] authArgs = new Object[] { config, m_UserAccountService };
+            m_AuthenticationService = ServerUtils.LoadPlugin<IAuthenticationService>(authService, authArgs);
             m_InventoryService = ServerUtils.LoadPlugin<IInventoryService>(invService, args);
 
             if (gridService != string.Empty)
@@ -257,14 +258,20 @@ namespace OpenSim.Services.LLLoginService
         }
 
         public LoginResponse Login(string firstName, string lastName, string passwd, string startLocation, UUID scopeID, 
-            string clientVersion, string channel, string mac, string id0, IPEndPoint clientIP)
+            string clientVersion, string channel, string mac, string id0, IPEndPoint clientIP, bool LibOMVclient)
         {
             bool success = false;
             UUID session = UUID.Random();
+<<<<<<< HEAD
             string processedMessage;
+=======
+            if (clientVersion.Contains("Radegast"))
+                LibOMVclient = false;
+>>>>>>> avn/ubitvar
 
-            m_log.InfoFormat("[LLOGIN SERVICE]: Login request for {0} {1} at {2} using viewer {3}, channel {4}, IP {5}, Mac {6}, Id0 {7}",
-                firstName, lastName, startLocation, clientVersion, channel, clientIP.Address.ToString(), mac, id0);
+
+            m_log.InfoFormat("[LLOGIN SERVICE]: Login request for {0} {1} at {2} using viewer {3}, channel {4}, IP {5}, Mac {6}, Id0 {7}, Possible LibOMVGridProxy: {8} ",
+                firstName, lastName, startLocation, clientVersion, channel, clientIP.Address.ToString(), mac, id0, LibOMVclient.ToString());
             
             try
             {
@@ -310,6 +317,12 @@ namespace OpenSim.Services.LLLoginService
                     return LLFailedLoginResponse.UserProblem;
                 }
 
+                if (account.UserLevel < 0)
+                {
+                    m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: Unverified account");
+                    return LLFailedLoginResponse.UnverifiedAccountProblem;
+                }
+
                 if (account.UserLevel < m_MinLoginLevel)
                 {
                     m_log.InfoFormat(
@@ -341,7 +354,8 @@ namespace OpenSim.Services.LLLoginService
                 if (!passwd.StartsWith("$1$"))
                     passwd = "$1$" + Util.Md5Hash(passwd);
                 passwd = passwd.Remove(0, 3); //remove $1$
-                string token = m_AuthenticationService.Authenticate(account.PrincipalID, passwd, 30);
+                UUID realID;
+                string token = m_AuthenticationService.Authenticate(account.PrincipalID, passwd, 30, out realID);
                 UUID secureSession = UUID.Zero;
                 if ((token == string.Empty) || (token != string.Empty && !UUID.TryParse(token, out secureSession)))
                 {
@@ -508,11 +522,19 @@ namespace OpenSim.Services.LLLoginService
                 processedMessage = processedMessage.Replace("\\n", "\n").Replace("<USERNAME>", firstName + " " + lastName);
 
                 LLLoginResponse response
+<<<<<<< HEAD
                         = new LLLoginResponse(
                             account, aCircuit, guinfo, destination, inventorySkel, friendsList, m_LibraryService,
                             where, startLocation, position, lookAt, gestures, processedMessage, home, clientIP,
                             m_MapTileURL, m_SearchURL, m_Currency, m_DSTZone,
                             m_DestinationGuide, m_AvatarPicker, m_ClassifiedFee, m_MaxAgentGroups);
+=======
+                    = new LLLoginResponse(
+                        account, aCircuit, guinfo, destination, inventorySkel, friendsList, m_LibraryService,
+                        where, startLocation, position, lookAt, gestures, m_WelcomeMessage, home, clientIP,
+                        m_MapTileURL, m_ProfileURL, m_OpenIDURL, m_SearchURL, m_Currency, m_DSTZone,
+                        m_DestinationGuide, m_AvatarPicker, realID, m_ClassifiedFee);
+>>>>>>> avn/ubitvar
 
                     m_log.DebugFormat("[LLOGIN SERVICE]: All clear. Sending login response to {0} {1}", firstName, lastName);
 

@@ -160,10 +160,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         private IAssetService m_assetService = null;
 
+        private UUID m_defaultUser;
 
+<<<<<<< HEAD
         private UUID m_defaultUser;
 
         public ArchiveReadRequest(Scene scene, string loadPath, Guid requestId, Dictionary<string,object>options)
+=======
+        public ArchiveReadRequest(Scene scene, string loadPath, Guid requestId, Dictionary<string, object> options)
+>>>>>>> avn/ubitvar
         {
             m_rootScene = scene;
 
@@ -172,7 +177,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 m_defaultUser = (UUID)options["default-user"];
                 m_log.InfoFormat("Using User {0} as default user", m_defaultUser.ToString());
             }
+<<<<<<< HEAD
             else 
+=======
+            else
+>>>>>>> avn/ubitvar
             {
                 m_defaultUser = scene.RegionInfo.EstateSettings.EstateOwner;
             }
@@ -189,8 +198,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         + "If you've manually installed Mono, have you appropriately updated zlib1g as well?");
                 m_log.Error(e);
             }
-        
+
             m_errorMessage = String.Empty;
+<<<<<<< HEAD
+=======
+
+>>>>>>> avn/ubitvar
             m_merge = options.ContainsKey("merge");
             m_forceTerrain = options.ContainsKey("force-terrain");
             m_forceParcels = options.ContainsKey("force-parcels");
@@ -199,18 +212,34 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_requestId = requestId;
             m_displacement = options.ContainsKey("displacement") ? (Vector3)options["displacement"] : Vector3.Zero;
             m_rotation = options.ContainsKey("rotation") ? (float)options["rotation"] : 0f;
+<<<<<<< HEAD
             m_rotationCenter = options.ContainsKey("rotation-center") ? (Vector3)options["rotation-center"] 
                                 : new Vector3(scene.RegionInfo.RegionSizeX / 2f, scene.RegionInfo.RegionSizeY / 2f, 0f);
 
             // Zero can never be a valid user or group id
             m_validUserUuids[UUID.Zero] = false;
             m_validGroupUuids[UUID.Zero] = false;
+=======
+            m_rotationCenter = options.ContainsKey("rotation-center") ? (Vector3)options["rotation-center"]
+                                : new Vector3(scene.RegionInfo.RegionSizeX / 2f, scene.RegionInfo.RegionSizeY / 2f, 0f);
+
+            m_requestId = requestId;
+
+            // Zero can never be a valid user id (or group)
+            m_validUserUuids[UUID.Zero] = false;
+            m_validGroupUuids[UUID.Zero] = false;
+
+>>>>>>> avn/ubitvar
 
             m_groupsModule = m_rootScene.RequestModuleInterface<IGroupsModule>();
             m_assetService = m_rootScene.AssetService;
         }
 
+<<<<<<< HEAD
         public ArchiveReadRequest(Scene scene, Stream loadStream, Guid requestId, Dictionary<string, object>options)
+=======
+        public ArchiveReadRequest(Scene scene, Stream loadStream, Guid requestId, Dictionary<string, object> options)
+>>>>>>> avn/ubitvar
         {
             m_rootScene = scene;
             m_loadPath = null;
@@ -220,7 +249,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_requestId = requestId;
 
             m_defaultUser = scene.RegionInfo.EstateSettings.EstateOwner;
+<<<<<<< HEAD
      
+=======
+
+>>>>>>> avn/ubitvar
             // Zero can never be a valid user id
             m_validUserUuids[UUID.Zero] = false;
 
@@ -294,15 +327,24 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         if ((successfulAssetRestores + failedAssetRestores) % 250 == 0)
                             m_log.Debug("[ARCHIVER]: Loaded " + successfulAssetRestores + " assets and failed to load " + failedAssetRestores + " assets...");
                     }
+<<<<<<< HEAD
                     else if (filePath.StartsWith(ArchiveConstants.TERRAINS_PATH) && (!m_merge || m_forceTerrain))
+=======
+                    else if ((!m_merge || m_forceTerrain) && filePath.StartsWith(ArchiveConstants.TERRAINS_PATH))
+>>>>>>> avn/ubitvar
                     {
                         LoadTerrain(scene, filePath, data);
                     }
                     else if (!m_merge && filePath.StartsWith(ArchiveConstants.SETTINGS_PATH))
                     {
                         LoadRegionSettings(scene, filePath, data, dearchivedScenes);
+<<<<<<< HEAD
                     } 
                     else if (filePath.StartsWith(ArchiveConstants.LANDDATA_PATH) && (!m_merge || m_forceParcels))
+=======
+                    }
+                    else if ((!m_merge || m_forceParcels) && filePath.StartsWith(ArchiveConstants.LANDDATA_PATH))
+>>>>>>> avn/ubitvar
                     {
                         sceneContext.SerialisedParcels.Add(Encoding.UTF8.GetString(data));
                     } 
@@ -523,7 +565,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     }
                 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> avn/ubitvar
                 bool isTelehub = (sceneObject.UUID == oldTelehubUUID) && (oldTelehubUUID != UUID.Zero);
 
                 // For now, give all incoming scene objects new uuids.  This will allow scenes to be cloned
@@ -540,6 +585,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 }
 
                 ModifySceneObject(scene, sceneObject);
+<<<<<<< HEAD
+=======
+
+>>>>>>> avn/ubitvar
 
                 if (scene.AddRestoredSceneObject(sceneObject, true, false))
                 {
@@ -600,6 +649,17 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 // being no copy/no mod for everyone
                 lock (part.TaskInventory)
                 {
+<<<<<<< HEAD
+=======
+                    // And zap any troublesome sit target information
+                    part.SitTargetOrientation = new Quaternion(0, 0, 0, 1);
+                    part.SitTargetPosition = new Vector3(0, 0, 0);
+
+                    // Fix ownership/creator of inventory items
+                    // Not doing so results in inventory items
+                    // being no copy/no mod for everyone
+                    part.TaskInventory.LockItemsForRead(true);
+>>>>>>> avn/ubitvar
                     TaskInventoryDictionary inv = part.TaskInventory;
                     foreach (KeyValuePair<UUID, TaskInventoryItem> kvp in inv)
                     {
@@ -620,11 +680,18 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         if (!ResolveGroupUuid(kvp.Value.GroupID))
                             kvp.Value.GroupID = UUID.Zero;
                     }
+<<<<<<< HEAD
+=======
+                    part.TaskInventory.LockItemsForRead(false);
+>>>>>>> avn/ubitvar
                 }
             }
         }
 
+<<<<<<< HEAD
         
+=======
+>>>>>>> avn/ubitvar
         /// <summary>
         /// Load serialized parcels.
         /// </summary>
@@ -645,7 +712,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     parcel.AABBMin += parcelDisp;
                     parcel.AABBMax += parcelDisp;
                 }
+<<<<<<< HEAD
                 
+=======
+               
+>>>>>>> avn/ubitvar
                 // Validate User and Group UUID's
 
                 if (!ResolveGroupUuid(parcel.GroupID))
@@ -660,14 +731,26 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     }
                     else
                     {
+<<<<<<< HEAD
                         parcel.OwnerID = m_rootScene.RegionInfo.EstateSettings.EstateOwner;
+=======
+                        parcel.OwnerID = m_defaultUser;
+                        parcel.GroupID = UUID.Zero;
+>>>>>>> avn/ubitvar
                         parcel.IsGroupOwned = false;
                     }
                 }
                 else
                 {
                     if (!ResolveUserUuid(scene, parcel.OwnerID))
+<<<<<<< HEAD
                         parcel.OwnerID = m_rootScene.RegionInfo.EstateSettings.EstateOwner;
+=======
+                        parcel.OwnerID = m_defaultUser;
+
+                    if (!ResolveGroupUuid(parcel.GroupID))
+                        parcel.GroupID = UUID.Zero;
+>>>>>>> avn/ubitvar
                 }
 
                 List<LandAccessEntry> accessList = new List<LandAccessEntry>();
@@ -796,7 +879,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     if (data == null)
                         return false;
                 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> avn/ubitvar
                 //m_log.DebugFormat("[ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
 
                 AssetBase asset = new AssetBase(new UUID(uuid), String.Empty, assetType, UUID.Zero.ToString());
@@ -918,7 +1004,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         private bool LoadTerrain(Scene scene, string terrainPath, byte[] data)
         {
             ITerrainModule terrainModule = scene.RequestModuleInterface<ITerrainModule>();
+<<<<<<< HEAD
 
+=======
+           
+>>>>>>> avn/ubitvar
             using (MemoryStream ms = new MemoryStream(data))
             {
                 if (m_displacement != Vector3.Zero || m_rotation != 0f)

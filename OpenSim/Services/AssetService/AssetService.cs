@@ -174,7 +174,10 @@ namespace OpenSim.Services.AssetService
             {
 //                m_log.DebugFormat(
 //                    "[ASSET SERVICE]: Storing asset {0} {1}, bytes {2}", asset.Name, asset.FullID, asset.Data.Length);
-                m_Database.StoreAsset(asset);
+               if (!m_Database.StoreAsset(asset))
+            	{
+                return UUID.Zero.ToString();
+            	}
             }
 //            else
 //            {

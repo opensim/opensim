@@ -175,6 +175,11 @@ namespace OpenSim.Data.MySQL
                                 int v = Convert.ToInt32(reader[name]);
                                 m_Fields[name].SetValue(row, v);
                             }
+                            else if (m_Fields[name].FieldType == typeof(uint))
+                            {
+                                uint v = Convert.ToUInt32(reader[name]);
+                                m_Fields[name].SetValue(row, v);
+                            }
                             else
                             {
                                 m_Fields[name].SetValue(row, reader[name]);

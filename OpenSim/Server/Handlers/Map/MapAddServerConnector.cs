@@ -118,9 +118,19 @@ namespace OpenSim.Server.Handlers.MapImage
                     httpResponse.StatusCode = (int)OSHttpStatusCode.ClientErrorBadRequest;
                     return FailureResult("Bad request.");
                 }
+<<<<<<< HEAD
                 uint x = 0, y = 0;
                 UInt32.TryParse(request["X"].ToString(), out x);
                 UInt32.TryParse(request["Y"].ToString(), out y);
+=======
+                int x = 0, y = 0;
+//                UUID scopeID = new UUID("07f8d88e-cd5e-4239-a0ed-843f75d09992");
+                UUID scopeID = UUID.Zero;
+                Int32.TryParse(request["X"].ToString(), out x);
+                Int32.TryParse(request["Y"].ToString(), out y);
+                if (request.ContainsKey("SCOPE"))
+                    UUID.TryParse(request["SCOPE"].ToString(), out scopeID);
+>>>>>>> avn/ubitvar
 
                 m_log.DebugFormat("[MAP ADD SERVER CONNECTOR]: Received map data for region at {0}-{1}", x, y);
 
@@ -132,7 +142,11 @@ namespace OpenSim.Server.Handlers.MapImage
                 if (m_GridService != null)
                 {
                     System.Net.IPAddress ipAddr = GetCallerIP(httpRequest);
+<<<<<<< HEAD
                     GridRegion r = m_GridService.GetRegionByPosition(UUID.Zero, (int)Util.RegionToWorldLoc(x), (int)Util.RegionToWorldLoc(y));
+=======
+                    GridRegion r = m_GridService.GetRegionByPosition(UUID.Zero, (int)Util.RegionToWorldLoc((uint)x), (int)Util.RegionToWorldLoc((uint)y));
+>>>>>>> avn/ubitvar
                     if (r != null)
                     {
                         if (r.ExternalEndPoint.Address.ToString() != ipAddr.ToString())
@@ -153,7 +167,11 @@ namespace OpenSim.Server.Handlers.MapImage
                 byte[] data = Convert.FromBase64String(request["DATA"].ToString());
 
                 string reason = string.Empty;
+<<<<<<< HEAD
                 bool result = m_MapService.AddMapTile((int)x, (int)y, data, out reason);
+=======
+                bool result = m_MapService.AddMapTile(x, y, data, scopeID, out reason);
+>>>>>>> avn/ubitvar
 
                 if (result)
                     return SuccessResult();

@@ -25,13 +25,29 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+<<<<<<< HEAD
 using System.Drawing;
 using OpenSim.Framework;
+=======
+using OpenMetaverse;
+using OpenSim.Framework;
+using System.Drawing;
+>>>>>>> avn/ubitvar
 
 namespace OpenSim.Region.Framework.Interfaces
 {
     public interface IMapImageUploadModule
     {
+<<<<<<< HEAD
         void UploadMapTile(IScene scene, Bitmap mapTile);
     }
 }
+=======
+        /// <summary>
+        /// Upload a new maptile
+        /// </summary>
+        void UploadMapTile(IScene scene);
+        void UploadMapTile(IScene scene, Bitmap mapTile);
+    }
+}
+>>>>>>> avn/ubitvar

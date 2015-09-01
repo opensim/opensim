@@ -43,7 +43,6 @@ namespace OpenSim.Framework.Monitoring
             StringBuilder sb = new StringBuilder(Environment.NewLine);
             sb.Append("MEMORY STATISTICS");
             sb.Append(Environment.NewLine);
-
             sb.AppendFormat(
                 "Heap allocated to OpenSim   : {0} MB\n",
                 Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0));
@@ -56,9 +55,23 @@ namespace OpenSim.Framework.Monitoring
                 "Average heap allocation rate: {0} MB/s\n",
                 Math.Round((MemoryWatchdog.AverageHeapAllocationRate * 1000) / 1024.0 / 1024, 3));
 
-            sb.AppendFormat(
-                "Process memory              : {0} MB\n",
-                Math.Round(Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0));
+            Process myprocess = Process.GetCurrentProcess();
+            if (!myprocess.HasExited)
+            {
+                myprocess.Refresh();
+                sb.AppendFormat(
+                        "Process memory:      Physical {0} MB \t Paged {1} MB \t Virtual {2} MB\n",
+                        Math.Round(Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0),
+                        Math.Round(Process.GetCurrentProcess().PagedMemorySize64 / 1024.0 / 1024.0),
+                        Math.Round(Process.GetCurrentProcess().VirtualMemorySize64 / 1024.0 / 1024.0));
+                sb.AppendFormat(
+                        "Peak process memory: Physical {0} MB \t Paged {1} MB \t Virtual {2} MB\n",
+                        Math.Round(Process.GetCurrentProcess().PeakWorkingSet64 / 1024.0 / 1024.0),
+                        Math.Round(Process.GetCurrentProcess().PeakPagedMemorySize64 / 1024.0 / 1024.0),
+                        Math.Round(Process.GetCurrentProcess().PeakVirtualMemorySize64 / 1024.0 / 1024.0));
+            }
+            else
+                sb.Append("Process reported as Exited \n");
 
             return sb.ToString();
         }

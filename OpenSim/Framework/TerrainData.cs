@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Reflection;
 
 using OpenMetaverse;
@@ -48,6 +49,7 @@ namespace OpenSim.Framework
 
         public abstract float this[int x, int y] { get; set; }
         // Someday terrain will have caves
+        // at most holes :p
         public abstract float this[int x, int y, int z] { get; set; }
 
         public abstract bool IsTaintedAt(int xx, int yy);
@@ -72,8 +74,8 @@ namespace OpenSim.Framework
             return new HeightmapTerrainData(pSizeX, pSizeY, pSizeZ, pFormatCode, pBlob);
         }
 
-        // return a special compressed representation of the heightmap in ints
-        public abstract int[] GetCompressedMap();
+        // return a special compressed representation of the heightmap in ushort
+        public abstract float[] GetCompressedMap();
         public abstract float CompressionFactor { get; }
 
         public abstract float[] GetFloatsSerialized();
@@ -94,14 +96,18 @@ namespace OpenSim.Framework
     {
         // Terrain is 'double[256,256]'
         Legacy256 = 11,
+
         // Terrain is 'int32, int32, float[,]' where the ints are X and Y dimensions
         // The dimensions are presumed to be multiples of 16 and, more likely, multiples of 256.
         Variable2D = 22,
+        Variable2DGzip = 23,
+
         // Terrain is 'int32, int32, int32, int16[]' where the ints are X and Y dimensions
         //   and third int is the 'compression factor'. The heights are compressed as
-        //   "int compressedHeight = (int)(height * compressionFactor);"
+        //   "ushort compressedHeight = (ushort)(height * compressionFactor);"
         // The dimensions are presumed to be multiples of 16 and, more likely, multiples of 256.
         Compressed2D = 27,
+
         // A revision that is not listed above or any revision greater than this value is 'Legacy256'.
         RevisionHigh = 1234
     }
@@ -109,7 +115,7 @@ namespace OpenSim.Framework
     // Version of terrain that is a heightmap.
     // This should really be 'LLOptimizedHeightmapTerrainData' as it includes knowledge
     //    of 'patches' which are 16x16 terrain areas which can be sent separately to the viewer.
-    // The heighmap is kept as an array of integers. The integer values are converted to
+    // The heighmap is kept as an array of ushorts. The ushort values are converted to
     //    and from floats by TerrainCompressionFactor.
     public class HeightmapTerrainData : TerrainData
     {
@@ -119,12 +125,12 @@ namespace OpenSim.Framework
         // TerrainData.this[x, y]
         public override float this[int x, int y]
         {
-            get { return FromCompressedHeight(m_heightmap[x, y]); }
-            set {
-                int newVal = ToCompressedHeight(value);
-                if (m_heightmap[x, y] != newVal)
+            get { return m_heightmap[x, y]; }
+            set
+            {
+                if (m_heightmap[x, y] != value)
                 {
-                    m_heightmap[x, y] = newVal;
+                    m_heightmap[x, y] = value;
                     m_taint[x / Constants.TerrainPatchSize, y / Constants.TerrainPatchSize] = true;
                 }
             }
@@ -164,10 +170,9 @@ namespace OpenSim.Framework
         // TerrainData.ClearLand(float)
         public override void ClearLand(float pHeight)
         {
-            int flatHeight = ToCompressedHeight(pHeight);
             for (int xx = 0; xx < SizeX; xx++)
                 for (int yy = 0; yy < SizeY; yy++)
-                    m_heightmap[xx, yy] = flatHeight;
+                    m_heightmap[xx, yy] = pHeight;
         }
 
         // Return 'true' of the patch that contains these region coordinates has been modified.
@@ -177,13 +182,15 @@ namespace OpenSim.Framework
         {
             int tx = xx / Constants.TerrainPatchSize;
             int ty = yy / Constants.TerrainPatchSize;
-            bool ret =  m_taint[tx, ty];
+            bool ret = m_taint[tx, ty];
             if (ret && clearOnTest)
                 m_taint[tx, ty] = false;
             return ret;
         }
 
         // Old form that clears the taint flag when we check it.
+        // ubit: this dangerus naming should be only check without clear
+        // keeping for old modules outthere
         public override bool IsTaintedAt(int xx, int yy)
         {
             return IsTaintedAt(xx, yy, true /* clearOnTest */);
@@ -202,8 +209,10 @@ namespace OpenSim.Framework
             }
             else
             {
-                DBRevisionCode = (int)DBTerrainRevision.Compressed2D;
-                blob = ToCompressedTerrainSerialization();
+                DBRevisionCode = (int)DBTerrainRevision.Variable2DGzip;
+//                DBRevisionCode = (int)DBTerrainRevision.Variable2D;
+                blob = ToCompressedTerrainSerializationV2DGzip();
+//                blob = ToCompressedTerrainSerializationV2D();
                 ret = true;
             }
             return ret;
@@ -214,9 +223,9 @@ namespace OpenSim.Framework
         public override float CompressionFactor { get { return m_compressionFactor; } }
 
         // TerrainData.GetCompressedMap
-        public override int[] GetCompressedMap()
+        public override float[] GetCompressedMap()
         {
-            int[] newMap = new int[SizeX * SizeY];
+            float[] newMap = new float[SizeX * SizeY];
 
             int ind = 0;
             for (int xx = 0; xx < SizeX; xx++)
@@ -230,7 +239,7 @@ namespace OpenSim.Framework
         public override TerrainData Clone()
         {
             HeightmapTerrainData ret = new HeightmapTerrainData(SizeX, SizeY, SizeZ);
-            ret.m_heightmap = (int[,])this.m_heightmap.Clone();
+            ret.m_heightmap = (float[,])this.m_heightmap.Clone();
             return ret;
         }
 
@@ -247,7 +256,7 @@ namespace OpenSim.Framework
             for (int jj = 0; jj < SizeY; jj++)
                 for (int ii = 0; ii < SizeX; ii++)
                 {
-                    heights[idx++] = FromCompressedHeight(m_heightmap[ii, jj]);
+                    heights[idx++] = m_heightmap[ii, jj];
                 }
 
             return heights;
@@ -259,7 +268,7 @@ namespace OpenSim.Framework
             double[,] ret = new double[SizeX, SizeY];
             for (int xx = 0; xx < SizeX; xx++)
                 for (int yy = 0; yy < SizeY; yy++)
-                    ret[xx, yy] = FromCompressedHeight(m_heightmap[xx, yy]);
+                    ret[xx, yy] = (double)m_heightmap[xx, yy];
 
             return ret;
         }
@@ -267,19 +276,40 @@ namespace OpenSim.Framework
 
         // =============================================================
 
-        private int[,] m_heightmap;
+        private float[,] m_heightmap;
         // Remember subregions of the heightmap that has changed.
         private bool[,] m_taint;
 
-        // To save space (especially for large regions), keep the height as a short integer
         //    that is coded as the float height times the compression factor (usually '100'
         //    to make for two decimal points).
-        public int ToCompressedHeight(double pHeight)
+        public short ToCompressedHeightshort(float pHeight)
         {
-            return (int)(pHeight * CompressionFactor);
+            // clamp into valid range
+            pHeight *= CompressionFactor;
+            if (pHeight < short.MinValue)
+                return short.MinValue;
+            else if (pHeight > short.MaxValue)
+                return short.MaxValue;
+            return (short)pHeight;
         }
 
-        public float FromCompressedHeight(int pHeight)
+        public ushort ToCompressedHeightushort(float pHeight)
+        {
+            // clamp into valid range
+            pHeight *= CompressionFactor;
+            if (pHeight < ushort.MinValue)
+                return ushort.MinValue;
+            else if (pHeight > ushort.MaxValue)
+                return ushort.MaxValue;
+            return (ushort)pHeight;
+        }
+
+        public float FromCompressedHeight(short pHeight)
+        {
+            return ((float)pHeight) / CompressionFactor;
+        }
+
+        public float FromCompressedHeight(ushort pHeight)
         {
             return ((float)pHeight) / CompressionFactor;
         }
@@ -293,12 +323,12 @@ namespace OpenSim.Framework
             SizeZ = (int)Constants.RegionHeight;
             m_compressionFactor = 100.0f;
 
-            m_heightmap = new int[SizeX, SizeY];
+            m_heightmap = new float[SizeX, SizeY];
             for (int ii = 0; ii < SizeX; ii++)
             {
                 for (int jj = 0; jj < SizeY; jj++)
                 {
-                    m_heightmap[ii, jj] = ToCompressedHeight(pTerrain[ii, jj]);
+                    m_heightmap[ii, jj] = (float)pTerrain[ii, jj];
 
                 }
             }
@@ -315,14 +345,15 @@ namespace OpenSim.Framework
             SizeY = pY;
             SizeZ = pZ;
             m_compressionFactor = 100.0f;
-            m_heightmap = new int[SizeX, SizeY];
+            m_heightmap = new float[SizeX, SizeY];
             m_taint = new bool[SizeX / Constants.TerrainPatchSize, SizeY / Constants.TerrainPatchSize];
             // m_log.DebugFormat("{0} new by dimensions. sizeX={1}, sizeY={2}, sizeZ={3}", LogHeader, SizeX, SizeY, SizeZ);
             ClearTaint();
             ClearLand(0f);
         }
 
-        public HeightmapTerrainData(int[] cmap, float pCompressionFactor, int pX, int pY, int pZ) : this(pX, pY, pZ)
+        public HeightmapTerrainData(float[] cmap, float pCompressionFactor, int pX, int pY, int pZ)
+            : this(pX, pY, pZ)
         {
             m_compressionFactor = pCompressionFactor;
             int ind = 0;
@@ -333,12 +364,22 @@ namespace OpenSim.Framework
         }
 
         // Create a heighmap from a database blob
-        public HeightmapTerrainData(int pSizeX, int pSizeY, int pSizeZ, int pFormatCode, byte[] pBlob) : this(pSizeX, pSizeY, pSizeZ)
+        public HeightmapTerrainData(int pSizeX, int pSizeY, int pSizeZ, int pFormatCode, byte[] pBlob)
+            : this(pSizeX, pSizeY, pSizeZ)
         {
             switch ((DBTerrainRevision)pFormatCode)
             {
+                case DBTerrainRevision.Variable2DGzip:
+                    FromCompressedTerrainSerializationV2DGZip(pBlob);
+                    m_log.DebugFormat("{0} HeightmapTerrainData create from Variable2DGzip serialization. Size=<{1},{2}>", LogHeader, SizeX, SizeY);
+                    break;
+
+                case DBTerrainRevision.Variable2D:
+                    FromCompressedTerrainSerializationV2D(pBlob);
+                    m_log.DebugFormat("{0} HeightmapTerrainData create from Variable2D serialization. Size=<{1},{2}>", LogHeader, SizeX, SizeY);
+                    break;
                 case DBTerrainRevision.Compressed2D:
-                    FromCompressedTerrainSerialization(pBlob);
+                    FromCompressedTerrainSerialization2D(pBlob);
                     m_log.DebugFormat("{0} HeightmapTerrainData create from Compressed2D serialization. Size=<{1},{2}>", LogHeader, SizeX, SizeY);
                     break;
                 default:
@@ -373,50 +414,116 @@ namespace OpenSim.Framework
             return ret;
         }
 
-        // Just create an array of doubles. Presumes the caller implicitly knows the size.
+        // Presumes the caller implicitly knows the size.
         public void FromLegacyTerrainSerialization(byte[] pBlob)
         {
             // In case database info doesn't match real terrain size, initialize the whole terrain.
             ClearLand();
 
-            using (MemoryStream mstr = new MemoryStream(pBlob))
+            try
             {
-                using (BinaryReader br = new BinaryReader(mstr))
+                using (MemoryStream mstr = new MemoryStream(pBlob))
                 {
-                    for (int xx = 0; xx < (int)Constants.RegionSize; xx++)
+                    using (BinaryReader br = new BinaryReader(mstr))
                     {
-                        for (int yy = 0; yy < (int)Constants.RegionSize; yy++)
+                        for (int xx = 0; xx < (int)Constants.RegionSize; xx++)
                         {
-                            float val = (float)br.ReadDouble();
-                            if (xx < SizeX && yy < SizeY)
-                                m_heightmap[xx, yy] = ToCompressedHeight(val);
+                            for (int yy = 0; yy < (int)Constants.RegionSize; yy++)
+                            {
+                                float val = (float)br.ReadDouble();
+
+                                if (xx < SizeX && yy < SizeY)
+                                    m_heightmap[xx, yy] = val;
+                            }
                         }
                     }
                 }
-                ClearTaint();
             }
+            catch
+            {
+                ClearLand();
+            }
+            ClearTaint();
         }
-        
-        // See the reader below.
-        public Array ToCompressedTerrainSerialization()
+
+
+        // stores as variable2D
+        // int32 sizeX
+        // int32 sizeY
+        // float[,] array
+
+        public Array ToCompressedTerrainSerializationV2D()
         {
             Array ret = null;
-            using (MemoryStream str = new MemoryStream((3 * sizeof(Int32)) + (SizeX * SizeY * sizeof(Int16))))
+            try
             {
-                using (BinaryWriter bw = new BinaryWriter(str))
+                using (MemoryStream str = new MemoryStream((2 * sizeof(Int32)) + (SizeX * SizeY * sizeof(float))))
                 {
-                    bw.Write((Int32)DBTerrainRevision.Compressed2D);
-                    bw.Write((Int32)SizeX);
-                    bw.Write((Int32)SizeY);
-                    bw.Write((Int32)CompressionFactor);
-                    for (int yy = 0; yy < SizeY; yy++)
-                        for (int xx = 0; xx < SizeX; xx++)
-                        {
-                            bw.Write((Int16)m_heightmap[xx, yy]);
-                        }
+                    using (BinaryWriter bw = new BinaryWriter(str))
+                    {
+                        bw.Write((Int32)SizeX);
+                        bw.Write((Int32)SizeY);
+                        for (int yy = 0; yy < SizeY; yy++)
+                            for (int xx = 0; xx < SizeX; xx++)
+                            {
+                                // reduce to 1cm resolution
+                                float val = (float)Math.Round(m_heightmap[xx, yy],2,MidpointRounding.ToEven);
+                                bw.Write(val);
+                            }
+                    }
+                    ret = str.ToArray();
                 }
-                ret = str.ToArray();
             }
+            catch
+            {
+
+            }
+
+            m_log.DebugFormat("{0} V2D {1} bytes",
+                     LogHeader, ret.Length);
+
+            return ret;
+        }
+
+        // as above with Gzip compression
+        public Array ToCompressedTerrainSerializationV2DGzip()
+        {
+            Array ret = null;
+            try
+            {
+                using (MemoryStream inp = new MemoryStream((2 * sizeof(Int32)) + (SizeX * SizeY * sizeof(float))))
+                {
+                    using (BinaryWriter bw = new BinaryWriter(inp))
+                    {
+                        bw.Write((Int32)SizeX);
+                        bw.Write((Int32)SizeY);
+                        for (int yy = 0; yy < SizeY; yy++)
+                            for (int xx = 0; xx < SizeX; xx++)
+                            {
+                                bw.Write((float)m_heightmap[xx, yy]);
+                            }
+
+                        bw.Flush();
+                        inp.Seek(0, SeekOrigin.Begin);
+
+                        using (MemoryStream outputStream = new MemoryStream())
+                        {
+                            using (GZipStream compressionStream = new GZipStream(outputStream, CompressionMode.Compress))
+                            {
+                                inp.CopyStream(compressionStream, int.MaxValue);
+                                compressionStream.Close();
+                                ret = outputStream.ToArray();
+                            }
+                        }
+                    }
+                }
+            }
+            catch
+            {
+
+            }
+            m_log.DebugFormat("{0} V2DGzip {1} bytes",
+                 LogHeader, ret.Length);
             return ret;
         }
 
@@ -426,7 +533,7 @@ namespace OpenSim.Framework
         //    the forth int is the compression factor for the following int16s
         // This is just sets heightmap info. The actual size of the region was set on this instance's
         //    creation and any heights not initialized by theis blob are set to the default height.
-        public void FromCompressedTerrainSerialization(byte[] pBlob)
+        public void FromCompressedTerrainSerialization2D(byte[] pBlob)
         {
             Int32 hmFormatCode, hmSizeX, hmSizeY, hmCompressionFactor;
 
@@ -448,7 +555,7 @@ namespace OpenSim.Framework
                     {
                         for (int xx = 0; xx < hmSizeX; xx++)
                         {
-                            Int16 val = br.ReadInt16();
+                            float val = FromCompressedHeight(br.ReadInt16());
                             if (xx < SizeX && yy < SizeY)
                                 m_heightmap[xx, yy] = val;
                         }
@@ -456,9 +563,112 @@ namespace OpenSim.Framework
                 }
                 ClearTaint();
 
-                m_log.InfoFormat("{0} Read compressed 2d heightmap. Heightmap size=<{1},{2}>. Region size=<{3},{4}>. CompFact={5}",
+                m_log.DebugFormat("{0} Read (compressed2D) heightmap. Heightmap size=<{1},{2}>. Region size=<{3},{4}>. CompFact={5}",
                                 LogHeader, hmSizeX, hmSizeY, SizeX, SizeY, hmCompressionFactor);
             }
+        }
+
+        // Initialize heightmap from blob consisting of:
+        //    int32, int32, int32, float[]
+        //    where the first int32 is format code, next two int32s are the X and y of heightmap data
+        // This is just sets heightmap info. The actual size of the region was set on this instance's
+        //    creation and any heights not initialized by theis blob are set to the default height.
+        public void FromCompressedTerrainSerializationV2D(byte[] pBlob)
+        {
+            Int32 hmSizeX, hmSizeY;
+            try
+            {
+                using (MemoryStream mstr = new MemoryStream(pBlob))
+                {
+                    using (BinaryReader br = new BinaryReader(mstr))
+                    {
+                        hmSizeX = br.ReadInt32();
+                        hmSizeY = br.ReadInt32();
+
+                        // In case database info doesn't match real terrain size, initialize the whole terrain.
+                        ClearLand();
+
+                        for (int yy = 0; yy < hmSizeY; yy++)
+                        {
+                            for (int xx = 0; xx < hmSizeX; xx++)
+                            {
+                                float val = br.ReadSingle();
+                                if (xx < SizeX && yy < SizeY)
+                                    m_heightmap[xx, yy] = val;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                ClearTaint();
+                m_log.ErrorFormat("{0} 2D error: {1} - terrain may be damaged",
+                                LogHeader, e.Message);
+                return;
+            }
+            ClearTaint();
+
+            m_log.DebugFormat("{0} V2D Heightmap size=<{1},{2}>. Region size=<{3},{4}>",
+                            LogHeader, hmSizeX, hmSizeY, SizeX, SizeY);
+
+        }
+
+        // as above but Gzip compressed
+        public void FromCompressedTerrainSerializationV2DGZip(byte[] pBlob)
+        {
+            m_log.InfoFormat("{0} VD2Gzip {1} bytes input",
+                            LogHeader, pBlob.Length);
+
+            Int32 hmSizeX, hmSizeY;
+
+            try
+            {
+                using (MemoryStream outputStream = new MemoryStream())
+                {
+                    using (MemoryStream inputStream = new MemoryStream(pBlob))
+                    {
+                        using (GZipStream decompressionStream = new GZipStream(inputStream, CompressionMode.Decompress))
+                        {
+                            decompressionStream.Flush();
+                            decompressionStream.CopyTo(outputStream);
+                        }
+                    }
+
+                    outputStream.Seek(0, SeekOrigin.Begin);
+
+                    using (BinaryReader br = new BinaryReader(outputStream))
+                    {
+                        hmSizeX = br.ReadInt32();
+                        hmSizeY = br.ReadInt32();
+
+                        // In case database info doesn't match real terrain size, initialize the whole terrain.
+                        ClearLand();
+
+                        for (int yy = 0; yy < hmSizeY; yy++)
+                        {
+                            for (int xx = 0; xx < hmSizeX; xx++)
+                            {
+                                float val = br.ReadSingle();
+                                if (xx < SizeX && yy < SizeY)
+                                    m_heightmap[xx, yy] = val;
+                            }
+                        }
+                    }
+                }
+            }
+            catch( Exception e)
+            {
+                ClearTaint();
+                m_log.ErrorFormat("{0} V2DGzip error: {1} - terrain may be damaged",
+                                LogHeader, e.Message);
+                return;
+            }
+
+            ClearTaint();
+            m_log.DebugFormat("{0} V2DGzip. Heightmap size=<{1},{2}>. Region size=<{3},{4}>",
+                            LogHeader, hmSizeX, hmSizeY, SizeX, SizeY);
+
         }
     }
 }

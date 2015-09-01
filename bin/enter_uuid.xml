@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater can_close="true" can_drag_on_left="false" can_minimize="false" can_resize="false" height="100" name="enter_uuid" title="ID Required" width="390">
+	<text bottom="-30" left="10">Enter UUID</text>
+	<line_editor bottom="-60" left="10" width="370" name="new_owner" height="20"/>
+	<button bottom="-90" width="80" height="20" left="300" label="OK" name="ok" />
+	<button bottom="-90" width="80" height="20" left="210" label="Cancel" name="cancel" />
+</floater>
