@@ -1,0 +1,3 @@
+; Copy this file to startup_commands.txt to run region console commands once the simulator has finished starting up
+; e.g. show stats
+; Lines that start with ; are comments.

@@ -1,0 +1,44 @@
+:VERSION 1
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Friends (
+"PrincipalID" uuid NOT NULL, 
+"Friend" varchar(255) NOT NULL, 
+"Flags" char(16) NOT NULL DEFAULT '0',
+"Offered" varchar(32) NOT NULL DEFAULT 0);
+ 
+
+COMMIT;
+
+:VERSION 2
+
+BEGIN TRANSACTION;
+
+INSERT INTO Friends ("PrincipalID", "Friend", "Flags", "Offered") 
+SELECT "ownerID", "friendID", "friendPerms", 0 FROM userfriends;
+
+COMMIT;
+
+:VERSION 3 
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Tmp_Friends
+	("PrincipalID" varchar(255) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000', 
+	"Friend" varchar(255) NOT NULL, 
+	"Flags" char(16) NOT NULL DEFAULT '0',
+	"Offered" varchar(32) NOT NULL DEFAULT 0) ;
+
+INSERT INTO Tmp_Friends ("PrincipalID", "Friend", "Flags", "Offered")
+	SELECT cast("PrincipalID" as varchar(255)), "Friend", "Flags", "Offered" FROM Friends ;
+
+DROP TABLE Friends;
+
+Alter table Tmp_Friends
+  rename to Friends;
+
+ALTER TABLE Friends ADD PRIMARY KEY("PrincipalID", "Friend");
+
+
+COMMIT;

@@ -1,0 +1,8 @@
+<Configuration name="Debug" xmlns="http://dnpb.sourceforge.net/schemas/prebuild-1.7.xsd">
+  <Options>
+    <CompilerDefines>DEBUG;TRACE</CompilerDefines>
+    <OptimizeCode>false</OptimizeCode>
+    <OutputPath>bin/Debug</OutputPath>
+    <DebugInformation>true</DebugInformation>
+  </Options>
+</Configuration>

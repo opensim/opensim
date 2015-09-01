@@ -1,0 +1,767 @@
+<Nini>
+  <Section Name="Default Alpha">
+    <Key Name="assetID" Value="1578a2b1-5179-4b53-b618-fe00ca5a5594" />
+    <Key Name="name" Value="alpha" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="default_alpha.jp2" />
+  </Section>
+  <Section Name="texture1">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-000000000099" />
+    <Key Name="name" Value="femface" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="femaleface.jp2" />
+  </Section>
+  <Section Name="4-tile2 Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001000" />
+    <Key Name="name" Value="4-tile2" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="4-tile2.jp2" />
+  </Section>
+  <Section Name="4-tile3 Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001001" />
+    <Key Name="name" Value="4-tile3" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="4-tile3.jp2" />
+  </Section>
+  <Section Name="brick1_256 Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001002" />
+    <Key Name="name" Value="brick1_256" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="brick1_256.jp2" />
+  </Section>
+  <Section Name="brick2_256 Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001003" />
+    <Key Name="name" Value="brick2_256" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="brick2_256.jp2" />
+  </Section>
+  <Section Name="brick_mono Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001004" />
+    <Key Name="name" Value="brick_mono" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="brick_mono.jp2" />
+  </Section>
+  <Section Name="cedar Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001005" />
+    <Key Name="name" Value="cedar" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="cedar.jp2" />
+  </Section>
+  <Section Name="cement_block Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001006" />
+    <Key Name="name" Value="cement_block" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="cement_block.jp2" />
+  </Section>
+  <Section Name="clear Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001007" />
+    <Key Name="name" Value="clear" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="clear.jp2" />
+  </Section>
+  <Section Name="cobbles Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001008" />
+    <Key Name="name" Value="cobbles" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="cobbles.jp2" />
+  </Section>
+  <Section Name="creambrick Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001009" />
+    <Key Name="name" Value="creambrick" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="creambrick.jp2" />
+  </Section>
+  <Section Name="fgrass Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001010" />
+    <Key Name="name" Value="fgrass" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="fgrass.jp2" />
+  </Section>
+  <Section Name="glasstile2 Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001011" />
+    <Key Name="name" Value="glasstile2" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="glasstile2.jp2" />
+  </Section>
+  <Section Name="graniteblock Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001012" />
+    <Key Name="name" Value="graniteblock" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="graniteblock.jp2" />
+  </Section>
+  <Section Name="grass Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001013" />
+    <Key Name="name" Value="grass" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="grass.jp2" />
+  </Section>
+  <Section Name="gravel Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001014" />
+    <Key Name="name" Value="gravel" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="gravel.jp2" />
+  </Section>
+  <Section Name="greybrick Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001015" />
+    <Key Name="name" Value="greybrick" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="greybrick.jp2" />
+  </Section>
+  <Section Name="ivy Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001016" />
+    <Key Name="name" Value="ivy" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="ivy.jp2" />
+  </Section>
+  <Section Name="mahogany Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001017" />
+    <Key Name="name" Value="mahogany" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="mahogany.jp2" />
+  </Section>
+  <Section Name="maple Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001018" />
+    <Key Name="name" Value="maple" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="maple.jp2" />
+  </Section>
+  <Section Name="mosaic02 Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001019" />
+    <Key Name="name" Value="mosaic02" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="mosaic02.jp2" />
+  </Section>
+  <Section Name="palm1 Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001020" />
+    <Key Name="name" Value="palm1" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="palm1.jp2" />
+  </Section>
+  <Section Name="papaya Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001021" />
+    <Key Name="name" Value="papaya" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="papaya.jp2" />
+  </Section>
+  <Section Name="papaya_bark Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001022" />
+    <Key Name="name" Value="papaya_bark" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="papaya_bark.jp2" />
+  </Section>
+  <Section Name="pastelbrick Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001023" />
+    <Key Name="name" Value="pastelbrick" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="pastelbrick.jp2" />
+  </Section>
+  <Section Name="pine1_10m Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001024" />
+    <Key Name="name" Value="pine1_10m" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="pine1_10m.jp2" />
+  </Section>
+  <Section Name="poplar Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001025" />
+    <Key Name="name" Value="poplar" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="poplar.jp2" />
+  </Section>
+  <Section Name="redtri_tile Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001026" />
+    <Key Name="name" Value="redtri_tile" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="redtri_tile.jp2" />
+  </Section>
+  <Section Name="rockbuilding Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001027" />
+    <Key Name="name" Value="rockbuilding" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="rockbuilding.jp2" />
+  </Section>
+  <Section Name="rockwallbig Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001028" />
+    <Key Name="name" Value="rockwallbig" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="rockwallbig.jp2" />
+  </Section>
+  <Section Name="roof01 Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001029" />
+    <Key Name="name" Value="roof01" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="roof01.jp2" />
+  </Section>
+  <Section Name="rooftiles1 Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001030" />
+    <Key Name="name" Value="rooftiles1" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="rooftiles1.jp2" />
+  </Section>
+  <Section Name="rooftiles2_peach Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001031" />
+    <Key Name="name" Value="rooftiles2_peach" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="rooftiles2_peach.jp2" />
+  </Section>
+  <Section Name="rooftiles2_roy Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001032" />
+    <Key Name="name" Value="rooftiles2_roy" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="rooftiles2_roy.jp2" />
+  </Section>
+  <Section Name="saguaro_8m Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001033" />
+    <Key Name="name" Value="saguaro_8m" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="saguaro_8m.jp2" />
+  </Section>
+  <Section Name="seawater Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001034" />
+    <Key Name="name" Value="seawater" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="seawater.jp2" />
+  </Section>
+  <Section Name="snow1 Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001035" />
+    <Key Name="name" Value="snow1" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="snow1.jp2" />
+  </Section>
+  <Section Name="steel Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001036" />
+    <Key Name="name" Value="steel" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="steel.jp2" />
+  </Section>
+  <Section Name="stone1wall Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001037" />
+    <Key Name="name" Value="stone1wall" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="stone1wall.jp2" />
+  </Section>
+  <Section Name="stonetile Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001038" />
+    <Key Name="name" Value="stonetile" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="stonetile.jp2" />
+  </Section>
+  <Section Name="street2 Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001039" />
+    <Key Name="name" Value="street2" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="street2.jp2" />
+  </Section>
+  <Section Name="thatch Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001040" />
+    <Key Name="name" Value="thatch" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="thatch.jp2" />
+  </Section>
+  <Section Name="water1 Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001041" />
+    <Key Name="name" Value="water1" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="water1.jp2" />
+  </Section>
+  <Section Name="water3 Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001042" />
+    <Key Name="name" Value="water3" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="water3.jp2" />
+  </Section>
+  <Section Name="Sea">
+    <Key Name="assetID" Value="2bfd3884-7e27-69b9-ba3a-3e673f680004" />
+    <Key Name="name" Value="Sea" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="water3.jp2" />
+  </Section>
+  <Section Name="wood1 Texture">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001043" />
+    <Key Name="name" Value="wood1" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="wood1.jp2" />
+  </Section>
+  <Section Name="bricks">
+    <Key Name="assetID" Value="00000000-0000-1111-9999-000000000001"/>
+    <Key Name="name" Value="bricks"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="bricks.jp2"/>
+  </Section>
+  <Section Name="plywood">
+    <Key Name="assetID" Value="89556747-24cb-43ed-920b-47caed15465f"/>
+    <Key Name="name" Value="plywood"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="plywood.jp2"/>
+  </Section>
+  <Section Name="rocks">
+    <Key Name="assetID" Value="00000000-0000-1111-9999-000000000003"/>
+    <Key Name="name" Value="rocks"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="rocks.jp2"/>
+  </Section>
+  <Section Name="granite">
+    <Key Name="assetID" Value="00000000-0000-1111-9999-000000000004"/>
+    <Key Name="name" Value="granite"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="granite.jp2"/>
+  </Section>
+  <Section Name="hardwood">
+    <Key Name="assetID" Value="00000000-0000-1111-9999-000000000005"/>
+    <Key Name="name" Value="hardwood"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="hardwood.jp2"/>
+  </Section>
+  <Section Name="Map Base Texture">
+    <Key Name="assetID" Value="00000000-0000-1111-9999-000000000006"/>
+    <Key Name="name" Value="Map Base Texture"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="map_base.jp2"/>
+  </Section>
+  <Section Name="Map Texture">
+    <Key Name="assetID" Value="00000000-0000-1111-9999-000000000007"/>
+    <Key Name="name" Value="Map Texture"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="map1.jp2"/>
+  </Section>
+  <Section Name="Female Body Texture">
+    <Key Name="assetID" Value="00000000-0000-1111-9999-000000000010"/>
+    <Key Name="name" Value="Female Body Texture"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+    <Key Name="fileName" Value="femalebody.jp2"/>
+  </Section>
+  <Section Name="Female Bottom Texture">
+    <Key Name="assetID" Value="00000000-0000-1111-9999-000000000011"/>
+    <Key Name="name" Value="Female Bottom Texture"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+    <Key Name="fileName" Value="femalebottom.jp2"/>
+  </Section>
+  <Section Name="Female Face Texture">
+    <Key Name="assetID" Value="00000000-0000-1111-9999-000000000012"/>
+    <Key Name="name" Value="Female Face Texture"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="femaleface.jp2"/>
+  </Section>
+  <Section Name="Female Hair Texture">
+    <Key Name="assetID" Value="7ca39b4c-bd19-4699-aff7-f93fd03d3e7b"/>
+    <Key Name="name" Value="Female Hair Texture"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="femalehair.jp2"/>
+  </Section>
+  <Section Name="Hyperlink Map Texture">
+    <Key Name="assetID" Value="00000000-0000-1111-9999-000000000013"/>
+    <Key Name="name" Value="Hyperlink Map Texture"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="hg2.jp2"/>
+  </Section>
+  <Section Name="Moon">
+    <Key Name="assetID" Value="ec4b9f0b-d008-45c6-96a4-01dd947ac621"/>
+    <Key Name="name" Value="Moon"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="moon.jp2"/>
+  </Section>
+  <Section Name="Cloud">
+    <Key Name="assetID" Value="dc4b9f0b-d008-45c6-96a4-01dd947ac621"/>
+    <Key Name="name" Value="Cloud"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="cloud.jp2"/>
+  </Section>
+
+  <Section Name="Terrain Dirt">
+    <Key Name="assetID" Value="b8d3965a-ad78-bf43-699b-bff8eca6c975"/>
+    <Key Name="name" Value="Terrain Dirt"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="Terrain Dirt-b8d3965a-ad78-bf43-699b-bff8eca6c975.texture" />
+  </Section>
+  <Section Name="Terrain Grass">
+    <Key Name="assetID" Value="abb783e6-3e93-26c0-248a-247666855da3"/>
+    <Key Name="name" Value="Terrain Grass"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="Terrain Grass-abb783e6-3e93-26c0-248a-247666855da3.texture" />
+  </Section>
+  <Section Name="Terrain Mountain">
+    <Key Name="assetID" Value="179cdabd-398a-9b6b-1391-4dc333ba321f"/>
+    <Key Name="name" Value="Terrain Mountain"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="Terrain Mountain-179cdabd-398a-9b6b-1391-4dc333ba321f.texture" />
+  </Section>
+  <Section Name="Terrain Rock">
+    <Key Name="assetID" Value="beb169c7-11ea-fff2-efe5-0f24dc881df2"/>
+    <Key Name="name" Value="Terrain Rock"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="Terrain Rock-beb169c7-11ea-fff2-efe5-0f24dc881df2.texture" />
+  </Section>
+
+  <Section Name="Blank Texture">
+    <Key Name="assetID" Value="5748decc-f629-461c-9a36-a35a221fe21f"/>
+    <Key Name="name" Value="Blank Texture"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="blank.jpc" />
+  </Section>
+
+  <Section Name="Default Media Texture">
+    <Key Name="assetID" Value="8b5fec65-8d8d-9dc5-cda8-8fdf2716e361"/>
+    <Key Name="name" Value="Default Media Texture"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="default_media.jp2" />
+  </Section>
+
+  <Section Name="Default Transparent Texture">
+    <Key Name="assetID" Value="8dcd4a48-2d37-4909-9f78-f7a9eb4ef903"/>
+    <Key Name="name" Value="Default Transparent Texture"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="default_clear.jp2" />
+  </Section>
+
+  <!-- 3a367d1c-bef1-6d43-7595-e88c1e3aadb3 is a UUID that viewers assume exists in the asset server -->
+  <!-- See http://opensimulator.org/mantis/bug_view_advanced_page.php?bug_id=4751 for more details -->
+  <Section Name="Default Alpha Layer Texture">
+    <Key Name="assetID" Value="3a367d1c-bef1-6d43-7595-e88c1e3aadb3"/>
+    <Key Name="name" Value="Default Alpha Layer Texture"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="default_clear.jp2" />
+  </Section>
+  
+  <Section Name="Default Avatar">
+    <Key Name="assetID" Value="c228d1cf-4b5d-4ba8-84f4-899a0796aa97"/>
+    <Key Name="name" Value="Default Avatar"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="default_avatar.jp2" />
+  </Section>
+
+  <Section Name="Default Iris">
+    <Key Name="assetID" Value="6522e74d-1660-4e7f-b601-6f48c1659a77"/>
+    <Key Name="name" Value="Default Iris"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="default_iris.jp2" />
+  </Section>
+
+  <Section Name="Cypress 1">
+     <Key Name="assetID" Value="fb2ae204-3fd1-df33-594f-c9f882830e66"/>
+     <Key Name="name" Value="Cypress 1"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="fb2ae204-3fd1-df33-594f-c9f882830e66.j2c" />
+  </Section>
+  
+   <Section Name="Beach Grass 1">
+     <Key Name="assetID" Value="18fb888b-e8f1-dce7-7da7-321d651ea6b0"/>
+     <Key Name="name" Value="Beach Grass 1"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="18fb888b-e8f1-dce7-7da7-321d651ea6b0.j2c" />
+  </Section>
+  
+  <Section Name="Cypress 1">
+     <Key Name="assetID" Value="fb2ae204-3fd1-df33-594f-c9f882830e66"/>
+     <Key Name="name" Value="Cypress 1"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="fb2ae204-3fd1-df33-594f-c9f882830e66.j2c" />
+  </Section>
+  
+  <Section Name="Cypress 2">
+     <Key Name="assetID" Value="30047cec-269d-408e-0c30-b2603b887268"/>
+     <Key Name="name" Value="Cypress 2"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="30047cec-269d-408e-0c30-b2603b887268.j2c" />
+  </Section>
+  
+  <Section Name="Dogwood">
+     <Key Name="assetID" Value="64367bd1-697e-b3e6-0b65-3f862a577366"/>
+     <Key Name="name" Value="Dogwood"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="64367bd1-697e-b3e6-0b65-3f862a577366.j2c" />
+  </Section>
+  
+  <Section Name="Eelgrass">
+     <Key Name="assetID" Value="96b4de31-f4fa-337d-ec78-451e3609769e"/>
+     <Key Name="name" Value="Eelgrass"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="96b4de31-f4fa-337d-ec78-451e3609769e.j2c" />
+  </Section>
+  
+  <Section Name="Eucalyptus">
+     <Key Name="assetID" Value="a6162133-724b-54df-a12f-51cd070ad6f3"/>
+     <Key Name="name" Value="Eucalyptus"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="a6162133-724b-54df-a12f-51cd070ad6f3.j2c" />
+  </Section>
+  
+  <Section Name="Fern">
+     <Key Name="assetID" Value="8872f2b8-31db-42d8-580a-b3e4a91262de"/>
+     <Key Name="name" Value="Fern"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="8872f2b8-31db-42d8-580a-b3e4a91262de.j2c" />
+  </Section>
+  
+  <Section Name="Kelp 1">
+     <Key Name="assetID" Value="2caf1179-7861-6ff3-4b7d-46e17780bdfa"/>
+     <Key Name="name" Value="Kelp 1"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="2caf1179-7861-6ff3-4b7d-46e17780bdfa.j2c" />
+  </Section>
+  
+  <Section Name="Kelp 2">
+     <Key Name="assetID" Value="2a4880b6-b7a3-690a-2049-bfbe38eafb9f"/>
+     <Key Name="name" Value="Kelp 2"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="2a4880b6-b7a3-690a-2049-bfbe38eafb9f.j2c" />
+  </Section>
+  
+  <Section Name="Oak">
+     <Key Name="assetID" Value="8a515889-eac9-fb55-8eba-d2dc09eb32c8"/>
+     <Key Name="name" Value="Oak"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="8a515889-eac9-fb55-8eba-d2dc09eb32c8.j2c" />
+  </Section>
+  
+  <Section Name="Palm 1">
+     <Key Name="assetID" Value="ca4e8c27-473c-eb1c-2f5d-50ee3f07d85c"/>
+     <Key Name="name" Value="Palm 1"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="ca4e8c27-473c-eb1c-2f5d-50ee3f07d85c.j2c" />
+  </Section>
+  
+  <Section Name="Palm 2">
+     <Key Name="assetID" Value="2d784476-d0db-9979-0cff-9408745a7cf3"/>
+     <Key Name="name" Value="Palm 2"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="2d784476-d0db-9979-0cff-9408745a7cf3.j2c" />
+  </Section>
+  
+  <Section Name="Pine 1">
+     <Key Name="assetID" Value="0187babf-6c0d-5891-ebed-4ecab1426683"/>
+     <Key Name="name" Value="Pine 1"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="0187babf-6c0d-5891-ebed-4ecab1426683.j2c" />
+  </Section>
+  
+  <Section Name="Pine 2">
+     <Key Name="assetID" Value="d691a01c-13b7-578d-57c0-5caef0b4e7e1"/>
+     <Key Name="name" Value="Pine 2"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="d691a01c-13b7-578d-57c0-5caef0b4e7e1.j2c" />
+  </Section>
+  
+  <Section Name="Plumeria">
+     <Key Name="assetID" Value="6de37e4e-7029-61f5-54b8-f5e63f983f58"/>
+     <Key Name="name" Value="Plumeria"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="6de37e4e-7029-61f5-54b8-f5e63f983f58.j2c" />
+  </Section>
+  
+  <Section Name="Sea Sword">
+     <Key Name="assetID" Value="5894e2e7-ab8d-edfa-e61c-18cf16854ba3"/>
+     <Key Name="name" Value="Sea Sword"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="5894e2e7-ab8d-edfa-e61c-18cf16854ba3.j2c" />
+  </Section>
+  
+  <Section Name="Tropical Bush 1">
+     <Key Name="assetID" Value="5bc11cd6-2f40-071e-a8da-0903394204f9"/>
+     <Key Name="name" Value="Tropical Bush 1"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="5bc11cd6-2f40-071e-a8da-0903394204f9.j2c" />
+  </Section>
+  
+  <Section Name="Tropical Bush 2">
+     <Key Name="assetID" Value="cdd9a9fc-6d0b-f90d-8416-c72b6019bca8"/>
+     <Key Name="name" Value="Tropical Bush 2"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="cdd9a9fc-6d0b-f90d-8416-c72b6019bca8.j2c" />
+  </Section>
+  
+  <Section Name="Winter Pine 1">
+     <Key Name="assetID" Value="10d2a01a-0818-84b9-4b96-c2eb63256519"/>
+     <Key Name="name" Value="Winter Pine 1"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="10d2a01a-0818-84b9-4b96-c2eb63256519.j2c" />
+  </Section>
+  
+  <Section Name="Winter Pine 2">
+     <Key Name="assetID" Value="67931331-0c02-4876-1255-28770896c6a2"/>
+     <Key Name="name" Value="Winter Pine 2"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="67931331-0c02-4876-1255-28770896c6a2.j2c" />
+  </Section>
+  
+  <Section Name="Winter Aspen">
+     <Key Name="assetID" Value="7c0cf89b-44b1-1ce2-dd74-07102a98ac2a"/>
+     <Key Name="name" Value="Winter Aspen"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="7c0cf89b-44b1-1ce2-dd74-07102a98ac2a.j2c" />
+  </Section>
+  
+  <Section Name="Grass 0">
+     <Key Name="assetID" Value="6c4727b8-ac79-ba44-3b81-f9aa887b47eb"/>
+     <Key Name="name" Value="Grass 0"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="6c4727b8-ac79-ba44-3b81-f9aa887b47eb.j2c" />
+  </Section>
+  
+  <Section Name="Grass 1">
+     <Key Name="assetID" Value="79504bf5-c3ec-0763-6563-d843de66d0a1"/>
+     <Key Name="name" Value="Grass 1"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="79504bf5-c3ec-0763-6563-d843de66d0a1.j2c" />
+  </Section>
+  
+  <Section Name="Grass 2">
+     <Key Name="assetID" Value="6c4727b8-ac79-ba44-3b81-f9aa887b47eb"/>
+     <Key Name="name" Value="Grass 2"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="6c4727b8-ac79-ba44-3b81-f9aa887b47eb.j2c" />
+  </Section>
+  
+  <Section Name="Grass 3">
+     <Key Name="assetID" Value="99bd60a2-3250-efc9-2e39-2fbcadefbecc"/>
+     <Key Name="name" Value="Grass 3"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="99bd60a2-3250-efc9-2e39-2fbcadefbecc.j2c" />
+  </Section>
+  
+  <Section Name="Grass 4">
+     <Key Name="assetID" Value="7a2b3a4a-53c2-53ac-5716-aac7d743c020"/>
+     <Key Name="name" Value="Grass 4"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="7a2b3a4a-53c2-53ac-5716-aac7d743c020.j2c" />
+  </Section>
+  
+  <Section Name="undergrowth_1">
+     <Key Name="assetID" Value="8f458549-173b-23ff-d4ff-bfaa5ea2371b"/>
+     <Key Name="name" Value="undergrowth_1"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="8f458549-173b-23ff-d4ff-bfaa5ea2371b.j2c" />
+  </Section>
+  
+  <Section Name="texture_crosshair">
+     <Key Name="assetID" Value="a85ac674-cb75-4af6-9499-df7c5aaf7a28"/>
+     <Key Name="name" Value="texture_crosshair"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="a85ac674-cb75-4af6-9499-df7c5aaf7a28.j2c" />
+  </Section>
+  
+  <Section Name="viewer_water">
+     <Key Name="assetID" Value="822ded49-9a6c-f61c-cb89-6df54f42cdf4"/>
+     <Key Name="name" Value="viewer_water"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="822ded49-9a6c-f61c-cb89-6df54f42cdf4.j2c" />
+  </Section>
+  
+  <Section Name="woodgrain_bumpmap">
+     <Key Name="assetID" Value="058c75c0-a0d5-f2f8-43f3-e9699a89c2fc"/>
+     <Key Name="name" Value="woodgrain_bumpmap"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="058c75c0-a0d5-f2f8-43f3-e9699a89c2fc.j2c" />
+  </Section>
+  
+  <Section Name="bark_bumpmap">
+     <Key Name="assetID" Value="6c9fa78a-1c69-2168-325b-3e03ffa348ce"/>
+     <Key Name="name" Value="bark_bumpmap"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="6c9fa78a-1c69-2168-325b-3e03ffa348ce.j2c" />
+  </Section>
+  
+  <Section Name="bricks_bumpmap">
+     <Key Name="assetID" Value="b8eed5f0-64b7-6e12-b67f-43fa8e773440"/>
+     <Key Name="name" Value="bricks_bumpmap"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="b8eed5f0-64b7-6e12-b67f-43fa8e773440.j2c" />
+  </Section>
+  
+  <Section Name="checker_bumpmap">
+     <Key Name="assetID" Value="9deab416-9c63-78d6-d558-9a156f12044c"/>
+     <Key Name="name" Value="checker_bumpmap"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="9deab416-9c63-78d6-d558-9a156f12044c.j2c" />
+  </Section>
+  
+  <Section Name="concrete_bumpmap">
+     <Key Name="assetID" Value="db9d39ec-a896-c287-1ced-64566217021e"/>
+     <Key Name="name" Value="concrete_bumpmap"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="db9d39ec-a896-c287-1ced-64566217021e.j2c" />
+  </Section>
+  
+  <Section Name="crustytile_bumpmap">
+     <Key Name="assetID" Value="f2d7b6f6-4200-1e9a-fd5b-96459e950f94"/>
+     <Key Name="name" Value="crustytile_bumpmap"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="f2d7b6f6-4200-1e9a-fd5b-96459e950f94.j2c" />
+  </Section>
+  
+  <Section Name="cutstone_bumpmap">
+     <Key Name="assetID" Value="d9258671-868f-7511-c321-7baef9e948a4"/>
+     <Key Name="name" Value="cutstone_bumpmap"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="d9258671-868f-7511-c321-7baef9e948a4.j2c" />
+  </Section>
+  
+  <Section Name="discs_bumpmap">
+     <Key Name="assetID" Value="d21e44ca-ff1c-a96e-b2ef-c0753426b7d9"/>
+     <Key Name="name" Value="discs_bumpmap"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="d21e44ca-ff1c-a96e-b2ef-c0753426b7d9.j2c" />
+  </Section>
+  
+  <Section Name="gravel_bumpmap">
+     <Key Name="assetID" Value="4726f13e-bd07-f2fb-feb0-bfa2ac58ab61"/>
+     <Key Name="name" Value="gravel_bumpmap"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="4726f13e-bd07-f2fb-feb0-bfa2ac58ab61.j2c" />
+  </Section>
+  
+  <Section Name="petridish_bumpmap">
+     <Key Name="assetID" Value="e569711a-27c2-aad4-9246-0c910239a179"/>
+     <Key Name="name" Value="petridish_bumpmap"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="e569711a-27c2-aad4-9246-0c910239a179.j2c" />
+  </Section>
+  
+  <Section Name="siding_bumpmap">
+     <Key Name="assetID" Value="073c9723-540c-5449-cdd4-0e87fdc159e3"/>
+     <Key Name="name" Value="siding_bumpmap"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="073c9723-540c-5449-cdd4-0e87fdc159e3.j2c" />
+  </Section>
+  
+  <Section Name="stonetile_bumpmap">
+     <Key Name="assetID" Value="ae874d1a-93ef-54fb-5fd3-eb0cb156afc0"/>
+     <Key Name="name" Value="stonetile_bumpmap"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="ae874d1a-93ef-54fb-5fd3-eb0cb156afc0.j2c" />
+  </Section>
+  
+  <Section Name="stucco_bumpmap">
+     <Key Name="assetID" Value="92e66e00-f56f-598a-7997-048aa64cde18"/>
+     <Key Name="name" Value="stucco_bumpmap"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="92e66e00-f56f-598a-7997-048aa64cde18.j2c" />
+  </Section>
+  
+  
+  <Section Name="suction_bumpmap">
+     <Key Name="assetID" Value="83b77fc6-10b4-63ec-4de7-f40629f238c5"/>
+     <Key Name="name" Value="suction_bumpmap"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="83b77fc6-10b4-63ec-4de7-f40629f238c5.j2c" />
+  </Section>
+  
+  <Section Name="weave_bumpmap">
+     <Key Name="assetID" Value="735198cf-6ea0-2550-e222-21d3c6a341ae"/>
+     <Key Name="name" Value="weave_bumpmap"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="735198cf-6ea0-2550-e222-21d3c6a341ae.j2c" />
+  </Section>
+
+  <!-- 
+    Texture expected by viewers for properly displaying stars in the night sky
+    Name derives from label in viewer code
+  -->
+  <Section Name="IMG_BLOOM1 Texture">
+    <Key Name="assetID" Value="3c59f7fe-9dc8-47f9-8aaf-a9dd1fbc3bef"/>
+    <Key Name="name" Value="IMG_BLOOM1 Texture"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="IMG_BLOOM1.jp2" />
+  </Section>
+
+</Nini>

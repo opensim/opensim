@@ -1,0 +1,14 @@
+[Startup]
+    ; Set here or use the -user command-line switch
+    ;user = Test
+
+    ; Set here or use the -host command-line switch
+    ;host = localhost
+
+    ; Set here or use the -port command-line switch
+    ;port = 8003
+
+    ; Set here or use the -pass command-line switch
+    ; Please be aware that this is not secure since the password is in the clear
+    ; we recommend the use of -pass wherever possible
+    ;pass = secret

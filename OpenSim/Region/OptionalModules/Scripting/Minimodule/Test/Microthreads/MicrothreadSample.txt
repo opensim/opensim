@@ -1,0 +1,40 @@
+﻿//MRM:C#
+using System.Collections;
+using System.Collections.Generic;
+using OpenSim.Region.OptionalModules.Scripting.Minimodule;
+
+namespace OpenSim
+{
+    class MiniModule : MRMBase
+    {
+		public microthreaded void MicroThreadFunction(string testparam) 
+		{
+			Host.Object.Say("Hello " + testparam);
+			
+			relax; // the 'relax' keyword gives up processing time.
+				   // and should be inserted before, after or in
+				   // any computationally "heavy" zones.
+			
+			int c = 500;
+			while(c-- < 0) {
+				Host.Object.Say("C=" + c);
+				relax; // Putting 'relax' in microthreaded loops
+					   // is an easy way to lower the CPU tax
+					   // on your script.
+			}
+			
+		}
+
+        public override void Start()
+        {
+            Host.Microthreads.Run(
+					MicroThreadFunction("World!")
+				);
+        }
+        
+        public override void Stop()
+        {
+            
+        }
+    }
+}

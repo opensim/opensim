@@ -1,0 +1,5 @@
+Many issues appear in the support channels because of a misunderstanding of the use of these utilities. And through discussion at OpenSimulator Office Hours it was determined that these tools probably serve no useful purpose anymore.
+
+Instead of removing them immediately, we move them here, for a time, in case there is a useful purpose that has escaped us during conversations.
+
+If a need to compile these arises, the OpenSim.32BitLaunch and Robust.32BitLaunch directories may be placed under the ./OpenSim/Tools sources subdirectory, run the prebuild script and compile.

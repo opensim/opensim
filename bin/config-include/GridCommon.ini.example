@@ -1,0 +1,245 @@
+; This is the main configuration file for an instance of OpenSim running in grid mode
+
+[DatabaseService]
+    ;
+    ; ### Choose the DB
+    ;
+
+    ; SQLite
+    Include-Storage = "config-include/storage/SQLiteStandalone.ini";
+
+    ; MySql
+    ; Uncomment these lines if you want to use mysql storage
+    ; Change the connection string to your db details
+    ;StorageProvider = "OpenSim.Data.MySQL.dll"
+    ;ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;Old Guids=true;"
+    ; Uncomment this line if you are using MySQL and want to use a different database for estates
+    ; The usual application for this is to allow estates to be spread out across multiple simulators by share the same database.
+    ; Most people won't need to do this so only uncomment if you know what you're doing.
+    ;EstateConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;Old Guids=true;"
+
+    ; MSSQL
+    ; Uncomment these lines if you want to use MSSQL storage
+    ; Change the connection string to your db details
+    ; The value for server property is shown in your SQL Server Management Studio login dialog.
+    ; (This sample is the default of express edition)
+    ;StorageProvider = "OpenSim.Data.MSSQL.dll"
+    ;ConnectionString = "Server=localhost\SQLEXPRESS;Database=opensim;User Id=opensim; password=***;"
+
+    ; PGSQL
+    ; Uncomment these lines if you want to use PGSQL storage
+    ; Change the connection string to your db details
+    ;StorageProvider = "OpenSim.Data.PGSQL.dll"
+    ;ConnectionString = "Server=localhost;Database=opensim;User Id=opensim; password=***;"
+
+[Hypergrid]
+    ; Uncomment the variables in this section only if you are in
+    ; Hypergrid configuration. Otherwise, ignore.
+
+    ;# {HomeURI} {Hypergrid} {The Home URL of this world} {}
+    ;; If this is a standalone world, this is the address of this instance.
+    ;; If this is a grided simulator, this is the address of the external robust server that
+    ;; runs the UserAgentsService.
+    ;; For example http://myworld.com:9000 or http://myworld.com:8002
+    ;; This is a default that can be overwritten in some sections.
+    ; HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
+
+    ;# {GatekeeperURI} {Hypergrid} {The URL of the gatekeeper of this world} {}
+    ;; If this is a standalone world, this is the address of this instance.
+    ;; If this is a grided simulator, this is the address of the external robust server
+    ;; that runs the Gatekeeper service.
+    ;; For example http://myworld.com:9000 or http://myworld.com:8002
+    ;; This is a default that can be overwritten in some sections.
+    ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
+
+[Modules]
+    ;; Choose one cache module and the corresponding config file, if it exists.
+    ;; Copy the config .example file into your own .ini file and adapt that.
+    ;; We recommend the use of the FlotsamAssetCache since this is most actively maintained.
+
+    AssetCaching = "FlotsamAssetCache"
+    Include-FlotsamCache = "config-include/FlotsamCache.ini"
+
+    ;AssetCaching = "CenomeMemoryAssetCache"
+    ;Include-CenomeCache = "config-include/CenomeCache.ini"
+
+    ;AssetCaching = "GlynnTuckerAssetCache"
+
+    ;; Optionally, the port for the LLProxyLoginModule module can be changed
+    ;Setup_LLProxyLoginModule = "9090/"
+
+    ;; Authorization is not on by default, as it depends on external php
+    ;AuthorizationServices = "RemoteAuthorizationServicesConnector"
+
+[AssetService]
+    DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
+    AssetLoaderArgs = "assets/AssetSets.xml"
+
+    ;
+    ; Change this to your grid-wide asset server.  Do not add a slash to the end of any of these addresses.
+    ;
+    AssetServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+
+[InventoryService]
+    ;
+    ; Change this to your grid-wide inventory server
+    ;
+    InventoryServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+
+[GridInfo]
+    ;
+    ; Change this to your grid info service
+    ;
+    GridInfoURI = "${Const|BaseURL}:${Const|PublicPort}"
+
+[GridService]
+    ;
+    ; Change this to your grid-wide grid server
+    ;
+    GridServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+    ;AllowHypergridMapSearch = true
+
+    ;; Directory for map tile images of linked regions
+    ; MapTileDirectory = "./maptiles"
+
+    ; === HG ONLY ===
+    ;; Change this to the address of your Gatekeeper service
+    ;; (usually bundled with the rest of the services in one 
+    ;; Robust server in port ${Const|PublicPort}, but not always)
+    Gatekeeper="${Const|BaseURL}:${Const|PublicPort}"
+
+[EstateDataStore]
+    ;
+    ; Uncomment if you want centralized estate data at robust server,
+    ; in which case the URL in [EstateService] will be used
+    ;
+    ;LocalServiceModule = "OpenSim.Services.Connectors.dll:EstateDataRemoteConnector"
+
+[EstateService]
+    EstateServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+
+[Messaging]
+    ; === HG ONLY ===
+    ;; Change this to the address of your Gatekeeper service
+    ;; (usually bundled with the rest of the services in one 
+    ;; Robust server in port ${Const|PublicPort}, but not always)
+    Gatekeeper = "${Const|BaseURL}:${Const|PublicPort}"
+
+[AvatarService]
+    ;
+    ; Change this to your grid-wide grid server
+    ;
+    AvatarServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+
+[AgentPreferencesService]
+    ;
+    ; Change this to your grid-wide avatar prefs server
+    ;
+    AgentPreferencesServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+
+[PresenceService]
+    ;
+    ; Change this to your grid-wide presence server
+    ;
+    PresenceServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+
+[UserAccountService]
+    ;
+    ; Change this to your grid-wide user accounts server
+    ;
+    UserAccountServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+
+[GridUserService]
+    ;
+    ; Change this to your grid-wide user accounts server
+    ;
+    GridUserServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+
+[AuthenticationService]
+    ;
+    ; Change this to your grid-wide authentication server
+    ;
+    AuthenticationServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+
+[FriendsService]
+    ;
+    ; Change this to your grid-wide friends server
+    ;
+    FriendsServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+
+[HGInventoryAccessModule]
+    ;
+    ; === HG ONLY ===
+    ; Change this to your server 
+    ; accessible from other grids
+    ;
+    HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
+    Gatekeeper = "${Const|BaseURL}:${Const|PublicPort}"
+    ;; If you want to protect your assets from being copied by foreign visitors
+    ;; set this to false. You may want to do this on sims that have licensed content.
+    ;; Default is true.
+    ; OutboundPermission = True
+
+    ;; Send visual reminder to local users that their inventories are unavailable while they are traveling
+    ;; and available when they return. True by default.
+    ;RestrictInventoryAccessAbroad = True
+
+    ;; Warning: advanced and unusual. Default is false.
+    ;; Enables configurations where grids share user services, including inventory,
+    ;; while separating regions' assets from users' assets. Asset transfer between 
+    ;; the users' asset server and the regions' asset server is done in HG-like manner.
+    ; CheckSeparateAssets = false
+    ; RegionHGAssetServerURI = ${Const|BaseURL}:${Const|PublicPort}
+
+
+[HGAssetService]
+    ;
+    ; === HG ONLY ===
+    ; Change this to your server 
+    ; accessible from other grids
+    ;
+    HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
+
+    ;; The asset types that this grid can export to / import from other grids.
+    ;; Comma separated.
+    ;; Valid values are all the asset types in OpenMetaverse.AssetType, namely:
+    ;; Unknown, Texture, Sound, CallingCard, Landmark, Clothing, Object, Notecard, LSLText, 
+    ;; LSLBytecode, TextureTGA, Bodypart, SoundWAV, ImageTGA, ImageJPEG, Animation, Gesture, Mesh 
+    ;;
+    ;; Leave blank or commented if you don't want to apply any restrictions.
+    ;; A more strict, but still reasonable, policy may be to disallow the exchange 
+    ;; of scripts, like so:
+    ; DisallowExport ="LSLText"
+    ; DisallowImport ="LSLBytecode"
+
+[HGFriendsModule]
+    ; User level required to be able to send friendship invitations to foreign users
+    ;LevelHGFriends = 0;
+
+[UserAgentService]
+    ;
+    ; === HG ONLY ===
+    ; Change this to your user agent server (HG robust)
+    ;
+    UserAgentServerURI = "${Const|BaseURL}:${Const|PublicPort}"
+
+[MapImageService]
+    MapImageServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+
+[AuthorizationService]
+  ; If you have regions with access restrictions
+    ; specify them here using the convention
+    ; Region_<Region_Name> = <flags>
+    ; Valid flags are:
+    ; DisallowForeigners -- HG visitors not allowed
+    ; DisallowResidents -- only Admins and Managers allowed
+    ; Example:
+    ; Region_Test_1 = "DisallowForeigners"
+
+;; Uncomment if you are using SimianGrid for grid services
+[SimianGrid]
+    ;; SimianGrid services URL
+    ;; SimianServiceURL = "http://grid.sciencesim.com/Grid/"
+
+    ;; Capability assigned by the grid administrator for the simulator
+    ;; SimulatorCapability = "00000000-0000-0000-0000-000000000000"

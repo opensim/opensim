@@ -1,0 +1,49 @@
+LLWearable version 22
+Goblin Skin
+
+	permissions 0
+	{
+		base_mask	00080000
+		owner_mask	00080000
+		group_mask	00000000
+		everyone_mask	00000000
+		next_owner_mask	00080000
+		creator_id	15787b54-7833-4238-9c18-80ddd7687bfe
+		owner_id	15787b54-7833-4238-9c18-80ddd7687bfe
+		last_owner_id	15787b54-7833-4238-9c18-80ddd7687bfe
+		group_id	00000000-0000-0000-0000-000000000000
+	}
+	sale_info	0
+	{
+		sale_type	not
+		sale_price	10
+	}
+type 1
+parameters 26
+108 .6
+110 .1
+111 1
+116 .68
+117 .28
+150 0
+162 1
+163 .99
+165 .69
+700 .51
+701 .2
+702 0
+703 0
+704 0
+705 .5
+706 .6
+707 0
+708 0
+709 0
+710 0
+711 .5
+712 0
+713 .7
+714 0
+715 0
+775 0
+textures 0

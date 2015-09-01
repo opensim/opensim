@@ -1,0 +1,16 @@
+<Nini>
+  <!-- the root Opensim Library folder ID is 00000112-000f-0000-0000-000100bba000 -->
+
+<!--
+  <Section Name="Example Library Item">
+    <Key Name="inventoryID" Value="30000000-0000-2222-4444-000000000001" />
+    <Key Name="assetID" Value="30000000-0000-2222-3333-000000000001" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba003"/>
+    <Key Name="description" Value="Example Library Item" />
+    <Key Name="name" Value="Example Library Item" />
+    <Key Name="assetType" Value="7" />
+    <Key Name="inventoryType" Value="7" />
+  </Section>
+--> 
+
+</Nini>

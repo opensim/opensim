@@ -1,0 +1,14 @@
+<Nini>
+  <Section Name="Welcome notecard">
+    <Key Name="assetID" Value="00000000-0000-2222-3333-000000000001" />
+    <Key Name="name" Value="WelcomeNote" />
+    <Key Name="assetType" Value="7" />
+    <Key Name="fileName" Value="welcomeNote.txt" />
+  </Section>
+  <Section Name="Example notecard">
+    <Key Name="assetID" Value="8d1ada50-b9c7-11dc-95ff-0800200c9a66" />
+    <Key Name="name" Value="WelcomeNote" />
+    <Key Name="assetType" Value="7" />
+    <Key Name="fileName" Value="exampleNote.txt" />
+  </Section>
+</Nini>

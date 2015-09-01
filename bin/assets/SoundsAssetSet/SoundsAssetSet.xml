@@ -1,0 +1,164 @@
+<Nini>
+  <Section Name="UISndAlert">
+    <Key Name="assetID" Value="ed124764-705d-d497-167a-182cd9fa2e6c" />
+    <Key Name="name" Value="UISndAlert" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndAlert.ogg" />
+  </Section>
+  <Section Name="UISndBadKeystroke">
+    <Key Name="assetID" Value="2ca849ba-2885-4bc3-90ef-d4987a5b983a" />
+    <Key Name="name" Value="UISndBadKeystroke" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndBadKeystroke.ogg" />
+  </Section>
+  <Section Name="UISndClick">
+    <Key Name="assetID" Value="4c8c3c77-de8d-bde2-b9b8-32635e0fd4a6" />
+    <Key Name="name" Value="UISndClick" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndClick.ogg" />
+  </Section>
+  <Section Name="UISndHealthReductionF">
+    <Key Name="assetID" Value="219c5d93-6c09-31c5-fb3f-c5fe7495c115" />
+    <Key Name="name" Value="UISndHealthReductionF" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndHealthReductionF.ogg" />
+  </Section>
+  <Section Name="UISndHealthReductionM">
+    <Key Name="assetID" Value="e057c244-5768-1056-c37e-1537454eeb62" />
+    <Key Name="name" Value="UISndHealthReductionM" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndHealthReductionM.ogg" />
+  </Section>
+  <Section Name="UISndInvalidOp">
+    <Key Name="assetID" Value="4174f859-0d3d-c517-c424-72923dc21f65" />
+    <Key Name="name" Value="UISndInvalidOp" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndInvalidOp.ogg" />
+  </Section>
+  <Section Name="UISndMoneyChangeDown">
+    <Key Name="assetID" Value="104974e3-dfda-428b-99ee-b0d4e748d3a3" />
+    <Key Name="name" Value="UISndMoneyChangeDown" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndMoneyChangeDown.ogg" />
+  </Section>
+  <Section Name="UISndMoneyChangeUp">
+    <Key Name="assetID" Value="77a018af-098e-c037-51a6-178f05877c6f" />
+    <Key Name="name" Value="UISndMoneyChangeUp" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndMoneyChangeUp.ogg" />
+  </Section>
+  <Section Name="UISndNewIncomingIMSession">
+    <Key Name="assetID" Value="67cc2844-00f3-2b3c-b991-6418d01e1bb7" />
+    <Key Name="name" Value="UISndNewIncomingIMSession" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndNewIncomingIMSession.ogg" />
+  </Section>
+  <Section Name="UISndObjectCreate">
+    <Key Name="assetID" Value="f4a0660f-5446-dea2-80b7-6482a082803c" />
+    <Key Name="name" Value="UISndObjectCreate" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndObjectCreate.ogg" />
+  </Section>
+  <Section Name="UISndObjectDelete">
+    <Key Name="assetID" Value="0cb7b00a-4c10-6948-84de-a93c09af2ba9" />
+    <Key Name="name" Value="UISndObjectDelete" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndObjectDelete.ogg" />
+  </Section>
+  <Section Name="UISndObjectRezIn">
+    <Key Name="assetID" Value="3c8fc726-1fd6-862d-fa01-16c5b2568db6" />
+    <Key Name="name" Value="UISndObjectRezIn" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndObjectRezIn.ogg" />
+  </Section>
+  <Section Name="UISndPieMenuAppear">
+    <Key Name="assetID" Value="8eaed61f-92ff-6485-de83-4dcc938a478e" />
+    <Key Name="name" Value="UISndPieMenuAppear" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndPieMenuAppear.ogg" />
+  </Section>
+  <Section Name="UISndPieMenuSliceHighlight0">
+    <Key Name="assetID" Value="d9f73cf8-17b4-6f7a-1565-7951226c305d" />
+    <Key Name="name" Value="UISndPieMenuSliceHighlight0" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndPieMenuSliceHighlight.ogg" />
+  </Section>
+  <Section Name="UISndPieMenuSliceHighlight1">
+    <Key Name="assetID" Value="f6ba9816-dcaf-f755-7b67-51b31b6233e5" />
+    <Key Name="name" Value="UISndPieMenuSliceHighlight1" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndPieMenuSliceHighlight.ogg" />
+  </Section>
+  <Section Name="UISndPieMenuSliceHighlight2">
+    <Key Name="assetID" Value="7aff2265-d05b-8b72-63c7-dbf96dc2f21f" />
+    <Key Name="name" Value="UISndPieMenuSliceHighlight2" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndPieMenuSliceHighlight.ogg" />
+  </Section>
+  <Section Name="UISndPieMenuSliceHighlight3">
+    <Key Name="assetID" Value="09b2184e-8601-44e2-afbb-ce37434b8ba1" />
+    <Key Name="name" Value="UISndPieMenuSliceHighlight3" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndPieMenuSliceHighlight.ogg" />
+  </Section>
+  <Section Name="UISndPieMenuSliceHighlight4">
+    <Key Name="assetID" Value="bbe4c7fc-7044-b05e-7b89-36924a67593c" />
+    <Key Name="name" Value="UISndPieMenuSliceHighlight4" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndPieMenuSliceHighlight.ogg" />
+  </Section>
+  <Section Name="UISndPieMenuSliceHighlight5">
+    <Key Name="assetID" Value="d166039b-b4f5-c2ec-4911-c85c727b016c" />
+    <Key Name="name" Value="UISndPieMenuSliceHighlight5" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndPieMenuSliceHighlight.ogg" />
+  </Section>
+  <Section Name="UISndPieMenuSliceHighlight6">
+    <Key Name="assetID" Value="242af82b-43c2-9a3b-e108-3b0c7e384981" />
+    <Key Name="name" Value="UISndPieMenuSliceHighlight6" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndPieMenuSliceHighlight.ogg" />
+  </Section>
+  <Section Name="UISndPieMenuSliceHighlight7">
+    <Key Name="assetID" Value="c1f334fb-a5be-8fe7-22b3-29631c21cf0b" />
+    <Key Name="name" Value="UISndPieMenuSliceHighlight7" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndPieMenuSliceHighlight.ogg" />
+  </Section>
+  <Section Name="UISndSnapshot">
+    <Key Name="assetID" Value="3d09f582-3851-c0e0-f5ba-277ac5c73fb4" />
+    <Key Name="name" Value="UISndSnapshot" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndSnapshot.ogg" />
+  </Section>
+  <Section Name="UISndStartIM">
+    <Key Name="assetID" Value="c825dfbc-9827-7e02-6507-3713d18916c1" />
+    <Key Name="name" Value="UISndStartIM" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndStartIM.ogg" />
+  </Section>
+  <Section Name="UISndTeleportOut">
+    <Key Name="assetID" Value="d7a9a565-a013-2a69-797d-5332baa1a947" />
+    <Key Name="name" Value="UISndTeleportOut" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndTeleportOut.ogg" />
+  </Section>
+  <Section Name="UISndTyping">
+    <Key Name="assetID" Value="5e191c7b-8996-9ced-a177-b2ac32bfea06" />
+    <Key Name="name" Value="UISndTyping" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndTyping.ogg" />
+  </Section>
+  <Section Name="UISndWindowClose">
+    <Key Name="assetID" Value="2c346eda-b60c-ab33-1119-b8941916a499" />
+    <Key Name="name" Value="UISndWindowClose" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndWindowClose.ogg" />
+  </Section>
+  <Section Name="UISndWindowOpen">
+    <Key Name="assetID" Value="c80260ba-41fd-8a46-768a-6bf236360e3a" />
+    <Key Name="name" Value="UISndWindowOpen" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="OSSndWindowOpen.ogg" />
+  </Section>
+</Nini>

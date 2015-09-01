@@ -1,0 +1,436 @@
+<!--
+  In Keys,
+    name is the name of the item.
+    description is the description of the item.
+    assetID is the ID of the asset data that is referenced by the item.
+    folderID is the ID of the folder containing this item.
+    inventoryID is the ID for the item.  It must be unique.
+    assetType is the asset type of the item.  See the OpenMetaverse.AssetType enum in libopenmetaverse
+    inventoryType is the inventory type of the item.  See the OpenMetaverse.InventoryType enum in libopenmetaverse
+    flags are only required for wearables.  See OpenMetaverse.WearableType enum in libopenmetaverse.
+-->
+
+<Nini>
+
+<!--
+  <Section Name="Example Library Item">
+    <Key Name="inventoryID" Value="30000000-0000-2222-4444-000000000001" />
+    <Key Name="assetID" Value="30000000-0000-2222-3333-000000000001" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba003"/>
+    <Key Name="description" Value="Example Library Item" />
+    <Key Name="name" Value="Example Library Item" />
+    <Key Name="assetType" Value="7" />
+    <Key Name="inventoryType" Value="7" />
+    <Key Name="currentPermissions" Value="2147483647" />
+    <Key Name="nextPermissions" Value="2147483647" />
+    <Key Name="everyonePermissions" Value="2147483647" />
+    <Key Name="basePermissions" Value="2147483647" />
+  </Section>
+--> 
+
+<!-- A == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba003"/> -->
+  <Section Name="llAbs">
+    <Key Name="inventoryID" Value="3b055e3e-b19d-11dc-8314-0800200c9a66" />
+    <Key Name="assetID" Value="3b055e3f-b19d-11dc-8314-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba003"/>
+    <Key Name="description" Value="llA" />
+    <Key Name="name" Value="llAbs" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="llAcos">
+    <Key Name="inventoryID" Value="6519bf38-b19f-11dc-8314-0800200c9a66" />
+    <Key Name="assetID" Value="6519bf39-b19f-11dc-8314-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba003"/>
+    <Key Name="description" Value="llA" />
+    <Key Name="name" Value="llAcos" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="llAddToLandBanList">
+    <Key Name="inventoryID" Value="7ceba3f0-b1a0-11dc-8314-0800200c9a66" />
+    <Key Name="assetID" Value="7ceba3f1-b1a0-11dc-8314-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba003"/>
+    <Key Name="description" Value="llA" />
+    <Key Name="name" Value="llAddToLandBanList" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="llAddToLandPassList">
+    <Key Name="inventoryID" Value="609047e6-b390-11dc-8314-0800200c9a66" />
+    <Key Name="assetID" Value="609047e7-b390-11dc-8314-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba003"/>
+    <Key Name="description" Value="llA" />
+    <Key Name="name" Value="llAddToLandPassList" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="llAdjustSoundVolume">
+    <Key Name="inventoryID" Value="56df4bcc-b393-11dc-8314-0800200c9a66" />
+    <Key Name="assetID" Value="56df4bcd-b393-11dc-8314-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba003"/>
+    <Key Name="description" Value="llA" />
+    <Key Name="name" Value="llAdjustSoundVolume" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="llAllowInventoryDrop">
+    <Key Name="inventoryID" Value="54d6962c-b394-11dc-8314-0800200c9a66" />
+    <Key Name="assetID" Value="54d6962d-b394-11dc-8314-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba003"/>
+    <Key Name="description" Value="llA" />
+    <Key Name="name" Value="llAllowInventoryDrop" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="llAngleBetween">
+    <Key Name="inventoryID" Value="6b341608-b34e-11dc-8314-0800200c9a66" />
+    <Key Name="assetID" Value="6b341609-b34e-11dc-8314-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba003"/>
+    <Key Name="description" Value="llA" />
+    <Key Name="name" Value="llAngleBetween" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="llAsin">
+    <Key Name="inventoryID" Value="7e7422ec-b425-11dc-8314-0800200c9a66" />
+    <Key Name="assetID" Value="7e7422ed-b425-11dc-8314-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba003"/>
+    <Key Name="description" Value="llA" />
+    <Key Name="name" Value="llAsin" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="llAtan2">
+    <Key Name="inventoryID" Value="7e7422ee-b425-11dc-8314-0800200c9a66" />
+    <Key Name="assetID" Value="7e7422ef-b425-11dc-8314-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba003"/>
+    <Key Name="description" Value="llA" />
+    <Key Name="name" Value="llAtan2" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="llApplyImpulse">
+    <Key Name="inventoryID" Value="714ec678-b419-11dc-8314-0800200c9a66" />
+    <Key Name="assetID" Value="714ec679-b419-11dc-8314-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba003"/>
+    <Key Name="description" Value="llA" />
+    <Key Name="name" Value="llApplyImpulse" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="llAvatarOnSitTarget">
+    <Key Name="inventoryID" Value="579fc820-b426-11dc-8314-0800200c9a66" />
+    <Key Name="assetID" Value="579fc821-b426-11dc-8314-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba003"/>
+    <Key Name="description" Value="llA" />
+    <Key Name="name" Value="llAvatarOnSitTarget" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+<!-- B == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba004"/> -->
+  <Section Name="llBase64ToString">
+    <Key Name="inventoryID" Value="1d4c71d8-b428-11dc-8314-0800200c9a66" />
+    <Key Name="assetID" Value="1d4c71d9-b428-11dc-8314-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba004"/>
+    <Key Name="description" Value="llB" />
+    <Key Name="name" Value="llBase64ToString" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+<!-- C == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba005"/> -->
+<!-- D == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba006"/> -->
+<!-- E == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba007"/> -->
+<!-- F == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba008"/> -->
+<!-- G == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba009"/> -->
+<!-- H == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba010"/> -->
+<!-- I == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba011"/> -->
+<!-- K == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba012"/> -->
+<!-- L == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba013"/> -->
+<!-- M == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba014"/> -->
+<!-- O == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba015"/> -->
+<!-- P == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba016"/> -->
+<!-- R == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba017"/> -->
+
+  <Section Name="llRemoveFromLandBanList">
+    <Key Name="inventoryID" Value="299b2100-b392-11dc-8314-0800200c9a66" />
+    <Key Name="assetID" Value="299b2101-b392-11dc-8314-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba017"/>
+    <Key Name="description" Value="llR" />
+    <Key Name="name" Value="llRemoveFromLandBanList" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="llRemoveFromLandPassList">
+    <Key Name="inventoryID" Value="299b2102-b392-11dc-8314-0800200c9a66" />
+    <Key Name="assetID" Value="299b2103-b392-11dc-8314-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba017"/>
+    <Key Name="description" Value="llR" />
+    <Key Name="name" Value="llRemoveFromLandPassList" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="llResetLandBanList">
+    <Key Name="inventoryID" Value="366ac8e6-b391-11dc-8314-0800200c9a66" />
+    <Key Name="assetID" Value="366ac8e7-b391-11dc-8314-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba017"/>
+    <Key Name="description" Value="llR" />
+    <Key Name="name" Value="llResetLandBanList" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="llResetLandPassList">
+    <Key Name="inventoryID" Value="366ac8e8-b391-11dc-8314-0800200c9a66" />
+    <Key Name="assetID" Value="366ac8e9-b391-11dc-8314-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba017"/>
+    <Key Name="description" Value="llR" />
+    <Key Name="name" Value="llResetLandPassList" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+<!-- S == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba018"/> -->
+  <Section Name="llSay">
+    <Key Name="inventoryID" Value="3af51d20-b38f-11dc-8314-0800200c9a66" />
+    <Key Name="assetID" Value="366ac8e9-b391-11dc-8314-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba018"/>
+    <Key Name="description" Value="llS" />
+    <Key Name="name" Value="llSay" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="llSetParcelMusicURL">
+    <Key Name="inventoryID" Value="3603a4f9-b360-11dc-8314-0800200c9a66" />
+    <Key Name="assetID" Value="3603a4f8-b360-11dc-8314-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba018"/>
+    <Key Name="description" Value="llS" />
+    <Key Name="name" Value="llSetParcelMusicURL" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="llSetRot">
+    <Key Name="inventoryID" Value="220baef8-b376-11dc-8314-0800200c9a66" />
+    <Key Name="assetID" Value="220baef9-b376-11dc-8314-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba018"/>
+    <Key Name="description" Value="llS" />
+    <Key Name="name" Value="llSetRot" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+<!-- T == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba019"/> -->
+<!-- U == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba020"/> -->
+<!-- V == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba021"/> -->
+<!-- W == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba022"/> -->
+<!-- X == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba023"/> -->
+<!-- .Kan-ED Scripts == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba024"/> -->
+  <Section Name="Kan-Ed Test1">
+    <Key Name="inventoryID" Value="42b6ac70-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="assetID" Value="42b6ac70-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba024"/>
+    <Key Name="description" Value="Kan-Ed Test1" />
+    <Key Name="name" Value="Kan-Ed Test1" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="Kan-Ed Test2">
+    <Key Name="inventoryID" Value="42b6ac71-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="assetID" Value="42b6ac71-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba024"/>
+    <Key Name="description" Value="Kan-Ed Test2" />
+    <Key Name="name" Value="Kan-Ed Test2" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="Kan-Ed Test3">
+    <Key Name="inventoryID" Value="42b6ac72-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="assetID" Value="42b6ac72-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba024"/>
+    <Key Name="description" Value="Kan-Ed Test3" />
+    <Key Name="name" Value="Kan-Ed Test3" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="Kan-Ed Test4">
+    <Key Name="inventoryID" Value="42b6ac73-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="assetID" Value="42b6ac73-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba024"/>
+    <Key Name="description" Value="Kan-Ed Test4" />
+    <Key Name="name" Value="Kan-Ed Test4" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="Kan-Ed Test5">
+    <Key Name="inventoryID" Value="42b6ac74-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="assetID" Value="42b6ac74-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba024"/>
+    <Key Name="description" Value="Kan-Ed Test5" />
+    <Key Name="name" Value="Kan-Ed Test5" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="Kan-Ed Test6">
+    <Key Name="inventoryID" Value="42b6ac75-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="assetID" Value="42b6ac75-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba024"/>
+    <Key Name="description" Value="Kan-Ed Test6" />
+    <Key Name="name" Value="Kan-Ed Test6" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="Kan-Ed Test7">
+    <Key Name="inventoryID" Value="42b6ac76-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="assetID" Value="42b6ac76-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba024"/>
+    <Key Name="description" Value="Kan-Ed Test7" />
+    <Key Name="name" Value="Kan-Ed Test7" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="Kan-Ed Test8">
+    <Key Name="inventoryID" Value="42b6ac77-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="assetID" Value="42b6ac77-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba024"/>
+    <Key Name="description" Value="Kan-Ed Test8" />
+    <Key Name="name" Value="Kan-Ed Test8" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="Kan-Ed Test9">
+    <Key Name="inventoryID" Value="42b6ac78-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="assetID" Value="42b6ac78-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba024"/>
+    <Key Name="description" Value="Kan-Ed Test9" />
+    <Key Name="name" Value="Kan-Ed Test9" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="Kan-Ed Test10">
+    <Key Name="inventoryID" Value="42b6ac79-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="assetID" Value="42b6ac79-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba024"/>
+    <Key Name="description" Value="Kan-Ed Test10" />
+    <Key Name="name" Value="Kan-Ed Test10" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="Kan-Ed Test11">
+    <Key Name="inventoryID" Value="42b6ac7a-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="assetID" Value="42b6ac7a-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba024"/>
+    <Key Name="description" Value="Kan-Ed Test11" />
+    <Key Name="name" Value="Kan-Ed Test11" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="Kan-Ed Test12">
+    <Key Name="inventoryID" Value="42b6ac7b-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="assetID" Value="42b6ac7b-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba024"/>
+    <Key Name="description" Value="Kan-Ed Test12" />
+    <Key Name="name" Value="Kan-Ed Test12" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="Kan-Ed Test13">
+    <Key Name="inventoryID" Value="42b6ac7c-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="assetID" Value="42b6ac7c-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba024"/>
+    <Key Name="description" Value="Kan-Ed Test13" />
+    <Key Name="name" Value="Kan-Ed Test13" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="Kan-Ed Test14">
+    <Key Name="inventoryID" Value="42b6ac7d-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="assetID" Value="42b6ac7d-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba024"/>
+    <Key Name="description" Value="Kan-Ed Test14" />
+    <Key Name="name" Value="Kan-Ed Test14" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="Kan-Ed Test15">
+    <Key Name="inventoryID" Value="42b6ac7e-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="assetID" Value="42b6ac7e-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba024"/>
+    <Key Name="description" Value="Kan-Ed Test15" />
+    <Key Name="name" Value="Kan-Ed Test15" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="Kan-Ed Test16">
+    <Key Name="inventoryID" Value="42b6ac7f-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="assetID" Value="42b6ac7f-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba024"/>
+    <Key Name="description" Value="Kan-Ed Test16" />
+    <Key Name="name" Value="Kan-Ed Test16" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+<!-- .Other testing scripts == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba025"/> -->
+<!-- OpenSim Specific Scripts == <Key Name="folderID" Value="284858c8-9391-6bf1-ddf5-b936f73de853"/> -->
+
+  <Section Name="osTextBoard">
+    <Key Name="inventoryID" Value="2ddcb059-20c5-d169-4c42-673f16d3284b" />
+    <Key Name="assetID" Value="2ddcb059-20c5-d169-4c42-673f16d3284b" />
+    <Key Name="folderID" Value="284858c8-9391-6bf1-ddf5-b936f73de853"/>
+    <Key Name="description" Value="A dynamic text board - contributed by Neas Bade" />
+    <Key Name="name" Value="osTextBoard" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="osWeatherMap">
+    <Key Name="inventoryID" Value="d63ad3ec-b687-6c38-410d-31ba3e50ce4d" />
+    <Key Name="assetID" Value="d63ad3ec-b687-6c38-410d-31ba3e50ce4d" />
+    <Key Name="folderID" Value="284858c8-9391-6bf1-ddf5-b936f73de853" />
+    <Key Name="description" Value="A cycling US Weather Map - contributed by Neas Bade" />
+    <Key Name="name" Value="osWeatherMap" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+
+  <Section Name="GrafittiBoard">
+    <Key Name="inventoryID" Value="81305ee4-8caa-9e0a-69a4-76ed57df0c8f" />
+    <Key Name="assetID" Value="81305ee4-8caa-9e0a-69a4-76ed57df0c8f" />
+    <Key Name="folderID" Value="284858c8-9391-6bf1-ddf5-b936f73de853" />
+    <Key Name="description" Value="A text board that records what you say - contributed by Justin Clark-Casey" />
+    <Key Name="name" Value="GrafittiBoard" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+  </Section>
+</Nini>

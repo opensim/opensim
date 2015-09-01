@@ -1,0 +1,291 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Simulator statistics</title>
+<link rel="stylesheet" href="sim.css" type="text/css"/>
+<!-- <script type="text/javascript" src="jquery.js"></script> -->
+<!-- <script type="text/javascript" src="https://code.jquery.com/jquery-1.9.0.min.js"></script> -->
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+<!-- <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/libs/jQuery/jquery-1.9.0.min.js"></script> -->
+<noscript>
+<p color="red">
+Your browser does not support Javascript. This won't work for you.
+</p>
+</noscript>
+<script type="text/javascript">
+$(document).ready(function() {
+    // Major divisions in the content accordioning
+    $('.SimSection').show('slow');
+    $('.SimSectionHeader').click(function() {
+        $(this).next().slideToggle('slow');
+        return false;
+    });
+
+    // Start the timed functions
+    TimerDataStuff();
+});
+
+// One of the sections is viewer statistics. Poll for the data.
+var statTimerHandle;
+var graphFPS;
+var lastFPS = 10;
+var xxThru = 0;
+function TimerDataStuff() {
+    statTimerHandle = setInterval('TimerStatDisplay()', 5000);
+}
+
+// called by timer to fetch and display statistic information
+var doingStatDisplay = false;
+function TimerStatDisplay() {
+    if (doingStatDisplay) return;
+    doingStatDisplay = true;
+    if ($('#SimSimStats').is(':visible')) {
+        DisplaySimStats();
+    }
+    if ($('#SimRegionStats').is(':visible')) {
+        DisplayPerRegionStats();
+    }
+    if ($('#SimSessionStats').is(':visible')) {
+        DisplaySessionStats();
+    }
+    if ($('#SimLogFile').is(':visible')) {
+        DisplayLogFile();
+    }
+    doingStatDisplay = false;
+}
+
+var simName = "127.0.0.1";
+var simPort = "9000";
+function DisplaySimStats() {
+    var statURL = "http://" + simName + ":" + simPort + "/SStats/?json=1";
+    $.ajax({
+        type: "GET",
+        url: statURL,
+        dataType: 'json',
+        timeout: 1000,
+        success: function(data, status) {
+            if (status == 'success') {
+                DisplaySimStatDetails(data);
+            }
+        },
+        error: function(xmlHTTPRequest, errorType) {
+            // DebugLog('Failed fetch');
+        }
+    });
+}
+
+function DisplayPerRegionStats() {
+    var statURL = "http://" + simName + ":" + simPort + "/SStats/simstatsajax.html?json=1";
+    $.ajax({
+        type: "GET",
+        url: statURL,
+        dataType: 'json',
+        timeout: 1000,
+        success: function(data, status) {
+            if (status == 'success') {
+                DisplayRegionStatDetails(data);
+            }
+        },
+        error: function(xmlHTTPRequest, errorType) {
+            // DebugLog('Failed fetch');
+        }
+    });
+};
+
+function DisplayLogFile() {
+    var statURL = "http://" + simName + ":" + simPort + "/SStats/activelogajax.html?json=1";
+    $.ajax({
+        type: "GET",
+        url: statURL,
+        dataType: 'json',
+        timeout: 1000,
+        success: function(data, status) {
+            if (status == 'success') {
+                DisplayLogFileDetails(data);
+            }
+        },
+        error: function(xmlHTTPRequest, errorType) {
+            // DebugLog('Failed fetch');
+        }
+    });
+};
+
+function DisplaySessionStats() {
+    var statURL = "http://" + simName + ":" + simPort + "/SStats/activeconnectionsajax.html?json=1";
+    $.ajax({
+        type: "GET",
+        url: statURL,
+        dataType: 'json',
+        timeout: 1000,
+        success: function(data, status) {
+            if (status == 'success') {
+                DisplaySessionStatsDetails(data);
+            }
+        },
+        error: function(xmlHTTPRequest, errorType) {
+            // DebugLog('Failed fetch');
+        }
+    });
+};
+
+function DisplaySimStatDetails(data) {
+    var simInfo = new StringBuffer();
+    simInfo.append('<table id="RegionStatsTable">');
+    simInfo.append('<tr>');
+    simInfo.append('<th>Total Users</th>');
+    simInfo.append('<th>Total Sessions</th>');
+    simInfo.append('<th>Avg client FPS</th>');
+    simInfo.append('<th>Avg client Mem</th>');
+    simInfo.append('<th>Avg ping time</th>');
+    simInfo.append('<th>KB out</th>');
+    simInfo.append('<th>KB in</th>');
+    simInfo.append('</tr>');
+    simInfo.append('<tr>');
+    simInfo.append('<td>' + data.totalUsers + '</td>');
+    simInfo.append('<td>' + data.totalSessions + '</td>');
+    simInfo.append('<td>' + data.averageClientFPS + '</td>');
+    simInfo.append('<td>' + data.averageClientMem + '</td>');
+    simInfo.append('<td>' + data.averagePingTime + '</td>');
+    simInfo.append('<td>' + data.totalKBOut + '</td>');
+    simInfo.append('<td>' + data.totalKBIn + '</td>');
+    simInfo.append('</tr>');
+    simInfo.append('</table>');
+    $('#SimSimStats').empty();
+    $('#SimSimStats').append(simInfo.toString());
+}
+
+function DisplayRegionStatDetails(data) {
+    var regionInfo = new StringBuffer();
+    regionInfo.append('<table id="RegionStatsTable">');
+    regionInfo.append('<tr>');
+    regionInfo.append('<th>Region</th>');
+    regionInfo.append('<th>Agents</th>');
+    regionInfo.append('<th>Child</th>');
+    regionInfo.append('<th>FPS</th>');
+    regionInfo.append('<th>Frame Time</th>');
+    regionInfo.append('<th>Phys Time</th>');
+    regionInfo.append('<th>Prims</th>');
+    regionInfo.append('</tr>');
+    for (region in data) {
+        regionInfo.append('<tr>');
+        regionInfo.append('<td>' + data[region].region + '</td>');
+        regionInfo.append('<td>' + data[region].rootAgents + '</td>');
+        regionInfo.append('<td>' + data[region].childAgents + '</td>');
+        regionInfo.append('<td>' + data[region].simFPS + '</td>');
+        regionInfo.append('<td>' + data[region].totalFrameTime + '</td>');
+        regionInfo.append('<td>' + data[region].physicsFrameTime + '</td>');
+        regionInfo.append('<td>' + data[region].totalPrims + '</td>');
+        regionInfo.append('</tr>');
+    }
+    regionInfo.append('</table>');
+    $('#SimRegionStats').empty();
+    $('#SimRegionStats').append(regionInfo.toString());
+}
+
+function DisplayLogFileDetails(data) {
+    var logInfo = new StringBuffer();
+    var logPattern = /^(.+),\d\d\d .* \[(.+)\]: (.+)$/;
+    for (logLine in data['logLines']) {
+        logInfo.append('<div>');
+        var logPieces = logPattern.exec(data['logLines'][logLine]);
+        if (logPieces) {
+            logInfo.append(logPieces[1] + ' [' + logPieces[2]
+                    + '] ' + logPieces[3]);
+        }
+        else {
+            logInfo.append(data['logLines'][logLine]);
+        }
+
+        logInfo.append('</div>');
+    }
+    $('#SimLogFile').empty();
+    $('#SimLogFile').append(logInfo.toString());
+}
+
+function DisplaySessionStatsDetails(data) {
+    var userInfo = new StringBuffer();
+    userInfo.append('<table>');
+    userInfo.append('<tr>');
+    userInfo.append('<th>region</th>');
+    userInfo.append('<th>user</th>');
+    userInfo.append('<th></th>');
+    userInfo.append('<th>position</th>');
+    userInfo.append('</tr>');
+    for (region in data) {
+        for (user in data[region]) {
+            if (user != 'queues') {
+                userInfo.append('<tr>');
+                userInfo.append('<td>' + region + '</td>');
+                userInfo.append('<td>' + data[region][user].Name + '</td>');
+                if (data[region][user].isRoot == 'true') {
+                    userInfo.append('<td>root</td>');
+                }
+                else {
+                    userInfo.append('<td>child</td>');
+                }
+                userInfo.append('<td>' + data[region][user].position + '</td>');
+                userInfo.append('</tr>');
+            }
+        }
+    }
+    userInfo.append('</table>');
+    $('#SimSessionStats').empty();
+    $('#SimSessionStats').append(userInfo.toString());
+}
+
+function DebugLog(msg) {
+    $("#DEBUG").append('<div>' + msg + '</div>');
+    $("#DEBUG").show();
+}
+
+function StringBuffer() {
+    this.__strings__ = new Array;
+}
+StringBuffer.prototype.append = function(str) {
+    this.__strings__.push(str);
+}
+StringBuffer.prototype.toString = function() {
+    return this.__strings__.join("");
+}
+
+</script>
+</head>
+<body id="SimBody">
+<div id="SimHeader"></div>
+<div id="SimContent">
+
+<!-- ============================================== -->
+<div class="SimSectionContainer">
+<a class="SimSectionHeader" href="#">Simulator Stats</a>
+<div id="SimSimStats" class="SimSection">
+</div>  <!-- SimSimStats -->
+</div>  <!-- SimSectionContainer -->
+
+<!-- ============================================== -->
+<div class="SimSectionContainer">
+<a class="SimSectionHeader" href="#">Region Stats</a>
+<div id="SimRegionStats" class="SimSection">
+</div>  <!-- SimRegionStats -->
+</div>  <!-- SimSectionContainer -->
+
+<!-- ============================================== -->
+<div class="SimSectionContainer">
+<a class="SimSectionHeader" href="#">Sessions</a>
+<div id="SimSessionStats" class="SimSection">
+</div>  <!-- SimSessionStats -->
+</div>  <!-- SimSectionContainer -->
+
+<!-- ============================================== -->
+<div class="SimSectionContainer">
+<a class="SimSectionHeader" href="#">Log File</a>
+<div id="SimLogFile" class="SimSection">
+</div>  <!-- SimLogFile -->
+</div>  <!-- SimSectionContainer -->
+
+<!-- ============================================== -->
+</div>  <!-- SimContent -->
+<div id="DEBUG"></div>
+<div id="SimFooter"></div>
+</body>
+</html>

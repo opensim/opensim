@@ -1,0 +1,114 @@
+<Nini>
+	<Section Name="can we move along?">
+		<Key Name="name" Value="can we move along?" />
+		<Key Name="description" Value="2008-10-03 14:10:00 gesture" />
+		<Key Name="assetID" Value="5954170e-e6bc-44f6-96a9-2c02a382165a" />
+		<Key Name="assetType" Value="21" />
+		<Key Name="fileName" Value="can_we_move_along_.dat" />
+	</Section>
+	<Section Name="me!">
+		<Key Name="name" Value="me!" />
+		<Key Name="description" Value="2008-10-03 14:17:16 gesture" />
+		<Key Name="assetID" Value="652475bc-ffb7-4a18-b6bb-7731ddeb6a51" />
+		<Key Name="assetType" Value="21" />
+		<Key Name="fileName" Value="me_.dat" />
+	</Section>
+	<Section Name="clap">
+		<Key Name="name" Value="clap" />
+		<Key Name="description" Value="2008-10-03 14:29:00 gesture" />
+		<Key Name="assetID" Value="712e81fd-a215-498c-ab1a-caf1f5bf950d" />
+		<Key Name="assetType" Value="21" />
+		<Key Name="fileName" Value="clap.dat" />
+	</Section>
+	<Section Name="no">
+		<Key Name="name" Value="no" />
+		<Key Name="description" Value="2008-10-03 14:10:03 gesture" />
+		<Key Name="assetID" Value="6c123970-0f5a-448e-920a-07bae9aadf4c" />
+		<Key Name="assetType" Value="21" />
+		<Key Name="fileName" Value="no.dat" />
+	</Section>
+	<Section Name="suprised">
+		<Key Name="name" Value="suprised" />
+		<Key Name="description" Value="2008-10-03 14:17:13 gesture" />
+		<Key Name="assetID" Value="dbaf104b-cba8-4df7-b5d3-0cb57d0d63b2" />
+		<Key Name="assetType" Value="21" />
+		<Key Name="fileName" Value="suprised.dat" />
+	</Section>
+	<Section Name="dance2">
+		<Key Name="name" Value="dance2" />
+		<Key Name="description" Value="2008-10-03 14:33:04 gesture" />
+		<Key Name="assetID" Value="3bd1792a-6756-4ee0-a54e-3ae6493c2036" />
+		<Key Name="assetType" Value="21" />
+		<Key Name="fileName" Value="dance2.dat" />
+	</Section>
+	<Section Name="definitely YES">
+		<Key Name="name" Value="definitely YES" />
+		<Key Name="description" Value="2008-10-03 14:09:55 gesture" />
+		<Key Name="assetID" Value="392c292f-3d27-45ff-9437-c79c06699237" />
+		<Key Name="assetType" Value="21" />
+		<Key Name="fileName" Value="definitely_YES.dat" />
+	</Section>
+	<Section Name="Wave">
+		<Key Name="name" Value="Wave" />
+		<Key Name="description" Value="2008-10-03 14:01:58 gesture" />
+		<Key Name="assetID" Value="cce0e317-2c49-411e-8716-f9ce3007c715" />
+		<Key Name="assetType" Value="21" />
+		<Key Name="fileName" Value="Wave.dat" />
+	</Section>
+	<Section Name="take it outside">
+		<Key Name="name" Value="take it outside" />
+		<Key Name="description" Value="2008-10-03 14:09:45 gesture" />
+		<Key Name="assetID" Value="d082bd28-f655-43b7-a0eb-cb80db03753e" />
+		<Key Name="assetType" Value="21" />
+		<Key Name="fileName" Value="take_it_outside.dat" />
+	</Section>
+	<Section Name="whoohoo!">
+		<Key Name="name" Value="whoohoo!" />
+		<Key Name="description" Value="2008-10-03 14:10:06 gesture" />
+		<Key Name="assetID" Value="7f7384c0-848c-4bf0-8e83-50879981e1a4" />
+		<Key Name="assetType" Value="21" />
+		<Key Name="fileName" Value="whoohoo_.dat" />
+	</Section>
+	<Section Name="raise hand">
+		<Key Name="name" Value="raise hand" />
+		<Key Name="description" Value="2008-10-03 14:03:01 gesture" />
+		<Key Name="assetID" Value="2d0819cf-452b-4db8-b7ac-cda443bc89e7" />
+		<Key Name="assetType" Value="21" />
+		<Key Name="fileName" Value="raise_hand.dat" />
+	</Section>
+	<Section Name="LOL">
+		<Key Name="name" Value="LOL" />
+		<Key Name="description" Value="2008-10-03 14:09:57 gesture" />
+		<Key Name="assetID" Value="d545ac78-09cc-4811-8700-8df1a37d7f56" />
+		<Key Name="assetType" Value="21" />
+		<Key Name="fileName" Value="LOL.dat" />
+	</Section>
+	<Section Name="dance1">
+		<Key Name="name" Value="dance1" />
+		<Key Name="description" Value="2008-10-03 14:32:33 gesture" />
+		<Key Name="assetID" Value="9cc5bb24-bacf-44f9-a1d0-d409e6ccfa6c" />
+		<Key Name="assetType" Value="21" />
+		<Key Name="fileName" Value="dance1.dat" />
+	</Section>
+	<Section Name="wink!">
+		<Key Name="name" Value="wink!" />
+		<Key Name="description" Value="2008-10-03 14:17:09 gesture" />
+		<Key Name="assetID" Value="67d47cd0-9634-4c99-97db-ddce9bda467c" />
+		<Key Name="assetType" Value="21" />
+		<Key Name="fileName" Value="wink_.dat" />
+	</Section>
+	<Section Name="not sure">
+		<Key Name="name" Value="not sure" />
+		<Key Name="description" Value="2008-10-03 14:10:09 gesture" />
+		<Key Name="assetID" Value="9bc46cd2-95cb-456d-9070-a4439e42af9e" />
+		<Key Name="assetType" Value="21" />
+		<Key Name="fileName" Value="not_sure.dat" />
+	</Section>
+	<Section Name="dance3">
+		<Key Name="name" Value="dance3" />
+		<Key Name="description" Value="2008-10-03 14:33:41 gesture" />
+		<Key Name="assetID" Value="fd9ad83a-4921-4b6e-8b8e-558556d9f503" />
+		<Key Name="assetType" Value="21" />
+		<Key Name="fileName" Value="dance3.dat" />
+	</Section>
+</Nini>

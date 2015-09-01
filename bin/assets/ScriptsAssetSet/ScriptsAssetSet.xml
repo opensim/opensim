@@ -1,0 +1,243 @@
+<Nini>
+  <Section Name="llAbs">
+    <Key Name="assetID" Value="3b055e3f-b19d-11dc-8314-0800200c9a66" />
+    <Key Name="name" Value="llAbs" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="llAbs.lsl" />
+  </Section>
+  <Section Name="llAcos">
+    <Key Name="assetID" Value="6519bf39-b19f-11dc-8314-0800200c9a66" />
+    <Key Name="name" Value="llAcos" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="llAcos.lsl" />
+  </Section>
+  <Section Name="llAddToLandBanList">
+    <Key Name="assetID" Value="7ceba3f1-b1a0-11dc-8314-0800200c9a66" />
+    <Key Name="name" Value="llAddToLandBanList" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="llAddToLandBanList.lsl" />
+  </Section>
+  <Section Name="llAddToLandPassList">
+    <Key Name="assetID" Value="609047e7-b390-11dc-8314-0800200c9a66" />
+    <Key Name="name" Value="llAddToLandPassList" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="llAddToLandPassList.lsl" />
+  </Section>
+  <Section Name="llAdjustSoundVolume">
+    <Key Name="assetID" Value="56df4bcd-b393-11dc-8314-0800200c9a66" />
+    <Key Name="name" Value="llAdjustSoundVolume" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="llAdjustSoundVolume.lsl" />
+  </Section>
+  <Section Name="llAllowInventoryDrop">
+    <Key Name="assetID" Value="54d6962d-b394-11dc-8314-0800200c9a66" />
+    <Key Name="name" Value="llAllowInventoryDrop" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="llAllowInventoryDrop.lsl" />
+  </Section>
+  <Section Name="llAngleBetween">
+    <Key Name="assetID" Value="6b341609-b34e-11dc-8314-0800200c9a66" />
+    <Key Name="name" Value="llAngleBetween" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="llAngleBetween.lsl" />
+  </Section>
+  <Section Name="llAsin">
+    <Key Name="assetID" Value="7e7422ed-b425-11dc-8314-0800200c9a66" />
+    <Key Name="name" Value="llAsin" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="llAsin.lsl" />
+  </Section>
+  <Section Name="llAtan2">
+    <Key Name="assetID" Value="7e7422ef-b425-11dc-8314-0800200c9a66" />
+    <Key Name="name" Value="llAtan2" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="llAtan2.lsl" />
+  </Section>
+  <Section Name="llApplyImpulse">
+    <Key Name="assetID" Value="714ec679-b419-11dc-8314-0800200c9a66" />
+    <Key Name="name" Value="llApplyImpulse" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="llApplyImpulse.lsl" />
+  </Section>
+  <Section Name="llAvatarOnSitTarget">
+    <Key Name="assetID" Value="579fc821-b426-11dc-8314-0800200c9a66" />
+    <Key Name="name" Value="llAvatarOnSitTarget" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="llAvatarOnSitTarget.lsl" />
+  </Section>
+  <Section Name="llBase64ToString">
+    <Key Name="assetID" Value="1d4c71d9-b428-11dc-8314-0800200c9a66" />
+    <Key Name="name" Value="llBase64ToString" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="llBase64ToString.lsl" />
+  </Section>
+  <Section Name="llRemoveFromLandBanList">
+    <Key Name="assetID" Value="299b2101-b392-11dc-8314-0800200c9a66" />
+    <Key Name="name" Value="llRemoveFromLandBanList" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="llRemoveFromLandBanList.lsl" />
+  </Section>
+  <Section Name="llRemoveFromLandPassList">
+    <Key Name="assetID" Value="299b2103-b392-11dc-8314-0800200c9a66" />
+    <Key Name="name" Value="llRemoveFromLandPassList" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="llRemoveFromLandPassList.lsl" />
+  </Section>
+  <Section Name="llResetLandBanList">
+    <Key Name="assetID" Value="366ac8e7-b391-11dc-8314-0800200c9a66" />
+    <Key Name="name" Value="llResetLandBanList" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="llResetLandBanList.lsl" />
+  </Section>
+  <Section Name="llSay">
+    <Key Name="assetID" Value="366ac8e9-b391-11dc-8314-0800200c9a66" />
+    <Key Name="name" Value="llSay" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="llSay.lsl" />
+  </Section>
+  <Section Name="llSetParcelMusicURL">
+    <Key Name="assetID" Value="3603a4f8-b360-11dc-8314-0800200c9a66" />
+    <Key Name="name" Value="llSetParcelMusicURL" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="llSetParcelMusicURL.lsl" />
+  </Section>
+  <Section Name="llSetRot">
+    <Key Name="assetID" Value="220baef9-b376-11dc-8314-0800200c9a66" />
+    <Key Name="name" Value="llSetRot" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="llSetRot.lsl" />
+  </Section>
+  <Section Name="osTextBoard">
+    <Key Name="assetID" Value="2ddcb059-20c5-d169-4c42-673f16d3284b" />
+    <Key Name="name" Value="osTextBoard" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="osTextBoard.lsl" />
+  </Section>
+  <Section Name="osWeatherMap">
+    <Key Name="assetID" Value="d63ad3ec-b687-6c38-410d-31ba3e50ce4d" />
+    <Key Name="name" Value="osWeatherMap" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="osWeatherMap.lsl" />
+  </Section>
+  <Section Name="GrafittiBoard">
+    <Key Name="assetID" Value="81305ee4-8caa-9e0a-69a4-76ed57df0c8f" />
+    <Key Name="name" Value="GrafittiBoard" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="GrafittiBoard.lsl" />
+  </Section>
+  
+  <!-- Adding the Kan-ED tests to the Assets -->
+
+  <Section Name="Kan-Ed Test1">
+    <Key Name="assetID" Value="42b6ac70-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test1" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test01.lsl" />
+  </Section>
+	 
+  <Section Name="Kan-Ed Test2">
+    <Key Name="assetID" Value="42b6ac71-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test2" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test02.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test3">
+    <Key Name="assetID" Value="42b6ac72-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test3" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test03.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test4">
+    <Key Name="assetID" Value="42b6ac73-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test4" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test04.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test5">
+    <Key Name="assetID" Value="42b6ac74-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test5" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test05.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test6">
+    <Key Name="assetID" Value="42b6ac75-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test6" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test06.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test7">
+    <Key Name="assetID" Value="42b6ac76-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test7" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test07.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test8">
+    <Key Name="assetID" Value="42b6ac77-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test8" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test08.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test9">
+    <Key Name="assetID" Value="42b6ac78-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test9" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test09.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test10">
+    <Key Name="assetID" Value="42b6ac79-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test10" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test10.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test11">
+    <Key Name="assetID" Value="42b6ac7a-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test11" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test11.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test12">
+    <Key Name="assetID" Value="42b6ac7b-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test12" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test12.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test13">
+    <Key Name="assetID" Value="42b6ac7c-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test13" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test13.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test14">
+    <Key Name="assetID" Value="42b6ac7d-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test14" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test14.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test15">
+    <Key Name="assetID" Value="42b6ac7e-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test15" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test15.lsl" />
+  </Section>
+
+  <Section Name="Kan-Ed Test16">
+    <Key Name="assetID" Value="42b6ac7f-d21f-11dd-ad8b-0800200c9a66" />
+    <Key Name="name" Value="Kan-Ed Test16" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="fileName" Value="KanEd-Test16.lsl" />
+  </Section>
+
+</Nini>

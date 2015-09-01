@@ -1,0 +1,120 @@
+Sliders:
+
+Shape
+
+Body
+Height - 70
+Thickness - 8
+Body Fat - 3
+
+
+Head
+Head size - 67
+Head Stretch - 43
+Head Shape - 55
+Egg Head - 72
+Head Length - 71
+Face Shear - 50
+Forehead Angle - 61
+Brow Size - 4
+Upper Cheeks - 42
+Lower Cheeks - 34
+Cheekbones - 67
+
+Eyes
+Eye size - 35
+Eye opening - 59
+Eye spacing - 44
+Outer Eye Corner - 58
+Inner Eye Corner - 0
+Eye Depth - 39
+Upper Eyelid Fold - 14
+Eye bags - 0
+Puffy Eyelids - 6
+Eyelash Length - 0
+Eye Pop - 50
+
+Ears
+Ear Size - 39
+Ear Angle - 38
+Attached Earlobes - 37
+Ear Flaps - 6
+
+Nose
+Nose size - 24
+Nostril Width - 24
+Nostril Division - 61
+Nose thickness - 26
+Upper Bridge - 18
+lower bridge - 64
+bridge width - 58
+nose tip angle - 51
+nose tip shape - 0
+crooked nose - 50
+
+Mouth
+Lip width - 16
+Lip fullness - 35
+Lip thickness - 62
+Lip ratio - 43
+Mouth position - 43
+Mouth corner - 59
+Lip cleft depth - 42
+Lip cleft - 41
+Shift mouth - 50
+
+Chin
+Chin angle - 22
+Jaw shape - 21
+Chin depth - 26
+Jaw angle - 64
+Jaw jut - 54
+Jowls - 39
+Chin cleft - 0
+Upper chin cleft - 15
+Chin Neck - 17
+
+Torso
+Torso muscles - 46
+Neck thickness - 50
+Neck length - 28
+Shoulders - 57
+Breast size - 53
+Breast buoyancy - 34
+Breast Cleavage  - 16
+Arm length - 46
+Hand size - 47
+Torse length - 37
+Love handles - 36
+Belly size - 13
+
+Legs
+Leg muscles - 69
+Leg length - 54
+Hip width - 53
+Butt size - 40
+Saddle bags - 27
+Knee angle - 44
+Foot size - 0
+
+Hair
+Color
+White hair - 11
+Rainbow color - 0
+Blonde hair - 0
+Red hair - 100
+
+Style
+Hair volume - 45
+Hair front - 0
+Hair sides - 27
+Hair Back - 100
+Big Hair Front - 61
+Big Hair Top - 90
+Big hair back - 12
+Front fringe - 33
+Side fringe - 24
+Back fringe - 9
+Full hair sides - 75
+
+

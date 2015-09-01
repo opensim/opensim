@@ -1,0 +1,62 @@
+<Nini>
+<!--
+  <Section Name="Example Library">
+    <Key Name="folderID" Value="12345678-1234-1234-1234-1234567890ab"/>
+    <Key Name="parentFolderID" Value="00000112-000f-0000-0000-000100bba000"/>
+    <Key Name="name" Value="Example Library"/>
+    <Key Name="type" Value="0"/>
+  </Section>
+  -->
+  
+  <Section Name="Scripts Library">
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba002"/>
+    <Key Name="parentFolderID" Value="00000112-000f-0000-0000-000100bba000"/>
+    <Key Name="name" Value="Scripts Library"/>
+    <Key Name="type" Value="10"/>
+  </Section>
+  
+  <!-- Subfolders under "Scripts Library" -->
+  
+  <Section Name="A">
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba003"/>
+    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
+    <Key Name="name" Value="A"/>
+    <Key Name="type" Value="10"/>
+  </Section>
+  <Section Name="B">
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba004"/>
+    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
+    <Key Name="name" Value="B"/>
+    <Key Name="type" Value="10"/>
+  </Section>
+  <Section Name="R">
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba017"/>
+    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
+    <Key Name="name" Value="R"/>
+    <Key Name="type" Value="10"/>
+  </Section>
+  <Section Name="S">
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba018"/>
+    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
+    <Key Name="name" Value="S"/>
+    <Key Name="type" Value="10"/>
+  </Section>
+  <Section Name="OpenSim Specific Scripts">
+    <Key Name="folderID" Value="284858c8-9391-6bf1-ddf5-b936f73de853"/>
+    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
+    <Key Name="name" Value="OpenSim Specific Scripts"/>
+    <Key Name="type" Value="10"/>
+  </Section>
+  <Section Name=".Kan-ED Scripts">
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba024"/>
+    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
+    <Key Name="name" Value=".Kan-ED Scripts"/>
+    <Key Name="type" Value="10"/>
+  </Section>
+  <Section Name=".Other testing scripts">
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba025"/>
+    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
+    <Key Name="name" Value=".Other testing scripts"/>
+    <Key Name="type" Value="10"/>
+  </Section>
+</Nini>

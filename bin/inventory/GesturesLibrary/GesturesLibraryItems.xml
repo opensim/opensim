@@ -1,0 +1,174 @@
+<!--
+  In Keys,
+    name is the name of the item.
+    description is the description of the item.
+    assetID is the ID of the asset data that is referenced by the item.
+    folderID is the ID of the folder containing this item.
+    inventoryID is the ID for the item.  It must be unique.
+    assetType is the asset type of the item.  See the OpenMetaverse.AssetType enum in libopenmetaverse
+    inventoryType is the inventory type of the item.  See the OpenMetaverse.InventoryType enum in libopenmetaverse
+    flags are only required for wearables.  See OpenMetaverse.WearableType enum in libopenmetaverse.
+-->
+
+<Nini>
+	<Section Name="can we move along?">
+		<Key Name="inventoryID" Value="9ffe3767-74fa-4c64-a046-18ccf50b9eac"/>
+		<Key Name="assetID" Value="5954170e-e6bc-44f6-96a9-2c02a382165a"/>
+		<Key Name="folderID" Value="8e1e3a30-b9bf-11dc-95ff-0800200c9a66"/>
+		<Key Name="description" Value="2008-10-03 14:10:00 gesture" />
+		<Key Name="name" Value="can we move along?" />
+		<Key Name="assetType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
+	</Section>
+
+	<Section Name="me!">
+		<Key Name="inventoryID" Value="4c141851-1bef-4c00-9058-8c4d97ab48fe"/>
+		<Key Name="assetID" Value="652475bc-ffb7-4a18-b6bb-7731ddeb6a51"/>
+		<Key Name="folderID" Value="8e1e3a30-b9bf-11dc-95ff-0800200c9a66"/>
+		<Key Name="description" Value="2008-10-03 14:17:16 gesture" />
+		<Key Name="name" Value="me!" />
+		<Key Name="assetType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
+	</Section>
+
+	<Section Name="clap">
+		<Key Name="inventoryID" Value="a5a30fdb-613f-44fa-8bc2-7806e4da67f6"/>
+		<Key Name="assetID" Value="712e81fd-a215-498c-ab1a-caf1f5bf950d"/>
+		<Key Name="folderID" Value="8e1e3a30-b9bf-11dc-95ff-0800200c9a66"/>
+		<Key Name="description" Value="2008-10-03 14:29:00 gesture" />
+		<Key Name="name" Value="clap" />
+		<Key Name="assetType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
+	</Section>
+
+	<Section Name="no">
+		<Key Name="inventoryID" Value="514b3ca6-1571-4f58-a24e-f58eb5cb8460"/>
+		<Key Name="assetID" Value="6c123970-0f5a-448e-920a-07bae9aadf4c"/>
+		<Key Name="folderID" Value="8e1e3a30-b9bf-11dc-95ff-0800200c9a66"/>
+		<Key Name="description" Value="2008-10-03 14:10:03 gesture" />
+		<Key Name="name" Value="no" />
+		<Key Name="assetType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
+	</Section>
+
+	<Section Name="suprised">
+		<Key Name="inventoryID" Value="120fb1f3-112b-4bc4-a7d3-a784ecc360af"/>
+		<Key Name="assetID" Value="dbaf104b-cba8-4df7-b5d3-0cb57d0d63b2"/>
+		<Key Name="folderID" Value="8e1e3a30-b9bf-11dc-95ff-0800200c9a66"/>
+		<Key Name="description" Value="2008-10-03 14:17:13 gesture" />
+		<Key Name="name" Value="suprised" />
+		<Key Name="assetType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
+	</Section>
+
+	<Section Name="dance2">
+		<Key Name="inventoryID" Value="1ca0e368-5a11-4da1-8503-925a55e7c45f"/>
+		<Key Name="assetID" Value="3bd1792a-6756-4ee0-a54e-3ae6493c2036"/>
+		<Key Name="folderID" Value="8e1e3a30-b9bf-11dc-95ff-0800200c9a66"/>
+		<Key Name="description" Value="2008-10-03 14:33:04 gesture" />
+		<Key Name="name" Value="dance2" />
+		<Key Name="assetType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
+	</Section>
+
+	<Section Name="definitely YES">
+		<Key Name="inventoryID" Value="022fa770-abb1-4266-963a-4ece4747b748"/>
+		<Key Name="assetID" Value="392c292f-3d27-45ff-9437-c79c06699237"/>
+		<Key Name="folderID" Value="8e1e3a30-b9bf-11dc-95ff-0800200c9a66"/>
+		<Key Name="description" Value="2008-10-03 14:09:55 gesture" />
+		<Key Name="name" Value="definitely YES" />
+		<Key Name="assetType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
+	</Section>
+
+	<Section Name="Wave">
+		<Key Name="inventoryID" Value="6406a7c6-a690-44be-a444-ba723e50c17d"/>
+		<Key Name="assetID" Value="cce0e317-2c49-411e-8716-f9ce3007c715"/>
+		<Key Name="folderID" Value="8e1e3a30-b9bf-11dc-95ff-0800200c9a66"/>
+		<Key Name="description" Value="2008-10-03 14:01:58 gesture" />
+		<Key Name="name" Value="Wave" />
+		<Key Name="assetType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
+	</Section>
+
+	<Section Name="take it outside">
+		<Key Name="inventoryID" Value="1488b988-c300-4c2e-b48a-3b8eacb93659"/>
+		<Key Name="assetID" Value="d082bd28-f655-43b7-a0eb-cb80db03753e"/>
+		<Key Name="folderID" Value="8e1e3a30-b9bf-11dc-95ff-0800200c9a66"/>
+		<Key Name="description" Value="2008-10-03 14:09:45 gesture" />
+		<Key Name="name" Value="take it outside" />
+		<Key Name="assetType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
+	</Section>
+
+	<Section Name="whoohoo!">
+		<Key Name="inventoryID" Value="18c1a2fc-17f6-4af4-a519-827b272feaac"/>
+		<Key Name="assetID" Value="7f7384c0-848c-4bf0-8e83-50879981e1a4"/>
+		<Key Name="folderID" Value="8e1e3a30-b9bf-11dc-95ff-0800200c9a66"/>
+		<Key Name="description" Value="2008-10-03 14:10:06 gesture" />
+		<Key Name="name" Value="whoohoo!" />
+		<Key Name="assetType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
+	</Section>
+
+	<Section Name="raise hand">
+		<Key Name="inventoryID" Value="5c0afacd-bbd0-4f66-a516-4ac4e380853c"/>
+		<Key Name="assetID" Value="2d0819cf-452b-4db8-b7ac-cda443bc89e7"/>
+		<Key Name="folderID" Value="8e1e3a30-b9bf-11dc-95ff-0800200c9a66"/>
+		<Key Name="description" Value="2008-10-03 14:03:01 gesture" />
+		<Key Name="name" Value="raise hand" />
+		<Key Name="assetType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
+	</Section>
+
+	<Section Name="LOL">
+		<Key Name="inventoryID" Value="407f6a99-1a12-43c6-bec1-8fad974c8f42"/>
+		<Key Name="assetID" Value="d545ac78-09cc-4811-8700-8df1a37d7f56"/>
+		<Key Name="folderID" Value="8e1e3a30-b9bf-11dc-95ff-0800200c9a66"/>
+		<Key Name="description" Value="2008-10-03 14:09:57 gesture" />
+		<Key Name="name" Value="LOL" />
+		<Key Name="assetType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
+	</Section>
+
+	<Section Name="dance1">
+		<Key Name="inventoryID" Value="59cce8ab-5c0c-49be-aa3b-036f05fbd7f4"/>
+		<Key Name="assetID" Value="9cc5bb24-bacf-44f9-a1d0-d409e6ccfa6c"/>
+		<Key Name="folderID" Value="8e1e3a30-b9bf-11dc-95ff-0800200c9a66"/>
+		<Key Name="description" Value="2008-10-03 14:32:33 gesture" />
+		<Key Name="name" Value="dance1" />
+		<Key Name="assetType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
+	</Section>
+
+	<Section Name="wink!">
+		<Key Name="inventoryID" Value="ba33e8ab-b816-4ead-9302-c8475deb1845"/>
+		<Key Name="assetID" Value="67d47cd0-9634-4c99-97db-ddce9bda467c"/>
+		<Key Name="folderID" Value="8e1e3a30-b9bf-11dc-95ff-0800200c9a66"/>
+		<Key Name="description" Value="2008-10-03 14:17:09 gesture" />
+		<Key Name="name" Value="wink!" />
+		<Key Name="assetType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
+	</Section>
+
+	<Section Name="not sure">
+		<Key Name="inventoryID" Value="02da80eb-cad0-4cd1-9ff7-d3d3dd150fbc"/>
+		<Key Name="assetID" Value="9bc46cd2-95cb-456d-9070-a4439e42af9e"/>
+		<Key Name="folderID" Value="8e1e3a30-b9bf-11dc-95ff-0800200c9a66"/>
+		<Key Name="description" Value="2008-10-03 14:10:09 gesture" />
+		<Key Name="name" Value="not sure" />
+		<Key Name="assetType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
+	</Section>
+
+	<Section Name="dance3">
+		<Key Name="inventoryID" Value="05e53736-dacb-4935-a1e9-d9897b35b962"/>
+		<Key Name="assetID" Value="fd9ad83a-4921-4b6e-8b8e-558556d9f503"/>
+		<Key Name="folderID" Value="8e1e3a30-b9bf-11dc-95ff-0800200c9a66"/>
+		<Key Name="description" Value="2008-10-03 14:33:41 gesture" />
+		<Key Name="name" Value="dance3" />
+		<Key Name="assetType" Value="21"/>
+		<Key Name="inventoryType" Value="20"/>
+	</Section>
+
+</Nini>

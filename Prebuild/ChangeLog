@@ -1,0 +1,461 @@
+2008-12-09T02:15	D. Moonfire <d.moonfire@mfgames.com>
+	* src/Core/Kernel.cs
+	- Added a /ppi target to get the results of processing but before
+	processing the actual results.
+	* src/Core/Preprocessor.cs
+	- Applied the patch from kanato with formatting changes.
+	- Uses the <?include file="" ?> format.
+	* tests/
+	- Added some lightweight tests to test the functionality of the
+	include patch.
+	
+2008-06-19T09:37	John Anderson <sontek@gmail.com>
+	* src/Core/Kernel.cs
+	- Only Loop through targets that are not abstract.
+	* src/Core/Targets/VSGenericTarget.cs
+	- Marked abstract and removed the Target attribute.
+
+2008-06-16T17:37	John Anderson <sontek@gmail.com>
+	* src/Core/Nodes/ProjectNode.cs,data/prebuild-1.7.xsd
+	- Added the ability to hardcode guid's in the projects 
+
+2008-05-21T0737		C.J. Adams-Collier <cjac@colliertech.org>
+	* src/Core/Targets/AutotoolsTarget.cs
+	- catch exception when unable to compile AssemblyInfo.cs
+
+2008-05-07T17:29	John Anderson <sontek@gmail.com>
+	* src/Core/Targets/VSGenericTarget.cs
+	  - Generate asp.net output in bin\ folder (asp.net requires it there)
+
+2008-04-30T17:29	John Anderson <sontek@gmail.com>
+	* src/Core/Nodes/DatabaseReferenceNode.cs,
+	  src/Core/Nodes/Datanode.cs,
+	  src/Core/Nodes/FileNode.cs,
+	  src/Core/Nodes/FileNodes.cs,
+	  src/Core/Nodes/MatchNode.cs,
+	  src/Core/Targets/VS2008Target.cs,
+	  src/data/prebuild-1.7.xsd
+	- Refactored the project generation code to handle web projects and more
+	  logically handle embedded resources and designer files.
+
+2008-04-30T17:29	Joseph Lombrozo <digitaljeebus@gmail.com>
+	* src/Core/Nodes/SolutionNode.cs
+	- Had solutions inherit Configurations in the same way that Projects do.
+
+2008-04-29T06:35	Joseph Lombrozo <digitaljeebus@gmail.com>
+	* src/Core/Targets/VS2008Target.cs,
+	  src/Core/Nodes/DatabaseProjectNode.cs,
+	  src/Core/Nodes/DatabaseReferenceNode.cs,
+	  src/data/prebuild-1.7.xsd
+	- Added database references to database projects.
+	- Prevented nested solutions from being written to disk.
+
+2008-04-29T05:43	Joseph Lombrozo <digitaljeebus@gmail.com>
+	* src/Core/Targets/VS2008Target.cs
+	- Enabled embedded solutions to contain Files.
+
+2008-04-29T04:13	Joseph Lombrozo <digitaljeebus@gmail.com>	
+	* src/Core/VSVersion.cs
+	- Fixed spelling mistake in enum comment.
+	* src/Core/Attributes/DataNodeAttribute.cs
+	- Allowed the DataNodeAttribute to be attached to a single class 
+	  more than once, allowing one class to be used to parse more than 
+	  one node at a time.
+	* src/Core/Kernel.cs
+	- Changed CacheNodeTypes() to allow for multiple DataNodeAttribute 
+	  instances in one class. Refactored ProcessFile(...) to return Solutions, 
+	  rather than adding them to the Kernel.
+	* src/Core/Nodes/SolutionNode.cs
+	- Added Guid (for embedded folders)
+	- Added DatabaseProjects, Solutions and Processes to the SolutionNode 
+	  when parsing.
+	* src/Core/Nodes/ProjectNode.cs
+	- Added FrameworkVersion property to allow for 2.0/3.0/3.5 differentiation.
+	* src/Core/Targets/VS2008Target.cs, src/data/prebuild-1.7.xsd
+	- Added ability to have embedded solutions, and externally referenced
+	  prebuild scripts.
+
+2008-04-24T04:33	John M. Anderson <sontek@gmail.com>	
+	* src/Core/Targets/VS2003Target.cs, src/Core/Targets/VSVersion.cs 
+	- Moved the VSVersion enum into its own file. 
+	* src/Core/Targets/VS2008Target.cs
+	- added support for VS2008 
+	* src/Core/Nodes/ProjectNode.cs
+	- Added initial support for ASP.NET projects 
+	* src/Core/Nodes/DatabaseProjectNode.cs
+	- Added support for Visual Studio database projects 
+
+2008-02-19T07:08	C.J. Adams-Collier <cjac@colliertech.org>
+	* TODO
+	- added some tasks from Sam Hocevar
+	* src/Core/Targets/AutotoolsTarget.cs
+	- added a missing end paren
+	* COPYING
+	- Removed Randy Ridge's name from the copyright.  Looks to me like
+	  his name was present only because the file was nabbed from Tao
+
+2008-02-09T20:29	C.J. Adams-Collier <cjac@colliertech.org>
+	* COPYING
+	- added MIT/X11 license due to inclusion of code from Monodevelop
+	* THANKS
+	- added Lluis Sanchez Gual and Todd Berman - I yoinked code from
+	  their pkg-config .pc file parser to build AutotoolsTarget.cs.
+	  Sorry it took me so long to remember to add mention of you guys!
+	* src/Core/Targets/AutotoolsTarget.cs
+	- added MIT/X11 license.  see above.
+
+2008-02-07T08:27	C.J. Adams-Collier <cjac@colliertech.org>
+	* AUTHORS
+	- consolidated names and contact info found laying around the
+	  source
+	* src/Core/Kernel.cs
+	- updated copyright date
+	- re-formatted license for 80-column editor
+	- updated log banner to indicate new date, new authors
+	* src/Core/Targets/AutotoolsTarget.cs
+	- clarified reasoning behind use of constants in
+	  AutotoolsTarget.ParsePCFile
+	- reduced length of some long lines using newline/indent
+	- added log messages for parsing .pc files, emitting solutions,
+	  projects
+	- robustified the inter-package dependency resolution target
+	- log warning when we can't find assembly for <Reference />
+	- clarified code for case of inability to find embedded
+	  autotools.xml
+	* src/data/autotools.xml
+	- adding system lookup of resgen2 to configure.ac
+	- fixed .resource -> .resources typo
+	- added a rule to create <foo>.response file containing all sources
+	- using @<foo>.response on $(CSC) command line instead of listing
+	  all source files
+	* src/Properties/AssemblyInfo.cs
+	- re-formatted license for an 80-column editor
+	- added more authors to the AssemblyCopyright attribute
+	- bumped version to 2.0.3
+	* prebuild.xml
+	- bumped version to 2.0.3
+	* scripts/autotools.sh
+	- if 'mono' is in the path, run Prebuild.exe with it
+	- using dirname to capture correct path to prebuild.xml &c
+
+2008-02-06T17:18	C.J. Adams-Collier <cjac@colliertech.org>
+	* src/Core/Targets/NAntTarget.cs
+	- re-formatted the license for an 80-column editor
+	- added myself to the copyright
+	- added a fix submitted by Gryc Ueusp <gryc.ueusp@gmail.com>
+	* src/Core/Targets/AutotoolsTarget.cs
+	- updated copyright to include 2008
+	* THANKS
+	- created file, added Gryc Ueusp <gryc.ueusp@gmail.com>
+
+2008-01-01T14:50	C.J. Adams-Collier <cjac@colliertech.org>
+	* src/data/autotools.xml
+	- fixed .resx -> .resource compilation
+	- fixed failing edge case where Project is an unsigned Library
+	- added $(RESOURCE_SRC) to list of extra dist files
+	* src/Core/Targets/AutotoolsTarget.cs
+	- removed embeddedResources from extraDistFiles list
+
+2007-04-18T07:49	C.J. Adams-Collier <cjac@colliertech.org>
+	* src/data/prebuild-1.7.xsd
+	- removed default version from references
+	
+2007-04-06T12:42	C.J. Adams-Collier <cjac@colliertech.org>
+	* src/data/autotools.xml
+	- added support for /doc: output when XmlDocFile is not empty
+	- not printing \t \\n on lines that have no content
+	- gacutil now installs the root assembly instead of the one under
+	  bin/Debug or whatever
+
+2007-04-04T22:12	C.J. Adams-Collier <cjac@colliertech.org>
+	* src/Core/Targets/AutotoolsTarget.cs
+	- removed debugging Console.WriteLine()
+	* src/data/autotools.xml
+	- ensuring that install-sh and missing get distributed
+	- explicitly stating that the sources, snk, resources and binary
+	  references live under $(srcdir)
+	- corrected uninstall target
+	- verified distcheck completes successfully
+	
+2007-04-03T21:56	C.J. Adams-Collier <cjac@colliertech.org>
+	* src/Core/Targets/AutotoolsTarget.cs
+	- added a using for System.Diagnostics
+	- added enum ClrVersion for use with the pkg-config parser
+	- added class SystemPackage for use with the pkg-config parser
+	- removed explicit "private" property of members since it is implied
+	- flushing the stream-writer before it's closed
+	- removed excess braces around an if statement
+	! NormalizeAsmName(), AddAssembly(), GetAssembliesWithLibInfo(),
+	  GetAssembliesWithoutLibInfo(), ProcessPiece(),
+	  GetVariableFromPkgConfig(), ParsePCFile(),
+	  RegisterSystemAssemblies(), RunInitialization()
+	- pulled the above from MonoDevelop to parse the system pkgconfig
+	  files and determine /pkg: arguments.  Original sources are here:
+	  http://svn.myrealbox.com/source/trunk/monodevelop/Core/src/MonoDevelop.Core/MonoDevelop.Core/SystemAssemblyService.cs
+	  http://svn.myrealbox.com/source/trunk/monodevelop/Core/src/MonoDevelop.Core/MonoDevelop.Core/ClrVersion.cs
+	! WriteProject()
+	- now gathering project version from AssemblyInfo.cs if it is part
+	  of the project
+	- changed the declaration of the ArrayList's in the method
+	- now copying assembly .config files to the project, distributing,
+	  installing
+	- making sure all needed files live under the Project directory
+	- copying strongname keys to project directory
+	- parsing AssemblyInfo.cs to determine assembly version
+	- removing all references to ".."
+	- removed superfluous if(project.References.Count > 0) around
+	  for(int refNum = 0; refNum < project.References.Count; refNum++)
+	- removed use of runtimeLibs
+	- adding hook to copy sibling project's generated assemblies to
+	  this project during Make time
+	- added extra dist target to ensure all files required to build
+	  get distributed during "make dist"
+	- added new xslt processing args:
+	-- assemblyName
+	-- extraDistFiles
+	-- pkgLibs (/pkg:foo)
+	-- localCopyTargets (to copy sibling assemblies at Make time)
+	-- projectVersion (if determined from AssemblyInfo.cs)
+	-- hasAssemblyConfig (if there's a assembly.exe.config present)
+	! Write()
+	- calling RunInitialization() to gather pkg-config data
+	* src/data/autotools.xml
+	- accepting new args passed from AutotoolsTarget.cs
+	- modernized configure.ac a bit
+	- using a version of tar that allows >99-char filenames
+	- added ASSEMBLY_NAME variable
+	- using assembly name rather than project name for gac installation
+	- generated assembly is now assembly name and not project name
+	- accepting /pkg: flags gathered from AutotoolsTarget.cs
+	- adding Makefile targets to copy sibling project assemblies to .
+	- fixed Debug, Release targets
+	- adding support for strongname key signing
+	- adding /unsafe support
+	- adding a clean make target
+	- only running gacutil /u if the assembly being uninstalled is in gac
+	- added some templates to determine each Configuration's .snk
+	- added explanation as to why .exe assemblies live in $prefix/lib
+	* src/Properties/AssemblyInfo.cs
+	- bumped assembly version
+	* prebuild.xml
+	- bumped assembly version
+
+2007-03-29T18:03	C.J. Adams-Collier <cjac@colliertech.org>
+	* src/Core/Targets/AutotoolsTarget.cs
+	! WriteProject()
+	- re-named incorrectly-named variable gacLibs to systemLibs
+	- added another reference list, runtimeLibs which contains the
+	  libs we will need at runtime.  we use this to build a MONO_PATH
+	- added monoPath to the xslt args list
+	* src/data/autotools.xml
+	! <ProjectMakefileAm />
+	- renamed gacLibs to systemLibs
+	- added the sources to the dist list
+	- added logic to install libs that aren't strongnamed
+	! <ProjectWrapperScriptIn />
+	- accepting a param to update the MONO_PATH
+
+2007-03-28T19:46	C.J. Adams-Collier <cjac@colliertech.org>
+	* src/Core/Targets/MonoDevelopTarget.cs
+	! CleanProject()
+	- using Assembly.LoadWithPartialName to locate the assembly
+	* src/Core/Targets/AutotoolsTarget.cs
+	! WriteCombine()
+	- no longer using $PWD to determine a project's source dir; this
+	  doesn't work with <Process /> elements
+	- passing the solution name to all templates - fixes
+	  multi-solution prebuild systems
+	! WriteProject()
+	- no longer using $PWD to determine a project's source dir; this
+	  doesn't work with <Process /> elements
+	- passing the solution name to all templates - fixes
+	  multi-solution prebuild systems
+	- copying strongname key to the autotools directory
+	- using Assembly.LoadWithPartialName to locate assemblies
+	* src/data/autotools.xml
+	! <ProjectConfigureAc />
+	- fixed the .pc AC_CONFIG_FILES macro
+	! <ProjectMakefileAm />
+	- added solution name param
+	- wrapping if type=exe check around script install macro
+	- added type=lib check and .pc file install macro
+	- added support for Configuration-specific builds (Debug, Release, etc)
+	- added strongname keyfile code
+	- TODO: support non-strongnamed library installation
+	! <ProjectWrapperScriptIn />
+	- added space preservation attribute to stylesheet element
+	- added a lower-case project name variable
+	- added solution name param
+	- made for-each template more specific
+	! <SolutionAutogenSh />
+	- added solution name param
+	! <SolutionConfigureAc />
+	- added solution name param
+	! <SolutionMakefileAm />
+	- added solution name param
+	! <ProjectPcIn />
+	- added solution name param
+	
+2007-03-27T09:33	C.J. Adams-Collier <cjac@colliertech.org>
+	* src/Core/Targets/AutotoolsTarget.cs
+	- now processing the wrapper script if type is "Exe" or "WinExe"
+	* src/data/autotools.xml
+	! <ProjectConfigureAc />
+	- being more exact about where text escaping is used
+	- using the correct variable name for the GACUTIL_FLAGS template
+	- using correct test="" for the AC_CONFIG_FILES macros
+	! <ProjectMakefileAm />
+	- uncommented the bin_SCRIPTS section now that the script is being
+	  generated correctly
+	! <ProjectWrapperScriptIn />
+	- fixed whitespace at beginning of file, before #!
+	- using lower-case packageName to indicate installation location
+
+2007-03-27T09:33	C.J. Adams-Collier <cjac@colliertech.org>
+	* src/data/autotools.xml
+	! <ProjectConfigureAc />
+	* added a lcProjectName which is $projectName lower-cased
+	* moved autoconf template specifier near AC_OUTPUT
+	* AC_OUTPUT with args is deprecated.  now using AC_CONFIG_FILES
+	* placed AC_CONFIG_FILES() calls for wrapper script or pkg-config
+	  file in xslt project type checks
+	! <ProjectMakefileAm />
+	* commented out bin_SCRIPTS
+	* added a lcProjectName which is $projectName lower-cased
+	* using $lcProjectName instead of the longer version
+
+2007-03-27T08:39	C.J. Adams-Collier <cjac@colliertech.org>
+	* src/data/autotools.xml
+	! <ProjectMakefileAm />
+	- added whitespace-preservation
+	- added the missing projectName param
+	- replaced bin_SCRIPTS with something that worked
+
+2007-03-27T07:56	C.J. Adams-Collier <cjac@colliertech.org>
+	* src/data/autotools.xml
+	! <ProjectConfigureAc />
+	- cleaned up duplicate checks
+	- placed initialization macros above system check macros
+	- added some more messages about what's going on
+	- added GACUTIL_FLAGS variable including /package option
+	! <ProjectMakefileAm />
+	- added an incomplete bin_SCRIPTS
+	- RCS check says "building" instead of "compiling"
+	! <SolutionConfigureAc />
+	- removed macros that are useful only for projects
+	! <ProjectWrapperScriptIn />
+	- created this element on this revision
+	- this is a wrapper shell script that lives in the $PATH and runs
+	  the CIL assembly
+
+2007-03-26T20:18	C.J. Adams-Collier <cjac@colliertech.org>
+	* src/Core/Targets/AutotoolsTarget.cs
+	- creating new template arguments to contain the list of libs to
+	  reference: source, binary & GAC
+	- source libs are included as part of this solution (untested)
+	- binary libs are distributed with the source (untested)
+	- GAC libs are assumed to be in the GAC or other lib path (tested)
+	* src/data/autotools.xml
+	- created new params through which to accept reference info
+	- created a working $(CSC) line
+	- added a TODO item for ordering project dependency for
+	  AC_CONFIG_SUBDIRS code
+
+2007-03-26T08:41	C.J. Adams-Collier <cjac@colliertech.org>
+	* src/Core/Targets/AutotoolsTarget.cs
+	- now creating list of source files in managed code and passing
+	  them to the template via <xsl:param>s
+	* src/data/prebuild-1.7.xsd
+	- updated the header comment to 2007
+	* src/data/autotools.xml
+	! <ProjectConfigureAc>
+	- copied checks from Solution-level configure.ac
+	- copied solution-level config status
+	! <ProjectMakefileAm>
+	- added <xsl:param> elements for file list to be passed through
+	- made a temporary target for the assembly we're building
+	- added this target to the deps of "all:"
+	! <SolutionConfigureAc>
+	- changed status header/footer from "- - -" to "==="
+
+2007-03-23T08:33	C.J. Adams-Collier <cjac@colliertech.org>
+	Added version attribute handling code for Property element
+	Added description element handling code
+	* prebuild.xml
+	- added /Prebuild/Solution/Property/@version attribute
+	- added /Prebuild/Solution/Property/Description element
+	* src/Core/Nodes/ProjectNode.cs
+	- added some docs where they were missing and obvious
+	- added code to handle @version
+	* src/Core/Nodes/DescriptionNode.cs
+	- new file.  Used to handle /Prebuild/Solution/Property/Description
+	* src/Core/Targets/AutotoolsTarget.cs
+	- added mkdirDashP(), a recursive directory creation method
+	- WriteProject() now copies the files to autotools/
+	* src/data/prebuild-1.7.xsd
+	- added /Prebuild/Solution/Property/Description element
+	- added /Prebuild/Solution/Property/@version attribute
+	* src/data/autotools.xml
+	- removed excess <xsl:value-of select="$projectName"/>
+	- explicitly using dnpb: prefix
+
+2007-03-23T04:31	C.J. Adams-Collier <cjac@colliertech.org>
+	Merged code from my stripped-down test
+	Adding support for the /Prebuild/Solution/Project/Author element
+	* prebuild.xml
+	- added Author elements
+	- cleaned up the really long Project element
+	* src/Core/Nodes/ProjectNode.cs
+	- added Author tag processing code
+	* src/Core/Nodes/AuthorNode.cs
+	- Created to process Author elements
+	- based off of ReferencePathNode.cs
+	* src/Core/Targets/AutotoolsTarget.cs
+	- merged code from https://svn.colliertech.org/mono/dnpbAutotools/dnpbAutotools/test.cs
+	- renamed old WriteCombine to WriteCombineOld
+	- renamed old WriteProject to WriteProjectOld
+	* src/data/prebuild-1.7.xsd
+	- added Author element to Project
+	* src/data/autotools.xml
+	- lower-cased utf
+
+
+2007-03-22T13:58	C.J. Adams-Collier <cjac@colliertech.org>
+	Exposing an XmlDocument that represents the prebuild.xml file
+	passed to the program
+	
+	* src/Core/Kernel.cs
+	- created an object member called XmlDocument m_CurrentDoc
+	- created a property to access its value
+	- using m_CurrentDoc to load up the prebuild.xml file rather than
+	  a local variable called "doc"
+
+2007-03-22	C.J. Adams-Collier <cjac@colliertech.org>
+	* prebuild.xml
+	- added autotools.xml created at https://svn.colliertech.org/mono/dnpbAutotools/dnpbAutotools/autotools.xml
+	* src/data/autotools.xml
+	- the same
+	* src/Core/Targets/MonoDevelopTarget.cs
+	- fixed bug introduced in r206
+	
+2007-03-07  C.J. Adams-Collier <cjcollier@colliertech.org>
+	* src/data/prebuild-1.7.xsd
+	- added version attribute to Solution and Project elements
+
+2006-11-04T00:38  C.J. Adams-Collier <cjcollier@colliertech.org>
+	* placing AssemblyInfo.cs into Properties/
+	* Fixed double-mention of the package name
+
+2006-11-03T15:23  C.J. Adams-Collier <cjcollier@colliertech.org>
+	* corrected a problem in the Include.am generation code
+	* created the new .exe
+	* copied it to the root of the build
+	
+2006-11-03T14:57  C.J. Adams-Collier <cjcollier@colliertech.org>
+	* Updated the .exe file
+
+2006-11-03  C.J. Adams-Collier  <cjcollier@colliertech.org>
+	* Added a TODO file
+	* Added a ChangeLog file
+	* applied some fixes for autotools gac and pkg-config installation
+	problems

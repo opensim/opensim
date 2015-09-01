@@ -1,0 +1,39 @@
+﻿:VERSION 1         # -------------------------------
+
+begin;
+
+CREATE TABLE `auth` (
+  `UUID` char(36) NOT NULL,
+  `passwordHash` char(32) NOT NULL default '',
+  `passwordSalt` char(32) NOT NULL default '',
+  `webLoginKey` varchar(255) NOT NULL default '',
+  PRIMARY KEY  (`UUID`)
+) ENGINE=InnoDB;
+
+CREATE TABLE `tokens` (
+  `UUID` char(36) NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `validity` datetime NOT NULL,
+  UNIQUE KEY `uuid_token` (`UUID`,`token`),
+  KEY `UUID` (`UUID`),
+  KEY `token` (`token`),
+  KEY `validity` (`validity`)
+) ENGINE=InnoDB;
+
+commit;
+
+:VERSION 2         # -------------------------------
+
+BEGIN;
+
+INSERT INTO auth (UUID, passwordHash, passwordSalt, webLoginKey) SELECT `UUID` AS UUID, `passwordHash` AS passwordHash, `passwordSalt` AS passwordSalt, `webLoginKey` AS webLoginKey FROM users;
+
+COMMIT;
+
+:VERSION 3         # -------------------------------
+
+BEGIN;
+
+ALTER TABLE `auth` ADD COLUMN `accountType` VARCHAR(32) NOT NULL DEFAULT 'UserAccount';
+
+COMMIT;

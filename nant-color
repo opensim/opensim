@@ -1,0 +1,57 @@
+#!/usr/bin/env ruby
+
+def main
+    IO.popen("nant #{ARGV.join(' ')}") { |pipe|
+        pipe.sync = true
+        while str = pipe.gets
+            str.sub!(/\n+/, '')
+            puts colorize(str)
+        end
+    }
+end
+
+def clear
+    return "\e[0m"
+end
+
+def red(str)
+    return "\e[31m" + str + clear
+end
+
+def green(str)
+    return "\e[32m" + str + clear
+end
+
+def yellow(str)
+    return "\e[33m" + str + clear
+end
+
+def black
+    return "\e[30m"
+end
+
+def hide 
+    return "\e[8m"
+end
+
+def bright
+    return "\e[1m"
+end
+
+def colorize(str)
+    str.sub!(/(error \w+:.*)/, red('\1'))
+    str.sub!(/(warning \w+:.*)/, yellow('\1'))
+
+    str.sub!(/(Build Succeeded)/i, green('\1'))
+    str.sub!(/(Compilation succeeded)/, green('\1'))
+    str.sub!(/(\d+ warning\(s\))/, yellow('\1'))
+    str.sub!(/(Build Failed)/i, red('\1'))
+
+    str.sub!(/(Tests run: \d+, Failures: 0, Not run: 0,.*)/, green('\1'))
+    str.sub!(/(Tests run: \d+, Failures: 0, Not run: [1-9].*)/, yellow('\1'))
+    str.sub!(/(Tests run: \d+, Failures: [1-9].*)/, red('\1'))
+    str.sub!(/(Test Case Failures:)/, red('\1'))
+    return str
+end
+
+main()

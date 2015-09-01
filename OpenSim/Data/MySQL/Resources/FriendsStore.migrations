@@ -1,0 +1,32 @@
+﻿:VERSION 1       # -------------------------
+
+BEGIN;
+
+CREATE TABLE `Friends` (
+	`PrincipalID` CHAR(36) NOT NULL, 
+	`Friend` VARCHAR(255) NOT NULL, 
+	`Flags` VARCHAR(16) NOT NULL DEFAULT 0, 
+	`Offered` VARCHAR(32) NOT NULL DEFAULT 0, 
+	PRIMARY KEY(`PrincipalID`, `Friend`), 
+	KEY(`PrincipalID`)
+) ENGINE=InnoDB;
+
+COMMIT;
+
+:VERSION 2       # -------------------------
+
+BEGIN;
+
+INSERT INTO `Friends` SELECT `ownerID`, `friendID`, `friendPerms`, 0 FROM `userfriends`;
+
+COMMIT;
+
+:VERSION 3       # -------------------------
+
+BEGIN;
+
+ALTER TABLE `Friends` MODIFY COLUMN PrincipalID varchar(255) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
+ALTER TABLE `Friends` DROP PRIMARY KEY;
+ALTER TABLE `Friends` ADD PRIMARY KEY(PrincipalID(36), Friend(36));
+
+COMMIT;

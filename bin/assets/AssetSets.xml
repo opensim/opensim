@@ -1,0 +1,81 @@
+<Nini>
+
+  <!-- New asset sets can be added as shown below -->
+
+
+  <Section Name="My Asset Set">
+	  <Key Name="file" Value="MyAssetSet/MyAssetSet.xml"/>
+  </Section>
+
+  
+
+  <Section Name="Animations AssetSet">
+    <Key Name="file" Value="AnimationsAssetSet/index.xml"/>
+  </Section>
+  
+  <!---->
+  <Section Name="BodyParts AssetSet">
+    <Key Name="file" Value="BodyPartsAssetSet/BodyPartsAssetSet.xml"/>
+  </Section>
+  <!---->
+  
+  <!---->
+  <Section Name="Clothing AssetSet">
+    <Key Name="file" Value="ClothingAssetSet/ClothingAssetSet.xml"/>
+  </Section>
+  <!---->
+  
+  <!---->
+  <Section Name="Gestures AssetSet">
+    <Key Name="file" Value="GesturesAssetSet/GesturesAssetSet.xml"/>
+  </Section>
+  <!---->
+  
+  <!---->
+  <Section Name="Landmarks AssetSet">
+    <Key Name="file" Value="LandmarksAssetSet/LandmarksAssetSet.xml"/>
+  </Section>
+  <!---->
+  
+  <!---->
+  <Section Name="Notecards AssetSet">
+    <Key Name="file" Value="NotecardsAssetSet/NotecardsAssetSet.xml"/>
+  </Section>
+  <!---->
+  
+  <!---->
+  <Section Name="Objects AssetSet">
+    <Key Name="file" Value="ObjectsAssetSet/ObjectsAssetSet.xml"/>
+  </Section>
+  <!---->
+  
+  <!---->
+  <Section Name="Photos AssetSet">
+    <Key Name="file" Value="PhotosAssetSet/PhotosAssetSet.xml"/>
+  </Section>
+  <!---->
+  
+  <!---->
+  <Section Name="Scripts AssetSet">
+    <Key Name="file" Value="ScriptsAssetSet/ScriptsAssetSet.xml"/>
+  </Section>
+  <!---->
+  
+  <!---->
+  <Section Name="Sounds AssetSet">
+    <Key Name="file" Value="SoundsAssetSet/SoundsAssetSet.xml"/>
+  </Section>
+  <!---->
+  
+  <!---->
+  <Section Name="Collision Sounds AssetSet">
+    <Key Name="file" Value="CollisionSoundsAssetSet/CollisionSoundsAssetSet.xml"/>
+  </Section>
+  <!---->
+  
+  <!---->
+  <Section Name="Textures AssetSet">
+    <Key Name="file" Value="TexturesAssetSet/TexturesAssetSet.xml"/>
+  </Section>
+  <!---->
+</Nini>

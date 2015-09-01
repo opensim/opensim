@@ -1,0 +1,790 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Autotools>
+	<ProjectAutogenSh>
+		<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+				xmlns:dnpb="http://dnpb.sourceforge.net/schemas/prebuild-1.7.xsd"
+				exclude-result-prefixes="dnpb"
+				>
+	<xsl:template match="/"><xsl:text disable-output-escaping="yes">#!/bin/sh
+# Run this to generate all the initial makefiles, etc.
+# Ripped off from Mono, which ripped off from GNOME macros version
+
+DIE=0
+
+srcdir=`dirname $0`
+test -z "$srcdir" &amp;&amp; srcdir=.
+
+if [ -n "$MONO_PATH" ]; then
+	# from -> /mono/lib:/another/mono/lib
+	# to -> /mono /another/mono
+	for i in `echo ${MONO_PATH} | tr ":" " "`; do
+		i=`dirname ${i}`
+		if [ -n "{i}" -a -d "${i}/share/aclocal" ]; then
+			ACLOCAL_FLAGS="-I ${i}/share/aclocal $ACLOCAL_FLAGS"
+		fi
+		if [ -n "{i}" -a -d "${i}/bin" ]; then
+			PATH="${i}/bin:$PATH"
+		fi
+	done
+	export PATH
+fi
+
+(autoconf --version) &lt; /dev/null > /dev/null 2>&amp;1 || {
+  echo
+  echo "**Error**: You must have \`autoconf' installed to compile Mono."
+  echo "Download the appropriate package for your distribution,"
+  echo "or get the source tarball at ftp://ftp.gnu.org/pub/gnu/"
+  DIE=1
+}
+
+if [ -z "$LIBTOOL" ]; then
+  LIBTOOL=`which glibtool 2>/dev/null` 
+  if [ ! -x "$LIBTOOL" ]; then
+    LIBTOOL=`which libtool`
+  fi
+fi
+
+(grep "^AM_PROG_LIBTOOL" $srcdir/configure.ac >/dev/null) &amp;&amp; {
+  ($LIBTOOL --version) &lt; /dev/null > /dev/null 2>&amp;1 || {
+    echo
+    echo "**Error**: You must have \`libtool' installed to compile Mono."
+    echo "Get ftp://ftp.gnu.org/pub/gnu/libtool-1.2d.tar.gz"
+    echo "(or a newer version if it is available)"
+    DIE=1
+  }
+}
+
+grep "^AM_GNU_GETTEXT" $srcdir/configure.ac >/dev/null &amp;&amp; {
+  grep "sed.*POTFILES" $srcdir/configure.ac >/dev/null || \
+  (gettext --version) &lt; /dev/null > /dev/null 2>&amp;1 || {
+    echo
+    echo "**Error**: You must have \`gettext' installed to compile Mono."
+    echo "Get ftp://alpha.gnu.org/gnu/gettext-0.10.35.tar.gz"
+    echo "(or a newer version if it is available)"
+    DIE=1
+  }
+}
+
+(automake --version) &lt; /dev/null > /dev/null 2>&amp;1 || {
+  echo
+  echo "**Error**: You must have \`automake' installed to compile Mono."
+  echo "Get ftp://ftp.gnu.org/pub/gnu/automake-1.3.tar.gz"
+  echo "(or a newer version if it is available)"
+  DIE=1
+  NO_AUTOMAKE=yes
+}
+
+# if no automake, don't bother testing for aclocal
+test -n "$NO_AUTOMAKE" || (aclocal --version) &lt; /dev/null > /dev/null 2>&amp;1 || {
+  echo
+  echo "**Error**: Missing \`aclocal'.  The version of \`automake'"
+  echo "installed doesn't appear recent enough."
+  echo "Get ftp://ftp.gnu.org/pub/gnu/automake-1.3.tar.gz"
+  echo "(or a newer version if it is available)"
+  DIE=1
+}
+
+if test "$DIE" -eq 1; then
+  exit 1
+fi
+
+if test -z "$NOCONFIGURE"; then
+
+if test -z "$*"; then
+  echo "**Warning**: I am going to run \`configure' with no arguments."
+  echo "If you wish to pass any to it, please specify them on the"
+  echo \`$0\'" command line."
+  echo
+fi
+
+fi
+
+case $CC in
+xlc )
+  am_opt=--include-deps;;
+esac
+
+
+if grep "^AM_PROG_LIBTOOL" configure.ac >/dev/null; then
+  if test -z "$NO_LIBTOOLIZE" ; then 
+    echo "Running libtoolize..."
+    ${LIBTOOL}ize --force --copy
+  fi
+fi
+
+echo "Running aclocal $ACLOCAL_FLAGS ..."
+aclocal $ACLOCAL_FLAGS || {
+  echo
+  echo "**Error**: aclocal failed. This may mean that you have not"
+  echo "installed all of the packages you need, or you may need to"
+  echo "set ACLOCAL_FLAGS to include \"-I \$prefix/share/aclocal\""
+  echo "for the prefix where you installed the packages whose"
+  echo "macros were not found"
+  exit 1
+}
+
+if grep "^AM_CONFIG_HEADER" configure.ac >/dev/null; then
+  echo "Running autoheader..."
+  autoheader || { echo "**Error**: autoheader failed."; exit 1; }
+fi
+
+echo "Running automake --gnu $am_opt ..."
+automake --add-missing --gnu $am_opt ||
+  { echo "**Error**: automake failed."; exit 1; }
+echo "Running autoconf ..."
+autoconf || { echo "**Error**: autoconf failed."; exit 1; }
+
+conf_flags="--enable-maintainer-mode --enable-compile-warnings" #--enable-iso-c
+
+if test x$NOCONFIGURE = x; then
+  echo Running $srcdir/configure $conf_flags "$@" ...
+  $srcdir/configure $conf_flags "$@" \
+  &amp;&amp; echo Now type \`make\' to compile $PKG_NAME || exit 1
+else
+  echo Skipping configure process.
+fi
+</xsl:text>
+	</xsl:template>
+	</xsl:stylesheet>
+	</ProjectAutogenSh>
+
+	<ProjectConfigureAc>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+				xmlns:dnpb="http://dnpb.sourceforge.net/schemas/prebuild-1.7.xsd"
+				exclude-result-prefixes="dnpb"
+				xml:space="preserve"
+				>
+	<!-- Removes the xml version header in the generated file -->
+	<xsl:output method="text"/>
+	<xsl:param name="solutionName" />
+	<xsl:param name="projectName" />
+	<xsl:param name="projectVersion" />
+	<xsl:param name="assemblyName" />
+	<xsl:variable name="lcProjectName"><xsl:value-of select="translate($projectName, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/></xsl:variable>
+	<xsl:template match="/">
+	<xsl:for-each select="//dnpb:Solution[@name=$solutionName]/dnpb:Project[@name=$projectName]"
+>AC_INIT([<xsl:value-of select="$projectName" />],[<xsl:value-of select="$projectVersion" />])
+
+AC_PREREQ(2.60)
+AC_CANONICAL_SYSTEM
+AC_CONFIG_AUX_DIR(.)
+AM_INIT_AUTOMAKE([1.9 tar-ustar foreign])
+AM_MAINTAINER_MODE
+dnl AC_PROG_INTLTOOL([0.25])
+AC_PROG_INSTALL
+
+ASSEMBLY_NAME=<xsl:value-of select="$assemblyName" />
+PROJECT_NAME=<xsl:value-of select="$projectName" />
+PROJECT_VERSION=$VERSION
+PROJECT_DESCRIPTION="<xsl:value-of select="dnpb:Description/text()" />"
+PROJECT_TYPE="<xsl:value-of select="@type" />"
+
+AC_SUBST(ASSEMBLY_NAME)
+AC_SUBST(PROJECT_NAME)
+AC_SUBST(PROJECT_VERSION)
+AC_SUBST(DESCRIPTION)
+
+AC_MSG_CHECKING([assembly type])
+case $PROJECT_TYPE in
+	*Exe)
+		ASSEMBLY_EXTENSION=exe
+		;;
+	*Library)
+		ASSEMBLY_EXTENSION=dll
+		;;
+	*)
+		AC_MSG_ERROR([*** Please add support for project type $PROJECT_TYPE to configure.ac checks!])
+		;;
+esac
+AC_MSG_RESULT([$PROJECT_TYPE])
+
+AC_SUBST(ASSEMBLY_EXTENSION)
+
+AC_MSG_CHECKING([whether we're compiling from an RCS])
+if test -f "$srcdir/.cvs_version" ; then
+        from_rcs=cvs
+else
+  if test -f "$srcdir/.svn/entries" ; then
+  		from_rcs=svn
+  else
+        from_rcs=no
+  fi
+fi
+
+AC_MSG_RESULT($from_rcs)
+
+MONO_REQUIRED_VERSION=1.1
+<xsl:text disable-output-escaping="yes">
+PKG_CHECK_MODULES(MONO_DEPENDENCY, mono >= $MONO_REQUIRED_VERSION, has_mono=true, has_mono=false)
+</xsl:text>
+if test "x$has_mono" = "xtrue"; then
+  AC_PATH_PROG(RUNTIME, mono, no)
+  AC_PATH_PROG(CSC, gmcs, no)
+  AC_PATH_PROG(RESGEN, resgen2, no)
+  if test `uname -s` = "Darwin"; then
+        LIB_PREFIX=
+        LIB_SUFFIX=.dylib
+  else
+        LIB_PREFIX=.so
+        LIB_SUFFIX=
+  fi
+else
+  AC_PATH_PROG(CSC, csc.exe, no)
+  if test x$CSC = "xno"; then
+        AC_MSG_ERROR([You need to install either mono or .Net])
+  else
+    RUNTIME=
+    LIB_PREFIX=
+    LIB_SUFFIX=
+  fi
+fi
+
+AC_PATH_PROG(GACUTIL, gacutil)
+if test "x$GACUTIL" = "xno" ; then
+	AC_MSG_ERROR([No gacutil tool found])
+fi
+
+GACUTIL_FLAGS='/package <xsl:value-of select="$assemblyName" /> /gacdir $(DESTDIR)$(prefix)/lib'
+AC_SUBST(GACUTIL_FLAGS)
+
+AC_SUBST(PATH)
+AC_SUBST(LD_LIBRARY_PATH)
+
+AC_SUBST(LIB_PREFIX)
+AC_SUBST(LIB_SUFFIX)
+AC_SUBST(RUNTIME)
+AC_SUBST(CSC)
+AC_SUBST(RESGEN)
+AC_SUBST(GACUTIL)
+
+AC_SUBST(BASE_DEPENDENCIES_CFLAGS)
+AC_SUBST(BASE_DEPENDENCIES_LIBS)
+
+dnl Find monodoc
+MONODOC_REQUIRED_VERSION=1.0
+AC_SUBST(MONODOC_REQUIRED_VERSION)
+<xsl:text disable-output-escaping="yes">
+PKG_CHECK_MODULES(MONODOC_DEPENDENCY, monodoc >= $MONODOC_REQUIRED_VERSION, enable_monodoc=yes, enable_monodoc=no)
+</xsl:text>
+if test "x$enable_monodoc" = "xyes"; then
+        AC_PATH_PROG(MONODOC, monodoc, no)
+        if test x$MONODOC = xno; then
+           enable_monodoc=no
+        fi
+else
+        MONODOC=
+fi
+
+AC_SUBST(MONODOC)
+AM_CONDITIONAL(ENABLE_MONODOC, test "x$enable_monodoc" = "xyes")
+
+winbuild=no
+case "$host" in
+       *-*-mingw*|*-*-cygwin*)
+               winbuild=yes
+               ;;
+esac
+AM_CONDITIONAL(WINBUILD, test x$winbuild = xyes)
+
+<xsl:if test="@type='Exe' or @type='WinExe'">AC_CONFIG_FILES(<xsl:value-of select="$lcProjectName" />)</xsl:if>
+<xsl:if test="@type='Library'">AC_CONFIG_FILES(<xsl:value-of select="$projectName" />.pc)</xsl:if>
+
+AC_CONFIG_FILES(Makefile)
+AC_OUTPUT
+
+echo "==="
+echo ""
+echo "Project configuration summary"
+echo ""
+echo "   * Installation prefix: $prefix"
+echo "   * compiler:            $CSC"
+echo "   * Documentation:       $enable_monodoc ($MONODOC)"
+echo "   * Project Name:        $PROJECT_NAME"
+echo "   * Version:             $PROJECT_VERSION"
+echo ""
+echo "==="
+
+</xsl:for-each>
+</xsl:template>
+</xsl:stylesheet>
+	</ProjectConfigureAc>
+
+	<ProjectMakefileAm>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+				xmlns:dnpb="http://dnpb.sourceforge.net/schemas/prebuild-1.7.xsd"
+				exclude-result-prefixes="dnpb"
+				xml:space="preserve"
+				>
+<xsl:param name="projectName" />
+<xsl:param name="solutionName" />
+<xsl:param name="assemblyName" />
+<xsl:variable name="lcProjectName"><xsl:value-of select="translate($projectName, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/></xsl:variable>
+<xsl:param name="embeddedFiles" />
+<xsl:param name="compiledFiles" />
+<xsl:param name="contentFiles" />
+<xsl:param name="extraDistFiles" />
+<xsl:param name="pkgLibs" />
+<xsl:param name="binaryLibs" />
+<xsl:param name="systemLibs" />
+<xsl:param name="localCopyTargets" />
+<xsl:param name="hasAssemblyConfig" />
+
+<xsl:template match="/">
+<xsl:for-each select="//dnpb:Solution[@name=$solutionName]/dnpb:Project[@name=$projectName]">
+<xsl:variable name="lcType"><xsl:value-of select="translate(@type, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')" /></xsl:variable>
+
+ASSEMBLY=$(ASSEMBLY_NAME).$(ASSEMBLY_EXTENSION)
+<!--
+  If the project is an application, create targets for the wrapper script
+  -->
+<xsl:if test="@type='Exe' or @type='WinExe'">
+<xsl:value-of select="$lcProjectName" />dir = $(prefix)/lib/<xsl:value-of select="$lcProjectName" />
+<xsl:value-of select="$lcProjectName" />_DATA = $(ASSEMBLY)<xsl:if test="$hasAssemblyConfig='true'"> $(ASSEMBLY).config</xsl:if>
+
+bin_SCRIPTS=<xsl:value-of select="$lcProjectName" />
+</xsl:if><xsl:if test="@type='Library'">
+pkgconfigdir = $(prefix)/lib/pkgconfig
+pkgconfig_DATA = <xsl:value-of select="$projectName" />.pc
+<xsl:if test="$hasAssemblyConfig='true'">
+<xsl:value-of select="translate($lcProjectName, '.', '_')" />dir = $(prefix)/lib/mono/<xsl:value-of select="$projectName" />
+<xsl:value-of select="translate($lcProjectName, '.', '_')" />_DATA = $(ASSEMBLY).config
+</xsl:if>
+noinst_DATA = $(ASSEMBLY)
+</xsl:if>
+
+PACKAGES =<xsl:value-of select="$pkgLibs" />
+BINARY_LIBS =<xsl:value-of select="$binaryLibs" />
+SYSTEM_LIBS =<xsl:value-of select="$systemLibs" />
+RESOURCES_SRC =<xsl:value-of select="$embeddedFiles" />
+RESOURCES = $(RESOURCES_SRC:.resx=.resources)
+SOURCES =<xsl:value-of select="$compiledFiles" />
+
+EXTRA_DIST=$(SOURCES) $(BINARY_LIBS) $(RESOURCES_SRC) install-sh missing <xsl:value-of select="$extraDistFiles" />
+
+CLEANFILES=$(ASSEMBLY)
+
+<xsl:value-of select="$localCopyTargets" />
+
+<xsl:for-each select="//dnpb:Solution[@name=$solutionName]/dnpb:Project[@name=$projectName]/dnpb:Configuration">
+<xsl:variable name="outputPath"><xsl:value-of select="dnpb:Options/dnpb:OutputPath/text()" /></xsl:variable>
+<xsl:variable name="keyFile"><xsl:value-of select="dnpb:Options/dnpb:KeyFile/text()" /></xsl:variable>
+<xsl:variable name="docFile"><xsl:value-of select="dnpb:Options/dnpb:XmlDocFile/text()" /></xsl:variable>
+<xsl:value-of select="$outputPath"/>/$(ASSEMBLY): $(srcdir)/$(ASSEMBLY).response $(RESOURCES) $(SOURCES) $(BINARY_LIBS) <xsl:call-template name="substring-after-last-mod"><xsl:with-param name="input" select="$keyFile" /><xsl:with-param name="substr" select="'/'" /></xsl:call-template>
+	<xsl:if test="$docFile!=''">mkdir -p doc <xsl:text disable-output-escaping="yes">&amp;&amp;</xsl:text> </xsl:if>mkdir -p <xsl:value-of select="$outputPath" /> <xsl:text disable-output-escaping="yes">&amp;&amp;</xsl:text> $(CSC) /out:$@ \
+		/target:<xsl:value-of select="$lcType" /> \<xsl:if test="$embeddedFiles!=''">
+		$(addprefix /resource:$(srcdir)/, $(RESOURCES)) \</xsl:if><xsl:if test="$pkgLibs!=''">
+		$(addprefix /pkg:, $(PACKAGES)) \</xsl:if><xsl:if test="$systemLibs!=''">
+		$(addprefix /r:, $(SYSTEM_LIBS)) \</xsl:if><xsl:if test="$binaryLibs!=''">
+		$(addprefix /r:$(srcdir)/, $(BINARY_LIBS)) \</xsl:if>
+		@$(srcdir)/$(ASSEMBLY).response \<xsl:if test="$docFile!=''">
+		/doc:doc/<xsl:value-of select="$docFile" /> \</xsl:if><xsl:if test="$keyFile!=''">
+		/keyfile:$(srcdir)/<xsl:call-template name="substring-after-last-mod"><xsl:with-param name="input" select="$keyFile" /><xsl:with-param name="substr" select="'/'" /></xsl:call-template> \</xsl:if><xsl:if test="dnpb:Options/dnpb:AllowUnsafe/text()='true'">
+		/unsafe \</xsl:if><xsl:text disable-output-escaping="yes">
+	&amp;&amp; rm -f $(ASSEMBLY) \
+	&amp;&amp; ln $@ $(ASSEMBLY)</xsl:text>
+	
+CLEANFILES+=<xsl:value-of select="$outputPath"/>/$(ASSEMBLY)
+
+<!-- if this project config has a KeyFile -->
+<xsl:if test="$keyFile!=''">EXTRA_DIST+=<xsl:call-template name="substring-after-last-mod"><xsl:with-param name="input" select="$keyFile" /><xsl:with-param name="substr" select="'/'" /></xsl:call-template></xsl:if>
+
+<xsl:value-of select="@name" />: <xsl:value-of select="$outputPath"/>/$(ASSEMBLY)<xsl:text disable-output-escaping="yes">
+	rm -f $(ASSEMBLY) \
+	&amp;&amp;</xsl:text> ln <xsl:value-of select="$outputPath"/>/$(ASSEMBLY) $(ASSEMBLY)
+<!-- If the project is a library, create library-specific targets -->
+<xsl:if test="//dnpb:Solution[@name=$solutionName]/dnpb:Project[@name=$projectName]/@type='Library'">
+<xsl:choose>
+<!--
+  If the project has a keyfile, make a gac install/uninstall target
+  -->
+  <xsl:when test="dnpb:Options/dnpb:KeyFile/text()!=''">
+<xsl:value-of select="@name" />_install-data-local: <xsl:value-of select="$outputPath"/>/$(ASSEMBLY)
+	echo "$(GACUTIL) /i $(ASSEMBLY) /f $(GACUTIL_FLAGS)";  \
+	$(GACUTIL) /i $(ASSEMBLY) /f $(GACUTIL_FLAGS) || exit 1;
+
+<xsl:value-of select="@name" />_uninstall-local:
+	if [`gacutil -l <xsl:value-of select="$projectName" /> | grep "Number" | awk -F= '{print $$2}'` -gt "0" ] ; \
+	then \
+		echo "$(GACUTIL) /u $(ASSEMBLY_NAME) $(GACUTIL_FLAGS)"; \
+		$(GACUTIL) /u $(ASSEMBLY_NAME) $(GACUTIL_FLAGS) || exit 1; \
+	fi
+  </xsl:when>
+<!--
+   If there is no keyfile for the project, define a filesystem
+   install target
+  -->
+  <xsl:otherwise>
+noinst_<xsl:value-of select="@name" />_<xsl:value-of select="translate($lcProjectName, '.', '_')" />dir = $(prefix)/lib/mono/<xsl:value-of select="$projectName" />
+noinst_<xsl:value-of select="@name" />_<xsl:value-of select="translate($lcProjectName, '.', '_')" />_DATA = <xsl:value-of select="$outputPath"/>/$(ASSEMBLY)
+  </xsl:otherwise>
+</xsl:choose>
+</xsl:if>
+</xsl:for-each>
+
+<xsl:variable name="defaultConfig"><xsl:value-of select="//dnpb:Solution[@name=$solutionName]/dnpb:Project[@name=$projectName]/dnpb:Configuration/@name" /></xsl:variable>
+$(ASSEMBLY): <xsl:value-of select="$defaultConfig" />
+
+<xsl:text disable-output-escaping="yes">
+$(srcdir)/$(ASSEMBLY).response: $(srcdir)/Makefile
+	echo "$(addprefix $(srcdir)/, $(SOURCES))" &gt; $@
+</xsl:text>
+
+all: $(ASSEMBLY)
+
+# rule to compile .resx files to .resources
+%.resources: %.resx
+	$(RESGEN) /useSourcePath /compile $(@:.resources=.resx)
+
+<xsl:if test="@type='Library'">
+<!-- if the default config has a KeyFile -->
+<xsl:choose>
+  <xsl:when test="//dnpb:Solution[@name=$solutionName]/dnpb:Project[@name=$projectName]/dnpb:Configuration[@name=$defaultConfig]/dnpb:Options/dnpb:KeyFile/text()!=''">
+install-data-local: <xsl:value-of select="$defaultConfig" />_install-data-local
+
+uninstall-local: <xsl:value-of select="$defaultConfig" />_uninstall-local
+  </xsl:when>
+<!--
+  If the default config does not have a KeyFile, don't really do
+  anything
+  -->
+  <xsl:otherwise>
+#<xsl:value-of select="translate($lcProjectName, '.', '_')" />dir+=$(noinst_<xsl:value-of select="$defaultConfig" />_<xsl:value-of select="translate($lcProjectName, '.', '_')" />dir)
+#<xsl:value-of select="translate($lcProjectName, '.', '_')" />_DATA+=$(noinst_<xsl:value-of select="$defaultConfig" />_<xsl:value-of select="translate($lcProjectName, '.', '_')" />_DATA)
+  </xsl:otherwise>
+</xsl:choose>
+</xsl:if>
+</xsl:for-each>
+</xsl:template>
+
+<xsl:template name="substring-after-last" xml:space="default">
+	<xsl:param name="input" />
+	<xsl:param name="substr" />
+    
+	<!-- Extract the string which comes after the first occurence -->
+	<xsl:variable name="temp" select="substring-after($input,$substr)" />
+    
+    <xsl:choose>
+		<!-- If it still contains the search string then recursively process -->
+		<xsl:when test="$substr and contains($temp,$substr)">
+			<xsl:call-template name="substring-after-last">
+				<xsl:with-param name="input" select="$temp" />
+				<xsl:with-param name="substr" select="$substr" />
+			</xsl:call-template>
+		</xsl:when>
+		<xsl:otherwise>
+			<xsl:value-of select="$temp" />
+		</xsl:otherwise>
+	</xsl:choose>
+</xsl:template>
+
+<xsl:template name="substring-after-last-mod" xml:space="default">
+	<xsl:param name="input" />
+	<xsl:param name="substr" />
+
+	<xsl:choose>
+		<xsl:when test="contains($input,$substr)">
+			<xsl:call-template name="substring-after-last">
+				<xsl:with-param name="input"  select="$input" />
+				<xsl:with-param name="substr" select="$substr" />
+			</xsl:call-template>
+		</xsl:when>
+		<xsl:otherwise>
+			<xsl:value-of select="$input" />
+		</xsl:otherwise>
+	</xsl:choose>
+</xsl:template>
+</xsl:stylesheet>
+	</ProjectMakefileAm>
+	
+	<ProjectPcIn>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+				xmlns:dnpb="http://dnpb.sourceforge.net/schemas/prebuild-1.7.xsd"
+				exclude-result-prefixes="dnpb"
+				xml:space="preserve"
+				>
+	<!-- Removes the xml version header in the generated file -->
+	<xsl:output method="text"/>
+	<xsl:param name="projectName" />
+	<xsl:param name="solutionName" />
+	<xsl:variable name="lcProjectName"><xsl:value-of select="translate($projectName, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/></xsl:variable>
+<xsl:template match="/"><xsl:for-each select="//dnpb:Solution[@name=$solutionName]/dnpb:Project[@name=$projectName]">prefix=@prefix@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib/mono/@PROJECT_NAME@
+
+Name: <xsl:value-of select="@name" />
+Description: <xsl:value-of select="Description/text()" />
+Version: @PROJECT_VERSION@
+Requires:<xsl:for-each select="Reference"><xsl:if test="@localCopy=false"><xsl:text disable-output-escaping="yes"> </xsl:text><xsl:value-of select="@name" /></xsl:if></xsl:for-each>
+Libs: -r:${libdir}/@PROJECT_NAME@.dll
+
+</xsl:for-each>	
+
+	</xsl:template>
+</xsl:stylesheet>
+	</ProjectPcIn>
+	
+	<SolutionAutogenSh>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+				xmlns:dnpb="http://dnpb.sourceforge.net/schemas/prebuild-1.7.xsd"
+				exclude-result-prefixes="dnpb"
+				>
+	<xsl:param name="solutionName" />
+	<xsl:template match="/"><xsl:text disable-output-escaping="yes">#!/bin/sh
+# Run this to generate all the initial makefiles, etc.
+# Ripped off from Mono, which ripped off from GNOME macros version
+
+DIE=0
+
+srcdir=`dirname $0`
+test -z "$srcdir" &amp;&amp; srcdir=.
+
+if [ -n "$MONO_PATH" ]; then
+	# from -> /mono/lib:/another/mono/lib
+	# to -> /mono /another/mono
+	for i in `echo ${MONO_PATH} | tr ":" " "`; do
+		i=`dirname ${i}`
+		if [ -n "{i}" -a -d "${i}/share/aclocal" ]; then
+			ACLOCAL_FLAGS="-I ${i}/share/aclocal $ACLOCAL_FLAGS"
+		fi
+		if [ -n "{i}" -a -d "${i}/bin" ]; then
+			PATH="${i}/bin:$PATH"
+		fi
+	done
+	export PATH
+fi
+
+(autoconf --version) &lt; /dev/null > /dev/null 2>&amp;1 || {
+  echo
+  echo "**Error**: You must have \`autoconf' installed to compile Mono."
+  echo "Download the appropriate package for your distribution,"
+  echo "or get the source tarball at ftp://ftp.gnu.org/pub/gnu/"
+  DIE=1
+}
+
+if [ -z "$LIBTOOL" ]; then
+  LIBTOOL=`which glibtool 2>/dev/null` 
+  if [ ! -x "$LIBTOOL" ]; then
+    LIBTOOL=`which libtool`
+  fi
+fi
+
+(grep "^AM_PROG_LIBTOOL" $srcdir/configure.ac >/dev/null) &amp;&amp; {
+  ($LIBTOOL --version) &lt; /dev/null > /dev/null 2>&amp;1 || {
+    echo
+    echo "**Error**: You must have \`libtool' installed to compile Mono."
+    echo "Get ftp://ftp.gnu.org/pub/gnu/libtool-1.2d.tar.gz"
+    echo "(or a newer version if it is available)"
+    DIE=1
+  }
+}
+
+grep "^AM_GNU_GETTEXT" $srcdir/configure.ac >/dev/null &amp;&amp; {
+  grep "sed.*POTFILES" $srcdir/configure.ac >/dev/null || \
+  (gettext --version) &lt; /dev/null > /dev/null 2>&amp;1 || {
+    echo
+    echo "**Error**: You must have \`gettext' installed to compile Mono."
+    echo "Get ftp://alpha.gnu.org/gnu/gettext-0.10.35.tar.gz"
+    echo "(or a newer version if it is available)"
+    DIE=1
+  }
+}
+
+(automake --version) &lt; /dev/null > /dev/null 2>&amp;1 || {
+  echo
+  echo "**Error**: You must have \`automake' installed to compile Mono."
+  echo "Get ftp://ftp.gnu.org/pub/gnu/automake-1.3.tar.gz"
+  echo "(or a newer version if it is available)"
+  DIE=1
+  NO_AUTOMAKE=yes
+}
+
+
+# if no automake, don't bother testing for aclocal
+test -n "$NO_AUTOMAKE" || (aclocal --version) &lt; /dev/null > /dev/null 2>&amp;1 || {
+  echo
+  echo "**Error**: Missing \`aclocal'.  The version of \`automake'"
+  echo "installed doesn't appear recent enough."
+  echo "Get ftp://ftp.gnu.org/pub/gnu/automake-1.3.tar.gz"
+  echo "(or a newer version if it is available)"
+  DIE=1
+}
+
+if test "$DIE" -eq 1; then
+  exit 1
+fi
+
+if test -z "$*"; then
+  echo "**Warning**: I am going to run \`configure' with no arguments."
+  echo "If you wish to pass any to it, please specify them on the"
+  echo \`$0\'" command line."
+  echo
+fi
+
+case $CC in
+xlc )
+  am_opt=--include-deps;;
+esac
+
+
+if grep "^AM_PROG_LIBTOOL" configure.ac >/dev/null; then
+  if test -z "$NO_LIBTOOLIZE" ; then 
+    echo "Running libtoolize..."
+    ${LIBTOOL}ize --force --copy
+  fi
+fi
+
+echo "Running aclocal $ACLOCAL_FLAGS ..."
+aclocal $ACLOCAL_FLAGS || {
+  echo
+  echo "**Error**: aclocal failed. This may mean that you have not"
+  echo "installed all of the packages you need, or you may need to"
+  echo "set ACLOCAL_FLAGS to include \"-I \$prefix/share/aclocal\""
+  echo "for the prefix where you installed the packages whose"
+  echo "macros were not found"
+  exit 1
+}
+
+if grep "^AM_CONFIG_HEADER" configure.ac >/dev/null; then
+  echo "Running autoheader..."
+  autoheader || { echo "**Error**: autoheader failed."; exit 1; }
+fi
+
+echo "Running automake --gnu $am_opt ..."
+automake --add-missing --gnu $am_opt ||
+  { echo "**Error**: automake failed."; exit 1; }
+echo "Running autoconf ..."
+autoconf || { echo "**Error**: autoconf failed."; exit 1; }
+</xsl:text>
+<xsl:for-each select="/dnpb:Prebuild/dnpb:Solution[@name=$solutionName]/dnpb:Project">
+echo Running <xsl:value-of select="@name" />/autogen.sh ...
+(cd $srcdir/<xsl:value-of select="@name" /> ; NOCONFIGURE=1  /bin/sh ./autogen.sh "$@")
+echo Done running <xsl:value-of select="@name" />/autogen.sh ...
+</xsl:for-each>
+<xsl:text disable-output-escaping="yes">
+conf_flags="--enable-maintainer-mode --enable-compile-warnings" #--enable-iso-c
+
+if test x$NOCONFIGURE = x; then
+  echo Running $srcdir/configure $conf_flags "$@" ...
+  $srcdir/configure $conf_flags "$@" \
+  &amp;&amp; echo Now type \`make\' to compile $PKG_NAME || exit 1
+else
+  echo Skipping configure process.
+fi
+</xsl:text>
+</xsl:template>
+</xsl:stylesheet>	
+	</SolutionAutogenSh>
+	
+	<SolutionConfigureAc>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+				xmlns:dnpb="http://dnpb.sourceforge.net/schemas/prebuild-1.7.xsd"
+				exclude-result-prefixes="dnpb"
+				xml:space="preserve"
+				>
+	<!-- Removes the xml version header in the generated file -->
+	<xsl:output method="text"/>
+	<xsl:param name="solutionName" />
+<xsl:template match="/"
+>AC_INIT([<xsl:value-of select="$solutionName" />]-solution,[<xsl:value-of select="/dnpb:Prebuild/dnpb:Solution[@name=$solutionName]/@version" />])
+AC_CONFIG_AUX_DIR(.)
+AM_INIT_AUTOMAKE([1.9 tar-ustar foreign])
+EXTRA_DIST="install-sh missing"
+SOLUTION_NAME=<xsl:value-of select="$solutionName" />
+SOLUTION_VERSION=$VERSION
+SOLUTION_DESCRIPTION="<xsl:value-of select="/dnpb:Prebuild/dnpb:Solution[@name=$solutionName]/dnpb:Description" />"
+AC_SUBST(DESCRIPTION)
+
+AM_MAINTAINER_MODE
+
+dnl AC_PROG_INTLTOOL([0.25])
+
+AC_PROG_INSTALL
+
+AC_MSG_CHECKING([whether we're building from an RCS])
+if test -f "$srcdir/.cvs_version" ; then
+        from_rcs=cvs
+else
+  if test -f "$srcdir/.svn/entries" ; then
+  		from_rcs=svn
+  else
+        from_rcs=no
+  fi
+fi
+
+AC_MSG_RESULT($from_rcs)
+
+CONFIG="Release"
+AC_SUBST(CONFIG)
+<!-- TODO: Ensure that these SUBDIRS are processed in dependency order -->
+AC_CONFIG_SUBDIRS(<xsl:for-each select="/dnpb:Prebuild/dnpb:Solution[@name=$solutionName]/dnpb:Project"><xsl:text disable-output-escaping="yes"> </xsl:text><xsl:value-of select="@name" />
+</xsl:for-each>)
+<xsl:text disable-output-escaping="yes">
+
+AC_OUTPUT([
+Makefile
+])
+
+echo "==="
+echo ""
+echo "Solution configuration summary"
+echo ""
+echo "   * Solution Name:       $SOLUTION_NAME"
+echo "   * Version:       $SOLUTION_VERSION"
+echo "   * Packages:"</xsl:text>
+<xsl:for-each select="/dnpb:Prebuild/dnpb:Solution[@name=$solutionName]/dnpb:Project">echo "    - <xsl:value-of select="@name" />"
+</xsl:for-each><xsl:text disable-output-escaping="yes">echo ""
+echo "==="
+</xsl:text>
+</xsl:template>
+</xsl:stylesheet>
+	</SolutionConfigureAc>
+	
+	<SolutionMakefileAm>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+				xmlns:dnpb="http://dnpb.sourceforge.net/schemas/prebuild-1.7.xsd"
+				exclude-result-prefixes="dnpb"
+				xml:space="preserve"
+				>
+	<xsl:param name="solutionName" />
+	<xsl:template match="/">SUBDIRS =<xsl:for-each select="//dnpb:Solution[@name=$solutionName]/dnpb:Project"><xsl:text disable-output-escaping="yes"> </xsl:text><xsl:value-of select="@name" /></xsl:for-each>
+</xsl:template>
+</xsl:stylesheet>
+	</SolutionMakefileAm>
+	<ProjectWrapperScriptIn>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+				xmlns:dnpb="http://dnpb.sourceforge.net/schemas/prebuild-1.7.xsd"
+				exclude-result-prefixes="dnpb"
+				xml:space="preserve"
+				>
+	<!-- Removes the xml version header in the generated file -->
+	<xsl:output method="text"/>
+	<xsl:param name="projectName" />
+	<xsl:param name="assemblyName" />
+	<xsl:param name="solutionName" />
+	<xsl:param name="monoPath" />
+	<xsl:variable name="lcProjectName"><xsl:value-of select="translate($projectName, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/></xsl:variable>
+<xsl:template match="/"><xsl:for-each select="//dnpb:Solution[@name=$solutionName]/dnpb:Project[@name=$projectName]">#! /bin/sh
+
+PACKAGE=<xsl:value-of select="$assemblyName" />
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+
+# %%$@%$# why oh why isn't it $sharedir/<xsl:value-of select="$lcProjectName" />
+# Day changed to 30 Mar 2007
+# ...
+# 07:50 &lt; cj> why are we installing .exe assemblies to $prefix/lib/$package/ and 
+#             not $prefix/share/$package ?
+# 07:50 &lt; jonp> momentum.
+# 07:50 &lt; jonp> and it's hard to say that a .exe isn't platform specific
+# 07:50 &lt; jonp> as it can still contain DllImport's which make platform 
+#               assumptions
+
+packagedir=$prefix/lib/<xsl:value-of select="$lcProjectName" />
+export MONO_PATH=$MONO_PATH<xsl:value-of select="$monoPath" /> 
+
+exec @RUNTIME@ $packagedir/$PACKAGE.exe "$@"
+</xsl:for-each>
+</xsl:template>
+</xsl:stylesheet>
+	</ProjectWrapperScriptIn>
+</Autotools>

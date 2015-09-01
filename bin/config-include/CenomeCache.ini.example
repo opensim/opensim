@@ -1,0 +1,14 @@
+[AssetCache]
+    ;;
+    ;; Options for CenomeAssetCache
+    ;;
+
+    ; Max size of the cache in bytes
+    ; 134217728 = 128 MB, 26843556 = 256 MB, etc (default: 134217728)
+    MaxSize = 134217728
+
+    ; How many assets it is possible to store in the cache (default: 4096)
+    MaxCount = 4096
+
+    ; Expiration time in minutes (default: 30)
+    ExpirationTime = 30

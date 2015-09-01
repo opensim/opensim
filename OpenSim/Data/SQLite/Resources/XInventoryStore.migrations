@@ -1,0 +1,49 @@
+:VERSION 1
+
+BEGIN TRANSACTION;
+
+CREATE TABLE inventoryfolders(
+       folderName varchar(64),
+       type integer,
+       version integer,
+       folderID varchar(36) primary key,
+       agentID varchar(36) not null default '00000000-0000-0000-0000-000000000000',
+       parentFolderID varchar(36) not null default '00000000-0000-0000-0000-000000000000');
+
+CREATE TABLE inventoryitems(
+       assetID varchar(36),
+       assetType integer,
+       inventoryName varchar(64),
+       inventoryDescription varchar(128),
+       inventoryNextPermissions integer,
+       inventoryCurrentPermissions integer,
+       invType integer,
+       creatorID varchar(128),
+       inventoryBasePermissions integer,
+       inventoryEveryOnePermissions integer, 
+       salePrice integer default 99, 
+       saleType integer default 0, 
+       creationDate integer default 2000, 
+       groupID varchar(36) default '00000000-0000-0000-0000-000000000000', 
+       groupOwned integer default 0, 
+       flags integer default 0,
+       inventoryID varchar(36) primary key,
+       parentFolderID varchar(36) not null default '00000000-0000-0000-0000-000000000000',
+       avatarID varchar(36) not null default '00000000-0000-0000-0000-000000000000',
+       inventoryGroupPermissions integer not null default 0);
+
+create index inventoryfolders_agentid on inventoryfolders(agentID);
+create index inventoryfolders_parentid on inventoryfolders(parentFolderID);
+create index inventoryitems_parentfolderid on inventoryitems(parentFolderID);
+create index inventoryitems_avatarid on inventoryitems(avatarID);
+
+COMMIT;
+
+:VERSION 2
+
+BEGIN TRANSACTION;
+
+INSERT INTO inventoryfolders (folderName, type, version, folderID, agentID, parentFolderID) SELECT `name` AS folderName, `type` AS type, `version` AS version, `UUID` AS folderID, `agentID` AS agentID, `parentID` AS parentFolderID from old.inventoryfolders;
+INSERT INTO inventoryitems (assetID, assetType, inventoryName, inventoryDescription, inventoryNextPermissions, inventoryCurrentPermissions, invType, creatorID, inventoryBasePermissions, inventoryEveryOnePermissions, salePrice, saleType, creationDate, groupID, groupOwned, flags, inventoryID, parentFolderID, avatarID, inventoryGroupPermissions) SELECT `assetID`, `assetType` AS assetType, `inventoryName` AS inventoryName, `inventoryDescription` AS inventoryDescription, `inventoryNextPermissions` AS inventoryNextPermissions, `inventoryCurrentPermissions` AS inventoryCurrentPermissions, `invType` AS invType, `creatorsID` AS creatorID, `inventoryBasePermissions` AS inventoryBasePermissions, `inventoryEveryOnePermissions` AS inventoryEveryOnePermissions, `salePrice` AS salePrice, `saleType` AS saleType, `creationDate` AS creationDate, `groupID` AS groupID, `groupOwned` AS groupOwned, `flags` AS flags, `UUID` AS inventoryID, `parentFolderID` AS parentFolderID, `avatarID` AS avatarID, `inventoryGroupPermissions` AS inventoryGroupPermissions FROM old.inventoryitems;
+
+COMMIT;

@@ -1,0 +1,56 @@
+[AssetCache]
+    ;;
+    ;; Options for FlotsamAssetCache
+    ;;
+
+    ; cache directory can be shared by multiple instances
+    CacheDirectory = ./assetcache
+    ; Other examples:
+    ;CacheDirectory = /directory/writable/by/OpenSim/instance
+
+    ; Log level
+    ; 0 - (Error) Errors only
+    ; 1 - (Info)  Hit Rate Stats + Level 0
+    ; 2 - (Debug) Cache Activity (Reads/Writes) + Level 1
+    ;
+    LogLevel = 0
+
+    ; How often should hit rates be displayed (given in AssetRequests)
+    ; 0 to disable
+    HitRateDisplay = 100
+
+    ; Set to false for no memory cache
+    MemoryCacheEnabled = false
+
+    ; Set to false for no file cache
+    FileCacheEnabled = true
+
+    ; How long {in hours} to keep assets cached in memory, .5 == 30 minutes
+    ; Optimization: for VPS or limited memory system installs set Timeout to .016 (1 minute)
+    ; increases performance without large memory impact
+    MemoryCacheTimeout = 2
+
+    ; How long {in hours} to keep assets cached on disk, .5 == 30 minutes
+    ; Specify 0 if you do not want your disk cache to expire
+    FileCacheTimeout = 48
+
+    ; How often {in hours} should the disk be checked for expired filed
+    ; Specify 0 to disable expiration checking
+    FileCleanupTimer = 1.0  ;every hour
+
+    ; If WAIT_ON_INPROGRESS_REQUESTS has been defined then this specifies how
+    ; long (in miliseconds) to block a request thread while trying to complete
+    ; an existing write to disk.
+    ; NOTE: THIS PARAMETER IS NOT CURRENTLY USED BY THE CACHE
+    ; WaitOnInprogressTimeout = 3000
+
+    ; Number of tiers to use for cache directories (current valid
+    ; range 1 to 3)
+    ;CacheDirectoryTiers = 1
+
+    ; Number of letters per path tier, 1 will create 16 directories
+    ; per tier, 2 - 256, 3 - 4096 and 4 - 65K
+    ;CacheDirectoryTierLength = 3
+
+    ; Warning level for cache directory size
+    ;CacheWarnAt = 30000

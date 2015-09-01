@@ -1,0 +1,60 @@
+<Nini>
+
+  <Section Name="Hair">
+    <Key Name="assetID" Value="d342e6c0-b9d2-11dc-95ff-0800200c9a66"/>
+    <Key Name="name" Value="Hair"/>
+    <Key Name="assetType" Value="13" />
+    <Key Name="fileName" Value="base_hair.dat"/>
+  </Section>
+
+  <Section Name="Skin">
+    <Key Name="assetID" Value="77c41e39-38f9-f75a-024e-585989bbabbb"/>
+    <Key Name="name" Value="Skin"/>
+    <Key Name="assetType" Value="13" />
+    <Key Name="fileName" Value="base_skin.dat"/>
+  </Section>
+<!--
+  <Section Name="Jim Skin">
+    <Key Name="assetID" Value="77c41e39-38f9-f75a-024e-585989bbabbc"/>
+    <Key Name="name" Value="Jim Skin"/>
+    <Key Name="assetType" Value="13" />
+    <Key Name="fileName" Value="jim_skin.dat"/>
+  </Section>
+  
+  <Section Name="Little Goblin Skin">
+    <Key Name="assetID" Value="77c41e39-38f9-f75a-024e-585989bbabbd"/>
+    <Key Name="name" Value="Little Goblin Skin"/>
+    <Key Name="assetType" Value="13" />
+    <Key Name="fileName" Value="goblin_skin.dat"/>
+  </Section>
+-->
+  <Section Name="Shape">
+    <Key Name="assetID" Value="66c41e39-38f9-f75a-024e-585989bfab73"/>
+    <Key Name="name" Value="Shape"/>
+    <Key Name="assetType" Value="13" />
+    <Key Name="fileName" Value="base_shape.dat"/>
+  </Section>
+
+  <Section Name="Eyes">
+    <Key Name="assetID" Value="4bb6fa4d-1cd2-498a-a84c-95c1a0e745a7"/>
+    <Key Name="name" Value="Eyes"/>
+    <Key Name="assetType" Value="13" />
+    <Key Name="fileName" Value="base_eyes.dat"/>
+  </Section>
+
+<!--
+  <Section Name="Jim Shape">
+    <Key Name="assetID" Value="66c41e39-38f9-f75a-024e-585989bfab74"/>
+    <Key Name="name" Value="Jim Shape"/>
+    <Key Name="assetType" Value="13" />
+    <Key Name="fileName" Value="jim_shape.dat"/>
+  </Section>
+  
+  <Section Name="Little Goblin Shape">
+    <Key Name="assetID" Value="66c41e39-38f9-f75a-024e-585989bfab75"/>
+    <Key Name="name" Value="Little Goblin Shape"/>
+    <Key Name="assetType" Value="13" />
+    <Key Name="fileName" Value="little_goblin_shape.dat"/>
+  </Section>
+  -->
+</Nini>

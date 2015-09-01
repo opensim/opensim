@@ -1,0 +1,86 @@
+<Nini>
+  <Section Name="OpenSim Standard Library">
+    <Key Name="foldersFile" Value="OpenSimLibrary/OpenSimLibraryFolders.xml"/>
+    <Key Name="itemsFile" Value="OpenSimLibrary/OpenSimLibrary.xml"/>
+  </Section>
+  
+<!-- Additional libraries can be added as shown below.  These folders and items can appear underneath
+       the hardcoded root library folder ("OpenSim Library") 
+
+       You can also add folders and items to the folders of libraries defined in this file --> 
+<!--    
+  <Section Name="My Site Library">
+    <Key Name="foldersFile" Value="MySiteLibrary/MySiteLibraryFolders.xml"/>
+    <Key Name="itemsFile" Value="MySiteLibrary/MySiteLibraryItems.xml"/>
+  </Section> 
+-->
+
+<!-- comment the following to stop from loading the subfolders on login -->
+
+  <!---->
+  <Section Name="Animations Library">
+    <Key Name="foldersFile" Value="AnimationsLibrary/AnimationsLibraryFolders.xml"/>
+    <Key Name="itemsFile" Value="AnimationsLibrary/AnimationsLibraryItems.xml"/>
+  </Section>
+  <!---->
+  <!---->
+  <Section Name="BodyParts Library">
+    <Key Name="foldersFile" Value="BodyPartsLibrary/BodyPartsLibraryFolders.xml"/>
+    <Key Name="itemsFile" Value="BodyPartsLibrary/BodyPartsLibraryItems.xml"/>
+  </Section>
+  <!---->
+  <!---->
+  <Section Name="Clothing Library">
+    <Key Name="foldersFile" Value="ClothingLibrary/ClothingLibraryFolders.xml"/>
+    <Key Name="itemsFile" Value="ClothingLibrary/ClothingLibraryItems.xml"/>
+  </Section>
+  <!---->
+  <!---->
+  <Section Name="Gestures Library">
+    <Key Name="foldersFile" Value="GesturesLibrary/GesturesLibraryFolders.xml"/>
+    <Key Name="itemsFile" Value="GesturesLibrary/GesturesLibraryItems.xml"/>
+  </Section>  
+  <!---->
+  <!---->
+  <Section Name="Landmarks Library">
+    <Key Name="foldersFile" Value="LandmarksLibrary/LandmarksLibraryFolders.xml"/>
+    <Key Name="itemsFile" Value="LandmarksLibrary/LandmarksLibraryItems.xml"/>
+  </Section>  
+  <!---->
+  <!---->
+  <Section Name="Notecards Library">
+    <Key Name="foldersFile" Value="NotecardsLibrary/NotecardsLibraryFolders.xml"/>
+    <Key Name="itemsFile" Value="NotecardsLibrary/NotecardsLibraryItems.xml"/>
+  </Section>
+  <!---->
+  <!---->
+  <Section Name="Objects Library">
+    <Key Name="foldersFile" Value="ObjectsLibrary/ObjectsLibraryFolders.xml"/>
+    <Key Name="itemsFile" Value="ObjectsLibrary/ObjectsLibraryItems.xml"/>
+  </Section>
+  <!---->
+  <!---->
+  <Section Name="Photos Library">
+    <Key Name="foldersFile" Value="PhotosLibrary/PhotosLibraryFolders.xml"/>
+    <Key Name="itemsFile" Value="PhotosLibrary/PhotosLibraryItems.xml"/>
+  </Section>
+  <!---->
+  <!---->
+  <Section Name="Scripts Library">
+    <Key Name="foldersFile" Value="ScriptsLibrary/ScriptsLibraryFolders.xml"/>
+    <Key Name="itemsFile" Value="ScriptsLibrary/ScriptsLibraryItems.xml"/>
+  </Section>
+  <!---->
+  <!---->
+  <Section Name="Sounds Library">
+    <Key Name="foldersFile" Value="SoundsLibrary/SoundsLibraryFolders.xml"/>
+    <Key Name="itemsFile" Value="SoundsLibrary/SoundsLibraryItems.xml"/>
+  </Section>
+  <!---->
+  <!---->
+  <Section Name="Textures Library">
+    <Key Name="foldersFile" Value="TexturesLibrary/TexturesLibraryFolders.xml"/>
+    <Key Name="itemsFile" Value="TexturesLibrary/TexturesLibraryItems.xml"/>
+  </Section>
+  <!---->
+</Nini>

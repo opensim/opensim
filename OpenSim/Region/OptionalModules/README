@@ -1,0 +1,10 @@
+= OpenSim.Region.OptionalModules =
+
+The modules in this part of the OpenSim source tree are candidates for
+forge. For the time being, until we have reached consensus on
+
+    (a) what should be core or optional
+    (b) that we have reached a stable API
+    (c) how to maintain optional modules
+
+we will keep these modules in-tree.

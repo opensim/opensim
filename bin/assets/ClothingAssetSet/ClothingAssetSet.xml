@@ -1,0 +1,14 @@
+<Nini>
+  <Section Name="Shirt">
+    <Key Name="assetID" Value="00000000-38f9-1111-024e-222222111110"/>
+    <Key Name="name" Value="Shirt"/>
+    <Key Name="assetType" Value="5" />
+    <Key Name="fileName" Value="newshirt.dat"/>
+  </Section>
+  <Section Name="Pants">
+    <Key Name="assetID" Value="00000000-38f9-1111-024e-222222111120"/>
+    <Key Name="name" Value="Pants"/>
+    <Key Name="assetType" Value="5" />
+    <Key Name="fileName" Value="newpants.dat"/>
+  </Section>
+</Nini>

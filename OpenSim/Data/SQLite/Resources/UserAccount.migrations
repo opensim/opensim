@@ -1,0 +1,27 @@
+﻿:VERSION 1
+
+BEGIN TRANSACTION;
+
+-- useraccounts table
+CREATE TABLE UserAccounts (
+    PrincipalID CHAR(36)  primary key,
+    ScopeID CHAR(36) NOT NULL,
+    FirstName VARCHAR(64) NOT NULL,
+    LastName VARCHAR(64) NOT NULL,
+    Email VARCHAR(64),
+    ServiceURLs TEXT,
+    Created INT(11),
+    UserLevel integer NOT NULL DEFAULT 0,
+    UserFlags integer NOT NULL DEFAULT 0,
+    UserTitle varchar(64) NOT NULL DEFAULT ''
+);
+
+COMMIT;
+
+:VERSION 2
+
+BEGIN TRANSACTION;
+
+INSERT INTO UserAccounts (PrincipalID, ScopeID, FirstName, LastName, Email, ServiceURLs, Created) SELECT `UUID` AS PrincipalID, '00000000-0000-0000-0000-000000000000' AS ScopeID, username AS FirstName, surname AS LastName, '' as Email, '' AS ServiceURLs, created as Created FROM users;
+
+COMMIT;

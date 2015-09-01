@@ -1,0 +1,87 @@
+<Nini>
+  <Section Name="place_marker">
+    <Key Name="assetID" Value="8ceccb12-5aee-3584-e4a5-66973a844296" />
+    <Key Name="name" Value="place_marker" />
+    <Key Name="description" Value="simple part-body standing, use low-priority to allow others - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="place_marker.dat" />
+  </Section>
+  <Section Name="tpose2">
+    <Key Name="assetID" Value="01645eeb-8c51-60dc-58cc-b9512f05afc0" />
+    <Key Name="name" Value="tpose2" />
+    <Key Name="description" Value="a tpose more suitable for posing stands - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="tpose2.dat" />
+  </Section>
+  <Section Name="bouncy_ball_left">
+    <Key Name="assetID" Value="53339f20-1811-f774-0768-0989f5e57df2" />
+    <Key Name="name" Value="bouncy_ball_left" />
+    <Key Name="description" Value="turn left on bouncy ball, grasping - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="bouncy_ball_left.dat" />
+  </Section>
+  <Section Name="tpose">
+    <Key Name="assetID" Value="9e06424c-0178-82eb-ff21-6c0e4e5a7e6d" />
+    <Key Name="name" Value="tpose" />
+    <Key Name="description" Value="the standard tpose (all must start with this in frame 1) - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="tpose.dat" />
+  </Section>
+  <Section Name="give_and_handshake">
+    <Key Name="assetID" Value="b22af34d-740a-286f-f20a-e0818d91735e" />
+    <Key Name="name" Value="give_and_handshake" />
+    <Key Name="description" Value="same as handshake, but gives something with left hand first (30x30fps) - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="give_and_handshake.dat" />
+  </Section>
+  <Section Name="bouncy_ball_walk">
+    <Key Name="assetID" Value="be7b9b16-5c88-2862-2d20-ec4b939d6a8e" />
+    <Key Name="name" Value="bouncy_ball_walk" />
+    <Key Name="description" Value="move foward on bouncy ball, walk speed, grasping - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="bouncy_ball_walk.dat" />
+  </Section>
+  <Section Name="bouncy_ball_run">
+    <Key Name="assetID" Value="9f2e3814-fc16-0b90-eeb8-5cf8a37fa3bd" />
+    <Key Name="name" Value="bouncy_ball_run" />
+    <Key Name="description" Value="move foward on bouncy ball, run speed, grasping - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="bouncy_ball_run.dat" />
+  </Section>
+  <Section Name="windsurf_left">
+    <Key Name="assetID" Value="a0e08d1b-1f4b-5bae-8942-25ea578c80f6" />
+    <Key Name="name" Value="windsurf_left" />
+    <Key Name="description" Value="static, full body, pose of windsurfer, left foot forward - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="windsurf_left.dat" />
+  </Section>
+  <Section Name="bouncy_ball_super">
+    <Key Name="assetID" Value="8293c1a1-b7c8-26d8-b1e7-0512509112a5" />
+    <Key Name="name" Value="bouncy_ball_super" />
+    <Key Name="description" Value="super bounce on bouncy ball, matrix-like, grasping - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="bouncy_ball_super.dat" />
+  </Section>
+  <Section Name="bouncy_ball_right">
+    <Key Name="assetID" Value="2e349029-118a-995e-a7bf-d4fa32c1e9aa" />
+    <Key Name="name" Value="bouncy_ball_right" />
+    <Key Name="description" Value="turn right on bouncy ball, grasping - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="bouncy_ball_right.dat" />
+  </Section>
+  <Section Name="autograph_right">
+    <Key Name="assetID" Value="626d9b8f-124f-f571-fc84-002bf28b9395" />
+    <Key Name="name" Value="autograph_right" />
+    <Key Name="description" Value="part-body, right-handed signing autograph with left give - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="autograph_right.dat" />
+  </Section>
+  <Section Name="Handshake">
+    <Key Name="assetID" Value="ddc2400f-ecdb-b00e-aee7-442ff99d5fb7"/>
+    <Key Name="name" Value="Handshake"/>
+    <Key Name="description" Value="Created by Mo Hax"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="handshake_01.dat"/>
+  </Section>
+  
+</Nini>

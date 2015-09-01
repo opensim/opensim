@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="Pragma" content="no-cache">
+<title>OpenSim Login</title>
+<body><br />
+<div id="login_box">
+                
+<form action="/go.cgi" method="GET" id="login-form">
+
+<div id="message">[$errors]</div>
+<fieldset id="firstname">
+<legend>First Name:</legend>
+<input type="text" id="firstname_input" size="15" maxlength="100" name="username" value="[$firstname]" />
+</fieldset>
+<fieldset id="lastname">
+<legend>Last Name:</legend>
+<input type="text" size="15" maxlength="100" name="lastname" value="[$lastname]" />
+</fieldset>
+<fieldset id="password">
+<legend>Password:</legend>
+<table cellspacing="0" cellpadding="0" border="0">
+<tr>
+<td colspan="2"><input type="password" size="15" maxlength="100" name="password" value="[$password]" /></td>
+</tr>
+<tr>
+<td valign="middle"><input type="checkbox" name="remember_password" id="remember_password" [$remember_password] style="margin-left:0px;"/></td>
+<td><label for="remember_password">Remember password</label></td>
+</tr>
+</table>
+</fieldset>
+<input type="hidden" name="show_login_form" value="FALSE" />
+<input type="hidden" name="method" value="login" />
+<input type="hidden" id="grid" name="grid" value="[$grid]" />
+<input type="hidden" id="region" name="region" value="[$region]" />
+<input type="hidden" id="location" name="location" value="[$location]" />
+<input type="hidden" id="channel" name="channel" value="[$channel]" />
+<input type="hidden" id="version" name="version" value="[$version]" />
+<input type="hidden" id="lang" name="lang" value="[$lang]" />
+<div id="submitbtn">
+<input class="input_over" type="submit" value="Connect" />
+</div>
+<div id="connecting" style="visibility:hidden"> Connecting...</div>
+
+<div id="helplinks"><!--- 
+<a href="#new account link" target="_blank">Create new account</a> | 
+<a href="#forgot password link" target="_blank">Forgot password?</a>
+---></div>
+
+
+<div id="channelinfo"> [$channel] | [$version]=[$lang]</div>
+</form>
+<script language="JavaScript">
+document.getElementById('firstname_input').focus();
+</script>
+</div>
+</div>
+</body>
+</html>

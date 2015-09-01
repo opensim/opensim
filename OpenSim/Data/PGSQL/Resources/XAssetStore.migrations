@@ -1,0 +1,80 @@
+# -----------------
+:VERSION 1
+
+BEGIN;
+
+CREATE TABLE XAssetsMeta (
+  "ID" char(36) NOT NULL,
+  "Hash" char(32) NOT NULL,
+  "Name" varchar(64) NOT NULL,
+  "Description" varchar(64) NOT NULL,
+  "AssetType" smallint NOT NULL,
+  "Local" smallint NOT NULL,
+  "Temporary" smallint NOT NULL,
+  "CreateTime" integer NOT NULL,
+  "AccessTime" integer NOT NULL,
+  "AssetFlags" integer NOT NULL,
+  "CreatorID" varchar(128) NOT NULL,
+  PRIMARY KEY ("ID")
+);
+
+CREATE TABLE XAssetsData (
+  "Hash" char(32) NOT NULL,
+  "Data" bytea NOT NULL,
+  PRIMARY KEY ("Hash")
+);
+
+COMMIT;
+
+
+:VERSION 2
+
+BEGIN;
+
+ALTER TABLE xassetsmeta ALTER COLUMN "Local" SET DATA TYPE boolean USING CASE WHEN '0' THEN FALSE ELSE TRUE END;
+ALTER TABLE xassetsmeta ALTER COLUMN "Temporary" SET DATA TYPE boolean USING CASE WHEN '0' THEN FALSE ELSE TRUE END;
+ALTER TABLE xassetsmeta ALTER COLUMN "Hash" SET DATA TYPE char(66);
+ALTER TABLE xassetsdata ALTER COLUMN "Hash" SET DATA TYPE char(66);
+
+COMMIT;
+
+:VERSION 3
+
+BEGIN;
+
+ALTER TABLE xassetsmeta RENAME COLUMN "ID" TO id;
+ALTER TABLE xassetsmeta RENAME COLUMN "Hash" TO hash;
+ALTER TABLE xassetsmeta RENAME COLUMN "Name" TO name;
+ALTER TABLE xassetsmeta RENAME COLUMN "Description" TO description;
+ALTER TABLE xassetsmeta RENAME COLUMN "Local" to local;
+ALTER TABLE xassetsmeta RENAME COLUMN "Temporary" TO temporary;
+ALTER TABLE xassetsmeta RENAME COLUMN "CreateTime" TO create_time;
+ALTER TABLE xassetsmeta RENAME COLUMN "AccessTime" TO access_time;
+ALTER TABLE xassetsmeta RENAME COLUMN "AssetFlags" TO asset_flags;
+ALTER TABLE xassetsmeta RENAME COLUMN "CreatorID" TO creatorid;
+ALTER TABLE xassetsmeta DROP CONSTRAINT xassetsmeta_pkey;
+ALTER TABLE xassetsmeta ADD PRIMARY KEY (id);
+
+
+ALTER TABLE xassetsdata RENAME COLUMN "Hash" TO hash;
+ALTER TABLE xassetsdata RENAME COLUMN "Data" TO data;
+ALTER TABLE xassetsdata DROP CONSTRAINT xassetsdata_pkey;
+ALTER TABLE xassetsdata ADD PRIMARY KEY (hash);
+
+COMMIT;
+
+
+:VERSION 4
+
+BEGIN;
+
+ALTER TABLE xassetsmeta ALTER COLUMN id SET DATA TYPE uuid USING id::uuid;
+ALTER TABLE xassetsmeta ALTER COLUMN hash SET DATA TYPE bytea USING hash::bytea;
+ALTER TABLE xassetsdata ALTER COLUMN hash SET DATA TYPE bytea USING hash::bytea;
+
+COMMIT;
+
+:VERSION 5
+
+BEGIN;
+COMMIT;

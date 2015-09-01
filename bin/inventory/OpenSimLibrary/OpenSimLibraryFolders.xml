@@ -1,0 +1,14 @@
+<Nini>
+  <!-- The root library inventory folder is hardcoded as 00000112-000f-0000-0000-000100bba000 -->
+  <!-- Refer to the other folders under inventory, prefference is not to add entries here -->
+
+<!--
+  <Section Name="Example Library">
+    <Key Name="folderID" Value="12345678-1234-1234-1234-1234567890ab"/>
+    <Key Name="parentFolderID" Value="00000112-000f-0000-0000-000100bba000"/>
+    <Key Name="name" Value="Example Library"/>
+    <Key Name="type" Value="0"/>
+  </Section>
+  -->
+  
+</Nini>

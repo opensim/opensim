@@ -1,0 +1,42 @@
+:VERSION 1
+
+BEGIN TRANSACTION;
+
+CREATE TABLE Presence (
+"UserID" varchar(255) NOT NULL, 
+"RegionID" uuid NOT NULL, 
+"SessionID" uuid NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000',
+"SecureSessionID" uuid NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'
+);
+ 
+
+COMMIT;
+
+:VERSION 2
+
+BEGIN TRANSACTION;
+
+CREATE UNIQUE INDEX SessionID ON Presence("SessionID");
+CREATE INDEX UserID ON Presence("UserID");
+
+ALTER TABLE Presence ADD "LastSeen" Timestamp;
+
+COMMIT;
+
+:VERSION 3         # -------------------------- 
+
+BEGIN; 
+
+CREATE INDEX RegionID ON Presence("RegionID");
+
+COMMIT;
+
+:VERSION 4         # Making sure LastSeen is actually defined in the table as it most likely erred in the double version 2 migration above 
+
+BEGIN;
+
+ALTER TABLE Presence 
+DROP COLUMN IF EXISTS "LastSeen",
+ADD COLUMN "LastSeen" Timestamp;
+
+COMMIT;

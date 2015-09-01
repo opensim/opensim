@@ -1,0 +1,74 @@
+= The Quick Guide to OpenSim Unit Testing = 
+
+== Running Tests ==
+
+On Linux you will need to have NUnit installed (http://www.nunit.org).
+This is commonly available in distribution package repositories.
+
+When this is installed, run the command
+
+    > nant test
+
+Please see the TESTING ON WINDOWS section below for Windows instructions.
+
+== Adding Tests ==
+
+Tests should not be added to production assemblies.  They should
+instead be added to assemblies of the name
+My.Production.Assembly.Tests.dll.  This lets them easily be removed
+from production environments that don't want the bloat.
+
+Tests should be as close to the code as possible.  It is recommended
+that if you are writing tests they end up in a "Tests" sub-directory
+of the directory where the code you are testing resides.
+
+If you have added a new test assembly that hasn't existed before you
+must list it in both ".nant/local.include"
+for it to be accessible to Linux users and to the continuous
+integration system.
+
+== TESTING ON WINDOWS ==
+
+To use nunit testing on opensim code, you have a variety of methods.  The
+easiast methods involve using IDE capabilities to test code.  Using
+VS2005/2008 I recommend using the testing capabilities of Resharper(commercial)
+or TestDriven.Net(free).  Both will recognize nunit tests within your
+application and allow you to test them individually, or all at once, etc.  You
+will also be able to step into debug mode into a test through these add-ins
+enabling a developer to jump right in and see how a specific
+test-case/scenerio works.
+
+Additionally, it is my understanding that sharpdevelop and monodevelop have
+their own nunit testing plugins within their IDE.  Though I am not certain of
+their exact feature set or stability.
+
+== Using NUnit Directly ==
+The NUnit project is a very mature testing application.  It can be obtained
+from www.nunit.org are via various package distrobutions for Linux.  Please be
+sure to get a .Net 2.0 version of Nunit, as OpenSim makes use of .Net 2.0
+functionality.
+
+Nunit comes with 2 tools that will enable you to run tests from assembly
+inputs.  Nunit-gui and nunit-console.  NUnit-gui is a console that will let
+you view the execution of various tests within your assemblies and give visual
+indication of teir success or failure.  This is a useful tool for those who
+lack IDE addins ( or lack IDEs at all ).
+
+Nunit console allows you to execute the nunit tests of assemblies via console.
+Its output will show test failures and successes and a summary of what
+happened.  This is very useful for a quick overview and/or automated testing.
+
+=== Windows ===
+Windows version of nunit-console is by default .Net 2.0 if you downloaded the
+.Net 2.0 version  of Nunit.  Be sure to setup your PATH environment variable.
+
+=== Linux & OSX ===
+On these operating systems you will have to use the command "nunit-console2"
+
+=== Example ===
+
+nunit-console2 OpenSim.Framework.Tests.dll (on linux)
+nunit-console OpenSim.Framework.Tests.dll (on windows)
+
+See the file OpenSim/Data/Tests/Resources/TestDataConnections.ini
+for information to setup testing for data

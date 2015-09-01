@@ -1,0 +1,134 @@
+<!--
+  In Keys,
+    name is the name of the item.
+    description is the description of the item.
+    assetID is the ID of the asset data that is referenced by the item.
+    folderID is the ID of the folder containing this item.
+    inventoryID is the ID for the item.  It must be unique.
+    assetType is the asset type of the item.  See the OpenMetaverse.AssetType enum in libopenmetaverse
+    inventoryType is the inventory type of the item.  See the OpenMetaverse.InventoryType enum in libopenmetaverse
+-->
+
+<Nini>
+  <Section Name="place_marker">
+    <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
+    <Key Name="assetID" Value="8ceccb12-5aee-3584-e4a5-66973a844296" />
+    <Key Name="inventoryID" Value="95b4febe-0385-e1b7-e70d-71325d2beea9" />
+    <Key Name="name" Value="place_marker" />
+    <Key Name="description" Value="simple part-body standing, use low-priority to allow others - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="inventoryType" Value="19" />
+  </Section>
+  <Section Name="tpose2">
+    <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
+    <Key Name="assetID" Value="01645eeb-8c51-60dc-58cc-b9512f05afc0" />
+    <Key Name="inventoryID" Value="43534bdd-d00c-a9d1-874f-b83543352d54" />
+    <Key Name="name" Value="tpose2" />
+    <Key Name="description" Value="a tpose more suitable for posing stands - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="inventoryType" Value="19" />
+  </Section>
+  <Section Name="bouncy_ball_left">
+    <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
+    <Key Name="assetID" Value="53339f20-1811-f774-0768-0989f5e57df2" />
+    <Key Name="inventoryID" Value="6d108351-1e10-e4f2-fe37-8e59ea890835" />
+    <Key Name="name" Value="bouncy_ball_left" />
+    <Key Name="description" Value="turn left on bouncy ball, grasping - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="inventoryType" Value="19" />
+  </Section>
+  <Section Name="tpose">
+    <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
+    <Key Name="assetID" Value="9e06424c-0178-82eb-ff21-6c0e4e5a7e6d" />
+    <Key Name="inventoryID" Value="10f8fdbb-466d-df61-cfc6-cb75b43d141c" />
+    <Key Name="name" Value="tpose" />
+    <Key Name="description" Value="the standard tpose (all must start with this in frame 1) - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="inventoryType" Value="19" />
+  </Section>
+  <Section Name="handshake">
+    <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
+    <Key Name="assetID" Value="ddc2400f-ecdb-b00e-aee7-442ff99d5fb7" />
+    <Key Name="inventoryID" Value="94a2e1bf-e31f-1cb6-de62-37527283cdc6" />
+    <Key Name="name" Value="handshake" />
+    <Key Name="description" Value="a simple right-handed, double-pump handshake, (30x30fps) - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="inventoryType" Value="19" />
+  </Section>
+  <Section Name="give_and_handshake">
+    <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
+    <Key Name="assetID" Value="b22af34d-740a-286f-f20a-e0818d91735e" />
+    <Key Name="inventoryID" Value="914021af-b614-a940-6f3b-6c76a102eb4e" />
+    <Key Name="name" Value="give_and_handshake" />
+    <Key Name="description" Value="same as handshake, but gives something with left hand first (30x30fps) - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="inventoryType" Value="19" />
+  </Section>
+  <Section Name="bouncy_ball_walk">
+    <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
+    <Key Name="assetID" Value="be7b9b16-5c88-2862-2d20-ec4b939d6a8e" />
+    <Key Name="inventoryID" Value="6f3642e6-de37-7ad2-8fa2-6e1310a76e84" />
+    <Key Name="name" Value="bouncy_ball_walk" />
+    <Key Name="description" Value="move foward on bouncy ball, walk speed, grasping - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="inventoryType" Value="19" />
+  </Section>
+  <Section Name="bouncy_ball_run">
+    <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
+    <Key Name="assetID" Value="9f2e3814-fc16-0b90-eeb8-5cf8a37fa3bd" />
+    <Key Name="inventoryID" Value="f2e62518-0285-80c0-3530-abc6fe15ccf6" />
+    <Key Name="name" Value="bouncy_ball_run" />
+    <Key Name="description" Value="move foward on bouncy ball, run speed, grasping - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="inventoryType" Value="19" />
+  </Section>
+  <Section Name="windsurf_left">
+    <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
+    <Key Name="assetID" Value="a0e08d1b-1f4b-5bae-8942-25ea578c80f6" />
+    <Key Name="inventoryID" Value="42e422aa-4620-14b5-c7c0-ead9ccfd2df5" />
+    <Key Name="name" Value="windsurf_left" />
+    <Key Name="description" Value="static, full body, pose of windsurfer, left foot forward - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="inventoryType" Value="19" />
+  </Section>
+  <Section Name="bouncy_ball_super">
+    <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
+    <Key Name="assetID" Value="8293c1a1-b7c8-26d8-b1e7-0512509112a5" />
+    <Key Name="inventoryID" Value="6a2746a9-957d-b587-adce-7025bde55926" />
+    <Key Name="name" Value="bouncy_ball_super" />
+    <Key Name="description" Value="super bounce on bouncy ball, matrix-like, grasping - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="inventoryType" Value="19" />
+  </Section>
+  <Section Name="bouncy_ball_right">
+    <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
+    <Key Name="assetID" Value="2e349029-118a-995e-a7bf-d4fa32c1e9aa" />
+    <Key Name="inventoryID" Value="854dd926-bbbf-d2f7-e9bf-6877bc5916e4" />
+    <Key Name="name" Value="bouncy_ball_right" />
+    <Key Name="description" Value="turn right on bouncy ball, grasping - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="inventoryType" Value="19" />
+  </Section>
+  <Section Name="autograph_right">
+    <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
+    <Key Name="assetID" Value="626d9b8f-124f-f571-fc84-002bf28b9395" />
+    <Key Name="inventoryID" Value="c8048a47-90a2-4d07-123f-d81e758d3054" />
+    <Key Name="name" Value="autograph_right" />
+    <Key Name="description" Value="part-body, right-handed signing autograph with left give - contributed by Mo Hax" />
+    <Key Name="assetType" Value="20" />
+    <Key Name="inventoryType" Value="19" />
+  </Section>
+
+<!--
+  <Section Name="Example Library Item">
+    <Key Name="inventoryID" Value="30000000-0000-2222-4444-000000000001" />
+    <Key Name="assetID" Value="30000000-0000-2222-3333-000000000001" />
+    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba003"/>
+    <Key Name="description" Value="Example Library Item" />
+    <Key Name="name" Value="Example Library Item" />
+    <Key Name="assetType" Value="7" />
+    <Key Name="inventoryType" Value="7" />
+  </Section>
+--> 
+
+</Nini>

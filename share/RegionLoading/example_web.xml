@@ -1,0 +1,8 @@
+<Regions>
+	<Root>
+  		<Config sim_UUID="18fb66dbf6274279885228f1c4064f8c" sim_name="OpenSim Test" sim_location_x="1000" sim_location_y="1000" datastore="OpenSim.db" internal_ip_address="0.0.0.0" internal_ip_port="9000" external_host_name="127.0.0.1" master_avatar_first="Test" master_avatar_last="User" master_avatar_pass="test" />
+	</Root>
+	<Root>
+  		<Config sim_UUID="111111dbf6274219881228f1c1061f8c" sim_name="OpenSim Test2" sim_location_x="1001" sim_location_y="1000" datastore="OpenSim2.db" internal_ip_address="0.0.0.0" internal_ip_port="9001" external_host_name="127.0.0.1" master_avatar_first="Test" master_avatar_last="User" master_avatar_pass="test" />
+	</Root>
+</Regions>
