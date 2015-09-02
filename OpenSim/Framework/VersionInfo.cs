@@ -29,11 +29,7 @@ namespace OpenSim
 {
     public class VersionInfo
     {
-<<<<<<< HEAD:OpenSim/Framework/VersionInfo.cs
-        public const string VersionNumber = "0.8.2.0";
-=======
-        private const string VERSION_NUMBER = "0.8.0CM";
->>>>>>> avn/ubitvar:OpenSim/Framework/Servers/VersionInfo.cs
+        public const string VersionNumber = "0.8.2.0CM";
         private const Flavour VERSION_FLAVOUR = Flavour.Dev;
 
         public enum Flavour

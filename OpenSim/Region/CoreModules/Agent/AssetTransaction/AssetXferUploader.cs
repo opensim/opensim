@@ -455,8 +455,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             m_transactions.RemoveXferUploader(m_transactionID);
         }
 
-<<<<<<< HEAD
-=======
+
         private void ValidateAssets()
         {
             if (m_asset.Type == (sbyte)CustomAssetType.AnimationSet)
@@ -599,6 +598,5 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
             return result;
         }
->>>>>>> avn/ubitvar
     }
 }

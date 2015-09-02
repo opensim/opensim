@@ -28,11 +28,8 @@ using System.IO;
 
 using OpenSim.Framework;
 
-<<<<<<< HEAD
-=======
 using System.IO;
 using OpenSim.Framework;
->>>>>>> avn/ubitvar
 using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Interfaces
@@ -56,12 +53,6 @@ namespace OpenSim.Region.Framework.Interfaces
         void PushTerrain(IClientAPI pClient);
      
         /// <summary>
-        /// When a client initially connects, all the terrain must be pushed to the viewer.
-        /// This call causes all the terrain patches to be sent to the client.
-        /// </summary>
-        void PushTerrain(IClientAPI pClient);
-        
-        /// <summary>
         /// Load a terrain from a stream.
         /// </summary>
         /// <param name="filename">
@@ -69,7 +60,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </param>
         /// <param name="stream"></param>
         void LoadFromStream(string filename, Stream stream);
-        void LoadFromStream(string filename, Vector3 displacement, float radianRotation, Vector2 rotationDisplacement, Stream stream);
         void LoadFromStream(string filename, System.Uri pathToTerrainHeightmap);
         void LoadFromStream(string filename, Vector3 displacement,
                                 float radianRotation, Vector2 rotationDisplacement, Stream stream);

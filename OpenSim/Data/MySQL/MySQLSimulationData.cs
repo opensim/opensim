@@ -1105,7 +1105,7 @@ namespace OpenSim.Data.MySQL
                         "use_estate_sun, fixed_sun, sun_position, " +
                         "covenant, covenant_datetime, Sandbox, sunvectorx, sunvectory, " +
                         "sunvectorz, loaded_creation_datetime, " +
-                        "loaded_creation_id, map_tile_ID, " +
+                        "loaded_creation_id, map_tile_ID, block_search, casino, " +
                         "TelehubObject, parcel_tile_ID) " +
                          "values (?RegionUUID, ?BlockTerraform, " +
                         "?BlockFly, ?AllowDamage, ?RestrictPushing, " +
@@ -1122,53 +1122,14 @@ namespace OpenSim.Data.MySQL
                         "?SunPosition, ?Covenant, ?CovenantChangedDateTime, ?Sandbox, " +
                         "?SunVectorX, ?SunVectorY, ?SunVectorZ, " +
                         "?LoadedCreationDateTime, ?LoadedCreationID, " +
-                        "?TerrainImageID, " +
+                        "?TerrainImageID, ?block_search, ?casino, " +
                         "?TelehubObject, ?ParcelImageID)";
-
-                    using (MySqlCommand cmd = dbcon.CreateCommand())
-                    {
-                        cmd.CommandText = "replace into regionsettings (regionUUID, " +
-                            "block_terraform, block_fly, allow_damage, " +
-                            "restrict_pushing, allow_land_resell, " +
-                            "allow_land_join_divide, block_show_in_search, " +
-                            "agent_limit, object_bonus, maturity, " +
-                            "disable_scripts, disable_collisions, " +
-                            "disable_physics, terrain_texture_1, " +
-                            "terrain_texture_2, terrain_texture_3, " +
-                            "terrain_texture_4, elevation_1_nw, " +
-                            "elevation_2_nw, elevation_1_ne, " +
-                            "elevation_2_ne, elevation_1_se, " +
-                            "elevation_2_se, elevation_1_sw, " +
-                            "elevation_2_sw, water_height, " +
-                            "terrain_raise_limit, terrain_lower_limit, " +
-                            "use_estate_sun, fixed_sun, sun_position, " +
-                            "covenant, covenant_datetime, Sandbox, sunvectorx, sunvectory, " +
-                            "sunvectorz, loaded_creation_datetime, " +
-                            "loaded_creation_id, map_tile_ID, block_search, casino, " +
-                            "TelehubObject, parcel_tile_ID) " +
-                             "values (?RegionUUID, ?BlockTerraform, " +
-                            "?BlockFly, ?AllowDamage, ?RestrictPushing, " +
-                            "?AllowLandResell, ?AllowLandJoinDivide, " +
-                            "?BlockShowInSearch, ?AgentLimit, ?ObjectBonus, " +
-                            "?Maturity, ?DisableScripts, ?DisableCollisions, " +
-                            "?DisablePhysics, ?TerrainTexture1, " +
-                            "?TerrainTexture2, ?TerrainTexture3, " +
-                            "?TerrainTexture4, ?Elevation1NW, ?Elevation2NW, " +
-                            "?Elevation1NE, ?Elevation2NE, ?Elevation1SE, " +
-                            "?Elevation2SE, ?Elevation1SW, ?Elevation2SW, " +
-                            "?WaterHeight, ?TerrainRaiseLimit, " +
-                            "?TerrainLowerLimit, ?UseEstateSun, ?FixedSun, " +
-                            "?SunPosition, ?Covenant, ?CovenantChangedDateTime, ?Sandbox, " +
-                            "?SunVectorX, ?SunVectorY, ?SunVectorZ, " +
-                            "?LoadedCreationDateTime, ?LoadedCreationID, " +
-                            "?TerrainImageID, ?block_search, ?casino, " +
-                            "?TelehubObject, ?ParcelImageID)";
 
                     ExecuteNonQuery(cmd);
                 }
-            }
 
-            SaveSpawnPoints(rs);
+                SaveSpawnPoints(rs);
+            }
         }
 
         public virtual List<LandData> LoadLandObjects(UUID regionUUID)

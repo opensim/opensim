@@ -156,13 +156,6 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
         public Bitmap CreateMapTile()
         {
-<<<<<<< HEAD
-            // Vector3 camPos = new Vector3(127.5f, 127.5f, 221.7025033688163f);
-            // Camera above the middle of the region
-            Vector3 camPos = new Vector3(
-                            m_scene.RegionInfo.RegionSizeX/2 - 0.5f,
-                            m_scene.RegionInfo.RegionSizeY/2 - 0.5f,
-=======
             /* this must be on all map, not just its image
             if ((DateTime.Now - lastImageTime).TotalSeconds < 3600)
             {
@@ -179,16 +172,10 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             Vector3 camPos = new Vector3(
                             m_scene.RegionInfo.RegionSizeX / 2 - 0.5f,
                             m_scene.RegionInfo.RegionSizeY / 2 - 0.5f,
->>>>>>> avn/ubitvar
                             221.7025033688163f);
             // Viewport viewing down onto the region
             Viewport viewport = new Viewport(camPos, -Vector3.UnitZ, 1024f, 0.1f,
                         (int)m_scene.RegionInfo.RegionSizeX, (int)m_scene.RegionInfo.RegionSizeY,
-<<<<<<< HEAD
-                        (float)m_scene.RegionInfo.RegionSizeX, (float)m_scene.RegionInfo.RegionSizeY );
-            // Fill the viewport and return the image
-            return CreateMapTile(viewport, false);
-=======
                         (float)m_scene.RegionInfo.RegionSizeX, (float)m_scene.RegionInfo.RegionSizeY);
 
             Bitmap tile = CreateMapTile(viewport, false);
@@ -199,7 +186,6 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             lastImageTime = DateTime.Now;
             return (Bitmap)lastImage.Clone();
  */
->>>>>>> avn/ubitvar
         }
 
         public Bitmap CreateViewImage(Vector3 camPos, Vector3 camDir, float fov, int width, int height, bool useTextures)
@@ -315,15 +301,9 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             float waterHeight = (float)m_scene.RegionInfo.RegionSettings.WaterHeight;
 
             renderer.AddPlane("Water", m_scene.RegionInfo.RegionSizeX * 0.5f);
-<<<<<<< HEAD
-            renderer.Scene.sceneobject("Water").setPos(m_scene.RegionInfo.RegionSizeX/2 - 0.5f,
-                                                       waterHeight,
-                                                       m_scene.RegionInfo.RegionSizeY/2 - 0.5f );
-=======
             renderer.Scene.sceneobject("Water").setPos(m_scene.RegionInfo.RegionSizeX / 2 - 0.5f,
                                                        waterHeight,
                                                        m_scene.RegionInfo.RegionSizeY / 2 - 0.5f);
->>>>>>> avn/ubitvar
 
             warp_Material waterColorMaterial = new warp_Material(ConvertColor(WATER_COLOR));
 			waterColorMaterial.setReflectivity(0);  // match water color with standard map module thanks lkalif
@@ -352,11 +332,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                     warp_Vector pos = ConvertVector(x, y, (float)terrain[(int)x, (int)y]);
                     obj.addVertex(new warp_Vertex(pos,
                         x / (float)m_scene.RegionInfo.RegionSizeX,
-<<<<<<< HEAD
-                        (((float)m_scene.RegionInfo.RegionSizeY) - y) / m_scene.RegionInfo.RegionSizeY) );
-=======
                         (((float)m_scene.RegionInfo.RegionSizeY) - y) / m_scene.RegionInfo.RegionSizeY));
->>>>>>> avn/ubitvar
                 }
             }
 
@@ -424,12 +400,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             warp_Texture texture;
             using (
                 Bitmap image
-<<<<<<< HEAD
-                    = TerrainSplat.Splat(terrain, textureIDs, startHeights, heightRanges,
-=======
                     = TerrainSplat.Splat(
                         terrain, textureIDs, startHeights, heightRanges,
->>>>>>> avn/ubitvar
                         new Vector3d(globalX, globalY, 0.0), m_scene.AssetService, textureTerrain))
             {
                 texture = new warp_Texture(image);
@@ -705,12 +677,6 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         #endregion Rendering Methods
 
         #region Static Helpers
-        // Note: axis change.
-        private static warp_Vector ConvertVector(float x, float y, float z)
-        {
-            return new warp_Vector(x, z, y);
-        }
-
         // Note: axis change.
         private static warp_Vector ConvertVector(float x, float y, float z)
         {

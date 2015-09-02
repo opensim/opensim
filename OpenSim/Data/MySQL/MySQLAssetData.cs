@@ -202,52 +202,15 @@ namespace OpenSim.Data.MySQL
                             cmd.Parameters.AddWithValue("?asset_flags", (int)asset.Flags);
                             cmd.Parameters.AddWithValue("?data", asset.Data);
                             cmd.ExecuteNonQuery();
-                        }
-    
-                        string assetDescription = asset.Description;
-                        if (asset.Description.Length > 64)
-                        {
-                            assetDescription = asset.Description.Substring(0, 64);
-                            m_log.WarnFormat(
-                                "[ASSET DB]: Description '{0}' for asset {1} truncated from {2} to {3} characters on add", 
-                                asset.Description, asset.ID, asset.Description.Length, assetDescription.Length);
-                        }
-    
-                        try
-                        {
-                            using (cmd)
-                            {
-                                // create unix epoch time
-                                int now = (int)Utils.DateTimeToUnixTime(DateTime.UtcNow);
-                                cmd.Parameters.AddWithValue("?id", asset.ID);
-                                cmd.Parameters.AddWithValue("?name", assetName);
-                                cmd.Parameters.AddWithValue("?description", assetDescription);
-                                cmd.Parameters.AddWithValue("?assetType", asset.Type);
-                                cmd.Parameters.AddWithValue("?local", asset.Local);
-                                cmd.Parameters.AddWithValue("?temporary", asset.Temporary);
-                                cmd.Parameters.AddWithValue("?create_time", now);
-                                cmd.Parameters.AddWithValue("?access_time", now);
-                                cmd.Parameters.AddWithValue("?CreatorID", asset.Metadata.CreatorID);
-                                cmd.Parameters.AddWithValue("?asset_flags", (int)asset.Flags);
-                                cmd.Parameters.AddWithValue("?data", asset.Data);
-                                cmd.ExecuteNonQuery();
-                                return true;
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.ErrorFormat("[ASSET DB]: MySQL failure creating asset {0} with name \"{1}\". Error: {2}",
-                                asset.FullID, asset.Name, e.Message);
-                            return false;
+                            return true;
                         }
                     }
+
                     catch (Exception e)
                     {
-                        m_log.Error(
-                            string.Format(
-                                "[ASSET DB]: MySQL failure creating asset {0} with name {1}.  Exception  ",
-                                asset.FullID, asset.Name)
-                            , e);
+                        m_log.ErrorFormat("[ASSET DB]: MySQL failure creating asset {0} with name \"{1}\". Error: {2}",
+                            asset.FullID, asset.Name, e.Message);
+                        return false;
                     }
                 }
             }

@@ -269,11 +269,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return true;
         }
 
-<<<<<<< HEAD
+
         public bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, string theirversion, List<UUID> features, out string version, out string reason)
-=======
-        public bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, string theirversion, out string version, out string reason)
->>>>>>> avn/ubitvar
         {
             reason = "Communications failure";
             version = ServiceVersion;
@@ -302,29 +299,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                 
                 }
 
-<<<<<<< HEAD
+
                 return m_scenes[destination.RegionID].QueryAccess(agentID, agentHomeURI, viaTeleport, position, features, out reason);
-=======
-
-                // not really need on a grid running var regions sims
-
-                uint size = m_scenes[destination.RegionID].RegionInfo.RegionSizeX;
-
-                float theirVersionNumber = 0f;
-                string[] versionComponents = theirversion.Split(new char[] { '/' });
-                if (versionComponents.Length >= 2)
-                    float.TryParse(versionComponents[1], out theirVersionNumber);
-
-                // Var regions here, and the requesting simulator is in an older version.
-                // We will forbide this, because it crashes the viewers
-                if (theirVersionNumber < 0.3f && size > 256)
-                {
-                    reason = "Destination is a variable-sized region, and source is an old simulator. Consider upgrading.";
-                    m_log.DebugFormat("[LOCAL SIMULATION CONNECTOR]: Request to access this variable-sized region from {0} simulator was denied", theirVersionNumber);
-                    return false;
-                }
-                return m_scenes[destination.RegionID].QueryAccess(agentID, position, out reason);
->>>>>>> avn/ubitvar
             }
 
             //m_log.Debug("[LOCAL COMMS]: region not found for QueryAccess");

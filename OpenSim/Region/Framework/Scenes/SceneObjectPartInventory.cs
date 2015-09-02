@@ -892,16 +892,8 @@ namespace OpenSim.Region.Framework.Scenes
                 offsetHeight = 0;
                 return false;
             }
-<<<<<<< HEAD
-
-            Vector3 bbox;
-            float offsetHeight;
-
-            m_part.ParentGroup.Scene.GetObjectsToRez(rezAsset.Data, false, out objlist, out veclist, out bbox, out offsetHeight);
-=======
           
             bool single = m_part.ParentGroup.Scene.GetObjectsToRez(rezAsset.Data, false, out objlist, out veclist, out bbox, out offsetHeight);
->>>>>>> avn/ubitvar
 
             for (int i = 0; i < objlist.Count; i++)
             {
@@ -1068,12 +1060,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_items.LockItemsForRead(false);
                 if (type == 10) // Script
                 {
-<<<<<<< HEAD
-                    // route it through here, to handle script cleanup tasks
-                    RemoveScriptInstance(itemID, false);
-=======
                     m_part.ParentGroup.Scene.EventManager.TriggerRemoveScript(m_part.LocalId, itemID);
->>>>>>> avn/ubitvar
                 }
                 m_items.LockItemsForWrite(true);
                 m_items.Remove(itemID);

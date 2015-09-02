@@ -111,19 +111,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             String defaultUser = "";
             float rotation = 0f;
             Vector3 rotationCenter = new Vector3(Constants.RegionSize / 2f, Constants.RegionSize / 2f, 0);
-<<<<<<< HEAD
-            
-            OptionSet options = new OptionSet();
-            options.Add("m|merge", delegate (string v) { mergeOar = (v != null); });
-            options.Add("s|skip-assets", delegate (string v) { skipAssets = (v != null); });
-            options.Add("force-terrain", delegate (string v) { forceTerrain = (v != null); });
-            options.Add("forceterrain", delegate (string v) { forceTerrain = (v != null); });   // downward compatibility
-            options.Add("force-parcels", delegate (string v) { forceParcels = (v != null); });
-            options.Add("forceparcels", delegate (string v) { forceParcels = (v != null); });   // downward compatibility
-            options.Add("no-objects", delegate (string v) { noObjects = (v != null); });
-            options.Add("default-user=", delegate(string v) { defaultUser = (v == null) ? "" : v; });
-            options.Add("displacement=", delegate (string v) {
-=======
+
 
             OptionSet options = new OptionSet();
             options.Add("m|merge", delegate(string v) { mergeOar = (v != null); });
@@ -136,7 +124,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             options.Add("default-user=", delegate(string v) { defaultUser = (v == null) ? "" : v; });
             options.Add("displacement=", delegate(string v)
             {
->>>>>>> avn/ubitvar
                 try
                 {
                     displacement = v == null ? Vector3.Zero : Vector3.Parse(v);
@@ -163,12 +150,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 // Convert to radians for internals
                 rotation = Util.Clamp<float>(rotation, -359f, 359f) / 180f * (float)Math.PI;
             });
-<<<<<<< HEAD
-            options.Add("rotation-center=", delegate (string v) {
-=======
             options.Add("rotation-center=", delegate(string v)
             {
->>>>>>> avn/ubitvar
                 try
                 {
                     rotationCenter = v == null ? Vector3.Zero : Vector3.Parse(v);
@@ -308,21 +291,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
             DearchiveRegion(loadPath, Guid.Empty, archiveOptions);
         }
-<<<<<<< HEAD
-        
-        public void DearchiveRegion(string loadPath, Guid requestId, Dictionary<string,object> options)
-        {
-            m_log.InfoFormat(
-                "[ARCHIVER]: Loading archive to region {0} from {1}", Scene.RegionInfo.RegionName, loadPath);
-            
-=======
 
         public void DearchiveRegion(string loadPath, Guid requestId, Dictionary<string, object> options)
         {
             m_log.InfoFormat(
                 "[ARCHIVER]: Loading archive to region {0} from {1}", Scene.RegionInfo.RegionName, loadPath);
 
->>>>>>> avn/ubitvar
             new ArchiveReadRequest(Scene, loadPath, requestId, options).DearchiveRegion();
         }
         
@@ -331,11 +305,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
             DearchiveRegion(loadStream, Guid.Empty, archiveOptions);
         }
-<<<<<<< HEAD
-        
-=======
-
->>>>>>> avn/ubitvar
         public void DearchiveRegion(Stream loadStream, Guid requestId, Dictionary<string, object> options)
         {
             new ArchiveReadRequest(Scene, loadStream, requestId, options).DearchiveRegion();

@@ -487,7 +487,7 @@ namespace OpenSim.Region.Framework.Scenes
 
 
 
-        XmlTextReader reader;
+        XmlReader reader;
 
         private int XRint()
         {
@@ -524,7 +524,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public static bool EReadProcessors(
             Dictionary<string, Action> processors,
-            XmlTextReader xtr)
+            XmlReader xtr)
         {
             bool errors = false;
 
@@ -564,14 +564,15 @@ namespace OpenSim.Region.Framework.Scenes
         
         public string ToXml2()
         {
-            MemoryStream ms = new MemoryStream(512);
-            UTF8Encoding enc = new UTF8Encoding();
-            XmlTextWriter xwriter = new XmlTextWriter(ms, enc);
-            ToXml2(xwriter);
-            xwriter.Flush();
-            string s = ms.GetStreamString();
-            xwriter.Close();
-            return s;
+            using (StringWriter sw = new StringWriter())
+            {
+                using (XmlTextWriter xwriter = new XmlTextWriter(sw))
+                {
+                    ToXml2(xwriter);
+                }
+
+                return sw.ToString();
+            }
         }
 
         public static SOPVehicle FromXml2(string text)
@@ -598,7 +599,7 @@ namespace OpenSim.Region.Framework.Scenes
             return v;
         }
 
-        public static SOPVehicle FromXml2(XmlTextReader reader)
+        public static SOPVehicle FromXml2(XmlReader reader)
         {
             SOPVehicle vehicle = new SOPVehicle();
 
@@ -611,7 +612,7 @@ namespace OpenSim.Region.Framework.Scenes
             return vehicle;
         }
 
-        private void FromXml2(XmlTextReader _reader, out bool errors)
+        private void FromXml2(XmlReader _reader, out bool errors)
         {
             errors = false;
             reader = _reader;

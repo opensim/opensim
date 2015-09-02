@@ -102,31 +102,19 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public override string ToString()
             {
-<<<<<<< HEAD
-				string s=String.Format(Culture.FormatProvider,"<{0:0.000000},{1:0.000000},{2:0.000000}>", x, y, z);
-=======
                 string s = String.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}>", x, y, z);
->>>>>>> avn/ubitvar
                 return s;
             }
 
             public static explicit operator LSLString(Vector3 vec)
             {
-<<<<<<< HEAD
-				string s=String.Format(Culture.FormatProvider,"<{0:0.000000},{1:0.000000},{2:0.000000}>", vec.x, vec.y, vec.z);
-=======
                 string s = String.Format("<{0:0.000000}, {1:0.000000}, {2:0.000000}>", vec.x, vec.y, vec.z);
->>>>>>> avn/ubitvar
                 return new LSLString(s);
             }
 
             public static explicit operator string(Vector3 vec)
             {
-<<<<<<< HEAD
-				string s=String.Format(Culture.FormatProvider,"<{0:0.000000},{1:0.000000},{2:0.000000}>", vec.x, vec.y, vec.z);
-=======
                 string s = String.Format("<{0:0.000000}, {1:0.000000}, {2:0.000000}>", vec.x, vec.y, vec.z);
->>>>>>> avn/ubitvar
                 return s;
             }
 
@@ -727,17 +715,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
             private void ExtendAndAdd(object o)
             {
                 object[] tmp;
-<<<<<<< HEAD
                 tmp = new object[Data.Length + 1];
                 Data.CopyTo(tmp, 0);
                 tmp.SetValue(o, tmp.Length - 1);
                 Data = tmp;
-=======
-                tmp = new object[m_data.Length + 1];
-                m_data.CopyTo(tmp, 0);
-                tmp.SetValue(o, tmp.Length - 1);
-                m_data = tmp;
->>>>>>> avn/ubitvar
             }
 
             public static list operator +(list a, LSLString s)

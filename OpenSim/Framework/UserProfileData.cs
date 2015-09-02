@@ -160,11 +160,7 @@ namespace OpenSim.Framework
         public virtual ulong HomeRegion
         {
             get 
-<<<<<<< HEAD
-            {
-=======
             { 
->>>>>>> avn/ubitvar
                 return Util.RegionWorldLocToHandle(Util.RegionToWorldLoc(m_homeRegionX), Util.RegionToWorldLoc(m_homeRegionY));
                 // return Utils.UIntsToLong( m_homeRegionX * (uint)Constants.RegionSize, m_homeRegionY * (uint)Constants.RegionSize); 
             }

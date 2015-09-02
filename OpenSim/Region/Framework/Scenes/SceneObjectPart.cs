@@ -1046,39 +1046,22 @@ namespace OpenSim.Region.Framework.Scenes
             }
             set
             {
-<<<<<<< HEAD
                 if (Util.IsNanOrInfinity(value))
                     m_angularVelocity = Vector3.Zero;
                 else
                     m_angularVelocity = value;
 
                 PhysicsActor actor = PhysActor;
-                if ((actor != null) && actor.IsPhysical)
-                    actor.RotationalVelocity = m_angularVelocity;
-=======
-                m_angularVelocity = value;
-                PhysicsActor actor = PhysActor;
                 if ((actor != null) && actor.IsPhysical && ParentGroup.RootPart == this && VehicleType == (int)Vehicle.TYPE_NONE)
                 {
                     actor.RotationalVelocity = m_angularVelocity;
                 }                       
->>>>>>> avn/ubitvar
             }
         }
 
         /// <summary></summary>
         public Vector3 Acceleration
         {
-<<<<<<< HEAD
-            get { return m_acceleration; }
-            set 
-            {
-                if (Util.IsNanOrInfinity(value))
-                    m_acceleration = Vector3.Zero;
-                else
-                    m_acceleration = value;
-            }
-=======
 			get 
 			{ 
                 PhysicsActor actor = PhysActor;
@@ -1088,9 +1071,14 @@ namespace OpenSim.Region.Framework.Scenes
 				}
 				return m_acceleration;
 			} 
-            
-            set { m_acceleration = value; }
->>>>>>> avn/ubitvar
+           
+            set 
+            {
+                if (Util.IsNanOrInfinity(value))
+                    m_acceleration = Vector3.Zero;
+                else
+                    m_acceleration = value;
+            }
         }
 
         public string Description { get; set; }
@@ -1431,7 +1419,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <value>
         /// null if there are no sitting avatars.  This is to save us create a hashset for every prim in a scene.
         /// </value>
-        private HashSet<ScenePresence> m_sittingAvatars;
+        private HashSet<UUID> m_sittingAvatars;
 
         public virtual UUID RegionID
         {
@@ -1932,7 +1920,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void AddTextureAnimation(Primitive.TextureAnimation pTexAnim)
         {
-<<<<<<< HEAD
             byte[] data;
 
             if (pTexAnim.Flags == Primitive.TextureAnimMode.ANIM_OFF)
@@ -1944,13 +1931,6 @@ namespace OpenSim.Region.Framework.Scenes
                 data = new byte[16];
                 int pos = 0;
 
-=======
-            if (((int)pTexAnim.Flags & 1) != 0) // ANIM_ON
-            {
-                byte[] data = new byte[16];
-                int pos = 0;
-
->>>>>>> avn/ubitvar
                 // The flags don't like conversion from uint to byte, so we have to do
                 // it the crappy way.  See the above function :(
 
@@ -1962,17 +1942,9 @@ namespace OpenSim.Region.Framework.Scenes
                 Utils.FloatToBytes(pTexAnim.Start).CopyTo(data, pos);
                 Utils.FloatToBytes(pTexAnim.Length).CopyTo(data, pos + 4);
                 Utils.FloatToBytes(pTexAnim.Rate).CopyTo(data, pos + 8);
-<<<<<<< HEAD
+               
             }
-=======
->>>>>>> avn/ubitvar
-
-                m_TextureAnimation = data;
-            }
-            else
-            {
-                m_TextureAnimation = Utils.EmptyBytes;
-            }
+            m_TextureAnimation = data;
         }
 
         public void AdjustSoundGain(double volume)
@@ -2240,7 +2212,7 @@ namespace OpenSim.Region.Framework.Scenes
             Array.Copy(Shape.ExtraParams, extraP, extraP.Length);
             dupe.Shape.ExtraParams = extraP;
 
-            dupe.m_sittingAvatars = new HashSet<ScenePresence>();
+            dupe.m_sittingAvatars = new HashSet<UUID>();
 
             // safeguard  actual copy is done in sog.copy
             dupe.KeyframeMotion = null;
@@ -2829,7 +2801,7 @@ namespace OpenSim.Region.Framework.Scenes
                     CollidingMessage = CreateColliderArgs(this, colliders);
 
                     if (CollidingMessage.Colliders.Count > 0)
-                        DoNotify(notify, LocalId, CollidingMessage);
+                        notify(LocalId, CollidingMessage);
 
                     if (PassCollisions)
                         sendToRoot = true;
@@ -2843,7 +2815,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     CollidingMessage = CreateColliderArgs(ParentGroup.RootPart, colliders);
                     if (CollidingMessage.Colliders.Count > 0)
-                        DoNotify(notify, ParentGroup.RootPart.LocalId, CollidingMessage);
+                        notify(ParentGroup.RootPart.LocalId, CollidingMessage);
                 }
             }
         }
@@ -2858,35 +2830,6 @@ namespace OpenSim.Region.Framework.Scenes
             colliding.Add(CreateDetObjectForGround());
             LandCollidingMessage.Colliders = colliding;
 
-<<<<<<< HEAD
-                DoNotify(notify, LocalId, LandCollidingMessage);
-            }
-        }
-
-        private void DoNotify(ScriptCollidingNotification notify, uint id, ColliderArgs collargs)
-        {
-            if (m_parentGroup != null && ParentGroup.Scene != null && ParentGroup.Scene.ShouldUseFireAndForgetForCollisions)
-            {
-                // For those learning C#, FireAndForget takes a function, an object to pass
-                //    to that function and an ID string. The "oo => {}" construct is a lambda expression
-                //    for a function with one arguement ('oo'). The 'new Object[] {}" construct creates an Object
-                //    that is an object array and initializes it with three items (the parameters
-                //    being passed). The parameters passed are the function to call ('notify') and
-                //    its two arguements. Finally, once in the function (called later by the FireAndForget
-                //    thread scheduler), the passed object is cast to an object array and then each
-                //    of its items (aoo[0] to aoo[2]) are individually cast to what they are and
-                //    then used in a call of the passed ScriptCollidingNotification function.
-                Util.FireAndForget(oo =>
-                {
-                    Object[] aoo = (Object[])oo;
-                    ((ScriptCollidingNotification)aoo[0])((uint)aoo[1], (ColliderArgs)aoo[2]);
-
-                }, new Object[] { notify, id, collargs }, "SOP.Collision");
-            }
-            else
-            {
-                notify(id, collargs);
-=======
             if (Inventory.ContainsScripts())
             {
                 if (!PassCollisions)
@@ -2898,7 +2841,6 @@ namespace OpenSim.Region.Framework.Scenes
             if ((ParentGroup.RootPart.ScriptEvents & ev) != 0 && sendToRoot)
             {
                 notify(ParentGroup.RootPart.LocalId, LandCollidingMessage);
->>>>>>> avn/ubitvar
             }
         }
 
@@ -3046,12 +2988,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (pa != null)
             {
-<<<<<<< HEAD
                 Vector3 newpos = pa.Position;
-=======
-                Vector3 newpos = new Vector3(pa.Position.GetBytes(), 0);
-                
->>>>>>> avn/ubitvar
                 if (!ParentGroup.Scene.PositionIsInCurrentRegion(newpos))
                 {
                     // Setting position outside current region will start region crossing
@@ -3996,14 +3933,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
         public void StopMoveToTarget()
         {
-<<<<<<< HEAD
             ParentGroup.StopMoveToTarget();
-=======
-            ParentGroup.stopMoveToTarget();
-
-//            ParentGroup.ScheduleGroupForTerseUpdate();
-            //ParentGroup.ScheduleGroupForFullUpdate();
->>>>>>> avn/ubitvar
         }
 
         public void StoreUndoState(ObjectChangeType change)
@@ -4665,8 +4595,6 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
         public void ClonePermissions(SceneObjectPart source)
         {
-            bool update = false;
-
             uint prevOwnerMask = OwnerMask;
             uint prevGroupMask = GroupMask;
             uint prevEveryoneMask = EveryoneMask;
@@ -4851,12 +4779,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                     }
                     else // it already has a physical representation
                     {
-<<<<<<< HEAD
-                        pa.SetMaterial(Material);
-                        pa.Position = GetWorldPosition();
-                        pa.Orientation = GetWorldRotation();
-                        DoPhysicsPropertyUpdate(UsePhysics, true);
-=======
+
                         DoPhysicsPropertyUpdate(UsePhysics, false); // Update physical status.
 /* moved into DoPhysicsPropertyUpdate
                         if(VolumeDetectActive)
@@ -4864,7 +4787,6 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                         else
                             pa.SetVolumeDetect(0);
 */
->>>>>>> avn/ubitvar
 
                         if (pa.Building != building)
                             pa.Building = building;
@@ -5621,19 +5543,19 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
         /// true if the avatar was not already recorded, false otherwise.
         /// </returns>
         /// <param name='avatarId'></param>
-        protected internal bool AddSittingAvatar(ScenePresence sp)
+        protected internal bool AddSittingAvatar(UUID id)
         {
             lock (ParentGroup.m_sittingAvatars)
             {
                 if (IsSitTargetSet && SitTargetAvatar == UUID.Zero)
-                    SitTargetAvatar = sp.UUID;
+                    SitTargetAvatar = id;
 
                 if (m_sittingAvatars == null)
-                    m_sittingAvatars = new HashSet<ScenePresence>();
+                    m_sittingAvatars = new HashSet<UUID>();
 
-                if (m_sittingAvatars.Add(sp))
+                if (m_sittingAvatars.Add(id))
                 {
-                    ParentGroup.m_sittingAvatars.Add(sp);
+                    ParentGroup.m_sittingAvatars.Add(id);
 
                     return true;
                 }
@@ -5650,22 +5572,22 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
         /// true if the avatar was present and removed, false if it was not present.
         /// </returns>
         /// <param name='avatarId'></param>
-        protected internal bool RemoveSittingAvatar(ScenePresence sp)
+        protected internal bool RemoveSittingAvatar(UUID id)
         {
             lock (ParentGroup.m_sittingAvatars)
             {
-                if (SitTargetAvatar == sp.UUID)
+                if (SitTargetAvatar == id)
                     SitTargetAvatar = UUID.Zero;
 
                 if (m_sittingAvatars == null)
                     return false;
 
-                if (m_sittingAvatars.Remove(sp))
+                if (m_sittingAvatars.Remove(id))
                 {
                     if (m_sittingAvatars.Count == 0)
                         m_sittingAvatars = null;
 
-                    ParentGroup.m_sittingAvatars.Remove(sp);
+                    ParentGroup.m_sittingAvatars.Remove(id);
 
                     return true;
                 }
@@ -5679,14 +5601,14 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
         /// </summary>
         /// <remarks>This applies to all sitting avatars whether there is a sit target set or not.</remarks>
         /// <returns>A hashset of the sitting avatars.  Returns null if there are no sitting avatars.</returns>
-        public HashSet<ScenePresence> GetSittingAvatars()
+        public HashSet<UUID> GetSittingAvatars()
         {
             lock (ParentGroup.m_sittingAvatars)
             {
                 if (m_sittingAvatars == null)
                     return null;
                 else
-                    return new HashSet<ScenePresence>(m_sittingAvatars);
+                    return new HashSet<UUID>(m_sittingAvatars);
             }
         }
 

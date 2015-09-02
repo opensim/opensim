@@ -64,11 +64,7 @@ namespace OpenSim.Region.ClientStack.Linden
             public List<UUID> folders;
         }
 
-<<<<<<< HEAD
-         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-=======
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
->>>>>>> avn/ubitvar
 
         /// <summary>
         /// Control whether requests will be processed asynchronously.

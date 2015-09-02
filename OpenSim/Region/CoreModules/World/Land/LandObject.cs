@@ -46,20 +46,12 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly string LogHeader = "[LAND OBJECT]";
-<<<<<<< HEAD
-
-        private readonly int landUnit = 4;
-
-        private int m_lastSeqId = 0;
-              
-=======
 
         private readonly int landUnit = 4;
 
         private int m_lastSeqId = 0;
         private int m_expiryCounter = 0;
 
->>>>>>> avn/ubitvar
         protected Scene m_scene;
         protected List<SceneObjectGroup> primsOverMe = new List<SceneObjectGroup>();
         protected Dictionary<uint, UUID> m_listTransactions = new Dictionary<uint, UUID>();
@@ -67,16 +59,12 @@ namespace OpenSim.Region.CoreModules.World.Land
         protected ExpiringCache<UUID, bool> m_groupMemberCache = new ExpiringCache<UUID, bool>();
         protected TimeSpan m_groupMemberCacheTimeout = TimeSpan.FromSeconds(30);  // cache invalidation after 30 seconds
 
-<<<<<<< HEAD
-        public bool[,] LandBitmap { get; set; }
-=======
         private bool[,] m_landBitmap;
         public bool[,] LandBitmap
         {
             get { return m_landBitmap; }
             set { m_landBitmap = value; }
         }
->>>>>>> avn/ubitvar
 
         #endregion
 
@@ -87,9 +75,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             return free;
         }
 
-<<<<<<< HEAD
-        public LandData LandData { get; set; }
-=======
         protected LandData m_landData;        
         public LandData LandData
         {
@@ -97,7 +82,6 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             set { m_landData = value; }
         }
->>>>>>> avn/ubitvar
 
         public IPrimCounts PrimCounts { get; set; }
 
@@ -225,12 +209,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             else
             {
                 // Normal Calculations
-<<<<<<< HEAD
-                int parcelMax = (int)(((float)LandData.Area / (m_scene.RegionInfo.RegionSizeX * m_scene.RegionInfo.RegionSizeY))
-                              * (float)m_scene.RegionInfo.ObjectCapacity
-                              * (float)m_scene.RegionInfo.RegionSettings.ObjectBonus);
-                // TODO: The calculation of ObjectBonus should be refactored. It does still not work in the same manner as SL!
-=======
                 int parcelMax = (int)( (long)LandData.Area
                               * (long)m_scene.RegionInfo.ObjectCapacity
                               * (long)m_scene.RegionInfo.RegionSettings.ObjectBonus
@@ -252,7 +230,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                 int parcelMax = (int)((long)LandData.Area
                               * (long)m_scene.RegionInfo.ObjectCapacity
                               / 65536L);
->>>>>>> avn/ubitvar
                 return parcelMax;
             }
         }
@@ -266,15 +243,10 @@ namespace OpenSim.Region.CoreModules.World.Land
             else
             {
                 //Normal Calculations
-<<<<<<< HEAD
-                int simMax = (int)(((float)LandData.SimwideArea / (m_scene.RegionInfo.RegionSizeX * m_scene.RegionInfo.RegionSizeY))
-                           * (float)m_scene.RegionInfo.ObjectCapacity);
-=======
                 int simMax = (int)(   (long)LandData.SimwideArea
                                     * (long)m_scene.RegionInfo.ObjectCapacity
                                     / (long)(m_scene.RegionInfo.RegionSizeX * m_scene.RegionInfo.RegionSizeY) );
                 // m_log.DebugFormat("Simwide Area: {0}, Capacity {1}, SimMax {2}", LandData.SimwideArea, m_scene.RegionInfo.ObjectCapacity, simMax);
->>>>>>> avn/ubitvar
                 return simMax;
             }
         }
@@ -439,12 +411,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 uint preserve = LandData.Flags & ~allowedDelta;
                 newData.Flags = preserve | (args.ParcelFlags & allowedDelta);
-<<<<<<< HEAD
-
-                m_scene.LandChannel.UpdateLandObject(LandData.LocalID, newData);
-                SendLandUpdateToAvatarsOverMe(snap_selection);
-            }
-=======
 
                 uint curdelta = LandData.Flags ^ newData.Flags;
                 curdelta &= (uint)(ParcelFlags.SoundLocal);
@@ -456,7 +422,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                 return true; 
             }
             return false;
->>>>>>> avn/ubitvar
         }
 
         public void UpdateLandSold(UUID avatarID, UUID groupID, bool groupOwned, uint AuctionID, int claimprice, int area)
@@ -806,17 +771,11 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// </summary>
         private void UpdateAABBAndAreaValues()
         {
-<<<<<<< HEAD
-            int min_x = 10000;
-            int min_y = 10000;
-            int max_x = 0;
-            int max_y = 0;
-=======
+
             int min_x = Int32.MaxValue;
             int min_y = Int32.MaxValue;
             int max_x = Int32.MinValue;
             int max_y = Int32.MinValue;
->>>>>>> avn/ubitvar
             int tempArea = 0;
             int x, y;
             for (x = 0; x < LandBitmap.GetLength(0); x++)
@@ -825,12 +784,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                 {
                     if (LandBitmap[x, y] == true)
                     {
-<<<<<<< HEAD
-                        if (min_x > x) min_x = x;
-                        if (min_y > y) min_y = y;
-                        if (max_x < x) max_x = x;
-                        if (max_y < y) max_y = y;
-=======
                         if (min_x > x)
                             min_x = x;
                         if (min_y > y)
@@ -839,7 +792,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                             max_x = x;
                         if (max_y < y)
                             max_y = y;
->>>>>>> avn/ubitvar
                         tempArea += landUnit * landUnit; //16sqm peice of land
                     }
                 }
@@ -847,27 +799,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             int tx = min_x * landUnit;
             if (tx > ((int)m_scene.RegionInfo.RegionSizeX - 1))
                 tx = ((int)m_scene.RegionInfo.RegionSizeX - 1);
-<<<<<<< HEAD
-            int ty = min_y * landUnit;
-            if (ty > ((int)m_scene.RegionInfo.RegionSizeY - 1))
-                ty = ((int)m_scene.RegionInfo.RegionSizeY - 1);
-
-            LandData.AABBMin =
-                new Vector3(
-                    (float)(min_x * landUnit), (float)(min_y * landUnit), m_scene != null ? (float)m_scene.Heightmap[tx, ty] : 0);
-
-            tx = max_x * landUnit;
-            if (tx > ((int)m_scene.RegionInfo.RegionSizeX - 1))
-                tx = ((int)m_scene.RegionInfo.RegionSizeX - 1);
-            ty = max_y * landUnit;
-            if (ty > ((int)m_scene.RegionInfo.RegionSizeY - 1))
-                ty = ((int)m_scene.RegionInfo.RegionSizeY - 1);
-
-            LandData.AABBMax 
-                = new Vector3(
-                    (float)(max_x * landUnit), (float)(max_y * landUnit), m_scene != null ? (float)m_scene.Heightmap[tx, ty] : 0);
-=======
-
             int htx;
             if (tx >= ((int)m_scene.RegionInfo.RegionSizeX))
                 htx = (int)m_scene.RegionInfo.RegionSizeX - 1;
@@ -904,7 +835,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             LandData.AABBMax 
                 = new Vector3(
                     (float)(tx), (float)(ty), m_scene != null ? (float)m_scene.Heightmap[htx, hty] : 0);
->>>>>>> avn/ubitvar
 
             LandData.Area = tempArea;
         }
@@ -920,10 +850,6 @@ namespace OpenSim.Region.CoreModules.World.Land
         public void SetLandBitmap(bool[,] bitmap)
         {
             LandBitmap = bitmap;
-<<<<<<< HEAD
-            // m_log.DebugFormat("{0} SetLandBitmap. BitmapSize=<{1},{2}>", LogHeader, LandBitmap.GetLength(0), LandBitmap.GetLength(1));
-=======
->>>>>>> avn/ubitvar
             ForceUpdateLandInfo();
         }
 
@@ -1024,16 +950,11 @@ namespace OpenSim.Region.CoreModules.World.Land
         private byte[] ConvertLandBitmapToBytes()
         {
             byte[] tempConvertArr = new byte[LandBitmap.GetLength(0) * LandBitmap.GetLength(1) / 8];
-<<<<<<< HEAD
-            byte tempByte = 0;
-            int byteNum = 0;
-            int i = 0;
-=======
+
             int tempByte = 0;
             int i, byteNum = 0;
             int mask = 1;
             i = 0;
->>>>>>> avn/ubitvar
             for (int y = 0; y < LandBitmap.GetLength(1); y++)
             {
                 for (int x = 0; x < LandBitmap.GetLength(0); x++)
@@ -1070,7 +991,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             //                         LogHeader, LandBitmap.GetLength(0), LandBitmap.GetLength(1));
 =======
  */
->>>>>>> avn/ubitvar
             return tempConvertArr;
         }
 

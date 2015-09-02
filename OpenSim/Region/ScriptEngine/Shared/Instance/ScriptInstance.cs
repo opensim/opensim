@@ -654,7 +654,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             if (state == State)
                 return;
 
-<<<<<<< HEAD
             EventParams lastTimerEv = null;
 
             lock (EventQueue)
@@ -682,15 +681,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 m_StateChangeInProgress = true;
             }
 
-=======
-            PostEvent(new EventParams("state_exit", new Object[0],
-                                       new DetectParams[0]));
-            PostEvent(new EventParams("state", new Object[] { state },
-                                       new DetectParams[0]));
-            PostEvent(new EventParams("state_entry", new Object[0],
-                                       new DetectParams[0]));
-            
->>>>>>> avn/ubitvar
             throw new EventAbortException();
         }
 
@@ -789,9 +779,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             if (!Running)
                 return 0;
 
+            lock (m_Script)
+            {
 //                m_log.DebugFormat("[XEngine]: EventProcessor() invoked for {0}.{1}", PrimName, ScriptName);
 
-<<<<<<< HEAD
                 if (Suspended)
                     return 0;
 
@@ -817,14 +808,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             lock (EventQueue)
             {
                 data = (EventParams)EventQueue.Dequeue();
-=======
-            if (Suspended)
-                return 0;
-
-            lock (EventQueue)
-            {
-                data = (EventParams) EventQueue.Dequeue();
->>>>>>> avn/ubitvar
                 if (data == null) // Shouldn't happen
                 {
                     if (EventQueue.Count > 0 && Running && !ShuttingDown)
@@ -849,7 +832,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     m_CollisionInQueue = false;
             }
 
-<<<<<<< HEAD
             if (DebugLevel >= 2)
                 m_log.DebugFormat(
                     "[SCRIPT INSTANCE]: Processing event {0} for {1}/{2}({3})/{4}({5}) @ {6}/{7}",
@@ -879,26 +861,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         Part.ParentGroup.UUID,
                         Part.AbsolutePosition,
                         Part.ParentGroup.Scene.Name);
-=======
-            lock(m_Script)
-            {
-                
-//                m_log.DebugFormat("[XEngine]: Processing event {0} for {1}", data.EventName, this);
-                SceneObjectPart part = Engine.World.GetSceneObjectPart(LocalID);
-
-                if (DebugLevel >= 2)
-                    m_log.DebugFormat(
-                        "[SCRIPT INSTANCE]: Processing event {0} for {1}/{2}({3})/{4}({5}) @ {6}/{7}", 
-                        data.EventName, 
-                        ScriptName, 
-                        part.Name, 
-                        part.LocalId, 
-                        part.ParentGroup.Name, 
-                        part.ParentGroup.UUID, 
-                        part.AbsolutePosition, 
-                        part.ParentGroup.Scene.Name);
->>>>>>> avn/ubitvar
-
                 AsyncCommandManager.StateChange(Engine,
                     LocalID, ItemID);
                 // we are effectively in the new state now, so we can resume queueing
@@ -915,35 +877,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     //                        m_log.DebugFormat("[Script] Delivered event {2} in state {3} to {0}.{1}",
                     //                                PrimName, ScriptName, data.EventName, State);
 
-<<<<<<< HEAD
+
                     try
-=======
-                    if (DebugLevel >= 1)
-                        m_log.DebugFormat(
-                            "[SCRIPT INSTANCE]: Changing state to {0} for {1}/{2}({3})/{4}({5}) @ {6}/{7}", 
-                            State, 
-                            ScriptName, 
-                            part.Name, 
-                            part.LocalId, 
-                            part.ParentGroup.Name, 
-                            part.ParentGroup.UUID, 
-                            part.AbsolutePosition, 
-                            part.ParentGroup.Scene.Name);
-
-                    AsyncCommandManager.RemoveScript(Engine,
-                        LocalID, ItemID);
-
-                    if (part != null)
-                    {
-                        part.SetScriptEvents(ItemID,
-                                             (int)m_Script.GetStateEventFlags(State));
-                    }
-                }
-                else
-                {
-                    if (Engine.World.PipeEventsForScript(LocalID) ||
-                        data.EventName == "control") // Don't freeze avies!
->>>>>>> avn/ubitvar
                     {
                         m_CurrentEvent = data.EventName;
                         m_EventStart = DateTime.Now;
@@ -981,7 +916,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                 && !(e.InnerException is ScriptCoopStopException)))
                             && !(e is ThreadAbortException))
                         {
-<<<<<<< HEAD
                             try
                             {
                                 // DISPLAY ERROR INWORLD
@@ -1004,88 +938,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                     Part.AbsolutePosition,
                                     Part.ParentGroup.Scene.Name),
                                     e);
-=======
-//                            m_log.DebugFormat(
-//                                "[SCRIPT] Exception in script {0} {1}: {2}{3}",
-//                                ScriptName, ItemID, e.Message, e.StackTrace);
-
-                            m_InEvent = false;
-                            m_CurrentEvent = String.Empty;
-
-                            if ((!(e is TargetInvocationException) 
-                                || (!(e.InnerException is SelfDeleteException) 
-                                    && !(e.InnerException is ScriptDeleteException)
-                                    && !(e.InnerException is ScriptCoopStopException))) 
-                                && !(e is ThreadAbortException))
-                            {
-                                try
-                                {
-                                    // DISPLAY ERROR INWORLD
-                                    string text = FormatException(e);
-
-                                    if (text.Length > 1000)
-                                        text = text.Substring(0, 1000);
-                                    Engine.World.SimChat(Utils.StringToBytes(text),
-                                                           ChatTypeEnum.DebugChannel, 2147483647,
-                                                           part.AbsolutePosition,
-                                                           part.Name, part.UUID, false);
-
-
-                                    m_log.DebugFormat(
-                                        "[SCRIPT INSTANCE]: Runtime error in script {0}, part {1} {2} at {3} in {4}, displayed error {5}, actual exception {6}", 
-                                        ScriptName, 
-                                        PrimName, 
-                                        part.UUID,
-                                        part.AbsolutePosition,
-                                        part.ParentGroup.Scene.Name, 
-                                        text.Replace("\n", "\\n"), 
-                                        e.InnerException);
-                                }
-                                catch (Exception)
-                                {
-                                }
-                                // catch (Exception e2) // LEGIT: User Scripting
-                                // {
-                                    // m_log.Error("[SCRIPT]: "+
-                                      //           "Error displaying error in-world: " +
-                                        //         e2.ToString());
-                                 //    m_log.Error("[SCRIPT]: " +
-                                   //              "Errormessage: Error compiling script:\r\n" +
-                                     //            e.ToString());
-                                // }
-                            }
-                            else if ((e is TargetInvocationException) && (e.InnerException is SelfDeleteException))
-                            {
-                                m_InSelfDelete = true;
-                                if (part != null)
-                                    Engine.World.DeleteSceneObject(part.ParentGroup, false);
->>>>>>> avn/ubitvar
                             }
                             catch (Exception)
                             {
-<<<<<<< HEAD
-=======
-                                m_InSelfDelete = true;
-                                if (part != null)
-                                    part.Inventory.RemoveInventoryItem(ItemID);
                             }
-                            else if ((e is TargetInvocationException) && (e.InnerException is ScriptCoopStopException))
-                            {
-                                if (DebugLevel >= 1)
-                                    m_log.DebugFormat(
-                                        "[SCRIPT INSTANCE]: Script {0}.{1} in event {2}, state {3} stopped co-operatively.",
-                                        PrimName, ScriptName, data.EventName, State);
->>>>>>> avn/ubitvar
-                            }
-                            // catch (Exception e2) // LEGIT: User Scripting
-                            // {
-                            // m_log.Error("[SCRIPT]: "+
-                            //           "Error displaying error in-world: " +
-                            //         e2.ToString());
-                            //    m_log.Error("[SCRIPT]: " +
-                            //              "Errormessage: Error compiling script:\r\n" +
-                            //            e.ToString());
-                            // }
                         }
                         else if ((e is TargetInvocationException) && (e.InnerException is SelfDeleteException))
                         {

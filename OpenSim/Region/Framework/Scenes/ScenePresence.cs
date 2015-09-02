@@ -299,6 +299,7 @@ namespace OpenSim.Region.Framework.Scenes
 //        private int m_lastColCount = -1;		//KF: Look for Collision chnages
 //        private int m_updateCount = 0;			//KF: Update Anims for a while
 //        private static readonly int UPDATE_COUNT = 10;		// how many frames to update for
+        private List<uint> m_lastColliders = new List<uint>();
 
         private TeleportFlags m_teleportFlags;
         public TeleportFlags TeleportFlags
@@ -361,6 +362,9 @@ namespace OpenSim.Region.Framework.Scenes
         //private int m_moveToPositionStateStatus;
         //*****************************************************
 
+        private bool m_collisionEventFlag = false;
+        private object m_collisionEventLock = new Object();
+		
         private int m_movementAnimationUpdateCounter = 0;
 
         public Vector3 PrevSitOffset { get; set; }
@@ -377,7 +381,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public bool SentInitialDataToClient { get; private set; }
 
         /// <summary>
         /// Copy of the script states while the agent is in transit. This state may
@@ -438,12 +441,6 @@ namespace OpenSim.Region.Framework.Scenes
         private object m_originRegionIDAccessLock = new object();
 
         /// <summary>
-        /// Triggered on entity transfer after to allow CompleteMovement() to proceed after we have received an
-        /// UpdateAgent from the originating region.ddkjjkj
-        /// </summary>
-        private AutoResetEvent m_updateAgentReceivedAfterTransferEvent = new AutoResetEvent(false);
-
-        /// <summary>
         /// Used by the entity transfer module to signal when the presence should not be closed because a subsequent
         /// teleport is reusing the connection.
         /// </summary>
@@ -468,11 +465,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// Record user movement inputs.
         /// </summary>
         public uint MovementFlag { get; private set; }
-
-        /// <summary>
-        /// Set this if we need to force a movement update on the next received AgentUpdate from the viewer.
-        /// </summary>
-        private const uint ForceUpdateMovementFlagValue = uint.MaxValue;
 
         /// <summary>
         /// Is the agent stop control flag currently active?
@@ -653,12 +645,6 @@ namespace OpenSim.Region.Framework.Scenes
                     // in the sim unless the avatar is on a sit target. While
                     // on a sit target, m_pos will contain the desired offset
                     // without the parent rotation applied.
-<<<<<<< HEAD
-                    SceneObjectPart sitPart = ParentPart;
-
-                    if (sitPart != null)
-                        return sitPart.ParentGroup.AbsolutePosition + (m_pos * sitPart.GetWorldRotation());
-=======
                     if (ParentPart != null)
                     {
                         SceneObjectPart rootPart = ParentPart.ParentGroup.RootPart;
@@ -667,7 +653,6 @@ namespace OpenSim.Region.Framework.Scenes
                         if (rootPart != null)
                             return rootPart.AbsolutePosition + (m_pos * rootPart.GetWorldRotation());
                     }
->>>>>>> avn/ubitvar
                 }
                 
                 return m_pos;
@@ -721,11 +706,8 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Velocity of the avatar with respect to its local reference frame.
+        /// Current velocity of the avatar.
         /// </summary>
-        /// <remarks>
-        /// So when sat on a vehicle this will be 0.  To get velocity with respect to the world use GetWorldVelocity()
-        /// </remarks>
         public override Vector3 Velocity
         {
             get
@@ -738,21 +720,12 @@ namespace OpenSim.Region.Framework.Scenes
 //                        "[SCENE PRESENCE]: Set velocity {0} for {1} in {2} via getting Velocity!",
 //                        m_velocity, Name, Scene.RegionInfo.RegionName);
                 }
-//                else if (ParentPart != null)
-//                {
-//                    return ParentPart.ParentGroup.Velocity;
-//                }
 
                 return m_velocity;
             }
 
             set
             {
-//                Util.PrintCallStack();
-//                m_log.DebugFormat(
-//                    "[SCENE PRESENCE]: In {0} set velocity of {1} to {2}",
-//                    Scene.RegionInfo.RegionName, Name, value);  
-
                 if (PhysicsActor != null)
                 {
                     try
@@ -765,7 +738,11 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                m_velocity = value;                                            
+                m_velocity = value;
+
+//                m_log.DebugFormat(
+//                    "[SCENE PRESENCE]: In {0} set velocity of {1} to {2}",
+//                    Scene.RegionInfo.RegionName, Name, m_velocity);                                       
             }
         }
 
@@ -849,15 +826,21 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Get rotation relative to the world.
+        /// Gets the world rotation of this presence.
         /// </summary>
+        /// <remarks>
+        /// Unlike Rotation, this returns the world rotation no matter whether the avatar is sitting on a prim or not.
+        /// </remarks>
         /// <returns></returns>
         public Quaternion GetWorldRotation()
         {
-            SceneObjectPart sitPart = ParentPart;
+            if (IsSatOnObject)
+            {
+                SceneObjectPart sitPart = ParentPart;
 
-            if (sitPart != null)
-                return sitPart.GetWorldRotation() * Rotation;
+                if (sitPart != null)
+                    return sitPart.GetWorldRotation() * Rotation;
+            }
 
             return Rotation;
         }
@@ -924,7 +907,7 @@ no information to check this
         }
 
         private bool m_mouseLook;
-//        private bool m_leftButtonDown;
+        private bool m_leftButtonDown;
 
         private bool m_inTransit;
 
@@ -991,12 +974,7 @@ no information to check this
         {
             get { return Util.GetViewerName(m_scene.AuthenticateHandler.GetAgentCircuitData(ControllingClient.CircuitCode)); }
         }
-
-        /// <summary>
-        /// Count of how many terse updates we have sent out.  It doesn't matter if this overflows.
-        /// </summary>
-        private int m_terseUpdateCount;
-
+ 
         #endregion
 
         #region Constructor(s)
@@ -1012,8 +990,7 @@ no information to check this
             Animator = new ScenePresenceAnimator(this);
             Overrides = new MovementAnimationOverrides();
             PresenceType = type;
-            // DrawDistance = world.DefaultDrawDistance;
-            DrawDistance = Constants.RegionSize;
+            DrawDistance = world.DefaultDrawDistance;
             RegionHandle = world.RegionInfo.RegionHandle;
             ControllingClient = client;
             Firstname = ControllingClient.FirstName;
@@ -1021,7 +998,7 @@ no information to check this
             m_name = String.Format("{0} {1}", Firstname, Lastname);
             m_scene = world;
             m_uuid = client.AgentId;
-            LocalId = m_scene.AllocatePresenceLocalId();
+            LocalId = m_scene.AllocateLocalId();
 
             UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, m_uuid);
             if (account != null)
@@ -1103,21 +1080,6 @@ no information to check this
 
         private void SetDirectionVectors()
         {
-<<<<<<< HEAD
-            Dir_Vectors[0] = Vector3.UnitX; //FORWARD
-            Dir_Vectors[1] = -Vector3.UnitX; //BACK
-            Dir_Vectors[2] = Vector3.UnitY; //LEFT
-            Dir_Vectors[3] = -Vector3.UnitY; //RIGHT
-            Dir_Vectors[4] = Vector3.UnitZ; //UP
-            Dir_Vectors[5] = -Vector3.UnitZ; //DOWN
-            Dir_Vectors[6] = new Vector3(0.5f, 0f, 0f); //FORWARD_NUDGE
-            Dir_Vectors[7] = new Vector3(-0.5f, 0f, 0f);  //BACK_NUDGE
-            Dir_Vectors[8] = new Vector3(0f, 0.5f, 0f);  //LEFT_NUDGE
-            Dir_Vectors[9] = new Vector3(0f, -0.5f, 0f);  //RIGHT_NUDGE
-            Dir_Vectors[10] = new Vector3(0f, 0f, -0.5f); //DOWN_Nudge
-        }
-
-=======
             Dir_Vectors[0] = new Vector3(AgentControlNormalVel,0,0); //FORWARD
             Dir_Vectors[1] = new Vector3(-AgentControlNormalVel,0,0);; //BACK
             Dir_Vectors[2] = new Vector3(0,AgentControlNormalVel,0); //LEFT
@@ -1131,27 +1093,6 @@ no information to check this
             Dir_Vectors[10] = new Vector3(0f, 0f, AgentControlNudgeVel); //UP_Nudge
             Dir_Vectors[11] = new Vector3(0f, 0f, -AgentControlNudgeVel); //DOWN_Nudge
         }
-
-/* dont see any use for this
-        private Vector3[] GetWalkDirectionVectors()
-        {
-            Vector3[] vector = new Vector3[12];
-            vector[0] = new Vector3(CameraUpAxis.Z, 0f, -CameraAtAxis.Z); //FORWARD
-            vector[1] = new Vector3(-CameraUpAxis.Z, 0f, CameraAtAxis.Z); //BACK
-            vector[2] = Vector3.UnitY; //LEFT
-            vector[3] = -Vector3.UnitY; //RIGHT
-            vector[4] = new Vector3(CameraAtAxis.Z, 0f, CameraUpAxis.Z); //UP
-            vector[5] = new Vector3(-CameraAtAxis.Z, 0f, -CameraUpAxis.Z); //DOWN
-            vector[6] = new Vector3(CameraUpAxis.Z, 0f, -CameraAtAxis.Z); //FORWARD_NUDGE
-            vector[7] = new Vector3(-CameraUpAxis.Z, 0f, CameraAtAxis.Z); //BACK_NUDGE
-            vector[8] = Vector3.UnitY; //LEFT_NUDGE
-            vector[9] = -Vector3.UnitY; //RIGHT_NUDGE
-            vector[10] = new Vector3(CameraAtAxis.Z, 0f, CameraUpAxis.Z); //UP_NUDGE
-            vector[11] = new Vector3(-CameraAtAxis.Z, 0f, -CameraUpAxis.Z); //DOWN_NUDGE
-            return vector;
-        }
-*/
->>>>>>> avn/ubitvar
         #endregion
 
         #region Status Methods
@@ -1203,14 +1144,9 @@ no information to check this
                     }
                     else
                     {
-<<<<<<< HEAD
-                        part.AddSittingAvatar(this);
-    //                    ParentPosition = part.GetWorldPosition();
-=======
                         part.ParentGroup.AddAvatar(UUID);
                         if (part.SitTargetPosition != Vector3.Zero)
                             part.SitTargetAvatar = UUID;
->>>>>>> avn/ubitvar
                         ParentID = part.LocalId;
                         ParentPart = part;
                         m_pos = PrevSitOffset;
@@ -1222,8 +1158,6 @@ no information to check this
                 {
                     IsLoggingIn = false;
                 }
-
-                IsChildAgent = false;
             }
 
             m_log.DebugFormat("[MakeRootAgent] out lock: {0}ms", Util.EnvironmentTickCountSubtract(ts));
@@ -1237,7 +1171,7 @@ no information to check this
             if (gm != null)
                 Grouptitle = gm.GetGroupTitle(m_uuid);
 
-<<<<<<< HEAD
+
             AgentCircuitData aCircuit = m_scene.AuthenticateHandler.GetAgentCircuitData(ControllingClient.CircuitCode);
             uint teleportFlags = (aCircuit == null) ? 0 : aCircuit.teleportFlags;
             if ((teleportFlags & (uint)TeleportFlags.ViaHGLogin) != 0)
@@ -1246,75 +1180,18 @@ no information to check this
                 // avatar's name to or from the special Hypergrid format ("First.Last @grid.example.com").
                 // Unfortunately, due to a viewer bug, viewers don't always show the new name.
                 // But we have a trick that can force them to update the name anyway.
-                ForceViewersUpdateName();
+//                ForceViewersUpdateName();
             }
-=======
+
             m_log.DebugFormat("[MakeRootAgent] Grouptitle: {0}ms", Util.EnvironmentTickCountSubtract(ts));
->>>>>>> avn/ubitvar
 
             RegionHandle = m_scene.RegionInfo.RegionHandle;
 
             m_scene.EventManager.TriggerSetRootAgentScene(m_uuid, m_scene);
             m_log.DebugFormat("[MakeRootAgent] TriggerSetRootAgentScene: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
-<<<<<<< HEAD
-            UUID groupUUID = ControllingClient.ActiveGroupId;
-            string groupName = string.Empty;
-            ulong groupPowers = 0;
-
-            // ----------------------------------
-            // Previous Agent Difference - AGNI sends an unsolicited AgentDataUpdate upon root agent status
-            try
-            {
-                if (groupUUID != UUID.Zero && gm != null)
-                {
-                    GroupRecord record = gm.GetGroupRecord(groupUUID);
-                    if (record != null)
-                        groupName = record.GroupName;
-
-                    GroupMembershipData groupMembershipData = gm.GetMembershipData(groupUUID, m_uuid);
-
-                    if (groupMembershipData != null)
-                        groupPowers = groupMembershipData.GroupPowers;
-                }
-
-                ControllingClient.SendAgentDataUpdate(
-                    m_uuid, groupUUID, Firstname, Lastname, groupPowers, groupName, Grouptitle);
-            }
-            catch (Exception e)
-            {
-                m_log.Error("[AGENTUPDATE]: Error ", e);
-            }
-            // ------------------------------------
-
             if (ParentID == 0)
             {
-                // Moved this from SendInitialData to ensure that Appearance is initialized
-                // before the inventory is processed in MakeRootAgent. This fixes a race condition
-                // related to the handling of attachments
-                //m_scene.GetAvatarAppearance(ControllingClient, out Appearance);
-
-                /* RA 20140111: Commented out these TestBorderCross's.
-                 * Not sure why this code is here. It is not checking all the borders
-                 * and 'in region' sanity checking is done in CheckAndAdjustLandingPoint and below.
-                if (m_scene.TestBorderCross(pos, Cardinals.E))
-                {
-                    Border crossedBorder = m_scene.GetCrossedBorder(pos, Cardinals.E);
-                    pos.X = crossedBorder.BorderLine.Z - 1;
-                }
-
-                if (m_scene.TestBorderCross(pos, Cardinals.N))
-                {
-                    Border crossedBorder = m_scene.GetCrossedBorder(pos, Cardinals.N);
-                    pos.Y = crossedBorder.BorderLine.Z - 1;
-                }
-                 */
-
-=======
-
-            if (ParentID == 0)
-            {
->>>>>>> avn/ubitvar
                 CheckAndAdjustLandingPoint(ref pos);
 
                 if (pos.X < 0f || pos.Y < 0f || pos.Z < 0f)
@@ -1350,30 +1227,18 @@ no information to check this
 //
                 if (m_teleportFlags == TeleportFlags.Default)
                 {
+                    Vector3 vel = Velocity;
                     AddToPhysicalScene(isFlying);
-//
-//                        Console.WriteLine(
-//                            "Set velocity of {0} in {1} to {2} from input velocity of {3} on MakeRootAgent", 
-//                            Name, Scene.Name, PhysicsActor.Velocity, vel);
-//                    }
+                    if (PhysicsActor != null)
+                        PhysicsActor.SetMomentum(vel);
                 }
                 else
                 {
                     AddToPhysicalScene(isFlying);
-<<<<<<< HEAD
-                }
 
-                // XXX: This is to trigger any secondary teleport needed for a megaregion when the user has teleported to a 
-                // location outside the 'root region' (the south-west 256x256 corner).  This is the earlist we can do it
-                // since it requires a physics actor to be present.  If it is left any later, then physics appears to reset
-                // the value to a negative position which does not trigger the border cross.
-                // This may not be the best location for this.
-                CheckForBorderCrossing();
-=======
                     // reset camera to avatar pos
                     CameraPosition = pos;
                 }
->>>>>>> avn/ubitvar
 
                 if (ForceFly)
                 {
@@ -1383,40 +1248,6 @@ no information to check this
                 {
                     Flying = false;
                 }
-<<<<<<< HEAD
-            }
-
-            // Don't send an animation pack here, since on a region crossing this will sometimes cause a flying 
-            // avatar to return to the standing position in mid-air.  On login it looks like this is being sent
-            // elsewhere anyway
-            // Animator.SendAnimPack();
-
-            m_scene.SwapRootAgentCount(false);
-
-            if (Scene.AttachmentsModule != null)
-            {
-                // The initial login scene presence is already root when it gets here
-                // and it has already rezzed the attachments and started their scripts.
-                // We do the following only for non-login agents, because their scripts
-                // haven't started yet.
-                if (PresenceType == PresenceType.Npc || IsRealLogin(m_teleportFlags))
-                {
-                    WorkManager.RunJob(
-                        "RezAttachments",
-                        o => Scene.AttachmentsModule.RezAttachments(this),
-                        null,
-                        string.Format("Rez attachments for {0} in {1}", Name, Scene.Name));
-                }
-                else
-                {
-                    WorkManager.RunJob(
-                        "StartAttachmentScripts",
-                        o => RestartAttachmentScripts(),
-                        null,
-                        string.Format("Start attachment scripts for {0} in {1}", Name, Scene.Name),
-                        true);
-                }
-=======
 
                 // XXX: This is to trigger any secondary teleport needed for a megaregion when the user has teleported to a 
                 // location outside the 'root region' (the south-west 256x256 corner).  This is the earlist we can do it
@@ -1427,28 +1258,16 @@ no information to check this
 
                 // its not               
 //                CheckForBorderCrossing();
->>>>>>> avn/ubitvar
             }
+    
  
             m_log.DebugFormat("[MakeRootAgent] position and physical: {0}ms", Util.EnvironmentTickCountSubtract(ts));
             m_scene.SwapRootAgentCount(false);
 
-<<<<<<< HEAD
-            SendAvatarDataToAllClients();
-
-            // send the animations of the other presences to me
-            m_scene.ForEachRootScenePresence(delegate(ScenePresence presence)
-            {
-                if (presence != this)
-                    presence.Animator.SendAnimPackToClient(ControllingClient);
-            });
-=======
->>>>>>> avn/ubitvar
-
             // If we don't reset the movement flag here, an avatar that crosses to a neighbouring sim and returns will
             // stall on the border crossing since the existing child agent will still have the last movement
             // recorded, which stops the input from being processed.
-            MovementFlag = ForceUpdateMovementFlagValue;
+            MovementFlag = 0;
 
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
             m_log.DebugFormat("[MakeRootAgent] TriggerOnMakeRootAgent and done: {0}ms", Util.EnvironmentTickCountSubtract(ts));
@@ -1500,12 +1319,13 @@ no information to check this
         /// Group Title. So the following trick makes viewers update the avatar's name by briefly changing
         /// the group title (to "(Loading)"), and then restoring it.
         /// </remarks>
+/*
         public void ForceViewersUpdateName()
         {
             m_log.DebugFormat("[SCENE PRESENCE]: Forcing viewers to update the avatar name for " + Name);
 
             UseFakeGroupTitle = true;
-            SendAvatarDataToAllClients(false);
+  
 
             Util.FireAndForget(o =>
             {
@@ -1519,7 +1339,7 @@ no information to check this
                 SendAvatarDataToAllClients(false);
             }, null, "Scenepresence.ForceViewersUpdateName");
         }
-
+*/
         public int GetStateSource()
         {
             AgentCircuitData aCircuit = m_scene.AuthenticateHandler.GetAgentCircuitData(UUID);
@@ -1551,11 +1371,6 @@ no information to check this
 
             m_log.DebugFormat("[SCENE PRESENCE]: Making {0} a child agent in {1} from root region {2}",
                 Name, Scene.RegionInfo.RegionName, newRegionHandle);
-
-            // Reset the m_originRegionID as it has dual use as a flag to signal that the UpdateAgent() call orignating
-            // from the source simulator has completed on a V2 teleport.
-            lock (m_originRegionIDAccessLock)
-                m_originRegionID = UUID.Zero;
 
             // Reset the m_originRegionID as it has dual use as a flag to signal that the UpdateAgent() call orignating
             // from the source simulator has completed on a V2 teleport.
@@ -1609,9 +1424,10 @@ no information to check this
             if (PhysicsActor != null)
             {
 //                PhysicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
-                PhysicsActor.UnSubscribeEvents();
+
                 PhysicsActor.OnOutOfBounds -= OutOfBoundsCall;
                 PhysicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
+                PhysicsActor.UnSubscribeEvents();
                 m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
                 PhysicsActor = null;
             }
@@ -1649,6 +1465,8 @@ no information to check this
                 else
                     PhysicsActor.SetMomentum(vel);
             }
+
+            SendTerseUpdateToAllClients();
         }
 
         public void avnLocalTeleport(Vector3 newpos, Vector3? newvel, bool rotateToVelXY)
@@ -1680,6 +1498,7 @@ no information to check this
                     }
                 }
             }
+            SendTerseUpdateToAllClients();
         }
 
         public void StopFlying()
@@ -1915,17 +1734,7 @@ no information to check this
         public void SetSize(Vector3 size, float feetoffset)
         {
             if (PhysicsActor != null && !IsChildAgent)
-<<<<<<< HEAD
-            {
-                // Eventually there will be a physics call that sets avatar size that includes offset info.
-                // For the moment, just set the size as passed.
-                PhysicsActor.Size = size;
-                //  PhysicsActor.setAvatarSize(size, feetoffset);
-            }            
-=======
                 PhysicsActor.setAvatarSize(size, feetoffset);
-            
->>>>>>> avn/ubitvar
         }
 
         private bool WaitForUpdateAgent(IClientAPI client)
@@ -1934,12 +1743,22 @@ no information to check this
             // (which triggers Scene.IncomingUpdateChildAgent(AgentData cAgentData) here in the destination, 
             // m_originRegionID is UUID.Zero; after, it's non-Zero.  The CompleteMovement sequence initiated from the
             // viewer (in turn triggered by the source region sending it a TeleportFinish event) waits until it's non-zero
-            m_updateAgentReceivedAfterTransferEvent.WaitOne(10000);
-
+//            m_updateAgentReceivedAfterTransferEvent.WaitOne(10000);
+			int count = 50;
             UUID originID = UUID.Zero;           
 
             lock (m_originRegionIDAccessLock)
                 originID = m_originRegionID;           
+
+
+            while (originID.Equals(UUID.Zero) && count-- > 0)
+            {
+                lock (m_originRegionIDAccessLock)
+                    originID = m_originRegionID;
+
+                m_log.DebugFormat("[SCENE PRESENCE]: Agent {0} waiting for update in {1}", client.Name, Scene.Name);
+                Thread.Sleep(200);
+            }
 
             if (originID.Equals(UUID.Zero))
             {
@@ -1970,40 +1789,6 @@ no information to check this
           
             m_inTransit = true;
 
-<<<<<<< HEAD
-            bool flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);   // Get this ahead of time because IsInTransit modifies 'm_AgentControlFlags'
-
-            IsInTransit = true;
-            try
-            {
-                // Make sure it's not a login agent. We don't want to wait for updates during login
-                if (!(PresenceType == PresenceType.Npc || IsRealLogin(m_teleportFlags)))
-                {
-                    // Let's wait until UpdateAgent (called by departing region) is done
-                    if (!WaitForUpdateAgent(client))
-                        // The sending region never sent the UpdateAgent data, we have to refuse
-                        return;
-                }
-
-                Vector3 look = Velocity;
-
-                //            if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
-                if ((Math.Abs(look.X) < 0.1) && (Math.Abs(look.Y) < 0.1) && (Math.Abs(look.Z) < 0.1))
-                {
-                    look = new Vector3(0.99f, 0.042f, 0);
-                }
-
-                // Prevent teleporting to an underground location
-                // (may crash client otherwise)
-                //
-                Vector3 pos = AbsolutePosition;
-                float ground = m_scene.GetGroundHeight(pos.X, pos.Y);
-                if (pos.Z < ground + 1.5f)
-                {
-                    pos.Z = ground + 1.5f;
-                    AbsolutePosition = pos;
-                }
-=======
             try
             {
                 // Make sure it's not a login agent. We don't want to wait for updates during login
@@ -2019,103 +1804,16 @@ no information to check this
                 m_log.DebugFormat("[CompleteMovement] WaitForUpdateAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 bool flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
->>>>>>> avn/ubitvar
 
                 if (!MakeRootAgent(AbsolutePosition, flying))
                 {
                     m_log.DebugFormat(
-<<<<<<< HEAD
-                        "[SCENE PRESENCE]: Aborting CompleteMovement call for {0} in {1} as they are already root", 
-=======
                         "[SCENE PRESENCE]: Aborting CompleteMovement call for {0} in {1} as they are already root",
->>>>>>> avn/ubitvar
                         Name, Scene.Name);
 
                     return;
                 }
 
-<<<<<<< HEAD
-                // Tell the client that we're totally ready
-                ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
-
-                // Child agents send initial data up in LLUDPServer.HandleUseCircuitCode()
-                if (!SentInitialDataToClient)
-                    SendInitialDataToClient();
-
-    //            m_log.DebugFormat("[SCENE PRESENCE] Completed movement");
-
-                if (!string.IsNullOrEmpty(m_callbackURI))
-                {
-                    // We cannot sleep here since this would hold up the inbound packet processing thread, as
-                    // CompleteMovement() is executed synchronously.  However, it might be better to delay the release
-                    // here until we know for sure that the agent is active in this region.  Sending AgentMovementComplete
-                    // is not enough for Imprudence clients - there appears to be a small delay (<200ms, <500ms) until they regard this
-                    // region as the current region, meaning that a close sent before then will fail the teleport.
-    //                System.Threading.Thread.Sleep(2000);
-
-                    m_log.DebugFormat(
-                        "[SCENE PRESENCE]: Releasing {0} {1} with callback to {2}",
-                        client.Name, client.AgentId, m_callbackURI);
-
-                    Scene.SimulationService.ReleaseAgent(m_originRegionID, UUID, m_callbackURI);
-                    m_callbackURI = null;
-                }
-    //            else
-    //            {
-    //                m_log.DebugFormat(
-    //                    "[SCENE PRESENCE]: No callback provided on CompleteMovement of {0} {1} to {2}",
-    //                    client.Name, client.AgentId, m_scene.RegionInfo.RegionName);
-    //            }
-
-                ValidateAndSendAppearanceAndAgentData();
-
-                // Create child agents in neighbouring regions
-                if (openChildAgents && !IsChildAgent)
-                {
-                    IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
-                    if (m_agentTransfer != null)
-                    {
-                        // Note: this call can take a while, because it notifies each of the simulator's neighbours.
-                        // It's important that we don't allow the avatar to cross regions meanwhile, as that will
-                        // cause serious errors. We've prevented that from happening by setting IsInTransit=true.
-                        m_agentTransfer.EnableChildAgents(this);
-                    }
-
-                    IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
-                    if (friendsModule != null)
-                        friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
-
-                }
-
-                // XXX: If we force an update after activity has completed, then multiple attachments do appear correctly on a destination region
-                // If we do it a little bit earlier (e.g. when converting the child to a root agent) then this does not work.
-                // This may be due to viewer code or it may be something we're not doing properly simulator side.
-                WorkManager.RunJob(
-                    "ScheduleAttachmentsForFullUpdate", 
-                    o => ScheduleAttachmentsForFullUpdate(),
-                    null,
-                    string.Format("Schedule attachments for full update for {0} in {1}", Name, Scene.Name),
-                    true);
-
-    //            m_log.DebugFormat(
-    //                "[SCENE PRESENCE]: Completing movement of {0} into region {1} took {2}ms", 
-    //                client.Name, Scene.RegionInfo.RegionName, (DateTime.Now - startTime).Milliseconds);
-            }
-            finally
-            {
-                IsInTransit = false;
-            }
-        }
-
-        private void ScheduleAttachmentsForFullUpdate()
-        {
-            lock (m_attachments)
-            {
-                foreach (SceneObjectGroup sog in m_attachments)
-                    sog.ScheduleGroupForFullUpdate();
-            }
-        }
-=======
                 m_log.DebugFormat("[CompleteMovement] MakeRootAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 Vector3 look = Lookat;
@@ -2134,7 +1832,7 @@ no information to check this
 
                 if (!IsChildAgent && !isNPC)
                 {
-                    InventoryFolderBase cof = m_scene.InventoryService.GetFolderForType(client.AgentId, (AssetType)46);
+                    InventoryFolderBase cof = m_scene.InventoryService.GetFolderForType(client.AgentId, (FolderType)46);
                     if (cof == null)
                         COF = UUID.Zero;
                     else
@@ -2197,9 +1895,6 @@ no information to check this
                     // so sequence is clear
 
                     // verify baked textures and cache
->>>>>>> avn/ubitvar
-
-
                     bool cachedbaked = false;
 
                     if (isNPC)
@@ -2484,15 +2179,8 @@ no information to check this
             // When we get to the point of re-computing neighbors everytime this
             // changes, then start using the agent's drawdistance rather than the 
             // region's draw distance.
-<<<<<<< HEAD
-            DrawDistance = agentData.Far;
-            // DrawDistance = Scene.DefaultDrawDistance;
-=======
 
             DrawDistance = Util.Clamp(agentData.Far, 32, m_scene.MaxDrawDistance);
-
-//            DrawDistance = Scene.DefaultDrawDistance;
->>>>>>> avn/ubitvar
 
             m_mouseLook = (flags & AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0;
 
@@ -2500,7 +2188,7 @@ no information to check this
             // is first pressed, not whilst it is held down.  If this is required in the future then need to look
             // for an AGENT_CONTROL_LBUTTON_UP event and make sure to handle cases where an initial DOWN is not 
             // received (e.g. on holding LMB down on the avatar in a viewer).
-//            m_leftButtonDown = (flags & AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0;
+            m_leftButtonDown = (flags & AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0;
 
             #endregion Inputs
 
@@ -2592,14 +2280,6 @@ no information to check this
 
                 bool update_movementflag = false;
 
-                // If we were just made root agent then we must perform movement updates for the first AgentUpdate that
-                // we get
-                if (MovementFlag == ForceUpdateMovementFlagValue)
-                {
-                    MovementFlag = 0;
-                    update_movementflag = true;
-                }
-
                 if (agentData.UseClientAgentPosition)
                 {
                     MovingToTarget = (agentData.ClientAgentPosition - AbsolutePosition).Length() > 0.2f;
@@ -2631,8 +2311,6 @@ no information to check this
                 {
                     bool bAllowUpdateMoveToPosition = false;
 
-<<<<<<< HEAD
-=======
                     Vector3[] dirVectors;
 
                     // use camera up angle when in mouselook and not flying or when holding the left mouse button down and not flying
@@ -2642,8 +2320,6 @@ no information to check this
 //                    else
                         dirVectors = Dir_Vectors;
 
-
->>>>>>> avn/ubitvar
                     // A DIR_CONTROL_FLAG occurs when the user is trying to move in a particular direction.
                     foreach (Dir_ControlFlags DCF in DIR_CONTROL_FLAGS)
                     {
@@ -2865,12 +2541,8 @@ no information to check this
             // When we get to the point of re-computing neighbors everytime this
             // changes, then start using the agent's drawdistance rather than the 
             // region's draw distance.
-<<<<<<< HEAD
-            DrawDistance = agentData.Far;
-            // DrawDistance = Scene.DefaultDrawDistance;
-=======
+
             DrawDistance = Util.Clamp(agentData.Far, 32, m_scene.MaxDrawDistance);
->>>>>>> avn/ubitvar
 
             // Check if Client has camera in 'follow cam' or 'build' mode.
             Vector3 camdif = (Vector3.One * Rotation - Vector3.One * CameraRotation);
@@ -3064,54 +2736,63 @@ no information to check this
                 || pos.Y < 0 || pos.Y >= regionSize.Y
                 || pos.Z < 0)
                 return;
-
+     
             Scene targetScene = m_scene;
-
-//            Vector3 heightAdjust = new Vector3(0, 0, Appearance.AvatarHeight / 2);
-//            pos += heightAdjust;
-//
-//            // Anti duck-walking measure
-//            if (Math.Abs(pos.Z - AbsolutePosition.Z) < 0.2f)
-//            {
-////                m_log.DebugFormat("[SCENE PRESENCE]: Adjusting MoveToPosition from {0} to {1}", pos, AbsolutePosition);
-//                pos.Z = AbsolutePosition.Z;
-//            }
-
             // Get terrain height for sub-region in a megaregion if necessary
-<<<<<<< HEAD
-=======
-            int X = (int)((m_scene.RegionInfo.WorldLocX) + pos.X);
-            int Y = (int)((m_scene.RegionInfo.WorldLocY) + pos.Y);
-            GridRegion target_region = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, X, Y);
-            // If X and Y is NaN, target_region will be null
-            if (target_region == null)
-                return;
-            UUID target_regionID = target_region.RegionID;
-            Scene targetScene = m_scene;
->>>>>>> avn/ubitvar
-
-				//COMMENT: If its only nessesary in a megaregion, why do it on normal region's too?
-
         	if (regionCombinerModule != null)
             {
-                int x = (int)((m_scene.RegionInfo.WorldLocX) + pos.X);
-                int y = (int)((m_scene.RegionInfo.WorldLocY) + pos.Y);
-                GridRegion target_region = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, x, y);
-
-<<<<<<< HEAD
+                int X = (int)((m_scene.RegionInfo.WorldLocX) + pos.X);
+                int Y = (int)((m_scene.RegionInfo.WorldLocY) + pos.Y);
+                GridRegion target_region = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, X, Y);
                 // If X and Y is NaN, target_region will be null
                 if (target_region == null)
                     return;
-               
+                UUID target_regionID = target_region.RegionID;             
                 SceneManager.Instance.TryGetScene(target_region.RegionID, out targetScene);
             }
 
-            float terrainHeight = (float)targetScene.Heightmap[(int)(pos.X % regionSize.X), (int)(pos.Y % regionSize.Y)];
-=======
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             float terrainHeight = (float)targetScene.Heightmap[(int)(pos.X % regionSize.X), (int)(pos.Y % regionSize.Y)];
             // dont try to land underground
             terrainHeight += Appearance.AvatarHeight / 2;
->>>>>>> avn/ubitvar
+
             pos.Z = Math.Max(terrainHeight, pos.Z);
 
             // Fudge factor.  It appears that if one clicks "go here" on a piece of ground, the go here request is
@@ -3120,25 +2801,14 @@ no information to check this
             if (pos.Z - terrainHeight < 0.2)
                 pos.Z = terrainHeight;
 
-<<<<<<< HEAD
-=======
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: Avatar {0} set move to target {1} (terrain height {2}) in {3}",
 //                Name, pos, terrainHeight, m_scene.RegionInfo.RegionName);
                      
-
->>>>>>> avn/ubitvar
             if (noFly)
                 Flying = false;
             else if (pos.Z > terrainHeight + Appearance.AvatarHeight / 2 || Flying)
                 Flying = true;
-
-//            m_log.DebugFormat(
-//                "[SCENE PRESENCE]: Avatar {0} set move to target {1} (terrain height {2}) in {3}",
-//                Name, pos, terrainHeight, m_scene.RegionInfo.RegionName);
-
-			if (noFly)
-				Flying = false;
 
             LandAtTarget = landAtTarget;
             MovingToTarget = true;
@@ -3214,13 +2884,10 @@ no information to check this
                     }
                 }
 
-<<<<<<< HEAD
-=======
                 part.ParentGroup.DeleteAvatar(UUID);
 
                 Quaternion standRotation = part.ParentGroup.RootPart.RotationOffset;
                 Vector3 sitPartWorldPosition = part.ParentGroup.AbsolutePosition + m_pos * standRotation;
->>>>>>> avn/ubitvar
                 ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
 
                 ParentID = 0;
@@ -3248,25 +2915,9 @@ no information to check this
                     standRotationZ.Z = 0f;
                 }
 
-<<<<<<< HEAD
-                //Vector3 standPos = ParentPosition + new Vector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
-                //Vector3 standPos = ParentPosition;
-
-//                Vector3 standPositionAdjustment 
-//                    = part.SitTargetPosition + new Vector3(0.5f, 0f, m_sitAvatarHeight / 2f);
-                Vector3 adjustmentForSitPosition = OffsetPosition * part.ParentGroup.GroupRotation - SIT_TARGET_ADJUSTMENT * part.GetWorldRotation();
-
-                // XXX: This is based on the physics capsule sizes.  Need to find a better way to read this rather than
-                // hardcoding here.
-                Vector3 adjustmentForSitPose = new Vector3(0.74f, 0f, 0f) * standRotation;
-
-                Vector3 standPos = part.ParentGroup.AbsolutePosition + adjustmentForSitPosition + adjustmentForSitPose;
-=======
                 Vector3 adjustmentForSitPose = new Vector3(0.75f, 0, m_sitAvatarHeight + .3f) * standRotationZ;
 
                 Vector3 standPos = sitPartWorldPosition + adjustmentForSitPose;
->>>>>>> avn/ubitvar
-
                 m_pos = standPos;
             }
 
@@ -3277,16 +2928,9 @@ no information to check this
 
             if (satOnObject)
             {
-<<<<<<< HEAD
-                SendAvatarDataToAllClients();
-                m_requestedSitTargetID = 0;
 
-                part.RemoveSittingAvatar(this);
-
-=======
                 m_requestedSitTargetID = 0;
                 part.RemoveSittingAvatar(UUID);
->>>>>>> avn/ubitvar
                 part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
 
                 SendAvatarDataToAllAgents();
@@ -3386,37 +3030,11 @@ no information to check this
 
                 Velocity = Vector3.Zero;
 
-                part.AddSittingAvatar(this);
+                part.AddSittingAvatar(UUID);
 
                 cameraAtOffset = part.GetCameraAtOffset();
-
-                if (!part.IsRoot && cameraAtOffset == Vector3.Zero)
-                    cameraAtOffset = part.ParentGroup.RootPart.GetCameraAtOffset();
-
-                bool cameraEyeOffsetFromRootForChild = false;
                 cameraEyeOffset = part.GetCameraEyeOffset();
-
-                if (!part.IsRoot && cameraEyeOffset == Vector3.Zero)
-                {                 
-                    cameraEyeOffset = part.ParentGroup.RootPart.GetCameraEyeOffset();
-                    cameraEyeOffsetFromRootForChild = true;
-                }
-
-                if ((cameraEyeOffset != Vector3.Zero && !cameraEyeOffsetFromRootForChild) || cameraAtOffset != Vector3.Zero)
-                {
-                    if (!part.IsRoot)
-                    {
-                        cameraEyeOffset = cameraEyeOffset * part.RotationOffset;
-                        cameraAtOffset += part.OffsetPosition;
-                    }
-
-                    cameraEyeOffset += part.OffsetPosition;
-                }
-
-//                m_log.DebugFormat(
-//                    "[SCENE PRESENCE]: Using cameraAtOffset {0}, cameraEyeOffset {1} for sit on {2} by {3} in {4}", 
-//                    cameraAtOffset, cameraEyeOffset, part.Name, Name, Scene.Name);
-
+				
                 forceMouselook = part.GetForceMouselook();
 
                 if (!part.IsRoot)
@@ -3560,7 +3178,7 @@ no information to check this
             Velocity = Vector3.Zero;
             m_AngularVelocity = Vector3.Zero;
 
-            part.AddSittingAvatar(this);
+            part.AddSittingAvatar(UUID);
 
             Vector3 cameraAtOffset = part.GetCameraAtOffset();
             Vector3 cameraEyeOffset = part.GetCameraEyeOffset();
@@ -3596,6 +3214,7 @@ no information to check this
           
 
             m_requestedSitTargetID = 0;
+            part.ParentGroup.AddAvatar(UUID);
 
             ParentPart = part;
             ParentID = part.LocalId;
@@ -3607,9 +3226,6 @@ no information to check this
                 Animator.TrySetMovementAnimation("SIT_GROUND");
             else
                 Animator.TrySetMovementAnimation("SIT");
-<<<<<<< HEAD
-            SendAvatarDataToAllClients();
-=======
 */
             if (status == 3)
                 sitAnimation = "SIT_GROUND";
@@ -3617,8 +3233,6 @@ no information to check this
                 sitAnimation = "SIT";
 
             Animator.SetMovementAnimations("SIT");
->>>>>>> avn/ubitvar
-
             part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
         }
 
@@ -3654,40 +3268,27 @@ no information to check this
 
                     //Quaternion result = (sitTargetOrient * vq) * nq;
 
-                    double x, y, z, m1, m2;
+                    double x, y, z, m;
 
                     Quaternion r = sitTargetOrient;
-                    m1 = r.X * r.X + r.Y * r.Y;
-                    m2 = r.Z * r.Z + r.W * r.W;
+                    m = r.X * r.X + r.Y * r.Y + r.Z * r.Z + r.W * r.W;
 
-                    // Rotate the vector <0, 0, 1>
-                    x = 2 * (r.X * r.Z + r.Y * r.W);
-                    y = 2 * (-r.X * r.W + r.Y * r.Z);
-                    z = m2 - m1;
-
-                    // Set m to be the square of the norm of r.
-                    double m = m1 + m2;
-
-                    // This constant is emperically determined to be what is used in SL.
-                    // See also http://opensimulator.org/mantis/view.php?id=7096
-                    double offset = 0.05;
-
-                    // Normally m will be ~ 1, but if someone passed a handcrafted quaternion
-                    // to llSitTarget with values so small that squaring them is rounded off
-                    // to zero, then m could be zero. The result of this floating point
-                    // round off error (causing us to skip this impossible normalization)
-                    // is only 5 cm.
-                    if (m > 0.000001)
+                    if (Math.Abs(1.0 - m) > 0.000001)
                     {
-                        offset /= m;
+                        m = 1.0 / Math.Sqrt(m);
+                        r.X *= (float)m;
+                        r.Y *= (float)m;
+                        r.Z *= (float)m;
+                        r.W *= (float)m;
                     }
 
+                    x = 2 * (r.X * r.Z + r.Y * r.W);
+                    y = 2 * (-r.X * r.W + r.Y * r.Z);
+                    z = -r.X * r.X - r.Y * r.Y + r.Z * r.Z + r.W * r.W;
                     Vector3 up = new Vector3((float)x, (float)y, (float)z);
-                    Vector3 sitOffset = up * (float)offset;
+                    Vector3 sitOffset = up * Appearance.AvatarHeight * 0.02638f;
 
-                    // sitOffset is in Avatar Center coordinates: from origin to 'sitTargetPos + SIT_TARGET_ADJUSTMENT'.
-                    // So, we need to _substract_ it to get to the origin of the Avatar Center.
-                    Vector3 newPos = sitTargetPos + SIT_TARGET_ADJUSTMENT - sitOffset;
+                    Vector3 newPos = sitTargetPos + sitOffset + SIT_TARGET_ADJUSTMENT;
                     Quaternion newRot;
 
                     if (part.IsRoot)
@@ -3720,7 +3321,8 @@ no information to check this
 //                            Name, part.AbsolutePosition, m_pos, ParentPosition, part.Name, part.LocalId);
                 }
 
-                ParentPart = part;
+                part.ParentGroup.AddAvatar(UUID);
+                ParentPart = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
                 ParentID = m_requestedSitTargetID;
                 m_AngularVelocity = Vector3.Zero;
                 Velocity = Vector3.Zero;
@@ -3733,13 +3335,8 @@ no information to check this
                 {
                     sitAnimation = part.SitAnimation;
                 }
-<<<<<<< HEAD
-                Animator.TrySetMovementAnimation(sitAnimation);
-                SendAvatarDataToAllClients();
-=======
 //                Animator.TrySetMovementAnimation(sitAnimation);
                 Animator.SetMovementAnimations("SIT");
->>>>>>> avn/ubitvar
                 TriggerScenePresenceUpdated();
             }
         }
@@ -3801,25 +3398,10 @@ no information to check this
             //                "[SCENE PRESENCE]: Adding new movement {0} with rotation {1}, thisAddSpeedModifier {2} for {3}", 
             //                vec, Rotation, thisAddSpeedModifier, Name);
 
-<<<<<<< HEAD
-            Quaternion rot = Rotation;
-            if (!Flying && PresenceType != PresenceType.Npc)
-            {
-                // The only situation in which we care about X and Y is avatar flying.  The rest of the time
-                // these parameters are not relevant for determining avatar movement direction and cause issues such
-                // as wrong walk speed if the camera is rotated.
-                rot.X = 0;
-                rot.Y = 0;
-                rot.Normalize();
-            }
-
-            Vector3 direc = vec * rot;
-=======
             // rotate from avatar coord space to world
             // for now all controls assume this is only a rotation around Z
             // if not all checks below need to be done before this rotation
             Vector3 direc = vec * Rotation;
->>>>>>> avn/ubitvar
             direc.Normalize();
 
             // mouse look situation ?
@@ -3869,6 +3451,10 @@ no information to check this
 
         public override void Update()
         {
+            const float ROTATION_TOLERANCE = 0.01f;
+            const float VELOCITY_TOLERANCE = 0.001f;
+            const float POSITION_TOLERANCE = 0.05f;
+
             if (IsChildAgent == false)
             {
                 CheckForBorderCrossing();
@@ -3880,21 +3466,11 @@ no information to check this
                 // grab the latest PhysicsActor velocity, whereas m_velocity is often
                 // storing a requested force instead of an actual traveling velocity
                 if (Appearance.AvatarSize != m_lastSize && !IsLoggingIn)
-                    SendAvatarDataToAllClients();
+                    SendAvatarDataToAllAgents();
 
-                // Allow any updates for sitting avatars to that llSetPrimitiveLinkParams() can work for very
-                // small increments (e.g. sit position adjusters).  An alternative may be to eliminate the tolerance
-                // checks on all updates but the ramifications of this would need careful consideration.
-                bool updateClients 
-                    = IsSatOnObject && (Rotation != m_lastRotation || Velocity != m_lastVelocity || m_pos != m_lastPosition);
-                                 
-                if (!updateClients)
-                    updateClients 
-                        = !Rotation.ApproxEquals(m_lastRotation, Scene.RootRotationUpdateTolerance) 
-                            || !Velocity.ApproxEquals(m_lastVelocity, Scene.RootVelocityUpdateTolerance)
-                            || !m_pos.ApproxEquals(m_lastPosition, Scene.RootPositionUpdateTolerance);
-
-                if (updateClients)
+                if (!Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
+                    !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
+                    !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
                 {
                     SendTerseUpdateToAllClients();
 
@@ -3904,12 +3480,6 @@ no information to check this
                     m_lastVelocity = Velocity;
                 }
 
-<<<<<<< HEAD
-                if (Scene.AllowAvatarCrossing)
-                    CheckForBorderCrossing();
-
-=======
->>>>>>> avn/ubitvar
                 CheckForSignificantMovement(); // sends update to the modules.
             }
         }
@@ -3918,8 +3488,6 @@ no information to check this
 
         #region Update Client(s)
 
-<<<<<<< HEAD
-=======
         public void SendUpdateToAgent(ScenePresence p)
         {
             IClientAPI remoteClient = p.ControllingClient;
@@ -3949,7 +3517,6 @@ no information to check this
             ControllingClient.SendAgentTerseUpdate(p);
         }
 
->>>>>>> avn/ubitvar
         /// <summary>
         /// Sends a location update to the client connected to this scenePresence
         /// via entity updates
@@ -3961,29 +3528,6 @@ no information to check this
             // server.
             if (remoteClient.IsActive)
             {
-                if (Scene.RootTerseUpdatePeriod > 1)
-                {
-//                    Console.WriteLine(
-//                        "{0} {1} {2} {3} {4} {5} for {6} to {7}", 
-//                        remoteClient.AgentId, UUID, remoteClient.SceneAgent.IsChildAgent, m_terseUpdateCount, Scene.RootTerseUpdatePeriod, Velocity.ApproxEquals(Vector3.Zero, 0.001f), Name, remoteClient.Name);
-                    if (remoteClient.AgentId != UUID
-                        && !remoteClient.SceneAgent.IsChildAgent
-                        && m_terseUpdateCount % Scene.RootTerseUpdatePeriod != 0 
-                        && !Velocity.ApproxEquals(Vector3.Zero, 0.001f))
-                    {
-//                        m_log.DebugFormat("[SCENE PRESENCE]: Discarded update from {0} to {1}, args {2} {3} {4} {5} {6} {7}",
-//                            Name, remoteClient.Name, remoteClient.AgentId, UUID, remoteClient.SceneAgent.IsChildAgent, m_terseUpdateCount, Scene.RootTerseUpdatePeriod, Velocity.ApproxEquals(Vector3.Zero, 0.001f));
-
-                        return;
-                    }
-                }
-
-                if (Scene.ChildTerseUpdatePeriod > 1 
-                    && remoteClient.SceneAgent.IsChildAgent
-                    && m_terseUpdateCount % Scene.ChildTerseUpdatePeriod != 0 
-                    && !Velocity.ApproxEquals(Vector3.Zero, 0.001f))
-                        return;
-
                 //m_log.DebugFormat("[SCENE PRESENCE]: " + Name + " sending TerseUpdate to " + remoteClient.Name + " : Pos={0} Rot={1} Vel={2}", m_pos, Rotation, m_velocity);
                 remoteClient.SendEntityUpdate(
                     this,
@@ -4054,10 +3598,6 @@ no information to check this
             float speed = Velocity.Length();
             float velocityDiff = Vector3.Distance(lastVelocitySentToAllClients, Velocity);
 
-//            m_log.DebugFormat(
-//                "[SCENE PRESENCE]: Delta-v {0}, lastVelocity {1}, Velocity {2} for {3} in {4}",
-//                velocidyDiff, lastVelocitySentToAllClients, Velocity, Name, Scene.Name);
-
             // assuming 5 ms. worst case precision for timer, use 2x that 
             // for distance error threshold
             float distanceErrorThreshold = speed * 0.01f;
@@ -4066,17 +3606,11 @@ no information to check this
                 || Math.Abs(distanceError) > distanceErrorThreshold
                 || velocityDiff > 0.01f) // did velocity change from last update?
             {
-//                m_log.DebugFormat(
-//                    "[SCENE PRESENCE]: Update triggered with speed {0}, distanceError {1}, distanceThreshold {2}, delta-v {3} for {4} in {5}", 
-//                    speed, distanceError, distanceErrorThreshold, velocidyDiff, Name, Scene.Name);
-
                 lastVelocitySentToAllClients = Velocity;
                 lastTerseUpdateToAllClientsTick = currentTick;
                 lastPositionSentToAllClients = OffsetPosition;
 
-                m_terseUpdateCount++;
-
-//                Console.WriteLine("Scheduled update for {0} in {1}", Name, Scene.Name);
+ //                Console.WriteLine("Scheduled update for {0} in {1}", Name, Scene.Name);
 //                m_scene.ForEachClient(SendTerseUpdateToClient);
                 m_scene.ForEachScenePresence(SendTerseUpdateToAgent);
             }
@@ -4103,24 +3637,14 @@ no information to check this
             ControllingClient.SendCoarseLocationUpdate(avatarUUIDs, coarseLocations);
         }
 
-        public void SendInitialDataToClient()
+        public void SendInitialDataToMe()
         {
-            SentInitialDataToClient = true;
-
             // Send all scene object to the new client
-            WorkManager.RunJob("SendInitialDataToClient", delegate
+            Util.FireAndForget(delegate
             {
-//                m_log.DebugFormat(
-//                    "[SCENE PRESENCE]: Sending initial data to {0} agent {1} in {2}, tp flags {3}", 
-//                    IsChildAgent ? "child" : "root", Name, Scene.Name, m_teleportFlags);
-
                 // we created a new ScenePresence (a new child agent) in a fresh region.
                 // Request info about all the (root) agents in this region
                 // Note: This won't send data *to* other clients in that region (children don't send)
-<<<<<<< HEAD
-                SendOtherAgentsAvatarDataToClient();
-                SendOtherAgentsAppearanceToClient();
-=======
                 if (m_teleportFlags <= 0)
                 {
                     ILandChannel landch = m_scene.LandChannel;
@@ -4129,7 +3653,6 @@ no information to check this
                         landch.sendClientInitialLandInfo(ControllingClient);
                     }
                 }
->>>>>>> avn/ubitvar
 
                 SendOtherAgentsAvatarFullToMe();
                 EntityBase[] entities = Scene.Entities.GetEntities();
@@ -4138,13 +3661,9 @@ no information to check this
                     if (e != null && e is SceneObjectGroup && !((SceneObjectGroup)e).IsAttachment)
                         ((SceneObjectGroup)e).SendFullUpdateToClient(ControllingClient);
                 }
-<<<<<<< HEAD
-            }, null, string.Format("SendInitialDataToClient ({0} in {1})", Name, Scene.Name), false, true);
-=======
             });
->>>>>>> avn/ubitvar
         }
-
+ 
         /// <summary>
         /// Do everything required once a client completes its movement into a region and becomes
         /// a root agent.
@@ -4171,17 +3690,6 @@ no information to check this
                 if (m_scene.AvatarFactory != null)
                     m_scene.AvatarFactory.QueueAppearanceSave(UUID);
             }
-<<<<<<< HEAD
-            
-            // This agent just became root. We are going to tell everyone about it. The process of
-            // getting other avatars information was initiated elsewhere immediately after the child circuit connected... don't do it
-            // again here... this comes after the cached appearance check because the avatars
-            // appearance goes into the avatar update packet
-            SendAvatarDataToAllClients();
-
-            // This invocation always shows up in the viewer logs as an error.  Is it needed?
-            SendAppearanceToClient(this);
-=======
 
             // send avatar object to all viewers so they cross it into region
             bool newhide = m_currentParcelHide;
@@ -4197,7 +3705,6 @@ no information to check this
             }
 
             SendAppearanceToAgent(this);
->>>>>>> avn/ubitvar
 
             m_inTransit = false;
 
@@ -4220,13 +3727,6 @@ no information to check this
                 if (p.UUID == UUID)
                     return;
 
-<<<<<<< HEAD
-                // If the avatars baked textures are all in the cache, then we have a 
-                // complete appearance... send it out, if not, then we'll send it when
-                // the avatar finishes updating its appearance
-                SendAppearanceToAllOtherClients();
-            }
-=======
                 // get the avatar, then a kill if can't see it
                 p.SendInitialAvatarDataToAgent(this);
 
@@ -4240,19 +3740,13 @@ no information to check this
             });
 
             m_scene.StatsReporter.AddAgentUpdates(count);
->>>>>>> avn/ubitvar
-        }
-
-        public void SendAvatarDataToAllClients()
-        {
-            SendAvatarDataToAllClients(true);
         }
 
         /// <summary>
         /// Send this agent's avatar data to all other root and child agents in the scene
         /// This agent must be root. This avatar will receive its own update. 
         /// </summary>
-        public void SendAvatarDataToAllClients(bool full)
+        public void SendAvatarDataToAllAgents()
         {
             //m_log.DebugFormat("[SCENE PRESENCE] SendAvatarDataToAllAgents: {0} ({1})", Name, UUID);
             // only send update from root agents to other clients; children are only "listening posts"
@@ -4269,47 +3763,18 @@ no information to check this
 
             m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
             {
-<<<<<<< HEAD
-                if (full)
-                    SendAvatarDataToClient(scenePresence);
-                else
-                    scenePresence.ControllingClient.SendAvatarDataImmediate(this);
-=======
                 SendAvatarDataToAgent(scenePresence);
->>>>>>> avn/ubitvar
                 count++;
             });
 
             m_scene.StatsReporter.AddAgentUpdates(count);
         }
-
-<<<<<<< HEAD
-        /// <summary>
-        /// Send avatar data for all other root agents to this agent, this agent
-        /// can be either a child or root
-        /// </summary>
-        public void SendOtherAgentsAvatarDataToClient()
-=======
         // sends avatar object to all clients so they cross it into region
         // then sends kills to hide
         public void SendInitialAvatarDataToAllAgents(List<ScenePresence> presences)
->>>>>>> avn/ubitvar
         {
             m_lastSize = Appearance.AvatarSize;
             int count = 0;
-<<<<<<< HEAD
-            m_scene.ForEachRootScenePresence(delegate(ScenePresence scenePresence)
-                        {
-                            // only send information about other root agents
-                            if (scenePresence.UUID == UUID)
-                                return;
-                                             
-                            scenePresence.SendAvatarDataToClient(this);
-                            count++;
-                        });
-=======
->>>>>>> avn/ubitvar
-
             foreach (ScenePresence p in presences)
             {
                 p.ControllingClient.SendAvatarDataImmediate(this);
@@ -4337,16 +3802,11 @@ no information to check this
         /// Send avatar data to an agent.
         /// </summary>
         /// <param name="avatar"></param>
-        public void SendAvatarDataToClient(ScenePresence avatar)
+        public void SendAvatarDataToAgent(ScenePresence avatar)
         {
-<<<<<<< HEAD
-            //m_log.DebugFormat("[SCENE PRESENCE] SendAvatarDataToClient from {0} ({1}) to {2} ({3})", Name, UUID, avatar.Name, avatar.UUID);
-
-=======
             //m_log.DebugFormat("[SCENE PRESENCE] SendAvatarDataToAgent from {0} ({1}) to {2} ({3})", Name, UUID, avatar.Name, avatar.UUID);
             if (ParcelHideThisAvatar && currentParcelUUID != avatar.currentParcelUUID && avatar.GodLevel < 200)
                 return;
->>>>>>> avn/ubitvar
             avatar.ControllingClient.SendAvatarDataImmediate(this);
         }
 
@@ -4354,18 +3814,14 @@ no information to check this
         {
              avatar.ControllingClient.SendAvatarDataImmediate(this);
         }
- 
+
         /// <summary>
         /// Send this agent's appearance to all other root and child agents in the scene
         /// This agent must be root.
         /// </summary>
-        public void SendAppearanceToAllOtherClients()
+        public void SendAppearanceToAllOtherAgents()
         {
-<<<<<<< HEAD
-//            m_log.DebugFormat("[SCENE PRESENCE] SendAppearanceToAllOtherClients: {0} {1}", Name, UUID);
-=======
             //            m_log.DebugFormat("[SCENE PRESENCE] SendAppearanceToAllOtherAgents: {0} {1}", Name, UUID);
->>>>>>> avn/ubitvar
 
             // only send update from root agents to other clients; children are only "listening posts"
             if (IsChildAgent)
@@ -4379,51 +3835,21 @@ no information to check this
 
             int count = 0;
             m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
-                        {
-                            // only send information to other root agents
-                            if (scenePresence.UUID == UUID)
-                                return;
+            {
+                // only send information to other root agents
+                if (scenePresence.UUID == UUID)
+                    return;
 
-                            SendAppearanceToClient(scenePresence);
-                            count++;
-                        });
-<<<<<<< HEAD
-
+                SendAppearanceToAgent(scenePresence);
+                count++;
+            });
             m_scene.StatsReporter.AddAgentUpdates(count);
         }
 
-        /// <summary>
-        /// Send appearance from all other root agents to this agent. this agent
-        /// can be either root or child
-        /// </summary>
-        public void SendOtherAgentsAppearanceToClient()
+        public void SendAppearanceToAgent(ScenePresence avatar)
         {
-//            m_log.DebugFormat("[SCENE PRESENCE] SendOtherAgentsAppearanceToClient {0} {1}", Name, UUID);
-
-            int count = 0;
-            m_scene.ForEachRootScenePresence(delegate(ScenePresence scenePresence)
-                        {
-                            // only send information about other root agents
-                            if (scenePresence.UUID == UUID)
-                                return;
-                                             
-                            scenePresence.SendAppearanceToClient(this);
-                            count++;
-                        });
-
-=======
->>>>>>> avn/ubitvar
-            m_scene.StatsReporter.AddAgentUpdates(count);
-        }
-
-        /// <summary>
-        /// Send appearance data to an agent.
-        /// </summary>
-        /// <param name="avatar"></param>
-        public void SendAppearanceToClient(ScenePresence avatar)
-        {
-//            m_log.DebugFormat(
-//                "[SCENE PRESENCE]: Sending appearance data from {0} {1} to {2} {3}", Name, m_uuid, avatar.Name, avatar.UUID);
+            //            m_log.DebugFormat(
+            //                "[SCENE PRESENCE]: Sending appearance data from {0} {1} to {2} {3}", Name, m_uuid, avatar.Name, avatar.UUID);
             if (ParcelHideThisAvatar && currentParcelUUID != avatar.currentParcelUUID && avatar.GodLevel < 200)
                 return;
             SendAppearanceToAgentNF(avatar);
@@ -4574,81 +4000,6 @@ no information to check this
             if (ParentID != 0 || PhysicsActor == null || ParentUUID != UUID.Zero)
                 return;
 
-<<<<<<< HEAD
-            if (IsInTransit)
-                return;
-
-            Vector3 pos2 = AbsolutePosition;
-            Vector3 origPosition = pos2;
-            Vector3 vel = Velocity;
-
-            // Compute the future avatar position.
-            // If the avatar will be crossing, we force the crossing to happen now
-            //     in the hope that this will make the avatar movement smoother when crossing.
-            pos2 += vel * 0.05f;
-
-            if (m_scene.PositionIsInCurrentRegion(pos2))
-                return;
-
-            m_log.DebugFormat("{0} CheckForBorderCrossing: position outside region. {1} in {2} at pos {3}", 
-                                    LogHeader, Name, Scene.Name, pos2);
-
-            // Disconnect from the current region
-            bool isFlying = Flying;
-            RemoveFromPhysicalScene();
-
-            // pos2 is the forcasted position so make that the 'current' position so the crossing
-            //    code will move us into the newly addressed region.
-            m_pos = pos2;
-
-            if (CrossToNewRegion())
-            {
-                AddToPhysicalScene(isFlying);
-            }
-            else
-            {
-                // Tried to make crossing happen but it failed.
-                if (m_requestedSitTargetUUID == UUID.Zero)
-                {
-                    m_log.DebugFormat("{0} CheckForBorderCrossing: Crossing failed. Restoring old position.", LogHeader);
-
-                    Velocity = Vector3.Zero;
-                    AbsolutePosition = EnforceSanityOnPosition(origPosition);
-
-                    AddToPhysicalScene(isFlying);
-                }
-            }
-        }
-
-        // Given a position, make sure it is within the current region.
-        // If just outside some border, the returned position will be just inside the border on that side.
-        private Vector3 EnforceSanityOnPosition(Vector3 origPosition)
-        {
-            const float borderFudge = 0.1f;
-            Vector3 ret = origPosition;
-
-            // Sanity checking on the position to make sure it is in the region we couldn't cross from
-            float extentX = (float)m_scene.RegionInfo.RegionSizeX;
-            float extentY = (float)m_scene.RegionInfo.RegionSizeY;
-            IRegionCombinerModule combiner = m_scene.RequestModuleInterface<IRegionCombinerModule>();
-            if (combiner != null)
-            {
-                // If a mega-region, the size could be much bigger
-                Vector2 megaExtent = combiner.GetSizeOfMegaregion(m_scene.RegionInfo.RegionID);
-                extentX = megaExtent.X;
-                extentY = megaExtent.Y;
-            }
-            if (ret.X < 0)
-                ret.X = borderFudge;
-            else if (ret.X >= extentX)
-                ret.X = extentX - borderFudge;
-            if (ret.Y < 0)
-                ret.Y = borderFudge;
-            else if (ret.Y >= extentY)
-                ret.Y = extentY - borderFudge;
-
-            return ret;
-=======
             Vector3 pos2 = AbsolutePosition;
             Vector3 vel = Velocity;
 
@@ -4710,8 +4061,6 @@ no information to check this
 
                 AddToPhysicalScene(isFlying);
             }
-
->>>>>>> avn/ubitvar
         }
 
         /// <summary>
@@ -4779,16 +4128,6 @@ no information to check this
                 // Don't close the agent on this region yet
                 if (handle != Scene.RegionInfo.RegionHandle)
                 {
-<<<<<<< HEAD
-                    uint x, y;
-                    Util.RegionHandleToRegionLoc(handle, out x, out y);
-
-//                    m_log.Debug("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs((int)(x - newRegionX)));
-//                    m_log.Debug("---> y: " + y + "; newy:" + newRegionY + "; Abs:" + (int)Math.Abs((int)(y - newRegionY)));
-                    float dist = (float)Math.Max(Scene.DefaultDrawDistance,
-                            (float)Math.Max(Scene.RegionInfo.RegionSizeX, Scene.RegionInfo.RegionSizeY));
-                    if (Util.IsOutsideView(dist, x, newRegionX, y, newRegionY))
-=======
                     Util.RegionHandleToRegionLoc(handle, out x, out y);
                     if (m_knownChildRegionsSizeInfo.TryGetValue(handle, out regInfo))
                     {
@@ -4802,7 +4141,6 @@ no information to check this
                         }
                     }
                     else
->>>>>>> avn/ubitvar
                     {
                         if (Util.IsOutsideView(DrawDistance, x, newRegionX, y, newRegionY,
                             (int)Constants.RegionSize, (int)Constants.RegionSize, newRegionSizeX, newRegionSizeY))
@@ -4875,8 +4213,7 @@ no information to check this
                 return;
 
             CopyFrom(cAgentData);
-
-            m_updateAgentReceivedAfterTransferEvent.Set();
+             
         }
 
         private static Vector3 marker = new Vector3(-1f, -1f, -1f);
@@ -4895,23 +4232,11 @@ no information to check this
             if (!IsChildAgent)
                 return;
 
-<<<<<<< HEAD
-//            m_log.DebugFormat(
-//                "[SCENE PRESENCE]: ChildAgentPositionUpdate for {0} in {1}, tRegion {2},{3}, rRegion {4},{5}, pos {6}",
-//                Name, Scene.Name, tRegionX, tRegionY, rRegionX, rRegionY, cAgentData.Position);
-
-            // Find  the distance (in meters) between the two regions
-            // XXX: We cannot use Util.RegionLocToHandle() here because a negative value will silently overflow the
-            // uint
-            int shiftx = (int)(((int)rRegionX - (int)tRegionX) * Constants.RegionSize);
-            int shifty = (int)(((int)rRegionY - (int)tRegionY) * Constants.RegionSize);
-=======
             RegionHandle = cAgentData.RegionHandle;
 
             //m_log.Debug("   >>> ChildAgentPositionUpdate <<< " + rRegionX + "-" + rRegionY);
             int shiftx = ((int)rRegionX - (int)tRegionX) * (int)Constants.RegionSize;
             int shifty = ((int)rRegionY - (int)tRegionY) * (int)Constants.RegionSize;
->>>>>>> avn/ubitvar
 
             Vector3 offset = new Vector3(shiftx, shifty, 0f);
 
@@ -4919,11 +4244,7 @@ no information to check this
             // changes, then start using the agent's drawdistance rather than the 
             // region's draw distance.
             DrawDistance = cAgentData.Far;
-<<<<<<< HEAD
-            // DrawDistance = Scene.DefaultDrawDistance;
-=======
 //            DrawDistance = Scene.DefaultDrawDistance;
->>>>>>> avn/ubitvar
 
             if (cAgentData.Position != marker) // UGH!!
                 m_pos = cAgentData.Position + offset;
@@ -5038,10 +4359,6 @@ no information to check this
 
         private void CopyFrom(AgentData cAgent)
         {
-<<<<<<< HEAD
-=======
-
->>>>>>> avn/ubitvar
             m_callbackURI = cAgent.CallbackURI;
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: Set callback for {0} in {1} to {2} in CopyFrom()",
@@ -5060,9 +4377,6 @@ no information to check this
             // changes, then start using the agent's drawdistance rather than the 
             // region's draw distance.
             DrawDistance = cAgent.Far;
-<<<<<<< HEAD
-            // DrawDistance = Scene.DefaultDrawDistance;
-=======
             //DrawDistance = Scene.DefaultDrawDistance;
 
             if (cAgent.ChildrenCapSeeds != null && cAgent.ChildrenCapSeeds.Count > 0)
@@ -5073,7 +4387,6 @@ no information to check this
                 }
                 KnownRegions = cAgent.ChildrenCapSeeds;
             }
->>>>>>> avn/ubitvar
 
             if ((cAgent.Throttles != null) && cAgent.Throttles.Length > 0)
                 ControllingClient.SetChildAgentThrottle(cAgent.Throttles);
@@ -5135,35 +4448,10 @@ no information to check this
                 Animator.currentControlState = (ScenePresenceAnimator.motionControlStates) cAgent.MotionState;
 
             if (Scene.AttachmentsModule != null)
-<<<<<<< HEAD
-            {
-                // If the JobEngine is running we can schedule this job now and continue rather than waiting for all
-                // attachments to copy, which might take a long time in the Hypergrid case as the entire inventory
-                // graph is inspected for each attachments and assets possibly fetched.
-                // 
-                // We don't need to worry about a race condition as the job to later start the scripts is also 
-                // JobEngine scheduled and so will always occur after this task.
-                // XXX: This will not be true if JobEngine ever gets more than one thread.
-                WorkManager.RunJob(
-                    "CopyAttachments", 
-                    o => Scene.AttachmentsModule.CopyAttachments(cAgent, this), 
-                    null,
-                    string.Format("Copy attachments for {0} entering {1}", Name, Scene.Name),
-                    true);
-            }
-
-            // This must occur after attachments are copied or scheduled to be copied, as it releases the CompleteMovement() calling thread
-            // originating from the client completing a teleport.  Otherwise, CompleteMovement() code to restart
-            // script attachments can outrace this thread.
-            lock (m_originRegionIDAccessLock)
-                m_originRegionID = cAgent.RegionID;
-=======
                 Scene.AttachmentsModule.CopyAttachments(cAgent, this);
 
             lock (m_originRegionIDAccessLock)
                 m_originRegionID = cAgent.RegionID;
-            
->>>>>>> avn/ubitvar
         }
 
         public bool CopyAgent(out IAgentData agent)
@@ -5212,22 +4500,13 @@ no information to check this
             if (Appearance.AvatarHeight == 0)
 //                Appearance.SetHeight();
                 Appearance.SetSize(new Vector3(0.45f,0.6f,1.9f));
-                    
-/*
-            PhysicsActor = scene.AddAvatar(
-                LocalId, Firstname + "." + Lastname, pVec,
-                new Vector3(0.45f, 0.6f, Appearance.AvatarHeight), isFlying);
-*/
 
-<<<<<<< HEAD
-            PhysicsActor = m_scene.PhysicsScene.AddAvatar(
-                LocalId, Firstname + "." + Lastname, AbsolutePosition, Velocity,
-                Appearance.AvatarBoxSize, isFlying);
-=======
+            PhysicsScene scene = m_scene.PhysicsScene;
+            Vector3 pVec = AbsolutePosition;                  
+
             PhysicsActor = scene.AddAvatar(
                 LocalId, Firstname + "." + Lastname, pVec,
                 Appearance.AvatarBoxSize,Appearance.AvatarFeetOffset, isFlying);
->>>>>>> avn/ubitvar
 
             //PhysicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
             PhysicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;

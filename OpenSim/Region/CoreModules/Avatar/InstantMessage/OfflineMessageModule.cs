@@ -238,7 +238,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 return;
             }
 
-<<<<<<< HEAD
             if (!m_ForwardOfflineGroupMessages)
             {
                 if (im.dialog == (byte)InstantMessageDialog.GroupNotice ||
@@ -246,9 +245,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     return;
             }
 
-            bool success = SynchronousRestObjectRequester.MakeRequest<GridInstantMessage, bool>(
-                    "POST", m_RestURL+"/SaveMessage/", im, 10000);
-=======
             Scene scene = FindScene(new UUID(im.fromAgentID));
             if (scene == null)
                 scene = m_SceneList[0];
@@ -256,7 +252,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             SendReply reply = SynchronousRestObjectRequester.MakeRequest<GridInstantMessage, SendReply>(
                     "POST", m_RestURL+"/SaveMessage/?scope=" +
                     scene.RegionInfo.ScopeID.ToString(), im);
->>>>>>> avn/ubitvar
 
             if (im.dialog == (byte)InstantMessageDialog.MessageFromAgent)
             {

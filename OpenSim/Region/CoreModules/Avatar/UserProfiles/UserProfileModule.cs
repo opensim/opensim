@@ -869,7 +869,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         }
         #endregion Notes
 
-<<<<<<< HEAD
+
         #region User Preferences
         /// <summary>
         /// Updates the user preferences.
@@ -933,8 +933,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         }
         #endregion User Preferences
 
-=======
->>>>>>> avn/ubitvar
         #region Avatar Properties
         /// <summary>
         /// Update the avatars interests .
@@ -1401,8 +1399,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             return null;
         }
         #endregion Util
-<<<<<<< HEAD
-=======
 
         #region Web Util
         /// <summary>
@@ -1580,6 +1576,5 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             return true;
         }
         #endregion Web Util
->>>>>>> avn/ubitvar
     }
 }

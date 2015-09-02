@@ -184,11 +184,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         // saved last reported value so there is something available for llGetRegionFPS 
         private float lastReportedSimFPS;
-<<<<<<< HEAD
-        private float[] lastReportedSimStats = new float[m_statisticArraySize];
-=======
         private float[] lastReportedSimStats = new float[23];
->>>>>>> avn/ubitvar
         private float m_pfps;
 
         /// <summary>
@@ -208,14 +204,10 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_physicsMS;
         private int m_imageMS;
         private int m_otherMS;
-<<<<<<< HEAD
-        private int m_scriptMS;
-=======
         private int m_sleeptimeMS;
 
 //Ckrinke: (3-21-08) Comment out to remove a compiler warning. Bring back into play when needed.
 //Ckrinke        private int m_scriptMS = 0;
->>>>>>> avn/ubitvar
 
         private int m_rootAgents;
         private int m_childAgents;
@@ -269,27 +261,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         private IEstateModule estateModule;
 
-        public SimStatsReporter(Scene scene)
-            : this(scene, Scene.m_defaultNumberFramesStored)
+         public SimStatsReporter(Scene scene)
         {
-        }
-
-        public SimStatsReporter(Scene scene, int numberOfFrames)
-        {
-            // Store the number of frames from the OpenSim.ini configuration file
-            m_numberFramesStored = numberOfFrames;
-
-            // Initialize the different frame time arrays to the correct sizes
-            m_totalFrameTimeMilliseconds = new double[m_numberFramesStored];
-            m_simulationFrameTimeMilliseconds = new double[m_numberFramesStored];
-            m_physicsFrameTimeMilliseconds = new double[m_numberFramesStored];
-            m_networkFrameTimeMilliseconds = new double[m_numberFramesStored];
-
-            // Initialize the current number of users logging into the region
-            m_usersLoggingIn = 0;
-
             m_scene = scene;
-            m_reportedFpsCorrectionFactor = scene.MinFrameSeconds * m_nominalReportedFps;
+            m_reportedFpsCorrectionFactor = scene.MinFrameTime * m_nominalReportedFps;
             m_statsUpdateFactor = (float)(m_statsUpdatesEveryMS / 1000);
             ReportingRegion = scene.RegionInfo;
 
@@ -304,7 +279,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             /// At the moment, we'll only report if a frame is over 120% of target, since commonly frames are a bit
             /// longer than ideal (which in itself is a concern).
-            SlowFramesStatReportThreshold = (int)Math.Ceiling(scene.MinFrameTicks * 1.2);
+            SlowFramesStatReportThreshold = (int)Math.Ceiling(m_scene.MinFrameTime * 1000 * 1.2);
 
             SlowFramesStat
                 = new Stat(
@@ -319,7 +294,6 @@ namespace OpenSim.Region.Framework.Scenes
                     StatVerbosity.Info);
 
             StatsManager.RegisterStat(SlowFramesStat);
-
         }
 
 
@@ -356,25 +330,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void statsHeartBeat(object sender, EventArgs e)
         {
-            double totalSumFrameTime;
-            double simulationSumFrameTime;
-            double physicsSumFrameTime;
-            double networkSumFrameTime;
-            float frameDilation;
-            int currentFrame;
-
-            if (!m_scene.Active)
+             if (!m_scene.Active)
                 return;
 
-<<<<<<< HEAD
-            // Create arrays to hold the statistics for this current scene,
-            // these will be passed to the SimExtraStatsCollector, they are also
-            // sent to the SimStats class
-            SimStatsPacket.StatBlock[] sb = new
-                SimStatsPacket.StatBlock[m_statisticArraySize];
-=======
             SimStatsPacket.StatBlock[] sb = new SimStatsPacket.StatBlock[23];
->>>>>>> avn/ubitvar
             SimStatsPacket.RegionBlock rb = new SimStatsPacket.RegionBlock();
             
             // Know what's not thread safe in Mono... modifying timers.
@@ -409,9 +368,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                // ORIGINAL code commented out until we have time to add our own
                // statistics to the statistics window
-                //float physfps = ((m_pfps / 1000));
-               float physfps = m_numberPhysicsFrames;
-
+               float physfps = ((m_pfps / 1000));
+               
                 //if (physfps > 600)
                 //physfps = physfps - (physfps - 600);
 
@@ -465,61 +423,16 @@ namespace OpenSim.Region.Framework.Scenes
                 //                m_otherMS = m_frameMS - m_physicsMS - m_imageMS - m_netMS - m_agentMS;
                 // m_imageMS  m_netMS are not included in m_frameMS
 
-<<<<<<< HEAD
-                uint thisFrame = m_scene.Frame;
-                uint numFrames = thisFrame - m_lastUpdateFrame;
-                float framesUpdated = (float)numFrames * m_reportedFpsCorrectionFactor;
-                m_lastUpdateFrame = thisFrame;
-
-                // Avoid div-by-zero if somehow we've not updated any frames.
-                if (framesUpdated == 0)
-                    framesUpdated = 1;
-
-                for (int i = 0; i < m_statisticArraySize; i++)
-=======
                 m_otherMS = m_frameMS - m_physicsMS -  m_agentMS - m_sleeptimeMS;
                 if (m_otherMS < 0)
                     m_otherMS = 0;
 
                 for (int i = 0; i < 23; i++)
->>>>>>> avn/ubitvar
                 {
                     sb[i] = new SimStatsPacket.StatBlock();
                 }
 
-                // Resetting the sums of the frame times to prevent any errors
-                // in calculating the moving average for frame time
-                totalSumFrameTime = 0;
-                simulationSumFrameTime = 0;
-                physicsSumFrameTime = 0;
-                networkSumFrameTime = 0;
-
-                // Loop through all the frames that were stored for the current
-                // heartbeat to process the moving average of frame times
-                for (int i = 0; i < m_numberFramesStored; i++)
-                {
-                    // Sum up each frame time in order to calculate the moving
-                    // average of frame time
-                    totalSumFrameTime += m_totalFrameTimeMilliseconds[i];
-                    simulationSumFrameTime +=
-                        m_simulationFrameTimeMilliseconds[i];
-                    physicsSumFrameTime += m_physicsFrameTimeMilliseconds[i];
-                    networkSumFrameTime += m_networkFrameTimeMilliseconds[i];
-                }
-
-                // Get the index that represents the current frame based on the next one known; go back
-                // to the last index if next one is stated to restart at 0
-                if (m_nextLocation == 0)
-                    currentFrame = m_numberFramesStored - 1;
-                else
-                    currentFrame = m_nextLocation - 1;
-
-                // Calculate the frame dilation; which is currently based on the ratio between the sum of the
-                // physics and simulation rate, and the set minimum time to run a scene's frame
-                frameDilation = (float)(m_simulationFrameTimeMilliseconds[currentFrame] +
-                   m_physicsFrameTimeMilliseconds[currentFrame]) / m_scene.MinFrameTicks;
-
-                // ORIGINAL code commented out until we have time to add our own
+ 
                 sb[0].StatID = (uint) Stats.TimeDilation;
                 sb[0].StatValue = (Single.IsNaN(m_timeDilation)) ? 0.1f : m_timeDilation ; //((((m_timeDilation + (0.10f * statsUpdateFactor)) /10)  / statsUpdateFactor));
 
@@ -544,21 +457,7 @@ namespace OpenSim.Region.Framework.Scenes
                 sb[7].StatID = (uint) Stats.ActivePrim;
                 sb[7].StatValue = m_activePrim;
 
-               // ORIGINAL code commented out until we have time to add our own
-               // statistics to the statistics window
                 sb[8].StatID = (uint)Stats.FrameMS;
-<<<<<<< HEAD
-                //sb[8].StatValue = m_frameMS / framesUpdated;
-                sb[8].StatValue = (float) totalSumFrameTime / m_numberFramesStored;
-
-                sb[9].StatID = (uint)Stats.NetMS;
-                //sb[9].StatValue = m_netMS / framesUpdated;
-                sb[9].StatValue = (float) networkSumFrameTime / m_numberFramesStored;
-
-                sb[10].StatID = (uint)Stats.PhysicsMS;
-                //sb[10].StatValue = m_physicsMS / framesUpdated;
-                sb[10].StatValue = (float) physicsSumFrameTime / m_numberFramesStored;
-=======
                 sb[8].StatValue = TotalFrameTime;
 
                 sb[9].StatID = (uint)Stats.NetMS;
@@ -566,18 +465,12 @@ namespace OpenSim.Region.Framework.Scenes
 
                 sb[10].StatID = (uint)Stats.PhysicsMS;
                 sb[10].StatValue = m_physicsMS * perframe;
->>>>>>> avn/ubitvar
 
                 sb[11].StatID = (uint)Stats.ImageMS ;
                 sb[11].StatValue = m_imageMS * perframe;
 
                 sb[12].StatID = (uint)Stats.OtherMS;
-<<<<<<< HEAD
-                //sb[12].StatValue = m_otherMS / framesUpdated;
-                sb[12].StatValue = (float) simulationSumFrameTime / m_numberFramesStored;
-=======
                 sb[12].StatValue = m_otherMS * perframe;
->>>>>>> avn/ubitvar
 
                 sb[13].StatID = (uint)Stats.InPacketsPerSecond;
                 sb[13].StatValue = (m_inPacketsPerSecond / m_statsUpdateFactor);
@@ -608,30 +501,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 sb[22].StatID = (uint)Stats.SimSleepMs;
                 sb[22].StatValue = sleeptime;
-
-                // Current ratio between the sum of physics and sim rate, and the
-                // minimum time to run a scene's frame
-                sb[22].StatID = (uint)Stats.FrameDilation;
-                sb[22].StatValue = frameDilation;
-
-                // Current number of users currently attemptint to login to region
-                sb[23].StatID = (uint)Stats.UsersLoggingIn;
-                sb[23].StatValue = m_usersLoggingIn;
-
-                // Total number of geometric primitives in the scene
-                sb[24].StatID = (uint)Stats.TotalGeoPrim;
-                sb[24].StatValue = m_numGeoPrim;
-
-                // Total number of mesh objects in the scene
-                sb[25].StatID = (uint)Stats.TotalMesh;
-                sb[25].StatValue = m_numMesh;
-
-                // Current number of threads that XEngine is using
-                sb[26].StatID = (uint)Stats.ThreadCount;
-                sb[26].StatValue = m_inUseThreads;
-
-                sb[27].StatID = (uint)Stats.ScriptMS;
-                sb[27].StatValue = (numFrames <= 0) ? 0 : ((float)m_scriptMS / numFrames);
 
                 for (int i = 0; i < m_statisticArraySize; i++)
                 {
@@ -702,16 +571,11 @@ namespace OpenSim.Region.Framework.Scenes
             m_physicsMS = 0;
             m_imageMS = 0;
             m_otherMS = 0;
-<<<<<<< HEAD
-            m_scriptMS = 0;
-            m_spareMS = 0;
-=======
 //            m_spareMS = 0;
             m_sleeptimeMS = 0;
 
 //Ckrinke This variable is not used, so comment to remove compiler warning until it is used.
 //Ckrinke            m_scriptMS = 0;
->>>>>>> avn/ubitvar
         }
 
         # region methods called from Scene
@@ -817,41 +681,9 @@ namespace OpenSim.Region.Framework.Scenes
             m_otherMS += ms;
         }
 
-<<<<<<< HEAD
-        public void AddScriptMS(int ms)
-        {
-            m_scriptMS += ms;
-        }
-
-        public void addPhysicsFrame(int frames)
-        {
-            // Add the number of physics frames to the correct total physics
-            // frames
-            m_numberPhysicsFrames += frames;
-        }
-
-        public void addFrameTimeMilliseconds(double total, double simulation,
-            double physics, double network)
-        {
-            // Save the frame times from the current frame into the appropriate
-            // arrays
-            m_totalFrameTimeMilliseconds[m_nextLocation] = total;
-            m_simulationFrameTimeMilliseconds[m_nextLocation] = simulation;
-            m_physicsFrameTimeMilliseconds[m_nextLocation] = physics;
-            m_networkFrameTimeMilliseconds[m_nextLocation] = network;
-
-            // Update to the next location in the list
-            m_nextLocation++;
-
-            // Since the list will begin to overwrite the oldest frame values
-            // first, the next location needs to loop back to the beginning of the
-            // list whenever it reaches the end
-            m_nextLocation = m_nextLocation % m_numberFramesStored;
-=======
         public void addSleepMS(int ms)
         {
             m_sleeptimeMS += ms;
->>>>>>> avn/ubitvar
         }
 
         public void AddPendingDownloads(int count)

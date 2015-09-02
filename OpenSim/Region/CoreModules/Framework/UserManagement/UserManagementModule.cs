@@ -336,8 +336,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             }
         }
 
-<<<<<<< HEAD
-=======
         /// <summary>
         /// 
         /// </summary>
@@ -433,7 +431,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             }
         }
 
->>>>>>> avn/ubitvar
+
         #region IUserManagement
 
         public UUID GetUserIdByName(string name)

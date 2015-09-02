@@ -307,21 +307,13 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             }
         }
 
-<<<<<<< HEAD
-        
-=======
->>>>>>> avn/ubitvar
         /// <summary>
         /// Modifies a SceneObjectGroup.
         /// </summary>
         /// <param name="sog">The object</param>
         /// <returns>Whether the object was actually modified</returns>
         public delegate bool SceneObjectModifier(SceneObjectGroup sog);
-<<<<<<< HEAD
-        
-=======
 
->>>>>>> avn/ubitvar
         /// <summary>
         /// Modifies an object by deserializing it; applying 'modifier' to each SceneObjectGroup; and reserializing.
         /// </summary>
@@ -335,11 +327,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             CoalescedSceneObjects coa = null;
 
             string xmlData = ExternalRepresentationUtils.SanitizeXml(Utils.BytesToString(data));
-<<<<<<< HEAD
-            
-=======
-
->>>>>>> avn/ubitvar
             if (CoalescedSceneObjectsSerializer.TryFromXml(xmlData, out coa))
             {
                 // m_log.DebugFormat("[SERIALIZER]: Loaded coalescence {0} has {1} objects", assetId, coa.Count);
@@ -384,10 +371,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             return data;
         }
-<<<<<<< HEAD
-
-=======
->>>>>>> avn/ubitvar
 
         #region manual serialization
 
@@ -739,44 +722,42 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             obj.GravityModifier = reader.ReadElementContentAsFloat("GravityModifier", String.Empty);
         }
 
-<<<<<<< HEAD
-        private static void ProcessShape(SceneObjectPart obj, XmlReader reader)
-=======
-        private static void ProcessCameraEyeOffset(SceneObjectPart obj, XmlTextReader reader)
+        private static void ProcessCameraEyeOffset(SceneObjectPart obj, XmlReader reader)
         {
             obj.SetCameraEyeOffset(Util.ReadVector(reader, "CameraEyeOffset"));
         }
 
-        private static void ProcessCameraAtOffset(SceneObjectPart obj, XmlTextReader reader)
+        private static void ProcessCameraAtOffset(SceneObjectPart obj, XmlReader reader)
         {
             obj.SetCameraAtOffset(Util.ReadVector(reader, "CameraAtOffset"));
         }
 
-        private static void ProcessSoundID(SceneObjectPart obj, XmlTextReader reader)
+        private static void ProcessSoundID(SceneObjectPart obj, XmlReader reader)
         {
             obj.Sound = Util.ReadUUID(reader, "SoundID");
         }
 
-        private static void ProcessSoundGain(SceneObjectPart obj, XmlTextReader reader)
+        private static void ProcessSoundGain(SceneObjectPart obj, XmlReader reader)
         {
             obj.SoundGain = reader.ReadElementContentAsDouble("SoundGain", String.Empty);
         }
 
-        private static void ProcessSoundFlags(SceneObjectPart obj, XmlTextReader reader)
+        private static void ProcessSoundFlags(SceneObjectPart obj, XmlReader reader)
         {
             obj.SoundFlags = (byte)reader.ReadElementContentAsInt("SoundFlags", String.Empty);
         }
 
-        private static void ProcessSoundRadius(SceneObjectPart obj, XmlTextReader reader)
+        private static void ProcessSoundRadius(SceneObjectPart obj, XmlReader reader)
         {
             obj.SoundRadius = reader.ReadElementContentAsDouble("SoundRadius", String.Empty);
         }
 
-        private static void ProcessSoundQueueing(SceneObjectPart obj, XmlTextReader reader)
+        private static void ProcessSoundQueueing(SceneObjectPart obj, XmlReader reader)
         {
             obj.SoundQueueing = Util.ReadBoolean(reader);
         }
-        private static void ProcessVehicle(SceneObjectPart obj, XmlTextReader reader)
+
+        private static void ProcessVehicle(SceneObjectPart obj, XmlReader reader)
         {
             SOPVehicle vehicle = SOPVehicle.FromXml2(reader);
 
@@ -793,8 +774,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             }
         }
                    
-        private static void ProcessShape(SceneObjectPart obj, XmlTextReader reader)
->>>>>>> avn/ubitvar
+        private static void ProcessShape(SceneObjectPart obj, XmlReader reader)
         {
             List<string> errorNodeNames;
             obj.Shape = ReadShape(reader, "Shape", out errorNodeNames, obj);
@@ -968,21 +948,21 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             obj.PayPrice[4] = (int)reader.ReadElementContentAsInt("PayPrice4", String.Empty);
         }
 
-        private static void ProcessBuoyancy(SceneObjectPart obj, XmlTextReader reader)
+        private static void ProcessBuoyancy(SceneObjectPart obj, XmlReader reader)
         {
             obj.Buoyancy = (float)reader.ReadElementContentAsFloat("Buoyancy", String.Empty);
         }
 
-        private static void ProcessForce(SceneObjectPart obj, XmlTextReader reader)
+        private static void ProcessForce(SceneObjectPart obj, XmlReader reader)
         {
             obj.Force = Util.ReadVector(reader, "Force");
         }
-        private static void ProcessTorque(SceneObjectPart obj, XmlTextReader reader)
+        private static void ProcessTorque(SceneObjectPart obj, XmlReader reader)
         {
             obj.Torque = Util.ReadVector(reader, "Torque");
         }
 
-        private static void ProcessVolumeDetectActive(SceneObjectPart obj, XmlTextReader reader)
+        private static void ProcessVolumeDetectActive(SceneObjectPart obj, XmlReader reader)
         {
             obj.VolumeDetectActive = Util.ReadBoolean(reader);
         }

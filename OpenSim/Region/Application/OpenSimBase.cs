@@ -276,13 +276,9 @@ namespace OpenSim
 
             base.StartupSpecific();
 
-<<<<<<< HEAD
-            if (EnableInitialPluginLoad)
-                LoadPlugins();
 
             // We still want to post initalize any plugins even if loading has been disabled since a test may have
             // inserted them manually.
-=======
             LoadPlugins();
 
             if (m_plugins.Count == 0) // We failed to load any modules. Mono Addins glitch!
@@ -290,7 +286,6 @@ namespace OpenSim
                 Environment.Exit(1);
             }
 
->>>>>>> avn/ubitvar
             foreach (IApplicationPlugin plugin in m_plugins)
                 plugin.PostInitialise();
 
@@ -832,10 +827,6 @@ namespace OpenSim
         {
             Vector3 regionExtent = new Vector3(regionInfo.RegionSizeX, regionInfo.RegionSizeY, regionInfo.RegionSizeZ);
             PhysicsScene physicsScene = GetPhysicsScene(regionInfo.RegionName, regionExtent);
-<<<<<<< HEAD
-
-=======
->>>>>>> avn/ubitvar
             SceneCommunicationService sceneGridService = new SceneCommunicationService();
 
             return new Scene(

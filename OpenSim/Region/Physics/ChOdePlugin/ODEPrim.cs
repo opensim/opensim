@@ -748,7 +748,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_log.Warn("[PHYSICS]: Got NaN PIDTarget from Scene on Object");
             }
         }
-        public override bool PIDActive { set { m_usePID = value; } }
+        public override bool PIDActive { get { return m_usePID; } set { m_usePID = value; } }
         public override float PIDTau { set { m_PIDTau = value; } }
 
         // For RotLookAt        

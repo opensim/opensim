@@ -86,7 +86,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="agentHomeURI">The visitor's Home URI. Will be missing (null) in older OpenSims.</param>
         /// <param name="viaTeleport">True: via teleport; False: via cross (walking)</param>
         /// <param name="position">Position in the region</param>
-<<<<<<< HEAD
+
         /// <param name="sversion">
         /// Version that the requesting simulator is runing.  If null then no version check is carried out.
         /// </param>
@@ -94,13 +94,6 @@ namespace OpenSim.Services.Interfaces
         /// <param name="reason">[out] Optional error message</param>
         /// <returns>True: ok; False: not allowed</returns>
         bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, string sversion, List<UUID> features, out string version, out string reason);
-=======
-        /// <param name="sversion">version that the requesting simulator is runing</param>
-        /// <param name="version">version that the target simulator is running</param>
-        /// <param name="reason">[out] Optional error message</param>
-        /// <returns>True: ok; False: not allowed</returns>
-        bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, string sversion, out string version, out string reason);
->>>>>>> avn/ubitvar
 
         /// <summary>
         /// Message from receiving region to departing region, telling it got contacted by the client.

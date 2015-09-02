@@ -245,15 +245,6 @@ namespace OpenSim.Framework
             // occasionally seems to corrupt its addin cache
             // Hence, as a temporary solution we'll remove it before each startup
 
-<<<<<<< HEAD
-            try
-            {
-                if (Directory.Exists(dir + "/addin-db-000"))
-                    Directory.Delete(dir + "/addin-db-000", true);
-
-                if (Directory.Exists(dir + "/addin-db-001"))
-                    Directory.Delete(dir + "/addin-db-001", true);
-=======
             string customDir = Environment.GetEnvironmentVariable ("MONO_ADDINS_REGISTRY");
             string v0 = "addin-db-000";
             string v1 = "addin-db-001";
@@ -269,7 +260,7 @@ namespace OpenSim.Framework
 
                 if (Directory.Exists(v1))
                     Directory.Delete(v1, true);
->>>>>>> avn/ubitvar
+
             }
             catch (IOException)
             {

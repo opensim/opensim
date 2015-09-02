@@ -716,6 +716,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override bool PIDActive
         {
+            get
+            {
+                return m_usePID;
+            }
             set
             {
                 AddChange(changes.PIDActive,value);

@@ -191,15 +191,14 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return accounts;
         }
 
-<<<<<<< HEAD
         public void InvalidateCache(UUID userID)
         {
             m_accountCache.Remove(userID);
-=======
+        }
+
         public List<UserAccount> GetUserAccountsWhere(UUID scopeID, string query)
         {
             return null;
->>>>>>> avn/ubitvar
         }
 
         public bool StoreUserAccount(UserAccount data)

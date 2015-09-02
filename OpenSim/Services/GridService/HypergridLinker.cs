@@ -343,11 +343,7 @@ namespace OpenSim.Services.GridService
             GridRegion region = m_GridService.GetRegionByPosition(regInfo.ScopeID, regInfo.RegionLocX, regInfo.RegionLocY);
             if (region != null)
             {
-<<<<<<< HEAD
-                m_log.WarnFormat("[HYPERGRID LINKER]: Coordinates <{0},{1}> are already occupied by region {2} with uuid {3}",
-=======
                 m_log.WarnFormat("[HYPERGRID LINKER]: Coordinates {0}-{1} are already occupied by region {2} with uuid {3}",
->>>>>>> avn/ubitvar
                     Util.WorldToRegionLoc((uint)regInfo.RegionLocX), Util.WorldToRegionLoc((uint)regInfo.RegionLocY),
                     region.RegionName, region.RegionID);
                 reason = "Coordinates are already in use";
@@ -383,13 +379,8 @@ namespace OpenSim.Services.GridService
             region = m_GridService.GetRegionByUUID(scopeID, regionID);
             if (region != null)
             {
-<<<<<<< HEAD
-                m_log.DebugFormat("[HYPERGRID LINKER]: Region already exists in coordinates <{0},{1}>",
+              m_log.DebugFormat("[HYPERGRID LINKER]: Region already exists in coordinates <{0},{1}>",
                     Util.WorldToRegionLoc((uint)region.RegionLocX), Util.WorldToRegionLoc((uint)region.RegionLocY));
-=======
-                m_log.DebugFormat("[HYPERGRID LINKER]: Region already exists in coordinates {0} {1}",
-                    Util.WorldToRegionLoc((uint)regInfo.RegionLocX), Util.WorldToRegionLoc((uint)regInfo.RegionLocY));
->>>>>>> avn/ubitvar
                 regInfo = region;
                 return true;
             }
@@ -545,7 +536,6 @@ namespace OpenSim.Services.GridService
             MainConsole.Instance.Output(new string('-', 72));
             foreach (RegionData r in regions)
             {
-<<<<<<< HEAD
                 MainConsole.Instance.Output(
                     String.Format("{0}\n{2,-32} {1}\n",
                         r.RegionName, r.RegionID, 
@@ -554,12 +544,6 @@ namespace OpenSim.Services.GridService
                         )
                     )
                 );
-=======
-                MainConsole.Instance.Output(String.Format("{0}\n{2,-32} {1}\n",
-                                    r.RegionName, r.RegionID,
-                                    String.Format("{0},{1} ({2},{3})", r.posX, r.posY,
-                                        Util.WorldToRegionLoc((uint)r.posX), Util.WorldToRegionLoc((uint)r.posY))) );
->>>>>>> avn/ubitvar
             }
             return;
         }
@@ -661,13 +645,8 @@ namespace OpenSim.Services.GridService
                     string externalHostName;
                     try
                     {
-<<<<<<< HEAD
                         xloc = Convert.ToUInt32(cmdparams[0]);
                         yloc = Convert.ToUInt32(cmdparams[1]);
-=======
-                        xloc = (uint)Convert.ToInt32(cmdparams[0]);
-                        yloc = (uint)Convert.ToInt32(cmdparams[1]);
->>>>>>> avn/ubitvar
                         externalPort = Convert.ToUInt32(cmdparams[3]);
                         externalHostName = cmdparams[2];
                         //internalPort = Convert.ToUInt32(cmdparams[4]);
@@ -770,13 +749,8 @@ namespace OpenSim.Services.GridService
             string externalHostName;
             uint realXLoc, realYLoc;
 
-<<<<<<< HEAD
             xloc = Convert.ToUInt32(config.GetString("xloc", "0"));
             yloc = Convert.ToUInt32(config.GetString("yloc", "0"));
-=======
-            xloc = (uint)Convert.ToInt32(config.GetString("xloc", "0"));
-            yloc = (uint)Convert.ToInt32(config.GetString("yloc", "0"));
->>>>>>> avn/ubitvar
             externalPort = Convert.ToUInt32(config.GetString("externalPort", "0"));
             externalHostName = config.GetString("externalHostName", "");
             realXLoc = Convert.ToUInt32(config.GetString("real-xloc", "0"));
@@ -784,13 +758,8 @@ namespace OpenSim.Services.GridService
 
             if (m_enableAutoMapping)
             {
-<<<<<<< HEAD
                 xloc = (xloc % 100) + m_autoMappingX;
                 yloc = (yloc % 100) + m_autoMappingY;
-=======
-                xloc = (uint)((xloc % 100) + m_autoMappingX);
-                yloc = (uint)((yloc % 100) + m_autoMappingY);
->>>>>>> avn/ubitvar
             }
 
             if (((realXLoc == 0) && (realYLoc == 0)) ||

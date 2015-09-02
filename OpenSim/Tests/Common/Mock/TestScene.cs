@@ -34,10 +34,7 @@ using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Physics.Manager;
-<<<<<<< HEAD
 using OpenSim.Services.Interfaces;
-=======
->>>>>>> avn/ubitvar
 
 namespace OpenSim.Tests.Common
 {

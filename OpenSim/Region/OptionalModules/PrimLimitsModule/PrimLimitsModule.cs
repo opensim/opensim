@@ -153,14 +153,6 @@ namespace OpenSim.Region.OptionalModules
 
             ILandObject newParcel = scene.LandChannel.GetLandObject(newPoint.X, newPoint.Y);
 
-<<<<<<< HEAD
-            // newParcel will be null only if it outside of our current region.  If this is the case, then the
-            // receiving permissions will perform the check.
-            if (newParcel == null)
-                return true;
-
-            // The prim hasn't crossed a region boundary so we don't need to worry
-=======
             if (newParcel == null)
                 return true;
 
@@ -168,7 +160,6 @@ namespace OpenSim.Region.OptionalModules
             ILandObject oldParcel = scene.LandChannel.GetLandObject(oldPoint.X, oldPoint.Y);
             
             // The prim hasn't crossed a region boundry so we don't need to worry
->>>>>>> avn/ubitvar
             // about prim counts here
             if(oldParcel != null && oldParcel.Equals(newParcel))
             {

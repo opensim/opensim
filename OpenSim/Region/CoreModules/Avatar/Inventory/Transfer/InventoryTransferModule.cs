@@ -180,13 +180,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         "[INVENTORY TRANSFER]: Inserting original folder {0} into agent {1}'s inventory",
                         folderID, new UUID(im.toAgentID));
                     
-<<<<<<< HEAD
                     InventoryFolderBase folderCopy
-                        = scene.GiveInventoryFolder(client, receipientID, client.AgentId, folderID, UUID.Zero);
-=======
-                    InventoryFolderBase folderCopy 
-                        = scene.GiveInventoryFolder(recipientID, client.AgentId, folderID, UUID.Zero);
->>>>>>> avn/ubitvar
+                        = scene.GiveInventoryFolder(client, recipientID, client.AgentId, folderID, UUID.Zero);
                     
                     if (folderCopy == null)
                     {
@@ -475,7 +470,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
         /// <param name="im"></param>
         private void OnGridInstantMessage(GridInstantMessage im)
         {
-<<<<<<< HEAD
             // Check if it's a type of message that we should handle
             if (!((im.dialog == (byte) InstantMessageDialog.InventoryOffered)
                 || (im.dialog == (byte) InstantMessageDialog.TaskInventoryOffered)
@@ -488,8 +482,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 "[INVENTORY TRANSFER]: {0} IM type received from grid. From={1} ({2}), To={3}",
                 (InstantMessageDialog)im.dialog, im.fromAgentID, im.fromAgentName, im.toAgentID);
 
-=======
->>>>>>> avn/ubitvar
             // Check if this is ours to handle
             //
             Scene scene = FindClientScene(new UUID(im.toAgentID));

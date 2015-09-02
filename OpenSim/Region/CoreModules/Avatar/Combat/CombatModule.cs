@@ -183,15 +183,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
             try
             {
                 ILandObject obj = avatar.Scene.LandChannel.GetLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
-<<<<<<< HEAD
-
                 if (obj == null)
                     return;
-
-=======
-                if (obj == null)
-                    return;
->>>>>>> avn/ubitvar
                 if ((obj.LandData.Flags & (uint)ParcelFlags.AllowDamage) != 0
                     || avatar.Scene.RegionInfo.RegionSettings.AllowDamage)
                 {

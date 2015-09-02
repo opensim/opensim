@@ -63,9 +63,6 @@ namespace OpenSim.Capabilities.Handlers
         public GetTextureHandler(IAssetService assService)
         {
             m_assetService = assService;
-            m_RedirectURL = redirectURL;
-            if (m_RedirectURL != null && !m_RedirectURL.EndsWith("/"))
-                m_RedirectURL += "/";
         }
 
         public Hashtable Handle(Hashtable request)

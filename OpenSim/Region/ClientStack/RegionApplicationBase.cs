@@ -141,11 +141,6 @@ namespace OpenSim.Region.ClientStack
             PhysicsPluginManager physicsPluginManager;
             physicsPluginManager = new PhysicsPluginManager();
             physicsPluginManager.LoadPluginsFromAssemblies("Physics");
-<<<<<<< HEAD
-            
-=======
-
->>>>>>> avn/ubitvar
             return physicsPluginManager.GetPhysicsScene(engine, meshEngine, config, osSceneIdentifier, regionExtent);
         }
     }

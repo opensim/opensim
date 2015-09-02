@@ -191,14 +191,13 @@ namespace OpenSim.Services.Connectors
             return accounts;
         }
 
-<<<<<<< HEAD
         public void InvalidateCache(UUID userID)
         {
-=======
+        }
+
         public List<UserAccount> GetUserAccountsWhere(UUID scopeID, string where)
         {
             return null; // Not implemented for regions
->>>>>>> avn/ubitvar
         }
 
         public virtual bool StoreUserAccount(UserAccount data)

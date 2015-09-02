@@ -380,28 +380,13 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
             if (sp != null)
             {
-<<<<<<< HEAD
-                // ignore if a child agent this is restricted to inside one
-                // region
-                if (sp.IsChildAgent)
-                    return;
-
-                // Channel zero only goes to the avatar
-                // non zero channel messages only go to the attachments of the avatar.
-                if (channel != 0)
-                {
-                    List<SceneObjectGroup> attachments = sp.GetAttachments();
-                    if (attachments.Count == 0)
-                        return;
-=======
-                // Send message to avatar
+                 // Send message to avatar
                 if (channel == 0)
                 {
-                    // Channel 0 goes to viewer ONLY
+                   // Channel 0 goes to viewer ONLY
                     m_scene.SimChat(Utils.StringToBytes(msg), ChatTypeEnum.Broadcast, 0, pos, name, id, target, false, false);
                     return true;
                 }
->>>>>>> avn/ubitvar
 
                 List<SceneObjectGroup> attachments = sp.GetAttachments();
 

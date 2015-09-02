@@ -207,17 +207,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             {
                 byte[] data = null;
 
-<<<<<<< HEAD
-                    AssetBase asset = m_Scene.CreateAsset(name, description, assetType, data, remoteClient.AgentId);
-                    m_Scene.AssetService.Store(asset);
-                    m_Scene.CreateNewInventoryItem(
-                        remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
-                        name, description, 0, callbackID, asset.FullID, asset.Type, invType, nextOwnerMask, creationDate);
-                }
-                else
-=======
                 if (invType == (sbyte)InventoryType.Landmark && presence != null)
->>>>>>> avn/ubitvar
                 {
                     string suffix = string.Empty, prefix = string.Empty;
                     string strdata = GenerateLandmark(presence, out prefix, out suffix);
@@ -229,8 +219,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 AssetBase asset = m_Scene.CreateAsset(name, description, assetType, data, remoteClient.AgentId);
                 m_Scene.AssetService.Store(asset);
                 m_Scene.CreateNewInventoryItem(
-                    remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
-                    name, description, 0, callbackID, asset, invType, nextOwnerMask, creationDate,transactionID);               
+                        remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
+                        name, description, 0, callbackID, asset.FullID, asset.Type, invType, nextOwnerMask, creationDate);              
             }
             else
             {
@@ -420,26 +410,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             {
                 if (objectGroup.RootPart.KeyframeMotion != null)
                 {
-<<<<<<< HEAD
-                    objectGroup.RootPart.KeyframeMotion.Pause();
-                    group2Keyframe.Add(objectGroup, objectGroup.RootPart.KeyframeMotion);
-                    objectGroup.RootPart.KeyframeMotion = null;
-                }
-
-//                Vector3 inventoryStoredPosition = new Vector3
-//                            (((objectGroup.AbsolutePosition.X > (int)Constants.RegionSize)
-//                                  ? 250
-//                                  : objectGroup.AbsolutePosition.X)
-//                             ,
-//                             (objectGroup.AbsolutePosition.Y > (int)Constants.RegionSize)
-//                                 ? 250
-//                                 : objectGroup.AbsolutePosition.Y,
-//                             objectGroup.AbsolutePosition.Z);
-//
-//                originalPositions[objectGroup.UUID] = objectGroup.AbsolutePosition;
-//
-//                objectGroup.AbsolutePosition = inventoryStoredPosition;
-=======
                     objectGroup.RootPart.KeyframeMotion.Suspend();
                 }
                 objectGroup.RootPart.SetForce(Vector3.Zero);
@@ -480,7 +450,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                 objectGroup.AbsolutePosition = inventoryStoredPosition;
                 objectGroup.RootPart.RotationOffset = inventoryStoredRotation;
->>>>>>> avn/ubitvar
 
                 // Make sure all bits but the ones we want are clear
                 // on take.
@@ -626,6 +595,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             IClientAPI remoteClient)
         {
             uint effectivePerms = (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify | PermissionMask.Move | PermissionMask.Export) | 7;
+            uint allObjectsNextOwnerPerms = 0x7fffffff;
+
             // For the porposes of inventory, an object is modify if the prims
             // are modify. This allows renaming an object that contains no
             // mod items.

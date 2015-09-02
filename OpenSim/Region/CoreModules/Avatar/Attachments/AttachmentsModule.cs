@@ -406,25 +406,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             Dictionary<SceneObjectGroup, string> scriptStates = new Dictionary<SceneObjectGroup, string>();
 
-<<<<<<< HEAD
-            foreach (SceneObjectGroup so in attachments)
-            {
-                // Scripts MUST be snapshotted before the object is
-                // removed from the scene because doing otherwise will
-                // clobber the run flag
-                // This must be done outside the sp.AttachmentSyncLock so that there is no risk of a deadlock from
-                // scripts performing attachment operations at the same time.  Getting object states stops the scripts.
-                scriptStates[so] = PrepareScriptInstanceForSave(so, false);
 
-//                m_log.DebugFormat(
-//                    "[ATTACHMENTS MODULE]: For object {0} for {1} in {2} got saved state {3}", 
-//                    so.Name, sp.Name, m_scene.Name, scriptStates[so]);
-            }
-
-            lock (sp.AttachmentsSyncLock)
-=======
             if (sp.PresenceType != PresenceType.Npc)
->>>>>>> avn/ubitvar
             {
                 foreach (SceneObjectGroup so in attachments)
                 {
@@ -477,18 +460,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (!Enabled)
                 return false;
 
-<<<<<<< HEAD
-            group.DetachFromBackup();
-
-            bool success = AttachObjectInternal(sp, group, attachmentPt, silent, addToInventory, false, append);
-
-            if (!success)
-                group.AttachToBackup();
-
-            return success;
-=======
             return AttachObjectInternal(sp, group, attachmentPt, silent, useAttachData, addToInventory, false, append);
->>>>>>> avn/ubitvar
         }
 
         /// <summary>

@@ -2013,7 +2013,7 @@ namespace OpenSim.Data.SQLite
             return entry;
         }
 
-        /*
+ 
         /// <summary>
         ///
         /// </summary>

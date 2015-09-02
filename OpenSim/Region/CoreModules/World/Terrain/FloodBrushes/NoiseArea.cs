@@ -46,10 +46,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FloodBrushes
                     if (fillArea[x, y])
                     {
                         double noise = TerrainUtil.PerlinNoise2D((double) x / map.Width, (double) y / map.Height, 8, 1.0);
-<<<<<<< HEAD
-
-=======
->>>>>>> avn/ubitvar
                         map[x, y] += noise * strength;
                     }
                 }

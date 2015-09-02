@@ -52,6 +52,7 @@ using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 
 namespace OpenSim.Region.ClientStack.Linden.Caps.Tests
 {
+    /*
     [TestFixture]
     public class WebFetchInvDescModuleTests : OpenSimTestCase
     {
@@ -156,4 +157,5 @@ namespace OpenSim.Region.ClientStack.Linden.Caps.Tests
             Assert.That((int)folderOsd["descendents"], Is.EqualTo(16));
         }
     }
+     */
 }

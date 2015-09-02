@@ -60,11 +60,10 @@ namespace OpenSim.Region.ClientStack.Linden
         private IAssetService m_AssetService;
         private bool m_Enabled = true;
         private string m_URL;
-<<<<<<< HEAD
+
         private string m_URL2;
         private string m_RedirectURL = null;
         private string m_RedirectURL2 = null;
-=======
        
         struct aPollRequest
         {
@@ -94,7 +93,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 new OpenMetaverse.BlockingQueue<aPollRequest>();
 
         private Dictionary<UUID, PollServiceMeshEventArgs> m_pollservices = new Dictionary<UUID, PollServiceMeshEventArgs>();
->>>>>>> avn/ubitvar
+
 
         #region Region Module interfaceBase Members
 
@@ -129,12 +128,9 @@ namespace OpenSim.Region.ClientStack.Linden
             if (m_URL2 != string.Empty)
             {
                 m_Enabled = true;
-<<<<<<< HEAD
+
                 m_RedirectURL2 = config.GetString("GetMesh2RedirectURL");
             }
-=======
-         
->>>>>>> avn/ubitvar
         }
 
         public void AddRegion(Scene pScene)
@@ -177,7 +173,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 for (uint i = 0; i < 2; i++)
                 {
-                    m_workerThreads[i] = Watchdog.StartThread(DoMeshRequests,
+                    m_workerThreads[i] = WorkManager.StartThread(DoMeshRequests,
                             String.Format("MeshWorkerThread{0}", i),
                             ThreadPriority.Normal,
                             false,
@@ -336,21 +332,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-<<<<<<< HEAD
-            UUID capID = UUID.Random();
-            bool getMeshRegistered = false;
-
-            if (m_URL == string.Empty)
-            {
-
-            }
-            else if (m_URL == "localhost")
-            {
-                getMeshRegistered = true;
-                caps.RegisterHandler(
-                    "GetMesh",
-                    new GetMeshHandler("/CAPS/" + capID + "/", m_AssetService, "GetMesh", agentID.ToString(), m_RedirectURL));
-=======
 //            UUID capID = UUID.Random();
             if (m_URL == "localhost")
             {
@@ -375,34 +356,13 @@ namespace OpenSim.Region.ClientStack.Linden
                 caps.RegisterHandler("GetMesh", String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, capUrl));
                 m_pollservices[agentID] = args;
                 m_capsDict[agentID] = capUrl;
-
-
-           
->>>>>>> avn/ubitvar
             }
             else
             {
                 caps.RegisterHandler("GetMesh", m_URL);
             }
-
-            if(m_URL2 == string.Empty)
-            {
-
-            }
-            else if (m_URL2 == "localhost")
-            {
-                if (!getMeshRegistered)
-                {
-                    caps.RegisterHandler(
-                        "GetMesh2",
-                        new GetMeshHandler("/CAPS/" + capID + "/", m_AssetService, "GetMesh2", agentID.ToString(), m_RedirectURL2));
-                }
-            }
-            else
-            {
-                caps.RegisterHandler("GetMesh2", m_URL2);
-            }
         }
+
         private void DeregisterCaps(UUID agentID, Caps caps)
         {
             string capUrl;

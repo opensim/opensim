@@ -739,11 +739,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                 if (Position.y > ((int)Constants.RegionSize - 1))
                     Position.y = ((int)Constants.RegionSize - 1);
                  */
-<<<<<<< HEAD
                 if (Position.z > Constants.RegionHeight)
                     Position.z = Constants.RegionHeight;
-=======
->>>>>>> avn/ubitvar
                 if (Position.x < 0)
                     Position.x = 0;
                 if (Position.y < 0)

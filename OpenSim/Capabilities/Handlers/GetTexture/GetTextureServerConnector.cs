@@ -66,7 +66,7 @@ namespace OpenSim.Capabilities.Handlers
             string rurl = serverConfig.GetString("GetTextureRedirectURL");
             ;
             server.AddStreamHandler(
-                new GetTextureHandler("/CAPS/GetTexture/" /*+ UUID.Random() */, m_AssetService, "GetTexture", null, rurl));
+                new GetTextureHandler("/CAPS/GetTexture/" */ /*+ UUID.Random() */ /*, m_AssetService, "GetTexture", null, rurl));
         }
     }
 }

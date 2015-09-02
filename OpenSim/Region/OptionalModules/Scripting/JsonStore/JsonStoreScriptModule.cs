@@ -746,8 +746,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
             List<SceneObjectGroup> objlist;
             List<Vector3> veclist;
-            
-            bool success = host.RootPart.Inventory.GetRezReadySceneObjects(item, out objlist, out veclist);
+
+            Vector3 bbox = new Vector3();
+            float offsetHeight;
+            bool success = host.RootPart.Inventory.GetRezReadySceneObjects(item, out objlist, out veclist, out bbox, out offsetHeight);
             if (! success)
             {
                 GenerateRuntimeError("Failed to create object");

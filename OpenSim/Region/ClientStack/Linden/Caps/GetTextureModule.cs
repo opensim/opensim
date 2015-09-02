@@ -82,24 +82,22 @@ namespace OpenSim.Region.ClientStack.Linden
         private static OpenMetaverse.BlockingQueue<aPollRequest> m_queue =
                 new OpenMetaverse.BlockingQueue<aPollRequest>();
 
-<<<<<<< HEAD
+
         // TODO: Change this to a config option
         private string m_RedirectURL = null;
-=======
-        private Dictionary<UUID,PollServiceTextureEventArgs> m_pollservices = new Dictionary<UUID,PollServiceTextureEventArgs>();
->>>>>>> avn/ubitvar
 
-        private string m_URL;
+        private Dictionary<UUID,PollServiceTextureEventArgs> m_pollservices = new Dictionary<UUID,PollServiceTextureEventArgs>();
+   
 
         #region ISharedRegionModule Members
 
         public void Initialise(IConfigSource source)
         {
             IConfig config = source.Configs["ClientStack.LindenCaps"];
-<<<<<<< HEAD
+
             if (config == null)
                 return;
-
+/*
             m_URL = config.GetString("Cap_GetTexture", string.Empty);
             // Cap doesn't exist
             if (m_URL != string.Empty)
@@ -107,10 +105,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_Enabled = true;
                 m_RedirectURL = config.GetString("GetTextureRedirectURL");
             }
-=======
-            if (config != null)
-                m_Url = config.GetString("Cap_GetTexture", "localhost");
->>>>>>> avn/ubitvar
+*/
+            m_Url = config.GetString("Cap_GetTexture", "localhost");
         }
 
         public void AddRegion(Scene s)
@@ -142,7 +138,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 for (uint i = 0; i < 2; i++)
                 {
-                    m_workerThreads[i] = Watchdog.StartThread(DoTextureRequests,
+                    m_workerThreads[i] = WorkManager.StartThread(DoTextureRequests,
                             String.Format("TextureWorkerThread{0}", i),
                             ThreadPriority.Normal,
                             false,
@@ -237,12 +233,6 @@ namespace OpenSim.Region.ClientStack.Linden
             public PollServiceTextureEventArgs(UUID pId, Scene scene) :
                     base(null, "", null, null, null, pId, int.MaxValue)              
             {
-<<<<<<< HEAD
-//                m_log.DebugFormat("[GETTEXTURE]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
-                caps.RegisterHandler(
-                    "GetTexture",
-                    new GetTextureHandler("/CAPS/" + capID + "/", m_assetService, "GetTexture", agentID.ToString(), m_RedirectURL));
-=======
                 m_scene = scene;
                 // x is request id, y is userid
                 HasEvents = (x, y) =>
@@ -312,7 +302,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
                     return response;
                 };
->>>>>>> avn/ubitvar
             }
 
             public void Process(aPollRequest requestinfo)
@@ -402,11 +391,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 }
                 IExternalCapsModule handler = m_scene.RequestModuleInterface<IExternalCapsModule>();
                 if (handler != null)
-<<<<<<< HEAD
-                    handler.RegisterExternalUserCapsHandler(agentID,caps,"GetTexture", m_URL);
-=======
                     handler.RegisterExternalUserCapsHandler(agentID, caps, "GetTexture", capUrl);
->>>>>>> avn/ubitvar
                 else
                     caps.RegisterHandler("GetTexture", String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, capUrl));
                 m_pollservices[agentID] = args;
@@ -422,7 +407,7 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             PollServiceTextureEventArgs args;
 
-            MainServer.Instance.RemoveHTTPHandler("", m_URL);
+            MainServer.Instance.RemoveHTTPHandler("", m_Url);
             m_capsDict.Remove(agentID);
 
             if (m_pollservices.TryGetValue(agentID, out args))

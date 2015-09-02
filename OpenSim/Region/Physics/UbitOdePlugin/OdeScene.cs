@@ -1222,6 +1222,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         #region Add/Remove Entities
 
+        public override PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 velocity, Vector3 size, bool isFlying)
+        {
+            return AddAvatar(avName, position, size, isFlying);
+        }
+
         public override PhysicsActor AddAvatar(uint localID, string avName, Vector3 position, Vector3 size, float feetOffset, bool isFlying)
         {
             Vector3 pos;

@@ -149,7 +149,6 @@ namespace OpenSim.Server.Handlers.Simulation
             if (args.ContainsKey("my_version"))
                 theirVersion = args["my_version"].AsString();
 
-<<<<<<< HEAD
             List<UUID> features = new List<UUID>();
 
             if (args.ContainsKey("features"))
@@ -160,18 +159,12 @@ namespace OpenSim.Server.Handlers.Simulation
                     features.Add(new UUID(o.AsString()));
             }
 
-=======
->>>>>>> avn/ubitvar
             GridRegion destination = new GridRegion();
             destination.RegionID = regionID;
 
             string reason;
             string version;
-<<<<<<< HEAD
             bool result = m_SimulationService.QueryAccess(destination, agentID, agentHomeURI, viaTeleport, position, theirVersion, features, out version, out reason);
-=======
-            bool result = m_SimulationService.QueryAccess(destination, agentID, agentHomeURI, viaTeleport, position, theirVersion, out version, out reason);
->>>>>>> avn/ubitvar
 
             responsedata["int_response_code"] = HttpStatusCode.OK;
 
@@ -269,16 +262,7 @@ namespace OpenSim.Server.Handlers.Simulation
             httpResponse.KeepAlive = false;
             Encoding encoding = Encoding.UTF8;
 
-<<<<<<< HEAD
             if (httpRequest.ContentType != "application/json")
-=======
-            Stream inputStream = null;
-            if ((httpRequest.ContentType == "application/x-gzip" || httpRequest.Headers["Content-Encoding"] == "gzip") || (httpRequest.Headers["X-Content-Encoding"] == "gzip"))
-                inputStream = new GZipStream(request, CompressionMode.Decompress);
-            else if (httpRequest.ContentType == "application/json")
-                inputStream = request;
-            else // no go
->>>>>>> avn/ubitvar
             {
                 httpResponse.StatusCode = 406;
                 return encoding.GetBytes("false");
@@ -464,16 +448,13 @@ namespace OpenSim.Server.Handlers.Simulation
         protected virtual bool CreateAgent(GridRegion source, GridRegion gatekeeper, GridRegion destination,
             AgentCircuitData aCircuit, uint teleportFlags, bool fromLogin, out string reason)
         {
-<<<<<<< HEAD
-            return m_SimulationService.CreateAgent(source, destination, aCircuit, teleportFlags, out reason);
-=======
             reason = String.Empty;
             if ((teleportFlags & (uint)TeleportFlags.ViaLogin) == 0)
             {
                 Util.FireAndForget(x =>
                 {
                     string r;
-                    m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out r);
+                    m_SimulationService.CreateAgent(source, destination, aCircuit, teleportFlags, out r);
                     m_log.DebugFormat("[AGENT HANDLER]: ASYNC CreateAgent {0}", r);
                 });
 
@@ -482,12 +463,10 @@ namespace OpenSim.Server.Handlers.Simulation
             else
             {
 
-                bool ret = m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out reason);
+                bool ret = m_SimulationService.CreateAgent(source, destination, aCircuit, teleportFlags, out reason);
                 m_log.DebugFormat("[AGENT HANDLER]: SYNC CreateAgent {0} {1}", ret.ToString(), reason);
                 return ret;
             }
-
->>>>>>> avn/ubitvar
         }
     }
 

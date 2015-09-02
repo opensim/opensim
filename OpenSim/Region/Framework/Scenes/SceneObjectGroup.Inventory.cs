@@ -266,15 +266,12 @@ namespace OpenSim.Region.Framework.Scenes
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
-<<<<<<< HEAD
-//                m_log.DebugFormat("[SCENE OBJECT GROUP INVENTORY]: Effective perms of {0} are {1}", part.Name, (OpenMetaverse.PermissionMask)part.OwnerMask);
-                ownerMask &= part.OwnerMask;
-=======
+
                 if (useBase)
                     ownerMask &= part.BaseMask;
                 else
                     ownerMask &= part.OwnerMask;
->>>>>>> avn/ubitvar
+
                 perms &= part.Inventory.MaskEffectivePermissions();
             }
 

@@ -43,6 +43,7 @@ using OpenSim.Tests.Common;
 
 namespace OpenSim.Region.ScriptEngine.Tests
 {
+    /*
     [TestFixture]
     public class XEnginePersistenceTests : OpenSimTestCase
     {
@@ -149,4 +150,5 @@ namespace OpenSim.Region.ScriptEngine.Tests
             scene.AttachmentsModule.DetachSingleAttachmentToInv(sp, rezzedSo);
         }
     }
+     */
 }

@@ -234,13 +234,9 @@ namespace OpenSim.Services.LLLoginService
         public LLLoginResponse(UserAccount account, AgentCircuitData aCircuit, GridUserInfo pinfo,
             GridRegion destination, List<InventoryFolderBase> invSkel, FriendInfo[] friendsList, ILibraryService libService,
             string where, string startlocation, Vector3 position, Vector3 lookAt, List<InventoryItemBase> gestures, string message,
-<<<<<<< HEAD
-            GridRegion home, IPEndPoint clientIP, string mapTileURL, string searchURL, string currency,
-            string DSTZone, string destinationsURL, string avatarsURL, string classifiedFee, int maxAgentGroups)
-=======
+
             GridRegion home, IPEndPoint clientIP, string mapTileURL, string profileURL, string openIDURL, string searchURL, string currency,
-            string DSTZone, string destinationsURL, string avatarsURL, UUID realID, string classifiedFee)
->>>>>>> avn/ubitvar
+            string DSTZone, string destinationsURL, string avatarsURL, UUID realID, string classifiedFee,int maxAgentGroups)
             : this()
         {
             FillOutInventoryData(invSkel, libService);

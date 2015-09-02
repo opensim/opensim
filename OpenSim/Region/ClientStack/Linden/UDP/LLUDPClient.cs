@@ -96,9 +96,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             set
             {
                 m_throttleDebugLevel = value;
+/*
                 m_throttleClient.DebugLevel = m_throttleDebugLevel;
                 foreach (TokenBucket tb in m_throttleCategories)
                     tb.DebugLevel = m_throttleDebugLevel;
+ */
             }
         }
         private int m_throttleDebugLevel;
@@ -250,22 +252,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (maxRTO != 0)
                 m_maxRTO = maxRTO;
 
-<<<<<<< HEAD
-            ProcessUnackedSends = true;
-
-            // Create a token bucket throttle for this client that has the scene token bucket as a parent
-            m_throttleClient 
-                = new AdaptiveTokenBucket(
-                    string.Format("adaptive throttle for {0} in {1}", AgentID, server.Scene.Name), 
-                    parentThrottle, 0, rates.Total, rates.MinimumAdaptiveThrottleRate, rates.AdaptiveThrottlesEnabled);
-
-=======
             m_burstTime = rates.BrustTime;
             float m_burst = rates.ClientMaxRate * m_burstTime;
 
             // Create a token bucket throttle for this client that has the scene token bucket as a parent
             m_throttleClient = new AdaptiveTokenBucket(parentThrottle, rates.ClientMaxRate, m_burst, rates.AdaptiveThrottlesEnabled);
->>>>>>> avn/ubitvar
+
             // Create an array of token buckets for this clients different throttle categories
             m_throttleCategories = new TokenBucket[THROTTLE_CATEGORY_COUNT];
 
@@ -278,19 +270,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 ThrottleOutPacketType type = (ThrottleOutPacketType)i;
 
                 // Initialize the packet outboxes, where packets sit while they are waiting for tokens
-<<<<<<< HEAD
-                m_packetOutboxes[i] = new OpenSim.Framework.LocklessQueue<OutgoingPacket>();
-
-                // Initialize the token buckets that control the throttling for each category
-                m_throttleCategories[i]
-                    = new TokenBucket(
-                        string.Format("{0} throttle for {1} in {2}", type, AgentID, server.Scene.Name), 
-                    m_throttleClient, rates.GetRate(type), 0);
-=======
                 m_packetOutboxes[i] = new DoubleLocklessQueue<OutgoingPacket>();
                 // Initialize the token buckets that control the throttling for each category
                 m_throttleCategories[i] = new TokenBucket(m_throttleClient, rates.GetRate(type), m_burst);
->>>>>>> avn/ubitvar
             }
 
             // Default the retransmission timeout to one second
@@ -337,12 +319,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_info.assetThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Asset].DripRate;
             m_info.textureThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Texture].DripRate;
             m_info.totalThrottle = (int)m_throttleClient.DripRate;
-<<<<<<< HEAD
-            m_info.targetThrottle = (int)m_throttleClient.TargetDripRate;
-            m_info.maxThrottle = (int)m_throttleClient.MaxDripRate;
-=======
->>>>>>> avn/ubitvar
-
             return m_info;
         }
 
@@ -460,13 +436,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int texture = (int)(BitConverter.ToSingle(adjData, pos) * scale); pos += 4;
             int asset = (int)(BitConverter.ToSingle(adjData, pos) * scale);
 
-            if (ThrottleDebugLevel > 0)
-            {
-                long total = resend + land + wind + cloud + task + texture + asset;
-                m_log.DebugFormat(
-                    "[LLUDPCLIENT]: {0} is setting throttles in {1} to Resend={2}, Land={3}, Wind={4}, Cloud={5}, Task={6}, Texture={7}, Asset={8}, TOTAL = {9}",
-                    AgentID, m_udpServer.Scene.Name, resend, land, wind, cloud, task, texture, asset, total);
-            }
+
 
             // Make sure none of the throttles are set below our packet MTU,
             // otherwise a throttle could become permanently clogged
@@ -486,32 +456,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // the task queue (e.g. object updates)
             task = task + (int)(m_cannibalrate * texture);
             texture = (int)((1 - m_cannibalrate) * texture);
-<<<<<<< HEAD
-            
-            //int total = resend + land + wind + cloud + task + texture + asset;
-
-            if (ThrottleDebugLevel > 0)
-            {
-                long total = resend + land + wind + cloud + task + texture + asset;
-                m_log.DebugFormat(
-                    "[LLUDPCLIENT]: {0} is setting throttles in {1} to Resend={2}, Land={3}, Wind={4}, Cloud={5}, Task={6}, Texture={7}, Asset={8}, TOTAL = {9}",
-                    AgentID, m_udpServer.Scene.Name, resend, land, wind, cloud, task, texture, asset, total);
-            }
-=======
 
             int total = resend + land + wind + cloud + task + texture + asset;
 
             float m_burst = total * m_burstTime;
 
-            //m_log.DebugFormat("[LLUDPCLIENT]: {0} is setting throttles. Resend={1}, Land={2}, Wind={3}, Cloud={4}, Task={5}, Texture={6}, Asset={7}, Total={8}",
-            //                  AgentID, resend, land, wind, cloud, task, texture, asset, total);
->>>>>>> avn/ubitvar
-
-            // Update the token buckets with new throttle values
-            if (m_throttleClient.AdaptiveEnabled)
+            if (ThrottleDebugLevel > 0)
             {
-                long total = resend + land + wind + cloud + task + texture + asset;
-                m_throttleClient.TargetDripRate = total;
+                m_log.DebugFormat(
+                    "[LLUDPCLIENT]: {0} is setting throttles in {1} to Resend={2}, Land={3}, Wind={4}, Cloud={5}, Task={6}, Texture={7}, Asset={8}, TOTAL = {9}",
+                    AgentID, m_udpServer.Scene.Name, resend, land, wind, cloud, task, texture, asset, total);
             }
 
             TokenBucket bucket;
@@ -887,20 +841,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// signature</param>
         public void FireQueueEmpty(object o)
         {
-<<<<<<< HEAD
-//            m_log.DebugFormat("[LLUDPCLIENT]: FireQueueEmpty for {0} in {1}", AgentID, m_udpServer.Scene.Name);
-
-//            int start = Environment.TickCount & Int32.MaxValue;
-//            const int MIN_CALLBACK_MS = 30;
-
-//            if (m_udpServer.IsRunningOutbound)
-//            {        
-                ThrottleOutPacketTypeFlags categories = (ThrottleOutPacketTypeFlags)o;
-                QueueEmpty callback = OnQueueEmpty;                      
-=======
             ThrottleOutPacketTypeFlags categories = (ThrottleOutPacketTypeFlags)o;
             QueueEmpty callback = OnQueueEmpty;
->>>>>>> avn/ubitvar
 
             if (callback != null)
             {

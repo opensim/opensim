@@ -829,10 +829,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private void TeleportAgent(string agent, int regionX, int regionY,
             LSL_Types.Vector3 position, LSL_Types.Vector3 lookat, bool relaxRestrictions)
         {
-<<<<<<< HEAD
-            // ulong regionHandle = Util.UIntsToLong(((uint)regionX * (uint)Constants.RegionSize), ((uint)regionY * (uint)Constants.RegionSize));
-=======
->>>>>>> avn/ubitvar
             ulong regionHandle = Util.RegionLocToHandle((uint)regionX, (uint)regionY);
 
             m_host.AddScriptLPS(1);
@@ -3265,15 +3261,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-<<<<<<< HEAD
                 Scene scene = m_ScriptEngine.World;
                 GridRegion region = scene.GridService.GetRegionByUUID(UUID.Zero, World.RegionInfo.RegionID);
-                return new LSL_Vector((float)region.RegionSizeX, (float)region.RegionSizeX, Constants.RegionHeight);
-=======
-                return new LSL_Vector((float)World.RegionInfo.RegionSizeX,
-                            (float)World.RegionInfo.RegionSizeY,
-                            (float)World.RegionInfo.RegionSizeZ );
->>>>>>> avn/ubitvar
+                return new LSL_Vector(region.RegionSizeX, region.RegionSizeY, Constants.RegionHeight);
             }
         }
 

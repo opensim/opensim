@@ -45,19 +45,12 @@ namespace OpenSim.Server.Handlers.BakedTextures
 {
     public class BakesServerPostHandler : BaseStreamHandler
     {
-<<<<<<< HEAD:OpenSim/Server/Handlers/BakedTextures/XBakesPostHandler.cs
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IBakedTextureService m_BakesService;
 
         public BakesServerPostHandler(IBakedTextureService service, IServiceAuth auth) :
                 base("POST", "/bakes", auth)
-=======
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
-        public MSSQLAvatarData(string connectionString, string realm) :
-                base(connectionString, realm, "Avatar")
->>>>>>> avn/ubitvar:OpenSim/Data/MSSQL/MSSQLAvatarData.cs
         {
             m_BakesService = service;
         }

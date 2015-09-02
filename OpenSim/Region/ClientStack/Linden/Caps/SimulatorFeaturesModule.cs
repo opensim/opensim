@@ -157,11 +157,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_features["MeshXferEnabled"] = true;
 
                 m_features["PhysicsMaterialsEnabled"] = true;
-<<<<<<< HEAD
 
-=======
-   
->>>>>>> avn/ubitvar
                 OSDMap typesMap = new OSDMap();
                 typesMap["convex"] = true;
                 typesMap["none"] = true;
@@ -169,7 +165,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_features["PhysicsShapeTypes"] = typesMap;
 
                 // Extra information for viewers that want to use it
-<<<<<<< HEAD
                 // TODO: Take these out of here into their respective modules, like map-server-url
                 OSDMap extrasMap;
                 if(m_features.ContainsKey("OpenSimExtras"))
@@ -179,15 +174,10 @@ namespace OpenSim.Region.ClientStack.Linden
                 else
                     extrasMap = new OSDMap();
 
-=======
-                
-                OSDMap extrasMap = new OSDMap();
-
                 extrasMap["AvatarSkeleton"] = true;
                 extrasMap["AnimationSet"] = true;
 
                 // TODO: Take these out of here into their respective modules, like map-server-url
->>>>>>> avn/ubitvar
                 if (m_SearchURL != string.Empty)
                     extrasMap["search-server-url"] = m_SearchURL;
                 if (!string.IsNullOrEmpty(m_DestinationGuideURL))
@@ -199,13 +189,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 if (m_GridName != string.Empty)
                     extrasMap["GridName"] = m_GridName;
 
-<<<<<<< HEAD
                 if (extrasMap.Count > 0)
                     m_features["OpenSimExtras"] = extrasMap;
-=======
-                m_features["OpenSimExtras"] = extrasMap;
-
->>>>>>> avn/ubitvar
             }
         }
 

@@ -37,10 +37,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         void GenerateMaptile();
         List<MapBlockData> Map2BlockFromGridRegion(GridRegion r, uint flag);
-<<<<<<< HEAD
-        MapBlockData MapBlockFromGridRegion(GridRegion r, uint flag);
-=======
         void MapBlockFromGridRegion(MapBlockData block, GridRegion r, uint flag);
->>>>>>> avn/ubitvar
     }
 }

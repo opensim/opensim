@@ -102,12 +102,11 @@ namespace OpenSim.Framework
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly string LogHeader = "[REGION INFO]";
 
-<<<<<<< HEAD
-=======
+
         public bool commFailTF = false;
         public ConfigurationMember configMember;
         public string DataStore = String.Empty;
->>>>>>> avn/ubitvar
+
         public string RegionFile = String.Empty;
         public bool isSandbox = false;
         public bool Persistent = true;
@@ -534,11 +533,7 @@ namespace OpenSim.Framework
             return null;
         }
 
-<<<<<<< HEAD
-        private void SetExtraSetting(string key, string value)
-=======
         public void SetExtraSetting(string key, string value)
->>>>>>> avn/ubitvar
         {
             string keylower = key.ToLower();
             m_extraSettings[keylower] = value;
@@ -834,22 +829,16 @@ namespace OpenSim.Framework
             string location = String.Format("{0},{1}", RegionLocX, RegionLocY);
             config.Set("Location", location);
 
-<<<<<<< HEAD
-            if (RegionSizeX > 0)
-=======
             if (DataStore != String.Empty)
                 config.Set("Datastore", DataStore);
 
             if (RegionSizeX != Constants.RegionSize || RegionSizeY != Constants.RegionSize)
             {
->>>>>>> avn/ubitvar
                 config.Set("SizeX", RegionSizeX);
-
-            if (RegionSizeY > 0)
                 config.Set("SizeY", RegionSizeY);
-
-//            if (RegionSizeZ > 0)
-//                config.Set("SizeZ", RegionSizeZ);
+                //            if (RegionSizeZ > 0)
+                //                config.Set("SizeZ", RegionSizeZ);
+            }
 
             config.Set("InternalAddress", m_internalEndPoint.Address.ToString());
             config.Set("InternalPort", m_internalEndPoint.Port);
@@ -920,8 +909,6 @@ namespace OpenSim.Framework
                 throw new Exception("Invalid file type for region persistence.");
         }
 
-<<<<<<< HEAD
-=======
         public void loadConfigurationOptionsFromMe()
         {
             configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_UUID_NULL_FREE,
@@ -984,7 +971,7 @@ namespace OpenSim.Framework
                                                 "Max prims an object will hold", m_linksetCapacity.ToString(), true);
 
             configMember.addConfigurationOption("agent_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Max avatars this sim will hold", m_agentCapacity.ToString(), true);
+                                                "Max avatars this sim will hold",AgentCapacity.ToString(), true);
 
             configMember.addConfigurationOption("scope_id", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                                                 "Scope ID for this region", ScopeID.ToString(), true);
@@ -1131,7 +1118,7 @@ namespace OpenSim.Framework
                     m_linksetCapacity = (int)configuration_result;
                     break;
                 case "agent_capacity":
-                    m_agentCapacity = (int)configuration_result;
+                    AgentCapacity = (int)configuration_result;
                     break;
                 case "scope_id":
                     ScopeID = (UUID)configuration_result;
@@ -1147,7 +1134,7 @@ namespace OpenSim.Framework
             return true;
         }
 
->>>>>>> avn/ubitvar
+
         public void SaveLastMapUUID(UUID mapUUID)
         {
             lastMapUUID = mapUUID;

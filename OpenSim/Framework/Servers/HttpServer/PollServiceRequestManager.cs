@@ -74,16 +74,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         private Thread[] m_workerThreads;
         private Thread m_retrysThread;
 
-<<<<<<< HEAD
-        private SmartThreadPool m_threadPool = new SmartThreadPool(20000, 12, 2);
-
-//        private int m_timeout = 1000;   //  increase timeout 250; now use the event one
-=======
         private bool m_running = true;
         private int slowCount = 0;
 
         private SmartThreadPool m_threadPool;
->>>>>>> avn/ubitvar
+
 
         public PollServiceRequestManager(
             BaseHttpServer pSrv, bool performResponsesAsync, uint pWorkerThreadCount, int pTimeout)
@@ -93,7 +88,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             m_WorkerThreadCount = pWorkerThreadCount;
             m_workerThreads = new Thread[m_WorkerThreadCount];
 
-<<<<<<< HEAD
+/*
             StatsManager.RegisterStat(
                 new Stat(
                     "QueuedPollResponses",
@@ -119,7 +114,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     MeasuresOfInterest.AverageChangeOverTime,
                     stat => stat.Value = ResponsesProcessed,
                     StatVerbosity.Debug));
-=======
+*/
             PollServiceHttpRequestComparer preqCp = new PollServiceHttpRequestComparer();
             m_bycontext = new Dictionary<PollServiceHttpRequest, Queue<PollServiceHttpRequest>>(preqCp);
 
@@ -132,46 +127,16 @@ namespace OpenSim.Framework.Servers.HttpServer
             startInfo.ThreadPoolName = "PoolService";
 
             m_threadPool = new SmartThreadPool(startInfo);
->>>>>>> avn/ubitvar
         }
 
         public void Start()
         {
-<<<<<<< HEAD
-            IsRunning = true;
-
-            if (PerformResponsesAsync)
-            {
-                //startup worker threads
-                for (uint i = 0; i < m_WorkerThreadCount; i++)
-                {
-                    m_workerThreads[i]
-                        = WorkManager.StartThread(
-                            PoolWorkerJob,
-                            string.Format("PollServiceWorkerThread{0}:{1}", i, m_server.Port),
-                            ThreadPriority.Normal,
-                            false,
-                            false,
-                            null,
-                            int.MaxValue);
-                }
-
-                WorkManager.StartThread(
-                    this.CheckLongPollThreads,
-                    string.Format("LongPollServiceWatcherThread:{0}", m_server.Port),
-                    ThreadPriority.Normal,
-                    false,
-                    true,
-                    null,
-                    1000 * 60 * 10);
-            }
-=======
             m_threadPool.Start();
             //startup worker threads
             for (uint i = 0; i < m_WorkerThreadCount; i++)
             {
                 m_workerThreads[i]
-                    = Watchdog.StartThread(
+                    = WorkManager.StartThread(
                         PoolWorkerJob,
                         string.Format("PollServiceWorkerThread {0}:{1}", i, m_server.Port),
                         ThreadPriority.Normal,
@@ -181,7 +146,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         int.MaxValue);
             }
 
-            m_retrysThread = Watchdog.StartThread(
+            m_retrysThread = WorkManager.StartThread(
                 this.CheckRetries,
                 string.Format("PollServiceWatcherThread:{0}", m_server.Port),
                 ThreadPriority.Normal,
@@ -189,7 +154,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 true,
                 null,
                 1000 * 60 * 10);
->>>>>>> avn/ubitvar
+
         }
 
         private void ReQueueEvent(PollServiceHttpRequest req)
@@ -258,36 +223,13 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private void CheckRetries()
         {
-<<<<<<< HEAD
-            // The only purpose of this thread is to check the EQs for events.
-            // If there are events, that thread will be placed in the "ready-to-serve" queue, m_requests.
-            // If there are no events, that thread will be back to its "waiting" queue, m_longPollRequests.
-            // All other types of tasks (Inventory handlers, http-in, etc) don't have the long-poll nature,
-            // so if they aren't ready to be served by a worker thread (no events), they are placed 
-            // directly back in the "ready-to-serve" queue by the worker thread.
-            while (IsRunning)
-=======
             while (m_running)
->>>>>>> avn/ubitvar
+
             {
                 Thread.Sleep(100); // let the world move  .. back to faster rate
                 Watchdog.UpdateThread();
                 lock (m_retryRequests)
                 {
-<<<<<<< HEAD
-                    if (m_longPollRequests.Count > 0 && IsRunning)
-                    {
-                        List<PollServiceHttpRequest> ready = m_longPollRequests.FindAll(req =>
-                            (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id) || // there are events in this EQ
-                            (Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms) // no events, but timeout
-                            );
-
-                        ready.ForEach(req =>
-                            {
-                                m_requests.Enqueue(req);
-                                m_longPollRequests.Remove(req);
-                            });
-=======
                     while (m_retryRequests.Count > 0 && m_running)
                         m_requests.Enqueue(m_retryRequests.Dequeue());
                 }
@@ -295,7 +237,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                 if (slowCount >= 10)
                 {
                     slowCount = 0;
->>>>>>> avn/ubitvar
 
                     lock (m_slowRequests)
                     {
@@ -308,12 +249,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void Stop()
         {
-<<<<<<< HEAD
-            IsRunning = false;
-//            m_timeout = -10000; // cause all to expire
-=======
             m_running = false;
->>>>>>> avn/ubitvar
+
             Thread.Sleep(1000); // let the world move
 
             foreach (Thread t in m_workerThreads)
@@ -341,13 +278,9 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             lock (m_slowRequests)
             {
-<<<<<<< HEAD
-                if (m_longPollRequests.Count > 0 && IsRunning)
-                    m_longPollRequests.ForEach(req => m_requests.Enqueue(req));
-=======
                 while (m_slowRequests.Count > 0)
                     m_requests.Enqueue(m_slowRequests.Dequeue());
->>>>>>> avn/ubitvar
+
             }
 
             while (m_requests.Count() > 0)
@@ -355,13 +288,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                 try
                 {
                     wreq = m_requests.Dequeue(0);
-<<<<<<< HEAD
-                    ResponsesProcessed++;
-                    wreq.DoHTTPGruntWork(
-                        m_server, wreq.PollServiceArgs.NoEvents(wreq.RequestID, wreq.PollServiceArgs.Id));
-=======
                     wreq.DoHTTPstop(m_server);
->>>>>>> avn/ubitvar
+
                 }
                 catch
                 {
@@ -375,91 +303,35 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private void PoolWorkerJob()
         {
-            while (IsRunning)
+            while (m_running)
             {
-<<<<<<< HEAD
-=======
                 PollServiceHttpRequest req = m_requests.Dequeue(5000);
 
->>>>>>> avn/ubitvar
                 Watchdog.UpdateThread();
-                WaitPerformResponse();
-            }
-        }
-
-        public void WaitPerformResponse()
-        {
-            PollServiceHttpRequest req = m_requests.Dequeue(5000);
-//            m_log.DebugFormat("[YYY]: Dequeued {0}", (req == null ? "null" : req.PollServiceArgs.Type.ToString()));
-
-            if (req != null)
-            {
-                try
+                if (req != null)
                 {
-                    if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id))
+                    try
                     {
-                        Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id);
-
-<<<<<<< HEAD
-                        if (responsedata == null)
-                            return;
-
-                        // This is the event queue.
-                        // Even if we're not running we can still perform responses by explicit request.
-                        if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.LongPoll 
-                            || !PerformResponsesAsync) 
+                        if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id))
                         {
-                            try
-                            {
-                                ResponsesProcessed++;
-                                req.DoHTTPGruntWork(m_server, responsedata);
-                            }
-                            catch (ObjectDisposedException e) // Browser aborted before we could read body, server closed the stream
-                            {
-                                // Ignore it, no need to reply
-                                m_log.Error(e);
-                            }
-                        }
-                        else
-                        {
-                            m_threadPool.QueueWorkItem(x =>
-=======
+                            Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id);
+
                             if (req.PollServiceArgs.Type == PollServiceEventArgs.EventType.LongPoll) // This is the event queue
->>>>>>> avn/ubitvar
                             {
                                 try
                                 {
-                                    ResponsesProcessed++;
                                     req.DoHTTPGruntWork(m_server, responsedata);
                                     byContextDequeue(req);
                                 }
-                                catch (ObjectDisposedException e) // Browser aborted before we could read body, server closed the stream
+                                catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
                                 {
                                     // Ignore it, no need to reply
-                                    m_log.Error(e);
                                 }
-                                catch (Exception e)
+                            }
+                            else
+                            {
+                                m_threadPool.QueueWorkItem(x =>
                                 {
-<<<<<<< HEAD
-                                    m_log.Error(e);
-                                }
-
-                                return null;
-                            }, null);
-                        }
-                    }
-                    else
-                    {
-                        if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
-                        {
-                            ResponsesProcessed++;
-                            req.DoHTTPGruntWork(
-                                m_server, req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
-                        }
-                        else
-                        {
-                            ReQueueEvent(req);
-=======
                                     try
                                     {
                                         req.DoHTTPGruntWork(m_server, responsedata);
@@ -478,7 +350,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         {
                             if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
                             {
-                                req.DoHTTPGruntWork(m_server, 
+                                req.DoHTTPGruntWork(m_server,
                                     req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
                                 byContextDequeue(req);
                             }
@@ -486,17 +358,15 @@ namespace OpenSim.Framework.Servers.HttpServer
                             {
                                 ReQueueEvent(req);
                             }
->>>>>>> avn/ubitvar
                         }
                     }
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat("Exception in poll service thread: " + e.ToString());
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("Exception in poll service thread: " + e.ToString());
+                    }
                 }
             }
         }
 
     }
 }
-

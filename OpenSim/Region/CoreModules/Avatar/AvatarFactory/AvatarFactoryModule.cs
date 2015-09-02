@@ -229,7 +229,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         private void SendAppearance(ScenePresence sp)
         {
             // Send the appearance to everyone in the scene
-            sp.SendAppearanceToAllOtherClients();
+            sp.SendAppearanceToAllOtherAgents();
 
             // Send animations back to the avatar as well
             sp.Animator.SendAnimPack();
@@ -460,7 +460,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 {
                     m_log.Debug("[UpdateBakedCache] uploading to bakedModule cache");
 
-                    m_BakedTextureModule.Store(sp.UUID);
+                    m_BakedTextureModule.Store(sp.UUID, wearableCache);
                 }
             }
 
@@ -529,12 +529,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                                 );
                     }
                 }
-<<<<<<< HEAD
-                    
-//                m_log.DebugFormat(
-//                    "[AVFACTORY]: Looking for texture {0}, id {1} for {2} {3}",
-//                    face.TextureID, idx, client.Name, client.AgentId);
-=======
 */
                 bool wearableCacheValid = false;
                 if (wearableCache == null)
@@ -577,15 +571,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     if (wearableCacheValid)
                         m_log.Debug("[ValidateBakedCache] have valid local cache");
                 }
->>>>>>> avn/ubitvar
 
                 bool checkExternal = false;
 
-<<<<<<< HEAD
-                if (m_scene.AssetService.Get(face.TextureID.ToString()) == null)
-                    return false;
-            }
-=======
                 if (!wearableCacheValid)
                 {
                     // only use external bake module on login condition check                  
@@ -658,7 +646,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         }
                     }
                 }
->>>>>>> avn/ubitvar
 
                 sp.Appearance.WearableCacheItems = wearableCache;
 

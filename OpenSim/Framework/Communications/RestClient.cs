@@ -395,26 +395,7 @@ namespace OpenSim.Framework.Communications
                     return null;
                 }
 
-<<<<<<< HEAD
-=======
-                using (Stream src = _response.GetResponseStream())
-                {
-                    int length = src.Read(_readbuf, 0, BufferSize);
-                    while (length > 0)
-                    {
-                        _resource.Write(_readbuf, 0, length);
-                        length = src.Read(_readbuf, 0, BufferSize);
-                    }
-                }
 
-                // TODO! Implement timeout, without killing the server
-                // this line implements the timeout, if there is a timeout, the callback fires and the request becomes aborted
-                //ThreadPool.RegisterWaitForSingleObject(responseAsyncResult.AsyncWaitHandle, new WaitOrTimerCallback(TimeoutCallback), _request, DefaultTimeout, true);
-
-//                _allDone.WaitOne();
-                if (_response != null)
-                    _response.Close();
->>>>>>> avn/ubitvar
                 if (_asyncException != null)
                     throw _asyncException;
 
@@ -444,7 +425,6 @@ namespace OpenSim.Framework.Communications
                 auth.AddAuthorization(_request.Headers);
 
             src.Seek(0, SeekOrigin.Begin);
-<<<<<<< HEAD
 
             int reqnum = WebUtil.RequestNumber++;
             if (WebUtil.DebugLevel >= 3)
@@ -452,16 +432,7 @@ namespace OpenSim.Framework.Communications
             if (WebUtil.DebugLevel >= 5)
                 WebUtil.LogOutgoingDetail(string.Format("SEND {0}: ", reqnum), src);
 
-            Stream dst = _request.GetRequestStream();
-
-            byte[] buf = new byte[1024];
-            int length = src.Read(buf, 0, 1024);
-            while (length > 0)
-=======
-            m_log.Info("[REST]: Seek is ok");
-
             using (Stream dst = _request.GetRequestStream())
->>>>>>> avn/ubitvar
             {
                 m_log.Info("[REST]: GetRequestStream is ok");
 

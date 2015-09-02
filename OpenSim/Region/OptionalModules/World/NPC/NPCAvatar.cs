@@ -61,11 +61,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         private readonly string m_firstname;
         private readonly string m_lastname;
         private readonly Vector3 m_startPos;
-<<<<<<< HEAD
-        private readonly UUID m_uuid;
-=======
         private UUID m_uuid = UUID.Random();
->>>>>>> avn/ubitvar
         private readonly Scene m_scene;
         private readonly UUID m_ownerID;
 

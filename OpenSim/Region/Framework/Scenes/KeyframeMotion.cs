@@ -351,26 +351,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_group = grp;
             m_scene = grp.Scene;
 
-<<<<<<< HEAD
-            Vector3 grppos = grp.AbsolutePosition;
-            Vector3 offset = grppos - m_serializedPosition;
-            // avoid doing it more than once
-            // current this will happen dragging a prim to other region
-            m_serializedPosition = grppos;
 
-            m_basePosition += offset;
-            m_nextPosition += offset;
-            
-            m_currentFrame.StartPosition += offset;
-            m_currentFrame.Position += offset;
-
-            for (int i = 0; i < m_frames.Count; i++)
-            {
-                Keyframe k = m_frames[i];
-                k.StartPosition += offset;
-                k.Position += offset;
-                m_frames[i]=k;
-=======
             lock (m_frames)
             {
                 Vector3 grppos = grp.AbsolutePosition;
@@ -390,7 +371,6 @@ namespace OpenSim.Region.Framework.Scenes
                     k.Position += offset;
                     m_frames[i] = k;
                 }
->>>>>>> avn/ubitvar
             }
 
             if (m_running)
@@ -708,29 +688,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_frames.Count == 0)
             {
-<<<<<<< HEAD
-                if (!m_running) return;
-
-                GetNextList();
-
-                if (m_frames.Count == 0)
-                {
-                    Stop();
-//                    Scene scene = m_group.Scene;
-//
-//                    IScriptModule[] scriptModules = scene.RequestModuleInterfaces<IScriptModule>();
-//                    foreach (IScriptModule m in scriptModules)
-//                    {
-//                        if (m == null)
-//                            continue;
-//                        m.PostObjectEvent(m_group.RootPart.UUID, "moving_end", new object[0]);
-//                    }
-
-                    m_group.Scene.EventManager.TriggerMovingEndEvent(m_group.RootPart.LocalId);
-			
-                    return;
-                }
-=======
                 lock (m_frames)
                 {
                     GetNextList();
@@ -738,17 +695,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_frames.Count == 0)
                     {
                         Done();
-                        Scene scene = m_group.Scene;
-
-                        IScriptModule[] scriptModules = scene.RequestModuleInterfaces<IScriptModule>();
-                        foreach (IScriptModule m in scriptModules)
-                        {
-                            if (m == null)
-                                continue;
-                            m.PostObjectEvent(m_group.RootPart.UUID, "moving_end", new object[0]);
-                        }
->>>>>>> avn/ubitvar
-
+                        m_group.Scene.EventManager.TriggerMovingEndEvent(m_group.RootPart.LocalId);
                         return;
                     }
 
@@ -792,21 +739,13 @@ namespace OpenSim.Region.Framework.Scenes
                 float completed = ((float)m_currentFrame.TimeTotal - (float)m_currentFrame.TimeMS) / (float)m_currentFrame.TimeTotal;
                 bool lastStep = m_currentFrame.TimeMS <= tickDuration;
 
-                Vector3 positionThisStep = m_currentFrame.StartPosition + (m_currentFrame.Position.Value - m_currentFrame.StartPosition) * completed;
-                Vector3 motionThisStep = positionThisStep - m_group.AbsolutePosition;
+                Vector3 v = (Vector3)m_currentFrame.Position - m_group.AbsolutePosition;
+                Vector3 motionThisFrame = v / (float)remainingSteps;
+                v = v * 1000 / m_currentFrame.TimeMS;
 
-<<<<<<< HEAD
-                float mag = Vector3.Mag(motionThisStep);
-
-                if ((mag >= 0.02f) || lastStep)
-                {
-                    m_nextPosition = m_group.AbsolutePosition + motionThisStep;
-                    m_group.AbsolutePosition = m_nextPosition;
-=======
                 m_nextPosition = m_group.AbsolutePosition + motionThisFrame;
 
                 if (Vector3.Mag(motionThisFrame) >= 0.05f)
->>>>>>> avn/ubitvar
                     update = true;
 
                 //int totalSteps = m_currentFrame.TimeTotal / (int)tickDuration;
@@ -819,45 +758,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                     Quaternion step = Quaternion.Slerp(m_currentFrame.StartRotation, (Quaternion)m_currentFrame.Rotation, completed);
                     step.Normalize();
-<<<<<<< HEAD
-/* use simpler change detection
-* float angle = 0;
-
-                    float aa = current.X * current.X + current.Y * current.Y + current.Z * current.Z + current.W * current.W;
-                    float bb = step.X * step.X + step.Y * step.Y + step.Z * step.Z + step.W * step.W;
-                    float aa_bb = aa * bb;
-
-                    if (aa_bb == 0)
-                    {
-                        angle = 0;
-                    }
-                    else
-                    {
-                        float ab = current.X * step.X +
-                                   current.Y * step.Y +
-                                   current.Z * step.Z +
-                                   current.W * step.W;
-                        float q = (ab * ab) / aa_bb;
-
-                        if (q > 1.0f)
-                        {
-                            angle = 0;
-                        }
-                        else
-                        {
-                            angle = (float)Math.Acos(2 * q - 1);
-                        }
-                    }
-
-                    if (angle > 0.01f)
-*/
-                    if(Math.Abs(step.X - current.X) > 0.001f 
-                        || Math.Abs(step.Y - current.Y) > 0.001f 
-                        || Math.Abs(step.Z - current.Z) > 0.001f
-                        || lastStep)
-                        // assuming w is a dependente var
-
-=======
                     /* use simpler change detection
                     * float angle = 0;
 
@@ -893,9 +793,8 @@ namespace OpenSim.Region.Framework.Scenes
                         || Math.Abs(step.Y - current.Y) > 0.001f
                         || Math.Abs(step.Z - current.Z) > 0.001f)
                     // assuming w is a dependente var
->>>>>>> avn/ubitvar
                     {
-                        //                                m_group.UpdateGroupRotationR(step);
+//                                m_group.UpdateGroupRotationR(step);
                         m_group.RootPart.RotationOffset = step;
 
                         //m_group.RootPart.UpdateAngularVelocity(m_currentFrame.AngularVelocity / 2);
@@ -922,22 +821,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             SceneObjectGroup tmp = m_group;
             m_group = null;
-            if (!m_selected && tmp != null)
-                m_serializedPosition = tmp.AbsolutePosition;
-<<<<<<< HEAD
-=======
-            fmt.Serialize(ms, this);
-            m_group = tmp;
-            if (!timerWasStopped && m_running && !m_waitingCrossing)
-                StartTimer();
->>>>>>> avn/ubitvar
-
+ 
             using (MemoryStream ms = new MemoryStream())
             {
                 BinaryFormatter fmt = new BinaryFormatter();
+                if (!m_selected && tmp != null)
+                    m_serializedPosition = tmp.AbsolutePosition;
                 fmt.Serialize(ms, this);
                 m_group = tmp;
-                if (m_running && !m_waitingCrossing)
+                if (!timerWasStopped && m_running && !m_waitingCrossing)
                     StartTimer();
 
                 return ms.ToArray();

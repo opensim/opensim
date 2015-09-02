@@ -141,12 +141,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         private void OnMapNameRequest(IClientAPI remoteClient, string mapName, uint flags)
         {
-<<<<<<< HEAD
-            List<MapBlockData> blocks = new List<MapBlockData>();
-            if (mapName.Length < 3 || (mapName.EndsWith("#") && mapName.Length < 4))
-=======
             Util.FireAndForget(x =>
->>>>>>> avn/ubitvar
             {
                 List<MapBlockData> blocks = new List<MapBlockData>();
                 if (mapName.Length < 3 || (mapName.EndsWith("#") && mapName.Length < 4))
@@ -232,74 +227,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 // they have different values depending on different viewers, apparently
                 remoteClient.SendMapBlock(blocks, flags);
 
-<<<<<<< HEAD
-            List<GridRegion> regionInfos = m_scene.GridService.GetRegionsByName(m_scene.RegionInfo.ScopeID, mapName, 20);
-            
-            string mapNameOrig = mapName;
-            if (regionInfos.Count == 0)
-            {
-                // Hack to get around the fact that ll V3 now drops the port from the
-                // map name. See https://jira.secondlife.com/browse/VWR-28570
-                //
-                // Caller, use this magic form instead:
-                // secondlife://http|!!mygrid.com|8002|Region+Name/128/128
-                // or url encode if possible.
-                // the hacks we do with this viewer...
-                //
-                if (mapName.Contains("|"))
-                    mapName = mapName.Replace('|', ':');
-                if (mapName.Contains("+"))
-                    mapName = mapName.Replace('+', ' ');
-                if (mapName.Contains("!"))
-                    mapName = mapName.Replace('!', '/');
-                
-                if (mapName != mapNameOrig)
-                    regionInfos = m_scene.GridService.GetRegionsByName(m_scene.RegionInfo.ScopeID, mapName, 20);
-            }
-            
-            m_log.DebugFormat("[MAPSEARCHMODULE]: search {0} returned {1} regions. Flags={2}", mapName, regionInfos.Count, flags);
-            
-            if (regionInfos.Count > 0)
-            {
-                foreach (GridRegion info in regionInfos)
-                {
-                    if ((flags & 2) == 2) // V2 sends this
-                    {
-                        List<MapBlockData> datas = WorldMap.Map2BlockFromGridRegion(info, flags);
-                        // ugh! V2-3 is very sensitive about the result being
-                        // exactly the same as the requested name
-                        if (regionInfos.Count == 1 && (mapName != mapNameOrig))
-                            datas.ForEach(d => d.Name = mapNameOrig);
-
-                        blocks.AddRange(datas);
-                    }
-                    else
-                    {
-                        MapBlockData data = WorldMap.MapBlockFromGridRegion(info, flags);
-                        blocks.Add(data);
-                    }
-                }
-            }
-
-            // final block, closing the search result
-            AddFinalBlock(blocks);
-
-            // flags are agent flags sent from the viewer.
-            // they have different values depending on different viewers, apparently
-            remoteClient.SendMapBlock(blocks, flags);
-
-            // send extra user messages for V3
-            // because the UI is very confusing
-            // while we don't fix the hard-coded urls
-            if (flags == 2) 
-            {
-                if (regionInfos.Count == 0)
-                    remoteClient.SendAlertMessage("No regions found with that name.");
-                // this seems unnecessary because found regions will show up in the search results
-                //else if (regionInfos.Count == 1)
-                //    remoteClient.SendAlertMessage("Region found!");
-            }
-=======
                 // send extra user messages for V3
                 // because the UI is very confusing
                 // while we don't fix the hard-coded urls
@@ -311,7 +238,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 //                        remoteClient.SendAgentAlertMessage("Region found!", false);
                 }
             });
->>>>>>> avn/ubitvar
         }
 
         private void AddFinalBlock(List<MapBlockData> blocks)

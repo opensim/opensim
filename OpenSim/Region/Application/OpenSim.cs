@@ -115,13 +115,8 @@ namespace OpenSim
                 if (!String.IsNullOrEmpty(asyncCallMethodStr) && Utils.EnumTryParse<FireAndForgetMethod>(asyncCallMethodStr, out asyncCallMethod))
                     Util.FireAndForgetMethod = asyncCallMethod;
 
-<<<<<<< HEAD
-                stpMinThreads = startupConfig.GetInt("MinPoolThreads", 15);
-                stpMaxThreads = startupConfig.GetInt("MaxPoolThreads", 300);
-=======
                 stpMinThreads = startupConfig.GetInt("MinPoolThreads", 2 );
                 stpMaxThreads = startupConfig.GetInt("MaxPoolThreads", 25);
->>>>>>> avn/ubitvar
                 m_consolePrompt = startupConfig.GetString("ConsolePrompt", @"Region (\R) ");
             }
 
@@ -273,20 +268,12 @@ namespace OpenSim
                                           SavePrimsXml2);
 
             m_console.Commands.AddCommand("Archiving", false, "load oar",
-<<<<<<< HEAD
-=======
-
->>>>>>> avn/ubitvar
                                           "load oar [--merge] [--skip-assets]"
                                              + " [--default-user \"User Name\"]"
                                              + " [--force-terrain] [--force-parcels]"
                                              + " [--no-objects]"
                                              + " [--rotation degrees] [--rotation-center \"<x,y,z>\"]"
-<<<<<<< HEAD
-                                             + " [--displacement \"<x,y,z>\"]"                                             
-=======
                                              + " [--displacement \"<x,y,z>\"]"
->>>>>>> avn/ubitvar
                                              + " [<OAR path>]",
                                           "Load a region's data from an OAR archive.",
                                           "--merge will merge the OAR with the existing scene (suppresses terrain and parcel info loading).\n"

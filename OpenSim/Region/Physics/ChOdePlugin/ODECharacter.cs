@@ -1288,7 +1288,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         public override Vector3 PIDTarget { set { return; } }
-        public override bool PIDActive { set { return; } }
+        public override bool PIDActive { get { return m_pidControllerActive; } set { return; } }
         public override float PIDTau { set { return; } }
 
         public override float PIDHoverHeight { set { return; } }

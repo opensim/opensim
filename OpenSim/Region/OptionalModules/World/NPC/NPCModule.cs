@@ -457,12 +457,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         /// <returns>true if they do, false if they don't.</returns>
         private bool CheckPermissions(NPCAvatar av, UUID callerID)
         {
-<<<<<<< HEAD
             return callerID == UUID.Zero || av.OwnerID == UUID.Zero ||
                 av.OwnerID == callerID  || av.AgentId == callerID;
-=======
-            return callerID == UUID.Zero || av.OwnerID == UUID.Zero || av.OwnerID == callerID || av.AgentId == callerID;
->>>>>>> avn/ubitvar
         }
     }
 }

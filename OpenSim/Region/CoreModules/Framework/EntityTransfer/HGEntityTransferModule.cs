@@ -434,14 +434,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         //    return base.UpdateAgent(reg, finalDestination, agentData, sp);
         //}
 
-<<<<<<< HEAD
-        public override void TriggerTeleportHome(UUID id, IClientAPI client)     
-        {                                                                       
-            TeleportHome(id, client);                                           
-        }                                                                       
                           
-=======
->>>>>>> avn/ubitvar
         public override bool TeleportHome(UUID id, IClientAPI client)
         {
             m_log.DebugFormat(

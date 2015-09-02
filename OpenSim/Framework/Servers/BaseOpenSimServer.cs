@@ -65,12 +65,9 @@ namespace OpenSim.Framework.Servers
         /// This will control a periodic log printout of the current 'show stats' (if they are active) for this
         /// server.
         /// </summary>
-<<<<<<< HEAD
+
         private int m_periodDiagnosticTimerMS = 60 * 60 * 1000;
         private Timer m_periodicDiagnosticsTimer = new Timer(60 * 60 * 1000);
-=======
-//        private Timer m_periodicDiagnosticsTimer = new Timer(60 * 60 * 1000);
->>>>>>> avn/ubitvar
         
         /// <summary>
         /// Random uuid for private data 
@@ -88,11 +85,8 @@ namespace OpenSim.Framework.Servers
             // Random uuid for private data
             m_osSecret = UUID.Random().ToString();
 
-<<<<<<< HEAD
-=======
-//            m_periodicDiagnosticsTimer.Elapsed += new ElapsedEventHandler(LogDiagnostics);
-//            m_periodicDiagnosticsTimer.Enabled = true;
->>>>>>> avn/ubitvar
+            m_periodicDiagnosticsTimer.Elapsed += new ElapsedEventHandler(LogDiagnostics);
+            m_periodicDiagnosticsTimer.Enabled = true;
         }
         
         /// <summary>

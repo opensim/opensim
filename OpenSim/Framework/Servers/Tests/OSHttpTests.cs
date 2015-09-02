@@ -41,9 +41,6 @@ namespace OpenSim.Framework.Servers.Tests
 {
     [TestFixture]
     public class OSHttpTests : OpenSimTestCase
-<<<<<<< HEAD
-    {       
-=======
     {
         // we need an IHttpClientContext for our tests
         public class TestHttpClientContext: IHttpClientContext
@@ -363,9 +360,8 @@ namespace OpenSim.Framework.Servers.Tests
             public void Redirect(Uri uri) {}
             public void Redirect(string url) {}
         }
+       
 
-        
->>>>>>> avn/ubitvar
         public OSHttpRequest req0;
         public OSHttpRequest req1;
 

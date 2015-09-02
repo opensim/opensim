@@ -57,13 +57,10 @@ namespace OpenSim.Services.GridService
         protected bool m_AllowDuplicateNames = false;
         protected bool m_AllowHypergridMapSearch = false;
 
-<<<<<<< HEAD
+
         protected bool m_SuppressVarregionOverlapCheckOnRegistration = false;
 
         private static Dictionary<string,object> m_ExtraFeatures = new Dictionary<string, object>();
-=======
-        private static Dictionary<string, object> m_ExtraFeatures = new Dictionary<string, object>();
->>>>>>> avn/ubitvar
 
         public GridService(IConfigSource config)
             : base(config)
@@ -159,15 +156,9 @@ namespace OpenSim.Services.GridService
 
             if (loginConfig == null || gridConfig == null)
                 return;
-<<<<<<< HEAD
-            
-            string configVal;
-            
-=======
 
             string configVal;
 
->>>>>>> avn/ubitvar
             configVal = loginConfig.GetString("SearchURL", string.Empty);
             if (!string.IsNullOrEmpty(configVal))
                 m_ExtraFeatures["search-server-url"] = configVal;
@@ -211,22 +202,11 @@ namespace OpenSim.Services.GridService
             if (regionInfos.RegionID == UUID.Zero)
                 return "Invalid RegionID - cannot be zero UUID";
 
-<<<<<<< HEAD
             String reason = "Region overlaps another region";
-            RegionData region = FindAnyConflictingRegion(regionInfos, scopeID, out reason);
-            // If there is a conflicting region, if it has the same ID and same coordinates
-            //    then it is a region re-registering (permissions and ownership checked later).
-            if ((region != null) 
-                && ( (region.coordX != regionInfos.RegionCoordX)
-                    || (region.coordY != regionInfos.RegionCoordY)
-                    || (region.RegionID != regionInfos.RegionID) )
-                )
-=======
             // we should not need to check for overlaps
 
             RegionData region = m_Database.Get(regionInfos.RegionLocX, regionInfos.RegionLocY, scopeID);
             if ((region != null) && (region.RegionID != regionInfos.RegionID))
->>>>>>> avn/ubitvar
             {
                 // If not same ID and same coordinates, this new region has conflicts and can't be registered.
                 m_log.WarnFormat("{0} Register region conflict in scope {1}. {2}", LogHeader, scopeID, reason);
@@ -508,11 +488,8 @@ namespace OpenSim.Services.GridService
             if (region != null)
             {
                 // Not really? Maybe?
-<<<<<<< HEAD
-                // The adjacent regions are presumed to be the same size as the current region
-=======
+
 /* this fails wiht var regions. My_sql db should now handle var regions
->>>>>>> avn/ubitvar
                 List<RegionData> rdatas = m_Database.Get(
                     region.posX - region.sizeX - 1, region.posY - region.sizeY - 1, 
                     region.posX + region.sizeX + 1, region.posY + region.sizeY + 1, scopeID);
@@ -898,11 +875,9 @@ namespace OpenSim.Services.GridService
                 return;
             }
 
-<<<<<<< HEAD
+
             RegionData region = m_Database.Get((int)Util.RegionToWorldLoc(x), (int)Util.RegionToWorldLoc(y), UUID.Zero);
-=======
-            RegionData region = m_Database.Get((int)Util.RegionToWorldLoc((uint)x), (int)Util.RegionToWorldLoc((uint)y), UUID.Zero);
->>>>>>> avn/ubitvar
+
             if (region == null)
             {
                 MainConsole.Instance.OutputFormat("No region found at {0},{1}", x, y);
@@ -919,11 +894,7 @@ namespace OpenSim.Services.GridService
             ConsoleDisplayList dispList = new ConsoleDisplayList();
             dispList.AddRow("Region Name", r.RegionName);
             dispList.AddRow("Region ID", r.RegionID);
-<<<<<<< HEAD
-            dispList.AddRow("Position", string.Format("{0},{1}", r.coordX, r.coordY));
-=======
             dispList.AddRow("Location", string.Format("{0},{1}", r.coordX, r.coordY));
->>>>>>> avn/ubitvar
             dispList.AddRow("Size", string.Format("{0}x{1}", r.sizeX, r.sizeY));
             dispList.AddRow("URI", r.Data["serverURI"]);
             dispList.AddRow("Owner ID", r.Data["owner_uuid"]);

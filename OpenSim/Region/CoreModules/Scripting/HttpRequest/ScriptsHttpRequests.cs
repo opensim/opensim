@@ -358,9 +358,8 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             m_proxyurl = config.Configs["Startup"].GetString("HttpProxy");
             m_proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
 
-<<<<<<< HEAD
+
             m_outboundUrlFilter = new OutboundUrlFilter("Script HTTP request module", config);
-=======
             int maxThreads = 15;
 
             IConfig httpConfig = config.Configs["HttpRequestModule"];
@@ -368,7 +367,6 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             {
                 maxThreads = httpConfig.GetInt("MaxPoolThreads", maxThreads);
             }
->>>>>>> avn/ubitvar
 
             m_pendingRequests = new Dictionary<UUID, HttpRequestClass>();
 
@@ -532,16 +530,12 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
             try
             {
-<<<<<<< HEAD
                 Request = (HttpWebRequest)WebRequest.Create(Url);
                 Request.AllowAutoRedirect = false;               
-=======
-                Request = (HttpWebRequest) WebRequest.Create(Url);
 
                 //This works around some buggy HTTP Servers like Lighttpd
                 Request.ServicePoint.Expect100Continue = false;
 
->>>>>>> avn/ubitvar
                 Request.Method = HttpMethod;
                 Request.ContentType = HttpMIMEType;
 
@@ -646,7 +640,8 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                     {
                         using (Stream responseStream = webRsp.GetResponseStream())
                         {
-                            ResponseBody = responseStream.GetStreamString();
+                            using (StreamReader reader = new StreamReader(responseStream))
+                                ResponseBody = reader.ReadToEnd();
                         }
                     }
                     catch
@@ -676,7 +671,6 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                     resStream.Close();
                 if (response != null)
                     response.Close();
-<<<<<<< HEAD
 
                 // We need to resubmit 
                 if (
@@ -724,8 +718,6 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 {
                     _finished = true;
                 }
-=======
->>>>>>> avn/ubitvar
             }
 
             if (ResponseBody == null)

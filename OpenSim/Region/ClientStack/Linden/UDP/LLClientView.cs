@@ -723,11 +723,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (!m_packetHandlers.ContainsKey(packetType))
                 {
                     m_packetHandlers.Add(
-<<<<<<< HEAD
                         packetType, new PacketProcessor() { method = handler, Async = doAsync, InEngine = inEngine });
-=======
-                        packetType, new PacketProcessor() { method = handler, Async = doAsync });
->>>>>>> avn/ubitvar
                     result = true;
                 }
             }
@@ -1228,15 +1224,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="map">heightmap</param>
         public virtual void SendLayerData(float[] map)
         {
-<<<<<<< HEAD
             Util.FireAndForget(DoSendLayerData, m_scene.Heightmap.GetTerrainData(), "LLClientView.DoSendLayerData");
-=======
-            Util.FireAndForget(DoSendLayerData, m_scene.Heightmap.GetTerrainData());
 
             // Send it sync, and async. It's not that much data
             // and it improves user experience just so much!
 //            DoSendLayerData(map);
->>>>>>> avn/ubitvar
         }
 
         /// <summary>
@@ -1250,18 +1242,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             try
             {
                 // Send LayerData in typerwriter pattern
-<<<<<<< HEAD
-                //for (int y = 0; y < 16; y++)
-                //{
-                //    for (int x = 0; x < 16; x++)
-                //    {
-                //        SendLayerData(x, y, map);
-                //    }
-                //}
 
-                // Send LayerData in a spiral pattern. Fun!
-                SendLayerTopRight(map, 0, 0, map.SizeX/Constants.TerrainPatchSize-1, map.SizeY/Constants.TerrainPatchSize-1);
-=======
                 for (int y = 0; y < 16; y++)
                 {
                     for (int x = 0; x < 16; x++)
@@ -1269,7 +1250,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         SendLayerData(x, y, map);
                     }
                 }
->>>>>>> avn/ubitvar
             }
             catch (Exception e)
             {
@@ -1277,74 +1257,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-<<<<<<< HEAD
-        private void SendLayerTopRight(TerrainData map, int x1, int y1, int x2, int y2)
-=======
-        // Legacy form of invocation that passes around a bare data array.
-        // Just ignore what was passed and use the real terrain info that is part of the scene.
-        // As a HORRIBLE kludge in an attempt to not change the definition of IClientAPI, 
-        //    there is a special form for specifying multiple terrain patches to send.
-        //    The form is to pass 'px' as negative the number of patches to send and to
-        //    pass the float array as pairs of patch X and Y coordinates. So, passing 'px'
-        //    as -2 and map= [3, 5, 8, 4] would mean to send two terrain heightmap patches
-        //    and the patches to send are <3,5> and <8,4>.
-        public void SendLayerData(int px, int py, float[] map)
->>>>>>> avn/ubitvar
-        {
-            if (px >= 0)
-            {
-                SendLayerData(px, py, m_scene.Heightmap.GetTerrainData());
-            }
-            else
-            {
-                int numPatches = -px;
-                int[] xPatches = new int[numPatches];
-                int[] yPatches = new int[numPatches];
-                for (int pp = 0; pp < numPatches; pp++)
-                {
-                    xPatches[pp] = (int)map[pp * 2];
-                    yPatches[pp] = (int)map[pp * 2 + 1];
-                }
-
-                // DebugSendingPatches("SendLayerData", xPatches, yPatches);
-
-<<<<<<< HEAD
-            if (x2 - x1 > 0 && y2 - y1 > 0)
-                SendLayerBottomLeft(map, x1, y1 + 1, x2 - 1, y2);
-        }
-
-        void SendLayerBottomLeft(TerrainData map, int x1, int y1, int x2, int y2)
-        {
-            // Row in reverse
-            for (int i = x2; i >= x1; i--)
-                SendLayerData(i, y2, map);
-
-            // Column in reverse
-            for (int j = y2 - 1; j >= y1; j--)
-                SendLayerData(x1, j, map);
-
-            if (x2 - x1 > 0 && y2 - y1 > 0)
-                SendLayerTopRight(map, x1 + 1, y1, x2, y2 - 1);
-        }
-
-        /// <summary>
-        /// Sends a set of four patches (x, x+1, ..., x+3) to the client
-        /// </summary>
-        /// <param name="map">heightmap</param>
-        /// <param name="px">X coordinate for patches 0..12</param>
-        /// <param name="py">Y coordinate for patches 0..15</param>
-        // private void SendLayerPacket(float[] map, int y, int x)
-        // {
-        //     int[] patches = new int[4];
-        //     patches[0] = x + 0 + y * 16;
-        //     patches[1] = x + 1 + y * 16;
-        //     patches[2] = x + 2 + y * 16;
-        //     patches[3] = x + 3 + y * 16;
-
-        //     Packet layerpack = LLClientView.TerrainManager.CreateLandPacket(map, patches);
-        //     OutPacket(layerpack, ThrottleOutPacketType.Land);
-        // }
-
         // Legacy form of invocation that passes around a bare data array.
         // Just ignore what was passed and use the real terrain info that is part of the scene.
         // As a HORRIBLE kludge in an attempt to not change the definition of IClientAPI, 
@@ -1393,29 +1305,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-=======
-                SendLayerData(xPatches, yPatches, m_scene.Heightmap.GetTerrainData());
-            }
-        }
 
-        private void DebugSendingPatches(string pWho, int[] pX, int[] pY)
-        {
-            if (m_log.IsDebugEnabled)
-            {
-                int numPatches = pX.Length;
-                string Xs = "";
-                string Ys = "";
-                for (int pp = 0; pp < numPatches; pp++)
-                {
-                    Xs += String.Format("{0}", (int)pX[pp]) + ",";
-                    Ys += String.Format("{0}", (int)pY[pp]) + ",";
-                }
-                m_log.DebugFormat("{0} {1}: numPatches={2}, X={3}, Y={4}", LogHeader, pWho, numPatches, Xs, Ys);
-            }
-        }
-
-        /// <summary>
->>>>>>> avn/ubitvar
         /// Sends a terrain packet for the point specified.
         /// This is a legacy call that has refarbed the terrain into a flat map of floats.
         /// We just use the terrain from the region we know about.
@@ -1467,40 +1357,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-<<<<<<< HEAD
-        // When a user edits the terrain, so much data is sent, the data queues up fast and presents a
-        // sub optimal editing experience. To alleviate this issue, when the user edits the terrain, we
-        // start skipping the queues until they're done editing the terrain. We also make them
-        // unreliable because it's extremely likely that multiple packets will be sent for a terrain patch
-        // area invalidating previous packets for that area.
-
-        // It's possible for an editing user to flood themselves with edited packets but the majority
-        // of use cases are such that only a tiny percentage of users will be editing the terrain.
-        // Other, non-editing users will see the edits much slower.
-        
-        // One last note on this topic, by the time users are going to be editing the terrain, it's
-        // extremely likely that the sim will have rezzed already and therefore this is not likely going
-        // to cause any additional issues with lost packets, objects or terrain patches.
-
-        // m_justEditedTerrain is volatile, so test once and duplicate two affected statements so we
-        //    only have one cache miss.
         private void SendTheLayerPacket(LayerDataPacket layerpack)
         {
-            if (m_justEditedTerrain)
-            {
-                layerpack.Header.Reliable = false;
-                OutPacket(layerpack, ThrottleOutPacketType.Unknown );
-            }
-            else
-            {
-                layerpack.Header.Reliable = true;
                 OutPacket(layerpack, ThrottleOutPacketType.Land);
-            }
-=======
-          private void SendTheLayerPacket(LayerDataPacket layerpack)
-        {
-                OutPacket(layerpack, ThrottleOutPacketType.Land);
->>>>>>> avn/ubitvar
         }
 
         /// <summary>
@@ -2490,15 +2349,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if (agentid == AgentId)
             {
-<<<<<<< HEAD
                 ActiveGroupId = activegroupid;
                 ActiveGroupName = groupname;
                 ActiveGroupPowers = grouppowers;
-=======
-                m_activeGroupID = activegroupid;
-                m_activeGroupName = groupname;
-                m_activeGroupPowers = grouppowers;
->>>>>>> avn/ubitvar
             }
 
             AgentDataUpdatePacket sendAgentDataUpdate = (AgentDataUpdatePacket)PacketPool.Instance.GetPacket(PacketType.AgentDataUpdate);
@@ -3888,15 +3741,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             avp.Sender.IsTrial = false;
             avp.Sender.ID = agentID;
             avp.AppearanceData = new AvatarAppearancePacket.AppearanceDataBlock[0];
-<<<<<<< HEAD
             avp.AppearanceHover = new AvatarAppearancePacket.AppearanceHoverBlock[0];
-=======
 
-            // this need be use in future
- //           avp.AppearanceData[0].AppearanceVersion = 0;
- //           avp.AppearanceData[0].CofVersion = 0;
+// this need be use in future ?
+//           avp.AppearanceData[0].AppearanceVersion = 0;
+//           avp.AppearanceData[0].CofVersion = 0;
 
->>>>>>> avn/ubitvar
             //m_log.DebugFormat("[CLIENT]: Sending appearance for {0} to {1}", agentID.ToString(), AgentId.ToString());
             OutPacket(avp, ThrottleOutPacketType.Task | ThrottleOutPacketType.HighPriority);
         }
@@ -4014,22 +3864,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public void SendEntityUpdate(ISceneEntity entity, PrimUpdateFlags updateFlags)
         {
-<<<<<<< HEAD
             if (entity.UUID == m_agentId && !updateFlags.HasFlag(PrimUpdateFlags.FullUpdate))
             {
                 ImprovedTerseObjectUpdatePacket packet
                     = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
-=======
-            if (entity is SceneObjectPart)
-            {
-                SceneObjectPart e = (SceneObjectPart)entity;
-                SceneObjectGroup g = e.ParentGroup;
-                if (g.HasPrivateAttachmentPoint && g.OwnerID != AgentId)
-                        return; // Don't send updates for other people's HUDs
-            }
-
-            uint priority = m_prioritizer.GetUpdatePriority(this, entity);
->>>>>>> avn/ubitvar
 
                 packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
                 packet.RegionData.TimeDilation = Utils.FloatToUInt16(1, 0.0f, 1.0f);
@@ -4037,6 +3875,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 packet.ObjectData[0] = CreateImprovedTerseBlock(entity, false);
                 OutPacket(packet, ThrottleOutPacketType.Unknown, true);
             }
+
+            else if (entity is SceneObjectPart)
+            {
+                SceneObjectPart e = (SceneObjectPart)entity;
+                SceneObjectGroup g = e.ParentGroup;
+                if (g.HasPrivateAttachmentPoint && g.OwnerID != AgentId)
+                        return; // Don't send updates for other people's HUDs
+            }
+
             else
             {
                 //double priority = m_prioritizer.GetUpdatePriority(this, entity);
@@ -4385,15 +4232,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 OutPacket(packet, ThrottleOutPacketType.Task, true);
             }
-<<<<<<< HEAD
 
 //            m_log.DebugFormat(
 //                "[LLCLIENTVIEW]: Sent {0} updates in ProcessEntityUpdates() for {1} {2} in {3}", 
 //                updatesThisCall, Name, SceneAgent.IsChildAgent ? "child" : "root", Scene.Name);
 //
-            #endregion Packet Sending
-=======
->>>>>>> avn/ubitvar
         }
         
         public void ReprioritizeUpdates()
@@ -5360,11 +5203,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 ScenePresence presence = (ScenePresence)entity;
 
-<<<<<<< HEAD
-//                m_log.DebugFormat( 
-//                    "[LLCLIENTVIEW]: Sending terse update to {0} with pos {1}, vel {2} in {3}", 
-//                    Name, presence.OffsetPosition, presence.Velocity, m_scene.Name);
-=======
                 position = presence.OffsetPosition;
                 rotation = presence.Rotation;
                 angularVelocity = presence.AngularVelocity;
@@ -5373,7 +5211,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 attachPoint = 0;
 //                m_log.DebugFormat(
 //                    "[LLCLIENTVIEW]: Sending terse update to {0} with position {1} in {2}", Name, presence.OffsetPosition, m_scene.Name);
->>>>>>> avn/ubitvar
 
                 // attachPoint = presence.State; // Core: commented
                 collisionPlane = presence.CollisionPlane;
@@ -5495,24 +5332,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //                "[LLCLIENTVIEW]: Sending full update to {0} with pos {1}, vel {2} in {3}", Name, data.OffsetPosition, data.Velocity, m_scene.Name);
 
             byte[] objectData = new byte[76];
-<<<<<<< HEAD
-
-            data.CollisionPlane.ToBytes(objectData, 0);
-            data.OffsetPosition.ToBytes(objectData, 16);
-            data.Velocity.ToBytes(objectData, 28);
-//            data.Acceleration.ToBytes(objectData, 40);
-
-            // Whilst not in mouselook, an avatar will transmit only the Z rotation as this is the only axis
-            // it rotates around.
-            // In mouselook, X and Y co-ordinate will also be sent but when used in Rotation, these cause unwanted
-            // excessive up and down movements of the camera when looking up and down.
-            // See http://opensimulator.org/mantis/view.php?id=3274
-            // This does not affect head movement, since this is controlled entirely by camera movement rather than
-            // body rotation.  We still need to transmit X and Y for sitting avatars but mouselook does not change
-            // the rotation in this case.
-            Quaternion rot = data.Rotation;
-=======
->>>>>>> avn/ubitvar
 
             Vector3 velocity = new Vector3(0, 0, 0);
             Vector3 acceleration = new Vector3(0, 0, 0);
@@ -5596,11 +5415,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //update.JointType = 0;
             update.Material = data.Material;
             update.MediaURL = Utils.EmptyBytes; // FIXME: Support this in OpenSim
-<<<<<<< HEAD
-
-=======
 /*
->>>>>>> avn/ubitvar
             if (data.ParentGroup.IsAttachment)
             {
                 update.NameValue 
@@ -5625,7 +5440,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // case for attachments may contain conflicting values that can end up crashing the viewer.
                 update.State = data.ParentGroup.RootPart.Shape.State;
             }
- */
+*/
 
             if (data.ParentGroup.IsAttachment)
             {
@@ -9365,11 +9180,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if ((locX >= m_scene.RegionInfo.WorldLocX)
                             && (locX < (m_scene.RegionInfo.WorldLocX + m_scene.RegionInfo.RegionSizeX))
                             && (locY >= m_scene.RegionInfo.WorldLocY)
-<<<<<<< HEAD
-                            && (locY < (m_scene.RegionInfo.WorldLocY + m_scene.RegionInfo.RegionSizeY)) )
-=======
                             && (locY < (m_scene.RegionInfo.WorldLocY + m_scene.RegionInfo.RegionSizeY)))
->>>>>>> avn/ubitvar
                 {
                     tpLocReq.Info.RegionHandle = m_scene.RegionInfo.RegionHandle;
                     tpLocReq.Info.Position.X += locX - m_scene.RegionInfo.WorldLocX;
@@ -12285,7 +12096,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="packet"></param>
         /// <returns></returns>
         // TODO: Convert old handler to use new method
-        /*protected bool HandleAgentTextureCached(IClientAPI simclient, Packet packet)
+/*
+        protected bool HandleAgentTextureCached(IClientAPI simclient, Packet packet)
         {
             AgentCachedTexturePacket cachedtex = (AgentCachedTexturePacket)packet;
             AgentCachedTextureResponsePacket cachedresp = (AgentCachedTextureResponsePacket)PacketPool.Instance.GetPacket(PacketType.AgentCachedTextureResponse);
@@ -12340,27 +12152,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-<<<<<<< HEAD
-            if (cacheItems != null)
-            {
-                // We need to make sure the asset stored in the bake is available on this server also by its assetid before we map it to a Cacheid.
-                // Copy the baked textures to the sim's assets cache (local only).
-                foreach (WearableCacheItem item in cacheItems)
-                {
-                    if (cache.GetCached(item.TextureID.ToString()) == null)
-                    {
-                        item.TextureAsset.Temporary = true;
-                        item.TextureAsset.Local = true;
-                        cache.Store(item.TextureAsset);
-                    }
-                }
-
-                // Return the cached textures
-                for (int i = 0; i < maxWearablesLoop; i++)
-                {
-                    WearableCacheItem item =
-                        WearableCacheItem.SearchTextureIndex(cachedtex.WearableData[i].TextureIndex, cacheItems);
-=======
             CachedTextureRequest handlerCachedTextureRequest = OnCachedTextureRequest;
             if (handlerCachedTextureRequest != null)
             {
@@ -12368,7 +12159,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             return true;
-        }*/
+        }
+*/
 
         protected bool HandleAgentTextureCached(IClientAPI simclient, Packet packet)
         {
@@ -12408,21 +12200,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int i = 0; i < maxWearablesLoop; i++)
                 {
                     int idx = cachedtex.WearableData[i].TextureIndex;
->>>>>>> avn/ubitvar
-
                     cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
                     cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;
                     cachedresp.WearableData[i].HostName = new byte[0];
-<<<<<<< HEAD
-                    if (item != null && cachedtex.WearableData[i].ID == item.CacheId)
-                    {
-                        cachedresp.WearableData[i].TextureID = item.TextureID;
-=======
                     if (cachedtex.WearableData[i].ID == cacheItems[idx].CacheId)
                     {
                         cachedresp.WearableData[i].TextureID = cacheItems[idx].TextureID;
                         cacheHits++;
->>>>>>> avn/ubitvar
                     }
                     else
                     {
@@ -12432,29 +12216,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             else
             {
-<<<<<<< HEAD
-                // Cached textures not available
-=======
->>>>>>> avn/ubitvar
                 for (int i = 0; i < maxWearablesLoop; i++)
                 {
                     cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
                     cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;
                     cachedresp.WearableData[i].TextureID = UUID.Zero;
-<<<<<<< HEAD
-                    cachedresp.WearableData[i].HostName = new byte[0];
-                }
-            }
-            
-=======
-                    //UUID.Parse("8334fb6e-c2f5-46ee-807d-a435f61a8d46");
                     cachedresp.WearableData[i].HostName = new byte[0];
                 }
             }
 
             m_log.DebugFormat("texture cached: hits {0}", cacheHits);
 
->>>>>>> avn/ubitvar
             cachedresp.Header.Zerocoded = true;
             OutPacket(cachedresp, ThrottleOutPacketType.Task);
 

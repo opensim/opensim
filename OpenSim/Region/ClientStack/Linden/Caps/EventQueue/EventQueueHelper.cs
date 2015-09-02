@@ -77,13 +77,8 @@ namespace OpenSim.Region.ClientStack.Linden
             llsdSimInfo.Add("Handle", new OSDBinary(ulongToByteArray(handle)));
             llsdSimInfo.Add("IP", new OSDBinary(endPoint.Address.GetAddressBytes()));
             llsdSimInfo.Add("Port", new OSDInteger(endPoint.Port));
-<<<<<<< HEAD
-            llsdSimInfo.Add("RegionSizeX", OSD.FromUInteger((uint) regionSizeX));
-            llsdSimInfo.Add("RegionSizeY", OSD.FromUInteger((uint) regionSizeY));
-=======
             llsdSimInfo.Add("RegionSizeX", OSD.FromUInteger((uint)regionSizeX));
             llsdSimInfo.Add("RegionSizeY", OSD.FromUInteger((uint)regionSizeY));
->>>>>>> avn/ubitvar
 
             OSDArray arr = new OSDArray(1);
             arr.Add(llsdSimInfo);
@@ -176,12 +171,8 @@ namespace OpenSim.Region.ClientStack.Linden
             info.Add("SimAccess", OSD.FromInteger(simAccess));
             info.Add("SimIP", OSD.FromBinary(regionExternalEndPoint.Address.GetAddressBytes()));
             info.Add("SimPort", OSD.FromInteger(regionExternalEndPoint.Port));
-<<<<<<< HEAD
-            info.Add("TeleportFlags", OSD.FromULong(1L << 4)); // AgentManager.TeleportFlags.ViaLocation
-=======
 //            info.Add("TeleportFlags", OSD.FromULong(1L << 4)); // AgentManager.TeleportFlags.ViaLocation
             info.Add("TeleportFlags", OSD.FromUInteger(flags));
->>>>>>> avn/ubitvar
             info.Add("RegionSizeX", OSD.FromUInteger((uint)regionSizeX));
             info.Add("RegionSizeY", OSD.FromUInteger((uint)regionSizeY));
 

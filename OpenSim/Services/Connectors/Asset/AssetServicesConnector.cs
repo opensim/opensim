@@ -275,18 +275,11 @@ namespace OpenSim.Services.Connectors
                     return fullAsset.Data;
             }
 
-<<<<<<< HEAD
-            using (RestClient rc = new RestClient(m_ServerURI))
+            using (RestClient rc = new RestClient(MapServer(id)))
             {
                 rc.AddResourcePath("assets");
                 rc.AddResourcePath(id);
                 rc.AddResourcePath("data");
-=======
-            RestClient rc = new RestClient(MapServer(id));
-            rc.AddResourcePath("assets");
-            rc.AddResourcePath(id);
-            rc.AddResourcePath("data");
->>>>>>> avn/ubitvar
 
                 rc.RequestMethod = "GET";
 
@@ -300,20 +293,11 @@ namespace OpenSim.Services.Connectors
                     byte[] ret = new byte[s.Length];
                     s.Read(ret, 0, (int)s.Length);
 
-<<<<<<< HEAD
                     return ret;
                 }
 
                 return null;
             }
-=======
-                s.Close();
-                return ret;
-            }
-
-            s.Close();
-            return null;
->>>>>>> avn/ubitvar
         }
 
         private class QueuedAssetRequest
@@ -348,24 +332,13 @@ namespace OpenSim.Services.Connectors
                         List<AssetRetrievedEx> handlers;
                         lock (m_AssetHandlers)
                         {
-<<<<<<< HEAD
-                            if (a != null && m_Cache != null)
-                                m_Cache.Cache(a);
-=======
                             handlers = m_AssetHandlers[id];
                             m_AssetHandlers.Remove(id);
                         }
->>>>>>> avn/ubitvar
 
                         Util.FireAndForget(x =>
                             {
-<<<<<<< HEAD
-                                handlers = m_AssetHandlers[id];
-                                m_AssetHandlers.Remove(id);
-                            }
-                            handlers.Invoke(a);
-                        }, m_maxAssetRequestConcurrency, m_Auth);
-=======
+
                                 foreach (AssetRetrievedEx h in handlers)
                                 {
                                     // Util.FireAndForget(x =>
@@ -382,8 +355,6 @@ namespace OpenSim.Services.Connectors
 
 //                        if (handlers != null)
 //                            handlers.Clear();
->>>>>>> avn/ubitvar
-                    
                         success = true;
                     }
                 }
@@ -510,32 +481,6 @@ namespace OpenSim.Services.Connectors
             string newID;
             try
             {
-<<<<<<< HEAD
-                newID = SynchronousRestObjectRequester.MakeRequest<AssetBase, string>("POST", uri, asset, m_Auth);
-            }
-            catch (Exception e)
-            {
-                m_log.Warn(string.Format("[ASSET CONNECTOR]: Unable to send asset {0} to asset server. Reason: {1} ", asset.ID, e.Message), e);
-                return string.Empty;
-            }
-
-            // TEMPORARY: SRAS returns 'null' when it's asked to store existing assets
-            if (newID == null)
-            {
-                m_log.DebugFormat("[ASSET CONNECTOR]: Storing of asset {0} returned null; assuming the asset already exists", asset.ID);
-                return asset.ID;
-            }
-
-            if (string.IsNullOrEmpty(newID))
-                return string.Empty;
-
-            asset.ID = newID;
-
-            if (m_Cache != null)
-                m_Cache.Cache(asset);
-
-            return newID;
-=======
                 newID = SynchronousRestObjectRequester.
                         MakeRequest<AssetBase, string>("POST", uri, asset, 25);
                 if (newID == null || newID == "")
@@ -588,7 +533,6 @@ namespace OpenSim.Services.Connectors
                 }
             }
             return asset.ID;
->>>>>>> avn/ubitvar
         }
 
         public bool UpdateContent(string id, byte[] data)

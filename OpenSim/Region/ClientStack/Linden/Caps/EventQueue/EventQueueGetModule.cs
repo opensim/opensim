@@ -177,7 +177,6 @@ namespace OpenSim.Region.ClientStack.Linden
         }
 
         /// <summary>
-<<<<<<< HEAD
         ///  Always returns a valid queue
         /// </summary>
         /// <param name="agentId"></param>
@@ -201,8 +200,7 @@ namespace OpenSim.Region.ClientStack.Linden
         }
 
         /// <summary>
-=======
->>>>>>> avn/ubitvar
+
         /// May return a null queue
         /// </summary>
         /// <param name="agentId"></param>
@@ -290,17 +288,11 @@ namespace OpenSim.Region.ClientStack.Linden
         public void OnRegisterCaps(UUID agentID, Caps caps)
         {
             // Register an event queue for the client
-<<<<<<< HEAD
 
             if (DebugLevel > 0)
                 m_log.DebugFormat(
                     "[EVENTQUEUE]: OnRegisterCaps: agentID {0} caps {1} region {2}",
                     agentID, caps, m_scene.RegionInfo.RegionName);
-=======
-            m_log.DebugFormat(
-                "[EVENTQUEUE]: OnRegisterCaps: agentID {0} caps {1} region {2}",
-                agentID, caps, m_scene.RegionInfo.RegionName);
->>>>>>> avn/ubitvar
 
             UUID eventQueueGetUUID;
             Queue<OSD> queue;
@@ -519,14 +511,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public virtual void EnableSimulator(ulong handle, IPEndPoint endPoint, UUID avatarID, int regionSizeX, int regionSizeY)
         {
-<<<<<<< HEAD
             if (DebugLevel > 0)
                 m_log.DebugFormat("{0} EnableSimulator. handle={1}, endPoint={2}, avatarID={3}",
                     LogHeader, handle, endPoint, avatarID, regionSizeX, regionSizeY);
-=======
-            m_log.DebugFormat("{0} EnableSimulator. handle={1}, avatarID={2}, regionSize={3},{4}>",
-                LogHeader, handle, avatarID, regionSizeX, regionSizeY);
->>>>>>> avn/ubitvar
 
             OSD item = EventQueueHelper.EnableSimulator(handle, endPoint, regionSizeX, regionSizeY);
             Enqueue(item, avatarID);
@@ -535,15 +522,10 @@ namespace OpenSim.Region.ClientStack.Linden
         public virtual void EstablishAgentCommunication(UUID avatarID, IPEndPoint endPoint, string capsPath,
                                 ulong regionHandle, int regionSizeX, int regionSizeY) 
         {
-<<<<<<< HEAD
             if (DebugLevel > 0)
                 m_log.DebugFormat("{0} EstablishAgentCommunication. handle={1}, endPoint={2}, avatarID={3}",
                     LogHeader, regionHandle, endPoint, avatarID, regionSizeX, regionSizeY);
 
-=======
-            m_log.DebugFormat("{0} EstablishAgentCommunication. handle={1}, avatarID={2}, regionSize={3},{4}>",
-                LogHeader, regionHandle, avatarID, regionSizeX, regionSizeY);
->>>>>>> avn/ubitvar
             OSD item = EventQueueHelper.EstablishAgentCommunication(avatarID, endPoint.ToString(), capsPath, regionHandle, regionSizeX, regionSizeY);
             Enqueue(item, avatarID);
         }
@@ -553,14 +535,9 @@ namespace OpenSim.Region.ClientStack.Linden
                                         uint locationID, uint flags, string capsURL, 
                                         UUID avatarID, int regionSizeX, int regionSizeY)
         {
-<<<<<<< HEAD
             if (DebugLevel > 0)
                 m_log.DebugFormat("{0} TeleportFinishEvent. handle={1}, endPoint={2}, avatarID={3}",
                     LogHeader, regionHandle, regionExternalEndPoint, avatarID, regionSizeX, regionSizeY);
-=======
-            m_log.DebugFormat("{0} TeleportFinishEvent. handle={1}, avatarID={2}, regionSize={3},{4}>",
-                LogHeader, regionHandle, avatarID, regionSizeX, regionSizeY);
->>>>>>> avn/ubitvar
 
             OSD item = EventQueueHelper.TeleportFinishEvent(regionHandle, simAccess, regionExternalEndPoint,
                                                             locationID, flags, capsURL, avatarID, regionSizeX, regionSizeY);
@@ -571,14 +548,9 @@ namespace OpenSim.Region.ClientStack.Linden
                                 IPEndPoint newRegionExternalEndPoint,
                                 string capsURL, UUID avatarID, UUID sessionID, int regionSizeX, int regionSizeY)
         {
-<<<<<<< HEAD
             if (DebugLevel > 0)
                 m_log.DebugFormat("{0} CrossRegion. handle={1}, avatarID={2}, regionSize={3},{4}>",
                     LogHeader, handle, avatarID, regionSizeX, regionSizeY);
-=======
-            m_log.DebugFormat("{0} CrossRegion. handle={1}, avatarID={2}, regionSize={3},{4}>",
-                LogHeader, handle, avatarID, regionSizeX, regionSizeY);
->>>>>>> avn/ubitvar
 
             OSD item = EventQueueHelper.CrossRegion(handle, pos, lookAt, newRegionExternalEndPoint,
                                                     capsURL, avatarID, sessionID, regionSizeX, regionSizeY);

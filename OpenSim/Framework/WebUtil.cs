@@ -205,16 +205,8 @@ namespace OpenSim.Framework
         {
             if (DebugLevel == 5)
             {
-<<<<<<< HEAD
                 if (output.Length > MaxRequestDiagLength)
                     output = output.Substring(0, MaxRequestDiagLength) + "...";
-=======
-                int len = output.Length;
-                if(len > 80)
-                    len = 80;
-                output = output.Substring(0, len);
-                output = output + "...";
->>>>>>> avn/ubitvar
             }
 
             m_log.DebugFormat("[LOGHTTP]: {0}{1}", context, Util.BinaryToASCII(output));
@@ -295,12 +287,9 @@ namespace OpenSim.Framework
                     }
                     else
                     {
-<<<<<<< HEAD
-=======
                         tickcompressdata = tickJsondata;
                         compsize = buffer.Length;
-                        request.ContentType = "application/json";
->>>>>>> avn/ubitvar
+
                         request.ContentLength = buffer.Length;   //Count bytes to send
                         using (Stream requestStream = request.GetRequestStream())
                             requestStream.Write(buffer, 0, buffer.Length);         //Send it
@@ -315,7 +304,6 @@ namespace OpenSim.Framework
                 {
                     using (Stream responseStream = response.GetResponseStream())
                     {
-<<<<<<< HEAD
                         using (StreamReader reader = new StreamReader(responseStream))
                         {
                             string responseStr = reader.ReadToEnd();
@@ -323,12 +311,6 @@ namespace OpenSim.Framework
                                 WebUtil.LogResponseDetail(reqnum, responseStr);
                             return CanonicalizeResults(responseStr);
                         }
-=======
-                        string responseStr = null;
-                        responseStr = responseStream.GetStreamString();
-                        //m_log.DebugFormat("[WEB UTIL]: <{0}> response is <{1}>",reqnum,responseStr);
-                        return CanonicalizeResults(responseStr);
->>>>>>> avn/ubitvar
                     }
                 }
             }
@@ -352,10 +334,6 @@ namespace OpenSim.Framework
                 if (tickdiff > LongCallTime)
                 {
                     m_log.InfoFormat(
-<<<<<<< HEAD
-                        "[LOGHTTP]: Slow JSON-RPC request {0} {1} to {2} took {3}ms, {4}ms writing, {5}",
-                        reqnum, method, url, tickdiff, tickdata,
-=======
                         "[WEB UTIL]: Slow ServiceOSD request {0} {1} {2} took {3}ms, {4}ms writing({5} at Json; {6} at comp), {7} bytes ({8} uncomp): {9}",
                         reqnum,
                         method,
@@ -366,7 +344,7 @@ namespace OpenSim.Framework
                         tickcompressdata,
                         compsize,
                         strBuffer != null ? strBuffer.Length : 0,
->>>>>>> avn/ubitvar
+
                         strBuffer != null
                             ? (strBuffer.Length > MaxRequestDiagLength ? strBuffer.Remove(MaxRequestDiagLength) : strBuffer)
                             : "");
@@ -823,6 +801,20 @@ namespace OpenSim.Framework
             MakeRequest<TRequest, TResponse>(verb, requestUrl, obj, action, maxConnections, null);
         }
 
+        /// <summary>
+        /// Perform a synchronous REST request.
+        /// </summary>
+        /// <param name="verb"></param>
+        /// <param name="requestUrl"></param>
+        /// <param name="obj"></param>
+        /// <param name="pTimeout">
+        /// Request timeout in milliseconds.  Timeout.Infinite indicates no timeout.  If 0 is passed then the default HttpWebRequest timeout is used (100 seconds)
+        /// </param>
+        /// <param name="maxConnections"></param>
+        /// <returns>
+        /// The response.  If there was an internal exception or the request timed out, 
+        /// then the default(TResponse) is returned.
+        /// </returns>
         public static void MakeRequest<TRequest, TResponse>(string verb,
                 string requestUrl, TRequest obj, Action<TResponse> action,
                 int maxConnections, IServiceAuth auth)
@@ -834,7 +826,7 @@ namespace OpenSim.Framework
                     reqnum, verb, requestUrl);
 
             int tickstart = Util.EnvironmentTickCount();
-//            int tickdata = 0;
+            int tickdata = 0;
             int tickdiff = 0;
 
             Type type = typeof(TRequest);
@@ -876,27 +868,19 @@ namespace OpenSim.Framework
                     request.ContentLength = length;
                     byte[] data = buffer.ToArray();
 
-<<<<<<< HEAD
                     if (WebUtil.DebugLevel >= 5)
                         WebUtil.LogOutgoingDetail("SEND", reqnum, System.Text.Encoding.UTF8.GetString(data));
 
                     request.BeginGetRequestStream(delegate(IAsyncResult res)
-=======
-                    // capture how much time was spent writing
-                    // useless in this async
-//                    tickdata = Util.EnvironmentTickCountSubtract(tickstart);
-                    request.BeginGetResponse(delegate(IAsyncResult ar)
->>>>>>> avn/ubitvar
                     {
                         using (Stream requestStream = request.EndGetRequestStream(res))
                             requestStream.Write(data, 0, length);
 
                         // capture how much time was spent writing
-                        tickdata = Util.EnvironmentTickCountSubtract(tickstart);
+//                        tickdata = Util.EnvironmentTickCountSubtract(tickstart);
 
                         request.BeginGetResponse(delegate(IAsyncResult ar)
                         {
-<<<<<<< HEAD
                             using (WebResponse response = request.EndGetResponse(ar))
                             {
                                 try
@@ -911,14 +895,6 @@ namespace OpenSim.Framework
                                 {
                                 }
                             }
-=======
-                            // Let's not close this
-                            // yes do close it
-                            buffer.Close();
-                            respStream.Close();
-                            response.Close();
-                        }
->>>>>>> avn/ubitvar
 
                             action(deserial);
 
@@ -980,7 +956,6 @@ namespace OpenSim.Framework
                                 "[ASYNC REQUEST]: Request {0} {1} failed with exception {2}{3}",
                                 verb, requestUrl, e.Message, e.StackTrace);
                         }
-<<<<<<< HEAD
         
                         //  m_log.DebugFormat("[ASYNC REQUEST]: Received {0}", deserial.ToString());
 
@@ -998,83 +973,34 @@ namespace OpenSim.Framework
                     }, null);
                 }
 
-                int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
+                tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
                 if (tickdiff > WebUtil.LongCallTime)
                 {
                     string originalRequest = null;
 
                     if (buffer != null)
-=======
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.ErrorFormat(
-                            "[ASYNC REQUEST]: Request {0} {1} failed with exception {2}{3}",
-                            verb, requestUrl, e.Message, e.StackTrace);
-                    }
-    
-                    //  m_log.DebugFormat("[ASYNC REQUEST]: Received {0}", deserial.ToString());
-                    try
-                    {
-                        action(deserial);
-                    }
-                    catch (Exception e)
->>>>>>> avn/ubitvar
                     {
                         originalRequest = Encoding.UTF8.GetString(buffer.ToArray());
 
-<<<<<<< HEAD
                         if (originalRequest.Length > WebUtil.MaxRequestDiagLength)
                             originalRequest = originalRequest.Remove(WebUtil.MaxRequestDiagLength);
                     }
-=======
-            tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
-            if (tickdiff > WebUtil.LongCallTime)
-            {
-/*
-                string originalRequest = null;
->>>>>>> avn/ubitvar
-
-                    m_log.InfoFormat(
+                     m_log.InfoFormat(
                         "[LOGHTTP]: Slow AsynchronousRequestObject request {0} {1} to {2} took {3}ms, {4}ms writing, {5}",
                         reqnum, verb, requestUrl, tickdiff, tickdata,
                         originalRequest);
                 }
                 else if (WebUtil.DebugLevel >= 4)
                 {
-                    m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} took {1}ms, {2}ms writing",
-                        reqnum, tickdiff, tickdata);
+                    m_log.DebugFormat(
+                        "[WEB UTIL]: HTTP OUT {0} took {1}ms",
+                        reqnum, tickdiff);
                 }
-<<<<<<< HEAD
             }
             finally
             { 
                 if (buffer != null)
                     buffer.Dispose();
-=======
-
-                m_log.InfoFormat(
-                    "[ASYNC REQUEST]: Slow request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
-                    reqnum,
-                    verb,
-                    requestUrl,
-                    tickdiff,
-                    tickdata,
-                    originalRequest);
-*/
-                m_log.InfoFormat(
-                    "[ASYNC REQUEST]:  Slow WebRequest SETUP <{0}> {1} {2} took {3}ms",
-                    reqnum,
-                    verb,
-                    requestUrl,
-                    tickdiff);
-            }
-            else if (WebUtil.DebugLevel >= 4)
-            {
-                m_log.DebugFormat(
-                    "[WEB UTIL]: HTTP OUT {0} took {1}ms",
-                    reqnum, tickdiff);
->>>>>>> avn/ubitvar
             }
         }
     }
@@ -1136,11 +1062,8 @@ namespace OpenSim.Framework
                     request.ContentLength = length;
                     byte[] data = buffer.ToArray();
 
-<<<<<<< HEAD
                     if (WebUtil.DebugLevel >= 5)
                         WebUtil.LogOutgoingDetail("SEND", reqnum, System.Text.Encoding.UTF8.GetString(data));
-=======
->>>>>>> avn/ubitvar
 
                     Stream requestStream = null;
                     try
@@ -1188,10 +1111,6 @@ namespace OpenSim.Framework
             if (tickdiff > WebUtil.LongCallTime)
             {
                 m_log.InfoFormat(
-<<<<<<< HEAD
-                    "[LOGHTTP]: Slow SynchronousRestForms request {0} {1} to {2} took {3}ms, {4}ms writing, {5}",
-                    reqnum, verb, requestUrl, tickdiff, tickdata,
-=======
                     "[FORMS]: Slow request {0} {1} {2} took {3}ms, {4}ms writing, {5}",
                     reqnum,
                     verb,
@@ -1199,7 +1118,6 @@ namespace OpenSim.Framework
                     tickdiff,
                     tickset,
                     tickdata,
->>>>>>> avn/ubitvar
                     obj.Length > WebUtil.MaxRequestDiagLength ? obj.Remove(WebUtil.MaxRequestDiagLength) : obj);
             }
             else if (WebUtil.DebugLevel >= 4)
@@ -1336,8 +1254,6 @@ namespace OpenSim.Framework
                 ht.ServicePoint.ConnectionLimit = maxConnections;
 
             request.Method = verb;
-            if (pTimeout != 0)
-                request.Timeout = pTimeout * 1000;
             MemoryStream buffer = null;
 
             try
@@ -1351,29 +1267,17 @@ namespace OpenSim.Framework
                     XmlWriterSettings settings = new XmlWriterSettings();
                     settings.Encoding = Encoding.UTF8;
 
-<<<<<<< HEAD
                     using (XmlWriter writer = XmlWriter.Create(buffer, settings))
                     {
                         XmlSerializer serializer = new XmlSerializer(type);
                         serializer.Serialize(writer, obj);
                         writer.Flush();
                     }
-=======
-                using (XmlWriter writer = XmlWriter.Create(buffer, settings))
-                {
-                    XmlSerializer serializer = new XmlSerializer(type);
-                    serializer.Serialize(writer, obj);
-                    writer.Flush();
-                    if (WebUtil.DebugLevel >= 5)
-                        WebUtil.LogOutgoingDetail(buffer);
-                }
->>>>>>> avn/ubitvar
 
                     int length = (int)buffer.Length;
                     request.ContentLength = length;
                     byte[] data = buffer.ToArray();
 
-<<<<<<< HEAD
                     if (WebUtil.DebugLevel >= 5)
                         WebUtil.LogOutgoingDetail("SEND", reqnum, System.Text.Encoding.UTF8.GetString(data));
 
@@ -1397,9 +1301,6 @@ namespace OpenSim.Framework
                     }
                 }
 
-=======
-                Stream requestStream = null;
->>>>>>> avn/ubitvar
                 try
                 {
                     using (HttpWebResponse resp = (HttpWebResponse)request.GetResponse())
@@ -1488,7 +1389,6 @@ namespace OpenSim.Framework
 
             return deserial;
         }
-
     
         public static class XMLResponseHelper
         {

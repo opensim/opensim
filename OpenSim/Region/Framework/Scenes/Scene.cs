@@ -61,8 +61,7 @@ namespace OpenSim.Region.Framework.Scenes
     {
         private const long DEFAULT_MIN_TIME_FOR_PERSISTENCE = 60L;
         private const long DEFAULT_MAX_TIME_FOR_PERSISTENCE = 600L;
-        
-        public const int m_defaultNumberFramesStored = 10;
+ 
 
         public delegate void SynchronizeSceneHandler(Scene scene);
 
@@ -105,15 +104,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// If false then physical objects are disabled, though collisions will continue as normal.
         /// </summary>
-<<<<<<< HEAD
-        public bool PhysicsEnabled
-        {
-            get
-=======
+
         public bool PhysicsEnabled 
         { 
             get 
->>>>>>> avn/ubitvar
             {
                 return m_physicsEnabled;
             }
@@ -222,7 +216,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Maximum value of the size of a physical prim in each axis
         /// </summary>
-        public float m_maxPhys = 64;
+        public float m_maxPhys = 10;
 
         /// <summary>
         /// Max prims an object will hold
@@ -234,16 +228,15 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_allowScriptCrossings = true;
 
         /// <summary>
-<<<<<<< HEAD
+
         /// Can avatars cross from and to this region?
         /// </summary>
         public bool AllowAvatarCrossing { get; set; }
-=======
+
         /// Max prims an Physical object will hold
         /// </summary>
         /// 
         public int m_linksetPhysCapacity = 0;
->>>>>>> avn/ubitvar
 
         public bool m_useFlySlow;
         public bool m_useTrashOnDelete = true;
@@ -278,7 +271,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public int ChildTerseUpdatePeriod { get; set; }
 
-        protected float m_defaultDrawDistance = 255.0f;
+        protected float m_defaultDrawDistance = 255f;
         public float DefaultDrawDistance
         {
             // get { return m_defaultDrawDistance; }
@@ -361,17 +354,6 @@ namespace OpenSim.Region.Framework.Scenes
         private Dictionary<string, string> m_extraSettings;
 
         /// <summary>
-        /// If true then the next time the scene loop is activated, updates will be performed by firing of a timer
-        /// rather than on a single thread that sleeps.
-        /// </summary>
-        public bool UpdateOnTimer { get; set; }
-
-        /// <summary>
-        /// Only used if we are updating scene on a timer rather than sleeping a thread.
-        /// </summary>
-        private Timer m_sceneUpdateTimer;
-
-        /// <summary>
         /// Current scene frame number
         /// </summary>
         public uint Frame
@@ -386,23 +368,14 @@ namespace OpenSim.Region.Framework.Scenes
         public uint MaintenanceRun { get; private set; }
 
         /// <summary>
-        /// The minimum length of time in milliseconds that will be taken for a scene frame.  If the frame takes less time then we
+        /// The minimum length of time in seconds that will be taken for a scene frame.  If the frame takes less time then we
         /// will sleep for the remaining period.
         /// </summary>
         /// <remarks>
         /// One can tweak this number to experiment.  One current effect of reducing it is to make avatar animations
         /// occur too quickly (viewer 1) or with even more slide (viewer 2).
         /// </remarks>
-        public int MinFrameTicks
-        {
-            get { return m_minFrameTicks; }
-            private set
-            {
-                m_minFrameTicks = value;
-                MinFrameSeconds = (float)m_minFrameTicks / 1000;
-            }
-        }
-        private int m_minFrameTicks;
+		public float MinFrameTime { get; private set; }
 
         /// <summary>
         /// The minimum length of time in seconds that will be taken for a scene frame.
@@ -410,17 +383,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <remarks>
         /// Always derived from MinFrameTicks.
         /// </remarks>
-        public float MinFrameSeconds { get; private set; }
-
-        /// <summary>
-        /// The minimum length of time in milliseconds that will be taken for a scene frame.  If the frame takes less time then we
-        /// will sleep for the remaining period.
-        /// </summary>
-        /// <remarks>
-        /// One can tweak this number to experiment.  One current effect of reducing it is to make avatar animations
-        /// occur too quickly (viewer 1) or with even more slide (viewer 2).
-        /// </remarks>
-        public int MinMaintenanceTicks { get; set; }
+		public float MinMaintenanceTime { get; private set; }
 
         private int m_update_physics = 1;
         private int m_update_entitymovement = 1;
@@ -428,13 +391,10 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_update_presences = 1; // Update scene presence movements
         private int m_update_events = 1;
         private int m_update_backup = 200;
-<<<<<<< HEAD
-        private int m_update_terrain = 50;
-        //        private int m_update_land = 1;
-=======
+
         private int m_update_terrain = 1000;
         private int m_update_land = 10;
->>>>>>> avn/ubitvar
+
         private int m_update_coarse_locations = 50;
         private int m_update_temp_cleaning = 180;
 
@@ -559,13 +519,12 @@ namespace OpenSim.Region.Framework.Scenes
         }
         private volatile bool m_active;
 
-<<<<<<< HEAD
         /// <summary>
         /// If true then updates are running.  This may be true for a short period after a scene is de-activated.
         /// </summary>
         public bool IsRunning { get { return m_isRunning; } }
         private volatile bool m_isRunning;
-=======
+
 //        private int m_lastUpdate;
         private bool m_firstHeartbeat = true;
         
@@ -574,7 +533,7 @@ namespace OpenSim.Region.Framework.Scenes
         private double m_reprioritizationInterval = 5000.0;
         private double m_rootReprioritizationDistance = 10.0;
         private double m_childReprioritizationDistance = 20.0;
->>>>>>> avn/ubitvar
+
 
         private Timer m_mapGenerationTimer = new Timer();
         private bool m_generateMaptiles;
@@ -913,8 +872,8 @@ namespace OpenSim.Region.Framework.Scenes
             : this(regInfo, physicsScene)
         {
             m_config = config;
-            MinFrameTicks = 89;
-            MinMaintenanceTicks = 1000;
+            MinFrameTime = 0.089f;
+            MinMaintenanceTime = 1;
             SeeIntoRegion = true;
 
             Random random = new Random();
@@ -924,12 +883,9 @@ namespace OpenSim.Region.Framework.Scenes
             m_sceneGridService = sceneGridService;
             m_SimulationDataService = simDataService;
             m_EstateDataService = estateDataService;
-<<<<<<< HEAD
-=======
-            m_regionHandle = RegionInfo.RegionHandle;
+
             m_lastIncoming = 0;
             m_lastOutgoing = 0;
->>>>>>> avn/ubitvar
 
             m_asyncSceneObjectDeleter = new AsyncSceneObjectGroupDeleter(this);
             m_asyncSceneObjectDeleter.Enabled = true;
@@ -988,8 +944,6 @@ namespace OpenSim.Region.Framework.Scenes
             EventManager.OnLandObjectRemoved +=
                 new EventManager.LandObjectRemoved(simDataService.RemoveLandObject);
 
-<<<<<<< HEAD
-=======
             m_sceneGraph = new SceneGraph(this);
             m_sceneGraph.PhysicsScene = physicsScene;
 
@@ -1006,7 +960,6 @@ namespace OpenSim.Region.Framework.Scenes
                         RestartNow(); 
                     };
 
->>>>>>> avn/ubitvar
             RegisterDefaultSceneEvents();
 
             // XXX: Don't set the public property since we don't want to activate here.  This needs to be handled 
@@ -1167,8 +1120,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                if (startupConfig.Contains("MinFrameTime"))
-                    MinFrameTicks = (int)(startupConfig.GetFloat("MinFrameTime") * 1000);
+				MinFrameTime              = startupConfig.GetFloat( "MinFrameTime",                      MinFrameTime);
 
                 m_update_backup           = startupConfig.GetInt("UpdateStorageEveryNFrames",         m_update_backup);
                 m_update_coarse_locations = startupConfig.GetInt("UpdateCoarseLocationsEveryNFrames", m_update_coarse_locations);
@@ -1246,43 +1198,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             #endregion Interest Management
 
-            // The timer used by the Stopwatch class depends on the system hardware and operating system; inform
-            // if the timer is based on a high-resolution performance counter or based on the system timer;
-            // the performance counter will provide a more precise time than the system timer
-            if (Stopwatch.IsHighResolution)
-                m_log.InfoFormat("[SCENE]: Using high-resolution performance counter for statistics.");
-            else
-                m_log.InfoFormat("[SCENE]: Using system timer for statistics.");
 
-            // Acquire the statistics section of the OpenSim.ini file located
-            // in the bin directory
-            IConfig statisticsConfig = m_config.Configs["Statistics"];
-
-            // Confirm that the statistics section existed in the configuration
-            // file
-            if (statisticsConfig != null)
-            {
-                // Create the StatsReporter using the number of frames to store
-                // for the frame time statistics, or 10 frames if the config
-                // file doesn't contain a value
-                StatsReporter = new SimStatsReporter(this,
-                    statisticsConfig.GetInt("NumberOfFrames", 
-                    m_defaultNumberFramesStored));
-            }
-            else
-            {
-                // Create a StatsReporter with the current scene and a default
-                // 10 frames stored for the frame time statistics
-                StatsReporter = new SimStatsReporter(this);
-            }
+            StatsReporter = new SimStatsReporter(this);
 
             StatsReporter.OnSendStatsResult += SendSimStatsPackets;
             StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
 
-<<<<<<< HEAD
-=======
             MainConsole.Instance.Commands.AddCommand("scene", false, "gc collect", "gc collect", "gc collect", "Cause the garbage collector to make a single pass", HandleGcCollect);
->>>>>>> avn/ubitvar
         }
 
         public Scene(RegionInfo regInfo, PhysicsScene physicsScene)
@@ -1314,7 +1236,28 @@ namespace OpenSim.Region.Framework.Scenes
             PeriodicBackup = true;
             UseBackup = true;
 
-<<<<<<< HEAD
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             IsReprioritizationEnabled = true;
             UpdatePrioritizationScheme = UpdatePrioritizationSchemes.Time;
             ReprioritizationInterval = 5000;
@@ -1325,8 +1268,6 @@ namespace OpenSim.Region.Framework.Scenes
             RootReprioritizationDistance = 10.0;
             ChildReprioritizationDistance = 20.0;
 
-=======
->>>>>>> avn/ubitvar
             m_eventManager = new EventManager();
 
             m_permissions = new ScenePermissions(this);
@@ -1376,24 +1317,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (RegionInfo.RegionHandle != otherRegion.RegionHandle)
             {
-<<<<<<< HEAD
-                //// If these are cast to INT because long + negative values + abs returns invalid data
-                //int resultX = Math.Abs((int)xcell - (int)RegionInfo.RegionLocX);
-                //int resultY = Math.Abs((int)ycell - (int)RegionInfo.RegionLocY);
-                //if (resultX <= 1 && resultY <= 1)
-                float dist = (float)Math.Max(DefaultDrawDistance,
-                             (float)Math.Max(RegionInfo.RegionSizeX, RegionInfo.RegionSizeY));
-                uint newRegionX, newRegionY, thisRegionX, thisRegionY;
-                Util.RegionHandleToRegionLoc(otherRegion.RegionHandle, out newRegionX, out newRegionY);
-                Util.RegionHandleToRegionLoc(RegionInfo.RegionHandle, out thisRegionX, out thisRegionY);
 
-                //m_log.InfoFormat("[SCENE]: (on region {0}): Region {1} up in coords {2}-{3}",
-                //    RegionInfo.RegionName, otherRegion.RegionName, newRegionX, newRegionY);
-
-                if (!Util.IsOutsideView(dist, thisRegionX, newRegionX, thisRegionY, newRegionY))
-=======
                 if (isNeighborRegion(otherRegion))
->>>>>>> avn/ubitvar
                 {
                     // Let the grid service module know, so this can be cached
                     m_eventManager.TriggerOnRegionUp(otherRegion);
@@ -1693,45 +1618,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             Watchdog.GetCurrentThreadInfo().AlarmIfTimeout = true;
             m_lastFrameTick = Util.EnvironmentTickCount();
-
-            if (UpdateOnTimer)
-            {
-                m_sceneUpdateTimer = new Timer(MinFrameTicks);
-                m_sceneUpdateTimer.AutoReset = true;
-                m_sceneUpdateTimer.Elapsed += Update;
-                m_sceneUpdateTimer.Start();
-            }
-            else
-            {
-                Thread.CurrentThread.Priority = ThreadPriority.Highest;
-                Update(-1);
-                Watchdog.RemoveThread();
-                m_isRunning = false;
-            }
-        }
-
-        private volatile bool m_isTimerUpdateRunning;
-
-        private void Update(object sender, ElapsedEventArgs e)
-        {
-            if (m_isTimerUpdateRunning)
-                return;
-
-            m_isTimerUpdateRunning = true;
-
-            // If the last frame did not complete on time, then immediately start the next update on the same thread
-            // and ignore further timed updates until we have a frame that had spare time.
-            while (!Update(1) && Active) { }
-
-            if (!Active || m_shuttingDown)
-            {
-                m_sceneUpdateTimer.Stop();
-                m_sceneUpdateTimer = null;
-                m_isRunning = false;
-            }
-
-            m_isTimerUpdateRunning = false;
-        }
+            Update(-1);
+		}
 
         private void Maintenance()
         {
@@ -1800,24 +1688,24 @@ namespace OpenSim.Region.Framework.Scenes
                 previousMaintenanceTick = m_lastMaintenanceTick;
                 m_lastMaintenanceTick = Util.EnvironmentTickCount();
                 runtc = Util.EnvironmentTickCountSubtract(m_lastMaintenanceTick, runtc);
-                runtc = MinMaintenanceTicks - runtc;
+				runtc = (int)(MinMaintenanceTime * 1000) - runtc;
 
                 if (runtc > 0)
                     m_maintenanceWaitEvent.WaitOne(runtc);
 
                 // Optionally warn if a frame takes double the amount of time that it should.
                 if (DebugUpdates
-                    && Util.EnvironmentTickCountSubtract(
-                        m_lastMaintenanceTick, previousMaintenanceTick) > MinMaintenanceTicks * 2)
+                     && Util.EnvironmentTickCountSubtract(
+                         m_lastMaintenanceTick, previousMaintenanceTick) > (int)(MinMaintenanceTime * 1000 * 2))
                     m_log.WarnFormat(
                         "[SCENE]: Maintenance took {0} ms (desired max {1} ms) in {2}",
                         Util.EnvironmentTickCountSubtract(m_lastMaintenanceTick, previousMaintenanceTick),
-                        MinMaintenanceTicks,
+                        MinMaintenanceTime * 1000,
                         RegionInfo.RegionName);
             }
         }
 
-        public override bool Update(int frames)
+        public override void Update(int frames)
         {
             long? endFrame = null;
 
@@ -1825,30 +1713,12 @@ namespace OpenSim.Region.Framework.Scenes
                 endFrame = Frame + frames;
 
             float physicsFPS = 0f;
-<<<<<<< HEAD
-            int previousFrameTick, tmpMS;
 
-            // These variables will be used to save the precise frame time using the
-            // Stopwatch class of Microsoft SDK; the times are recorded at the start
-            // and end of a particular section of code, and then used to calculate
-            // the frame times, which are the sums of the sections for each given name
-            double preciseTotalFrameTime = 0.0;
-            double preciseSimFrameTime = 0.0;
-            double precisePhysicsFrameTime = 0.0;
-            Stopwatch totalFrameStopwatch = new Stopwatch();
-            Stopwatch simFrameStopwatch = new Stopwatch();
-            Stopwatch physicsFrameStopwatch = new Stopwatch();
-
-            // Begin the stopwatch to keep track of the time that the frame
-            // started running to determine how long the frame took to complete
-            totalFrameStopwatch.Start();
-=======
             int tmpMS;
             int previousFrameTick;
             int maintc;
             int sleepMS;
             int framestart;
->>>>>>> avn/ubitvar
 
             while (!m_shuttingDown && ((endFrame == null && Active) || Frame < endFrame))
             {
@@ -1857,11 +1727,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // m_log.DebugFormat("[SCENE]: Processing frame {0} in {1}", Frame, RegionInfo.RegionName);
 
-<<<<<<< HEAD
-                agentMS = eventMS = backupMS = terrainMS = landMS = spareMS = 0;
-=======
                 agentMS = tempOnRezMS = eventMS = backupMS = terrainMS = landMS = 0;
->>>>>>> avn/ubitvar
 
                 try
                 {
@@ -1877,93 +1743,42 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (Frame % m_update_terrain == 0)
                     {
-<<<<<<< HEAD
-                        // At several points inside the code there was a need to
-                        // create a more precise measurement of time elapsed. 
-                        // This led to the addition of variables that have a 
-                        // similar function and thus remain tightly connected to 
-                        // their original counterparts. However, the original 
-                        // code is not receiving comments from our group because 
-                        // we don't feel right modifying the code to that degree 
-                        // at this point in time, the precise values all begin 
-                        // with the keyword precise
-                        tmpMS = Util.EnvironmentTickCount();
-                        simFrameStopwatch.Start();
-                        UpdateTerrain();
-
-                        // Get the simulation frame time that the avatar force 
-                        // input took
-                        simFrameStopwatch.Stop();
-                        preciseSimFrameTime =
-                            simFrameStopwatch.Elapsed.TotalMilliseconds;
-                        terrainMS = Util.EnvironmentTickCountSubtract(tmpMS);
-                    }
-
-                    // At several points inside the code there was a need to
-                    // create a more precise measurement of time elapsed. This
-                    // led to the addition of variables that have a similar
-                    // function and thus remain tightly connected to their
-                    // original counterparts. However, the original code is
-                    // not receiving comments from our group because we don't
-                    // feel right modifying the code to that degree at this
-                    // point in time, the precise values all begin with the
-                    // keyword precise
-=======
                         UpdateTerrain();
                     }
 
                     terrainMS = Util.EnvironmentTickCountSubtract(tmpMS);
->>>>>>> avn/ubitvar
-
                     tmpMS = Util.EnvironmentTickCount();
 
-                    // Begin the stopwatch to track the time to prepare physics
-                    physicsFrameStopwatch.Start();
                     if (PhysicsEnabled && Frame % m_update_physics == 0)
                         m_sceneGraph.UpdatePreparePhysics();
 
-                    // Get the time it took to prepare the physics, this
-                    // would report the most precise time that physics was
-                    // running on the machine and should the physics not be
-                    // enabled will report the time it took to check if physics
-                    // was enabled
-                    physicsFrameStopwatch.Stop();
-                    precisePhysicsFrameTime = physicsFrameStopwatch.Elapsed.TotalMilliseconds;
                     physicsMS2 = Util.EnvironmentTickCountSubtract(tmpMS);
 
                     // Apply any pending avatar force input to the avatar's velocity
                     tmpMS = Util.EnvironmentTickCount();
-                    simFrameStopwatch.Restart();
                     if (Frame % m_update_entitymovement == 0)
                         m_sceneGraph.UpdateScenePresenceMovement();
 
                     // Get the simulation frame time that the avatar force input 
                     // took
-                    simFrameStopwatch.Stop();
-                    preciseSimFrameTime +=
-                    	simFrameStopwatch.Elapsed.TotalMilliseconds;
                     agentMS = Util.EnvironmentTickCountSubtract(tmpMS);
 
                     // Perform the main physics update.  This will do the actual work of moving objects and avatars according to their
                     // velocity
                     tmpMS = Util.EnvironmentTickCount();
-                    physicsFrameStopwatch.Restart();
                     if (Frame % m_update_physics == 0)
                     {
                         if (PhysicsEnabled)
-                            physicsFPS = m_sceneGraph.UpdatePhysics(MinFrameSeconds);
+                            physicsFPS = m_sceneGraph.UpdatePhysics(MinFrameTime);
 
                         if (SynchronizeScene != null)
                             SynchronizeScene(this);
                     }
 
                     // Add the main physics update time to the prepare physics time
-                    physicsFrameStopwatch.Stop();
-                    precisePhysicsFrameTime += physicsFrameStopwatch.Elapsed.TotalMilliseconds;
                     physicsMS = Util.EnvironmentTickCountSubtract(tmpMS);
 
                     // Start the stopwatch for the remainder of the simulation
-                    simFrameStopwatch.Restart();
                     tmpMS = Util.EnvironmentTickCount();
 
                     // Check if any objects have reached their targets
@@ -1980,10 +1795,7 @@ namespace OpenSim.Region.Framework.Scenes
                         m_sceneGraph.UpdatePresences();
 
                     agentMS += Util.EnvironmentTickCountSubtract(tmpMS);
-
-<<<<<<< HEAD
-=======
-    
+  
                     // Delete temp-on-rez stuff
                     if (Frame % m_update_temp_cleaning == 0 && !m_cleaningTemps)
                     {
@@ -1993,7 +1805,6 @@ namespace OpenSim.Region.Framework.Scenes
                         tempOnRezMS = Util.EnvironmentTickCountSubtract(tmpMS);
                     }
     
->>>>>>> avn/ubitvar
                     if (Frame % m_update_events == 0)
                     {
                         tmpMS = Util.EnvironmentTickCount();
@@ -2062,42 +1873,9 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 EventManager.TriggerRegionHeartbeatEnd(this);
-                otherMS = eventMS + backupMS + terrainMS + landMS;
 
-                // Get the elapsed time for the simulation frame
-                simFrameStopwatch.Stop();
-                preciseSimFrameTime +=
-                    simFrameStopwatch.Elapsed.TotalMilliseconds;
+                Watchdog.UpdateThread();
 
-<<<<<<< HEAD
-                if (!UpdateOnTimer)
-                {
-                    Watchdog.UpdateThread();
-
-                    spareMS = MinFrameTicks - Util.EnvironmentTickCountSubtract(m_lastFrameTick);
-
-                    if (spareMS > 0)
-                        m_updateWaitEvent.WaitOne(spareMS);
-                    else
-                        spareMS = 0;
-                }
-                else
-                {
-                    spareMS = Math.Max(0, MinFrameTicks - physicsMS2 - agentMS - physicsMS - otherMS);
-                }
-
-                // Get the total frame time
-                totalFrameStopwatch.Stop();
-                preciseTotalFrameTime =
-                    totalFrameStopwatch.Elapsed.TotalMilliseconds;
-
-                // Restart the stopwatch for the total time of the next frame
-                totalFrameStopwatch.Restart();
-
-                previousFrameTick = m_lastFrameTick;
-                frameMS = Util.EnvironmentTickCountSubtract(m_lastFrameTick);
-                m_lastFrameTick = Util.EnvironmentTickCount();
-=======
                 otherMS = tempOnRezMS + eventMS + backupMS + terrainMS + landMS;
 
                 StatsReporter.AddPhysicsFPS(physicsFPS);
@@ -2125,46 +1903,22 @@ namespace OpenSim.Region.Framework.Scenes
                 frameMS = Util.EnvironmentTickCountSubtract(framestart);
                 StatsReporter.addSleepMS(sleepMS);
                 StatsReporter.addFrameMS(frameMS);
->>>>>>> avn/ubitvar
 
                 // if (Frame%m_update_avatars == 0)
                 //   UpdateInWorldTime();
 
-<<<<<<< HEAD
-                StatsReporter.addFrameMS(frameMS);
-                StatsReporter.addAgentMS(agentMS);
-                StatsReporter.addPhysicsMS(physicsMS + physicsMS2);
-                StatsReporter.addOtherMS(otherMS);
-                StatsReporter.AddSpareMS(spareMS);
-                StatsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
-                StatsReporter.AddScriptMS((int) GetAndResetScriptExecutionTime());
-=======
->>>>>>> avn/ubitvar
-
-                // Send the correct time values to the stats reporter for the
-                // frame times
-                StatsReporter.addFrameTimeMilliseconds(preciseTotalFrameTime,
-                    preciseSimFrameTime, precisePhysicsFrameTime, 0.0);
-
-                // Send the correct number of frames that the physics library
-                // has processed to the stats reporter
-                StatsReporter.addPhysicsFrame(1);
-
-                // Optionally warn if a frame takes double the amount of time that it should.
+          // Optionally warn if a frame takes double the amount of time that it should.
                 if (DebugUpdates
                     && Util.EnvironmentTickCountSubtract(
-                        m_lastFrameTick, previousFrameTick) > MinFrameTicks * 2)
+                        m_lastFrameTick, previousFrameTick) > (int)(MinFrameTime * 1000 * 2))
+
                     m_log.WarnFormat(
                         "[SCENE]: Frame took {0} ms (desired max {1} ms) in {2}",
                         Util.EnvironmentTickCountSubtract(m_lastFrameTick, previousFrameTick),
-                        MinFrameTicks,
+                        MinFrameTime * 1000,
+
                         RegionInfo.RegionName);
             }
-
-            // Finished updating scene frame, so stop the total frame's Stopwatch
-            totalFrameStopwatch.Stop();
-
-            return spareMS >= 0;
         }
 
         /// <summary>
@@ -2629,13 +2383,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (ei.HitTF)
                     {
-<<<<<<< HEAD
-                        pos = ei.ipoint;
-                    }
-=======
                         pos = new Vector3(ei.ipoint.X, ei.ipoint.Y, ei.ipoint.Z);
                     } 
->>>>>>> avn/ubitvar
                     else
                     {
                         // fall back to our stupid functionality
@@ -3013,8 +2762,6 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.Warn("[SCENE]: exception when trying to remove the prim that crossed the border.");
                 }
                 return;
-<<<<<<< HEAD
-=======
             }
 
             if (grp.RootPart.RETURN_AT_EDGE)
@@ -3056,70 +2803,11 @@ namespace OpenSim.Region.Framework.Scenes
                 // Regular region. Just check for region size
                 if (xx < RegionInfo.RegionSizeX && yy < RegionInfo.RegionSizeY )
                     ret = true;
->>>>>>> avn/ubitvar
-            }
-
-            if (grp.RootPart.RETURN_AT_EDGE)
-            {
-<<<<<<< HEAD
-                // We remove the object here
-                try
-                {
-                    List<SceneObjectGroup> objects = new List<SceneObjectGroup>();
-                    objects.Add(grp);
-                    SceneObjectGroup[] objectsArray = objects.ToArray();
-                    returnObjects(objectsArray, UUID.Zero);
-                }
-                catch (Exception)
-                {
-                    m_log.Warn("[SCENE]: exception when trying to return the prim that crossed the border.");
-                }
-                return;
-            }
-
-            if (EntityTransferModule != null)
-                EntityTransferModule.Cross(grp, attemptedPosition, silent);
-        }
-
-        // Simple test to see if a position is in the current region.
-        // This test is mostly used to see if a region crossing is necessary.
-        // Assuming the position is relative to the region so anything outside its bounds.
-        // Return 'true' if position inside region.
-        public bool PositionIsInCurrentRegion(Vector3 pos)
-        {
-            bool ret = false;
-            int xx = (int)Math.Floor(pos.X);
-            int yy = (int)Math.Floor(pos.Y);
-            if (xx < 0 || yy < 0)
-                return false;
-
-            IRegionCombinerModule regionCombinerModule = RequestModuleInterface<IRegionCombinerModule>();
-            if (regionCombinerModule == null)
-            {
-                // Regular region. Just check for region size
-                if (xx < RegionInfo.RegionSizeX && yy < RegionInfo.RegionSizeY)
-                    ret = true;
-            }
-            else
-            {
-                // We're in a mega-region so see if we are still in that larger region
-                ret = regionCombinerModule.PositionIsInMegaregion(this.RegionInfo.RegionID, xx, yy);
             }
 
             return ret;
-
         }
 
-=======
-                // We're in a mega-region so see if we are still in that larger region
-                ret = regionCombinerModule.PositionIsInMegaregion(this.RegionInfo.RegionID, xx, yy);
-            }
-
-            return ret;
-
-        }
-
->>>>>>> avn/ubitvar
         /// <summary>
         /// Called when objects or attachments cross the border, or teleport, between regions.
         /// </summary>
@@ -3141,10 +2829,6 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
 
-<<<<<<< HEAD
-            if (!EntityTransferModule.HandleIncomingSceneObject(newObject, newPosition))
-                return false;
-=======
             // If the user is banned, we won't let any of their objects
             // enter. Period.
             //
@@ -3189,7 +2873,6 @@ namespace OpenSim.Region.Framework.Scenes
                 //if (newObject.RootPart.KeyframeMotion != null)
                 //    newObject.RootPart.KeyframeMotion.UpdateSceneObject(newObject);
             }
->>>>>>> avn/ubitvar
 
             // Do this as late as possible so that listeners have full access to the incoming object
             EventManager.TriggerOnIncomingSceneObject(newObject);
@@ -3286,8 +2969,6 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
-<<<<<<< HEAD
-=======
         private int GetStateSource(SceneObjectGroup sog)
         {
             ScenePresence sp = GetScenePresence(sog.OwnerID);
@@ -3316,7 +2997,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return uac.UserFlags;
             //}
         }
->>>>>>> avn/ubitvar
+
         #endregion
 
         #region Add/Remove Avatar Methods
@@ -3352,15 +3033,10 @@ namespace OpenSim.Region.Framework.Scenes
                 vialogin
                     = (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0
                         || (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0;
-<<<<<<< HEAD
-
-                // CheckHeartbeat();
-
-=======
     
                 CheckHeartbeat();
     
->>>>>>> avn/ubitvar
+
                 sp = GetScenePresence(client.AgentId);
 
                 // XXX: Not sure how good it is to add a new client if a scene presence already exists.  Possibly this
@@ -3370,29 +3046,6 @@ namespace OpenSim.Region.Framework.Scenes
                 if (sp == null)
                 {
                     m_log.DebugFormat(
-<<<<<<< HEAD
-                        "[SCENE]: Adding new child scene presence {0} {1} to scene {2} at pos {3}",
-                        client.Name, client.AgentId, RegionInfo.RegionName, client.StartPos);
-
-                    sp = m_sceneGraph.CreateAndAddChildScenePresence(client, aCircuit.Appearance, type);
-
-                    // We must set this here so that TriggerOnNewClient and TriggerOnClientLogin can determine whether the
-                    // client is for a root or child agent.
-                    // We must also set this before adding the client to the client manager so that an exception later on
-                    // does not leave a client manager entry without the scene agent set, which will cause other code
-                    // to fail since any entry in the client manager should have a ScenePresence
-                    //
-                    // XXX: This may be better set for a new client before that client is added to the client manager.
-                    // But need to know what happens in the case where a ScenePresence is already present (and if this 
-                    // actually occurs).
-                    client.SceneAgent = sp;
-
-                    m_clientManager.Add(client);
-                    SubscribeToClientEvents(client);
-                    m_eventManager.TriggerOnNewPresence(sp);
-
-                    sp.TeleportFlags = (TPFlags)aCircuit.teleportFlags;
-=======
                         "[SCENE]: Adding new child scene presence {0} {1} to scene {2} at pos {3}, tpflags: {4}",
                         client.Name, client.AgentId, RegionInfo.RegionName, client.StartPos,
                         ((TPFlags)aCircuit.teleportFlags).ToString());
@@ -3414,8 +3067,6 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.DebugFormat("[SCENE]: COF for {0} is {1}", client.AgentId, sp.COF);
  */
                     m_eventManager.TriggerOnNewPresence(sp);
-    
->>>>>>> avn/ubitvar
                 }
                 else
                 {
@@ -3424,7 +3075,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // XXX: This may be better set for a new client before that client is added to the client manager.
                     // But need to know what happens in the case where a ScenePresence is already present (and if this 
                     // actually occurs).
-                    client.SceneAgent = sp;
+                    
 
                     m_log.WarnFormat(
                         "[SCENE]: Already found {0} scene presence for {1} in {2} when asked to add new scene presence",
@@ -3432,6 +3083,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     reallyNew = false;
                 }
+				client.SceneAgent = sp;
 
                 // This is currently also being done earlier in NewUserConnection for real users to see if this 
                 // resolves problems where HG agents are occasionally seen by others as "Unknown user" in chat and other
@@ -3452,15 +3104,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_LastLogin = Util.EnvironmentTickCount();
 
             return sp;
-        }
-
-        public string GetAgentHomeURI(UUID agentID)
-        {
-            AgentCircuitData circuit = AuthenticateHandler.GetAgentCircuitData(agentID);
-            if (circuit != null && circuit.ServiceURLs != null && circuit.ServiceURLs.ContainsKey("HomeURI"))
-                return circuit.ServiceURLs["HomeURI"].ToString();
-            else
-                return null;
         }
 
         /// <summary>
@@ -3899,16 +3542,14 @@ namespace OpenSim.Region.Framework.Scenes
             if (target != null && target2 != null)
             {
                 Vector3 direction = Vector3.Normalize(RayEnd - RayStart);
-                Vector3 AXOrigin = RayStart;
-                Vector3 AXdirection = direction;
-
+         
                 pos = target2.AbsolutePosition;
                 //m_log.Info("[OBJECT_REZ]: TargetPos: " + pos.ToString() + ", RayStart: " + RayStart.ToString() + ", RayEnd: " + RayEnd.ToString() + ", Volume: " + Util.GetDistanceTo(RayStart,RayEnd).ToString() + ", mag1: " + Util.GetMagnitude(RayStart).ToString() + ", mag2: " + Util.GetMagnitude(RayEnd).ToString());
 
                 // TODO: Raytrace better here
 
                 //EntityIntersection ei = m_sceneGraph.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection));
-                Ray NewRay = new Ray(AXOrigin, AXdirection);
+                Ray NewRay = new Ray(RayStart,direction);
 
                 // Ray Trace against target here
                 EntityIntersection ei = target2.TestIntersectionOBB(NewRay, Quaternion.Identity, frontFacesOnly, CopyCenters);
@@ -4010,13 +3651,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // TODO: Can we now remove this lock?
-<<<<<<< HEAD
-            lock (acd)
-            {
-=======
             lock (m_removeClientPrivLock)
             {    
->>>>>>> avn/ubitvar
                 bool isChildAgent = false;
 
                 ScenePresence avatar = GetScenePresence(agentID);
@@ -4060,13 +3696,8 @@ namespace OpenSim.Region.Framework.Scenes
                     // TODO: We shouldn't use closeChildAgents here - it's being used by the NPC module to stop
                     // unnecessary operations.  This should go away once NPCs have no accompanying IClientAPI
                     if (closeChildAgents && CapsModule != null)
-<<<<<<< HEAD
-                        CapsModule.RemoveCaps(agentID);
-
-=======
                         CapsModule.RemoveCaps(agentID, avatar.ControllingClient.CircuitCode);
     
->>>>>>> avn/ubitvar
                     if (closeChildAgents && !isChildAgent)
                     {
                         List<ulong> regions = avatar.KnownRegionHandles;
@@ -4079,12 +3710,8 @@ namespace OpenSim.Region.Framework.Scenes
                     m_eventManager.TriggerClientClosed(agentID, this);
 //                    m_log.Debug("[Scene]TriggerClientClosed done");
                     m_eventManager.TriggerOnRemovePresence(agentID);
-<<<<<<< HEAD
-
-=======
 //                    m_log.Debug("[Scene]TriggerOnRemovePresence done");
     
->>>>>>> avn/ubitvar
                     if (!isChildAgent)
                     {
                         if (AttachmentsModule != null)
@@ -4228,14 +3855,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// or other applications where a full grid/Hypergrid presence may not be required.</param>
         /// <returns>True if the region accepts this agent.  False if it does not.  False will 
         /// also return a reason.</returns>
-<<<<<<< HEAD
-        public bool NewUserConnection(AgentCircuitData acd, uint teleportFlags, GridRegion source, out string reason, bool requirePresenceLookup)
-=======
         /// 
         private object m_newUserConnLock = new object();
 
-        public bool NewUserConnection(AgentCircuitData acd, uint teleportFlags, out string reason, bool requirePresenceLookup)
->>>>>>> avn/ubitvar
+        public bool NewUserConnection(AgentCircuitData acd, uint teleportFlags, GridRegion source, out string reason, bool requirePresenceLookup)
         {
             bool vialogin = ((teleportFlags & (uint)TPFlags.ViaLogin) != 0 ||
                 (teleportFlags & (uint)TPFlags.ViaHGLogin) != 0);
@@ -4507,13 +4130,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m_log.DebugFormat(
                             "[SCENE]: Adjusting known seeds for existing agent {0} in {1}",
-<<<<<<< HEAD
-                            acd.AgentID, RegionInfo.RegionName);
-
-                        sp.AdjustKnownSeeds();
-=======
                             acd.AgentID, RegionInfo.RegionName);   
->>>>>>> avn/ubitvar
 
                         if (CapsModule != null)
                         {
@@ -4646,21 +4263,13 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (posX < 0)
                 posX = 0;
-<<<<<<< HEAD
-            else if (posX >= (float)RegionInfo.RegionSizeX)
-                posX = (float)RegionInfo.RegionSizeX - 0.001f;
-            if (posY < 0)
-                posY = 0;
-            else if (posY >= (float)RegionInfo.RegionSizeY)
-                posY = (float)RegionInfo.RegionSizeY - 0.001f;
-=======
+
             else if (posX >= RegionInfo.RegionSizeX)
                 posX = RegionInfo.RegionSizeX - 0.5f;
             if (posY < 0)
                 posY = 0;
             else if (posY >= RegionInfo.RegionSizeY)
                 posY = RegionInfo.RegionSizeY - 0.5f;
->>>>>>> avn/ubitvar
 
             reason = String.Empty;
             if (Permissions.IsGod(agentID))
@@ -5249,15 +4858,11 @@ namespace OpenSim.Region.Framework.Scenes
                 sp.LifecycleState = ScenePresenceState.Removing;
             }
 
-<<<<<<< HEAD
-            sp.ControllingClient.Close(force);
-=======
             if (sp != null)
             {
                 sp.ControllingClient.Close(force, force);
                 return true;
             }
->>>>>>> avn/ubitvar
 
             return true;
         }
@@ -5862,9 +5467,7 @@ namespace OpenSim.Region.Framework.Scenes
             // 5 = We have seen a new user enter within the past 4 minutes
             // which can be seen as positive confirmation of sim health
             //
-<<<<<<< HEAD
             int health = 1; // Start at 1, means we're up
-=======
 
             flags = 0;
             message = String.Empty;
@@ -5878,9 +5481,6 @@ namespace OpenSim.Region.Framework.Scenes
                 // to get here, we must be able to accept http connections
                 return 0;
             }
-
-            int health=1; // Start at 1, means we're up
->>>>>>> avn/ubitvar
 
             if ((Util.EnvironmentTickCountSubtract(m_lastFrameTick)) < 1000)
             {
@@ -6176,13 +5776,7 @@ Environment.Exit(1);
             //Go to the edge, this happens in teleporting to a region with no available parcels
             Vector3 nearestRegionEdgePoint = GetNearestRegionEdgePosition(avatar);
 
-<<<<<<< HEAD
-            //m_log.Debug("They are really in a place they don't belong, sending them to: " + nearestRegionEdgePoint.ToString());
-
-=======
             //Debug.WriteLine("They are really in a place they don't belong, sending them to: " + nearestRegionEdgePoint.ToString());
-            
->>>>>>> avn/ubitvar
             return nearestRegionEdgePoint;
         }
 
@@ -6513,11 +6107,7 @@ Environment.Exit(1);
         /// <param name='position'></param>
         /// <param name='reason'></param>
         /// <returns></returns>
-<<<<<<< HEAD
         public bool QueryAccess(UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, List<UUID> features, out string reason)
-=======
-        public bool QueryAccess(UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, out string reason)
->>>>>>> avn/ubitvar
         {
             reason = string.Empty;
 
@@ -6527,14 +6117,8 @@ Environment.Exit(1);
                 return true;
             }
 
-<<<<<<< HEAD
             if (!AllowAvatarCrossing && !viaTeleport)
                 return false;
-=======
-
-//            if (!AllowAvatarCrossing && !viaTeleport)
-//                return false;
->>>>>>> avn/ubitvar
 
             // FIXME: Root agent count is currently known to be inaccurate.  This forces a recount before we check.
             // However, the long term fix is to make sure root agent count is always accurate.

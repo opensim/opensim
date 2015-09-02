@@ -214,13 +214,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             UUID destination = c.Destination;
             Vector3 fromPos = c.Position;
             Vector3 regionPos = new Vector3(scene.RegionInfo.WorldLocX, scene.RegionInfo.WorldLocY, 0);
-<<<<<<< HEAD
-=======
 
             bool checkParcelHide = false;
             UUID sourceParcelID = UUID.Zero;
             Vector3 hidePos = fromPos;
->>>>>>> avn/ubitvar
 
             if (c.Channel == DEBUG_CHANNEL) c.Type = ChatTypeEnum.DebugChannel;
 
@@ -377,27 +374,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             // m_log.DebugFormat("[CHAT] Broadcast: fromID {0} fromName {1}, cType {2}, sType {3}", fromID, fromName, cType, sourceType);
             HashSet<UUID> receiverIDs = new HashSet<UUID>();
             
-<<<<<<< HEAD
-            ((Scene)c.Scene).ForEachRootClient(
-                delegate(IClientAPI client)
-                {   
-                    // don't forward SayOwner chat from objects to
-                    // non-owner agents
-                    if ((c.Type == ChatTypeEnum.Owner) &&
-                        (null != c.SenderObject) &&
-                        (((SceneObjectPart)c.SenderObject).OwnerID != client.AgentId))
-                        return;
-
-                    client.SendChatMessage(
-                        c.Message, (byte)cType, CenterOfRegion, fromName, fromID, ownerID,
-                        (byte)sourceType, (byte)ChatAudibleLevel.Fully);
-
-                    receiverIDs.Add(client.AgentId);
-                });
-            
-            (c.Scene as Scene).EventManager.TriggerOnChatToClients(
-                fromID, receiverIDs, c.Message, cType, CenterOfRegion, fromName, sourceType, ChatAudibleLevel.Fully);
-=======
             if (c.Scene != null)
             {
                 ((Scene)c.Scene).ForEachRootClient
@@ -419,7 +395,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 (c.Scene as Scene).EventManager.TriggerOnChatToClients(
                     fromID, receiverIDs, c.Message, cType, CenterOfRegion, fromName, sourceType, ChatAudibleLevel.Fully);
              }
->>>>>>> avn/ubitvar
         }
 
         /// <summary>

@@ -131,16 +131,6 @@ namespace OpenSim.Services.MapImageService
                     return false;
                 }
             }
-<<<<<<< HEAD
-
-            return UpdateMultiResolutionFilesAsync(x, y, out reason);
-        }
-
-        public bool RemoveMapTile(int x, int y, out string reason)
-        {
-            reason = String.Empty;
-            string fileName = GetFileName(1, x, y);
-=======
 
             return UpdateMultiResolutionFiles(x, y, scopeID, out reason);
         }
@@ -149,40 +139,25 @@ namespace OpenSim.Services.MapImageService
         {
             reason = String.Empty;
             string fileName = GetFileName(1, x, y, scopeID);
->>>>>>> avn/ubitvar
 
             lock (m_Sync)
             {
                 try
-<<<<<<< HEAD
                 {
                     File.Delete(fileName);
                 }
                 catch (Exception e)
                 {
-=======
-                {
-                    File.Delete(fileName);
-                }
-                catch (Exception e)
-                {
->>>>>>> avn/ubitvar
+
                     m_log.WarnFormat("[MAP IMAGE SERVICE]: Unable to save delete file {0}: {1}", fileName, e);
                     reason = e.Message;
                     return false;
                 }
             }
-<<<<<<< HEAD
-
-            return UpdateMultiResolutionFilesAsync(x, y, out reason);
-        }
-
-=======
-
             return UpdateMultiResolutionFiles(x, y, scopeID, out reason);
         }
 
->>>>>>> avn/ubitvar
+
         // When large varregions start up, they can send piles of new map tiles. This causes
         //    this multi-resolution routine to be called a zillion times an causes much CPU
         //    time to be spent creating multi-resolution tiles that will be replaced when
@@ -191,25 +166,6 @@ namespace OpenSim.Services.MapImageService
         {
             public int xx;
             public int yy;
-<<<<<<< HEAD
-            public mapToMultiRez(int pX, int pY)
-            {
-                xx = pX;
-                yy = pY;
-            }
-        };
-        private Queue<mapToMultiRez> multiRezToBuild = new Queue<mapToMultiRez>();
-        private bool UpdateMultiResolutionFilesAsync(int x, int y, out string reason)
-        {
-            reason = String.Empty;
-            lock (multiRezToBuild)
-            {
-                // m_log.DebugFormat("{0} UpdateMultiResolutionFilesAsync: scheduling update for <{1},{2}>", LogHeader, x, y);
-                multiRezToBuild.Enqueue(new mapToMultiRez(x, y));
-                if (multiRezToBuild.Count == 1)
-                    Util.FireAndForget(
-                        DoUpdateMultiResolutionFilesAsync, null, "MapImageService.DoUpdateMultiResolutionFilesAsync");
-=======
             public UUID scopeID;
             public mapToMultiRez(int pX, int pY, UUID pscopeID)
             {
@@ -231,7 +187,6 @@ namespace OpenSim.Services.MapImageService
                 if (multiRezToBuild.Count == 1)
                     Util.FireAndForget(
                         DoUpdateMultiResolutionFilesAsync);
->>>>>>> avn/ubitvar
             }
 
             return true;
@@ -239,15 +194,8 @@ namespace OpenSim.Services.MapImageService
 
         private void DoUpdateMultiResolutionFilesAsync(object o)
         {
-<<<<<<< HEAD
-            // This sleep causes the FireAndForget thread to be different than the invocation thread.
-            // It also allows other tiles to be uploaded so the multi-rez images are more likely
-            //     to be correct.
-            Thread.Sleep(1 * 1000);
-=======
             // let acumulate large region tiles
             Thread.Sleep(60 * 1000); // large regions take time to upload tiles
->>>>>>> avn/ubitvar
 
             while (multiRezToBuild.Count > 0)
             {
@@ -261,35 +209,23 @@ namespace OpenSim.Services.MapImageService
                 {
                     int x = toMultiRez.xx;
                     int y = toMultiRez.yy;
-<<<<<<< HEAD
-                    // m_log.DebugFormat("{0} DoUpdateMultiResolutionFilesAsync: doing build for <{1},{2}>", LogHeader, x, y);
-
-=======
                     UUID scopeID = toMultiRez.scopeID;
                     // m_log.DebugFormat("{0} DoUpdateMultiResolutionFilesAsync: doing build for <{1},{2}>", LogHeader, x, y);
 
                     int width = 1;
->>>>>>> avn/ubitvar
+
                     // Stitch seven more aggregate tiles together
                     for (uint zoomLevel = 2; zoomLevel <= ZOOM_LEVELS; zoomLevel++)
                     {
                         // Calculate the width (in full resolution tiles) and bottom-left
                         // corner of the current zoom level
-<<<<<<< HEAD
-                        int width = (int)Math.Pow(2, (double)(zoomLevel - 1));
-=======
                         width *= 2;
->>>>>>> avn/ubitvar
                         int x1 = x - (x % width);
                         int y1 = y - (y % width);
 
                         lock (m_Sync)   // must lock the reading and writing of the maptile files
                         {
-<<<<<<< HEAD
-                            if (!CreateTile(zoomLevel, x1, y1))
-=======
                             if (!CreateTile(zoomLevel, x1, y1, scopeID))
->>>>>>> avn/ubitvar
                             {
                                 m_log.WarnFormat("[MAP IMAGE SERVICE]: Unable to create tile for {0},{1} at zoom level {1}", x, y, zoomLevel);
                                 return;
@@ -298,10 +234,6 @@ namespace OpenSim.Services.MapImageService
                     }
                 }
             }
-<<<<<<< HEAD
-
-=======
->>>>>>> avn/ubitvar
             return;
         }
 

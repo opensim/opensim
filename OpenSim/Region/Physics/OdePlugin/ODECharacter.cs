@@ -1251,12 +1251,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override Vector3 PIDTarget { set { return; } }
         public override bool PIDActive 
         { 
-<<<<<<< HEAD
             get { return false; }
-=======
-            // os version
-            // get { return false; }
->>>>>>> avn/ubitvar
             set { return; } 
         }
         public override float PIDTau { set { return; } }

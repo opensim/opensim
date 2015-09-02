@@ -224,7 +224,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ConsoleDisplayList cdl = new ConsoleDisplayList();
             cdl.AddRow("Adaptive throttles", m_udpServer.ThrottleRates.AdaptiveThrottlesEnabled);
 
-            long maxSceneDripRate = m_udpServer.Throttle.MaxDripRate;
+            long maxSceneDripRate = (long)m_udpServer.Throttle.MaxDripRate;
             cdl.AddRow(
                 "Max scene throttle", 
                 maxSceneDripRate != 0 ? string.Format("{0} kbps", maxSceneDripRate * 8 / 1000) : "unset");
@@ -505,7 +505,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_console.OutputFormat("Debug settings for {0}", m_udpServer.Scene.Name);
             ConsoleDisplayList cdl = new ConsoleDisplayList();
 
-            long maxSceneDripRate = m_udpServer.Throttle.MaxDripRate;
+            long maxSceneDripRate = (long)m_udpServer.Throttle.MaxDripRate;
             cdl.AddRow(
                 "max-scene-throttle", 
                 maxSceneDripRate != 0 ? string.Format("{0} kbps", maxSceneDripRate * 8 / 1000) : "unset");

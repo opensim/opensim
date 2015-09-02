@@ -1928,7 +1928,7 @@ namespace OpenSim.Region.Framework.Scenes
                         SceneObjectGroupsByLocalPartID[part.LocalId] = parentGroup;
                 }
 */
-                parentGroup.AdjustChildPrimPermissions();
+                parentGroup.AdjustChildPrimPermissions(false);
                 parentGroup.HasGroupChanged = true;
                 parentGroup.ProcessBackup(m_parentScene.SimulationDataService, true);
                 parentGroup.ScheduleGroupForFullUpdate();
@@ -2066,7 +2066,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // return unless the root is deleted. This will remove them
                     // from the database. They will be rewritten immediately,
                     // minus the rows for the unlinked child prims.
-                    g.AdjustChildPrimPermissions();
+                    g.AdjustChildPrimPermissions(false);
                     m_parentScene.SimulationDataService.RemoveObject(g.UUID, m_parentScene.RegionInfo.RegionID);
                     g.TriggerScriptChangedEvent(Changed.LINK);
                     g.HasGroupChanged = true; // Persist
@@ -2154,13 +2154,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_parentScene.Permissions.CanDuplicateObject(
                     original.PrimCount, original.UUID, AgentID, original.AbsolutePosition))
                 {
-<<<<<<< HEAD
-                    m_log.WarnFormat(
-                        "[SCENEGRAPH]: Attempt to duplicate nonexistent prim id {0} by {1}", originalPrimID, AgentID);
-=======
                     SceneObjectGroup copy = original.Copy(true);
                     copy.AbsolutePosition = copy.AbsolutePosition + offset;
->>>>>>> avn/ubitvar
 
                     if (original.OwnerID != AgentID)
                     {
@@ -2197,63 +2192,12 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // PROBABLE END OF FIXME
 
-<<<<<<< HEAD
-                // FIXME: This section needs to be refactored so that it just calls AddSceneObject()
-                Entities.Add(copy);
-                
-                lock (SceneObjectGroupsByFullID)
-                    SceneObjectGroupsByFullID[copy.UUID] = copy;
-                
-                SceneObjectPart[] children = copy.Parts;
-                
-                lock (SceneObjectGroupsByFullPartID)
-                {
-                    SceneObjectGroupsByFullPartID[copy.UUID] = copy;
-                    foreach (SceneObjectPart part in children)
-                        SceneObjectGroupsByFullPartID[part.UUID] = copy;
-                }
-    
-                lock (SceneObjectGroupsByLocalPartID)
-                {
-                    SceneObjectGroupsByLocalPartID[copy.LocalId] = copy;
-                    foreach (SceneObjectPart part in children)
-                        SceneObjectGroupsByLocalPartID[part.LocalId] = copy;
-                }   
-                // PROBABLE END OF FIXME
-
-                // Since we copy from a source group that is in selected
-                // state, but the copy is shown deselected in the viewer,
-                // We need to clear the selection flag here, else that
-                // prim never gets persisted at all. The client doesn't
-                // think it's selected, so it will never send a deselect...
-                copy.IsSelected = false;
-
-                m_numTotalPrim += copy.Parts.Length;
-
-                // Go through all parts (primitives and meshes) of this Scene Object
-                foreach (SceneObjectPart part in copy.Parts)
-                {
-                    // Keep track of the total number of meshes or geometric primitives now in the scene;
-                    // determine which object this is based on its primitive type: sculpted (sculpt) prim refers to
-                    // a mesh and all other prims (i.e. box, sphere, etc) are geometric primitives
-                    if (part.GetPrimType() == PrimType.SCULPT)
-                        m_numMesh++;
-                    else
-                        m_numPrim++;
-                }
-
-                if (rot != Quaternion.Identity)
-                {
-                    copy.UpdateGroupRotationR(rot);
-                }
-=======
                     // Since we copy from a source group that is in selected
                     // state, but the copy is shown deselected in the viewer,
                     // We need to clear the selection flag here, else that
                     // prim never gets persisted at all. The client doesn't
                     // think it's selected, so it will never send a deselect...
                     copy.IsSelected = false;
->>>>>>> avn/ubitvar
 
                     m_numPrim += copy.Parts.Length;
 
