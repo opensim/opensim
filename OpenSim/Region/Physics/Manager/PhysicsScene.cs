@@ -180,11 +180,7 @@ namespace OpenSim.Region.Physics.Manager
         public virtual PhysicsActor AddAvatar(
             uint localID, string avName, Vector3 position, Vector3 size, bool isFlying)
         {
-            PhysicsActor ret = AddAvatar(avName, position, Vector3.Zero, size, isFlying);
-
-            if (ret != null)
-                ret.LocalID = localID;
-
+            PhysicsActor ret = AddAvatar(localID, avName, position, Vector3.Zero, size, isFlying);             
             return ret;
         }
 
