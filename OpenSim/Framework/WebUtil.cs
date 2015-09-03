@@ -86,7 +86,7 @@ namespace OpenSim.Framework
         /// Number of milliseconds a call can take before it is considered
         /// a "long" call for warning & debugging purposes
         /// </summary>
-        public const int LongCallTime = 500;
+        public const int LongCallTime = 3000;
 
         /// <summary>
         /// The maximum length of any data logged because of a long request time.
@@ -418,7 +418,7 @@ namespace OpenSim.Framework
         /// </summary>
         public static OSDMap PostToService(string url, NameValueCollection data)
         {
-            return ServiceFormRequest(url,data, 20000);
+            return ServiceFormRequest(url,data, 30000);
         }
         
         public static OSDMap ServiceFormRequest(string url, NameValueCollection data, int timeout)
@@ -808,7 +808,7 @@ namespace OpenSim.Framework
         /// <param name="requestUrl"></param>
         /// <param name="obj"></param>
         /// <param name="pTimeout">
-        /// Request timeout in milliseconds.  Timeout.Infinite indicates no timeout.  If 0 is passed then the default HttpWebRequest timeout is used (100 seconds)
+        /// Request timeout in seconds.  Timeout.Infinite indicates no timeout.  If 0 is passed then the default HttpWebRequest timeout is used (100 seconds)
         /// </param>
         /// <param name="maxConnections"></param>
         /// <returns>
@@ -877,7 +877,7 @@ namespace OpenSim.Framework
                             requestStream.Write(data, 0, length);
 
                         // capture how much time was spent writing
-//                        tickdata = Util.EnvironmentTickCountSubtract(tickstart);
+                        tickdata = Util.EnvironmentTickCountSubtract(tickstart);
 
                         request.BeginGetResponse(delegate(IAsyncResult ar)
                         {
@@ -992,9 +992,9 @@ namespace OpenSim.Framework
                 }
                 else if (WebUtil.DebugLevel >= 4)
                 {
-                    m_log.DebugFormat(
-                        "[WEB UTIL]: HTTP OUT {0} took {1}ms",
-                        reqnum, tickdiff);
+                    m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} took {1}ms, {2}ms writing",
+
+                        reqnum, tickdiff, tickdata);
                 }
             }
             finally
@@ -1054,8 +1054,6 @@ namespace OpenSim.Framework
                     {
                         writer.Write(obj);
                         writer.Flush();
-                        if (WebUtil.DebugLevel >= 5)
-                            WebUtil.LogOutgoingDetail(buffer);
                     }
 
                     length = (int)obj.Length;
@@ -1248,7 +1246,7 @@ namespace OpenSim.Framework
                 auth.AddAuthorization(ht.Headers);
 
             if (pTimeout != 0)
-                ht.Timeout = pTimeout;
+                request.Timeout = pTimeout * 1000;
 
             if (maxConnections > 0 && ht.ServicePoint.ConnectionLimit < maxConnections)
                 ht.ServicePoint.ConnectionLimit = maxConnections;

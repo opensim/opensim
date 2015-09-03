@@ -83,7 +83,7 @@ namespace OpenSim.Framework.Console
             = "To enter an argument that contains spaces, surround the argument with double quotes.\nFor example, show object name \"My long object name\"\n";
 
         public const string ItemHelpText
-= @"For more information, type 'help' to get a list of all commands, 
+= @"For more information, type 'help ' to get a list of all commands, 
   or type help <item>' where <item> is one of the following:";
 
         /// <value>

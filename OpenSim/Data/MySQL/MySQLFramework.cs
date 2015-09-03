@@ -60,31 +60,30 @@ namespace OpenSim.Data.MySQL
         protected int ExecuteNonQuery(MySqlCommand cmd)
         {
             lock (m_dbLock)
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
-                dbcon.Open();
-                cmd.Connection = dbcon;
-
-                try
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
-                    dbcon.Open();
-                    cmd.Connection = dbcon;
-
                     try
                     {
-                        return cmd.ExecuteNonQuery();
+                        dbcon.Open();
+                        cmd.Connection = dbcon;
+
+                        try
+                        {
+                            return cmd.ExecuteNonQuery();
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.Error(e.Message, e);
+                            m_log.Error(Environment.StackTrace.ToString());
+                            return 0;
+                        }
                     }
                     catch (Exception e)
                     {
                         m_log.Error(e.Message, e);
-                        m_log.Error(Environment.StackTrace.ToString());
                         return 0;
                     }
-                }
-                catch (Exception e)
-                {
-                    m_log.Error(e.Message, e);
-                    return 0;
                 }
             }
         }

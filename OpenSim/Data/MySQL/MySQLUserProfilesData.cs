@@ -914,7 +914,6 @@ namespace OpenSim.Data.MySQL
                     using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?Id", pref.UserId.ToString());
-
                         using (MySqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.HasRows)

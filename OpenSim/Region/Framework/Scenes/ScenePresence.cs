@@ -873,13 +873,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 uint x, y;
                 Util.RegionHandleToRegionLoc(handle, out x, out y);
-<<<<<<< HEAD
-
-                if (Util.IsOutsideView(DrawDistance, x, Scene.RegionInfo.RegionLocX, y, Scene.RegionInfo.RegionLocY))
-=======
-no information to check this
 //                if (Util.IsOutsideView(DrawDistance, x, Scene.RegionInfo.RegionLocX, y, Scene.RegionInfo.RegionLocY,))
->>>>>>> avn/ubitvar
                 {
                     old.Add(handle);
                 }
@@ -1158,6 +1152,8 @@ no information to check this
                 {
                     IsLoggingIn = false;
                 }
+
+                IsChildAgent = false;
             }
 
             m_log.DebugFormat("[MakeRootAgent] out lock: {0}ms", Util.EnvironmentTickCountSubtract(ts));
@@ -1172,9 +1168,7 @@ no information to check this
                 Grouptitle = gm.GetGroupTitle(m_uuid);
 
 
-            AgentCircuitData aCircuit = m_scene.AuthenticateHandler.GetAgentCircuitData(ControllingClient.CircuitCode);
-            uint teleportFlags = (aCircuit == null) ? 0 : aCircuit.teleportFlags;
-            if ((teleportFlags & (uint)TeleportFlags.ViaHGLogin) != 0)
+            if ((m_teleportFlags & TeleportFlags.ViaHGLogin) != 0)
             {
                 // The avatar is arriving from another grid. This means that we may have changed the
                 // avatar's name to or from the special Hypergrid format ("First.Last @grid.example.com").
@@ -2031,8 +2025,8 @@ no information to check this
                 if (!IsChildAgent && openChildAgents)
                 {
                     IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
-                    if (friendsModule != null)
-                        friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
+//                    if (friendsModule != null)
+//                        friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
 
                     m_log.DebugFormat("[CompleteMovement] friendsModule: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
@@ -2329,9 +2323,7 @@ no information to check this
 
                             try
                             {
-                                // Don't slide against ground when crouching if camera is panned around avatar
-                                if (Flying || DCF != Dir_ControlFlags.DIR_CONTROL_FLAG_DOWN)
-                                    agent_control_v3 += Dir_Vectors[i];
+                                agent_control_v3 += Dir_Vectors[i];
                                 //m_log.DebugFormat("[Motion]: {0}, {1}",i, dirVectors[i]);
                             }
                             catch (IndexOutOfRangeException)
@@ -2750,44 +2742,6 @@ no information to check this
                 UUID target_regionID = target_region.RegionID;             
                 SceneManager.Instance.TryGetScene(target_region.RegionID, out targetScene);
             }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
             float terrainHeight = (float)targetScene.Heightmap[(int)(pos.X % regionSize.X), (int)(pos.Y % regionSize.Y)];
             // dont try to land underground

@@ -502,7 +502,7 @@ namespace OpenSim.Region.Framework.Scenes
                 sb[22].StatID = (uint)Stats.SimSleepMs;
                 sb[22].StatValue = sleeptime;
 
-                for (int i = 0; i < m_statisticArraySize; i++)
+                for (int i = 0; i < 23; i++)
                 {
                     lastReportedSimStats[i] = sb[i].StatValue;
                 }

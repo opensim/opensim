@@ -76,7 +76,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             llsdSimInfo.Add("Handle", new OSDBinary(ulongToByteArray(handle)));
             llsdSimInfo.Add("IP", new OSDBinary(endPoint.Address.GetAddressBytes()));
-            llsdSimInfo.Add("Port", new OSDInteger(endPoint.Port));
+            llsdSimInfo.Add("Port", OSD.FromInteger(endPoint.Port));
             llsdSimInfo.Add("RegionSizeX", OSD.FromUInteger((uint)regionSizeX));
             llsdSimInfo.Add("RegionSizeY", OSD.FromUInteger((uint)regionSizeY));
 

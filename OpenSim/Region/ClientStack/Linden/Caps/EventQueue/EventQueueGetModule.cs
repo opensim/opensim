@@ -231,18 +231,12 @@ namespace OpenSim.Region.ClientStack.Linden
                     lock (queue)
                         queue.Enqueue(ev);
                 }
-                else if (DebugLevel > 0)
+                else
                 {
-                    ScenePresence sp = m_scene.GetScenePresence(avatarID);
-
-                    // This assumes that an NPC should never have a queue.
-                    if (sp != null && sp.PresenceType != PresenceType.Npc)
-                    {
                         OSDMap evMap = (OSDMap)ev;
                         m_log.WarnFormat(
-                            "[EVENTQUEUE]: (Enqueue) No queue found for agent {0} {1} when placing message {2} in region {3}", 
-                            sp.Name, sp.UUID, evMap["message"], m_scene.Name);
-                    }
+                            "[EVENTQUEUE]: (Enqueue) No queue found for agent {0} when placing message {1} in region {2}",
+                            avatarID, evMap["message"], m_scene.Name);
                 }
             } 
             catch (NullReferenceException e)

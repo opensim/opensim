@@ -3864,6 +3864,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public void SendEntityUpdate(ISceneEntity entity, PrimUpdateFlags updateFlags)
         {
+/*
             if (entity.UUID == m_agentId && !updateFlags.HasFlag(PrimUpdateFlags.FullUpdate))
             {
                 ImprovedTerseObjectUpdatePacket packet
@@ -3874,26 +3875,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
                 packet.ObjectData[0] = CreateImprovedTerseBlock(entity, false);
                 OutPacket(packet, ThrottleOutPacketType.Unknown, true);
+                return;
             }
-
-            else if (entity is SceneObjectPart)
+*/
+            if (entity is SceneObjectPart)
             {
                 SceneObjectPart e = (SceneObjectPart)entity;
                 SceneObjectGroup g = e.ParentGroup;
                 if (g.HasPrivateAttachmentPoint && g.OwnerID != AgentId)
-                        return; // Don't send updates for other people's HUDs
+                    return; // Don't send updates for other people's HUDs
             }
 
-            else
-            {
-                //double priority = m_prioritizer.GetUpdatePriority(this, entity);
-                uint priority = m_prioritizer.GetUpdatePriority(this, entity);
+            //double priority = m_prioritizer.GetUpdatePriority(this, entity);
+            uint priority = m_prioritizer.GetUpdatePriority(this, entity);
 
-                lock (m_entityUpdates.SyncRoot)
-                    m_entityUpdates.Enqueue(priority, new EntityUpdate(entity, updateFlags, m_scene.TimeDilation));
-            }
+            lock (m_entityUpdates.SyncRoot)
+                m_entityUpdates.Enqueue(priority, new EntityUpdate(entity, updateFlags, m_scene.TimeDilation));
         }
-
 
         /// <summary>
         /// Requeue an EntityUpdate when it was not acknowledged by the client. 

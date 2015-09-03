@@ -44,25 +44,6 @@ namespace OpenSim.Framework.Servers.HttpServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        /// <summary>
-        /// Is the poll service request manager running?
-        /// </summary>
-        /// <remarks>
-        /// Can be running either synchronously or asynchronously
-        /// </remarks>
-        public bool IsRunning { get; private set; }
-
-        /// <summary>
-        /// Is the poll service performing responses asynchronously (with its own threads) or synchronously (via
-        /// external calls)?
-        /// </summary>
-        public bool PerformResponsesAsync { get; private set; }
-
-        /// <summary>
-        /// Number of responses actually processed and sent to viewer (or aborted due to error).
-        /// </summary>
-        public int ResponsesProcessed { get; private set; }
-
         private readonly BaseHttpServer m_server;
 
         private Dictionary<PollServiceHttpRequest, Queue<PollServiceHttpRequest>> m_bycontext;
@@ -74,7 +55,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         private Thread[] m_workerThreads;
         private Thread m_retrysThread;
 
-        private bool m_running = true;
+        private bool m_running = false;
         private int slowCount = 0;
 
         private SmartThreadPool m_threadPool;
@@ -84,37 +65,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             BaseHttpServer pSrv, bool performResponsesAsync, uint pWorkerThreadCount, int pTimeout)
         {
             m_server = pSrv;
-            PerformResponsesAsync = performResponsesAsync;
             m_WorkerThreadCount = pWorkerThreadCount;
             m_workerThreads = new Thread[m_WorkerThreadCount];
 
-/*
-            StatsManager.RegisterStat(
-                new Stat(
-                    "QueuedPollResponses",
-                    "Number of poll responses queued for processing.",
-                    "",
-                    "",
-                    "httpserver",
-                    m_server.Port.ToString(),
-                    StatType.Pull,
-                    MeasuresOfInterest.AverageChangeOverTime,
-                    stat => stat.Value = m_requests.Count(),
-                    StatVerbosity.Debug));
-
-            StatsManager.RegisterStat(
-                new Stat(
-                    "ProcessedPollResponses",
-                    "Number of poll responses processed.",
-                    "",
-                    "",
-                    "httpserver",
-                    m_server.Port.ToString(),
-                    StatType.Pull,
-                    MeasuresOfInterest.AverageChangeOverTime,
-                    stat => stat.Value = ResponsesProcessed,
-                    StatVerbosity.Debug));
-*/
             PollServiceHttpRequestComparer preqCp = new PollServiceHttpRequestComparer();
             m_bycontext = new Dictionary<PollServiceHttpRequest, Queue<PollServiceHttpRequest>>(preqCp);
 
@@ -127,10 +80,12 @@ namespace OpenSim.Framework.Servers.HttpServer
             startInfo.ThreadPoolName = "PoolService";
 
             m_threadPool = new SmartThreadPool(startInfo);
+		
         }
 
         public void Start()
         {
+            m_running = true;
             m_threadPool.Start();
             //startup worker threads
             for (uint i = 0; i < m_WorkerThreadCount; i++)
@@ -154,12 +109,13 @@ namespace OpenSim.Framework.Servers.HttpServer
                 true,
                 null,
                 1000 * 60 * 10);
+				
 
         }
 
         private void ReQueueEvent(PollServiceHttpRequest req)
         {
-            if (IsRunning)
+            if (m_running)
             {
                 lock (m_retryRequests)
                     m_retryRequests.Enqueue(req);
@@ -207,7 +163,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void EnqueueInt(PollServiceHttpRequest req)
         {
-            if (IsRunning)
+            if (m_running)
             {
                 if (req.PollServiceArgs.Type != PollServiceEventArgs.EventType.LongPoll)
                 {

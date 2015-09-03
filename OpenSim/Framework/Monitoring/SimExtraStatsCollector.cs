@@ -281,10 +281,10 @@ namespace OpenSim.Framework.Monitoring
             activeScripts           = stats.StatsBlock[19].StatValue;
             scriptLinesPerSecond    = stats.StatsBlock[20].StatValue;
             m_frameDilation         = stats.StatsBlock[22].StatValue;
-            m_usersLoggingIn        = stats.StatsBlock[23].StatValue;
-            m_totalGeoPrims         = stats.StatsBlock[24].StatValue;
-            m_totalMeshes           = stats.StatsBlock[25].StatValue;
-            m_inUseThreads          = stats.StatsBlock[26].StatValue;
+//            m_usersLoggingIn        = stats.StatsBlock[23].StatValue;
+//            m_totalGeoPrims         = stats.StatsBlock[24].StatValue;
+//            m_totalMeshes           = stats.StatsBlock[25].StatValue;
+//            m_inUseThreads          = stats.StatsBlock[26].StatValue;
         }
 
         /// <summary>

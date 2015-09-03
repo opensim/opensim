@@ -81,7 +81,6 @@ CREATE TABLE IF NOT EXISTS `userdata` (
 
 commit;
 
-<<<<<<< HEAD
 :VERSION 3         # -------------------------------
 begin;
 CREATE TABLE IF NOT EXISTS `usersettings` (
@@ -97,5 +96,3 @@ commit;
 begin;
 ALTER TABLE userpicks ADD COLUMN gatekeeper varchar(255);
 commit;
-=======
->>>>>>> avn/ubitvar

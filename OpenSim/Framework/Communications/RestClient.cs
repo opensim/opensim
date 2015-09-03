@@ -388,10 +388,6 @@ namespace OpenSim.Framework.Communications
                             m_log.Error(string.Format("[REST CLIENT] Error fetching resource from server: {0} ", _request.Address.ToString()), e);
                         }
                     }
-
-                    if (_response != null)
-                        _response.Close();
-
                     return null;
                 }
 
@@ -417,7 +413,7 @@ namespace OpenSim.Framework.Communications
             _request = (HttpWebRequest) WebRequest.Create(buildUri());
             _request.KeepAlive = false;
             _request.ContentType = "application/xml";
-            _request.Timeout = 30000;
+            _request.Timeout = 90000;
             _request.Method = RequestMethod;
             _asyncException = null;
             _request.ContentLength = src.Length;
@@ -475,8 +471,6 @@ namespace OpenSim.Framework.Communications
                     }
                 }
             }
-
-            _response.Close();
 
             if (_response != null)
                 _response.Close();
