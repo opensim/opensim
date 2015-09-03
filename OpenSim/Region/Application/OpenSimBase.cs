@@ -41,7 +41,6 @@ using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Framework.Monitoring;
-using OpenSim.Region.ClientStack;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -117,19 +116,12 @@ namespace OpenSim
         /// </value>
         public OpenSimConfigSource ConfigSource { get; private set; }
 
-        public List<IClientNetworkServer> ClientServers
-        {
-            get { return m_clientServers; }
-        }
-
         protected EnvConfigSource m_EnvConfigSource = new EnvConfigSource();
 
         public EnvConfigSource envConfigSource
         {
             get { return m_EnvConfigSource; }
         }
-
-        protected List<IClientNetworkServer> m_clientServers = new List<IClientNetworkServer>();
        
         public uint HttpServerPort
         {
@@ -359,9 +351,9 @@ namespace OpenSim
         /// <param name="regionInfo"></param>
         /// <param name="portadd_flag"></param>
         /// <returns></returns>
-        public List<IClientNetworkServer> CreateRegion(RegionInfo regionInfo, bool portadd_flag, out IScene scene)
+        public void CreateRegion(RegionInfo regionInfo, bool portadd_flag, out IScene scene)
         {
-            return CreateRegion(regionInfo, portadd_flag, false, out scene);
+            CreateRegion(regionInfo, portadd_flag, false, out scene);
         }
 
         /// <summary>
@@ -369,9 +361,9 @@ namespace OpenSim
         /// </summary>
         /// <param name="regionInfo"></param>
         /// <returns></returns>
-        public List<IClientNetworkServer> CreateRegion(RegionInfo regionInfo, out IScene scene)
+        public void CreateRegion(RegionInfo regionInfo, out IScene scene)
         {
-            return CreateRegion(regionInfo, false, true, out scene);
+            CreateRegion(regionInfo, false, true, out scene);
         }
 
         /// <summary>
@@ -381,7 +373,7 @@ namespace OpenSim
         /// <param name="portadd_flag"></param>
         /// <param name="do_post_init"></param>
         /// <returns></returns>
-        public List<IClientNetworkServer> CreateRegion(RegionInfo regionInfo, bool portadd_flag, bool do_post_init, out IScene mscene)
+        public void CreateRegion(RegionInfo regionInfo, bool portadd_flag, bool do_post_init, out IScene mscene)
         {
             int port = regionInfo.InternalEndPoint.Port;
 
@@ -406,8 +398,7 @@ namespace OpenSim
                 Util.XmlRpcCommand(proxyUrl, "AddPort", port, port + proxyOffset, regionInfo.ExternalHostName);
             }
 
-            List<IClientNetworkServer> clientServers;
-            Scene scene = SetupScene(regionInfo, proxyOffset, Config, out clientServers);
+            Scene scene = SetupScene(regionInfo, proxyOffset, Config);
 
             m_log.Info("[MODULES]: Loading Region's modules (old style)");
 
@@ -455,20 +446,20 @@ namespace OpenSim
 
             SceneManager.Add(scene);
 
-            if (m_autoCreateClientStack)
-            {
-                foreach (IClientNetworkServer clientserver in clientServers)
-                {
-                    m_clientServers.Add(clientserver);
-                    clientserver.Start();
-                }
-            }
+            //if (m_autoCreateClientStack)
+            //{
+            //    foreach (IClientNetworkServer clientserver in clientServers)
+            //    {
+            //        m_clientServers.Add(clientserver);
+            //        clientserver.Start();
+            //    }
+            //}
 
             scene.EventManager.OnShutdown += delegate() { ShutdownRegion(scene); };
 
             mscene = scene;
 
-            return clientServers;
+            //return clientServers;
         }
 
         /// <summary>
@@ -602,7 +593,7 @@ namespace OpenSim
 
             scene.DeleteAllSceneObjects();
             SceneManager.CloseScene(scene);
-            ShutdownClientServer(scene.RegionInfo);
+            //ShutdownClientServer(scene.RegionInfo);
             
             if (!cleanup)
                 return;
@@ -663,7 +654,7 @@ namespace OpenSim
             }
 
             SceneManager.CloseScene(scene);
-            ShutdownClientServer(scene.RegionInfo);
+            //ShutdownClientServer(scene.RegionInfo);
         }
         
         /// <summary>
@@ -684,9 +675,9 @@ namespace OpenSim
         /// <param name="regionInfo"></param>
         /// <param name="clientServer"> </param>
         /// <returns></returns>
-        protected Scene SetupScene(RegionInfo regionInfo, out List<IClientNetworkServer> clientServer)
+        protected Scene SetupScene(RegionInfo regionInfo)
         {
-            return SetupScene(regionInfo, 0, null, out clientServer);
+            return SetupScene(regionInfo, 0, null);
         }
 
         /// <summary>
@@ -697,49 +688,43 @@ namespace OpenSim
         /// <param name="configSource"></param>
         /// <param name="clientServer"> </param>
         /// <returns></returns>
-        protected Scene SetupScene(
-            RegionInfo regionInfo, int proxyOffset, IConfigSource configSource, out List<IClientNetworkServer> clientServer)
+        protected Scene SetupScene(RegionInfo regionInfo, int proxyOffset, IConfigSource configSource)
         {
-            List<IClientNetworkServer> clientNetworkServers = null;
+            //List<IClientNetworkServer> clientNetworkServers = null;
 
             AgentCircuitManager circuitManager = new AgentCircuitManager();
-            IPAddress listenIP = regionInfo.InternalEndPoint.Address;
-            //if (!IPAddress.TryParse(regionInfo.InternalEndPoint, out listenIP))
-            //    listenIP = IPAddress.Parse("0.0.0.0");
+            //IPAddress listenIP = regionInfo.InternalEndPoint.Address;
+            ////if (!IPAddress.TryParse(regionInfo.InternalEndPoint, out listenIP))
+            ////    listenIP = IPAddress.Parse("0.0.0.0");
 
-            uint port = (uint) regionInfo.InternalEndPoint.Port;
+            //uint port = (uint) regionInfo.InternalEndPoint.Port;
 
-            if (m_autoCreateClientStack)
-            {
-                clientNetworkServers = m_clientStackManager.CreateServers(
-                        listenIP, ref port, proxyOffset, regionInfo.m_allow_alternate_ports, configSource,
-                        circuitManager);
-            }
-            else
-            {
-                clientServer = null;
-            }
+            //if (m_autoCreateClientStack)
+            //{
+            //    clientNetworkServers = m_clientStackManager.CreateServers(
+            //            listenIP, ref port, proxyOffset, regionInfo.m_allow_alternate_ports, configSource,
+            //            circuitManager);
+            //}
+            //else
+            //{
+            //    clientServer = null;
+            //}
 
-            regionInfo.InternalEndPoint.Port = (int) port;
+            //regionInfo.InternalEndPoint.Port = (int) port;
 
             Scene scene = CreateScene(regionInfo, m_simulationDataService, m_estateDataService, circuitManager);
 
-            if (m_autoCreateClientStack)
-            {
-                foreach (IClientNetworkServer clientnetserver in clientNetworkServers)
-                {
-                    clientnetserver.AddScene(scene);
-                }
-            }
-            clientServer = clientNetworkServers;
+            //if (m_autoCreateClientStack)
+            //{
+            //    foreach (IClientNetworkServer clientnetserver in clientNetworkServers)
+            //    {
+            //        clientnetserver.AddScene(scene);
+            //    }
+            //}
+            //clientServer = clientNetworkServers;
             scene.LoadWorldMap();
 
             return scene;
-        }
-
-        protected override ClientStackManager CreateClientStackManager()
-        {
-            return new ClientStackManager(m_configSettings.ClientstackDll);
         }
 
         protected override Scene CreateScene(RegionInfo regionInfo, ISimulationDataService simDataService,
@@ -751,29 +736,29 @@ namespace OpenSim
                 Config, m_version);
         }
         
-        protected void ShutdownClientServer(RegionInfo whichRegion)
-        {
-            // Close and remove the clientserver for a region
-            bool foundClientServer = false;
-            int clientServerElement = 0;
-            Location location = new Location(whichRegion.RegionHandle);
+        //protected void ShutdownClientServer(RegionInfo whichRegion)
+        //{
+        //    // Close and remove the clientserver for a region
+        //    bool foundClientServer = false;
+        //    int clientServerElement = 0;
+        //    Location location = new Location(whichRegion.RegionHandle);
 
-            for (int i = 0; i < m_clientServers.Count; i++)
-            {
-                if (m_clientServers[i].HandlesRegion(location))
-                {
-                    clientServerElement = i;
-                    foundClientServer = true;
-                    break;
-                }
-            }
+        //    for (int i = 0; i < m_clientServers.Count; i++)
+        //    {
+        //        if (m_clientServers[i].HandlesRegion(location))
+        //        {
+        //            clientServerElement = i;
+        //            foundClientServer = true;
+        //            break;
+        //        }
+        //    }
 
-            if (foundClientServer)
-            {
-                m_clientServers[clientServerElement].Stop();
-                m_clientServers.RemoveAt(clientServerElement);
-            }
-        }
+        //    if (foundClientServer)
+        //    {
+        //        m_clientServers[clientServerElement].Stop();
+        //        m_clientServers.RemoveAt(clientServerElement);
+        //    }
+        //}
         
         protected virtual void HandleRestartRegion(RegionInfo whichRegion)
         {
@@ -781,7 +766,7 @@ namespace OpenSim
                 "[OPENSIM]: Got restart signal from SceneManager for region {0} ({1},{2})", 
                 whichRegion.RegionName, whichRegion.RegionLocX, whichRegion.RegionLocY);
 
-            ShutdownClientServer(whichRegion);
+            //ShutdownClientServer(whichRegion);
             IScene scene;
             CreateRegion(whichRegion, true, out scene);
             scene.Start();

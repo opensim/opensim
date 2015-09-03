@@ -41,7 +41,7 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Services.Interfaces;
 
-namespace OpenSim.Region.ClientStack
+namespace OpenSim
 {
     public abstract class RegionApplicationBase : BaseOpenSimServer
     {
@@ -53,7 +53,6 @@ namespace OpenSim.Region.ClientStack
         protected uint m_httpServerPort;
         protected ISimulationDataService m_simulationDataService;
         protected IEstateDataService m_estateDataService;
-        protected ClientStackManager m_clientStackManager;
 
         public SceneManager SceneManager { get; protected set; }
         public NetworkServersInfo NetServersInfo { get { return m_networkServersInfo; } }
@@ -62,13 +61,11 @@ namespace OpenSim.Region.ClientStack
        
         protected abstract void Initialize();
         
-        protected abstract ClientStackManager CreateClientStackManager();
         protected abstract Scene CreateScene(RegionInfo regionInfo, ISimulationDataService simDataService, IEstateDataService estateDataService, AgentCircuitManager circuitManager);
 
         protected override void StartupSpecific()
         {
             SceneManager = SceneManager.Instance;
-            m_clientStackManager = CreateClientStackManager();
 
             Initialize();
 
