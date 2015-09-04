@@ -1669,11 +1669,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 velocity, Vector3 size, bool isFlying)
         {
-            return AddAvatar(avName, position, size, isFlying);
-        }
-
-        public override PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 size, bool isFlying)
-        {
             Vector3 pos;
             pos.X = position.X;
             pos.Y = position.Y;
@@ -3163,7 +3158,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             } // end lock OdeLock
             
-            return fps * 1000.0f;		//NB This is a FRAME COUNT, not a time! AND is divide by 1000 in SimStatusReporter!
+            return fps * (float)ODE_STEPSIZE * 1000.0f / timeStep;
         } // end Simulate
 
         public override void GetResults()

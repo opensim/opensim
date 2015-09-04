@@ -1224,16 +1224,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 velocity, Vector3 size, bool isFlying)
         {
-            return AddAvatar(avName, position, size, isFlying);
+            return null;
         }
 
         public override PhysicsActor AddAvatar(uint localID, string avName, Vector3 position, Vector3 size, float feetOffset, bool isFlying)
         {
-            Vector3 pos;
-            pos.X = position.X;
-            pos.Y = position.Y;
-            pos.Z = position.Z;
-            OdeCharacter newAv = new OdeCharacter(localID,avName, this, pos, size, feetOffset, avDensity, avMovementDivisorWalk, avMovementDivisorRun);
+             OdeCharacter newAv = new OdeCharacter(localID, avName, this, position,
+                size, feetOffset, avDensity, avMovementDivisorWalk, avMovementDivisorRun);
             newAv.Flying = isFlying;
             newAv.MinimumGroundFlightOffset = minimumGroundFlightOffset;
             
@@ -1863,9 +1860,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_lastframe = DateTime.UtcNow; // skip also the time lost
                 }
             }
-
-//            return nodeframes * ODE_STEPSIZE; // return real simulated time
-            return 1000 * nodeframes; // return steps for now * 1000 to keep core happy
+            return (float)nodeframes * ODE_STEPSIZE / timeStep * 1000.0f;
         }
 
         /// <summary>

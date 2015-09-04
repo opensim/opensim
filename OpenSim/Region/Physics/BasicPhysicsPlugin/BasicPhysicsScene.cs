@@ -175,7 +175,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
                 actor.Velocity = actorVelocity;
             }
 
-            return fps;
+            return 1.0f;
         }
 
         public override void GetResults()

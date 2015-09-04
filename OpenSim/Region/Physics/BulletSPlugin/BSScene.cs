@@ -710,7 +710,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
         // The physics engine returns the number of milliseconds it simulated this call.
         // These are summed and normalized to one second and divided by 1000 to give the reported physics FPS.
         // Multiply by a fixed nominal frame rate to give a rate similar to the simulator (usually 55).
-        m_simulatedTime +=  (float)numSubSteps * m_fixedTimeStep * 1000f * NominalFrameRate;
+//        m_simulatedTime +=  (float)numSubSteps * m_fixedTimeStep * 1000f * NominalFrameRate;
+        m_simulatedTime += (float)numSubSteps * m_fixedTimeStep * 1000f;
     }
 
     // Called by a BSPhysObject to note that it has changed properties and this information
@@ -797,7 +798,8 @@ public sealed class BSScene : PhysicsScene, IPhysicsParameters
 
         // Return the framerate simulated to give the above returned results.
         // (Race condition here but this is just bookkeeping so rare mistakes do not merit a lock).
-        float simTime = m_simulatedTime;
+        // undo math above
+        float simTime = m_simulatedTime / timeStep;
         m_simulatedTime = 0f;
         return simTime;
     }
