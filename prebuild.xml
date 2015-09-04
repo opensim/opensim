@@ -1823,7 +1823,7 @@
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
-      <Reference name="OpenSim.Region.PhysicsModules.Meshing" path="../../../../bin/Physics/"/>
+      <Reference name="OpenSim.Region.PhysicsModules.Meshing" path="../../../../bin/"/>
       <Reference name="OpenSim.Region.PhysicsModule.ConvexDecompositionDotNet"/>
       <Reference name="Mono.Addins" path="../../../../bin/"/>
       <Reference name="BulletXNA.dll" path="../../../../bin/"/>
