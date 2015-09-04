@@ -693,35 +693,8 @@ namespace OpenSim
             //List<IClientNetworkServer> clientNetworkServers = null;
 
             AgentCircuitManager circuitManager = new AgentCircuitManager();
-            //IPAddress listenIP = regionInfo.InternalEndPoint.Address;
-            ////if (!IPAddress.TryParse(regionInfo.InternalEndPoint, out listenIP))
-            ////    listenIP = IPAddress.Parse("0.0.0.0");
-
-            //uint port = (uint) regionInfo.InternalEndPoint.Port;
-
-            //if (m_autoCreateClientStack)
-            //{
-            //    clientNetworkServers = m_clientStackManager.CreateServers(
-            //            listenIP, ref port, proxyOffset, regionInfo.m_allow_alternate_ports, configSource,
-            //            circuitManager);
-            //}
-            //else
-            //{
-            //    clientServer = null;
-            //}
-
-            //regionInfo.InternalEndPoint.Port = (int) port;
-
             Scene scene = CreateScene(regionInfo, m_simulationDataService, m_estateDataService, circuitManager);
 
-            //if (m_autoCreateClientStack)
-            //{
-            //    foreach (IClientNetworkServer clientnetserver in clientNetworkServers)
-            //    {
-            //        clientnetserver.AddScene(scene);
-            //    }
-            //}
-            //clientServer = clientNetworkServers;
             scene.LoadWorldMap();
 
             return scene;
@@ -735,30 +708,6 @@ namespace OpenSim
                 simDataService, estateDataService,
                 Config, m_version);
         }
-        
-        //protected void ShutdownClientServer(RegionInfo whichRegion)
-        //{
-        //    // Close and remove the clientserver for a region
-        //    bool foundClientServer = false;
-        //    int clientServerElement = 0;
-        //    Location location = new Location(whichRegion.RegionHandle);
-
-        //    for (int i = 0; i < m_clientServers.Count; i++)
-        //    {
-        //        if (m_clientServers[i].HandlesRegion(location))
-        //        {
-        //            clientServerElement = i;
-        //            foundClientServer = true;
-        //            break;
-        //        }
-        //    }
-
-        //    if (foundClientServer)
-        //    {
-        //        m_clientServers[clientServerElement].Stop();
-        //        m_clientServers.RemoveAt(clientServerElement);
-        //    }
-        //}
         
         protected virtual void HandleRestartRegion(RegionInfo whichRegion)
         {
