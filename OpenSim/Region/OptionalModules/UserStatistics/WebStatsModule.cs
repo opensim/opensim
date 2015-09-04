@@ -50,9 +50,6 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 using OSD = OpenMetaverse.StructuredData.OSD;
 using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 
-[assembly: Addin("WebStats", OpenSim.VersionInfo.VersionNumber)]
-[assembly: AddinDependency("OpenSim.Region.Framework", OpenSim.VersionInfo.VersionNumber)]
-
 namespace OpenSim.Region.UserStatistics
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "WebStatsModule")]
