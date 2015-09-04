@@ -65,7 +65,7 @@ namespace OpenSim.Capabilities.Handlers
 
         protected override byte[] ProcessRequest(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            m_log.DebugFormat("[GET_DISPLAY_NAMES]: called {0}", httpRequest.Url.Query);
+//            m_log.DebugFormat("[GET_DISPLAY_NAMES]: called {0}", httpRequest.Url.Query);
 
             NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
             string[] ids = query.GetValues("ids");
