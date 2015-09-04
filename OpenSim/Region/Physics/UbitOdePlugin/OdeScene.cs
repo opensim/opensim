@@ -1860,7 +1860,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_lastframe = DateTime.UtcNow; // skip also the time lost
                 }
             }
-            return (float)nodeframes * ODE_STEPSIZE / timeStep * 1000.0f;
+            return (float)nodeframes * ODE_STEPSIZE / timeStep;
         }
 
         /// <summary>

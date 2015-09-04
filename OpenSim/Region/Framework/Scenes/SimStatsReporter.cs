@@ -367,7 +367,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                // ORIGINAL code commented out until we have time to add our own
                // statistics to the statistics window
-                float physfps = ((m_pfps / 1000.0f));
+                float physfps = m_pfps;
                
                 //if (physfps > 600)
                 //physfps = physfps - (physfps - 600);

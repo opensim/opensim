@@ -3312,7 +3312,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_stats[ODETotalFrameMsStatName] += Util.EnvironmentTickCountSubtract(startFrameTick);
             }
 
-            fps *= 1000.0f/timeStep;
+            fps *= 1.0f/timeStep;
             return fps;
         }
 

@@ -3158,7 +3158,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             } // end lock OdeLock
             
-            return fps * (float)ODE_STEPSIZE * 1000.0f / timeStep;
+            return fps * (float)ODE_STEPSIZE / timeStep;
         } // end Simulate
 
         public override void GetResults()
