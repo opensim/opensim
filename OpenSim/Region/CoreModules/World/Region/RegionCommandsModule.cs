@@ -271,8 +271,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             float totalFrameTime          = stats[8];
 //            float netFrameTime            = stats.StatsBlock[9].StatValue; // Ignored - not used by OpenSimulator
             float physicsFrameTime        = stats[10];
-            float otherFrameTime          = stats[11];
-//            float imageFrameTime          = stats.StatsBlock[12].StatValue; // Ignored
+            float otherFrameTime          = stats[12];
+//            float imageFrameTime          = stats.StatsBlock[11].StatValue; // Ignored
             float inPacketsPerSecond      = stats[13];
             float outPacketsPerSecond     = stats[14];
             float unackedBytes            = stats[15];
@@ -280,7 +280,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             float pendingDownloads        = stats[17];
             float pendingUploads          = stats[18];
             float activeScripts           = stats[19];
-            float scriptLinesPerSecond    = stats[20];
+            float scriptLinesPerSecond    = stats[23];
 
             StringBuilder sb = new StringBuilder();
             sb.AppendFormat("Scene statistics for {0}\n", m_scene.RegionInfo.RegionName);

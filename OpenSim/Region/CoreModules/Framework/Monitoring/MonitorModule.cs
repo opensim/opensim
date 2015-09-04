@@ -205,7 +205,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     m_scene,
                     "ScriptEventsPerSecondMonitor",
                     "Script Events",
-                    m => m.Scene.StatsReporter.LastReportedSimStats[20],
+                    m => m.Scene.StatsReporter.LastReportedSimStats[23],
                     m => string.Format("{0} per second", m.GetValue())));
 
             m_staticMonitors.Add(
