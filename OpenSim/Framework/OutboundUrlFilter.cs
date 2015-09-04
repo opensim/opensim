@@ -34,7 +34,7 @@ using log4net;
 using LukeSkywalker.IPNetwork;
 using Nini.Config;
 
-namespace OpenSim.Framework.Communications
+namespace OpenSim.Framework
 {
     public class OutboundUrlFilter
     {
@@ -62,7 +62,7 @@ namespace OpenSim.Framework.Communications
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="OpenSim.Framework.Communications.OutboundUrlFilter"/> class.
+        /// Initializes a new instance of the <see cref="OpenSim.Framework.OutboundUrlFilter"/> class.
         /// </summary>
         /// <param name="name">Name of the filter for logging purposes.</param>
         /// <param name="config">Filter configuration</param>

@@ -33,7 +33,6 @@ using System.Reflection;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Communications;
 using OpenSim.Services.Interfaces;
 using OpenMetaverse;
 

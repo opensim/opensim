@@ -37,7 +37,7 @@ using log4net;
 
 using OpenSim.Framework.ServiceAuth;
 
-namespace OpenSim.Framework.Communications
+namespace OpenSim.Framework
 {
     /// <summary>
     /// Implementation of a generic REST client

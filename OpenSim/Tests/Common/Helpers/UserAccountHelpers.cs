@@ -27,7 +27,7 @@
 
 using System.Collections.Generic;
 using OpenMetaverse;
-using OpenSim.Framework.Communications;
+
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 

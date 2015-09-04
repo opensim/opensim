@@ -30,7 +30,6 @@ using System.IO;
 using System.Reflection;
 
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
 
 using OpenSim.Region.CoreModules.Avatar.Inventory.Archiver;
 using OpenSim.Region.Framework;

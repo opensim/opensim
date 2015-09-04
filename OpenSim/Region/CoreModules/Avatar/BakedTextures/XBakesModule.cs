@@ -38,7 +38,6 @@ using System.Reflection;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.ServiceAuth;
-using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
