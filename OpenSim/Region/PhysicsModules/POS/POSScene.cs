@@ -38,7 +38,7 @@ using OpenSim.Region.Framework.Interfaces;
 namespace OpenSim.Region.PhysicsModule.POS
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "POSPhysicsScene")]
-    public class POSScene : PhysicsScene
+    public class POSScene : PhysicsScene, INonSharedRegionModule
     {
         private List<POSCharacter> _characters = new List<POSCharacter>();
         private List<POSPrim> _prims = new List<POSPrim>();
