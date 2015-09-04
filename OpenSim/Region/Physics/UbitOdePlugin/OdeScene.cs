@@ -552,16 +552,16 @@ namespace OpenSim.Region.Physics.OdePlugin
             spaceGridMaxX = (int)(WorldExtents.X * spacesPerMeterX);
             spaceGridMaxY = (int)(WorldExtents.Y * spacesPerMeterY);
 
-            if (spaceGridMaxX > 40)
+            if (spaceGridMaxX > 100)
             {
-                spaceGridMaxX = 40;
-                spacesPerMeterX = WorldExtents.X / spaceGridMaxX;
+                spaceGridMaxX = 100;
+                spacesPerMeterX = spaceGridMaxX / WorldExtents.X ;
             }
 
-            if (spaceGridMaxY > 40)
+            if (spaceGridMaxY > 100)
             {
-                spaceGridMaxY = 40;
-                spacesPerMeterY = WorldExtents.Y / spaceGridMaxY;
+                spaceGridMaxY = 100;
+                spacesPerMeterY = spaceGridMaxY / WorldExtents.Y ;
             }
 
             staticPrimspace = new IntPtr[spaceGridMaxX, spaceGridMaxY];
