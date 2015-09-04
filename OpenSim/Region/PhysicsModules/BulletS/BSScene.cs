@@ -270,6 +270,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             mesher = scene.RequestModuleInterface<IMesher>();
             if (mesher == null)
                 m_log.WarnFormat("{0} No mesher. Things will not work well.", LogHeader);
+
+            scene.PhysicsEnabled = true;
         }
         #endregion
 
