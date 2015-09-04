@@ -398,16 +398,16 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_update_coarse_locations = 50;
         private int m_update_temp_cleaning = 180;
 
-        private int agentMS;
-        private int frameMS;
-        private int physicsMS2;
-        private int physicsMS;
-        private int otherMS;
-        private int tempOnRezMS;
-        private int eventMS;
-        private int backupMS;
-        private int terrainMS;
-        private int landMS;
+        private float agentMS;
+        private float frameMS;
+        private float physicsMS2;
+        private float physicsMS;
+        private float otherMS;
+        private float tempOnRezMS;
+        private float eventMS;
+        private float backupMS;
+        private float terrainMS;
+        private float landMS;
 
         // A temporary configuration flag to enable using FireAndForget to process
         //   collisions from the physics engine. There is a problem with collisions
@@ -785,15 +785,15 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_capsModule; }
         }
 
-        public int MonitorFrameTime { get { return frameMS; } }
-        public int MonitorPhysicsUpdateTime { get { return physicsMS; } }
-        public int MonitorPhysicsSyncTime { get { return physicsMS2; } }
-        public int MonitorOtherTime { get { return otherMS; } }
-        public int MonitorTempOnRezTime { get { return tempOnRezMS; } }
-        public int MonitorEventTime { get { return eventMS; } } // This may need to be divided into each event?
-        public int MonitorBackupTime { get { return backupMS; } }
-        public int MonitorTerrainTime { get { return terrainMS; } }
-        public int MonitorLandTime { get { return landMS; } }
+        public int MonitorFrameTime { get { return (int)frameMS; } }
+        public int MonitorPhysicsUpdateTime { get { return (int)physicsMS; } }
+        public int MonitorPhysicsSyncTime { get { return (int)physicsMS2; } }
+        public int MonitorOtherTime { get { return (int)otherMS; } }
+        public int MonitorTempOnRezTime { get { return (int)tempOnRezMS; } }
+        public int MonitorEventTime { get { return (int)eventMS; } } // This may need to be divided into each event?
+        public int MonitorBackupTime { get { return (int)backupMS; } }
+        public int MonitorTerrainTime { get { return (int)terrainMS; } }
+        public int MonitorLandTime { get { return (int)landMS; } }
         public int MonitorLastFrameTick { get { return m_lastFrameTick; } }
 
         public UpdatePrioritizationSchemes UpdatePrioritizationScheme { get; set; }
@@ -1714,20 +1714,21 @@ namespace OpenSim.Region.Framework.Scenes
 
             float physicsFPS = 0f;
 
-            int tmpMS;
             int previousFrameTick;
-            int maintc;
-            int sleepMS;
-            int framestart;
+
+            double tmpMS;
+            double tmpMS2;
+            double framestart;
+            float sleepMS;
 
             while (!m_shuttingDown && ((endFrame == null && Active) || Frame < endFrame))
             {
-                framestart = Util.EnvironmentTickCount();
+                framestart = Util.GetTimeStampMS();
                 ++Frame;
 
                 // m_log.DebugFormat("[SCENE]: Processing frame {0} in {1}", Frame, RegionInfo.RegionName);
 
-                agentMS = tempOnRezMS = eventMS = backupMS = terrainMS = landMS = 0;
+                agentMS = tempOnRezMS = eventMS = backupMS = terrainMS = landMS = 0f;
 
                 try
                 {
@@ -1735,7 +1736,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // Apply taints in terrain module to terrain in physics scene
 
-                    tmpMS = Util.EnvironmentTickCount();
+                    tmpMS = Util.GetTimeStampMS();
+
                     if (Frame % 4 == 0)
                     {
                         CheckTerrainUpdates();
@@ -1746,26 +1748,29 @@ namespace OpenSim.Region.Framework.Scenes
                         UpdateTerrain();
                     }
 
-                    terrainMS = Util.EnvironmentTickCountSubtract(tmpMS);
-                    tmpMS = Util.EnvironmentTickCount();
+                    tmpMS2 = Util.GetTimeStampMS();
+                    terrainMS = (float)(tmpMS2 - tmpMS);
+                    tmpMS = tmpMS2;
 
                     if (PhysicsEnabled && Frame % m_update_physics == 0)
                         m_sceneGraph.UpdatePreparePhysics();
 
-                    physicsMS2 = Util.EnvironmentTickCountSubtract(tmpMS);
+                    tmpMS2 = Util.GetTimeStampMS();
+                    physicsMS2 = (float)(tmpMS2 - tmpMS);
+                    tmpMS = tmpMS2;
 
                     // Apply any pending avatar force input to the avatar's velocity
-                    tmpMS = Util.EnvironmentTickCount();
                     if (Frame % m_update_entitymovement == 0)
                         m_sceneGraph.UpdateScenePresenceMovement();
 
                     // Get the simulation frame time that the avatar force input 
                     // took
-                    agentMS = Util.EnvironmentTickCountSubtract(tmpMS);
+                    tmpMS2 = Util.GetTimeStampMS();
+                    agentMS = (float)(tmpMS2 - tmpMS);
+                    tmpMS = tmpMS2;
 
                     // Perform the main physics update.  This will do the actual work of moving objects and avatars according to their
                     // velocity
-                    tmpMS = Util.EnvironmentTickCount();
                     if (Frame % m_update_physics == 0)
                     {
                         if (PhysicsEnabled)
@@ -1774,12 +1779,10 @@ namespace OpenSim.Region.Framework.Scenes
                         if (SynchronizeScene != null)
                             SynchronizeScene(this);
                     }
-
-                    // Add the main physics update time to the prepare physics time
-                    physicsMS = Util.EnvironmentTickCountSubtract(tmpMS);
-
-                    // Start the stopwatch for the remainder of the simulation
-                    tmpMS = Util.EnvironmentTickCount();
+                    
+                    tmpMS2 = Util.GetTimeStampMS();
+                    physicsMS = (float)(tmpMS2 - tmpMS);
+                    tmpMS = tmpMS2;
 
                     // Check if any objects have reached their targets
                     CheckAtTargets();
@@ -1794,29 +1797,37 @@ namespace OpenSim.Region.Framework.Scenes
                     if (Frame % m_update_presences == 0)
                         m_sceneGraph.UpdatePresences();
 
-                    agentMS += Util.EnvironmentTickCountSubtract(tmpMS);
+                    tmpMS2 = Util.GetTimeStampMS();
+                    agentMS += (float)(tmpMS2 - tmpMS);
+                    tmpMS = tmpMS2;
   
                     // Delete temp-on-rez stuff
                     if (Frame % m_update_temp_cleaning == 0 && !m_cleaningTemps)
                     {
-                        tmpMS = Util.EnvironmentTickCount();
+                        
                         m_cleaningTemps = true;
                         Util.FireAndForget(delegate { CleanTempObjects(); m_cleaningTemps = false;  });
-                        tempOnRezMS = Util.EnvironmentTickCountSubtract(tmpMS);
+                        tmpMS2 = Util.GetTimeStampMS();
+                        tempOnRezMS = (float)(tmpMS2 - tmpMS); // bad.. counts the FireAndForget, not CleanTempObjects
+                        tmpMS = tmpMS2;
                     }
     
                     if (Frame % m_update_events == 0)
                     {
-                        tmpMS = Util.EnvironmentTickCount();
                         UpdateEvents();
-                        eventMS = Util.EnvironmentTickCountSubtract(tmpMS);
+
+                        tmpMS2 = Util.GetTimeStampMS();
+                        eventMS = (float)(tmpMS2 - tmpMS);
+                        tmpMS = tmpMS2;
                     }
 
                     if (PeriodicBackup && Frame % m_update_backup == 0)
                     {
-                        tmpMS = Util.EnvironmentTickCount();
                         UpdateStorageBackup();
-                        backupMS = Util.EnvironmentTickCountSubtract(tmpMS);
+
+                        tmpMS2 = Util.GetTimeStampMS();
+                        backupMS = (float)(tmpMS2 - tmpMS);
+                        tmpMS = tmpMS2;
                     }
 
                     //if (Frame % m_update_land == 0)
@@ -1887,20 +1898,26 @@ namespace OpenSim.Region.Framework.Scenes
                 StatsReporter.addOtherMS(otherMS);
                 StatsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
 
+                
+                tmpMS = Util.GetTimeStampMS();
+
                 previousFrameTick = m_lastFrameTick;
-                m_lastFrameTick = Util.EnvironmentTickCount();
-                tmpMS = Util.EnvironmentTickCountSubtract(m_lastFrameTick, framestart);
-                tmpMS = (int)(MinFrameTime * 1000) - tmpMS;
+                m_lastFrameTick = (int)(tmpMS + 0.5);
+
+                // estimate sleep time
+                tmpMS2 = tmpMS - framestart;
+                tmpMS2 = (double)MinFrameTime * 1000.0D - tmpMS2;
 
                 m_firstHeartbeat = false;
 
-                sleepMS = Util.EnvironmentTickCount();
+                // sleep if we can
+                if (tmpMS2 > 0)
+                    Thread.Sleep((int)(tmpMS2 +0.5));
 
-                if (tmpMS > 0)
-                    Thread.Sleep(tmpMS);
+                tmpMS2 = Util.GetTimeStampMS();
 
-                sleepMS = Util.EnvironmentTickCountSubtract(sleepMS);
-                frameMS = Util.EnvironmentTickCountSubtract(framestart);
+                sleepMS = (float)(tmpMS2 - tmpMS);
+                frameMS = (float)(tmpMS2 - framestart);
                 StatsReporter.addSleepMS(sleepMS);
                 StatsReporter.addFrameMS(frameMS);
 
