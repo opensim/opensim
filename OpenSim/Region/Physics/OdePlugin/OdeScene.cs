@@ -726,14 +726,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             spaceGridMaxY = (int)(WorldExtents.Y * spacesPerMeterY);
 
             // ubit: limit number of spaces
-            if (spaceGridMaxX > 100)
+            if (spaceGridMaxX > 24)
             {
-                spaceGridMaxX = 100;
+                spaceGridMaxX = 24;
                 spacesPerMeterX = spaceGridMaxX / WorldExtents.X ;
             }
-            if (spaceGridMaxY > 100)
+            if (spaceGridMaxY > 24)
             {
-                spaceGridMaxY = 100;
+                spaceGridMaxY = 24;
                 spacesPerMeterY = spaceGridMaxY / WorldExtents.Y;
             }
 
