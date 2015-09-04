@@ -162,9 +162,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             // PhysX does this (runs in the background).
 
-            if (_PhyScene.IsThreaded)
+            if (PhysicsScene.IsThreaded)
             {
-                _PhyScene.GetResults();
+                PhysicsScene.GetResults();
             }
         }
 
@@ -204,7 +204,7 @@ namespace OpenSim.Region.Framework.Scenes
             // position).
             //
             // Therefore, JointMoved and JointDeactivated events will be fired as a result of the following Simulate().
-            return _PhyScene.Simulate((float)elapsed);
+            return PhysicsScene.Simulate((float)elapsed);
         }
 
         protected internal void UpdateScenePresenceMovement()
