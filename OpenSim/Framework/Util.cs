@@ -140,10 +140,14 @@ namespace OpenSim.Framework
 
         public static readonly int MAX_THREADPOOL_LEVEL = 3;
 
+        public static double TimeStampClockPeriodMS;
+
         static Util()
         {
             LogThreadPool = 0;
             LogOverloads = true;
+            TimeStampClockPeriodMS = 1000.0D / (double)Stopwatch.Frequency;
+            m_log.InfoFormat("[UTIL] TimeStamp clock with period of {0}ms", Math.Round(TimeStampClockPeriodMS,6,MidpointRounding.AwayFromZero));
         }
 
         private static uint nextXferID = 5000;
@@ -2660,6 +2664,13 @@ namespace OpenSim.Framework
                 tcB += EnvironmentTickCountMask + 1;
 
             return tcA - tcB;
+        }
+
+        // returns a timestamp in ms as double
+        // using the time resolution avaiable to StopWatch
+        public static double GetTimeStampMS()
+        {
+            return (double)Stopwatch.GetTimestamp() * TimeStampClockPeriodMS;
         }
 
         /// <summary>
