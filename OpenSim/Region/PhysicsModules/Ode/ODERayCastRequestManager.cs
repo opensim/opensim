@@ -172,6 +172,13 @@ namespace OpenSim.Region.PhysicsModule.ODE
         /// <param name="req"></param>
         private void RayCast(ODERayCastRequest req)
         {
+            // UBIT: limit ray lenght or collisions will take all avaiable stack space
+            // this value may still be too large, depending on machine configuration
+            // of maximum stack
+            float len = req.length;
+            if (len > 250f)
+                len = 250f;
+
             // Create the ray
             IntPtr ray = d.CreateRay(m_scene.space, req.length);
             d.GeomRaySet(ray, req.Origin.X, req.Origin.Y, req.Origin.Z, req.Normal.X, req.Normal.Y, req.Normal.Z);
