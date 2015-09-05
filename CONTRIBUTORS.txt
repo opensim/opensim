@@ -4,8 +4,7 @@ The following people have contributed to OpenSim (Thank you for your effort!)
 These folks represent the current core team for OpenSim, and are the
 people that make the day to day of OpenSim happen.
 
-* justincc (OSVW Consulting, justincc.org)
-* dahlia 
+* justincc (OSVW Consulting, justincc.org) 
 * Melanie Thielker
 * Diva (Crista Lopes, University of California, Irvine)
 * BlueWall (James Hughes)
@@ -56,6 +55,7 @@ where we are today.
 * nlin (3Di)
 * John Hurliman
 * chi11ken (Genkii)
+* dahlia
 
 
 = Additional OpenSim Contributors =
