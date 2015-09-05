@@ -335,7 +335,9 @@ namespace OpenSim.Framework.Monitoring
 
                 lock (m_threads)
                 {
-                    foreach (ThreadWatchdogInfo threadInfo in m_threads.Values)
+                    // get a copy since we may change m_threads
+                    List<ThreadWatchdogInfo> threadsInfo = m_threads.Values.ToList();
+                    foreach (ThreadWatchdogInfo threadInfo in threadsInfo)
                     {
                         if (threadInfo.Thread.ThreadState == ThreadState.Stopped)
                         {
