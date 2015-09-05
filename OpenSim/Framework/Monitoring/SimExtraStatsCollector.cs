@@ -34,6 +34,7 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework.Monitoring.Interfaces;
 
+
 namespace OpenSim.Framework.Monitoring
 {
     /// <summary>
@@ -71,6 +72,11 @@ namespace OpenSim.Framework.Monitoring
         private volatile float pendingDownloads;
         private volatile float pendingUploads;
         private volatile float activeScripts;
+        private volatile float spareTime;
+        private volatile float sleepTime;
+        private volatile float physicsStep;
+
+
         private volatile float scriptLinesPerSecond;
         private volatile float m_frameDilation;
         private volatile float m_usersLoggingIn;
@@ -253,7 +259,7 @@ namespace OpenSim.Framework.Monitoring
         /// <param name="pack"></param>
         public void ReceiveClassicSimStatsPacket(SimStats stats)
         {
-            // FIXME: SimStats shouldn't allow an arbitrary stat packing order (which is inherited from the original
+             // FIXME: SimStats shouldn't allow an arbitrary stat packing order (which is inherited from the original
             // SimStatsPacket that was being used).
 
             // For an unknown reason the original designers decided not to
@@ -270,8 +276,8 @@ namespace OpenSim.Framework.Monitoring
             totalFrameTime          = stats.StatsBlock[8].StatValue;
             netFrameTime            = stats.StatsBlock[9].StatValue;
             physicsFrameTime        = stats.StatsBlock[10].StatValue;
-            otherFrameTime          = stats.StatsBlock[11].StatValue;
-            imageFrameTime          = stats.StatsBlock[12].StatValue;
+            imageFrameTime          = stats.StatsBlock[11].StatValue;
+            otherFrameTime          = stats.StatsBlock[12].StatValue;
             inPacketsPerSecond      = stats.StatsBlock[13].StatValue;
             outPacketsPerSecond     = stats.StatsBlock[14].StatValue;
             unackedBytes            = stats.StatsBlock[15].StatValue;
@@ -279,12 +285,16 @@ namespace OpenSim.Framework.Monitoring
             pendingDownloads        = stats.StatsBlock[17].StatValue;
             pendingUploads          = stats.StatsBlock[18].StatValue;
             activeScripts           = stats.StatsBlock[19].StatValue;
-            scriptLinesPerSecond    = stats.StatsBlock[20].StatValue;
-            m_frameDilation         = stats.StatsBlock[22].StatValue;
-//            m_usersLoggingIn        = stats.StatsBlock[23].StatValue;
-//            m_totalGeoPrims         = stats.StatsBlock[24].StatValue;
-//            m_totalMeshes           = stats.StatsBlock[25].StatValue;
-//            m_inUseThreads          = stats.StatsBlock[26].StatValue;
+            sleepTime               = stats.StatsBlock[20].StatValue;
+            spareTime               = stats.StatsBlock[21].StatValue;
+            physicsStep             = stats.StatsBlock[22].StatValue;
+
+            scriptLinesPerSecond    = stats.ExtraStatsBlock[0].StatValue;
+            m_frameDilation         = stats.ExtraStatsBlock[1].StatValue;
+            m_usersLoggingIn        = stats.ExtraStatsBlock[2].StatValue;
+            m_totalGeoPrims         = stats.ExtraStatsBlock[3].StatValue;
+            m_totalMeshes           = stats.ExtraStatsBlock[4].StatValue;
+            m_inUseThreads          = stats.ExtraStatsBlock[5].StatValue;
         }
 
         /// <summary>

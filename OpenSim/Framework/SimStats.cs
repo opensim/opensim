@@ -55,13 +55,19 @@ namespace OpenSim.Framework
             get { return m_regionBlock; }
         }
         private SimStatsPacket.RegionBlock m_regionBlock;
-        
+
         public SimStatsPacket.StatBlock[] StatsBlock
         {
             get { return m_statsBlock; }
         }
         private SimStatsPacket.StatBlock[] m_statsBlock;
-        
+
+        public SimStatsPacket.StatBlock[] ExtraStatsBlock
+        {
+            get { return m_extraStatsBlock; }
+        }
+        private SimStatsPacket.StatBlock[] m_extraStatsBlock;
+
         public uint RegionFlags
         {
             get { return m_regionFlags; }
@@ -82,7 +88,8 @@ namespace OpenSim.Framework
                 
         public SimStats(
             uint regionX, uint regionY, uint regionFlags, uint objectCapacity, 
-            SimStatsPacket.RegionBlock regionBlock, SimStatsPacket.StatBlock[] statsBlock, UUID pRUUID)
+            SimStatsPacket.RegionBlock regionBlock, SimStatsPacket.StatBlock[] statsBlock,
+            SimStatsPacket.StatBlock[] ExtraStatsBlock, UUID pRUUID)
         {
             regionUUID = pRUUID;
             m_regionX = regionX;
@@ -91,6 +98,7 @@ namespace OpenSim.Framework
             m_objectCapacity = objectCapacity;
             m_regionBlock = regionBlock;
             m_statsBlock = statsBlock;
+            m_extraStatsBlock = ExtraStatsBlock;
         }
     }
 }

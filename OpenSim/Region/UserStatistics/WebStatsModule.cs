@@ -1200,7 +1200,7 @@ VALUES
             m_pendingDownloads = stats.StatsBlock[17].StatValue;
             m_pendingUploads = stats.StatsBlock[18].StatValue;
             m_activeScripts = stats.StatsBlock[19].StatValue;
-            m_scriptLinesPerSecond = stats.StatsBlock[20].StatValue;
+            m_scriptLinesPerSecond = stats.ExtraStatsBlock[0].StatValue;
         }
     }
 }
