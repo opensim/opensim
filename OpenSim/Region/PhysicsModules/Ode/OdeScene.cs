@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// Ubit changes for varsize regions
+// changes for varsize regions
 // note that raycasts need to have limited range
 // (even in normal regions)
 // or aplication thread stack may just blowup
@@ -803,7 +803,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             spaceGridMaxX = (int)(WorldExtents.X * spacesPerMeterX);
             spaceGridMaxY = (int)(WorldExtents.Y * spacesPerMeterY);
 
-            // ubit: limit number of spaces
+            // note: limit number of spaces
             if (spaceGridMaxX > 24)
             {
                 spaceGridMaxX = 24;
