@@ -252,6 +252,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (maxRTO != 0)
                 m_maxRTO = maxRTO;
 
+            ProcessUnackedSends = true;
+
             m_burstTime = rates.BrustTime;
             float m_burst = rates.ClientMaxRate * m_burstTime;
 
