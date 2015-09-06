@@ -344,6 +344,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSetDamage(double damage);
               void llSetForce(LSL_Vector force, int local);
               void llSetForceAndTorque(LSL_Vector force, LSL_Vector torque, int local);
+              void llSetVelocity(LSL_Vector vel, int local);
               void llSetAngularVelocity(LSL_Vector angularVelocity, int local);
               void llSetHoverHeight(double height, int water, double tau);
               void llSetInventoryPermMask(string item, int mask, int value);
