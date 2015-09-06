@@ -131,8 +131,11 @@ namespace OpenSim.Services.HypergridService
                 else if (simulationService != string.Empty)
                         m_SimulationService = ServerUtils.LoadPlugin<ISimulationService>(simulationService, args);
 
-                m_AllowedClients = serverConfig.GetString("AllowedClients", string.Empty);
-                m_DeniedClients = serverConfig.GetString("DeniedClients", string.Empty);
+                string[] possibleAccessControlConfigSections = new string[] { "AccessControl", "GatekeeperService" };
+                m_AllowedClients = Util.GetConfigVarFromSections<string>(
+                        config, "AllowedClients", possibleAccessControlConfigSections, string.Empty);
+                m_DeniedClients = Util.GetConfigVarFromSections<string>(
+                        config, "DeniedClients", possibleAccessControlConfigSections, string.Empty); 
                 m_ForeignAgentsAllowed = serverConfig.GetBoolean("ForeignAgentsAllowed", true);
 
                 LoadDomainExceptionsFromConfig(serverConfig, "AllowExcept", m_ForeignsAllowedExceptions);
