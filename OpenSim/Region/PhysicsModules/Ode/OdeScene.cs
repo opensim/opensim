@@ -28,7 +28,7 @@
 // changes for varsize regions
 // note that raycasts need to have limited range
 // (even in normal regions)
-// or aplication thread stack may just blowup
+// or application thread stack may just blowup
 // see RayCast(ODERayCastRequest req)
 
 //#define USE_DRAWSTUFF
