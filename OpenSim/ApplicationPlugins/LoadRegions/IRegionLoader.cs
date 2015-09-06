@@ -26,8 +26,9 @@
  */
 
 using Nini.Config;
+using OpenSim.Framework;
 
-namespace OpenSim.Framework
+namespace OpenSim.ApplicationPlugins.LoadRegions
 {
     public interface IRegionLoader
     {
