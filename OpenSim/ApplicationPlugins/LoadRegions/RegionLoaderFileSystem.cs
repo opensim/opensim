@@ -31,8 +31,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Nini.Config;
+using OpenSim.Framework;
 
-namespace OpenSim.Framework.RegionLoader.Filesystem
+namespace OpenSim.ApplicationPlugins.LoadRegions
 {
     public class RegionLoaderFileSystem : IRegionLoader
     {

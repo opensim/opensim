@@ -32,8 +32,9 @@ using System.Reflection;
 using System.Xml;
 using log4net;
 using Nini.Config;
+using OpenSim.Framework;
 
-namespace OpenSim.Framework.RegionLoader.Web
+namespace OpenSim.ApplicationPlugins.LoadRegions
 {
     public class RegionLoaderWebServer : IRegionLoader
     {

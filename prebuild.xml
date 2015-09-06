@@ -325,58 +325,6 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v4_0" name="OpenSim.Framework.RegionLoader.Web" path="OpenSim/Framework/RegionLoader/Web" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="OpenMetaverseTypes" path="../../../../bin/"/>
-      <Reference name="XMLRPC" path="../../../../bin/"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="Nini" path="../../../../bin/"/>
-      <Reference name="log4net" path="../../../../bin/"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-    <Project frameworkVersion="v4_0" name="OpenSim.Framework.RegionLoader.Filesystem" path="OpenSim/Framework/RegionLoader/Filesystem" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="OpenMetaverseTypes" path="../../../../bin/"/>
-      <Reference name="log4net" path="../../../../bin/"/>
-      <Reference name="XMLRPC" path="../../../../bin/"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="Nini" path="../../../../bin/"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
     <Project frameworkVersion="v4_0" name="OpenSim.Framework.Servers" path="OpenSim/Framework/Servers" type="Library">
       <Configuration name="Debug">
         <Options>
