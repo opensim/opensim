@@ -144,6 +144,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     availableMethods["admin_load_heightmap"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcLoadHeightmapMethod);
                     availableMethods["admin_save_heightmap"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcSaveHeightmapMethod);
 
+                    availableMethods["admin_reset_land"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcResetLand);
+
                     // Agent management
                     availableMethods["admin_get_agents"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcGetAgentsMethod);
                     availableMethods["admin_teleport_agent"] = (req, ep) => InvokeXmlRpcMethod(req, ep, XmlRpcTeleportAgentMethod);
@@ -2208,6 +2210,51 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
             // We have no way of telling the failure of the actual teleport
             responseData["success"] = true;
+        }
+
+        private void XmlRpcResetLand(XmlRpcRequest request, XmlRpcResponse response, IPEndPoint remoteClient)
+        {
+            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable responseData = (Hashtable)response.Value;
+            string musicURL = string.Empty;
+            UUID groupID = UUID.Zero;
+            uint flags = 0;
+            bool set_group = false, set_music = false, set_flags = false;
+
+            if (requestData.Contains("group") && requestData["group"] != null)
+                set_group = UUID.TryParse(requestData["group"].ToString(), out groupID);
+            if (requestData.Contains("music") && requestData["music"] != null)
+            {
+
+                musicURL = requestData["music"].ToString();
+                set_music = true;
+            }
+
+            if (requestData.Contains("flags") && requestData["flags"] != null)
+                set_flags = UInt32.TryParse(requestData["flags"].ToString(), out flags);
+
+            m_log.InfoFormat("[RADMIN]: Received Reset Land Request group={0} musicURL={1} flags={2}",
+                (set_group ? groupID.ToString() : "unchanged"),
+                (set_music ? musicURL : "unchanged"),
+                (set_flags ? flags.ToString() : "unchanged"));
+
+            m_application.SceneManager.ForEachScene(delegate (Scene s)
+            {
+                List<ILandObject> parcels = s.LandChannel.AllParcels();
+                foreach (ILandObject p in parcels)
+                {
+                    if (set_music)
+                        p.LandData.MusicURL = musicURL;
+                    if (set_group)
+                        p.LandData.GroupID = groupID;
+                    if (set_flags)
+                        p.LandData.Flags = flags;
+                    s.LandChannel.UpdateLandObject(p.LandData.LocalID, p.LandData);
+                }
+            }
+            );
+            responseData["success"] = true;
+            m_log.Info("[RADMIN]: Reset Land Request complete");
         }
 
         private void XmlRpcRefreshSearch(XmlRpcRequest request, XmlRpcResponse response, IPEndPoint remoteClient)
