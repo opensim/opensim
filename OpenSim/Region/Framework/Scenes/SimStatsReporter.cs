@@ -357,7 +357,7 @@ namespace OpenSim.Region.Framework.Scenes
                 float perframefactor = 1.0f / (float)reportedFPS;
 
                 // fps considering the integration time
-                reportedFPS = (int)(reportedFPS * updateFactor);
+                reportedFPS = reportedFPS * updateFactor;
                 // save the reported value so there is something available for llGetRegionFPS 
                 lastReportedSimFPS = reportedFPS;
 
