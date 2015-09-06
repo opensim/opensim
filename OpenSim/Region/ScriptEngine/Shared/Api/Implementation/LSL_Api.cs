@@ -816,8 +816,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Float llFrand(double mag)
         {
             m_host.AddScriptLPS(1);
-
-            return Util.RandomClass.NextDouble() * mag;
+            lock (Util.RandomClass)
+            {
+				return Util.RandomClass.NextDouble() * mag;
+			}
         }
 
         public LSL_Integer llFloor(double f)
