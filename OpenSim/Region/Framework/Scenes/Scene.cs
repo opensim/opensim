@@ -274,17 +274,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected float m_defaultDrawDistance = 255f;
         public float DefaultDrawDistance
         {
-            // get { return m_defaultDrawDistance; }
-            get
-            {
-                if (RegionInfo != null)
-                {
-                    float largestDimension = Math.Max(RegionInfo.RegionSizeX, RegionInfo.RegionSizeY);
-                    m_defaultDrawDistance = Math.Max(m_defaultDrawDistance, largestDimension);
-
-                }
-                return m_defaultDrawDistance;
-            }
+             get { return m_defaultDrawDistance; }
         }
 
         protected float m_maxDrawDistance = 512.0f;
@@ -981,7 +971,11 @@ namespace OpenSim.Region.Framework.Scenes
                 StartDisabled = startupConfig.GetBoolean("StartDisabled", false);
 
                 m_defaultDrawDistance = startupConfig.GetFloat("DefaultDrawDistance", m_defaultDrawDistance);
-                m_defaultDrawDistance = startupConfig.GetFloat("MaxDrawDistance", m_maxDrawDistance);
+                m_maxDrawDistance = startupConfig.GetFloat("MaxDrawDistance", m_maxDrawDistance);
+
+                if (m_defaultDrawDistance > m_maxDrawDistance)
+                    m_defaultDrawDistance = m_maxDrawDistance;
+
                 UseBackup = startupConfig.GetBoolean("UseSceneBackup", UseBackup);
                 if (!UseBackup)
                     m_log.InfoFormat("[SCENE]: Backup has been disabled for {0}", RegionInfo.RegionName);
