@@ -1417,6 +1417,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             if (consoleScene != null && consoleScene != m_scene)
                 return;
 
+            GenerateMaptile();
+        }
+/*
             if (m_mapImageGenerator == null)
             {
                 Console.WriteLine("No map image generator available for {0}", m_scene.Name);
@@ -1430,7 +1433,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     m_mapImageServiceModule.UploadMapTile(m_scene, mapbmp);
             }
         }
-
+*/
         public OSD HandleRemoteMapItemRequest(string path, OSD request, string endpoint)
         {
             uint xstart = 0;
@@ -1555,12 +1558,19 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             if (m_scene.Heightmap == null)
                 return;
 
+            if (m_mapImageGenerator == null)
+            {
+                Console.WriteLine("No map image generator available for {0}", m_scene.Name);
+                return;
+            }
             m_log.DebugFormat("[WORLD MAP]: Generating map image for {0}", m_scene.Name);
 
             using (Bitmap mapbmp = m_mapImageGenerator.CreateMapTile())
             {
                 // V1 (This Module)
-                GenerateMaptile(mapbmp);
+                if(m_scene.RegionInfo.RegionSizeX <= Constants.RegionSize &&
+                    m_scene.RegionInfo.RegionSizeY <= Constants.RegionSize)
+                    GenerateMaptile(mapbmp);
 
                 // v2/3 (MapImageServiceModule)
                 if(m_mapImageServiceModule !=null)
