@@ -301,7 +301,7 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                     m_scene,
                     "SpareFrameTimeMonitor",
                     "Spare Frame Time",
-                    m => m.Scene.StatsReporter.LastReportedSimStats[37],
+                    m => m.Scene.StatsReporter.LastReportedSimStats[38],
                     m => string.Format("{0} ms", m.GetValue())));
 
             m_alerts.Add(new DeadlockAlert(m_staticMonitors.Find(x => x is LastFrameTimeMonitor) as LastFrameTimeMonitor));

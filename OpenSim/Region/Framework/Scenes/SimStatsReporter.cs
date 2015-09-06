@@ -63,7 +63,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         // Determines the size of the array that is used to collect StatBlocks
         // for sending viewer compatible stats must be conform with sb array filling below
-        private const int m_statisticViewerArraySize = 37;
+        private const int m_statisticViewerArraySize = 38;
         // size of LastReportedSimFPS with extra stats.
         private const int m_statisticExtraArraySize = (int)(Stats.SimExtraCountEnd - Stats.SimExtraCountStart);
 
@@ -523,8 +523,11 @@ namespace OpenSim.Region.Framework.Scenes
                 sb[36].StatID = (uint)Stats.SimPhysicsMemory;
                 sb[36].StatValue = 0;
 
-                
-                for (int i = 0; i < 37; i++)
+                sb[37].StatID = (uint)Stats.ScriptMS;
+                sb[37].StatValue = 0;
+
+
+                for (int i = 0; i < m_statisticViewerArraySize; i++)
                 {
                     lastReportedSimStats[i] = sb[i].StatValue;
                 }
@@ -539,27 +542,27 @@ namespace OpenSim.Region.Framework.Scenes
 
                 sbex[0].StatID = (uint)Stats.LSLScriptLinesPerSecond;
                 sbex[0].StatValue = m_scriptLinesPerSecond * updateFactor;
-                lastReportedSimStats[37] = m_scriptLinesPerSecond * updateFactor;
+                lastReportedSimStats[38] = m_scriptLinesPerSecond * updateFactor;
 
                 sbex[1].StatID = (uint)Stats.FrameDilation2;
                 sbex[1].StatValue = (Single.IsNaN(m_timeDilation)) ? 0.1f : m_timeDilation;
-                lastReportedSimStats[38] = (Single.IsNaN(m_timeDilation)) ? 0.1f : m_timeDilation;
+                lastReportedSimStats[39] = (Single.IsNaN(m_timeDilation)) ? 0.1f : m_timeDilation;
 
                 sbex[2].StatID = (uint)Stats.UsersLoggingIn;
                 sbex[2].StatValue = m_usersLoggingIn;
-                lastReportedSimStats[39] = m_usersLoggingIn;
+                lastReportedSimStats[40] = m_usersLoggingIn;
 
                 sbex[3].StatID = (uint)Stats.TotalGeoPrim;
                 sbex[3].StatValue = m_numGeoPrim;
-                lastReportedSimStats[40] = m_numGeoPrim;
+                lastReportedSimStats[41] = m_numGeoPrim;
 
                 sbex[4].StatID = (uint)Stats.TotalMesh;
                 sbex[4].StatValue = m_numMesh;
-                lastReportedSimStats[41] = m_numMesh;
+                lastReportedSimStats[42] = m_numMesh;
 
                 sbex[5].StatID = (uint)Stats.ThreadCount;
                 sbex[5].StatValue = m_inUseThreads;
-                lastReportedSimStats[42] = m_inUseThreads;
+                lastReportedSimStats[43] = m_inUseThreads;
 
                 SimStats simStats 
                     = new SimStats(
