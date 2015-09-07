@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Net;
+using System.Threading;
 
 using log4net;
 using Nini.Config;
@@ -36,7 +37,6 @@ using Nini.Config;
 using OpenMetaverse;
 using Mono.Addins;
 
-using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.CoreModules.Framework.InterfaceCommander;
@@ -86,7 +86,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private readonly Dictionary<string, ITerrainLoader> m_loaders = new Dictionary<string, ITerrainLoader>();
         private readonly Dictionary<StandardTerrainEffects, ITerrainPaintableEffect> m_painteffects =
             new Dictionary<StandardTerrainEffects, ITerrainPaintableEffect>();
-
+        private Dictionary<string, ITerrainModifier> m_modifyOperations =
+             new Dictionary<string, ITerrainModifier>();
         private Dictionary<string, ITerrainEffect> m_plugineffects;
         private ITerrainChannel m_channel;
         private ITerrainChannel m_baked;
@@ -643,7 +644,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             m_floodeffects[StandardTerrainEffects.Revert] = new RevertArea(m_baked);
 
             // Terrain Modifier operations
-/*
+
             m_modifyOperations["min"] = new MinModifier(this);
             m_modifyOperations["max"] = new MaxModifier(this);
             m_modifyOperations["raise"] = new RaiseModifier(this);
@@ -651,7 +652,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             m_modifyOperations["fill"] = new FillModifier(this);
             m_modifyOperations["smooth"] = new SmoothModifier(this);
             m_modifyOperations["noise"] = new NoiseModifier(this);
-*/
+
             // Filesystem load/save loaders
             m_loaders[".r32"] = new RAW32();
             m_loaders[".f32"] = m_loaders[".r32"];
@@ -992,12 +993,16 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             {
                 foreach (PatchUpdates pups in m_perClientPatchUpdates.Values)
                 {
+                    if (!Monitor.TryEnter(pups))
+                        continue;
+
                     // throught acording to land queue free to send bytes
                     if (!pups.Presence.ControllingClient.CanSendLayerData())
                         continue;
 
                     if (pups.HasUpdates())
                     {
+
                         // There is something that could be sent to this client.
                         List<PatchesToSend> toSend = GetModifiedPatchesInViewDistance(pups);
                         if (toSend.Count > 0)
@@ -1026,6 +1031,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                             pups.Presence.ControllingClient.SendLayerData(-toSend.Count, 0, patchPieces);
                         }
                     }
+                    Monitor.Exit(pups);
                 }
             }
         }
@@ -1099,7 +1105,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             int distsq;
 
             DrawDistance *= DrawDistance;
-  
+
             for (int x = startX; x < endX; x++)
             {
                 for (int y = startY; y < endY; y++)
@@ -1123,7 +1129,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 }
             }
             return ret;
-        }
+        }   
 
         private void client_OnModifyTerrain(UUID user, float height, float seconds, byte size, byte action,
                                             float north, float west, float south, float east, UUID agentId)
@@ -1414,7 +1420,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 }
 
             }
-
         }
 
         private void InterfaceElevateTerrain(Object[] args)
@@ -1707,7 +1712,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         public void ModifyCommand(string module, string[] cmd)
         {
-            /*
             string result;
             Scene scene = SceneManager.Instance.CurrentScene;
             if ((scene != null) && (scene != m_scene))
@@ -1747,7 +1751,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             {
                 MainConsole.Instance.Output(result);
             }
-             */
         }
 
 #endregion

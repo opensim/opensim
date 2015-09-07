@@ -370,9 +370,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             }
             return mask;
         }
-
-
     }
-
 }
 
