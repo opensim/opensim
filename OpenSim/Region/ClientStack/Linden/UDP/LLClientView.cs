@@ -1242,20 +1242,51 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             try
             {
                 // Send LayerData in typerwriter pattern
+                //for (int y = 0; y < 16; y++)
+                //{
+                //    for (int x = 0; x < 16; x++)
+                //    {
+                //        SendLayerData(x, y, map);
+                //    }
+                //}
 
-                for (int y = 0; y < 16; y++)
-                {
-                    for (int x = 0; x < 16; x++)
-                    {
-                        SendLayerData(x, y, map);
-                    }
-                }
+                // Send LayerData in a spiral pattern. Fun!
+                SendLayerTopRight(map, 0, 0, map.SizeX / Constants.TerrainPatchSize - 1, map.SizeY / Constants.TerrainPatchSize - 1);
             }
             catch (Exception e)
             {
                 m_log.Error("[CLIENT]: SendLayerData() Failed with exception: " + e.Message, e);
             }
         }
+
+        private void SendLayerTopRight(TerrainData map, int x1, int y1, int x2, int y2)
+        {
+            // Row
+            for (int i = x1; i <= x2; i++)
+                SendLayerData(i, y1, map);
+
+            // Column
+            for (int j = y1 + 1; j <= y2; j++)
+                SendLayerData(x2, j, map);
+
+            if (x2 - x1 > 0 && y2 - y1 > 0)
+                SendLayerBottomLeft(map, x1, y1 + 1, x2 - 1, y2);
+        }
+
+        void SendLayerBottomLeft(TerrainData map, int x1, int y1, int x2, int y2)
+        {
+            // Row in reverse
+            for (int i = x2; i >= x1; i--)
+                SendLayerData(i, y2, map);
+
+            // Column in reverse
+            for (int j = y2 - 1; j >= y1; j--)
+                SendLayerData(x1, j, map);
+
+            if (x2 - x1 > 0 && y2 - y1 > 0)
+                SendLayerTopRight(map, x1 + 1, y1, x2, y2 - 1);
+        }
+
 
         // Legacy form of invocation that passes around a bare data array.
         // Just ignore what was passed and use the real terrain info that is part of the scene.
@@ -1359,7 +1390,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void SendTheLayerPacket(LayerDataPacket layerpack)
         {
-                OutPacket(layerpack, ThrottleOutPacketType.Land);
+            OutPacket(layerpack, ThrottleOutPacketType.Land);
         }
 
         /// <summary>

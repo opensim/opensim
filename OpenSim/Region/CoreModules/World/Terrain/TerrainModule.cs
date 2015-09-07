@@ -107,6 +107,10 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             private bool[,] updated;    // for each patch, whether it needs to be sent to this client
             private int updateCount;    // number of patches that need to be sent
             public ScenePresence Presence;   // a reference to the client to send to
+            public bool sendAll;
+            public int sendAllcurrentX;
+            public int sendAllcurrentY;
+
 
             public PatchUpdates(TerrainData terrData, ScenePresence pPresence)
             {
@@ -150,6 +154,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         updated[xx, yy] = state;
                 if (state)
                     updateCount = updated.GetLength(0) * updated.GetLength(1);
+                sendAllcurrentX = 0;
+                sendAllcurrentY = 0;
+                sendAll = true;
             }
 
             // Logically OR's the terrain data's patch taint map into this client's update map.
@@ -211,7 +218,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             if (terrainConfig != null)
             {
                 m_InitialTerrain = terrainConfig.GetString("InitialTerrain", m_InitialTerrain);
-                m_sendTerrainUpdatesByViewDistance = terrainConfig.GetBoolean("SendTerrainUpdatesByViewDistance", m_sendTerrainUpdatesByViewDistance);
+                m_sendTerrainUpdatesByViewDistance = 
+                    terrainConfig.GetBoolean(
+                        "SendTerrainUpdatesByViewDistance",m_sendTerrainUpdatesByViewDistance);
             }
         }
 
@@ -524,20 +533,28 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         // ITerrainModule.PushTerrain()
         public void PushTerrain(IClientAPI pClient)
         {
-            ScenePresence presence = m_scene.GetScenePresence(pClient.AgentId);
-            if (presence != null)
+            if (m_sendTerrainUpdatesByViewDistance)
             {
-                lock (m_perClientPatchUpdates)
+                ScenePresence presence = m_scene.GetScenePresence(pClient.AgentId);
+                if (presence != null)
                 {
-                    PatchUpdates pups;
-                    if (!m_perClientPatchUpdates.TryGetValue(pClient.AgentId, out pups))
+                    lock (m_perClientPatchUpdates)
                     {
-                        // There is a ScenePresence without a send patch map. Create one.
-                        pups = new PatchUpdates(m_scene.Heightmap.GetTerrainData(), presence);
-                        m_perClientPatchUpdates.Add(presence.UUID, pups);
+                        PatchUpdates pups;
+                        if (!m_perClientPatchUpdates.TryGetValue(pClient.AgentId, out pups))
+                        {
+                            // There is a ScenePresence without a send patch map. Create one.
+                            pups = new PatchUpdates(m_scene.Heightmap.GetTerrainData(), presence);
+                            m_perClientPatchUpdates.Add(presence.UUID, pups);
+                        }
+                        pups.SetAll(true);
                     }
-                    pups.SetAll(true);
                 }
+            }
+            else
+            {
+                // The traditional way is to call into the protocol stack to send them all.
+                pClient.SendLayerData(new float[10]);
             }
         }
 
@@ -949,19 +966,37 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// <param name="y">The patch corner to send</param>
         private void SendToClients(TerrainData terrData, int x, int y)
         {
-            // Add that this patch needs to be sent to the accounting for each client.
-            lock (m_perClientPatchUpdates)
+            if (m_sendTerrainUpdatesByViewDistance)
             {
-                m_scene.ForEachScenePresence(presence =>
-                    {
-                        PatchUpdates thisClientUpdates;
-                        if (!m_perClientPatchUpdates.TryGetValue(presence.UUID, out thisClientUpdates))
+                // Add that this patch needs to be sent to the accounting for each client.
+                lock (m_perClientPatchUpdates)
+                {
+                    m_scene.ForEachScenePresence(presence =>
                         {
-                            // There is a ScenePresence without a send patch map. Create one.
-                            thisClientUpdates = new PatchUpdates(terrData, presence);
-                            m_perClientPatchUpdates.Add(presence.UUID, thisClientUpdates);
+                            PatchUpdates thisClientUpdates;
+                            if (!m_perClientPatchUpdates.TryGetValue(presence.UUID, out thisClientUpdates))
+                            {
+                                // There is a ScenePresence without a send patch map. Create one.
+                                thisClientUpdates = new PatchUpdates(terrData, presence);
+                                m_perClientPatchUpdates.Add(presence.UUID, thisClientUpdates);
+                            }
+                            thisClientUpdates.SetByXY(x, y, true);
                         }
-                        thisClientUpdates.SetByXY(x, y, true);
+                    );
+                }
+            }
+            else
+            {
+                // Legacy update sending where the update is sent out as soon as noticed
+                // We know the actual terrain data that is passed is ignored so this passes a dummy heightmap.
+                //float[] heightMap = terrData.GetFloatsSerialized();
+                float[] heightMap = new float[10];
+                m_scene.ForEachClient(
+                    delegate (IClientAPI controller)
+                    {
+                        controller.SendLayerData(x / Constants.TerrainPatchSize,
+                                                 y / Constants.TerrainPatchSize,
+                                                 heightMap);
                     }
                 );
             }
@@ -993,46 +1028,113 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             {
                 foreach (PatchUpdates pups in m_perClientPatchUpdates.Values)
                 {
-                    if (!Monitor.TryEnter(pups))
-                        continue;
-
                     // throught acording to land queue free to send bytes
                     if (!pups.Presence.ControllingClient.CanSendLayerData())
                         continue;
 
                     if (pups.HasUpdates())
                     {
-
-                        // There is something that could be sent to this client.
-                        List<PatchesToSend> toSend = GetModifiedPatchesInViewDistance(pups);
-                        if (toSend.Count > 0)
+                        if (m_sendTerrainUpdatesByViewDistance)
                         {
-                            // m_log.DebugFormat("{0} CheckSendingPatchesToClient: sending {1} patches to {2} in region {3}",
-                            //                     LogHeader, toSend.Count, pups.Presence.Name, m_scene.RegionInfo.RegionName);
-                            // Sort the patches to send by the distance from the presence
-                            toSend.Sort();
-                            /*
-                            foreach (PatchesToSend pts in toSend)
+                            // There is something that could be sent to this client.
+                            List<PatchesToSend> toSend = GetModifiedPatchesInViewDistance(pups);
+                            if (toSend.Count > 0)
                             {
-                                pups.Presence.ControllingClient.SendLayerData(pts.PatchX, pts.PatchY, null);
-                                // presence.ControllingClient.SendLayerData(xs.ToArray(), ys.ToArray(), null, TerrainPatch.LayerType.Land);
-                            }
-                            */
+                                // m_log.DebugFormat("{0} CheckSendingPatchesToClient: sending {1} patches to {2} in region {3}",
+                                //                     LogHeader, toSend.Count, pups.Presence.Name, m_scene.RegionInfo.RegionName);
+                                // Sort the patches to send by the distance from the presence
+                                toSend.Sort();
+                                /*
+                                foreach (PatchesToSend pts in toSend)
+                                {
+                                    pups.Presence.ControllingClient.SendLayerData(pts.PatchX, pts.PatchY, null);
+                                    // presence.ControllingClient.SendLayerData(xs.ToArray(), ys.ToArray(), null, TerrainPatch.LayerType.Land);
+                                }
+                                */
 
-                            int[] xPieces = new int[toSend.Count];
-                            int[] yPieces = new int[toSend.Count];
-                            float[] patchPieces = new float[toSend.Count * 2];
-                            int pieceIndex = 0;
-                            foreach (PatchesToSend pts in toSend)
-                            {
-                                patchPieces[pieceIndex++] = pts.PatchX;
-                                patchPieces[pieceIndex++] = pts.PatchY;
+                                int[] xPieces = new int[toSend.Count];
+                                int[] yPieces = new int[toSend.Count];
+                                float[] patchPieces = new float[toSend.Count * 2];
+                                int pieceIndex = 0;
+                                foreach (PatchesToSend pts in toSend)
+                                {
+                                    patchPieces[pieceIndex++] = pts.PatchX;
+                                    patchPieces[pieceIndex++] = pts.PatchY;
+                                }
+                                pups.Presence.ControllingClient.SendLayerData(-toSend.Count, 0, patchPieces);
                             }
-                            pups.Presence.ControllingClient.SendLayerData(-toSend.Count, 0, patchPieces);
+                            if (pups.sendAll && toSend.Count < 1024)
+                                SendAllModifiedPatchs(pups);
+                        }
+                        else
+                            SendAllModifiedPatchs(pups);
+                    }
+                }
+            }
+        }
+        private void SendAllModifiedPatchs(PatchUpdates pups)
+        {
+            if (!pups.sendAll) // sanity
+                return;
+
+            int limitX = (int)m_scene.RegionInfo.RegionSizeX / Constants.TerrainPatchSize;
+            int limitY = (int)m_scene.RegionInfo.RegionSizeY / Constants.TerrainPatchSize;
+
+            if (pups.sendAllcurrentX > limitX || pups.sendAllcurrentY > limitY)
+            {
+                pups.sendAll = false;
+                pups.sendAllcurrentX = 0;
+                pups.sendAllcurrentY = 0;
+                return;
+            }
+
+            int npatchs = 0;
+            List<PatchesToSend> patchs = new List<PatchesToSend>();
+            int x = pups.sendAllcurrentX;
+            int y = pups.sendAllcurrentY;
+            // send it in the order viewer draws it
+            // even if not best for memory scan
+            for (; y < limitY; y++)
+            {
+                for (; x < limitX; x++)
+                {
+                    if (pups.GetByPatch(x, y))
+                    {
+                        pups.SetByPatch(x, y, false);
+                        patchs.Add(new PatchesToSend(x, y, 0));
+                        if (++npatchs >= 512)
+                        {
+                            pups.sendAllcurrentX = x + 1;
+                            pups.sendAllcurrentY = y;
+                            break;
                         }
                     }
-                    Monitor.Exit(pups);
                 }
+                if (npatchs >= 512)
+                    break;
+                x = 0;
+            }
+
+            if (x >= limitX && y >= limitY)
+            {
+                pups.sendAll = false;
+                pups.sendAllcurrentX = 0;
+                pups.sendAllcurrentY = 0;
+            }
+
+            npatchs = patchs.Count;
+            if (npatchs > 0)
+            {
+                int[] xPieces = new int[npatchs];
+                int[] yPieces = new int[npatchs];
+                float[] patchPieces = new float[npatchs * 2];
+                int pieceIndex = 0;
+                foreach (PatchesToSend pts in patchs)
+                {
+                    patchPieces[pieceIndex++] = pts.PatchX;
+                    patchPieces[pieceIndex++] = pts.PatchY;
+                }
+                pups.Presence.ControllingClient.SendLayerData(-npatchs, 0, patchPieces);
             }
         }
 
@@ -1119,7 +1221,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         {
                             pups.SetByPatch(x, y, false);
                             ret.Add(new PatchesToSend(x, y, (float)distsq));
-                            if (npatchs++ > 65536)
+                            if (npatchs++ > 1024)
                             {
                                 y = endY;
                                 x = endX;
