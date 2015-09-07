@@ -1691,6 +1691,9 @@ Console.WriteLine(" JointCreateFixed");
             float fy = 0;
             float fz = 0;
 
+            if (outofBounds)
+                return;
+
             if (IsPhysical && (Body != IntPtr.Zero) && !m_isSelected && !childPrim)        // KF: Only move root prims.
             {
                 if (m_vehicle.Type != Vehicle.TYPE_NONE)
@@ -2664,16 +2667,38 @@ Console.WriteLine(" JointCreateFixed");
 
         public override void CrossingFailure()
         {
-            m_crossingfailures++;
-            if (m_crossingfailures > _parent_scene.geomCrossingFailuresBeforeOutofbounds)
+            /*
+                        m_crossingfailures++;
+                        if (m_crossingfailures > _parent_scene.geomCrossingFailuresBeforeOutofbounds)
+                        {
+                            base.RaiseOutOfBounds(_position);
+                            return;
+                        }
+                        else if (m_crossingfailures == _parent_scene.geomCrossingFailuresBeforeOutofbounds)
+                        {
+                            m_log.Warn("[PHYSICS]: Too many crossing failures for: " + Name);
+                        }
+            */
+            _position.X = Util.Clip(_position.X, 0.5f, _parent_scene.WorldExtents.X - 0.5f);
+            _position.Y = Util.Clip(_position.Y, 0.5f, _parent_scene.WorldExtents.Y - 0.5f);
+            _position.Z = Util.Clip(_position.Z + 0.2f, -100f, 50000f);
+
+            m_lastposition = _position;
+            _velocity.X = 0;
+            _velocity.Y = 0;
+            _velocity.Z = 0;
+
+            m_lastVelocity = _velocity;
+
+            if (Body != IntPtr.Zero)
             {
-                base.RaiseOutOfBounds(_position);
-                return;
+                d.BodySetLinearVel(Body, 0, 0, 0); // stop it
+                d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
             }
-            else if (m_crossingfailures == _parent_scene.geomCrossingFailuresBeforeOutofbounds)
-            {
-                m_log.Warn("[PHYSICS]: Too many crossing failures for: " + Name);
-            }
+
+            outofBounds = false;
+            base.RequestPhysicsterseUpdate();
+
         }
 
         public override float Buoyancy
@@ -2712,6 +2737,8 @@ Console.WriteLine(" JointCreateFixed");
         internal void UpdatePositionAndVelocity()
         {
             //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
+            if (outofBounds)
+                return;
             if (_parent == null)
             {
                 Vector3 pv = Vector3.Zero;
@@ -2728,12 +2755,6 @@ Console.WriteLine(" JointCreateFixed");
                     Vector3 l_position = Vector3.Zero;
                     Quaternion l_orientation = Quaternion.Identity;
 
-                    //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)
-                    //if (vec.X < 0.0f) { vec.X = 0.0f; if (Body != (IntPtr)0) d.BodySetAngularVel(Body, 0, 0, 0); }
-                    //if (vec.Y < 0.0f) { vec.Y = 0.0f; if (Body != (IntPtr)0) d.BodySetAngularVel(Body, 0, 0, 0); }
-                    //if (vec.X > 255.95f) { vec.X = 255.95f; if (Body != (IntPtr)0) d.BodySetAngularVel(Body, 0, 0, 0); }
-                    //if (vec.Y > 255.95f) { vec.Y = 255.95f; if (Body != (IntPtr)0) d.BodySetAngularVel(Body, 0, 0, 0); }
-
                     m_lastposition = _position;
                     m_lastorientation = _orientation;
 
@@ -2745,26 +2766,6 @@ Console.WriteLine(" JointCreateFixed");
                     l_orientation.Z = ori.Z;
                     l_orientation.W = ori.W;
 
-                    if (l_position.X > ((int)_parent_scene.WorldExtents.X - 0.05f) || l_position.X < 0f || l_position.Y > ((int)_parent_scene.WorldExtents.Y - 0.05f) || l_position.Y < 0f)
-                    {
-                        //base.RaiseOutOfBounds(l_position);
-
-                        if (m_crossingfailures < _parent_scene.geomCrossingFailuresBeforeOutofbounds)
-                        {
-                            _position = l_position;
-                            //_parent_scene.remActivePrim(this);
-                            if (_parent == null)
-                                base.RequestPhysicsterseUpdate();
-                            return;
-                        }
-                        else
-                        {
-                            if (_parent == null)
-                                base.RaiseOutOfBounds(l_position);
-                            return;
-                        }
-                    }
-
                     if (l_position.Z < 0)
                     {
                         // This is so prim that get lost underground don't fall forever and suck up
@@ -2774,8 +2775,6 @@ Console.WriteLine(" JointCreateFixed");
                         // It's a hack and will generate a console message if it fails.
 
                         //IsPhysical = false;
-                        if (_parent == null)
-                            base.RaiseOutOfBounds(_position);
 
                         _acceleration.X = 0;
                         _acceleration.Y = 0;
@@ -2789,16 +2788,64 @@ Console.WriteLine(" JointCreateFixed");
                         m_rotationalVelocity.Z = 0;
 
                         if (_parent == null)
+                            base.RaiseOutOfBounds(_position);
+
+                        if (_parent == null)
                             base.RequestPhysicsterseUpdate();
 
                         m_throttleUpdates = false;
                         throttleCounter = 0;
                         _zeroFlag = true;
                         //outofBounds = true;
+                        return;
                     }
 
+                    if (l_position.X > ((int)_parent_scene.WorldExtents.X - 0.05f) || l_position.X < 0f || l_position.Y > ((int)_parent_scene.WorldExtents.Y - 0.05f) || l_position.Y < 0f)
+                    {
+                        //base.RaiseOutOfBounds(l_position);
+                        /*
+                                                if (m_crossingfailures < _parent_scene.geomCrossingFailuresBeforeOutofbounds)
+                                                {
+                                                    _position = l_position;
+                                                    //_parent_scene.remActivePrim(this);
+                                                    if (_parent == null)
+                                                        base.RequestPhysicsterseUpdate();
+                                                    return;
+                                                }
+                                                else
+                                                {
+                                                    if (_parent == null)
+                                                        base.RaiseOutOfBounds(l_position);
+                                                    return;
+                                                }
+                        */
+                        outofBounds = true;
+                        // part near the border on outside
+                        if (l_position.X < 0)
+                            Util.Clamp(l_position.X, -0.1f, -2f);
+                        else
+                            Util.Clamp(l_position.X, _parent_scene.WorldExtents.X + 0.1f, _parent_scene.WorldExtents.X + 2f);
+                        if (l_position.Y < 0)
+                            Util.Clamp(l_position.Y, -0.1f, -2f);
+                        else
+                            Util.Clamp(l_position.Y, _parent_scene.WorldExtents.Y + 0.1f, _parent_scene.WorldExtents.Y + 2f);
+
+                        d.BodySetPosition(Body, l_position.X, l_position.Y, l_position.Z);
+
+                        // stop it
+                        d.BodySetAngularVel(Body, 0, 0, 0);
+                        d.BodySetLinearVel(Body, 0, 0, 0);
+                        disableBodySoft();
+
+                        // tell framework to fix it
+                        if (_parent == null)
+                            base.RequestPhysicsterseUpdate();
+                        return;
+                    }
+
+
                     //float Adiff = 1.0f - Math.Abs(Quaternion.Dot(m_lastorientation, l_orientation));
-//Console.WriteLine("Adiff " + Name + " = " + Adiff);
+                    //Console.WriteLine("Adiff " + Name + " = " + Adiff);
                     if ((Math.Abs(m_lastposition.X - l_position.X) < 0.02)
                         && (Math.Abs(m_lastposition.Y - l_position.Y) < 0.02)
                         && (Math.Abs(m_lastposition.Z - l_position.Z) < 0.02)
