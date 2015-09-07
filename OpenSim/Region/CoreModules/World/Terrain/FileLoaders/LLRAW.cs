@@ -57,6 +57,10 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         public LLRAW()
         {
+        }
+
+        private void BuildLookupHeightTable()
+        {
             LookupHeightTable = new HeightmapLookupValue[256 * 256];
 
             for (int i = 0; i < 256; i++)
@@ -186,6 +190,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         public void SaveStream(Stream s, ITerrainChannel map)
         {
+            if (LookupHeightTable == null)
+                BuildLookupHeightTable();
+
             using (BinaryWriter binStream = new BinaryWriter(s))
             {
                 // Output the calculated raw
@@ -241,6 +248,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
                     }
                 }
             }
+            LookupHeightTable = null;
         }
 
         public string FileExtension
