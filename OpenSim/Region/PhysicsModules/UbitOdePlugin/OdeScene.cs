@@ -39,10 +39,11 @@ using log4net;
 using Nini.Config;
 using OdeAPI;
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.OdePlugin
+namespace OpenSim.Region.PhysicsModules.OdePlugin
 {
      // colision flags of things others can colide with
     // rays, sensors, probes removed since can't  be colided with
@@ -164,9 +165,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
     
 
-    public class OdeScene : PhysicsScene
+    public class OdeScene : PhysicsScene, INonSharedRegionModule
     {
-        private readonly ILog m_log;
+        private readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType.ToString() + "." + sceneIdentifier);
         // private Dictionary<string, sCollisionData> m_storedCollisions = new Dictionary<string, sCollisionData>();
 
         public bool OdeUbitLib = false;
@@ -324,18 +325,85 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
  */
+        #region INonSharedRegionModule
+        public string Name
+        {
+            get { return "UbitODE"; }
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public void Initialise(IConfigSource source)
+        {
+            // TODO: Move this out of Startup
+            IConfig config = source.Configs["Startup"];
+            if (config != null)
+            {
+                string physics = config.GetString("physics", string.Empty);
+                if (physics == Name)
+                {
+                    m_Enabled = true;
+                    m_Config = source;
+                }
+            }
+
+        }
+
+        public void Close()
+        {
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            EngineType = Name;
+            RegionName = scene.RegionInfo.RegionName;
+            PhysicsSceneName = EngineType + "/" + RegionName;
+
+            scene.RegisterModuleInterface<PhysicsScene>(this);
+            Vector3 extent = new Vector3(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY, scene.RegionInfo.RegionSizeZ);
+            RawInitialization();
+            Initialise(m_Config, extent);
+
+            base.Initialise(scene.PhysicsRequestAsset,
+                (scene.Heightmap != null ? scene.Heightmap.GetFloatsSerialised() : new float[scene.RegionInfo.RegionSizeX * scene.RegionInfo.RegionSizeY]),
+                (float)scene.RegionInfo.RegionSettings.WaterHeight);
+
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            mesher = scene.RequestModuleInterface<IMesher>();
+            if (mesher == null)
+                m_log.WarnFormat("{0} No mesher. Things will not work well.", LogHeader);
+
+            scene.PhysicsEnabled = true;
+        }
+        #endregion
+
         /// <summary>
         /// Initiailizes the scene
         /// Sets many properties that ODE requires to be stable
         /// These settings need to be tweaked 'exactly' right or weird stuff happens.
         /// </summary>
-        public OdeScene(string sceneIdentifier)
+        private void RawInitialization()
             {
-            m_log 
-                = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType.ToString() + "." + sceneIdentifier);
 
 //            checkThread();
-            Name = sceneIdentifier;
 
             OdeLock = new Object();
             SimulationLock = new Object();
@@ -415,7 +483,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        public override void Initialise(IMesher meshmerizer, IConfigSource config, Vector3 regionExtent)
+        public void Initialise(IConfigSource config, Vector3 regionExtent)
         {
             WorldExtents.X =  regionExtent.X;
             m_regionWidth = (uint)regionExtent.X;
@@ -423,14 +491,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_regionHeight = (uint)regionExtent.Y;
 
             m_suportCombine = false;
-            Initialise(meshmerizer, config);
-        }
-
-
-        public override void Initialise(IMesher meshmerizer, IConfigSource config)
-        {
 //            checkThread();
-            mesher = meshmerizer;
             m_config = config;
 
             string ode_config = d.GetConfiguration();

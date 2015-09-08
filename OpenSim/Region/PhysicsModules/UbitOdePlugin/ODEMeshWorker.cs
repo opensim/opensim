@@ -10,13 +10,13 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModules.SharedBase;
 using OdeAPI;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.OdePlugin
+namespace OpenSim.Region.PhysicsModules.OdePlugin
 {
     public enum MeshState : byte
     {
