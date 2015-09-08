@@ -267,11 +267,11 @@ namespace OpenSim
 
             base.StartupSpecific();
 
+            if (EnableInitialPluginLoad)
+                LoadPlugins();
 
             // We still want to post initalize any plugins even if loading has been disabled since a test may have
             // inserted them manually.
-            LoadPlugins();
-
             foreach (IApplicationPlugin plugin in m_plugins)
                 plugin.PostInitialise();
 
@@ -293,10 +293,10 @@ namespace OpenSim
                                               "help " + capitalizedTopic,
                                               "Get help on plugin command '" + topic + "'",
                                               HandleCommanderHelp);
-//                console.Commands.AddCommand(capitalizedTopic, false, "help " + capitalizedTopic,
-//                                              "help " + capitalizedTopic,
-//                                              "Get help on plugin command '" + topic + "'",
-//                                              HandleCommanderHelp);
+                console.Commands.AddCommand(capitalizedTopic, false, "help " + capitalizedTopic,
+                                              "help " + capitalizedTopic,
+                                              "Get help on plugin command '" + topic + "'",
+                                              HandleCommanderHelp);
 
                 ICommander commander = null;
 
@@ -773,10 +773,6 @@ namespace OpenSim
         protected override Scene CreateScene(RegionInfo regionInfo, ISimulationDataService simDataService,
             IEstateDataService estateDataService, AgentCircuitManager circuitManager)
         {
-            Vector3 regionExtent = new Vector3(regionInfo.RegionSizeX, regionInfo.RegionSizeY, regionInfo.RegionSizeZ);
-            PhysicsScene physicsScene = GetPhysicsScene(regionInfo.RegionName, regionExtent);
-            SceneCommunicationService sceneGridService = new SceneCommunicationService();
-
             return new Scene(
                 regionInfo, circuitManager,  
                 simDataService, estateDataService,

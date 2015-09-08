@@ -170,6 +170,7 @@ namespace OpenSim.Region.PhysicsModules.UbitOde
     public class ODEScene : PhysicsScene, INonSharedRegionModule
     {
         private readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType.ToString());
+        public string LogHeader = "[UbitODE]";
         private bool m_Enabled = false;
 
         // private Dictionary<string, sCollisionData> m_storedCollisions = new Dictionary<string, sCollisionData>();
@@ -574,7 +575,7 @@ namespace OpenSim.Region.PhysicsModules.UbitOde
             d.WorldSetContactSurfaceLayer(world, contactsurfacelayer);
             d.WorldSetContactMaxCorrectingVel(world, 60.0f);
 
-            m_meshWorker = new ODEMeshWorker(this, m_log, meshmerizer, physicsconfig);
+            m_meshWorker = new ODEMeshWorker(this, m_log, mesher, physicsconfig);
 
             HalfOdeStep = ODE_STEPSIZE * 0.5f;
             odetimestepMS = (int)(1000.0f * ODE_STEPSIZE +0.5f);
