@@ -359,7 +359,7 @@
       </Files>
     </Project>
 
-   <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModules.UbitOdePlugin" path="OpenSim/Region/PhysicsModules/UbitOdePlugin" type="Library">
+   <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModules.UbitOde" path="OpenSim/Region/PhysicsModules/UbitOde" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/Physics/</OutputPath>
