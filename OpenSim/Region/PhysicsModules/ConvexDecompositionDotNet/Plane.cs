@@ -27,7 +27,7 @@
 
 using System;
 
-namespace OpenSim.Region.PhysicsModule.ConvexDecompositionDotNet
+namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 {
     public class Plane
     {
