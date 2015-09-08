@@ -1609,7 +1609,9 @@
       <Reference name="System.Core"/>
       <Reference name="System.Data"/>
       <Reference name="System.Xml"/>
-
+      <Reference name="OpenSim.Framework"/>	  
+	  <Reference name="Mono.Addins" path="../../../../bin/"/>
+	  
       <Files>
         <Match pattern="*.cs" recurse="true">
           <Exclude name="Tests" pattern="Tests"/>

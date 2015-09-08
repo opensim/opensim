@@ -408,8 +408,13 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
 
             mesher = scene.RequestModuleInterface<IMesher>();
             if (mesher == null)
-                m_log.WarnFormat("{0} No mesher. Things will not work well.", LogHeader);
+            {
+                m_log.WarnFormat("{0} No mesher. module disabled", LogHeader);
+                m_Enabled = false;
+                return;
+            }
 
+            region_loaded();
             scene.PhysicsEnabled = true;
         }
         #endregion
@@ -420,22 +425,22 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
         /// These settings need to be tweaked 'exactly' right or weird stuff happens.
         /// </summary>
         private void Initialization(Vector3 regionExtent)
-            {
+        {
 
-//            checkThread();
+            //            checkThread();
 
             OdeLock = new Object();
             SimulationLock = new Object();
 
             nearCallback = near;
 
-            m_rayCastManager = new ODERayCastRequestManager(this);         
+            m_rayCastManager = new ODERayCastRequestManager(this);
 
             lock (OdeLock)
-                {
+            {
                 // Create the world and the first space
                 try
-                    {
+                {
                     world = d.WorldCreate();
                     TopSpace = d.HashSpaceCreate(IntPtr.Zero);
 
@@ -444,12 +449,12 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
                     CharsSpace = d.HashSpaceCreate(TopSpace);
                     StaticSpace = d.HashSpaceCreate(TopSpace);
                     GroundSpace = d.HashSpaceCreate(TopSpace);
-                    }
+                }
                 catch
-                    {
+                {
                     // i must RtC#FM 
                     // i did!
-                    }
+                }
 
                 d.HashSpaceSetLevels(TopSpace, -2, 8);
                 d.HashSpaceSetLevels(ActiveSpace, -2, 8);
@@ -485,8 +490,8 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
 
                 d.GeomSetCategoryBits(StaticSpace, (uint)(CollisionCategories.Space |
                                                         CollisionCategories.Geom |
-//                                                        CollisionCategories.Land |
-//                                                        CollisionCategories.Water |
+                                                        //                                                        CollisionCategories.Land |
+                                                        //                                                        CollisionCategories.Water |
                                                         CollisionCategories.Phantom |
                                                         CollisionCategories.VolumeDtc
                                                         ));
@@ -501,14 +506,17 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
                 d.WorldSetAutoDisableFlag(world, false);
             }
 
-            WorldExtents.X =  regionExtent.X;
+            WorldExtents.X = regionExtent.X;
             m_regionWidth = (uint)regionExtent.X;
-            WorldExtents.Y =  regionExtent.Y;
+            WorldExtents.Y = regionExtent.Y;
             m_regionHeight = (uint)regionExtent.Y;
 
             m_suportCombine = false;
-//            checkThread();
+            //            checkThread();
+        }
 
+        private void region_loaded()
+        {
             string ode_config = d.GetConfiguration();
             if (ode_config != null && ode_config != "")
             {
@@ -537,7 +545,7 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
 
                     metersInSpace = physicsconfig.GetFloat("meters_in_small_space", metersInSpace);
 
-//                    contactsurfacelayer = physicsconfig.GetFloat("world_contact_surface_layer", contactsurfacelayer);
+                    //                    contactsurfacelayer = physicsconfig.GetFloat("world_contact_surface_layer", contactsurfacelayer);
 
                     ODE_STEPSIZE = physicsconfig.GetFloat("world_stepsize", ODE_STEPSIZE);
 
@@ -579,7 +587,7 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
             m_meshWorker = new ODEMeshWorker(this, m_log, mesher, physicsconfig);
 
             HalfOdeStep = ODE_STEPSIZE * 0.5f;
-            odetimestepMS = (int)(1000.0f * ODE_STEPSIZE +0.5f);
+            odetimestepMS = (int)(1000.0f * ODE_STEPSIZE + 0.5f);
 
             ContactgeomsArray = Marshal.AllocHGlobal(contactsPerCollision * d.ContactGeom.unmanagedSizeOf);
             GlobalContactsArray = Marshal.AllocHGlobal(maxContactsbeforedeath * d.Contact.unmanagedSizeOf);
@@ -631,13 +639,13 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
             if (spaceGridMaxX > 24)
             {
                 spaceGridMaxX = 24;
-                spacesPerMeterX = spaceGridMaxX / WorldExtents.X ;
+                spacesPerMeterX = spaceGridMaxX / WorldExtents.X;
             }
 
             if (spaceGridMaxY > 24)
             {
                 spaceGridMaxY = 24;
-                spacesPerMeterY = spaceGridMaxY / WorldExtents.Y ;
+                spacesPerMeterY = spaceGridMaxY / WorldExtents.Y;
             }
 
             staticPrimspace = new IntPtr[spaceGridMaxX, spaceGridMaxY];
@@ -674,23 +682,23 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
             staticPrimspaceOffRegion = new IntPtr[4];
 
             for (i = 0; i < 4; i++)
-                {
-                    newspace = d.HashSpaceCreate(StaticSpace);
-                    d.GeomSetCategoryBits(newspace, (int)CollisionCategories.Space);
-                    waitForSpaceUnlock(newspace);
-                    d.SpaceSetSublevel(newspace, 2);
-                    d.HashSpaceSetLevels(newspace, -2, 8);
-                    d.GeomSetCategoryBits(newspace, (uint)(CollisionCategories.Space |
-                                        CollisionCategories.Geom |
-                                        CollisionCategories.Land |
-                                        CollisionCategories.Water |
-                                        CollisionCategories.Phantom |
-                                        CollisionCategories.VolumeDtc
-                                        ));
-                    d.GeomSetCollideBits(newspace, 0);
+            {
+                newspace = d.HashSpaceCreate(StaticSpace);
+                d.GeomSetCategoryBits(newspace, (int)CollisionCategories.Space);
+                waitForSpaceUnlock(newspace);
+                d.SpaceSetSublevel(newspace, 2);
+                d.HashSpaceSetLevels(newspace, -2, 8);
+                d.GeomSetCategoryBits(newspace, (uint)(CollisionCategories.Space |
+                                    CollisionCategories.Geom |
+                                    CollisionCategories.Land |
+                                    CollisionCategories.Water |
+                                    CollisionCategories.Phantom |
+                                    CollisionCategories.VolumeDtc
+                                    ));
+                d.GeomSetCollideBits(newspace, 0);
 
-                    staticPrimspaceOffRegion[i] = newspace;
-                }
+                staticPrimspaceOffRegion[i] = newspace;
+            }
 
             m_lastframe = DateTime.UtcNow;
             m_lastMeshExpire = m_lastframe;

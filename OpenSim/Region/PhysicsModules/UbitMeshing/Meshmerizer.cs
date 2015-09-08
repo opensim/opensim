@@ -95,29 +95,33 @@ namespace OpenSim.Region.PhysicsModule.UbitMeshing
             IConfig start_config = config.Configs["Startup"];
             IConfig mesh_config = config.Configs["Mesh"];
 
-
-            float fcache = 48.0f;
-//            float fcache = 0.02f;
-
-            if(mesh_config != null)
+            string mesher = start_config.GetString("meshing", string.Empty);
+            if (mesher == Name)
             {
-                useMeshiesPhysicsMesh = mesh_config.GetBoolean("UseMeshiesPhysicsMesh", useMeshiesPhysicsMesh);
-                if (useMeshiesPhysicsMesh)
+
+                float fcache = 48.0f;
+                //            float fcache = 0.02f;
+
+                if (mesh_config != null)
                 {
-                    doMeshFileCache = mesh_config.GetBoolean("MeshFileCache", doMeshFileCache);
-                    cachePath = mesh_config.GetString("MeshFileCachePath", cachePath);
-                    fcache = mesh_config.GetFloat("MeshFileCacheExpireHours", fcache);
-                    doCacheExpire = mesh_config.GetBoolean("MeshFileCacheDoExpire", doCacheExpire);
+                    useMeshiesPhysicsMesh = mesh_config.GetBoolean("UseMeshiesPhysicsMesh", useMeshiesPhysicsMesh);
+                    if (useMeshiesPhysicsMesh)
+                    {
+                        doMeshFileCache = mesh_config.GetBoolean("MeshFileCache", doMeshFileCache);
+                        cachePath = mesh_config.GetString("MeshFileCachePath", cachePath);
+                        fcache = mesh_config.GetFloat("MeshFileCacheExpireHours", fcache);
+                        doCacheExpire = mesh_config.GetBoolean("MeshFileCacheDoExpire", doCacheExpire);
+                    }
+                    else
+                    {
+                        doMeshFileCache = false;
+                        doCacheExpire = false;
+                    }
+                    m_Enabled = true;
                 }
-                else
-                {
-                    doMeshFileCache = false;
-                    doCacheExpire = false;
-                }
+
+                CacheExpire = TimeSpan.FromHours(fcache);
             }
-
-            CacheExpire = TimeSpan.FromHours(fcache);
-
         }
         public void Close()
         {
