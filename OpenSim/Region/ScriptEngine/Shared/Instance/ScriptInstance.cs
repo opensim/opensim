@@ -30,7 +30,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Diagnostics; //for [DebuggerNonUserCode]
 using System.Reflection;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Lifetime;
@@ -52,7 +51,8 @@ using OpenSim.Region.ScriptEngine.Shared.Api.Runtime;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Region.ScriptEngine.Shared.CodeTools;
 using OpenSim.Region.ScriptEngine.Interfaces;
-using System.Diagnostics;
+
+using System.Diagnostics; //for [DebuggerNonUserCode]
 
 namespace OpenSim.Region.ScriptEngine.Shared.Instance
 {
@@ -187,13 +187,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public UUID ItemID { get; private set; }
 
-        public UUID ObjectID { get; private set; }
+        public UUID ObjectID { get { return Part.UUID; } }
 
-        public uint LocalID { get; private set; }
+        public uint LocalID { get { return Part.LocalId; } }
 
-        public UUID RootObjectID { get; private set; }
+        public UUID RootObjectID { get { return Part.ParentGroup.UUID; } }
 
-        public uint RootLocalID { get; private set; }
+        public uint RootLocalID { get { return Part.ParentGroup.LocalId; } }
 
         public UUID AssetID { get; private set; }
 
@@ -252,7 +252,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 ItemID = ScriptTask.ItemID;
                 AssetID = ScriptTask.AssetID;
             }
-            LocalID = part.LocalId;
 
             PrimName = part.ParentGroup.Name;
             StartParam = startParam;
@@ -1070,7 +1069,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public Dictionary<string, object> GetVars()
         {
-            return m_Script.GetVars();
+            if (m_Script != null)
+                return m_Script.GetVars();
+            else
+                return new Dictionary<string, object>();
         }
 
         public void SetVars(Dictionary<string, object> vars)
