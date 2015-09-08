@@ -230,6 +230,7 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_pendingUploads = 0;  // FIXME: Not currently filled in
         private int m_activeScripts;
         private int m_scriptLinesPerSecond;
+        private int m_scriptEventsPerSecond;
 
         private int m_objectCapacity = 45000;
 
@@ -496,8 +497,8 @@ namespace OpenSim.Region.Framework.Scenes
                 sb[27].StatID = (uint)Stats.PhysicsLodTasks;
                 sb[27].StatValue = 0;
 
-                sb[28].StatID = (uint)Stats.ScriptEps; // we should have this
-                sb[28].StatValue = 0;
+                sb[28].StatID = (uint)Stats.ScriptEps; // we actuall have this, but not messing array order AGAIN
+                sb[28].StatValue = m_scriptEventsPerSecond * updateFactor;
 
                 sb[29].StatID = (uint)Stats.SimAIStepTimeMS;
                 sb[29].StatValue = 0;
@@ -620,6 +621,7 @@ namespace OpenSim.Region.Framework.Scenes
             //m_outPacketsPerSecond = 0;
             m_unAckedBytes = 0;
             m_scriptLinesPerSecond = 0;
+            m_scriptEventsPerSecond = 0;
 
             m_frameMS = 0;
             m_agentMS = 0;
@@ -754,6 +756,11 @@ namespace OpenSim.Region.Framework.Scenes
         public void addScriptLines(int count)
         {
             m_scriptLinesPerSecond += count;
+        }
+
+        public void addScriptEvents(int count)
+        {
+            m_scriptEventsPerSecond += count;
         }
 
         public void AddPacketsStats(int inPackets, int outPackets, int unAckedBytes)

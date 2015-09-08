@@ -1938,6 +1938,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="ticks">Elapsed Stopwatch ticks</param>
         public void AddScriptExecutionTime(long ticks)
         {
+            StatsReporter.addScriptEvents(1);
             Interlocked.Add(ref m_scriptExecutionTime, ticks);
         }
 
