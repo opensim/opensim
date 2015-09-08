@@ -362,12 +362,12 @@
    <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModules.UbitOde" path="OpenSim/Region/PhysicsModules/UbitOde" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../../../bin/Physics/</OutputPath>
+          <OutputPath>../../../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../../../../bin/Physics/</OutputPath>
+          <OutputPath>../../../../bin/</OutputPath>
         </Options>
       </Configuration>
 
@@ -395,12 +395,12 @@
     <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModules.UbitMeshing" path="OpenSim/Region/PhysicsModules/UbitMeshing" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../../../bin/Physics/</OutputPath>
+          <OutputPath>../../../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../../../../bin/Physics/</OutputPath>
+          <OutputPath>../../../../bin/</OutputPath>
         </Options>
       </Configuration>
 
