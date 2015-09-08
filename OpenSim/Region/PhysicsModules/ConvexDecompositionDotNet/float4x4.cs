@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
+namespace OpenSim.Region.PhysicsModule.ConvexDecompositionDotNet
 {
     public class float4x4
     {

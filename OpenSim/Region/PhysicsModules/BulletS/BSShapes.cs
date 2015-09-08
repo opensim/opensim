@@ -31,8 +31,8 @@ using System.Text;
 
 using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
-using OpenSim.Region.PhysicsModules.Meshing;
-using OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet;
+using OpenSim.Region.PhysicsModule.Meshing;
+using OpenSim.Region.PhysicsModule.ConvexDecompositionDotNet;
 
 using OMV = OpenMetaverse;
 

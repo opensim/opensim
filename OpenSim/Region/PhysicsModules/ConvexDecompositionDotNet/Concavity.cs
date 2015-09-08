@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
+namespace OpenSim.Region.PhysicsModule.ConvexDecompositionDotNet
 {
     public static class Concavity
     {

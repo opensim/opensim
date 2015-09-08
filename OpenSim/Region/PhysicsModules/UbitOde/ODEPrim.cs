@@ -57,7 +57,7 @@ using OdeAPI;
 using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
 
-namespace OpenSim.Region.PhysicsModules.UbitOde
+namespace OpenSim.Region.PhysicsModule.UbitOde
 {
     public class OdePrim : PhysicsActor
     {

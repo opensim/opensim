@@ -932,23 +932,7 @@ namespace OpenSim.Region.Framework.Scenes
             EventManager.OnLandObjectRemoved +=
                 new EventManager.LandObjectRemoved(simDataService.RemoveLandObject);
 
-            m_sceneGraph = new SceneGraph(this);
-            m_sceneGraph.PhysicsScene = PhysicsScene;
-
-            // If the scene graph has an Unrecoverable error, restart this sim.
-            // Currently the only thing that causes it to happen is two kinds of specific
-            // Physics based crashes.
-            //
-            // Out of memory
-            // Operating system has killed the plugin
-            m_sceneGraph.UnRecoverableError 
-                += () => 
-                    { 
-                        m_log.ErrorFormat("[SCENE]: Restarting region {0} due to unrecoverable physics crash", Name); 
-                        RestartNow(); 
-                    };
-
-            RegisterDefaultSceneEvents();
+             RegisterDefaultSceneEvents();
 
             // XXX: Don't set the public property since we don't want to activate here.  This needs to be handled 
             // better in the future.
@@ -1199,8 +1183,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             StatsReporter.OnSendStatsResult += SendSimStatsPackets;
             StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
-
-            MainConsole.Instance.Commands.AddCommand("scene", false, "gc collect", "gc collect", "gc collect", "Cause the garbage collector to make a single pass", HandleGcCollect);
+ 
         }
 
         public Scene(RegionInfo regInfo)
@@ -1223,35 +1206,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             PhysicalPrims = true;
             CollidablePrims = true;
-            // this is done above acording to config
- //           PhysicsEnabled = true;
+            PhysicsEnabled = true;
 
             AllowAvatarCrossing = true;
 
             PeriodicBackup = true;
             UseBackup = true;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
             IsReprioritizationEnabled = true;
             UpdatePrioritizationScheme = UpdatePrioritizationSchemes.Time;

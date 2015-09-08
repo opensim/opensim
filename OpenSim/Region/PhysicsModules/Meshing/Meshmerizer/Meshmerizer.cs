@@ -44,7 +44,7 @@ using log4net;
 using Nini.Config;
 using Mono.Addins;
 
-namespace OpenSim.Region.PhysicsModules.Meshing
+namespace OpenSim.Region.PhysicsModule.Meshing
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "Meshmerizer")]
     public class Meshmerizer : IMesher, INonSharedRegionModule

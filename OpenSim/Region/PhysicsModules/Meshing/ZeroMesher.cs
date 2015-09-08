@@ -47,7 +47,7 @@ using log4net;
  * it's always availabe and thus the default in case of configuration errors
 */
 
-namespace OpenSim.Region.PhysicsModules.Meshing
+namespace OpenSim.Region.PhysicsModule.Meshing
 {
 
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ZeroMesher")]

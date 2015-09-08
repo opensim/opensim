@@ -33,7 +33,7 @@ using log4net;
 using OMV = OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
-using OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet;
+using OpenSim.Region.PhysicsModule.ConvexDecompositionDotNet;
 
 namespace OpenSim.Region.PhysicsModule.BulletS
 {

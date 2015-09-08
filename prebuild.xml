@@ -359,7 +359,7 @@
       </Files>
     </Project>
 
-   <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModules.UbitOde" path="OpenSim/Region/PhysicsModules/UbitOde" type="Library">
+   <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModule.UbitOde" path="OpenSim/Region/PhysicsModules/UbitOde" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/</OutputPath>
@@ -381,7 +381,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
-      <Reference name="OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet"/>
+      <Reference name="OpenSim.Region.PhysicsModule.ConvexDecompositionDotNet"/>
 	  <Reference name="Mono.Addins" path="../../../../bin/"/>
       <Reference name="log4net" path="../../../../bin/"/>
 
@@ -392,7 +392,7 @@
       </Files>
     </Project>	
 	
-    <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModules.UbitMeshing" path="OpenSim/Region/PhysicsModules/UbitMeshing" type="Library">
+    <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModule.UbitMeshing" path="OpenSim/Region/PhysicsModules/UbitMeshing" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/</OutputPath>
@@ -416,7 +416,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
 	  <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet"/>
+      <Reference name="OpenSim.Region.PhysicsModule.ConvexDecompositionDotNet"/>
       <Reference name="zlib.net" path="../../../../bin/"/>
       <Reference name="Mono.Addins" path="../../../../bin/"/>
       <Reference name="log4net" path="../../../../bin/"/>
@@ -1592,7 +1592,7 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet" path="OpenSim/Region/PhysicsModules/ConvexDecompositionDotNet" type="Library">
+    <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModule.ConvexDecompositionDotNet" path="OpenSim/Region/PhysicsModules/ConvexDecompositionDotNet" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/</OutputPath>
@@ -1617,7 +1617,7 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModules.Meshing" path="OpenSim/Region/PhysicsModules/Meshing" type="Library">
+    <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModule.Meshing" path="OpenSim/Region/PhysicsModules/Meshing" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/</OutputPath>
@@ -1757,8 +1757,8 @@
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
-      <Reference name="OpenSim.Region.PhysicsModules.Meshing" path="../../../../bin/"/>
-      <Reference name="OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet"/>
+      <Reference name="OpenSim.Region.PhysicsModule.Meshing" path="../../../../bin/"/>
+      <Reference name="OpenSim.Region.PhysicsModule.ConvexDecompositionDotNet"/>
       <Reference name="Mono.Addins" path="../../../../bin/"/>
       <Reference name="BulletXNA.dll" path="../../../../bin/"/>
       <Reference name="log4net.dll" path="../../../../bin/"/>
@@ -3223,7 +3223,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Tests.Common"/>
       <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Region.PhysicsModules.Meshing"/>
+      <Reference name="OpenSim.Region.PhysicsModule.Meshing"/>
       <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
       <Reference name="OpenSim.Region.PhysicsModule.BulletS"/>
 

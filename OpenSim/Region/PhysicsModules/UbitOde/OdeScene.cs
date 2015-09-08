@@ -45,7 +45,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenMetaverse;
 
-namespace OpenSim.Region.PhysicsModules.UbitOde
+namespace OpenSim.Region.PhysicsModule.UbitOde
 {
      // colision flags of things others can colide with
     // rays, sensors, probes removed since can't  be colided with
@@ -384,6 +384,7 @@ namespace OpenSim.Region.PhysicsModules.UbitOde
             PhysicsSceneName = EngineType + "/" + scene.RegionInfo.RegionName;
 
             scene.RegisterModuleInterface<PhysicsScene>(this);
+
             Vector3 extent = new Vector3(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY, scene.RegionInfo.RegionSizeZ);
 
             Initialization(extent);

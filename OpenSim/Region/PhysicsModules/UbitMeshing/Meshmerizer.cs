@@ -32,7 +32,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.PhysicsModules.SharedBase;
-using OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet;
+using OpenSim.Region.PhysicsModule.ConvexDecompositionDotNet;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using System.Drawing;
@@ -49,7 +49,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 using Mono.Addins;
 
-namespace OpenSim.Region.PhysicsModules.UbitMeshing
+namespace OpenSim.Region.PhysicsModule.UbitMeshing
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "UbitMeshmerizer")]
     public class UbitMeshmerizer : IMesher, INonSharedRegionModule

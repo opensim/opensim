@@ -28,7 +28,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
+namespace OpenSim.Region.PhysicsModule.ConvexDecompositionDotNet
 {
     public class HullResult
     {

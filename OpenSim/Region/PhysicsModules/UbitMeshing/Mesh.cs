@@ -35,7 +35,7 @@ using OpenMetaverse;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
-namespace OpenSim.Region.PhysicsModules.UbitMeshing
+namespace OpenSim.Region.PhysicsModule.UbitMeshing
 {
     public class MeshBuildingData
     {

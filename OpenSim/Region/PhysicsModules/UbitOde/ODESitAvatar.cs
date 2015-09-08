@@ -36,7 +36,7 @@ using OdeAPI;
 using log4net;
 using OpenMetaverse;
 
-namespace OpenSim.Region.PhysicsModules.UbitOde
+namespace OpenSim.Region.PhysicsModule.UbitOde
 {
     /// <summary>
     /// </summary>
