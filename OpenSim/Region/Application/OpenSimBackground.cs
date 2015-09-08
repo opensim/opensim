@@ -55,7 +55,7 @@ namespace OpenSim
             base.Startup();
 
             m_log.InfoFormat("[OPENSIM MAIN]: Startup complete, serving {0} region{1}",
-                             m_clientServers.Count.ToString(), m_clientServers.Count > 1 ? "s" : "");
+                             SceneManager.Scenes.Count, SceneManager.Scenes.Count > 1 ? "s" : "");
 
             WorldHasComeToAnEnd.WaitOne();
             WorldHasComeToAnEnd.Close();

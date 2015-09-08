@@ -37,7 +37,6 @@ using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
-using OpenSim.Framework.Communications;
 using OpenSim.Region.CoreModules.Avatar.Inventory.Archiver;
 using OpenSim.Region.CoreModules.Framework.InventoryAccess;
 using OpenSim.Region.Framework.Scenes;

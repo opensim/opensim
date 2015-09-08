@@ -41,7 +41,7 @@ using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Animation;
 using OpenSim.Region.Framework.Scenes.Types;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModules.SharedBase;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenSim.Services.Interfaces;
 using TeleportFlags = OpenSim.Framework.Constants.TeleportFlags;

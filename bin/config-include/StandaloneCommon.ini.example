@@ -145,23 +145,6 @@
     ;; Set minimum fee to publish classified
     ; ClassifiedFee = 0
 
-    ;; Regular expressions for controlling which client versions are accepted/denied.
-    ;; An empty string means nothing is checked.
-    ;;
-    ;; Example 1: allow only these 3 types of clients (any version of them)
-    ;; AllowedClients = "Imprudence|Hippo|Second Life"
-    ;;
-    ;; Example 2: allow all clients except these
-    ;; DeniedClients = "Twisted|Crawler|Cryolife|FuckLife|StreetLife|GreenLife|AntiLife|KORE-Phaze|Synlyfe|Purple Second Life|SecondLi |Emerald"
-    ;;
-    ;; Note that these are regular expressions, so every character counts.
-    ;; Also note that this is very weak security and should not be trusted as a reliable means
-    ;; for keeping bad clients out; modified clients can fake their identifiers.
-    ;;
-    ;;
-    ;AllowedClients = ""
-    ;DeniedClients = ""
-
     ; Basic Login Service Dos Protection Tweaks
     ; ;
     ; ; Some Grids/Users use a transparent proxy that makes use of the X-Forwarded-For HTTP Header, If you do, set this to true

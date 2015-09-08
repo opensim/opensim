@@ -127,8 +127,12 @@ namespace OpenSim.Services.LLLoginService
             m_DestinationGuide = m_LoginServerConfig.GetString ("DestinationGuide", string.Empty);
             m_AvatarPicker = m_LoginServerConfig.GetString ("AvatarPicker", string.Empty);
 
-            m_AllowedClients = m_LoginServerConfig.GetString("AllowedClients", string.Empty);
-            m_DeniedClients = m_LoginServerConfig.GetString("DeniedClients", string.Empty);
+            string[] possibleAccessControlConfigSections = new string[] { "AccessControl", "LoginService" };
+            m_AllowedClients = Util.GetConfigVarFromSections<string>(
+                    config, "AllowedClients", possibleAccessControlConfigSections, string.Empty);
+            m_DeniedClients = Util.GetConfigVarFromSections<string>(
+                    config, "DeniedClients", possibleAccessControlConfigSections, string.Empty); 
+
             m_MessageUrl = m_LoginServerConfig.GetString("MessageUrl", string.Empty);
             m_DSTZone = m_LoginServerConfig.GetString("DSTZone", "America/Los_Angeles;Pacific Standard Time");
 

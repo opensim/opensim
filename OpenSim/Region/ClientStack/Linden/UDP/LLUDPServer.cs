@@ -40,8 +40,9 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Interfaces;
 using OpenMetaverse;
-
+using Mono.Addins;
 using TokenBucket = OpenSim.Region.ClientStack.LindenUDP.TokenBucket;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
@@ -49,13 +50,54 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// <summary>
     /// A shim around LLUDPServer that implements the IClientNetworkServer interface
     /// </summary>
-    public sealed class LLUDPServerShim : IClientNetworkServer
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LLUDPServerShim")]
+    public sealed class LLUDPServerShim : INonSharedRegionModule
     {
+        private bool m_Enabled = true;
+        private IConfigSource m_Config;
         LLUDPServer m_udpServer;
 
-        public LLUDPServerShim()
+        #region INonSharedRegionModule
+        public string Name
+        {
+            get { return "LLUDPServerShim"; }
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public void Initialise(IConfigSource source)
+        {
+            m_Config = source;
+        }
+
+        public void Close()
         {
         }
+
+        public void AddRegion(Scene scene)
+        {
+            uint port = (uint)scene.RegionInfo.InternalEndPoint.Port;
+
+            IPAddress listenIP = scene.RegionInfo.InternalEndPoint.Address;
+            Initialise(listenIP, ref port, scene.RegionInfo.ProxyOffset, scene.RegionInfo.m_allow_alternate_ports, m_Config, scene.AuthenticateHandler);
+            scene.RegionInfo.InternalEndPoint.Port = (int)port;
+
+            AddScene(scene);
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            Stop();
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            Start();
+        }
+        #endregion
 
         public void Initialise(IPAddress listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, IConfigSource configSource, AgentCircuitManager circuitManager)
         {
@@ -200,6 +242,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             m_udpServer.Stop();
         }
+
     }
 
     /// <summary>

@@ -34,7 +34,7 @@ using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
+
 using OpenSim.Region.CoreModules.Avatar.Attachments;
 using OpenSim.Region.CoreModules.Avatar.AvatarFactory;
 using OpenSim.Region.CoreModules.Framework.InventoryAccess;

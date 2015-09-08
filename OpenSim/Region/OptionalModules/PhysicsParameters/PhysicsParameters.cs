@@ -36,7 +36,7 @@ using OpenSim.Framework.Console;
 using OpenSim.Region.CoreModules.Framework.InterfaceCommander;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModules.SharedBase;
 
 namespace OpenSim.Region.OptionalModules.PhysicsParameters
 {

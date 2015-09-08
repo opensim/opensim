@@ -34,7 +34,7 @@ using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes.Types;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes
@@ -121,7 +121,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public PhysicsScene PhysicsScene
         {
-            get { return _PhyScene; }
+            get 
+            {
+                if (_PhyScene == null)
+                    _PhyScene = m_parentScene.RequestModuleInterface<PhysicsScene>();
+                return _PhyScene; 
+            }
             set
             {
                 // If we're not doing the initial set
@@ -172,9 +177,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             // PhysX does this (runs in the background).
 
-            if (_PhyScene.IsThreaded)
+            if (PhysicsScene.IsThreaded)
             {
-                _PhyScene.GetResults();
+                PhysicsScene.GetResults();
             }
         }
 
@@ -214,7 +219,7 @@ namespace OpenSim.Region.Framework.Scenes
             // position).
             //
             // Therefore, JointMoved and JointDeactivated events will be fired as a result of the following Simulate().
-            return _PhyScene.Simulate((float)elapsed);
+            return PhysicsScene.Simulate((float)elapsed);
         }
 
         protected internal void UpdateScenePresenceMovement()

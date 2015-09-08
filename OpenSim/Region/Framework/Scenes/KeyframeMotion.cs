@@ -36,7 +36,7 @@ using System.Threading;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
