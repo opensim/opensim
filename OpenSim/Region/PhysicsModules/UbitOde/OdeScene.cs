@@ -37,8 +37,10 @@ using System.IO;
 using System.Diagnostics;
 using log4net;
 using Nini.Config;
+using Mono.Addins;
 using OdeAPI;
 using OpenSim.Framework;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenMetaverse;
@@ -163,11 +165,13 @@ namespace OpenSim.Region.PhysicsModules.UbitOde
         public Object arg;
     }
 
-    
 
-    public class OdeScene : PhysicsScene, INonSharedRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "UBITODEPhysicsScene")]
+    public class ODEScene : PhysicsScene, INonSharedRegionModule
     {
-        private readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType.ToString() + "." + sceneIdentifier);
+        private readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType.ToString());
+        private bool m_Enabled = false;
+
         // private Dictionary<string, sCollisionData> m_storedCollisions = new Dictionary<string, sCollisionData>();
 
         public bool OdeUbitLib = false;
@@ -300,7 +304,7 @@ namespace OpenSim.Region.PhysicsModules.UbitOde
 
         public IMesher mesher;
 
-        private IConfigSource m_config;
+        public IConfigSource m_config;
 
         public bool physics_logging = false;
         public int physics_logging_interval = 0;
@@ -346,7 +350,20 @@ namespace OpenSim.Region.PhysicsModules.UbitOde
                 if (physics == Name)
                 {
                     m_Enabled = true;
-                    m_Config = source;
+                    m_config = source;
+
+                    // We do this so that OpenSimulator on Windows loads the correct native ODE library depending on whether
+                    // it's running as a 32-bit process or a 64-bit one.  By invoking LoadLibary here, later DLLImports
+                    // will find it already loaded later on.
+                    //
+                    // This isn't necessary for other platforms (e.g. Mac OSX and Linux) since the DLL used can be
+                    // controlled in Ode.NET.dll.config
+                    if (Util.IsWindows())
+                        Util.LoadArchSpecificWindowsDll("ode.dll");
+
+                    // Initializing ODE only when a scene is created allows alternative ODE plugins to co-habit (according to
+                    // http://opensimulator.org/mantis/view.php?id=2750).
+                    d.InitODE();
                 }
             }
 
@@ -362,13 +379,13 @@ namespace OpenSim.Region.PhysicsModules.UbitOde
                 return;
 
             EngineType = Name;
-            RegionName = scene.RegionInfo.RegionName;
-            PhysicsSceneName = EngineType + "/" + RegionName;
+            EngineType = Name;
+            PhysicsSceneName = EngineType + "/" + scene.RegionInfo.RegionName;
 
             scene.RegisterModuleInterface<PhysicsScene>(this);
             Vector3 extent = new Vector3(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY, scene.RegionInfo.RegionSizeZ);
-            RawInitialization();
-            Initialise(m_Config, extent);
+
+            Initialization(extent);
 
             base.Initialise(scene.PhysicsRequestAsset,
                 (scene.Heightmap != null ? scene.Heightmap.GetFloatsSerialised() : new float[scene.RegionInfo.RegionSizeX * scene.RegionInfo.RegionSizeY]),
@@ -400,7 +417,7 @@ namespace OpenSim.Region.PhysicsModules.UbitOde
         /// Sets many properties that ODE requires to be stable
         /// These settings need to be tweaked 'exactly' right or weird stuff happens.
         /// </summary>
-        private void RawInitialization()
+        private void Initialization(Vector3 regionExtent)
             {
 
 //            checkThread();
@@ -481,10 +498,7 @@ namespace OpenSim.Region.PhysicsModules.UbitOde
 
                 d.WorldSetAutoDisableFlag(world, false);
             }
-        }
 
-        public void Initialise(IConfigSource config, Vector3 regionExtent)
-        {
             WorldExtents.X =  regionExtent.X;
             m_regionWidth = (uint)regionExtent.X;
             WorldExtents.Y =  regionExtent.Y;
@@ -492,7 +506,6 @@ namespace OpenSim.Region.PhysicsModules.UbitOde
 
             m_suportCombine = false;
 //            checkThread();
-            m_config = config;
 
             string ode_config = d.GetConfiguration();
             if (ode_config != null && ode_config != "")
@@ -2216,9 +2229,9 @@ namespace OpenSim.Region.PhysicsModules.UbitOde
         {
             if (m_worldOffset != Vector3.Zero && m_parentScene != null)
             {
-                if (m_parentScene is OdeScene)
+                if (m_parentScene is ODEScene)
                 {
-                    ((OdeScene)m_parentScene).SetTerrain(heightMap, m_worldOffset);
+                    ((ODEScene)m_parentScene).SetTerrain(heightMap, m_worldOffset);
                 }
             }
             else

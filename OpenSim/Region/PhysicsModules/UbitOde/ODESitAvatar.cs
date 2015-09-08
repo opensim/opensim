@@ -42,10 +42,10 @@ namespace OpenSim.Region.PhysicsModules.UbitOde
     /// </summary>
     public class ODESitAvatar
     {
-        private OdeScene m_scene;
+        private ODEScene m_scene;
         private ODERayCastRequestManager m_raymanager;
 
-        public ODESitAvatar(OdeScene pScene, ODERayCastRequestManager raymanager)
+        public ODESitAvatar(ODEScene pScene, ODERayCastRequestManager raymanager)
         {
             m_scene = pScene;
             m_raymanager = raymanager;

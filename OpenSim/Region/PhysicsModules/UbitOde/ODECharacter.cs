@@ -138,7 +138,7 @@ namespace OpenSim.Region.PhysicsModules.UbitOde
                                                         );
         // we do land collisions not ode                | CollisionCategories.Land);
         public IntPtr Body = IntPtr.Zero;
-        private OdeScene _parent_scene;
+        private ODEScene _parent_scene;
         private IntPtr capsule = IntPtr.Zero;
         public IntPtr collider = IntPtr.Zero;
 
@@ -157,7 +157,7 @@ namespace OpenSim.Region.PhysicsModules.UbitOde
 
         float mu;       
 
-        public OdeCharacter(uint localID, String avName, OdeScene parent_scene, Vector3 pos, Vector3 pSize, float pfeetOffset, float density, float walk_divisor, float rundivisor)
+        public OdeCharacter(uint localID, String avName, ODEScene parent_scene, Vector3 pos, Vector3 pSize, float pfeetOffset, float density, float walk_divisor, float rundivisor)
         {
             m_uuid = UUID.Random();
             m_localID = localID;

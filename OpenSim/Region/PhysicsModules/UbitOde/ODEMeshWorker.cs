@@ -71,7 +71,7 @@ namespace OpenSim.Region.PhysicsModules.UbitOde
     {
 
         private ILog m_log;
-        private OdeScene m_scene;
+        private ODEScene m_scene;
         private IMesher m_mesher;
 
         public bool meshSculptedPrim = true;
@@ -85,7 +85,7 @@ namespace OpenSim.Region.PhysicsModules.UbitOde
 
         private Thread m_thread;
 
-        public ODEMeshWorker(OdeScene pScene, ILog pLog, IMesher pMesher, IConfig pConfig)
+        public ODEMeshWorker(ODEScene pScene, ILog pLog, IMesher pMesher, IConfig pConfig)
         {
             m_scene = pScene;
             m_log = pLog;

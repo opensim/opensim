@@ -148,7 +148,7 @@ namespace OpenSim.Region.PhysicsModules.UbitOde
         private UUID? m_assetID;
         private MeshState m_meshState;
         
-        public OdeScene _parent_scene;
+        public ODEScene _parent_scene;
 
         /// <summary>
         /// The physics space which contains prim geometry
@@ -1069,7 +1069,7 @@ namespace OpenSim.Region.PhysicsModules.UbitOde
             return false;
         }
 
-        public OdePrim(String primName, OdeScene parent_scene, Vector3 pos, Vector3 size,
+        public OdePrim(String primName, ODEScene parent_scene, Vector3 pos, Vector3 size,
                        Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical,bool pisPhantom,byte _shapeType,uint plocalID)
         {
             Name = primName;

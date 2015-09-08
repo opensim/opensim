@@ -53,7 +53,7 @@ namespace OpenSim.Region.PhysicsModules.UbitOde
         /// <summary>
         /// Scene that created this object.
         /// </summary>
-        private OdeScene m_scene;
+        private ODEScene m_scene;
 
         IntPtr ray; // the ray. we only need one for our lifetime
         IntPtr Sphere;
@@ -73,7 +73,7 @@ namespace OpenSim.Region.PhysicsModules.UbitOde
         private RayFilterFlags CurrentRayFilter;
         private int CurrentMaxCount;
 
-        public ODERayCastRequestManager(OdeScene pScene)
+        public ODERayCastRequestManager(ODEScene pScene)
         {
             m_scene = pScene;
             nearCallback = near;

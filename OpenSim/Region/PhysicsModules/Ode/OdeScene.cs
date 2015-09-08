@@ -671,18 +671,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
         }
 #endif
 
-        public void Initialise(IMesher meshmerizer, IConfigSource config, Vector3 regionExtent)
-        {
-            WorldExtents.X = regionExtent.X;
-            m_regionWidth = (uint)regionExtent.X;
-            WorldExtents.Y = regionExtent.Y;
-            m_regionHeight = (uint)regionExtent.Y;
-            m_suportCombine = false;
-            Initialise(meshmerizer, config);
-        }
-
-        // Initialize the mesh plugin
-        public void Initialise(IMesher meshmerizer, IConfigSource config)
+        // Initialize from configs
+        private void InitialiseFromConfig(IConfigSource config)
         {
             InitializeExtraStats();
 

@@ -60,7 +60,7 @@ namespace OpenSim.Region.PhysicsModules.UbitOde
         }
 
         private OdePrim rootPrim;
-        private OdeScene _pParentScene;
+        private ODEScene _pParentScene;
 
         // Vehicle properties
         // WARNING this are working copies for internel use
