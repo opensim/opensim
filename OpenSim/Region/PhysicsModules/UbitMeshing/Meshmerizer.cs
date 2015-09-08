@@ -29,7 +29,9 @@
 using System;
 using System.Collections.Generic;
 using OpenSim.Framework;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using System.Drawing;
@@ -41,36 +43,23 @@ using Nini.Config;
 using System.Reflection;
 using System.IO;
 using ComponentAce.Compression.Libs.zlib;
-using OpenSim.Region.Physics.ConvexDecompositionDotNet;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
-namespace OpenSim.Region.Physics.Meshing
+using Mono.Addins;
+
+namespace OpenSim.Region.PhysicsModules.UbitMeshing
 {
-    public class MeshmerizerPlugin : IMeshingPlugin
-    {
-        public MeshmerizerPlugin()
-        {
-        }
-
-        public string GetName()
-        {
-            return "UbitMeshmerizer";
-        }
-
-        public IMesher GetMesher(IConfigSource config)
-        {
-            return new Meshmerizer(config);
-        }
-    }
-
-    public class Meshmerizer : IMesher
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "UbitMeshmerizer")]
+    public class UbitMeshmerizer : IMesher, INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // Setting baseDir to a path will enable the dumping of raw files
         // raw files can be imported by blender so a visual inspection of the results can be done
 
+		private bool m_Enabled = false;
+		
         public object diskLock = new object();
 
         public bool doMeshFileCache = true;
@@ -89,7 +78,18 @@ namespace OpenSim.Region.Physics.Meshing
         private Dictionary<AMeshKey, Mesh> m_uniqueMeshes = new Dictionary<AMeshKey, Mesh>();
         private Dictionary<AMeshKey, Mesh> m_uniqueReleasedMeshes = new Dictionary<AMeshKey, Mesh>();
 
-        public Meshmerizer(IConfigSource config)
+       #region INonSharedRegionModule
+        public string Name
+        {
+            get { return "UbitMeshmerizer"; }
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public void Initialise(IConfigSource config)
         {
             IConfig start_config = config.Configs["Startup"];
             IConfig mesh_config = config.Configs["Mesh"];
@@ -118,7 +118,34 @@ namespace OpenSim.Region.Physics.Meshing
             CacheExpire = TimeSpan.FromHours(fcache);
 
         }
+        public void Close()
+        {
+        }
 
+        public void AddRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            scene.RegisterModuleInterface<IMesher>(this);
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            scene.UnregisterModuleInterface<IMesher>(this);
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+        }
+		
+        #endregion
+		
         /// <summary>
         /// creates a simple box mesh of the specified size. This mesh is of very low vertex count and may
         /// be useful as a backup proxy when level of detail is not needed or when more complex meshes fail
