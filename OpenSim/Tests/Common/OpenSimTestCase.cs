@@ -38,7 +38,7 @@ namespace OpenSim.Tests.Common
         [SetUp]
         public virtual void SetUp()
         {
-//            TestHelpers.InMethod();
+            //TestHelpers.InMethod();
             // Disable logging for each test so that one where logging is enabled doesn't cause all subsequent tests
             // to have logging on if it failed with an exception.
             TestHelpers.DisableLogging();

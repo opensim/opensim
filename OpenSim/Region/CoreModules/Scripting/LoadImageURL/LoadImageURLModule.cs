@@ -32,7 +32,7 @@ using System.Net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
-using OpenSim.Framework.Communications;
+using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Scripting.DynamicTexture;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;

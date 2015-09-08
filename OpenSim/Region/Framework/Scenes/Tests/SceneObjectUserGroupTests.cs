@@ -32,7 +32,6 @@ using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
 using OpenSim.Region.CoreModules.Avatar.InstantMessage;
 using OpenSim.Region.CoreModules.World.Permissions;
 using OpenSim.Region.Framework.Interfaces;

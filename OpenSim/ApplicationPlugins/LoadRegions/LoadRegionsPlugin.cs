@@ -32,8 +32,6 @@ using System.Threading;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.RegionLoader.Filesystem;
-using OpenSim.Framework.RegionLoader.Web;
 using OpenSim.Region.CoreModules.Agent.AssetTransaction;
 using OpenSim.Region.CoreModules.Avatar.InstantMessage;
 using OpenSim.Region.CoreModules.Scripting.DynamicTexture;

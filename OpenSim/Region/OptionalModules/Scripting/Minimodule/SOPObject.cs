@@ -34,7 +34,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.OptionalModules.Scripting.Minimodule.Object;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModules.SharedBase;
 using PrimType=OpenSim.Region.OptionalModules.Scripting.Minimodule.Object.PrimType;
 using SculptType=OpenSim.Region.OptionalModules.Scripting.Minimodule.Object.SculptType;
 

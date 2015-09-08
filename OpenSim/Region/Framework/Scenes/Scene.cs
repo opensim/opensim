@@ -42,12 +42,11 @@ using OpenMetaverse.Imaging;
 using OpenSim.Framework;
 using OpenSim.Framework.Monitoring;
 using OpenSim.Services.Interfaces;
-using OpenSim.Framework.Communications;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Scripting;
 using OpenSim.Region.Framework.Scenes.Serialization;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModules.SharedBase;
 using Timer = System.Timers.Timer;
 using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
@@ -855,11 +854,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Constructors
 
-        public Scene(RegionInfo regInfo, AgentCircuitManager authen, PhysicsScene physicsScene,
-                     SceneCommunicationService sceneGridService,
+        public Scene(RegionInfo regInfo, AgentCircuitManager authen, 
                      ISimulationDataService simDataService, IEstateDataService estateDataService,
                      IConfigSource config, string simulatorVersion)
-            : this(regInfo, physicsScene)
+            : this(regInfo)
         {
             m_config = config;
             MinFrameTime = 0.089f;
@@ -870,7 +868,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_lastAllocatedLocalId = (uint)(random.NextDouble() * (double)(uint.MaxValue / 2)) + (uint)(uint.MaxValue / 4);
             m_authenticateHandler = authen;
-            m_sceneGridService = sceneGridService;
+            m_sceneGridService = new SceneCommunicationService();
             m_SimulationDataService = simDataService;
             m_EstateDataService = estateDataService;
 
@@ -1088,11 +1086,11 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                string[] possibleAccessControlConfigSections = new string[] { "AccessControl", "Startup" };
+                string[] possibleAccessControlConfigSections = new string[] { "Startup", "AccessControl"};
 
                 string grant
                     = Util.GetConfigVarFromSections<string>(
-                        config, "AllowedClients", possibleAccessControlConfigSections, "");
+                        config, "AllowedClients", possibleAccessControlConfigSections, string.Empty);
 
                 if (grant.Length > 0)
                 {
@@ -1104,7 +1102,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                 grant
                     = Util.GetConfigVarFromSections<string>(
-                        config, "BannedClients", possibleAccessControlConfigSections, "");
+                        config, "DeniedClients", possibleAccessControlConfigSections, String.Empty);
+                // Deal with the mess of someone having used a different word at some point
+                if (grant == String.Empty)
+                    grant = Util.GetConfigVarFromSections<string>(
+                            config, "BannedClients", possibleAccessControlConfigSections, String.Empty);
 
                 if (grant.Length > 0)
                 {
@@ -1201,11 +1203,10 @@ namespace OpenSim.Region.Framework.Scenes
             MainConsole.Instance.Commands.AddCommand("scene", false, "gc collect", "gc collect", "gc collect", "Cause the garbage collector to make a single pass", HandleGcCollect);
         }
 
-        public Scene(RegionInfo regInfo, PhysicsScene physicsScene)
+        public Scene(RegionInfo regInfo)
             : base(regInfo)
         {
             m_sceneGraph = new SceneGraph(this);
-            m_sceneGraph.PhysicsScene = physicsScene;
 
             // If the scene graph has an Unrecoverable error, restart this sim.
             // Currently the only thing that causes it to happen is two kinds of specific

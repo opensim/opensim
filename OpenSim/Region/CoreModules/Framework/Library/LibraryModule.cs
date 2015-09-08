@@ -30,7 +30,6 @@ using System.IO;
 using System.Reflection;
 
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
 
 using OpenSim.Region.CoreModules.Avatar.Inventory.Archiver;
 using OpenSim.Region.Framework;
@@ -159,7 +158,7 @@ namespace OpenSim.Region.CoreModules.Framework.Library
             }
 
             RegionInfo regInfo = new RegionInfo();
-            Scene m_MockScene = new Scene(regInfo, null);
+            Scene m_MockScene = new Scene(regInfo);
             LocalInventoryService invService = new LocalInventoryService(lib);
             m_MockScene.RegisterModuleInterface<IInventoryService>(invService);
             m_MockScene.RegisterModuleInterface<IAssetService>(m_Scene.AssetService);

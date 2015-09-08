@@ -32,11 +32,11 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Data.Null;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
+
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -48,6 +48,7 @@ using OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence;
+using OpenSim.Region.PhysicsModule.BasicPhysics;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
@@ -77,6 +78,8 @@ namespace OpenSim.Tests.Common
 
         private CoreAssetCache m_cache;
 
+        private PhysicsScene m_physicsScene;
+
         public SceneHelpers() : this(null) {}
 
         public SceneHelpers(CoreAssetCache cache)
@@ -96,6 +99,8 @@ namespace OpenSim.Tests.Common
             m_presenceService.PostInitialise();
 
             m_cache = cache;
+
+            m_physicsScene = StartPhysicsScene();
 
             SimDataService 
                 = OpenSim.Server.Base.ServerUtils.LoadPlugin<ISimulationDataService>("OpenSim.Tests.Common.dll", null);
@@ -158,11 +163,15 @@ namespace OpenSim.Tests.Common
                     "basicphysics", "ZeroMesher", new IniConfigSource(), "test", regionExtent);
 
             TestScene testScene = new TestScene(
-                regInfo, m_acm, physicsScene, scs, SimDataService, m_estateDataService, configSource, null);
+                regInfo, m_acm, SimDataService, m_estateDataService, configSource, null);
 
             INonSharedRegionModule godsModule = new GodsModule();
             godsModule.Initialise(new IniConfigSource());
             godsModule.AddRegion(testScene);
+
+            // Add scene to physics
+            ((INonSharedRegionModule)m_physicsScene).AddRegion(testScene);
+            ((INonSharedRegionModule)m_physicsScene).RegionLoaded(testScene);
 
             // Add scene to services
             m_assetService.AddRegion(testScene);
@@ -328,6 +337,19 @@ namespace OpenSim.Tests.Common
             presenceService.Initialise(config);
             
             return presenceService;
+        }
+
+        private static PhysicsScene StartPhysicsScene()
+        {
+            IConfigSource config = new IniConfigSource();
+            config.AddConfig("Startup");
+            config.Configs["Startup"].Set("physics", "basicphysics");
+
+            PhysicsScene pScene = new BasicScene();
+            INonSharedRegionModule mod = pScene as INonSharedRegionModule;
+            mod.Initialise(config);
+
+            return pScene;
         }
 
         /// <summary>

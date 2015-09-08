@@ -28,12 +28,12 @@
 using System;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
+
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Tests.Common
@@ -41,10 +41,10 @@ namespace OpenSim.Tests.Common
     public class TestScene : Scene
     {
         public TestScene(
-            RegionInfo regInfo, AgentCircuitManager authen, PhysicsScene physicsScene,
-            SceneCommunicationService sceneGridService, ISimulationDataService simDataService, IEstateDataService estateDataService,
+            RegionInfo regInfo, AgentCircuitManager authen, 
+            ISimulationDataService simDataService, IEstateDataService estateDataService,
             IConfigSource config, string simulatorVersion)
-            : base(regInfo, authen, physicsScene, sceneGridService, simDataService, estateDataService,
+            : base(regInfo, authen, simDataService, estateDataService,
                    config, simulatorVersion)
         {
         }
