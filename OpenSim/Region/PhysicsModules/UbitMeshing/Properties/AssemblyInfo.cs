@@ -6,12 +6,12 @@ using Mono.Addins;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ConvexDecompositionDotNet")]
+[assembly: AssemblyTitle("OpenSim.Region.PhysicsModule.UbitMeshing")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Intel Corporation")]
-[assembly: AssemblyProduct("ConvexDecompositionDotNet")]
-[assembly: AssemblyCopyright("Copyright © Intel Corporation 2010")]
+[assembly: AssemblyCompany("http://opensimulator.org")]
+[assembly: AssemblyProduct("OpenSim")]
+[assembly: AssemblyCopyright("OpenSimulator developers")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -21,7 +21,7 @@ using Mono.Addins;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("2a1c9467-1a17-4c8d-bf9f-4b4d86dd0cbb")]
+[assembly: Guid("4b7e35c2-a9dd-4b10-b778-eb417f4f6884")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -30,10 +30,7 @@ using Mono.Addins;
 //      Build Number
 //      Revision
 //
-// You can specify all the values or you can default the Build and Revision Numbers 
-// by using the '*' as shown below:
-// [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("0.8.2.*")]
 
-[assembly: Addin("OpenSim.Region.PhysicsModule.ConvexDecompositionDotNet", OpenSim.VersionInfo.VersionNumber)]
+[assembly: Addin("OpenSim.Region.PhysicsModule.UbitMeshing", OpenSim.VersionInfo.VersionNumber)]
 [assembly: AddinDependency("OpenSim.Region.Framework", OpenSim.VersionInfo.VersionNumber)]

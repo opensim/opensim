@@ -27,6 +27,7 @@
 
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Mono.Addins;
 
 // Information about this assembly is defined by the following
 // attributes.
@@ -34,11 +35,11 @@ using System.Runtime.InteropServices;
 // change them to the information which is associated with the assembly
 // you compile.
 
-[assembly : AssemblyTitle("OdePlugin")]
+[assembly : AssemblyTitle("OpenSim.Region.PhysicsModule.UbitOde")]
 [assembly : AssemblyDescription("Ubit Variation")]
 [assembly : AssemblyConfiguration("")]
 [assembly : AssemblyCompany("http://opensimulator.org")]
-[assembly : AssemblyProduct("OdePlugin")]
+[assembly : AssemblyProduct("UbitOde")]
 [assembly : AssemblyCopyright("Copyright (c) OpenSimulator.org Developers 2007-2009")]
 [assembly : AssemblyTrademark("")]
 [assembly : AssemblyCulture("")]
@@ -55,4 +56,6 @@ using System.Runtime.InteropServices;
 // You can specify all values by your own or you can build default build and revision
 // numbers with the '*' character (the default):
 
-[assembly : AssemblyVersion("0.6.5.*")]
+[assembly : AssemblyVersion("0.8.2.*")]
+[assembly: Addin("OpenSim.Region.PhysicsModule.UbitOde", OpenSim.VersionInfo.VersionNumber)]
+[assembly: AddinDependency("OpenSim.Region.Framework", OpenSim.VersionInfo.VersionNumber)]
