@@ -322,7 +322,7 @@ namespace OpenSim.Services.Connectors
                 bool success = false;
                 try
                 {
-                    AssetBase a = SynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", uri, 0, 30);
+                    AssetBase a = SynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", uri, 0, 30000);
                     if (a != null)
                     {
                         if (m_Cache != null)
@@ -481,7 +481,7 @@ namespace OpenSim.Services.Connectors
             try
             {
                 newID = SynchronousRestObjectRequester.
-                        MakeRequest<AssetBase, string>("POST", uri, asset, 100);
+                        MakeRequest<AssetBase, string>("POST", uri, asset, 100000);
                 if (newID == null || newID == "")
                 {
                     newID = UUID.Zero.ToString();

@@ -1246,7 +1246,7 @@ namespace OpenSim.Framework
                 auth.AddAuthorization(ht.Headers);
 
             if (pTimeout != 0)
-                request.Timeout = pTimeout * 1000;
+                request.Timeout = pTimeout;
 
             if (maxConnections > 0 && ht.ServicePoint.ConnectionLimit < maxConnections)
                 ht.ServicePoint.ConnectionLimit = maxConnections;
