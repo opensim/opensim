@@ -169,17 +169,14 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "UBITODEPhysicsScene")]
     public class ODEScene : PhysicsScene, INonSharedRegionModule
     {
-        private readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType.ToString());
-        public string LogHeader = "[UbitODE]";
-        private bool m_Enabled = false;
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        // private Dictionary<string, sCollisionData> m_storedCollisions = new Dictionary<string, sCollisionData>();
+        private bool m_Enabled = false;
 
         public bool OdeUbitLib = false;
         public bool m_suportCombine = false; // mega suport not tested
 
 //        private int threadid = 0;
-//        private Random fluidRandomizer = new Random(Environment.TickCount);
 
 //        const d.ContactFlags comumContactFlags = d.ContactFlags.SoftERP | d.ContactFlags.SoftCFM |d.ContactFlags.Approx1 | d.ContactFlags.Bounce;
 
@@ -331,6 +328,7 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
         }
  */
         #region INonSharedRegionModule
+
         public string Name
         {
             get { return "UbitODE"; }
@@ -350,24 +348,10 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
                 string physics = config.GetString("physics", string.Empty);
                 if (physics == Name)
                 {
-                    m_Enabled = true;
                     m_config = source;
-
-                    // We do this so that OpenSimulator on Windows loads the correct native ODE library depending on whether
-                    // it's running as a 32-bit process or a 64-bit one.  By invoking LoadLibary here, later DLLImports
-                    // will find it already loaded later on.
-                    //
-                    // This isn't necessary for other platforms (e.g. Mac OSX and Linux) since the DLL used can be
-                    // controlled in Ode.NET.dll.config
-                    if (Util.IsWindows())
-                        Util.LoadArchSpecificWindowsDll("ode.dll");
-
-                    // Initializing ODE only when a scene is created allows alternative ODE plugins to co-habit (according to
-                    // http://opensimulator.org/mantis/view.php?id=2750).
-                    d.InitODE();
+                    m_Enabled = true;
                 }
             }
-
         }
 
         public void Close()
@@ -380,12 +364,45 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
                 return;
 
             EngineType = Name;
-            EngineType = Name;
             PhysicsSceneName = EngineType + "/" + scene.RegionInfo.RegionName;
 
-            scene.RegisterModuleInterface<PhysicsScene>(this);
+            OdeLock = new Object();
+
+            // We do this so that OpenSimulator on Windows loads the correct native ODE library depending on whether
+            // it's running as a 32-bit process or a 64-bit one.  By invoking LoadLibary here, later DLLImports
+            // will find it already loaded later on.
+            //
+            // This isn't necessary for other platforms (e.g. Mac OSX and Linux) since the DLL used can be
+            // controlled in Ode.NET.dll.config
+            if (Util.IsWindows())
+                Util.LoadArchSpecificWindowsDll("ode.dll");
+
+            // Initializing ODE only when a scene is created allows alternative ODE plugins to co-habit (according to
+            // http://opensimulator.org/mantis/view.php?id=2750).
+            d.InitODE();
+
+            string ode_config = d.GetConfiguration();
+            if (ode_config != null && ode_config != "")
+            {
+                m_log.InfoFormat("[UbitODE] ode library configuration: {0}", ode_config);
+
+                if (ode_config.Contains("ODE_Ubit"))
+                {
+                    OdeUbitLib = true;
+                }
+            }
 
             Vector3 extent = new Vector3(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY, scene.RegionInfo.RegionSizeZ);
+
+            mesher = scene.RequestModuleInterface<IMesher>();
+            if (mesher == null)
+            {
+                m_log.WarnFormat("[UbitODE] No mesher. module disabled");
+                m_Enabled = false;
+                return;
+            }
+
+            scene.RegisterModuleInterface<PhysicsScene>(this);
 
             Initialization(extent);
 
@@ -393,29 +410,20 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
                 (scene.Heightmap != null ? scene.Heightmap.GetFloatsSerialised() : new float[scene.RegionInfo.RegionSizeX * scene.RegionInfo.RegionSizeY]),
                 (float)scene.RegionInfo.RegionSettings.WaterHeight);
 
+
+            scene.PhysicsEnabled = true;
         }
 
         public void RemoveRegion(Scene scene)
         {
-            if (!m_Enabled)
-                return;
+//            if (!m_Enabled)
+//                return;
         }
 
         public void RegionLoaded(Scene scene)
         {
-            if (!m_Enabled)
-                return;
-
-            mesher = scene.RequestModuleInterface<IMesher>();
-            if (mesher == null)
-            {
-                m_log.WarnFormat("{0} No mesher. module disabled", LogHeader);
-                m_Enabled = false;
-                return;
-            }
-
-            region_loaded();
-            scene.PhysicsEnabled = true;
+//            if (!m_Enabled)
+//                return;
         }
         #endregion
 
@@ -426,15 +434,19 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
         /// </summary>
         private void Initialization(Vector3 regionExtent)
         {
-
             //            checkThread();
-
-            OdeLock = new Object();
             SimulationLock = new Object();
 
             nearCallback = near;
 
             m_rayCastManager = new ODERayCastRequestManager(this);
+
+            WorldExtents.X = regionExtent.X;
+            m_regionWidth = (uint)regionExtent.X;
+            WorldExtents.Y = regionExtent.Y;
+            m_regionHeight = (uint)regionExtent.Y;
+
+            m_suportCombine = false;
 
             lock (OdeLock)
             {
@@ -506,27 +518,9 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
                 d.WorldSetAutoDisableFlag(world, false);
             }
 
-            WorldExtents.X = regionExtent.X;
-            m_regionWidth = (uint)regionExtent.X;
-            WorldExtents.Y = regionExtent.Y;
-            m_regionHeight = (uint)regionExtent.Y;
 
-            m_suportCombine = false;
             //            checkThread();
-        }
 
-        private void region_loaded()
-        {
-            string ode_config = d.GetConfiguration();
-            if (ode_config != null && ode_config != "")
-            {
-                m_log.WarnFormat("ODE configuration: {0}", ode_config);
-
-                if (ode_config.Contains("ODE_Ubit"))
-                {
-                    OdeUbitLib = true;
-                }
-            }
 
             // Defaults
 
@@ -566,7 +560,6 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
                     maximumMassObject = physicsconfig.GetFloat("maximum_mass_object", maximumMassObject);
                 }
             }
-
 
             d.WorldSetCFM(world, comumContactCFM);
             d.WorldSetERP(world, comumContactERP);
@@ -2500,7 +2493,6 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
             }
         }
 
-
         public override void DeleteTerrain()
         {
         }
@@ -2514,66 +2506,7 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
         {
             return m_suportCombine;
         }
-/*
-        public override void UnCombine(PhysicsScene pScene)
-        {
-            IntPtr localGround = IntPtr.Zero;
-//            float[] localHeightfield;
-            bool proceed = false;
-            List<IntPtr> geomDestroyList = new List<IntPtr>();
 
-            lock (OdeLock)
-            {
-                if (RegionTerrain.TryGetValue(Vector3.Zero, out localGround))
-                {
-                    foreach (IntPtr geom in TerrainHeightFieldHeights.Keys)
-                    {
-                        if (geom == localGround)
-                        {
-//                            localHeightfield = TerrainHeightFieldHeights[geom];
-                            proceed = true;
-                        }
-                        else
-                        {
-                            geomDestroyList.Add(geom);
-                        }
-                    }
-
-                    if (proceed)
-                    {
-                        m_worldOffset = Vector3.Zero;
-                        WorldExtents = new Vector2((int)Constants.RegionSize, (int)Constants.RegionSize);
-                        m_parentScene = null;
-
-                        foreach (IntPtr g in geomDestroyList)
-                        {
-                            // removingHeightField needs to be done or the garbage collector will
-                            // collect the terrain data before we tell ODE to destroy it causing 
-                            // memory corruption
-                            if (TerrainHeightFieldHeights.ContainsKey(g))
-                            {
-//                                float[] removingHeightField = TerrainHeightFieldHeights[g];
-                                TerrainHeightFieldHeights.Remove(g);
-
-                                if (RegionTerrain.ContainsKey(g))
-                                {
-                                    RegionTerrain.Remove(g);
-                                }
-
-                                d.GeomDestroy(g);
-                                //removingHeightField = new float[0];
-                            }
-                        }
-
-                    }
-                    else
-                    {
-                        m_log.Warn("[PHYSICS]: Couldn't proceed with UnCombine.  Region has inconsistant data.");
-                    }
-                }
-            }
-        }
-*/
         public override void SetWaterLevel(float baseheight)
         {
             waterlevel = baseheight;
