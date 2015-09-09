@@ -111,11 +111,9 @@ namespace OpenSim.Region.PhysicsModule.ODE
         Rubber = 6
     }
 
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ODEPhysicsScene")]
-    public class OdeScene : PhysicsScene, INonSharedRegionModule
+    public class OdeScene : PhysicsScene
     {
         private readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType.ToString());
-        private bool m_Enabled = false;
 
         // private Dictionary<string, sCollisionData> m_storedCollisions = new Dictionary<string, sCollisionData>();
 
@@ -534,89 +532,37 @@ namespace OpenSim.Region.PhysicsModule.ODE
         int spaceGridMaxY;
 
         private ODERayCastRequestManager m_rayCastManager;
+	
+		public Scene m_frameWorkScene = null;
 
+        public OdeScene(Scene pscene, IConfigSource psourceconfig, string pname)
+		{
+			m_config = psourceconfig;
+			m_frameWorkScene = pscene;
+			
+            EngineType = pname;
+            PhysicsSceneName = EngineType + "/" + pscene.RegionInfo.RegionName;
 
-        #region INonSharedRegionModule
-        public string Name
-        {
-            get { return "OpenDynamicsEngine"; }
-        }
-
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        public void Initialise(IConfigSource source)
-        {
-            // TODO: Move this out of Startup
-            IConfig config = source.Configs["Startup"];
-            if (config != null)
-            {
-                string physics = config.GetString("physics", string.Empty);
-                if (physics == Name)
-                {
-                    m_Enabled = true;
-                    m_config = source;
-
-                    // We do this so that OpenSimulator on Windows loads the correct native ODE library depending on whether
-                    // it's running as a 32-bit process or a 64-bit one.  By invoking LoadLibary here, later DLLImports
-                    // will find it already loaded later on.
-                    //
-                    // This isn't necessary for other platforms (e.g. Mac OSX and Linux) since the DLL used can be
-                    // controlled in Ode.NET.dll.config
-                    if (Util.IsWindows())
-                        Util.LoadArchSpecificWindowsDll("ode.dll");
-
-                    // Initializing ODE only when a scene is created allows alternative ODE plugins to co-habit (according to
-                    // http://opensimulator.org/mantis/view.php?id=2750).
-                    d.InitODE();
-
-                }
-            }
-
-        }
-
-        public void Close()
-        {
-        }
-
-        public void AddRegion(Scene scene)
-        {
-            if (!m_Enabled)
-                return;
-
-            EngineType = Name;
-            PhysicsSceneName = EngineType + "/" + scene.RegionInfo.RegionName;
-
-            scene.RegisterModuleInterface<PhysicsScene>(this);
-            Vector3 extent = new Vector3(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY, scene.RegionInfo.RegionSizeZ);
+            pscene.RegisterModuleInterface<PhysicsScene>(this);
+            Vector3 extent = new Vector3(pscene.RegionInfo.RegionSizeX, pscene.RegionInfo.RegionSizeY, pscene.RegionInfo.RegionSizeZ);
             Initialise(extent);
             InitialiseFromConfig(m_config);
 
             // This may not be that good since terrain may not be avaiable at this point
-            base.Initialise(scene.PhysicsRequestAsset, 
-                (scene.Heightmap != null ? scene.Heightmap.GetFloatsSerialised() : new float[(int)(extent.X * extent.Y)]), 
-                (float)scene.RegionInfo.RegionSettings.WaterHeight);
+            base.Initialise(pscene.PhysicsRequestAsset, 
+                (pscene.Heightmap != null ? pscene.Heightmap.GetFloatsSerialised() : new float[(int)(extent.X * extent.Y)]), 
+                (float)pscene.RegionInfo.RegionSettings.WaterHeight);
 
         }
 
-        public void RemoveRegion(Scene scene)
+         public void RegionLoaded()
         {
-            if (!m_Enabled)
-                return;
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-            if (!m_Enabled)
-                return;
-
-            mesher = scene.RequestModuleInterface<IMesher>();
+            mesher = m_frameWorkScene.RequestModuleInterface<IMesher>();
             if (mesher == null)
                 m_log.WarnFormat("[ODE SCENE]: No mesher in {0}. Things will not work well.", PhysicsSceneName);
+				
+			m_frameWorkScene.PhysicsEnabled = true;				
         }
-        #endregion
 
         /// <summary>
         /// Initiailizes the scene
