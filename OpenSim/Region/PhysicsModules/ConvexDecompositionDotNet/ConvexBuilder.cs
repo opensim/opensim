@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace OpenSim.Region.PhysicsModule.ConvexDecompositionDotNet
+namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 {
     public class DecompDesc
     {
