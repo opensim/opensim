@@ -93,15 +93,14 @@ namespace OpenSim.Region.PhysicsModule.UbitMeshing
         public void Initialise(IConfigSource config)
         {
             IConfig start_config = config.Configs["Startup"];
-            IConfig mesh_config = config.Configs["Mesh"];
 
             string mesher = start_config.GetString("meshing", string.Empty);
             if (mesher == Name)
             {
-
                 float fcache = 48.0f;
                 //            float fcache = 0.02f;
 
+                IConfig mesh_config = config.Configs["Mesh"];
                 if (mesh_config != null)
                 {
                     useMeshiesPhysicsMesh = mesh_config.GetBoolean("UseMeshiesPhysicsMesh", useMeshiesPhysicsMesh);
@@ -117,12 +116,15 @@ namespace OpenSim.Region.PhysicsModule.UbitMeshing
                         doMeshFileCache = false;
                         doCacheExpire = false;
                     }
+
                     m_Enabled = true;
                 }
 
                 CacheExpire = TimeSpan.FromHours(fcache);
+                
             }
         }
+
         public void Close()
         {
         }
