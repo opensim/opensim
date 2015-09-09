@@ -312,19 +312,21 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
         private ODERayCastRequestManager m_rayCastManager;
         public ODEMeshWorker m_meshWorker;
 
-/* maybe needed if ode uses tls
-        private void checkThread()
-        {
+        /* maybe needed if ode uses tls
+                private void checkThread()
+                {
 
-            int th = Thread.CurrentThread.ManagedThreadId;
-            if(th != threadid)
-            {
-                threadid = th;
-                d.AllocateODEDataForThread(~0U);
-            }
-        }
- */
-	
+                    int th = Thread.CurrentThread.ManagedThreadId;
+                    if(th != threadid)
+                    {
+                        threadid = th;
+                        d.AllocateODEDataForThread(~0U);
+                    }
+                }
+         */
+
+        IConfig physicsconfig = null;
+
         public ODEScene(Scene pscene, IConfigSource psourceconfig, string pname, bool podeUbitLib)
         {
             OdeLock = new Object();
@@ -336,6 +338,19 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
             m_odeUbitLib = podeUbitLib;
             m_frameWorkScene = pscene;
 
+            m_frameWorkScene.RegisterModuleInterface<PhysicsScene>(this);
+
+            Initialization();
+
+            base.Initialise(m_frameWorkScene.PhysicsRequestAsset,
+                (m_frameWorkScene.Heightmap != null ? m_frameWorkScene.Heightmap.GetFloatsSerialised() : new float[m_frameWorkScene.RegionInfo.RegionSizeX * m_frameWorkScene.RegionInfo.RegionSizeY]),
+                (float)m_frameWorkScene.RegionInfo.RegionSettings.WaterHeight);           
+        }
+
+        // core hack this just means all modules where loaded
+        // so now we can look for dependencies
+        public void RegionLoaded()
+        {
             mesher = m_frameWorkScene.RequestModuleInterface<IMesher>();
             if (mesher == null)
             {
@@ -343,18 +358,9 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
                 return;
             }
 
-            m_frameWorkScene.RegisterModuleInterface<PhysicsScene>(this);
-
-            Initialization();
-
-            base.Initialise(m_frameWorkScene.PhysicsRequestAsset,
-                (m_frameWorkScene.Heightmap != null ? m_frameWorkScene.Heightmap.GetFloatsSerialised() : new float[m_frameWorkScene.RegionInfo.RegionSizeX * m_frameWorkScene.RegionInfo.RegionSizeY]),
-                (float)m_frameWorkScene.RegionInfo.RegionSettings.WaterHeight);
-
-
+            m_meshWorker = new ODEMeshWorker(this, m_log, mesher, physicsconfig);
             m_frameWorkScene.PhysicsEnabled = true;
         }
-
         /// <summary>
         /// Initiailizes the scene
         /// Sets many properties that ODE requires to be stable
@@ -454,7 +460,7 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
 
             int contactsPerCollision = 80;
 
-            IConfig physicsconfig = null;
+            physicsconfig = null;
 
             if (m_config != null)
             {
@@ -504,8 +510,6 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
 
             d.WorldSetContactSurfaceLayer(world, contactsurfacelayer);
             d.WorldSetContactMaxCorrectingVel(world, 60.0f);
-
-            m_meshWorker = new ODEMeshWorker(this, m_log, mesher, physicsconfig);
 
             HalfOdeStep = ODE_STEPSIZE * 0.5f;
             odetimestepMS = (int)(1000.0f * ODE_STEPSIZE + 0.5f);

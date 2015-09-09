@@ -78,10 +78,19 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
 
         public void RemoveRegion(Scene scene)
         {
+            if (!m_Enabled || m_scene == null)
+                return;
+
+            m_scene.Dispose();
+            m_scene = null;
         }
 
         public void RegionLoaded(Scene scene)
         {
+            if (!m_Enabled || m_scene == null)
+                return;
+
+            m_scene.RegionLoaded();
         }
         #endregion			
     }
