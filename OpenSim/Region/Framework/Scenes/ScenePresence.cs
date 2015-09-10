@@ -3601,6 +3601,8 @@ namespace OpenSim.Region.Framework.Scenes
                 // Note: This won't send data *to* other clients in that region (children don't send)
                 if (m_teleportFlags <= 0)
                 {
+                    Scene.SendLayerData(ControllingClient);
+
                     ILandChannel landch = m_scene.LandChannel;
                     if (landch != null)
                     {
