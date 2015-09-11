@@ -474,7 +474,13 @@ namespace OpenSim.Services.Connectors
                         { "CreationDate", item.CreationDate.ToString() }
                     });
 
-            return CheckReturn(ret);
+            bool result = CheckReturn(ret);
+            if (result)
+            {
+                m_ItemCache.AddOrUpdate(item.ID, item, CACHE_EXPIRATION_SECONDS);
+            }
+
+            return result;
         }
 
         public bool MoveItems(UUID principalID, List<InventoryItemBase> items)
@@ -551,6 +557,7 @@ namespace OpenSim.Services.Connectors
             List<UUID> pending = new List<UUID>();
             InventoryItemBase item = null;
             int i = 0;
+
             foreach (UUID id in itemIDs)
             {
                 if (m_ItemCache.TryGetValue(id, out item))

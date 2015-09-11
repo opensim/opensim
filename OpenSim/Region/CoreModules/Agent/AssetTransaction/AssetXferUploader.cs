@@ -337,12 +337,16 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 m_asset.Description = item.Description;
                 m_asset.Type = (sbyte)item.AssetType;
 
-                // We must always store the item at this point even if the asset hasn't finished uploading, in order
-                // to avoid a race condition when the appearance module retrieves the item to set the asset id in
-                // the AvatarAppearance structure.
-                item.AssetID = m_asset.FullID;
-                if (item.AssetID != UUID.Zero)
-                    m_Scene.InventoryService.UpdateItem(item);
+                // remove redundante m_Scene.InventoryService.UpdateItem
+                // if uploadState == UploadState.Complete)
+//                if (m_asset.FullID != UUID.Zero)
+//                {
+                    // We must always store the item at this point even if the asset hasn't finished uploading, in order
+                    // to avoid a race condition when the appearance module retrieves the item to set the asset id in
+                    // the AvatarAppearance structure.
+//                    item.AssetID = m_asset.FullID;
+//                    m_Scene.InventoryService.UpdateItem(item);
+//                }
 
                 if (m_uploadState == UploadState.Complete)
                 {
@@ -350,10 +354,21 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 }
                 else
                 {
-//                    m_log.DebugFormat(
-//                        "[ASSET XFER UPLOADER]: Holding update inventory item request {0} for {1} pending completion of asset xfer for transaction {2}",
-//                        item.Name, remoteClient.Name, transactionID);
-    
+                    // do it here to avoid the eventual race condition
+                    if (m_asset.FullID != UUID.Zero)
+                    {
+                        // We must always store the item at this point even if the asset hasn't finished uploading, in order
+                        // to avoid a race condition when the appearance module retrieves the item to set the asset id in
+                        // the AvatarAppearance structure.
+                        item.AssetID = m_asset.FullID;
+                        m_Scene.InventoryService.UpdateItem(item);
+                    }
+
+
+                    //                    m_log.DebugFormat(
+                    //                        "[ASSET XFER UPLOADER]: Holding update inventory item request {0} for {1} pending completion of asset xfer for transaction {2}",
+                    //                        item.Name, remoteClient.Name, transactionID);
+
                     m_updateItem = true;
                     m_updateItemData = item;
                 }
