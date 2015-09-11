@@ -35,14 +35,13 @@ using OpenMetaverse;
 
 namespace OpenSim.Capabilities.Handlers
 {
-    public class FetchInvDescServerConnector : ServiceConnector
+    public class FetchInventory2ServerConnector : ServiceConnector
     {
         private IInventoryService m_InventoryService;
-        private ILibraryService m_LibraryService;
         private string m_ConfigName = "CapsService";
 
-        public FetchInvDescServerConnector(IConfigSource config, IHttpServer server, string configName) :
-                base(config, server, configName)
+        public FetchInventory2ServerConnector(IConfigSource config, IHttpServer server, string configName)
+            : base(config, server, configName)
         {
             if (configName != String.Empty)
                 m_ConfigName = configName;
@@ -57,26 +56,16 @@ namespace OpenSim.Capabilities.Handlers
                 throw new Exception("No InventoryService in config file");
 
             Object[] args = new Object[] { config };
-            m_InventoryService =
-                    ServerUtils.LoadPlugin<IInventoryService>(invService, args);
+            m_InventoryService = ServerUtils.LoadPlugin<IInventoryService>(invService, args);
 
             if (m_InventoryService == null)
                 throw new Exception(String.Format("Failed to load InventoryService from {0}; config is {1}", invService, m_ConfigName));
 
-            string libService = serverConfig.GetString("LibraryService", String.Empty);
-            m_LibraryService =
-                    ServerUtils.LoadPlugin<ILibraryService>(libService, args);
-
-            FetchInvDescHandler webFetchHandler = new FetchInvDescHandler(m_InventoryService, m_LibraryService, null);
+            FetchInventory2Handler fiHandler = new FetchInventory2Handler(m_InventoryService);
             IRequestHandler reqHandler
                 = new RestStreamHandler(
-                    "POST",
-                    "/CAPS/WebFetchInvDesc/" /*+ UUID.Random()*/,
-                    webFetchHandler.FetchInventoryDescendentsRequest,
-                    "FetchInvDescendents",
-                    null);
+                    "POST", "/CAPS/FetchInventory/", fiHandler.FetchInventoryRequest, "FetchInventory", null);
             server.AddStreamHandler(reqHandler);
         }
-
     }
 }

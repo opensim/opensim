@@ -66,26 +66,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        /// <summary>
-        /// Control whether requests will be processed asynchronously.
-        /// </summary>
-        /// <remarks>
-        /// Defaults to true.  Can currently not be changed once a region has been added to the module.
-        /// </remarks>
-        public bool ProcessQueuedRequestsAsync { get; private set; }
-
-        /// <summary>
-        /// Number of inventory requests processed by this module.
-        /// </summary>
-        /// <remarks>
-        /// It's the PollServiceRequestManager that actually sends completed requests back to the requester.
-        /// </remarks>
-        public static int ProcessedRequestsCount { get; set; }
-
-        private static Stat s_queuedRequestsStat;
-        private static Stat s_processedRequestsStat;
-
-        public Scene Scene { get; private set; }
+        private Scene m_scene;
 
         private IInventoryService m_InventoryService;
         private ILibraryService m_LibraryService;
@@ -95,7 +76,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private string m_fetchInventoryDescendents2Url;
         private string m_webFetchInventoryDescendentsUrl;
 
-        private static FetchInvDescHandler m_webFetchHandler;
+        private static WebFetchInvDescHandler m_webFetchHandler;
 
         private static Thread[] m_workerThreads = null;
 
@@ -104,13 +85,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
         #region ISharedRegionModule Members
 
-        public WebFetchInvDescModule() : this(true) {}
-
-        public WebFetchInvDescModule(bool processQueuedResultsAsync)
-        {
-            ProcessQueuedRequestsAsync = processQueuedResultsAsync;
-        }
-
         public void Initialise(IConfigSource source)
         {
             IConfig config = source.Configs["ClientStack.LindenCaps"];
@@ -118,9 +92,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
 
             m_fetchInventoryDescendents2Url = config.GetString("Cap_FetchInventoryDescendents2", string.Empty);
-//            m_webFetchInventoryDescendentsUrl = config.GetString("Cap_WebFetchInventoryDescendents", string.Empty);
+            m_webFetchInventoryDescendentsUrl = config.GetString("Cap_WebFetchInventoryDescendents", string.Empty);
 
-//            if (m_fetchInventoryDescendents2Url != string.Empty || m_webFetchInventoryDescendentsUrl != string.Empty)
             if (m_fetchInventoryDescendents2Url != string.Empty || m_webFetchInventoryDescendentsUrl != string.Empty)
             {
                 m_Enabled = true;
@@ -132,7 +105,7 @@ namespace OpenSim.Region.ClientStack.Linden
             if (!m_Enabled)
                 return;
 
-            Scene = s;
+            m_scene = s;
         }
 
         public void RemoveRegion(Scene s)
@@ -140,23 +113,12 @@ namespace OpenSim.Region.ClientStack.Linden
             if (!m_Enabled)
                 return;
 
-            Scene.EventManager.OnRegisterCaps -= RegisterCaps;
+            m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
 
-            StatsManager.DeregisterStat(s_processedRequestsStat);
-            StatsManager.DeregisterStat(s_queuedRequestsStat);
+            foreach (Thread t in m_workerThreads)
+                Watchdog.AbortThread(t.ManagedThreadId);
 
-            if (ProcessQueuedRequestsAsync)
-            {
-                if (m_workerThreads != null)
-                {
-                    foreach (Thread t in m_workerThreads)
-                        Watchdog.AbortThread(t.ManagedThreadId);
-
-                    m_workerThreads = null;
-                }
-            }
-
-            Scene = null;
+            m_scene = null;
         }
 
         public void RegionLoaded(Scene s)
@@ -164,51 +126,19 @@ namespace OpenSim.Region.ClientStack.Linden
             if (!m_Enabled)
                 return;
 
-            if (s_processedRequestsStat == null)
-                s_processedRequestsStat =
-                    new Stat(
-                        "ProcessedFetchInventoryRequests",
-                        "Number of processed fetch inventory requests",
-                        "These have not necessarily yet been dispatched back to the requester.",
-                        "",
-                        "inventory",
-                        "httpfetch",
-                        StatType.Pull,
-                        MeasuresOfInterest.AverageChangeOverTime,
-                        stat => { stat.Value = ProcessedRequestsCount; },
-                        StatVerbosity.Debug);
-
-            if (s_queuedRequestsStat == null)
-                s_queuedRequestsStat =
-                    new Stat(
-                        "QueuedFetchInventoryRequests",
-                        "Number of fetch inventory requests queued for processing",
-                        "",
-                        "",
-                        "inventory",
-                        "httpfetch",
-                        StatType.Pull,
-                        MeasuresOfInterest.AverageChangeOverTime,
-                        stat => { stat.Value = m_queue.Count; },
-                        StatVerbosity.Debug);
-
-            StatsManager.RegisterStat(s_processedRequestsStat);
-            StatsManager.RegisterStat(s_queuedRequestsStat);
-
-            m_InventoryService = Scene.InventoryService;
-            m_LibraryService = Scene.LibraryService;
+            m_InventoryService = m_scene.InventoryService;
+            m_LibraryService = m_scene.LibraryService;
 
             // We'll reuse the same handler for all requests.
-            m_webFetchHandler = new FetchInvDescHandler(m_InventoryService, m_LibraryService, Scene);
+            m_webFetchHandler = new WebFetchInvDescHandler(m_InventoryService, m_LibraryService);
 
-            Scene.EventManager.OnRegisterCaps += RegisterCaps;
+            m_scene.EventManager.OnRegisterCaps += RegisterCaps;
 
-            int nworkers = 2; // was 2
-            if (ProcessQueuedRequestsAsync && m_workerThreads == null)
+            if (m_workerThreads == null)
             {
-                m_workerThreads = new Thread[nworkers];
+                m_workerThreads = new Thread[2];
 
-                for (uint i = 0; i < nworkers; i++)
+                for (uint i = 0; i < 2; i++)
                 {
                     m_workerThreads[i] = WorkManager.StartThread(DoInventoryRequests,
                             String.Format("InventoryWorkerThread{0}", i),
@@ -243,12 +173,12 @@ namespace OpenSim.Region.ClientStack.Linden
             private Dictionary<UUID, Hashtable> responses =
                     new Dictionary<UUID, Hashtable>();
 
-            private WebFetchInvDescModule m_module;
+            private Scene m_scene;
 
-            public PollServiceInventoryEventArgs(WebFetchInvDescModule module, string url, UUID pId) :
-                base(null, url, null, null, null, pId, int.MaxValue)
+            public PollServiceInventoryEventArgs(Scene scene, string url, UUID pId) :
+                    base(null, url, null, null, null, pId, int.MaxValue)
             {
-                m_module = module;
+                m_scene = scene;
 
                 HasEvents = (x, y) => { lock (responses) return responses.ContainsKey(x); };
                 GetEvents = (x, y) =>
@@ -268,7 +198,12 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 Request = (x, y) =>
                 {
-                    ScenePresence sp = m_module.Scene.GetScenePresence(Id);
+                    ScenePresence sp = m_scene.GetScenePresence(Id);
+                    if (sp == null)
+                    {
+                        m_log.ErrorFormat("[INVENTORY]: Unable to find ScenePresence for {0}", Id);
+                        return;
+                    }
 
                     aPollRequest reqinfo = new aPollRequest();
                     reqinfo.thepoll = this;
@@ -363,13 +298,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         requestinfo.request["body"].ToString(), String.Empty, String.Empty, null, null);
 
                 lock (responses)
-                {
-                    if (responses.ContainsKey(requestID))
-                        m_log.WarnFormat("[FETCH INVENTORY DESCENDENTS2 MODULE]: Caught in the act of loosing responses! Please report this on mantis #7054");
                     responses[requestID] = response;
-                }
-
-                WebFetchInvDescModule.ProcessedRequestsCount++;
             }
         }
 
@@ -393,7 +322,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 capUrl = "/CAPS/" + UUID.Random() + "/";
 
                 // Register this as a poll service
-                PollServiceInventoryEventArgs args = new PollServiceInventoryEventArgs(this, capUrl, agentID);
+                PollServiceInventoryEventArgs args = new PollServiceInventoryEventArgs(m_scene, capUrl, agentID);
                 args.Type = PollServiceEventArgs.EventType.Inventory;
 
                 caps.RegisterPollHandler(capName, args);
@@ -402,7 +331,7 @@ namespace OpenSim.Region.ClientStack.Linden
             else
             {
                 capUrl = url;
-                IExternalCapsModule handler = Scene.RequestModuleInterface<IExternalCapsModule>();
+                IExternalCapsModule handler = m_scene.RequestModuleInterface<IExternalCapsModule>();
                 if (handler != null)
                     handler.RegisterExternalUserCapsHandler(agentID,caps,capName,capUrl);
                 else
@@ -431,26 +360,10 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 Watchdog.UpdateThread();
 
-                WaitProcessQueuedInventoryRequest();
-            }
-        }
+                aPollRequest poolreq = m_queue.Dequeue();
 
-        public void WaitProcessQueuedInventoryRequest()
-        {
-            aPollRequest poolreq = m_queue.Dequeue();
-
-            if (poolreq != null && poolreq.thepoll != null)
-            {
-                try
-                {
+                if (poolreq != null && poolreq.thepoll != null)
                     poolreq.thepoll.Process(poolreq);
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat(
-                        "[INVENTORY]: Failed to process queued inventory request {0} for {1} in {2}.  Exception {3}", 
-                        poolreq.reqID, poolreq.presence != null ? poolreq.presence.Name : "unknown", Scene.Name, e);
-                }
             }
         }
     }

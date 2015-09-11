@@ -25,36 +25,39 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
+using log4net;
+using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Capabilities;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Services.Interfaces;
+using Caps = OpenSim.Framework.Capabilities.Caps;
 using OSDArray = OpenMetaverse.StructuredData.OSDArray;
 using OSDMap = OpenMetaverse.StructuredData.OSDMap;
-
-using log4net;
 
 namespace OpenSim.Capabilities.Handlers
 {
     public class FetchInventory2Handler
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IInventoryService m_inventoryService;
-        private UUID m_agentID;
 
-        public FetchInventory2Handler(IInventoryService invService, UUID agentId)
+        public FetchInventory2Handler(IInventoryService invService)
         {
             m_inventoryService = invService;
-            m_agentID = agentId;
         }
 
         public string FetchInventoryRequest(string request, string path, string param, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            //m_log.DebugFormat("[FETCH INVENTORY HANDLER]: Received FetchInventory capability request {0}", request);
+//            m_log.DebugFormat("[FETCH INVENTORY HANDLER]: Received FetchInventory capabilty request");
 
             OSDMap requestmap = (OSDMap)OSDParser.DeserializeLLSDXml(Utils.StringToBytes(request));
             OSDArray itemsRequested = (OSDArray)requestmap["items"];
@@ -62,32 +65,12 @@ namespace OpenSim.Capabilities.Handlers
             string reply;
             LLSDFetchInventory llsdReply = new LLSDFetchInventory();
 
-            UUID[] itemIDs = new UUID[itemsRequested.Count];
-            int i = 0;
             foreach (OSDMap osdItemId in itemsRequested)
             {
-                itemIDs[i++] = osdItemId["item_id"].AsUUID();
-            }
+                UUID itemId = osdItemId["item_id"].AsUUID();
 
-            InventoryItemBase[] items = m_inventoryService.GetMultipleItems(m_agentID, itemIDs);
+                InventoryItemBase item = m_inventoryService.GetItem(new InventoryItemBase(itemId));
 
-            if (items == null)
-            {
-                // OMG!!! One by one!!! This is fallback code, in case the backend isn't updated
-                m_log.WarnFormat("[FETCH INVENTORY HANDLER]: GetMultipleItems failed. Falling back to fetching inventory items one by one.");
-                items = new InventoryItemBase[itemsRequested.Count];
-                i = 0;
-                InventoryItemBase item = new InventoryItemBase();
-                item.Owner = m_agentID;
-                foreach (UUID id in itemIDs)
-                {
-                    item.ID = id;
-                    items[i++] = m_inventoryService.GetItem(item);
-                }
-            }
-
-            foreach (InventoryItemBase item in items)
-            {
                 if (item != null)
                 {
                     // We don't know the agent that this request belongs to so we'll use the agent id of the item
