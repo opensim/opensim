@@ -898,33 +898,33 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
 
-                if (remoteClient.AgentId == oldAgentID
-                    || (LibraryService != null
-                        && LibraryService.LibraryRootFolder != null
-                        && oldAgentID == LibraryService.LibraryRootFolder.Owner))
-                {
-                    CreateNewInventoryItem(
-                        remoteClient, item.CreatorId, item.CreatorData, newFolderID,
-                        newName, item.Description, item.Flags, callbackID, item.AssetID, (sbyte)item.AssetType, (sbyte)item.InvType,
-                        item.BasePermissions, item.CurrentPermissions, item.EveryOnePermissions,
-                        item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch(), false);
-                }
-                else
-                {
-                    // If item is transfer or permissions are off or calling agent is allowed to copy item owner's inventory item.
-                    if (((item.CurrentPermissions & (uint)PermissionMask.Transfer) != 0)
-                        && (m_permissions.BypassPermissions()
-                            || m_permissions.CanCopyUserInventory(remoteClient.AgentId, oldItemID)))
-                    {
-                        CreateNewInventoryItem(
-                            remoteClient, item.CreatorId, item.CreatorData, newFolderID, newName, item.Description, item.Flags, callbackID,
-                            item.AssetID, (sbyte)item.AssetType, (sbyte)item.InvType,
-                            item.NextPermissions, item.NextPermissions, item.EveryOnePermissions & item.NextPermissions,
-                            item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch(), false);
-                    }
-                }
+            if (remoteClient.AgentId == oldAgentID
+                || (LibraryService != null
+                    && LibraryService.LibraryRootFolder != null
+                    && oldAgentID == LibraryService.LibraryRootFolder.Owner))
+            {
+                CreateNewInventoryItem(
+                    remoteClient, item.CreatorId, item.CreatorData, newFolderID,
+                    newName, item.Description, item.Flags, callbackID, item.AssetID, (sbyte)item.AssetType, (sbyte)item.InvType,
+                    item.BasePermissions, item.CurrentPermissions, item.EveryOnePermissions,
+                    item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch(), false);
             }
             else
+            {  
+                // If item is transfer or permissions are off or calling agent is allowed to copy item owner's inventory item.
+                if (((item.CurrentPermissions & (uint)PermissionMask.Transfer) != 0)
+                    && (m_permissions.BypassPermissions()
+                        || m_permissions.CanCopyUserInventory(remoteClient.AgentId, oldItemID)))
+                {
+                    CreateNewInventoryItem(
+                        remoteClient, item.CreatorId, item.CreatorData, newFolderID, newName, item.Description, item.Flags, callbackID,
+                        item.AssetID, (sbyte)item.AssetType, (sbyte) item.InvType,
+                        item.NextPermissions, item.NextPermissions, item.EveryOnePermissions & item.NextPermissions,
+                        item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch(), false);
+                }
+            }
+        }
+                      else
             {
                 m_log.ErrorFormat(
                     "[AGENT INVENTORY]: Could not copy item {0} since asset {1} could not be found",
