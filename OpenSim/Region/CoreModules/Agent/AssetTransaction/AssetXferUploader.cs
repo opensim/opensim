@@ -319,12 +319,14 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 m_asset.Description = item.Description;
                 m_asset.Type = (sbyte)item.AssetType;
 
-                // We must always store the item at this point even if the asset hasn't finished uploading, in order
-                // to avoid a race condition when the appearance module retrieves the item to set the asset id in
-                // the AvatarAppearance structure.
-                item.AssetID = m_asset.FullID;
-                if (item.AssetID != UUID.Zero)
+                if (m_asset.FullID != UUID.Zero)
+                {
+                    // We must always store the item at this point even if the asset hasn't finished uploading, in order
+                    // to avoid a race condition when the appearance module retrieves the item to set the asset id in
+                    // the AvatarAppearance structure.
+                    item.AssetID = m_asset.FullID;
                     m_Scene.InventoryService.UpdateItem(item);
+                }
 
                 if (m_uploadState == UploadState.Complete)
                 {

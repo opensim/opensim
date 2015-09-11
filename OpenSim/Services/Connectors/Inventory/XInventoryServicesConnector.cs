@@ -474,7 +474,13 @@ namespace OpenSim.Services.Connectors
                         { "CreationDate", item.CreationDate.ToString() }
                     });
 
-            return CheckReturn(ret);
+            bool result = CheckReturn(ret);
+            if (result)
+            {
+                m_ItemCache.AddOrUpdate(item.ID, item, CACHE_EXPIRATION_SECONDS);
+            }
+
+            return result;
         }
 
         public bool MoveItems(UUID principalID, List<InventoryItemBase> items)
@@ -518,7 +524,9 @@ namespace OpenSim.Services.Connectors
         {
             InventoryItemBase retrieved = null;
             if (m_ItemCache.TryGetValue(item.ID, out retrieved))
+            {
                 return retrieved;
+            }
 
             try
             {
