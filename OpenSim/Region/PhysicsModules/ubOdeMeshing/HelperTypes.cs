@@ -31,7 +31,7 @@ using System.Diagnostics;
 using System.Globalization;
 using OpenMetaverse;
 using OpenSim.Region.PhysicsModules.SharedBase;
-using OpenSim.Region.PhysicsModule.UbitMeshing;
+using OpenSim.Region.PhysicsModule.ubODEMeshing;
 
 public class Vertex : IComparable<Vertex>
 {

@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-// Ubit 2012
+// Ubit Umarov 2012
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -36,7 +36,7 @@ using OdeAPI;
 using log4net;
 using OpenMetaverse;
 
-namespace OpenSim.Region.PhysicsModule.UbitOde
+namespace OpenSim.Region.PhysicsModule.ubOde
 {
     /// <summary>
     /// </summary>

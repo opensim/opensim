@@ -37,7 +37,7 @@ using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
 using log4net;
 
-namespace OpenSim.Region.PhysicsModule.UbitOde
+namespace OpenSim.Region.PhysicsModule.ubOde
 {
     /// <summary>
     /// Various properties that ODE uses for AMotors but isn't exposed in ODE.NET so we must define them ourselves.

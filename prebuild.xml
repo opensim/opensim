@@ -359,7 +359,7 @@
       </Files>
     </Project>
 
-   <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModule.UbitOde" path="OpenSim/Region/PhysicsModules/UbitOde" type="Library">
+   <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModule.ubOde" path="OpenSim/Region/PhysicsModules/ubOde" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/</OutputPath>
@@ -392,7 +392,7 @@
       </Files>
     </Project>	
 	
-    <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModule.UbitMeshing" path="OpenSim/Region/PhysicsModules/UbitMeshing" type="Library">
+    <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModule.ubOdeMeshing" path="OpenSim/Region/PhysicsModules/ubOdeMeshing" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/</OutputPath>

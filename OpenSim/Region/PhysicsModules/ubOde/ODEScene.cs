@@ -45,7 +45,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenMetaverse;
 
-namespace OpenSim.Region.PhysicsModule.UbitOde
+namespace OpenSim.Region.PhysicsModule.ubOde
 {
      // colision flags of things others can colide with
     // rays, sensors, probes removed since can't  be colided with
@@ -169,7 +169,7 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public bool m_odeUbitLib = false;
+        public bool m_ubOdeLib = false;
         public bool m_suportCombine = false; // mega suport not tested
         public Scene m_frameWorkScene = null;
 
@@ -213,7 +213,7 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
 
 //        private int m_meshExpireCntr;
 
-        private float avDensity = 3f;
+        private float avDensity = 80f;
         private float avMovementDivisorWalk = 1.3f;
         private float avMovementDivisorRun = 0.8f;
         private float minimumGroundFlightOffset = 3f;
@@ -327,7 +327,7 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
 
         IConfig physicsconfig = null;
 
-        public ODEScene(Scene pscene, IConfigSource psourceconfig, string pname, bool podeUbitLib)
+        public ODEScene(Scene pscene, IConfigSource psourceconfig, string pname, bool pubOdeLib)
         {
             OdeLock = new Object();
 
@@ -335,7 +335,7 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
             PhysicsSceneName = EngineType + "/" + pscene.RegionInfo.RegionName;
 
 			m_config = psourceconfig;
-            m_odeUbitLib = podeUbitLib;
+            m_ubOdeLib = pubOdeLib;
             m_frameWorkScene = pscene;
 
             m_frameWorkScene.RegisterModuleInterface<PhysicsScene>(this);
@@ -354,7 +354,7 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
             mesher = m_frameWorkScene.RequestModuleInterface<IMesher>();
             if (mesher == null)
             {
-                m_log.WarnFormat("[UbitODE] No mesher. module disabled");
+                m_log.WarnFormat("[ubOde] No mesher. module disabled");
                 return;
             }
 
@@ -492,6 +492,8 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
 
                     minimumGroundFlightOffset = physicsconfig.GetFloat("minimum_ground_flight_offset", minimumGroundFlightOffset);
                     maximumMassObject = physicsconfig.GetFloat("maximum_mass_object", maximumMassObject);
+
+                    avDensity *= 3f / 80f;  // scale other engines density option to this
                 }
             }
 
@@ -1927,7 +1929,7 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
             int regsizeY = (int)m_regionHeight + 3; // map size see setterrain number of samples
             int regsize = regsizeX;
 
-            if (m_odeUbitLib)
+            if (m_ubOdeLib)
             {
                 if (x < regsizeX - 1)
                 {
@@ -2071,7 +2073,7 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
             int ystep = regsizeX;
             bool firstTri = false;
 
-            if (m_odeUbitLib)
+            if (m_ubOdeLib)
             {
                 if (x < regsizeX - 1)
                 {
@@ -2183,8 +2185,8 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
 
         public void SetTerrain(float[] heightMap, Vector3 pOffset)
         {
-            if (m_odeUbitLib)
-                UbitSetTerrain(heightMap, pOffset);
+            if (m_ubOdeLib)
+                ubSetTerrain(heightMap, pOffset);
             else
                 OriSetTerrain(heightMap, pOffset);
         }
@@ -2315,7 +2317,7 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
             }
         }
 
-        public void UbitSetTerrain(float[] heightMap, Vector3 pOffset)
+        public void ubSetTerrain(float[] heightMap, Vector3 pOffset)
         {
             // assumes 1m size grid and constante size square regions
             // needs to know about sims around in future
@@ -2389,7 +2391,7 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
                         }
                     }
                 }
-                IntPtr HeightmapData = d.GeomUbitTerrainDataCreate();
+                IntPtr HeightmapData = d.GeomubTerrainDataCreate();
 
                 const int wrap = 0;
                 float thickness = hfmin;
@@ -2398,12 +2400,12 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
 
                 GCHandle _heightmaphandler = GCHandle.Alloc(_heightmap, GCHandleType.Pinned);
 
-                d.GeomUbitTerrainDataBuild(HeightmapData, _heightmaphandler.AddrOfPinnedObject(), 0, 1.0f,
+                d.GeomubTerrainDataBuild(HeightmapData, _heightmaphandler.AddrOfPinnedObject(), 0, 1.0f,
                                                  (int)heightmapWidthSamples, (int)heightmapHeightSamples,
                                                  thickness, wrap);
 
-//                d.GeomUbitTerrainDataSetBounds(HeightmapData, hfmin - 1, hfmax + 1);
-                GroundGeom = d.CreateUbitTerrain(GroundSpace, HeightmapData, 1);
+//                d.GeomubTerrainDataSetBounds(HeightmapData, hfmin - 1, hfmax + 1);
+                GroundGeom = d.CreateubTerrain(GroundSpace, HeightmapData, 1);
                 if (GroundGeom != IntPtr.Zero)
                 {
                     d.GeomSetCategoryBits(GroundGeom, (uint)(CollisionCategories.Land));
@@ -2446,13 +2448,18 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
 
         public override void Dispose()
         {
-            if (m_meshWorker != null)
-                m_meshWorker.Stop();
-
+            if (m_rayCastManager == null) // if this is null we already did dispose
+                return;
             lock (OdeLock)
             {
-                m_rayCastManager.Dispose();
-                m_rayCastManager = null;
+                if (m_meshWorker != null)
+                m_meshWorker.Stop();
+
+                if (m_rayCastManager != null)
+                {
+                    m_rayCastManager.Dispose();
+                    m_rayCastManager = null;
+                }
 
                 lock (_prims)
                 {
@@ -2476,7 +2483,7 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
                 foreach (OdeCharacter ch in chtorem)
                     ch.DoAChange(changes.Remove, null);
 
-                               
+
                 foreach (IntPtr GroundGeom in RegionTerrain.Values)
                 {
                     if (GroundGeom != IntPtr.Zero)

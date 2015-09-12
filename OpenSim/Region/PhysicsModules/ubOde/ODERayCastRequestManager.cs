@@ -36,7 +36,7 @@ using OdeAPI;
 using log4net;
 using OpenMetaverse;
 
-namespace OpenSim.Region.PhysicsModule.UbitOde
+namespace OpenSim.Region.PhysicsModule.ubOde
 {
     /// <summary>
     /// Processes raycast requests as ODE is in a state to be able to do them.

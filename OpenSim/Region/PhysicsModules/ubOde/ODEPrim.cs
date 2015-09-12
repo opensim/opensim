@@ -25,11 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Revision 2011/12/13 by Ubit Umarov
- *
- * 
- */
-
 /*
  * Revised August 26 2009 by Kitto Flora. ODEDynamics.cs replaces
  * ODEVehicleSettings.cs. It and ODEPrim.cs are re-organised:
@@ -57,7 +52,7 @@ using OdeAPI;
 using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
 
-namespace OpenSim.Region.PhysicsModule.UbitOde
+namespace OpenSim.Region.PhysicsModule.ubOde
 {
     public class OdePrim : PhysicsActor
     {

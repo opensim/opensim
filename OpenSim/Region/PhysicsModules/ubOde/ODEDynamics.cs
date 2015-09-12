@@ -50,7 +50,7 @@ using OdeAPI;
 using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
 
-namespace OpenSim.Region.PhysicsModule.UbitOde
+namespace OpenSim.Region.PhysicsModule.ubOde
 {
     public class ODEDynamics
     {
@@ -688,7 +688,7 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
         private const float halfpi = 0.5f * (float)Math.PI;
         private const float twopi = 2.0f * pi;
 
-        public static Vector3 ubitRot2Euler(Quaternion rot)
+        public static Vector3 ubRot2Euler(Quaternion rot)
         {
             // returns roll in X
             //         pitch in Y

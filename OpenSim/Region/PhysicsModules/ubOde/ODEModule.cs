@@ -8,23 +8,23 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
 
-namespace OpenSim.Region.PhysicsModule.UbitOde
+namespace OpenSim.Region.PhysicsModule.ubOde
 {
-	[Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "UBITODEPhysicsScene")]
-    class UbitOdeModule : INonSharedRegionModule
+	[Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ubODEPhysicsScene")]
+    class ubOdeModule : INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Enabled = false;
 		private IConfigSource m_config;
 		private ODEScene  m_scene;
-        private bool OdeUbitLib;
+        private bool ubOdeLib;
 
        #region INonSharedRegionModule
 
         public string Name
         {
-            get { return "UbitODE"; }
+            get { return "ubODE"; }
         }
 
         public Type ReplaceableInterface
@@ -65,15 +65,15 @@ namespace OpenSim.Region.PhysicsModule.UbitOde
             string ode_config = d.GetConfiguration();
             if (ode_config != null && ode_config != "")
             {
-                m_log.InfoFormat("[UbitODE] ode library configuration: {0}", ode_config);
-
-                if (ode_config.Contains("ODE_Ubit"))
+                m_log.InfoFormat("[ubODE] ode library configuration: {0}", ode_config);
+                // ubODE still not avaiable
+                if (ode_config.Contains("ubODE"))
                 {
-                    OdeUbitLib = true;
+                    ubOdeLib = true;
                 }
             }
 
-		m_scene = new ODEScene(scene, m_config, Name, OdeUbitLib);
+		m_scene = new ODEScene(scene, m_config, Name, ubOdeLib);
         }
 
         public void RemoveRegion(Scene scene)

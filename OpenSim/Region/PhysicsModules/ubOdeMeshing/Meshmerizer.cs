@@ -49,9 +49,9 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 using Mono.Addins;
 
-namespace OpenSim.Region.PhysicsModule.UbitMeshing
+namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "UbitMeshmerizer")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ubODEMeshmerizer")]
     public class UbitMeshmerizer : IMesher, INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -82,7 +82,7 @@ namespace OpenSim.Region.PhysicsModule.UbitMeshing
        #region INonSharedRegionModule
         public string Name
         {
-            get { return "UbitMeshmerizer"; }
+            get { return "ubODEMeshmerizer"; }
         }
 
         public Type ReplaceableInterface
