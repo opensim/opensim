@@ -134,7 +134,7 @@ namespace OpenSim.Data.Null
             if (m_useStaticInstance && Instance != this)
                 return Instance.Get(posX, posY, scopeID);
 
-            List<RegionData> ret = new List<RegionData>();
+            RegionData ret = null;
 
             lock (m_regionData)
             {
@@ -142,14 +142,14 @@ namespace OpenSim.Data.Null
                 {
                     if (posX >= r.posX && posX < r.posX + r.sizeX
                         && posY >= r.posY && posY < r.posY + r.sizeY)
-                        ret.Add(r);
+                    {
+                        ret = r;
+                        break;
+                    }
                 }
             }
 
-            if (ret.Count > 0)
-                return ret[0];
-
-            return null;
+            return ret;
         }
 
         public RegionData Get(UUID regionID, UUID scopeID)
