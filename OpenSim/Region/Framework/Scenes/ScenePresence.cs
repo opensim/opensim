@@ -4045,18 +4045,18 @@ namespace OpenSim.Region.Framework.Scenes
 
         }
 
-/* useless. Either use MakeChild or delete the presence
-        public void Reset()
-        {
-//            m_log.DebugFormat("[SCENE PRESENCE]: Resetting {0} in {1}", Name, Scene.RegionInfo.RegionName);
+        /* useless. Either use MakeChild or delete the presence
+                public void Reset()
+                {
+        //            m_log.DebugFormat("[SCENE PRESENCE]: Resetting {0} in {1}", Name, Scene.RegionInfo.RegionName);
 
-            // Put the child agent back at the center
-            AbsolutePosition 
-                = new Vector3(((float)m_scene.RegionInfo.RegionSizeX * 0.5f), ((float)m_scene.RegionInfo.RegionSizeY * 0.5f), 70);
+                    // Put the child agent back at the center
+                    AbsolutePosition 
+                        = new Vector3(((float)m_scene.RegionInfo.RegionSizeX * 0.5f), ((float)m_scene.RegionInfo.RegionSizeY * 0.5f), 70);
 
-            Animator.ResetAnimations();
-        }
-*/
+                    Animator.ResetAnimations();
+                }
+        */
         /// <summary>
         /// Computes which child agents to close when the scene presence moves to another region.
         /// Removes those regions from m_knownRegions.
@@ -4064,13 +4064,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="newRegionX">The new region's x on the map</param>
         /// <param name="newRegionY">The new region's y on the map</param>
         /// <returns></returns>
-        public void CloseChildAgents(ulong newRegionHandle, int newRegionSizeX, int newRegionSizeY)
+        public void CloseChildAgents(bool logout, ulong newRegionHandle, int newRegionSizeX, int newRegionSizeY)
         {
             uint newRegionX, newRegionY;
             List<ulong> byebyeRegions = new List<ulong>();
             List<ulong> knownRegions = KnownRegionHandles;
             m_log.DebugFormat(
-                "[SCENE PRESENCE]: Closing child agents. Checking {0} regions in {1}", 
+                "[SCENE PRESENCE]: Closing child agents. Checking {0} regions in {1}",
                 knownRegions.Count, Scene.RegionInfo.RegionName);
             //DumpKnownRegions();
 
@@ -4084,29 +4084,34 @@ namespace OpenSim.Region.Framework.Scenes
                 // Don't close the agent on this region yet
                 if (handle != Scene.RegionInfo.RegionHandle)
                 {
-                    Util.RegionHandleToRegionLoc(handle, out x, out y);
-                    if (m_knownChildRegionsSizeInfo.TryGetValue(handle, out regInfo))
-                    {
-
-                        //                    m_log.Debug("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs((int)(x - newRegionX)));
-                        //                    m_log.Debug("---> y: " + y + "; newy:" + newRegionY + "; Abs:" + (int)Math.Abs((int)(y - newRegionY)));
-                        if (Util.IsOutsideView(DrawDistance, x, newRegionX, y, newRegionY,
-                            regInfo.sizeX, regInfo.sizeY, newRegionSizeX, newRegionSizeY))
-                        {
-                            byebyeRegions.Add(handle);
-                        }
-                    }
+                    if (logout)
+                        byebyeRegions.Add(handle);
                     else
                     {
-                        if (Util.IsOutsideView(DrawDistance, x, newRegionX, y, newRegionY,
-                            (int)Constants.RegionSize, (int)Constants.RegionSize, newRegionSizeX, newRegionSizeY))
+                        Util.RegionHandleToRegionLoc(handle, out x, out y);
+                        if (m_knownChildRegionsSizeInfo.TryGetValue(handle, out regInfo))
                         {
-                            byebyeRegions.Add(handle);
+
+                            //                    m_log.Debug("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs((int)(x - newRegionX)));
+                            //                    m_log.Debug("---> y: " + y + "; newy:" + newRegionY + "; Abs:" + (int)Math.Abs((int)(y - newRegionY)));
+                            if (Util.IsOutsideView(DrawDistance, x, newRegionX, y, newRegionY,
+                                regInfo.sizeX, regInfo.sizeY, newRegionSizeX, newRegionSizeY))
+                            {
+                                byebyeRegions.Add(handle);
+                            }
+                        }
+                        else
+                        {
+                            if (Util.IsOutsideView(DrawDistance, x, newRegionX, y, newRegionY,
+                                (int)Constants.RegionSize, (int)Constants.RegionSize, newRegionSizeX, newRegionSizeY))
+                            {
+                                byebyeRegions.Add(handle);
+                            }
                         }
                     }
                 }
             }
-            
+
             if (byebyeRegions.Count > 0)
             {
                 m_log.Debug("[SCENE PRESENCE]: Closing " + byebyeRegions.Count + " child agents");
@@ -4115,9 +4120,9 @@ namespace OpenSim.Region.Framework.Scenes
                 string auth = string.Empty;
                 if (acd != null)
                     auth = acd.SessionID.ToString();
-                m_scene.SceneGridService.SendCloseChildAgentConnections(ControllingClient.AgentId, auth, byebyeRegions); 
+                m_scene.SceneGridService.SendCloseChildAgentConnections(ControllingClient.AgentId, auth, byebyeRegions);
             }
-            
+
             foreach (ulong handle in byebyeRegions)
             {
                 RemoveNeighbourRegion(handle);
