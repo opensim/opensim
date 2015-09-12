@@ -93,7 +93,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private bool m_Enabled;
 
         private string m_fetchInventoryDescendents2Url;
-        private string m_webFetchInventoryDescendentsUrl;
+//        private string m_webFetchInventoryDescendentsUrl;
 
         private static FetchInvDescHandler m_webFetchHandler;
 
@@ -121,7 +121,7 @@ namespace OpenSim.Region.ClientStack.Linden
 //            m_webFetchInventoryDescendentsUrl = config.GetString("Cap_WebFetchInventoryDescendents", string.Empty);
 
 //            if (m_fetchInventoryDescendents2Url != string.Empty || m_webFetchInventoryDescendentsUrl != string.Empty)
-            if (m_fetchInventoryDescendents2Url != string.Empty || m_webFetchInventoryDescendentsUrl != string.Empty)
+            if (m_fetchInventoryDescendents2Url != string.Empty)
             {
                 m_Enabled = true;
             }
