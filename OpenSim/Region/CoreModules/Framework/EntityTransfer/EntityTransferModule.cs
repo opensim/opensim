@@ -1093,16 +1093,19 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Well, this is it. The agent is over there.
 //            KillEntity(sp.Scene, sp.LocalId);
 
-            sp.HasMovedAway(!OutSideViewRange);
+            sp.HasMovedAway(!(OutSideViewRange || logout));
+            
+            // call HG hook
+            AgentHasMovedAway(sp, logout);
 
-            sp.CloseChildAgents(destinationHandle,finalDestination.RegionSizeX,finalDestination.RegionSizeY);
+            sp.CloseChildAgents(logout, destinationHandle, finalDestination.RegionSizeX, finalDestination.RegionSizeY);
 
             // Now let's make it officially a child agent
             sp.MakeChildAgent(destinationHandle);
 
             // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
 
-            if (OutSideViewRange)
+            if (NeedsClosing(reg, OutSideViewRange))
             {
                 if (!sp.Scene.IncomingPreCloseClient(sp))
                     return;
@@ -1227,7 +1230,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
 
-            sp.HasMovedAway(!OutSideViewRange);
+            sp.HasMovedAway(!(OutSideViewRange || logout));
 
             // Need to signal neighbours whether child agents may need closing irrespective of whether this
             // one needed closing.  We also need to close child agents as quickly as possible to avoid complicated
@@ -1235,7 +1238,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // to a neighbour A2 then off to a non-neighbour C).  Closing child agents any later requires complex
             // distributed checks to avoid problems in rapid reteleporting scenarios and where child agents are
             // abandoned without proper close by viewer but then re-used by an incoming connection.
-            sp.CloseChildAgents(destinationHandle, finalDestination.RegionSizeX, finalDestination.RegionSizeY);
+            sp.CloseChildAgents(logout, destinationHandle, finalDestination.RegionSizeX, finalDestination.RegionSizeY);
 
 //            AgentHasMovedAway(sp, true);
             // Well, this is it. The agent is over there.
@@ -1244,8 +1247,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Now let's make it officially a child agent
             sp.MakeChildAgent(destinationHandle);
 
+            //HG hook
+            AgentHasMovedAway(sp, logout);
+
             // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
-            if (OutSideViewRange)
+            // go by HG hook
+            if (NeedsClosing(reg, OutSideViewRange))
             {
                 if (!sp.Scene.IncomingPreCloseClient(sp))
                     return;
@@ -1353,10 +1360,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// </summary>
         /// <param name='sp'></param>
         /// <param name='logout'></param>
+        /// 
+        /// now just a HG hook
         protected virtual void AgentHasMovedAway(ScenePresence sp, bool logout)
         {
-            if (sp.Scene.AttachmentsModule != null)
-                sp.Scene.AttachmentsModule.DeleteAttachmentsFromScene(sp, logout);
+//            if (sp.Scene.AttachmentsModule != null)
+//                sp.Scene.AttachmentsModule.DeleteAttachmentsFromScene(sp, logout);
         }
 
         protected void KillEntity(Scene scene, uint localID)
@@ -1364,6 +1373,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             scene.SendKillObject(new List<uint> { localID });
         }
 
+        // HG hook
         protected virtual GridRegion GetFinalDestination(GridRegion region, UUID agentID, string agentHomeURI, out string message)
         {
             message = null;
@@ -1391,15 +1401,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return Util.IsOutsideView(drawdist, oldRegionX, newRegionX, oldRegionY, newRegionY,
                     oldsizeX, oldsizeY, newsizeX, newsizeY);
         }
-/*
-        protected virtual bool NeedsClosing(float drawdist, uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY,
-            uint oldsizeX, uint oldsizeY, uint newsizeX, uint newsizeY, GridRegion reg)
-        {
 
-            return Util.IsOutsideView(drawdist, oldRegionX, newRegionX, oldRegionY, newRegionY,
-                oldsizeX, oldsizeY, newsizeX, newsizeY);
+        // HG Hook
+        protected virtual bool NeedsClosing(GridRegion reg, bool OutViewRange)
+           
+        {
+            return OutViewRange;
         }
-*/
+
         #endregion
 
         #region Landmark Teleport
@@ -1877,7 +1886,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // but not sure yet what the side effects would be.
             m_entityTransferStateMachine.ResetFromTransit(agent.UUID);
 
-            agent.CloseChildAgents(neighbourRegion.RegionHandle, neighbourRegion.RegionSizeX, neighbourRegion.RegionSizeY);
+            agent.CloseChildAgents(false, neighbourRegion.RegionHandle, neighbourRegion.RegionSizeX, neighbourRegion.RegionSizeY);
 
 
             // the user may change their profile information in other region,

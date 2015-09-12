@@ -238,19 +238,19 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             return region;
         }
-/* NEEDFIX
-        protected override bool NeedsClosing(float drawdist, uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY, GridRegion reg)
+
+        protected override bool NeedsClosing(GridRegion reg, bool OutViewRange)
         {
-            if (base.NeedsClosing(drawdist, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
+            if (OutViewRange)
                 return true;
 
             int flags = Scene.GridService.GetRegionFlags(Scene.RegionInfo.ScopeID, reg.RegionID);
-            if (flags == -1  || (flags & (int)OpenSim.Framework.RegionFlags.Hyperlink) != 0)
+            if (flags == -1 || (flags & (int)OpenSim.Framework.RegionFlags.Hyperlink) != 0)
                 return true;
 
             return false;
         }
-*/
+
         protected override void AgentHasMovedAway(ScenePresence sp, bool logout)
         {
             base.AgentHasMovedAway(sp, logout);
