@@ -472,17 +472,6 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             m_transactions.RemoveXferUploader(m_transactionID);
         }
 
-        private int checkLibrary(UUID itemID)
-        {
-            ILibraryService m_library = m_Scene.RequestModuleInterface<ILibraryService>();
-            InventoryItemBase item = null;
-            if (m_library != null)
-                item = m_library.LibraryRootFolder.FindAsset(itemID);
-
-            if (item == null)
-                return 0;
-            return (int)item.CurrentPermissions;
-        }
 
         private void ValidateAssets()
         {
@@ -538,9 +527,6 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                             else
                             {
                                 int perms = m_Scene.InventoryService.GetAssetPermissions(ourClient.AgentId, tx);
-                                if (perms == 0)
-                                    perms = checkLibrary(tx);
-
                                 int full = (int)(PermissionMask.Modify | PermissionMask.Transfer | PermissionMask.Copy);
 
                                 if ((perms & full) != full)
