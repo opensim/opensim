@@ -135,7 +135,9 @@
 
     meshing = Meshmerizer
     ;meshing = ZeroMesher
-
+	; select ubODEMeshmerizer only with ubOde physics engine
+    ; meshing = ubODEMeshmerizer
+	
     ; Choose one of the physics engines below
     ; OpenDynamicsEngine is by some distance the most developed physics engine
     ; basicphysics effectively does not model physics at all, making all objects phantom
@@ -144,7 +146,8 @@
     ;physics = basicphysics
     ;physics = POS
     ;physics = modified_BulletX
-
+	; alternative OpenDynamicsEngine engine. ubODEMeshmerizer meshing above MUST be selected also
+	; physics = ubODE
     ; ##
     ; ## PERMISSIONS
     ; ##
@@ -501,7 +504,7 @@
     ; float AVvolume = (float) (Math.PI*Math.Pow(CAPSULE_RADIUS, 2)*CAPSULE_LENGTH);
     ; av_density * AVvolume;
     av_density = 80
-
+	
     ; use this value to cut 52% of the height the sim gives us
     av_height_fudge_factor = 0.52
 

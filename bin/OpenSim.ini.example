@@ -244,7 +244,9 @@
     ;; Default is Meshmerizer
     ; meshing = Meshmerizer
     ; meshing = ZeroMesher
-
+	;; select ubODEMeshmerizer only with ubOde physics engine
+    ; meshing = ubODEMeshmerizer
+	
     ;; Choose one of the physics engines below
     ;# {physics} {} {Select physics engine} {OpenDynamicsEngine BulletSim basicphysics POS} BulletSim
     ;; BulletSim is the default physics engine.  It provides the best performance and most functionality.
@@ -257,6 +259,9 @@
     ; physics = BulletSim
     ; physics = basicphysics
     ; physics = POS
+	;; alternative OpenDynamicsEngine engine. ubODEMeshmerizer meshing above MUST be selected also
+	;; see also ODEPhysicsSettings section
+	; physics = ubODE
 
     ;# {DefaultScriptEngine} {} {Default script engine} {XEngine} XEngine
     ;; Default script engine to use. Currently, we only have XEngine
@@ -691,7 +696,6 @@
     ;; convention in the client, set this to true.
     ;; (see NINJA Physics, http://opensimulator.org/wiki/NINJA_Physics)
     ; use_NINJA_physics_joints = false
-
 
 [RemoteAdmin]
     ;; This is the remote admin module, which uses XMLRPC requests to
