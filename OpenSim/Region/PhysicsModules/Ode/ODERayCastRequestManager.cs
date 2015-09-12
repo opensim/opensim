@@ -225,7 +225,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
         /// <param name="req"></param>
         private void RayCast(ODERayRequest req)
         {
-            // limit ray lenght or collisions will take all avaiable stack space
+            // limit ray length or collisions will take all avaiable stack space
             float len = req.length;
             if (len > 250f)
                 len = 250f;
