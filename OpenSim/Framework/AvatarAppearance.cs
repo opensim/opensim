@@ -458,8 +458,11 @@ namespace OpenSim.Framework
 //          m_log.WarnFormat("[AVATARAPPEARANCE] set wearable {0} --> {1}:{2}",wearableId,wearable.ItemID,wearable.AssetID);
 // DEBUG OFF
             m_wearables[wearableId].Clear();
-            for (int i = 0; i < wearable.Count; i++)
-                m_wearables[wearableId].Add(wearable[i].ItemID, wearable[i].AssetID);
+                int count = wearable.Count;
+                if (count > AvatarWearable.MAX_WEARABLES)
+                    count = AvatarWearable.MAX_WEARABLES;
+                for (int i = 0; i < count; i++)
+                    m_wearables[wearableId].Add(wearable[i].ItemID, wearable[i].AssetID);
         }
 
 // DEBUG ON
