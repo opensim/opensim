@@ -260,7 +260,6 @@
     ; physics = basicphysics
     ; physics = POS
 	;; alternative OpenDynamicsEngine engine. ubODEMeshmerizer meshing above MUST be selected also
-	;; see also ODEPhysicsSettings section
 	; physics = ubODE
 
     ;# {DefaultScriptEngine} {} {Default script engine} {XEngine} XEngine
