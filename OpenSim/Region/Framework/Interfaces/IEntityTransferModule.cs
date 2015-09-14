@@ -96,8 +96,8 @@ namespace OpenSim.Region.Framework.Interfaces
         GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos, out string version, out Vector3 newpos);
         GridRegion GetObjectDestination(SceneObjectGroup grp, Vector3 targetPosition, out Vector3 newpos);
         bool checkAgentAccessToRegion(ScenePresence agent, GridRegion destiny, Vector3 position, out string version, out string reason);
-        void Cross(SceneObjectGroup sog, Vector3 position, bool silent);
-        bool CrossPrimGroupIntoNewRegion(GridRegion destination, Vector3 newPosition, SceneObjectGroup grp, bool silent);
+//        void Cross(SceneObjectGroup sog, Vector3 position, bool silent);
+        bool CrossPrimGroupIntoNewRegion(GridRegion destination, Vector3 newPosition, SceneObjectGroup grp, bool silent, bool removeScripts);
 
         ScenePresence CrossAgentToNewRegionAsync(ScenePresence agent, Vector3 pos, GridRegion neighbourRegion, bool isFlying, string version);
 

@@ -5264,7 +5264,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private void UnRegisterSeatControls(UUID obj)
+        public void UnRegisterSeatControls(UUID obj)
         {
             List<UUID> takers = new List<UUID>();
 

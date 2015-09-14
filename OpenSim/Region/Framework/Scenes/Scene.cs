@@ -2177,7 +2177,7 @@ namespace OpenSim.Region.Framework.Scenes
             //// stored in the GridService, because that's what the world map module uses
             //// to send the map image UUIDs (of other regions) to the viewer...
             if (m_generateMaptiles)
-            RegenerateMaptile();
+                RegenerateMaptile();
 
             GridRegion region = new GridRegion(RegionInfo);
             string error = GridService.RegisterRegion(RegionInfo.ScopeID, region);
@@ -2709,6 +2709,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_sceneGraph.updateScenePartGroup(part, grp);
         }
+
+/* not in use, outdate by async method
         /// <summary>
         /// Move the given scene object into a new region depending on which region its absolute position has moved
         /// into.
@@ -2757,6 +2759,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (EntityTransferModule != null)
                 EntityTransferModule.Cross(grp, attemptedPosition, silent);
         }
+*/
 
         // Simple test to see if a position is in the current region.
         // This test is mostly used to see if a region crossing is necessary.

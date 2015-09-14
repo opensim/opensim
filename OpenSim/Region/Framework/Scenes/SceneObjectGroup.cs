@@ -672,7 +672,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (sog.m_linkedAvatars.Count == 0)
             {
-                entityTransfer.CrossPrimGroupIntoNewRegion(destination, newpos, sog, true);
+                entityTransfer.CrossPrimGroupIntoNewRegion(destination, newpos, sog, true, true);
                 return sog;
             }
 
@@ -716,7 +716,7 @@ namespace OpenSim.Region.Framework.Scenes
                 av.ParentID = 0;
             }
 
-            if (entityTransfer.CrossPrimGroupIntoNewRegion(destination, newpos, sog, true))
+            if (entityTransfer.CrossPrimGroupIntoNewRegion(destination, newpos, sog, true, false))
             {
                 foreach (avtocrossInfo avinfo in avsToCross)
                 {
@@ -730,14 +730,24 @@ namespace OpenSim.Region.Framework.Scenes
 //                        CrossAgentToNewRegionDelegate d = entityTransfer.CrossAgentToNewRegionAsync;
 //                        d.BeginInvoke(av, val, destination, av.Flying, version, CrossAgentToNewRegionCompleted, d);
                         entityTransfer.CrossAgentToNewRegionAsync(av, newpos, destination, av.Flying, version);
-                        if(av.IsChildAgent)
+                        if (av.IsChildAgent)
                         {
+                            // avatar crossed do some extra cleanup
                             if (av.ParentUUID != UUID.Zero)
                             {
                                 av.ClearControls();
                                 av.ParentPart = null;
                             }
                         }
+                        else
+                        {
+                            // avatar cross failed we need do dedicated standUp
+                            // part of it was done at CrossAgentToNewRegionAsync
+                            // so for now just remove the sog controls
+                            // this may need extra care 
+                            av.UnRegisterSeatControls(sog.UUID);
+                        }
+
                         av.ParentUUID = UUID.Zero;
                         // In any case
                         av.IsInTransit = false;
@@ -748,6 +758,7 @@ namespace OpenSim.Region.Framework.Scenes
                         m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar already in transit {0} to {1}", av.Name, val);
                 }
                 avsToCross.Clear();
+                sog.RemoveScriptInstances(true);
                 return sog;
             }
             else // cross failed, put avas back ??
@@ -805,6 +816,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+/* outdated
         private void CrossAgentToNewRegionCompleted(ScenePresence agent)
         {
             //// If the cross was successful, this agent is a child agent
@@ -829,7 +841,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_log.DebugFormat("[SCENE OBJECT]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
         }
-
+*/
         public override Vector3 Velocity
         {
             get { return RootPart.Velocity; }

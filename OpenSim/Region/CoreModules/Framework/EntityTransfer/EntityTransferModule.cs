@@ -2607,7 +2607,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return neighbourRegion;
         }
 
-
+/*  not in use.  -> CrossPrimGroupIntoNewRegion
         /// <summary>
         /// Move the given scene object into a new region depending on which region its absolute position has moved
         /// into.
@@ -2672,7 +2672,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 grp.ScheduleGroupForFullUpdate();
             }
         }
-
+*/
         /// <summary>
         /// Move the given scene object into a new region
         /// </summary>
@@ -2682,7 +2682,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// true if the crossing itself was successful, false on failure
         /// FIMXE: we still return true if the crossing object was not successfully deleted from the originating region
         /// </returns>
-        public bool CrossPrimGroupIntoNewRegion(GridRegion destination, Vector3 newPosition, SceneObjectGroup grp, bool silent)
+        public bool CrossPrimGroupIntoNewRegion(GridRegion destination, Vector3 newPosition, SceneObjectGroup grp, bool silent, bool removeScripts)
         {
             //m_log.Debug("  >>> CrossPrimGroupIntoNewRegion <<<");
 
@@ -2714,7 +2714,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     // We remove the object here
                     try
                     {
-                        grp.Scene.DeleteSceneObject(grp, silent);
+                        grp.Scene.DeleteSceneObject(grp, silent, removeScripts);
                     }
                     catch (Exception e)
                     {
@@ -2764,7 +2764,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         "[ENTITY TRANSFER MODULE]: Sending attachment {0} to region {1}",
                         clone.UUID, destination.RegionName);
 
-                    CrossPrimGroupIntoNewRegion(destination, Vector3.Zero, clone, silent);
+                    CrossPrimGroupIntoNewRegion(destination, Vector3.Zero, clone, silent,true);
                 }
             }
 
