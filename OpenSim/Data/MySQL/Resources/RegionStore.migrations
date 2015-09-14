@@ -947,3 +947,18 @@ BEGIN;
 ALTER TABLE land CHANGE COLUMN LandFlags LandFlags int unsigned default null;
 
 COMMIT;
+
+:VERSION 51         #---- avination fields
+
+BEGIN;
+
+ALTER TABLE `prims` ADD COLUMN `PassCollisions` tinyint(4) NOT NULL default '0';
+ALTER TABLE `prims` ADD COLUMN `Vehicle` TEXT default NULL;
+ALTER TABLE `regionsettings` ADD COLUMN `block_search` tinyint(4) NOT NULL default '0';
+ALTER TABLE `regionsettings` ADD COLUMN `casino` tinyint(4) NOT NULL default '0';
+ALTER TABLE `land` ADD COLUMN `SeeAVs` tinyint(4) NOT NULL default '1';
+ALTER TABLE `land` ADD COLUMN `AnyAVSounds` tinyint(4) NOT NULL default '1';
+ALTER TABLE `land` ADD COLUMN `GroupAVSounds` tinyint(4) NOT NULL default '1';
+
+COMMIT;
+
