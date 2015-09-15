@@ -392,13 +392,13 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 string.Format("MapItemRequestThread ({0})", m_scene.RegionInfo.RegionName),
                 ThreadPriority.BelowNormal,
                 true,
-                true);
+                false);
             WorkManager.StartThread(
                 MapBlockSendThread,
                 string.Format("MapBlockSendThread ({0})", m_scene.RegionInfo.RegionName),
                 ThreadPriority.BelowNormal,
                 true,
-                true);
+                false);
         }
 
         /// <summary>
