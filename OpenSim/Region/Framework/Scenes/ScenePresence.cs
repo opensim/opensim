@@ -1786,7 +1786,7 @@ namespace OpenSim.Region.Framework.Scenes
             try
             {
                 // Make sure it's not a login agent. We don't want to wait for updates during login
-                if (!isNPC && (m_teleportFlags & TeleportFlags.ViaLogin) == 0)
+                if (!isNPC && !IsRealLogin(m_teleportFlags))
                 {
 
                     // Let's wait until UpdateAgent (called by departing region) is done
@@ -1956,7 +1956,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // attachments
 
-                    if (isNPC || (TeleportFlags & TeleportFlags.ViaLogin) != 0)
+                    if (isNPC || IsRealLogin(m_teleportFlags))
                     {
                         if (Scene.AttachmentsModule != null)
                             // Util.FireAndForget(
