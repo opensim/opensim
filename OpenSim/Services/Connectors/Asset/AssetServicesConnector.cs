@@ -139,6 +139,9 @@ namespace OpenSim.Services.Connectors
 
         private string MapServer(string id)
         {
+            if (m_UriMap.Count == 0)
+                return m_ServerURI;
+
             UriBuilder serverUri = new UriBuilder(m_ServerURI);
 
             string prefix = id.Substring(0, 2).ToLower();
@@ -164,7 +167,9 @@ namespace OpenSim.Services.Connectors
         protected void retryCheck(object source, ElapsedEventArgs e)
         {
             m_retryCounter++;
-            if (m_retryCounter > 60) m_retryCounter -= 60;
+            if (m_retryCounter > 60)
+                m_retryCounter -= 60;
+
             List<int> keys = new List<int>();
             foreach (int a in m_retryQueue.Keys)
             {
@@ -282,19 +287,19 @@ namespace OpenSim.Services.Connectors
 
                 rc.RequestMethod = "GET";
 
-                Stream s = rc.Request(m_Auth);
-
-                if (s == null)
-                    return null;
-
-                if (s.Length > 0)
+                using (Stream s = rc.Request(m_Auth))
                 {
-                    byte[] ret = new byte[s.Length];
-                    s.Read(ret, 0, (int)s.Length);
+                    if (s == null)
+                        return null;
 
-                    return ret;
+                    if (s.Length > 0)
+                    {
+                        byte[] ret = new byte[s.Length];
+                        s.Read(ret, 0, (int)s.Length);
+
+                        return ret;
+                    }
                 }
-
                 return null;
             }
         }
