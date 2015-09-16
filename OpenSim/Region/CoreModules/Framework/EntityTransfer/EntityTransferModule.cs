@@ -1085,22 +1085,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
 
+            sp.CloseChildAgents(logout, destinationHandle, finalDestination.RegionSizeX, finalDestination.RegionSizeY);
 
-            // May need to logout or other cleanup
-//            AgentHasMovedAway(sp, logout);
-//            AgentHasMovedAway(sp, true); // until logout use is checked
-
-            // Well, this is it. The agent is over there.
-//            KillEntity(sp.Scene, sp.LocalId);
-
-            sp.HasMovedAway(!(OutSideViewRange || logout));
-            
             // call HG hook
             AgentHasMovedAway(sp, logout);
 
-            sp.CloseChildAgents(logout, destinationHandle, finalDestination.RegionSizeX, finalDestination.RegionSizeY);
-
-            // Now let's make it officially a child agent
+            sp.HasMovedAway(!(OutSideViewRange || logout));
+            
+             // Now let's make it officially a child agent
             sp.MakeChildAgent(destinationHandle);
 
             // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
@@ -1230,8 +1222,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
 
-            sp.HasMovedAway(!(OutSideViewRange || logout));
-
             // Need to signal neighbours whether child agents may need closing irrespective of whether this
             // one needed closing.  We also need to close child agents as quickly as possible to avoid complicated
             // race conditions with rapid agent releporting (e.g. from A1 to a non-neighbour B, back
@@ -1240,15 +1230,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // abandoned without proper close by viewer but then re-used by an incoming connection.
             sp.CloseChildAgents(logout, destinationHandle, finalDestination.RegionSizeX, finalDestination.RegionSizeY);
 
-//            AgentHasMovedAway(sp, true);
-            // Well, this is it. The agent is over there.
-//            KillEntity(sp.Scene, sp.LocalId);
+            sp.HasMovedAway(!(OutSideViewRange || logout));
+
+            //HG hook
+            AgentHasMovedAway(sp, logout);
 
             // Now let's make it officially a child agent
             sp.MakeChildAgent(destinationHandle);
 
-            //HG hook
-            AgentHasMovedAway(sp, logout);
+
 
             // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
             // go by HG hook
