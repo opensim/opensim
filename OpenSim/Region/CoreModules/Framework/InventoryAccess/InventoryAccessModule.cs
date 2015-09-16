@@ -399,13 +399,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             DeRezAction action, UUID folderID, List<SceneObjectGroup> objlist, IClientAPI remoteClient,
             bool asAttachment)
         {
-            CoalescedSceneObjects coa = new CoalescedSceneObjects(UUID.Zero);                
+            CoalescedSceneObjects coa = new CoalescedSceneObjects(UUID.Zero);
             Dictionary<UUID, Vector3> originalPositions = new Dictionary<UUID, Vector3>();
+            Dictionary<UUID, Quaternion> originalRotations = new Dictionary<UUID, Quaternion>();
             // this possible is not needed if keyframes are saved
             Dictionary<UUID, KeyframeMotion> originalKeyframes = new Dictionary<UUID, KeyframeMotion>();
-
-            Dictionary<SceneObjectGroup, KeyframeMotion> group2Keyframe = new Dictionary<SceneObjectGroup, KeyframeMotion>();
-
+ 
             foreach (SceneObjectGroup objectGroup in objlist)
             {
                 if (objectGroup.RootPart.KeyframeMotion != null)
@@ -418,18 +417,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 originalKeyframes[objectGroup.UUID] = objectGroup.RootPart.KeyframeMotion;
                 objectGroup.RootPart.KeyframeMotion = null;
 
-                Vector3 inventoryStoredPosition = new Vector3
-                            (((objectGroup.AbsolutePosition.X > (int)Constants.RegionSize)
-                                  ? 250
-                                  : objectGroup.AbsolutePosition.X)
-                             ,
-                             (objectGroup.AbsolutePosition.Y > (int)Constants.RegionSize)
-                                 ? 250
-                                 : objectGroup.AbsolutePosition.Y,
-                             objectGroup.AbsolutePosition.Z);
-
+                Vector3 inventoryStoredPosition = objectGroup.AbsolutePosition;
+                originalPositions[objectGroup.UUID] = inventoryStoredPosition;
                 Quaternion inventoryStoredRotation = objectGroup.GroupRotation;
-                originalPositions[objectGroup.UUID] = objectGroup.AbsolutePosition;
+                originalRotations[objectGroup.UUID] = inventoryStoredRotation;
 
                 // Restore attachment data after trip through the sim
                 if (objectGroup.RootPart.AttachPoint > 0)
@@ -481,6 +472,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             foreach (SceneObjectGroup objectGroup in objlist)
             {
                 objectGroup.AbsolutePosition = originalPositions[objectGroup.UUID];
+                objectGroup.RootPart.RotationOffset = originalRotations[objectGroup.UUID];
                 objectGroup.RootPart.KeyframeMotion = originalKeyframes[objectGroup.UUID];
                 if (objectGroup.RootPart.KeyframeMotion != null)
                     objectGroup.RootPart.KeyframeMotion.Resume();
@@ -561,13 +553,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         notifyUser.ControllingClient.SendInventoryItemCreateUpdate(item, 0);
                     }
                 }
-            }
-
-            // Restore KeyframeMotion
-            foreach (SceneObjectGroup objectGroup in group2Keyframe.Keys)
-            {
-                objectGroup.RootPart.KeyframeMotion = group2Keyframe[objectGroup];
-                objectGroup.RootPart.KeyframeMotion.Start();
             }
 
             // This is a hook to do some per-asset post-processing for subclasses that need that
@@ -993,7 +978,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 // one full update during the attachment
                 // process causes some clients to fail to display the
                 // attachment properly.
-                m_Scene.AddNewSceneObject(group, !attachment, false);
+                m_Scene.AddNewSceneObject(group, true, false);
 
                 // if attachment we set it's asset id so object updates
                 // can reflect that, if not, we set it's position in world.
