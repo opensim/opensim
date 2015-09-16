@@ -44,4 +44,11 @@ ALTER TABLE UserAccounts ADD COLUMN UserTitle varchar(64) NOT NULL DEFAULT '';
 
 COMMIT;
 
+:VERSION 5		# -------------------------
+
+BEGIN;
+
+ALTER TABLE `UserAccounts` ADD `active` INT NOT NULL DEFAULT '1';
+
+COMMIT;
 
