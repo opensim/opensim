@@ -334,10 +334,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         protected static OSDMapLayer GetOSDMapLayerResponse()
         {
             OSDMapLayer mapLayer = new OSDMapLayer();
-//            mapLayer.Right = 2048;
-            mapLayer.Right = 5000;
-//            mapLayer.Top = 2048;
-            mapLayer.Top = 5000;
+            mapLayer.Right = 2048;
+            mapLayer.Top = 2048;
             mapLayer.ImageID = new UUID("00000000-0000-1111-9999-000000000006");
 
             return mapLayer;
@@ -447,66 +445,84 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 if (!m_rootAgents.Contains(remoteClient.AgentId))
                     return;
             }
+
+            // local or remote request?
+            if (regionhandle != 0 && regionhandle != m_scene.RegionInfo.RegionHandle)
+            {
+                // its Remote Map Item Request
+                // ensures that the blockingqueue doesn't get borked if the GetAgents() timing changes.
+                RequestMapItems("", remoteClient.AgentId, flags, EstateID, godlike, itemtype, regionhandle);
+                return;
+            }
+
             uint xstart = 0;
             uint ystart = 0;
             Util.RegionHandleToWorldLoc(m_scene.RegionInfo.RegionHandle, out xstart, out ystart);
 
-            if (itemtype == (int)GridItemType.AgentLocations) // Service 6 right now (MAP_ITEM_AGENTS_LOCATION; green dots)
+            // its about this region...
+
+            List<mapItemReply> mapitems = new List<mapItemReply>();
+            mapItemReply mapitem = new mapItemReply();
+
+            bool adultRegion;
+
+            switch (itemtype)
             {
-                if (regionhandle == 0 || regionhandle == m_scene.RegionInfo.RegionHandle)
-                {
-                    // Just requesting map info about the current, local region
+                case (int)GridItemType.AgentLocations:
+                    // Service 6 right now (MAP_ITEM_AGENTS_LOCATION; green dots)
+
                     int tc = Environment.TickCount;
-                    List<mapItemReply> mapitems = new List<mapItemReply>();
-                    mapItemReply mapitem = new mapItemReply();
                     if (m_scene.GetRootAgentCount() <= 1)
                     {
                         mapitem = new mapItemReply(
-                                        xstart + 1,
-                                        ystart + 1,
-                                        UUID.Zero,
-                                        Util.Md5Hash(m_scene.RegionInfo.RegionName + tc.ToString()),
-                                        0, 0);
+                                    xstart + 1,
+                                    ystart + 1,
+                                    UUID.Zero,
+                                    Util.Md5Hash(m_scene.RegionInfo.RegionName + tc.ToString()),
+                                    0, 0);
                         mapitems.Add(mapitem);
                     }
                     else
                     {
-                        m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
+                        m_scene.ForEachRootScenePresence(delegate (ScenePresence sp)
                         {
                             // Don't send a green dot for yourself
                             if (sp.UUID != remoteClient.AgentId)
                             {
                                 mapitem = new mapItemReply(
-                                        xstart + (uint)sp.AbsolutePosition.X,
-                                        ystart + (uint)sp.AbsolutePosition.Y,
-                                        UUID.Zero,
-                                        Util.Md5Hash(m_scene.RegionInfo.RegionName + tc.ToString()),
-                                        1, 0);
+                                    xstart + (uint)sp.AbsolutePosition.X,
+                                    ystart + (uint)sp.AbsolutePosition.Y,
+                                    UUID.Zero,
+                                    Util.Md5Hash(m_scene.RegionInfo.RegionName + tc.ToString()),
+                                    1, 0);
                                 mapitems.Add(mapitem);
                             }
                         });
                     }
                     remoteClient.SendMapItemReply(mapitems.ToArray(), itemtype, flags);
-                }
-                else
-                {
-                    // Remote Map Item Request
+               
+                    break;
 
-                    // ensures that the blockingqueue doesn't get borked if the GetAgents() timing changes.
-                    RequestMapItems("",remoteClient.AgentId,flags,EstateID,godlike,itemtype,regionhandle);
-                }
-            }
-            else if (itemtype == (int)GridItemType.LandForSale) // Service 7 (MAP_ITEM_LAND_FOR_SALE)
-            {
-                if (regionhandle == 0 || regionhandle == m_scene.RegionInfo.RegionHandle)
-                {
+                case (int)GridItemType.AdultLandForSale:
+                case (int)GridItemType.LandForSale:
+                    // Service 7 (MAP_ITEM_LAND_FOR_SALE)
+                    
+                    adultRegion = m_scene.RegionInfo.RegionSettings.Maturity == 2;
+                    if(adultRegion)
+                    {
+                        if (itemtype == (int)GridItemType.LandForSale)
+                            break;
+                    }
+                    else
+                    {
+                        if (itemtype == (int)GridItemType.AdultLandForSale)
+                            break;
+                    }
+
                     // Parcels
                     ILandChannel landChannel = m_scene.LandChannel;
                     List<ILandObject> parcels = landChannel.AllParcels();
 
-                    // Local Map Item Request
-                    List<mapItemReply> mapitems = new List<mapItemReply>();
-                    mapItemReply mapitem = new mapItemReply();
                     if ((parcels != null) && (parcels.Count >= 1))
                     {
                         foreach (ILandObject parcel_interface in parcels)
@@ -523,58 +539,56 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                             {
                                 Vector3 min = parcel.AABBMin;
                                 Vector3 max = parcel.AABBMax;
-                                float x = (min.X+max.X)/2;
-                                float y = (min.Y+max.Y)/2;
+                                float x = (min.X + max.X) / 2;
+                                float y = (min.Y + max.Y) / 2;
                                 mapitem = new mapItemReply(
-                                                xstart + (uint)x,
-                                                ystart + (uint)y,
-                                                parcel.GlobalID,
-                                                parcel.Name,
-                                                parcel.Area,
-                                                parcel.SalePrice
+                                            xstart + (uint)x,
+                                            ystart + (uint)y,
+                                            parcel.GlobalID,
+                                            parcel.Name,
+                                            parcel.Area,
+                                            parcel.SalePrice
                                 );
                                 mapitems.Add(mapitem);
                             }
                         }
                     }
                     remoteClient.SendMapItemReply(mapitems.ToArray(), itemtype, flags);
-                }
-                else
-                {
-                    // Remote Map Item Request
-
-                    // ensures that the blockingqueue doesn't get borked if the GetAgents() timing changes.
-                    RequestMapItems("",remoteClient.AgentId,flags,EstateID,godlike,itemtype,regionhandle);
-                }
-            }
-            else if (itemtype == (int)GridItemType.Telehub) // Service 1 (MAP_ITEM_TELEHUB)
-            {
-                if (regionhandle == 0 || regionhandle == m_scene.RegionInfo.RegionHandle)
-                {
-                    List<mapItemReply> mapitems = new List<mapItemReply>();
-                    mapItemReply mapitem = new mapItemReply();
+                    break;
+           
+                case (int)GridItemType.Telehub:
+                    // Service 1 (MAP_ITEM_TELEHUB)
 
                     SceneObjectGroup sog = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject);
                     if (sog != null)
                     {
                         mapitem = new mapItemReply(
-                                            xstart + (uint)sog.AbsolutePosition.X,
-                                            ystart + (uint)sog.AbsolutePosition.Y,
-                                            UUID.Zero,
-                                            sog.Name,
-                                            0,  // color (not used)
-                                            0   // 0 = telehub / 1 = infohub
-                        );
+                                        xstart + (uint)sog.AbsolutePosition.X,
+                                        ystart + (uint)sog.AbsolutePosition.Y,
+                                        UUID.Zero,
+                                        sog.Name,
+                                        0,  // color (not used)
+                                        0   // 0 = telehub / 1 = infohub
+                                        );
                         mapitems.Add(mapitem);
 
                         remoteClient.SendMapItemReply(mapitems.ToArray(), itemtype, flags);
                     }
-                }
-                else
-                {
-                    // Remote Map Item Request
-                    RequestMapItems("",remoteClient.AgentId,flags,EstateID,godlike,itemtype,regionhandle);
-                }
+                    break;
+
+                case (uint)GridItemType.PgEvent:
+                case (uint)GridItemType.MatureEvent:
+                case (uint)GridItemType.AdultEvent:
+                case (uint)GridItemType.Classified:
+                case (uint)GridItemType.Popular:
+                    // TODO
+                    // just dont not cry about them
+                    break; 
+
+                default:
+                    // unkown map item type
+                    m_log.DebugFormat("[WORLD MAP]: Unknown MapItem type {1}", itemtype);
+                    break;
             }
         }
 
@@ -838,19 +852,22 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             string response_mapItems_reply = null;
             { // get the response
-                StreamReader sr = null;
                 try
                 {
-                    WebResponse webResponse = mapitemsrequest.GetResponse();
-                    if (webResponse != null)
+                    using (WebResponse webResponse = mapitemsrequest.GetResponse())
                     {
-                        sr = new StreamReader(webResponse.GetResponseStream());
-                        response_mapItems_reply = sr.ReadToEnd().Trim();
-                    }
-                    else
-                    {
-                        Interlocked.Decrement(ref nAsyncRequests);
-                        return;
+                        if (webResponse != null)
+                        {
+                            using (StreamReader sr = new StreamReader(webResponse.GetResponseStream()))
+                            {
+                                response_mapItems_reply = sr.ReadToEnd().Trim();
+                            }
+                        }
+                        else
+                        {
+                            Interlocked.Decrement(ref nAsyncRequests);
+                            return;
+                        }
                     }
                 }
                 catch (WebException)
@@ -877,11 +894,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
                     Interlocked.Decrement(ref nAsyncRequests);
                     return;
-                }
-                finally
-                {
-                    if (sr != null)
-                        sr.Close();
                 }
 
                 OSD rezResponse = null;
@@ -918,6 +930,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             Interlocked.Decrement(ref nAsyncRequests);
 
+            flags &= 0xffff;
+
             if (id != UUID.Zero)
             {
                 ScenePresence av = null;
@@ -943,6 +957,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         av.ControllingClient.SendMapItemReply(returnitems.ToArray(), itemtype, flags);
                     }
 
+/* send things viewer didn't ask ?
                     // Service 7 (MAP_ITEM_LAND_FOR_SALE)
                     itemtype = 7;
 
@@ -986,6 +1001,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         }
                         av.ControllingClient.SendMapItemReply(returnitems.ToArray(), itemtype, flags);
                     }
+*/
                 }
             }
         }
@@ -1000,63 +1016,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         public void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
         {
             m_log.DebugFormat("[WoldMapModule] RequestMapBlocks {0}={1}={2}={3} {4}", minX, minY, maxX, maxY, flag);
-/*  this flag does not seem to mean what his says
-            if ((flag & 0x10000) != 0)  // user clicked on qthe map a tile that isn't visible
-            {
-                List<MapBlockData> response = new List<MapBlockData>();
 
-                // this should return one mapblock at most. It is triggered by a click
-                // on an unloaded square.
-                // But make sure: Look whether the one we requested is in there
-                List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
-                    (int)Util.RegionToWorldLoc((uint)minX),
-                    (int)Util.RegionToWorldLoc((uint)maxX),
-                    (int)Util.RegionToWorldLoc((uint)minY),
-                    (int)Util.RegionToWorldLoc((uint)maxY) );
- 
-                if (regions != null)
-                {
-                    foreach (GridRegion r in regions)
-                    {
-                        if (r.RegionLocX == Util.RegionToWorldLoc((uint)minX) &&
-                            r.RegionLocY == Util.RegionToWorldLoc((uint)minY))
-                        {
-                            // found it => add it to response
-                            MapBlockData block = new MapBlockData();
-                            if ((flag & 2) == 2)
-                                response.AddRange(Map2BlockFromGridRegion(r, flag));
-                            else
-                            {
-                                MapBlockFromGridRegion(block, r, flag);
-                                response.Add(block);
-                            }
-                            break;
-                        }
-                    }
-                }
-
-                if (response.Count == 0)
-                {
-                    // response still empty => couldn't find the map-tile the user clicked on => tell the client
-                    MapBlockData block = new MapBlockData();
-                    block.X = (ushort)minX;
-                    block.Y = (ushort)minY;
-                    block.Access = (byte)SimAccess.Down; // means 'simulator is offline'
-<<<<<<< HEAD
-                    // block.Access = (byte)SimAccess.NonExistent;
-=======
->>>>>>> avn/ubitvar
-                    response.Add(block);
-                }
-                // The lower 16 bits are an unsigned int16
-                remoteClient.SendMapBlock(response, flag & 0xffff);
-            }
-            else
-            {
-                // normal mapblock request. Use the provided values
- */
-                GetAndSendBlocks(remoteClient, minX, minY, maxX, maxY, flag);
- //           }
+            GetAndSendBlocks(remoteClient, minX, minY, maxX, maxY, flag);
         }
 
         protected virtual List<MapBlockData> GetAndSendBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
@@ -1125,13 +1086,11 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 maxX * (int)Constants.RegionSize,
                 minY * (int)Constants.RegionSize,
                 maxY * (int)Constants.RegionSize);
-//                (minX - 4) * (int)Constants.RegionSize,
-//                (maxX + 4) * (int)Constants.RegionSize,
-//                (minY - 4) * (int)Constants.RegionSize,
-//                (maxY + 4) * (int)Constants.RegionSize);
 
-            //mb it means this
-            if(regions.Count == 0 && (flag & 0x10000) != 0)
+            // only send a negative answer for a single region request
+            // corresponding to a click on the map. Current viewers 
+            // keep displaying "loading.." without this
+            if(regions.Count == 0 && (flag & 0x10000) != 0 && minX == maxX && minY == maxY)
             {
                 MapBlockData block = new MapBlockData();
                 block.X = (ushort)minX;
@@ -1144,8 +1103,12 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 return allBlocks;
             }
 
+            flag &= 0xffff;
+
             foreach (GridRegion r in regions)
             {
+                if (r == null)
+                    continue;
                 MapBlockData block = new MapBlockData();
                 if ((flag & 2) == 2)
                 {
@@ -1159,15 +1122,16 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     mapBlocks.Add(block);
                     allBlocks.Add(block);
                 }
+
                 if (mapBlocks.Count >= 10)
                 {
-                    remoteClient.SendMapBlock(mapBlocks, flag & 0xffff);
+                    remoteClient.SendMapBlock(mapBlocks, flag);
                     mapBlocks.Clear();
                     Thread.Sleep(50);
                 }
             }
             if (mapBlocks.Count > 0)
-                remoteClient.SendMapBlock(mapBlocks, flag & 0xffff);
+                remoteClient.SendMapBlock(mapBlocks, flag);
 
             return allBlocks;
         }
@@ -1175,7 +1139,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         public void MapBlockFromGridRegion(MapBlockData block, GridRegion r, uint flag)
         {
             block.Access = r.Access;
-            switch (flag & 0xffff)
+            switch (flag)
             {
                 case 0:
                     block.MapImageId = r.TerrainImage;
