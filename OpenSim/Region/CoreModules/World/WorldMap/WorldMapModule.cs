@@ -1430,28 +1430,14 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 responsemap["6"] = responsearr;
             }
 
-            // Service 7 (MAP_ITEM_LAND_FOR_SALE)
+            // Service 7/10 (MAP_ITEM_LAND_FOR_SALE/ADULT)
 
             ILandChannel landChannel = m_scene.LandChannel;
             List<ILandObject> parcels = landChannel.AllParcels();
 
-            if ((parcels == null) || (parcels.Count == 0))
+            if ((parcels != null) && (parcels.Count >= 0))
             {
-                OSDMap responsemapdata = new OSDMap();
-                responsemapdata["X"] = OSD.FromInteger((int)(xstart + 1));
-                responsemapdata["Y"] = OSD.FromInteger((int)(ystart + 1));
-                responsemapdata["ID"] = OSD.FromUUID(UUID.Zero);
-                responsemapdata["Name"] = OSD.FromString("");
-                responsemapdata["Extra"] = OSD.FromInteger(0);
-                responsemapdata["Extra2"] = OSD.FromInteger(0);
-                OSDArray responsearr = new OSDArray();
-                responsearr.Add(responsemapdata);
-
-                responsemap["7"] = responsearr;
-            }
-            else
-            {
-                OSDArray responsearr = new OSDArray(m_scene.GetRootAgentCount());
+                OSDArray responsearr = new OSDArray(parcels.Count);
                 foreach (ILandObject parcel_interface in parcels)
                 {
                     // Play it safe
@@ -1480,7 +1466,14 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         responsearr.Add(responsemapdata);
                     }
                 }
-                responsemap["7"] = responsearr;
+
+                if(responsearr.Count > 0)
+                {
+                    if(m_scene.RegionInfo.RegionSettings.Maturity == 2)
+                        responsemap["10"] = responsearr;
+                    else
+                    responsemap["7"] = responsearr;
+                }              
             }
 
             if (m_scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero)
