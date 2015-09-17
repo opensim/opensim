@@ -1532,8 +1532,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             using (Bitmap mapbmp = m_mapImageGenerator.CreateMapTile())
             {
                 // V1 (This Module)
-                if(m_scene.RegionInfo.RegionSizeX <= Constants.RegionSize &&
-                    m_scene.RegionInfo.RegionSizeY <= Constants.RegionSize)
+//                if(m_scene.RegionInfo.RegionSizeX <= Constants.RegionSize &&
+//                    m_scene.RegionInfo.RegionSizeY <= Constants.RegionSize)
                     GenerateMaptile(mapbmp);
 
                 // v2/3 (MapImageServiceModule)
