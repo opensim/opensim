@@ -166,14 +166,26 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 // or url encode if possible.
                 // the hacks we do with this viewer...
                 //
+                bool needOriginalName = false;
                 string mapNameOrig = mapName;
                 if (mapName.Contains("|"))
+                {
                     mapName = mapName.Replace('|', ':');
+                    needOriginalName = true;
+                }
                 if (mapName.Contains("+"))
+                {
                     mapName = mapName.Replace('+', ' ');
+                    needOriginalName = true;
+                }
                 if (mapName.Contains("!"))
+                {
                     mapName = mapName.Replace('!', '/');
-                
+                    needOriginalName = true;
+                }
+                if (mapName.Contains("."))
+                    needOriginalName = true;
+
                 // try to fetch from GridServer
                 List<GridRegion> regionInfos = m_scene.GridService.GetRegionsByName(m_scene.RegionInfo.ScopeID, mapName, 20);
     //            if (regionInfos.Count == 0)
@@ -195,7 +207,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                             // ugh! V2-3 is very sensitive about the result being
                             // exactly the same as the requested name
 
-                            if (regionInfos.Count == 1 && (mapName != mapNameOrig))
+                            if (regionInfos.Count == 1 && needOriginalName)
                                 datas.ForEach(d => d.Name = mapNameOrig);
 
                             blocks.AddRange(datas);                         
@@ -206,22 +218,12 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                             WorldMap.MapBlockFromGridRegion(block,info, flags);
                             blocks.Add(block);
                         }
-                        // ugh! V2-3 is very sensitive about the result being
-                        // exactly the same as the requested name
-                        if (regionInfos.Count == 1 && mapNameOrig.Contains("|") || mapNameOrig.Contains("+"))
-                            data.Name = mapNameOrig;
-                        else
-                            data.Name = info.RegionName;
-                        data.RegionFlags = 0; // TODO not used?
-                        data.WaterHeight = 0; // not used
-                        data.X = (ushort)(info.RegionLocX / Constants.RegionSize);
-                        data.Y = (ushort)(info.RegionLocY / Constants.RegionSize);
-                        blocks.Add(data);
                     }
                 }
 
                 // final block, closing the search result
-                AddFinalBlock(blocks);
+                if(blocks.Count == 0)
+                    AddFinalBlock(blocks);
 
                 // flags are agent flags sent from the viewer.
                 // they have different values depending on different viewers, apparently
