@@ -57,13 +57,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         public const int DefaultMaxTransferDistance = 4095;
         public const bool WaitForAgentArrivedAtDestinationDefault = true;
 
-        public string OutgoingTransferVersionName { get; set; }
+        private string OutgoingTransferVersionName { get; set; }
 
         /// <summary>
         /// Determine the maximum entity transfer version we will use for teleports.
         /// </summary>
-        public float MaxOutgoingTransferVersion { get; set; }
+        private float MaxOutgoingTransferVersion { get; set; }
 
+        private string m_myVersion = "";
         /// <summary>
         /// The maximum distance, in standard region units (256m) that an agent is allowed to transfer.
         /// </summary>
@@ -274,6 +275,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             OutgoingTransferVersionName = transferVersionName;
             MaxOutgoingTransferVersion = maxTransferVersion;
+
+            m_myVersion = string.Format("{0}/{1}", OutgoingTransferVersionName, MaxOutgoingTransferVersion);
 
             m_entityTransferStateMachine = new EntityTransferStateMachine(this);
 
@@ -767,9 +770,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             string reason;
             string version;
-            string myversion = string.Format("{0}/{1}", OutgoingTransferVersionName, MaxOutgoingTransferVersion);
+
             if (!Scene.SimulationService.QueryAccess(
-                finalDestination, sp.ControllingClient.AgentId, homeURI, true, position, myversion, sp.Scene.GetFormatsOffered(), out version, out reason))
+                finalDestination, sp.ControllingClient.AgentId, homeURI, true, position,m_myVersion, sp.Scene.GetFormatsOffered(), out version, out reason))
             {
                 sp.ControllingClient.SendTeleportFailed(reason);
 
@@ -1489,22 +1492,19 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (m_bannedRegionCache.IfBanned(destinyHandle, agentID))
             {
-                reason = "Cannot connect to region";
                 return false;
             }
 
             Scene ascene = agent.Scene;
             string homeURI = ascene.GetAgentHomeURI(agentID);
-            string myversion = string.Format("{0}/{1}", OutgoingTransferVersionName, MaxOutgoingTransferVersion);
-
+ 
 
             if (!ascene.SimulationService.QueryAccess(destiny, agentID, homeURI, false, position,
-                    myversion, agent.Scene.GetFormatsOffered(), out version, out reason))
+                    m_myVersion, agent.Scene.GetFormatsOffered(), out version, out reason))
             {
                 m_bannedRegionCache.Add(destinyHandle, agentID, 30.0, 30.0);
                 return false;
             }
-
             return true;
         }
 
@@ -1514,15 +1514,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return GetDestination(scene, agentID, pos, out version, out newpos, out r);
         }
 
-        // Given a position relative to the current region (which has previously been tested to
-        //    see that it is actually outside the current region), find the new region that the
-        //    point is actually in.
-        // Returns the coordinates and information of the new region or 'null' of it doesn't exist.
-
+        // Given a position relative to the current region and outside of it
+        // find the new region that the point is actually in.
+        // returns 'null' if new region not found or if information 
+        // and new position relative to it
         // now only works for crossings
 
         public GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos,
-                                            out string version, out Vector3 newpos, out string failureReason)
+                                    out string version, out Vector3 newpos, out string failureReason)
         {
             version = String.Empty;
             newpos = pos;
@@ -1531,63 +1530,42 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 //            m_log.DebugFormat(
 //                "[ENTITY TRANSFER MODULE]: Crossing agent {0} at pos {1} in {2}", agent.Name, pos, scene.Name);
 
-            // Compute world location of the object's position
+            // Compute world location of the agente position
             double presenceWorldX = (double)scene.RegionInfo.WorldLocX + pos.X;
             double presenceWorldY = (double)scene.RegionInfo.WorldLocY + pos.Y;
 
             // Call the grid service to lookup the region containing the new position.
-            GridRegion neighbourRegion = GetRegionContainingWorldLocation(scene.GridService, scene.RegionInfo.ScopeID,
-                                                        presenceWorldX, presenceWorldY, 
-                                                        Math.Max(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY));
+            GridRegion neighbourRegion = GetRegionContainingWorldLocation(
+                                scene.GridService, scene.RegionInfo.ScopeID,
+                                presenceWorldX, presenceWorldY,
+                                Math.Max(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY));
 
-            if (neighbourRegion != null)
+            if (neighbourRegion == null)
             {
-                // Compute the entity's position relative to the new region
-                newpos = new Vector3((float)(presenceWorldX - (double)neighbourRegion.RegionLocX),
+                return null;
+            }
+            if (m_bannedRegionCache.IfBanned(neighbourRegion.RegionHandle, agentID))
+            {
+                return null;
+            }
+
+            m_bannedRegionCache.Remove(neighbourRegion.RegionHandle, agentID);
+
+            // Compute the entity's position relative to the new region
+            newpos = new Vector3((float)(presenceWorldX - (double)neighbourRegion.RegionLocX),
                                       (float)(presenceWorldY - (double)neighbourRegion.RegionLocY),
                                       pos.Z);
 
-                if (m_bannedRegionCache.IfBanned(neighbourRegion.RegionHandle, agentID))
-                {
-                    failureReason = "Cannot region cross into banned parcel";
-                    neighbourRegion = null;
-                }
-                else
-                {
-                    // If not banned, make sure this agent is not in the list.
-                    m_bannedRegionCache.Remove(neighbourRegion.RegionHandle, agentID);
-                }
+            string homeURI = scene.GetAgentHomeURI(agentID);
 
-                // Check to see if we have access to the target region.
-                string myversion = string.Format("{0}/{1}", OutgoingTransferVersionName, MaxOutgoingTransferVersion);
-                string homeURI = scene.GetAgentHomeURI(agentID);
-                if (neighbourRegion != null
-                    && !scene.SimulationService.QueryAccess(
-                        neighbourRegion, agentID, homeURI, false, newpos, myversion,
-                        new List<UUID>(), out version, out failureReason))
-                {
-                    // remember banned
-                    m_bannedRegionCache.Add(neighbourRegion.RegionHandle, agentID);
-                    neighbourRegion = null;
-                }
-            }
-            else
+            if (!scene.SimulationService.QueryAccess(
+                    neighbourRegion, agentID, homeURI, false, newpos, m_myVersion,
+                    new List<UUID>(), out version, out failureReason))
             {
-                // The destination region just doesn't exist
-                failureReason = "Cannot cross into non-existent region";
+                // remember the fail
+                m_bannedRegionCache.Add(neighbourRegion.RegionHandle, agentID);
+                return null;
             }
-
-            if (neighbourRegion == null)
-                m_log.DebugFormat("{0} GetDestination: region not found. Old region name={1} at <{2},{3}> of size <{4},{5}>. Old pos={6}",
-                    LogHeader, scene.RegionInfo.RegionName,
-                    scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY,
-                    scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY,
-                    pos);
-            else
-                m_log.DebugFormat("{0} GetDestination: new region={1} at <{2},{3}> of size <{4},{5}>, newpos=<{6},{7}>",
-                    LogHeader, neighbourRegion.RegionName,
-                    neighbourRegion.RegionLocX, neighbourRegion.RegionLocY, neighbourRegion.RegionSizeX, neighbourRegion.RegionSizeY,
-                    newpos.X, newpos.Y);
 
             return neighbourRegion;
         }
@@ -1641,9 +1619,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return agent;
         }
 
-        public delegate void InformClientToInitiateTeleportToLocationDelegate(ScenePresence agent, uint regionX, uint regionY,
-                                                            Vector3 position,
-                                                            Scene initiatingScene);
+        public delegate void InformClientToInitiateTeleportToLocationDelegate(ScenePresence agent, uint regionX,            uint regionY, Vector3 position, Scene initiatingScene);
 
         private void InformClientToInitiateTeleportToLocation(ScenePresence agent, uint regionX, uint regionY, Vector3 position, Scene initiatingScene)
         {
@@ -2319,7 +2295,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             //   thus re-ask the GridService about the location.
             if (m_notFoundLocationCache.Contains(px, py))
             {
-                m_log.DebugFormat("{0} GetRegionContainingWorldLocation: Not found via cache. loc=<{1},{2}>", LogHeader, px, py);
+//                m_log.DebugFormat("{0} GetRegionContainingWorldLocation: Not found via cache. loc=<{1},{2}>", LogHeader, px, py);
                 return null;
             }
 
