@@ -918,16 +918,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 }
             }
 
-            if (!responseMap.ContainsKey(itemtype.ToString())) // remote sim doesnt have the stated region handle
-            {
-                m_log.DebugFormat("[WORLD MAP]: Remote sim does not have the stated region. Blacklisting.");
-                lock (m_blacklistedregions)
-                {
-                    if (!m_blacklistedregions.ContainsKey(regionhandle))
-                        m_blacklistedregions.Add(regionhandle, Environment.TickCount);
-                }
-            }
-
             Interlocked.Decrement(ref nAsyncRequests);
 
             flags &= 0xffff;
