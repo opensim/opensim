@@ -201,23 +201,12 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         data = new MapBlockData();
                         data.Agents = 0;
                         data.Access = info.Access;
-                        if (flags == 2) // V2 sends this
-                        {
-                            List<MapBlockData> datas = WorldMap.Map2BlockFromGridRegion(info, flags);
-                            // ugh! V2-3 is very sensitive about the result being
-                            // exactly the same as the requested name
+                        MapBlockData block = new MapBlockData();
+                        WorldMap.MapBlockFromGridRegion(block, info, flags);
 
-                            if (regionInfos.Count == 1 && needOriginalName)
-                                datas.ForEach(d => d.Name = mapNameOrig);
-
-                            blocks.AddRange(datas);                         
-                        }
-                        else
-                        {
-                            MapBlockData block = new MapBlockData();
-                            WorldMap.MapBlockFromGridRegion(block,info, flags);
-                            blocks.Add(block);
-                        }
+                        if (flags == 2 &&  regionInfos.Count == 1 && needOriginalName)
+                                block.Name = mapNameOrig;
+                        blocks.Add(block);
                     }
                 }
 

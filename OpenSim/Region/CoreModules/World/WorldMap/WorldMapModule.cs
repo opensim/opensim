@@ -1100,18 +1100,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 if (r == null)
                     continue;
                 MapBlockData block = new MapBlockData();
-                if ((flag & 2) == 2)
-                {
-                    List<MapBlockData> blocks = Map2BlockFromGridRegion(r, flag);
-                    mapBlocks.AddRange(blocks);
-                    allBlocks.AddRange(blocks);
-                }
-                else
-                {
-                    MapBlockFromGridRegion(block, r, flag);
-                    mapBlocks.Add(block);
-                    allBlocks.Add(block);
-                }
+                MapBlockFromGridRegion(block, r, flag);
+                mapBlocks.Add(block);
+                allBlocks.Add(block);
 
                 if (mapBlocks.Count >= 10)
                 {
@@ -1128,6 +1119,14 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         public void MapBlockFromGridRegion(MapBlockData block, GridRegion r, uint flag)
         {
+            if (r == null)
+            {
+//                block.Access = (byte)SimAccess.Down;
+                block.Access = (byte)SimAccess.NonExistent;
+                block.MapImageId = UUID.Zero;
+                return;
+            }
+
             block.Access = r.Access;
             switch (flag)
             {
@@ -1146,41 +1145,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             block.Y = (ushort)(r.RegionLocY / Constants.RegionSize);
             block.SizeX = (ushort)r.RegionSizeX;
             block.SizeY = (ushort)r.RegionSizeY;
-        }
 
-        public List<MapBlockData> Map2BlockFromGridRegion(GridRegion r, uint flag)
-        {
-            List<MapBlockData> blocks = new List<MapBlockData>();
-            MapBlockData block = new MapBlockData();
-            if (r == null)
-            {
-                block.Access = (byte)SimAccess.Down;
-                block.MapImageId = UUID.Zero;
-                blocks.Add(block);
-            }
-            else
-            {
-                block.Access = r.Access;
-                switch (flag & 0xffff)
-                {
-                    case 0:
-                        block.MapImageId = r.TerrainImage;
-                        break;
-                    case 2:
-                        block.MapImageId = r.ParcelImage;
-                        break;
-                    default:
-                        block.MapImageId = UUID.Zero;
-                        break;
-                }
-                block.Name = r.RegionName;
-                block.X = (ushort)(r.RegionLocX / Constants.RegionSize);
-                block.Y = (ushort)(r.RegionLocY / Constants.RegionSize);
-                block.SizeX = (ushort)r.RegionSizeX;
-                block.SizeY = (ushort)r.RegionSizeY;
-                blocks.Add(block);
-            }
-            return blocks;
         }
 
         public Hashtable OnHTTPThrottled(Hashtable keysvals)

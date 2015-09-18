@@ -36,7 +36,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Generate a map tile for the scene. a terrain texture for this scene
         /// </summary>
         void GenerateMaptile();
-        List<MapBlockData> Map2BlockFromGridRegion(GridRegion r, uint flag);
         void MapBlockFromGridRegion(MapBlockData block, GridRegion r, uint flag);
     }
 }
