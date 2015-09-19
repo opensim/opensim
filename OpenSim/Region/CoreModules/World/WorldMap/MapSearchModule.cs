@@ -147,7 +147,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 if (mapName.Length < 3 || (mapName.EndsWith("#") && mapName.Length < 4))
                 {
                     // final block, closing the search result
-                    AddFinalBlock(blocks);
+                    AddFinalBlock(blocks,mapName);
 
                     // flags are agent flags sent from the viewer.
                     // they have different values depending on different viewers, apparently
@@ -211,8 +211,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 }
 
                 // final block, closing the search result
-                if(blocks.Count == 0)
-                    AddFinalBlock(blocks);
+                AddFinalBlock(blocks,mapNameOrig);
 
                 // flags are agent flags sent from the viewer.
                 // they have different values depending on different viewers, apparently
@@ -231,14 +230,14 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             });
         }
 
-        private void AddFinalBlock(List<MapBlockData> blocks)
+        private void AddFinalBlock(List<MapBlockData> blocks,string name)
         {
                 // final block, closing the search result
                 MapBlockData data = new MapBlockData();
                 data.Agents = 0;
                 data.Access = (byte)SimAccess.NonExistent;
                 data.MapImageId = UUID.Zero;
-                data.Name = "";
+                data.Name = name;
                 data.RegionFlags = 0;
                 data.WaterHeight = 0; // not used
                 data.X = 0;

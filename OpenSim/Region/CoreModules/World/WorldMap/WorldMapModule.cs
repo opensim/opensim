@@ -68,9 +68,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         private static readonly UUID STOP_UUID = UUID.Random();
         private static readonly string m_mapLayerPath = "0001/";
 
-        private ManualResetEvent queueEvent = new ManualResetEvent(false);
-        private Queue<MapRequestState> requests = new Queue<MapRequestState>();
-
+        private OpenSim.Framework.BlockingQueue<MapRequestState> requests = new OpenSim.Framework.BlockingQueue<MapRequestState>();
+        
         private ManualResetEvent m_mapBlockRequestEvent = new ManualResetEvent(false);
         private Dictionary<UUID, Queue<MapBlockRequestData>> m_mapBlockRequests = new Dictionary<UUID, Queue<MapBlockRequestData>>();
 
@@ -79,16 +78,19 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         protected Scene m_scene;
         private List<MapBlockData> cachedMapBlocks = new List<MapBlockData>();
-        private int cachedTime = 0;
-        private int blacklistTimeout = 10 * 60 * 1000; // 10 minutes
         private byte[] myMapImageJPEG;
         protected volatile bool m_Enabled = false;
-        private Dictionary<string, int> m_blacklistedurls = new Dictionary<string, int>();
-        private Dictionary<ulong, int> m_blacklistedregions = new Dictionary<ulong, int>();
-        private Dictionary<ulong, string> m_cachedRegionMapItemsAddress = new Dictionary<ulong, string>();
+        private ExpiringCache<string, int> m_blacklistedurls = new ExpiringCache<string, int>();
+        private ExpiringCache<ulong, int> m_blacklistedregions = new ExpiringCache<ulong, int>();
+        private ExpiringCache<ulong, string> m_cachedRegionMapItemsAddress = new ExpiringCache<ulong, string>();
+        private ExpiringCache<ulong, OSDMap> m_cachedRegionMapItemsResponses =
+                                        new ExpiringCache<ulong, OSDMap>();
         private List<UUID> m_rootAgents = new List<UUID>();
         private volatile bool threadrunning = false;
-
+        // expire time for the blacklists in seconds
+        private double expireBlackListTime = 600.0; // 10 minutes
+        // expire mapItems responses time in seconds. If too high disturbs the green dots updates
+        private const double expireResponsesTime = 120.0; // 2 minutes ?
         //private int CacheRegionsDistance = 256;
 
         #region INonSharedRegionModule Members
@@ -100,8 +102,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 config, "WorldMapModule", configSections, "WorldMap") == "WorldMap")
                 m_Enabled = true;
 
-            blacklistTimeout
-                = Util.GetConfigVarFromSections<int>(config, "BlacklistTimeout", configSections, 10 * 60) * 1000;
+            expireBlackListTime = (double)Util.GetConfigVarFromSections<int>(config, "BlacklistTimeout", configSections, 10 * 60);
         }
 
         public virtual void AddRegion(Scene scene)
@@ -245,6 +246,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         public string MapLayerRequest(string request, string path, string param,
                                       UUID agentID, Caps caps)
         {
+            // not sure about this....
+
             //try
             //
             //m_log.DebugFormat("[MAPLAYER]: path: {0}, param: {1}, agent:{2}",
@@ -333,6 +336,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// <returns></returns>
         protected static OSDMapLayer GetOSDMapLayerResponse()
         {
+            // not sure about this.... 2048 or master 5000 and hack above?
+
             OSDMapLayer mapLayer = new OSDMapLayer();
             mapLayer.Right = 2048;
             mapLayer.Top = 2048;
@@ -412,11 +417,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             st.itemtype = 0;
             st.regionhandle = 0;
 
-            lock (requests)
-            {
-                queueEvent.Set();
-                requests.Enqueue(st);
-            }
+            requests.Enqueue(st);
 
             MapBlockRequestData req = new MapBlockRequestData();
 
@@ -599,55 +600,106 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         public void process()
         {
             const int MAX_ASYNC_REQUESTS = 20;
+            ScenePresence av = null;
+            MapRequestState st = null;
+
             try
             {
                 while (true)
                 {
-                    MapRequestState st = new MapRequestState();
-                    bool valid = false;
-                    queueEvent.WaitOne();
-                    lock (requests)
-                    {
-                        if (requests.Count > 0)
-                        {
-                            st = requests.Dequeue();
-                            valid = true;
-                        }
-                        if (requests.Count == 0)
-                            queueEvent.Reset();
-                    }
-                    if (!valid)
+                    Watchdog.UpdateThread();
+
+                    av = null;
+                    st = null;
+
+                    st = requests.Dequeue(4900); // timeout to make watchdog happy
+
+                    if (st == null || st.agentID == UUID.Zero)
                         continue;
 
                     // end gracefully
                     if (st.agentID == STOP_UUID)
                         break;
 
-                    if (st.agentID != UUID.Zero)
+                    // agent gone?
+                    
+                    m_scene.TryGetScenePresence(st.agentID, out av);
+                    if (av == null || av.IsChildAgent || av.IsDeleted || av.IsInTransit)
+                        continue;
+
+                    // region unreachable?
+                    if (m_blacklistedregions.Contains(st.regionhandle))
+                        continue;
+
+                    bool dorequest = true;
+                    OSDMap responseMap = null;
+
+                    // check if we are already serving this region
+                    lock (m_cachedRegionMapItemsResponses)
                     {
-                        bool dorequest = true;
-                        lock (m_rootAgents)
+                        if (m_cachedRegionMapItemsResponses.Contains(st.regionhandle))
                         {
-                            if (!m_rootAgents.Contains(st.agentID))
-                                dorequest = false;
-                        }
+                            m_cachedRegionMapItemsResponses.TryGetValue(st.regionhandle, out responseMap);
+                            dorequest = false;
+                        }                           
+                        else
+                            m_cachedRegionMapItemsResponses.Add(st.regionhandle, null, expireResponsesTime); //  a bit more time for the access
+                    }
 
-                        if (dorequest && !m_blacklistedregions.ContainsKey(st.regionhandle))
+                    if (dorequest)
+                    {
+                        // nothig for region, fire a request
+                        Interlocked.Increment(ref nAsyncRequests);
+                        MapRequestState rst = st;
+                        Util.FireAndForget(x =>
                         {
-                            while (nAsyncRequests >= MAX_ASYNC_REQUESTS) // hit the break
-                                Thread.Sleep(100);
-
-                            Interlocked.Increment(ref nAsyncRequests);
-                            Util.FireAndForget(x =>
+                            RequestMapItemsAsync(rst.agentID, rst.flags, rst.EstateID, rst.godlike, rst.itemtype, rst.regionhandle);
+                        });
+                    }
+                    else
+                    {
+                        // do we have the response?
+                        if (responseMap != null)
+                        {
+                            if(av!=null)
                             {
-                                RequestMapItemsAsync(st.agentID, st.flags, st.EstateID, st.godlike, st.itemtype, st.regionhandle);
-                            });
+                                if (responseMap.ContainsKey(st.itemtype.ToString()))
+                                {
+                                    List<mapItemReply> returnitems = new List<mapItemReply>();
+                                    OSDArray itemarray = (OSDArray)responseMap[st.itemtype.ToString()];
+                                    for (int i = 0; i < itemarray.Count; i++)
+                                    {
+                                        OSDMap mapitem = (OSDMap)itemarray[i];
+                                        mapItemReply mi = new mapItemReply();
+                                        mi.x = (uint)mapitem["X"].AsInteger();
+                                        mi.y = (uint)mapitem["Y"].AsInteger();
+                                        mi.id = mapitem["ID"].AsUUID();
+                                        mi.Extra = mapitem["Extra"].AsInteger();
+                                        mi.Extra2 = mapitem["Extra2"].AsInteger();
+                                        mi.name = mapitem["Name"].AsString();
+                                        returnitems.Add(mi);
+                                    }
+                                    av.ControllingClient.SendMapItemReply(returnitems.ToArray(), st.itemtype, st.flags & 0xffff);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // request still beeing processed, enqueue it back
+                            requests.Enqueue(st);
+                            if (requests.Count() < 3)
+                                Thread.Sleep(100);
                         }
                     }
 
-                    Watchdog.UpdateThread();
+                    while (nAsyncRequests >= MAX_ASYNC_REQUESTS) // hit the break
+                    {
+                        Thread.Sleep(100);
+                        Watchdog.UpdateThread();
+                    }
                 }
             }
+
             catch (Exception e)
             {
                 m_log.ErrorFormat("[WORLD MAP]: Map item request thread terminated abnormally with exception {0}", e);
@@ -655,20 +707,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             threadrunning = false;
             Watchdog.RemoveThread();
-        }
-
-        /// <summary>
-        /// Enqueues the map item request into the processing thread
-        /// </summary>
-        /// <param name="state"></param>
-        public void EnqueueMapItemRequest(MapRequestState state)
-        {
-            lock (requests)
-            {
-                queueEvent.Set();
-                requests.Enqueue(state);
-
-            }
         }
 
         /// <summary>
@@ -691,7 +729,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             st.godlike = godlike;
             st.itemtype = itemtype;
             st.regionhandle = regionhandle;
-            EnqueueMapItemRequest(st);
+
+            requests.Enqueue(st);
         }
 
         /// <summary>
@@ -711,24 +750,13 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         private void RequestMapItemsAsync(UUID id, uint flags,
             uint EstateID, bool godlike, uint itemtype, ulong regionhandle)
         {
-            //            m_log.DebugFormat("[WORLDMAP]: RequestMapItemsAsync; region handle: {0} {1}", regionhandle, itemtype);
+            // m_log.DebugFormat("[WORLDMAP]: RequestMapItemsAsync; region handle: {0} {1}", regionhandle, itemtype);
 
             string httpserver = "";
             bool blacklisted = false;
-            lock (m_blacklistedregions)
-            {
-                if (m_blacklistedregions.ContainsKey(regionhandle))
-                {
-                    if (Environment.TickCount > (m_blacklistedregions[regionhandle] + blacklistTimeout))
-                    {
-                        m_log.DebugFormat("[WORLD MAP]: Unblock blacklisted region {0}", regionhandle);
 
-                        m_blacklistedregions.Remove(regionhandle);
-                    }
-                    else
-                        blacklisted = true;
-                }
-            }
+            lock (m_blacklistedregions)
+                blacklisted = m_blacklistedregions.Contains(regionhandle);
 
             if (blacklisted)
             {
@@ -738,58 +766,34 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             UUID requestID = UUID.Random();
             lock (m_cachedRegionMapItemsAddress)
-            {
-                if (m_cachedRegionMapItemsAddress.ContainsKey(regionhandle))
-                    httpserver = m_cachedRegionMapItemsAddress[regionhandle];
-            }
+                m_cachedRegionMapItemsAddress.TryGetValue(regionhandle, out httpserver);
 
-            if (httpserver.Length == 0)
+            if (httpserver == null || httpserver.Length == 0)
             {
                 uint x = 0, y = 0;
                 Util.RegionHandleToWorldLoc(regionhandle, out x, out y);
+
                 GridRegion mreg = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, (int)x, (int)y);
 
                 if (mreg != null)
                 {
                     httpserver = mreg.ServerURI + "MAP/MapItems/" + regionhandle.ToString();
                     lock (m_cachedRegionMapItemsAddress)
-                    {
-                        if (!m_cachedRegionMapItemsAddress.ContainsKey(regionhandle))
-                            m_cachedRegionMapItemsAddress.Add(regionhandle, httpserver);
-                    }
-                }
-                else
-                {
-                    lock (m_blacklistedregions)
-                    {
-                        if (!m_blacklistedregions.ContainsKey(regionhandle))
-                            m_blacklistedregions.Add(regionhandle, Environment.TickCount);
-                    }
-                    //m_log.InfoFormat("[WORLD MAP]: Blacklisted region {0}", regionhandle.ToString());
+                        m_cachedRegionMapItemsAddress.AddOrUpdate(regionhandle, httpserver, 2.0 * expireBlackListTime);
                 }
             }
 
-            blacklisted = false;
             lock (m_blacklistedurls)
             {
-                if (m_blacklistedurls.ContainsKey(httpserver))
+                if (httpserver == null || httpserver.Length == 0 || m_blacklistedurls.Contains(httpserver))
                 {
-                    if (Environment.TickCount > (m_blacklistedurls[httpserver] + blacklistTimeout))
-                    {
-                        m_log.DebugFormat("[WORLD MAP]: Unblock blacklisted URL {0}", httpserver);
+                    // Can't find the http server or its blocked
+                    lock (m_blacklistedregions)
+                        m_blacklistedregions.AddOrUpdate(regionhandle, 0, expireBlackListTime);
 
-                        m_blacklistedurls.Remove(httpserver);
-                    }
-                    else
-                        blacklisted = true;
+                    Interlocked.Decrement(ref nAsyncRequests);
+                    return;
                 }
-            }
-
-            // Can't find the http server
-            if (httpserver.Length == 0 || blacklisted)
-            {
-                Interlocked.Decrement(ref nAsyncRequests);
-                return;
             }
 
             WebRequest mapitemsrequest = null;
@@ -806,34 +810,30 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             mapitemsrequest.Method = "POST";
             mapitemsrequest.ContentType = "application/xml+llsd";
-            OSDMap RAMap = new OSDMap();
 
+            OSDMap RAMap = new OSDMap();
             // string RAMapString = RAMap.ToString();
             OSD LLSDofRAMap = RAMap; // RENAME if this works
 
             byte[] buffer = OSDParser.SerializeLLSDXmlBytes(LLSDofRAMap);
-            OSDMap responseMap = new OSDMap();
-            responseMap["requestID"] = OSD.FromUUID(requestID);
 
-            Stream os = null;
+            OSDMap responseMap = new OSDMap();
+
             try
             { // send the Post
                 mapitemsrequest.ContentLength = buffer.Length;   //Count bytes to send
-                os = mapitemsrequest.GetRequestStream();
-                os.Write(buffer, 0, buffer.Length);         //Send it
-                //m_log.DebugFormat("[WORLD MAP]: Getting MapItems from {0}", httpserver);
+                using (Stream os = mapitemsrequest.GetRequestStream())
+                    os.Write(buffer, 0, buffer.Length);         //Send it
+              //m_log.DebugFormat("[WORLD MAP]: Getting MapItems from {0}", httpserver);
             }
             catch (WebException ex)
             {
                 m_log.WarnFormat("[WORLD MAP]: Bad send on GetMapItems {0}", ex.Message);
-                responseMap["connect"] = OSD.FromBoolean(false);
+                m_log.WarnFormat("[WORLD MAP]: Blacklisted url {0}", httpserver);
                 lock (m_blacklistedurls)
-                {
-                    if (!m_blacklistedurls.ContainsKey(httpserver))
-                        m_blacklistedurls.Add(httpserver, Environment.TickCount);
-                }
-
-                m_log.WarnFormat("[WORLD MAP]: Blacklisted {0}", httpserver);
+                    m_blacklistedurls.AddOrUpdate(httpserver, 0, expireBlackListTime);
+                lock (m_blacklistedregions)
+                    m_blacklistedregions.AddOrUpdate(regionhandle, 0, expireBlackListTime);
 
                 Interlocked.Decrement(ref nAsyncRequests);
                 return;
@@ -843,11 +843,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 m_log.DebugFormat("[WORLD MAP]: RequestMapItems failed for {0}", httpserver);
                 Interlocked.Decrement(ref nAsyncRequests);
                 return;
-            }
-            finally
-            {
-                if (os != null)
-                    os.Dispose();
             }
 
             string response_mapItems_reply = null;
@@ -873,12 +868,11 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 catch (WebException)
                 {
                     lock (m_blacklistedurls)
-                    {
-                        if (!m_blacklistedurls.ContainsKey(httpserver))
-                            m_blacklistedurls.Add(httpserver, Environment.TickCount);
-                    }
+                       m_blacklistedurls.AddOrUpdate(httpserver, 0, expireBlackListTime);
+                    lock (m_blacklistedregions)
+                        m_blacklistedregions.AddOrUpdate(regionhandle, 0, expireBlackListTime);
 
-                    m_log.WarnFormat("[WORLD MAP]: Blacklisted {0}", httpserver);
+                    m_log.WarnFormat("[WORLD MAP]: Blacklisted url {0}", httpserver);
 
                     Interlocked.Decrement(ref nAsyncRequests);
                     return;
@@ -887,46 +881,39 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 {
                     m_log.DebugFormat("[WORLD MAP]: RequestMapItems failed for {0}", httpserver);
                     lock (m_blacklistedregions)
-                    {
-                        if (!m_blacklistedregions.ContainsKey(regionhandle))
-                            m_blacklistedregions.Add(regionhandle, Environment.TickCount);
-                    }
+                        m_blacklistedregions.AddOrUpdate(regionhandle, 0, expireBlackListTime);
 
                     Interlocked.Decrement(ref nAsyncRequests);
                     return;
                 }
 
-                OSD rezResponse = null;
                 try
                 {
-                    rezResponse = OSDParser.DeserializeLLSDXml(response_mapItems_reply);
-
-                    responseMap = (OSDMap)rezResponse;
-                    responseMap["requestID"] = OSD.FromUUID(requestID);
+                    responseMap = (OSDMap)OSDParser.DeserializeLLSDXml(response_mapItems_reply);
                 }
                 catch (Exception ex)
                 {
                     m_log.InfoFormat("[WORLD MAP]: exception on parse of RequestMapItems reply from {0}: {1}", httpserver, ex.Message);
                     lock (m_blacklistedregions)
-                    {
-                        if (!m_blacklistedregions.ContainsKey(regionhandle))
-                            m_blacklistedregions.Add(regionhandle, Environment.TickCount);
-                    }
+                        m_blacklistedregions.AddOrUpdate(regionhandle, 0, expireBlackListTime);
 
                     Interlocked.Decrement(ref nAsyncRequests);
                     return;
                 }
             }
 
-            Interlocked.Decrement(ref nAsyncRequests);
+            // cache the response that may include other valid items
+            lock (m_cachedRegionMapItemsResponses)
+                m_cachedRegionMapItemsResponses.AddOrUpdate(regionhandle, responseMap, expireResponsesTime);
 
+            // send answer for this item and client
             flags &= 0xffff;
 
             if (id != UUID.Zero)
             {
                 ScenePresence av = null;
                 m_scene.TryGetScenePresence(id, out av);
-                if (av != null)
+                if (av != null && !av.IsChildAgent && !av.IsDeleted && !av.IsInTransit)
                 {
                     if (responseMap.ContainsKey(itemtype.ToString()))
                     {
@@ -946,54 +933,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         }
                         av.ControllingClient.SendMapItemReply(returnitems.ToArray(), itemtype, flags);
                     }
-
-                    /* send things viewer didn't ask ?
-                                        // Service 7 (MAP_ITEM_LAND_FOR_SALE)
-                                        itemtype = 7;
-
-                                        if (responseMap.ContainsKey(itemtype.ToString()))
-                                        {
-                                            List<mapItemReply> returnitems = new List<mapItemReply>();
-                                            OSDArray itemarray = (OSDArray)responseMap[itemtype.ToString()];
-                                            for (int i = 0; i < itemarray.Count; i++)
-                                            {
-                                                OSDMap mapitem = (OSDMap)itemarray[i];
-                                                mapItemReply mi = new mapItemReply();
-                                                mi.x = (uint)mapitem["X"].AsInteger();
-                                                mi.y = (uint)mapitem["Y"].AsInteger();
-                                                mi.id = mapitem["ID"].AsUUID();
-                                                mi.Extra = mapitem["Extra"].AsInteger();
-                                                mi.Extra2 = mapitem["Extra2"].AsInteger();
-                                                mi.name = mapitem["Name"].AsString();
-                                                returnitems.Add(mi);
-                                            }
-                                            av.ControllingClient.SendMapItemReply(returnitems.ToArray(), itemtype, flags);
-                                        }
-
-                                        // Service 1 (MAP_ITEM_TELEHUB)
-                                        itemtype = 1;
-
-                                        if (responseMap.ContainsKey(itemtype.ToString()))
-                                        {
-                                            List<mapItemReply> returnitems = new List<mapItemReply>();
-                                            OSDArray itemarray = (OSDArray)responseMap[itemtype.ToString()];
-                                            for (int i = 0; i < itemarray.Count; i++)
-                                            {
-                                                OSDMap mapitem = (OSDMap)itemarray[i];
-                                                mapItemReply mi = new mapItemReply();
-                                                mi.x = (uint)mapitem["X"].AsInteger();
-                                                mi.y = (uint)mapitem["Y"].AsInteger();
-                                                mi.id = mapitem["ID"].AsUUID();
-                                                mi.Extra = mapitem["Extra"].AsInteger();
-                                                mi.Extra2 = mapitem["Extra2"].AsInteger();
-                                                mi.name = mapitem["Name"].AsString();
-                                                returnitems.Add(mi);
-                                            }
-                                            av.ControllingClient.SendMapItemReply(returnitems.ToArray(), itemtype, flags);
-                                        }
-                    */
                 }
             }
+
+            Interlocked.Decrement(ref nAsyncRequests);
         }
 
         /// <summary>
@@ -1160,67 +1103,71 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         public Hashtable OnHTTPGetMapImage(Hashtable keysvals)
         {
-            m_log.Debug("[WORLD MAP]: Sending map image jpeg");
             Hashtable reply = new Hashtable();
             int statuscode = 200;
             byte[] jpeg = new byte[0];
 
-            if (myMapImageJPEG.Length == 0)
+            if (m_scene.RegionInfo.RegionSettings.TerrainImageID != UUID.Zero)
             {
-                MemoryStream imgstream = null;
-                Bitmap mapTexture = new Bitmap(1, 1);
-                ManagedImage managedImage;
-                Image image = (Image)mapTexture;
+                m_log.Debug("[WORLD MAP]: Sending map image jpeg");
 
-                try
+                if (myMapImageJPEG.Length == 0)
                 {
-                    // Taking our jpeg2000 data, decoding it, then saving it to a byte array with regular jpeg data
+                    MemoryStream imgstream = null;
+                    Bitmap mapTexture = new Bitmap(1, 1);
+                    ManagedImage managedImage;
+                    Image image = (Image)mapTexture;
 
-                    imgstream = new MemoryStream();
-
-                    // non-async because we know we have the asset immediately.
-                    AssetBase mapasset = m_scene.AssetService.Get(m_scene.RegionInfo.RegionSettings.TerrainImageID.ToString());
-
-                    // Decode image to System.Drawing.Image
-                    if (OpenJPEG.DecodeToImage(mapasset.Data, out managedImage, out image))
+                    try
                     {
-                        // Save to bitmap
-                        mapTexture = new Bitmap(image);
+                        // Taking our jpeg2000 data, decoding it, then saving it to a byte array with regular jpeg data
 
-                        EncoderParameters myEncoderParameters = new EncoderParameters();
-                        myEncoderParameters.Param[0] = new EncoderParameter(Encoder.Quality, 95L);
+                        imgstream = new MemoryStream();
 
-                        // Save bitmap to stream
-                        mapTexture.Save(imgstream, GetEncoderInfo("image/jpeg"), myEncoderParameters);
+                        // non-async because we know we have the asset immediately.
+                        AssetBase mapasset = m_scene.AssetService.Get(m_scene.RegionInfo.RegionSettings.TerrainImageID.ToString());
 
-                        // Write the stream to a byte array for output
-                        jpeg = imgstream.ToArray();
-                        myMapImageJPEG = jpeg;
+                        // Decode image to System.Drawing.Image
+                        if (OpenJPEG.DecodeToImage(mapasset.Data, out managedImage, out image))
+                        {
+                            // Save to bitmap
+                            mapTexture = new Bitmap(image);
+
+                            EncoderParameters myEncoderParameters = new EncoderParameters();
+                            myEncoderParameters.Param[0] = new EncoderParameter(Encoder.Quality, 95L);
+
+                            // Save bitmap to stream
+                            mapTexture.Save(imgstream, GetEncoderInfo("image/jpeg"), myEncoderParameters);
+
+                            // Write the stream to a byte array for output
+                            jpeg = imgstream.ToArray();
+                            myMapImageJPEG = jpeg;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Dummy!
+                        m_log.Warn("[WORLD MAP]: Unable to generate Map image");
+                    }
+                    finally
+                    {
+                        // Reclaim memory, these are unmanaged resources
+                        // If we encountered an exception, one or more of these will be null
+                        if (mapTexture != null)
+                            mapTexture.Dispose();
+
+                        if (image != null)
+                            image.Dispose();
+
+                        if (imgstream != null)
+                            imgstream.Dispose();
                     }
                 }
-                catch (Exception)
+                else
                 {
-                    // Dummy!
-                    m_log.Warn("[WORLD MAP]: Unable to generate Map image");
+                    // Use cached version so we don't have to loose our mind
+                    jpeg = myMapImageJPEG;
                 }
-                finally
-                {
-                    // Reclaim memory, these are unmanaged resources
-                    // If we encountered an exception, one or more of these will be null
-                    if (mapTexture != null)
-                        mapTexture.Dispose();
-
-                    if (image != null)
-                        image.Dispose();
-
-                    if (imgstream != null)
-                        imgstream.Dispose();
-                }
-            }
-            else
-            {
-                // Use cached version so we don't have to loose our mind
-                jpeg = myMapImageJPEG;
             }
 
             reply["str_response_string"] = Convert.ToBase64String(jpeg);
@@ -1290,15 +1237,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 {
                     textures.Add(texAsset);
                 }
-                //else
-                //{
-                //    // WHAT?!? This doesn't seem right. Commenting (diva)
-                //    texAsset = m_scene.AssetService.Get(mapBlock.MapImageId.ToString());
-                //    if (texAsset != null)
-                //    {
-                //        textures.Add(texAsset);
-                //    }
-                //}
             }
 
             foreach (AssetBase asset in textures)
@@ -1338,25 +1276,15 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             GenerateMaptile();
         }
-        /*
-                    if (m_mapImageGenerator == null)
-                    {
-                        Console.WriteLine("No map image generator available for {0}", m_scene.Name);
-                        return;
-                    }
 
-                    using (Bitmap mapbmp = m_mapImageGenerator.CreateMapTile())
-                    {
-                        GenerateMaptile(mapbmp);
-                        if(m_mapImageServiceModule != null)
-                            m_mapImageServiceModule.UploadMapTile(m_scene, mapbmp);
-                    }
-                }
-        */
         public OSD HandleRemoteMapItemRequest(string path, OSD request, string endpoint)
         {
             uint xstart = 0;
             uint ystart = 0;
+
+            // create and send back answers about all items active
+            // so call region can cache them and answer to the several 
+            // individual item viewer requests
 
             Util.RegionHandleToWorldLoc(m_scene.RegionInfo.RegionHandle, out xstart, out ystart);
 
@@ -1605,20 +1533,20 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             lock (m_blacklistedregions)
             {
-                if (!m_blacklistedregions.ContainsKey(regionhandle))
+                if (m_blacklistedregions.Contains(regionhandle))
                     m_blacklistedregions.Remove(regionhandle);
             }
 
             lock (m_blacklistedurls)
             {
-                if (m_blacklistedurls.ContainsKey(httpserver))
+                if (m_blacklistedurls.Contains(httpserver))
                     m_blacklistedurls.Remove(httpserver);
             }
 
             lock (m_cachedRegionMapItemsAddress)
             {
-                if (!m_cachedRegionMapItemsAddress.ContainsKey(regionhandle))
-                    m_cachedRegionMapItemsAddress.Remove(regionhandle);
+                    m_cachedRegionMapItemsAddress.AddOrUpdate(regionhandle,
+                        httpserver, 5.0 * expireBlackListTime);
             }
         }
 
@@ -1706,7 +1634,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         }
     }
 
-    public struct MapRequestState
+    public class MapRequestState
     {
         public UUID agentID;
         public uint flags;
