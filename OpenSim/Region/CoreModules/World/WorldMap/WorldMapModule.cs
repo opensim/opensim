@@ -89,7 +89,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         private volatile bool threadrunning = false;
         // expire time for the blacklists in seconds
         private double expireBlackListTime = 600.0; // 10 minutes
-        // expire mapItems responses time in seconds. If too high disturbs the green dots updates
+        // expire mapItems responses time in seconds. Throttles requests to regions that do answer
         private const double expireResponsesTime = 120.0; // 2 minutes ?
         //private int CacheRegionsDistance = 256;
 
@@ -465,131 +465,235 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             List<mapItemReply> mapitems = new List<mapItemReply>();
             mapItemReply mapitem = new mapItemReply();
 
+            // viewers only ask for green dots to each region now
+            // except at login with regionhandle 0
+            // possible on some other rare ocasions
+            // use previus hack of sending all items with the green dots
+
             bool adultRegion;
-
-            switch (itemtype)
+            if (regionhandle == 0)
             {
-                case (int)GridItemType.AgentLocations:
-                    // Service 6 right now (MAP_ITEM_AGENTS_LOCATION; green dots)
+                switch (itemtype)
+                {
+                    case (int)GridItemType.AgentLocations:
+                        // Service 6 right now (MAP_ITEM_AGENTS_LOCATION; green dots)
 
-                    int tc = Environment.TickCount;
-                    if (m_scene.GetRootAgentCount() <= 1)
-                    {
-                        mapitem = new mapItemReply(
-                                    xstart + 1,
-                                    ystart + 1,
-                                    UUID.Zero,
-                                    Util.Md5Hash(m_scene.RegionInfo.RegionName + tc.ToString()),
-                                    0, 0);
-                        mapitems.Add(mapitem);
-                    }
-                    else
-                    {
-                        m_scene.ForEachRootScenePresence(delegate (ScenePresence sp)
+                        int tc = Environment.TickCount;
+                        if (m_scene.GetRootAgentCount() <= 1)
                         {
+                            mapitem = new mapItemReply(
+                                        xstart + 1,
+                                        ystart + 1,
+                                        UUID.Zero,
+                                        Util.Md5Hash(m_scene.RegionInfo.RegionName + tc.ToString()),
+                                        0, 0);
+                            mapitems.Add(mapitem);
+                        }
+                        else
+                        {
+                            m_scene.ForEachRootScenePresence(delegate (ScenePresence sp)
+                            {
                             // Don't send a green dot for yourself
                             if (sp.UUID != remoteClient.AgentId)
-                            {
-                                mapitem = new mapItemReply(
-                                    xstart + (uint)sp.AbsolutePosition.X,
-                                    ystart + (uint)sp.AbsolutePosition.Y,
-                                    UUID.Zero,
-                                    Util.Md5Hash(m_scene.RegionInfo.RegionName + tc.ToString()),
-                                    1, 0);
-                                mapitems.Add(mapitem);
-                            }
-                        });
-                    }
-                    remoteClient.SendMapItemReply(mapitems.ToArray(), itemtype, flags);
+                                {
+                                    mapitem = new mapItemReply(
+                                        xstart + (uint)sp.AbsolutePosition.X,
+                                        ystart + (uint)sp.AbsolutePosition.Y,
+                                        UUID.Zero,
+                                        Util.Md5Hash(m_scene.RegionInfo.RegionName + tc.ToString()),
+                                        1, 0);
+                                    mapitems.Add(mapitem);
+                                }
+                            });
+                        }
+                        remoteClient.SendMapItemReply(mapitems.ToArray(), itemtype, flags);
+                        break;
 
-                    break;
+                    case (int)GridItemType.Telehub:
+                        // Service 1 (MAP_ITEM_TELEHUB)
 
-                case (int)GridItemType.AdultLandForSale:
-                case (int)GridItemType.LandForSale:
-                    // Service 7 (MAP_ITEM_LAND_FOR_SALE)
-
-                    adultRegion = m_scene.RegionInfo.RegionSettings.Maturity == 2;
-                    if (adultRegion)
-                    {
-                        if (itemtype == (int)GridItemType.LandForSale)
-                            break;
-                    }
-                    else
-                    {
-                        if (itemtype == (int)GridItemType.AdultLandForSale)
-                            break;
-                    }
-
-                    // Parcels
-                    ILandChannel landChannel = m_scene.LandChannel;
-                    List<ILandObject> parcels = landChannel.AllParcels();
-
-                    if ((parcels != null) && (parcels.Count >= 1))
-                    {
-                        foreach (ILandObject parcel_interface in parcels)
+                        SceneObjectGroup sog = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject);
+                        if (sog != null)
                         {
-                            // Play it safe
-                            if (!(parcel_interface is LandObject))
-                                continue;
+                            mapitem = new mapItemReply(
+                                            xstart + (uint)sog.AbsolutePosition.X,
+                                            ystart + (uint)sog.AbsolutePosition.Y,
+                                            UUID.Zero,
+                                            sog.Name,
+                                            0,  // color (not used)
+                                            0   // 0 = telehub / 1 = infohub
+                                            );
+                            mapitems.Add(mapitem);
+                            remoteClient.SendMapItemReply(mapitems.ToArray(), itemtype, flags);
+                        }
+                        break;
 
-                            LandObject land = (LandObject)parcel_interface;
-                            LandData parcel = land.LandData;
+                    case (int)GridItemType.AdultLandForSale:
+                    case (int)GridItemType.LandForSale:
 
-                            // Show land for sale
-                            if ((parcel.Flags & (uint)ParcelFlags.ForSale) == (uint)ParcelFlags.ForSale)
+                        // Service 7 (MAP_ITEM_LAND_FOR_SALE)
+                        adultRegion = m_scene.RegionInfo.RegionSettings.Maturity == 2;
+                        if (adultRegion)
+                        {
+                            if (itemtype == (int)GridItemType.LandForSale)
+                                break;
+                        }
+                        else
+                        {
+                            if (itemtype == (int)GridItemType.AdultLandForSale)
+                                break;
+                        }
+
+                        // Parcels
+                        ILandChannel landChannel = m_scene.LandChannel;
+                        List<ILandObject> parcels = landChannel.AllParcels();
+
+                        if ((parcels != null) && (parcels.Count >= 1))
+                        {
+                            foreach (ILandObject parcel_interface in parcels)
                             {
-                                Vector3 min = parcel.AABBMin;
-                                Vector3 max = parcel.AABBMax;
-                                float x = (min.X + max.X) / 2;
-                                float y = (min.Y + max.Y) / 2;
-                                mapitem = new mapItemReply(
-                                            xstart + (uint)x,
-                                            ystart + (uint)y,
-                                            parcel.GlobalID,
-                                            parcel.Name,
-                                            parcel.Area,
-                                            parcel.SalePrice
-                                );
-                                mapitems.Add(mapitem);
+                                // Play it safe
+                                if (!(parcel_interface is LandObject))
+                                    continue;
+
+                                LandObject land = (LandObject)parcel_interface;
+                                LandData parcel = land.LandData;
+
+                                // Show land for sale
+                                if ((parcel.Flags & (uint)ParcelFlags.ForSale) == (uint)ParcelFlags.ForSale)
+                                {
+                                    Vector3 min = parcel.AABBMin;
+                                    Vector3 max = parcel.AABBMax;
+                                    float x = (min.X + max.X) / 2;
+                                    float y = (min.Y + max.Y) / 2;
+                                    mapitem = new mapItemReply(
+                                                xstart + (uint)x,
+                                                ystart + (uint)y,
+                                                parcel.GlobalID,
+                                                parcel.Name,
+                                                parcel.Area,
+                                                parcel.SalePrice
+                                    );
+                                    mapitems.Add(mapitem);
+                                }
                             }
                         }
-                    }
-                    remoteClient.SendMapItemReply(mapitems.ToArray(), itemtype, flags);
-                    break;
-
-                case (int)GridItemType.Telehub:
-                    // Service 1 (MAP_ITEM_TELEHUB)
-
-                    SceneObjectGroup sog = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject);
-                    if (sog != null)
-                    {
-                        mapitem = new mapItemReply(
-                                        xstart + (uint)sog.AbsolutePosition.X,
-                                        ystart + (uint)sog.AbsolutePosition.Y,
-                                        UUID.Zero,
-                                        sog.Name,
-                                        0,  // color (not used)
-                                        0   // 0 = telehub / 1 = infohub
-                                        );
-                        mapitems.Add(mapitem);
-
                         remoteClient.SendMapItemReply(mapitems.ToArray(), itemtype, flags);
+                        break;
+
+                    case (uint)GridItemType.PgEvent:
+                    case (uint)GridItemType.MatureEvent:
+                    case (uint)GridItemType.AdultEvent:
+                    case (uint)GridItemType.Classified:
+                    case (uint)GridItemType.Popular:
+                        // TODO
+                        // just dont not cry about them
+                        break;
+
+                    default:
+                        // unkown map item type
+                        m_log.DebugFormat("[WORLD MAP]: Unknown MapItem type {1}", itemtype);
+                        break;
+                }
+            }
+            else
+            {
+                // send all items till we get a better fix
+
+                // Service 6 right now (MAP_ITEM_AGENTS_LOCATION; green dots)
+
+                int tc = Environment.TickCount;
+                if (m_scene.GetRootAgentCount() <= 1)
+                {
+                    mapitem = new mapItemReply(
+                                xstart + 1,
+                                ystart + 1,
+                                UUID.Zero,
+                                Util.Md5Hash(m_scene.RegionInfo.RegionName + tc.ToString()),
+                                0, 0);
+                    mapitems.Add(mapitem);
+                }
+                else
+                {
+                    m_scene.ForEachRootScenePresence(delegate (ScenePresence sp)
+                    {
+                        // Don't send a green dot for yourself
+                        if (sp.UUID != remoteClient.AgentId)
+                        {
+                            mapitem = new mapItemReply(
+                                xstart + (uint)sp.AbsolutePosition.X,
+                                ystart + (uint)sp.AbsolutePosition.Y,
+                                UUID.Zero,
+                                Util.Md5Hash(m_scene.RegionInfo.RegionName + tc.ToString()),
+                                1, 0);
+                            mapitems.Add(mapitem);
+                        }
+                    });
+                }
+                remoteClient.SendMapItemReply(mapitems.ToArray(), 6, flags);
+                mapitems.Clear();
+
+                // Service 1 (MAP_ITEM_TELEHUB)
+
+                SceneObjectGroup sog = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject);
+                if (sog != null)
+                {
+                    mapitem = new mapItemReply(
+                                    xstart + (uint)sog.AbsolutePosition.X,
+                                    ystart + (uint)sog.AbsolutePosition.Y,
+                                    UUID.Zero,
+                                    sog.Name,
+                                    0,  // color (not used)
+                                    0   // 0 = telehub / 1 = infohub
+                                    );
+                    mapitems.Add(mapitem);
+                    remoteClient.SendMapItemReply(mapitems.ToArray(), 1, flags);
+                    mapitems.Clear();
+                }
+
+                // Service 7 (MAP_ITEM_LAND_FOR_SALE)
+
+                uint its = 7;
+                if (m_scene.RegionInfo.RegionSettings.Maturity == 2)
+                    its = 10;
+
+                // Parcels
+                ILandChannel landChannel = m_scene.LandChannel;
+                List<ILandObject> parcels = landChannel.AllParcels();
+
+                if ((parcels != null) && (parcels.Count >= 1))
+                {
+                    foreach (ILandObject parcel_interface in parcels)
+                    {
+                        // Play it safe
+                        if (!(parcel_interface is LandObject))
+                            continue;
+
+                        LandObject land = (LandObject)parcel_interface;
+                        LandData parcel = land.LandData;
+
+                        // Show land for sale
+                        if ((parcel.Flags & (uint)ParcelFlags.ForSale) == (uint)ParcelFlags.ForSale)
+                        {
+                            Vector3 min = parcel.AABBMin;
+                            Vector3 max = parcel.AABBMax;
+                            float x = (min.X + max.X) / 2;
+                            float y = (min.Y + max.Y) / 2;
+                            mapitem = new mapItemReply(
+                                        xstart + (uint)x,
+                                        ystart + (uint)y,
+                                        parcel.GlobalID,
+                                        parcel.Name,
+                                        parcel.Area,
+                                        parcel.SalePrice
+                            );
+                            mapitems.Add(mapitem);
+                        }
                     }
-                    break;
-
-                case (uint)GridItemType.PgEvent:
-                case (uint)GridItemType.MatureEvent:
-                case (uint)GridItemType.AdultEvent:
-                case (uint)GridItemType.Classified:
-                case (uint)GridItemType.Popular:
-                    // TODO
-                    // just dont not cry about them
-                    break;
-
-                default:
-                    // unkown map item type
-                    m_log.DebugFormat("[WORLD MAP]: Unknown MapItem type {1}", itemtype);
-                    break;
+                    if(mapitems.Count >0)
+                        remoteClient.SendMapItemReply(mapitems.ToArray(), its, flags);
+                    mapitems.Clear();
+                }
             }
         }
 
@@ -663,6 +767,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         {
                             if(av!=null)
                             {
+                                // this will mainly only send green dots now
                                 if (responseMap.ContainsKey(st.itemtype.ToString()))
                                 {
                                     List<mapItemReply> returnitems = new List<mapItemReply>();
@@ -732,6 +837,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             requests.Enqueue(st);
         }
+
+        uint[] itemTypesForcedSend = new uint[] { 6, 1, 7, 10 }; // green dots, infohub, land sells
 
         /// <summary>
         /// Does the actual remote mapitem request
@@ -906,7 +1013,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             lock (m_cachedRegionMapItemsResponses)
                 m_cachedRegionMapItemsResponses.AddOrUpdate(regionhandle, responseMap, expireResponsesTime);
 
-            // send answer for this item and client
             flags &= 0xffff;
 
             if (id != UUID.Zero)
@@ -915,23 +1021,29 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 m_scene.TryGetScenePresence(id, out av);
                 if (av != null && !av.IsChildAgent && !av.IsDeleted && !av.IsInTransit)
                 {
-                    if (responseMap.ContainsKey(itemtype.ToString()))
+                    // send all the items or viewers will never ask for them, except green dots
+                    foreach (uint itfs in itemTypesForcedSend)
                     {
-                        List<mapItemReply> returnitems = new List<mapItemReply>();
-                        OSDArray itemarray = (OSDArray)responseMap[itemtype.ToString()];
-                        for (int i = 0; i < itemarray.Count; i++)
+                        if (responseMap.ContainsKey(itfs.ToString()))
                         {
-                            OSDMap mapitem = (OSDMap)itemarray[i];
-                            mapItemReply mi = new mapItemReply();
-                            mi.x = (uint)mapitem["X"].AsInteger();
-                            mi.y = (uint)mapitem["Y"].AsInteger();
-                            mi.id = mapitem["ID"].AsUUID();
-                            mi.Extra = mapitem["Extra"].AsInteger();
-                            mi.Extra2 = mapitem["Extra2"].AsInteger();
-                            mi.name = mapitem["Name"].AsString();
-                            returnitems.Add(mi);
+                            List<mapItemReply> returnitems = new List<mapItemReply>();
+//                            OSDArray itemarray = (OSDArray)responseMap[itemtype.ToString()];
+                            OSDArray itemarray = (OSDArray)responseMap[itfs.ToString()];
+                            for (int i = 0; i < itemarray.Count; i++)
+                            {
+                                OSDMap mapitem = (OSDMap)itemarray[i];
+                                mapItemReply mi = new mapItemReply();
+                                mi.x = (uint)mapitem["X"].AsInteger();
+                                mi.y = (uint)mapitem["Y"].AsInteger();
+                                mi.id = mapitem["ID"].AsUUID();
+                                mi.Extra = mapitem["Extra"].AsInteger();
+                                mi.Extra2 = mapitem["Extra2"].AsInteger();
+                                mi.name = mapitem["Name"].AsString();
+                                returnitems.Add(mi);
+                            }
+//                            av.ControllingClient.SendMapItemReply(returnitems.ToArray(), itemtype, flags);
+                            av.ControllingClient.SendMapItemReply(returnitems.ToArray(), itfs, flags);
                         }
-                        av.ControllingClient.SendMapItemReply(returnitems.ToArray(), itemtype, flags);
                     }
                 }
             }
@@ -1064,7 +1176,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         {
             if (r == null)
             {
-//                block.Access = (byte)SimAccess.Down;
+                // we should not get here ??
+//                block.Access = (byte)SimAccess.Down; this is for a grid reply on r
                 block.Access = (byte)SimAccess.NonExistent;
                 block.MapImageId = UUID.Zero;
                 return;
@@ -1282,10 +1395,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             uint xstart = 0;
             uint ystart = 0;
 
-            // create and send back answers about all items active
-            // so call region can cache them and answer to the several 
-            // individual item viewer requests
-
             Util.RegionHandleToWorldLoc(m_scene.RegionInfo.RegionHandle, out xstart, out ystart);
 
             // Service 6 (MAP_ITEM_AGENTS_LOCATION; green dots)
@@ -1435,7 +1544,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 needRegionSave = true;
             }
 
-            // bypass terrain image for large regions since only V2 viewers work with them
+            // bypass terrain image for large regions
             if (m_scene.RegionInfo.RegionSizeX <= Constants.RegionSize &&
                     m_scene.RegionInfo.RegionSizeY <= Constants.RegionSize
                     && mapbmp != null)
@@ -1601,8 +1710,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     using (SolidBrush transparent = new SolidBrush(background))
                         g.FillRectangle(transparent, 0, 0, regionSizeX, regionSizeY);
 
-                    // make it a half transparent
-                    using (SolidBrush yellow = new SolidBrush(Color.FromArgb(100, 249, 223, 9)))
+                    // make it a bit transparent
+                    using (SolidBrush yellow = new SolidBrush(Color.FromArgb(192, 249, 223, 9)))
                     {
                         for (int x = 0; x < regionLandTilesX; x++)
                         {
