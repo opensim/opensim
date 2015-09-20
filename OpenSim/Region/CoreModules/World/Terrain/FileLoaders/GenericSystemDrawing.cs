@@ -213,7 +213,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         /// <returns>A System.Drawing.Bitmap containing a grayscale image</returns>
         protected static Bitmap CreateGrayscaleBitmapFromMap(ITerrainChannel map)
         {
+            //            Bitmap bmp = new Bitmap(map.Width, map.Height, PixelFormat.Format24bppRgb);
             Bitmap bmp = new Bitmap(map.Width, map.Height);
+
 
             const int pallete = 256;
 
@@ -227,9 +229,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             {
                 for (int x = 0; x < map.Width; x++)
                 {
-                    int colorindex = (int)map[x, y];  // one to one conversion as seems apparent on sl docs
-                    // or 0-511 range?
-                    // int colorindex = (int)map[x, y]/2;  // 0-511
+                    // to change this, loading also needs change
+
+                    // int colorindex = (int)map[x, y];  // one to one conversion 0 - 255m range
+                    // int colorindex = (int)map[x, y] / 2;  // 0 - 510 range
+
+                    int colorindex = (int)map[x, y] * 2; // the original  0 - 127.5 range
 
                     // clamp it not adding the red warning
                     if (colorindex < 0)
