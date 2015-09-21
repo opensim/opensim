@@ -1067,7 +1067,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// No avatar should appear more than once in this list.
         /// Do not manipulate this list directly - use the Add/Remove sitting avatar methods on SceneObjectPart.
         /// </remarks>
-        protected internal List<UUID> m_sittingAvatars = new List<UUID>();
+        protected internal List<ScenePresence> m_sittingAvatars = new List<ScenePresence>();
 
         #endregion
 
@@ -2348,7 +2348,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // new group as no sitting avatars            
             dupe.m_linkedAvatars = new List<ScenePresence>();
-            dupe.m_sittingAvatars = new List<UUID>();
+            dupe.m_sittingAvatars = new List<ScenePresence>();
 
             dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);
             dupe.m_rootPart.LinkNum = m_rootPart.LinkNum;
@@ -4821,10 +4821,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// down after it move one place down the list.
         /// </remarks>
         /// <returns>A list of the sitting avatars.  Returns an empty list if there are no sitting avatars.</returns>
-        public List<UUID> GetSittingAvatars()
+        public List<ScenePresence> GetSittingAvatars()
         {
             lock (m_sittingAvatars)
-                return new List<UUID>(m_sittingAvatars);
+                return new List<ScenePresence>(m_sittingAvatars);
         }
 
         /// <summary>

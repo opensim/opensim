@@ -2884,7 +2884,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
 
                 m_requestedSitTargetID = 0;
-                part.RemoveSittingAvatar(UUID);
+                part.RemoveSittingAvatar(this);
                 part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
 
                 SendAvatarDataToAllAgents();
@@ -2984,7 +2984,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 Velocity = Vector3.Zero;
 
-                part.AddSittingAvatar(UUID);
+                part.AddSittingAvatar(this);
 
                 cameraAtOffset = part.GetCameraAtOffset();
                 cameraEyeOffset = part.GetCameraEyeOffset();
@@ -3132,7 +3132,7 @@ namespace OpenSim.Region.Framework.Scenes
             Velocity = Vector3.Zero;
             m_AngularVelocity = Vector3.Zero;
 
-            part.AddSittingAvatar(UUID);
+            part.AddSittingAvatar(this);
 
             Vector3 cameraAtOffset = part.GetCameraAtOffset();
             Vector3 cameraEyeOffset = part.GetCameraEyeOffset();

@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -617,7 +617,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             int actualPrimCount = part.ParentGroup.PrimCount;
-            List<UUID> sittingAvatars = part.ParentGroup.GetSittingAvatars();
+            List<ScenePresence> sittingAvatars = part.ParentGroup.GetSittingAvatars();
             int adjustedPrimCount = actualPrimCount + sittingAvatars.Count;
 
             // Special case for a single prim.  In this case the linknum is zero.  However, this will not match a single
@@ -646,11 +646,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
                 else
                 {
-                    ScenePresence sp = World.GetScenePresence(sittingAvatars[linknum - actualPrimCount - 1]);
-                    if (sp != null)
-                        return sp;
-                    else
-                        return null;
+                    return sittingAvatars[linknum - actualPrimCount - 1];
                 }
             }
             else
@@ -4146,7 +4142,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                if (m_host.ParentGroup.GetSittingAvatars().SingleOrDefault(id => id == agentID) != null)
+                if (m_host.ParentGroup.GetSittingAvatars().SingleOrDefault(sp => sp.UUID == agentID) != null)
                 {
                     // When agent is sitting, certain permissions are implicit if requested from sitting agent
                     implicitPerms = ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION |
@@ -6915,11 +6911,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (UUID.TryParse(id, out key))
             {
                 ScenePresence av = World.GetScenePresence(key);
-                List<UUID> sittingAvatars = m_host.ParentGroup.GetSittingAvatars();
+                List<ScenePresence> sittingAvatars = m_host.ParentGroup.GetSittingAvatars();
 
                 if (av != null)
                 {
-                    if (sittingAvatars.Contains(key))
+                    if (sittingAvatars.Contains(av))
                     {
                         // if the avatar is sitting on this object, then
                         // we can unsit them.  We don't want random scripts unsitting random people
@@ -10316,9 +10312,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetNumberOfPrims()
         {
             m_host.AddScriptLPS(1);
-            int avatarCount = m_host.ParentGroup.GetLinkedAvatars().Count;
-            
-            return m_host.ParentGroup.PrimCount + avatarCount;
+
+            return m_host.ParentGroup.PrimCount + m_host.ParentGroup.GetSittingAvatarsCount();
         }
 
         /// <summary>
@@ -14457,7 +14452,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID userId = UUID.Zero;
             int msAvailable = 0;
             // Throttle per owner when attachment or "vehicle" (sat upon)
-            if (m_host.ParentGroup.IsAttachment || m_host.ParentGroup.GetSittingAvatars().Count > 0)
+            if (m_host.ParentGroup.IsAttachment || m_host.ParentGroup.GetSittingAvatarsCount() > 0)
             {
                 userId = m_host.OwnerID;
                 msAvailable = m_msPerAvatarInCastRay;

@@ -98,9 +98,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             Assert.That(part.SitTargetAvatar, Is.EqualTo(UUID.Zero));
             Assert.That(part.GetSittingAvatarsCount(), Is.EqualTo(1));
-            HashSet<UUID> sittingAvatars = part.GetSittingAvatars();
+            HashSet<ScenePresence> sittingAvatars = part.GetSittingAvatars();
             Assert.That(sittingAvatars.Count, Is.EqualTo(1));
-            Assert.That(sittingAvatars.Contains(m_sp.UUID));
+            Assert.That(sittingAvatars.Contains(m_sp));
             Assert.That(m_sp.ParentID, Is.EqualTo(part.LocalId));
         }
 
@@ -210,9 +210,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(m_sp.PhysicsActor, Is.Null);
 
             Assert.That(part.GetSittingAvatarsCount(), Is.EqualTo(1));
-            HashSet<UUID> sittingAvatars = part.GetSittingAvatars();
+            HashSet<ScenePresence> sittingAvatars = part.GetSittingAvatars();
             Assert.That(sittingAvatars.Count, Is.EqualTo(1));
-            Assert.That(sittingAvatars.Contains(m_sp.UUID));
+            Assert.That(sittingAvatars.Contains(m_sp));
 
             m_sp.StandUp();
 
