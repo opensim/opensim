@@ -538,9 +538,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             List<ScenePresence> ret = new List<ScenePresence>();
             if (m_host == null || m_host.ParentGroup == null || m_host.ParentGroup.IsDeleted)
                 return ret;
-            
-            List<ScenePresence> avs = m_host.ParentGroup.GetLinkedAvatars();
 
+            //            List<ScenePresence> avs = m_host.ParentGroup.GetLinkedAvatars();
+            // this needs check
+            List<ScenePresence> avs = m_host.ParentGroup.GetSittingAvatars();
             switch (linkType)
             {
                 case ScriptBaseClass.LINK_SET:
@@ -2801,7 +2802,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else // fix sitting avatars. This is only needed bc of how we link avas to child parts, not root part
             {
-                List<ScenePresence> sittingavas = part.ParentGroup.GetLinkedAvatars();
+                //                List<ScenePresence> sittingavas = part.ParentGroup.GetLinkedAvatars();
+                List<ScenePresence> sittingavas = part.ParentGroup.GetSittingAvatars();
                 if (sittingavas.Count > 0)
                 {
                     foreach (ScenePresence av in sittingavas)
