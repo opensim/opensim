@@ -84,9 +84,6 @@ namespace OpenSim.Framework.Servers
         {
             // Random uuid for private data
             m_osSecret = UUID.Random().ToString();
-
-            m_periodicDiagnosticsTimer.Elapsed += new ElapsedEventHandler(LogDiagnostics);
-            m_periodicDiagnosticsTimer.Enabled = true;
         }
         
         /// <summary>
