@@ -48,6 +48,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void Register()
         {
+/*
             m_console.Commands.AddCommand(
                 "Comms", false, "show server throttles",
                 "show server throttles",
@@ -213,6 +214,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "Set a debug parameter for a particular client.  If no name is given then the value is set on all clients.",
                 "process-unacked-sends - Do we take action if a sent reliable packet has not been acked.",
                 HandleClientSetCommand);
+*/
         }
 
         private void HandleShowServerThrottlesCommand(string module, string[] args)
