@@ -127,7 +127,6 @@ namespace OpenSim.Region.Framework.Scenes
         private long m_maxPersistTime = 0;
         private long m_minPersistTime = 0;
 //        private Random m_rand;
-        private List<ScenePresence> m_linkedAvatars = new List<ScenePresence>();
 
         /// <summary>
         /// This indicates whether the object has changed such that it needs to be repersisted to permenant storage
@@ -600,7 +599,7 @@ namespace OpenSim.Region.Framework.Scenes
                         part.GroupPosition = val;
                 }
 
-                foreach (ScenePresence av in m_linkedAvatars)
+                foreach (ScenePresence av in m_sittingAvatars)
                 {
                     av.sitSOGmoved();
                 }
@@ -670,7 +669,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (destination == null)
                 return sog;
 
-            if (sog.m_linkedAvatars.Count == 0)
+            if (sog.m_sittingAvatars.Count == 0)
             {
                 entityTransfer.CrossPrimGroupIntoNewRegion(destination, newpos, sog, true, true);
                 return sog;
@@ -679,7 +678,7 @@ namespace OpenSim.Region.Framework.Scenes
             string reason = String.Empty;
             string version = String.Empty;
 
-            foreach (ScenePresence av in sog.m_linkedAvatars)
+            foreach (ScenePresence av in sog.m_sittingAvatars)
             {
                 // We need to cross these agents. First, let's find
                 // out if any of them can't cross for some reason.
@@ -701,7 +700,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             List<avtocrossInfo> avsToCross = new List<avtocrossInfo>();
 
-            foreach (ScenePresence av in sog.m_linkedAvatars)
+            foreach (ScenePresence av in sog.m_sittingAvatars)
             {
                 avtocrossInfo avinfo = new avtocrossInfo();
                 SceneObjectPart parentPart = sogScene.GetSceneObjectPart(av.ParentID);
@@ -796,7 +795,7 @@ namespace OpenSim.Region.Framework.Scenes
                         part.GroupPosition = oldp;
                 }
 
-                foreach (ScenePresence av in sog.m_linkedAvatars)
+                foreach (ScenePresence av in sog.m_sittingAvatars)
                 {
                     av.sitSOGmoved();
                 }
@@ -1698,47 +1697,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Add the avatar to this linkset (avatar is sat).
-        /// </summary>
-        /// <param name="agentID"></param>
-        public void AddAvatar(UUID agentID)
-        {
-            ScenePresence presence;
-            if (m_scene.TryGetScenePresence(agentID, out presence))
-            {
-                if (!m_linkedAvatars.Contains(presence))
-                {
-                    m_linkedAvatars.Add(presence);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Delete the avatar from this linkset (avatar is unsat).
-        /// </summary>
-        /// <param name="agentID"></param>
-        public void DeleteAvatar(UUID agentID)
-        {
-            ScenePresence presence;
-            if (m_scene.TryGetScenePresence(agentID, out presence))
-            {
-                if (m_linkedAvatars.Contains(presence))
-                {
-                    m_linkedAvatars.Remove(presence);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Returns the list of linked presences (avatars sat on this group)
-        /// </summary>
-        /// <param name="agentID"></param>
-        public List<ScenePresence> GetLinkedAvatars()
-        {
-            return m_linkedAvatars;
-        }
-
-        /// <summary>
         /// Attach this scene object to the given avatar.
         /// </summary>
         /// <param name="agentID"></param>
@@ -2347,7 +2305,6 @@ namespace OpenSim.Region.Framework.Scenes
             dupe.inTransit = inTransit; // this shouldn't be needed TEST
 
             // new group as no sitting avatars            
-            dupe.m_linkedAvatars = new List<ScenePresence>();
             dupe.m_sittingAvatars = new List<ScenePresence>();
 
             dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);

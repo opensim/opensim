@@ -878,7 +878,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (!m_parentGroup.m_dupeInProgress)
                     {
-                        List<ScenePresence> avs = ParentGroup.GetLinkedAvatars();
+                        List<ScenePresence> avs = ParentGroup.GetSittingAvatars();
                         foreach (ScenePresence av in avs)
                         {
                             if (av.ParentID == m_localId)
