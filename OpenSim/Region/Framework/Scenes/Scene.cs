@@ -2634,7 +2634,8 @@ namespace OpenSim.Region.Framework.Scenes
             List<ScenePresence> avatars = group.GetSittingAvatars();
             foreach (ScenePresence av in avatars)
             {
-                av.StandUp();
+                if(av.ParentUUID == UUID.Zero)
+                    av.StandUp();
             }
 
             SceneObjectPart[] partList = group.Parts;
