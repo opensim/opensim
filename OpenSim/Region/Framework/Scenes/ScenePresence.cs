@@ -1138,7 +1138,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else
                     {
-                        part.ParentGroup.AddAvatar(UUID);
+                        part.AddSittingAvatar(this);
                         if (part.SitTargetPosition != Vector3.Zero)
                             part.SitTargetAvatar = UUID;
                         ParentID = part.LocalId;
@@ -2838,7 +2838,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                part.ParentGroup.DeleteAvatar(UUID);
+//                part.ParentGroup.DeleteAvatar(UUID);
 
                 Quaternion standRotation = part.ParentGroup.RootPart.RotationOffset;
                 Vector3 sitPartWorldPosition = part.ParentGroup.AbsolutePosition + m_pos * standRotation;
@@ -3132,8 +3132,6 @@ namespace OpenSim.Region.Framework.Scenes
             Velocity = Vector3.Zero;
             m_AngularVelocity = Vector3.Zero;
 
-            part.AddSittingAvatar(this);
-
             Vector3 cameraAtOffset = part.GetCameraAtOffset();
             Vector3 cameraEyeOffset = part.GetCameraEyeOffset();
             bool forceMouselook = part.GetForceMouselook();
@@ -3158,7 +3156,6 @@ namespace OpenSim.Region.Framework.Scenes
                     cameraEyeOffset = cameraEyeOffset * part.RotationOffset;
                     cameraEyeOffset += part.OffsetPosition;
                 }
-
             }
 
             m_pos = offset;
@@ -3168,19 +3165,13 @@ namespace OpenSim.Region.Framework.Scenes
           
 
             m_requestedSitTargetID = 0;
-            part.ParentGroup.AddAvatar(UUID);
+            part.AddSittingAvatar(this);
 
             ParentPart = part;
             ParentID = part.LocalId;
 
             SendAvatarDataToAllAgents();
 
-/*
-            if(status == 3)
-                Animator.TrySetMovementAnimation("SIT_GROUND");
-            else
-                Animator.TrySetMovementAnimation("SIT");
-*/
             if (status == 3)
                 sitAnimation = "SIT_GROUND";
             else
@@ -3275,7 +3266,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                            Name, part.AbsolutePosition, m_pos, ParentPosition, part.Name, part.LocalId);
                 }
 
-                part.ParentGroup.AddAvatar(UUID);
+                part.AddSittingAvatar(this);
                 ParentPart = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
                 ParentID = m_requestedSitTargetID;
                 m_AngularVelocity = Vector3.Zero;

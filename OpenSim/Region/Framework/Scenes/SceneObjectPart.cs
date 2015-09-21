@@ -5555,7 +5555,8 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
                 if (m_sittingAvatars.Add(sp))
                 {
-                    ParentGroup.m_sittingAvatars.Add(sp);
+                    if(!ParentGroup.m_sittingAvatars.Contains(sp))
+                        ParentGroup.m_sittingAvatars.Add(sp);
 
                     return true;
                 }
