@@ -1209,8 +1209,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public virtual bool CanSendLayerData()
         {
-            int n = m_udpClient.GetCatBytesInSendQueue(ThrottleOutPacketType.Land);
-            if ( n > 100000)
+            int n = m_udpClient.GetPacketsQueuedCount(ThrottleOutPacketType.Land);
+            if ( n > 256)
                 return false;
             return true;
         }
@@ -1355,15 +1355,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             try
             {
-                /* test code using the terrain compressor in libOpenMetaverse
-                int[] patchInd = new int[1];
-                patchInd[0] = px + (py * Constants.TerrainPatchSize);
-                LayerDataPacket layerpack = TerrainCompressor.CreateLandPacket(terrData.GetFloatsSerialized(), patchInd);
-                 */
-                // Many, many patches could have been passed to us. Since the patches will be compressed
-                //   into variable sized blocks, we cannot pre-compute how many will fit into one
-                //   packet. While some fancy packing algorithm is possible, 4 seems to always fit.
-                int PatchesAssumedToFit = 4;
+                int PatchesAssumedToFit = 3;
                 for (int pcnt = 0; pcnt < px.Length; pcnt += PatchesAssumedToFit)
                 {
                     int remaining = Math.Min(px.Length - pcnt, PatchesAssumedToFit);
@@ -1377,20 +1369,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     LayerDataPacket layerpack = OpenSimTerrainCompressor.CreateLandPacket(terrData, xPatches, yPatches);
                     // DebugSendingPatches("SendLayerDataInternal", xPatches, yPatches);
 
-                    SendTheLayerPacket(layerpack);
+                    OutPacket(layerpack, ThrottleOutPacketType.Land);
                 }
-                // LayerDataPacket layerpack = OpenSimTerrainCompressor.CreateLandPacket(terrData, px, py);
-
             }
             catch (Exception e)
             {
                 m_log.Error("[CLIENT]: SendLayerData() Failed with exception: " + e.Message, e);
             }
-        }
-
-        private void SendTheLayerPacket(LayerDataPacket layerpack)
-        {
-            OutPacket(layerpack, ThrottleOutPacketType.Land);
         }
 
         /// <summary>

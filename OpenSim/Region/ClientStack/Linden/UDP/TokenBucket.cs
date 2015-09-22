@@ -289,7 +289,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public int GetCatBytesCanSend(int timeMS)
         {
 //            return (int)(m_tokenCount + timeMS * m_dripRate * 1e-3);
-            return (int)(timeMS * m_dripRate * 1e-3);
+            return (int)(timeMS * DripRate * 1e-3);
         }
 
         /// <summary>

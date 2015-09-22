@@ -122,11 +122,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Sequence numbers of packets we've received (for duplicate checking)</summary>
         public readonly IncomingPacketHistoryCollection PacketArchive = new IncomingPacketHistoryCollection(200);
 
-        /// <summary>
-        /// If true then we take action in response to unacked reliably sent packets such as resending the packet.
-        /// </summary>
-        public bool ProcessUnackedSends { get; set; }
-
         /// <summary>Packets we have sent that need to be ACKed by the client</summary>
         public readonly UnackedPacketCollection NeedAcks = new UnackedPacketCollection();
 
@@ -252,8 +247,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (maxRTO != 0)
                 m_maxRTO = maxRTO;
 
-            ProcessUnackedSends = true;
-
             m_burstTime = rates.BrustTime;
             float m_burst = rates.ClientMaxRate * m_burstTime;
 
@@ -357,8 +350,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="throttleType"></param>
         public int GetPacketsQueuedCount(ThrottleOutPacketType throttleType)
         {
-            if ((int)throttleType > 0)
-                return m_packetOutboxes[(int)throttleType].Count;
+            int icat = (int)throttleType;
+            if (icat > 0 && icat < THROTTLE_CATEGORY_COUNT)
+                return m_packetOutboxes[icat].Count;
             else
                 return 0;
         }
@@ -544,21 +538,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             return data;
         }
-
-        public int GetCatBytesInSendQueue(ThrottleOutPacketType cat)
-        {
-            ;
-            int icat = (int)cat;
-            if (icat > 0 && icat < THROTTLE_CATEGORY_COUNT)
-            {
-                TokenBucket bucket = m_throttleCategories[icat];
-                return m_packetOutboxes[icat].Count;
-            }
-            else
-                return 0;
-        }
-
-        
+       
         public int GetCatBytesCanSend(ThrottleOutPacketType cat, int timeMS)
         {
             int icat = (int)cat;

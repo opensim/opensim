@@ -558,6 +558,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_console.OutputFormat("{0} set to {1} in {2}", param, rawValue, m_udpServer.Scene.Name);
         }
 
+/* not in use, nothing to set/get from lludp
         private void HandleClientGetCommand(string module, string[] args)
         {
             if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_udpServer.Scene)
@@ -584,11 +585,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         m_console.OutputFormat(
                             "Client debug parameters for {0} ({1}) in {2}",
                             sp.Name, sp.IsChildAgent ? "child" : "root", m_udpServer.Scene.Name);
-
-                        ConsoleDisplayList cdl = new ConsoleDisplayList();
-                        cdl.AddRow("process-unacked-sends", udpClient.ProcessUnackedSends);
-
-                        m_console.Output(cdl.ToString());
                     }
                 });
         }
@@ -611,28 +607,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (args.Length == 8)
                 name = string.Format("{0} {1}", args[6], args[7]);
-
-            if (param == "process-unacked-sends")
-            {
-                bool newValue;
-
-                if (!ConsoleUtil.TryParseConsoleBool(MainConsole.Instance, rawValue, out newValue))
-                    return;
-
-                m_udpServer.Scene.ForEachScenePresence(
-                    sp =>
-                    {
-                        if ((name == null || sp.Name == name) && sp.ControllingClient is LLClientView)
-                        {
-                            LLUDPClient udpClient = ((LLClientView)sp.ControllingClient).UDPClient;
-                            udpClient.ProcessUnackedSends = newValue;
-
-                            m_console.OutputFormat("{0} set to {1} for {2} in {3}", param, newValue, sp.Name, m_udpServer.Scene.Name);
-                        }
-                    });
-            }
+            // nothing here now
         }
-
+*/
         private void HandlePacketCommand(string module, string[] args)
         {
             if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_udpServer.Scene)
