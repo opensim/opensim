@@ -351,7 +351,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public int GetPacketsQueuedCount(ThrottleOutPacketType throttleType)
         {
             int icat = (int)throttleType;
-            if ((int)throttleType > 0 && icat < THROTTLE_CATEGORY_COUNT)
+            if (icat > 0 && icat < THROTTLE_CATEGORY_COUNT)
                 return m_packetOutboxes[icat].Count;
             else
                 return 0;
