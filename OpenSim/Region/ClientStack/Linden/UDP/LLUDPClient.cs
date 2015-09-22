@@ -351,7 +351,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public int GetPacketsQueuedCount(ThrottleOutPacketType throttleType)
         {
             int icat = (int)throttleType;
-            if (icat > 0 && icat < THROTTLE_CATEGORY_COUNT)
+            if ((int)throttleType > 0 && icat < THROTTLE_CATEGORY_COUNT)
                 return m_packetOutboxes[icat].Count;
             else
                 return 0;
@@ -437,7 +437,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Make sure none of the throttles are set below our packet MTU,
             // otherwise a throttle could become permanently clogged
 
-/* not using floats
+/* now using floats
             resend = Math.Max(resend, LLUDPServer.MTU);
             land = Math.Max(land, LLUDPServer.MTU);
             wind = Math.Max(wind, LLUDPServer.MTU);

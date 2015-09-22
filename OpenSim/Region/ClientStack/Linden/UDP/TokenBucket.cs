@@ -104,8 +104,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             get { return m_burst; }
             set {
                 float rate = (value < 0 ? 0 : value);
-                if (rate < m_minimumDripRate)
-                    rate = m_minimumDripRate;
+                if (rate < 1.5f * m_minimumDripRate)
+                    rate = 1.5f * m_minimumDripRate;
                 else if (rate > m_minimumDripRate * m_quantumsPerBurst)
                     rate = m_minimumDripRate * m_quantumsPerBurst;
 
