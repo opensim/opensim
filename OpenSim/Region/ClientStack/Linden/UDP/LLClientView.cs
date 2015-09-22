@@ -1355,22 +1355,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             try
             {
-                int PatchesAssumedToFit = 3;
-                for (int pcnt = 0; pcnt < px.Length; pcnt += PatchesAssumedToFit)
-                {
-                    int remaining = Math.Min(px.Length - pcnt, PatchesAssumedToFit);
-                    int[] xPatches = new int[remaining];
-                    int[] yPatches = new int[remaining];
-                    for (int ii = 0; ii < remaining; ii++)
-                    {
-                        xPatches[ii] = px[pcnt + ii];
-                        yPatches[ii] = py[pcnt + ii];
-                    }
-                    LayerDataPacket layerpack = OpenSimTerrainCompressor.CreateLandPacket(terrData, xPatches, yPatches);
-                    // DebugSendingPatches("SendLayerDataInternal", xPatches, yPatches);
-
-                    OutPacket(layerpack, ThrottleOutPacketType.Land);
-                }
+                List<LayerDataPacket> packets = OpenSimTerrainCompressor.CreateTerrainPatchsPacket(terrData, px, py);
+                foreach(LayerDataPacket pkt in packets)
+                    OutPacket(pkt, ThrottleOutPacketType.Land);
             }
             catch (Exception e)
             {

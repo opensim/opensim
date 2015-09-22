@@ -27,9 +27,11 @@
 
 /* Freely adapted from the Aurora version of the terrain compressor.
  * Copyright (c) Contributors, http://aurora-sim.org/, http://opensimulator.org/
+ * Aurora version created from libOpenMetaverse Library terrain compressor
  */
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 using log4net;
@@ -156,15 +158,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <returns></returns>
         public static LayerDataPacket CreateLandPacket(TerrainData terrData, int[] x, int[] y, byte type)
         {
-            LayerDataPacket layer = new LayerDataPacket {LayerID = {Type = type}};
-
-            TerrainPatch.GroupHeader header = new TerrainPatch.GroupHeader
-                                                  {Stride = STRIDE, PatchSize = Constants.TerrainPatchSize};
+            LayerDataPacket layer = new LayerDataPacket();
+            layer.LayerID.Type = type;
 
             byte[] data = new byte[x.Length * Constants.TerrainPatchSize * Constants.TerrainPatchSize * 2];
             BitPack bitpack = new BitPack(data, 0);
-            bitpack.PackBits(header.Stride, 16);
-            bitpack.PackBits(header.PatchSize, 8);
+            bitpack.PackBits(STRIDE, 16);
+            bitpack.PackBits(Constants.TerrainPatchSize, 8);
             bitpack.PackBits(type, 8);
 
             for (int i = 0; i < x.Length; i++)
@@ -178,7 +178,62 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return layer;
         }
 
+        public static List<LayerDataPacket> CreateTerrainPatchsPacket(TerrainData terrData, int[] x, int[] y)
+        {
+            List<LayerDataPacket> ret = new List<LayerDataPacket>();
+
+            // normal or large region
+            byte landPacketType;
+            if (terrData.SizeX > Constants.RegionSize || terrData.SizeY > Constants.RegionSize)
+                landPacketType = (byte)TerrainPatch.LayerType.LandExtended;
+            else
+                landPacketType = (byte)TerrainPatch.LayerType.Land;
+
+            //create packet and global header
+            LayerDataPacket layer = new LayerDataPacket();
+
+            layer.LayerID.Type = landPacketType;
+
+            byte[] data = new byte[x.Length * Constants.TerrainPatchSize * Constants.TerrainPatchSize * 2];
+            BitPack bitpack = new BitPack(data, 0);
+            bitpack.PackBits(STRIDE, 16);
+            bitpack.PackBits(Constants.TerrainPatchSize, 8);
+            bitpack.PackBits(landPacketType, 8);
+
+            for (int i = 0; i < x.Length; i++)
+            {
+                CreatePatchFromHeightmap(bitpack, terrData, x[i], y[i]);
+                if (bitpack.BytePos > 1000 && i != x.Length - 1)
+                {
+                    //finish this packet
+                    bitpack.PackBits(END_OF_PATCHES, 8);
+
+                    layer.LayerData.Data = new byte[bitpack.BytePos + 1];
+                    Buffer.BlockCopy(bitpack.Data, 0, layer.LayerData.Data, 0, bitpack.BytePos + 1);
+                    ret.Add(layer);
+
+                    // start another
+                    layer = new LayerDataPacket();
+                    layer.LayerID.Type = landPacketType;
+                    
+                    bitpack = new BitPack(data, 0);
+                    bitpack.PackBits(STRIDE, 16);
+                    bitpack.PackBits(Constants.TerrainPatchSize, 8);
+                    bitpack.PackBits(landPacketType, 8);
+                }
+            }
+
+            bitpack.PackBits(END_OF_PATCHES, 8);
+
+            layer.LayerData.Data = new byte[bitpack.BytePos + 1];
+            Buffer.BlockCopy(bitpack.Data, 0, layer.LayerData.Data, 0, bitpack.BytePos + 1);
+            ret.Add(layer);
+
+            return ret;
+        }
+
         // Unused: left for historical reference.
+        // nopes.. in use by clouds and wind
         public static void CreatePatch(BitPack output, float[] patchData, int x, int y, int pRegionSizeX, int pRegionSizeY)
         {
             TerrainPatch.Header header = PrescanPatch(patchData);
