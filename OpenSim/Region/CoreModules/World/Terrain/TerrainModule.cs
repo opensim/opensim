@@ -1102,7 +1102,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     {
                         pups.SetByPatch(x, y, false);
                         patchs.Add(new PatchesToSend(x, y, 0));
-                        if (++npatchs >= 512)
+                        if (++npatchs >= 128)
                         {
                             pups.sendAllcurrentX = x + 1;
                             pups.sendAllcurrentY = y;
@@ -1110,7 +1110,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         }
                     }
                 }
-                if (npatchs >= 512)
+                if (npatchs >= 128)
                     break;
                 x = 0;
             }
@@ -1221,7 +1221,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         {
                             pups.SetByPatch(x, y, false);
                             ret.Add(new PatchesToSend(x, y, (float)distsq));
-                            if (npatchs++ > 1024)
+                            if (npatchs++ > 512)
                             {
                                 y = endY;
                                 x = endX;

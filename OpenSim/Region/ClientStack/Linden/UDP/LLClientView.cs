@@ -1210,7 +1210,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public virtual bool CanSendLayerData()
         {
             int n = m_udpClient.GetPacketsQueuedCount(ThrottleOutPacketType.Land);
-            if ( n > 256)
+            if ( n > 20)
                 return false;
             return true;
         }
