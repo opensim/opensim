@@ -1270,7 +1270,8 @@ namespace OpenSim.Framework.Servers.HttpServer
             requestStream.Close();
 
             //m_log.DebugFormat("[OGP]: {0}:{1}", request.RawUrl, requestBody);
-            response.KeepAlive = true;
+            // response.KeepAlive = true;
+            response.KeepAlive = false;
 
             OSD llsdRequest = null;
             OSD llsdResponse = null;
@@ -1791,16 +1792,19 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 response.ProtocolVersion = (string)responsedata["http_protocol_version"];
             }
-
+/*
             if (responsedata.ContainsKey("keepalive"))
             {
                 bool keepalive = (bool)responsedata["keepalive"];
                 response.KeepAlive = keepalive;
-
             }
 
             if (responsedata.ContainsKey("reusecontext"))
                 response.ReuseContext = (bool) responsedata["reusecontext"];
+*/
+            // disable this things
+            response.KeepAlive = false;
+            response.ReuseContext = false;
 
             // Cross-Origin Resource Sharing with simple requests
             if (responsedata.ContainsKey("access_control_allow_origin"))
@@ -1814,7 +1818,10 @@ namespace OpenSim.Framework.Servers.HttpServer
                 contentType = "text/html";
             }
 
+
+
             // The client ignores anything but 200 here for web login, so ensure that this is 200 for that
+
 
             response.StatusCode = responsecode;
 
