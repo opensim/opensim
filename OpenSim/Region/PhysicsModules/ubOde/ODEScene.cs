@@ -2295,21 +2295,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
 //                    geom_name_map[GroundGeom] = "Terrain";
 
-                    d.Matrix3 R = new d.Matrix3();
+                    d.Quaternion q = new d.Quaternion();
+                    q.X = 0.5f;
+                    q.Y = 0.5f;
+                    q.Z = 0.5f;
+                    q.W = 0.5f;
 
-                    Quaternion q1 = Quaternion.CreateFromAxisAngle(new Vector3(1, 0, 0), 1.5707f);
-                    Quaternion q2 = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), 1.5707f);
-
-
-                    q1 = q1 * q2;
-
-                    Vector3 v3;
-                    float angle;
-                    q1.GetAxisAngle(out v3, out angle);
-
-                    d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
-                    d.GeomSetRotation(GroundGeom, ref R);
-                    d.GeomSetPosition(GroundGeom, pOffset.X + m_regionWidth * 0.5f, pOffset.Y + m_regionHeight * 0.5f, 0);
+                    d.GeomSetQuaternion(GroundGeom, ref q);
+                    d.GeomSetPosition(GroundGeom, pOffset.X + m_regionWidth * 0.5f, pOffset.Y + m_regionHeight * 0.5f, 0.0f);
                     RegionTerrain.Add(pOffset, GroundGeom);
                     TerrainHeightFieldHeights.Add(GroundGeom, _heightmap);
                     TerrainHeightFieldHeightsHandlers.Add(GroundGeom, _heightmaphandler);
@@ -2419,7 +2412,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
 //                    geom_name_map[GroundGeom] = "Terrain";
 
-                    d.GeomSetPosition(GroundGeom, pOffset.X + m_regionWidth * 0.5f, pOffset.Y + m_regionHeight * 0.5f, 0);
+                    d.GeomSetPosition(GroundGeom, pOffset.X + m_regionWidth * 0.5f, pOffset.Y + m_regionHeight * 0.5f, 0.0f);
                     RegionTerrain.Add(pOffset, GroundGeom);
                     TerrainHeightFieldHeights.Add(GroundGeom, _heightmap);
                     TerrainHeightFieldHeightsHandlers.Add(GroundGeom, _heightmaphandler);
