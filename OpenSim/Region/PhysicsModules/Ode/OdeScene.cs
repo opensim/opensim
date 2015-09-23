@@ -3939,8 +3939,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                 }
                 IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
-                d.GeomHeightfieldDataBuildSingle(HeightmapData, _heightmap, 0, heightmapWidth, heightmapHeight,
-                                                 (int)heightmapWidthSamples, (int)heightmapHeightSamples, scale,
+                d.GeomHeightfieldDataBuildSingle(HeightmapData, _heightmap, 0, heightmapHeight, heightmapWidth,
+                                                 (int)heightmapHeightSamples, (int)heightmapWidthSamples, scale,
                                                  offset, thickness, wrap);
 
                 d.GeomHeightfieldDataSetBounds(HeightmapData, hfmin - 1, hfmax + 1);

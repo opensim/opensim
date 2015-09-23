@@ -2275,9 +2275,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 GCHandle _heightmaphandler = GCHandle.Alloc(_heightmap, GCHandleType.Pinned);
 
-                d.GeomHeightfieldDataBuildSingle(HeightmapData, _heightmaphandler.AddrOfPinnedObject(), 0, heightmapWidth , heightmapHeight,
-                                                 (int)heightmapWidthSamples, (int)heightmapHeightSamples, scale,
-                                                 offset, thickness, wrap);
+                d.GeomHeightfieldDataBuildSingle(HeightmapData, _heightmaphandler.AddrOfPinnedObject(), 0,
+                                                heightmapHeight, heightmapWidth ,
+                                                 (int)heightmapHeightSamples, (int)heightmapWidthSamples, scale,
+                                                offset, thickness, wrap);
 
                 d.GeomHeightfieldDataSetBounds(HeightmapData, hfmin - 1, hfmax + 1);
 
