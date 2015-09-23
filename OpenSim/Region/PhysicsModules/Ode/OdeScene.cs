@@ -3965,7 +3965,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                 d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
                 d.GeomSetRotation(GroundGeom, ref R);
-                d.GeomSetPosition(GroundGeom, pOffset.X + regionsizeX * 0.5f, pOffset.Y + regionsizeY * 0.5f, 0);
+                d.GeomSetPosition(GroundGeom, pOffset.X + regionsizeX * 0.5f, pOffset.Y + regionsizeY * 0.5f, 0.0f);
                 IntPtr testGround = IntPtr.Zero;
                 if (RegionTerrain.TryGetValue(pOffset, out testGround))
                 {
