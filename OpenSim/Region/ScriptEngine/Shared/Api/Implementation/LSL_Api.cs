@@ -869,19 +869,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         // Utility function for llRot2Euler
 
-        // normalize an angle between -PI and PI (-180 to +180 degrees)
-        protected double NormalizeAngle(double angle)
-        {
-            if (angle > -Math.PI && angle < Math.PI)
-                return angle;
-
-            int numPis = (int)(Math.PI / angle);
-            double remainder = angle - Math.PI * numPis;
-            if (numPis % 2 == 1)
-                return Math.PI - angle;
-            return remainder;
-        }
-
         public LSL_Vector llRot2Euler(LSL_Rotation q1)
         {
             m_host.AddScriptLPS(1);
@@ -14236,7 +14223,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (dist == 0)
                     return list;
 
-                RayFilterFlags rayfilter = RayFilterFlags.ClosestAndBackCull;
+                RayFilterFlags rayfilter = RayFilterFlags.BackFaceCull;
                 if (checkTerrain)
                     rayfilter |= RayFilterFlags.land;
 //                if (checkAgents)
