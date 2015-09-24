@@ -139,8 +139,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             continue;
                         }
                     }
-                      
-
+                   
                     CurrentRayFilter = req.filter;
                     CurrentMaxCount = req.Count;
 
@@ -186,7 +185,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         d.GeomRaySetLength(ray, req.length);
                         d.GeomRaySet(ray, req.Origin.X, req.Origin.Y, req.Origin.Z, req.Normal.X, req.Normal.Y, req.Normal.Z);
                         d.GeomRaySetParams(ray, 0, backfacecull);
-                        d.GeomRaySetClosestHit(ray, closestHit);
 
                         if (req.callbackMethod is RaycastCallback)
                         {
@@ -318,9 +316,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 // current ode land to ray collisions is very bad
                 // so for now limit its range badly
-
-                if (req.length > 30.0f)
-                    d.GeomRaySetLength(ray, 30.0f);
+                if (req.length > 60.0f)
+                    d.GeomRaySetLength(ray, 60.0f);
 
                 d.SpaceCollide2(ray, m_scene.GroundSpace, IntPtr.Zero, nearCallback);
             }

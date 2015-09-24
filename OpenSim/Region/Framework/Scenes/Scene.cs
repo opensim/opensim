@@ -2283,99 +2283,139 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public Vector3 GetNewRezLocation(Vector3 RayStart, Vector3 RayEnd, UUID RayTargetID, Quaternion rot, byte bypassRayCast, byte RayEndIsIntersection, bool frontFacesOnly, Vector3 scale, bool FaceCenter)
         {
-        
+
             float wheight = (float)RegionInfo.RegionSettings.WaterHeight;
             Vector3 wpos = Vector3.Zero;
             // Check for water surface intersection from above
-            if ( (RayStart.Z > wheight) && (RayEnd.Z < wheight) )
+            if ((RayStart.Z > wheight) && (RayEnd.Z < wheight))
             {
                 float ratio = (RayStart.Z - wheight) / (RayStart.Z - RayEnd.Z);
                 wpos.X = RayStart.X - (ratio * (RayStart.X - RayEnd.X));
                 wpos.Y = RayStart.Y - (ratio * (RayStart.Y - RayEnd.Y));
                 wpos.Z = wheight;
-            }                
-        
+            }
+
             Vector3 pos = Vector3.Zero;
             if (RayEndIsIntersection == (byte)1)
             {
                 pos = RayEnd;
             }
-            else if (RayTargetID != UUID.Zero)
-            {
-                SceneObjectPart target = GetSceneObjectPart(RayTargetID);
-
-                Vector3 direction = Vector3.Normalize(RayEnd - RayStart);
-                Vector3 AXOrigin = RayStart;
-                Vector3 AXdirection = direction;
-
-                if (target != null)
-                {
-                    pos = target.AbsolutePosition;
-                    //m_log.Info("[OBJECT_REZ]: TargetPos: " + pos.ToString() + ", RayStart: " + RayStart.ToString() + ", RayEnd: " + RayEnd.ToString() + ", Volume: " + Util.GetDistanceTo(RayStart,RayEnd).ToString() + ", mag1: " + Util.GetMagnitude(RayStart).ToString() + ", mag2: " + Util.GetMagnitude(RayEnd).ToString());
-
-                    // TODO: Raytrace better here
-
-                    //EntityIntersection ei = m_sceneGraph.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection));
-                    Ray NewRay = new Ray(AXOrigin, AXdirection);
-
-                    // Ray Trace against target here
-                    EntityIntersection ei = target.TestIntersectionOBB(NewRay, Quaternion.Identity, frontFacesOnly, FaceCenter);
-
-                    // Un-comment out the following line to Get Raytrace results printed to the console.
-                    // m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
-                    float ScaleOffset = 0.5f;
-
-                    // If we hit something
-                    if (ei.HitTF)
-                    {
-                        Vector3 scaleComponent = ei.AAfaceNormal;
-                        if (scaleComponent.X != 0) ScaleOffset = scale.X;
-                        if (scaleComponent.Y != 0) ScaleOffset = scale.Y;
-                        if (scaleComponent.Z != 0) ScaleOffset = scale.Z;
-                        ScaleOffset = Math.Abs(ScaleOffset);
-                        Vector3 intersectionpoint = ei.ipoint;
-                        Vector3 normal = ei.normal;
-                        // Set the position to the intersection point
-                        Vector3 offset = (normal * (ScaleOffset / 2f));
-                        pos = (intersectionpoint + offset);
-
-                        //Seems to make no sense to do this as this call is used for rezzing from inventory as well, and with inventory items their size is not always 0.5f
-                        //And in cases when we weren't rezzing from inventory we were re-adding the 0.25 straight after calling this method
-                        // Un-offset the prim (it gets offset later by the consumer method)
-                        //pos.Z -= 0.25F; 
-
-                    }
-                }
-                else
-                {
-                    // We don't have a target here, so we're going to raytrace all the objects in the scene.
-                    EntityIntersection ei = m_sceneGraph.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection), true, false);
-
-                    // Un-comment the following line to print the raytrace results to the console.
-                    //m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
-
-                    if (ei.HitTF)
-                    {
-                        pos = new Vector3(ei.ipoint.X, ei.ipoint.Y, ei.ipoint.Z);
-                    } 
-                    else
-                    {
-                        // fall back to our stupid functionality
-                        pos = RayEnd;
-                    }
-                }
-            }
             else
             {
-                // fall back to our stupid functionality
-                pos = RayEnd;
+                Vector3 rayEnd = RayEnd;
+ 
+                Vector3 dir = rayEnd - RayStart;
+                float dist = Vector3.Mag(dir) + 2.0f;
 
-                //increase height so its above the ground.
-                //should be getting the normal of the ground at the rez point and using that?
-                pos.Z += scale.Z / 2f;
-//                return pos;
+                Vector3 direction = dir * (1 / dist);
+
+                if (SupportsRayCastFiltered())
+                {
+                    RayFilterFlags rayfilter = RayFilterFlags.BackFaceCull;
+                    rayfilter |= RayFilterFlags.land;
+                    rayfilter |= RayFilterFlags.physical;
+                    rayfilter |= RayFilterFlags.nonphysical;
+                    rayfilter |= RayFilterFlags.LSLPhantom; // ubODE will only see volume detectors
+
+                    // get some more contacts ???
+                    int physcount = 4;
+
+                    List<ContactResult> physresults =
+                        (List<ContactResult>)RayCastFiltered(RayStart, direction, dist, physcount, rayfilter);
+                    if (physresults != null && physresults.Count > 0)
+                    {
+                        if (physresults[0].ConsumerID == 0 || RayTargetID == UUID.Zero)
+                        {
+                            // found something
+                            pos = physresults[0].Normal * scale ;
+                            pos *= 0.5f;
+                            pos = physresults[0].Pos +pos;                           
+                            return pos;
+                        }
+                        foreach (ContactResult r in physresults)
+                        {
+                            SceneObjectPart part = GetSceneObjectPart(r.ConsumerID);
+                            if (part == null)
+                                continue;
+                            if (part.UUID == RayTargetID)
+                            {
+                                pos = physresults[0].Normal * scale;
+                                pos *= 0.5f;
+                                pos = physresults[0].Pos + pos;
+                                return pos;
+                            }
+                        }
+                    }
+                }
+                if (RayTargetID != UUID.Zero)
+                {
+                    SceneObjectPart target = GetSceneObjectPart(RayTargetID);
+
+                    Ray NewRay = new Ray(RayStart, direction);
+
+                    if (target != null)
+                    {
+                        pos = target.AbsolutePosition;
+
+                        // Ray Trace against target here
+                        EntityIntersection ei = target.TestIntersectionOBB(NewRay, Quaternion.Identity, frontFacesOnly, FaceCenter);
+
+                        // Un-comment out the following line to Get Raytrace results printed to the console.
+                        // m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
+                        float ScaleOffset = 0.5f;
+
+                        // If we hit something
+                        if (ei.HitTF)
+                        {
+                            Vector3 scaleComponent = ei.AAfaceNormal;
+                            if (scaleComponent.X != 0) ScaleOffset = scale.X;
+                            if (scaleComponent.Y != 0) ScaleOffset = scale.Y;
+                            if (scaleComponent.Z != 0) ScaleOffset = scale.Z;
+                            ScaleOffset = Math.Abs(ScaleOffset);
+                            Vector3 intersectionpoint = ei.ipoint;
+                            Vector3 normal = ei.normal;
+                            // Set the position to the intersection point
+                            Vector3 offset = (normal * (ScaleOffset / 2f));
+                            pos = (intersectionpoint + offset);
+
+                            //Seems to make no sense to do this as this call is used for rezzing from inventory as well, and with inventory items their size is not always 0.5f
+                            //And in cases when we weren't rezzing from inventory we were re-adding the 0.25 straight after calling this method
+                            // Un-offset the prim (it gets offset later by the consumer method)
+                            //pos.Z -= 0.25F; 
+
+                        }
+                    }
+                    else
+                    {
+                        // We don't have a target here, so we're going to raytrace all the objects in the scene.
+                        EntityIntersection ei = m_sceneGraph.GetClosestIntersectingPrim(NewRay, true, false);
+
+                        // Un-comment the following line to print the raytrace results to the console.
+                        //m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
+
+                        if (ei.HitTF)
+                        {
+                            pos = new Vector3(ei.ipoint.X, ei.ipoint.Y, ei.ipoint.Z);
+                        }
+                        else
+                        {
+                            // fall back to our stupid functionality
+                            pos = RayEnd;
+                        }
+                    }
+                }
+
+                else
+                {
+                    // fall back to our stupid functionality
+                    pos = RayEnd;
+
+                    //increase height so its above the ground.
+                    //should be getting the normal of the ground at the rez point and using that?
+                    pos.Z += scale.Z / 2f;
+                    //                return pos;
+                }
             }
-            
             // check against posible water intercept
             if (wpos.Z > pos.Z) pos = wpos;
             return pos;
