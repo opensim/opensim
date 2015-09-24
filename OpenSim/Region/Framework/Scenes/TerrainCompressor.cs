@@ -292,8 +292,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 // flat terrain spead up things
 
-                // prequant and quant 2 bits both
-                header.QuantWBits = 0x04;
+                header.DCOffset -= 0.5f;
+
+                header.QuantWBits = 0x00;
                 output.PackBits(header.QuantWBits, 8);
                 output.PackFloat(header.DCOffset);
                 output.PackBits(1, 16);
@@ -302,8 +303,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 else
                     output.PackBits(header.PatchIDs, 10);
                 
-                output.PackBits(NEGATIVE_VALUE, 3);
-                output.PackBits(0x20, 6);
+//                output.PackBits(NEGATIVE_VALUE, 3);
+//                output.PackBits(0x20, 6);
                 // and thats all
                 output.PackBits(ZERO_EOB, 2);
                 return;
