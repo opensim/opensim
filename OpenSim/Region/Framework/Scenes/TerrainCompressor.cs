@@ -82,8 +82,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         // Used to send cloud and wind patches
-        public static LayerDataPacket CreateLayerDataPacket(TerrainPatch[] patches, byte type, int pRegionSizeX,
-                                                            int pRegionSizeY)
+        public static LayerDataPacket CreateLayerDataPacketStandardSize(TerrainPatch[] patches, byte type)
         {
             LayerDataPacket layer = new LayerDataPacket {LayerID = {Type = type}};
 
@@ -98,7 +97,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bitpack.PackBits(type, 8);
 
             foreach (TerrainPatch t in patches)
-                CreatePatch(bitpack, t.Data, t.X, t.Y, pRegionSizeX, pRegionSizeY);
+                CreatePatchtStandardSize(bitpack, t.Data, t.X, t.Y);
 
             bitpack.PackBits(END_OF_PATCHES, 8);
 
@@ -108,27 +107,38 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return layer;
         }
 
-        public static void CreatePatch(BitPack output, float[] patchData, int x, int y, int pRegionSizeX, int pRegionSizeY)
+        public static void CreatePatchtStandardSize(BitPack output, float[] patchData, int x, int y)
         {
             TerrainPatch.Header header = PrescanPatch(patchData);
             header.QuantWBits = 136;
-            if (pRegionSizeX > Constants.RegionSize || pRegionSizeY > Constants.RegionSize)
-            {
-                header.PatchIDs = (y & 0xFFFF);
-                header.PatchIDs += (x << 16);
-            }
-            else
-            {
-                header.PatchIDs = (y & 0x1F);
-                header.PatchIDs += (x << 5);
-            }
+
+            header.PatchIDs = (y & 0x1F);
+            header.PatchIDs += (x << 5);
 
             int wbits;
             int[] patch = CompressPatch(patchData, header, 10, out wbits);
-            wbits = EncodePatchHeader(output, header, patch, Constants.RegionSize, Constants.RegionSize, wbits);
+            EncodePatchHeader(output, header, patch, false, ref wbits);
             EncodePatch(output, patch, 0, wbits);
         }
 
+        private static TerrainPatch.Header PrescanPatch(float[] patch)
+        {
+            TerrainPatch.Header header = new TerrainPatch.Header();
+            float zmax = -99999999.0f;
+            float zmin = 99999999.0f;
+
+            for (int i = 0; i < Constants.TerrainPatchSize * Constants.TerrainPatchSize; i++)
+            {
+                float val = patch[i];
+                if (val > zmax) zmax = val;
+                if (val < zmin) zmin = val;
+            }
+
+            header.DCOffset = zmin;
+            header.Range = (int)((zmax - zmin) + 1.0f);
+
+            return header;
+        }
         private static int[] CompressPatch(float[] patchData, TerrainPatch.Header header, int prequant, out int wbits)
         {
             float[] block = new float[Constants.TerrainPatchSize * Constants.TerrainPatchSize];
@@ -232,11 +242,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             TerrainPatch.Header header = PrescanPatch(terrData, patchX, patchY, out frange);
             header.QuantWBits = 130;
 
+            bool largeRegion = false;
             // If larger than legacy region size, pack patch X and Y info differently.
             if (terrData.SizeX > Constants.RegionSize || terrData.SizeY > Constants.RegionSize)
             {
                 header.PatchIDs = (patchY & 0xFFFF);
                 header.PatchIDs += (patchX << 16);
+                largeRegion = true;
             }
             else
             {
@@ -246,7 +258,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if(Math.Round((double)frange,2) == 1.0)
             {
-                // flat terrain spead up things
+                // flat terrain speed up things
 
                 header.DCOffset -= 0.5f;
 
@@ -254,7 +266,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 output.PackBits(header.QuantWBits, 8);
                 output.PackFloat(header.DCOffset);
                 output.PackBits(1, 16);
-                if (terrData.SizeX > Constants.RegionSize || terrData.SizeY > Constants.RegionSize)
+                if (largeRegion)
                     output.PackBits(header.PatchIDs, 32);
                 else
                     output.PackBits(header.PatchIDs, 10);
@@ -266,28 +278,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
  
             int wbits;
             int[] patch = CompressPatch(terrData, patchX, patchY, header, 10, out wbits);
-            wbits = EncodePatchHeader(output, header, patch, (uint)terrData.SizeX, (uint)terrData.SizeY, wbits);
+            EncodePatchHeader(output, header, patch, largeRegion, ref wbits);
             EncodePatch(output, patch, 0, wbits);
         }
 
-        private static TerrainPatch.Header PrescanPatch(float[] patch)
-        {
-            TerrainPatch.Header header = new TerrainPatch.Header();
-            float zmax = -99999999.0f;
-            float zmin = 99999999.0f;
 
-            for (int i = 0; i < Constants.TerrainPatchSize*Constants.TerrainPatchSize; i++)
-            {
-                float val = patch[i];
-                if (val > zmax) zmax = val;
-                if (val < zmin) zmin = val;
-            }
-
-            header.DCOffset = zmin;
-            header.Range = (int) ((zmax - zmin) + 1.0f);
-
-            return header;
-        }
 
         // Scan the height info we're returning and return a patch packet header for this patch.
         private static TerrainPatch.Header PrescanPatch(TerrainData terrData, int patchX, int patchY, out float frange)
@@ -338,8 +333,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return header;
         }
 
-        private static int EncodePatchHeader(BitPack output, TerrainPatch.Header header, int[] patch, uint pRegionSizeX,
-                                             uint pRegionSizeY, int wbits)
+        private static void EncodePatchHeader(BitPack output, TerrainPatch.Header header, int[] patch, bool largeRegion, ref int wbits)
         {
             if (wbits > 17)
                 wbits = 17;
@@ -352,12 +346,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             output.PackBits(header.QuantWBits, 8);
             output.PackFloat(header.DCOffset);
             output.PackBits(header.Range, 16);
-            if (pRegionSizeX > Constants.RegionSize || pRegionSizeY > Constants.RegionSize)
+            if (largeRegion)
                 output.PackBits(header.PatchIDs, 32);
             else
                 output.PackBits(header.PatchIDs, 10);
-
-            return wbits;
         }
 
         private static void IDCTColumn16(float[] linein, float[] lineout, int column)
