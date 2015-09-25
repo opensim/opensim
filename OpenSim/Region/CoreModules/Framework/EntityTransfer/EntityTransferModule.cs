@@ -2547,14 +2547,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             else
                 y--;
 
-            // ugly
-             // Call the grid service to lookup the region containing the new position.
-            GridRegion neighbourRegion = GetRegionContainingWorldLocation(
-                                scene.GridService, scene.RegionInfo.ScopeID,
-                                targetPosition.X, targetPosition.Y,
-                                Math.Max(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY));
-
-//            GridRegion neighbourRegion = scene.GridService.GetRegionByPosition(scene.RegionInfo.ScopeID,x,y);
+            GridRegion neighbourRegion = scene.GridService.GetRegionByPosition(scene.RegionInfo.ScopeID,x,y);
             if (neighbourRegion == null)
             {
                 return null;
