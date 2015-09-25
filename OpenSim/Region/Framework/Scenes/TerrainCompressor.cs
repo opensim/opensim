@@ -65,7 +65,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private const int NEGATIVE_VALUE = 0x7;
 
 
-        private static readonly float[] CosineTable16 = new float[Constants.TerrainPatchSize * Constants.TerrainPatchSize];
+//        private static readonly float[] CosineTable16 = new float[Constants.TerrainPatchSize * Constants.TerrainPatchSize];
         private static readonly int[] CopyMatrix16 = new int[Constants.TerrainPatchSize * Constants.TerrainPatchSize];
 
         private static readonly float[] QuantizeTable16 =
@@ -77,7 +77,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             // Initialize the decompression tables
             BuildDequantizeTable16();
-            SetupCosines16();
+//            SetupCosines16();
             BuildCopyMatrix16();
             BuildQuantizeTable16();
         }
@@ -140,6 +140,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             return header;
         }
+
         private static int[] CompressPatch(float[] patchData, TerrainPatch.Header header, int prequant, out int wbits)
         {
             float[] block = new float[Constants.TerrainPatchSize * Constants.TerrainPatchSize];
@@ -189,7 +190,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             for (int i = 0; i < x.Length; i++)
             {
-                CreatePatchFromHeightmap(bitpack, terrData, x[i], y[i]);
+                CreatePatchFromTerrainData(bitpack, terrData, x[i], y[i]);
                 if (bitpack.BytePos > 1000 && i != x.Length - 1)
                 {
                     //finish this packet
@@ -219,22 +220,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return ret;
         }
 
-        /// <summary>
-        ///     Add a patch of terrain to a BitPacker
-        /// </summary>
-        /// <param name="output">BitPacker to write the patch to</param>
-        /// <param name="heightmap">
-        ///     Heightmap of the simulator. Presumed to be an sizeX*sizeY array.
-        /// </param>
-        /// <param name="patchX">
-        ///     X offset of the patch to create.
-        /// </param>
-        /// <param name="patchY">
-        ///     Y offset of the patch to create.
-        /// </param>
-        /// <param name="pRegionSizeX"></param>
-        /// <param name="pRegionSizeY"></param>
-        public static void CreatePatchFromHeightmap(BitPack output, TerrainData terrData, int patchX, int patchY)
+        public static void CreatePatchFromTerrainData(BitPack output, TerrainData terrData, int patchX, int patchY)
         {
             float frange;
             TerrainPatch.Header header = PrescanPatch(terrData, patchX, patchY, out frange);
@@ -284,8 +270,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private static TerrainPatch.Header PrescanPatch(TerrainData terrData, int patchX, int patchY, out float frange)
         {
             TerrainPatch.Header header = new TerrainPatch.Header();
-            float zmax = -99999999.0f;
-            float zmin = 99999999.0f;
+            float zmax = float.MinValue;
+            float zmin = float.MaxValue;
+
             int startx = patchX * Constants.TerrainPatchSize;
             int starty = patchY * Constants.TerrainPatchSize;
 
@@ -302,29 +289,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             header.DCOffset = zmin;
             frange = ((zmax - zmin) + 1.0f);
             header.Range = (int)frange;
-
-            return header;
-        }
-
-        public static TerrainPatch.Header DecodePatchHeader(BitPack bitpack)
-        {
-            TerrainPatch.Header header = new TerrainPatch.Header { QuantWBits = bitpack.UnpackBits(8) };
-
-            // Quantized word bits
-            if (header.QuantWBits == END_OF_PATCHES)
-                return header;
-
-            // DC offset
-            header.DCOffset = bitpack.UnpackFloat();
-
-            // Range
-            header.Range = bitpack.UnpackBits(16);
-
-            // Patch IDs (10 bits)
-            header.PatchIDs = bitpack.UnpackBits(10);
-
-            // Word bits
-            header.WordBits = (uint)((header.QuantWBits & 0x0f) + 2);
 
             return header;
         }
@@ -346,85 +310,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 output.PackBits(header.PatchIDs, 32);
             else
                 output.PackBits(header.PatchIDs, 10);
-        }
-
-        private static void IDCTColumn16(float[] linein, float[] lineout, int column)
-        {
-            for (int n = 0; n < Constants.TerrainPatchSize; n++)
-            {
-                float total = OO_SQRT2 * linein[column];
-
-                for (int u = 1; u < Constants.TerrainPatchSize; u++)
-                {
-                    int usize = u * Constants.TerrainPatchSize;
-                    total += linein[usize + column] * CosineTable16[usize + n];
-                }
-
-                lineout[Constants.TerrainPatchSize * n + column] = total;
-            }
-        }
-
-        private static void IDCTLine16(float[] linein, float[] lineout, int line)
-        {
-            const float oosob = 2.0f / Constants.TerrainPatchSize;
-            int lineSize = line * Constants.TerrainPatchSize;
-
-            for (int n = 0; n < Constants.TerrainPatchSize; n++)
-            {
-                float total = OO_SQRT2 * linein[lineSize];
-
-                for (int u = 1; u < Constants.TerrainPatchSize; u++)
-                {
-                    total += linein[lineSize + u] * CosineTable16[u * Constants.TerrainPatchSize + n];
-                }
-
-                lineout[lineSize + n] = total * oosob;
-            }
-        }
-
-        public static void DecodePatch(int[] patches, BitPack bitpack, TerrainPatch.Header header, int size)
-        {
-            for (int n = 0; n < size * size; n++)
-            {
-                // ?
-                int temp = bitpack.UnpackBits(1);
-                if (temp != 0)
-                {
-                    // Value or EOB
-                    temp = bitpack.UnpackBits(1);
-                    if (temp != 0)
-                    {
-                        // Value
-                        temp = bitpack.UnpackBits(1);
-                        if (temp != 0)
-                        {
-                            // Negative
-                            temp = bitpack.UnpackBits((int)header.WordBits);
-                            patches[n] = temp * -1;
-                        }
-                        else
-                        {
-                            // Positive
-                            temp = bitpack.UnpackBits((int)header.WordBits);
-                            patches[n] = temp;
-                        }
-                    }
-                    else
-                    {
-                        // Set the rest to zero
-                        // TODO: This might not be necessary
-                        for (int o = n; o < size * size; o++)
-                        {
-                            patches[o] = 0;
-                        }
-                        break;
-                    }
-                }
-                else
-                {
-                    patches[n] = 0;
-                }
-            }
         }
 
         private static void EncodePatch(BitPack output, int[] patch, int postquant, int wbits)
@@ -493,6 +378,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                                int prequant, out int wbits)
         {
             float[] block = new float[Constants.TerrainPatchSize * Constants.TerrainPatchSize];
+            int[] iout = new int[Constants.TerrainPatchSize * Constants.TerrainPatchSize];
 
             float oozrange = 1.0f / header.Range;
             float invprequat = (1 << prequant);
@@ -505,27 +391,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             header.QuantWBits |= wordsize << 4;
 
             int k = 0;
-
-            int yPatchLimit = patchY >= (terrData.SizeY / Constants.TerrainPatchSize) ?
-                            (terrData.SizeY - Constants.TerrainPatchSize) / Constants.TerrainPatchSize : patchY;
-            yPatchLimit = (yPatchLimit + 1) * Constants.TerrainPatchSize;
-
-            int xPatchLimit = patchX >= (terrData.SizeX / Constants.TerrainPatchSize) ?
-                            (terrData.SizeX - Constants.TerrainPatchSize) / Constants.TerrainPatchSize : patchX;
-            xPatchLimit = (xPatchLimit + 1) * Constants.TerrainPatchSize;
-
-            for (int yy = patchY * Constants.TerrainPatchSize; yy < yPatchLimit; yy++)
+            int startX = patchX * Constants.TerrainPatchSize;
+            int startY = patchY * Constants.TerrainPatchSize;
+            for (int y = startY; y < startY + Constants.TerrainPatchSize; y++)
             {
-                for (int xx = patchX * Constants.TerrainPatchSize; xx < xPatchLimit; xx++)
+                for (int x = startX; x < startX + Constants.TerrainPatchSize; x++)
                 {
-                    block[k++] = (terrData[xx, yy] - sub) * premult;
+                    block[k++] = (terrData[x, y] - sub) * premult;
                 }
             }
-            
-
-            float[] ftemp = new float[Constants.TerrainPatchSize * Constants.TerrainPatchSize];
-            int[] iout = new int[Constants.TerrainPatchSize * Constants.TerrainPatchSize];
-
+ 
             wbits = (prequant >> 1);
 
             dct16x16(block, iout, ref wbits);
@@ -554,19 +429,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int i = 0; i < Constants.TerrainPatchSize; i++)
                 {
                     QuantizeTable16[j * Constants.TerrainPatchSize + i] = oosob / (1.0f + 2.0f * (i + (float)j));
-                }
-            }
-        }
-
-        private static void SetupCosines16()
-        {
-            const float hposz = (float)Math.PI * 0.5f / Constants.TerrainPatchSize;
-
-            for (int u = 0; u < Constants.TerrainPatchSize; u++)
-            {
-                for (int n = 0; n < Constants.TerrainPatchSize; n++)
-                {
-                    CosineTable16[u * Constants.TerrainPatchSize + n] = (float)Math.Cos((2.0f * n + 1.0f) * u * hposz);
                 }
             }
         }
@@ -622,7 +484,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #endregion Initialization
 
+
+
+
         #region DCT
+
         /* DCT (Discrete Cosine Transform)
         adaptation from 
         General Purpose 2D,3D FFT (Fast Fourier Transform) Package
@@ -677,15 +543,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             float xr, xi;
             float ftmp;
 
+            int fullSize = Constants.TerrainPatchSize * Constants.TerrainPatchSize;
             int itmp;
             int j, k;
             int indx;
 
             const int maxwbits = 17; // per header encoding
-            bool dowbits = wbits < 17;
             int wbitsMaxValue = 1 << wbits;
-
-            int fullSize = Constants.TerrainPatchSize * Constants.TerrainPatchSize;
+            bool dowbits = wbits < 17;
 
             for (j = 0, k = 0; j < fullSize; j += Constants.TerrainPatchSize, k++)
             {
@@ -1166,169 +1031,295 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        /* not in use, and still not fixed
-                static void idct16x16(float[] a)
+        #endregion DCT
+
+        #region Decode
+        /*
+                public static TerrainPatch.Header DecodePatchHeader(BitPack bitpack)
                 {
-                    int j;
-                    float x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
-                    float x4r, x4i, x5r, x5i, x6r, x6i, x7r, x7i;
-                    float xr, xi;
+                    TerrainPatch.Header header = new TerrainPatch.Header { QuantWBits = bitpack.UnpackBits(8) };
 
-                    int fullSize = Constants.TerrainPatchSize * Constants.TerrainPatchSize;
+                    // Quantized word bits
+                    if (header.QuantWBits == END_OF_PATCHES)
+                        return header;
 
-                    for (j = 0; j < fullSize; j += Constants.TerrainPatchSize)
+                    // DC offset
+                    header.DCOffset = bitpack.UnpackFloat();
+
+                    // Range
+                    header.Range = bitpack.UnpackBits(16);
+
+                    // Patch IDs (10 bits)
+                    header.PatchIDs = bitpack.UnpackBits(10);
+
+                    // Word bits
+                    header.WordBits = (uint)((header.QuantWBits & 0x0f) + 2);
+
+                    return header;
+                }
+        */
+
+        /*
+                public static void DecodePatch(int[] patches, BitPack bitpack, TerrainPatch.Header header, int size)
+                {
+                    for (int n = 0; n < size * size; n++)
                     {
-                        x5r = C16_1R * tmp[1 + j] + C16_1I * tmp[15 + j];
-                        x5i = C16_1R * tmp[15 + j] - C16_1I * tmp[1 + j];
-                        xr = C16_7R * tmp[7 + j] + C16_7I * tmp[9 + j];
-                        xi = C16_7R * tmp[9 + j] - C16_7I * tmp[7 + j];
-                        x4r = x5r + xr;
-                        x4i = x5i - xi;
-                        x5r -= xr;
-                        x5i += xi;
-                        x7r = C16_5R * tmp[5 + j] + C16_5I * tmp[11 + j];
-                        x7i = C16_5R * tmp[11 + j] - C16_5I * tmp[5 + j];
-                        xr = C16_3R * tmp[3 + j] + C16_3I * tmp[13 + j];
-                        xi = C16_3R * tmp[13 + j] - C16_3I * tmp[3 + j];
-                        x6r = x7r + xr;
-                        x6i = x7i - xi;
-                        x7r -= xr;
-                        x7i += xi;
-                        xr = x4r - x6r;
-                        xi = x4i - x6i;
-                        x4r += x6r;
-                        x4i += x6i;
-                        x6r = W16_8R * (xi + xr);
-                        x6i = W16_8R * (xi - xr);
-                        xr = x5r + x7i;
-                        xi = x5i - x7r;
-                        x5r -= x7i;
-                        x5i += x7r;
-                        x7r = W16_4I * x5r + W16_4R * x5i;
-                        x7i = W16_4I * x5i - W16_4R * x5r;
-                        x5r = W16_4R * xr + W16_4I * xi;
-                        x5i = W16_4R * xi - W16_4I * xr;
-                        xr = C16_4R * tmp[4 + j] + C16_4I * tmp[12 + j];
-                        xi = C16_4R * tmp[12 + j] - C16_4I * tmp[4 + j];
-                        x2r = C16_8R * (tmp[0 + j] + tmp[8 + j]);
-                        x3r = C16_8R * (tmp[0 + j] - tmp[8 + j]);
-                        x0r = x2r + xr;
-                        x1r = x3r + xi;
-                        x2r -= xr;
-                        x3r -= xi;
-                        x0i = C16_2R * tmp[2 + j] + C16_2I * tmp[14 + j];
-                        x2i = C16_2R * tmp[14 + j] - C16_2I * tmp[2 + j];
-                        x1i = C16_6R * tmp[6 + j] + C16_6I * tmp[10 + j];
-                        x3i = C16_6R * tmp[10 + j] - C16_6I * tmp[6 + j];
-                        xr = x0i - x1i;
-                        xi = x2i + x3i;
-                        x0i += x1i;
-                        x2i -= x3i;
-                        x1i = W16_8R * (xi + xr);
-                        x3i = W16_8R * (xi - xr);
-                        xr = x0r + x0i;
-                        xi = x0r - x0i;
-                        tmp[0 + j] = xr + x4r;
-                        tmp[15 + j] = xr - x4r;
-                        tmp[8 + j] = xi + x4i;
-                        tmp[7 + j] = xi - x4i;
-                        xr = x1r + x1i;
-                        xi = x1r - x1i;
-                        tmp[2 + j] = xr + x5r;
-                        tmp[13 + j] = xr - x5r;
-                        tmp[10 + j] = xi + x5i;
-                        tmp[5 + j] = xi - x5i;
-                        xr = x2r + x2i;
-                        xi = x2r - x2i;
-                        tmp[4 + j] = xr + x6r;
-                        tmp[11 + j] = xr - x6r;
-                        tmp[12 + j] = xi + x6i;
-                        tmp[3 + j] = xi - x6i;
-                        xr = x3r + x3i;
-                        xi = x3r - x3i;
-                        tmp[6 + j] = xr + x7r;
-                        tmp[9 + j] = xr - x7r;
-                        tmp[14 + j] = xi + x7i;
-                        tmp[1 + j] = xi - x7i;
-                    }
-                    for (j = 0; j < fullSize; j += Constants.TerrainPatchSize)
-                    {
-                        x5r = C16_1R * tmp[j + 1] + C16_1I * tmp[j + 15];
-                        x5i = C16_1R * tmp[j + 15] - C16_1I * tmp[j + 1];
-                        xr = C16_7R * tmp[j + 7] + C16_7I * tmp[j + 9];
-                        xi = C16_7R * tmp[j + 9] - C16_7I * tmp[j + 7];
-                        x4r = x5r + xr;
-                        x4i = x5i - xi;
-                        x5r -= xr;
-                        x5i += xi;
-                        x7r = C16_5R * tmp[j + 5] + C16_5I * tmp[j + 11];
-                        x7i = C16_5R * tmp[j + 11] - C16_5I * tmp[j + 5];
-                        xr = C16_3R * tmp[j + 3] + C16_3I * tmp[j + 13];
-                        xi = C16_3R * tmp[j + 13] - C16_3I * tmp[j + 3];
-                        x6r = x7r + xr;
-                        x6i = x7i - xi;
-                        x7r -= xr;
-                        x7i += xi;
-                        xr = x4r - x6r;
-                        xi = x4i - x6i;
-                        x4r += x6r;
-                        x4i += x6i;
-                        x6r = W16_8R * (xi + xr);
-                        x6i = W16_8R * (xi - xr);
-                        xr = x5r + x7i;
-                        xi = x5i - x7r;
-                        x5r -= x7i;
-                        x5i += x7r;
-                        x7r = W16_4I * x5r + W16_4R * x5i;
-                        x7i = W16_4I * x5i - W16_4R * x5r;
-                        x5r = W16_4R * xr + W16_4I * xi;
-                        x5i = W16_4R * xi - W16_4I * xr;
-                        xr = C16_4R * tmp[j + 4] + C16_4I * tmp[j + 12];
-                        xi = C16_4R * tmp[j + 12] - C16_4I * tmp[j + 4];
-                        x2r = C16_8R * (tmp[j + 0] + tmp[j + 8]);
-                        x3r = C16_8R * (tmp[j + 0] - tmp[j + 8]);
-                        x0r = x2r + xr;
-                        x1r = x3r + xi;
-                        x2r -= xr;
-                        x3r -= xi;
-                        x0i = C16_2R * tmp[j + 2] + C16_2I * tmp[j + 14];
-                        x2i = C16_2R * tmp[j + 14] - C16_2I * tmp[j + 2];
-                        x1i = C16_6R * tmp[j + 6] + C16_6I * tmp[j + 10];
-                        x3i = C16_6R * tmp[j + 10] - C16_6I * tmp[j + 6];
-                        xr = x0i - x1i;
-                        xi = x2i + x3i;
-                        x0i += x1i;
-                        x2i -= x3i;
-                        x1i = W16_8R * (xi + xr);
-                        x3i = W16_8R * (xi - xr);
-                        xr = x0r + x0i;
-                        xi = x0r - x0i;
-                        tmp[j + 0] = xr + x4r;
-                        tmp[j + 15] = xr - x4r;
-                        tmp[j + 8] = xi + x4i;
-                        tmp[j + 7] = xi - x4i;
-                        xr = x1r + x1i;
-                        xi = x1r - x1i;
-                        tmp[j + 2] = xr + x5r;
-                        tmp[j + 13] = xr - x5r;
-                        tmp[j + 10] = xi + x5i;
-                        tmp[j + 5] = xi - x5i;
-                        xr = x2r + x2i;
-                        xi = x2r - x2i;
-                        tmp[j + 4] = xr + x6r;
-                        tmp[j + 11] = xr - x6r;
-                        tmp[j + 12] = xi + x6i;
-                        tmp[j + 3] = xi - x6i;
-                        xr = x3r + x3i;
-                        xi = x3r - x3i;
-                        tmp[j + 6] = xr + x7r;
-                        tmp[j + 9] = xr - x7r;
-                        tmp[j + 14] = xi + x7i;
-                        tmp[j + 1] = xi - x7i;
+                        // ?
+                        int temp = bitpack.UnpackBits(1);
+                        if (temp != 0)
+                        {
+                            // Value or EOB
+                            temp = bitpack.UnpackBits(1);
+                            if (temp != 0)
+                            {
+                                // Value
+                                temp = bitpack.UnpackBits(1);
+                                if (temp != 0)
+                                {
+                                    // Negative
+                                    temp = bitpack.UnpackBits((int)header.WordBits);
+                                    patches[n] = temp * -1;
+                                }
+                                else
+                                {
+                                    // Positive
+                                    temp = bitpack.UnpackBits((int)header.WordBits);
+                                    patches[n] = temp;
+                                }
+                            }
+                            else
+                            {
+                                // Set the rest to zero
+                                // TODO: This might not be necessary
+                                for (int o = n; o < size * size; o++)
+                                {
+                                    patches[o] = 0;
+                                }
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            patches[n] = 0;
+                        }
                     }
                 }
-           */
-        #endregion DCT
+        */
+        #region IDCT
+        /* not in use
+        private static void IDCTColumn16(float[] linein, float[] lineout, int column)
+        {
+            for (int n = 0; n < Constants.TerrainPatchSize; n++)
+            {
+                float total = OO_SQRT2 * linein[column];
+
+                for (int u = 1; u < Constants.TerrainPatchSize; u++)
+                {
+                    int usize = u * Constants.TerrainPatchSize;
+                    total += linein[usize + column] * CosineTable16[usize + n];
+                }
+
+                lineout[Constants.TerrainPatchSize * n + column] = total;
+            }
+        }
+
+        private static void IDCTLine16(float[] linein, float[] lineout, int line)
+        {
+            const float oosob = 2.0f / Constants.TerrainPatchSize;
+            int lineSize = line * Constants.TerrainPatchSize;
+
+            for (int n = 0; n < Constants.TerrainPatchSize; n++)
+            {
+                float total = OO_SQRT2 * linein[lineSize];
+
+                for (int u = 1; u < Constants.TerrainPatchSize; u++)
+                {
+                    total += linein[lineSize + u] * CosineTable16[u * Constants.TerrainPatchSize + n];
+                }
+
+                lineout[lineSize + n] = total * oosob;
+            }
+        }
+
+/*
+        private static void SetupCosines16()
+        {
+            const float hposz = (float)Math.PI * 0.5f / Constants.TerrainPatchSize;
+
+            for (int u = 0; u < Constants.TerrainPatchSize; u++)
+            {
+                for (int n = 0; n < Constants.TerrainPatchSize; n++)
+                {
+                    CosineTable16[u * Constants.TerrainPatchSize + n] = (float)Math.Cos((2.0f * n + 1.0f) * u * hposz);
+                }
+            }
+        }
+*/
+        //not in use, and still not fixed
+        /*
+                static void idct16x16(float[] a)
+                        {
+                            int j;
+                            float x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
+                            float x4r, x4i, x5r, x5i, x6r, x6i, x7r, x7i;
+                            float xr, xi;
+
+                            int fullSize = Constants.TerrainPatchSize * Constants.TerrainPatchSize;
+
+                            for (j = 0; j < fullSize; j += Constants.TerrainPatchSize)
+                            {
+                                x5r = C16_1R * tmp[1 + j] + C16_1I * tmp[15 + j];
+                                x5i = C16_1R * tmp[15 + j] - C16_1I * tmp[1 + j];
+                                xr = C16_7R * tmp[7 + j] + C16_7I * tmp[9 + j];
+                                xi = C16_7R * tmp[9 + j] - C16_7I * tmp[7 + j];
+                                x4r = x5r + xr;
+                                x4i = x5i - xi;
+                                x5r -= xr;
+                                x5i += xi;
+                                x7r = C16_5R * tmp[5 + j] + C16_5I * tmp[11 + j];
+                                x7i = C16_5R * tmp[11 + j] - C16_5I * tmp[5 + j];
+                                xr = C16_3R * tmp[3 + j] + C16_3I * tmp[13 + j];
+                                xi = C16_3R * tmp[13 + j] - C16_3I * tmp[3 + j];
+                                x6r = x7r + xr;
+                                x6i = x7i - xi;
+                                x7r -= xr;
+                                x7i += xi;
+                                xr = x4r - x6r;
+                                xi = x4i - x6i;
+                                x4r += x6r;
+                                x4i += x6i;
+                                x6r = W16_8R * (xi + xr);
+                                x6i = W16_8R * (xi - xr);
+                                xr = x5r + x7i;
+                                xi = x5i - x7r;
+                                x5r -= x7i;
+                                x5i += x7r;
+                                x7r = W16_4I * x5r + W16_4R * x5i;
+                                x7i = W16_4I * x5i - W16_4R * x5r;
+                                x5r = W16_4R * xr + W16_4I * xi;
+                                x5i = W16_4R * xi - W16_4I * xr;
+                                xr = C16_4R * tmp[4 + j] + C16_4I * tmp[12 + j];
+                                xi = C16_4R * tmp[12 + j] - C16_4I * tmp[4 + j];
+                                x2r = C16_8R * (tmp[0 + j] + tmp[8 + j]);
+                                x3r = C16_8R * (tmp[0 + j] - tmp[8 + j]);
+                                x0r = x2r + xr;
+                                x1r = x3r + xi;
+                                x2r -= xr;
+                                x3r -= xi;
+                                x0i = C16_2R * tmp[2 + j] + C16_2I * tmp[14 + j];
+                                x2i = C16_2R * tmp[14 + j] - C16_2I * tmp[2 + j];
+                                x1i = C16_6R * tmp[6 + j] + C16_6I * tmp[10 + j];
+                                x3i = C16_6R * tmp[10 + j] - C16_6I * tmp[6 + j];
+                                xr = x0i - x1i;
+                                xi = x2i + x3i;
+                                x0i += x1i;
+                                x2i -= x3i;
+                                x1i = W16_8R * (xi + xr);
+                                x3i = W16_8R * (xi - xr);
+                                xr = x0r + x0i;
+                                xi = x0r - x0i;
+                                tmp[0 + j] = xr + x4r;
+                                tmp[15 + j] = xr - x4r;
+                                tmp[8 + j] = xi + x4i;
+                                tmp[7 + j] = xi - x4i;
+                                xr = x1r + x1i;
+                                xi = x1r - x1i;
+                                tmp[2 + j] = xr + x5r;
+                                tmp[13 + j] = xr - x5r;
+                                tmp[10 + j] = xi + x5i;
+                                tmp[5 + j] = xi - x5i;
+                                xr = x2r + x2i;
+                                xi = x2r - x2i;
+                                tmp[4 + j] = xr + x6r;
+                                tmp[11 + j] = xr - x6r;
+                                tmp[12 + j] = xi + x6i;
+                                tmp[3 + j] = xi - x6i;
+                                xr = x3r + x3i;
+                                xi = x3r - x3i;
+                                tmp[6 + j] = xr + x7r;
+                                tmp[9 + j] = xr - x7r;
+                                tmp[14 + j] = xi + x7i;
+                                tmp[1 + j] = xi - x7i;
+                            }
+                            for (j = 0; j < fullSize; j += Constants.TerrainPatchSize)
+                            {
+                                x5r = C16_1R * tmp[j + 1] + C16_1I * tmp[j + 15];
+                                x5i = C16_1R * tmp[j + 15] - C16_1I * tmp[j + 1];
+                                xr = C16_7R * tmp[j + 7] + C16_7I * tmp[j + 9];
+                                xi = C16_7R * tmp[j + 9] - C16_7I * tmp[j + 7];
+                                x4r = x5r + xr;
+                                x4i = x5i - xi;
+                                x5r -= xr;
+                                x5i += xi;
+                                x7r = C16_5R * tmp[j + 5] + C16_5I * tmp[j + 11];
+                                x7i = C16_5R * tmp[j + 11] - C16_5I * tmp[j + 5];
+                                xr = C16_3R * tmp[j + 3] + C16_3I * tmp[j + 13];
+                                xi = C16_3R * tmp[j + 13] - C16_3I * tmp[j + 3];
+                                x6r = x7r + xr;
+                                x6i = x7i - xi;
+                                x7r -= xr;
+                                x7i += xi;
+                                xr = x4r - x6r;
+                                xi = x4i - x6i;
+                                x4r += x6r;
+                                x4i += x6i;
+                                x6r = W16_8R * (xi + xr);
+                                x6i = W16_8R * (xi - xr);
+                                xr = x5r + x7i;
+                                xi = x5i - x7r;
+                                x5r -= x7i;
+                                x5i += x7r;
+                                x7r = W16_4I * x5r + W16_4R * x5i;
+                                x7i = W16_4I * x5i - W16_4R * x5r;
+                                x5r = W16_4R * xr + W16_4I * xi;
+                                x5i = W16_4R * xi - W16_4I * xr;
+                                xr = C16_4R * tmp[j + 4] + C16_4I * tmp[j + 12];
+                                xi = C16_4R * tmp[j + 12] - C16_4I * tmp[j + 4];
+                                x2r = C16_8R * (tmp[j + 0] + tmp[j + 8]);
+                                x3r = C16_8R * (tmp[j + 0] - tmp[j + 8]);
+                                x0r = x2r + xr;
+                                x1r = x3r + xi;
+                                x2r -= xr;
+                                x3r -= xi;
+                                x0i = C16_2R * tmp[j + 2] + C16_2I * tmp[j + 14];
+                                x2i = C16_2R * tmp[j + 14] - C16_2I * tmp[j + 2];
+                                x1i = C16_6R * tmp[j + 6] + C16_6I * tmp[j + 10];
+                                x3i = C16_6R * tmp[j + 10] - C16_6I * tmp[j + 6];
+                                xr = x0i - x1i;
+                                xi = x2i + x3i;
+                                x0i += x1i;
+                                x2i -= x3i;
+                                x1i = W16_8R * (xi + xr);
+                                x3i = W16_8R * (xi - xr);
+                                xr = x0r + x0i;
+                                xi = x0r - x0i;
+                                tmp[j + 0] = xr + x4r;
+                                tmp[j + 15] = xr - x4r;
+                                tmp[j + 8] = xi + x4i;
+                                tmp[j + 7] = xi - x4i;
+                                xr = x1r + x1i;
+                                xi = x1r - x1i;
+                                tmp[j + 2] = xr + x5r;
+                                tmp[j + 13] = xr - x5r;
+                                tmp[j + 10] = xi + x5i;
+                                tmp[j + 5] = xi - x5i;
+                                xr = x2r + x2i;
+                                xi = x2r - x2i;
+                                tmp[j + 4] = xr + x6r;
+                                tmp[j + 11] = xr - x6r;
+                                tmp[j + 12] = xi + x6i;
+                                tmp[j + 3] = xi - x6i;
+                                xr = x3r + x3i;
+                                xi = x3r - x3i;
+                                tmp[j + 6] = xr + x7r;
+                                tmp[j + 9] = xr - x7r;
+                                tmp[j + 14] = xi + x7i;
+                                tmp[j + 1] = xi - x7i;
+                            }
+                        }
+                   */
+        #endregion IDCT
+        #endregion Decode
     }
 
 }
