@@ -3044,7 +3044,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_requestedSitTargetID = part.LocalId;
                 m_requestedSitTargetUUID = part.UUID;
-
             }
             else
             {
@@ -3058,9 +3057,7 @@ namespace OpenSim.Region.Framework.Scenes
         public bool PhysicsSit(SceneObjectPart part, Vector3 offset)
         {
             if (part == null || part.ParentGroup.IsAttachment)
-            {
                 return true;
-            }
 
             if ( m_scene.PhysicsScene == null)
                 return false;
@@ -3078,12 +3075,10 @@ namespace OpenSim.Region.Framework.Scenes
                 return true;
             }
 
-
-            // not doing autopilot
-            m_requestedSitTargetID = 0; 
-
             if (m_scene.PhysicsScene.SitAvatar(part.PhysActor, AbsolutePosition, CameraPosition, offset, new Vector3(0.35f, 0, 0.65f), PhysicsSitResponse) != 0)
+            {
                 return true;
+            }
 
             return false;
         }
@@ -3161,7 +3156,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_pos = offset;
 
             ControllingClient.SendSitResponse(
-                part.ParentGroup.UUID, offset, Orientation, false, cameraAtOffset, cameraEyeOffset, forceMouselook);
+                part.ParentGroup.UUID, offset, Orientation, true, cameraAtOffset, cameraEyeOffset, forceMouselook);
           
 
             m_requestedSitTargetID = 0;
@@ -4459,7 +4454,7 @@ namespace OpenSim.Region.Framework.Scenes
             PhysicsActor = scene.AddAvatar(
                 LocalId, Firstname + "." + Lastname, pVec,
                 Appearance.AvatarBoxSize,Appearance.AvatarFeetOffset, isFlying);
-
+            PhysicsActor.Orientation = m_bodyRot;
             //PhysicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
             PhysicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
             PhysicsActor.OnOutOfBounds += OutOfBoundsCall; // Called for PhysicsActors when there's something wrong
