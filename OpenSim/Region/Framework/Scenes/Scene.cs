@@ -2303,7 +2303,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
             {
                 Vector3 rayEnd = RayEnd;
- 
+
                 Vector3 dir = rayEnd - RayStart;
                 float dist = dir.Length();
                 if (dist != 0)
@@ -2333,6 +2333,8 @@ namespace OpenSim.Region.Framework.Scenes
                                 pos = physresults[0].Normal * scale;
                                 pos *= 0.5f;
                                 pos = physresults[0].Pos + pos;
+
+                                if (wpos.Z > pos.Z) pos = wpos;
                                 return pos;
                             }
                             foreach (ContactResult r in physresults)
@@ -2345,6 +2347,8 @@ namespace OpenSim.Region.Framework.Scenes
                                     pos = physresults[0].Normal * scale;
                                     pos *= 0.5f;
                                     pos = physresults[0].Pos + pos;
+
+                                    if (wpos.Z > pos.Z) pos = wpos;
                                     return pos;
                                 }
                             }
@@ -2385,8 +2389,10 @@ namespace OpenSim.Region.Framework.Scenes
                                 //Seems to make no sense to do this as this call is used for rezzing from inventory as well, and with inventory items their size is not always 0.5f
                                 //And in cases when we weren't rezzing from inventory we were re-adding the 0.25 straight after calling this method
                                 // Un-offset the prim (it gets offset later by the consumer method)
-                                //pos.Z -= 0.25F; 
+                                //pos.Z -= 0.25F;
 
+                                if (wpos.Z > pos.Z) pos = wpos;
+                                return pos;
                             }
                         }
                         else
@@ -2406,20 +2412,22 @@ namespace OpenSim.Region.Framework.Scenes
                                 // fall back to our stupid functionality
                                 pos = RayEnd;
                             }
+
+                            if (wpos.Z > pos.Z) pos = wpos;
+                            return pos;
                         }
                     }
                 }
-                else
-                {
-                    // fall back to our stupid functionality
-                    pos = RayEnd;
 
-                    //increase height so its above the ground.
-                    //should be getting the normal of the ground at the rez point and using that?
-                    pos.Z += scale.Z / 2f;
-                    //                return pos;
-                }
             }
+
+            // fall back to our stupid functionality
+            pos = RayEnd;
+
+            //increase height so its above the ground.
+            //should be getting the normal of the ground at the rez point and using that?
+            pos.Z += scale.Z / 2f;
+            //                return pos;
             // check against posible water intercept
             if (wpos.Z > pos.Z) pos = wpos;
             return pos;
