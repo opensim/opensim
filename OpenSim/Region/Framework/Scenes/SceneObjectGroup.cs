@@ -2302,8 +2302,13 @@ namespace OpenSim.Region.Framework.Scenes
             dupe.m_isBackedUp = false;
             dupe.m_parts = new MapAndArray<OpenMetaverse.UUID, SceneObjectPart>();
 
-            dupe.inTransit = inTransit; // this shouldn't be needed TEST
+            // a copy isnt backedup
+            dupe.Backup = false;
+            dupe.m_isBackedUp = false;
 
+            // a copy is not in transit hopefully
+            dupe.inTransit = false;
+            
             // new group as no sitting avatars            
             dupe.m_sittingAvatars = new List<ScenePresence>();
 

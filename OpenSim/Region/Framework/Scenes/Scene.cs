@@ -2893,6 +2893,8 @@ namespace OpenSim.Region.Framework.Scenes
                 //    newObject.RootPart.KeyframeMotion.UpdateSceneObject(newObject);
             }
 
+            
+
             // Do this as late as possible so that listeners have full access to the incoming object
             EventManager.TriggerOnIncomingSceneObject(newObject);
 
