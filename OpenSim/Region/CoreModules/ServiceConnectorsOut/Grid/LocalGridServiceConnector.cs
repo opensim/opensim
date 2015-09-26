@@ -201,15 +201,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             uint regionX = Util.WorldToRegionLoc((uint)x);
             uint regionY = Util.WorldToRegionLoc((uint)y);
 
-            /*  we are insane now
-            // Sanity check
-            if ((Util.RegionToWorldLoc(regionX) != (uint)x) || (Util.RegionToWorldLoc(regionY) != (uint)y))
-            {
-                m_log.WarnFormat("{0} GetRegionByPosition. Bad position requested: not the base of the region. Requested Pos=<{1},{2}>, Should Be=<{3},{4}>",
-                    LogHeader, x, y, Util.RegionToWorldLoc(regionX), Util.RegionToWorldLoc(regionY));
-            }
-            */
-
             // First see if it's a neighbour, even if it isn't on this sim.
             // Neighbour data is cached in memory, so this is fast
 
@@ -220,9 +211,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     region = rcache.GetRegionByPosition(x, y);
                     if (region != null)
                     {
-                        m_log.DebugFormat("{0} GetRegionByPosition. Found region {1} in cache (of region {2}). Pos=<{3},{4}>",
-                                         LogHeader, region.RegionName, rcache.RegionName,
-                                         Util.WorldToRegionLoc((uint)region.RegionLocX), Util.WorldToRegionLoc((uint)region.RegionLocY));
+                        //m_log.DebugFormat("{0} GetRegionByPosition. Found region {1} in cache (of region {2}). Pos=<{3},{4}>",
+                        //                 LogHeader, region.RegionName, rcache.RegionName,
+                        //                 Util.WorldToRegionLoc((uint)region.RegionLocX), Util.WorldToRegionLoc((uint)region.RegionLocY));
                         break;
                     }
                 }

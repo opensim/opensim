@@ -487,14 +487,6 @@ namespace OpenSim.Services.GridService
             
             if (region != null)
             {
-                // Not really? Maybe?
-
-/* this fails wiht var regions. My_sql db should now handle var regions
-                List<RegionData> rdatas = m_Database.Get(
-                    region.posX - region.sizeX - 1, region.posY - region.sizeY - 1, 
-                    region.posX + region.sizeX + 1, region.posY + region.sizeY + 1, scopeID);
-*/
-                // so send normal search area
                 List<RegionData> rdatas = m_Database.Get(
                     region.posX - 1, region.posY - 1,
                     region.posX + region.sizeX + 1, region.posY + region.sizeY + 1, scopeID);

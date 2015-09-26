@@ -81,21 +81,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         {
             return new List<GridRegion>(m_neighbours.Values);
         }
-
  
         public GridRegion GetRegionByPosition(int x, int y)
         {
-            /*
-                        uint xsnap = (uint)(x / Constants.RegionSize) * Constants.RegionSize;
-                        uint ysnap = (uint)(y / Constants.RegionSize) * Constants.RegionSize;
-                        ulong handle = Util.RegionWorldLocToHandle(xsnap, ysnap);
-
-                        if (m_neighbours.ContainsKey(handle))
-                            return m_neighbours[handle];
-
-                        return null;
-            */
-
             // do actual search by position
             // not the best, but this will not hold that many regions
             GridRegion foundRegion = null;
