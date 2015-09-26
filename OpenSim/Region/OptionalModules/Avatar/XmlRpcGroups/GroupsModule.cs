@@ -266,9 +266,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             // Used for Notices and Group Invites/Accept/Reject
             sp.ControllingClient.OnInstantMessage += OnInstantMessage;
             // Send client their groups information.
-//            SendAgentGroupDataUpdate(sp.ControllingClient, sp.UUID);
+            SendAgentGroupDataUpdate(sp.ControllingClient, sp.UUID);
             // only send data viwer will ask rest later
-            OnAgentDataUpdateRequest(sp.ControllingClient, sp.UUID, sp.UUID);
+//            OnAgentDataUpdateRequest(sp.ControllingClient, sp.UUID, sp.UUID);
         }
 
         private void OnMakeChild(ScenePresence sp)
