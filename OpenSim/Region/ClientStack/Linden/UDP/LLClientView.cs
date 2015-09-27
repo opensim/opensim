@@ -3379,7 +3379,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
              AgentData.Add(AgentDataMap);
              llsd.Add("AgentData", AgentData);
              OSDArray GroupData = new OSDArray(data.Length);
-             OSDArray NewGroupData = new OSDArray(data.Length);
+//             OSDArray NewGroupData = new OSDArray(data.Length);
              foreach (GroupMembershipData m in data)
              {
                  OSDMap GroupDataMap = new OSDMap(6);
@@ -3390,12 +3390,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                  GroupDataMap.Add("GroupID", OSD.FromUUID(m.GroupID));
                  GroupDataMap.Add("GroupName", OSD.FromString(m.GroupName));
                  GroupDataMap.Add("GroupInsigniaID", OSD.FromUUID(m.GroupPicture));
-                 NewGroupDataMap.Add("ListInProfile", OSD.FromBoolean(m.ListInProfile));
+//                 NewGroupDataMap.Add("ListInProfile", OSD.FromBoolean(m.ListInProfile));
                  GroupData.Add(GroupDataMap);
-                 NewGroupData.Add(NewGroupDataMap);
+//                 NewGroupData.Add(NewGroupDataMap);
              }
              llsd.Add("GroupData", GroupData);
-             llsd.Add("NewGroupData", NewGroupData);
+ //            llsd.Add("NewGroupData", NewGroupData);
 
              IEventQueue eq = this.Scene.RequestModuleInterface<IEventQueue>();
              if (eq != null)
