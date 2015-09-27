@@ -1573,7 +1573,12 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public void SendAvatarGroupsReply(UUID avatarID, GroupMembershipData[] data)
         {
-            
+
+        }
+
+        public void SendAgentGroupDataUpdate(UUID avatarID, GroupMembershipData[] data)
+        {
+
         }
 
         public void SendOfferCallingCard(UUID srcID, UUID transactionID)

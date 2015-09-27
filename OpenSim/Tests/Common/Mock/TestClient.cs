@@ -1208,6 +1208,10 @@ namespace OpenSim.Tests.Common
         {
         }
 
+        public void SendAgentGroupDataUpdate(UUID avatarID, GroupMembershipData[] data)
+        {
+        }
+
         public void SendJoinGroupReply(UUID groupID, bool success)
         {
         }

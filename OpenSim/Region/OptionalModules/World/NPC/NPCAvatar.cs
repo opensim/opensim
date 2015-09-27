@@ -1183,6 +1183,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
+        public void SendAgentGroupDataUpdate(UUID avatarID, GroupMembershipData[] data)
+        {
+        }
+
         public void SendTerminateFriend(UUID exFriendID)
         {
         }
