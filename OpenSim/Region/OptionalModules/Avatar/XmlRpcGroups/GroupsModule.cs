@@ -1297,66 +1297,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             return child;
         }
 
-        /// <summary>
-        /// Send 'remoteClient' the group membership 'data' for agent 'dataForAgentID'.
-        /// </summary>
-        private void SendGroupMembershipInfoViaCaps(IClientAPI remoteClient, UUID dataForAgentID, GroupMembershipData[] data)
-        {
-            if (m_debugEnabled) m_log.InfoFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
-
-            OSDArray AgentData = new OSDArray(1);
-            OSDMap AgentDataMap = new OSDMap(1);
-            AgentDataMap.Add("AgentID", OSD.FromUUID(dataForAgentID));
-            AgentData.Add(AgentDataMap);
-
-            OSDArray GroupData = new OSDArray(data.Length);
-            OSDArray NewGroupData = new OSDArray(data.Length);
-
-            foreach (GroupMembershipData membership in data)
-            {
-                if (GetRequestingAgentID(remoteClient) != dataForAgentID)
-                {
-                    if (!membership.ListInProfile)
-                    {
-                        // If we're sending group info to remoteclient about another agent, 
-                        // filter out groups the other agent doesn't want to share.
-                        continue;
-                    }
-                }
-
-                OSDMap GroupDataMap = new OSDMap(6);
-                OSDMap NewGroupDataMap = new OSDMap(1);
-
-                GroupDataMap.Add("GroupID", OSD.FromUUID(membership.GroupID));
-                GroupDataMap.Add("GroupPowers", OSD.FromULong(membership.GroupPowers));
-                GroupDataMap.Add("AcceptNotices", OSD.FromBoolean(membership.AcceptNotices));
-                GroupDataMap.Add("GroupInsigniaID", OSD.FromUUID(membership.GroupPicture));
-                GroupDataMap.Add("Contribution", OSD.FromInteger(membership.Contribution));
-                GroupDataMap.Add("GroupName", OSD.FromString(membership.GroupName));
-                NewGroupDataMap.Add("ListInProfile", OSD.FromBoolean(membership.ListInProfile));
-
-                GroupData.Add(GroupDataMap);
-                NewGroupData.Add(NewGroupDataMap);
-            }
-
-            OSDMap llDataStruct = new OSDMap(3);
-            llDataStruct.Add("AgentData", AgentData);
-            llDataStruct.Add("GroupData", GroupData);
-            llDataStruct.Add("NewGroupData", NewGroupData);
-
-            if (m_debugEnabled)
-            {
-                m_log.InfoFormat("[GROUPS]: {0}", OSDParser.SerializeJsonString(llDataStruct));
-            }
-
-            IEventQueue queue = remoteClient.Scene.RequestModuleInterface<IEventQueue>();
-
-            if (queue != null)
-            {
-                queue.Enqueue(queue.BuildEvent("AgentGroupDataUpdate", llDataStruct), GetRequestingAgentID(remoteClient));
-            }           
-        }
-
         private void SendScenePresenceUpdate(UUID AgentID, string Title)
         {
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: Updating scene title for {0} with title: {1}", AgentID, Title);
@@ -1397,14 +1337,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             SendDataUpdate(remoteClient,  tellOthers);
 
-            // Need to send a group membership update to the client
-            // UDP version doesn't seem to behave nicely.  But we're going to send it out here
-            // with an empty group membership to hopefully remove groups being displayed due
-            // to the core Groups Stub
-            remoteClient.SendGroupMembership(new GroupMembershipData[0]);
-
             GroupMembershipData[] membershipArray = GetProfileListedGroupMemberships(remoteClient, agentID);
-            SendGroupMembershipInfoViaCaps(remoteClient, agentID, membershipArray);
+            remoteClient.SendAgentGroupDataUpdate(agentID, membershipArray);
 
             remoteClient.RefreshGroupMembership();
          }

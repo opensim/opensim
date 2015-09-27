@@ -3406,6 +3406,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendAgentGroupDataUpdate(UUID avatarID, GroupMembershipData[] data)
         {
+            IEventQueue eq = this.Scene.RequestModuleInterface<IEventQueue>();
+
+            // use UDP if no caps
+            if (eq == null)
+            {
+                SendGroupMembership(data);
+            }
+
             OSDMap llsd = new OSDMap(3);
             OSDArray AgentData = new OSDArray(1);
             OSDMap AgentDataMap = new OSDMap(1);
@@ -3432,11 +3440,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             llsd.Add("GroupData", GroupData);
             llsd.Add("NewGroupData", NewGroupData);
 
-            IEventQueue eq = this.Scene.RequestModuleInterface<IEventQueue>();
-            if (eq != null)
-            {
-                eq.Enqueue(BuildEvent("AgentGroupDataUpdate", llsd), this.AgentId);
-            }
+            eq.Enqueue(BuildEvent("AgentGroupDataUpdate", llsd), this.AgentId);
         }
 
         public void SendJoinGroupReply(UUID groupID, bool success)
