@@ -2296,11 +2296,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             Vector3 pos = Vector3.Zero;
-            if (RayEndIsIntersection == (byte)1)
-            {
-                pos = RayEnd;
-            }
-            else
+
+            if (RayEndIsIntersection != (byte)1)
             {
                 Vector3 rayEnd = RayEnd;
 
@@ -2831,7 +2828,11 @@ namespace OpenSim.Region.Framework.Scenes
                 if (xx < RegionInfo.RegionSizeX && yy < RegionInfo.RegionSizeY )
                     ret = true;
             }
-
+            else
+            {
+                // We're in a mega-region so see if we are still in that larger region
+                ret = regionCombinerModule.PositionIsInMegaregion(this.RegionInfo.RegionID, xx, yy);
+            }
             return ret;
         }
 
