@@ -1730,7 +1730,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        private Object osParseJSONNew(string JSON)
+        public Object osParseJSONNew(string JSON)
         {
             CheckThreatLevel(ThreatLevel.None, "osParseJSONNew");
 
@@ -3263,7 +3263,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 Scene scene = m_ScriptEngine.World;
                 GridRegion region = scene.GridService.GetRegionByUUID(UUID.Zero, World.RegionInfo.RegionID);
-                return new LSL_Vector(region.RegionSizeX, region.RegionSizeY, Constants.RegionHeight);
+                return new LSL_Vector((float)region.RegionSizeX, (float)region.RegionSizeY, (float)Constants.RegionHeight);
             }
         }
 
