@@ -76,7 +76,7 @@ namespace OpenSim.Data.MySQL
             Initialise(connectionString);
         }
 
-        public virtual void Initialise(string connectionString)
+        public void Initialise(string connectionString)
         {
             m_connectionString = connectionString;
 
@@ -123,7 +123,7 @@ namespace OpenSim.Data.MySQL
 
         public void Dispose() {}
 
-        public virtual void StoreObject(SceneObjectGroup obj, UUID regionUUID)
+        public void StoreObject(SceneObjectGroup obj, UUID regionUUID)
         {
             uint flags = obj.RootPart.GetEffectiveObjectFlags();
 
@@ -263,7 +263,7 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public virtual void RemoveObject(UUID obj, UUID regionUUID)
+        public void RemoveObject(UUID obj, UUID regionUUID)
         {
 //            m_log.DebugFormat("[REGION DB]: Deleting scene object {0} from {1} in database", obj, regionUUID);
             
@@ -413,7 +413,7 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public virtual List<SceneObjectGroup> LoadObjects(UUID regionID)
+        public List<SceneObjectGroup> LoadObjects(UUID regionID)
         {
             const int ROWS_PER_QUERY = 5000;
 
@@ -638,7 +638,7 @@ namespace OpenSim.Data.MySQL
         }
 
         // Legacy region loading
-        public virtual double[,] LoadTerrain(UUID regionID)
+        public double[,] LoadTerrain(UUID regionID)
         {
             double[,] ret = null;
             TerrainData terrData = LoadTerrain(regionID, (int)Constants.RegionSize, (int)Constants.RegionSize, (int)Constants.RegionHeight);
@@ -684,7 +684,7 @@ namespace OpenSim.Data.MySQL
             return terrData;
         }
 
-        public virtual void RemoveLandObject(UUID globalID)
+        public void RemoveLandObject(UUID globalID)
         {
             lock (m_dbLock)
             {
@@ -703,7 +703,7 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public virtual void StoreLandObject(ILandObject parcel)
+        public void StoreLandObject(ILandObject parcel)
         {
             lock (m_dbLock)
             {
@@ -762,7 +762,7 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public virtual RegionLightShareData LoadRegionWindlightSettings(UUID regionUUID)
+        public RegionLightShareData LoadRegionWindlightSettings(UUID regionUUID)
         {
             RegionLightShareData nWP = new RegionLightShareData();
             nWP.OnSave += StoreRegionWindlightSettings;
@@ -860,7 +860,7 @@ namespace OpenSim.Data.MySQL
             return nWP;
         }
 
-        public virtual RegionSettings LoadRegionSettings(UUID regionUUID)
+        public RegionSettings LoadRegionSettings(UUID regionUUID)
         {
             RegionSettings rs = null;
 
@@ -900,7 +900,7 @@ namespace OpenSim.Data.MySQL
             return rs;
         }
 
-        public virtual void StoreRegionWindlightSettings(RegionLightShareData wl)
+        public void StoreRegionWindlightSettings(RegionLightShareData wl)
         {
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
@@ -1003,7 +1003,7 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public virtual void RemoveRegionWindlightSettings(UUID regionID)
+        public void RemoveRegionWindlightSettings(UUID regionID)
         {
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
@@ -1080,7 +1080,7 @@ namespace OpenSim.Data.MySQL
         }
         #endregion
 
-        public virtual void StoreRegionSettings(RegionSettings rs)
+        public void StoreRegionSettings(RegionSettings rs)
         {
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
@@ -1133,7 +1133,7 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public virtual List<LandData> LoadLandObjects(UUID regionUUID)
+        public List<LandData> LoadLandObjects(UUID regionUUID)
         {
             List<LandData> landData = new List<LandData>();
 
@@ -1982,7 +1982,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("Media", null == s.Media ? null : s.Media.ToXml());
         }
 
-        public virtual void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)
+        public void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)
         {
             lock (m_dbLock)
             {
