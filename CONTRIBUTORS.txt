@@ -13,6 +13,7 @@ people that make the day to day of OpenSim happen.
 * Robert Adams (MisterBlue)
 * Oren Hurvitz (Kitely)
 * Kevin Cozens
+* Leal Duarte (Ubit Umarov)
 
 = Core Developers Following the White Rabbit =
 Core developers who have temporarily (we hope) gone chasing the white rabbit. 
