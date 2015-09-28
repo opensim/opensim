@@ -268,18 +268,24 @@ namespace OpenSim.Groups
             remoteClient.SendAvatarGroupsReply(avatarID, avatarGroups);
         }
 
-        /*
-         * This becomes very problematic in a shared module.  In a shared module you may have more then one
-         * reference to IClientAPI's, one for 0 or 1 root connections, and 0 or more child connections.
-         * The OnClientClosed event does not provide anything to indicate which one of those should be closed
-         * nor does it provide what scene it was from so that the specific reference can be looked up.
-         * The InstantMessageModule.cs does not currently worry about unregistering the handles, 
-         * and it should be an issue, since it's the client that references us not the other way around
-         * , so as long as we don't keep a reference to the client laying around, the client can still be GC'ed
-        private void OnClientClosed(UUID AgentId)
+        private void OnClientClosed(UUID AgentId, Scene scene)
         {
-            if (m_debugEnabled) m_log.DebugFormat("[Groups]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+            if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+            if (scene == null)
+                return;
 
+            ScenePresence sp = scene.GetScenePresence(AgentId);
+            IClientAPI client = sp.ControllingClient;
+            if (client != null)
+            {
+                client.OnAgentDataUpdateRequest -= OnAgentDataUpdateRequest;
+                client.OnRequestAvatarProperties -= OnRequestAvatarProperties;
+                // make child possible not called?
+                client.OnUUIDGroupNameRequest -= HandleUUIDGroupNameRequest;
+                client.OnInstantMessage -= OnInstantMessage;
+            }
+
+            /*
             lock (m_ActiveClients)
             {
                 if (m_ActiveClients.ContainsKey(AgentId))
@@ -297,10 +303,10 @@ namespace OpenSim.Groups
                     if (m_debugEnabled) m_log.WarnFormat("[Groups]: Client closed that wasn't registered here.");
                 }
 
-                
-            }
         }
         */
+
+        }
 
         private void OnAgentDataUpdateRequest(IClientAPI remoteClient, UUID dataForAgentID, UUID sessionID)
         {
