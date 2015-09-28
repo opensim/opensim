@@ -323,12 +323,6 @@ namespace OpenSim.Services.LLLoginService
                     return LLFailedLoginResponse.UserProblem;
                 }
 
-                if (account.UserLevel < 0)
-                {
-                    m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: Unverified account");
-                    return LLFailedLoginResponse.UnverifiedAccountProblem;
-                }
-
                 if (account.UserLevel < m_MinLoginLevel)
                 {
                     m_log.InfoFormat(
@@ -530,7 +524,7 @@ namespace OpenSim.Services.LLLoginService
                 LLLoginResponse response
                     = new LLLoginResponse(
                         account, aCircuit, guinfo, destination, inventorySkel, friendsList, m_LibraryService,
-                        where, startLocation, position, lookAt, gestures, m_WelcomeMessage, home, clientIP,
+                        where, startLocation, position, lookAt, gestures, processedMessage, home, clientIP,
                         m_MapTileURL, m_ProfileURL, m_OpenIDURL, m_SearchURL, m_Currency, m_DSTZone,
                         m_DestinationGuide, m_AvatarPicker, realID, m_ClassifiedFee,m_MaxAgentGroups);
 
