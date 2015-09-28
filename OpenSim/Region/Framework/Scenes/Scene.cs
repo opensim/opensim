@@ -2284,14 +2284,16 @@ namespace OpenSim.Region.Framework.Scenes
         public Vector3 GetNewRezLocation(Vector3 RayStart, Vector3 RayEnd, UUID RayTargetID, Quaternion rot, byte bypassRayCast, byte RayEndIsIntersection, bool frontFacesOnly, Vector3 scale, bool FaceCenter)
         {
 
+            Vector3 dir = RayEnd - RayStart;
+
             float wheight = (float)RegionInfo.RegionSettings.WaterHeight;
             Vector3 wpos = Vector3.Zero;
             // Check for water surface intersection from above
             if ((RayStart.Z > wheight) && (RayEnd.Z < wheight))
             {
-                float ratio = (RayStart.Z - wheight) / (RayStart.Z - RayEnd.Z);
-                wpos.X = RayStart.X - (ratio * (RayStart.X - RayEnd.X));
-                wpos.Y = RayStart.Y - (ratio * (RayStart.Y - RayEnd.Y));
+                float ratio = (wheight - RayStart.Z) / dir.Z;
+                wpos.X = RayStart.X + (ratio * dir.X);
+                wpos.Y = RayStart.Y + (ratio * dir.Y);
                 wpos.Z = wheight;
             }
 
@@ -2299,9 +2301,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (RayEndIsIntersection != (byte)1)
             {
-                Vector3 rayEnd = RayEnd;
-
-                Vector3 dir = rayEnd - RayStart;
                 float dist = dir.Length();
                 if (dist != 0)
                 {
@@ -2415,7 +2414,6 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 }
-
             }
 
             // fall back to our stupid functionality
