@@ -2025,8 +2025,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!IsChildAgent && openChildAgents)
                 {
                     IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
-//                    if (friendsModule != null)
-//                        friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
+                    if (friendsModule != null)
+                        friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
 
                     m_log.DebugFormat("[CompleteMovement] friendsModule: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
@@ -2882,7 +2882,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (satOnObject)
             {
-
                 m_requestedSitTargetID = 0;
                 part.RemoveSittingAvatar(this);
                 part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
@@ -3010,7 +3009,6 @@ namespace OpenSim.Region.Framework.Scenes
                         cameraEyeOffset += part.OffsetPosition;
                     }
                 }
-
 
                 ControllingClient.SendSitResponse(
                     part.ParentGroup.UUID, offset, sitOrientation, false, cameraAtOffset, cameraEyeOffset, forceMouselook);
@@ -3181,7 +3179,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsChildAgent)
                 return;
 
-            SceneObjectPart part = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
+             SceneObjectPart part = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
 
             if (part != null)
             {
@@ -3262,11 +3260,13 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 part.AddSittingAvatar(this);
-                ParentPart = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
+                ParentPart = part;
                 ParentID = m_requestedSitTargetID;
                 m_AngularVelocity = Vector3.Zero;
                 Velocity = Vector3.Zero;
                 RemoveFromPhysicalScene();
+
+                m_requestedSitTargetID = 0;
 
                 SendAvatarDataToAllAgents();
 
