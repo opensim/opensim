@@ -741,16 +741,24 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public static bool operator ==(list a, list b)
             {
-                int la = a.Length;
-                int lb = b.Length;
+                int la = -1;
+                int lb = -1;
+                try { la = a.Length; }
+                catch (NullReferenceException) { }
+                try { lb = b.Length; }
+                catch (NullReferenceException) { }
 
                 return la == lb;
             }
 
             public static bool operator !=(list a, list b)
             {
-                int la = a.Length;
-                int lb = b.Length;
+                int la = -1;
+                int lb = -1;
+                try { la = a.Length; }
+                catch (NullReferenceException) { }
+                try { lb = b.Length; }
+                catch (NullReferenceException) { }
 
                 return la != lb;
             }
@@ -984,7 +992,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     ret = Math.Sign(Quaternion.Mag(l) - Quaternion.Mag(r));
                 }
 
-                if (ascending != 1)
+                if (ascending == 0)
                 {
                     ret = 0 - ret;
                 }
@@ -1039,7 +1047,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     if (homogeneous)
                     {
                         Array.Sort(ret, new HomogeneousComparer());
-                        if (ascending != 1)
+                        if (ascending == 0)
                         {
                             Array.Reverse(ret);
                         }
