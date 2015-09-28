@@ -153,6 +153,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Profile
             Server.AddJsonRPCHandler("avatar_properties_request", handler.AvatarPropertiesRequest);
             Server.AddJsonRPCHandler("avatar_properties_update", handler.AvatarPropertiesUpdate);
             Server.AddJsonRPCHandler("avatar_interests_update", handler.AvatarInterestsUpdate);
+            Server.AddJsonRPCHandler("user_preferences_update", handler.UserPreferenecesUpdate);
+            Server.AddJsonRPCHandler("user_preferences_request", handler.UserPreferencesRequest);
             Server.AddJsonRPCHandler("image_assets_request", handler.AvatarImageAssetsRequest);
             Server.AddJsonRPCHandler("user_data_request", handler.RequestUserAppData);
             Server.AddJsonRPCHandler("user_data_update", handler.UpdateUserAppData);
