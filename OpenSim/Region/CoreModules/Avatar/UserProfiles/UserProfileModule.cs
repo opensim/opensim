@@ -288,6 +288,10 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             // Notes
             client.AddGenericPacketHandler("avatarnotesrequest", NotesRequest);
             client.OnAvatarNotesUpdate += NotesUpdate;
+
+            // Preferences
+            client.OnUserInfoRequest += UserPreferencesRequest;
+            client.OnUpdateUserInfo += UpdateUserPreferences;
         }
         #endregion Region Event Handlers
 
