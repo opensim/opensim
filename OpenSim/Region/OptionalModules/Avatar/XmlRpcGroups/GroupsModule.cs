@@ -86,7 +86,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         private bool m_groupsEnabled = false;
         private bool m_groupNoticesEnabled = true;
         private bool m_debugEnabled = false;
-        private int m_levelGroupCreate = 0;
+        private int  m_levelGroupCreate = 0;
 
         #region Region Module interfaceBase Members
 
@@ -116,9 +116,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                 m_log.InfoFormat("[GROUPS]: Initializing {0}", this.Name);
 
-                m_groupNoticesEnabled = groupsConfig.GetBoolean("NoticesEnabled", true);
-                m_debugEnabled = groupsConfig.GetBoolean("DebugEnabled", false);
-                m_levelGroupCreate = groupsConfig.GetInt("LevelGroupCreate", 0);
+                m_groupNoticesEnabled   = groupsConfig.GetBoolean("NoticesEnabled", true);
+                m_debugEnabled          = groupsConfig.GetBoolean("DebugEnabled", false);
+                m_levelGroupCreate      = groupsConfig.GetInt("LevelGroupCreate", 0);
             }
         }
 
@@ -263,8 +263,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             sp.ControllingClient.OnUUIDGroupNameRequest += HandleUUIDGroupNameRequest;
             // Used for Notices and Group Invites/Accept/Reject
             sp.ControllingClient.OnInstantMessage += OnInstantMessage;
-// comented out bc some viewers wrongly stoped suporting it
-//            sp.ControllingClient.AddGenericPacketHandler("avatargroupsrequest", AvatarGroupsRequest);
+
+            // comented out because some viewers no longer suport it
+            //  sp.ControllingClient.AddGenericPacketHandler("avatargroupsrequest", AvatarGroupsRequest);
 
             // we should send a DataUpdate here for compatibility,
             // but this is a bad place and a bad thread to do it
@@ -288,6 +289,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
 
         }
+
 /*  this should be the right message to ask for other avatars groups
 
         private void AvatarGroupsRequest(Object sender, string method, List<String> args)
@@ -310,8 +312,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         }
 */
 
-// this should not be used to send groups memberships, but some viewers do expect it
-// it does send unnecessary memberships, when viewers just want other properties information
+        // this should not be used to send groups memberships, but some viewers do expect it
+        // it does send unnecessary memberships, when viewers just want other properties information
         private void OnRequestAvatarProperties(IClientAPI remoteClient, UUID avatarID)
         {
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
@@ -338,25 +340,25 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 client.OnInstantMessage -= OnInstantMessage;
             }
 
-            /*
-                        lock (m_ActiveClients)
-                        {
-                            if (m_ActiveClients.ContainsKey(AgentId))
-                            {
-                                IClientAPI client = m_ActiveClients[AgentId];
-                                client.OnUUIDGroupNameRequest -= HandleUUIDGroupNameRequest;
-                                client.OnAgentDataUpdateRequest -= OnAgentDataUpdateRequest;
-                                client.OnDirFindQuery -= OnDirFindQuery;
-                                client.OnInstantMessage -= OnInstantMessage;
+/*
+            lock (m_ActiveClients)
+                {
+                if (m_ActiveClients.ContainsKey(AgentId))
+                    {
+                        IClientAPI client = m_ActiveClients[AgentId];
+                        client.OnUUIDGroupNameRequest -= HandleUUIDGroupNameRequest;
+                        client.OnAgentDataUpdateRequest -= OnAgentDataUpdateRequest;
+                        client.OnDirFindQuery -= OnDirFindQuery;
+                        client.OnInstantMessage -= OnInstantMessage;
 
-                                m_ActiveClients.Remove(AgentId);
-                            }
-                            else
-                            {
-                                if (m_debugEnabled) m_log.WarnFormat("[GROUPS]: Client closed that wasn't registered here.");
-                            }
-                        }
-            */
+                        m_ActiveClients.Remove(AgentId);
+                    }
+                else
+                    {
+                        if (m_debugEnabled) m_log.WarnFormat("[GROUPS]: Client closed that wasn't registered here.");
+                    }
+                }
+*/
         }
 
         private void OnAgentDataUpdateRequest(IClientAPI remoteClient, UUID dataForAgentID, UUID sessionID)
