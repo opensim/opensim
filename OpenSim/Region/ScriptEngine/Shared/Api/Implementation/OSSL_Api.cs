@@ -2578,7 +2578,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
             m_host.AddScriptLPS(1);
 
-            return NpcCreate(firstname, lastname, position, notecard, true, false);
+            return NpcCreate(firstname, lastname, position, notecard, false, false);
         }
 
         public LSL_Key osNpcCreate(string firstname, string lastname, LSL_Vector position, string notecard, int options)
@@ -2589,39 +2589,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return NpcCreate(
                 firstname, lastname, position, notecard,
                 (options & ScriptBaseClass.OS_NPC_NOT_OWNED) == 0,
-                false);
-//                (options & ScriptBaseClass.OS_NPC_SENSE_AS_AGENT) != 0);
+                (options & ScriptBaseClass.OS_NPC_SENSE_AS_AGENT) != 0);
         }
 
         private LSL_Key NpcCreate(
             string firstname, string lastname, LSL_Vector position, string notecard, bool owned, bool senseAsAgent)
         {
-            if (!owned)
-                OSSLError("Unowned NPCs are unsupported");
-            
             string groupTitle = String.Empty;
 
             if (!World.Permissions.CanRezObject(1, m_host.OwnerID, new Vector3((float)position.x, (float)position.y, (float)position.z)))
                 return new LSL_Key(UUID.Zero.ToString());
-
-            if (firstname != String.Empty || lastname != String.Empty)
-            {
-                if (firstname != "Shown outfit:")
-                    groupTitle = "- NPC -";
-            }
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
             {
                 AvatarAppearance appearance = null;
 
-//                UUID id;
-//                if (UUID.TryParse(notecard, out id))
-//                {
-//                    ScenePresence clonePresence = World.GetScenePresence(id);
-//                    if (clonePresence != null)
-//                        appearance = clonePresence.Appearance;
-//                }
+                UUID id;
+                if (UUID.TryParse(notecard, out id))
+                {
+                    ScenePresence clonePresence = World.GetScenePresence(id);
+                    if (clonePresence != null)
+                        appearance = clonePresence.Appearance;
+                }
 
                 if (appearance == null)
                 {
@@ -2960,32 +2950,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.High, "osNpcRemove");
             m_host.AddScriptLPS(1);
 
-            ManualResetEvent ev = new ManualResetEvent(false);
-
-            Util.FireAndForget(delegate(object x) {
-                try
+            try
+            {
+                INPCModule module = World.RequestModuleInterface<INPCModule>();
+                if (module != null)
                 {
-                    INPCModule module = World.RequestModuleInterface<INPCModule>();
-                    if (module != null)
-                    {
-                        UUID npcId = new UUID(npc.m_string);
+                    UUID npcId = new UUID(npc.m_string);
 
-                        ILandObject l = World.LandChannel.GetLandObject(m_host.GroupPosition.X, m_host.GroupPosition.Y);
-                        if (l == null || m_host.OwnerID != l.LandData.OwnerID)
-                        {
-                            if (!module.CheckPermissions(npcId, m_host.OwnerID))
-                                return;
-                        }
+                    if (!module.CheckPermissions(npcId, m_host.OwnerID))
+                        return;
 
-                        module.DeleteNPC(npcId, World);
-                    }
+                    module.DeleteNPC(npcId, World);                   
                 }
-                finally
-                {
-                    ev.Set();
-                }
-            });
-            ev.WaitOne();
+            }
+            catch { }
         }
 
         public void osNpcPlayAnimation(LSL_Key npc, string animation)
