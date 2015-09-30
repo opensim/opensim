@@ -157,6 +157,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         float mu;       
 
+        // HoverHeight control
+        private float m_PIDHoverHeight;
+        private float m_PIDHoverTau;
+        private bool m_useHoverPID;
+        private PIDHoverType m_PIDHoverType;
+        private float m_targetHoverHeight;
+
+
         public OdeCharacter(uint localID, String avName, ODEScene parent_scene, Vector3 pos, Vector3 pSize, float pfeetOffset, float density, float walk_divisor, float rundivisor)
         {
             m_uuid = UUID.Random();
@@ -1042,7 +1050,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             Vector3 vel = new Vector3(dtmp.X, dtmp.Y, dtmp.Z);
             float velLengthSquared = vel.LengthSquared();
 
-
             Vector3 ctz = _target_velocity;
 
             float movementdivisor = 1f;
@@ -1144,14 +1151,58 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
             }
 
+            bool hoverPIDActive = false;
+
+            if (m_useHoverPID && m_PIDHoverTau != 0 && m_PIDHoverHeight != 0)
+            {
+                hoverPIDActive = true;
+
+                switch (m_PIDHoverType)
+                {
+                    case PIDHoverType.Ground:
+                        m_targetHoverHeight = terrainheight + m_PIDHoverHeight;
+                        break;
+
+                    case PIDHoverType.GroundAndWater:
+                        float waterHeight = _parent_scene.GetWaterLevel();
+                        if (terrainheight > waterHeight)
+                            m_targetHoverHeight = terrainheight + m_PIDHoverHeight;
+                        else
+                            m_targetHoverHeight = waterHeight + m_PIDHoverHeight;
+                        break;
+                }     // end switch (m_PIDHoverType)
+
+                    // don't go underground 
+                if (m_targetHoverHeight > terrainheight + 0.5f * (aabb.MaxZ - aabb.MinZ))
+                {
+                    float fz = (m_targetHoverHeight - localpos.Z);
+
+                    //  if error is zero, use position control; otherwise, velocity control
+                    if (Math.Abs(fz) < 0.01f)
+                    {
+                        ctz.Z = 0;
+                    }
+                    else
+                    {
+                        _zeroFlag = false;
+                        fz /= m_PIDHoverTau;
+
+                        float tmp = Math.Abs(fz);
+                        if (tmp > 50)
+                            fz = 50 * Math.Sign(fz);
+                        else if (tmp < 0.1)
+                            fz = 0.1f * Math.Sign(fz);
+
+                        ctz.Z = fz;
+                    }
+                }
+            }
             
             //******************************************
             if (!m_iscolliding)
                 m_collideNormal.Z = 0;
 
             bool tviszero = (ctz.X == 0.0f && ctz.Y == 0.0f && ctz.Z == 0.0f);
-
-
 
             if (!tviszero)
             {
@@ -1171,7 +1222,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
 
             }
-
 
             if (!m_freemove)
             {
@@ -1262,7 +1312,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     }
                     else // ie not colliding
                     {
-                        if (flying) //(!m_iscolliding && flying)
+                        if (flying || hoverPIDActive) //(!m_iscolliding && flying)
                         {
                             // we're in mid air suspended
                             vec.X += (ctz.X - vel.X) * (PID_D);
@@ -1304,18 +1354,21 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     vec.Z -= .16f* m_mass * vel.Z;
             }
 
-            if (flying)
+            if (flying || hoverPIDActive)
             {
                 vec.Z -= _parent_scene.gravityz * m_mass;
 
-                //Added for auto fly height. Kitto Flora
-                float target_altitude = _parent_scene.GetTerrainHeightAtXY(localpos.X, localpos.Y) + MinimumGroundFlightOffset;
-
-                if (localpos.Z < target_altitude)
+                if(!hoverPIDActive)
                 {
-                    vec.Z += (target_altitude - localpos.Z) * PID_P * 5.0f;
+                    //Added for auto fly height. Kitto Flora
+                    float target_altitude = terrainheight + MinimumGroundFlightOffset;
+
+                    if (localpos.Z < target_altitude)
+                    {
+                       vec.Z += (target_altitude - localpos.Z) * PID_P * 5.0f;
+                    }
+                    // end add Kitto Flora
                 }
-                // end add Kitto Flora
             }
 
             if (vec.IsFinite())
@@ -1418,10 +1471,45 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public override bool PIDActive {get {return m_pidControllerActive;} set { return; } }
         public override float PIDTau { set { return; } }
 
-        public override float PIDHoverHeight { set { return; } }
-        public override bool PIDHoverActive { set { return; } }
-        public override PIDHoverType PIDHoverType { set { return; } }
-        public override float PIDHoverTau { set { return; } }
+        public override float PIDHoverHeight
+        {
+            set
+            {
+                AddChange(changes.PIDHoverHeight,value);
+            }
+        }
+        public override bool PIDHoverActive
+        {
+            set
+            {
+                AddChange(changes.PIDHoverActive, value);
+            }
+        }
+
+        public override PIDHoverType PIDHoverType
+        {
+            set
+            {
+                AddChange(changes.PIDHoverType,value);
+            }
+        }
+
+        public override float PIDHoverTau
+        {
+            set
+            {
+                float tmp =0;
+                if (value > 0)
+                {
+                    float mint = (0.05f > timeStep ? 0.05f : timeStep);
+                    if (value < mint)
+                        tmp = mint;
+                    else
+                        tmp = value;
+                }
+                AddChange(changes.PIDHoverTau, tmp);
+            }
+        }
 
         public override Quaternion APIDTarget { set { return; } }
 
@@ -1713,6 +1801,28 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 d.BodySetLinearVel(Body, newmomentum.X, newmomentum.Y, newmomentum.Z);
         }
 
+        private void changePIDHoverHeight(float val)
+        {
+          m_PIDHoverHeight = val;
+          if (val == 0)
+            m_useHoverPID = false;
+        }
+
+        private void changePIDHoverType(PIDHoverType type)
+        {
+            m_PIDHoverType = type;
+        }
+
+        private void changePIDHoverTau(float tau)
+        {
+            m_PIDHoverTau = tau;
+        }
+
+        private void changePIDHoverActive(bool active)
+        {
+            m_useHoverPID = active;
+        }
+
         private void donullchange()
         {
         }
@@ -1792,6 +1902,23 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 case changes.Momentum:
                     changeMomentum((Vector3)arg);
                     break;
+
+                case changes.PIDHoverHeight:
+                    changePIDHoverHeight((float)arg);
+                    break;
+
+                case changes.PIDHoverType:
+                    changePIDHoverType((PIDHoverType)arg);
+                    break;
+
+                case changes.PIDHoverTau:
+                    changePIDHoverTau((float)arg);
+                    break;
+
+                case changes.PIDHoverActive:
+                    changePIDHoverActive((bool)arg);
+                    break;
+
 /* not in use for now
                 case changes.Shape:
                     changeShape((PrimitiveBaseShape)arg);
