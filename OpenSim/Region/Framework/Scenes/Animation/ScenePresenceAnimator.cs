@@ -399,6 +399,15 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             {
                 float fallVelocity = actor.Velocity.Z;
 
+                // if stable on Hover assume falling
+                if(actor.PIDHoverActive && fallVelocity < 0.05f)
+                {
+                    Falling = true;
+                    currentControlState = motionControlStates.falling;
+                    m_lastFallVelocity = fallVelocity;
+                    return "FALLDOWN";
+                }
+
                 if (fallVelocity < -2.5f)
                     Falling = true;
 
@@ -431,7 +440,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
             #region Jumping     // section added for jumping...
 
-            if (isColliding && heldUp && currentControlState != motionControlStates.jumping)
+            if (isColliding && heldUp && currentControlState != motionControlStates.jumping && !actor.PIDHoverActive)
             {
                 // Start jumping, prejump
                 currentControlState = motionControlStates.jumping;

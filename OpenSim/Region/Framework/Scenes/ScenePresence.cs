@@ -3363,7 +3363,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             //            m_log.DebugFormat("[SCENE PRESENCE]: Force to apply before modification was {0} for {1}", direc, Name);
 
-            if (Animator.currentControlState == ScenePresenceAnimator.motionControlStates.falling)
+            if (Animator.currentControlState == ScenePresenceAnimator.motionControlStates.falling
+                    && (PhysicsActor == null || !PhysicsActor.PIDHoverActive))
             {
                 if (breaking)
                     direc.Z = -9999f; //hack to tell physics to stop on Z
