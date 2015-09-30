@@ -3942,25 +3942,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (m_host.PhysActor != null)
+            PIDHoverType hoverType = PIDHoverType.Ground;
+            if (water != 0)
             {
-                PIDHoverType hoverType = PIDHoverType.Ground;
-                if (water != 0)
-                {
-                    hoverType = PIDHoverType.GroundAndWater;
-                }
-
-                m_host.SetHoverHeight((float)height, hoverType, (float)tau);
+                hoverType = PIDHoverType.GroundAndWater;
             }
+            m_host.SetHoverHeight((float)height, hoverType, (float)tau);
         }
 
         public void llStopHover()
         {
             m_host.AddScriptLPS(1);
-            if (m_host.PhysActor != null)
-            {
-                m_host.SetHoverHeight(0f, PIDHoverType.Ground, 0f);
-            }
+            m_host.SetHoverHeight(0f, PIDHoverType.Ground, 0f);
         }
 
         public void llMinEventDelay(double delay)

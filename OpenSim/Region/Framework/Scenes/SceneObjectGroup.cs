@@ -2579,7 +2579,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="tau">Number of seconds over which to reach target</param>
         public void SetHoverHeight(float height, PIDHoverType hoverType, float tau)
         {
-            PhysicsActor pa = RootPart.PhysActor;
+            PhysicsActor pa = null;
+            if(IsAttachment)
+                {
+                    ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
+                    if (avatar != null) 
+                        pa = avatar.PhysicsActor;
+                }
+            else
+                pa = RootPart.PhysActor;
 
             if (pa != null)
             {
