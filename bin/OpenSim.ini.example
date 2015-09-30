@@ -1114,6 +1114,21 @@
 [NPC]
     ;# {Enabled} {} {Enable Non Player Character (NPC) facilities} {true false} false
     ; Enabled = false
+	
+	;; several options to control NPCs creation
+	;; should only be set true on special uses.
+	
+	;; allow NPCs to be created not Owned {true false} false
+    ; AllowNotOwned = false
+	
+	;; allow NPCs to set to be sensed as Avatars {true false} false
+    ; AllowSenseAsAvatar = false
+	
+	;; allow NPCs to created cloning any avatar in region {true false} false
+    ; AllowCloneOtherAvatars = false
+	
+	;; if true NPCs will have no group title, if false display "- NPC -" for easy identification {true false} false
+    ; NoNPCGroup = false 
 
 
 [Terrain]

@@ -52,6 +52,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         private Dictionary<UUID, NPCAvatar> m_avatars =
                 new Dictionary<UUID, NPCAvatar>();
 
+
+
+        private NPCOptionsFlags m_NPCOptionFlags;
+        public NPCOptionsFlags NPCOptionFlags {get {return m_NPCOptionFlags;}}
+
         public bool Enabled { get; private set; }
 
         public void Initialise(IConfigSource source)
@@ -59,6 +64,27 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             IConfig config = source.Configs["NPC"];
 
             Enabled = (config != null && config.GetBoolean("Enabled", false));
+            m_NPCOptionFlags = NPCOptionsFlags.None;
+            if(Enabled)
+            {
+                bool opt = false;
+
+                opt = config.GetBoolean("AllowNotOwned", false);
+                if(opt)
+                    m_NPCOptionFlags |= NPCOptionsFlags.AllowNotOwned;
+
+                opt = config.GetBoolean("AllowSenseAsAvatar", false);
+                if(opt)
+                    m_NPCOptionFlags |= NPCOptionsFlags.AllowSenseAsAvatar;
+
+                opt = config.GetBoolean("AllowCloneOtherAvatars", false);
+                if(opt)
+                    m_NPCOptionFlags |= NPCOptionsFlags.AllowCloneOtherAvatars;
+
+                opt = config.GetBoolean("NoNPCGroup", false);
+                if(opt)
+                    m_NPCOptionFlags |= NPCOptionsFlags.NoNPCGroup;
+            }
         }
 
         public void AddRegion(Scene scene)

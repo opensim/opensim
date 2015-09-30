@@ -141,8 +141,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal float m_ScriptDelayFactor = 1.0f;
         internal float m_ScriptDistanceFactor = 1.0f;
         internal bool m_debuggerSafe = false;
-        internal Dictionary<string, FunctionPerms > m_FunctionPerms = new Dictionary<string, FunctionPerms >();
-
+        internal Dictionary<string, FunctionPerms > m_FunctionPerms = new Dictionary<string, FunctionPerms >();      
         protected IUrlModule m_UrlModule = null;
 
         public void Initialize(
@@ -196,7 +195,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             default:
                 break;
             }
-        }
+         }
 
         public override Object InitializeLifetimeService()
         {
@@ -2577,8 +2576,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
             m_host.AddScriptLPS(1);
+            
+            // have to get the npc module also here to set the default Not Owned
+            INPCModule module = World.RequestModuleInterface<INPCModule>();
+            if(module == null)
+                return new LSL_Key(UUID.Zero.ToString());
+            
+            bool owned = (module.NPCOptionFlags & NPCOptionsFlags.AllowNotOwned) == 0;
 
-            return NpcCreate(firstname, lastname, position, notecard, false, false);
+            return NpcCreate(firstname, lastname, position, notecard, owned, false);
         }
 
         public LSL_Key osNpcCreate(string firstname, string lastname, LSL_Vector position, string notecard, int options)
@@ -2595,7 +2601,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private LSL_Key NpcCreate(
             string firstname, string lastname, LSL_Vector position, string notecard, bool owned, bool senseAsAgent)
         {
-            string groupTitle = String.Empty;
 
             if (!World.Permissions.CanRezObject(1, m_host.OwnerID, new Vector3((float)position.x, (float)position.y, (float)position.z)))
                 return new LSL_Key(UUID.Zero.ToString());
@@ -2603,14 +2608,42 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
             {
+                string groupTitle = String.Empty;
                 AvatarAppearance appearance = null;
 
-                UUID id;
-                if (UUID.TryParse(notecard, out id))
+                // check creation options
+                NPCOptionsFlags createFlags = module.NPCOptionFlags;
+
+                if((createFlags & NPCOptionsFlags.AllowNotOwned) == 0 && !owned)
                 {
-                    ScenePresence clonePresence = World.GetScenePresence(id);
-                    if (clonePresence != null)
-                        appearance = clonePresence.Appearance;
+                    OSSLError("Not owned NPCs disabled");
+                    owned = true; // we should get here...
+                }
+
+                if((createFlags & NPCOptionsFlags.AllowSenseAsAvatar) == 0 && senseAsAgent)
+                {
+                    OSSLError("NPC allow sense as Avatar disabled");
+                    senseAsAgent = false;
+                }
+
+                if((createFlags & NPCOptionsFlags.NoNPCGroup) == 0)
+                {
+                    if (firstname != String.Empty || lastname != String.Empty)
+                        {
+                            if (firstname != "Shown outfit:")
+                                groupTitle = "- NPC -";
+                        }
+                }
+               
+                if((createFlags & NPCOptionsFlags.AllowCloneOtherAvatars) != 0)
+                {
+                    UUID id;
+                    if (UUID.TryParse(notecard, out id))
+                    {
+                        ScenePresence clonePresence = World.GetScenePresence(id);
+                        if (clonePresence != null)
+                            appearance = clonePresence.Appearance;
+                    }
                 }
 
                 if (appearance == null)
