@@ -561,9 +561,19 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public bool UseFakeGroupTitle { get; set; }
 
-
         // Agent's Draw distance.
-        public float DrawDistance { get; set; }
+        private float m_drawDistance = 255f;
+        public float DrawDistance
+        {
+            get
+            {
+            return m_drawDistance;
+            }
+            set
+            {
+            m_drawDistance = Util.Clamp(value, 32f, m_scene.MaxDrawDistance);
+            }
+        }
 
         public bool AllowMovement { get; set; }
 
@@ -2174,7 +2184,7 @@ namespace OpenSim.Region.Framework.Scenes
             // changes, then start using the agent's drawdistance rather than the 
             // region's draw distance.
 
-            DrawDistance = Util.Clamp(agentData.Far, 32, m_scene.MaxDrawDistance);
+            DrawDistance = agentData.Far;
 
             m_mouseLook = (flags & AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0;
 
@@ -2534,7 +2544,7 @@ namespace OpenSim.Region.Framework.Scenes
             // changes, then start using the agent's drawdistance rather than the 
             // region's draw distance.
 
-            DrawDistance = Util.Clamp(agentData.Far, 32, m_scene.MaxDrawDistance);
+            DrawDistance = agentData.Far;
 
             // Check if Client has camera in 'follow cam' or 'build' mode.
             Vector3 camdif = (Vector3.One * Rotation - Vector3.One * CameraRotation);
@@ -4187,11 +4197,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             Vector3 offset = new Vector3(shiftx, shifty, 0f);
 
-            // When we get to the point of re-computing neighbors everytime this
-            // changes, then start using the agent's drawdistance rather than the 
-            // region's draw distance.
             DrawDistance = cAgentData.Far;
-//            DrawDistance = Scene.DefaultDrawDistance;
 
             if (cAgentData.Position != marker) // UGH!!
                 m_pos = cAgentData.Position + offset;
