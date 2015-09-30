@@ -254,6 +254,7 @@ namespace OpenSim.Region.PhysicsModule.BasicPhysics
 
         public override bool PIDHoverActive
         {
+            get { return false; }
             set { return; }
         }
 

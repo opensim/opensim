@@ -268,7 +268,7 @@ public abstract class BSPhysObject : PhysicsActor
     public float MoveToTargetTau { get; set; }
 
     // Used for llSetHoverHeight and maybe vehicle height. Hover Height will override MoveTo target's Z
-    public override bool PIDHoverActive { set { HoverActive = value; } }
+    public override bool PIDHoverActive {get {return HoverActive;}  set { HoverActive = value; } }
     public override float PIDHoverHeight { set { HoverHeight = value; } }
     public override PIDHoverType PIDHoverType { set { HoverType = value; } }
     public override float PIDHoverTau { set { HoverTau = value; } }

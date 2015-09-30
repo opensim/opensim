@@ -3007,7 +3007,7 @@ Console.WriteLine(" JointCreateFixed");
         public override float PIDTau { set { m_PIDTau = value; } }
 
         public override float PIDHoverHeight { set { m_PIDHoverHeight = value; ; } }
-        public override bool PIDHoverActive { set { m_useHoverPID = value; } }
+        public override bool PIDHoverActive { get { return m_useHoverPID;} set { m_useHoverPID = value; } }
         public override PIDHoverType PIDHoverType { set { m_PIDHoverType = value; } }
         public override float PIDHoverTau { set { m_PIDHoverTau = value; } }
         

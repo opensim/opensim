@@ -391,7 +391,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
         // Used for llSetHoverHeight and maybe vehicle height
         // Hover Height will override MoveTo target's Z
-        public abstract bool PIDHoverActive { set;}
+        public abstract bool PIDHoverActive {get; set;}
         public abstract float PIDHoverHeight { set;}
         public abstract PIDHoverType PIDHoverType { set;}
         public abstract float PIDHoverTau { set;}
@@ -621,7 +621,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public override float PIDTau { set { return; } }
 
         public override float PIDHoverHeight { set { return; } }
-        public override bool PIDHoverActive { set { return; } }
+        public override bool PIDHoverActive {get {return false;} set { return; } }
         public override PIDHoverType PIDHoverType { set { return; } }
         public override float PIDHoverTau { set { return; } }
         

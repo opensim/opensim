@@ -1173,6 +1173,10 @@ public class BSPrim : BSPhysObject
     // Used for llSetHoverHeight and maybe vehicle height
     // Hover Height will override MoveTo target's Z
     public override bool PIDHoverActive {
+        get 
+        {
+        return base.HoverActive;
+        }
         set {
             base.HoverActive = value;
             EnableActor(HoverActive, HoverActorName, delegate()

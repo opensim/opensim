@@ -1480,6 +1480,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         }
         public override bool PIDHoverActive
         {
+            get
+            {
+            return m_useHoverPID;
+            }
             set
             {
                 AddChange(changes.PIDHoverActive, value);
