@@ -1028,6 +1028,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             {
                 foreach (PatchUpdates pups in m_perClientPatchUpdates.Values)
                 {
+                    if(pups.Presence.IsDeleted)
+                        continue;
+
                     // throught acording to land queue free to send bytes
                     if (!pups.Presence.ControllingClient.CanSendLayerData())
                         continue;
@@ -1104,8 +1107,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         patchs.Add(new PatchesToSend(x, y, 0));
                         if (++npatchs >= 128)
                         {
-                            pups.sendAllcurrentX = x + 1;
-                            pups.sendAllcurrentY = y;
+                            x++;
                             break;
                         }
                     }
@@ -1120,6 +1122,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 pups.sendAll = false;
                 pups.sendAllcurrentX = 0;
                 pups.sendAllcurrentY = 0;
+            }
+            else
+            {
+                pups.sendAllcurrentX = x;
+                pups.sendAllcurrentY = y;
             }
 
             npatchs = patchs.Count;
@@ -1181,14 +1188,14 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             int startX = testposX - DrawDistance;
             if (startX < 0)
                 startX = 0;
-            else if (startX > limitX)
-                startX = limitX;
+            else if (startX >= limitX)
+                startX = limitX - 1;
 
             int startY = testposY - DrawDistance;
             if (startY < 0)
                 startY = 0;
-            else if (startY > limitY)
-                startY = limitY;
+            else if (startY >= limitY)
+                startY = limitY - 1;
 
             int endX = testposX + DrawDistance;
             if (endX < 0)
@@ -1221,7 +1228,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         {
                             pups.SetByPatch(x, y, false);
                             ret.Add(new PatchesToSend(x, y, (float)distsq));
-                            if (npatchs++ > 512)
+                            if (npatchs++ > 1024)
                             {
                                 y = endY;
                                 x = endX;
