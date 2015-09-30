@@ -986,6 +986,7 @@ namespace OpenSim.Region.Framework.Scenes
         public ScenePresence(
             IClientAPI client, Scene world, AvatarAppearance appearance, PresenceType type)
         {            
+            m_scene = world;
             AttachmentsSyncLock = new Object();
             AllowMovement = true;
             IsChildAgent = true;
@@ -1000,7 +1001,6 @@ namespace OpenSim.Region.Framework.Scenes
             Firstname = ControllingClient.FirstName;
             Lastname = ControllingClient.LastName;
             m_name = String.Format("{0} {1}", Firstname, Lastname);
-            m_scene = world;
             m_uuid = client.AgentId;
             LocalId = m_scene.AllocateLocalId();
 
