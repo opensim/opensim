@@ -1112,7 +1112,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // This sleep can be increased if necessary.  However, whilst it's active,
                 // an agent cannot teleport back to this region if it has teleported away.
                 Thread.Sleep(2000);
-
+                if (m_eqModule != null)
+                    m_eqModule.DisableSimulator(sp.RegionHandle,sp.UUID);
+                Thread.Sleep(500);
                 sp.Scene.CloseAgent(sp.UUID, false);
             }
         }
@@ -1256,8 +1258,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // BEFORE THEY SETTLE IN THE NEW REGION.
                 // DECREASING THE WAIT TIME HERE WILL EITHER RESULT IN A VIEWER CRASH OR
                 // IN THE AVIE BEING PLACED IN INFINITY FOR A COUPLE OF SECONDS.
-                Thread.Sleep(15000);
-            
+
+                Thread.Sleep(14000);
+                if (m_eqModule != null)
+                    m_eqModule.DisableSimulator(sp.RegionHandle,sp.UUID);
+                Thread.Sleep(1000);
+
                 // OK, it got this agent. Let's close everything
                 // If we shouldn't close the agent due to some other region renewing the connection 
                 // then this will be handled in IncomingCloseAgent under lock conditions

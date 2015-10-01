@@ -4076,6 +4076,9 @@ namespace OpenSim.Region.Framework.Scenes
             uint x, y;
             spRegionSizeInfo regInfo;
 
+            // this should not be here
+            IEventQueue eventQueue = Scene.RequestModuleInterface<IEventQueue>();
+
             foreach (ulong handle in knownRegions)
             {
                 // Don't close the agent on this region yet
@@ -4095,6 +4098,9 @@ namespace OpenSim.Region.Framework.Scenes
                                 regInfo.sizeX, regInfo.sizeY, newRegionSizeX, newRegionSizeY))
                             {
                                 byebyeRegions.Add(handle);
+                                // this should not be here
+                                if(eventQueue != null)
+                                    eventQueue.DisableSimulator(handle,UUID);
                             }
                         }
                         else
@@ -4103,6 +4109,9 @@ namespace OpenSim.Region.Framework.Scenes
                                 (int)Constants.RegionSize, (int)Constants.RegionSize, newRegionSizeX, newRegionSizeY))
                             {
                                 byebyeRegions.Add(handle);
+                                // this should not be here
+                                if(eventQueue != null)
+                                    eventQueue.DisableSimulator(handle,UUID);
                             }
                         }
                     }
