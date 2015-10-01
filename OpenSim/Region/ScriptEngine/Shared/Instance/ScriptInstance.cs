@@ -1018,10 +1018,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             part.Inventory.GetInventoryItem(ItemID).PermsGranter = UUID.Zero;
             part.CollisionSound = UUID.Zero;
             AsyncCommandManager.RemoveScript(Engine, LocalID, ItemID);
+
+            m_TimerQueued = false;
+            m_StateChangeInProgress = false;
             EventQueue.Clear();
+
             m_Script.ResetVars();
             StartParam = 0;
             State = "default";
+
 
             part.SetScriptEvents(ItemID,
                                  (int)m_Script.GetStateEventFlags(State));
@@ -1049,6 +1054,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             part.CollisionSound = UUID.Zero;
             AsyncCommandManager.RemoveScript(Engine, LocalID, ItemID);
 
+            m_TimerQueued = false;
+            m_StateChangeInProgress = false;
             EventQueue.Clear();
             m_Script.ResetVars();
             string oldState = State;
