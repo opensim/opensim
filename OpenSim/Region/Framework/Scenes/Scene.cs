@@ -2306,7 +2306,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     Vector3 direction = dir * (1 / dist);
 
-                    dist += 2.0f;
+                    dist += 1.0f;
 
                     if (SupportsRayCastFiltered())
                     {
@@ -2323,31 +2323,48 @@ namespace OpenSim.Region.Framework.Scenes
                             (List<ContactResult>)RayCastFiltered(RayStart, direction, dist, physcount, rayfilter);
                         if (physresults != null && physresults.Count > 0)
                         {
-                            if (physresults[0].ConsumerID == 0 || RayTargetID == UUID.Zero)
+                            // look for terrain ?
+                            if(RayTargetID == UUID.Zero)
                             {
-                                // found something
-                                pos = physresults[0].Normal * scale;
-                                pos *= 0.5f;
-                                pos = physresults[0].Pos + pos;
-
-                                if (wpos.Z > pos.Z) pos = wpos;
-                                return pos;
-                            }
-                            foreach (ContactResult r in physresults)
-                            {
-                                SceneObjectPart part = GetSceneObjectPart(r.ConsumerID);
-                                if (part == null)
-                                    continue;
-                                if (part.UUID == RayTargetID)
+                                foreach (ContactResult r in physresults)
                                 {
-                                    pos = physresults[0].Normal * scale;
-                                    pos *= 0.5f;
-                                    pos = physresults[0].Pos + pos;
+                                    if (r.ConsumerID == 0)
+                                    {
+                                        pos = r.Normal * scale;
+                                        pos *= 0.5f;
+                                        pos = r.Pos + pos;
 
-                                    if (wpos.Z > pos.Z) pos = wpos;
-                                    return pos;
+                                        if (wpos.Z > pos.Z) pos = wpos;
+                                        return pos;
+                                    }
                                 }
                             }
+                            else
+                            {
+                                foreach (ContactResult r in physresults)
+                                {
+                                    SceneObjectPart part = GetSceneObjectPart(r.ConsumerID);
+                                    if (part == null)
+                                        continue;
+                                    if (part.UUID == RayTargetID)
+                                    {
+                                        pos = r.Normal * scale;
+                                        pos *= 0.5f;
+                                        pos = r.Pos + pos;
+
+                                        if (wpos.Z > pos.Z) pos = wpos;
+                                        return pos;
+                                    }
+                                }                          
+                            }
+                            // else the first we got
+                            pos = physresults[0].Normal * scale;
+                            pos *= 0.5f;
+                            pos = physresults[0].Pos + pos;
+
+                            if (wpos.Z > pos.Z)
+                                pos = wpos;
+                            return pos;
                         }
 
                     }
