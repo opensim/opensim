@@ -1274,8 +1274,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void  llRegionSayTo(string target, int channel, string msg)
         {
-            string error = String.Empty;
-
             if (msg.Length > 1023)
                 msg = msg.Substring(0, 1023);
 
@@ -1911,7 +1909,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.SetFaceColorAlpha(face, color, null);
         }
 
-        /*
         public void llSetContentType(LSL_Key id, LSL_Integer type)
         {
             m_host.AddScriptLPS(1);
@@ -1932,6 +1929,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (userAgent.IndexOf("SecondLife") < 0)
                 return; // Not the embedded browser. Is this check good enough?
 
+/* script owner alts are not script owners
+    and diferent persons can show us the same ip
             // Use the IP address of the client and check against the request
             // seperate logins from the same IP will allow all of them to get non-text/plain as long
             // as the owner is in the region. Same as SL!
@@ -1946,7 +1945,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // If the request isnt from the same IP address then the request cannot be from the owner
             if (!requestFromIPAddress.Trim().Equals(logonFromIPAddress.Trim()))
                 return;
-
+*/
             switch (type)
             {
                 case ScriptBaseClass.CONTENT_TYPE_HTML:
@@ -1978,8 +1977,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     break;
             }
         }
-        */
 
+/*
+        public void llSetContentType(LSL_Key id, LSL_Integer content_type)
+        {
+            if (m_UrlModule != null)
+            {
+                string type = "text.plain";
+                if (content_type == (int)ScriptBaseClass.CONTENT_TYPE_HTML)
+                    type = "text/html";
+
+                m_UrlModule.HttpContentType(new UUID(id),type);
+            }
+        }
+*/		
         public void SetTexGen(SceneObjectPart part, int face,int style)
         {
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
@@ -16094,17 +16105,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_List();
         }
 
-        public void llSetContentType(LSL_Key id, LSL_Integer content_type)
-        {
-            if (m_UrlModule != null)
-            {
-                string type = "text.plain";
-                if (content_type == (int)ScriptBaseClass.CONTENT_TYPE_HTML)
-                    type = "text/html";
 
-                m_UrlModule.HttpContentType(new UUID(id),type);
-            }
-        }
 
         public void llSetAnimationOverride(LSL_String animState, LSL_String anim)
         {
