@@ -2688,9 +2688,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 SceneObjectGroup parent = part.ParentGroup;
                 if (!World.Permissions.CanObjectEntry(parent.UUID, false, (Vector3)toPos))
                     return;
-                Util.FireAndForget(delegate(object x) {
-                    parent.UpdateGroupPosition((Vector3)toPos);
-                });
+                parent.UpdateGroupPosition((Vector3)toPos);
             }
             else
             {
