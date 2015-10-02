@@ -7909,19 +7909,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 Error("llDialog", "First parameter must be a key");
                 return;
             }
-            if (buttons.Length < 1)
+
+            int length = buttons.Length;
+            if (length < 1)
             {
                 Error("llDialog", "At least 1 button must be shown");
                 return;
             }
-            if (buttons.Length > 12)
+            if (length > 12)
             {
                 Error("llDialog", "No more than 12 buttons can be shown");
                 return;
             }
-            int length = buttons.Length;
-            if (length > 12)
-                length = 12;
 
             string[] buts = new string[length];
             for (int i = 0; i < length; i++)
@@ -9924,9 +9923,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (part.ParentGroup.RootPart == part)
                     {
                         SceneObjectGroup parent = part.ParentGroup;
-                        Util.FireAndForget(delegate(object x) {
+//                        Util.FireAndForget(delegate(object x) {
                             parent.UpdateGroupPosition(currentPosition);
-                        });
+//                        });
                     }
                     else
                     {
@@ -14388,6 +14387,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return list;
         }
 
+
+        // this is wrong, except on a few trivial cases
+        // keeping it for now just for raycast v3
+        
         /// <summary>
         /// Helper to calculate bounding box of an avatar.
         /// </summary>
