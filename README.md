@@ -67,7 +67,7 @@ need to build OpenSim before running it.
 
 # Running OpenSim on Windows
 
-You will need .NET 4.0 installed to run OpenSimulator.
+You will need .NET 4.5 installed to run this distribution of OpenSimulator.
 
 We recommend that you run OpenSim from a command prompt on Windows in order
 to capture any errors.
