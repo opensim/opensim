@@ -773,6 +773,50 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
         }
 
+
+        /// <summary>
+        /// Dynamically load the compiler class using OpenSims configuration system to allow the specification of an assembly
+        /// and class that derives from ICompiler.
+        /// 
+        /// Config for this will be under the [XEngine] section
+        /// </summary>
+        /// <returns>A dynamically loaded implementation of ICompiler</returns>
+        private ICompiler LoadCompiler()
+        {
+            var compilerClass = this.Config.GetString("CompilerClass",
+                "OpenSim.Region.ScriptEngine.Shared.CodeTools.Compiler");
+
+            var compilerAssembly = this.Config.GetString("CompilerAssembly",
+                "OpenSim.Region.ScriptEngine.Shared.CodeTools.dll");
+
+
+
+
+            var assembly = Assembly.LoadFile(Path.GetFullPath(compilerAssembly));
+
+
+            var cType = assembly.GetType(compilerClass);
+
+            var compiler = Activator.CreateInstance(cType, this) as ICompiler;
+
+            if (compiler != null)
+            {
+                return compiler;
+            }
+
+
+            var message = string.Format(
+                "\"{0}\" is not a valid Compiler, Compilers must derive from ICompiler"
+                , cType.Name);
+
+            m_log.Error(message);
+
+            throw new ArgumentException(message, "CompilerClass");
+        }
+
+
+
+
         public void RegionLoaded(Scene scene)
         {
             if (!m_Enabled)
@@ -780,7 +824,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             m_EventManager = new EventManager(this);
 
-            m_Compiler = new Compiler(this);
+            m_Compiler = LoadCompiler();
 
             m_Scene.EventManager.OnRemoveScript += OnRemoveScript;
             m_Scene.EventManager.OnScriptReset += OnScriptReset;

@@ -1,5 +1,55 @@
 Welcome to OpenSim!
 
+# LibLSLCC Integration
+
+This distribution of OpenSim integrates the LibLSLCC Compiler and moves
+OpenSim over to using .NET Framework 4.5 instead of 4.0
+
+See:
+
+	https://github.com/EriHoss/LibLSLCC
+
+	Or
+	
+	https://gitlab.com/erihoss/LibLSLCC
+
+
+Settings that determine the compiler Assembly (dll) and class have been added under the
+[XEngine] configuration section in OpenSim.ini.  See OpenSim.ini in the 'bin' folder where the OpenSim
+executable resides.
+
+The included OpenSim.ini.example and OpenSim.ini have the default compiler assembly
+set to the "LibLSLCCCompiler.dll" so that LibLSLCC is used as the default compiler.
+
+
+Under [XEngine] in OpenSim.ini you will find these new settings:
+
+
+	;==========================================
+	;LibLSLCC Patch Settings
+	;==========================================
+
+	;The name of the class that implements the compiler
+	;CompilerClass = "OpenSim.Region.ScriptEngine.Shared.CodeTools.Compiler"
+	CompilerClass = "OpenSim.Region.ScriptEngine.Shared.LibLSLCCCompiler.Compiler"
+
+	;The assembly to load the compiler implementation from
+	;CompilerAssembly = "OpenSim.Region.ScriptEngine.Shared.CodeTools.dll"
+	CompilerAssembly = "OpenSim.Region.ScriptEngine.Shared.LibLSLCCCompiler.dll"
+
+
+
+When you clone this repository OpenSim is pre-configured in standalone mode using the SQLite storage backend.
+
+
+OpenSim.ini and bin/config-include/StandaloneCommon.ini have been left in the repository
+for this distribution to make running a test server on your PC easier.  If you just want
+to run a test server on localhost, you should not have to modify any configuration after building,
+just run OpenSim.exe and set up your region and region owner by answering the questions OpenSim
+asks you in the command prompt.
+
+
+
 # Overview
 
 OpenSim is a BSD Licensed Open Source project to develop a functioning
@@ -17,7 +67,7 @@ need to build OpenSim before running it.
 
 # Running OpenSim on Windows
 
-You will need .NET 4.0 installed to run OpenSimulator.
+You will need .NET 4.5 installed to run this distribution of OpenSimulator.
 
 We recommend that you run OpenSim from a command prompt on Windows in order
 to capture any errors.
