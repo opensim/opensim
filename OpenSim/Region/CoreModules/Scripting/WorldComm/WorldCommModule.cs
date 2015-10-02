@@ -368,10 +368,8 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         /// <param name='msg'>
         /// Message.
         /// </param>
-        public bool DeliverMessageTo(UUID target, int channel, Vector3 pos, string name, UUID id, string msg, out string error)
+        public bool DeliverMessageTo(UUID target, int channel, Vector3 pos, string name, UUID id, string msg)
         {
-            error = null;
-
             if (channel == DEBUG_CHANNEL)
                 return true;
 
