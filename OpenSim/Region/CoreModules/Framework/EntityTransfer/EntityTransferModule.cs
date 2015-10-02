@@ -1112,7 +1112,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // This sleep can be increased if necessary.  However, whilst it's active,
                 // an agent cannot teleport back to this region if it has teleported away.
                 Thread.Sleep(2000);
-                if (m_eqModule != null)
+                if (m_eqModule != null && !sp.DoNotCloseAfterTeleport)
                     m_eqModule.DisableSimulator(sp.RegionHandle,sp.UUID);
                 Thread.Sleep(500);
                 sp.Scene.CloseAgent(sp.UUID, false);
@@ -1260,7 +1260,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // IN THE AVIE BEING PLACED IN INFINITY FOR A COUPLE OF SECONDS.
 
                 Thread.Sleep(14000);
-                if (m_eqModule != null)
+                if (m_eqModule != null && !sp.DoNotCloseAfterTeleport)
                     m_eqModule.DisableSimulator(sp.RegionHandle,sp.UUID);
                 Thread.Sleep(1000);
 
