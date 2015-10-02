@@ -1929,8 +1929,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (userAgent.IndexOf("SecondLife") < 0)
                 return; // Not the embedded browser. Is this check good enough?
 
-/* script owner alts are not script owners
-    and diferent persons can show us the same ip
             // Use the IP address of the client and check against the request
             // seperate logins from the same IP will allow all of them to get non-text/plain as long
             // as the owner is in the region. Same as SL!
@@ -1945,7 +1943,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // If the request isnt from the same IP address then the request cannot be from the owner
             if (!requestFromIPAddress.Trim().Equals(logonFromIPAddress.Trim()))
                 return;
-*/
+
             switch (type)
             {
                 case ScriptBaseClass.CONTENT_TYPE_HTML:
