@@ -162,8 +162,6 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         /// </summary>
         public event CollisionUpdate OnCollisionUpdate;
 
-        public virtual void SetVehicle(object vdata) { }
-
         public event OutOfBounds OnOutOfBounds;
 #pragma warning restore 67
 
@@ -294,6 +292,56 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public abstract void VehicleVectorParam(int param, Vector3 value);
         public abstract void VehicleRotationParam(int param, Quaternion rotation);
         public abstract void VehicleFlags(int param, bool remove);
+
+        // This is an overridable version of SetVehicle() that works for all physics engines.
+        // This is VERY inefficient. It behoves any physics engine to override this and 
+        //     implement a more efficient setting of all the vehicle parameters.
+        public virtual void SetVehicle(object pvdata)
+        {
+            VehicleData vdata = (VehicleData)pvdata;
+            // vehicleActor.ProcessSetVehicle((VehicleData)vdata);
+
+            this.VehicleType = (int)vdata.m_type;
+            this.VehicleFlags(-1, false);   // clears all flags
+            this.VehicleFlags((int)vdata.m_flags, false);
+
+            // Linear properties
+            this.VehicleVectorParam((int)Vehicle.LINEAR_MOTOR_DIRECTION, vdata.m_linearMotorDirection);
+            this.VehicleVectorParam((int)Vehicle.LINEAR_FRICTION_TIMESCALE, vdata.m_linearFrictionTimescale);
+            this.VehicleFloatParam((int)Vehicle.LINEAR_MOTOR_DECAY_TIMESCALE, vdata.m_linearMotorDecayTimescale);
+            this.VehicleFloatParam((int)Vehicle.LINEAR_MOTOR_TIMESCALE, vdata.m_linearMotorTimescale);
+            this.VehicleVectorParam((int)Vehicle.LINEAR_MOTOR_OFFSET, vdata.m_linearMotorOffset);
+
+            //Angular properties
+            this.VehicleVectorParam((int)Vehicle.ANGULAR_MOTOR_DIRECTION, vdata.m_angularMotorDirection);
+            this.VehicleFloatParam((int)Vehicle.ANGULAR_MOTOR_TIMESCALE, vdata.m_angularMotorTimescale);
+            this.VehicleFloatParam((int)Vehicle.ANGULAR_MOTOR_DECAY_TIMESCALE, vdata.m_angularMotorDecayTimescale);
+            this.VehicleVectorParam((int)Vehicle.ANGULAR_FRICTION_TIMESCALE, vdata.m_angularFrictionTimescale);
+
+            //Deflection properties
+            this.VehicleFloatParam((int)Vehicle.ANGULAR_DEFLECTION_EFFICIENCY, vdata.m_angularDeflectionEfficiency);
+            this.VehicleFloatParam((int)Vehicle.ANGULAR_DEFLECTION_TIMESCALE, vdata.m_angularDeflectionTimescale);
+            this.VehicleFloatParam((int)Vehicle.LINEAR_DEFLECTION_EFFICIENCY, vdata.m_linearDeflectionEfficiency);
+            this.VehicleFloatParam((int)Vehicle.LINEAR_DEFLECTION_TIMESCALE, vdata.m_linearDeflectionTimescale);
+
+            //Banking properties
+            this.VehicleFloatParam((int)Vehicle.BANKING_EFFICIENCY, vdata.m_bankingEfficiency);
+            this.VehicleFloatParam((int)Vehicle.BANKING_MIX, vdata.m_bankingMix);
+            this.VehicleFloatParam((int)Vehicle.BANKING_TIMESCALE, vdata.m_bankingTimescale);
+
+            //Hover and Buoyancy properties
+            this.VehicleFloatParam((int)Vehicle.HOVER_HEIGHT, vdata.m_VhoverHeight);
+            this.VehicleFloatParam((int)Vehicle.HOVER_EFFICIENCY, vdata.m_VhoverEfficiency);
+            this.VehicleFloatParam((int)Vehicle.HOVER_TIMESCALE, vdata.m_VhoverTimescale);
+            this.VehicleFloatParam((int)Vehicle.BUOYANCY, vdata.m_VehicleBuoyancy);
+
+            //Attractor properties
+            this.VehicleFloatParam((int)Vehicle.VERTICAL_ATTRACTION_EFFICIENCY, vdata.m_verticalAttractionEfficiency);
+            this.VehicleFloatParam((int)Vehicle.VERTICAL_ATTRACTION_TIMESCALE, vdata.m_verticalAttractionTimescale);
+
+            this.VehicleRotationParam((int)Vehicle.REFERENCE_FRAME, vdata.m_referenceFrame);
+        }
+
 
         /// <summary>
         /// Allows the detection of collisions with inherently non-physical prims. see llVolumeDetect for more

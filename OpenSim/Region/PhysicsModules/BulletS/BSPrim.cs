@@ -647,6 +647,59 @@ public class BSPrim : BSPhysObject
         });
     }
 
+    public override void SetVehicle(object pvdata)
+    {
+        PhysScene.TaintedObject(LocalID, "BSPrim.SetVehicle", delegate ()
+        {
+            BSDynamics vehicleActor = GetVehicleActor(true /* createIfNone */);
+            if (vehicleActor != null && (pvdata is VehicleData) )
+            {
+                VehicleData vdata = (VehicleData)pvdata;
+                // vehicleActor.ProcessSetVehicle((VehicleData)vdata);
+
+                vehicleActor.ProcessTypeChange(vdata.m_type);
+                vehicleActor.ProcessVehicleFlags(-1, false);
+                vehicleActor.ProcessVehicleFlags((int)vdata.m_flags, false);
+
+                // Linear properties
+                vehicleActor.ProcessVectorVehicleParam(Vehicle.LINEAR_MOTOR_DIRECTION, vdata.m_linearMotorDirection);
+                vehicleActor.ProcessVectorVehicleParam(Vehicle.LINEAR_FRICTION_TIMESCALE, vdata.m_linearFrictionTimescale);
+                vehicleActor.ProcessFloatVehicleParam(Vehicle.LINEAR_MOTOR_DECAY_TIMESCALE, vdata.m_linearMotorDecayTimescale);
+                vehicleActor.ProcessFloatVehicleParam(Vehicle.LINEAR_MOTOR_TIMESCALE, vdata.m_linearMotorTimescale);
+                vehicleActor.ProcessVectorVehicleParam(Vehicle.LINEAR_MOTOR_OFFSET, vdata.m_linearMotorOffset);
+
+                //Angular properties
+                vehicleActor.ProcessVectorVehicleParam(Vehicle.ANGULAR_MOTOR_DIRECTION, vdata.m_angularMotorDirection);
+                vehicleActor.ProcessFloatVehicleParam(Vehicle.ANGULAR_MOTOR_TIMESCALE, vdata.m_angularMotorTimescale);
+                vehicleActor.ProcessFloatVehicleParam(Vehicle.ANGULAR_MOTOR_DECAY_TIMESCALE, vdata.m_angularMotorDecayTimescale);
+                vehicleActor.ProcessVectorVehicleParam(Vehicle.ANGULAR_FRICTION_TIMESCALE, vdata.m_angularFrictionTimescale);
+
+                //Deflection properties
+                vehicleActor.ProcessFloatVehicleParam(Vehicle.ANGULAR_DEFLECTION_EFFICIENCY, vdata.m_angularDeflectionEfficiency);
+                vehicleActor.ProcessFloatVehicleParam(Vehicle.ANGULAR_DEFLECTION_TIMESCALE, vdata.m_angularDeflectionTimescale);
+                vehicleActor.ProcessFloatVehicleParam(Vehicle.LINEAR_DEFLECTION_EFFICIENCY, vdata.m_linearDeflectionEfficiency);
+                vehicleActor.ProcessFloatVehicleParam(Vehicle.LINEAR_DEFLECTION_TIMESCALE, vdata.m_linearDeflectionTimescale);
+
+                //Banking properties
+                vehicleActor.ProcessFloatVehicleParam(Vehicle.BANKING_EFFICIENCY, vdata.m_bankingEfficiency);
+                vehicleActor.ProcessFloatVehicleParam(Vehicle.BANKING_MIX, vdata.m_bankingMix);
+                vehicleActor.ProcessFloatVehicleParam(Vehicle.BANKING_TIMESCALE, vdata.m_bankingTimescale);
+
+                //Hover and Buoyancy properties
+                vehicleActor.ProcessFloatVehicleParam(Vehicle.HOVER_HEIGHT, vdata.m_VhoverHeight);
+                vehicleActor.ProcessFloatVehicleParam(Vehicle.HOVER_EFFICIENCY, vdata.m_VhoverEfficiency);
+                vehicleActor.ProcessFloatVehicleParam(Vehicle.HOVER_TIMESCALE, vdata.m_VhoverTimescale);
+                vehicleActor.ProcessFloatVehicleParam(Vehicle.BUOYANCY, vdata.m_VehicleBuoyancy);
+
+                //Attractor properties
+                vehicleActor.ProcessFloatVehicleParam(Vehicle.VERTICAL_ATTRACTION_EFFICIENCY, vdata.m_verticalAttractionEfficiency);
+                vehicleActor.ProcessFloatVehicleParam(Vehicle.VERTICAL_ATTRACTION_TIMESCALE, vdata.m_verticalAttractionTimescale);
+
+                vehicleActor.ProcessRotationVehicleParam(Vehicle.REFERENCE_FRAME, vdata.m_referenceFrame);
+            }
+        });
+    }
+
     // Allows the detection of collisions with inherently non-physical prims. see llVolumeDetect for more
     public override void SetVolumeDetect(int param) {
         bool newValue = (param != 0);
