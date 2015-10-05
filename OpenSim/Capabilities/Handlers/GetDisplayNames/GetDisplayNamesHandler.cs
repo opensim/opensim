@@ -92,8 +92,11 @@ namespace OpenSim.Capabilities.Handlers
                     {
                         string[] parts = name.Split(new char[] {' '});
                         OSDMap osdname = new OSDMap();
-                        osdname["display_name_next_update"] = OSD.FromDate(DateTime.MinValue);
-                        osdname["display_name_expires"] = OSD.FromDate(DateTime.Now.AddMonths(1));
+                        // a date that is valid
+//                        osdname["display_name_next_update"] = OSD.FromDate(new DateTime(1970,1,1));
+                        // but send one that blocks edition, since we actually don't suport this
+                        osdname["display_name_next_update"] = OSD.FromDate(DateTime.UtcNow.AddDays(8));        
+                        osdname["display_name_expires"] = OSD.FromDate(DateTime.UtcNow.AddMonths(1));
                         osdname["display_name"] = OSD.FromString(name);
                         osdname["legacy_first_name"] = parts[0];
                         osdname["legacy_last_name"] = parts[1];
