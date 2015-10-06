@@ -416,7 +416,7 @@ namespace OpenSim.Capabilities.Handlers
 
                     version = containingFolder.Version;
 
-                    if (fetchItems)
+                    if (fetchItems && containingFolder.Type != (short)FolderType.Trash)
                     {
                         List<InventoryItemBase> itemsToReturn = contents.Items;
                         List<InventoryItemBase> originalItems = new List<InventoryItemBase>(itemsToReturn);
@@ -728,8 +728,8 @@ from docs seems this was never a spec
                     if (item.AssetType == (int)AssetType.Link)
                         itemIDs.Add(item.AssetID);
 
-                    else if (item.AssetType == (int)AssetType.LinkFolder)
-                        folderIDs.Add(item.AssetID);
+//                    else if (item.AssetType == (int)AssetType.LinkFolder)
+//                        folderIDs.Add(item.AssetID);
                 }
 
                 //m_log.DebugFormat("[XXX]: folder {0} has {1} links and {2} linkfolders", contents.FolderID, itemIDs.Count, folderIDs.Count);
