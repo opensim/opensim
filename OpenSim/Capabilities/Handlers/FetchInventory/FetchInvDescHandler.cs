@@ -441,6 +441,10 @@ namespace OpenSim.Capabilities.Handlers
                         }
 
                         // Now scan for folder links and insert the items they target and those links at the head of the return data
+
+/* dont send contents of LinkFolders.
+from docs seems this was never a spec
+
                         foreach (InventoryItemBase item in originalItems)
                         {
                             if (item.AssetType == (int)AssetType.LinkFolder)
@@ -471,6 +475,7 @@ namespace OpenSim.Capabilities.Handlers
                                 }
                             }
                         }
+*/
                     }
 
 //                    foreach (InventoryItemBase item in contents.Items)
