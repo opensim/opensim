@@ -100,6 +100,17 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             #region Overriders
 
+            public static implicit operator Boolean(Vector3 vec)
+            {
+                if (vec.x != 0)
+                    return true;
+                if (vec.y != 0)
+                    return true;
+                if (vec.z != 0)
+                    return true;
+                return false;
+            }
+
             public override string ToString()
             {
                 string s = String.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}>", x, y, z);
@@ -397,6 +408,18 @@ namespace OpenSim.Region.ScriptEngine.Shared
             #endregion
 
             #region Overriders
+            public static implicit operator Boolean(Quaternion q)
+            {
+                if (q.x != 0)
+                    return true;
+                if (q.y != 0)
+                    return true;
+                if (q.z != 0)
+                    return true;
+                if (q.s != 1.0f)
+                    return true;
+                return false;
+            }
 
             public override int GetHashCode()
             {
@@ -719,6 +742,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 Data.CopyTo(tmp, 0);
                 tmp.SetValue(o, tmp.Length - 1);
                 Data = tmp;
+            }
+
+            public static implicit operator Boolean(list l)
+            {
+                return l.Length != 0;
             }
 
             public static list operator +(list a, LSLString s)
