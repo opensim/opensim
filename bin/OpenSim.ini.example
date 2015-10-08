@@ -1116,18 +1116,17 @@
     ; Enabled = false
 	
 	;; several options to control NPCs creation
-	;; should only be set true on special uses.
 	
-	;; allow NPCs to be created not Owned {true false} false
+	;; allow NPCs to be created not Owned {true false} default: true
     ; AllowNotOwned = false
 	
-	;; allow NPCs to set to be sensed as Avatars {true false} false
+	;; allow NPCs to set to be sensed as Avatars {true false} default: true
     ; AllowSenseAsAvatar = false
 	
-	;; allow NPCs to created cloning any avatar in region {true false} false
+	;; allow NPCs to created cloning any avatar in region {true false} default: true
     ; AllowCloneOtherAvatars = false
 	
-	;; if true NPCs will have no group title, if false display "- NPC -" for easy identification {true false} false
+	;; if true NPCs will have no group title, if false display "- NPC -" for easy identification {true false} default: true
     ; NoNPCGroup = false 
 
 
