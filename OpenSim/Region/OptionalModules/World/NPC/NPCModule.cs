@@ -67,22 +67,16 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             m_NPCOptionFlags = NPCOptionsFlags.None;
             if(Enabled)
             {
-                bool opt = false;
-
-                opt = config.GetBoolean("AllowNotOwned", false);
-                if(opt)
+                if(config.GetBoolean("AllowNotOwned", true))
                     m_NPCOptionFlags |= NPCOptionsFlags.AllowNotOwned;
 
-                opt = config.GetBoolean("AllowSenseAsAvatar", false);
-                if(opt)
+                if(config.GetBoolean("AllowSenseAsAvatar", true))
                     m_NPCOptionFlags |= NPCOptionsFlags.AllowSenseAsAvatar;
 
-                opt = config.GetBoolean("AllowCloneOtherAvatars", false);
-                if(opt)
+                if(config.GetBoolean("AllowCloneOtherAvatars", true))
                     m_NPCOptionFlags |= NPCOptionsFlags.AllowCloneOtherAvatars;
 
-                opt = config.GetBoolean("NoNPCGroup", false);
-                if(opt)
+                if(config.GetBoolean("NoNPCGroup", true))
                     m_NPCOptionFlags |= NPCOptionsFlags.NoNPCGroup;
             }
         }
