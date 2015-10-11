@@ -337,7 +337,6 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                     return null;
             }
 
-            primShape.SculptData = Utils.EmptyBytes;
 
             int numCoords = coords.Count;
             int numFaces = faces.Count;
@@ -354,6 +353,14 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
             coords.Clear();
             faces.Clear();
+
+            if(mesh.numberVertices() < 3 || mesh.numberTriangles() < 1)
+                {
+                m_log.ErrorFormat("[MESH]: invalid degenerated mesh for prim " + primName + " ignored");
+                return null;
+                }
+
+            primShape.SculptData = Utils.EmptyBytes;
 
             return mesh;
         }

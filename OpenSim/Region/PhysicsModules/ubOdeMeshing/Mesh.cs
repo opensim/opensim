@@ -278,6 +278,16 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             return new Vector3(x, y, z);
         }
 
+        public int numberVertices()
+        {
+            return m_bdata.m_vertices.Count;
+        }
+
+        public int numberTriangles()
+        {
+            return m_bdata.m_triangles.Count;
+        }
+
         public List<Vector3> getVertexList()
         {
             List<Vector3> result = new List<Vector3>();
