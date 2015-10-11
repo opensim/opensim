@@ -1725,7 +1725,6 @@
       <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
 	  <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet"/>
-      <Reference name="zlib.net" path="../../../../bin/"/>
       <Reference name="Mono.Addins" path="../../../../bin/"/>
       <Reference name="log4net" path="../../../../bin/"/>
 	  

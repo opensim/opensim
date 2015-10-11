@@ -43,7 +43,6 @@ using log4net;
 using Nini.Config;
 using System.Reflection;
 using System.IO;
-using ComponentAce.Compression.Libs.zlib;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
@@ -449,22 +448,23 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                     {
                         using (MemoryStream outMs = new MemoryStream())
                         {
-                            using (ZOutputStream zOut = new ZOutputStream(outMs))
+                            using (DeflateStream decompressionStream = new DeflateStream(inMs, CompressionMode.Decompress))
                             {
                                 byte[] readBuffer = new byte[2048];
+                                inMs.Read(readBuffer, 0, 2); // skip first 2 bytes in header
                                 int readLen = 0;
-                                while ((readLen = inMs.Read(readBuffer, 0, readBuffer.Length)) > 0)
-                                {
-                                    zOut.Write(readBuffer, 0, readLen);
-                                }
-                                zOut.Flush();
+
+                                while ((readLen = decompressionStream.Read(readBuffer, 0, readBuffer.Length)) > 0)
+                                    outMs.Write(readBuffer, 0, readLen);
+
+                                outMs.Flush();
                                 outMs.Seek(0, SeekOrigin.Begin);
 
                                 byte[] decompressedBuf = outMs.GetBuffer();
 
-                                decodedMeshOsd = OSDParser.DeserializeLLSDBinary(decompressedBuf);
+                                decodedMeshOsd = OSDParser.DeserializeLLSDBinary(decompressedBuf);  
                             }
-                        }
+                        }          
                     }
                 }
                 catch (Exception e)
