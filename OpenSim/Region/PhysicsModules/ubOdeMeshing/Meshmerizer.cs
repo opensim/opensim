@@ -469,7 +469,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[MESH]: exception decoding physical mesh: " + e.ToString());
+                    m_log.Error("[MESH]: exception decoding physical mesh prim " + primName +" : " + e.ToString());
                     return false;
                 }
 
