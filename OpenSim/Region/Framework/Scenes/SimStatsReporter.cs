@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Timers;
+using System.Threading;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Monitoring;
@@ -174,14 +175,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         // Sending a stats update every 3 seconds-
         private int m_statsUpdatesEveryMS = 3000;
-        private float m_statsUpdateFactor;
+        private double m_lastUpdateTS;
         private float m_timeDilation;
         private int m_fps;
 
-        /// <summary>
-        /// Number of the last frame on which we processed a stats udpate.
-        /// </summary>
-        private uint m_lastUpdateFrame;
+        private object m_statsLock = new object();
 
         /// <summary>
         /// Parameter to adjust reported scene fps
@@ -245,7 +243,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private RegionInfo ReportingRegion;
 
-        private Timer m_report = new Timer();
+        private System.Timers.Timer m_report = new System.Timers.Timer();
 
         private IEstateModule estateModule;
 
@@ -253,7 +251,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_scene = scene;
 
-            m_statsUpdateFactor = (float)(m_statsUpdatesEveryMS / 1000.0f);
             ReportingRegion = scene.RegionInfo;
 
             m_objectCapacity = scene.RegionInfo.ObjectCapacity;
@@ -261,6 +258,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_report.Interval = m_statsUpdatesEveryMS;
             m_report.Elapsed += TriggerStatsHeartbeat;
             m_report.Enabled = true;
+
+            m_lastUpdateTS = Util.GetTimeStampMS();
 
             if (StatsManager.SimExtraStats != null)
                 OnSendStatsResult += StatsManager.SimExtraStats.ReceiveClassicSimStatsPacket;
@@ -298,7 +297,6 @@ namespace OpenSim.Region.Framework.Scenes
         public void SetUpdateMS(int ms)
         {
             m_statsUpdatesEveryMS = ms;
-            m_statsUpdateFactor = (float)(m_statsUpdatesEveryMS / 1000.0f);
             m_report.Interval = m_statsUpdatesEveryMS;
         }
 
@@ -320,17 +318,18 @@ namespace OpenSim.Region.Framework.Scenes
         {
               if (!m_scene.Active)
                 return;
-
-            SimStatsPacket.StatBlock[] sb = new SimStatsPacket.StatBlock[m_statisticViewerArraySize];
-            SimStatsPacket.StatBlock[] sbex = new SimStatsPacket.StatBlock[m_statisticExtraArraySize];
-            SimStatsPacket.RegionBlock rb = new SimStatsPacket.RegionBlock();
             
-            // Know what's not thread safe in Mono... modifying timers.
-            // m_log.Debug("Firing Stats Heart Beat");
-            lock (m_report)
+            // dont do it if if still been done
+
+            if(Monitor.TryEnter(m_statsLock))
             {
+                // m_log.Debug("Firing Stats Heart Beat");
+
+                SimStatsPacket.StatBlock[] sb = new SimStatsPacket.StatBlock[m_statisticViewerArraySize];
+                SimStatsPacket.StatBlock[] sbex = new SimStatsPacket.StatBlock[m_statisticExtraArraySize];
+                SimStatsPacket.RegionBlock rb = new SimStatsPacket.RegionBlock();
                 uint regionFlags = 0;
-                
+
                 try
                 {
                     if (estateModule == null)
@@ -343,6 +342,11 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
 #region various statistic googly moogly
+                double timeTmp = m_lastUpdateTS;
+                m_lastUpdateTS = Util.GetTimeStampMS();
+
+                float m_statsUpdateFactor = (float)((m_lastUpdateTS - timeTmp)/1000.0);
+
                 // factor to consider updates integration time
                 float updateFactor = 1.0f / m_statsUpdateFactor;
 
@@ -362,8 +366,8 @@ namespace OpenSim.Region.Framework.Scenes
                 // save the reported value so there is something available for llGetRegionFPS 
                 lastReportedSimFPS = reportedFPS;
 
-
 #endregion
+
                 m_rootAgents = m_scene.SceneGraph.GetRootAgentCount();
                 m_childAgents = m_scene.SceneGraph.GetChildAgentCount();
                 m_numPrim = m_scene.SceneGraph.GetTotalObjectsCount();
@@ -372,9 +376,11 @@ namespace OpenSim.Region.Framework.Scenes
                 m_activePrim = m_scene.SceneGraph.GetActiveObjectsCount();
                 m_activeScripts = m_scene.SceneGraph.GetActiveScriptsCount();
 
-                float physfps = m_pfps;
+                float physfps = m_pfps * updateFactor;
                 if (physfps < 0)
                     physfps = 0;
+                else if(physfps > reportedFPS)
+                    physfps = reportedFPS; // pretend we are not insane
 
                 float sparetime;
                 float sleeptime;
@@ -390,7 +396,9 @@ namespace OpenSim.Region.Framework.Scenes
                  else if (sparetime > TotalFrameTime)
                         sparetime = TotalFrameTime;
 
-
+                // don't send meaning less precision
+                reportedFPS = (float)Math.Round(reportedFPS,1);
+                physfps = (float)Math.Round(physfps,1);
 
                 // FIXME: Checking for stat sanity is a complex approach.  What we really need to do is fix the code
                 // so that stat numbers are always consistent.
@@ -416,7 +424,7 @@ namespace OpenSim.Region.Framework.Scenes
                 sb[1].StatValue = reportedFPS;
 
                 sb[2].StatID = (uint) Stats.PhysicsFPS;
-                sb[2].StatValue = physfps * updateFactor;
+                sb[2].StatValue = physfps;
 
                 sb[3].StatID = (uint) Stats.AgentUpdates;
                 sb[3].StatValue = m_agentUpdates * updateFactor;
@@ -604,6 +612,7 @@ namespace OpenSim.Region.Framework.Scenes
 
 //                LastReportedObjectUpdates = m_objectUpdates / m_statsUpdateFactor;
                 ResetValues();
+                Monitor.Exit(m_statsLock);
             }
         }
 
