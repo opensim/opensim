@@ -51,7 +51,7 @@ using Mono.Addins;
 namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ubODEMeshmerizer")]
-    public class UbitMeshmerizer : IMesher, INonSharedRegionModule
+    public class ubMeshmerizer : IMesher, INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
