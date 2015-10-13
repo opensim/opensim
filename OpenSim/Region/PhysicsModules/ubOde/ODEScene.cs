@@ -178,7 +178,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 //        const d.ContactFlags comumContactFlags = d.ContactFlags.SoftERP | d.ContactFlags.SoftCFM |d.ContactFlags.Approx1 | d.ContactFlags.Bounce;
 
         const d.ContactFlags comumContactFlags = d.ContactFlags.Bounce | d.ContactFlags.Approx1 | d.ContactFlags.Slip1 | d.ContactFlags.Slip2;
-        const float comumContactERP = 0.7f;
+        const float comumContactERP = 0.75f;
         const float comumContactCFM = 0.0001f;
         const float comumContactSLIP = 0f;
         
@@ -211,16 +211,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private float waterlevel = 0f;
         private int framecount = 0;
 
-//        private int m_meshExpireCntr;
-
         private float avDensity = 80f;
         private float avMovementDivisorWalk = 1.3f;
         private float avMovementDivisorRun = 0.8f;
         private float minimumGroundFlightOffset = 3f;
         public float maximumMassObject = 10000.01f;
 
-
-        public float geomDefaultDensity = 10.000006836f;
+        public float geomDefaultDensity = 10.0f;
 
         public float bodyPIDD = 35f;
         public float bodyPIDG = 25;
@@ -243,17 +240,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private List<PhysicsActor> _collisionEventPrimRemove = new List<PhysicsActor>();
         
         private HashSet<OdeCharacter> _badCharacter = new HashSet<OdeCharacter>();
-//        public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
         public Dictionary<IntPtr, PhysicsActor> actor_name_map = new Dictionary<IntPtr, PhysicsActor>();
 
-        private float contactsurfacelayer = 0.001f;
+        private float contactsurfacelayer = 0.002f;
 
         private int contactsPerCollision = 80;
         internal IntPtr ContactgeomsArray = IntPtr.Zero;
         private IntPtr GlobalContactsArray = IntPtr.Zero;
         private d.Contact SharedTmpcontact = new d.Contact();
 
-        const int maxContactsbeforedeath = 4000;
+        const int maxContactsbeforedeath = 6000;
         private volatile int m_global_contactcount = 0;
 
         private IntPtr contactgroup;
@@ -270,7 +266,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private float step_time = 0.0f;
 
         public IntPtr world;
-
 
         // split the spaces acording to contents type
         // ActiveSpace contains characters and active prims
@@ -347,14 +342,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 (float)m_frameWorkScene.RegionInfo.RegionSettings.WaterHeight);           
         }
 
-        // core hack this just means all modules where loaded
-        // so now we can look for dependencies
         public void RegionLoaded()
         {
             mesher = m_frameWorkScene.RequestModuleInterface<IMesher>();
             if (mesher == null)
             {
-                m_log.WarnFormat("[ubOde] No mesher. module disabled");
+                m_log.ErrorFormat("[ubOde] No mesher. module disabled");
                 return;
             }
 
@@ -453,7 +446,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
 
 
-            //            checkThread();
+            //  checkThread();
 
 
             // Defaults
@@ -517,7 +510,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             odetimestepMS = (int)(1000.0f * ODE_STEPSIZE + 0.5f);
 
             ContactgeomsArray = Marshal.AllocHGlobal(contactsPerCollision * d.ContactGeom.unmanagedSizeOf);
-            GlobalContactsArray = Marshal.AllocHGlobal(maxContactsbeforedeath * d.Contact.unmanagedSizeOf);
+            GlobalContactsArray = Marshal.AllocHGlobal((maxContactsbeforedeath + 100) * d.Contact.unmanagedSizeOf);
 
             SharedTmpcontact.geom.g1 = IntPtr.Zero;
             SharedTmpcontact.geom.g2 = IntPtr.Zero;
@@ -1155,49 +1148,43 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     aprim.CollisionScore = 0;
                     aprim.IsColliding = false;
                 }
-            }
 
-            // collide active prims with static enviroment
-            lock (_activegroups)
-            {
                 try
                 {
-                    foreach (OdePrim prm in _activegroups)
+                    foreach (OdePrim aprim in _activeprims)
                     {
-                        if (!prm.m_outbounds)
+                        if(d.BodyIsEnabled(aprim.Body))
                         {
-                            if (d.BodyIsEnabled(prm.Body))
-                            {
-                                d.SpaceCollide2(StaticSpace, prm.collide_geom, IntPtr.Zero, nearCallback);
-                                d.SpaceCollide2(GroundSpace, prm.collide_geom, IntPtr.Zero, nearCallback);
-                            }
+                            d.SpaceCollide2(StaticSpace, aprim.collide_geom, IntPtr.Zero, nearCallback);
+                            d.SpaceCollide2(GroundSpace, aprim.collide_geom, IntPtr.Zero, nearCallback);
                         }
                     }
                 }
-                catch (AccessViolationException)
+                catch (Exception e)
                 {
-                    m_log.Warn("[PHYSICS]: Unable to collide Active prim to static space");
+                    m_log.Warn("[PHYSICS]: Unable to collide Active to Static: " + e.Message);
                 }
             }
+
             // colide active amoung them
             try
             {
                 d.SpaceCollide(ActiveSpace, IntPtr.Zero, nearCallback);
             }
-            catch (AccessViolationException)
+            catch (Exception e)
             {
-                m_log.Warn("[PHYSICS]: Unable to collide Active with Characters space");
+                    m_log.Warn("[PHYSICS]: Unable to collide in Active: " + e.Message);
             }
+
             // and with chars
             try
             {
                 d.SpaceCollide2(CharsSpace,ActiveSpace, IntPtr.Zero, nearCallback);
             }
-            catch (AccessViolationException)
+            catch (Exception e)
             {
-                m_log.Warn("[PHYSICS]: Unable to collide in Active space");
+                    m_log.Warn("[PHYSICS]: Unable to collide Active to Character: " + e.Message);
             }
-            //            _perloopContact.Clear();
         }
 
         #endregion
@@ -1583,11 +1570,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// </summary>
         /// <param name="timeStep"></param>
         /// <returns></returns>
-        public override float Simulate(float timeStep)
+        public override float Simulate(float reqTimeStep)
         {
             DateTime now = DateTime.UtcNow;
             TimeSpan timedif = now - m_lastframe;
-            timeStep = (float)timedif.TotalSeconds;
+            float timeStep = (float)timedif.TotalSeconds;
             m_lastframe = now;
             
             // acumulate time so we can reduce error
@@ -1601,16 +1588,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             framecount++;
 
-//            int curphysiteractions;
-
-            // if in trouble reduce step resolution
-//            if (step_time >= m_SkipFramesAtms)
-//                curphysiteractions = m_physicsiterations / 2;
-//            else
-//                curphysiteractions = m_physicsiterations;
-
 //            checkThread();
             int nodeframes = 0;
+            float fps = 0;
 
             lock (SimulationLock)
                 lock(OdeLock)
@@ -1627,8 +1607,36 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 int loopstartMS = Util.EnvironmentTickCount();
                 int looptimeMS = 0;
-             
+                int changestimeMS = 0;
+                int maxChangestime = (int)(reqTimeStep * 500f); // half the time
+                int maxLoopTime = (int)(reqTimeStep * 1200f); // 1.2 the time
+                
+                if (ChangesQueue.Count > 0)
+                {
+                    while (ChangesQueue.Dequeue(out item))
+                    {
+                        if (item.actor != null)
+                        {
+                            try
+                            {
+                                if (item.actor is OdeCharacter)
+                                    ((OdeCharacter)item.actor).DoAChange(item.what, item.arg);
+                                else if (((OdePrim)item.actor).DoAChange(item.what, item.arg))
+                                    RemovePrimThreadLocked((OdePrim)item.actor);
+                            }
+                            catch
+                            {
+                                m_log.WarnFormat("[PHYSICS]: doChange failed for a actor {0} {1}",
+                                    item.actor.Name, item.what.ToString());
+                            }
+                        }
+                        changestimeMS = Util.EnvironmentTickCountSubtract(loopstartMS);
+                        if (changestimeMS > maxChangestime)
+                            break;
+                    }
+                }
 
+                // do simulation taking at most 150ms total time including changes
                 while (step_time > HalfOdeStep)
                 {
                     try
@@ -1636,32 +1644,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         // clear pointer/counter to contacts to pass into joints
                         m_global_contactcount = 0;
 
-                        if (ChangesQueue.Count > 0)
-                        {
-                            int changestartMS = Util.EnvironmentTickCount();
-                            int ttmp;
-                            while (ChangesQueue.Dequeue(out item))
-                            {
-                                if (item.actor != null)
-                                {
-                                    try
-                                    {
-                                        if (item.actor is OdeCharacter)
-                                            ((OdeCharacter)item.actor).DoAChange(item.what, item.arg);
-                                        else if (((OdePrim)item.actor).DoAChange(item.what, item.arg))
-                                            RemovePrimThreadLocked((OdePrim)item.actor);
-                                    }
-                                    catch
-                                    {
-                                        m_log.WarnFormat("[PHYSICS]: doChange failed for a actor {0} {1}",
-                                            item.actor.Name, item.what.ToString());
-                                    }
-                                }
-                                ttmp = Util.EnvironmentTickCountSubtract(changestartMS);
-                                if (ttmp > 20)
-                                    break;
-                            }
-                        }
 
                         // Move characters
                         lock (_characters)
@@ -1727,7 +1709,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                         // do a ode simulation step
                         d.WorldQuickStep(world, ODE_STEPSIZE);
-//                        d.WorldStep(world, ODE_STEPSIZE);
                         d.JointGroupEmpty(contactgroup);
 
                         // update managed ideia of physical data and do updates to core
@@ -1770,7 +1751,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     nodeframes++;
 
                     looptimeMS = Util.EnvironmentTickCountSubtract(loopstartMS);
-                    if (looptimeMS > 100)
+                    if (looptimeMS > maxLoopTime)
                         break;
                 }
 
@@ -1795,7 +1776,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     m_lastMeshExpire = now;
                 }
 
-// information block running in debug only
+// information block for in debug breakpoint only
 /*
                 int ntopactivegeoms = d.SpaceGetNumGeoms(ActiveSpace);
                 int ntopstaticgeoms = d.SpaceGetNumGeoms(StaticSpace);
@@ -1857,21 +1838,26 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     d.WorldExportDIF(world, fname, physics_logging_append_existing_logfile, prefix);
                 }
                 
-                // think time dilation as to do with dinamic step size that we dont' have
-                // even so tell something to world
-                if (looptimeMS < 100) // we did the requested loops
+                fps = (float)nodeframes * ODE_STEPSIZE / reqTimeStep;
+
+                if(step_time < HalfOdeStep)
                     m_timeDilation = 1.0f;
-                else if (step_time > 0)
+                else if (step_time > m_SkipFramesAtms)
                 {
-                    m_timeDilation = timeStep / step_time;
-                    if (m_timeDilation > 1)
-                        m_timeDilation = 1;
-                    if (step_time > m_SkipFramesAtms)
-                        step_time = 0;
+                    // if we lag too much skip frames
+                    m_timeDilation = 0.0f;
+                    step_time = 0;
                     m_lastframe = DateTime.UtcNow; // skip also the time lost
                 }
+                else
+                {
+                    m_timeDilation = ODE_STEPSIZE / step_time;
+                    if (m_timeDilation > 1)
+                        m_timeDilation = 1;
+                }
             }
-            return (float)nodeframes * ODE_STEPSIZE / timeStep;
+
+            return fps;
         }
 
         /// <summary>
@@ -2442,12 +2428,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public override void Dispose()
         {
-            if (m_rayCastManager == null) // if this is null we already did dispose
-                return;
             lock (OdeLock)
             {
+                if (world == IntPtr.Zero)
+                    return;
+
                 if (m_meshWorker != null)
-                m_meshWorker.Stop();
+                    m_meshWorker.Stop();
 
                 if (m_rayCastManager != null)
                 {
@@ -2484,7 +2471,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         d.GeomDestroy(GroundGeom);
                 }
 
-
                 RegionTerrain.Clear();
 
                 if (TerrainHeightFieldHeightsHandlers.Count > 0)
@@ -2500,10 +2486,15 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 TerrainHeightFieldHeights.Clear();
 
                 if (ContactgeomsArray != IntPtr.Zero)
+                {
                     Marshal.FreeHGlobal(ContactgeomsArray);
+                    ContactgeomsArray = IntPtr.Zero;
+                }
                 if (GlobalContactsArray != IntPtr.Zero)
+                {
                     Marshal.FreeHGlobal(GlobalContactsArray);
-
+                    GlobalContactsArray = IntPtr.Zero;
+                }
 
                 d.WorldDestroy(world);
                 world = IntPtr.Zero;
