@@ -33,7 +33,7 @@ using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Handlers.Base;
 using OpenMetaverse;
 
-/*
+
 namespace OpenSim.Capabilities.Handlers
 {
     public class GetTextureServerConnector : ServiceConnector
@@ -66,8 +66,8 @@ namespace OpenSim.Capabilities.Handlers
             string rurl = serverConfig.GetString("GetTextureRedirectURL");
             ;
             server.AddStreamHandler(
-                new GetTextureHandler("/CAPS/GetTexture/" */ /*+ UUID.Random() */ /*, m_AssetService, "GetTexture", null, rurl));
+                new GetTextureRobustHandler("/CAPS/GetTexture/", m_AssetService, "GetTexture", null, rurl));
         }
     }
 }
-*/
+
