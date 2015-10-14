@@ -4059,8 +4059,11 @@ namespace OpenSim.Region.PhysicsModule.ODE
         {
             _worldInitialized = false;
 
-            m_rayCastManager.Dispose();
-            m_rayCastManager = null;
+            if (m_rayCastManager != null)
+            {
+                m_rayCastManager.Dispose();
+                m_rayCastManager = null;
+            }
 
             lock (OdeLock)
             {
