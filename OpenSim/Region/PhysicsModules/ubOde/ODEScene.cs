@@ -633,17 +633,17 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         #region Collision Detection
 
         // sets a global contact for a joint for contactgeom , and base contact description)
-
-        
-
-        private IntPtr CreateContacJoint(ref d.ContactGeom contactGeom)
+        private IntPtr CreateContacJoint(ref d.ContactGeom contactGeom,bool smooth)
         {
             if (m_global_contactcount >= maxContactsbeforedeath)
                 return IntPtr.Zero;
 
             m_global_contactcount++;
-
-            SharedTmpcontact.geom.depth = contactGeom.depth;
+            if(smooth)
+                SharedTmpcontact.geom.depth = contactGeom.depth * 0.05f;
+            else
+                SharedTmpcontact.geom.depth = contactGeom.depth;
+            SharedTmpcontact.geom.pos = contactGeom.pos;
             SharedTmpcontact.geom.pos = contactGeom.pos;
             SharedTmpcontact.geom.normal = contactGeom.normal;
 
@@ -836,6 +836,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             bool dop1ava = false;
             bool dop2ava = false;
             bool ignore = false;
+            bool smoothMesh = false;
 
             switch (p1.PhysicsActorType)
             {
@@ -879,6 +880,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                 if (relVlenSQ > 0.01f)
                                     mu *= frictionMovementMult;
 
+                                if(d.GeomGetClass(g2) == d.GeomClassID.TriMeshClass &&
+                                    d.GeomGetClass(g1) == d.GeomClassID.TriMeshClass)
+                                    smoothMesh = true;
                                 break;
 
                             case (int)ActorTypes.Ground:
@@ -889,13 +893,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                 if (Math.Abs(p1.Velocity.X) > 0.1f || Math.Abs(p1.Velocity.Y) > 0.1f)
                                     mu *= frictionMovementMult;
                                 p1.CollidingGround = true;
-                                /*
-                                                            if (d.GeomGetClass(g1) == d.GeomClassID.TriMeshClass)
-                                                            {
-                                                                if (curContact.side1 > 0)
-                                                                    IgnoreNegSides = true;
-                                                            }
-                                 */
+
+                                if(d.GeomGetClass(g1) == d.GeomClassID.TriMeshClass)
+                                    smoothMesh = true;
                                 break;
 
                             case (int)ActorTypes.Water:
@@ -919,6 +919,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                         if (Math.Abs(p2.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y) > 0.1f)
                             mu *= frictionMovementMult;
+
+                        if(d.GeomGetClass(g2) == d.GeomClassID.TriMeshClass)
+                            smoothMesh = true;
                     }
                     else
                         ignore = true;
@@ -951,76 +954,77 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             bool useAltcontact = false;
             bool noskip = true;
 
+            if(dop1ava || dop2ava)
+                smoothMesh = false;
+
             while (true)
             {
-//                if (!(IgnoreNegSides && curContact.side1 < 0))
+                noskip = true;
+                useAltcontact = false;
+
+                if (dop1ava)
                 {
-                    noskip = true;
-                    useAltcontact = false;
-
-                    if (dop1ava)
+                    if ((((OdeCharacter)p1).Collide(g1, g2, false, ref curContact, ref altContact , ref useAltcontact, ref FeetCollision)))
                     {
-                        if ((((OdeCharacter)p1).Collide(g1, g2, false, ref curContact, ref altContact , ref useAltcontact, ref FeetCollision)))
+                        if (p2.PhysicsActorType == (int)ActorTypes.Agent)
                         {
-                            if (p2.PhysicsActorType == (int)ActorTypes.Agent)
-                            {
-                                p1.CollidingObj = true;
-                                p2.CollidingObj = true;
-                            }
-                            else if (p2.Velocity.LengthSquared() > 0.0f)
-                                    p2.CollidingObj = true;
+                            p1.CollidingObj = true;
+                            p2.CollidingObj = true;
                         }
-                        else
-                            noskip = false;
+                        else if (p2.Velocity.LengthSquared() > 0.0f)
+                            p2.CollidingObj = true;
                     }
-                    else if (dop2ava)
+                    else
+                        noskip = false;
+                }
+                else if (dop2ava)
+                {
+                if ((((OdeCharacter)p2).Collide(g2, g1, true, ref curContact, ref altContact , ref useAltcontact, ref FeetCollision)))
                     {
-                        if ((((OdeCharacter)p2).Collide(g2, g1, true, ref curContact, ref altContact , ref useAltcontact, ref FeetCollision)))
+                    if (p1.PhysicsActorType == (int)ActorTypes.Agent)
                         {
-                            if (p1.PhysicsActorType == (int)ActorTypes.Agent)
-                            {
-                                p1.CollidingObj = true;
-                                p2.CollidingObj = true;
-                            }
-                            else if (p2.Velocity.LengthSquared() > 0.0f)
-                                p1.CollidingObj = true;
+                            p1.CollidingObj = true;
+                            p2.CollidingObj = true;
                         }
-                        else
-                            noskip = false;
+                    else if (p2.Velocity.LengthSquared() > 0.0f)
+                        p1.CollidingObj = true;
+                    }
+                else
+                    noskip = false;
+                }
+
+                if (noskip)
+                {
+                    if(useAltcontact)
+                        Joint = CreateContacJoint(ref altContact,smoothMesh);
+                    else
+                        Joint = CreateContacJoint(ref curContact,smoothMesh);
+
+                    if (Joint == IntPtr.Zero)
+                        break;
+
+                    d.JointAttach(Joint, b1, b2);
+
+                    ncontacts++;
+
+                    if (curContact.depth > maxDepthContact.PenetrationDepth)
+                    {
+                        maxDepthContact.Position.X = curContact.pos.X;
+                        maxDepthContact.Position.Y = curContact.pos.Y;
+                        maxDepthContact.Position.Z = curContact.pos.Z;
+                        maxDepthContact.PenetrationDepth = curContact.depth;
+                        maxDepthContact.CharacterFeet = FeetCollision;
                     }
 
-                    if (noskip)
+                    if (curContact.depth < minDepthContact.PenetrationDepth)
                     {
-                        if(useAltcontact)
-                            Joint = CreateContacJoint(ref altContact);
-                        else
-                            Joint = CreateContacJoint(ref curContact);
-
-                        if (Joint == IntPtr.Zero)
-                            break;
-
-                        d.JointAttach(Joint, b1, b2);
-
-                        ncontacts++;
-
-                        if (curContact.depth > maxDepthContact.PenetrationDepth)
-                        {
-                            maxDepthContact.Position.X = curContact.pos.X;
-                            maxDepthContact.Position.Y = curContact.pos.Y;
-                            maxDepthContact.Position.Z = curContact.pos.Z;
-                            maxDepthContact.PenetrationDepth = curContact.depth;
-                            maxDepthContact.CharacterFeet = FeetCollision;
-                        }
-
-                        if (curContact.depth < minDepthContact.PenetrationDepth)
-                        {
-                            minDepthContact.PenetrationDepth = curContact.depth;
-                            minDepthContact.SurfaceNormal.X = curContact.normal.X;
-                            minDepthContact.SurfaceNormal.Y = curContact.normal.Y;
-                            minDepthContact.SurfaceNormal.Z = curContact.normal.Z;
-                        }
+                        minDepthContact.PenetrationDepth = curContact.depth;
+                        minDepthContact.SurfaceNormal.X = curContact.normal.X;
+                        minDepthContact.SurfaceNormal.Y = curContact.normal.Y;
+                        minDepthContact.SurfaceNormal.Z = curContact.normal.Z;
                     }
                 }
+
                 if (++i >= count)
                     break;
 
@@ -1146,14 +1150,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 foreach (OdePrim aprim in _activeprims)
                 {
                     aprim.CollisionScore = 0;
-                    aprim.IsColliding = false;
+                    aprim.IsColliding = false;                   
                 }
-
+            }
+            lock (_activeprims)
+            {
                 try
                 {
-                    foreach (OdePrim aprim in _activeprims)
+                    foreach (OdePrim aprim in _activegroups)
                     {
-                        if(d.BodyIsEnabled(aprim.Body))
+                        if(!aprim.m_outbounds && d.BodyIsEnabled(aprim.Body))
                         {
                             d.SpaceCollide2(StaticSpace, aprim.collide_geom, IntPtr.Zero, nearCallback);
                             d.SpaceCollide2(GroundSpace, aprim.collide_geom, IntPtr.Zero, nearCallback);
