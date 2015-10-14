@@ -644,7 +644,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             else
                 SharedTmpcontact.geom.depth = contactGeom.depth;
             SharedTmpcontact.geom.pos = contactGeom.pos;
-            SharedTmpcontact.geom.pos = contactGeom.pos;
             SharedTmpcontact.geom.normal = contactGeom.normal;
 
             IntPtr contact = new IntPtr(GlobalContactsArray.ToInt64() + (Int64)(m_global_contactcount * d.Contact.unmanagedSizeOf));
