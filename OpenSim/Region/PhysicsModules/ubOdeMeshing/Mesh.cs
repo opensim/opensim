@@ -125,9 +125,22 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             float y = scale.Y;
             float z = scale.Z;
 
-            result.m_obb.X = m_obb.X * x;
-            result.m_obb.Y = m_obb.Y * y;
-            result.m_obb.Z = m_obb.Z * z;
+            float tmp;
+            tmp = m_obb.X * x;
+            if(tmp < 0.0005f)
+                tmp = 0.0005f;
+            result.m_obb.X = tmp;
+
+            tmp =  m_obb.Y * y;
+            if(tmp < 0.0005f)
+                tmp = 0.0005f;
+            result.m_obb.Y = tmp;
+
+            tmp =  m_obb.Z * z;
+            if(tmp < 0.0005f)
+                tmp = 0.0005f;
+            result.m_obb.Z = tmp;
+
             result.m_obboffset.X = m_obboffset.X * x;
             result.m_obboffset.Y = m_obboffset.Y * y;
             result.m_obboffset.Z = m_obboffset.Z * z;
@@ -190,17 +203,17 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
             if (x > m_bdata.m_obbXmax)
                 m_bdata.m_obbXmax = x;
-            else if (x < m_bdata.m_obbXmin)
+            if (x < m_bdata.m_obbXmin)
                 m_bdata.m_obbXmin = x;
 
             if (y > m_bdata.m_obbYmax)
                 m_bdata.m_obbYmax = y;
-            else if (y < m_bdata.m_obbYmin)
+            if (y < m_bdata.m_obbYmin)
                 m_bdata.m_obbYmin = y;
 
             if (z > m_bdata.m_obbZmax)
                 m_bdata.m_obbZmax = z;
-            else if (z < m_bdata.m_obbZmin)
+            if (z < m_bdata.m_obbZmin)
                 m_bdata.m_obbZmin = z;
 
         }
@@ -262,6 +275,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         public Vector3 GetOBB()
         {
             return m_obb;
+/*
             float x, y, z;
             if (m_bdata.m_centroidDiv > 0)
             {
@@ -276,6 +290,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                 z = 0.5f;
             }
             return new Vector3(x, y, z);
+*/
         }
 
         public int numberVertices()
@@ -502,8 +517,14 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             {
                 m_obboffset = new Vector3(m_bdata.m_centroid.X / m_bdata.m_centroidDiv, m_bdata.m_centroid.Y / m_bdata.m_centroidDiv, m_bdata.m_centroid.Z / m_bdata.m_centroidDiv);
                 x = (m_bdata.m_obbXmax - m_bdata.m_obbXmin) * 0.5f;
+                if(x < 0.0005f)
+                    x = 0.0005f;
                 y = (m_bdata.m_obbYmax - m_bdata.m_obbYmin) * 0.5f;
+                if(y < 0.0005f)
+                    y = 0.0005f;
                 z = (m_bdata.m_obbZmax - m_bdata.m_obbZmin) * 0.5f;
+                if(z < 0.0005f)
+                    z = 0.0005f;
             }
 
             else
@@ -513,6 +534,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                 y = 0.5f;
                 z = 0.5f;
             }
+
             m_obb = new Vector3(x, y, z);
 
             releaseBuildingMeshData();
