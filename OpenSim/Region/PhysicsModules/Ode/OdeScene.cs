@@ -40,6 +40,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using log4net;
@@ -4055,6 +4056,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             }
         }
 */
+        [HandleProcessCorruptedStateExceptions]
         public override void Dispose()
         {
             _worldInitialized = false;
@@ -4079,7 +4081,14 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 //{
                     //RemoveAvatar(act);
                 //}
-                d.WorldDestroy(world);
+                try
+                {
+                    d.WorldDestroy(world);
+                }
+                catch (AccessViolationException e)
+                {
+                    m_log.ErrorFormat("[ODE SCENE]: exception {0}", e.Message);
+                }
                 //d.CloseODE();
             }
 
