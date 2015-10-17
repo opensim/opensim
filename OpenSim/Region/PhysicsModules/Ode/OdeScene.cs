@@ -2042,7 +2042,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                         x = x - offsetX + 1f;
                         y = y - offsetY + 1f;
 
-                        index = (int)((int)x * ((int)Constants.RegionSize + 2) + (int)y);
+                        index = (int)((int)x * ((int)m_regionHeight +3) + (int)y);
 
                         if (index < TerrainHeightFieldHeights[heightFieldGeom].Length)
                         {
@@ -3639,274 +3639,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
             get { return false; }
         }
 
-/* godd try.. but not a fix
-        #region ODE Specific Terrain Fixes
-        private float[] ResizeTerrain512NearestNeighbour(float[] heightMap)
-        {
-            float[] returnarr = new float[262144];
-            float[,] resultarr = new float[(int)WorldExtents.X, (int)WorldExtents.Y];
-
-            // Filling out the array into its multi-dimensional components
-            for (int y = 0; y < WorldExtents.Y; y++)
-            {
-                for (int x = 0; x < WorldExtents.X; x++)
-                {
-                    resultarr[y, x] = heightMap[y * (int)WorldExtents.Y + x];
-                }
-            }
-
-            // Resize using Nearest Neighbour
-
-            // This particular way is quick but it only works on a multiple of the original
-
-            // The idea behind this method can be described with the following diagrams
-            // second pass and third pass happen in the same loop really..  just separated
-            // them to show what this does.
-
-            // First Pass
-            // ResultArr:
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-
-            // Second Pass
-            // ResultArr2:
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-
-            // Third pass fills in the blanks
-            // ResultArr2:
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-
-            // X,Y = .
-            // X+1,y = ^
-            // X,Y+1 = *
-            // X+1,Y+1 = #
-
-            // Filling in like this;
-            // .*
-            // ^#
-            // 1st .
-            // 2nd *
-            // 3rd ^
-            // 4th #
-            // on single loop.
-
-            float[,] resultarr2 = new float[512, 512];
-            for (int y = 0; y < WorldExtents.Y; y++)
-            {
-                for (int x = 0; x < WorldExtents.X; x++)
-                {
-                    resultarr2[y * 2, x * 2] = resultarr[y, x];
-
-                    if (y < WorldExtents.Y)
-                    {
-                        resultarr2[(y * 2) + 1, x * 2] = resultarr[y, x];
-                    }
-                    if (x < WorldExtents.X)
-                    {
-                        resultarr2[y * 2, (x * 2) + 1] = resultarr[y, x];
-                    }
-                    if (x < WorldExtents.X && y < WorldExtents.Y)
-                    {
-                        resultarr2[(y * 2) + 1, (x * 2) + 1] = resultarr[y, x];
-                    }
-                }
-            }
-
-            //Flatten out the array
-            int i = 0;
-            for (int y = 0; y < 512; y++)
-            {
-                for (int x = 0; x < 512; x++)
-                {
-                    if (resultarr2[y, x] <= 0)
-                        returnarr[i] = 0.0000001f;
-                    else
-                        returnarr[i] = resultarr2[y, x];
-
-                    i++;
-                }
-            }
-
-            return returnarr;
-        }
-
-        private float[] ResizeTerrain512Interpolation(float[] heightMap)
-        {
-            float[] returnarr = new float[262144];
-            float[,] resultarr = new float[512,512];
-
-            // Filling out the array into its multi-dimensional components
-            for (int y = 0; y < 256; y++)
-            {
-                for (int x = 0; x < 256; x++)
-                {
-                    resultarr[y, x] = heightMap[y * 256 + x];
-                }
-            }
-
-            // Resize using interpolation
-
-            // This particular way is quick but it only works on a multiple of the original
-
-            // The idea behind this method can be described with the following diagrams
-            // second pass and third pass happen in the same loop really..  just separated
-            // them to show what this does.
-
-            // First Pass
-            // ResultArr:
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-
-            // Second Pass
-            // ResultArr2:
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-
-            // Third pass fills in the blanks
-            // ResultArr2:
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-
-            // X,Y = .
-            // X+1,y = ^
-            // X,Y+1 = *
-            // X+1,Y+1 = #
-
-            // Filling in like this;
-            // .*
-            // ^#
-            // 1st .
-            // 2nd *
-            // 3rd ^
-            // 4th #
-            // on single loop.
-
-            float[,] resultarr2 = new float[512,512];
-            for (int y = 0; y < (int)Constants.RegionSize; y++)
-            {
-                for (int x = 0; x < (int)Constants.RegionSize; x++)
-                {
-                    resultarr2[y*2, x*2] = resultarr[y, x];
-
-                    if (y < (int)Constants.RegionSize)
-                    {
-                        if (y + 1 < (int)Constants.RegionSize)
-                        {
-                            if (x + 1 < (int)Constants.RegionSize)
-                            {
-                                resultarr2[(y*2) + 1, x*2] = ((resultarr[y, x] + resultarr[y + 1, x] +
-                                                               resultarr[y, x + 1] + resultarr[y + 1, x + 1])/4);
-                            }
-                            else
-                            {
-                                resultarr2[(y*2) + 1, x*2] = ((resultarr[y, x] + resultarr[y + 1, x])/2);
-                            }
-                        }
-                        else
-                        {
-                            resultarr2[(y*2) + 1, x*2] = resultarr[y, x];
-                        }
-                    }
-                    if (x < (int)Constants.RegionSize)
-                    {
-                        if (x + 1 < (int)Constants.RegionSize)
-                        {
-                            if (y + 1 < (int)Constants.RegionSize)
-                            {
-                                resultarr2[y*2, (x*2) + 1] = ((resultarr[y, x] + resultarr[y + 1, x] +
-                                                               resultarr[y, x + 1] + resultarr[y + 1, x + 1])/4);
-                            }
-                            else
-                            {
-                                resultarr2[y*2, (x*2) + 1] = ((resultarr[y, x] + resultarr[y, x + 1])/2);
-                            }
-                        }
-                        else
-                        {
-                            resultarr2[y*2, (x*2) + 1] = resultarr[y, x];
-                        }
-                    }
-                    if (x < (int)Constants.RegionSize && y < (int)Constants.RegionSize)
-                    {
-                        if ((x + 1 < (int)Constants.RegionSize) && (y + 1 < (int)Constants.RegionSize))
-                        {
-                            resultarr2[(y*2) + 1, (x*2) + 1] = ((resultarr[y, x] + resultarr[y + 1, x] +
-                                                                 resultarr[y, x + 1] + resultarr[y + 1, x + 1])/4);
-                        }
-                        else
-                        {
-                            resultarr2[(y*2) + 1, (x*2) + 1] = resultarr[y, x];
-                        }
-                    }
-                }
-            }
-            //Flatten out the array
-            int i = 0;
-            for (int y = 0; y < 512; y++)
-            {
-                for (int x = 0; x < 512; x++)
-                {
-                    if (Single.IsNaN(resultarr2[y, x]) || Single.IsInfinity(resultarr2[y, x]))
-                    {
-                        m_log.Warn("[ODE SCENE]: Non finite heightfield element detected.  Setting it to 0");
-                        resultarr2[y, x] = 0;
-                    }
-                    returnarr[i] = resultarr2[y, x];
-                    i++;
-                }
-            }
-
-            return returnarr;
-        }
-
-        #endregion
-*/
         public override void SetTerrain(float[] heightMap)
         {
             if (m_worldOffset != Vector3.Zero && m_parentScene != null)
@@ -4006,9 +3738,10 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                 }
                 IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
-                d.GeomHeightfieldDataBuildSingle(HeightmapData, _heightmap, 0, heightmapWidth, heightmapHeight,
-                                                 (int)heightmapWidthSamples, (int)heightmapHeightSamples, scale,
-                                                 offset, thickness, wrap);
+                d.GeomHeightfieldDataBuildSingle(HeightmapData, _heightmap, 0,
+                            heightmapWidth, heightmapHeight,
+                            (int)heightmapWidthSamples, (int)heightmapHeightSamples,
+                            scale, offset, thickness, wrap);
 
                 d.GeomHeightfieldDataSetBounds(HeightmapData, hfmin - 1, hfmax + 1);
                 GroundGeom = d.CreateHeightfield(space, HeightmapData, 1);
@@ -4032,7 +3765,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                 d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
                 d.GeomSetRotation(GroundGeom, ref R);
-                d.GeomSetPosition(GroundGeom, pOffset.X + regionsizeX * 0.5f, pOffset.Y + regionsizeY * 0.5f, 0);
+                d.GeomSetPosition(GroundGeom, pOffset.X + regionsizeX * 0.5f, pOffset.Y + regionsizeY * 0.5f, 0f);
                 IntPtr testGround = IntPtr.Zero;
                 if (RegionTerrain.TryGetValue(pOffset, out testGround))
                 {
