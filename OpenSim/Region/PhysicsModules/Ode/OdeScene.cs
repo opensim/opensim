@@ -1988,8 +1988,9 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                         x = x - offsetX + 1f;
                         y = y - offsetY + 1f;
+                        // map is rotated
 
-                        index = (int)((int)x * ((int)Constants.RegionSize + 2) + (int)y);
+                        index = (int)x * ((int)m_regionHeight + 3) + (int)y;
 
                         if (index < TerrainHeightFieldHeights[heightFieldGeom].Length)
                         {
@@ -2567,59 +2568,13 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
 
                     }
-                    // we don't want to remove the main space
-
-                    // If the geometry is in the targetspace, remove it from the target space
-                    //m_log.Warn(prim.m_targetSpace);
-
-                    //if (prim.m_targetSpace != IntPtr.Zero)
-                    //{
-                    //if (d.SpaceQuery(prim.m_targetSpace, prim.prim_geom))
-                    //{
-
-                    //if (d.GeomIsSpace(prim.m_targetSpace))
-                    //{
-                    //waitForSpaceUnlock(prim.m_targetSpace);
-                    //d.SpaceRemove(prim.m_targetSpace, prim.prim_geom);
                     prim.m_targetSpace = IntPtr.Zero;
-                    //}
-                    //else
-                    //{
-                    // m_log.Info("[Physics]: Invalid Scene passed to 'removeprim from scene':" +
-                    //((OdePrim)prim).m_targetSpace.ToString());
-                    //}
-
-                    //}
-                    //}
-                    //m_log.Warn(prim.prim_geom);
-
                     if (!prim.RemoveGeom())
                         m_log.Warn("[ODE SCENE]: Unable to remove prim from physics scene");
 
                     lock (_prims)
                         _prims.Remove(prim);
 
-                    //If there are no more geometries in the sub-space, we don't need it in the main space anymore
-                    //if (d.SpaceGetNumGeoms(prim.m_targetSpace) == 0)
-                    //{
-                    //if (prim.m_targetSpace != null)
-                    //{
-                    //if (d.GeomIsSpace(prim.m_targetSpace))
-                    //{
-                    //waitForSpaceUnlock(prim.m_targetSpace);
-                    //d.SpaceRemove(space, prim.m_targetSpace);
-                    // free up memory used by the space.
-                    //d.SpaceDestroy(prim.m_targetSpace);
-                    //int[] xyspace = calculateSpaceArrayItemFromPos(prim.Position);
-                    //resetSpaceArrayItemToZero(xyspace[0], xyspace[1]);
-                    //}
-                    //else
-                    //{
-                    //m_log.Info("[Physics]: Invalid Scene passed to 'removeprim from scene':" +
-                    //((OdePrim) prim).m_targetSpace.ToString());
-                    //}
-                    //}
-                    //}
 
                     if (SupportsNINJAJoints)
                         RemoveAllJointsConnectedToActorThreadLocked(prim);
@@ -2715,12 +2670,9 @@ namespace OpenSim.Region.PhysicsModule.ODE
                     {
                         if (d.GeomIsSpace(currentspace))
                         {
-//                            waitForSpaceUnlock(currentspace);
-//                            waitForSpaceUnlock(space);
                             d.SpaceRemove(space, currentspace);
                             // free up memory used by the space.
 
-                            //d.SpaceDestroy(currentspace);
                             resetSpaceArrayItemToZero(currentspace);
                         }
                         else
@@ -3574,274 +3526,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
             get { return false; }
         }
 
-/* godd try.. but not a fix
-        #region ODE Specific Terrain Fixes
-        private float[] ResizeTerrain512NearestNeighbour(float[] heightMap)
-        {
-            float[] returnarr = new float[262144];
-            float[,] resultarr = new float[(int)WorldExtents.X, (int)WorldExtents.Y];
-
-            // Filling out the array into its multi-dimensional components
-            for (int y = 0; y < WorldExtents.Y; y++)
-            {
-                for (int x = 0; x < WorldExtents.X; x++)
-                {
-                    resultarr[y, x] = heightMap[y * (int)WorldExtents.Y + x];
-                }
-            }
-
-            // Resize using Nearest Neighbour
-
-            // This particular way is quick but it only works on a multiple of the original
-
-            // The idea behind this method can be described with the following diagrams
-            // second pass and third pass happen in the same loop really..  just separated
-            // them to show what this does.
-
-            // First Pass
-            // ResultArr:
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-
-            // Second Pass
-            // ResultArr2:
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-
-            // Third pass fills in the blanks
-            // ResultArr2:
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-
-            // X,Y = .
-            // X+1,y = ^
-            // X,Y+1 = *
-            // X+1,Y+1 = #
-
-            // Filling in like this;
-            // .*
-            // ^#
-            // 1st .
-            // 2nd *
-            // 3rd ^
-            // 4th #
-            // on single loop.
-
-            float[,] resultarr2 = new float[512, 512];
-            for (int y = 0; y < WorldExtents.Y; y++)
-            {
-                for (int x = 0; x < WorldExtents.X; x++)
-                {
-                    resultarr2[y * 2, x * 2] = resultarr[y, x];
-
-                    if (y < WorldExtents.Y)
-                    {
-                        resultarr2[(y * 2) + 1, x * 2] = resultarr[y, x];
-                    }
-                    if (x < WorldExtents.X)
-                    {
-                        resultarr2[y * 2, (x * 2) + 1] = resultarr[y, x];
-                    }
-                    if (x < WorldExtents.X && y < WorldExtents.Y)
-                    {
-                        resultarr2[(y * 2) + 1, (x * 2) + 1] = resultarr[y, x];
-                    }
-                }
-            }
-
-            //Flatten out the array
-            int i = 0;
-            for (int y = 0; y < 512; y++)
-            {
-                for (int x = 0; x < 512; x++)
-                {
-                    if (resultarr2[y, x] <= 0)
-                        returnarr[i] = 0.0000001f;
-                    else
-                        returnarr[i] = resultarr2[y, x];
-
-                    i++;
-                }
-            }
-
-            return returnarr;
-        }
-
-        private float[] ResizeTerrain512Interpolation(float[] heightMap)
-        {
-            float[] returnarr = new float[262144];
-            float[,] resultarr = new float[512,512];
-
-            // Filling out the array into its multi-dimensional components
-            for (int y = 0; y < 256; y++)
-            {
-                for (int x = 0; x < 256; x++)
-                {
-                    resultarr[y, x] = heightMap[y * 256 + x];
-                }
-            }
-
-            // Resize using interpolation
-
-            // This particular way is quick but it only works on a multiple of the original
-
-            // The idea behind this method can be described with the following diagrams
-            // second pass and third pass happen in the same loop really..  just separated
-            // them to show what this does.
-
-            // First Pass
-            // ResultArr:
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-            // 1,1,1,1,1,1
-
-            // Second Pass
-            // ResultArr2:
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-            // ,,,,,,,,,,
-            // 1,,1,,1,,1,,1,,1,
-
-            // Third pass fills in the blanks
-            // ResultArr2:
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-            // 1,1,1,1,1,1,1,1,1,1,1,1
-
-            // X,Y = .
-            // X+1,y = ^
-            // X,Y+1 = *
-            // X+1,Y+1 = #
-
-            // Filling in like this;
-            // .*
-            // ^#
-            // 1st .
-            // 2nd *
-            // 3rd ^
-            // 4th #
-            // on single loop.
-
-            float[,] resultarr2 = new float[512,512];
-            for (int y = 0; y < (int)Constants.RegionSize; y++)
-            {
-                for (int x = 0; x < (int)Constants.RegionSize; x++)
-                {
-                    resultarr2[y*2, x*2] = resultarr[y, x];
-
-                    if (y < (int)Constants.RegionSize)
-                    {
-                        if (y + 1 < (int)Constants.RegionSize)
-                        {
-                            if (x + 1 < (int)Constants.RegionSize)
-                            {
-                                resultarr2[(y*2) + 1, x*2] = ((resultarr[y, x] + resultarr[y + 1, x] +
-                                                               resultarr[y, x + 1] + resultarr[y + 1, x + 1])/4);
-                            }
-                            else
-                            {
-                                resultarr2[(y*2) + 1, x*2] = ((resultarr[y, x] + resultarr[y + 1, x])/2);
-                            }
-                        }
-                        else
-                        {
-                            resultarr2[(y*2) + 1, x*2] = resultarr[y, x];
-                        }
-                    }
-                    if (x < (int)Constants.RegionSize)
-                    {
-                        if (x + 1 < (int)Constants.RegionSize)
-                        {
-                            if (y + 1 < (int)Constants.RegionSize)
-                            {
-                                resultarr2[y*2, (x*2) + 1] = ((resultarr[y, x] + resultarr[y + 1, x] +
-                                                               resultarr[y, x + 1] + resultarr[y + 1, x + 1])/4);
-                            }
-                            else
-                            {
-                                resultarr2[y*2, (x*2) + 1] = ((resultarr[y, x] + resultarr[y, x + 1])/2);
-                            }
-                        }
-                        else
-                        {
-                            resultarr2[y*2, (x*2) + 1] = resultarr[y, x];
-                        }
-                    }
-                    if (x < (int)Constants.RegionSize && y < (int)Constants.RegionSize)
-                    {
-                        if ((x + 1 < (int)Constants.RegionSize) && (y + 1 < (int)Constants.RegionSize))
-                        {
-                            resultarr2[(y*2) + 1, (x*2) + 1] = ((resultarr[y, x] + resultarr[y + 1, x] +
-                                                                 resultarr[y, x + 1] + resultarr[y + 1, x + 1])/4);
-                        }
-                        else
-                        {
-                            resultarr2[(y*2) + 1, (x*2) + 1] = resultarr[y, x];
-                        }
-                    }
-                }
-            }
-            //Flatten out the array
-            int i = 0;
-            for (int y = 0; y < 512; y++)
-            {
-                for (int x = 0; x < 512; x++)
-                {
-                    if (Single.IsNaN(resultarr2[y, x]) || Single.IsInfinity(resultarr2[y, x]))
-                    {
-                        m_log.Warn("[ODE SCENE]: Non finite heightfield element detected.  Setting it to 0");
-                        resultarr2[y, x] = 0;
-                    }
-                    returnarr[i] = resultarr2[y, x];
-                    i++;
-                }
-            }
-
-            return returnarr;
-        }
-
-        #endregion
-*/
         public override void SetTerrain(float[] heightMap)
         {
             if (m_worldOffset != Vector3.Zero && m_parentScene != null)
@@ -3940,9 +3624,11 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                 }
                 IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
-                d.GeomHeightfieldDataBuildSingle(HeightmapData, _heightmap, 0, heightmapHeight, heightmapWidth,
-                                                 (int)heightmapHeightSamples, (int)heightmapWidthSamples, scale,
-                                                 offset, thickness, wrap);
+                d.GeomHeightfieldDataBuildSingle(HeightmapData, _heightmap, 0,
+                            heightmapWidth, heightmapHeight,
+                            (int)heightmapWidthSamples,
+                            (int)heightmapHeightSamples,
+                            scale, offset, thickness, wrap);
 
                 d.GeomHeightfieldDataSetBounds(HeightmapData, hfmin - 1, hfmax + 1);
                 GroundGeom = d.CreateHeightfield(space, HeightmapData, 1);
@@ -3997,78 +3683,24 @@ namespace OpenSim.Region.PhysicsModule.ODE
         public override void SetWaterLevel(float baseheight)
         {
             waterlevel = baseheight;
-//            randomizeWater(waterlevel);
         }
 
-/*
-        private void randomizeWater(float baseheight)
-        {
-            uint heightmapWidth = m_regionWidth + 2;
-            uint heightmapHeight = m_regionHeight + 2;
-            uint heightmapWidthSamples = m_regionWidth + 2;
-            uint heightmapHeightSamples = m_regionHeight + 2;
-            float scale = 1.0f;
-            float offset = 0.0f;
-            float thickness = 2.9f;
-            int wrap = 0;
-
-            for (int i = 0; i < (258 * 258); i++)
-            {
-                _watermap[i] = (baseheight-0.1f) + ((float)fluidRandomizer.Next(1,9) / 10f);
-                // m_log.Info((baseheight - 0.1f) + ((float)fluidRandomizer.Next(1, 9) / 10f));
-            }
-
-            lock (OdeLock)
-            {
-                if (WaterGeom != IntPtr.Zero)
-                {
-                    d.SpaceRemove(space, WaterGeom);
-                }
-                IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
-                d.GeomHeightfieldDataBuildSingle(HeightmapData, _watermap, 0, heightmapWidth, heightmapHeight,
-                                                    (int)heightmapWidthSamples, (int)heightmapHeightSamples, scale,
-                                                    offset, thickness, wrap);
-                d.GeomHeightfieldDataSetBounds(HeightmapData, m_regionWidth, m_regionHeight);
-                WaterGeom = d.CreateHeightfield(space, HeightmapData, 1);
-                if (WaterGeom != IntPtr.Zero)
-                {
-                    d.GeomSetCategoryBits(WaterGeom, (int)(CollisionCategories.Water));
-                    d.GeomSetCollideBits(WaterGeom, (int)(CollisionCategories.Space));
-                }
-
-                geom_name_map[WaterGeom] = "Water";
-
-                d.Matrix3 R = new d.Matrix3();
-
-                Quaternion q1 = Quaternion.CreateFromAxisAngle(new Vector3(1, 0, 0), 1.5707f);
-                Quaternion q2 = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), 1.5707f);
-                //Axiom.Math.Quaternion q3 = Axiom.Math.Quaternion.FromAngleAxis(3.14f, new Axiom.Math.Vector3(0, 0, 1));
-
-                q1 = q1 * q2;
-                //q1 = q1 * q3;
-                Vector3 v3;
-                float angle;
-                q1.GetAxisAngle(out v3, out angle);
-
-                d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
-                d.GeomSetRotation(WaterGeom, ref R);
-                d.GeomSetPosition(WaterGeom, 128, 128, 0);
-            }
-        }
-*/
         [HandleProcessCorruptedStateExceptions]
         public override void Dispose()
         {
-            _worldInitialized = false;
-
-            if (m_rayCastManager != null)
-            {
-                m_rayCastManager.Dispose();
-                m_rayCastManager = null;
-            }
-
             lock (OdeLock)
             {
+                if(world == IntPtr.Zero)
+                    return;
+
+                _worldInitialized = false;
+
+                if (m_rayCastManager != null)
+                {
+                    m_rayCastManager.Dispose();
+                    m_rayCastManager = null;
+                }
+
                 lock (_prims)
                 {
                     foreach (OdePrim prm in _prims)
@@ -4081,9 +3713,22 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 //{
                     //RemoveAvatar(act);
                 //}
+                IntPtr GroundGeom = IntPtr.Zero;
+                if (RegionTerrain.TryGetValue(m_worldOffset, out GroundGeom))
+                {
+                    RegionTerrain.Remove(m_worldOffset);
+                    if (GroundGeom != IntPtr.Zero)
+                    {
+                        if (TerrainHeightFieldHeights.ContainsKey(GroundGeom))
+                            TerrainHeightFieldHeights.Remove(GroundGeom);
+                        d.GeomDestroy(GroundGeom);
+                    }
+                 }
+
                 try
                 {
                     d.WorldDestroy(world);
+                    world = IntPtr.Zero;
                 }
                 catch (AccessViolationException e)
                 {
@@ -4091,7 +3736,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 }
                 //d.CloseODE();
             }
-
         }
 
         public override Dictionary<uint, float> GetTopColliders()
