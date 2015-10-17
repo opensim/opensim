@@ -580,8 +580,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
             m_suportCombine = false;
 			
             nearCallback = near;
-            triCallback = TriCallback;
-            triArrayCallback = TriArrayCallback;
+//            triCallback = TriCallback;
+//            triArrayCallback = TriArrayCallback;
             m_rayCastManager = new ODERayCastRequestManager(this);
 
             // Create the world and the first space
@@ -1811,10 +1811,10 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 //}
            // }
         }
-
+/*
         private int TriArrayCallback(IntPtr trimesh, IntPtr refObject, int[] triangleIndex, int triCount)
         {
-            /*            String name1 = null;
+                        String name1 = null;
                         String name2 = null;
 
                         if (!geom_name_map.TryGetValue(trimesh, out name1))
@@ -1827,7 +1827,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                         }
 
                         m_log.InfoFormat("TriArrayCallback: A collision was detected between {1} and {2}", 0, name1, name2);
-            */
+            
             return 1;
         }
 
@@ -1857,7 +1857,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             return 1;
         }
-
+*/
         /// <summary>
         /// This is our collision testing routine in ODE
         /// </summary>
@@ -1988,8 +1988,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                         x = x - offsetX + 1f;
                         y = y - offsetY + 1f;
-                        // map is rotated
 
+                        // map is rotated
                         index = (int)x * ((int)m_regionHeight + 3) + (int)y;
 
                         if (index < TerrainHeightFieldHeights[heightFieldGeom].Length)

@@ -445,7 +445,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 m_disabled = false;
 
                 // The body doesn't already have a finite rotation mode set here
-                if ((!m_angularlock.ApproxEquals(Vector3.Zero, 0.0f)) && _parent == null)
+                if ((!m_angularlock.ApproxEquals(Vector3.One, 0.0f)) && _parent == null)
                 {
                     createAMotor(m_angularlock);
                 }
@@ -919,7 +919,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 //            _parent_scene.waitForSpaceUnlock(m_targetSpace);
             try
             {
-                SetGeom(d.CreateTriMesh(m_targetSpace, _triMeshData, parent_scene.triCallback, null, null));
+                SetGeom(d.CreateTriMesh(m_targetSpace, _triMeshData, null, null, null));
             }
             catch (AccessViolationException)
             {
@@ -1121,7 +1121,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                 {
                     d.Mass m2;
                     d.MassSetZero(out m2);
-                    d.MassSetBoxTotal(out m2, prim.CalculateMass(), prm._size.X, prm._size.Y, prm._size.Z);
+                    d.MassSetBoxTotal(out m2, prm.CalculateMass(), prm._size.X, prm._size.Y, prm._size.Z);
 
                     d.Quaternion quat = new d.Quaternion();
                     quat.W = prm._orientation.W;
@@ -1184,11 +1184,6 @@ Console.WriteLine("ZProcessTaints for " + Name);
                     prm.m_collisionscore = 0;
                     prm.m_disabled = false;
 
-                    // The body doesn't already have a finite rotation mode set here
-                    if ((!m_angularlock.ApproxEquals(Vector3.Zero, 0f)) && _parent == null)
-                    {
-                        prm.createAMotor(m_angularlock);
-                    }
                     prm.Body = Body;
                     _parent_scene.ActivatePrim(prm);
                 }
@@ -1235,7 +1230,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                 m_disabled = false;
 
                 // The body doesn't already have a finite rotation mode set here
-                if ((!m_angularlock.ApproxEquals(Vector3.Zero, 0f)) && _parent == null)
+                if ((!m_angularlock.ApproxEquals(Vector3.One, 0f)) && _parent == null)
                 {
                     createAMotor(m_angularlock);
                 }
