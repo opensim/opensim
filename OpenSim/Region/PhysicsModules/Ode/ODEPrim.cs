@@ -83,8 +83,15 @@ namespace OpenSim.Region.PhysicsModule.ODE
             set
             {
                 m_isphysical = value;
-                if (!m_isphysical) // Zero the remembered last velocity
+                if (!m_isphysical)
+                {
+                    _zeroFlag = true; // Zero the remembered last velocity
                     m_lastVelocity = Vector3.Zero;
+                    _acceleration = Vector3.Zero;
+                    _velocity = Vector3.Zero;
+                    m_taintVelocity = Vector3.Zero;
+                    m_rotationalVelocity = Vector3.Zero;
+                }
             }
         }
 
@@ -2739,7 +2746,7 @@ Console.WriteLine(" JointCreateFixed");
                 Vector3 pv = Vector3.Zero;
                 bool lastZeroFlag = _zeroFlag;
                 float m_minvelocity = 0;
-                if (Body != (IntPtr)0) // FIXME -> or if it is a joint
+                if (Body != IntPtr.Zero) // FIXME -> or if it is a joint
                 {
                     d.Vector3 vec = d.BodyGetPosition(Body);
                     d.Quaternion ori = d.BodyGetQuaternion(Body);
