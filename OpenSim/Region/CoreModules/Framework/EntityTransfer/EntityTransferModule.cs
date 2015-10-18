@@ -57,12 +57,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         public const int DefaultMaxTransferDistance = 4095;
         public const bool WaitForAgentArrivedAtDestinationDefault = true;
 
-        private string OutgoingTransferVersionName { get; set; }
+        public static readonly string OutgoingTransferVersionName = "SIMULATION";
 
         /// <summary>
-        /// Determine the maximum entity transfer version we will use for teleports.
+        /// Determine the entity transfer version we will use for teleports.
         /// </summary>
-        private float MaxOutgoingTransferVersion { get; set; }
+        public static readonly float OutgoingTransferVersion = VersionInfo.SimulationServiceVersion;
 
         private string m_myVersion = "";
         /// <summary>
@@ -215,9 +215,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <param name="source"></param>
         protected virtual void InitialiseCommon(IConfigSource source)
         {
-            string transferVersionName = "SIMULATION";
-            float maxTransferVersion = 0.3f;
-
             IConfig hypergridConfig = source.Configs["Hypergrid"];
             if (hypergridConfig != null)
             {
@@ -233,33 +230,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             IConfig transferConfig = source.Configs["EntityTransfer"];
             if (transferConfig != null)
             {
-                string rawVersion 
-                    = transferConfig.GetString(
-                        "MaxOutgoingTransferVersion", 
-                        string.Format("{0}/{1}", transferVersionName, maxTransferVersion));
-
-                string[] rawVersionComponents = rawVersion.Split(new char[] { '/' });
-
-                bool versionValid = false;
-
-                if (rawVersionComponents.Length >= 2)
-                    versionValid = float.TryParse(rawVersionComponents[1], out maxTransferVersion);
-
-                if (!versionValid)
-                {
-                    m_log.ErrorFormat(
-                        "[ENTITY TRANSFER MODULE]: MaxOutgoingTransferVersion {0} is invalid, using {1}", 
-                        rawVersion, string.Format("{0}/{1}", transferVersionName, maxTransferVersion));
-                }
-                else
-                {
-                    transferVersionName = rawVersionComponents[0];
-
-                    m_log.InfoFormat(
-                        "[ENTITY TRANSFER MODULE]: MaxOutgoingTransferVersion set to {0}", 
-                        string.Format("{0}/{1}", transferVersionName, maxTransferVersion));
-                }
-
                 DisableInterRegionTeleportCancellation 
                     = transferConfig.GetBoolean("DisableInterRegionTeleportCancellation", false);
 
@@ -273,10 +243,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 MaxTransferDistance = DefaultMaxTransferDistance;
             }
 
-            OutgoingTransferVersionName = transferVersionName;
-            MaxOutgoingTransferVersion = maxTransferVersion;
-
-            m_myVersion = string.Format("{0}/{1}", OutgoingTransferVersionName, MaxOutgoingTransferVersion);
+            m_myVersion = string.Format("{0}/{1}", OutgoingTransferVersionName, OutgoingTransferVersion);
 
             m_entityTransferStateMachine = new EntityTransferStateMachine(this);
 
@@ -789,8 +756,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             m_interRegionTeleportAttempts.Value++;
 
             m_log.DebugFormat(
-                "[ENTITY TRANSFER MODULE]: {0} max transfer version is {1}/{2}, {3} max version is {4}", 
-                sp.Scene.Name, OutgoingTransferVersionName, MaxOutgoingTransferVersion, finalDestination.RegionName, version);
+                "[ENTITY TRANSFER MODULE]: {0} transfer version is {1}/{2}, {3} version is {4}", 
+                sp.Scene.Name, OutgoingTransferVersionName, OutgoingTransferVersion, finalDestination.RegionName, version);
 
             // Fixing a bug where teleporting while sitting results in the avatar ending up removed from
             // both regions
@@ -877,7 +844,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (versionComponents.Length >= 2)
                 float.TryParse(versionComponents[1], out versionNumber);
 
-            if (versionNumber >= 0.2f && MaxOutgoingTransferVersion >= versionNumber)
+            if (versionNumber >= 0.2f)
                 TransferAgent_V2(sp, agentCircuit, reg, finalDestination, endPoint, teleportFlags, OutSideViewRange , version, out reason);
             else
                 TransferAgent_V1(sp, agentCircuit, reg, finalDestination, endPoint, teleportFlags, OutSideViewRange, version, out reason);           

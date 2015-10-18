@@ -454,9 +454,10 @@ namespace OpenSim.Services.HypergridService
 
             string version;
 
+            string myversion = String.Format("SIMULATION/{0}", VersionInfo.SimulationServiceVersion);
             if (!m_SimulationService.QueryAccess(
                 destination, aCircuit.AgentID, aCircuit.ServiceURLs["HomeURI"].ToString(), 
-                true, aCircuit.startpos, "SIMULATION/0.3", new List<UUID>(), out version, out reason))
+                true, aCircuit.startpos, myversion, new List<UUID>(), out version, out reason))
                 return false;
 
             return m_SimulationService.CreateAgent(source, destination, aCircuit, (uint)loginFlag, out reason);
