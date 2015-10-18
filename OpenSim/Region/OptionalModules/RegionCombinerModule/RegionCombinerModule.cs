@@ -79,6 +79,8 @@ namespace OpenSim.Region.RegionCombinerModule
         {
             IConfig myConfig = source.Configs["Startup"];
             m_combineContiguousRegions = myConfig.GetBoolean("CombineContiguousRegions", false);
+            if (m_combineContiguousRegions)
+                m_log.ErrorFormat("[REGION COMBINER MODULE]: THIS MODULE IS BEING MARKED OBSOLETE AND MAY SOON BE REMOVED. PLEASE USE VARREGIONS INSTEAD.");
 
             MainConsole.Instance.Commands.AddCommand(
                 "RegionCombinerModule", false, "fix-phantoms", "fix-phantoms",
