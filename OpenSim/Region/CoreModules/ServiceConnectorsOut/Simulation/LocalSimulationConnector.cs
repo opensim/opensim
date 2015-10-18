@@ -48,11 +48,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         /// <summary>
         /// Version of this service.
         /// </summary>
-        /// <remarks>
-        /// Currently valid versions are "SIMULATION/0.1" and "SIMULATION/0.2"
-        /// </remarks>
         public string ServiceVersion { get; set; }
-        private float m_VersionNumber = 0.3f;
 
         /// <summary>
         /// Map region ID to scene.
@@ -85,22 +81,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
         public void InitialiseService(IConfigSource configSource)
         {
-            ServiceVersion = "SIMULATION/0.3";
-            IConfig config = configSource.Configs["SimulationService"];
-            if (config != null)
-            {
-                ServiceVersion = config.GetString("ConnectorProtocolVersion", ServiceVersion);
-
-                if (ServiceVersion != "SIMULATION/0.1" && ServiceVersion != "SIMULATION/0.2" && ServiceVersion != "SIMULATION/0.3")
-                    throw new Exception(string.Format("Invalid ConnectorProtocolVersion {0}", ServiceVersion));
-
-                string[] versionComponents = ServiceVersion.Split(new char[] { '/' });
-                if (versionComponents.Length >= 2)
-                    float.TryParse(versionComponents[1], out m_VersionNumber);
-
-                m_log.InfoFormat(
-                    "[LOCAL SIMULATION CONNECTOR]: Initialized with connector protocol version {0}", ServiceVersion);
-            }
+            ServiceVersion = String.Format("SIMULATION/{0}", VersionInfo.SimulationServiceVersion);
+            m_log.InfoFormat("[LOCAL SIMULATION CONNECTOR]: Initialized with connector protocol version {0}", ServiceVersion);
         }
 
         public void PostInitialise()

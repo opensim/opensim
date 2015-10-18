@@ -60,17 +60,26 @@ namespace OpenSim
         /// <value>
         /// This is the external interface version.  It is separate from the OpenSimulator project version.
         /// 
-        /// This version number should be 
-        /// increased by 1 every time a code change makes the previous OpenSimulator revision incompatible
-        /// with the new revision.  This will usually be due to interregion or grid facing interface changes.
-        /// 
-        /// Changes which are compatible with an older revision (e.g. older revisions experience degraded functionality
-        /// but not outright failure) do not need a version number increment.
-        /// 
-        /// Having this version number allows the grid service to reject connections from regions running a version
-        /// of the code that is too old. 
-        ///
         /// </value>
         public readonly static int MajorInterfaceVersion = 8;
+
+        /// <summary>
+        /// This rules versioning regarding teleports, and compatibility between simulators in that regard.
+        /// </summary>
+        /// 
+        /// <remarks>
+        /// The protocol version that we will use for outgoing transfers
+        /// Valid values are 
+        /// "SIMULATION/0.3" 
+        ///   - This is the latest, and it supports teleports to variable-sized regions
+        ///   - Older versions can teleport to this one, but only if the destination region
+        ///     is 256x256
+        /// "SIMULATION/0.2"
+        ///   - A source simulator which only implements "SIMULATION/0.1" can still teleport here
+        ///   - this protocol is more efficient than "SIMULATION/0.1"
+        /// "SIMULATION/0.1" 
+        ///   - this is an older teleport protocol used in OpenSimulator 0.7.5 and before.
+        /// </remarks>
+        public readonly static float SimulationServiceVersion = 0.3f;
     }
 }
