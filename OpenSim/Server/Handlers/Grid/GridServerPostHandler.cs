@@ -159,7 +159,24 @@ namespace OpenSim.Server.Handlers.Grid
                 m_log.WarnFormat("[GRID HANDLER]: no maximum protocol version in request to register region");
 
             // Check the protocol version
-            if ((versionNumberMin > ProtocolVersions.ServerProtocolVersionMax && versionNumberMax < ProtocolVersions.ServerProtocolVersionMax))
+            // This is how it works:
+            // Example 1:
+            //   Client: [0 0]
+            //   Server:       [1 1]
+            //   ==> fail
+            // Example 2:
+            //   Client:       [1 1]
+            //   Server: [0 0]
+            //   ==> fail
+            // Example 3:
+            //   Client: [0 1]
+            //   Server:   [1 1]
+            //   ==> success
+            // Example 4:
+            //   Client:   [1 1]
+            //   Server: [0 1]
+            //   ==> success
+            if ((versionNumberMin > ProtocolVersions.ServerProtocolVersionMax || versionNumberMax < ProtocolVersions.ServerProtocolVersionMin))
             {
                 // Can't do, there is no overlap in the acceptable ranges
                 return FailureResult();
