@@ -173,6 +173,7 @@ namespace OpenSim.Server.Handlers.Simulation
             resp["success"] = OSD.FromBoolean(result);
             resp["reason"] = OSD.FromString(reason);
             resp["version"] = OSD.FromString(version);
+            resp["variable_wearables_count_supported"] = OSD.FromBoolean(true);
 
             OSDArray featuresWanted = new OSDArray();
             foreach (UUID feature in features)
