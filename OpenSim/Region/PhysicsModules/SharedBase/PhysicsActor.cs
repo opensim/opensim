@@ -230,7 +230,20 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
         public abstract void delink();
 
-        public abstract void LockAngularMotion(Vector3 axis);
+        public virtual void LockAngularMotion(Vector3 axis) { }
+
+        public virtual void LockAngularMotion(byte axislocks)
+        {
+            Vector3 lrRotationAxis = Vector3.One;
+            if((axislocks & 0x02) != 0 )
+                lrRotationAxis.X = 0f;
+            if((axislocks & 0x04) != 0 )
+                lrRotationAxis.Y = 0f;
+            if((axislocks & 0x08) != 0 )
+                lrRotationAxis.Z = 0f;
+
+            LockAngularMotion(lrRotationAxis);       
+         }
 
         public virtual void RequestPhysicsterseUpdate()
         {
