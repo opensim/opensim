@@ -74,6 +74,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private bool m_lastdoneSelected;
         internal bool m_outbounds;
 
+        private byte m_angularlocks = 0;
+
         private Quaternion m_lastorientation;
         private Quaternion _orientation;
 
@@ -85,7 +87,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private Vector3 m_rotationalVelocity;
         private Vector3 _size;
         private Vector3 _acceleration;
-        private Vector3 m_angularlock = Vector3.One;
         private IntPtr Amotor;
 
         private Vector3 m_force;
@@ -981,21 +982,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             AddChange(changes.DeLink, null);
         }
 
-        public override void LockAngularMotion(Vector3 axis)
+        public override void LockAngularMotion(byte axislock)
         {
-            // reverse the zero/non zero values for ODE.
-            if (axis.IsFinite())
-            {
-                axis.X = (axis.X > 0) ? 1f : 0f;
-                axis.Y = (axis.Y > 0) ? 1f : 0f;
-                axis.Z = (axis.Z > 0) ? 1f : 0f;
 //                m_log.DebugFormat("[axislock]: <{0},{1},{2}>", axis.X, axis.Y, axis.Z);
-                AddChange(changes.AngLock, axis);
-            }
-            else
-            {
-                m_log.WarnFormat("[PHYSICS]: Got NaN locking axis from Scene on Object {0}", Name);
-            }
+            AddChange(changes.AngLock, axislock);
+         
         }
 
         public override void SubscribeEvents(int ms)
@@ -1297,7 +1288,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
         }
 
-        private void createAMotor(Vector3 axis)
+        private void createAMotor(byte axislock)
         {
             if (Body == IntPtr.Zero)
                 return;
@@ -1308,11 +1299,28 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 Amotor = IntPtr.Zero;
             }
 
-            int axisnum = 3 - (int)(axis.X + axis.Y + axis.Z);
+            int axisnum = 0;
+            bool axisX = false;
+            bool axisY = false;
+            bool axisZ = false;
+            if((axislock & 0x02) != 0)
+                {
+                axisnum++;
+                axisX = true;
+                }
+            if((axislock & 0x04) != 0)
+                {
+                axisnum++;
+                axisY = true;
+                }
+            if((axislock & 0x08) != 0)
+                {
+                axisnum++;
+                axisZ = true;
+                }
 
-            if (axisnum <= 0)
+            if(axisnum == 0)
                 return;
-
             // stop it
             d.BodySetTorque(Body, 0, 0, 0);
             d.BodySetAngularVel(Body, 0, 0, 0);
@@ -1336,10 +1344,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             int i = 0;
             int j = 0;
-            if (axis.X == 0)
+            if (axisX)
             {
                 ax = (new Vector3(1, 0, 0)) * curr; // rotate world X to current local X
-                // ODE should do this  with axis relative to body 1 but seems to fail
                 d.JointSetAMotorAxis(Amotor, 0, 0, ax.X, ax.Y, ax.Z);
                 d.JointSetAMotorAngle(Amotor, 0, 0);
                 d.JointSetAMotorParam(Amotor, (int)d.JointParam.LoStop, 0f);
@@ -1347,6 +1354,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 d.JointSetAMotorParam(Amotor, (int)d.JointParam.Vel, 0);
                 d.JointSetAMotorParam(Amotor, (int)d.JointParam.FudgeFactor, 0.0001f);
                 d.JointSetAMotorParam(Amotor, (int)d.JointParam.Bounce, 0f);
+                d.JointSetAMotorParam(Amotor, (int)d.JointParam.CFM, 0f);
                 d.JointSetAMotorParam(Amotor, (int)d.JointParam.FMax, 5e8f);
                 d.JointSetAMotorParam(Amotor, (int)d.JointParam.StopCFM, 0f);
                 d.JointSetAMotorParam(Amotor, (int)d.JointParam.StopERP, 0.8f);
@@ -1354,7 +1362,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 j = 256; // move to next axis set
             }
 
-            if (axis.Y == 0)
+            if (axisY)
             {
                 ax = (new Vector3(0, 1, 0)) * curr;
                 d.JointSetAMotorAxis(Amotor, i, 0, ax.X, ax.Y, ax.Z);
@@ -1364,6 +1372,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.Vel, 0);
                 d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.FudgeFactor, 0.0001f);
                 d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.Bounce, 0f);
+                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.CFM, 0f);
                 d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.FMax, 5e8f);
                 d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.StopCFM, 0f);
                 d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.StopERP, 0.8f);
@@ -1371,7 +1380,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 j += 256;
             }
 
-            if (axis.Z == 0)
+            if (axisZ)
             {
                 ax = (new Vector3(0, 0, 1)) * curr;
                 d.JointSetAMotorAxis(Amotor, i, 0, ax.X, ax.Y, ax.Z);
@@ -1381,6 +1390,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.Vel, 0);
                 d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.FudgeFactor, 0.0001f);
                 d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.Bounce, 0f);
+                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.CFM, 0f);
                 d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.FMax, 5e8f);
                 d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.StopCFM, 0f);
                 d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.StopERP, 0.8f);
@@ -1430,8 +1440,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 else if (x < 0.001f || y < 0.001f || z < 0.001f)
                     m_log.WarnFormat("[PHYSICS]: small prim geo {0},size {1}, AABBsize <{2},{3},{4}, mesh {5} at {6}",
                         Name, _size.ToString(), x, y, z, _pbs.SculptEntry ? _pbs.SculptTexture.ToString() : "primMesh", _position.ToString());
-
-//
 */
 
             }
@@ -1869,9 +1877,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
 
             // The body doesn't already have a finite rotation mode set here
-            if ((!m_angularlock.ApproxEquals(Vector3.One, 0.0f)) && _parent == null)
+            if (m_angularlocks != 0 && _parent == null)
             {
-                createAMotor(m_angularlock);
+                createAMotor(m_angularlocks);
             }
 
             if (m_isSelected || m_disabled)
@@ -2427,7 +2435,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
         }
 
-        private void changeAngularLock(Vector3 newLock)
+        private void changeAngularLock(byte newLocks)
         {
             // do we have a Physical object?
             if (Body != IntPtr.Zero)
@@ -2436,9 +2444,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 //If we have a parent then we're not authorative here
                 if (_parent == null)
                 {
-                    if (!newLock.ApproxEquals(Vector3.One, 0f))
+                    if (newLocks != 0)
                     {
-                        createAMotor(newLock);
+                        createAMotor(newLocks);
                     }
                     else
                     {
@@ -2451,7 +2459,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
             }
             // Store this for later in case we get turned into a separate body
-            m_angularlock = newLock;
+            m_angularlocks = newLocks;
         }
 
         private void changeLink(OdePrim NewParent)
@@ -2742,8 +2750,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         myrot.W = newOri.W;
                         d.GeomSetQuaternion(prim_geom, ref myrot);
                         _orientation = newOri;
-                        if (Body != IntPtr.Zero && !m_angularlock.ApproxEquals(Vector3.One, 0f))
-                            createAMotor(m_angularlock);
+                        if (Body != IntPtr.Zero && m_angularlocks != 0)
+                            createAMotor(m_angularlocks);
                     }
                     if (Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
                     {
@@ -2795,8 +2803,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         myrot.W = newOri.W;
                         d.GeomSetQuaternion(prim_geom, ref myrot);
                         _orientation = newOri;
-                        if (Body != IntPtr.Zero && !m_angularlock.ApproxEquals(Vector3.One, 0f))
-                            createAMotor(m_angularlock);
+                        if (Body != IntPtr.Zero && m_angularlocks != 0)
+                            createAMotor(m_angularlocks);
                     }
                     if (_position != newPos)
                     {
@@ -3805,7 +3813,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     break;
 
                 case changes.AngLock:
-                    changeAngularLock((Vector3)arg);
+                    changeAngularLock((byte)arg);
                     break;
 
                 case changes.Size:

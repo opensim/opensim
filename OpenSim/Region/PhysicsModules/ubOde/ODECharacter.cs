@@ -539,7 +539,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         }
 
-        public override void LockAngularMotion(Vector3 axis)
+        public override void LockAngularMotion(byte axislocks)
         {
 
         }
@@ -1743,7 +1743,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
         }                                 
 
-        private void changeAngularLock(Vector3 arg)
+        private void changeAngularLock(byte arg)
         {
         }                                 
 
@@ -1892,7 +1892,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     break;
 
                 case changes.AngLock:
-                    changeAngularLock((Vector3)arg);
+                    changeAngularLock((byte)arg);
                     break;
 
                 case changes.Size:
