@@ -455,6 +455,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             m_SOPXmlProcessors.Add("Vehicle", ProcessVehicle);
 
+            m_SOPXmlProcessors.Add("RotationAxisLocks", ProcessRotationAxisLocks);
             m_SOPXmlProcessors.Add("PhysicsShapeType", ProcessPhysicsShapeType);
             m_SOPXmlProcessors.Add("Density", ProcessDensity);
             m_SOPXmlProcessors.Add("Friction", ProcessFriction);
@@ -695,6 +696,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static void ProcessClickAction(SceneObjectPart obj, XmlReader reader)
         {
             obj.ClickAction = (byte)reader.ReadElementContentAsInt("ClickAction", String.Empty);
+        }
+
+        private static void ProcessRotationAxisLocks(SceneObjectPart obj, XmlReader reader)
+        {
+            obj.RotationAxisLocks = (byte)reader.ReadElementContentAsInt("RotationAxisLocks", String.Empty);
         }
 
         private static void ProcessPhysicsShapeType(SceneObjectPart obj, XmlReader reader)
@@ -1483,6 +1489,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             if (sop.VehicleParams != null)
                 sop.VehicleParams.ToXml2(writer);
 
+            if(sop.RotationAxisLocks != 0)
+                writer.WriteElementString("RotationAxisLocks", sop.RotationAxisLocks.ToString().ToLower());
             writer.WriteElementString("PhysicsShapeType", sop.PhysicsShapeType.ToString().ToLower());
             if (sop.Density != 1000.0f)
                 writer.WriteElementString("Density", sop.Density.ToString().ToLower());
