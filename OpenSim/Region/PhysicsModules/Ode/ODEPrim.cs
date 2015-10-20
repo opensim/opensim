@@ -111,9 +111,11 @@ namespace OpenSim.Region.PhysicsModule.ODE
         private Vector3 m_taintVelocity;
         private Vector3 m_taintTorque;
         private Quaternion m_taintrot;
-        private Vector3 m_angularlock = Vector3.One;
-        private Vector3 m_taintAngularLock = Vector3.One;
+
         private IntPtr Amotor = IntPtr.Zero;
+
+        private byte m_taintAngularLock = 0;
+        private byte m_angularlock = 0;
 
         private bool m_assetFailed = false;
 
@@ -452,7 +454,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 m_disabled = false;
 
                 // The body doesn't already have a finite rotation mode set here
-                if ((!m_angularlock.ApproxEquals(Vector3.One, 0.0f)) && _parent == null)
+                if (m_angularlock != 0 && _parent == null)
                 {
                     createAMotor(m_angularlock);
                 }
@@ -1008,7 +1010,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
             if (m_taintCollidesWater != m_collidesWater)
                 changefloatonwater();
 
-            if (!m_angularlock.ApproxEquals(m_taintAngularLock,0f))
+            if (m_taintAngularLock != m_angularlock)
                 changeAngularLock();
         }
 
@@ -1024,10 +1026,8 @@ Console.WriteLine("ZProcessTaints for " + Name);
                 //If we have a parent then we're not authorative here
                 if (_parent == null)
                 {
-                    if (!m_taintAngularLock.ApproxEquals(Vector3.One, 0f))
+                    if (m_taintAngularLock != 0)
                     {
-                        //d.BodySetFiniteRotationMode(Body, 0);
-                        //d.BodySetFiniteRotationAxis(Body,m_taintAngularLock.X,m_taintAngularLock.Y,m_taintAngularLock.Z);
                         createAMotor(m_taintAngularLock);
                     }
                     else
@@ -1041,7 +1041,6 @@ Console.WriteLine("ZProcessTaints for " + Name);
                 }
             }
 
-            // Store this for later in case we get turned into a separate body
             m_angularlock = m_taintAngularLock;
         }
 
@@ -1237,7 +1236,8 @@ Console.WriteLine("ZProcessTaints for " + Name);
                 m_disabled = false;
 
                 // The body doesn't already have a finite rotation mode set here
-                if ((!m_angularlock.ApproxEquals(Vector3.One, 0f)) && _parent == null)
+                // or remove
+                if (_parent == null)
                 {
                     createAMotor(m_angularlock);
                 }
@@ -1707,21 +1707,6 @@ Console.WriteLine(" JointCreateFixed");
                 {
 //Console.WriteLine("Move " +  Name);
                     if (!d.BodyIsEnabled (Body))  d.BodyEnable (Body); // KF add 161009
-                    // NON-'VEHICLES' are dealt with here
-//                    if (d.BodyIsEnabled(Body) && !m_angularlock.ApproxEquals(Vector3.Zero, 0.003f))
-//                    {
-//                        d.Vector3 avel2 = d.BodyGetAngularVel(Body);
-//                        /*
-//                        if (m_angularlock.X == 1)
-//                            avel2.X = 0;
-//                        if (m_angularlock.Y == 1)
-//                            avel2.Y = 0;
-//                        if (m_angularlock.Z == 1)
-//                            avel2.Z = 0;
-//                        d.BodySetAngularVel(Body, avel2.X, avel2.Y, avel2.Z);
-//                         */
-//                    }
-                    //float PID_P = 900.0f;
 
                     float m_mass = CalculateMass();
 
@@ -1950,8 +1935,8 @@ Console.WriteLine(" JointCreateFixed");
                 d.BodySetQuaternion(Body, ref myrot);
                 if (IsPhysical)
                 {
-                    if (!m_angularlock.ApproxEquals(Vector3.One, 0f))
-                        createAMotor(m_angularlock);
+                    // create or remove locks
+                    createAMotor(m_angularlock);
                 }
             }
             else
@@ -2719,21 +2704,10 @@ Console.WriteLine(" JointCreateFixed");
             m_taintparent = null;
         }
 
-        public override void LockAngularMotion(Vector3 axis)
+        public override void LockAngularMotion(byte axislocks)
         {
-            // reverse the zero/non zero values for ODE.
-            if (axis.IsFinite())
-            {
-                axis.X = (axis.X > 0) ? 1f : 0f;
-                axis.Y = (axis.Y > 0) ? 1f : 0f;
-                axis.Z = (axis.Z > 0) ? 1f : 0f;
-                m_log.DebugFormat("[axislock]: <{0},{1},{2}>", axis.X, axis.Y, axis.Z);
-                m_taintAngularLock = axis;
-            }
-            else
-            {
-                m_log.WarnFormat("[PHYSICS]: Got NaN locking axis from Scene on Object {0}", Name);
-            }
+            // m_log.DebugFormat("[axislocks]: {0}", axislocks);
+            m_taintAngularLock = axislocks;
         }
 
         internal void UpdatePositionAndVelocity()
@@ -3021,7 +2995,7 @@ Console.WriteLine(" JointCreateFixed");
 
         public override float APIDDamping{ set { return; } }
 
-        private void createAMotor(Vector3 axis)
+        private void createAMotor(byte axislocks)
         {
             if (Body == IntPtr.Zero)
                 return;
@@ -3032,13 +3006,32 @@ Console.WriteLine(" JointCreateFixed");
                 Amotor = IntPtr.Zero;
             }
 
-            float axisnum = 3;
+            if(axislocks == 0)
+                return;
 
-            axisnum = (axisnum - (axis.X + axis.Y + axis.Z));
+            int axisnum = 0;
+            bool axisX = false;
+            bool axisY = false;
+            bool axisZ = false;
+            if((axislocks & 0x02) != 0)
+                {
+                axisnum++;
+                axisX = true;
+                }
+            if((axislocks & 0x04) != 0)
+                {
+                axisnum++;
+                axisY = true;
+                }
+            if((axislocks & 0x08) != 0)
+                {
+                axisnum++;
+                axisZ = true;
+                }
 
-            // PhysicsVector totalSize = new PhysicsVector(_size.X, _size.Y, _size.Z);
-
-            
+            if(axisnum == 0)
+                return;
+           
             // Inverse Inertia Matrix, set the X, Y, and/r Z inertia to 0 then invert it again.
             d.Mass objMass;
             d.MassSetZero(out objMass);
@@ -3061,23 +3054,21 @@ Console.WriteLine(" JointCreateFixed");
 
             mathmat = Inverse(mathmat);
             */
-            if (axis.X == 0)
+            if (axisX)
             {
                 mathmat.M33 = 50.0000001f;
                 //objMass.I.M22 = 0;
             }
-            if (axis.Y == 0)
+            if (axisY)
             {
                 mathmat.M22 = 50.0000001f;
                 //objMass.I.M11 = 0;
             }
-            if (axis.Z == 0)
+            if (axisZ)
             {
                 mathmat.M11 = 50.0000001f;
                 //objMass.I.M00 = 0;
             }
-            
-            
 
             mathmat = Inverse(mathmat);
             objMass = FromMatrix4(mathmat, ref objMass);
@@ -3104,25 +3095,25 @@ Console.WriteLine(" JointCreateFixed");
             d.JointSetAMotorNumAxes(Amotor,(int)axisnum);
             int i = 0;
 
-            if (axis.X == 0)
+            if (axisX)
             {
                 d.JointSetAMotorAxis(Amotor, i, 0, 1, 0, 0);
                 i++;
             }
 
-            if (axis.Y == 0)
+            if (axisY)
             {
                 d.JointSetAMotorAxis(Amotor, i, 0, 0, 1, 0);
                 i++;
             }
 
-            if (axis.Z == 0)
+            if (axisZ)
             {
                 d.JointSetAMotorAxis(Amotor, i, 0, 0, 0, 1);
                 i++;
             }
 
-            for (int j = 0; j < (int)axisnum; j++)
+//            for (int j = 0; j < (int)axisnum; j++)
             {
                 //d.JointSetAMotorAngle(Amotor, j, 0);
             }

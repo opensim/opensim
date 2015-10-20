@@ -595,7 +595,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
         public override void delink() {}
 
-        public override void LockAngularMotion(Vector3 axis) {}
+        public override void LockAngularMotion(byte axislocks) {}
 
 //      This code is very useful. Written by DanX0r. We're just not using it right now.
 //      Commented out to prevent a warning.
