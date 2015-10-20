@@ -254,11 +254,13 @@ namespace OpenSim.Region.Framework.Scenes
         public Quaternion AttachRotation = Quaternion.Identity;
 
         [XmlIgnore]
-        public int STATUS_ROTATE_X;
+        public int STATUS_ROTATE_X; // this should not be used
+ 
+        [XmlIgnore]
+        public int STATUS_ROTATE_Y;  // this should not be used
 
-        public int STATUS_ROTATE_Y;
-
-        public int STATUS_ROTATE_Z;
+        [XmlIgnore]
+        public int STATUS_ROTATE_Z;  // this should not be used
 
         private Dictionary<int, string> m_CollisionFilter = new Dictionary<int, string>();
                
@@ -278,7 +280,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Vector3 AttachedPos;
 
-        public Vector3 RotationAxis = Vector3.One;
+        // rotation locks on local X,Y and or Z axis bit flags
+        // bits are as in llSetStatus defined in SceneObjectGroup.axisSelect enum
+        // but reversed logic: bit cleared means free to rotate
+        public byte RotationAxisLocks = 0;
 
         public bool VolumeDetectActive;
 
@@ -778,9 +783,6 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_damage = value; }
         }
 
-
-
-
         public void setGroupPosition(Vector3 pos)
         {
             m_groupPosition = pos;
@@ -790,7 +792,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// The position of the entire group that this prim belongs to.
         /// </summary>
         /// 
-
 
         public Vector3 GroupPosition
         {
@@ -3860,7 +3861,16 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
             if (pa != null)
             {
-                pa.LockAngularMotion(RotationAxis);
+                // physics should also get a byte and not a Vector3 TODO
+                Vector3 lrRotationAxis = Vector3.One;
+                if((RotationAxisLocks & (byte)SceneObjectGroup.axisSelect.STATUS_ROTATE_X) != 0 )
+                    lrRotationAxis.X = 0f;
+                if((RotationAxisLocks & (byte)SceneObjectGroup.axisSelect.STATUS_ROTATE_Y) != 0 )
+                    lrRotationAxis.Y = 0f;
+                if((RotationAxisLocks & (byte)SceneObjectGroup.axisSelect.STATUS_ROTATE_Z) != 0 )
+                    lrRotationAxis.Z = 0f;
+
+                pa.LockAngularMotion(lrRotationAxis);
                 ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(pa);
             }
         }

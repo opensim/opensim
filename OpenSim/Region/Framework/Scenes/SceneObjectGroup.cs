@@ -110,6 +110,9 @@ namespace OpenSim.Region.Framework.Scenes
             STATUS_ROTATE_X = 0x002,
             STATUS_ROTATE_Y = 0x004,
             STATUS_ROTATE_Z = 0x008,
+            NOT_STATUS_ROTATE_X = 0xFD,
+            NOT_STATUS_ROTATE_Y = 0xFB,
+            NOT_STATUS_ROTATE_Z = 0xF7
         }
 
         // This flag has the same purpose as InventoryItemFlags.ObjectSlamPerm
@@ -4367,30 +4370,52 @@ namespace OpenSim.Region.Framework.Scenes
             bool setY = ((axis & (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Y) != 0);
             bool setZ = ((axis & (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Z) != 0);
 
-            float setval = (rotate10 > 0) ? 1f : 0f;
-
-            if (setX)
-                RootPart.RotationAxis.X = setval;
-            if (setY)
-                RootPart.RotationAxis.Y = setval;
-            if (setZ)
-                RootPart.RotationAxis.Z = setval;
-
             if (setX || setY || setZ)
+            {
+                bool lockaxis = (rotate10 == 0); // zero means axis locked
+                    
+                byte locks = RootPart.RotationAxisLocks;
+
+                if (setX)
+                    {
+                    if(lockaxis)
+                        locks |= (byte)SceneObjectGroup.axisSelect.STATUS_ROTATE_X;
+                    else
+                        locks &= (byte)SceneObjectGroup.axisSelect.NOT_STATUS_ROTATE_X;
+                    }
+                   
+                if (setY)
+                    {
+                    if(lockaxis)
+                        locks |= (byte)SceneObjectGroup.axisSelect.STATUS_ROTATE_Y;
+                    else
+                        locks &= (byte)SceneObjectGroup.axisSelect.NOT_STATUS_ROTATE_Y;
+                    }
+
+                if (setZ)
+                    {
+                    if(lockaxis)
+                        locks |= (byte)SceneObjectGroup.axisSelect.STATUS_ROTATE_Z;
+                    else
+                        locks &= (byte)SceneObjectGroup.axisSelect.NOT_STATUS_ROTATE_Z;
+                    }
+
+                RootPart.RotationAxisLocks = locks;
                 RootPart.SetPhysicsAxisRotation();
+                }
         }
 
         public int GetAxisRotation(int axis)
         {
-            Vector3 rotAxis = RootPart.RotationAxis;
+            byte  rotAxislocks = RootPart.RotationAxisLocks;
 
             // if multiple return the one with higher id
             if (axis == (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Z)
-                return (int)rotAxis.Z;
+                return (rotAxislocks & (byte)SceneObjectGroup.axisSelect.STATUS_ROTATE_Z) == 0 ? 1:0;
             if (axis == (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Y)
-                return (int)rotAxis.Y;
+                return (rotAxislocks & (byte)SceneObjectGroup.axisSelect.STATUS_ROTATE_Y) == 0 ? 1:0;
             if (axis == (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_X)
-                return (int)rotAxis.X;
+                return (rotAxislocks & (byte)SceneObjectGroup.axisSelect.STATUS_ROTATE_X) == 0 ? 1:0;
 
             return 0;      
         }
