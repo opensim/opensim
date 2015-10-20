@@ -187,7 +187,8 @@ namespace OpenSim.Data.MySQL
                                     "LinkNumber, MediaURL, KeyframeMotion, AttachedPosX, " +
                                     "AttachedPosY, AttachedPosZ, " +
                                     "PhysicsShapeType, Density, GravityModifier, " +
-                                    "Friction, Restitution, Vehicle, DynAttrs " +
+                                    "Friction, Restitution, Vehicle, DynAttrs, " +
+                                    "RotationAxisLocks" +
                                     ") values (" + "?UUID, " +
                                     "?CreationDate, ?Name, ?Text, " +
                                     "?Description, ?SitName, ?TouchName, " +
@@ -223,7 +224,8 @@ namespace OpenSim.Data.MySQL
                                     "?LinkNumber, ?MediaURL, ?KeyframeMotion, ?AttachedPosX, " +
                                     "?AttachedPosY, ?AttachedPosZ, " +
                                     "?PhysicsShapeType, ?Density, ?GravityModifier, " +
-                                    "?Friction, ?Restitution, ?Vehicle, ?DynAttrs)";
+                                    "?Friction, ?Restitution, ?Vehicle, ?DynAttrs," +
+                                    "?RotationAxisLocks)";
 
                             FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
 
@@ -1353,7 +1355,8 @@ namespace OpenSim.Data.MySQL
             prim.GravityModifier = (float)(double)row["GravityModifier"];
             prim.Friction = (float)(double)row["Friction"];
             prim.Restitution = (float)(double)row["Restitution"];
-            
+            prim.RotationAxisLocks = (byte)Convert.ToInt32(row["RotationAxisLocks"].ToString());
+
             SOPVehicle vehicle = null;
 
             if (row["Vehicle"].ToString() != String.Empty)
@@ -1735,6 +1738,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("GravityModifier", (double)prim.GravityModifier);
             cmd.Parameters.AddWithValue("Friction", (double)prim.Friction);
             cmd.Parameters.AddWithValue("Restitution", (double)prim.Restitution);
+            cmd.Parameters.AddWithValue("RotationAxisLocks", prim.RotationAxisLocks);
         }
 
         /// <summary>

@@ -962,3 +962,11 @@ ALTER TABLE `land` ADD COLUMN `GroupAVSounds` tinyint(4) NOT NULL default '1';
 
 COMMIT;
 
+:VERSION 52         #---- STATUS ROTATION axis locks
+
+BEGIN;
+
+ALTER TABLE `prims` ADD COLUMN `RotationAxisLocks` tinyint(4) NOT NULL default '0';
+
+COMMIT;
+

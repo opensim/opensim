@@ -1764,6 +1764,7 @@ namespace OpenSim.Data.SQLite
 
             prim.PassCollisions = Convert.ToBoolean(row["PassCollisions"]);
             prim.PassTouches = Convert.ToBoolean(row["PassTouches"]);
+            prim.RotationAxisLocks = Convert.ToByte(row["RotationAxisLocks"]);
 
             SOPVehicle vehicle = null;
             if (!(row["Vehicle"] is DBNull) && row["Vehicle"].ToString() != String.Empty)
@@ -2185,9 +2186,9 @@ namespace OpenSim.Data.SQLite
             else
                 row["KeyframeMotion"] = new Byte[0];
 
-
             row["PassTouches"] = prim.PassTouches;
             row["PassCollisions"] = prim.PassCollisions;
+            row["RotationAxisLocks"] = prim.RotationAxisLocks;
 
             if (prim.VehicleParams != null)
                 row["Vehicle"] = prim.VehicleParams.ToXml2();

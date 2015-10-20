@@ -626,3 +626,11 @@ ALTER TABLE `land` ADD COLUMN `AnyAVSounds` BOOLEAN NOT NULL DEFAULT TRUE;
 ALTER TABLE `land` ADD COLUMN `GroupAVSounds` BOOLEAN NOT NULL DEFAULT TRUE;
 
 COMMIT;
+
+:VERSION 32         #---- Rotation axis locks
+
+BEGIN;
+
+ALTER TABLE prims ADD COLUMN `RotationAxisLocks` tinyint(4) NOT NULL default '0';
+
+COMMIT;
