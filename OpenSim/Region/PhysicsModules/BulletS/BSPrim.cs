@@ -280,20 +280,20 @@ public class BSPrim : BSPhysObject
         });
     }
 
-    public override void LockAngularMotion(OMV.Vector3 axis)
+    public override void LockAngularMotion(byte axislocks)
     {
-        DetailLog("{0},BSPrim.LockAngularMotion,call,axis={1}", LocalID, axis);
+        DetailLog("{0},BSPrim.LockAngularMotion,call,axis={1}", LocalID, axislocks);
 
         ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_UNLOCK_ANGULAR, 0f, 0f);
-        if (axis.X != 1)
+        if ((axislocks & 0x02) != 0)
         {
             ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR_X, 0f, 0f);
         }
-        if (axis.Y != 1)
+        if ((axislocks & 0x04) != 0)
         {
             ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR_Y, 0f, 0f);
         }
-        if (axis.Z != 1)
+        if ((axislocks & 0x08) != 0)
         {
             ApplyAxisLimits(ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR_Z, 0f, 0f);
         }

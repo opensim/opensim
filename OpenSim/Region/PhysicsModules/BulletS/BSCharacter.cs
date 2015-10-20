@@ -300,7 +300,7 @@ public sealed class BSCharacter : BSPhysObject
     }
 
 
-    public override void LockAngularMotion(OMV.Vector3 axis) { return; }
+    public override void LockAngularMotion(byte axislocks) { return; }
 
     public override OMV.Vector3 Position {
         get {

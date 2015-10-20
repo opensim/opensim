@@ -211,7 +211,7 @@ namespace OpenSim.Region.PhysicsModule.BasicPhysics
         {
         }
 
-        public override void LockAngularMotion(Vector3 axis)
+        public override void LockAngularMotion(byte axislocks)
         {
         }
 
