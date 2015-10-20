@@ -4880,6 +4880,20 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                 pa.Friction = Friction;
                 pa.Restitution = Restitution;
 
+                if(LocalId == ParentGroup.RootPart.LocalId)
+                {
+                // ugly code: physics should also get a byte and not a Vector3 TODO
+                Vector3 lrRotationAxis = Vector3.One;
+                if((RotationAxisLocks & (byte)SceneObjectGroup.axisSelect.STATUS_ROTATE_X) != 0 )
+                    lrRotationAxis.X = 0f;
+                if((RotationAxisLocks & (byte)SceneObjectGroup.axisSelect.STATUS_ROTATE_Y) != 0 )
+                    lrRotationAxis.Y = 0f;
+                if((RotationAxisLocks & (byte)SceneObjectGroup.axisSelect.STATUS_ROTATE_Z) != 0 )
+                    lrRotationAxis.Z = 0f;
+
+                pa.LockAngularMotion(lrRotationAxis);                
+                }
+
                 if (VolumeDetectActive) // change if not the default only
                     pa.SetVolumeDetect(1);
 
