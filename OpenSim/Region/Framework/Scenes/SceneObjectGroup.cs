@@ -4363,17 +4363,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         internal void SetAxisRotation(int axis, int rotate10)
         {
-            bool setX = false;
-            bool setY = false;
-            bool setZ = false;
-
-            int xaxis = 2;
-            int yaxis = 4;
-            int zaxis = 8;
-
-            setX = ((axis & xaxis) != 0) ? true : false;
-            setY = ((axis & yaxis) != 0) ? true : false;
-            setZ = ((axis & zaxis) != 0) ? true : false;
+            bool setX = ((axis & (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_X) != 0);
+            bool setY = ((axis & (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Y) != 0);
+            bool setZ = ((axis & (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Z) != 0);
 
             float setval = (rotate10 > 0) ? 1f : 0f;
 
@@ -4386,6 +4378,21 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (setX || setY || setZ)
                 RootPart.SetPhysicsAxisRotation();
+        }
+
+        public int GetAxisRotation(int axis)
+        {
+            Vector3 rotAxis = RootPart.RotationAxis;
+
+            // if multiple return the one with higher id
+            if (axis == (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Z)
+                return (int)rotAxis.Z;
+            if (axis == (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Y)
+                return (int)rotAxis.Y;
+            if (axis == (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_X)
+                return (int)rotAxis.X;
+
+            return 0;      
         }
 
         public int registerRotTargetWaypoint(Quaternion target, float tolerance)

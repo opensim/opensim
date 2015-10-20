@@ -2516,13 +2516,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public int GetAxisRotation(int axis)
         {
-            //Cannot use ScriptBaseClass constants as no referance to it currently.
-            if (axis == (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_X)
-                return STATUS_ROTATE_X;
-            if (axis == (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Y)
-                return STATUS_ROTATE_Y;
-            if (axis == (int)SceneObjectGroup.axisSelect.STATUS_ROTATE_Z)
-                return STATUS_ROTATE_Z;
+           if (!ParentGroup.IsDeleted)
+                return ParentGroup.GetAxisRotation(axis);
 
             return 0;
         }
