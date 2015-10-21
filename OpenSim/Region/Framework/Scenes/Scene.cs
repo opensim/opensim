@@ -1904,14 +1904,17 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Returns the total execution time of all the scripts in the region since the last frame
-        /// (in milliseconds), and clears the value in preparation for the next frame.
+        /// Returns the total execution time of all the scripts in the region since the last call
+        /// (in milliseconds), and clears the value in preparation for the next call.
         /// </summary>
         /// <returns>Time in milliseconds</returns>
-        private long GetAndResetScriptExecutionTime()
+
+        // Warning: this is now called from StatsReporter, and can't be shared
+
+        public long GetAndResetScriptExecutionTime()
         {
             long ticks = Interlocked.Exchange(ref m_scriptExecutionTime, 0);
-            return (ticks * 1000) / Stopwatch.Frequency;
+            return (ticks * 1000L) / Stopwatch.Frequency;
         }
 
         public void AddGroupTarget(SceneObjectGroup grp)

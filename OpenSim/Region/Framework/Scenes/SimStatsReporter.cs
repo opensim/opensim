@@ -412,6 +412,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_otherMS < 0)
                     m_otherMS = 0;
 
+                float scriptTimeMS = m_scene.GetAndResetScriptExecutionTime();
+ 
                 for (int i = 0; i < m_statisticViewerArraySize; i++)
                 {
                     sb[i] = new SimStatsPacket.StatBlock();
@@ -533,7 +535,7 @@ namespace OpenSim.Region.Framework.Scenes
                 sb[36].StatValue = 0;
 
                 sb[37].StatID = (uint)Stats.ScriptMS;
-                sb[37].StatValue = 0;
+                sb[37].StatValue = scriptTimeMS * perframefactor;
 
 
                 for (int i = 0; i < m_statisticViewerArraySize; i++)
