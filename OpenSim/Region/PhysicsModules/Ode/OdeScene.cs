@@ -292,11 +292,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
         private float contactsurfacelayer = 0.001f;
 
-        private int worldHashspaceLow = -4;
-        private int worldHashspaceHigh = 128;
-
-        private int smallHashspaceLow = -4;
-        private int smallHashspaceHigh = 66;
+        private int HashspaceLow = -5;
+        private int HashspaceHigh = 12;
 
         private float waterlevel = 0f;
         private int framecount = 0;
@@ -648,12 +645,10 @@ namespace OpenSim.Region.PhysicsModule.ODE
                             avatarTerminalVelocity, AvatarTerminalVelocity);
                     }
 
-                    worldHashspaceLow = physicsconfig.GetInt("world_hashspace_size_low", -4);
-                    worldHashspaceHigh = physicsconfig.GetInt("world_hashspace_size_high", 128);
+                    HashspaceLow = physicsconfig.GetInt("world_hashspace_level_low", -5);
+                    HashspaceHigh = physicsconfig.GetInt("world_hashspace_level_high", 12);
 
                     metersInSpace = physicsconfig.GetFloat("meters_in_small_space", 29.9f);
-                    smallHashspaceLow = physicsconfig.GetInt("small_hashspace_size_low", -4);
-                    smallHashspaceHigh = physicsconfig.GetInt("small_hashspace_size_high", 66);
 
                     contactsurfacelayer = physicsconfig.GetFloat("world_contact_surface_layer", 0.001f);
 
@@ -904,7 +899,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             m_materialContacts[(int)Material.Rubber, 1].surface.soft_cfm = 0.010f;
             m_materialContacts[(int)Material.Rubber, 1].surface.soft_erp = 0.010f;
 
-            d.HashSpaceSetLevels(space, worldHashspaceLow, worldHashspaceHigh);
+            d.HashSpaceSetLevels(space, HashspaceLow, HashspaceHigh);
 
             // Set the gravity,, don't disable things automatically (we set it explicitly on some things)
 
@@ -2703,7 +2698,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             if (newspace == IntPtr.Zero)
             {
                 newspace = createprimspace(iprimspaceArrItem[0], iprimspaceArrItem[1]);
-                d.HashSpaceSetLevels(newspace, smallHashspaceLow, smallHashspaceHigh);
+                d.HashSpaceSetLevels(newspace, HashspaceLow, HashspaceHigh);
             }
 
             return newspace;
