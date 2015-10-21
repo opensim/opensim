@@ -355,10 +355,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
         public float bodyPIDD = 35f;
         public float bodyPIDG = 25;
 
-        public int geomCrossingFailuresBeforeOutofbounds = 5;
-
-        public float bodyMotorJointMaxforceTensor = 2;
-
         public int bodyFramesAutoDisable = 20;
 
         private float[] _watermap;
@@ -626,18 +622,9 @@ namespace OpenSim.Region.PhysicsModule.ODE
             m_config = config;
             // Defaults
 
-            if (Environment.OSVersion.Platform == PlatformID.Unix)
-            {
-                avPIDD = 3200.0f;
-                avPIDP = 1400.0f;
-                avStandupTensor = 2000000f;
-            }
-            else
-            {
-                avPIDD = 2200.0f;
-                avPIDP = 900.0f;
-                avStandupTensor = 550000f;
-            }
+            avPIDD = 2200.0f;
+            avPIDP = 900.0f;
+            avStandupTensor = 550000f;
 
             int contactsPerCollision = 80;
 
@@ -685,7 +672,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                     mAvatarObjectContactBounce = physicsconfig.GetFloat("m_avatarobjectcontact_bounce", 0.1f);
 
                     ODE_STEPSIZE = physicsconfig.GetFloat("world_stepsize", ODE_STEPSIZE);
-                    m_physicsiterations = physicsconfig.GetInt("world_internal_steps_without_collisions", 10);
+                    m_physicsiterations = physicsconfig.GetInt("world_solver_iterations", 10);
 
                     avDensity = physicsconfig.GetFloat("av_density", 80f);
 //                    avHeightFudgeFactor = physicsconfig.GetFloat("av_height_fudge_factor", 0.52f);
@@ -701,7 +688,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                     geomContactPointsStartthrottle = physicsconfig.GetInt("geom_contactpoints_start_throttling", 5);
                     geomUpdatesPerThrottledUpdate = physicsconfig.GetInt("geom_updates_before_throttled_update", 15);
-                    geomCrossingFailuresBeforeOutofbounds = physicsconfig.GetInt("geom_crossing_failures_before_outofbounds", 5);
 
                     geomDefaultDensity = physicsconfig.GetFloat("geometry_default_density", 10.000006836f);
                     bodyFramesAutoDisable = physicsconfig.GetInt("body_frames_auto_disable", 20);
@@ -714,23 +700,10 @@ namespace OpenSim.Region.PhysicsModule.ODE
                     meshSculptLOD = physicsconfig.GetFloat("mesh_lod", 32f);
                     MeshSculptphysicalLOD = physicsconfig.GetFloat("mesh_physical_lod", 16f);
                     m_filterCollisions = physicsconfig.GetBoolean("filter_collisions", false);
-                    
-                    
 
-                    if (Environment.OSVersion.Platform == PlatformID.Unix)
-                    {
-                        avPIDD = physicsconfig.GetFloat("av_pid_derivative_linux", 2200.0f);
-                        avPIDP = physicsconfig.GetFloat("av_pid_proportional_linux", 900.0f);
-                        avStandupTensor = physicsconfig.GetFloat("av_capsule_standup_tensor_linux", 550000f);
-                        bodyMotorJointMaxforceTensor = physicsconfig.GetFloat("body_motor_joint_maxforce_tensor_linux", 5f);
-                    }
-                    else
-                    {
-                        avPIDD = physicsconfig.GetFloat("av_pid_derivative_win", 2200.0f);
-                        avPIDP = physicsconfig.GetFloat("av_pid_proportional_win", 900.0f);
-                        avStandupTensor = physicsconfig.GetFloat("av_capsule_standup_tensor_win", 550000f);
-                        bodyMotorJointMaxforceTensor = physicsconfig.GetFloat("body_motor_joint_maxforce_tensor_win", 5f);
-                    }
+                    avPIDD = physicsconfig.GetFloat("av_pid_derivative", 2200.0f);
+                    avPIDP = physicsconfig.GetFloat("av_pid_proportional", 900.0f);
+                    avStandupTensor = physicsconfig.GetFloat("av_capsule_standup_tensor", 550000f);
 
                     physics_logging = physicsconfig.GetBoolean("physics_logging", false);
                     physics_logging_interval = physicsconfig.GetInt("physics_logging_interval", 0);
