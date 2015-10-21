@@ -395,10 +395,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     // i did!
                 }
 
-                d.HashSpaceSetLevels(TopSpace, -2, 8);
-                d.HashSpaceSetLevels(ActiveSpace, -2, 8);
+                d.HashSpaceSetLevels(TopSpace, -5, 12);
+                d.HashSpaceSetLevels(ActiveSpace, -5, 10);
                 d.HashSpaceSetLevels(CharsSpace, -4, 3);
-                d.HashSpaceSetLevels(StaticSpace, -2, 8);
+                d.HashSpaceSetLevels(StaticSpace, -5, 12);
                 d.HashSpaceSetLevels(GroundSpace, 0, 8);
 
                 // demote to second level
