@@ -41,6 +41,7 @@ namespace OpenSim.Services.AssetService
     /// <summary>
     /// A de-duplicating asset service.
     /// </summary>
+    [Obsolete]
     public class XAssetService : XAssetServiceBase, IAssetService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -85,6 +86,7 @@ namespace OpenSim.Services.AssetService
                     }
 
                     m_log.Debug("[XASSET SERVICE]: Local asset service enabled");
+                    m_log.Error("[XASSET SERVICE]: THIS ASSET SERVICE HAS BEEN MARKED OBSOLETE. PLEASE USE FSAssetService");
                 }
             }
         }
