@@ -1523,8 +1523,8 @@ namespace OpenSim.Region.Framework.Scenes
                 m_heartbeatThread = null;
             }
 
-//            m_sceneGraph.PreparePhysicsSimulation();
-
+            // tell physics to finish building actor
+            m_sceneGraph.ProcessPhysicsPreSimulation();
 
             m_heartbeatThread
                 = WorkManager.StartThread(

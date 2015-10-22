@@ -1526,7 +1526,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         }
 
         // does all pending changes generated during region load process
-        public override void PrepareSimulation()
+        public override void ProcessPreSimulation()
         {
             lock (OdeLock)
             {
@@ -1541,7 +1541,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 int donechanges = 0;
                 if (ChangesQueue.Count > 0)
                 {
-                    m_log.InfoFormat("[ODE] start processing pending actor operations");
+                    m_log.InfoFormat("[ubOde] start processing pending actor operations");
                     int tstart = Util.EnvironmentTickCount();
 
                     while (ChangesQueue.Dequeue(out item))
@@ -1564,8 +1564,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         donechanges++;
                     }
                     int time = Util.EnvironmentTickCountSubtract(tstart);
-                    m_log.InfoFormat("[ODE] finished {0} operations in {1}ms", donechanges, time);
+                    m_log.InfoFormat("[ubOde] finished {0} operations in {1}ms", donechanges, time);
                 }
+                m_log.InfoFormat("[ubOde] {0} prim actors loaded",_prims.Count);
             }
         }
 

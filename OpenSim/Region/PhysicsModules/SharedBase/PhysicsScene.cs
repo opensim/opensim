@@ -290,7 +290,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public abstract void AddPhysicsActorTaint(PhysicsActor prim);
 
 
-        public virtual void PrepareSimulation() { }
+        public virtual void ProcessPreSimulation() { }
 
         /// <summary>
         /// Perform a simulation of the current physics scene over the given timestep.

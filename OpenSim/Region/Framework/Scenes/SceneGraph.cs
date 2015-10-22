@@ -222,6 +222,12 @@ namespace OpenSim.Region.Framework.Scenes
             return PhysicsScene.Simulate((float)elapsed);
         }
 
+        protected internal void ProcessPhysicsPreSimulation()
+        {
+            if(PhysicsScene != null)
+                PhysicsScene.ProcessPreSimulation();
+        }
+
         protected internal void UpdateScenePresenceMovement()
         {
             ForEachScenePresence(delegate(ScenePresence presence)
