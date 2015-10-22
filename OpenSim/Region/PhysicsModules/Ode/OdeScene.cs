@@ -2919,6 +2919,46 @@ namespace OpenSim.Region.PhysicsModule.ODE
             }
         }
 
+        // does all pending changes generated during region load process
+        public override void ProcessPreSimulation()
+        {
+            lock (OdeLock)
+            {
+                if (world == IntPtr.Zero)
+                {
+                    _taintedPrims.Clear();;
+                    return;
+                }
+
+                int donechanges = 0;
+                if (_taintedPrims.Count > 0)
+                {
+                    m_log.InfoFormat("[Ode] start processing pending actor operations");
+                    int tstart = Util.EnvironmentTickCount();
+
+                    lock (_taintedPrims)
+                    {
+                        foreach (OdePrim prim in _taintedPrims)
+                        {
+                            if (prim.m_taintremove)
+                                RemovePrimThreadLocked(prim);
+                            else
+                                prim.ProcessTaints();
+
+                            prim.m_collisionscore = 0;
+                            donechanges++;
+                        }
+                        _taintedPrims.Clear();
+                    }
+                   
+                    int time = Util.EnvironmentTickCountSubtract(tstart);
+                    m_log.InfoFormat("[Ode] finished {0} operations in {1}ms", donechanges, time);
+                }
+                m_log.InfoFormat("[Ode] {0} prim actors loaded",_prims.Count);
+            }
+        }
+
+
         /// <summary>
         /// This is our main simulate loop
         /// </summary>
