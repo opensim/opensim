@@ -18,7 +18,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private bool m_Enabled = false;
 		private IConfigSource m_config;
 		private ODEScene  m_scene;
-        private bool ubOdeLib;
+        private bool OSOdeLib;
 
        #region INonSharedRegionModule
 
@@ -67,13 +67,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 m_log.InfoFormat("[ubODE] ode library configuration: {0}", ode_config);
                 // ubODE still not avaiable
-                if (ode_config.Contains("ubODE"))
+                if (ode_config.Contains("ODE_OPENSIM"))
                 {
-                    ubOdeLib = true;
+                    OSOdeLib = true;
                 }
             }
 
-		m_scene = new ODEScene(scene, m_config, Name, ubOdeLib);
+		m_scene = new ODEScene(scene, m_config, Name, OSOdeLib);
         }
 
         public void RemoveRegion(Scene scene)

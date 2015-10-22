@@ -169,7 +169,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public bool m_ubOdeLib = false;
+        public bool m_OSOdeLib = false;
         public bool m_suportCombine = false; // mega suport not tested
         public Scene m_frameWorkScene = null;
 
@@ -322,7 +322,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         IConfig physicsconfig = null;
 
-        public ODEScene(Scene pscene, IConfigSource psourceconfig, string pname, bool pubOdeLib)
+        public ODEScene(Scene pscene, IConfigSource psourceconfig, string pname, bool pOSOdeLib)
         {
             OdeLock = new Object();
 
@@ -330,7 +330,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             PhysicsSceneName = EngineType + "/" + pscene.RegionInfo.RegionName;
 
 			m_config = psourceconfig;
-            m_ubOdeLib = pubOdeLib;
+            m_OSOdeLib = pOSOdeLib;
+
+//            m_OSOdeLib = false; //debug
+
             m_frameWorkScene = pscene;
 
             m_frameWorkScene.RegisterModuleInterface<PhysicsScene>(this);
@@ -1920,7 +1923,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             int regsizeY = (int)m_regionHeight + 3; // map size see setterrain number of samples
             int regsize = regsizeX;
 
-            if (m_ubOdeLib)
+            if (m_OSOdeLib)
             {
                 if (x < regsizeX - 1)
                 {
@@ -2064,7 +2067,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             int ystep = regsizeX;
             bool firstTri = false;
 
-            if (m_ubOdeLib)
+            if (m_OSOdeLib)
             {
                 if (x < regsizeX - 1)
                 {
@@ -2176,8 +2179,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public void SetTerrain(float[] heightMap, Vector3 pOffset)
         {
-            if (m_ubOdeLib)
-                ubSetTerrain(heightMap, pOffset);
+            if (m_OSOdeLib)
+                OSSetTerrain(heightMap, pOffset);
             else
                 OriSetTerrain(heightMap, pOffset);
         }
@@ -2302,7 +2305,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
         }
 
-        public void ubSetTerrain(float[] heightMap, Vector3 pOffset)
+        public void OSSetTerrain(float[] heightMap, Vector3 pOffset)
         {
             // assumes 1m size grid and constante size square regions
             // needs to know about sims around in future
@@ -2376,7 +2379,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         }
                     }
                 }
-                IntPtr HeightmapData = d.GeomubTerrainDataCreate();
+                IntPtr HeightmapData = d.GeomOSTerrainDataCreate();
 
                 const int wrap = 0;
                 float thickness = hfmin;
@@ -2385,12 +2388,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 GCHandle _heightmaphandler = GCHandle.Alloc(_heightmap, GCHandleType.Pinned);
 
-                d.GeomubTerrainDataBuild(HeightmapData, _heightmaphandler.AddrOfPinnedObject(), 0, 1.0f,
+                d.GeomOSTerrainDataBuild(HeightmapData, _heightmaphandler.AddrOfPinnedObject(), 0, 1.0f,
                                                  (int)heightmapWidthSamples, (int)heightmapHeightSamples,
                                                  thickness, wrap);
 
-//                d.GeomubTerrainDataSetBounds(HeightmapData, hfmin - 1, hfmax + 1);
-                GroundGeom = d.CreateubTerrain(GroundSpace, HeightmapData, 1);
+//                d.GeomOSTerrainDataSetBounds(HeightmapData, hfmin - 1, hfmax + 1);
+                GroundGeom = d.CreateOSTerrain(GroundSpace, HeightmapData, 1);
                 if (GroundGeom != IntPtr.Zero)
                 {
                     d.GeomSetCategoryBits(GroundGeom, (uint)(CollisionCategories.Land));
