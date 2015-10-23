@@ -1838,8 +1838,6 @@
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.RegionLoader.Filesystem"/>
-      <Reference name="OpenSim.Framework.RegionLoader.Web"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="log4net" path="../../../bin/"/>
