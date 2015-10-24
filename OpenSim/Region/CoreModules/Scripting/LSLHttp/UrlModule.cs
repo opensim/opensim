@@ -587,8 +587,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
                     int pos1 = uri.IndexOf("/");// /lslhttp
                     int pos2 = uri.IndexOf("/", pos1 + 1);// /lslhttp/
-                    int pos3 = pos2 + 37; // /lslhttp/urlcode
-                    string uri_tmp = uri.Substring(0, pos3);
+                    int pos3 = uri.IndexOf("/", pos2 + 1); // /lslhttp/urlcode
+
+                    string uri_tmp = uri.Substring(0, pos3 + 1);
                     //HTTP server code doesn't provide us with QueryStrings
                     string pathInfo;
                     string queryString;
