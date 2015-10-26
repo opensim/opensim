@@ -368,11 +368,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                     m_writer.Flush();
                     m_writer.WriteLine(m_user);
                     m_writer.Flush();
-                    m_writer.WriteLine(String.Format("JOIN {0}", m_ircChannel));
-                    m_writer.Flush();
-
-                    m_log.InfoFormat("[IRC-Connector-{0}]: {1} has asked to join {2}", idn, m_nick, m_ircChannel);
-
                 }
                 catch (Exception e)
                 {
@@ -521,7 +516,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                             c.Message = data["msg"];
                             c.Type = ChatTypeEnum.Region;
                             c.Position = CenterOfRegion;
-                            c.From = data["nick"];
+                            c.From =  data["nick"] + "@IRC";
                             c.Sender = null;
                             c.SenderUUID = UUID.Zero;
 
@@ -659,6 +654,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                     version = commArgs[2];
                     usermod = commArgs[3];
                     chanmod = commArgs[4];
+
+                    m_writer.WriteLine(String.Format("JOIN {0}", m_ircChannel));
+                    m_writer.Flush();
+                    m_log.InfoFormat("[IRC-Connector-{0}]: sent request to join {1} ", idn, m_ircChannel);
+
                     break;
                 case "005": // Server information
                     break;
@@ -721,11 +721,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                 case "PONG":
                     break;
                 case "JOIN":
-                    if (m_pending)
-                    {
-                        m_log.InfoFormat("[IRC-Connector-{0}] [{1}] Connected", idn, cmd);
-                        m_pending = false;
-                    }
+
                     m_log.DebugFormat("[IRC-Connector-{0}] [{1}] parms = <{2}>", idn, cmd, parms);
                     eventIrcJoin(pfx, cmd, parms);
                     break;
@@ -767,7 +763,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             if (IrcChannel.StartsWith(":"))
                 IrcChannel = IrcChannel.Substring(1);
 
-            m_log.DebugFormat("[IRC-Connector-{0}] Event: IRCJoin {1}:{2}", idn, m_server, m_ircChannel);
+            if(IrcChannel == m_ircChannel)
+            {
+                m_log.InfoFormat("[IRC-Connector-{0}] Joined requested channel {1} at {2}", idn, IrcChannel,m_server);
+                m_pending = false;
+            }
+            else
+                m_log.InfoFormat("[IRC-Connector-{0}] Joined unknown channel {1} at {2}", idn, IrcChannel,m_server);
             BroadcastSim(IrcUser, "/me joins {0}", IrcChannel);
         }
 
