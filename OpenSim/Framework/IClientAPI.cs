@@ -1392,6 +1392,8 @@ namespace OpenSim.Framework
 
         void SendAgentOnline(UUID[] agentIDs);
 
+        void SendFindAgent(UUID HunterID, UUID PreyID, double GlobalX, double GlobalY);
+
         void SendSitResponse(UUID TargetID, Vector3 OffsetPos, Quaternion SitOrientation, bool autopilot,
                              Vector3 CameraAtOffset, Vector3 CameraEyeOffset, bool ForceMouseLook);
 

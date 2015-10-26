@@ -2705,8 +2705,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(offp, ThrottleOutPacketType.Task);
         }
 
-        public void SendSitResponse(UUID TargetID, Vector3 OffsetPos, Quaternion SitOrientation, bool autopilot,
-                                        Vector3 CameraAtOffset, Vector3 CameraEyeOffset, bool ForceMouseLook)
+        public void SendFindAgent(UUID HunterID, UUID PreyID, double GlobalX, double GlobalY)
+        {
+            FindAgentPacket fap = new FindAgentPacket();
+            fap.AgentBlock.Hunter = HunterID;
+            fap.AgentBlock.Prey = PreyID;
+            fap.AgentBlock.SpaceIP = 0;
+
+            fap.LocationBlock = new FindAgentPacket.LocationBlockBlock[1];
+            fap.LocationBlock[0] = new FindAgentPacket.LocationBlockBlock();
+            fap.LocationBlock[0].GlobalX = GlobalX;
+            fap.LocationBlock[0].GlobalY = GlobalY;
+
+            OutPacket(fap, ThrottleOutPacketType.Task);
+         }
+
+        public void SendSitResponse(UUID TargetID, Vector3 OffsetPos,
+                Quaternion SitOrientation, bool autopilot,
+                Vector3 CameraAtOffset, Vector3 CameraEyeOffset, bool ForceMouseLook)
         {
             AvatarSitResponsePacket avatarSitResponse = new AvatarSitResponsePacket();
             avatarSitResponse.SitObject.ID = TargetID;

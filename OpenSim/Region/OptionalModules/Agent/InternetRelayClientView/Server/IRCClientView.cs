@@ -1375,6 +1375,10 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
+        public void SendFindAgent(UUID HunterID, UUID PreyID, double GlobalX, double GlobalY)
+        {
+        }
+
         public void SendSitResponse(UUID TargetID, Vector3 OffsetPos, Quaternion SitOrientation, bool autopilot, Vector3 CameraAtOffset, Vector3 CameraEyeOffset, bool ForceMouseLook)
         {
             
