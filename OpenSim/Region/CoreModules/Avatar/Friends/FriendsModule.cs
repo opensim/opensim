@@ -262,6 +262,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             client.OnDenyFriendRequest += OnDenyFriendRequest;
             client.OnTerminateFriendship += RemoveFriendship;
             client.OnGrantUserRights += GrantRights;
+            client.OnFindAgent += FindFriend;
 
             // We need to cache information for child agents as well as root agents so that friend edit/move/delete
             // permissions will work across borders where both regions are on different simulators.
@@ -726,6 +727,64 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             }            
         }
 
+        public void FindFriend(IClientAPI remoteClient,UUID HunterID ,UUID PreyID)
+        {
+            UUID requester = remoteClient.AgentId;
+            if(requester != HunterID) // only allow client agent to be the hunter (?)
+                return;
+            
+            FriendInfo[] friends = GetFriendsFromCache(requester);
+            if (friends.Length == 0)
+                return;
+
+            FriendInfo friend = GetFriend(friends, PreyID);
+            if (friend == null)
+                return;
+
+            if((friend.TheirFlags & (int)FriendRights.CanSeeOnMap) == 0)
+                return;
+
+            Scene hunterScene = (Scene)remoteClient.Scene;
+
+            if(hunterScene == null)
+                return;
+
+            // check local
+            ScenePresence sp;
+            double px;
+            double py;
+            if(hunterScene.TryGetScenePresence(PreyID, out sp))
+            {
+                if(sp == null)
+                    return;
+                px = hunterScene.RegionInfo.WorldLocX + sp.AbsolutePosition.X;
+                py = hunterScene.RegionInfo.WorldLocY + sp.AbsolutePosition.Y;
+
+                remoteClient.SendFindAgent(HunterID, PreyID, px, py);
+                return;
+            }
+
+            PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { PreyID.ToString() });
+            
+            if (friendSessions == null || friendSessions.Length == 0)
+                return;
+
+            PresenceInfo friendSession = friendSessions[0];
+            if (friendSession == null)
+                return;
+
+            GridRegion region = GridService.GetRegionByUUID(hunterScene.RegionInfo.ScopeID, friendSession.RegionID);
+
+            if(region == null)
+                return;
+
+            // we don't have presence location so point to a standard region center for now
+            px = region.RegionLocX + 128.0;
+            py = region.RegionLocY + 128.0;
+
+            remoteClient.SendFindAgent(HunterID, PreyID, px, py);
+        }
+
         public void GrantRights(IClientAPI remoteClient, UUID friendID, int rights)
         {
             UUID requester = remoteClient.AgentId;
@@ -745,7 +804,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             if (friend != null) // Found it
             {
-                // Store it on the DB
+                // Store it on service
                 if (!StoreRights(requester, friendID, rights))
                 {
                     remoteClient.SendAlertMessage("Unable to grant rights.");
@@ -869,28 +928,26 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             return false;
         }
 
-        public bool LocalGrantRights(UUID userID, UUID friendID, int userFlags, int rights)
+        public bool LocalGrantRights(UUID userID, UUID friendID, int oldRights, int newRights)
         {
             IClientAPI friendClient = LocateClientObject(friendID);
             if (friendClient != null)
             {
-                bool onlineBitChanged = ((rights ^ userFlags) & (int)FriendRights.CanSeeOnline) != 0;
+                int changedRights = newRights ^ oldRights;
+                bool onlineBitChanged = (changedRights & (int)FriendRights.CanSeeOnline) != 0;
                 if (onlineBitChanged)
                 {
-                    if ((rights & (int)FriendRights.CanSeeOnline) == 1)
+                    if ((newRights & (int)FriendRights.CanSeeOnline) == 1)
                         friendClient.SendAgentOnline(new UUID[] { userID });
                     else
                         friendClient.SendAgentOffline(new UUID[] { userID });
                 }
-                else
-                {
-                    bool canEditObjectsChanged = ((rights ^ userFlags) & (int)FriendRights.CanModifyObjects) != 0;
-                    if (canEditObjectsChanged)
-                        friendClient.SendChangeUserRights(userID, friendID, rights);
-                }
+
+                if(changedRights != 0)
+                    friendClient.SendChangeUserRights(userID, friendID, newRights);
 
                 // Update local cache
-                UpdateLocalCache(userID, friendID, rights);
+                UpdateLocalCache(userID, friendID, newRights);
 
                 return true;
             }
@@ -946,8 +1003,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             lock (m_Friends)
             {
                 FriendInfo[] friends = GetFriendsFromCache(friendID);
-                FriendInfo finfo = GetFriend(friends, userID);
-                finfo.TheirFlags = rights;
+                if(friends != EMPTY_FRIENDS)
+                {
+                    FriendInfo finfo = GetFriend(friends, userID);
+                    if(finfo!= null)
+                        finfo.TheirFlags = rights;
+                }
             }
         }
 
