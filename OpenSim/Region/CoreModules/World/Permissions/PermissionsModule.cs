@@ -705,7 +705,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (user == objectOwner)
                 return PermissionClass.Owner;
 
-            if (IsFriendWithPerms(user, objectOwner))
+            if (IsFriendWithPerms(user, objectOwner) && !obj.ParentGroup.IsAttachment)
                 return PermissionClass.Owner;
 
             // Estate users should be able to edit anything in the sim if RegionOwnerIsGod is set
