@@ -201,6 +201,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             part.SendPropertiesToClient(remoteClient);
 
+            // waste of time because properties do not send prim flags as they should
+            // if a friend got or lost edit rights after login, a full update is needed
+            if(sog.OwnerID != remoteClient.AgentId)
+                part.SendFullUpdate(remoteClient);
+
             // A prim is only tainted if it's allowed to be edited by the person clicking it.
             if (Permissions.CanEditObject(sog.UUID, remoteClient.AgentId)
                 || Permissions.CanMoveObject(sog.UUID, remoteClient.AgentId))
@@ -303,12 +308,11 @@ namespace OpenSim.Region.Framework.Scenes
                 part.IsSelected = false;
                 if (!part.ParentGroup.IsAttachment && oldgprSelect != part.ParentGroup.IsSelected)
                     EventManager.TriggerParcelPrimCountTainted();
+
+                // restore targetOmega
+                if (part.AngularVelocity != Vector3.Zero)
+                    part.ScheduleTerseUpdate();     
             }
-
-            // restore targetOmega
-            if (part.AngularVelocity != Vector3.Zero)
-                part.ScheduleTerseUpdate();     
-
         }
 
         public virtual void ProcessMoneyTransferRequest(UUID source, UUID destination, int amount, 
