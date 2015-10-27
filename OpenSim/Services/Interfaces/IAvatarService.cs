@@ -162,10 +162,15 @@ namespace OpenSim.Services.Interfaces
             }
 
             // Visual Params
-            string[] vps = new string[AvatarAppearance.VISUALPARAM_COUNT];
-            byte[] binary = appearance.VisualParams;
+            //string[] vps = new string[AvatarAppearance.VISUALPARAM_COUNT];
+            //byte[] binary = appearance.VisualParams;
 
-            for (int i = 0 ; i < AvatarAppearance.VISUALPARAM_COUNT ; i++)
+            //            for (int i = 0 ; i < AvatarAppearance.VISUALPARAM_COUNT ; i++)
+
+            byte[] binary = appearance.VisualParams;
+            string[] vps = new string[binary.Length];
+
+            for (int i = 0; i < binary.Length; i++)
             {
                 vps[i] = binary[i].ToString();
             }
@@ -202,7 +207,13 @@ namespace OpenSim.Services.Interfaces
                     appearance.Serial = Int32.Parse(Data["Serial"]);
 
                 if (Data.ContainsKey("AvatarHeight"))
-                    appearance.AvatarHeight = float.Parse(Data["AvatarHeight"]);
+                {
+                    float h = float.Parse(Data["AvatarHeight"]);
+                    if( h == 0f)
+                        h = 1.9f;
+                  
+                    appearance.AvatarHeight = h;
+                }
 
                 // Legacy Wearables
                 if (Data.ContainsKey("BodyItem"))
@@ -273,9 +284,13 @@ namespace OpenSim.Services.Interfaces
                 if (Data.ContainsKey("VisualParams"))
                 {
                     string[] vps = Data["VisualParams"].Split(new char[] {','});
-                    byte[] binary = new byte[AvatarAppearance.VISUALPARAM_COUNT];
+                    //byte[] binary = new byte[AvatarAppearance.VISUALPARAM_COUNT];
 
-                    for (int i = 0 ; i < vps.Length && i < binary.Length ; i++)
+                    //for (int i = 0 ; i < vps.Length && i < binary.Length ; i++)
+                    
+                    byte[] binary = new byte[vps.Length];
+
+                    for (int i = 0; i < vps.Length; i++)
                         binary[i] = (byte)Convert.ToInt32(vps[i]);
                     
                     appearance.VisualParams = binary;
