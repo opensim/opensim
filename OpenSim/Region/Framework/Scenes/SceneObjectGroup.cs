@@ -447,12 +447,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public bool IsAttachmentCheckFull()
         {
-            if(IsAttachment)
-                return true;
-
-            IsAttachment = (m_rootPart.Shape.PCode == (byte)PCodeEnum.Primitive && m_rootPart.Shape.State != 0);
-
-            return IsAttachment;
+            return (IsAttachment ||
+                (m_rootPart.Shape.PCode == (byte)PCodeEnum.Primitive && m_rootPart.Shape.State != 0));
         }
         
         private struct avtocrossInfo
