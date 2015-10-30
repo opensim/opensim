@@ -57,13 +57,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         public const int DefaultMaxTransferDistance = 4095;
         public const bool WaitForAgentArrivedAtDestinationDefault = true;
 
-        public static readonly string OutgoingTransferVersionName = "SIMULATION";
-
-        /// <summary>
-        /// Determine the entity transfer version we will use for teleports.
-        /// </summary>
-        public static readonly float OutgoingTransferVersion = VersionInfo.SimulationServiceVersion;
-
         /// <summary>
         /// The maximum distance, in standard region units (256m) that an agent is allowed to transfer.
         /// </summary>
@@ -726,10 +719,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     sp.Name, sp.Scene.Name, finalDestination.RegionName);
 
             string reason;
-            string version;
-            string myversion = string.Format("{0}/{1}", OutgoingTransferVersionName, OutgoingTransferVersion);
+            float version;
             if (!Scene.SimulationService.QueryAccess(
-                finalDestination, sp.ControllingClient.AgentId, homeURI, true, position, myversion, sp.Scene.GetFormatsOffered(), out version, out reason))
+                finalDestination, sp.ControllingClient.AgentId, homeURI, true, position, sp.Scene.GetFormatsOffered(), out version, out reason))
             {
                 sp.ControllingClient.SendTeleportFailed(reason);
 
@@ -746,8 +738,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             m_interRegionTeleportAttempts.Value++;
 
             m_log.DebugFormat(
-                "[ENTITY TRANSFER MODULE]: {0} transfer version is {1}/{2}, {3} version is {4}", 
-                sp.Scene.Name, OutgoingTransferVersionName, OutgoingTransferVersion, finalDestination.RegionName, version);
+                "[ENTITY TRANSFER MODULE]: {0} transfer version is SIMULATION/{2}, {3} version is {4}", 
+                sp.Scene.Name, version, finalDestination.RegionName, version);
 
             // Fixing a bug where teleporting while sitting results in the avatar ending up removed from
             // both regions
@@ -795,21 +787,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 agentCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
             }
 
-            // We're going to fallback to V1 if the destination gives us anything smaller than 0.2 or we're forcing
-            // use of the earlier protocol
-            float versionNumber = 0.1f;
-            string[] versionComponents = version.Split(new char[] { '/' });
-            if (versionComponents.Length >= 2)
-                float.TryParse(versionComponents[1], out versionNumber);
-
-            if (versionNumber >= 0.2f)
+            // We're going to fallback to V1 if the destination gives us anything smaller than 0.2
+            if (version >= 0.2f)
                 TransferAgent_V2(sp, agentCircuit, reg, finalDestination, endPoint, teleportFlags, oldRegionX, newRegionX, oldRegionY, newRegionY, version, out reason);
             else
                 TransferAgent_V1(sp, agentCircuit, reg, finalDestination, endPoint, teleportFlags, oldRegionX, newRegionX, oldRegionY, newRegionY, version, out reason);           
         }
 
         private void TransferAgent_V1(ScenePresence sp, AgentCircuitData agentCircuit, GridRegion reg, GridRegion finalDestination,
-            IPEndPoint endPoint, uint teleportFlags, uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY, string version, out string reason)
+            IPEndPoint endPoint, uint teleportFlags, uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY, float version, out string reason)
         {
             ulong destinationHandle = finalDestination.RegionHandle;
             AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
@@ -1023,7 +1009,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
 
             // For backwards compatibility
-            if (version == "Unknown" || version == string.Empty)
+            if (version == 0f)
             {
                 // CrossAttachmentsIntoNewRegion is a synchronous call. We shouldn't need to wait after it
                 m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Old simulator, sending attachments one by one...");
@@ -1064,7 +1050,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         }
 
         private void TransferAgent_V2(ScenePresence sp, AgentCircuitData agentCircuit, GridRegion reg, GridRegion finalDestination,
-            IPEndPoint endPoint, uint teleportFlags, uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY, string version, out string reason)
+            IPEndPoint endPoint, uint teleportFlags, uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY, float version, out string reason)
         {
             ulong destinationHandle = finalDestination.RegionHandle;
             AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
@@ -1444,9 +1430,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         //    point is actually in.
         // Returns the coordinates and information of the new region or 'null' of it doesn't exist.
         public GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos,
-                                            out string version, out Vector3 newpos, out string failureReason)
+                                            out float version, out Vector3 newpos, out string failureReason)
         {
-            version = String.Empty;
+            version = 0f;
             newpos = pos;
             failureReason = string.Empty;
             string homeURI = scene.GetAgentHomeURI(agentID);
@@ -1482,9 +1468,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
 
                 // Check to see if we have access to the target region.
-                string myversion = string.Format("{0}/{1}", OutgoingTransferVersionName, OutgoingTransferVersion);
                 if (neighbourRegion != null
-                    && !scene.SimulationService.QueryAccess(neighbourRegion, agentID, homeURI, false, newpos, myversion, scene.GetFormatsOffered(), out version, out failureReason))
+                    && !scene.SimulationService.QueryAccess(neighbourRegion, agentID, homeURI, false, newpos, scene.GetFormatsOffered(), out version, out failureReason))
                 {
                     // remember banned
                     m_bannedRegionCache.Add(neighbourRegion.RegionHandle, agentID);
@@ -1515,7 +1500,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         public bool Cross(ScenePresence agent, bool isFlying)
         {
             Vector3 newpos;
-            string version;
+            float version;
             string failureReason;
 
             GridRegion neighbourRegion = GetDestination(agent.Scene, agent.UUID, agent.AbsolutePosition,
@@ -1627,7 +1612,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// </summary>
         public ScenePresence CrossAgentToNewRegionAsync(
                                 ScenePresence agent, Vector3 pos, GridRegion neighbourRegion,
-                                bool isFlying, string version)
+                                bool isFlying, float version)
         {
             try
             {
@@ -1703,7 +1688,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         }
 
         public void CrossAgentToNewRegionPost(ScenePresence agent, Vector3 pos, GridRegion neighbourRegion,
-            bool isFlying, string version)
+            bool isFlying, float version)
         {
             agent.ControllingClient.RequestClientInfo();
 
@@ -1756,7 +1741,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             agent.SendOtherAgentsAppearanceToClient();
 
             // Backwards compatibility. Best effort
-            if (version == "Unknown" || version == string.Empty)
+            if (version == 0f)
             {
                 m_log.DebugFormat("[ENTITY TRANSFER MODULE]: neighbor with old version, passing attachments one by one...");
                 Thread.Sleep(3000); // wait a little now that we're not waiting for the callback

@@ -145,9 +145,96 @@ namespace OpenSim.Server.Handlers.Simulation
             if (args.ContainsKey("agent_home_uri"))
                 agentHomeURI = args["agent_home_uri"].AsString();
 
-            string theirVersion = string.Empty;
+            // Decode the legacy (string) version and extract the number
+            float theirVersion = 0f;
             if (args.ContainsKey("my_version"))
-                theirVersion = args["my_version"].AsString();
+            {
+                string theirVersionStr = args["my_version"].AsString();
+                string[] parts = theirVersionStr.Split(new char[] {'/'});
+                if (parts.Length > 1)
+                    theirVersion = float.Parse(parts[1]);
+            }
+
+            // Decode the new versioning data
+            float minVersionRequired = 0f;
+            float maxVersionRequired = 0f;
+            float minVersionProvided = 0f;
+            float maxVersionProvided = 0f;
+
+            if (args.ContainsKey("simulation_service_supported_min"))
+                minVersionProvided = (float)args["simulation_service_supported_min"].AsReal();
+            if (args.ContainsKey("simulation_service_supported_max"))
+                maxVersionProvided = (float)args["simulation_service_supported_max"].AsReal();
+
+            if (args.ContainsKey("simulation_service_accepted_min"))
+                minVersionRequired = (float)args["simulation_service_accepted_min"].AsReal();
+            if (args.ContainsKey("simulation_service_accepted_max"))
+                maxVersionRequired = (float)args["simulation_service_accepted_max"].AsReal();
+
+            responsedata["int_response_code"] = HttpStatusCode.OK;
+            OSDMap resp = new OSDMap(3);
+
+
+            // If there is no version in the packet at all we're looking at 0.6 or
+            // even more ancient. Refuse it.
+            if (minVersionProvided == 0f && theirVersion == 0f) // 0.6 or earlier
+            {
+                resp["success"] = OSD.FromBoolean(false);
+                resp["reason"] = OSD.FromString("Version not supported");
+                responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp, true);
+                return;
+            }
+
+            float version;
+
+            if (minVersionProvided == 0f) // Legacy version
+            {
+                if (theirVersion >= VersionInfo.SimulationServiceVersionAcceptedMin &&
+                    theirVersion <= VersionInfo.SimulationServiceVersionAcceptedMax)
+                {
+                    version = Math.Max(theirVersion, VersionInfo.SimulationServiceVersionAcceptedMax);
+                }
+                else
+                {
+                    resp["success"] = OSD.FromBoolean(false);
+                    resp["reason"] = OSD.FromString(String.Format("Your version is {0} and we accept only {1} - {2}", theirVersion, VersionInfo.SimulationServiceVersionAcceptedMin, VersionInfo.SimulationServiceVersionAcceptedMax));
+                    responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp, true);
+                    return;
+                }
+            }
+            else
+            {
+                // Test for no overlap
+                if (minVersionProvided > VersionInfo.SimulationServiceVersionAcceptedMax ||
+                    maxVersionProvided < VersionInfo.SimulationServiceVersionAcceptedMin)
+                {
+                    resp["success"] = OSD.FromBoolean(false);
+                    resp["reason"] = OSD.FromString(String.Format("You provide versions {0} - {1} and we accept only {2} - {3}. No version overlap.", minVersionProvided, maxVersionProvided, VersionInfo.SimulationServiceVersionAcceptedMin, VersionInfo.SimulationServiceVersionAcceptedMax));
+                    responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp, true);
+                    return;
+                }
+                if (minVersionRequired > VersionInfo.SimulationServiceVersionSupportedMax ||
+                    maxVersionRequired < VersionInfo.SimulationServiceVersionSupportedMin)
+                {
+                    resp["success"] = OSD.FromBoolean(false);
+                    resp["reason"] = OSD.FromString(String.Format("You require versions {0} - {1} and we provide only {2} - {3}. No version overlap.", minVersionRequired, maxVersionRequired, VersionInfo.SimulationServiceVersionSupportedMin, VersionInfo.SimulationServiceVersionSupportedMax));
+                    responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp, true);
+                    return;
+                }
+
+                // Determine version to use
+                version = Math.Max(Math.Max(maxVersionProvided, VersionInfo.SimulationServiceVersionAcceptedMax), Math.Max(maxVersionRequired, VersionInfo.SimulationServiceVersionSupportedMax));
+                if (version < VersionInfo.SimulationServiceVersionAcceptedMin ||
+                    version > VersionInfo.SimulationServiceVersionAcceptedMax ||
+                    version < VersionInfo.SimulationServiceVersionSupportedMin ||
+                    version > VersionInfo.SimulationServiceVersionSupportedMax)
+                {
+                    resp["success"] = OSD.FromBoolean(false);
+                    resp["reason"] = OSD.FromString(String.Format("The protocol version we determined, {0}, is incompatible with the version windows, {1} - {2} and {3} - {4}. No version overlap.", version, VersionInfo.SimulationServiceVersionAcceptedMin, VersionInfo.SimulationServiceVersionAcceptedMax, VersionInfo.SimulationServiceVersionSupportedMin, VersionInfo.SimulationServiceVersionSupportedMax));
+                    responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp, true);
+                    return;
+                }
+            }
 
             List<UUID> features = new List<UUID>();
 
@@ -163,16 +250,14 @@ namespace OpenSim.Server.Handlers.Simulation
             destination.RegionID = regionID;
 
             string reason;
-            string version;
-            bool result = m_SimulationService.QueryAccess(destination, agentID, agentHomeURI, viaTeleport, position, theirVersion, features, out version, out reason);
-
-            responsedata["int_response_code"] = HttpStatusCode.OK;
-
-            OSDMap resp = new OSDMap(3);
+            float dummyVersion;
+            bool result = m_SimulationService.QueryAccess(destination, agentID, agentHomeURI, viaTeleport, position, features, out dummyVersion, out reason);
 
             resp["success"] = OSD.FromBoolean(result);
             resp["reason"] = OSD.FromString(reason);
-            resp["version"] = OSD.FromString(version);
+            string legacyVersion = String.Format("SIMULATION/{0}", version);
+            resp["version"] = OSD.FromString(legacyVersion);
+            resp["negotiated_version"] = OSD.FromReal(version);
             resp["variable_wearables_count_supported"] = OSD.FromBoolean(true);
 
             OSDArray featuresWanted = new OSDArray();

@@ -480,7 +480,7 @@ namespace OpenSim.Region.Framework.Scenes
                         )
                     {
                         IEntityTransferModule entityTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
-                        string version = String.Empty;
+                        float version = 0f;
                         Vector3 newpos = Vector3.Zero;
                         string failureReason = String.Empty;
                         OpenSim.Services.Interfaces.GridRegion destination = null;

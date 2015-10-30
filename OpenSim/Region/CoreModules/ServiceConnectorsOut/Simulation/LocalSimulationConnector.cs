@@ -81,8 +81,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
         public void InitialiseService(IConfigSource configSource)
         {
-            ServiceVersion = String.Format("SIMULATION/{0}", VersionInfo.SimulationServiceVersion);
-            m_log.InfoFormat("[LOCAL SIMULATION CONNECTOR]: Initialized with connector protocol version {0}", ServiceVersion);
         }
 
         public void PostInitialise()
@@ -251,10 +249,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return true;
         }
 
-        public bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, string theirversion, List<UUID> features, out string version, out string reason)
+        public bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, List<UUID> features, out float version, out string reason)
         {
             reason = "Communications failure";
-            version = ServiceVersion;
+            version = VersionInfo.SimulationServiceVersionAcceptedMax; // If it's within the process, use max. If it's not, the connector will overwrite this
             if (destination == null)
                 return false;
 
@@ -265,17 +263,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 //                        s.RegionInfo.RegionName, destination.RegionHandle);
                 uint size = m_scenes[destination.RegionID].RegionInfo.RegionSizeX;
 
-                float theirVersionNumber = 0f;
-                string[] versionComponents = theirversion.Split(new char[] { '/' });
-                if (versionComponents.Length >= 2)
-                    float.TryParse(versionComponents[1], out theirVersionNumber);
-
                 // Var regions here, and the requesting simulator is in an older version.
                 // We will forbide this, because it crashes the viewers
-                if (theirVersionNumber < 0.3f && size > 256)
+                if (version < 0.3f && size != 256)
                 {
                     reason = "Destination is a variable-sized region, and source is an old simulator. Consider upgrading.";
-                    m_log.DebugFormat("[LOCAL SIMULATION CONNECTOR]: Request to access this variable-sized region from {0} simulator was denied", theirVersionNumber);
+                    m_log.DebugFormat("[LOCAL SIMULATION CONNECTOR]: Request to access this variable-sized region from older simulator was denied");
                     return false;
                 
                 }

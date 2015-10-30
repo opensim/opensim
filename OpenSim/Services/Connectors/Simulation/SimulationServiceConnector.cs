@@ -282,10 +282,10 @@ namespace OpenSim.Services.Connectors.Simulation
         }
 
 
-        public bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, string myversion, List<UUID> featuresAvailable, out string version, out string reason)
+        public bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, List<UUID> featuresAvailable, out float version, out string reason)
         {
             reason = "Failed to contact destination";
-            version = "Unknown";
+            version = 0f;
 
             // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess start, position={0}", position);
 
@@ -298,7 +298,14 @@ namespace OpenSim.Services.Connectors.Simulation
             OSDMap request = new OSDMap();
             request.Add("viaTeleport", OSD.FromBoolean(viaTeleport));
             request.Add("position", OSD.FromString(position.ToString()));
-            request.Add("my_version", OSD.FromString(myversion));
+            // To those who still understad this field, we're telling them 
+            // the lowest version just to be safe
+            request.Add("my_version", OSD.FromString(String.Format("SIMULATION/{0}", VersionInfo.SimulationServiceVersionSupportedMin)));
+            // New simulation service negotiation
+            request.Add("simulation_service_supported_min", OSD.FromReal(VersionInfo.SimulationServiceVersionSupportedMin));
+            request.Add("simulation_service_supported_max", OSD.FromReal(VersionInfo.SimulationServiceVersionSupportedMax));
+            request.Add("simulation_service_accepted_min", OSD.FromReal(VersionInfo.SimulationServiceVersionAcceptedMin));
+            request.Add("simulation_service_accepted_max", OSD.FromReal(VersionInfo.SimulationServiceVersionAcceptedMax));
 
             OSDArray features = new OSDArray();
             foreach (UUID feature in featuresAvailable)
@@ -322,15 +329,24 @@ namespace OpenSim.Services.Connectors.Simulation
                     success = data["success"];
 
                     reason = data["reason"].AsString();
-                    if (data["version"] != null && data["version"].AsString() != string.Empty)
-                        version = data["version"].AsString();
+                    if (data["negotiated_version"] != null)
+                    {
+                        version = (float)data["negotiated_version"].AsReal();
+                    }
+                    else if (data["version"] != null && data["version"].AsString() != string.Empty)
+                    {
+                        string versionString = data["version"].AsString();
+                        String[] parts = versionString.Split(new char[] {'/'});
+                        if (parts.Length > 1)
+                            version = float.Parse(parts[1]);
+                    }
 
                     m_log.DebugFormat(
-                        "[REMOTE SIMULATION CONNECTOR]: QueryAccess to {0} returned {1}, reason {2}, version {3} ({4})",
-                        uri, success, reason, version, data["version"].AsString());
+                        "[REMOTE SIMULATION CONNECTOR]: QueryAccess to {0} returned {1}, reason {2}, version SIMULATION/{3}",
+                        uri, success, reason, version);
                 }
 
-                if (!success)
+                if (!success || version == 0f)
                 {
                     // If we don't check this then OpenSimulator 0.7.3.1 and some period before will never see the
                     // actual failure message

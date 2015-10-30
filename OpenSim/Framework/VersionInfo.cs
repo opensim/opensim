@@ -61,7 +61,9 @@ namespace OpenSim
         /// This is the external interface version.  It is separate from the OpenSimulator project version.
         /// 
         /// </value>
-        public readonly static int MajorInterfaceVersion = 8;
+        /// Commented because it's not used anymore, see below for new
+        /// versioning method.
+        //public readonly static int MajorInterfaceVersion = 8;
 
         /// <summary>
         /// This rules versioning regarding teleports, and compatibility between simulators in that regard.
@@ -80,6 +82,9 @@ namespace OpenSim
         /// "SIMULATION/0.1" 
         ///   - this is an older teleport protocol used in OpenSimulator 0.7.5 and before.
         /// </remarks>
-        public readonly static float SimulationServiceVersion = 0.3f;
+        public readonly static float SimulationServiceVersionAcceptedMin = 0.3f;
+        public readonly static float SimulationServiceVersionAcceptedMax = 0.4f;
+        public readonly static float SimulationServiceVersionSupportedMin = 0.3f;
+        public readonly static float SimulationServiceVersionSupportedMax = 0.4f;
     }
 }
