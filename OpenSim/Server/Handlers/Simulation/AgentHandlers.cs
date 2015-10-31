@@ -190,14 +190,24 @@ namespace OpenSim.Server.Handlers.Simulation
                     responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp, true);
                     return;
                 }
-
+                
                 version = theirVersion;
-                  
-                if (version < VersionInfo.SimulationServiceVersionAcceptedMin || 
-                    version > VersionInfo.SimulationServiceVersionAcceptedMax )
+                outboundVersion = version;
+                inboundVersion = version;
+
+                if (outboundVersion < VersionInfo.SimulationServiceVersionAcceptedMin || 
+                    outboundVersion > VersionInfo.SimulationServiceVersionAcceptedMax )
                 {
                     resp["success"] = OSD.FromBoolean(false);
-                    resp["reason"] = OSD.FromString(String.Format("Your region protocol version is {0} and we accept only {1} - {2}. No version overlap.", theirVersion, VersionInfo.SimulationServiceVersionAcceptedMin, VersionInfo.SimulationServiceVersionAcceptedMax));
+                    resp["reason"] = OSD.FromString(String.Format("Your region provide protocol version {0} and we accept only {1} - {2}. No version overlap.", outboundVersion, VersionInfo.SimulationServiceVersionAcceptedMin, VersionInfo.SimulationServiceVersionAcceptedMax));
+                    responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp, true);
+                    return;
+                }
+                if (inboundVersion > VersionInfo.SimulationServiceVersionSupportedMax ||
+                    inboundVersion < VersionInfo.SimulationServiceVersionSupportedMin)
+                {
+                    resp["success"] = OSD.FromBoolean(false);
+                    resp["reason"] = OSD.FromString(String.Format("You require region protocol version {0} and we provide only {2} - {3}. No version overlap.", inboundVersion, VersionInfo.SimulationServiceVersionSupportedMin, VersionInfo.SimulationServiceVersionSupportedMax));
                     responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp, true);
                     return;
                 }
@@ -239,6 +249,8 @@ namespace OpenSim.Server.Handlers.Simulation
                 {
                     // If the single version can't resolve, fall back to safest. This will only affect very old regions.
                     version = 0.1f;
+                    outboundVersion = version;
+                    inboundVersion = version;
                 }
             }
 
