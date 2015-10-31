@@ -329,7 +329,7 @@ namespace OpenSim.Services.Connectors.Simulation
                     success = data["success"];
 
                     reason = data["reason"].AsString();
-                    if (data["negotiated_version"] != null)
+                    if (data.ContainsKey("negotiated_version") && data["negotiated_version"] != null)
                     {
                         version = (float)data["negotiated_version"].AsReal();
                     }
