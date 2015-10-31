@@ -41,6 +41,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using PermissionMask = OpenSim.Framework.PermissionMask;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -476,7 +477,7 @@ namespace OpenSim.Region.Framework.Scenes
                         )
                     {
                         IEntityTransferModule entityTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
-                        float version = 0f;
+                        EntityTransferContext ctx = new EntityTransferContext();
                         Vector3 newpos = Vector3.Zero;
                         string failureReason = String.Empty;
                         OpenSim.Services.Interfaces.GridRegion destination = null;
@@ -496,7 +497,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                             // We set the avatar position as being the object
                             // position to get the region to send to
-                            if ((destination = entityTransfer.GetDestination(m_scene, av.UUID, val, out version, out newpos, out failureReason)) == null)
+                            if ((destination = entityTransfer.GetDestination(m_scene, av.UUID, val, ctx, out newpos, out failureReason)) == null)
                             {
                                 canCross = false;
                                 break;
@@ -557,14 +558,14 @@ namespace OpenSim.Region.Framework.Scenes
                                         // threads rather than any replace threadpool that we might be using.
                                         if (Util.FireAndForgetMethod == FireAndForgetMethod.RegressionTest)
                                         { 
-                                            entityTransfer.CrossAgentToNewRegionAsync(av, val, destination, av.Flying, version);
+                                            entityTransfer.CrossAgentToNewRegionAsync(av, val, destination, av.Flying, ctx);
                                             CrossAgentToNewRegionCompleted(av);
                                         }
                                         else
                                         {
                                             CrossAgentToNewRegionDelegate d = entityTransfer.CrossAgentToNewRegionAsync;
                                             d.BeginInvoke(
-                                                av, val, destination, av.Flying, version, 
+                                                av, val, destination, av.Flying, ctx, 
                                                 ar => CrossAgentToNewRegionCompleted(d.EndInvoke(ar)), null);
                                         }
                                     }

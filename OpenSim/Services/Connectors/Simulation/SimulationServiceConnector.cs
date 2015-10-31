@@ -282,10 +282,9 @@ namespace OpenSim.Services.Connectors.Simulation
         }
 
 
-        public bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, List<UUID> featuresAvailable, out float version, out string reason)
+        public bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, List<UUID> featuresAvailable, EntityTransferContext ctx, out string reason)
         {
             reason = "Failed to contact destination";
-            version = 0f;
 
             // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess start, position={0}", position);
 
@@ -333,22 +332,26 @@ namespace OpenSim.Services.Connectors.Simulation
                     // TODO: lay the pipe for version plumbing
                     if (data.ContainsKey("negotiated_inbound_version") && data["negotiated_inbound_version"] != null)
                     {
-                        version = (float)data["negotiated_version"].AsReal();
+                        ctx.InboundVersion = (float)data["negotiated_inbound_version"].AsReal();
+                        ctx.OutboundVersion = (float)data["negotiated_outbound_version"].AsReal();
                     }
                     else if (data["version"] != null && data["version"].AsString() != string.Empty)
                     {
                         string versionString = data["version"].AsString();
                         String[] parts = versionString.Split(new char[] {'/'});
                         if (parts.Length > 1)
-                            version = float.Parse(parts[1]);
+                        {
+                            ctx.InboundVersion = float.Parse(parts[1]);
+                            ctx.OutboundVersion = float.Parse(parts[1]);
+                        }
                     }
 
                     m_log.DebugFormat(
-                        "[REMOTE SIMULATION CONNECTOR]: QueryAccess to {0} returned {1}, reason {2}, version SIMULATION/{3}",
-                        uri, success, reason, version);
+                        "[REMOTE SIMULATION CONNECTOR]: QueryAccess to {0} returned {1}, reason {2}, version {3}/{4}",
+                        uri, success, reason, ctx.InboundVersion, ctx.OutboundVersion);
                 }
 
-                if (!success || version == 0f)
+                if (!success || ctx.InboundVersion == 0f || ctx.OutboundVersion == 0f)
                 {
                     // If we don't check this then OpenSimulator 0.7.3.1 and some period before will never see the
                     // actual failure message

@@ -176,6 +176,8 @@ namespace OpenSim.Server.Handlers.Simulation
 
             float version;
 
+            float outboundVersion = 0f;
+            float inboundVersion = 0f;
 
             if (minVersionProvided == 0f) // string version or older
             {
@@ -221,24 +223,22 @@ namespace OpenSim.Server.Handlers.Simulation
                 }
 
                 // Determine versions to use
-                float inboundVersion = Math.Min(maxVersionProvided, VersionInfo.SimulationServiceVersionAcceptedMax);
-                float outboundVersion = Math.Min(maxVersionRequired, VersionInfo.SimulationServiceVersionSupportedMax);
+                // This is intentionally inverted. Inbound and Outbound refer to the direction of the transfer.
+                // Therefore outbound means from the sender to the receier and inbound means from the receiver to the sender.
+                // So outbound is what we will accept and inbound is what we will send. Confused yet?
+                outboundVersion = Math.Min(maxVersionProvided, VersionInfo.SimulationServiceVersionAcceptedMax);
+                inboundVersion = Math.Min(maxVersionRequired, VersionInfo.SimulationServiceVersionSupportedMax);
 
-                // In this stage, we use only a single version number. Future regions may use asymmetrical protocols.
-                // Here, the two versions we determined are combined into a single version for now.
+                // Here, the two versions we determined are combined into a single version for legacy response.
                 version = Math.Max(inboundVersion, outboundVersion);
 
-                // Since only using a single version, we must do this check. Once the plumbing is in for asymmetrical
-                // protocols, this will go away, allowing more working combinations.
                 if (version < VersionInfo.SimulationServiceVersionAcceptedMin ||
                     version > VersionInfo.SimulationServiceVersionAcceptedMax ||
                     version < VersionInfo.SimulationServiceVersionSupportedMin ||
                     version > VersionInfo.SimulationServiceVersionSupportedMax)
                 {
-                    resp["success"] = OSD.FromBoolean(false);
-                    resp["reason"] = OSD.FromString(String.Format("The region protocol version we determined, {0}, is incompatible with the version windows, {1} - {2} and {3} - {4}. No version overlap.", version, VersionInfo.SimulationServiceVersionAcceptedMin, VersionInfo.SimulationServiceVersionAcceptedMax, VersionInfo.SimulationServiceVersionSupportedMin, VersionInfo.SimulationServiceVersionSupportedMax));
-                    responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp, true);
-                    return;
+                    // If the single version can't resolve, fall back to safest. This will only affect very old regions.
+                    version = 0.1f;
                 }
             }
 
@@ -256,15 +256,18 @@ namespace OpenSim.Server.Handlers.Simulation
             destination.RegionID = regionID;
 
             string reason;
-            float dummyVersion;
-            bool result = m_SimulationService.QueryAccess(destination, agentID, agentHomeURI, viaTeleport, position, features, out dummyVersion, out reason);
+            // We're sending the version numbers down to the local connector to do the varregion check.
+            EntityTransferContext ctx = new EntityTransferContext();
+            ctx.InboundVersion = inboundVersion;
+            ctx.OutboundVersion = outboundVersion;
+            bool result = m_SimulationService.QueryAccess(destination, agentID, agentHomeURI, viaTeleport, position, features, ctx, out reason);
 
             resp["success"] = OSD.FromBoolean(result);
             resp["reason"] = OSD.FromString(reason);
             string legacyVersion = String.Format("SIMULATION/{0}", version);
             resp["version"] = OSD.FromString(legacyVersion);
-            resp["negotiated_inbound_version"] = OSD.FromReal(version); //inboundVersion);
-            resp["negotiated_outbound_version"] = OSD.FromReal(version); //outboundVersion);
+            resp["negotiated_inbound_version"] = OSD.FromReal(inboundVersion);
+            resp["negotiated_outbound_version"] = OSD.FromReal(outboundVersion);
             resp["variable_wearables_count_supported"] = OSD.FromBoolean(true);
 
             OSDArray featuresWanted = new OSDArray();

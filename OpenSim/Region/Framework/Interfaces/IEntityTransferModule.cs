@@ -35,7 +35,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public delegate ScenePresence CrossAgentToNewRegionDelegate(ScenePresence agent, Vector3 pos, GridRegion neighbourRegion, bool isFlying, float version);
+    public delegate ScenePresence CrossAgentToNewRegionDelegate(ScenePresence agent, Vector3 pos, GridRegion neighbourRegion, bool isFlying, EntityTransferContext ctx);
 
     public interface IEntityTransferModule
     {
@@ -92,12 +92,12 @@ namespace OpenSim.Region.Framework.Interfaces
 
         void EnableChildAgent(ScenePresence agent, GridRegion region);
 
-        GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos, out float version,
+        GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos, EntityTransferContext ctx,
                                         out Vector3 newpos, out string reason);
 
         void Cross(SceneObjectGroup sog, Vector3 position, bool silent);
 
-        ScenePresence CrossAgentToNewRegionAsync(ScenePresence agent, Vector3 pos, GridRegion neighbourRegion, bool isFlying, float version);
+        ScenePresence CrossAgentToNewRegionAsync(ScenePresence agent, Vector3 pos, GridRegion neighbourRegion, bool isFlying, EntityTransferContext ctx);
 
         bool HandleIncomingSceneObject(SceneObjectGroup so, Vector3 newPosition);
     }
