@@ -738,8 +738,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             m_interRegionTeleportAttempts.Value++;
 
             m_log.DebugFormat(
-                "[ENTITY TRANSFER MODULE]: {0} transfer version is SIMULATION/{2}, {3} version is {4}", 
-                sp.Scene.Name, version, finalDestination.RegionName, version);
+                "[ENTITY TRANSFER MODULE]: {0} transfer protocol version to {1} is SIMULATION/{2}", 
+                sp.Scene.Name, finalDestination.RegionName, version);
 
             // Fixing a bug where teleporting while sitting results in the avatar ending up removed from
             // both regions
