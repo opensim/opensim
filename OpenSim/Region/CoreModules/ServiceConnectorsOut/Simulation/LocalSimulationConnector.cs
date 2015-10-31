@@ -255,11 +255,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 //                    m_log.DebugFormat(
 //                        "[LOCAL SIMULATION CONNECTOR]: Found region {0} {1} to send AgentUpdate",
 //                        s.RegionInfo.RegionName, destination.RegionHandle);
-                uint size = m_scenes[destination.RegionID].RegionInfo.RegionSizeX;
+                uint sizeX = m_scenes[destination.RegionID].RegionInfo.RegionSizeX;
+                uint sizeY = m_scenes[destination.RegionID].RegionInfo.RegionSizeY;
 
                 // Var regions here, and the requesting simulator is in an older version.
                 // We will forbide this, because it crashes the viewers
-                if (ctx.OutboundVersion < 0.3f && size != 256)
+                if (ctx.OutboundVersion < 0.3f && (sizeX != 256 || sizeY != 256))
                 {
                     reason = "Destination is a variable-sized region, and source is an old simulator. Consider upgrading.";
                     m_log.DebugFormat("[LOCAL SIMULATION CONNECTOR]: Request to access this variable-sized region from older simulator was denied");
