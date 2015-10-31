@@ -304,8 +304,8 @@ namespace OpenSim.Services.Connectors.Simulation
             // New simulation service negotiation
             request.Add("simulation_service_supported_min", OSD.FromReal(VersionInfo.SimulationServiceVersionSupportedMin));
             request.Add("simulation_service_supported_max", OSD.FromReal(VersionInfo.SimulationServiceVersionSupportedMax));
-//            request.Add("simulation_service_accepted_min", OSD.FromReal(VersionInfo.SimulationServiceVersionAcceptedMin));
-//            request.Add("simulation_service_accepted_max", OSD.FromReal(VersionInfo.SimulationServiceVersionAcceptedMax));
+            request.Add("simulation_service_accepted_min", OSD.FromReal(VersionInfo.SimulationServiceVersionAcceptedMin));
+            request.Add("simulation_service_accepted_max", OSD.FromReal(VersionInfo.SimulationServiceVersionAcceptedMax));
 
             OSDArray features = new OSDArray();
             foreach (UUID feature in featuresAvailable)
@@ -329,7 +329,9 @@ namespace OpenSim.Services.Connectors.Simulation
                     success = data["success"];
 
                     reason = data["reason"].AsString();
-                    if (data.ContainsKey("negotiated_version") && data["negotiated_version"] != null)
+                    // We will need to plumb this and start sing the outbound version as well
+                    // TODO: lay the pipe for version plumbing
+                    if (data.ContainsKey("negotiated_inbound_version") && data["negotiated_inbound_version"] != null)
                     {
                         version = (float)data["negotiated_version"].AsReal();
                     }

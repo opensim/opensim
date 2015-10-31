@@ -156,8 +156,8 @@ namespace OpenSim.Server.Handlers.Simulation
             }
 
             // Decode the new versioning data
-//            float minVersionRequired = 0f;
-//            float maxVersionRequired = 0f;
+            float minVersionRequired = 0f;
+            float maxVersionRequired = 0f;
             float minVersionProvided = 0f;
             float maxVersionProvided = 0f;
 
@@ -166,10 +166,10 @@ namespace OpenSim.Server.Handlers.Simulation
             if (args.ContainsKey("simulation_service_supported_max"))
                 maxVersionProvided = (float)args["simulation_service_supported_max"].AsReal();
 
-//            if (args.ContainsKey("simulation_service_accepted_min"))
-//                minVersionRequired = (float)args["simulation_service_accepted_min"].AsReal();
-//            if (args.ContainsKey("simulation_service_accepted_max"))
-//                maxVersionRequired = (float)args["simulation_service_accepted_max"].AsReal();
+            if (args.ContainsKey("simulation_service_accepted_min"))
+                minVersionRequired = (float)args["simulation_service_accepted_min"].AsReal();
+            if (args.ContainsKey("simulation_service_accepted_max"))
+                maxVersionRequired = (float)args["simulation_service_accepted_max"].AsReal();
 
             responsedata["int_response_code"] = HttpStatusCode.OK;
             OSDMap resp = new OSDMap(3);
@@ -195,14 +195,13 @@ namespace OpenSim.Server.Handlers.Simulation
                     version > VersionInfo.SimulationServiceVersionAcceptedMax )
                 {
                     resp["success"] = OSD.FromBoolean(false);
-                    resp["reason"] = OSD.FromString(String.Format("Your region protocol version is {0} and destiny accepts only {1} - {2}", theirVersion, VersionInfo.SimulationServiceVersionAcceptedMin, VersionInfo.SimulationServiceVersionAcceptedMax));
+                    resp["reason"] = OSD.FromString(String.Format("Your region protocol version is {0} and we accept only {1} - {2}. No version overlap.", theirVersion, VersionInfo.SimulationServiceVersionAcceptedMin, VersionInfo.SimulationServiceVersionAcceptedMax));
                     responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp, true);
                     return;
                 }
             }
             else
             {
-/*
                 // Test for no overlap
                 if (minVersionProvided > VersionInfo.SimulationServiceVersionAcceptedMax ||
                     maxVersionProvided < VersionInfo.SimulationServiceVersionAcceptedMin)
@@ -221,9 +220,16 @@ namespace OpenSim.Server.Handlers.Simulation
                     return;
                 }
 
-                // Determine version to use
+                // Determine versions to use
+                float inboundVersion = Math.Min(maxVersionProvided, VersionInfo.SimulationServiceVersionAcceptedMax);
+                float outboundVersion = Math.Min(maxVersionRequired, VersionInfo.SimulationServiceVersionSupportedMax);
 
-                version = Math.Max(Math.Min(maxVersionProvided, VersionInfo.SimulationServiceVersionAcceptedMax), Math.Min(maxVersionRequired, VersionInfo.SimulationServiceVersionSupportedMax));
+                // In this stage, we use only a single version number. Future regions may use asymmetrical protocols.
+                // Here, the two versions we determined are combined into a single version for now.
+                version = Math.Max(inboundVersion, outboundVersion);
+
+                // Since only using a single version, we must do this check. Once the plumbing is in for asymmetrical
+                // protocols, this will go away, allowing more working combinations.
                 if (version < VersionInfo.SimulationServiceVersionAcceptedMin ||
                     version > VersionInfo.SimulationServiceVersionAcceptedMax ||
                     version < VersionInfo.SimulationServiceVersionSupportedMin ||
@@ -234,20 +240,6 @@ namespace OpenSim.Server.Handlers.Simulation
                     responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp, true);
                     return;
                 }
-*/
-                // find max possible version to use
-                version = Math.Min(VersionInfo.SimulationServiceVersionAcceptedMax, maxVersionProvided);
-                // check if within lower bounds
-                if(version < VersionInfo.SimulationServiceVersionAcceptedMin || 
-                   version < minVersionProvided)
-                {
-                    resp["success"] = OSD.FromBoolean(false);
-                    resp["reason"] = OSD.FromString(String.Format("Region protocol versions are incompatible. Destiny accepts {0} - {1} and source provides {2} - {3}.", VersionInfo.SimulationServiceVersionAcceptedMin, VersionInfo.SimulationServiceVersionAcceptedMax,
-                      minVersionProvided,
-                      maxVersionProvided));
-                    responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp, true);
-                    return;
-                }         
             }
 
             List<UUID> features = new List<UUID>();
@@ -271,7 +263,8 @@ namespace OpenSim.Server.Handlers.Simulation
             resp["reason"] = OSD.FromString(reason);
             string legacyVersion = String.Format("SIMULATION/{0}", version);
             resp["version"] = OSD.FromString(legacyVersion);
-            resp["negotiated_version"] = OSD.FromReal(version);
+            resp["negotiated_inbound_version"] = OSD.FromReal(version); //inboundVersion);
+            resp["negotiated_outbound_version"] = OSD.FromReal(version); //outboundVersion);
             resp["variable_wearables_count_supported"] = OSD.FromBoolean(true);
 
             OSDArray featuresWanted = new OSDArray();
