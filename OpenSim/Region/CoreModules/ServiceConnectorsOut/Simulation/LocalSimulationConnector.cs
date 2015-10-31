@@ -46,11 +46,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// Version of this service.
-        /// </summary>
-        public float ServiceVersion { get; set; }
-
-        /// <summary>
         /// Map region ID to scene.
         /// </summary>
         private Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
@@ -81,7 +76,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
         public void InitialiseService(IConfigSource configSource)
         {
-            ServiceVersion = VersionInfo.SimulationServiceVersionAcceptedMax;
         }
 
         public void PostInitialise()
@@ -253,7 +247,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         public bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, List<UUID> features, out float version, out string reason)
         {
             reason = "Communications failure";
-            version = ServiceVersion; // If it's within the process, use max. If it's not, the connector will overwrite this
+            version = VersionInfo.SimulationServiceVersionAcceptedMax; // If it's within the process, use max. If it's not, the connector will overwrite this
             if (destination == null)
                 return false;
 

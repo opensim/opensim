@@ -105,6 +105,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 //            Assert.That(sp.Lookat, Is.EqualTo(teleportLookAt));
         }
 
+/*
         [Test]
         public void TestSameSimulatorIsolatedRegionsV1()
         {
@@ -178,6 +179,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // position instead).
 //            Assert.That(sp.Lookat, Is.EqualTo(teleportLookAt));
         }
+*/
 
         [Test]
         public void TestSameSimulatorIsolatedRegionsV2()
@@ -488,6 +490,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 //            TestHelpers.DisableLogging();
         }
 
+/*
         [Test]
         public void TestSameSimulatorNeighbouringRegionsV1()
         {
@@ -573,6 +576,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
 //            TestHelpers.DisableLogging();
         }
+*/
 
         [Test]
         public void TestSameSimulatorNeighbouringRegionsV2()
