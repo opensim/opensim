@@ -228,18 +228,6 @@ namespace OpenSim.Server.Handlers.Simulation
                 // So outbound is what we will accept and inbound is what we will send. Confused yet?
                 outboundVersion = Math.Min(maxVersionProvided, VersionInfo.SimulationServiceVersionAcceptedMax);
                 inboundVersion = Math.Min(maxVersionRequired, VersionInfo.SimulationServiceVersionSupportedMax);
-
-                // Here, the two versions we determined are combined into a single version for legacy response.
-                version = Math.Max(inboundVersion, outboundVersion);
-
-                if (version < VersionInfo.SimulationServiceVersionAcceptedMin ||
-                    version > VersionInfo.SimulationServiceVersionAcceptedMax ||
-                    version < VersionInfo.SimulationServiceVersionSupportedMin ||
-                    version > VersionInfo.SimulationServiceVersionSupportedMax)
-                {
-                    // If the single version can't resolve, fall back to safest. This will only affect very old regions.
-                    version = 0.1f;
-                }
             }
 
             List<UUID> features = new List<UUID>();
