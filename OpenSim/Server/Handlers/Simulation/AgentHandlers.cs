@@ -260,6 +260,12 @@ namespace OpenSim.Server.Handlers.Simulation
             EntityTransferContext ctx = new EntityTransferContext();
             ctx.InboundVersion = inboundVersion;
             ctx.OutboundVersion = outboundVersion;
+            if (minVersionProvided == 0f)
+            {
+                ctx.InboundVersion = version;
+                ctx.OutboundVersion = version;
+            }
+
             bool result = m_SimulationService.QueryAccess(destination, agentID, agentHomeURI, viaTeleport, position, features, ctx, out reason);
 
             resp["success"] = OSD.FromBoolean(result);
