@@ -122,6 +122,7 @@ namespace OpenSim.Services.Connectors.Simulation
             try
             {
                 OSDMap args = aCircuit.PackAgentCircuitData(ctx);
+                args["context"] = ctx.Pack();
                 PackData(args, source, aCircuit, destination, flags);
 
                 OSDMap result = WebUtil.PostToServiceCompressed(uri, args, 30000);
@@ -266,6 +267,7 @@ namespace OpenSim.Services.Connectors.Simulation
                 args["destination_y"] = OSD.FromString(destination.RegionLocY.ToString());
                 args["destination_name"] = OSD.FromString(destination.RegionName);
                 args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
+                args["context"] = ctx.Pack();
 
                 OSDMap result = WebUtil.PutToServiceCompressed(uri, args, timeout);
                 if (result["Success"].AsBoolean())
@@ -307,6 +309,8 @@ namespace OpenSim.Services.Connectors.Simulation
             request.Add("simulation_service_supported_max", OSD.FromReal(VersionInfo.SimulationServiceVersionSupportedMax));
             request.Add("simulation_service_accepted_min", OSD.FromReal(VersionInfo.SimulationServiceVersionAcceptedMin));
             request.Add("simulation_service_accepted_max", OSD.FromReal(VersionInfo.SimulationServiceVersionAcceptedMax));
+
+            request.Add("context", ctx.Pack());
 
             OSDArray features = new OSDArray();
             foreach (UUID feature in featuresAvailable)
