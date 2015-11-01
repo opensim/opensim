@@ -392,6 +392,11 @@ namespace OpenSim.Services.Connectors.Simulation
                     foreach (OSD o in array)
                         featuresAvailable.Add(new UUID(o.AsString()));
                 }
+
+                // Version stuff
+                if (ctx.OutboundVersion < 0.4)
+                    ctx.WearablesCount = AvatarWearable.LEGACY_VERSION_MAX_WEARABLES;
+
                 return success;
             }
             catch (Exception e)
