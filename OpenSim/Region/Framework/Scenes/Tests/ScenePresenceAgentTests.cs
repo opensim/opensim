@@ -44,6 +44,7 @@ using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
 using OpenSim.Tests.Common;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
@@ -226,7 +227,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // *** This is the first stage, when a neighbouring region is told that a viewer is about to try and
             // establish a child scene presence.  We pass in the circuit code that the client has to connect with ***
             // XXX: ViaLogin may not be correct here.
-            scene.SimulationService.CreateAgent(null, region, acd, (uint)TeleportFlags.ViaLogin, out reason);
+            EntityTransferContext ctx = new EntityTransferContext();
+            scene.SimulationService.CreateAgent(null, region, acd, (uint)TeleportFlags.ViaLogin, ctx, out reason);
 
             Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(agentId), Is.Not.Null);
             Assert.That(scene.AuthenticateHandler.GetAgentCircuits().Count, Is.EqualTo(1));

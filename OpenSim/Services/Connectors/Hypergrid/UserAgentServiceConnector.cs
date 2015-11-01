@@ -138,7 +138,8 @@ namespace OpenSim.Services.Connectors.Hypergrid
             Console.WriteLine("   >>> LoginAgentToGrid <<< " + home.ServerURI);
 
             uint flags = fromLogin ? (uint)TeleportFlags.ViaLogin : (uint)TeleportFlags.ViaHome;
-            return CreateAgent(source, home, aCircuit, flags, out reason);
+            EntityTransferContext ctx = new EntityTransferContext();
+            return CreateAgent(source, home, aCircuit, flags, ctx, out reason);
         }
 
 

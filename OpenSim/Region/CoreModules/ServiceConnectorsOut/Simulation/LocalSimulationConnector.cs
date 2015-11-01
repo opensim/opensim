@@ -185,7 +185,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
          * Agent-related communications
          */
 
-        public bool CreateAgent(GridRegion source, GridRegion destination, AgentCircuitData aCircuit, uint teleportFlags, out string reason)
+        public bool CreateAgent(GridRegion source, GridRegion destination, AgentCircuitData aCircuit, uint teleportFlags, EntityTransferContext ctx, out string reason)
         {
             if (destination == null)
             {
@@ -204,7 +204,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return false;
         }
 
-        public bool UpdateAgent(GridRegion destination, AgentData cAgentData)
+        public bool UpdateAgent(GridRegion destination, AgentData cAgentData, EntityTransferContext ctx)
         {
             if (destination == null)
                 return false;

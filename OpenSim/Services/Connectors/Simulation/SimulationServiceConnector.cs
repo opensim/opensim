@@ -98,13 +98,13 @@ namespace OpenSim.Services.Connectors.Simulation
             args["teleport_flags"] = OSD.FromString(flags.ToString());
         }
 
-        public bool CreateAgent(GridRegion source, GridRegion destination, AgentCircuitData aCircuit, uint flags, out string reason)
+        public bool CreateAgent(GridRegion source, GridRegion destination, AgentCircuitData aCircuit, uint flags, EntityTransferContext ctx, out string reason)
         {
             string tmp = String.Empty;
-            return CreateAgent(source, destination, aCircuit, flags, out tmp, out reason);
+            return CreateAgent(source, destination, aCircuit, flags, ctx, out tmp, out reason);
         }
 
-        public bool CreateAgent(GridRegion source, GridRegion destination, AgentCircuitData aCircuit, uint flags, out string myipaddress, out string reason)
+        public bool CreateAgent(GridRegion source, GridRegion destination, AgentCircuitData aCircuit, uint flags, EntityTransferContext ctx, out string myipaddress, out string reason)
         {
             m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: Creating agent at {0}", destination.ServerURI);
             reason = String.Empty;
@@ -121,7 +121,7 @@ namespace OpenSim.Services.Connectors.Simulation
             
             try
             {
-                OSDMap args = aCircuit.PackAgentCircuitData();
+                OSDMap args = aCircuit.PackAgentCircuitData(-1);
                 PackData(args, source, aCircuit, destination, flags);
 
                 OSDMap result = WebUtil.PostToServiceCompressed(uri, args, 30000);
@@ -172,9 +172,9 @@ namespace OpenSim.Services.Connectors.Simulation
         /// <summary>
         /// Send complete data about an agent in this region to a neighbor
         /// </summary>
-        public bool UpdateAgent(GridRegion destination, AgentData data)
+        public bool UpdateAgent(GridRegion destination, AgentData data, EntityTransferContext ctx)
         {
-            return UpdateAgent(destination, (IAgentData)data, 200000); // yes, 200 seconds
+            return UpdateAgent(destination, (IAgentData)data, ctx, 200000); // yes, 200 seconds
         }
 
         private ExpiringCache<string, bool> _failedSims = new ExpiringCache<string, bool>();
@@ -235,7 +235,8 @@ namespace OpenSim.Services.Connectors.Simulation
                     }
                 }
 
-                success = UpdateAgent(destination, (IAgentData)pos, 10000);
+                EntityTransferContext ctx = new EntityTransferContext(); // Dummy, not needed for position
+                success = UpdateAgent(destination, (IAgentData)pos, ctx, 10000);
             }
             // we get here iff success == false
             // blacklist sim for 2 minutes
@@ -250,7 +251,7 @@ namespace OpenSim.Services.Connectors.Simulation
         /// <summary>
         /// This is the worker function to send AgentData to a neighbor region
         /// </summary>
-        private bool UpdateAgent(GridRegion destination, IAgentData cAgentData, int timeout)
+        private bool UpdateAgent(GridRegion destination, IAgentData cAgentData, EntityTransferContext ctx, int timeout)
         {
             // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: UpdateAgent in {0}", destination.ServerURI);
 

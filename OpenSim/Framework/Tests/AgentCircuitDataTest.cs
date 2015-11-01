@@ -312,7 +312,7 @@ namespace OpenSim.Framework.Tests
            Agent1Data.startpos = StartPos;
 
             OSDMap map2;
-            OSDMap map = Agent1Data.PackAgentCircuitData();
+            OSDMap map = Agent1Data.PackAgentCircuitData(-1);
             try
             {
                 string str = OSDParser.SerializeJsonString(map);

@@ -68,7 +68,7 @@ namespace OpenSim.Framework
         public static readonly int ALPHA = 13;
         public static readonly int TATTOO = 14;
 
-        public static readonly int MAX_WEARABLES = 15;
+        public static readonly int LEGACY_VERSION_MAX_WEARABLES = 15;
 //        public static readonly int PHYSICS = 15;
 //        public static int MAX_WEARABLES = 16;
 
@@ -225,8 +225,9 @@ namespace OpenSim.Framework
         {
             get
             {
-                AvatarWearable[] defaultWearables = new AvatarWearable[MAX_WEARABLES];
-                for (int i = 0; i < MAX_WEARABLES; i++)
+                // We use the legacy count here because this is just a fallback anyway
+                AvatarWearable[] defaultWearables = new AvatarWearable[LEGACY_VERSION_MAX_WEARABLES];
+                for (int i = 0; i < LEGACY_VERSION_MAX_WEARABLES; i++)
                 {
                     defaultWearables[i] = new AvatarWearable();
                 }

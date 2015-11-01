@@ -281,7 +281,9 @@ namespace OpenSim.Services.HypergridService
             }
             else
             {
-                success = m_GatekeeperConnector.CreateAgent(source, region, agentCircuit, (uint)Constants.TeleportFlags.ViaLogin, out myExternalIP, out reason);
+                //TODO: Should there not be a call to QueryAccess here?
+                EntityTransferContext ctx = new EntityTransferContext();
+                success = m_GatekeeperConnector.CreateAgent(source, region, agentCircuit, (uint)Constants.TeleportFlags.ViaLogin, ctx, out myExternalIP, out reason);
             }
 
             if (!success)

@@ -853,7 +853,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
             if (invService.GetRootFolder(userID) != null)
             {
-                for (int i = 0; i < AvatarWearable.MAX_WEARABLES; i++)
+                for (int i = 0; i < appearance.Wearables.Length; i++)
                 {
                     for (int j = 0; j < appearance.Wearables[i].Count; j++)
                     {
@@ -1258,8 +1258,17 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
             foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
             {
-                if (wear.Type < AvatarWearable.MAX_WEARABLES)
-                    avatAppearance.Wearables[wear.Type].Add(wear.ItemID, UUID.Zero);
+                // If the wearable type is larger than the current array, expand it
+                if (avatAppearance.Wearables.Length <= wear.Type)
+                {
+                    int currentLength = avatAppearance.Wearables.Length;
+                    AvatarWearable[] wears = avatAppearance.Wearables;
+                    Array.Resize(ref wears, wear.Type + 1);
+                    for (int i = currentLength ; i <= wear.Type ; i++)
+                        wears[i] = new AvatarWearable();
+                    avatAppearance.Wearables = wears;
+                }
+                avatAppearance.Wearables[wear.Type].Add(wear.ItemID, UUID.Zero);
             }
 
             avatAppearance.GetAssetsFrom(sp.Appearance);

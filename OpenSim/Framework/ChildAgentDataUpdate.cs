@@ -61,7 +61,7 @@ namespace OpenSim.Framework
     {
         UUID AgentID { get; set; }
 
-        OSDMap Pack();
+        OSDMap Pack(Object parms = null);
         void Unpack(OSDMap map, IScene scene);
     }
 
@@ -96,7 +96,7 @@ namespace OpenSim.Framework
 
         public Dictionary<ulong, string> ChildrenCapSeeds = null;
 
-        public OSDMap Pack()
+        public OSDMap Pack(Object parms = null)
         {
             OSDMap args = new OSDMap();
             args["message_type"] = OSD.FromString("AgentPosition");
@@ -391,8 +391,18 @@ namespace OpenSim.Framework
 
         public Dictionary<string, UUID> MovementAnimationOverRides = new Dictionary<string, UUID>();
 
-        public virtual OSDMap Pack()
+        public virtual OSDMap Pack(Object parms = null)
         {
+            int wearablesCount = -1;
+
+            if (parms != null)
+            {
+                Hashtable p = (Hashtable)parms;
+
+                if (p.ContainsKey("wearablesCount"))
+                    wearablesCount = (int)p["wearablesCount"];
+            }
+
 //            m_log.InfoFormat("[CHILDAGENTDATAUPDATE] Pack data");
 
             OSDMap args = new OSDMap();
@@ -493,7 +503,7 @@ namespace OpenSim.Framework
             }
 
             if (Appearance != null)
-                args["packed_appearance"] = Appearance.Pack();
+                args["packed_appearance"] = Appearance.Pack(wearablesCount);
 
             //if ((AgentTextures != null) && (AgentTextures.Length > 0))
             //{
@@ -800,11 +810,7 @@ namespace OpenSim.Framework
                 {
                     OSDArray wears = (OSDArray)(args["wearables"]);
 
-                    int count = wears.Count;
-                    if (count > AvatarWearable.MAX_WEARABLES)
-                        count = AvatarWearable.MAX_WEARABLES;
-
-                    for (int i = 0; i < count / 2; i++)
+                    for (int i = 0; i < wears.Count / 2; i++)
                     {
                         AvatarWearable awear = new AvatarWearable((OSDArray)wears[i]);
                         Appearance.SetWearable(i, awear);
@@ -897,9 +903,9 @@ namespace OpenSim.Framework
 
     public class CompleteAgentData : AgentData
     {
-        public override OSDMap Pack() 
+        public override OSDMap Pack(object parms = null) 
         {
-            return base.Pack();
+            return base.Pack(parms);
         }
 
         public override void Unpack(OSDMap map, IScene scene)

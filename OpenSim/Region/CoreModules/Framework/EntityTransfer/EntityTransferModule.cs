@@ -849,7 +849,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Let's create an agent there if one doesn't exist yet. 
             // NOTE: logout will always be false for a non-HG teleport.
             bool logout = false;
-            if (!CreateAgent(sp, reg, finalDestination, agentCircuit, teleportFlags, out reason, out logout))
+            if (!CreateAgent(sp, reg, finalDestination, agentCircuit, teleportFlags, ctx, out reason, out logout))
             {
                 m_interRegionTeleportFailures.Value++;
 
@@ -948,7 +948,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // destination region but the viewer cannot establish the connection (e.g. due to network issues between
             // the viewer and the destination).  In this case, UpdateAgent timesout after 10 seconds, although then
             // there's a further 10 second wait whilst we attempt to tell the destination to delete the agent in Fail().
-            if (!UpdateAgent(reg, finalDestination, agent, sp))
+            if (!UpdateAgent(reg, finalDestination, agent, sp, ctx))
             {
                 if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Aborting)
                 {
@@ -1084,7 +1084,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Let's create an agent there if one doesn't exist yet. 
             // NOTE: logout will always be false for a non-HG teleport.
             bool logout = false;
-            if (!CreateAgent(sp, reg, finalDestination, agentCircuit, teleportFlags, out reason, out logout))
+            if (!CreateAgent(sp, reg, finalDestination, agentCircuit, teleportFlags, ctx, out reason, out logout))
             {
                 m_interRegionTeleportFailures.Value++;
 
@@ -1158,7 +1158,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Send the Update. If this returns true, we know the client has contacted the destination
             // via CompleteMovementIntoRegion, so we can let go.
             // If it returns false, something went wrong, and we need to abort.
-            if (!UpdateAgent(reg, finalDestination, agent, sp))
+            if (!UpdateAgent(reg, finalDestination, agent, sp, ctx))
             {
                 if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Aborting)
                 {
@@ -1280,13 +1280,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             sp.Scene.EventManager.TriggerTeleportFail(sp.ControllingClient, logout);
         }
 
-        protected virtual bool CreateAgent(ScenePresence sp, GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason, out bool logout)
+        protected virtual bool CreateAgent(ScenePresence sp, GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, EntityTransferContext ctx, out string reason, out bool logout)
         {
             GridRegion source = new GridRegion(Scene.RegionInfo);
             source.RawServerURI = m_GatekeeperURI;
 
             logout = false;
-            bool success = Scene.SimulationService.CreateAgent(source, finalDestination, agentCircuit, teleportFlags, out reason);
+            bool success = Scene.SimulationService.CreateAgent(source, finalDestination, agentCircuit, teleportFlags, ctx, out reason);
 
             if (success)
                 sp.Scene.EventManager.TriggerTeleportStart(sp.ControllingClient, reg, finalDestination, teleportFlags, logout);
@@ -1294,9 +1294,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return success;
         }
 
-        protected virtual bool UpdateAgent(GridRegion reg, GridRegion finalDestination, AgentData agent, ScenePresence sp)
+        protected virtual bool UpdateAgent(GridRegion reg, GridRegion finalDestination, AgentData agent, ScenePresence sp, EntityTransferContext ctx)
         {
-            return Scene.SimulationService.UpdateAgent(finalDestination, agent);
+            return Scene.SimulationService.UpdateAgent(finalDestination, agent, ctx);
         }
 
         protected virtual void SetCallbackURL(AgentData agent, RegionInfo region)
@@ -1679,7 +1679,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     m_entityTransferStateMachine.ResetFromTransit(agent.UUID);
                 }
 
-                if (!CrossAgentIntoNewRegionMain(agent, pos, neighbourRegion, isFlying))
+                if (!CrossAgentIntoNewRegionMain(agent, pos, neighbourRegion, isFlying, ctx))
                 {
                     m_log.DebugFormat("{0}: CrossAgentToNewRegionAsync: cross main failed. Resetting transfer state", LogHeader);
                     m_entityTransferStateMachine.ResetFromTransit(agent.UUID);
@@ -1695,7 +1695,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return agent;
         }
 
-        public bool CrossAgentIntoNewRegionMain(ScenePresence agent, Vector3 pos, GridRegion neighbourRegion, bool isFlying)
+        public bool CrossAgentIntoNewRegionMain(ScenePresence agent, Vector3 pos, GridRegion neighbourRegion, bool isFlying, EntityTransferContext ctx)
         {
             int ts = Util.EnvironmentTickCount();
             try
@@ -1718,7 +1718,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // Beyond this point, extra cleanup is needed beyond removing transit state
                 m_entityTransferStateMachine.UpdateInTransit(agent.UUID, AgentTransferState.Transferring);
 
-                if (!agent.Scene.SimulationService.UpdateAgent(neighbourRegion, cAgent))
+                if (!agent.Scene.SimulationService.UpdateAgent(neighbourRegion, cAgent, ctx))
                 {
                     // region doesn't take it
                     m_entityTransferStateMachine.UpdateInTransit(agent.UUID, AgentTransferState.CleaningUp);
@@ -2360,7 +2360,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 string reason = String.Empty;
 
-                bool regionAccepted = scene.SimulationService.CreateAgent(reg, reg, a, (uint)TeleportFlags.Default, out reason);
+                EntityTransferContext ctx = new EntityTransferContext();
+                bool regionAccepted = scene.SimulationService.CreateAgent(reg, reg, a, (uint)TeleportFlags.Default, ctx, out reason);
 
                 if (regionAccepted)
                 {

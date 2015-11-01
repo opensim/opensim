@@ -12233,10 +12233,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             cachedresp.WearableData =
                 new AgentCachedTextureResponsePacket.WearableDataBlock[cachedtex.WearableData.Length];
 
-            int maxWearablesLoop = cachedtex.WearableData.Length;
-            if (maxWearablesLoop > AvatarWearable.MAX_WEARABLES)
-                maxWearablesLoop = AvatarWearable.MAX_WEARABLES;
-
             int cacheHits = 0;
 
             // We need to make sure the asset stored in the bake is available on this server also by it's assetid before we map it to a Cacheid
@@ -12249,6 +12245,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 cacheItems = p.Appearance.WearableCacheItems;
             }
+
+            int maxWearablesLoop = cachedtex.WearableData.Length;
+            if (maxWearablesLoop > cacheItems.Length)
+                maxWearablesLoop = cacheItems.Length;
 
             if (cacheItems != null)
             {

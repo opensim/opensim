@@ -459,7 +459,7 @@ namespace OpenSim.Services.HypergridService
                 true, aCircuit.startpos, new List<UUID>(), ctx, out reason))
                 return false;
 
-            return m_SimulationService.CreateAgent(source, destination, aCircuit, (uint)loginFlag, out reason);
+            return m_SimulationService.CreateAgent(source, destination, aCircuit, (uint)loginFlag, ctx, out reason);
         }
 
         protected bool Authenticate(AgentCircuitData aCircuit)

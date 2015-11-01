@@ -999,7 +999,7 @@ namespace OpenSim.Services.LLLoginService
                     region, aCircuit.AgentID, null, true, aCircuit.startpos, new List<UUID>(), ctx, out reason))
                 return false;
 
-            return simConnector.CreateAgent(null, region, aCircuit, (uint)flags, out reason);
+            return simConnector.CreateAgent(null, region, aCircuit, (uint)flags, ctx, out reason);
         }
 
         private bool LaunchAgentIndirectly(GridRegion gatekeeper, GridRegion destination, AgentCircuitData aCircuit, IPEndPoint clientIP, out string reason)

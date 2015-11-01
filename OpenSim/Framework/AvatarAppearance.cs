@@ -211,13 +211,12 @@ namespace OpenSim.Framework
 
             m_serial = appearance.Serial;
 
-            m_wearables = new AvatarWearable[AvatarWearable.MAX_WEARABLES];
-            for (int i = 0; i < AvatarWearable.MAX_WEARABLES; i++)
-                m_wearables[i] = new AvatarWearable();
+            ClearWearables();
 
             if (copyWearables && (appearance.Wearables != null))
             {
-                for (int i = 0; i < AvatarWearable.MAX_WEARABLES; i++)
+                m_wearables = new AvatarWearable[appearance.Wearables.Length];
+                for (int i = 0; i < appearance.Wearables.Length; i++)
                     SetWearable(i,appearance.Wearables[i]);
             }
 
@@ -247,7 +246,7 @@ namespace OpenSim.Framework
 
         public void GetAssetsFrom(AvatarAppearance app)
         {
-            for (int i = 0; i < AvatarWearable.MAX_WEARABLES; i++)
+            for (int i = 0; i < m_wearables.Length; i++)
             {
                 for (int j = 0; j < m_wearables[i].Count; j++)
                 {
@@ -262,8 +261,8 @@ namespace OpenSim.Framework
 
         public void ClearWearables()
         {
-            m_wearables = new AvatarWearable[AvatarWearable.MAX_WEARABLES];
-            for (int i = 0; i < AvatarWearable.MAX_WEARABLES; i++)
+            m_wearables = new AvatarWearable[AvatarWearable.LEGACY_VERSION_MAX_WEARABLES];
+            for (int i = 0; i < AvatarWearable.LEGACY_VERSION_MAX_WEARABLES; i++)
                 m_wearables[i] = new AvatarWearable();
         }
 
@@ -470,11 +469,15 @@ namespace OpenSim.Framework
 // DEBUG ON
 //          m_log.WarnFormat("[AVATARAPPEARANCE] set wearable {0} --> {1}:{2}",wearableId,wearable.ItemID,wearable.AssetID);
 // DEBUG OFF
+            if (wearableId >= m_wearables.Length)
+            {
+                int currentLength = m_wearables.Length;
+                Array.Resize(ref m_wearables, wearableId + 1);
+                for (int i = currentLength ; i < m_wearables.Length ; i++)
+                    m_wearables[i] = new AvatarWearable();
+            }
             m_wearables[wearableId].Clear();
-            int count = wearable.Count;
-            if (count > AvatarWearable.MAX_WEARABLES)
-                count = AvatarWearable.MAX_WEARABLES;
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < wearable.Count; i++)
                 m_wearables[wearableId].Add(wearable[i].ItemID, wearable[i].AssetID);
         }
 
@@ -714,7 +717,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Create an OSDMap from the appearance data
         /// </summary>
-        public OSDMap Pack()
+        public OSDMap Pack(int wearablesCount)
         {
             OSDMap data = new OSDMap();
 
@@ -722,9 +725,22 @@ namespace OpenSim.Framework
             data["height"] = OSD.FromReal(m_avatarHeight);
 
             // Wearables
-            OSDArray wears = new OSDArray(AvatarWearable.MAX_WEARABLES);
-            for (int i = 0; i < AvatarWearable.MAX_WEARABLES; i++)
-                wears.Add(m_wearables[i].Pack());
+            //
+            // This will send as many or as few wearables as we have, unless a count
+            // is given. Used for legacy (pre 0.4) versions.
+            int count = wearablesCount;
+            if (wearablesCount == -1)
+                count = m_wearables.Length;
+            OSDArray wears = new OSDArray(count);
+            for (int i = 0; i < count; i++)
+            {
+                AvatarWearable dummyWearable = new AvatarWearable();
+
+                if (i < m_wearables.Length)
+                    wears.Add(m_wearables[i].Pack());
+                else
+                    wears.Add(dummyWearable.Pack());
+            }
             data["wearables"] = wears;
 
             // Avatar Textures
@@ -782,8 +798,8 @@ namespace OpenSim.Framework
                     OSDArray wears = (OSDArray)(data["wearables"]);
 
                     int count = wears.Count;
-                    if (count > AvatarWearable.MAX_WEARABLES)
-                        count = AvatarWearable.MAX_WEARABLES;
+
+                    m_wearables = new AvatarWearable[count];
 
                     for (int i = 0; i < count; i++)
                         m_wearables[i] = new AvatarWearable((OSDArray)wears[i]);

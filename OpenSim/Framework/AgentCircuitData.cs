@@ -184,7 +184,7 @@ namespace OpenSim.Framework
         /// Pack AgentCircuitData into an OSDMap for transmission over LLSD XML or LLSD json
         /// </summary>
         /// <returns>map of the agent circuit data</returns>
-        public OSDMap PackAgentCircuitData()
+        public OSDMap PackAgentCircuitData(int wearablesCount)
         {
             OSDMap args = new OSDMap();
             args["agent_id"] = OSD.FromUUID(AgentID);
@@ -224,7 +224,7 @@ namespace OpenSim.Framework
             {
                 args["appearance_serial"] = OSD.FromInteger(Appearance.Serial);
 
-                OSDMap appmap = Appearance.Pack();
+                OSDMap appmap = Appearance.Pack(wearablesCount);
                 args["packed_appearance"] = appmap;
             }
 

@@ -263,7 +263,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
         }
 
-        protected override bool CreateAgent(ScenePresence sp, GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason, out bool logout)
+        protected override bool CreateAgent(ScenePresence sp, GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, EntityTransferContext ctx, out string reason, out bool logout)
         {
             m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: CreateAgent {0} {1}", reg.ServerURI, finalDestination.ServerURI);
             reason = string.Empty;
@@ -308,7 +308,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
             }
 
-            return base.CreateAgent(sp, reg, finalDestination, agentCircuit, teleportFlags, out reason, out logout);
+            return base.CreateAgent(sp, reg, finalDestination, agentCircuit, teleportFlags, ctx, out reason, out logout);
         }
 
         public void TriggerTeleportHome(UUID id, IClientAPI client)
@@ -333,7 +333,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: RestrictAppearanceAbroad is ON. Checking generic appearance");
 
                     // Check wearables
-                    for (int i = 0; i < AvatarWearable.MAX_WEARABLES; i++)
+                    for (int i = 0; i < sp.Appearance.Wearables.Length ; i++)
                     {
                         for (int j = 0; j < sp.Appearance.Wearables[i].Count; j++)
                         {
@@ -342,7 +342,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                             bool found = false;
                             foreach (AvatarAppearance a in ExportedAppearance)
-                                if (a.Wearables[i] != null)
+                                if (i < a.Wearables.Length && a.Wearables[i] != null)
                                 {
                                     found = true;
                                     break;
@@ -356,7 +356,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                             found = false;
                             foreach (AvatarAppearance a in ExportedAppearance)
-                                if (sp.Appearance.Wearables[i][j].AssetID == a.Wearables[i][j].AssetID)
+                                if (i < a.Wearables.Length && sp.Appearance.Wearables[i][j].AssetID == a.Wearables[i][j].AssetID)
                                 {
                                     found = true;
                                     break;

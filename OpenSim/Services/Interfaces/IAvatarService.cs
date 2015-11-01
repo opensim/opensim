@@ -150,7 +150,8 @@ namespace OpenSim.Services.Interfaces
             // Wearables
             Data["AvatarHeight"] = appearance.AvatarHeight.ToString();
 
-            for (int i = 0 ; i < AvatarWearable.MAX_WEARABLES ; i++)
+            // TODO: With COF, is this even needed?
+            for (int i = 0 ; i < AvatarWearable.LEGACY_VERSION_MAX_WEARABLES ; i++)
             {
                 for (int j = 0 ; j < appearance.Wearables[i].Count ; j++)
                 {

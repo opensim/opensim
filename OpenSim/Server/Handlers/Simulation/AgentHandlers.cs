@@ -461,6 +461,7 @@ namespace OpenSim.Server.Handlers.Simulation
             // This is the meaning of POST agent
             //m_regionClient.AdjustUserInformation(aCircuit);
             //bool result = m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out reason);
+
             bool result = CreateAgent(source, gatekeeper, destination, aCircuit, data.flags, data.fromLogin, out reason);
 
             resp["reason"] = OSD.FromString(reason);
@@ -539,12 +540,15 @@ namespace OpenSim.Server.Handlers.Simulation
             AgentCircuitData aCircuit, uint teleportFlags, bool fromLogin, out string reason)
         {
             reason = String.Empty;
+            // The data and protocols are already defined so this is just a dummy to satisfy the interface
+            // TODO: make this end-to-end
+            EntityTransferContext ctx = new EntityTransferContext();
             if ((teleportFlags & (uint)TeleportFlags.ViaLogin) == 0)
             {
                 Util.FireAndForget(x =>
                 {
                     string r;
-                    m_SimulationService.CreateAgent(source, destination, aCircuit, teleportFlags, out r);
+                    m_SimulationService.CreateAgent(source, destination, aCircuit, teleportFlags, ctx, out r);
                     m_log.DebugFormat("[AGENT HANDLER]: ASYNC CreateAgent {0}", r);
                 });
 
@@ -553,7 +557,7 @@ namespace OpenSim.Server.Handlers.Simulation
             else
             {
 
-                bool ret = m_SimulationService.CreateAgent(source, destination, aCircuit, teleportFlags, out reason);
+                bool ret = m_SimulationService.CreateAgent(source, destination, aCircuit, teleportFlags, ctx, out reason);
                 m_log.DebugFormat("[AGENT HANDLER]: SYNC CreateAgent {0} {1}", ret.ToString(), reason);
                 return ret;
             }
@@ -739,7 +743,10 @@ namespace OpenSim.Server.Handlers.Simulation
         // subclasses can override this
         protected virtual bool UpdateAgent(GridRegion destination, AgentData agent)
         {
-            return m_SimulationService.UpdateAgent(destination, agent);
+            // The data and protocols are already defined so this is just a dummy to satisfy the interface
+            // TODO: make this end-to-end
+            EntityTransferContext ctx = new EntityTransferContext();
+            return m_SimulationService.UpdateAgent(destination, agent, ctx);
         }
     }
 

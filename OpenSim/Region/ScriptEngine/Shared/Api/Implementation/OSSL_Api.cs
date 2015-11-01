@@ -3114,7 +3114,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (appearanceModule != null)
             {
                 appearanceModule.SaveBakedTextures(sp.UUID);
-                OSDMap appearancePacked = sp.Appearance.Pack();
+                OSDMap appearancePacked = sp.Appearance.Pack(-1);
 
                 TaskInventoryItem item
                     = SaveNotecard(notecard, "Avatar Appearance", Util.GetFormattedXml(appearancePacked as OSD), true);

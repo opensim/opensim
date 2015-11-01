@@ -74,7 +74,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="aCircuit"></param>
         /// <param name="flags"></param>
         /// <param name="reason">Reason message in the event of a failure.</param>        
-        bool CreateAgent(GridRegion source, GridRegion destination, AgentCircuitData aCircuit, uint flags, out string reason);
+        bool CreateAgent(GridRegion source, GridRegion destination, AgentCircuitData aCircuit, uint flags, EntityTransferContext ctx, out string reason);
 
         /// <summary>
         /// Full child agent update.
@@ -82,7 +82,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="regionHandle"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        bool UpdateAgent(GridRegion destination, AgentData data);
+        bool UpdateAgent(GridRegion destination, AgentData data, EntityTransferContext ctx);
 
         /// <summary>
         /// Short child agent update, mostly for position.
