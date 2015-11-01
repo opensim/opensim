@@ -71,12 +71,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                     m_enabled = false;
                     return;
                 }
+ 
+            m_whisperdistance = m_config.GetInt("whisper_distance", m_whisperdistance);
+            m_saydistance = m_config.GetInt("say_distance", m_saydistance);
+            m_shoutdistance = m_config.GetInt("shout_distance", m_shoutdistance);
+            m_adminPrefix = m_config.GetString("admin_prefix", "");
             }
-
-            m_whisperdistance = config.Configs["Chat"].GetInt("whisper_distance", m_whisperdistance);
-            m_saydistance = config.Configs["Chat"].GetInt("say_distance", m_saydistance);
-            m_shoutdistance = config.Configs["Chat"].GetInt("shout_distance", m_shoutdistance);
-            m_adminPrefix = config.Configs["Chat"].GetString("admin_prefix", "");
         }
 
         public virtual void AddRegion(Scene scene)
