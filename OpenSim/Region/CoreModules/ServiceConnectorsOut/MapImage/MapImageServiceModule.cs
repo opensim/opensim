@@ -58,7 +58,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static string LogHeader = "[MAP IMAGE SERVICE MODULE]";
+        private static string LogHeader = "[MAP IMAGE SERVICE MODULE]:";
 
         private bool m_enabled = false;
         private IMapImageService m_MapService;
@@ -204,6 +204,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
 
         public void UploadMapTile(IScene scene, Bitmap mapTile)
         {
+            if (mapTile == null)
+            {
+                m_log.WarnFormat("{0} Cannot upload null image", LogHeader);
+                return;
+            }
+
             m_log.DebugFormat("{0} Upload maptile for {1}", LogHeader, scene.Name);
 
             // mapTile.Save(   // DEBUG DEBUG
