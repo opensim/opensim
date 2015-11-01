@@ -346,6 +346,8 @@ namespace OpenSim.Services.Connectors.Simulation
                             ctx.OutboundVersion = float.Parse(parts[1]);
                         }
                     }
+                    if (data.ContainsKey("variable_wearables_count_supported"))
+                        ctx.VariableWearablesSupported = true;
 
                     m_log.DebugFormat(
                         "[REMOTE SIMULATION CONNECTOR]: QueryAccess to {0} returned {1}, reason {2}, version {3}/{4}",
