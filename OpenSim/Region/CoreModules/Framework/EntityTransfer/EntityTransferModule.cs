@@ -1442,10 +1442,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         #region Agent Crossings
 
-        public bool checkAgentAccessToRegion(ScenePresence agent, GridRegion destiny, Vector3 position, out string version, out string reason)
+        public bool checkAgentAccessToRegion(ScenePresence agent, GridRegion destiny, Vector3 position,
+                EntityTransferContext ctx, out string reason)
         {
             reason = String.Empty;
-            version = String.Empty;
 
             UUID agentID = agent.UUID;
             ulong destinyHandle = destiny.RegionHandle;
@@ -1460,7 +1460,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
  
 
             if (!ascene.SimulationService.QueryAccess(destiny, agentID, homeURI, false, position,
-                    m_myVersion, agent.Scene.GetFormatsOffered(), out version, out reason))
+                   agent.Scene.GetFormatsOffered(), ctx, out reason))
             {
                 m_bannedRegionCache.Add(destinyHandle, agentID, 30.0, 30.0);
                 return false;
@@ -1468,10 +1468,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return true;
         }
 
-        public GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos, out string version, out Vector3 newpos)
+        public GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos, EntityTransferContext ctx, out Vector3 newpos)
         {
             string r = String.Empty;
-            return GetDestination(scene, agentID, pos, out version, out newpos, out r);
+            return GetDestination(scene, agentID, pos, ctx, out newpos, out r);
         }
 
         // Given a position relative to the current region and outside of it
@@ -1573,7 +1573,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
 //            agent.IsInTransit = true;
 
-            CrossAgentToNewRegionAsync(agent, newpos, neighbourRegion, isFlying, version);
+            CrossAgentToNewRegionAsync(agent, newpos, neighbourRegion, isFlying, ctx);
             agent.IsInTransit = false;
             return agent;
         }
@@ -1787,14 +1787,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                             capsPath);
             }
 
+/*
             // Backwards compatibility. Best effort
-            if (version == "Unknown" || version == string.Empty)
+            if (version == 0f)
             {
                 m_log.DebugFormat("[ENTITY TRANSFER MODULE]: neighbor with old version, passing attachments one by one...");
                 Thread.Sleep(3000); // wait a little now that we're not waiting for the callback
                 CrossAttachmentsIntoNewRegion(neighbourRegion, agent, true);
             }
-
+*/
             // SUCCESS!
             m_entityTransferStateMachine.UpdateInTransit(agent.UUID, AgentTransferState.ReceivedAtDestination);
 

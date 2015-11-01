@@ -454,7 +454,6 @@ namespace OpenSim.Services.HypergridService
 
             EntityTransferContext ctx = new EntityTransferContext();
 
-            string myversion = String.Format("SIMULATION/{0}", VersionInfo.SimulationServiceVersion);
             if (!m_SimulationService.QueryAccess(
                 destination, aCircuit.AgentID, aCircuit.ServiceURLs["HomeURI"].ToString(), 
                 true, aCircuit.startpos, new List<UUID>(), ctx, out reason))
