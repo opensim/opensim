@@ -174,7 +174,7 @@ namespace OpenSim.Server.Handlers.Simulation
             responsedata["int_response_code"] = HttpStatusCode.OK;
             OSDMap resp = new OSDMap(3);
 
-            float version;
+            float version = 0f;
 
             float outboundVersion = 0f;
             float inboundVersion = 0f;
