@@ -34,6 +34,18 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Services.Interfaces
 {
+    public class EntityTransferContext
+    {
+        public EntityTransferContext()
+        {
+            InboundVersion = VersionInfo.SimulationServiceVersionAcceptedMax;
+            OutboundVersion = VersionInfo.SimulationServiceVersionSupportedMax;
+        }
+
+        public float InboundVersion { get; set; }
+        public float OutboundVersion { get; set; }
+    }
+
     public interface ISimulationService
     {
         /// <summary>
@@ -93,7 +105,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="version">Version that the target simulator is running</param>
         /// <param name="reason">[out] Optional error message</param>
         /// <returns>True: ok; False: not allowed</returns>
-        bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, string sversion, List<UUID> features, out string version, out string reason);
+        bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, List<UUID> features, EntityTransferContext ctx, out string reason);
 
         /// <summary>
         /// Message from receiving region to departing region, telling it got contacted by the client.

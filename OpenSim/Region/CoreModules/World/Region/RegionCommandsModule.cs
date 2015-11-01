@@ -100,7 +100,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             m_console.Commands.AddCommand(
                 "Regions", false, "region set",
-                "region get",
+                "region set",
                 "Set control information for the currently selected region.",
                 "Currently, the following parameters can be set:\n"
                 + "agent-limit <int>     - Current root agent limit.  This is persisted over restart.\n"

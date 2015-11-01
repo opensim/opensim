@@ -993,11 +993,10 @@ namespace OpenSim.Services.LLLoginService
 
         private bool LaunchAgentDirectly(ISimulationService simConnector, GridRegion region, AgentCircuitData aCircuit, TeleportFlags flags, out string reason)
         {
-            string myversion = String.Format("SIMULATION/{0}", VersionInfo.SimulationServiceVersion);
-            string version;
+            EntityTransferContext ctx = new EntityTransferContext();
 
             if (!simConnector.QueryAccess(
-                    region, aCircuit.AgentID, null, true, aCircuit.startpos, myversion, new List<UUID>(), out version, out reason))
+                    region, aCircuit.AgentID, null, true, aCircuit.startpos, new List<UUID>(), ctx, out reason))
                 return false;
 
             return simConnector.CreateAgent(null, region, aCircuit, (uint)flags, out reason);

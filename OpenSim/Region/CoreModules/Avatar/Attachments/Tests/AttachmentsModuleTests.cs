@@ -802,6 +802,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(m_numberOfAttachEventsFired, Is.EqualTo(0));
         }
 
+/*
         [Test]
         public void TestSameSimulatorNeighbouringRegionsTeleportV1()
         {
@@ -841,7 +842,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 sceneB, config, new CapabilitiesModule(), etmB, attModB, new BasicInventoryAccessModule());
 
             // FIXME: Hack - this is here temporarily to revert back to older entity transfer behaviour
-            lscm.ServiceVersion = "SIMULATION/0.1";
+            lscm.ServiceVersion = 0.1f;
 
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(sceneA, 0x1);
 
@@ -909,6 +910,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             // Check events
             Assert.That(m_numberOfAttachEventsFired, Is.EqualTo(0));
         }
+*/
 
         [Test]
         public void TestSameSimulatorNeighbouringRegionsTeleportV2()

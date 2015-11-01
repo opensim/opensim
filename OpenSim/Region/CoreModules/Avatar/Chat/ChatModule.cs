@@ -63,18 +63,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         {
             m_config = config.Configs["Chat"];
 
-            if (null == m_config)
+            if (m_config != null)
             {
-                m_log.Info("[CHAT]: no config found, plugin disabled");
-                m_enabled = false;
-                return;
-            }
-
-            if (!m_config.GetBoolean("enabled", true))
-            {
-                m_log.Info("[CHAT]: plugin disabled by configuration");
-                m_enabled = false;
-                return;
+                if (!m_config.GetBoolean("enabled", true))
+                {
+                    m_log.Info("[CHAT]: plugin disabled by configuration");
+                    m_enabled = false;
+                    return;
+                }
             }
 
             m_whisperdistance = config.Configs["Chat"].GetInt("whisper_distance", m_whisperdistance);

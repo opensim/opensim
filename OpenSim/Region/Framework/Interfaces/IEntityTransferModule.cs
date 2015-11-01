@@ -35,7 +35,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public delegate ScenePresence CrossAgentToNewRegionDelegate(ScenePresence agent, Vector3 pos, GridRegion neighbourRegion, bool isFlying, string version);
+    public delegate ScenePresence CrossAgentToNewRegionDelegate(ScenePresence agent, Vector3 pos, GridRegion neighbourRegion, bool isFlying, EntityTransferContext ctx);
     public delegate ScenePresence CrossAsyncDelegate(ScenePresence agent, bool isFlying);
 
     public interface IEntityTransferModule
@@ -93,13 +93,14 @@ namespace OpenSim.Region.Framework.Interfaces
 
         void EnableChildAgent(ScenePresence agent, GridRegion region);
 
-        GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos, out string version, out Vector3 newpos);
-        GridRegion GetObjectDestination(SceneObjectGroup grp, Vector3 targetPosition, out Vector3 newpos);
-        bool checkAgentAccessToRegion(ScenePresence agent, GridRegion destiny, Vector3 position, out string version, out string reason);
-//        void Cross(SceneObjectGroup sog, Vector3 position, bool silent);
+        GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos, EntityTransferContext ctx,
+                                        out Vector3 newpos, out string reason);
+		GridRegion GetObjectDestination(SceneObjectGroup grp, Vector3 targetPosition, out Vector3 newpos);
+        bool checkAgentAccessToRegion(ScenePresence agent, GridRegion destiny, Vector3 position, EntityTransferContext ctx, out string reason);
+
         bool CrossPrimGroupIntoNewRegion(GridRegion destination, Vector3 newPosition, SceneObjectGroup grp, bool silent, bool removeScripts);
 
-        ScenePresence CrossAgentToNewRegionAsync(ScenePresence agent, Vector3 pos, GridRegion neighbourRegion, bool isFlying, string version);
+        ScenePresence CrossAgentToNewRegionAsync(ScenePresence agent, Vector3 pos, GridRegion neighbourRegion, bool isFlying, EntityTransferContext ctx);
 
         bool HandleIncomingSceneObject(SceneObjectGroup so, Vector3 newPosition);
     }

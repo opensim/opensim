@@ -42,6 +42,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using PermissionMask = OpenSim.Framework.PermissionMask;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -534,7 +535,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public bool IsAttachmentCheckFull()
         {
-            return (IsAttachment || (m_rootPart.Shape.PCode == (byte)PCodeEnum.Primitive && m_rootPart.Shape.State != 0));
+            return (IsAttachment ||
+                (m_rootPart.Shape.PCode == (byte)PCodeEnum.Primitive && m_rootPart.Shape.State != 0));
         }
         
         private struct avtocrossInfo
@@ -679,7 +681,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             string reason = String.Empty;
-            string version = String.Empty;
+            EntityTransferContext ctx = new EntityTransferContext();
 
             foreach (ScenePresence av in sog.m_sittingAvatars)
             {
@@ -691,7 +693,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // We set the avatar position as being the object
                 // position to get the region to send to
-                if(!entityTransfer.checkAgentAccessToRegion(av, destination, newpos, out version, out reason))
+                if(!entityTransfer.checkAgentAccessToRegion(av, destination, newpos, ctx, out reason))
                 {
                     return sog;
                 }
@@ -731,7 +733,7 @@ namespace OpenSim.Region.Framework.Scenes
 
 //                        CrossAgentToNewRegionDelegate d = entityTransfer.CrossAgentToNewRegionAsync;
 //                        d.BeginInvoke(av, val, destination, av.Flying, version, CrossAgentToNewRegionCompleted, d);
-                        entityTransfer.CrossAgentToNewRegionAsync(av, newpos, destination, av.Flying, version);
+                        entityTransfer.CrossAgentToNewRegionAsync(av, newpos, destination, av.Flying, ctx);
                         if (av.IsChildAgent)
                         {
                             // avatar crossed do some extra cleanup

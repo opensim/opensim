@@ -873,8 +873,8 @@ namespace OpenSim.Framework.Servers
 
         public string GetVersionText()
         {
-            return String.Format("Version: {0} (interface version {1}, SIMULATION/{2})", 
-                m_version, VersionInfo.MajorInterfaceVersion, VersionInfo.SimulationServiceVersion);
+            return String.Format("Version: {0} (SIMULATION/{1} - SIMULATION/{2})", 
+                m_version, VersionInfo.SimulationServiceVersionSupportedMin, VersionInfo.SimulationServiceVersionSupportedMax);
         }
 
         /// <summary>

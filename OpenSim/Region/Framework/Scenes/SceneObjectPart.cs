@@ -2121,8 +2121,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                if ((!isPhantom || isPhysical || _VolumeDetectActive) && !ParentGroup.IsAttachment
-                                                && !(Shape.PathCurve == (byte)Extrusion.Flexible))
+                if ((!isPhantom || isPhysical || _VolumeDetectActive)
+                        && !ParentGroup.IsAttachmentCheckFull()
+                        && !(Shape.PathCurve == (byte)Extrusion.Flexible))
                 {
                     AddToPhysics(isPhysical, isPhantom, building, isPhysical);
                     UpdatePhysicsSubscribedEvents(); // not sure if appliable here

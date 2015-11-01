@@ -524,7 +524,9 @@ namespace OpenSim.Services.Connectors
         {
             InventoryItemBase retrieved = null;
             if (m_ItemCache.TryGetValue(item.ID, out retrieved))
+            {
                 return retrieved;
+            }
 
             try
             {
