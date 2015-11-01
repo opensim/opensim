@@ -311,8 +311,9 @@ namespace OpenSim.Framework.Tests
            Agent1Data.SessionID = SessionId;
            Agent1Data.startpos = StartPos;
 
+            EntityTransferContext ctx = new EntityTransferContext();
             OSDMap map2;
-            OSDMap map = Agent1Data.PackAgentCircuitData(-1);
+            OSDMap map = Agent1Data.PackAgentCircuitData(ctx);
             try
             {
                 string str = OSDParser.SerializeJsonString(map);

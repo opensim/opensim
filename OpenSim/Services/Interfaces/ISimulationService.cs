@@ -34,20 +34,6 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Services.Interfaces
 {
-    public class EntityTransferContext
-    {
-        public EntityTransferContext()
-        {
-            InboundVersion = VersionInfo.SimulationServiceVersionAcceptedMax;
-            OutboundVersion = VersionInfo.SimulationServiceVersionSupportedMax;
-            VariableWearablesSupported = false;
-        }
-
-        public float InboundVersion { get; set; }
-        public float OutboundVersion { get; set; }
-        public bool VariableWearablesSupported { get; set; }
-    }
-
     public interface ISimulationService
     {
         /// <summary>

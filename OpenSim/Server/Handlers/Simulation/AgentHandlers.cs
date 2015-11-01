@@ -262,7 +262,6 @@ namespace OpenSim.Server.Handlers.Simulation
             resp["version"] = OSD.FromString(legacyVersion);
             resp["negotiated_inbound_version"] = OSD.FromReal(inboundVersion);
             resp["negotiated_outbound_version"] = OSD.FromReal(outboundVersion);
-            resp["variable_wearables_count_supported"] = OSD.FromBoolean(true);
 
             OSDArray featuresWanted = new OSDArray();
             foreach (UUID feature in features)
@@ -661,6 +660,9 @@ namespace OpenSim.Server.Handlers.Simulation
 
         protected void DoAgentPut(Hashtable request, Hashtable responsedata)
         {
+            // TODO: Encode the ENtityTransferContext
+            EntityTransferContext ctx = new EntityTransferContext();
+
             OSDMap args = Utils.GetOSDMap((string)request["body"]);
             if (args == null)
             {
@@ -703,7 +705,7 @@ namespace OpenSim.Server.Handlers.Simulation
                 AgentData agent = new AgentData();
                 try
                 {
-                    agent.Unpack(args, m_SimulationService.GetScene(destination.RegionID));
+                    agent.Unpack(args, m_SimulationService.GetScene(destination.RegionID), ctx);
                 }
                 catch (Exception ex)
                 {
@@ -722,7 +724,7 @@ namespace OpenSim.Server.Handlers.Simulation
                 AgentPosition agent = new AgentPosition();
                 try
                 {
-                    agent.Unpack(args, m_SimulationService.GetScene(destination.RegionID));
+                    agent.Unpack(args, m_SimulationService.GetScene(destination.RegionID), ctx);
                 }
                 catch (Exception ex)
                 {

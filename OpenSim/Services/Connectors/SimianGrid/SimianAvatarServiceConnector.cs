@@ -152,7 +152,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
         // <param name=""></param>
         public bool SetAppearance(UUID userID, AvatarAppearance appearance)
         {
-            OSDMap map = appearance.Pack(-1);
+            EntityTransferContext ctx = new EntityTransferContext();
+            OSDMap map = appearance.Pack(ctx);
             if (map == null)
             {
                 m_log.WarnFormat("[SIMIAN AVATAR CONNECTOR]: Failed to encode appearance for {0}",userID);

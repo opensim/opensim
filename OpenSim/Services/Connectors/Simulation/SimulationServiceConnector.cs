@@ -121,7 +121,7 @@ namespace OpenSim.Services.Connectors.Simulation
             
             try
             {
-                OSDMap args = aCircuit.PackAgentCircuitData(-1);
+                OSDMap args = aCircuit.PackAgentCircuitData(ctx);
                 PackData(args, source, aCircuit, destination, flags);
 
                 OSDMap result = WebUtil.PostToServiceCompressed(uri, args, 30000);
@@ -260,7 +260,7 @@ namespace OpenSim.Services.Connectors.Simulation
 
             try
             {
-                OSDMap args = cAgentData.Pack();
+                OSDMap args = cAgentData.Pack(ctx);
 
                 args["destination_x"] = OSD.FromString(destination.RegionLocX.ToString());
                 args["destination_y"] = OSD.FromString(destination.RegionLocY.ToString());
@@ -347,8 +347,6 @@ namespace OpenSim.Services.Connectors.Simulation
                             ctx.OutboundVersion = float.Parse(parts[1]);
                         }
                     }
-                    if (data.ContainsKey("variable_wearables_count_supported"))
-                        ctx.VariableWearablesSupported = true;
 
                     m_log.DebugFormat(
                         "[REMOTE SIMULATION CONNECTOR]: QueryAccess to {0} returned {1}, reason {2}, version {3}/{4}",

@@ -61,8 +61,8 @@ namespace OpenSim.Framework
     {
         UUID AgentID { get; set; }
 
-        OSDMap Pack(Object parms = null);
-        void Unpack(OSDMap map, IScene scene);
+        OSDMap Pack(EntityTransferContext ctx);
+        void Unpack(OSDMap map, IScene scene, EntityTransferContext ctx);
     }
 
     /// <summary>
@@ -96,7 +96,7 @@ namespace OpenSim.Framework
 
         public Dictionary<ulong, string> ChildrenCapSeeds = null;
 
-        public OSDMap Pack(Object parms = null)
+        public OSDMap Pack(EntityTransferContext ctx)
         {
             OSDMap args = new OSDMap();
             args["message_type"] = OSD.FromString("AgentPosition");
@@ -136,7 +136,7 @@ namespace OpenSim.Framework
             return args;
         }
 
-        public void Unpack(OSDMap args, IScene scene)
+        public void Unpack(OSDMap args, IScene scene, EntityTransferContext ctx)
         {
             if (args.ContainsKey("region_handle"))
                 UInt64.TryParse(args["region_handle"].AsString(), out RegionHandle);
@@ -391,17 +391,9 @@ namespace OpenSim.Framework
 
         public Dictionary<string, UUID> MovementAnimationOverRides = new Dictionary<string, UUID>();
 
-        public virtual OSDMap Pack(Object parms = null)
+        public virtual OSDMap Pack(EntityTransferContext ctx)
         {
             int wearablesCount = -1;
-
-            if (parms != null)
-            {
-                Hashtable p = (Hashtable)parms;
-
-                if (p.ContainsKey("wearablesCount"))
-                    wearablesCount = (int)p["wearablesCount"];
-            }
 
 //            m_log.InfoFormat("[CHILDAGENTDATAUPDATE] Pack data");
 
@@ -503,7 +495,7 @@ namespace OpenSim.Framework
             }
 
             if (Appearance != null)
-                args["packed_appearance"] = Appearance.Pack(wearablesCount);
+                args["packed_appearance"] = Appearance.Pack(ctx);
 
             //if ((AgentTextures != null) && (AgentTextures.Length > 0))
             //{
@@ -594,7 +586,7 @@ namespace OpenSim.Framework
         /// Avoiding reflection makes it painful to write, but that's the price!
         /// </summary>
         /// <param name="hash"></param>
-        public virtual void Unpack(OSDMap args, IScene scene)
+        public virtual void Unpack(OSDMap args, IScene scene, EntityTransferContext ctx)
         {
             //m_log.InfoFormat("[CHILDAGENTDATAUPDATE] Unpack data");
 
@@ -903,14 +895,14 @@ namespace OpenSim.Framework
 
     public class CompleteAgentData : AgentData
     {
-        public override OSDMap Pack(object parms = null) 
+        public override OSDMap Pack(EntityTransferContext ctx) 
         {
-            return base.Pack(parms);
+            return base.Pack(ctx);
         }
 
-        public override void Unpack(OSDMap map, IScene scene)
+        public override void Unpack(OSDMap map, IScene scene, EntityTransferContext ctx)
         {
-            base.Unpack(map, scene);
+            base.Unpack(map, scene, ctx);
         }
     }
 }

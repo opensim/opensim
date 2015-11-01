@@ -717,7 +717,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Create an OSDMap from the appearance data
         /// </summary>
-        public OSDMap Pack(int wearablesCount)
+        public OSDMap Pack(EntityTransferContext ctx)
         {
             OSDMap data = new OSDMap();
 
@@ -728,8 +728,8 @@ namespace OpenSim.Framework
             //
             // This will send as many or as few wearables as we have, unless a count
             // is given. Used for legacy (pre 0.4) versions.
-            int count = wearablesCount;
-            if (wearablesCount == -1)
+            int count = ctx.WearablesCount;
+            if (ctx.WearablesCount == -1)
                 count = m_wearables.Length;
             OSDArray wears = new OSDArray(count);
             for (int i = 0; i < count; i++)
