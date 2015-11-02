@@ -211,14 +211,19 @@ namespace OpenSim.Framework
 
             m_serial = appearance.Serial;
 
-            ClearWearables();
-
             if (copyWearables && (appearance.Wearables != null))
             {
                 m_wearables = new AvatarWearable[appearance.Wearables.Length];
                 for (int i = 0; i < appearance.Wearables.Length; i++)
-                    SetWearable(i,appearance.Wearables[i]);
+                {
+                    m_wearables[i] = new AvatarWearable();
+                    AvatarWearable wearable = appearance.Wearables[i];
+                    for (int j = 0; j < wearable.Count; j++)
+                            m_wearables[i].Add(wearable[j].ItemID, wearable[j].AssetID);                       
+                 }
             }
+            else
+                ClearWearables();
 
             m_texture = null;
             if (appearance.Texture != null)
