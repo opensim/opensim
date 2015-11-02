@@ -48,7 +48,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static Regex arg = new Regex(@"\[[^\[\]]*\]");
+        private static Regex arg = new Regex(@"(?<!\\)\[[^\[\]]*(?<!\\)\]");
         private static int _idk_ = 0;
         private static int DEBUG_CHANNEL = 2147483647;
 
@@ -498,6 +498,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                 }
                 // m_log.DebugFormat("[IRC-Channel] Parse[2]: {0}", result);
             }
+
+            // Now we unescape the literal brackets
+            result = result.Replace(@"\[","[").Replace(@"\]","]");
 
             // m_log.DebugFormat("[IRC-Channel] Parse[3]: {0}", result);
             return result;
