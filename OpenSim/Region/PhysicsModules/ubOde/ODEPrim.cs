@@ -1479,6 +1479,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 return false;
             }
 
+            if (vertexCount > 64000 || indexCount > 64000)
+            {
+                m_log.WarnFormat("[PHYSICS]: large mesh data on OdePrim {0}, mesh {1} at {2}, {3} vertices, {4} indexes",
+                    Name, _pbs.SculptEntry ? _pbs.SculptTexture.ToString() : "primMesh",
+                    _position.ToString() ,vertexCount , indexCount );
+            }
             IntPtr geo = IntPtr.Zero;
 
             try
