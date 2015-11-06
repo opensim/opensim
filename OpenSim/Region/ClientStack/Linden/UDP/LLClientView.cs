@@ -3857,8 +3857,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             objupdate.Header.Zerocoded = true;
 
             objupdate.RegionData.RegionHandle = presence.RegionHandle;
-            objupdate.RegionData.TimeDilation = ushort.MaxValue;
-            
+//            objupdate.RegionData.TimeDilation = ushort.MaxValue;
+            objupdate.RegionData.TimeDilation = Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);    
             objupdate.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
             objupdate.ObjectData[0] = CreateAvatarUpdateBlock(presence);
 
@@ -4014,7 +4014,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // We must lock for both manipulating the kill record and sending the packet, in order to avoid a race
             // condition where a kill can be processed before an out-of-date update for the same object.                        
-            float avgTimeDilation = 1.0f;
+//            float avgTimeDilation = 0.0f;
             IEntityUpdate iupdate;
             Int32 timeinqueue; // this is just debugging code & can be dropped later
                 
@@ -4026,8 +4026,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 EntityUpdate update = (EntityUpdate)iupdate;
                     
-                avgTimeDilation += update.TimeDilation;
-                avgTimeDilation *= 0.5f;
+//                avgTimeDilation += update.TimeDilation;
 
                 if (update.Entity is SceneObjectPart)
                 {
@@ -4198,8 +4197,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #region Packet Sending
     
 //            const float TIME_DILATION = 1.0f;
-            ushort timeDilation = Utils.FloatToUInt16(avgTimeDilation, 0.0f, 1.0f);
-    
+            ushort timeDilation;
+//            if(updatesThisCall > 0)
+//                timeDilation = Utils.FloatToUInt16(avgTimeDilation/updatesThisCall, 0.0f, 1.0f);
+//            else
+//                timeDilation = ushort.MaxValue; // 1.0;
+
+            timeDilation = Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);
+
             if (terseAgentUpdateBlocks.IsValueCreated)
             {
                 List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> blocks = terseAgentUpdateBlocks.Value;
@@ -4274,7 +4279,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 SceneObjectPart part = (SceneObjectPart)ent;
                 ObjectUpdatePacket packet = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
                 packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
-                packet.RegionData.TimeDilation = 1;
+                packet.RegionData.TimeDilation = Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);
                 packet.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
 
                 ObjectUpdatePacket.ObjectDataBlock blk = CreatePrimUpdateBlock(part, this.m_agentId);
@@ -13199,8 +13204,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 ImprovedTerseObjectUpdatePacket.ObjectDataBlock block =
                     CreateImprovedTerseBlock(p, false);
 
-                const float TIME_DILATION = 1.0f;
-                ushort timeDilation = Utils.FloatToUInt16(TIME_DILATION, 0.0f, 1.0f);
+//                const float TIME_DILATION = 1.0f;
+                ushort timeDilation = Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);;
 
                 ImprovedTerseObjectUpdatePacket packet
                     = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(
