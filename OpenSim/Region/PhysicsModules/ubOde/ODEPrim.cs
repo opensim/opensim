@@ -1806,7 +1806,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             d.BodySetAutoDisableSteps(Body, body_autodisable_frames);
             d.BodySetAutoDisableAngularThreshold(Body, 0.05f);
             d.BodySetAutoDisableLinearThreshold(Body, 0.05f);
-            d.BodySetDamping(Body, .008f, .005f);
+            d.BodySetDamping(Body, .004f, .001f);
 
             if (m_targetSpace != IntPtr.Zero)
             {
@@ -2069,8 +2069,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             d.BodySetMass(Body, ref objdmass);
             _mass = objdmass.mass;
         }
-
-
 
         private void FixInertia(Vector3 NewPos)
         {
@@ -3135,9 +3133,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private void changeangvelocity(Vector3 newAngVel)
         {
             float len = newAngVel.LengthSquared();
-            if (len > 144.0f) // limit to 12rad/s
+            if (len > _parent_scene.maxAngVelocitySQ)
             {
-                len = 12.0f / (float)Math.Sqrt(len);
+                len = _parent_scene.maximumAngularVelocity / (float)Math.Sqrt(len);
                 newAngVel *= len;
             }
 

@@ -216,8 +216,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private float avMovementDivisorRun = 0.8f;
         private float minimumGroundFlightOffset = 3f;
         public float maximumMassObject = 10000.01f;
-
         public float geomDefaultDensity = 10.0f;
+
+        public float maximumAngularVelocity = 12.0f; // default 12rad/s
+        public float maxAngVelocitySQ = 144f;   // squared value
 
         public float bodyPIDD = 35f;
         public float bodyPIDG = 25;
@@ -493,6 +495,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
             }
 
+            float heartbeat = 1/m_frameWorkScene.MinFrameTime;
+            maximumAngularVelocity = 0.49f * heartbeat *(float)Math.PI;
+            maxAngVelocitySQ = maximumAngularVelocity * maximumAngularVelocity;
+
             d.WorldSetCFM(world, comumContactCFM);
             d.WorldSetERP(world, comumContactERP);
 
@@ -502,7 +508,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             d.WorldSetAngularDamping(world, 0.002f);
             d.WorldSetAngularDampingThreshold(world, 0f);
             d.WorldSetLinearDampingThreshold(world, 0f);
-            d.WorldSetMaxAngularSpeed(world, 100f);
+            d.WorldSetMaxAngularSpeed(world, maximumAngularVelocity);
 
             d.WorldSetQuickStepNumIterations(world, m_physicsiterations);
 
