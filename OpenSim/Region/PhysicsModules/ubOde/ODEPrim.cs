@@ -3657,16 +3657,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             _acceleration = Vector3.Zero;
                         }
 
-                        if ((Math.Abs(_orientation.X - ori.X) < 0.0001) &&
-                           (Math.Abs(_orientation.Y - ori.Y) < 0.0001) &&
-                           (Math.Abs(_orientation.Z - ori.Z) < 0.0001)
+                        vel = d.BodyGetAngularVel(Body);
+                        if ((Math.Abs(vel.X) < 0.0001) &&
+                           (Math.Abs(vel.Y) < 0.0001) &&
+                           (Math.Abs(vel.Z) < 0.0001)
                            )
                         {
                             m_rotationalVelocity = Vector3.Zero;
                         }
                         else
                         {
-                            vel = d.BodyGetAngularVel(Body);
                             m_rotationalVelocity.X = vel.X;
                             m_rotationalVelocity.Y = vel.Y;
                             m_rotationalVelocity.Z = vel.Z;
