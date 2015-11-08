@@ -185,11 +185,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// Parameter to adjust reported scene fps
         /// </summary>
         /// <remarks>
-        /// Our scene loop runs slower than other server implementations, apparantly because we work somewhat differently.
-        /// However, we will still report an FPS that's closer to what people are used to seeing.  A lower FPS might
-        /// affect clients and monitoring scripts/software.
+        /// The close we have to a frame rate as expected by viewers, users and scripts
+        /// is heartbeat rate.
+        /// heartbeat rate default value is very diferent from the expected one
+        /// and can be changed from region to region acording to its specific simulation needs
+        /// since this creates incompatibility with expected values,
+        /// this scale factor can be used to normalize values to a Virtual FPS.
+        /// original decision was to use a value of 55fps for all opensim
+        /// corresponding, with default heartbeat rate, to a value of 5.
         /// </remarks>
-        private float m_reportedFpsCorrectionFactor = 1.0f;
+        private float m_statisticsFPSfactor = 5.0f;
 
         // saved last reported value so there is something available for llGetRegionFPS 
         private float lastReportedSimFPS;
@@ -252,6 +257,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene = scene;
 
             ReportingRegion = scene.RegionInfo;
+            m_statisticsFPSfactor = scene.StatisticsFPSfactor;
 
             m_objectCapacity = scene.RegionInfo.ObjectCapacity;
             m_report.AutoReset = true;
@@ -266,7 +272,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             /// At the moment, we'll only report if a frame is over 120% of target, since commonly frames are a bit
             /// longer than ideal (which in itself is a concern).
-            SlowFramesStatReportThreshold = (int)Math.Ceiling(m_scene.MinFrameTime * 1000 * 1.2);
+            SlowFramesStatReportThreshold = (int)Math.Ceiling(m_scene.FrameTime * 1000 * 1.2);
 
             SlowFramesStat
                 = new Stat(
@@ -351,10 +357,10 @@ namespace OpenSim.Region.Framework.Scenes
                 float updateFactor = 1.0f / m_statsUpdateFactor;
 
                 // the nominal frame time, corrected by reporting multiplier
-                float TargetFrameTime = 1000.0f * m_scene.MinFrameTime / m_reportedFpsCorrectionFactor;
+                float TargetFrameTime = 1000.0f * m_scene.FrameTime /  m_statisticsFPSfactor;
 
                 // acumulated fps scaled by reporting multiplier
-                float reportedFPS = (m_fps * m_reportedFpsCorrectionFactor);
+                float reportedFPS = (m_fps *  m_statisticsFPSfactor);
                 if (reportedFPS <= 0)
                    reportedFPS = 1;
 
@@ -376,7 +382,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_activePrim = m_scene.SceneGraph.GetActiveObjectsCount();
                 m_activeScripts = m_scene.SceneGraph.GetActiveScriptsCount();
 
-                float physfps = m_pfps * updateFactor;
+                float physfps = m_pfps * updateFactor * m_statisticsFPSfactor;
                 if (physfps < 0)
                     physfps = 0;
                 else if(physfps > reportedFPS)

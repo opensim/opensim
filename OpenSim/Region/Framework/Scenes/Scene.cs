@@ -357,14 +357,13 @@ namespace OpenSim.Region.Framework.Scenes
         public uint MaintenanceRun { get; private set; }
 
         /// <summary>
-        /// The minimum length of time in seconds that will be taken for a scene frame.  If the frame takes less time then we
-        /// will sleep for the remaining period.
-        /// </summary>
-        /// <remarks>
-        /// One can tweak this number to experiment.  One current effect of reducing it is to make avatar animations
-        /// occur too quickly (viewer 1) or with even more slide (viewer 2).
+        /// Frame time
         /// </remarks>
-		public float MinFrameTime { get; private set; }
+		public float FrameTime { get; private set; }
+
+        // statistics frame scale factor for viewer and scripts.
+        // see SimStatsReporter.cs
+        public float StatisticsFPSfactor { get; private set; }
 
         /// <summary>
         /// The minimum length of time in seconds that will be taken for a scene frame.
@@ -860,7 +859,8 @@ namespace OpenSim.Region.Framework.Scenes
             : this(regInfo)
         {
             m_config = config;
-            MinFrameTime = 0.089f;
+            FrameTime = 0.0908f;
+            StatisticsFPSfactor = 5.0f;
             MinMaintenanceTime = 1;
             SeeIntoRegion = true;
 
@@ -1100,7 +1100,8 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-				MinFrameTime              = startupConfig.GetFloat( "MinFrameTime",                      MinFrameTime);
+                FrameTime                 = startupConfig.GetFloat( "FrameTime", FrameTime);
+                StatisticsFPSfactor       = startupConfig.GetFloat( "StatisticsFPSfactor", StatisticsFPSfactor);
 
                 m_update_backup           = startupConfig.GetInt("UpdateStorageEveryNFrames",         m_update_backup);
                 m_update_coarse_locations = startupConfig.GetInt("UpdateCoarseLocationsEveryNFrames", m_update_coarse_locations);
@@ -1729,7 +1730,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (Frame % m_update_physics == 0)
                     {
                         if (PhysicsEnabled)
-                            physicsFPS = m_sceneGraph.UpdatePhysics(MinFrameTime);
+                            physicsFPS = m_sceneGraph.UpdatePhysics(FrameTime);
 
                         if (SynchronizeScene != null)
                             SynchronizeScene(this);
@@ -1861,7 +1862,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // estimate sleep time
                 tmpMS2 = tmpMS - framestart;
-                tmpMS2 = (double)MinFrameTime * 1000.0D - tmpMS2;
+                tmpMS2 = (double)FrameTime * 1000.0D - tmpMS2;
 
                 m_firstHeartbeat = false;
 
@@ -1882,12 +1883,12 @@ namespace OpenSim.Region.Framework.Scenes
           // Optionally warn if a frame takes double the amount of time that it should.
                 if (DebugUpdates
                     && Util.EnvironmentTickCountSubtract(
-                        m_lastFrameTick, previousFrameTick) > (int)(MinFrameTime * 1000 * 2))
+                        m_lastFrameTick, previousFrameTick) > (int)(FrameTime * 1000 * 2))
 
                     m_log.WarnFormat(
                         "[SCENE]: Frame took {0} ms (desired max {1} ms) in {2}",
                         Util.EnvironmentTickCountSubtract(m_lastFrameTick, previousFrameTick),
-                        MinFrameTime * 1000,
+                        FrameTime * 1000,
 
                         RegionInfo.RegionName);
             }

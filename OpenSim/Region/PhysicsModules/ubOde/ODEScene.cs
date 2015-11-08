@@ -495,7 +495,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
             }
 
-            float heartbeat = 1/m_frameWorkScene.MinFrameTime;
+            float heartbeat = 1/m_frameWorkScene.FrameTime;
             maximumAngularVelocity = 0.49f * heartbeat *(float)Math.PI;
             maxAngVelocitySQ = maximumAngularVelocity * maximumAngularVelocity;
 
