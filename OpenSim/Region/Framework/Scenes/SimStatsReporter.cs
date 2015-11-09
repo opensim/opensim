@@ -176,10 +176,13 @@ namespace OpenSim.Region.Framework.Scenes
         // Sending a stats update every 3 seconds-
         private int m_statsUpdatesEveryMS = 3000;
         private double m_lastUpdateTS;
+        private double m_prevFrameStatsTS;
+        private double m_FrameStatsTS;
         private float m_timeDilation;
         private int m_fps;
 
         private object m_statsLock = new object();
+        private object m_statsFrameLock = new object();
 
         /// <summary>
         /// Parameter to adjust reported scene fps
@@ -195,7 +198,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// corresponding, with default heartbeat rate, to a value of 5.
         /// </remarks>
         private float m_statisticsFPSfactor = 5.0f;
-
+        private float m_targetFrameTime = 0.1f;
         // saved last reported value so there is something available for llGetRegionFPS 
         private float lastReportedSimFPS;
         private float[] lastReportedSimStats = new float[m_statisticExtraArraySize + m_statisticViewerArraySize];
@@ -219,6 +222,7 @@ namespace OpenSim.Region.Framework.Scenes
         private float m_imageMS;
         private float m_otherMS;
         private float m_sleeptimeMS;
+        private float m_scriptTimeMS;
 
         private int m_rootAgents;
         private int m_childAgents;
@@ -257,7 +261,13 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene = scene;
 
             ReportingRegion = scene.RegionInfo;
-            m_statisticsFPSfactor = scene.StatisticsFPSfactor;
+
+            if(scene.Normalized55FPS)
+                m_statisticsFPSfactor = 55.0f * m_scene.FrameTime;
+            else
+                m_statisticsFPSfactor = 1.0f;
+
+            m_targetFrameTime = 1000.0f * m_scene.FrameTime /  m_statisticsFPSfactor;
 
             m_objectCapacity = scene.RegionInfo.ObjectCapacity;
             m_report.AutoReset = true;
@@ -266,6 +276,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_report.Enabled = true;
 
             m_lastUpdateTS = Util.GetTimeStampMS();
+            m_FrameStatsTS = m_lastUpdateTS;
+            m_prevFrameStatsTS = m_lastUpdateTS;
 
             if (StatsManager.SimExtraStats != null)
                 OnSendStatsResult += StatsManager.SimExtraStats.ReceiveClassicSimStatsPacket;
@@ -350,27 +362,91 @@ namespace OpenSim.Region.Framework.Scenes
 #region various statistic googly moogly
                 double timeTmp = m_lastUpdateTS;
                 m_lastUpdateTS = Util.GetTimeStampMS();
-
-                float m_statsUpdateFactor = (float)((m_lastUpdateTS - timeTmp)/1000.0);
+                float updateElapsed = (float)((m_lastUpdateTS - timeTmp)/1000.0);
 
                 // factor to consider updates integration time
-                float updateFactor = 1.0f / m_statsUpdateFactor;
+                float updateTimeFactor = 1.0f / updateElapsed;
 
-                // the nominal frame time, corrected by reporting multiplier
-                float TargetFrameTime = 1000.0f * m_scene.FrameTime /  m_statisticsFPSfactor;
+               
+                // scene frame stats 
+                float reportedFPS;
+                float physfps;
+                float timeDilation;
+                float agentMS;
+                float physicsMS;
+                float otherMS;
+                float sleeptime;
+                float scriptTimeMS;
+                float totalFrameTime;
 
-                // acumulated fps scaled by reporting multiplier
-                float reportedFPS = (m_fps *  m_statisticsFPSfactor);
+                float invFrameElapsed;
+
+                // get a copy under lock and reset
+                lock(m_statsFrameLock)
+                {
+                    timeDilation   = m_timeDilation;
+                    reportedFPS    = m_fps;
+                    physfps        = m_pfps;
+                    agentMS        = m_agentMS;
+                    physicsMS      = m_physicsMS;
+                    otherMS        = m_otherMS;
+                    sleeptime      = m_sleeptimeMS;
+                    scriptTimeMS   = m_scriptTimeMS;
+                    totalFrameTime = m_frameMS;
+                    // still not inv 
+                    invFrameElapsed = (float)((m_FrameStatsTS - m_prevFrameStatsTS) / 1000.0);
+
+                    ResetFrameStats();
+                }
+
+                if (invFrameElapsed / updateElapsed < 0.8)
+                   // scene is in trouble, its account of time is most likely wrong
+                   // can even be in stall
+                   invFrameElapsed = updateTimeFactor;
+                else
+                    invFrameElapsed = 1.0f / invFrameElapsed;
+
+                float perframefactor;
                 if (reportedFPS <= 0)
-                   reportedFPS = 1;
+                {
+                   reportedFPS = 0.0f;
+                   physfps = 0.0f;
+                   perframefactor = 1.0f;
+                   timeDilation = 0.0f;
+                }
+                else
+                {
+                   timeDilation /= reportedFPS;
+                   reportedFPS *=  m_statisticsFPSfactor;
+                   perframefactor = 1.0f / (float)reportedFPS;
+                   reportedFPS *= invFrameElapsed;
+                   physfps *= invFrameElapsed  * m_statisticsFPSfactor;
+                }
 
-                // factor to calculate per frame values
-                float perframefactor = 1.0f / (float)reportedFPS;
+                // some engines track frame time with error related to the simulation step size
+                if(physfps > reportedFPS) 
+                    physfps = reportedFPS;
 
-                // fps considering the integration time
-                reportedFPS = reportedFPS * updateFactor;
                 // save the reported value so there is something available for llGetRegionFPS 
                 lastReportedSimFPS = reportedFPS;
+
+                // scale frame stats
+
+                totalFrameTime *= perframefactor;
+                sleeptime      *= perframefactor;
+                otherMS        *= perframefactor;
+                physicsMS      *= perframefactor;
+                agentMS        *= perframefactor;
+                scriptTimeMS   *= perframefactor;
+
+                // estimate spare time
+                float sparetime;
+                sparetime      = m_targetFrameTime - (physicsMS + agentMS + otherMS);
+
+                if (sparetime < 0)
+                    sparetime = 0;
+                 else if (sparetime > totalFrameTime)
+                        sparetime = totalFrameTime;
 
 #endregion
 
@@ -381,44 +457,11 @@ namespace OpenSim.Region.Framework.Scenes
                 m_numMesh = m_scene.SceneGraph.GetTotalMeshObjectsCount();
                 m_activePrim = m_scene.SceneGraph.GetActiveObjectsCount();
                 m_activeScripts = m_scene.SceneGraph.GetActiveScriptsCount();
+                m_scriptLinesPerSecond = m_scene.SceneGraph.GetScriptLPS();
 
-                float physfps = m_pfps * updateFactor * m_statisticsFPSfactor;
-                if (physfps < 0)
-                    physfps = 0;
-                else if(physfps > reportedFPS)
-                    physfps = reportedFPS; // pretend we are not insane
-
-                float sparetime;
-                float sleeptime;
-
-                float TotalFrameTime = m_frameMS * perframefactor;
-                sleeptime = m_sleeptimeMS * perframefactor;
-
-                sparetime = m_frameMS - m_sleeptimeMS; // total time minus sleep
-                sparetime *= perframefactor; // average per frame
-                sparetime = TargetFrameTime - sparetime; // real spare
-                if (sparetime < 0)
-                    sparetime = 0;
-                 else if (sparetime > TotalFrameTime)
-                        sparetime = TotalFrameTime;
-
-                // don't send meaning less precision
-                reportedFPS = (float)Math.Round(reportedFPS,1);
-                physfps = (float)Math.Round(physfps,1);
-
-                // FIXME: Checking for stat sanity is a complex approach.  What we really need to do is fix the code
+                 // FIXME: Checking for stat sanity is a complex approach.  What we really need to do is fix the code
                 // so that stat numbers are always consistent.
-                CheckStatSanity();
-                
-                // other MS is actually simulation time
-                //                m_otherMS = m_frameMS - m_physicsMS - m_imageMS - m_netMS - m_agentMS;
-                // m_imageMS  m_netMS are not included in m_frameMS
-
-                m_otherMS = m_frameMS - m_physicsMS -  m_agentMS - m_sleeptimeMS;
-                if (m_otherMS < 0)
-                    m_otherMS = 0;
-
-                float scriptTimeMS = m_scene.GetAndResetScriptExecutionTime();
+                CheckStatSanity(); 
  
                 for (int i = 0; i < m_statisticViewerArraySize; i++)
                 {
@@ -426,16 +469,16 @@ namespace OpenSim.Region.Framework.Scenes
                 }
               
                 sb[0].StatID = (uint) Stats.TimeDilation;
-                sb[0].StatValue = (Single.IsNaN(m_timeDilation)) ? 0.1f : m_timeDilation ;
+                sb[0].StatValue = (Single.IsNaN(timeDilation)) ? 0.0f : (float)Math.Round(timeDilation,3);
 
                 sb[1].StatID = (uint) Stats.SimFPS;
-                sb[1].StatValue = reportedFPS;
+                sb[1].StatValue = (float)Math.Round(reportedFPS,1);;
 
                 sb[2].StatID = (uint) Stats.PhysicsFPS;
-                sb[2].StatValue = physfps;
+                sb[2].StatValue =  (float)Math.Round(physfps,1);
 
                 sb[3].StatID = (uint) Stats.AgentUpdates;
-                sb[3].StatValue = m_agentUpdates * updateFactor;
+                sb[3].StatValue = m_agentUpdates * updateTimeFactor;
 
                 sb[4].StatID = (uint) Stats.Agents;
                 sb[4].StatValue = m_rootAgents;
@@ -450,31 +493,31 @@ namespace OpenSim.Region.Framework.Scenes
                 sb[7].StatValue = m_activePrim;
 
                 sb[8].StatID = (uint)Stats.FrameMS;
-                sb[8].StatValue = TotalFrameTime;
+                sb[8].StatValue = totalFrameTime;
 
                 sb[9].StatID = (uint)Stats.NetMS;
                 sb[9].StatValue = m_netMS * perframefactor;
 
                 sb[10].StatID = (uint)Stats.PhysicsMS;
-                sb[10].StatValue = m_physicsMS * perframefactor;
+                sb[10].StatValue = physicsMS;
 
                 sb[11].StatID = (uint)Stats.ImageMS ;
                 sb[11].StatValue = m_imageMS * perframefactor;
 
                 sb[12].StatID = (uint)Stats.OtherMS;
-                sb[12].StatValue = m_otherMS * perframefactor;
+                sb[12].StatValue = otherMS;
 
                 sb[13].StatID = (uint)Stats.InPacketsPerSecond;
-                sb[13].StatValue = (m_inPacketsPerSecond * updateFactor);
+                sb[13].StatValue = (float)Math.Round(m_inPacketsPerSecond * updateTimeFactor);
 
                 sb[14].StatID = (uint)Stats.OutPacketsPerSecond;
-                sb[14].StatValue = (m_outPacketsPerSecond * updateFactor);
+                sb[14].StatValue = (float)Math.Round(m_outPacketsPerSecond * updateTimeFactor);
 
                 sb[15].StatID = (uint)Stats.UnAckedBytes;
                 sb[15].StatValue = m_unAckedBytes;
 
                 sb[16].StatID = (uint)Stats.AgentMS;
-                sb[16].StatValue = m_agentMS * perframefactor;
+                sb[16].StatValue = agentMS;
 
                 sb[17].StatID = (uint)Stats.PendingDownloads;
                 sb[17].StatValue = m_pendingDownloads;
@@ -514,7 +557,7 @@ namespace OpenSim.Region.Framework.Scenes
                 sb[27].StatValue = 0;
 
                 sb[28].StatID = (uint)Stats.ScriptEps; // we actuall have this, but not messing array order AGAIN
-                sb[28].StatValue = m_scriptEventsPerSecond * updateFactor;
+                sb[28].StatValue = (float)Math.Round(m_scriptEventsPerSecond * updateTimeFactor);
 
                 sb[29].StatID = (uint)Stats.SimAIStepTimeMS;
                 sb[29].StatValue = 0;
@@ -541,8 +584,7 @@ namespace OpenSim.Region.Framework.Scenes
                 sb[36].StatValue = 0;
 
                 sb[37].StatID = (uint)Stats.ScriptMS;
-                sb[37].StatValue = scriptTimeMS * perframefactor;
-
+                sb[37].StatValue = scriptTimeMS;
 
                 for (int i = 0; i < m_statisticViewerArraySize; i++)
                 {
@@ -558,12 +600,12 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 sbex[0].StatID = (uint)Stats.LSLScriptLinesPerSecond;
-                sbex[0].StatValue = m_scriptLinesPerSecond * updateFactor;
-                lastReportedSimStats[38] = m_scriptLinesPerSecond * updateFactor;
+                sbex[0].StatValue = m_scriptLinesPerSecond * updateTimeFactor;
+                lastReportedSimStats[38] = m_scriptLinesPerSecond * updateTimeFactor;
 
                 sbex[1].StatID = (uint)Stats.FrameDilation2;
-                sbex[1].StatValue = (Single.IsNaN(m_timeDilation)) ? 0.1f : m_timeDilation;
-                lastReportedSimStats[39] = (Single.IsNaN(m_timeDilation)) ? 0.1f : m_timeDilation;
+                sbex[1].StatValue = (Single.IsNaN(timeDilation)) ? 0.1f : timeDilation;
+                lastReportedSimStats[39] = (Single.IsNaN(timeDilation)) ? 0.1f : timeDilation;
 
                 sbex[2].StatID = (uint)Stats.UsersLoggingIn;
                 sbex[2].StatValue = m_usersLoggingIn;
@@ -597,7 +639,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     lock (m_lastReportedExtraSimStats)
                     {
-                        m_lastReportedExtraSimStats[LastReportedObjectUpdateStatName] = m_objectUpdates * updateFactor;
+                        m_lastReportedExtraSimStats[LastReportedObjectUpdateStatName] = m_objectUpdates * updateTimeFactor;
                         m_lastReportedExtraSimStats[SlowFramesStat.ShortName] = (float)SlowFramesStat.Value;
 
                         Dictionary<string, float> physicsStats = m_scene.PhysicsScene.GetStats();
@@ -612,7 +654,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 if (tuple.Key.EndsWith("MS"))
                                     m_lastReportedExtraSimStats[tuple.Key] = tuple.Value * perframefactor;
                                 else
-                                    m_lastReportedExtraSimStats[tuple.Key] = tuple.Value * updateFactor;
+                                    m_lastReportedExtraSimStats[tuple.Key] = tuple.Value * updateTimeFactor;
                             }
                         }
                     }
@@ -626,47 +668,15 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void ResetValues()
         {
-            // Reset the number of frames that the physics library has
-            // processed since the last stats report
-
-            m_timeDilation = 0;
-            m_fps = 0;
-            m_pfps = 0;
             m_agentUpdates = 0;
             m_objectUpdates = 0;
-            //m_inPacketsPerSecond = 0;
-            //m_outPacketsPerSecond = 0;
             m_unAckedBytes = 0;
-            m_scriptLinesPerSecond = 0;
             m_scriptEventsPerSecond = 0;
 
-            m_frameMS = 0;
-            m_agentMS = 0;
             m_netMS = 0;
-            m_physicsMS = 0;
             m_imageMS = 0;
-            m_otherMS = 0;
-            m_sleeptimeMS = 0;
-
-//Ckrinke This variable is not used, so comment to remove compiler warning until it is used.
-//Ckrinke            m_scriptMS = 0;
         }
 
-        # region methods called from Scene
-        // The majority of these functions are additive
-        // so that you can easily change the amount of
-        // seconds in between sim stats updates
-
-        public void AddTimeDilation(float td)
-        {
-            //float tdsetting = td;
-            //if (tdsetting > 1.0f)
-                //tdsetting = (tdsetting - (tdsetting - 0.91f));
-
-            //if (tdsetting < 0)
-                //tdsetting = 0.0f;
-            m_timeDilation = td;
-        }
 
         internal void CheckStatSanity()
         {
@@ -684,14 +694,44 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void AddFPS(int frames)
-        {
-            m_fps += frames;
-        }
+        # region methods called from Scene
 
-        public void AddPhysicsFPS(float frames)
+        public void AddFrameStats(float _timeDilation, float _physicsFPS, float _agentMS,
+                             float _physicsMS, float _otherMS , float _sleepMS,
+                             float _frameMS, float _scriptTimeMS)
         {
-            m_pfps += frames;
+            lock(m_statsFrameLock)
+            {
+                m_fps++;
+                m_timeDilation += _timeDilation;
+                m_pfps         += _physicsFPS;
+                m_agentMS      += _agentMS;
+                m_physicsMS    += _physicsMS;
+                m_otherMS      += _otherMS;
+                m_sleeptimeMS  += _sleepMS;
+                m_frameMS      += _frameMS;
+                m_scriptTimeMS += _scriptTimeMS;
+
+                if (_frameMS > SlowFramesStatReportThreshold)
+                    SlowFramesStat.Value++;
+
+                m_FrameStatsTS = Util.GetTimeStampMS();
+            }
+        } 
+
+        private void ResetFrameStats()
+        {
+            m_fps          = 0;
+            m_timeDilation = 0.0f;
+            m_pfps         = 0.0f;
+            m_agentMS      = 0.0f;
+            m_physicsMS    = 0.0f;
+            m_otherMS      = 0.0f;
+            m_sleeptimeMS  = 0.0f;
+            m_frameMS      = 0.0f;
+            m_scriptTimeMS = 0.0f;
+
+            m_prevFrameStatsTS = m_FrameStatsTS;
         }
 
         public void AddObjectUpdates(int numUpdates)
@@ -720,44 +760,15 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_unAckedBytes < 0) m_unAckedBytes = 0;
         }
 
-        public void addFrameMS(float ms)
-        {
-            m_frameMS += ms;
-
-            // At the moment, we'll only report if a frame is over 120% of target, since commonly frames are a bit
-            // longer than ideal due to the inaccuracy of the Sleep in Scene.Update() (which in itself is a concern).
-            if (ms > SlowFramesStatReportThreshold)
-                SlowFramesStat.Value++;
-        }
 
         public void addNetMS(float ms)
         {
             m_netMS += ms;
         }
 
-        public void addAgentMS(float ms)
-        {
-            m_agentMS += ms;
-        }
-
-        public void addPhysicsMS(float ms)
-        {
-            m_physicsMS += ms;
-        }
-
         public void addImageMS(float ms)
         {
             m_imageMS += ms;
-        }
-
-        public void addOtherMS(float ms)
-        {
-            m_otherMS += ms;
-        }
-
-        public void addSleepMS(float ms)
-        {
-            m_sleeptimeMS += ms;
         }
 
         public void AddPendingDownloads(int count)
@@ -768,11 +779,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_pendingDownloads = 0;
 
             //m_log.InfoFormat("[stats]: Adding {0} to pending downloads to make {1}", count, m_pendingDownloads);
-        }
-
-        public void addScriptLines(int count)
-        {
-            m_scriptLinesPerSecond += count;
         }
 
         public void addScriptEvents(int count)

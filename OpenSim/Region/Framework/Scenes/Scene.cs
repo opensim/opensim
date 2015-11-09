@@ -361,9 +361,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
 		public float FrameTime { get; private set; }
 
-        // statistics frame scale factor for viewer and scripts.
+        // Normalize the frame related stats to nominal 55fps for viewer and scripts option
         // see SimStatsReporter.cs
-        public float StatisticsFPSfactor { get; private set; }
+        public bool Normalized55FPS { get; private set; }
 
         /// <summary>
         /// The minimum length of time in seconds that will be taken for a scene frame.
@@ -860,7 +860,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_config = config;
             FrameTime = 0.0908f;
-            StatisticsFPSfactor = 5.0f;
+            Normalized55FPS = true;
             MinMaintenanceTime = 1;
             SeeIntoRegion = true;
 
@@ -1101,7 +1101,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 FrameTime                 = startupConfig.GetFloat( "FrameTime", FrameTime);
-                StatisticsFPSfactor       = startupConfig.GetFloat( "StatisticsFPSfactor", StatisticsFPSfactor);
+                Normalized55FPS           = startupConfig.GetBoolean( "Normalized55FPS", Normalized55FPS);
 
                 m_update_backup           = startupConfig.GetInt("UpdateStorageEveryNFrames",         m_update_backup);
                 m_update_coarse_locations = startupConfig.GetInt("UpdateCoarseLocationsEveryNFrames", m_update_coarse_locations);
@@ -1669,6 +1669,7 @@ namespace OpenSim.Region.Framework.Scenes
                 endFrame = Frame + frames;
 
             float physicsFPS = 0f;
+            float frameTimeMS = FrameTime * 1000.0f;
 
             int previousFrameTick;
 
@@ -1676,6 +1677,7 @@ namespace OpenSim.Region.Framework.Scenes
             double tmpMS2;
             double framestart;
             float sleepMS;
+            float sleepError = 0;
 
             while (!m_shuttingDown && ((endFrame == null && Active) || Frame < endFrame))
             {
@@ -1759,8 +1761,7 @@ namespace OpenSim.Region.Framework.Scenes
   
                     // Delete temp-on-rez stuff
                     if (Frame % m_update_temp_cleaning == 0 && !m_cleaningTemps)
-                    {
-                        
+                    {                      
                         m_cleaningTemps = true;
                         Util.FireAndForget(delegate { CleanTempObjects(); m_cleaningTemps = false;  });
                         tmpMS2 = Util.GetTimeStampMS();
@@ -1840,21 +1841,11 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 EventManager.TriggerRegionHeartbeatEnd(this);
-
+                m_firstHeartbeat = false;
                 Watchdog.UpdateThread();
 
                 otherMS = tempOnRezMS + eventMS + backupMS + terrainMS + landMS;
 
-                StatsReporter.AddPhysicsFPS(physicsFPS);
-                StatsReporter.AddTimeDilation(TimeDilation);
-                StatsReporter.AddFPS(1);
-
-                StatsReporter.addAgentMS(agentMS);
-                StatsReporter.addPhysicsMS(physicsMS + physicsMS2);
-                StatsReporter.addOtherMS(otherMS);
-                StatsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
-
-                
                 tmpMS = Util.GetTimeStampMS();
 
                 previousFrameTick = m_lastFrameTick;
@@ -1862,20 +1853,36 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // estimate sleep time
                 tmpMS2 = tmpMS - framestart;
-                tmpMS2 = (double)FrameTime * 1000.0D - tmpMS2;
+                tmpMS2 = (double)frameTimeMS - tmpMS2 - sleepError;
 
-                m_firstHeartbeat = false;
-
+                // reuse frameMS as temporary
+                frameMS = (float)tmpMS2;
+                
                 // sleep if we can
                 if (tmpMS2 > 0)
-                    Thread.Sleep((int)(tmpMS2 +0.5));
+                    {
+                    Thread.Sleep((int)(tmpMS2 + 0.5));
 
-                tmpMS2 = Util.GetTimeStampMS();
+                    tmpMS2 = Util.GetTimeStampMS();
+                    sleepMS = (float)(tmpMS2 - tmpMS);
+                    sleepError = sleepMS - frameMS;
+                    Util.Clamp(sleepError, 0.0f, 20f);
+                    frameMS = (float)(tmpMS2 - framestart);
+                    }
+                else
+                    {
+                    tmpMS2 = Util.GetTimeStampMS();
+                    frameMS = (float)(tmpMS2 - framestart);
+                    sleepMS = 0.0f;
+                    sleepError = 0.0f;
+                    }
 
-                sleepMS = (float)(tmpMS2 - tmpMS);
-                frameMS = (float)(tmpMS2 - framestart);
-                StatsReporter.addSleepMS(sleepMS);
-                StatsReporter.addFrameMS(frameMS);
+                // script time is not scene frame time, but is displayed per frame
+                float scriptTimeMS = GetAndResetScriptExecutionTime();
+                StatsReporter.AddFrameStats(TimeDilation, physicsFPS, agentMS,
+                             physicsMS + physicsMS2, otherMS , sleepMS, frameMS, scriptTimeMS); 
+              
+                
 
                 // if (Frame%m_update_avatars == 0)
                 //   UpdateInWorldTime();
