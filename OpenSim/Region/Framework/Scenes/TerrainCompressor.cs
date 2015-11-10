@@ -191,7 +191,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             for (int i = 0; i < x.Length; i++)
             {
                 CreatePatchFromTerrainData(bitpack, terrData, x[i], y[i]);
-                if (bitpack.BytePos > 1000 && i != x.Length - 1)
+                if (bitpack.BytePos > 980 && i != x.Length - 1)
                 {
                     //finish this packet
                     bitpack.PackBits(END_OF_PATCHES, 8);
