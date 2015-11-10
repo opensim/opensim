@@ -2437,14 +2437,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // this is the username of the *owner*
             dialog.Data.FirstName = Util.StringToBytes256(ownerFirstName);
             dialog.Data.LastName = Util.StringToBytes256(ownerLastName);
-            dialog.Data.Message = Util.StringToBytes1024(msg);
+            dialog.Data.Message = Util.StringToBytes(msg,512);
             dialog.Data.ImageID = textureID;
             dialog.Data.ChatChannel = ch;
             ScriptDialogPacket.ButtonsBlock[] buttons = new ScriptDialogPacket.ButtonsBlock[buttonlabels.Length];
             for (int i = 0; i < buttonlabels.Length; i++)
             {
                 buttons[i] = new ScriptDialogPacket.ButtonsBlock();
-                buttons[i].ButtonLabel = Util.StringToBytes256(buttonlabels[i]);
+                buttons[i].ButtonLabel = Util.StringToBytes256(buttonlabels[i]); 
             }
             dialog.Buttons = buttons;
 
@@ -13172,7 +13172,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // this is the username of the *owner*
             dialog.Data.FirstName = Util.StringToBytes256(ownerFirstName);
             dialog.Data.LastName = Util.StringToBytes256(ownerLastName);
-            dialog.Data.Message =  Util.StringToBytes256(message);
+            dialog.Data.Message =  Util.StringToBytes(message,512);
 
             ScriptDialogPacket.ButtonsBlock[] buttons = new ScriptDialogPacket.ButtonsBlock[1];
             buttons[0] = new ScriptDialogPacket.ButtonsBlock();
