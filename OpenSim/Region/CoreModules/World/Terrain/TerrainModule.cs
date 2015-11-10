@@ -804,7 +804,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private void EventManager_TerrainCheckUpdatesAsync(object o)
         {
             // dont overlap execution
-            Monitor.TryEnter(TerrainCheckUpdatesLock);
+            if(Monitor.TryEnter(TerrainCheckUpdatesLock))
             {
                 // this needs fixing
                 TerrainData terrData = m_channel.GetTerrainData();
@@ -1046,7 +1046,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     if(pups.Presence.IsDeleted)
                         continue;
 
-                    // throught acording to land queue free to send bytes
+                    // limit rate acording to udp land queue state
                     if (!pups.Presence.ControllingClient.CanSendLayerData())
                         continue;
 
@@ -1098,7 +1098,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             int limitX = (int)m_scene.RegionInfo.RegionSizeX / Constants.TerrainPatchSize;
             int limitY = (int)m_scene.RegionInfo.RegionSizeY / Constants.TerrainPatchSize;
 
-            if (pups.sendAllcurrentX > limitX && pups.sendAllcurrentY > limitY)
+            if (pups.sendAllcurrentX >= limitX && pups.sendAllcurrentY >= limitY)
             {
                 pups.sendAll = false;
                 pups.sendAllcurrentX = 0;
