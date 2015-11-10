@@ -588,9 +588,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return true;
                 }
                                   
-                if (!forceQueue && bucket.RemoveTokens(packet.Buffer.DataLength))
+                if (!forceQueue && bucket.CheckTokens(packet.Buffer.DataLength))
                 {
                     // enough tokens so it can be sent imediatly by caller
+                    bucket.RemoveTokens(packet.Buffer.DataLength);
                     return false;
                 }
                 else
@@ -605,6 +606,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // We don't have a token bucket for this category, so it will not be queued
                 return false;
             }
+  
         }
 
         /// <summary>
