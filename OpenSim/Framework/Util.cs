@@ -2022,6 +2022,56 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
+        /// Convert a string to a byte format suitable for transport in an LLUDP packet.  The output is truncated to MaxLength bytes if necessary.
+        /// </summary>
+        /// <param name="str">
+        /// If null or empty, then an bytes[0] is returned.
+        /// Using "\0" will return a conversion of the null character to a byte.  This is not the same as bytes[0]
+        /// </param>
+        /// <param name="args">
+        /// Arguments to substitute into the string via the {} mechanism.
+        /// </param>
+        /// <returns></returns>
+        public static byte[] StringToBytes(string str, int MaxLength, params object[] args)
+        {
+            return StringToBytes1024(string.Format(str, args), MaxLength);
+        }
+
+        /// <summary>
+        /// Convert a string to a byte format suitable for transport in an LLUDP packet.  The output is truncated to MaxLength bytes if necessary.
+        /// </summary>
+        /// <param name="str">
+        /// If null or empty, then an bytes[0] is returned.
+        /// Using "\0" will return a conversion of the null character to a byte.  This is not the same as bytes[0]
+        /// </param>
+        /// <returns></returns>
+        public static byte[] StringToBytes(string str, int MaxLength)
+        {
+            if (String.IsNullOrEmpty(str))
+                return Utils.EmptyBytes;
+
+            if (!str.EndsWith("\0"))
+                 str += "\0";
+
+            // Because this is UTF-8 encoding and not ASCII, it's possible we
+            // might have gotten an oversized array even after the string trim
+            byte[] data = UTF8.GetBytes(str);
+
+            if (data.Length > MaxLength)
+            {
+                int cut = MaxLength -1 ;
+                if((data[cut] & 0x80 ) != 0 )
+                    {
+                    while(cut > 0 && (data[cut] & 0xc0) != 0xc0)
+                        cut--;
+                    }
+                Array.Resize<byte>(ref data, cut + 1);
+                data[cut] = 0;
+            }
+
+            return data;
+        }
+        /// <summary>
         /// Pretty format the hashtable contents to a single line.
         /// </summary>
         /// <remarks>
