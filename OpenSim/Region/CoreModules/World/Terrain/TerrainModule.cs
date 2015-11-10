@@ -785,39 +785,54 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 m_scene.RegionInfo.RegionName, filename, m_supportFileExtensionsForTileSave);
         }
 
+        
         /// <summary>
         /// This is used to check to see of any of the terrain is tainted and, if so, schedule
         /// updates for all the presences.
         /// This also checks to see if there are updates that need to be sent for each presence.
         /// This is where the logic is to send terrain updates to clients.
         /// </summary>
+        /// doing it async, since currently this is 2 heavy for heartbeat
         private void EventManager_TerrainCheckUpdates()
         {
-            // this needs fixing
-            TerrainData terrData = m_channel.GetTerrainData();
+            Util.FireAndForget(
+                EventManager_TerrainCheckUpdatesAsync);
+        }
 
-            bool shouldTaint = false;
-            for (int x = 0; x < terrData.SizeX; x += Constants.TerrainPatchSize)
+        object TerrainCheckUpdatesLock = new object();
+
+        private void EventManager_TerrainCheckUpdatesAsync(object o)
+        {
+            // dont overlap execution
+            Monitor.TryEnter(TerrainCheckUpdatesLock);
             {
-                for (int y = 0; y < terrData.SizeY; y += Constants.TerrainPatchSize)
+                // this needs fixing
+                TerrainData terrData = m_channel.GetTerrainData();
+
+                bool shouldTaint = false;
+                for (int x = 0; x < terrData.SizeX; x += Constants.TerrainPatchSize)
                 {
-                    if (terrData.IsTaintedAt(x, y,true))
+                    for (int y = 0; y < terrData.SizeY; y += Constants.TerrainPatchSize)
                     {
-                        // Found a patch that was modified. Push this flag into the clients.
-                        SendToClients(terrData, x, y);
-                        shouldTaint = true;
+                        if (terrData.IsTaintedAt(x, y,true))
+                        {
+                            // Found a patch that was modified. Push this flag into the clients.
+                            SendToClients(terrData, x, y);
+                            shouldTaint = true;
+                        }
                     }
                 }
-            }
 
-            // This event also causes changes to be sent to the clients
-            CheckSendingPatchesToClients();
+                // This event also causes changes to be sent to the clients
+                CheckSendingPatchesToClients();
 
-            // If things changes, generate some events
-            if (shouldTaint)
-            {
-                m_scene.EventManager.TriggerTerrainTainted();
-                m_tainted = true;
+                // If things changes, generate some events
+                if (shouldTaint)
+                {
+                    m_scene.EventManager.TriggerTerrainTainted();
+                    m_tainted = true;
+                }
+                Monitor.Exit(TerrainCheckUpdatesLock);
             }
         }
 
@@ -1083,7 +1098,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             int limitX = (int)m_scene.RegionInfo.RegionSizeX / Constants.TerrainPatchSize;
             int limitY = (int)m_scene.RegionInfo.RegionSizeY / Constants.TerrainPatchSize;
 
-            if (pups.sendAllcurrentX > limitX || pups.sendAllcurrentY > limitY)
+            if (pups.sendAllcurrentX > limitX && pups.sendAllcurrentY > limitY)
             {
                 pups.sendAll = false;
                 pups.sendAllcurrentX = 0;
