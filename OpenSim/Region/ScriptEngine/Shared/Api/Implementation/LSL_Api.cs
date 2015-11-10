@@ -5077,9 +5077,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 Error("llTextBox", "Empty message");
             }
-            else if (message.Length > 512)
+            else if (Encoding.UTF8.GetByteCount(message) > 512)
             {
-                Error("llTextBox", "Message more than 512 characters");
+                Error("llTextBox", "Message longer than 512 bytes");
             }
             else
             {
@@ -7906,6 +7906,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 Error("llDialog", "No more than 12 buttons can be shown");
                 return;
+            }
+
+            if (message == string.Empty)
+            {
+                Error("llDialog", "Empty message");
+            }
+            else if (Encoding.UTF8.GetByteCount(message) > 512)
+            {
+                Error("llDialog", "Message longer than 512 bytes");
             }
 
             string[] buts = new string[length];
