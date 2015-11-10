@@ -60,7 +60,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 
         /// <summary>
         /// </summary>
-        protected const float m_minimumDripRate = 1400;
+        protected const float m_minimumDripRate = 1500;
         
         /// <summary>Time of the last drip, in system ticks</summary>
         protected Int32 m_lastDrip;
@@ -284,6 +284,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             return false;
+        }
+
+        public bool CheckTokens(int amount)
+        {
+            return  (m_tokenCount - amount >= 0);
         }
 
         public int GetCatBytesCanSend(int timeMS)
