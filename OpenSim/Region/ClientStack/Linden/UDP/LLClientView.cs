@@ -2444,7 +2444,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             for (int i = 0; i < buttonlabels.Length; i++)
             {
                 buttons[i] = new ScriptDialogPacket.ButtonsBlock();
-                buttons[i].ButtonLabel = Util.StringToBytes256(buttonlabels[i]); 
+                buttons[i].ButtonLabel = Util.StringToBytes(buttonlabels[i],24); 
             }
             dialog.Buttons = buttons;
 
