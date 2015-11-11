@@ -7925,11 +7925,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     Error("llDialog", "Button label cannot be blank");
                     return;
                 }
+/*
                 if (buttons.Data[i].ToString().Length > 24)
                 {
                     Error("llDialog", "Button label cannot be longer than 24 characters");
                     return;
                 }
+*/
                 buts[i] = buttons.Data[i].ToString();
             }
 
