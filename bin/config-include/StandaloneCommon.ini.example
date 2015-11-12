@@ -134,6 +134,9 @@
     ; Url to search service
     ; SearchURL = "${Const|BaseURL}:${Const|PublicPort}";
 
+    ; For V3 destination guide
+    ; DestinationGuide = "${Const|BaseURL}/guide"
+
     ; The minimum user level required for a user to be able to login.  0 by default
     ; If you disable a particular user's account then you can set their login level below this number.
     ; You can also change this level from the console though these changes will not be persisted.
@@ -222,26 +225,21 @@
     ; information on a standalone
     ;welcome = ${Const|BaseURL}/welcome
 
-    ; helper uri: optional: if it exists if will be used to tell the client to use
+    ; helper uri: optional: if it exists it will be used to tell the client to use
     ;                       this for all economy related things
-    ; currently unused
-    ;economy = ${Const|BaseURL}:${Const|PublicPort}/
+    ;economy = ${Const|BaseURL}/economy
 
     ; web page of grid: optional: page providing further information about your grid
-    ; currently unused
-    ;about = ${Const|BaseURL}/about/
+    ;about = ${Const|BaseURL}/about
 
     ; account creation: optional: page providing further information about obtaining
     ;                             a user account on your grid
-    ; currently unused
     ;register = ${Const|BaseURL}/register
 
     ; help: optional: page providing further assistance for users of your grid
-    ; currently unused
     ;help = ${Const|BaseURL}/help
 
     ; password help: optional: page providing password assistance for users of your grid
-    ; currently unused
     ;password = ${Const|BaseURL}/password
 
     ; HG address of the gatekeeper, if you have one
