@@ -1131,12 +1131,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     foreach (OdeCharacter chr in _characters)
                     {
-                        if (chr == null || chr.Body == IntPtr.Zero || chr.collider == IntPtr.Zero )
+                        if (chr == null)
                             continue;
 
                         chr.IsColliding = false;
-                        //                    chr.CollidingGround = false; not done here
+                        // chr.CollidingGround = false; not done here
                         chr.CollidingObj = false;
+                        
+                        if(chr.Body == IntPtr.Zero || chr.collider == IntPtr.Zero )
+                            continue;
+                    
                         // do colisions with static space
                         d.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, nearCallback);
 
