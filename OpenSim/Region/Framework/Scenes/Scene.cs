@@ -1243,13 +1243,21 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_sceneGraph; }
         }
 
-        protected virtual void RegisterDefaultSceneEvents()
+        /// <summary>
+        /// Called by the module loader when all modules are loaded, after each module's
+        /// RegionLoaded hook is called. This is the earliest time where RequestModuleInterface
+        /// may be used.
+        /// </summary>
+        public void AllModulesLoaded()
         {
             IDialogModule dm = RequestModuleInterface<IDialogModule>();
 
             if (dm != null)
                 m_eventManager.OnPermissionError += dm.SendAlertToUser;
+        }
 
+        protected virtual void RegisterDefaultSceneEvents()
+        {
             m_eventManager.OnSignificantClientMovement += HandleOnSignificantClientMovement;
         }
 
