@@ -1131,7 +1131,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     foreach (OdeCharacter chr in _characters)
                     {
-                        if (chr == null || chr.Body == IntPtr.Zero)
+                        if (chr == null || chr.Body == IntPtr.Zero || chr.collider == IntPtr.Zero )
                             continue;
 
                         chr.IsColliding = false;
@@ -1161,13 +1161,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     aprim.IsColliding = false;                   
                 }
             }
-            lock (_activeprims)
+            lock (_activegroups)
             {
                 try
                 {
                     foreach (OdePrim aprim in _activegroups)
                     {
-                        if(!aprim.m_outbounds && d.BodyIsEnabled(aprim.Body))
+                        if(!aprim.m_outbounds && d.BodyIsEnabled(aprim.Body) &&
+                                aprim.collide_geom != IntPtr.Zero)    
                         {
                             d.SpaceCollide2(StaticSpace, aprim.collide_geom, IntPtr.Zero, nearCallback);
                             d.SpaceCollide2(GroundSpace, aprim.collide_geom, IntPtr.Zero, nearCallback);
