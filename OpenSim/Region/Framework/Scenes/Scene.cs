@@ -381,6 +381,10 @@ namespace OpenSim.Region.Framework.Scenes
         }
         private int m_minFrameTicks;
 
+        // Normalize the frame related stats to nominal 55fps for viewer and scripts option
+        // see SimStatsReporter.cs
+        public bool Normalized55FPS { get; private set; }
+
         /// <summary>
         /// The minimum length of time in seconds that will be taken for a scene frame.
         /// </summary>
@@ -856,6 +860,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_config = config;
             MinFrameTicks = 89;
+			Normalized55FPS = true;
             MinMaintenanceTicks = 1000;
             SeeIntoRegion = true;
 
@@ -1083,6 +1088,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (startupConfig.Contains("MinFrameTime"))
                     MinFrameTicks = (int)(startupConfig.GetFloat("MinFrameTime") * 1000);
+				Normalized55FPS           = startupConfig.GetBoolean( "Normalized55FPS", Normalized55FPS);
 
                 m_update_backup           = startupConfig.GetInt("UpdateStorageEveryNFrames",         m_update_backup);
                 m_update_coarse_locations = startupConfig.GetInt("UpdateCoarseLocationsEveryNFrames", m_update_coarse_locations);
