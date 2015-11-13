@@ -39,6 +39,7 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenMetaverse.Imaging;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Monitoring;
 using OpenSim.Services.Interfaces;
@@ -380,6 +381,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
         private int m_minFrameTicks;
+
+		public int FrameTimeWarnPercent { get; private set; }
+		public int FrameTimeCritPercent { get; private set; }
 
         // Normalize the frame related stats to nominal 55fps for viewer and scripts option
         // see SimStatsReporter.cs
@@ -860,6 +864,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_config = config;
             MinFrameTicks = 89;
+            FrameTimeWarnPercent = 60;
+            FrameTimeCritPercent = 40;
 			Normalized55FPS = true;
             MinMaintenanceTicks = 1000;
             SeeIntoRegion = true;
@@ -1088,6 +1094,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (startupConfig.Contains("MinFrameTime"))
                     MinFrameTicks = (int)(startupConfig.GetFloat("MinFrameTime") * 1000);
+                FrameTimeWarnPercent      = startupConfig.GetInt( "FrameTimeWarnPercent", FrameTimeWarnPercent);
+                FrameTimeCritPercent      = startupConfig.GetInt( "FrameTimeCritPercent", FrameTimeCritPercent);
 				Normalized55FPS           = startupConfig.GetBoolean( "Normalized55FPS", Normalized55FPS);
 
                 m_update_backup           = startupConfig.GetInt("UpdateStorageEveryNFrames",         m_update_backup);
@@ -1256,13 +1264,44 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_sceneGraph; }
         }
 
-        protected virtual void RegisterDefaultSceneEvents()
+        /// <summary>
+        /// Called by the module loader when all modules are loaded, after each module's
+        /// RegionLoaded hook is called. This is the earliest time where RequestModuleInterface
+        /// may be used.
+        /// </summary>
+        public void AllModulesLoaded()
         {
             IDialogModule dm = RequestModuleInterface<IDialogModule>();
 
             if (dm != null)
                 m_eventManager.OnPermissionError += dm.SendAlertToUser;
 
+            ISimulatorFeaturesModule fm = RequestModuleInterface<ISimulatorFeaturesModule>();
+            if (fm != null)
+            {
+                OSD openSimExtras;
+                OSDMap openSimExtrasMap;
+
+                if (!fm.TryGetFeature("OpenSimExtras", out openSimExtras))
+                    openSimExtras = new OSDMap();
+
+                float FrameTime = MinFrameTicks / 1000.0f;
+                float statisticsFPSfactor = 1.0f;
+                if(Normalized55FPS)
+                    statisticsFPSfactor = 55.0f * FrameTime;
+
+                openSimExtrasMap = (OSDMap)openSimExtras;
+                openSimExtrasMap["SimulatorFPS"] = OSD.FromReal(1.0f / FrameTime);
+                openSimExtrasMap["SimulatorFPSFactor"] = OSD.FromReal(statisticsFPSfactor);
+                openSimExtrasMap["SimulatorFPSWarnPercent"] = OSD.FromInteger(FrameTimeWarnPercent);
+                openSimExtrasMap["SimulatorFPSCritPercent"] = OSD.FromInteger(FrameTimeCritPercent);
+
+                fm.AddFeature("OpenSimExtras", openSimExtrasMap);
+            }
+        }
+
+        protected virtual void RegisterDefaultSceneEvents()
+        {
             m_eventManager.OnSignificantClientMovement += HandleOnSignificantClientMovement;
         }
 
