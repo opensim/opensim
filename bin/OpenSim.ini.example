@@ -610,17 +610,16 @@
 [SimulatorFeatures]
 
     ;# {SearchServerURI} {} {URL of the search server} {}
-    ;; This is identical to the Robust LoginService SearchURL setting
-    ;; and will override that value if set here. The Robust setting
-    ;; provides a working default for the grid and setting here is 
-    ;; optional.
+    ;; Optional. If given this serves the same purpose as the grid wide
+    ;; [LoginServices] SearchURL setting and will override that where
+    ;; supported by viewers.
     ;SearchServerURI = "http://127.0.0.1:9000/"
+
     ;# {DestinationGuideURI} {} {URL of the destination guide} {}
-    ;;
-    ;; This serves the same purpose as the DestinationGuideURI in the
-    ;; LoginService setting in the Robust server. This will override 
-    ;; the Robust setting if desired as an option.
-    ;DestinationGuideURI = "http://127.0.0.1:9000/"
+    ;; Optional. If given this serves the same purpose as the grid wide
+    ;; [LoginServices] DestinationGuide setting and will override that where
+    ;; supported by viewers.
+    ;DestinationGuideURI = "http://127.0.0.1:9000/guide"
 
 
 [Chat]

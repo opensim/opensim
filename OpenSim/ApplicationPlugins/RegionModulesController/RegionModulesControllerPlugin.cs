@@ -509,6 +509,8 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             {
                 module.RegionLoaded(scene);
             }
+
+            scene.AllModulesLoaded();
         }
 
         public void RemoveRegionFromModules (Scene scene)

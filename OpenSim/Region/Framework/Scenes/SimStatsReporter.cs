@@ -176,11 +176,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// Parameter to adjust reported scene fps
         /// </summary>
         /// <remarks>
-        /// Our scene loop runs slower than other server implementations, apparantly because we work somewhat differently.
-        /// However, we will still report an FPS that's closer to what people are used to seeing.  A lower FPS might
-        /// affect clients and monitoring scripts/software.
+        /// The close we have to a frame rate as expected by viewers, users and scripts
+        /// is heartbeat rate.
+        /// heartbeat rate default value is very diferent from the expected one
+        /// and can be changed from region to region acording to its specific simulation needs
+        /// since this creates incompatibility with expected values,
+        /// this scale factor can be used to normalize values to a Virtual FPS.
+        /// original decision was to use a value of 55fps for all opensim
+        /// corresponding, with default heartbeat rate, to a value of 5.
         /// </remarks>
-        private float m_reportedFpsCorrectionFactor = 5;
+        private float m_statisticsFPSfactor = 5.0f;
 
         // saved last reported value so there is something available for llGetRegionFPS 
         private float lastReportedSimFPS;
@@ -278,10 +283,15 @@ namespace OpenSim.Region.Framework.Scenes
             m_usersLoggingIn = 0;
 
             m_scene = scene;
-            m_reportedFpsCorrectionFactor = scene.MinFrameSeconds * m_nominalReportedFps;
+   
             m_statsUpdateFactor = (float)(m_statsUpdatesEveryMS / 1000);
             ReportingRegion = scene.RegionInfo;
 
+            if(scene.Normalized55FPS)
+                m_statisticsFPSfactor = 55.0f * m_scene.MinFrameTicks / 1000.0f;
+            else
+                m_statisticsFPSfactor = 1.0f;
+				
             m_objectCapacity = scene.RegionInfo.ObjectCapacity;
             m_report.AutoReset = true;
             m_report.Interval = m_statsUpdatesEveryMS;
@@ -381,13 +391,7 @@ namespace OpenSim.Region.Framework.Scenes
 
 #region various statistic googly moogly
 
-               // ORIGINAL code commented out until we have time to add our own
-               // statistics to the statistics window, this will be done as a
-               // new section given the title of our current project
-                // We're going to lie about the FPS because we've been lying since 2008.  The actual FPS is currently
-                // locked at a maximum of 11.  Maybe at some point this can change so that we're not lying.
-                //int reportedFPS = (int)(m_fps * m_reportedFpsCorrectionFactor);
-               int reportedFPS = m_fps;
+               int reportedFPS = (int)(m_fps * m_statisticsFPSfactor);
 
                 // save the reported value so there is something available for llGetRegionFPS 
                 lastReportedSimFPS = reportedFPS / m_statsUpdateFactor;
@@ -395,7 +399,7 @@ namespace OpenSim.Region.Framework.Scenes
                // ORIGINAL code commented out until we have time to add our own
                // statistics to the statistics window
                 //float physfps = ((m_pfps / 1000));
-               float physfps = m_numberPhysicsFrames;
+               float physfps = m_numberPhysicsFrames * m_statisticsFPSfactor;
 
                 //if (physfps > 600)
                 //physfps = physfps - (physfps - 600);
@@ -429,7 +433,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 uint thisFrame = m_scene.Frame;
                 uint numFrames = thisFrame - m_lastUpdateFrame;
-                float framesUpdated = (float)numFrames * m_reportedFpsCorrectionFactor;
+                float framesUpdated = (float)numFrames * m_statisticsFPSfactor;
                 m_lastUpdateFrame = thisFrame;
 
                 // Avoid div-by-zero if somehow we've not updated any frames.
@@ -502,22 +506,22 @@ namespace OpenSim.Region.Framework.Scenes
                // statistics to the statistics window
                 sb[8].StatID = (uint)Stats.FrameMS;
                 //sb[8].StatValue = m_frameMS / framesUpdated;
-                sb[8].StatValue = (float) totalSumFrameTime / m_numberFramesStored;
+                sb[8].StatValue = (float) totalSumFrameTime / m_numberFramesStored / m_statisticsFPSfactor;
 
                 sb[9].StatID = (uint)Stats.NetMS;
                 //sb[9].StatValue = m_netMS / framesUpdated;
-                sb[9].StatValue = (float) networkSumFrameTime / m_numberFramesStored;
+                sb[9].StatValue = (float) networkSumFrameTime / m_numberFramesStored / m_statisticsFPSfactor;
 
                 sb[10].StatID = (uint)Stats.PhysicsMS;
                 //sb[10].StatValue = m_physicsMS / framesUpdated;
-                sb[10].StatValue = (float) physicsSumFrameTime / m_numberFramesStored;
+                sb[10].StatValue = (float) physicsSumFrameTime / m_numberFramesStored / m_statisticsFPSfactor;
 
                 sb[11].StatID = (uint)Stats.ImageMS ;
                 sb[11].StatValue = m_imageMS / framesUpdated;
 
                 sb[12].StatID = (uint)Stats.OtherMS;
                 //sb[12].StatValue = m_otherMS / framesUpdated;
-                sb[12].StatValue = (float) simulationSumFrameTime / m_numberFramesStored;
+                sb[12].StatValue = (float) simulationSumFrameTime / m_numberFramesStored / m_statisticsFPSfactor;
 
                 sb[13].StatID = (uint)Stats.InPacketsPerSecond;
                 sb[13].StatValue = (m_inPacketsPerSecond / m_statsUpdateFactor);
