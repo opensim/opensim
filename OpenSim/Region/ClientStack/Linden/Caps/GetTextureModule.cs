@@ -389,16 +389,17 @@ namespace OpenSim.Region.ClientStack.Linden
                     port = MainServer.Instance.SSLPort;
                     protocol = "https";
                 }
+                IExternalCapsModule handler = m_scene.RequestModuleInterface<IExternalCapsModule>();
+                if (handler != null)
+                    handler.RegisterExternalUserCapsHandler(agentID, caps, "GetTexture", capUrl);
+                else
+                    caps.RegisterHandler("GetTexture", String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, capUrl));
                 m_pollservices[agentID] = args;
                 m_capsDict[agentID] = capUrl;
             }
             else
             {
-                IExternalCapsModule handler = m_scene.RequestModuleInterface<IExternalCapsModule>();
-                if (handler != null)
-                    handler.RegisterExternalUserCapsHandler(agentID, caps, "GetTexture", m_Url);
-                else
-                    caps.RegisterHandler("GetTexture", m_Url);
+                caps.RegisterHandler("GetTexture", m_Url);
             }
         }
 
