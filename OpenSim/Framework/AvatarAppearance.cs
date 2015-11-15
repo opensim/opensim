@@ -251,9 +251,17 @@ namespace OpenSim.Framework
 
         public void GetAssetsFrom(AvatarAppearance app)
         {
-            for (int i = 0; i < m_wearables.Length; i++)
+            int len =  m_wearables.Length;
+            if(len > app.m_wearables.Length)
+                len = app.m_wearables.Length;
+
+            for (int i = 0; i < len; i++)
             {
-                for (int j = 0; j < m_wearables[i].Count; j++)
+                int count =  m_wearables[i].Count;
+                if(count > app.m_wearables[i].Count)
+                    count = app.m_wearables[i].Count;
+
+                for (int j = 0; j < count; j++)
                 {
                     UUID itemID = m_wearables[i][j].ItemID;
                     UUID assetID = app.Wearables[i].GetAsset(itemID);
