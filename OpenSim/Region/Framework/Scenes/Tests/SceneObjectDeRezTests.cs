@@ -231,9 +231,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             IClientAPI client = SceneHelpers.AddScenePresence(scene, agentId).ControllingClient;
             scene.DeRezObjects(client, new List<uint>() { so.LocalId }, UUID.Zero, DeRezAction.Take, folder1.ID);
 
-            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(so.LocalId);
+//            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(so.LocalId);
 
-            Assert.That(retrievedPart, Is.Not.Null);
+//            Assert.That(retrievedPart, Is.Not.Null);
 //            Assert.That(so.IsDeleted, Is.False);
 
 //            sogd.InventoryDeQueueAndDelete();
