@@ -490,14 +490,7 @@ namespace OpenSim.Framework
                     m_wearables[i] = new AvatarWearable();
             }
             m_wearables[wearableId].Clear();
-<<<<<<< HEAD
             for (int i = 0; i < wearable.Count; i++)
-=======
-            int count = wearable.Count;
-            if (count > AvatarWearable.MAX_WEARABLES)
-                count = AvatarWearable.MAX_WEARABLES;
-            for (int i = 0; i < count; i++)
->>>>>>> master
                 m_wearables[wearableId].Add(wearable[i].ItemID, wearable[i].AssetID);
         }
 
