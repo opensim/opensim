@@ -39,6 +39,7 @@ using OpenSim.Tests.Common;
 using log4net;
 using System.Reflection;
 using System.Data.Common;
+using System.Threading;
 
 // DBMS-specific:
 using MySql.Data.MySqlClient;
@@ -259,7 +260,7 @@ namespace OpenSim.Data.Tests
             uint localid = localID+1;
             localID = localID + 1;
             string name = "Adam  West";
-            byte material = (byte) random.Next(127);
+            byte material = (byte) random.Next((int)SOPMaterialData.MaxMaterial);
             ulong regionh = (ulong)random.NextDouble() * (ulong)random.Next();
             int pin = random.Next();
             Byte[] partsys = new byte[8];
@@ -433,7 +434,7 @@ namespace OpenSim.Data.Tests
             TaskInventoryDictionary dic = new TaskInventoryDictionary();
             localID = localID + 1;
             string name = "West  Adam";
-            byte material = (byte) random.Next(127);
+            byte material = (byte) random.Next((int)SOPMaterialData.MaxMaterial);
             ulong regionh = (ulong)random.NextDouble() * (ulong)random.Next();
             int pin = random.Next();
             Byte[] partsys = new byte[8];
@@ -960,6 +961,9 @@ namespace OpenSim.Data.Tests
             double[,] t1 = GenTerrain(height1);
             db.StoreTerrain(t1, region1);
             
+            // store terrain is async
+            Thread.Sleep(1000);
+              
             Assert.That(db.LoadTerrain(zero), Is.Null);
             Assert.That(db.LoadTerrain(region1), Is.Not.Null);
             Assert.That(db.LoadTerrain(region2), Is.Null);
@@ -986,6 +990,9 @@ namespace OpenSim.Data.Tests
             double[,] baseterrain1 = GenTerrain(height1);
             double[,] baseterrain2 = GenTerrain(height2);
             db.StoreTerrain(baseterrain2, region1);
+
+            // store terrain is async
+            Thread.Sleep(1000);
 
             double[,] t1 = db.LoadTerrain(region1);
             Assert.That(CompareTerrain(t1, baseterrain1), Is.False);
