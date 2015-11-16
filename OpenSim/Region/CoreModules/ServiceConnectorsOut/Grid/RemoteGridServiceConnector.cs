@@ -196,20 +196,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             ulong regionHandle = Util.RegionWorldLocToHandle((uint)x, (uint)y);
             uint regionX = Util.WorldToRegionLoc((uint)x);
             uint regionY = Util.WorldToRegionLoc((uint)y);
-            
+
+/*      this is no longer valid      
             // Sanity check
             if ((Util.RegionToWorldLoc(regionX) != (uint)x) || (Util.RegionToWorldLoc(regionY) != (uint)y))
             {
                 m_log.WarnFormat("[REMOTE GRID CONNECTOR]: GetRegionByPosition. Bad position requested: not the base of the region. Requested Pos=<{0},{1}>, Should Be=<{2},{3}>",
                     x, y, Util.RegionToWorldLoc(regionX), Util.RegionToWorldLoc(regionY));
             }
-
+*/
             bool inCache = false;
             GridRegion rinfo = m_RegionInfoCache.Get(scopeID, regionHandle, out inCache);
             if (inCache)
             {
-                m_log.DebugFormat("[REMOTE GRID CONNECTOR]: GetRegionByPosition. Found region {0} in cache. Pos=<{1},{2}>, RegionHandle={3}",
-                    (rinfo == null) ? "<missing>" : rinfo.RegionName, regionX, regionY, (rinfo == null) ? regionHandle : rinfo.RegionHandle);
+//                m_log.DebugFormat("[REMOTE GRID CONNECTOR]: GetRegionByPosition. Found region {0} in cache. Pos=<{1},{2}>, RegionHandle={3}",
+//                    (rinfo == null) ? "<missing>" : rinfo.RegionName, regionX, regionY, (rinfo == null) ? regionHandle : rinfo.RegionHandle);
                 return rinfo;
             }
 
