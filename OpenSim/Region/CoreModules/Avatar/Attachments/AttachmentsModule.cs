@@ -572,6 +572,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 }
             }
 
+            group.DetachFromBackup();
+
             lock (sp.AttachmentsSyncLock)
             {
                 group.AttachmentPoint = attachmentPt;
