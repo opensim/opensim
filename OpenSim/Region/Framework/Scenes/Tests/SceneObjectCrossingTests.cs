@@ -37,6 +37,7 @@ using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
 using OpenSim.Region.CoreModules.World.Land;
 using OpenSim.Region.OptionalModules;
 using OpenSim.Tests.Common;
+using System.Threading;
 
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
@@ -64,6 +65,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestCrossOnSameSimulator()
         {
+
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
@@ -94,6 +96,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // Cross with a negative value
             so1.AbsolutePosition = new Vector3(128, -10, 20);
 
+            // crossing is async
+            Thread.Sleep(500);
+            
             Assert.IsNull(sceneA.GetSceneObjectGroup(so1Id));
             Assert.NotNull(sceneB.GetSceneObjectGroup(so1Id));
         }
@@ -154,6 +159,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             sceneA.SceneGraph.UpdatePrimGroupPosition(
                 so1.LocalId, new Vector3(so1StartPos.X, so1StartPos.Y - 20, so1StartPos.Z), userId);
 
+            // crossing is async
+            Thread.Sleep(500);
+
             SceneObjectGroup so1PostCross;
 
             {
@@ -180,6 +188,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // Recross
             sceneB.SceneGraph.UpdatePrimGroupPosition(
                 so1PostCross.LocalId, new Vector3(so1PostCrossPos.X, so1PostCrossPos.Y + 20, so1PostCrossPos.Z), userId);
+
+            // crossing is async
+            Thread.Sleep(500);
 
             {
                 ScenePresence sp1SceneBPostReCross = sceneB.GetScenePresence(userId);
@@ -251,6 +262,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // Cross with a negative value.  We must make this call rather than setting AbsolutePosition directly
             // because only this will execute permission checks in the source region.
             sceneA.SceneGraph.UpdatePrimGroupPosition(so1.LocalId, new Vector3(128, -10, 20), userId);
+
+            // crossing is async
+            Thread.Sleep(500);
 
             Assert.IsNull(sceneA.GetSceneObjectGroup(so1Id));
             Assert.NotNull(sceneB.GetSceneObjectGroup(so1Id));
