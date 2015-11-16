@@ -1171,7 +1171,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal SceneObjectPart GetSceneObjectPart(uint localID)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
-            if (group == null)
+            if (group == null || group.IsDeleted)
                 return null;
             return group.GetPart(localID);
         }
