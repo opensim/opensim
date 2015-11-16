@@ -111,10 +111,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
             SceneObjectGroup soSceneA = SceneHelpers.AddSceneObject(sceneA, 1, userId, "so1-", sceneObjectIdTail);
             soSceneA.AbsolutePosition = new Vector3(128, 10, 20);
 
+            string soSceneAName = soSceneA.Name;
+            string scriptItemSceneAName = "script1";
+
             // CREATE SCRIPT TODO
             InventoryItemBase scriptItemSceneA = new InventoryItemBase();
             //            itemTemplate.ID = itemId;
-            scriptItemSceneA.Name = "script1";
+            scriptItemSceneA.Name = scriptItemSceneAName;
             scriptItemSceneA.Folder = soSceneA.UUID;
             scriptItemSceneA.InvType = (int)InventoryType.LSL;
 
@@ -174,8 +177,8 @@ default
 
             // TEST sending event to moved prim and output
             {
-                SceneObjectGroup soSceneB = sceneB.GetSceneObjectGroup(soSceneA.Name);
-                TaskInventoryItem scriptItemSceneB = soSceneB.RootPart.Inventory.GetInventoryItem(scriptItemSceneA.Name);
+                SceneObjectGroup soSceneB = sceneB.GetSceneObjectGroup(soSceneAName);
+                TaskInventoryItem scriptItemSceneB = soSceneB.RootPart.Inventory.GetInventoryItem(scriptItemSceneAName);
 
                 // XXX: Should not be doing this so directly.  Should call some variant of EventManager.touch() instead.
                 DetectParams[] det = new DetectParams[1];
