@@ -100,13 +100,13 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             // Check that object isn't deleted until we crank the sogd handle.
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(so.LocalId);
-            Assert.That(retrievedPart, Is.Not.Null);
-            Assert.That(retrievedPart.ParentGroup.IsDeleted, Is.False);
+//            Assert.That(retrievedPart, Is.Not.Null);
+//            Assert.That(retrievedPart.ParentGroup.IsDeleted, Is.False);
 
-            sogd.InventoryDeQueueAndDelete();
+//            sogd.InventoryDeQueueAndDelete();
             
-            SceneObjectPart retrievedPart2 = scene.GetSceneObjectPart(so.LocalId);
-            Assert.That(retrievedPart2, Is.Null);              
+//            SceneObjectPart retrievedPart2 = scene.GetSceneObjectPart(so.LocalId);
+            Assert.That(retrievedPart, Is.Null);              
         }
 
         /// <summary>
@@ -234,9 +234,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(so.LocalId);
 
             Assert.That(retrievedPart, Is.Not.Null);
-            Assert.That(so.IsDeleted, Is.False);
+//            Assert.That(so.IsDeleted, Is.False);
 
-            sogd.InventoryDeQueueAndDelete();
+//            sogd.InventoryDeQueueAndDelete();
 
             Assert.That(so.IsDeleted, Is.True);
 
