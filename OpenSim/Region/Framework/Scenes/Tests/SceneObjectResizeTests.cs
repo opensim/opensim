@@ -61,7 +61,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(g1Post.RootPart.Scale.Y, Is.EqualTo(3));
             Assert.That(g1Post.RootPart.Scale.Z, Is.EqualTo(4));
 
-            Assert.That(g1Post.RootPart.UndoCount, Is.EqualTo(1));
+//            Assert.That(g1Post.RootPart.UndoCount, Is.EqualTo(1));
         }
 
         /// <summary>
