@@ -215,10 +215,11 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
             // Make sure the folder link is included
             Assert.That(llsdresponse.Contains("Link to Objects folder"), Is.True, "Link to Objects folder is missing");
 
+/* contents of link folder are not supposed to be listed
             // Make sure the objects inside the Objects folder are included
             // Note: I'm not entirely sure this is needed, but that's what I found in the implementation
             Assert.That(llsdresponse.Contains("Some Object"), Is.True, "Some Object item (contents of the source) is missing");
-
+*/
             // Make sure that the source item is before the link item
             pos1 = llsdresponse.IndexOf("Some Object");
             pos2 = llsdresponse.IndexOf("Link to Objects folder");
