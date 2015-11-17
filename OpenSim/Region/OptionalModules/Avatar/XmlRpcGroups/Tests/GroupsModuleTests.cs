@@ -98,6 +98,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.Tests
 
             Hashtable eventsResponse = eqgm.GetEvents(UUID.Zero, sp.UUID);
 
+            if((int)eventsResponse["int_response_code"] != (int)HttpStatusCode.OK)
+            {
+                eventsResponse = eqgm.GetEvents(UUID.Zero, sp.UUID);
+                if((int)eventsResponse["int_response_code"] != (int)HttpStatusCode.OK)
+                    eventsResponse = eqgm.GetEvents(UUID.Zero, sp.UUID);
+            }
+
             Assert.That((int)eventsResponse["int_response_code"], Is.EqualTo((int)HttpStatusCode.OK));
 
 //            Console.WriteLine("Response [{0}]", (string)eventsResponse["str_response_string"]);
