@@ -358,6 +358,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         // called on textures update
         public bool UpdateBakedTextureCache(IScenePresence sp, WearableCacheItem[] cacheItems)
         {
+            if(cacheItems == null)
+                return false;
+
             // npcs dont have baked cache
             if (((ScenePresence)sp).isNPC)
                 return true;
