@@ -13483,8 +13483,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 {
                                     avpos = av.OffsetPosition;
 
-                                    Vector3 sitOffset = (Zrot(av.Rotation)) * (av.Appearance.AvatarHeight * 0.02638f *2.0f);
-                                    avpos -= sitOffset;
+                                    if(!av.LegacySitOffsets)
+                                    {
+                                        Vector3 sitOffset = (Zrot(av.Rotation)) * (av.Appearance.AvatarHeight * 0.02638f *2.0f);
+                                        avpos -= sitOffset;
+                                    }
+
                                     SceneObjectPart sitRoot = av.ParentPart.ParentGroup.RootPart;
                                     avpos = sitRoot.GetWorldPosition() + avpos * sitRoot.GetWorldRotation();
                                 }
@@ -15731,9 +15735,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 LSL_Vector v;
                                 v = rules.GetVector3Item(idx++);
 
-                                LSL_Vector sitOffset = (llRot2Up(new LSL_Rotation(av.Rotation.X, av.Rotation.Y, av.Rotation.Z, av.Rotation.W)) * av.Appearance.AvatarHeight * 0.02638f);
+                                if(!av.LegacySitOffsets)
+                                {
+                                    LSL_Vector sitOffset = (llRot2Up(new LSL_Rotation(av.Rotation.X, av.Rotation.Y, av.Rotation.Z, av.Rotation.W)) * av.Appearance.AvatarHeight * 0.02638f);
 
-                                v = v + 2 * sitOffset;
+                                    v = v + 2 * sitOffset;
+                                }
 
                                 av.OffsetPosition = new Vector3((float)v.x, (float)v.y, (float)v.z);
                                 positionChanged = true;
@@ -15910,8 +15917,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         {
                             pos = avatar.OffsetPosition;
 
-                            Vector3 sitOffset = (Zrot(avatar.Rotation)) * (avatar.Appearance.AvatarHeight * 0.02638f *2.0f);
-                            pos -= sitOffset;
+                            if(!avatar.LegacySitOffsets)
+                            {
+                                Vector3 sitOffset = (Zrot(avatar.Rotation)) * (avatar.Appearance.AvatarHeight * 0.02638f *2.0f);
+                                pos -= sitOffset;
+                            }
 
                             SceneObjectPart sitroot = sitPart.ParentGroup.RootPart;
                             pos = sitroot.AbsolutePosition + pos * sitroot.GetWorldRotation();
@@ -16104,8 +16114,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_POS_LOCAL:
                         Vector3 lpos = avatar.OffsetPosition;
-                        Vector3 lsitOffset = (Zrot(avatar.Rotation)) * (avatar.Appearance.AvatarHeight * 0.02638f * 2.0f);
-                        lpos -= lsitOffset;
+
+                        if(!avatar.LegacySitOffsets)
+                        {
+                            Vector3 lsitOffset = (Zrot(avatar.Rotation)) * (avatar.Appearance.AvatarHeight * 0.02638f * 2.0f);
+                            lpos -= lsitOffset;
+                        }
 
                         res.Add(new LSL_Vector(lpos.X,lpos.Y,lpos.Z));
                         break;
