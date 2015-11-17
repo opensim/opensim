@@ -310,17 +310,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                             }
                             if (c.Sender == null || Presencecheck.IsEitherBannedOrRestricted(c.Sender.AgentId) != true)
                             {
-                                if (destination != UUID.Zero)
-                                {
-                                    if (TrySendChatMessage(presence, fromPos, regionPos, fromID, ownerID, fromNamePrefix + fromName, c.Type, message, sourceType, true))
-                                        receiverIDs.Add(presence.UUID);
-                                }
-                                else
-                                {
-                                    if (TrySendChatMessage(presence, fromPos, regionPos, fromID, ownerID, fromNamePrefix + fromName, c.Type, message, sourceType, false))
-                                        receiverIDs.Add(presence.UUID);
-                                }
+                                if (TrySendChatMessage(presence, fromPos, regionPos, fromID,
+                                            ownerID, fromNamePrefix + fromName, c.Type,
+                                            message, sourceType, (destination != UUID.Zero)))
+                                    receiverIDs.Add(presence.UUID);
                             }
+                        }
+                        else if(!checkParcelHide && (presence.IsChildAgent))
+                        {
+                            if (TrySendChatMessage(presence, fromPos, regionPos, fromID,
+                                            ownerID, fromNamePrefix + fromName, c.Type,
+                                            message, sourceType, (destination != UUID.Zero)))
+                                receiverIDs.Add(presence.UUID);
                         }
                     }
                 );
