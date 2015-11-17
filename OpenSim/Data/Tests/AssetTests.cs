@@ -125,14 +125,20 @@ namespace OpenSim.Data.Tests
             m_db.StoreAsset(a1);
             m_db.StoreAsset(a2);
             m_db.StoreAsset(a3);
+            a1.UploadAttempts = 0;
+            a2.UploadAttempts = 0;
+            a3.UploadAttempts = 0;
             
             AssetBase a1a = m_db.GetAsset(uuid1);
+            a1a.UploadAttempts = 0;
             Assert.That(a1a, Constraints.PropertyCompareConstraint(a1));
 
             AssetBase a2a = m_db.GetAsset(uuid2);
+            a2a.UploadAttempts = 0;
             Assert.That(a2a, Constraints.PropertyCompareConstraint(a2));
 
             AssetBase a3a = m_db.GetAsset(uuid3);
+            a3a.UploadAttempts = 0;
             Assert.That(a3a, Constraints.PropertyCompareConstraint(a3));
 
             scrambler.Scramble(a1a);
@@ -142,14 +148,20 @@ namespace OpenSim.Data.Tests
             m_db.StoreAsset(a1a);
             m_db.StoreAsset(a2a);
             m_db.StoreAsset(a3a);
+            a1a.UploadAttempts = 0;
+            a2a.UploadAttempts = 0;
+            a3a.UploadAttempts = 0;
 
             AssetBase a1b = m_db.GetAsset(uuid1);
+            a1b.UploadAttempts = 0;
             Assert.That(a1b, Constraints.PropertyCompareConstraint(a1a));
 
             AssetBase a2b = m_db.GetAsset(uuid2);
+            a2b.UploadAttempts = 0;
             Assert.That(a2b, Constraints.PropertyCompareConstraint(a2a));
 
             AssetBase a3b = m_db.GetAsset(uuid3);
+            a3b.UploadAttempts = 0;
             Assert.That(a3b, Constraints.PropertyCompareConstraint(a3a));
 
             bool[] exist = m_db.AssetsExist(new[] { uuid1, uuid2, uuid3 });
@@ -190,16 +202,22 @@ namespace OpenSim.Data.Tests
             a3.Data = data1;
 
             m_db.StoreAsset(a1);
+            a1.UploadAttempts = 0;
             m_db.StoreAsset(a2);
+            a2.UploadAttempts = 0;
             m_db.StoreAsset(a3);
+            a3.UploadAttempts = 0;
 
             AssetBase a1a = m_db.GetAsset(uuid1);
+            a1a.UploadAttempts = 0;
             Assert.That(a1a, Constraints.PropertyCompareConstraint(a1));
 
             AssetBase a2a = m_db.GetAsset(uuid2);
+            a2a.UploadAttempts = 0;
             Assert.That(a2a, Constraints.PropertyCompareConstraint(a2));
 
             AssetBase a3a = m_db.GetAsset(uuid3);
+            a3a.UploadAttempts = 0;
             Assert.That(a3a, Constraints.PropertyCompareConstraint(a3));
         }
     }
