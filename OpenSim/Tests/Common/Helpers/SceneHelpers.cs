@@ -606,7 +606,7 @@ namespace OpenSim.Tests.Common
         /// <returns></returns>
         public static SceneObjectGroup AddSceneObject(Scene scene)
         {
-            return AddSceneObject(scene, "Test Object", UUID.Zero);
+            return AddSceneObject(scene, "Test Object", UUID.Random());
         }
 
         /// <summary>
