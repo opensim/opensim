@@ -228,7 +228,12 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_allowScriptCrossings = true;
 
         /// <summary>
-
+        /// use legacy sittarget offsets to avoid contents breaks
+        /// to compensate for SL bug
+        /// </summary>
+        public bool LegacySitOffsets = true;
+        
+        /// <summary>
         /// Can avatars cross from and to this region?
         /// </summary>
         public bool AllowAvatarCrossing { get; set; }
@@ -959,6 +964,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_defaultDrawDistance = startupConfig.GetFloat("DefaultDrawDistance", m_defaultDrawDistance);
                 m_maxDrawDistance = startupConfig.GetFloat("MaxDrawDistance", m_maxDrawDistance);
+
+                LegacySitOffsets = startupConfig.GetBoolean("LegacyOpenSimSitOffsets", LegacySitOffsets);
 
                 if (m_defaultDrawDistance > m_maxDrawDistance)
                     m_defaultDrawDistance = m_maxDrawDistance;

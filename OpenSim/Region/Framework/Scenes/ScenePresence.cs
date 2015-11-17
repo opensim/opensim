@@ -144,6 +144,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// issue #1716
         /// </summary>
         public static readonly Vector3 SIT_TARGET_ADJUSTMENT = new Vector3(0.0f, 0.0f, 0.4f);
+        public bool  LegacySitOffsets = true;
 
         /// <summary>
         /// Movement updates for agents in neighboring regions are sent directly to clients.
@@ -1003,6 +1004,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_name = String.Format("{0} {1}", Firstname, Lastname);
             m_uuid = client.AgentId;
             LocalId = m_scene.AllocateLocalId();
+            LegacySitOffsets = m_scene.LegacySitOffsets;
 
             UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, m_uuid);
             if (account != null)
@@ -3211,30 +3213,72 @@ namespace OpenSim.Region.Framework.Scenes
 //                            "[SCENE PRESENCE]: Sitting {0} at sit target {1}, {2} on {3} {4}",
 //                            Name, sitTargetPos, sitTargetOrient, part.Name, part.LocalId);
 
-                    //Quaternion vq = new Quaternion(sitTargetPos.X, sitTargetPos.Y+0.2f, sitTargetPos.Z+0.2f, 0);
-                    //Quaternion nq = new Quaternion(-sitTargetOrient.X, -sitTargetOrient.Y, -sitTargetOrient.Z, sitTargetOrient.w);
-
-                    //Quaternion result = (sitTargetOrient * vq) * nq;
-
                     double x, y, z, m;
-
+                    Vector3 sitOffset;
                     Quaternion r = sitTargetOrient;
-                    m = r.X * r.X + r.Y * r.Y + r.Z * r.Z + r.W * r.W;
 
-                    if (Math.Abs(1.0 - m) > 0.000001)
+                    if(LegacySitOffsets)
                     {
-                        m = 1.0 / Math.Sqrt(m);
-                        r.X *= (float)m;
-                        r.Y *= (float)m;
-                        r.Z *= (float)m;
-                        r.W *= (float)m;
-                    }
+                        double m1,m2;
 
-                    x = 2 * (r.X * r.Z + r.Y * r.W);
-                    y = 2 * (-r.X * r.W + r.Y * r.Z);
-                    z = -r.X * r.X - r.Y * r.Y + r.Z * r.Z + r.W * r.W;
-                    Vector3 up = new Vector3((float)x, (float)y, (float)z);
-                    Vector3 sitOffset = up * Appearance.AvatarHeight * 0.02638f;
+                        m1 = r.X * r.X + r.Y * r.Y;
+                        m2 = r.Z * r.Z + r.W * r.W;
+
+                        // Rotate the vector <0, 0, 1>
+                        x = 2 * (r.X * r.Z + r.Y * r.W);
+                        y = 2 * (-r.X * r.W + r.Y * r.Z);
+                        z = m2 - m1;
+
+                        // Set m to be the square of the norm of r.
+                        m = m1 + m2;
+
+                        // This constant is emperically determined to be what is used in SL.
+                        // See also http://opensimulator.org/mantis/view.php?id=7096
+                        double offset = 0.05;
+
+                        // Normally m will be ~ 1, but if someone passed a handcrafted quaternion
+                        // to llSitTarget with values so small that squaring them is rounded off
+                        // to zero, then m could be zero. The result of this floating point
+                        // round off error (causing us to skip this impossible normalization)
+                        // is only 5 cm.
+                        if (m > 0.000001)
+                        {
+                            offset /= m;
+                        }
+
+                        Vector3 up = new Vector3((float)x, (float)y, (float)z);
+                        sitOffset = up * (float)offset;
+                    }
+                    else
+                    {
+                        m = r.X * r.X + r.Y * r.Y + r.Z * r.Z + r.W * r.W;
+                            
+                        if (Math.Abs(1.0 - m) > 0.000001)
+                        {
+                            if(m != 0)
+                            {
+                                m = 1.0 / Math.Sqrt(m);
+                                r.X *= (float)m;
+                                r.Y *= (float)m;
+                                r.Z *= (float)m;
+                                r.W *= (float)m;
+                            }
+                            else
+                            {
+                                r.X = 0.0f;
+                                r.Y = 0.0f;
+                                r.Z = 0.0f;
+                                r.W = 1.0f;
+                                m = 1.0f;
+                            }
+                        }
+
+                        x = 2 * (r.X * r.Z + r.Y * r.W);
+                        y = 2 * (-r.X * r.W + r.Y * r.Z);
+                        z = -r.X * r.X - r.Y * r.Y + r.Z * r.Z + r.W * r.W;
+                        Vector3 up = new Vector3((float)x, (float)y, (float)z);   
+                        sitOffset = up * Appearance.AvatarHeight * 0.02638f;
+                    }
 
                     Vector3 newPos = sitTargetPos + sitOffset + SIT_TARGET_ADJUSTMENT;
                     Quaternion newRot;
