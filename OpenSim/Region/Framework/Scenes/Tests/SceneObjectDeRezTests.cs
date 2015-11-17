@@ -103,7 +103,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 //            Assert.That(retrievedPart, Is.Not.Null);
 //            Assert.That(retrievedPart.ParentGroup.IsDeleted, Is.False);
 
-//            sogd.InventoryDeQueueAndDelete();
+            sogd.InventoryDeQueueAndDelete();
             
 //            SceneObjectPart retrievedPart2 = scene.GetSceneObjectPart(so.LocalId);
             Assert.That(retrievedPart, Is.Null);              
@@ -236,7 +236,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 //            Assert.That(retrievedPart, Is.Not.Null);
 //            Assert.That(so.IsDeleted, Is.False);
 
-//            sogd.InventoryDeQueueAndDelete();
+            sogd.InventoryDeQueueAndDelete();
 
             Assert.That(so.IsDeleted, Is.True);
 
