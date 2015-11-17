@@ -3719,7 +3719,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
 
             if (attachmentsModule != null)
-                return attachmentsModule.AttachObject(presence, grp, (uint)attachmentPoint, false, true, false, true);
+                return attachmentsModule.AttachObject(presence, grp, (uint)attachmentPoint, false, true, true);
             else
                 return false;
         }

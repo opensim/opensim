@@ -3035,7 +3035,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // information that this is due to a teleport/border cross rather than an ordinary attachment.
                     // We currently do this in Scene.MakeRootAgent() instead.
                     if (AttachmentsModule != null)
-                        AttachmentsModule.AttachObject(sp, grp, 0, false, false, false, true);
+                        AttachmentsModule.AttachObject(sp, grp, 0, false, false, true);
                 }
                 else
                 {
