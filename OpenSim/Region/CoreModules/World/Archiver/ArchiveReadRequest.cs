@@ -599,10 +599,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 // being no copy/no mod for everyone
                 lock (part.TaskInventory)
                 {
+/* avination code disabled for opensim
                     // And zap any troublesome sit target information
                     part.SitTargetOrientation = new Quaternion(0, 0, 0, 1);
                     part.SitTargetPosition = new Vector3(0, 0, 0);
-
+*/
                     // Fix ownership/creator of inventory items
                     // Not doing so results in inventory items
                     // being no copy/no mod for everyone
