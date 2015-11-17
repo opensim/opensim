@@ -215,9 +215,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(attSo.Backup, Is.False);
 
             // Check item status
-            Assert.That(
-                sp.Appearance.GetAttachpoint(attSo.FromItemID),
-                Is.EqualTo((int)AttachmentPoint.Chest));
+//            Assert.That(
+//                sp.Appearance.GetAttachpoint(attSo.FromItemID),
+//                Is.EqualTo((int)AttachmentPoint.Chest));
 
             InventoryItemBase attachmentItem = scene.InventoryService.GetItem(new InventoryItemBase(attSo.FromItemID));
             Assert.That(attachmentItem, Is.Not.Null);
@@ -262,9 +262,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 Assert.That(attSo.IsTemporary, Is.False);
 
                 // Check item status
-                Assert.That(
-                    sp.Appearance.GetAttachpoint(attSo.FromItemID),
-                    Is.EqualTo((int)AttachmentPoint.LeftHand));
+//                Assert.That(
+//                    sp.Appearance.GetAttachpoint(attSo.FromItemID),
+//                    Is.EqualTo((int)AttachmentPoint.LeftHand));
 
                 InventoryItemBase attachmentItem = scene.InventoryService.GetItem(new InventoryItemBase(attSo.FromItemID));
                 Assert.That(attachmentItem, Is.Not.Null);
@@ -295,9 +295,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 Assert.That(attSo.IsTemporary, Is.False);
 
                 // Check item status
-                Assert.That(
-                    sp.Appearance.GetAttachpoint(attSo.FromItemID),
-                    Is.EqualTo((int)AttachmentPoint.LeftHand));
+//                Assert.That(
+//                    sp.Appearance.GetAttachpoint(attSo.FromItemID),
+//                    Is.EqualTo((int)AttachmentPoint.LeftHand));
 
                 InventoryItemBase attachmentItem = scene.InventoryService.GetItem(new InventoryItemBase(attSo.FromItemID));
                 Assert.That(attachmentItem, Is.Not.Null);
@@ -328,9 +328,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 Assert.That(attSo.IsTemporary, Is.False);
 
                 // Check item status
-                Assert.That(
-                    sp.Appearance.GetAttachpoint(attSo.FromItemID),
-                    Is.EqualTo((int)AttachmentPoint.LeftHand));
+//                Assert.That(
+//                    sp.Appearance.GetAttachpoint(attSo.FromItemID),
+//                    Is.EqualTo((int)AttachmentPoint.LeftHand));
 
                 InventoryItemBase attachmentItem = scene.InventoryService.GetItem(new InventoryItemBase(attSo.FromItemID));
                 Assert.That(attachmentItem, Is.Not.Null);
@@ -410,8 +410,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 Assert.IsFalse(attSo.Backup);
 
                 // Check appearance status
-                Assert.That(sp.Appearance.GetAttachments().Count, Is.EqualTo(1));
-                Assert.That(sp.Appearance.GetAttachpoint(attItem.ID), Is.EqualTo((int)AttachmentPoint.Chest));
+//                Assert.That(sp.Appearance.GetAttachments().Count, Is.EqualTo(1));
+//                Assert.That(sp.Appearance.GetAttachpoint(attItem.ID), Is.EqualTo((int)AttachmentPoint.Chest));
                 Assert.That(scene.GetSceneObjectGroups().Count, Is.EqualTo(1));
 
                 // Check events
@@ -435,8 +435,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 Assert.That(attSo.IsTemporary, Is.False);
 
                 // Check appearance status
-                Assert.That(sp.Appearance.GetAttachments().Count, Is.EqualTo(1));
-                Assert.That(sp.Appearance.GetAttachpoint(attItem.ID), Is.EqualTo((int)AttachmentPoint.Chest));
+//                Assert.That(sp.Appearance.GetAttachments().Count, Is.EqualTo(1));
+//                Assert.That(sp.Appearance.GetAttachpoint(attItem.ID), Is.EqualTo((int)AttachmentPoint.Chest));
                 Assert.That(scene.GetSceneObjectGroups().Count, Is.EqualTo(1));
 
                 // Check events
@@ -474,8 +474,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 Assert.That(attSo.IsAttachment);
 
                 // Check appearance status
-                Assert.That(sp.Appearance.GetAttachments().Count, Is.EqualTo(1));
-                Assert.That(sp.Appearance.GetAttachpoint(attItem1.ID), Is.EqualTo((int)AttachmentPoint.LeftHand));
+//                Assert.That(sp.Appearance.GetAttachments().Count, Is.EqualTo(1));
+//                Assert.That(sp.Appearance.GetAttachpoint(attItem1.ID), Is.EqualTo((int)AttachmentPoint.LeftHand));
                 Assert.That(scene.GetSceneObjectGroups().Count, Is.EqualTo(1));
 
                 // Check events
@@ -499,8 +499,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 Assert.That(attSo.IsAttachment);
 
                 // Check appearance status
-                Assert.That(sp.Appearance.GetAttachments().Count, Is.EqualTo(1));
-                Assert.That(sp.Appearance.GetAttachpoint(attItem2.ID), Is.EqualTo((int)AttachmentPoint.LeftHand));
+//                Assert.That(sp.Appearance.GetAttachments().Count, Is.EqualTo(1));
+//                Assert.That(sp.Appearance.GetAttachpoint(attItem2.ID), Is.EqualTo((int)AttachmentPoint.LeftHand));
                 Assert.That(scene.GetSceneObjectGroups().Count, Is.EqualTo(1));
 
                 // Check events
@@ -521,8 +521,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 Assert.That(attSo.IsAttachment);
 
                 // Check appearance status
-                Assert.That(sp.Appearance.GetAttachments().Count, Is.EqualTo(1));
-                Assert.That(sp.Appearance.GetAttachpoint(attItem2.ID), Is.EqualTo((int)AttachmentPoint.LeftHand));
+//                Assert.That(sp.Appearance.GetAttachments().Count, Is.EqualTo(1));
+//                Assert.That(sp.Appearance.GetAttachpoint(attItem2.ID), Is.EqualTo((int)AttachmentPoint.LeftHand));
                 Assert.That(scene.GetSceneObjectGroups().Count, Is.EqualTo(1));
 
                 // Check events
@@ -596,7 +596,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(attachments.Count, Is.EqualTo(0));
 
             // Check appearance status
-            Assert.That(sp.Appearance.GetAttachments().Count, Is.EqualTo(0));
+//            Assert.That(sp.Appearance.GetAttachments().Count, Is.EqualTo(0));
 
             // Check item status
             Assert.That(scene.InventoryService.GetItem(new InventoryItemBase(attItem.ID)), Is.Null);
@@ -634,7 +634,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(attachments.Count, Is.EqualTo(0));
 
             // Check item status
-            Assert.That(sp.Appearance.GetAttachpoint(attItem.ID), Is.EqualTo(0));
+//            Assert.That(sp.Appearance.GetAttachpoint(attItem.ID), Is.EqualTo(0));
 
             Assert.That(scene.GetSceneObjectGroups().Count, Is.EqualTo(0));
 
