@@ -3064,8 +3064,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         private int GetStateSource(SceneObjectGroup sog)
         {
-            ScenePresence sp = GetScenePresence(sog.OwnerID);
+            if(!sog.IsAttachmentCheckFull())
+                return 2; // StateSource.PrimCrossing
 
+            ScenePresence sp = GetScenePresence(sog.OwnerID);
             if (sp != null)
                 return sp.GetStateSource();
 
