@@ -4808,7 +4808,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     pinfo = ce.pinfo;
                 }
 
-                if (Util.EnvironmentTickCount() < ce.time || (Util.EnvironmentTickCount() - ce.time) >= 20000)
+                if (Util.EnvironmentTickCount() < ce.time ||
+                            (Util.EnvironmentTickCount() - ce.time) >= LlRequestAgentDataCacheTimeoutMs)
                 {
                     PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
                     if (pinfos != null && pinfos.Length > 0)
