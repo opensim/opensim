@@ -74,8 +74,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             //log4net.Config.XmlConfigurator.Configure();
 
             Scene scene = new SceneHelpers().SetupScene();
-
-            SceneObjectGroup g1 = SceneHelpers.CreateSceneObject(2, UUID.Zero);
+            UUID owner = UUID.Random();
+            SceneObjectGroup g1 = SceneHelpers.CreateSceneObject(2, owner);
             g1.RootPart.Scale = new Vector3(2, 3, 4);
             g1.Parts[1].Scale = new Vector3(5, 6, 7);
 
