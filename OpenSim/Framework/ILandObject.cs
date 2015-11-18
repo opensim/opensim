@@ -97,20 +97,63 @@ namespace OpenSim.Framework
         /// <remarks>
         /// Land co-ordinates are zero indexed.  The inputs are treated as points.  So if you want to create a bitmap
         /// that covers an entire 256 x 256m region apart from a strip of land on the east, then you would need to 
-        /// specify start_x = 0, start_y = 0, end_x = 252 (or anything up to 255), end_y = 256.
+        /// specify start_x = 0, start_y = 0, end_x = 252 (or anything up to 255), end_y = 255.
         /// 
         /// At the moment, the smallest parcel of land is 4m x 4m, so if the 
         /// region is 256 x 256m (the SL size), the bitmap returned will start at (0,0) and end at (63,63).
+        /// The value of the set_value needs to be true to define an active parcel of the given size.
         /// </remarks>
         /// <param name="start_x"></param>
         /// <param name="start_y"></param>
         /// <param name="end_x"></param>
         /// <param name="end_y"></param>
+        /// <param name="set_value"></param>
         /// <returns>The bitmap created.</returns>
-        bool[,] GetSquareLandBitmap(int start_x, int start_y, int end_x, int end_y);
+        bool[,] GetSquareLandBitmap(int start_x, int start_y, int end_x, int end_y, bool set_value = true);
         
         bool[,] ModifyLandBitmapSquare(bool[,] land_bitmap, int start_x, int start_y, int end_x, int end_y, bool set_value);
+
+        /// <summary>
+        /// Merge two (same size) land bitmaps.
+        /// </summary>
+        /// <param name="bitmap_base"></param>
+        /// <param name="bitmap_add"></param>
+        /// <returns>The modified bitmap.</returns>
         bool[,] MergeLandBitmaps(bool[,] bitmap_base, bool[,] bitmap_add);
+
+        /// <summary>
+        /// Remap a land bitmap. Takes the supplied land bitmap and rotates it, crops it and finally offsets it into
+        /// a final land bitmap of the target region size.
+        /// </summary>
+        /// <param name="bitmap_base">The original parcel bitmap</param>
+        /// <param name="rotationDegrees"></param>
+        /// <param name="displacement">&lt;x,y,?&gt;</param>
+        /// <param name="boundingOrigin">&lt;x,y,?&gt;</param>
+        /// <param name="boundingSize">&lt;x,y,?&gt;</param>
+        /// <param name="regionSize">&lt;x,y,?&gt;</param>
+        /// <param name="isEmptyNow">out: This is set if the resultant bitmap is now empty</param>
+        /// <param name="AABBMin">out: parcel.AABBMin &lt;x,y,0&gt</param>
+        /// <param name="AABBMax">out: parcel.AABBMax &lt;x,y,0&gt</param>
+        /// <returns>New parcel bitmap</returns>
+        bool[,] RemapLandBitmap(bool[,] bitmap_base, Vector2 displacement, float rotationDegrees, Vector2 boundingOrigin, Vector2 boundingSize, Vector2 regionSize, out bool isEmptyNow, out Vector3 AABBMin, out Vector3 AABBMax);
+
+        /// <summary>
+        /// Clears any parcel data in bitmap_base where there exists parcel data in bitmap_new. In other words the parcel data
+        /// in bitmap_new takes over the space of the parcel data in bitmap_base.
+        /// </summary>
+        /// <param name="bitmap_base"></param>
+        /// <param name="bitmap_new"></param>
+        /// <param name="isEmptyNow">out: This is set if the resultant bitmap is now empty</param>
+        /// <param name="AABBMin">out: parcel.AABBMin &lt;x,y,0&gt;</param>
+        /// <param name="AABBMax">out: parcel.AABBMax &lt;x,y,0&gt</param>
+        /// <returns>New parcel bitmap</returns>       
+        bool[,] RemoveFromLandBitmap(bool[,] bitmap_base, bool[,] bitmap_new, out bool isEmptyNow, out Vector3 AABBMin, out Vector3 AABBMax);
+
+        byte[] ConvertLandBitmapToBytes();
+        bool[,] ConvertBytesToLandBitmap(bool overrideRegionSize = false);
+        bool IsLandBitmapEmpty(bool[,] landBitmap);
+        void DebugLandBitmap(bool[,] landBitmap);
+
         void SendForceObjectSelect(int local_id, int request_type, List<UUID> returnIDs, IClientAPI remote_client);
         void SendLandObjectOwners(IClientAPI remote_client);
         void ReturnLandObjects(uint type, UUID[] owners, UUID[] tasks, IClientAPI remote_client);

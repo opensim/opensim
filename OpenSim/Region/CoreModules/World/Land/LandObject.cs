@@ -864,17 +864,17 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool[,] BasicFullRegionLandBitmap()
         {
-            return GetSquareLandBitmap(0, 0, (int)m_scene.RegionInfo.RegionSizeX, (int) m_scene.RegionInfo.RegionSizeY);
+            return GetSquareLandBitmap(0, 0, (int)m_scene.RegionInfo.RegionSizeX, (int) m_scene.RegionInfo.RegionSizeY, true);
         }
         
-        public bool[,] GetSquareLandBitmap(int start_x, int start_y, int end_x, int end_y)
+        public bool[,] GetSquareLandBitmap(int start_x, int start_y, int end_x, int end_y, bool set_value = true)
         {
             // Empty bitmap for the whole region
             bool[,] tempBitmap = new bool[m_scene.RegionInfo.RegionSizeX / landUnit, m_scene.RegionInfo.RegionSizeY / landUnit];
             tempBitmap.Initialize();
 
             // Fill the bitmap square area specified by state and end
-            tempBitmap = ModifyLandBitmapSquare(tempBitmap, start_x, start_y, end_x, end_y, true);
+            tempBitmap = ModifyLandBitmapSquare(tempBitmap, start_x, start_y, end_x, end_y, set_value);
             // m_log.DebugFormat("{0} GetSquareLandBitmap. tempBitmapSize=<{1},{2}>",
             //                         LogHeader, tempBitmap.GetLength(0), tempBitmap.GetLength(1));
             return tempBitmap;
@@ -944,10 +944,224 @@ namespace OpenSim.Region.CoreModules.World.Land
         }
 
         /// <summary>
+        /// Remap a land bitmap. Takes the supplied land bitmap and rotates it, crops it and finally offsets it into
+        /// a final land bitmap of the target region size.
+        /// </summary>
+        /// <param name="bitmap_base">The original parcel bitmap</param>
+        /// <param name="rotationDegrees"></param>
+        /// <param name="displacement">&lt;x,y,?&gt;</param>
+        /// <param name="boundingOrigin">&lt;x,y,?&gt;</param>
+        /// <param name="boundingSize">&lt;x,y,?&gt;</param>
+        /// <param name="regionSize">&lt;x,y,?&gt;</param>
+        /// <param name="isEmptyNow">out: This is set if the resultant bitmap is now empty</param>
+        /// <param name="AABBMin">out: parcel.AABBMin &lt;x,y,0&gt</param>
+        /// <param name="AABBMax">out: parcel.AABBMax &lt;x,y,0&gt</param>
+        /// <returns>New parcel bitmap</returns>
+        public bool[,] RemapLandBitmap(bool[,] bitmap_base, Vector2 displacement, float rotationDegrees, Vector2 boundingOrigin, Vector2 boundingSize, Vector2 regionSize, out bool isEmptyNow, out Vector3 AABBMin, out Vector3 AABBMax)
+        {
+            // get the size of the incoming bitmap
+            int baseX = bitmap_base.GetLength(0);
+            int baseY = bitmap_base.GetLength(1);
+
+            // create an intermediate bitmap that is 25% bigger on each side that we can work with to handle rotations
+            int offsetX = baseX / 4; // the original origin will now be at these coordinates so now we can have imaginary negative coordinates ;)
+            int offsetY = baseY / 4;
+            int tmpX = baseX + baseX / 2;
+            int tmpY = baseY + baseY / 2;
+            int centreX = tmpX / 2;
+            int centreY = tmpY / 2;
+            bool[,] bitmap_tmp = new bool[tmpX, tmpY];
+
+            double radianRotation = Math.PI * rotationDegrees / 180f;
+            double cosR = Math.Cos(radianRotation);
+            double sinR = Math.Sin(radianRotation);
+            if (rotationDegrees < 0f) rotationDegrees += 360f; //-90=270 -180=180 -270=90
+
+            // So first we apply the rotation to the incoming bitmap, storing the result in bitmap_tmp
+            // We special case orthogonal rotations for accuracy because even using double precision math, Math.Cos(90 degrees) is never fully 0
+            // and we can never rotate around a centre pixel because the bitmap size is always even
+            int x, y, sx, sy;
+            for (y = 0; y <= tmpY; y++)
+            {
+                for (x = 0; x <= tmpX; x++)
+                {
+                    if (rotationDegrees == 0f)
+                    {
+                        sx = x - offsetX;
+                        sy = y - offsetY;
+                    }
+                    else if (rotationDegrees == 90f)
+                    {
+                        sx = y - offsetX;
+                        sy = tmpY - 1 - x - offsetY;
+                    }
+                    else if (rotationDegrees == 180f)
+                    {
+                        sx = tmpX - 1 - x - offsetX;
+                        sy = tmpY - 1 - y - offsetY;
+                    }
+                    else if (rotationDegrees == 270f)
+                    {
+                        sx = tmpX - 1 - y - offsetX;
+                        sy = x - offsetY;
+                    }
+                    else
+                    {
+                        // arbitary rotation: hmmm should I be using (centreX - 0.5) and (centreY - 0.5) and round cosR and sinR to say only 5 decimal places?
+                        sx = centreX + (int)Math.Round((((double)x - centreX) * cosR) + (((double)y - centreY) * sinR)) - offsetX;
+                        sy = centreY + (int)Math.Round((((double)y - centreY) * cosR) - (((double)x - centreX) * sinR)) - offsetY;
+                    }
+                    if (sx >= 0 && sx < baseX && sy >= 0 && sy < baseY)
+                    {
+                        try
+                        {
+                            if (bitmap_base[sx, sy]) bitmap_tmp[x, y] = true;
+                        }
+                        catch (Exception)   //just in case we've still not taken care of every way the arrays might go out of bounds! ;)
+                        {
+                            m_log.DebugFormat("{0} RemapLandBitmap Rotate: Out of Bounds sx={1} sy={2} dx={3} dy={4}", LogHeader, sx, sy, x, y);
+                        }
+                    }
+                }
+            }
+
+            // We could also incorporate the next steps, bounding-rectangle and displacement in the loop above, but it's simpler to visualise if done separately
+            // and will also make it much easier when later I want the option for maybe a circular or oval bounding shape too ;).
+            // So... our output land bitmap must be the size of the current region but rememeber, parcel landbitmaps are landUnit metres (4x4 metres) per point,
+            // and region sizes, boundaries and displacements are in metres so we need to scale down
+
+            int newX = (int)(regionSize.X / landUnit);
+            int newY = (int)(regionSize.Y / landUnit);
+            bool[,] bitmap_new = new bool[newX, newY];
+            // displacement is relative to <0,0> in the destination region and defines where the origin of the data selected by the bounding-rectangle is placed
+            int dispX = (int)Math.Floor(displacement.X / landUnit);
+            int dispY = (int)Math.Floor(displacement.Y / landUnit);
+
+            // startX/Y and endX/Y are coordinates in bitmap_tmp
+            int startX = (int)Math.Floor(boundingOrigin.X / landUnit) + offsetX;
+            if (startX > tmpX) startX = tmpX;
+            if (startX < 0) startX = 0;
+            int startY = (int)Math.Floor(boundingOrigin.Y / landUnit) + offsetY;
+            if (startY > tmpY) startY = tmpY;
+            if (startY < 0) startY = 0;
+
+            int endX = (int)Math.Floor((boundingOrigin.X + boundingSize.X) / landUnit) + offsetX;
+            if (endX > tmpX) endX = tmpX;
+            if (endX < 0) endX = 0;
+            int endY = (int)Math.Floor((boundingOrigin.Y + boundingSize.Y) / landUnit) + offsetY;
+            if (endY > tmpY) endY = tmpY;
+            if (endY < 0) endY = 0;
+
+            //m_log.DebugFormat("{0} RemapLandBitmap: inSize=<{1},{2}>, disp=<{3},{4}> rot={5}, offset=<{6},{7}>, boundingStart=<{8},{9}>, boundingEnd=<{10},{11}>, cosR={12}, sinR={13}, outSize=<{14},{15}>", LogHeader,
+            //                            baseX, baseY, dispX, dispY, radianRotation, offsetX, offsetY, startX, startY, endX, endY, cosR, sinR, newX, newY);
+
+            isEmptyNow = true;
+            int minX = newX;
+            int minY = newY;
+            int maxX = 0;
+            int maxY = 0;
+
+            int dx, dy;
+            for (y = startY; y < endY; y++)
+            {
+                for (x = startX; x < endX; x++)
+                {
+                    dx = x - startX + dispX;
+                    dy = y - startY + dispY;
+                    if (dx >= 0 && dx < newX && dy >= 0 && dy < newY)
+                    {
+                        try
+                        {
+                            if (bitmap_tmp[x, y])
+                            {
+                                bitmap_new[dx, dy] = true;
+                                isEmptyNow = false;
+                                if (dx < minX) minX = dx;
+                                if (dy < minY) minY = dy;
+                                if (dx > maxX) maxX = dx;
+                                if (dy > maxY) maxY = dy;
+                            }
+                        }
+                        catch (Exception)   //just in case we've still not taken care of every way the arrays might go out of bounds! ;)
+                        {
+                            m_log.DebugFormat("{0} RemapLandBitmap - Bound & Displace: Out of Bounds sx={1} sy={2} dx={3} dy={4}", LogHeader, x, y, dx, dy);
+                        }
+                    }
+                }
+            }
+            if (isEmptyNow)
+            {
+                //m_log.DebugFormat("{0} RemapLandBitmap: Land bitmap is marked as Empty", LogHeader);
+                minX = 0;
+                minY = 0;
+            }
+
+            AABBMin = new Vector3(minX * landUnit, minY * landUnit, 0);
+            AABBMax = new Vector3(maxX * landUnit, maxY * landUnit, 0);
+            return bitmap_new;
+        }
+
+        /// <summary>
+        /// Clears any parcel data in bitmap_base where there exists parcel data in bitmap_new. In other words the parcel data
+        /// in bitmap_new takes over the space of the parcel data in bitmap_base.
+        /// </summary>
+        /// <param name="bitmap_base"></param>
+        /// <param name="bitmap_new"></param>
+        /// <param name="isEmptyNow">out: This is set if the resultant bitmap is now empty</param>
+        /// <param name="AABBMin">out: parcel.AABBMin &lt;x,y,0&gt</param>
+        /// <param name="AABBMax">out: parcel.AABBMax &lt;x,y,0&gt</param>
+        /// <returns>New parcel bitmap</returns>       
+        public bool[,] RemoveFromLandBitmap(bool[,] bitmap_base, bool[,] bitmap_new, out bool isEmptyNow, out Vector3 AABBMin, out Vector3 AABBMax)
+        {
+            // get the size of the incoming bitmaps
+            int baseX = bitmap_base.GetLength(0);
+            int baseY = bitmap_base.GetLength(1);
+            int newX = bitmap_new.GetLength(0);
+            int newY = bitmap_new.GetLength(1);
+
+            if (baseX != newX || baseY != newY)
+            {
+                throw new Exception(
+                    String.Format("{0} RemoveFromLandBitmap: Land bitmaps are not the same size! baseX={1} baseY={2} newX={3} newY={4}", LogHeader, baseX, baseY, newX, newY));
+            }
+
+            isEmptyNow = true;
+            int minX = baseX;
+            int minY = baseY;
+            int maxX = 0;
+            int maxY = 0;
+
+            for (int y = 0; y < baseY; y++)
+            {
+                for (int x = 0; x < baseX; x++)
+                {
+                    if (bitmap_new[x, y]) bitmap_base[x, y] = false;
+                    if (bitmap_base[x, y])
+                    {
+                        isEmptyNow = false;
+                        if (x < minX) minX = x;
+                        if (y < minY) minY = y;
+                        if (x > maxX) maxX = x;
+                        if (y > maxY) maxY = y;
+                    }
+                }
+            }
+            if (isEmptyNow)
+            {
+                //m_log.DebugFormat("{0} RemoveFromLandBitmap: Land bitmap is marked as Empty", LogHeader);
+                minX = 0;
+                minY = 0;
+            }
+            AABBMin = new Vector3(minX * landUnit, minY * landUnit, 0);
+            AABBMax = new Vector3(maxX * landUnit, maxY * landUnit, 0);
+            return bitmap_base;
+        }
+
+        /// <summary>
         /// Converts the land bitmap to a packet friendly byte array
         /// </summary>
         /// <returns></returns>
-        private byte[] ConvertLandBitmapToBytes()
+        public byte[] ConvertLandBitmapToBytes()
         {
             byte[] tempConvertArr = new byte[LandBitmap.GetLength(0) * LandBitmap.GetLength(1) / 8];
 
@@ -994,23 +1208,41 @@ namespace OpenSim.Region.CoreModules.World.Land
             return tempConvertArr;
         }
 
-        private bool[,] ConvertBytesToLandBitmap()
+        public bool[,] ConvertBytesToLandBitmap(bool overrideRegionSize = false)
         {
-            bool[,] tempConvertMap = new bool[m_scene.RegionInfo.RegionSizeX / landUnit, m_scene.RegionInfo.RegionSizeY / landUnit];
-            tempConvertMap.Initialize();
-            byte tempByte = 0;
-            // Math.Min overcomes an old bug that might have made it into the database. Only use the bytes that fit into convertMap.
-            int bitmapLen = Math.Min(LandData.Bitmap.Length, tempConvertMap.GetLength(0) * tempConvertMap.GetLength(1) / 8);
-            int xLen = (int)(m_scene.RegionInfo.RegionSizeX / landUnit);
+            int bitmapLen;
+            int xLen;
+            bool[,] tempConvertMap;
 
-            if (bitmapLen == 512)
+            if (overrideRegionSize)
             {
-                // Legacy bitmap being passed in. Use the legacy region size
-                //    and only set the lower area of the larger region.
-                xLen = (int)(Constants.RegionSize / landUnit);
+                // Importing land parcel data from an OAR where the source region is a different size to the dest region requires us
+                // to make a LandBitmap that's not derived from the current region's size. We use the LandData.Bitmap size in bytes
+                // to figure out what the OAR's region dimensions are. (Is there a better way to get the src region x and y from the OAR?)
+                // This method assumes we always will have square regions 
+
+                bitmapLen = LandData.Bitmap.Length;
+                xLen = (int)Math.Abs(Math.Sqrt(bitmapLen * 8));
+                tempConvertMap = new bool[xLen, xLen];
+                tempConvertMap.Initialize();
+            }
+            else
+            {
+                tempConvertMap = new bool[m_scene.RegionInfo.RegionSizeX / landUnit, m_scene.RegionInfo.RegionSizeY / landUnit];
+                tempConvertMap.Initialize();
+                // Math.Min overcomes an old bug that might have made it into the database. Only use the bytes that fit into convertMap.
+                bitmapLen = Math.Min(LandData.Bitmap.Length, tempConvertMap.GetLength(0) * tempConvertMap.GetLength(1) / 8);
+                xLen = (int)(m_scene.RegionInfo.RegionSizeX / landUnit);
+                if (bitmapLen == 512)
+                {
+                    // Legacy bitmap being passed in. Use the legacy region size
+                    //    and only set the lower area of the larger region.
+                    xLen = (int)(Constants.RegionSize / landUnit);
+                }
             }
             // m_log.DebugFormat("{0} ConvertBytesToLandBitmap: bitmapLen={1}, xLen={2}", LogHeader, bitmapLen, xLen);
 
+            byte tempByte;
             int x = 0, y = 0;
             for (int i = 0; i < bitmapLen; i++)
             {
@@ -1036,6 +1268,32 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
 
             return tempConvertMap;
+        }
+
+        public bool IsLandBitmapEmpty(bool[,] landBitmap)
+        {
+            for (int y = 0; y < landBitmap.GetLength(1); y++)
+            {
+                for (int x = 0; x < landBitmap.GetLength(0); x++)
+                {
+                    if (landBitmap[x, y]) return false;
+                }
+            }
+            return true;
+        }
+
+        public void DebugLandBitmap(bool[,] landBitmap)
+        {
+            m_log.InfoFormat("{0}: Map Key: #=claimed land .=unclaimed land.", LogHeader);
+            for (int y = landBitmap.GetLength(1) - 1; y >= 0; y--)
+            {
+                string row = "";
+                for (int x = 0; x < landBitmap.GetLength(0); x++)
+                {
+                    row += landBitmap[x, y] ? "#" : ".";
+                }
+                m_log.InfoFormat("{0}: {1}", LogHeader, row);
+            }
         }
 
         #endregion
