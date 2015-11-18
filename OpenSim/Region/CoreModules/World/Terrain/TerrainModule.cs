@@ -456,6 +456,37 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             throw new TerrainException(String.Format("unable to load heightmap from file {0}: no loader available for that format", filename));
         }
 
+        public void LoadFromStream(string filename, Vector3 displacement, 
+                                    float rotationDegrees, Vector2 boundingOrigin, Vector2 boundingSize, Stream stream)
+        {
+            foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
+            {
+                if (filename.EndsWith(loader.Key))
+                {
+                    lock (m_scene)
+                    {
+                        try
+                        {
+                            ITerrainChannel channel = loader.Value.LoadStream(stream);
+                            m_channel.MergeWithBounding(channel, displacement, rotationDegrees, boundingOrigin, boundingSize);
+                            UpdateBakedMap();
+                        }
+                        catch (NotImplementedException)
+                        {
+                            m_log.Error("[TERRAIN]: Unable to load heightmap, the " + loader.Value +
+                                        " parser does not support file loading. (May be save only)");
+                            throw new TerrainException(String.Format("unable to load heightmap: parser {0} does not support loading", loader.Value));
+                        }
+                    }
+
+                    m_log.Info("[TERRAIN]: File (" + filename + ") loaded successfully");
+                    return;
+                }
+            }
+            m_log.Error("[TERRAIN]: Unable to load heightmap, no file loader available for that format.");
+            throw new TerrainException(String.Format("unable to load heightmap from file {0}: no loader available for that format", filename));
+        }
+
         private static Stream URIFetch(Uri uri)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
