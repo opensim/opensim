@@ -59,5 +59,13 @@ namespace OpenSim.Region.Framework.Interfaces
         void LoadFromXmlString(string data);
         // Merge some terrain into this channel
         void Merge(ITerrainChannel newTerrain, Vector3 displacement, float radianRotation, Vector2 rotationDisplacement);
+
+        /// </summary>
+        /// <param name="newTerrain"></param>
+        /// <param name="displacement">&lt;x, y, z&gt;</param>
+        /// <param name="rotationDegrees"></param>
+        /// <param name="boundingOrigin">&lt;x, y&gt;</param>
+        /// <param name="boundingSize">&lt;x, y&gt;</param>
+        void MergeWithBounding(ITerrainChannel newTerrain, Vector3 displacement, float rotationDegrees, Vector2 boundingOrigin, Vector2 boundingSize);
     }
 }

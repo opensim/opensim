@@ -283,6 +283,148 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// A new version of terrain merge that processes the terrain in a specific order and corrects the problems with rotated terrains
+        /// having 'holes' in that need to be smoothed. The correct way to rotate something is to iterate over the target, taking data from
+        /// the source, not the other way around. This ensures that the target has no holes in it.
+        /// The processing order of an incoming terrain is:
+        /// 1. Apply rotation
+        /// 2. Apply bounding rectangle
+        /// 3. Apply displacement
+        /// rotationCenter is no longer needed and has been discarded.
+        /// </summary>
+        /// <param name="newTerrain"></param>
+        /// <param name="displacement">&lt;x, y, z&gt;</param>
+        /// <param name="rotationDegrees"></param>
+        /// <param name="boundingOrigin">&lt;x, y&gt;</param>
+        /// <param name="boundingSize">&lt;x, y&gt;</param>
+        public void MergeWithBounding(ITerrainChannel newTerrain, Vector3 displacement, float rotationDegrees, Vector2 boundingOrigin, Vector2 boundingSize)
+        {
+            m_log.DebugFormat("{0} MergeWithBounding: inSize=<{1},{2}>, rot={3}, boundingOrigin={4}, boundingSize={5}, disp={6}, outSize=<{7},{8}>",
+                                LogHeader, newTerrain.Width, newTerrain.Height, rotationDegrees, boundingOrigin.ToString(),
+                                boundingSize.ToString(), displacement, m_terrainData.SizeX, m_terrainData.SizeY);
+
+            // get the size of the incoming terrain
+            int baseX = newTerrain.Width;
+            int baseY = newTerrain.Height;
+
+            // create an intermediate terrain map that is 25% bigger on each side that we can work with to handle rotation
+            int offsetX = baseX / 4; // the original origin will now be at these coordinates so now we can have imaginary negative coordinates ;)
+            int offsetY = baseY / 4;
+            int tmpX = baseX + baseX / 2;
+            int tmpY = baseY + baseY / 2;
+            int centreX = tmpX / 2;
+            int centreY = tmpY / 2;
+            TerrainData terrain_tmp = new HeightmapTerrainData(tmpX, tmpY, (int)Constants.RegionHeight);
+            for (int xx = 0; xx < tmpX; xx++)
+                for (int yy = 0; yy < tmpY; yy++)
+                    terrain_tmp[xx, yy] = -65535f; //use this height like an 'alpha' mask channel
+
+            double radianRotation = Math.PI * rotationDegrees / 180f;
+            double cosR = Math.Cos(radianRotation);
+            double sinR = Math.Sin(radianRotation);
+            if (rotationDegrees < 0f) rotationDegrees += 360f; //-90=270 -180=180 -270=90
+
+            // So first we apply the rotation to the incoming terrain, storing the result in terrain_tmp
+            // We special case orthogonal rotations for accuracy because even using double precision math, Math.Cos(90 degrees) is never fully 0
+            // and we can never rotate around a centre 'pixel' because the 'bitmap' size is always even
+
+            int x, y, sx, sy;
+            for (y = 0; y <= tmpY; y++)
+            {
+                for (x = 0; x <= tmpX; x++)
+                {
+                    if (rotationDegrees == 0f)
+                    {
+                        sx = x - offsetX;
+                        sy = y - offsetY;
+                    }
+                    else if (rotationDegrees == 90f)
+                    {
+                        sx = y - offsetX;
+                        sy = tmpY - 1 - x - offsetY;
+                    }
+                    else if (rotationDegrees == 180f)
+                    {
+                        sx = tmpX - 1 - x - offsetX;
+                        sy = tmpY - 1 - y - offsetY;
+                    }
+                    else if (rotationDegrees == 270f)
+                    {
+                        sx = tmpX - 1 - y - offsetX;
+                        sy = x - offsetY;
+                    }
+                    else
+                    {
+                        // arbitary rotation: hmmm should I be using (centreX - 0.5) and (centreY - 0.5) and round cosR and sinR to say only 5 decimal places?
+                        sx = centreX + (int)Math.Round((((double)x - centreX) * cosR) + (((double)y - centreY) * sinR)) - offsetX;
+                        sy = centreY + (int)Math.Round((((double)y - centreY) * cosR) - (((double)x - centreX) * sinR)) - offsetY;
+                    }
+
+                    if (sx >= 0 && sx < baseX && sy >= 0 && sy < baseY)
+                    {
+                        try
+                        {
+                            terrain_tmp[x, y] = (float)newTerrain[sx, sy];
+                        }
+                        catch (Exception)   //just in case we've still not taken care of every way the arrays might go out of bounds! ;)
+                        {
+                            m_log.DebugFormat("{0} MergeWithBounding - Rotate: Out of Bounds sx={1} sy={2} dx={3} dy={4}", sx, sy, x, y);
+                        }
+                    }
+                }
+            }
+
+            // We could also incorporate the next steps, bounding-rectangle and displacement in the loop above, but it's simpler to visualise if done separately
+            // and will also make it much easier when later I want the option for maybe a circular or oval bounding shape too ;).
+
+            int newX = m_terrainData.SizeX;
+            int newY = m_terrainData.SizeY;
+            // displacement is relative to <0,0> in the destination region and defines where the origin of the data selected by the bounding-rectangle is placed
+            int dispX = (int)Math.Floor(displacement.X);
+            int dispY = (int)Math.Floor(displacement.Y);
+
+            // startX/Y and endX/Y are coordinates in bitmap_tmp
+            int startX = (int)Math.Floor(boundingOrigin.X) + offsetX;
+            if (startX > tmpX) startX = tmpX;
+            if (startX < 0) startX = 0;
+            int startY = (int)Math.Floor(boundingOrigin.Y) + offsetY;
+            if (startY > tmpY) startY = tmpY;
+            if (startY < 0) startY = 0;
+
+            int endX = (int)Math.Floor(boundingOrigin.X + boundingSize.X) + offsetX;
+            if (endX > tmpX) endX = tmpX;
+            if (endX < 0) endX = 0;
+            int endY = (int)Math.Floor(boundingOrigin.Y + boundingSize.Y) + offsetY;
+            if (endY > tmpY) endY = tmpY;
+            if (endY < 0) endY = 0;
+
+            //m_log.DebugFormat("{0} MergeWithBounding: inSize=<{1},{2}>, disp=<{3},{4}> rot={5}, offset=<{6},{7}>, boundingStart=<{8},{9}>, boundingEnd=<{10},{11}>, cosR={12}, sinR={13}, outSize=<{14},{15}>", LogHeader,
+            //                            baseX, baseY, dispX, dispY, radianRotation, offsetX, offsetY, startX, startY, endX, endY, cosR, sinR, newX, newY);
+
+            int dx, dy;
+            for (y = startY; y < endY; y++)
+            {
+                for (x = startX; x < endX; x++)
+                {
+                    dx = x - startX + dispX;
+                    dy = y - startY + dispY;
+                    if (dx >= 0 && dx < newX && dy >= 0 && dy < newY)
+                    {
+                        try
+                        {
+                            float newHeight = (float)terrain_tmp[x, y]; //use 'alpha' mask
+                            if (newHeight != -65535f) m_terrainData[dx, dy] = newHeight + displacement.Z;
+                        }
+                        catch (Exception)   //just in case we've still not taken care of every way the arrays might go out of bounds! ;)
+                        {
+                            m_log.DebugFormat("{0} MergeWithBounding - Bound & Displace: Out of Bounds sx={1} sy={2} dx={3} dy={4}", x, y, dx, dy);
+                        }
+                    }
+                }
+            }
+        }
+
         #endregion
 
         public TerrainChannel Copy()
