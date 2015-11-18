@@ -1086,85 +1086,45 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             {
                 UUID newInvItem = UUID.Random();
                 InventoryItemBase itembase = new InventoryItemBase(newInvItem, userID)
-                                                 {
-                                                     AssetID =
-                                                         defaultwearable,
-                                                     AssetType
-                                                         =
-                                                         (int)
-                                                         FolderType
-                                                             .BodyPart,
-                                                     CreatorId
-                                                         =
-                                                         userID
-                                                         .ToString
-                                                         (),
-                                                     //InvType = (int)InventoryType.Wearable,
-
-                                                     Description
-                                                         =
-                                                         "Failed Wearable Replacement",
-                                                     Folder =
-                                                         invService
-                                                         .GetFolderForType
-                                                         (userID,
-                                                          FolderType
-                                                              .BodyPart)
-                                                         .ID,
-                                                     Flags = (uint) type,
-                                                     Name = Enum.GetName(typeof (WearableType), type),
-                                                     BasePermissions = (uint) PermissionMask.Copy,
-                                                     CurrentPermissions = (uint) PermissionMask.Copy,
-                                                     EveryOnePermissions = (uint) PermissionMask.Copy,
-                                                     GroupPermissions = (uint) PermissionMask.Copy,
-                                                     NextPermissions = (uint) PermissionMask.Copy
-                                                 };
+                            {
+                                AssetID = defaultwearable,
+                                AssetType = (int)FolderType.BodyPart,
+                                CreatorId = userID.ToString(),
+                                //InvType = (int)InventoryType.Wearable,
+                                Description = "Failed Wearable Replacement",
+                                Folder = invService.GetFolderForType(userID, FolderType.BodyPart).ID,
+                                Flags = (uint) type, Name = Enum.GetName(typeof (WearableType), type),
+                                BasePermissions = (uint) PermissionMask.Copy,
+                                CurrentPermissions = (uint) PermissionMask.Copy,
+                                EveryOnePermissions = (uint) PermissionMask.Copy,
+                                GroupPermissions = (uint) PermissionMask.Copy,
+                                NextPermissions = (uint) PermissionMask.Copy
+                            };
                 invService.AddItem(itembase);
                 UUID LinkInvItem = UUID.Random();
                 itembase = new InventoryItemBase(LinkInvItem, userID)
-                               {
-                                   AssetID =
-                                       newInvItem,
-                                   AssetType
-                                       =
-                                       (int)
-                                       AssetType
-                                           .Link,
-                                   CreatorId
-                                       =
-                                       userID
-                                       .ToString
-                                       (),
-                                   InvType = (int) InventoryType.Wearable,
-
-                                   Description
-                                       =
-                                       "Failed Wearable Replacement",
-                                   Folder =
-                                       invService
-                                       .GetFolderForType
-                                       (userID,
-                                        FolderType
-                                            .CurrentOutfit)
-                                       .ID,
-                                   Flags = (uint) type,
-                                   Name = Enum.GetName(typeof (WearableType), type),
-                                   BasePermissions = (uint) PermissionMask.Copy,
-                                   CurrentPermissions = (uint) PermissionMask.Copy,
-                                   EveryOnePermissions = (uint) PermissionMask.Copy,
-                                   GroupPermissions = (uint) PermissionMask.Copy,
-                                   NextPermissions = (uint) PermissionMask.Copy
-                               };
+                            {
+                                AssetID = newInvItem,
+                                AssetType = (int)AssetType.Link,
+                                CreatorId = userID.ToString(),
+                                InvType = (int) InventoryType.Wearable,
+                                Description = "Failed Wearable Replacement",
+                                Folder = invService.GetFolderForType(userID, FolderType.CurrentOutfit).ID,
+                                Flags = (uint) type,
+                                Name = Enum.GetName(typeof (WearableType), type),
+                                BasePermissions = (uint) PermissionMask.Copy,
+                                CurrentPermissions = (uint) PermissionMask.Copy,
+                                EveryOnePermissions = (uint) PermissionMask.Copy,
+                                GroupPermissions = (uint) PermissionMask.Copy,
+                                NextPermissions = (uint) PermissionMask.Copy
+                            };
                 invService.AddItem(itembase);
                 appearance.Wearables[(int)type] = new AvatarWearable(newInvItem, GetDefaultItem(type));
                 ScenePresence presence = null;
                 if (m_scene.TryGetScenePresence(userID, out presence))
                 {
                     m_scene.SendInventoryUpdate(presence.ControllingClient,
-                                                invService.GetFolderForType(userID,
-                                                                            FolderType
-                                                                                .CurrentOutfit),
-                                                false, true);
+                                invService.GetFolderForType(userID, FolderType.CurrentOutfit), false, true);
                 }
             }
         }
