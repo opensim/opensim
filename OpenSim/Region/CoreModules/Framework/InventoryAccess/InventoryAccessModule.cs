@@ -962,6 +962,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     {
                         part.CreateSelected = true;
                     }
+
+                    if (rootPart.Shape.PCode == (byte)PCode.Prim)
+                        group.ClearPartAttachmentData();
                 }
 
                 group.ResetIDs();
@@ -993,9 +996,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                 if (!attachment)
                 {
-                    if (rootPart.Shape.PCode == (byte)PCode.Prim)
-                        group.ClearPartAttachmentData();
-
                     // Fire on_rez
                     group.CreateScriptInstances(0, true, m_Scene.DefaultScriptEngine, 1);
                     rootPart.ParentGroup.ResumeScripts();
