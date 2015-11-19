@@ -162,6 +162,7 @@ default
 
                 EventParams ep = new EventParams("touch_start", new Object[] { new LSL_Types.LSLInteger(1) }, det);
 
+                messageReceived = null;
                 chatEvent.Reset();
                 xEngineA.PostObjectEvent(soSceneA.LocalId, ep);
                 chatEvent.WaitOne(60000);
@@ -169,13 +170,15 @@ default
                 Assert.That(messageReceived.Message, Is.EqualTo("1")); 
             }
 
-            sceneB.EventManager.OnChatFromWorld += (s, m) => { messageReceived = m; chatEvent.Set(); };
+            AutoResetEvent chatEventB = new AutoResetEvent(false);
+            sceneB.EventManager.OnChatFromWorld += (s, m) => { messageReceived = m; chatEventB.Set(); };
 
-            chatEvent.Reset();
+            messageReceived = null;
+            chatEventB.Reset();
             // Cross with a negative value
             soSceneA.AbsolutePosition = new Vector3(128, -10, 20);
 
-            chatEvent.WaitOne(60000);
+            chatEventB.WaitOne(60000);
             Assert.That(messageReceived, Is.Not.Null, "No Changed message received.");
             Assert.That(messageReceived.Message, Is.Not.Null, "Changed message without content");
             Assert.That(messageReceived.Message, Is.EqualTo("Changed")); 
@@ -193,9 +196,10 @@ default
 
                 EventParams ep = new EventParams("touch_start", new Object[] { new LSL_Types.LSLInteger(1) }, det);
 
-                chatEvent.Reset();
+                messageReceived = null;
+                chatEventB.Reset();
                 xEngineB.PostObjectEvent(soSceneB.LocalId, ep);
-                chatEvent.WaitOne(60000);
+                chatEventB.WaitOne(60000);
 
                 Assert.That(messageReceived.Message, Is.EqualTo("2")); 
             }
