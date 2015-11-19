@@ -173,6 +173,8 @@ default
             soSceneA.AbsolutePosition = new Vector3(128, -10, 20);
 
             chatEvent.WaitOne(60000);
+            Assert.That(messageReceived, Is.Not.Null, "No Changed message received.");
+            Assert.That(messageReceived.Message, Is.Not.Null, "No Changed message received.");
             Assert.That(messageReceived.Message, Is.EqualTo("Changed")); 
 
             // TEST sending event to moved prim and output
