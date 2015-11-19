@@ -70,6 +70,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             /// If null then the region doesn't have a corresponding scene, and it won't be loaded.
             /// </summary>
             public Scene Scene { get; set; }
+
+            /// <summary>
+            /// The size of the region being loaded.
+            /// </summary>
+            public Vector3 RegionSize { get; set; }
         }
 
         /// <summary>
@@ -118,7 +123,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void SetRegionOriginalID(string id)
         {
-            m_curRegion = new RegionInfo();
+            if (m_curRegion == null) m_curRegion = new RegionInfo();
             m_curRegion.Location = new Point((int)m_curX, (int)m_curY);
             m_curRegion.OriginalID = id;
             // 'curRegion' will be saved in 'm_directory2region' when SetRegionDir() is called
@@ -130,6 +135,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_directory2region[directory] = m_curRegion;
         }
 
+        public void SetRegionSize(Vector3 size)
+        {
+            if (m_curRegion == null) m_curRegion = new RegionInfo();
+            m_curRegion.RegionSize = size;
+        }
 
         /// <summary>
         /// Sets all the scenes present in the simulator.

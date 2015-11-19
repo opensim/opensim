@@ -267,26 +267,36 @@ namespace OpenSim
                                           SavePrimsXml2);
 
             m_console.Commands.AddCommand("Archiving", false, "load oar",
-                                          "load oar [--merge] [--skip-assets]"
+                                          "load oar [-m|--merge] [-s|--skip-assets]"
                                              + " [--default-user \"User Name\"]"
                                              + " [--force-terrain] [--force-parcels]"
                                              + " [--no-objects]"
-                                             + " [--rotation degrees] [--rotation-center \"<x,y,z>\"]"
+                                             + " [--rotation degrees]"
+                                             + " [--bounding-origin \"<x,y,z>\"]"
+                                             + " [--bounding-size \"<x,y,z>\"]"
                                              + " [--displacement \"<x,y,z>\"]"
+                                             + " [-d|--debug]"
                                              + " [<OAR path>]",
                                           "Load a region's data from an OAR archive.",
                                           "--merge will merge the OAR with the existing scene (suppresses terrain and parcel info loading).\n"
+                                            + "--skip-assets will load the OAR but ignore the assets it contains.\n"
                                             + "--default-user will use this user for any objects with an owner whose UUID is not found in the grid.\n"
-                                            + "--displacement will add this value to the position of every object loaded.\n"
                                             + "--force-terrain forces the loading of terrain from the oar (undoes suppression done by --merge).\n"
                                             + "--force-parcels forces the loading of parcels from the oar (undoes suppression done by --merge).\n"
                                             + "--no-objects suppresses the addition of any objects (good for loading only the terrain).\n"
                                             + "--rotation specified rotation to be applied to the oar. Specified in degrees.\n"
-                                            + "--rotation-center Location (relative to original OAR) to apply rotation. Default is <128,128,0>.\n"
-                                            + "--skip-assets will load the OAR but ignore the assets it contains.\n\n"
+                                            + "--bounding-origin will only place objects that after displacement and rotation fall within the bounding cube who's position starts at <x,y,z>. Defaults to <0,0,0>.\n"
+                                            + "--bounding-size specifies the size of the bounding cube. The default is the size of the destination region and cannot be larger than this.\n"
+                                            + "--displacement will add this value to the position of every object loaded.\n"
+                                            + "--debug forces the archiver to display messages about where each object is being placed.\n\n"
                                             + "The path can be either a filesystem location or a URI.\n"
-                                            + "  If this is not given then the command looks for an OAR named region.oar in the current directory.",
-                                          LoadOar);
+                                            + "  If this is not given then the command looks for an OAR named region.oar in the current directory."
+                                            + "  [--rotation-center \"<x,y,z>\"] used to be an option, now it does nothing and will be removed soon."
+                                            + "When an OAR is being loaded, operations are applied in this order:\n"
+                                            + "1: Rotation (around the incoming OARs region center)\n"
+                                            + "2: Cropping (a bounding cube with origin and size)\n"
+                                            + "3: Displacement (setting offset coordinates within the destination region)",
+                                          LoadOar); ;
 
             m_console.Commands.AddCommand("Archiving", false, "save oar",
                                           //"save oar [-v|--version=<N>] [-p|--profile=<url>] [<OAR path>]",
@@ -312,7 +322,7 @@ namespace OpenSim
 
             m_console.Commands.AddCommand("Objects", false, "rotate scene",
                                           "rotate scene <degrees> [centerX, centerY]",
-                                          "Rotates all scene objects around centerX, centerY (defailt 128, 128) (please back up your region before using)",
+                                          "Rotates all scene objects around centerX, centerY (default 128, 128) (please back up your region before using)",
                                           HandleRotateScene);
 
             m_console.Commands.AddCommand("Objects", false, "scale scene",
