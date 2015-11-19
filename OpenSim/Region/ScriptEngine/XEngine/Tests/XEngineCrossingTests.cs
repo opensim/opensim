@@ -85,6 +85,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
 
             IConfig startupConfig = configSource.AddConfig("Startup");
             startupConfig.Set("DefaultScriptEngine", "XEngine");
+            startupConfig.Set("TrustBinaries", "true");
 
             IConfig xEngineConfig = configSource.AddConfig("XEngine");
             xEngineConfig.Set("Enabled", "true");
@@ -161,6 +162,7 @@ default
 
                 EventParams ep = new EventParams("touch_start", new Object[] { new LSL_Types.LSLInteger(1) }, det);
 
+                chatEvent.Reset();
                 xEngineA.PostObjectEvent(soSceneA.LocalId, ep);
                 chatEvent.WaitOne(60000);
 
@@ -169,12 +171,13 @@ default
 
             sceneB.EventManager.OnChatFromWorld += (s, m) => { messageReceived = m; chatEvent.Set(); };
 
+            chatEvent.Reset();
             // Cross with a negative value
             soSceneA.AbsolutePosition = new Vector3(128, -10, 20);
 
             chatEvent.WaitOne(60000);
             Assert.That(messageReceived, Is.Not.Null, "No Changed message received.");
-            Assert.That(messageReceived.Message, Is.Not.Null, "No Changed message received.");
+            Assert.That(messageReceived.Message, Is.Not.Null, "Changed message without content");
             Assert.That(messageReceived.Message, Is.EqualTo("Changed")); 
 
             // TEST sending event to moved prim and output
@@ -190,6 +193,7 @@ default
 
                 EventParams ep = new EventParams("touch_start", new Object[] { new LSL_Types.LSLInteger(1) }, det);
 
+                chatEvent.Reset();
                 xEngineB.PostObjectEvent(soSceneB.LocalId, ep);
                 chatEvent.WaitOne(60000);
 
