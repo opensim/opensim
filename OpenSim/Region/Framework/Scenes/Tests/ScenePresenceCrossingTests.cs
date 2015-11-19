@@ -39,6 +39,7 @@ using OpenSim.Region.CoreModules.Framework.EntityTransfer;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
 using OpenSim.Region.CoreModules.World.Permissions;
 using OpenSim.Tests.Common;
+using System.Threading;
 
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
@@ -190,7 +191,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // We need to set up the permisions module on scene B so that our later use of agent limit to deny
             // QueryAccess won't succeed anyway because administrators are always allowed in and the default
             // IsAdministrator if no permissions module is present is true.
-//            SceneHelpers.SetupSceneModules(sceneB, config, new CapabilitiesModule(), new PermissionsModule(), etmB);
+            SceneHelpers.SetupSceneModules(sceneB, config, new CapabilitiesModule(), new DefaultPermissionsModule(), etmB);
 
             AgentCircuitData acd = SceneHelpers.GenerateAgentData(userId);
             TestClient tc = new TestClient(acd, sceneA);
@@ -229,7 +230,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             ScenePresence spAfterCrossSceneB = sceneB.GetScenePresence(originalSp.UUID);
 
-            // sceneB agent should also still be root
+            // sceneB agent should still be child
             Assert.That(spAfterCrossSceneB.IsChildAgent, Is.True);
 
             // sceneB should ignore unauthorized attempt to upgrade agent to root
