@@ -607,6 +607,13 @@ namespace OpenSim.Region.PhysicsModule.ODE
             m_body = pBody;
         }
 
+        internal void Stop()
+        {
+            m_lastLinearVelocityVector = Vector3.Zero;
+            m_lastAngularVelocity = Vector3.Zero;
+            m_lastPositionVector = d.BodyGetPosition(Body);
+        }
+
         internal void Step(float pTimestep,  OdeScene pParentScene)
         {
             if (m_body == IntPtr.Zero || m_type == Vehicle.TYPE_NONE)

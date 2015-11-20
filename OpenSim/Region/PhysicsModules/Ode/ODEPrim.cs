@@ -2676,10 +2676,16 @@ Console.WriteLine(" JointCreateFixed");
 
             m_lastVelocity = _velocity;
 
+
+            
+            if(m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE)
+                m_vehicle.Stop();
+
             if (Body != IntPtr.Zero)
             {
                 d.BodySetLinearVel(Body, 0, 0, 0); // stop it
                 d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
+                enableBodySoft();
             }
 
             outofBounds = false;
