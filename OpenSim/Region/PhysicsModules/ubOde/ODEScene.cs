@@ -366,7 +366,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// </summary>
         private void Initialization()
         {
-            //            checkThread();
+            d.AllocateODEDataForThread(~0U);
+
             SimulationLock = new Object();
 
             nearCallback = near;
@@ -1290,7 +1291,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public override void RemoveAvatar(PhysicsActor actor)
         {
             //m_log.Debug("[PHYSICS]:ODELOCK");
-            ((OdeCharacter) actor).Destroy();
+            lock (OdeLock)
+            {
+                d.AllocateODEDataForThread(0);
+                ((OdeCharacter) actor).Destroy();
+            }
         }
 
 
@@ -1319,6 +1324,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             OdePrim newPrim;
             lock (OdeLock)
             {
+              
                 newPrim = new OdePrim(name, this, position, size, rotation, pbs, isphysical, isPhantom, shapeType, localID);
                 lock (_prims)
                     _prims.Add(newPrim);
@@ -1547,6 +1553,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     return;
                 }
 
+                d.AllocateODEDataForThread(~0U);
+
                 ODEchangeitem item;
 
                 int donechanges = 0;
@@ -1630,7 +1638,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 int changestimeMS = 0;
                 int maxChangestime = (int)(reqTimeStep * 500f); // half the time
                 int maxLoopTime = (int)(reqTimeStep * 1200f); // 1.2 the time
-                
+ 
+                d.AllocateODEDataForThread(~0U);
+               
                 if (ChangesQueue.Count > 0)
                 {
                     while (ChangesQueue.Dequeue(out item))
@@ -2260,6 +2270,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             lock (OdeLock)
             {
+                d.AllocateODEDataForThread(~0U);
+
                 IntPtr GroundGeom = IntPtr.Zero;
                 if (RegionTerrain.TryGetValue(pOffset, out GroundGeom))
                 {
@@ -2450,8 +2462,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             lock (OdeLock)
             {
+
                 if (world == IntPtr.Zero)
                     return;
+
+                d.AllocateODEDataForThread(~0U);
 
                 if (m_meshWorker != null)
                     m_meshWorker.Stop();

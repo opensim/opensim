@@ -466,6 +466,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 lock (_parent_scene.OdeLock)
                 {
+                    d.AllocateODEDataForThread(0);
+
                     d.Vector3 dtmp;
                     if (!childPrim && Body != IntPtr.Zero)
                     {
@@ -892,9 +894,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 _velocity.Y = 0;
                 _velocity.Z = 0;
 
+                d.AllocateODEDataForThread(0);
+
                 m_lastVelocity = _velocity;
                 if (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE)
-                    m_vehicle.Stop();
+                    m_vehicle.Stop();              
 
                 if(Body != IntPtr.Zero)
                     d.BodySetLinearVel(Body, 0, 0, 0); // stop it
