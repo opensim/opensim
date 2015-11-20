@@ -903,7 +903,7 @@
     ;; or by deleting the script DLL* files in bin/ScriptEngines/<region-id>/
     ;; One can move from co-op back to abort without recompilation, but reverting back to co-op again will need script recompile
     ;; Current valid values are "abort" and "co-op"
-    ; ScriptStopStrategy = abort
+    ; ScriptStopStrategy = co-op
     
 
     ;# {DeleteScriptsOnStartup} {} {Delete previously compiled script DLLs on startup?} {true false} true
