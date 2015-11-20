@@ -7740,11 +7740,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             if(linknum == ScriptBaseClass.LINK_SET ||
-                linknum == ScriptBaseClass.LINK_ALL_CHILDREN ||
-                linknum == ScriptBaseClass.LINK_ALL_OTHERS) return UUID.Zero.ToString();
+                    linknum == ScriptBaseClass.LINK_ALL_CHILDREN ||
+                    linknum == ScriptBaseClass.LINK_ALL_OTHERS ||
+                    linknum == 0)
+                return UUID.Zero.ToString();
 
             List<SceneObjectPart> parts = GetLinkParts(linknum);
-            if (parts.Count == 0) return UUID.Zero.ToString();
+            if (parts.Count == 0)
+                return UUID.Zero.ToString();
             return parts[0].SitTargetAvatar.ToString();
         }
 
