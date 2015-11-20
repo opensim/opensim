@@ -1,5 +1,7 @@
 ﻿:VERSION 1
 
+BEGIN;
+
 CREATE TABLE `regions` (
   `uuid` varchar(36) NOT NULL,
   `regionHandle` bigint(20) unsigned NOT NULL,
@@ -31,7 +33,9 @@ CREATE TABLE `regions` (
   KEY `regionName` (`regionName`),
   KEY `regionHandle` (`regionHandle`),
   KEY `overrideHandles` (`eastOverrideHandle`,`westOverrideHandle`,`southOverrideHandle`,`northOverrideHandle`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Rev. 3';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+COMMIT;
 
 :VERSION 2
 
