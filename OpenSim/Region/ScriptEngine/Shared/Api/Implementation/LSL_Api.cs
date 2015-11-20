@@ -1264,8 +1264,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
-            World.SimChat(Utils.StringToBytes(text),
-                          ChatTypeEnum.Region, channelID, m_host.ParentGroup.RootPart.AbsolutePosition, m_host.Name, m_host.UUID, false);
+            // debug channel is also sent to avatars
+            if (channelID == ScriptBaseClass.DEBUG_CHANNEL)
+            {
+                World.SimChat(Utils.StringToBytes(text),
+                    ChatTypeEnum.Shout, channelID, m_host.ParentGroup.RootPart.AbsolutePosition, m_host.Name, m_host.UUID, true);
+            
+            }
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             if (wComm != null)
@@ -1280,15 +1285,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             if (channel == ScriptBaseClass.DEBUG_CHANNEL)
-            {
                 return;
-            }
 
             UUID TargetID;
             UUID.TryParse(target, out TargetID);
-
-            World.SimChatToAgent(TargetID, Utils.StringToBytes(msg),
-                          channel, m_host.ParentGroup.RootPart.AbsolutePosition, m_host.Name, m_host.UUID, true);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             if (wComm != null)

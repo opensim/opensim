@@ -311,6 +311,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             // Determine which listen event filters match the given set of arguments, this results
             // in a limited set of listeners, each belonging a host. If the host is in range, add them
             // to the pending queue.
+
             foreach (ListenerInfo li
                     in m_listenerManager.GetListeners(UUID.Zero, channel,
                     name, id, msg))
@@ -385,6 +386,10 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                     m_scene.SimChat(Utils.StringToBytes(msg), ChatTypeEnum.Broadcast, 0, pos, name, id, target, false, false);
                     return true;
                 }
+
+                // for now messages to prims don't cross regions
+                if(sp.IsChildAgent)
+                    return false;
 
                 List<SceneObjectGroup> attachments = sp.GetAttachments();
 
