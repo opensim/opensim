@@ -32,7 +32,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using OpenMetaverse;
 using OpenSim.Region.PhysicsModules.SharedBase;
-using Ode.NET;
 using log4net;
 
 namespace OpenSim.Region.PhysicsModule.ODE
@@ -358,7 +357,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                 lock (contacts)
                 {
-                    count = d.Collide(g1, g2, contacts.GetLength(0), contacts, d.ContactGeom.SizeOf);
+                    count = d.Collide(g1, g2, contacts.GetLength(0), contacts, d.ContactGeom.unmanagedSizeOf);
                 }
             }
             catch (SEHException)

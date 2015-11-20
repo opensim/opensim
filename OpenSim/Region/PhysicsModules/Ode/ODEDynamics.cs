@@ -44,9 +44,9 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using log4net;
 using OpenMetaverse;
-using Ode.NET;
 using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
+
 
 namespace OpenSim.Region.PhysicsModule.ODE
 {

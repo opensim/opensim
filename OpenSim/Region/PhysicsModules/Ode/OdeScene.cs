@@ -31,9 +31,6 @@
 // or application thread stack may just blowup
 // see RayCast(ODERayCastRequest req)
 
-//#define USE_DRAWSTUFF
-//#define SPAM
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -46,16 +43,11 @@ using System.Threading;
 using log4net;
 using Nini.Config;
 using Mono.Addins;
-using Ode.NET;
 using OpenMetaverse;
-#if USE_DRAWSTUFF
-using Drawstuff.NET;
-#endif 
 using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
-
 
 namespace OpenSim.Region.PhysicsModule.ODE
 {
@@ -585,31 +577,11 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             d.WorldSetAutoDisableFlag(world, false);
 
-            #if USE_DRAWSTUFF
-            Thread viewthread = new Thread(new ParameterizedThreadStart(startvisualization));
-            viewthread.Start();
-            #endif
-
- //           _watermap = new float[258 * 258];
+//           _watermap = new float[258 * 258];
 
             // Zero out the prim spaces array (we split our space into smaller spaces so
             // we can hit test less.
         }
-
-#if USE_DRAWSTUFF
-        public void startvisualization(object o)
-        {
-            ds.Functions fn;
-            fn.version = ds.VERSION;
-            fn.start = new ds.CallbackFunction(start);
-            fn.step = new ds.CallbackFunction(step);
-            fn.command = new ds.CallbackFunction(command);
-            fn.stop = null;
-            fn.path_to_textures = "./textures";
-            string[] args = new string[0];
-            ds.SimulationLoop(args.Length, args, 352, 288, ref fn);
-        }
-#endif
 
         // Initialize from configs
         private void InitialiseFromConfig(IConfigSource config)
@@ -957,7 +929,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
         /// <param name='contactsArray'></param>
         /// <param name='contactGeomSize'></param>
         private int CollideGeoms(
-            IntPtr geom1, IntPtr geom2, int maxContacts, Ode.NET.d.ContactGeom[] contactsArray, int contactGeomSize)
+            IntPtr geom1, IntPtr geom2, int maxContacts, d.ContactGeom[] contactsArray, int contactGeomSize)
         {
             int count;
 
@@ -1090,7 +1062,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
                     return;
 
-                count = CollideGeoms(g1, g2, contacts.Length, contacts, d.ContactGeom.SizeOf);
+                count = CollideGeoms(g1, g2, contacts.Length, contacts, d.ContactGeom.unmanagedSizeOf);
 
                 // All code after this is only relevant if we have any collisions
                 if (count <= 0)
@@ -2972,7 +2944,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
         /// <returns>The number of frames simulated over that period.</returns>
         public override float Simulate(float timeStep)
         {
-            if (!_worldInitialized) return 11f;
+            if (!_worldInitialized)
+                return 1.0f;
 
             int startFrameTick = CollectStats ? Util.EnvironmentTickCount() : 0;
             int tempTick = 0, tempTick2 = 0;
@@ -3803,133 +3776,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 return new List<ContactResult> ();
             return new List<ContactResult>(ourResults);
         }
-
-#if USE_DRAWSTUFF
-        // Keyboard callback
-        public void command(int cmd)
-        {
-            IntPtr geom;
-            d.Mass mass;
-            d.Vector3 sides = new d.Vector3(d.RandReal() * 0.5f + 0.1f, d.RandReal() * 0.5f + 0.1f, d.RandReal() * 0.5f + 0.1f);
-
-            
-
-            Char ch = Char.ToLower((Char)cmd);
-            switch ((Char)ch)
-            {
-                case 'w':
-                    try
-                    {
-                        Vector3 rotate = (new Vector3(1, 0, 0) * Quaternion.CreateFromEulers(hpr.Z * Utils.DEG_TO_RAD, hpr.Y * Utils.DEG_TO_RAD, hpr.X * Utils.DEG_TO_RAD));
-
-                        xyz.X += rotate.X; xyz.Y += rotate.Y; xyz.Z += rotate.Z;
-                        ds.SetViewpoint(ref xyz, ref hpr);
-                    }
-                    catch (ArgumentException)
-                    { hpr.X = 0; }
-                    break;
-
-                case 'a':
-                    hpr.X++;
-                    ds.SetViewpoint(ref xyz, ref hpr);
-                    break;
-
-                case 's':
-                    try
-                    {
-                        Vector3 rotate2 = (new Vector3(-1, 0, 0) * Quaternion.CreateFromEulers(hpr.Z * Utils.DEG_TO_RAD, hpr.Y * Utils.DEG_TO_RAD, hpr.X * Utils.DEG_TO_RAD));
-
-                        xyz.X += rotate2.X; xyz.Y += rotate2.Y; xyz.Z += rotate2.Z;
-                        ds.SetViewpoint(ref xyz, ref hpr);
-                    }
-                    catch (ArgumentException)
-                    { hpr.X = 0; }
-                    break;
-                case 'd':
-                    hpr.X--;
-                    ds.SetViewpoint(ref xyz, ref hpr);
-                    break;
-                case 'r':
-                    xyz.Z++;
-                    ds.SetViewpoint(ref xyz, ref hpr);
-                    break;
-                case 'f':
-                    xyz.Z--;
-                    ds.SetViewpoint(ref xyz, ref hpr);
-                    break;
-                case 'e':
-                    xyz.Y++;
-                    ds.SetViewpoint(ref xyz, ref hpr);
-                    break;
-                case 'q':
-                    xyz.Y--;
-                    ds.SetViewpoint(ref xyz, ref hpr);
-                    break;
-            }
-        }
-
-        public void step(int pause)
-        {
-            
-            ds.SetColor(1.0f, 1.0f, 0.0f);
-            ds.SetTexture(ds.Texture.Wood);
-            lock (_prims)
-            {
-                foreach (OdePrim prm in _prims)
-                {
-                    //IntPtr body = d.GeomGetBody(prm.prim_geom);
-                    if (prm.prim_geom != IntPtr.Zero)
-                    {
-                        d.Vector3 pos;
-                        d.GeomCopyPosition(prm.prim_geom, out pos);
-                        //d.BodyCopyPosition(body, out pos);
-
-                        d.Matrix3 R;
-                        d.GeomCopyRotation(prm.prim_geom, out R);
-                        //d.BodyCopyRotation(body, out R);
-
-
-                        d.Vector3 sides = new d.Vector3();
-                        sides.X = prm.Size.X;
-                        sides.Y = prm.Size.Y;
-                        sides.Z = prm.Size.Z;
-
-                        ds.DrawBox(ref pos, ref R, ref sides);
-                    }
-                }
-            }
-            ds.SetColor(1.0f, 0.0f, 0.0f);
-
-            foreach (OdeCharacter chr in _characters)
-            {
-                if (chr.Shell != IntPtr.Zero)
-                {
-                    IntPtr body = d.GeomGetBody(chr.Shell);
-
-                    d.Vector3 pos;
-                    d.GeomCopyPosition(chr.Shell, out pos);
-                    //d.BodyCopyPosition(body, out pos);
-
-                    d.Matrix3 R;
-                    d.GeomCopyRotation(chr.Shell, out R);
-                    //d.BodyCopyRotation(body, out R);
-
-                    ds.DrawCapsule(ref pos, ref R, chr.Size.Z, 0.35f);
-                    d.Vector3 sides = new d.Vector3();
-                    sides.X = 0.5f;
-                    sides.Y = 0.5f;
-                    sides.Z = 0.5f;
-
-                    ds.DrawBox(ref pos, ref R, ref sides);
-                }
-            }
-        }
-
-        public void start(int unused)
-        {
-            ds.SetViewpoint(ref xyz, ref hpr);
-        }
-#endif
 
         public override Dictionary<string, float> GetStats()
         {

@@ -6,7 +6,6 @@ using Mono.Addins;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
-using Ode.NET;
 
 namespace OpenSim.Region.PhysicsModule.ODE
 {

@@ -27,10 +27,8 @@
 
 using System;
 using OpenMetaverse;
-using Ode.NET;
 using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
-using OpenSim.Region.PhysicsModule.ODE;
 
 namespace OpenSim.Region.PhysicsModule.ODE
 {
