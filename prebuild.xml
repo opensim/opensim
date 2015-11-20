@@ -1657,7 +1657,6 @@
       <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="Mono.Addins" path="../../../../bin/"/>
-      <Reference name="Ode.NET" path="../../../../bin/"/>
       <Reference name="log4net" path="../../../../bin/"/>
 
       <Files>
@@ -3189,7 +3188,6 @@
       <Reference name="OpenSim.Region.PhysicsModule.Ode"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Tests.Common"/>
-      <Reference name="Ode.NET" path="../../../../../bin/"/>
       <Reference name="nunit.framework" path="../../../../../bin/"/>
       <Reference name="log4net" path="../../../../../bin/"/>
 
