@@ -96,8 +96,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// also sets the total request for leaf nodes
         /// </summary>
         protected float m_burst;
-//not in use
-        public float MaxDripRate { get; set; }
+
+        public virtual float MaxDripRate { get; set; }
 
         public float RequestedBurst
         {
@@ -347,7 +347,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // </summary>
 
         protected float m_maxDripRate = 0;
-        public float MaxDripRate
+        public override float MaxDripRate
         {
             get { return (m_maxDripRate == 0 ? m_totalDripRequest : m_maxDripRate); }
             set
