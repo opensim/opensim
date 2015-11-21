@@ -533,18 +533,18 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 nodeName = xtr.Name;
 
-                //                        m_log.DebugFormat("[ExternalRepresentationUtils]: Processing: {0}", nodeName);
+                // m_log.DebugFormat("[ExternalRepresentationUtils]: Processing: {0}", nodeName);
 
                 Action p = null;
                 if (processors.TryGetValue(xtr.Name, out p))
                 {
-                    //                            m_log.DebugFormat("[ExternalRepresentationUtils]: Found {0} processor, nodeName);
+                    // m_log.DebugFormat("[ExternalRepresentationUtils]: Found {0} processor, nodeName);
 
                     try
                     {
                         p();
                     }
-                    catch (Exception e)
+                    catch
                     {
                         errors = true;
                         if (xtr.NodeType == XmlNodeType.EndElement)
