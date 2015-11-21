@@ -1408,22 +1408,10 @@ namespace OpenSim.Region.PhysicsModule.ODE
                     {
                         if (Math.Abs(contact.depth - contactGeom.depth) < 0.052f)
                         {
-                            //contactGeom.depth *= .00005f;
-                           //m_log.DebugFormat("[Collsion]: Depth {0}", Math.Abs(contact.depth - contactGeom.depth));
-                            // m_log.DebugFormat("[Collision]: <{0},{1},{2}>", Math.Abs(contactGeom.normal.X - contact.normal.X), Math.Abs(contactGeom.normal.Y - contact.normal.Y), Math.Abs(contactGeom.normal.Z - contact.normal.Z));
-                            result = true;
-                            break;
+                             result = true;
+                             break;
                         }
-//                        else
-//                        {
-//                            //m_log.DebugFormat("[Collsion]: Depth {0}", Math.Abs(contact.depth - contactGeom.depth));
-//                        }
                     }
-//                    else
-//                    {
-//                        //m_log.DebugFormat("[Collision]: <{0},{1},{2}>", Math.Abs(contactGeom.normal.X - contact.normal.X), Math.Abs(contactGeom.normal.Y - contact.normal.Y), Math.Abs(contactGeom.normal.Z - contact.normal.Z));
-//                        //int i = 0;
-//                    }
                 } 
                 else if (at == ActorTypes.Prim)
                 {
@@ -1715,7 +1703,9 @@ namespace OpenSim.Region.PhysicsModule.ODE
         #region Add/Remove Entities
 
         public override PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 velocity, Vector3 size, bool isFlying)
-        {                       
+        {
+            d.AllocateODEDataForThread(0);
+
             OdeCharacter newAv
                 = new OdeCharacter(
                     avName, this, position, velocity, size, avPIDD, avPIDP,
@@ -1735,7 +1725,12 @@ namespace OpenSim.Region.PhysicsModule.ODE
 //                "[ODE SCENE]: Removing physics character {0} {1} from physics scene {2}",
 //                actor.Name, actor.LocalID, Name);
 
-            ((OdeCharacter) actor).Destroy();
+            lock (OdeLock)
+            {
+                d.AllocateODEDataForThread(0);
+
+                ((OdeCharacter) actor).Destroy();
+            }
         }
 
         internal void AddCharacter(OdeCharacter chr)
@@ -1785,9 +1780,11 @@ namespace OpenSim.Region.PhysicsModule.ODE
             Vector3 siz = size;
             Quaternion rot = rotation;
 
+
             OdePrim newPrim;
             lock (OdeLock)
             {
+                d.AllocateODEDataForThread(0);
                 newPrim = new OdePrim(name, this, pos, siz, rot, pbs, isphysical);
 
                 lock (_prims)
@@ -2633,8 +2630,11 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 int donechanges = 0;
                 if (_taintedPrims.Count > 0)
                 {
+
                     m_log.InfoFormat("[Ode] start processing pending actor operations");
                     int tstart = Util.EnvironmentTickCount();
+
+                    d.AllocateODEDataForThread(0);
 
                     lock (_taintedPrims)
                     {
@@ -2716,6 +2716,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             lock (OdeLock)
             {
+                d.AllocateODEDataForThread(~0U);
+
                  while (step_time > HalfOdeStep)
                 {
                     try
@@ -3293,6 +3295,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             lock (OdeLock)
             {
+                d.AllocateODEDataForThread(~0U);
+
                 IntPtr GroundGeom = IntPtr.Zero;
                 if (RegionTerrain.TryGetValue(pOffset, out GroundGeom))
                 {
@@ -3379,6 +3383,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
                     return;
 
                 _worldInitialized = false;
+
+                d.AllocateODEDataForThread(~0U);
 
                 if (m_rayCastManager != null)
                 {

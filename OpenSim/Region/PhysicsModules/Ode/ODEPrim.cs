@@ -2664,6 +2664,9 @@ Console.WriteLine(" JointCreateFixed");
                             m_log.Warn("[PHYSICS]: Too many crossing failures for: " + Name);
                         }
             */
+
+            d.AllocateODEDataForThread(0U);
+
             _position.X = Util.Clip(_position.X, 0.5f, _parent_scene.WorldExtents.X - 0.5f);
             _position.Y = Util.Clip(_position.Y, 0.5f, _parent_scene.WorldExtents.Y - 0.5f);
             _position.Z = Util.Clip(_position.Z + 0.2f, -100f, 50000f);
