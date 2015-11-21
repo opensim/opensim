@@ -350,7 +350,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     else
                         return false;
                 }
-                catch (Exception e)
+                catch
                 {
                     return false;
                 }
@@ -550,14 +550,12 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 }
             }
-            catch (Exception e)
+            catch
             {
                 return false;
             }
 
             OSDArray decodedMeshOsdArray = null;
-            if ((!decodedMeshOsd is OSDArray))
-                return false;
 
             byte[] dummy;
 
@@ -618,7 +616,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 }
             }
-            catch (Exception e)
+            catch
             {
                 return false;
             }

@@ -55,11 +55,7 @@ namespace OpenSim.Capabilities.Handlers
         private IAssetService m_assetService;
 
         public const string DefaultFormat = "x-j2c";
-
-        // TODO: Change this to a config option
-        private string m_RedirectURL = null;
-
- 
+  
         public GetTextureHandler(IAssetService assService)
         {
             m_assetService = assService;

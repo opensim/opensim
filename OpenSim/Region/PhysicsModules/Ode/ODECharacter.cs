@@ -1290,7 +1290,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             m_eventsubscription = 0;
         }
 
-        internal void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
+        public override void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
         {
             if (m_eventsubscription > 0)
             {

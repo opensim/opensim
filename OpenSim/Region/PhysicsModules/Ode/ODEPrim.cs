@@ -3124,7 +3124,7 @@ Console.WriteLine(" JointCreateFixed");
             m_eventsubscription = 0;
         }
 
-        public void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
+        public override void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
         {
             CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
         }

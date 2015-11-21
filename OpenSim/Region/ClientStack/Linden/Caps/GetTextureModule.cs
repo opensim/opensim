@@ -82,10 +82,6 @@ namespace OpenSim.Region.ClientStack.Linden
         private static OpenMetaverse.BlockingQueue<aPollRequest> m_queue =
                 new OpenMetaverse.BlockingQueue<aPollRequest>();
 
-
-        // TODO: Change this to a config option
-        private string m_RedirectURL = null;
-
         private Dictionary<UUID,PollServiceTextureEventArgs> m_pollservices = new Dictionary<UUID,PollServiceTextureEventArgs>();
    
 
