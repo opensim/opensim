@@ -311,7 +311,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return base.CreateAgent(sp, reg, finalDestination, agentCircuit, teleportFlags, ctx, out reason, out logout);
         }
 
-        public void TriggerTeleportHome(UUID id, IClientAPI client)
+        public override void TriggerTeleportHome(UUID id, IClientAPI client)
         {
             TeleportHome(id, client);
         }
