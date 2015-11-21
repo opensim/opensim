@@ -203,7 +203,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
         public int m_interpenetrationcount { get; private set; }
         internal float m_collisionscore;
         public int m_roundsUnderMotionThreshold { get; private set; }
-        private int m_crossingfailures;
 
         public bool outofBounds { get; private set; }
         private float m_density = 10.000006836f; // Aluminum g/cm3;

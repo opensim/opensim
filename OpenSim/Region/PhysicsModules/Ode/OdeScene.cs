@@ -58,16 +58,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
         End = 2
     }
 
-//    public struct sCollisionData
-//    {
-//        public uint ColliderLocalId;
-//        public uint CollidedWithLocalId;
-//        public int NumberOfCollisions;
-//        public int CollisionType;
-//        public int StatusIndicator;
-//        public int lastframe;
-//    }
-
     [Flags]
     public enum CollisionCategories : int
     {
@@ -323,7 +313,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
         public bool IsAvCapsuleTilted { get; private set; }
 
         private float avDensity = 80f;
-//        private float avHeightFudgeFactor = 0.52f;
         private float avMovementDivisorWalk = 1.3f;
         private float avMovementDivisorRun = 0.8f;
         private float minimumGroundFlightOffset = 3f;
@@ -346,7 +335,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
         public int bodyFramesAutoDisable = 20;
 
-        private float[] _watermap;
         private bool m_filterCollisions = true;
 
         private d.NearCallback nearCallback;
@@ -457,31 +445,21 @@ namespace OpenSim.Region.PhysicsModule.ODE
         private d.Contact WaterContact;
         private d.Contact[,] m_materialContacts;
 
-//Ckrinke: Comment out until used. We declare it, initialize it, but do not use it
-//Ckrinke        private int m_randomizeWater = 200;
         private int m_physicsiterations = 10;
         private const float m_SkipFramesAtms = 0.40f; // Drop frames gracefully at a 400 ms lag
         private readonly PhysicsActor PANull = new NullPhysicsActor();
         private float step_time = 0.0f;
-//Ckrinke: Comment out until used. We declare it, initialize it, but do not use it
-//Ckrinke        private int ms = 0;
         public IntPtr world;
-        //private bool returncollisions = false;
-        // private uint obj1LocalID = 0;
         private uint obj2LocalID = 0;
-        //private int ctype = 0;
         private OdeCharacter cc1;
         private OdePrim cp1;
         private OdeCharacter cc2;
         private OdePrim cp2;
         private int p1ExpectedPoints = 0;
         private int p2ExpectedPoints = 0;
-        //private int cStartStop = 0;
-        //private string cDictKey = "";
 
         public IntPtr space;
 
-        //private IntPtr tmpSpace;
         // split static geometry collision handling into spaces of 30 meters
         public IntPtr[,] staticPrimspace;
 
@@ -565,8 +543,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
             m_suportCombine = false;
 			
             nearCallback = near;
-//            triCallback = TriCallback;
-//            triArrayCallback = TriArrayCallback;
             m_rayCastManager = new ODERayCastRequestManager(this);
 
             // Create the world and the first space
@@ -576,11 +552,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
             contactgroup = d.JointGroupCreate(0);
 
             d.WorldSetAutoDisableFlag(world, false);
-
-//           _watermap = new float[258 * 258];
-
-            // Zero out the prim spaces array (we split our space into smaller spaces so
-            // we can hit test less.
         }
 
         // Initialize from configs
@@ -707,8 +678,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
             // make this index limits
             spaceGridMaxX--;
             spaceGridMaxY--;
-
-
 
             // Centeral contact friction and bounce
             // ckrinke 11/10/08 Enabling soft_erp but not soft_cfm until I figure out why
@@ -884,9 +853,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
             d.WorldSetLinearDampingThreshold(world, 256f);
             d.WorldSetMaxAngularSpeed(world, 256f);
 
-            // Set how many steps we go without running collision testing
-            // This is in addition to the step size.
-            // Essentially Steps * m_physicsiterations
             d.WorldSetQuickStepNumIterations(world, m_physicsiterations);
             //d.WorldSetContactMaxCorrectingVel(world, 1000.0f);
 
@@ -900,22 +866,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             _worldInitialized = true;
         }
-
-//        internal void waitForSpaceUnlock(IntPtr space)
-//        {
-//            //if (space != IntPtr.Zero)
-//                //while (d.SpaceLockQuery(space)) { } // Wait and do nothing
-//        }
-
-//        /// <summary>
-//        /// Debug space message for printing the space that a prim/avatar is in.
-//        /// </summary>
-//        /// <param name="pos"></param>
-//        /// <returns>Returns which split up space the given position is in.</returns>
-//        public string whichspaceamIin(Vector3 pos)
-//        {
-//            return calculateSpaceForGeom(pos).ToString();
-//        }
 
         #region Collision Detection
 
@@ -1042,12 +992,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 name2 = "null";
             }
 
-            //if (id == d.GeomClassId.TriMeshClass)
-            //{
-                //               m_log.InfoFormat("near: A collision was detected between {1} and {2}", 0, name1, name2);
-                //m_log.Debug("near: A collision was detected between {1} and {2}", 0, name1, name2);
-            //}
-
             // Figure out how many contact points we have
             int count = 0;
 
@@ -1166,110 +1110,9 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 // we don't want prim or avatar to explode
 
                 #region InterPenetration Handling - Unintended physics explosions
-# region disabled code1
 
                 if (curContact.depth >= 0.08f)
                 {
-                    //This is disabled at the moment only because it needs more tweaking
-                    //It will eventually be uncommented
-                    /*
-                    if (contact.depth >= 1.00f)
-                    {
-                        //m_log.Debug("[PHYSICS]: " + contact.depth.ToString());
-                    }
-
-                    //If you interpenetrate a prim with an agent
-                    if ((p2.PhysicsActorType == (int) ActorTypes.Agent &&
-                         p1.PhysicsActorType == (int) ActorTypes.Prim) ||
-                        (p1.PhysicsActorType == (int) ActorTypes.Agent &&
-                         p2.PhysicsActorType == (int) ActorTypes.Prim))
-                    {
-                        
-                        //contact.depth = contact.depth * 4.15f;
-                        /*
-                        if (p2.PhysicsActorType == (int) ActorTypes.Agent)
-                        {
-                            p2.CollidingObj = true;
-                            contact.depth = 0.003f;
-                            p2.Velocity = p2.Velocity + new PhysicsVector(0, 0, 2.5f);
-                            OdeCharacter character = (OdeCharacter) p2;
-                            character.SetPidStatus(true);
-                            contact.pos = new d.Vector3(contact.pos.X + (p1.Size.X / 2), contact.pos.Y + (p1.Size.Y / 2), contact.pos.Z + (p1.Size.Z / 2));
-
-                        }
-                        else
-                        {
-
-                            //contact.depth = 0.0000000f;
-                        }
-                        if (p1.PhysicsActorType == (int) ActorTypes.Agent)
-                        {
-
-                            p1.CollidingObj = true;
-                            contact.depth = 0.003f;
-                            p1.Velocity = p1.Velocity + new PhysicsVector(0, 0, 2.5f);
-                            contact.pos = new d.Vector3(contact.pos.X + (p2.Size.X / 2), contact.pos.Y + (p2.Size.Y / 2), contact.pos.Z + (p2.Size.Z / 2));
-                            OdeCharacter character = (OdeCharacter)p1;
-                            character.SetPidStatus(true);
-                        }
-                        else
-                        {
-
-                            //contact.depth = 0.0000000f;
-                        }
-                          
-                        
-                     
-                    }
-*/
-                    // If you interpenetrate a prim with another prim
-                /*
-                    if (p1.PhysicsActorType == (int) ActorTypes.Prim && p2.PhysicsActorType == (int) ActorTypes.Prim)
-                    {
-                        #region disabledcode2
-                        //OdePrim op1 = (OdePrim)p1;
-                        //OdePrim op2 = (OdePrim)p2;
-                        //op1.m_collisionscore++;
-                        //op2.m_collisionscore++;
-
-                        //if (op1.m_collisionscore > 8000 || op2.m_collisionscore > 8000)
-                        //{
-                            //op1.m_taintdisable = true;
-                            //AddPhysicsActorTaint(p1);
-                            //op2.m_taintdisable = true;
-                            //AddPhysicsActorTaint(p2);
-                        //}
-
-                        //if (contact.depth >= 0.25f)
-                        //{
-                            // Don't collide, one or both prim will expld.
-
-                            //op1.m_interpenetrationcount++;
-                            //op2.m_interpenetrationcount++;
-                            //interpenetrations_before_disable = 200;
-                            //if (op1.m_interpenetrationcount >= interpenetrations_before_disable)
-                            //{
-                                //op1.m_taintdisable = true;
-                                //AddPhysicsActorTaint(p1);
-                            //}
-                            //if (op2.m_interpenetrationcount >= interpenetrations_before_disable)
-                            //{
-                               // op2.m_taintdisable = true;
-                                //AddPhysicsActorTaint(p2);
-                            //}
-
-                            //contact.depth = contact.depth / 8f;
-                            //contact.normal = new d.Vector3(0, 0, 1);
-                        //}
-                        //if (op1.m_disabled || op2.m_disabled)
-                        //{
-                            //Manually disabled objects stay disabled
-                            //contact.depth = 0f;
-                        //}
-                        #endregion
-                    }
-                    */
-#endregion
                     if (curContact.depth >= 1.00f)
                     {
                         //m_log.Info("[P]: " + contact.depth.ToString());
@@ -1584,12 +1427,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 } 
                 else if (at == ActorTypes.Prim)
                 {
-                    //d.AABB aabb1 = new d.AABB();
-                    //d.AABB aabb2 = new d.AABB();
-
-                    //d.GeomGetAABB(contactGeom.g2, out aabb2);
-                    //d.GeomGetAABB(contactGeom.g1, out aabb1);
-                    //aabb1.
                     if (((Math.Abs(contactGeom.normal.X - contact.normal.X) < 1.026f) && (Math.Abs(contactGeom.normal.Y - contact.normal.Y) < 0.303f) && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f)))
                     {
                         if (contactGeom.normal.X == contact.normal.X && contactGeom.normal.Y == contact.normal.Y && contactGeom.normal.Z == contact.normal.Z)
@@ -1631,14 +1468,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
                             cc1 = (OdeCharacter)p1;
                             obj2LocalID = cc1.LocalID;
                             cc1.AddCollisionEvent(cc2.LocalID, contact);
-                            //ctype = (int)CollisionCategories.Character;
-
-                            //if (cc1.CollidingObj)
-                            //cStartStop = (int)StatusIndicators.Generic;
-                            //else
-                            //cStartStop = (int)StatusIndicators.Start;
-
-                            //returncollisions = true;
                             break;
 
                         case ActorTypes.Prim:
@@ -1648,21 +1477,11 @@ namespace OpenSim.Region.PhysicsModule.ODE
                                 obj2LocalID = cp1.LocalID;
                                 cp1.AddCollisionEvent(cc2.LocalID, contact);
                             }
-                            //ctype = (int)CollisionCategories.Geom;
-
-                            //if (cp1.CollidingObj)
-                            //cStartStop = (int)StatusIndicators.Generic;
-                            //else
-                            //cStartStop = (int)StatusIndicators.Start;
-
-                            //returncollisions = true;
                             break;
 
                         case ActorTypes.Ground:
                         case ActorTypes.Unknown:
                             obj2LocalID = 0;
-                            //ctype = (int)CollisionCategories.Land;
-                            //returncollisions = true;
                             break;
                     }
 
@@ -1684,13 +1503,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
                                     cc1 = (OdeCharacter) p1;
                                     obj2LocalID = cc1.LocalID;
                                     cc1.AddCollisionEvent(cp2.LocalID, contact);
-                                    //ctype = (int)CollisionCategories.Character;
-
-                                    //if (cc1.CollidingObj)
-                                    //cStartStop = (int)StatusIndicators.Generic;
-                                    //else
-                                    //cStartStop = (int)StatusIndicators.Start;
-                                    //returncollisions = true;
                                 }
                                 break;
                             case ActorTypes.Prim:
@@ -1700,23 +1512,12 @@ namespace OpenSim.Region.PhysicsModule.ODE
                                     cp1 = (OdePrim) p1;
                                     obj2LocalID = cp1.LocalID;
                                     cp1.AddCollisionEvent(cp2.LocalID, contact);
-                                    //ctype = (int)CollisionCategories.Geom;
-
-                                    //if (cp1.CollidingObj)
-                                    //cStartStop = (int)StatusIndicators.Generic;
-                                    //else
-                                    //cStartStop = (int)StatusIndicators.Start;
-
-                                    //returncollisions = true;
                                 }
                                 break;
 
                             case ActorTypes.Ground:
                             case ActorTypes.Unknown:
                                 obj2LocalID = 0;
-                                //ctype = (int)CollisionCategories.Land;
-
-                                //returncollisions = true;
                                 break;
                         }
 
@@ -1724,80 +1525,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                     }
                     break;
             }
-            //if (returncollisions)
-            //{
-
-                //lock (m_storedCollisions)
-                //{
-                    //cDictKey = obj1LocalID.ToString() + obj2LocalID.ToString() + cStartStop.ToString() + ctype.ToString();
-                    //if (m_storedCollisions.ContainsKey(cDictKey))
-                    //{
-                        //sCollisionData objd = m_storedCollisions[cDictKey];
-                        //objd.NumberOfCollisions += 1;
-                        //objd.lastframe = framecount;
-                        //m_storedCollisions[cDictKey] = objd;
-                    //}
-                    //else
-                    //{
-                        //sCollisionData objd = new sCollisionData();
-                        //objd.ColliderLocalId = obj1LocalID;
-                        //objd.CollidedWithLocalId = obj2LocalID;
-                        //objd.CollisionType = ctype;
-                        //objd.NumberOfCollisions = 1;
-                        //objd.lastframe = framecount;
-                        //objd.StatusIndicator = cStartStop;
-                        //m_storedCollisions.Add(cDictKey, objd);
-                    //}
-                //}
-           // }
         }
-/*
-        private int TriArrayCallback(IntPtr trimesh, IntPtr refObject, int[] triangleIndex, int triCount)
-        {
-                        String name1 = null;
-                        String name2 = null;
-
-                        if (!geom_name_map.TryGetValue(trimesh, out name1))
-                        {
-                            name1 = "null";
-                        }
-                        if (!geom_name_map.TryGetValue(refObject, out name2))
-                        {
-                            name2 = "null";
-                        }
-
-                        m_log.InfoFormat("TriArrayCallback: A collision was detected between {1} and {2}", 0, name1, name2);
-            
-            return 1;
-        }
-
-        private int TriCallback(IntPtr trimesh, IntPtr refObject, int triangleIndex)
-        {
-//            String name1 = null;
-//            String name2 = null;
-//
-//            if (!geom_name_map.TryGetValue(trimesh, out name1))
-//            {
-//                name1 = "null";
-//            }
-//
-//            if (!geom_name_map.TryGetValue(refObject, out name2))
-//            {
-//                name2 = "null";
-//            }
-
-            //            m_log.InfoFormat("TriCallback: A collision was detected between {1} and {2}. Index was {3}", 0, name1, name2, triangleIndex);
-
-            d.Vector3 v0 = new d.Vector3();
-            d.Vector3 v1 = new d.Vector3();
-            d.Vector3 v2 = new d.Vector3();
-
-            d.GeomTriMeshGetTriangle(trimesh, 0, ref v0, ref v1, ref v2);
-            //            m_log.DebugFormat("Triangle {0} is <{1},{2},{3}>, <{4},{5},{6}>, <{7},{8},{9}>", triangleIndex, v0.X, v0.Y, v0.Z, v1.X, v1.Y, v1.Z, v2.X, v2.Y, v2.Z);
-
-            return 1;
-        }
-*/
         /// <summary>
         /// This is our collision testing routine in ODE
         /// </summary>
@@ -2988,27 +2716,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             lock (OdeLock)
             {
-                // Process 10 frames if the sim is running normal..
-                // process 5 frames if the sim is running slow
-                //try
-                //{
-                    //d.WorldSetQuickStepNumIterations(world, m_physicsiterations);
-                //}
-                //catch (StackOverflowException)
-                //{
-                   // m_log.Error("[PHYSICS]: The operating system wasn't able to allocate enough memory for the simulation.  Restarting the sim.");
-                   // ode.drelease(world);
-                    //base.TriggerPhysicsBasedRestart();
-                //}
-
-                // Figure out the Frames Per Second we're going at.
-                //(step_time == 0.004f, there's 250 of those per second.   Times the step time/step size
-
-
-                // HACK: Using a time dilation of 1.0 to debug rubberbanding issues
-                //m_timeDilation = Math.Min((step_time / ODE_STEPSIZE) / (0.09375f / ODE_STEPSIZE), 1.0f);
-
-                while (step_time > HalfOdeStep)
+                 while (step_time > HalfOdeStep)
                 {
                     try
                     {
@@ -3107,10 +2815,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
                             tempTick = tempTick2;
                         }
 
-                        //if ((framecount % m_randomizeWater) == 0)
-                           // randomizeWater(waterlevel);
-
-                        //int RayCastTimeMS = m_rayCastManager.ProcessQueuedRequests();
                         m_rayCastManager.ProcessQueuedRequests();
 
                         if (CollectStats)
@@ -3131,7 +2835,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                         foreach (PhysicsActor obj in m_collisionEventActors.Values)
                         {
-//                                m_log.DebugFormat("[PHYSICS]: Assessing {0} {1} for collision events", obj.SOPName, obj.LocalID);
+                            // m_log.DebugFormat("[PHYSICS]: Assessing {0} {1} for collision events", obj.SOPName, obj.LocalID);
 
                             switch ((ActorTypes)obj.PhysicsActorType)
                             {
