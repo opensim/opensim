@@ -1031,8 +1031,19 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Assert.That(object1PartLoaded, Is.Not.Null, "object1 was not loaded");
             Assert.That(object1PartLoaded.Name, Is.EqualTo(part1.Name), "object1 names not identical");
             Assert.That(object1PartLoaded.GroupPosition, Is.EqualTo(part1.GroupPosition), "object1 group position not equal");
-            Assert.That(
-                object1PartLoaded.RotationOffset, Is.EqualTo(part1.RotationOffset), "object1 rotation offset not equal");
+
+            Quaternion qtmp1 = new Quaternion (
+                (float)Math.Round(object1PartLoaded.RotationOffset.X,5),
+                (float)Math.Round(object1PartLoaded.RotationOffset.Y,5),
+                (float)Math.Round(object1PartLoaded.RotationOffset.Z,5),
+                (float)Math.Round(object1PartLoaded.RotationOffset.W,5));
+            Quaternion qtmp2 = new Quaternion (
+                (float)Math.Round(part1.RotationOffset.X,5),
+                (float)Math.Round(part1.RotationOffset.Y,5),
+                (float)Math.Round(part1.RotationOffset.Z,5),
+                (float)Math.Round(part1.RotationOffset.W,5));
+
+            Assert.That(qtmp1, Is.EqualTo(qtmp2), "object1 rotation offset not equal");
             Assert.That(
                 object1PartLoaded.OffsetPosition, Is.EqualTo(part1.OffsetPosition), "object1 offset position not equal");
             Assert.That(object1PartLoaded.SitTargetOrientation, Is.EqualTo(part1.SitTargetOrientation));
