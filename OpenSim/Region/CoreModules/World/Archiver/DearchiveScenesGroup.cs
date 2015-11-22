@@ -129,20 +129,27 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         public void SetRegionOriginalID(string id)
         {
             m_curRegion = new RegionInfo();
-            m_curRegion.Location = new Point((int)m_curX, (int)m_curY);
+            int x = (int)((m_curX == null) ? 0 : m_curX);
+            int y = (int)((m_curY == null) ? 0 : m_curY);
+
+            m_curRegion.Location = new Point(x, y);
             m_curRegion.OriginalID = id;
             // 'curRegion' will be saved in 'm_directory2region' when SetRegionDir() is called
         }
 
         public void SetRegionDirectory(string directory)
         {
-            m_curRegion.Directory = directory;
-            m_directory2region[directory] = m_curRegion;
+            if(m_curRegion != null)
+            {
+                m_curRegion.Directory = directory;
+                m_directory2region[directory] = m_curRegion;
+            }
         }
 
         public void SetRegionSize(Vector3 size)
         {
-            m_curRegion.RegionSize = size;
+            if(m_curRegion != null)
+                m_curRegion.RegionSize = size;
         }
 
         /// <summary>

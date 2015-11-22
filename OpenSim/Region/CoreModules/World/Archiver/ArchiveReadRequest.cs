@@ -1150,7 +1150,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         
                         m_log.InfoFormat("[ARCHIVER]: Loading OAR with version {0}", version);
                     }
-                    if (xtr.Name.ToString() == "datetime") 
+                    else if (xtr.Name.ToString() == "datetime") 
                     {
                         int value;
                         if (Int32.TryParse(xtr.ReadElementContentAsString(), out value))
@@ -1169,7 +1169,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     {
                         string id = xtr.ReadElementContentAsString();
                         dearchivedScenes.DefaultOriginalID = id;
-                        if (multiRegion)
+                        if(multiRegion)
                             dearchivedScenes.SetRegionOriginalID(id);
                     }
                     else if (xtr.Name.ToString() == "dir")
@@ -1183,21 +1183,24 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         if (Vector3.TryParse(size, out value))
                         {
                             m_incomingRegionSize = value;
-                            dearchivedScenes.SetRegionSize(m_incomingRegionSize);
-                            m_log.DebugFormat("[ARCHIVER]: Found region_size info {0}", m_incomingRegionSize.ToString());
+                            if(multiRegion)
+                                dearchivedScenes.SetRegionSize(m_incomingRegionSize);
+                            m_log.DebugFormat("[ARCHIVER]: Found region_size info {0}",
+                                        m_incomingRegionSize.ToString());
                         }
                     }
                 }
             }
 
             dearchivedScenes.MultiRegionFormat = multiRegion;
-            if (!multiRegion && dearchivedScenes.GetScenesCount() == 0)
+            if (!multiRegion)
             {
                 // Add the single scene
                 dearchivedScenes.StartRow();
                 dearchivedScenes.StartRegion();
                 dearchivedScenes.SetRegionOriginalID(dearchivedScenes.DefaultOriginalID);
                 dearchivedScenes.SetRegionDirectory("");
+                dearchivedScenes.SetRegionSize(m_incomingRegionSize);
             }
 
             ControlFileLoaded = true;
