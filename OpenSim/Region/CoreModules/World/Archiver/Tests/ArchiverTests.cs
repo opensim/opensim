@@ -66,6 +66,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
         protected TaskInventoryItem m_soundItem;
         
+        private  AutoResetEvent m_oarEvent = new AutoResetEvent(false);
+        
         [SetUp]
         public override void SetUp()
         {
@@ -87,8 +89,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 m_lastRequestId = requestId;
                 m_lastErrorMessage = errorMessage;
                 Console.WriteLine("About to pulse ArchiverTests on LoadCompleted");
-                                
-                Monitor.PulseAll(this);
+                m_oarEvent.Set();                
             }
         }
         
@@ -99,7 +100,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 m_lastRequestId = requestId;
                 m_lastErrorMessage = errorMessage;
                 Console.WriteLine("About to pulse ArchiverTests on SaveCompleted");
-                Monitor.PulseAll(this);
+                 m_oarEvent.Set(); 
             }
         }
 
@@ -194,16 +195,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             m_scene.EventManager.OnOarFileSaved += SaveCompleted;
 
             Guid requestId = new Guid("00000000-0000-0000-0000-808080808080");
-            
-            lock (this)
-            {
-                m_archiverModule.ArchiveRegion(archiveWriteStream, requestId);
-                //AssetServerBase assetServer = (AssetServerBase)scene.CommsManager.AssetCache.AssetServer;
-                //while (assetServer.HasWaitingRequests())
-                //    assetServer.ProcessNextRequest();
-                
-                Monitor.Wait(this, 60000);
-            }
+
+            m_oarEvent.Reset();
+            m_archiverModule.ArchiveRegion(archiveWriteStream, requestId);
+            //AssetServerBase assetServer = (AssetServerBase)scene.CommsManager.AssetCache.AssetServer;
+            //while (assetServer.HasWaitingRequests())
+            //    assetServer.ProcessNextRequest();              
+
+            Monitor.Wait( m_oarEvent, 60000);
             
             Assert.That(m_lastRequestId, Is.EqualTo(requestId));
 
@@ -289,6 +288,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             Dictionary<string, Object> options = new Dictionary<string, Object>();
             options.Add("noassets", true);
+
             m_archiverModule.ArchiveRegion(archiveWriteStream, requestId, options);
 
             // Don't wait for completion - with --noassets save oar happens synchronously
@@ -397,13 +397,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
 
-            lock (this)
-            {
-                m_scene.EventManager.OnOarFileLoaded += LoadCompleted;
-                m_archiverModule.DearchiveRegion(archiveReadStream);
-                Monitor.Wait(this, 60000);
-            }
+            m_scene.EventManager.OnOarFileLoaded += LoadCompleted;
+            m_oarEvent.Reset();
+            m_archiverModule.DearchiveRegion(archiveReadStream);
             
+            Monitor.Wait(m_oarEvent, 60000);
+ 
             Assert.That(m_lastErrorMessage, Is.Null);
 
             TestLoadedRegion(part1, soundItemName, soundData);
@@ -447,12 +446,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
 
-            lock (this)
-            {
-                m_scene.EventManager.OnOarFileLoaded += LoadCompleted;
-                m_archiverModule.DearchiveRegion(archiveReadStream);
-                Monitor.Wait(this, 60000);
-            }
+            m_scene.EventManager.OnOarFileLoaded += LoadCompleted;
+            m_oarEvent.Reset();
+            m_archiverModule.DearchiveRegion(archiveReadStream);
+
+            Monitor.Wait(m_oarEvent, 60000);
 
             Assert.That(m_lastErrorMessage, Is.Null);
 
@@ -498,14 +496,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             Guid requestId = new Guid("00000000-0000-0000-0000-808080808080");
             
-            lock (this)
-            {
-                m_archiverModule.ArchiveRegion(
-                    archiveWriteStream, requestId, new Dictionary<string, Object>() { { "wipe-owners", Boolean.TrueString } });
-                
-                Monitor.Wait(this, 60000);
-            }
+            m_oarEvent.Reset();
+            m_archiverModule.ArchiveRegion(
+                    archiveWriteStream, requestId, new Dictionary<string, Object>() { { "wipe-owners", Boolean.TrueString } });               
             
+            Monitor.Wait(m_oarEvent, 60000);
+
             Assert.That(m_lastRequestId, Is.EqualTo(requestId));
 
             byte[] archive = archiveWriteStream.ToArray();
@@ -530,11 +526,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
                 scene2.RegionInfo.EstateSettings.EstateOwner = estateOwner;
 
-                lock (this)
-                {
-                    scene2.EventManager.OnOarFileLoaded += LoadCompleted;
-                    archiverModule.DearchiveRegion(archiveReadStream);
-                }
+                scene2.EventManager.OnOarFileLoaded += LoadCompleted;
+                m_oarEvent.Reset();
+                archiverModule.DearchiveRegion(archiveReadStream);
+                
+                Monitor.Wait(m_oarEvent, 60000);
 
                 Assert.That(m_lastErrorMessage, Is.Null);
 
@@ -595,11 +591,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             oarStream = new MemoryStream(oarStream.ToArray());
 
             // Load OAR
-            lock (this)
-            {
-                m_scene.EventManager.OnOarFileLoaded += LoadCompleted;
-                m_archiverModule.DearchiveRegion(oarStream);
-            }
+            m_scene.EventManager.OnOarFileLoaded += LoadCompleted;
+            m_oarEvent.Reset();
+            m_archiverModule.DearchiveRegion(oarStream);
+            
+            Monitor.Wait(m_oarEvent, 60000);
 
             ILandObject rLo = m_scene.LandChannel.GetLandObject(16, 16);
             LandData rLd = rLo.LandData;
@@ -667,12 +663,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
 
-            lock (this)
-            {
-                m_scene.EventManager.OnOarFileLoaded += LoadCompleted;
-                m_archiverModule.DearchiveRegion(archiveReadStream);
-                Monitor.Wait(this, 60000);
-            }
+            m_scene.EventManager.OnOarFileLoaded += LoadCompleted;
+            m_oarEvent.Reset();
+            m_archiverModule.DearchiveRegion(archiveReadStream);
+            
+            Monitor.Wait(m_oarEvent, 60000);
             
             Assert.That(m_lastErrorMessage, Is.Null);
             RegionSettings loadedRs = m_scene.RegionInfo.RegionSettings;
@@ -742,13 +737,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 m_scene.AddNewSceneObject(new SceneObjectGroup(part2), false);
 
                 // Write out this scene
-                scene.EventManager.OnOarFileSaved += SaveCompleted;
 
-                lock (this)
-                {
-                    m_archiverModule.ArchiveRegion(archiveWriteStream);
-                    Monitor.Wait(this, 60000);
-                }
+                scene.EventManager.OnOarFileSaved += SaveCompleted;
+                m_oarEvent.Reset();
+                m_archiverModule.ArchiveRegion(archiveWriteStream);
+                
+                Monitor.Wait(m_oarEvent, 60000);
             }
 
             {
@@ -759,14 +753,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 byte[] archive = archiveWriteStream.ToArray();
                 MemoryStream archiveReadStream = new MemoryStream(archive);
 
-                lock (this)
-                {
-                    m_scene.EventManager.OnOarFileLoaded += LoadCompleted;
-                    Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
-                    archiveOptions.Add("merge", null);
-                    m_archiverModule.DearchiveRegion(archiveReadStream, Guid.Empty, archiveOptions);
-                    Monitor.Wait(this, 60000);
-                }
+                m_scene.EventManager.OnOarFileLoaded += LoadCompleted;
+                Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
+                archiveOptions.Add("merge", null);
+                m_oarEvent.Reset();
+                m_archiverModule.DearchiveRegion(archiveReadStream, Guid.Empty, archiveOptions);
+                
+                Monitor.Wait(m_oarEvent, 60000);
 
                 SceneObjectPart object1Existing = m_scene.GetSceneObjectPart(part1.Name);
                 Assert.That(object1Existing, Is.Not.Null, "object1 was not present after merge");
@@ -839,18 +832,17 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             // Save OAR
             MemoryStream archiveWriteStream = new MemoryStream();
-            m_scene.EventManager.OnOarFileSaved += SaveCompleted;
 
             Guid requestId = new Guid("00000000-0000-0000-0000-808080808080");
 
             Dictionary<string, Object> options = new Dictionary<string, Object>();
             options.Add("all", true);
 
-            lock (this)
-            {
-                m_archiverModule.ArchiveRegion(archiveWriteStream, requestId, options);
-                Monitor.Wait(this, 60000);
-            }
+            m_scene.EventManager.OnOarFileSaved += SaveCompleted;
+            m_oarEvent.Reset();
+            m_archiverModule.ArchiveRegion(archiveWriteStream, requestId, options);
+            
+            Monitor.Wait(m_oarEvent, 60000);
 
 
             // Check that the OAR contains the expected data
@@ -1017,14 +1009,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
 
-            lock (this)
-            {
-                m_scene.EventManager.OnOarFileLoaded += LoadCompleted;
-                Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
-//                archiveOptions.Add("merge", null);
-                m_archiverModule.DearchiveRegion(archiveReadStream, Guid.Empty, archiveOptions);
-                Monitor.Wait(this, 60000);
-            }
+            m_scene.EventManager.OnOarFileLoaded += LoadCompleted;
+            m_oarEvent.Reset();
+            m_archiverModule.DearchiveRegion(archiveReadStream);
+            
+            Monitor.Wait(m_oarEvent, 60000);
 
             Assert.That(m_lastErrorMessage, Is.Null);
 
