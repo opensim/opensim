@@ -75,6 +75,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             /// The size of the region being loaded.
             /// </summary>
             public Vector3 RegionSize { get; set; }
+
+            public RegionInfo()
+            {
+                RegionSize = new Vector3(256f,256f,float.MaxValue);
+            }
         }
 
         /// <summary>
@@ -118,12 +123,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         public void StartRegion()
         {
             m_curX = (m_curX == null) ? 0 : m_curX + 1;
-            // Note: this doesn't mean we have a real region in this location; this could just be a "hole"
+           // Note: this doesn't mean we have a real region in this location; this could just be a "hole"
         }
 
         public void SetRegionOriginalID(string id)
         {
-            if (m_curRegion == null) m_curRegion = new RegionInfo();
+            m_curRegion = new RegionInfo();
             m_curRegion.Location = new Point((int)m_curX, (int)m_curY);
             m_curRegion.OriginalID = id;
             // 'curRegion' will be saved in 'm_directory2region' when SetRegionDir() is called
@@ -137,7 +142,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void SetRegionSize(Vector3 size)
         {
-            if (m_curRegion == null) m_curRegion = new RegionInfo();
             m_curRegion.RegionSize = size;
         }
 
@@ -155,7 +159,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             foreach (RegionInfo archivedRegion in m_directory2region.Values)
             {
-                Point location = new Point((int)rootScene.RegionInfo.RegionLocX, (int)rootScene.RegionInfo.RegionLocY);
+                Point location = new Point((int)rootScene.RegionInfo.RegionLocX,
+                            (int)rootScene.RegionInfo.RegionLocY);
+
                 location.Offset(archivedRegion.Location);
 
                 Scene scene;
@@ -238,5 +244,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             return m_newId2region.Keys.ToList();
         }
 
+        public int GetScenesCount()
+        {
+            return m_directory2region.Count;
+        }
     }
 }

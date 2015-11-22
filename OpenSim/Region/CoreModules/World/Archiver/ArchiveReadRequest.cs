@@ -217,8 +217,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_requestId = requestId;
             m_displacement = options.ContainsKey("displacement") ? (Vector3)options["displacement"] : Vector3.Zero;
             m_rotation = options.ContainsKey("rotation") ? (float)options["rotation"] : 0f;
-            m_rotationCenter = options.ContainsKey("rotation-center") ? (Vector3)options["rotation-center"]
-                                : new Vector3(scene.RegionInfo.RegionSizeX / 2f, scene.RegionInfo.RegionSizeY / 2f, 0f);
 
             m_boundingOrigin = Vector3.Zero;
             m_boundingSize = new Vector3(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY, float.MaxValue);
@@ -238,7 +236,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 }
                 else m_log.InfoFormat("[ARCHIVER]: The bounding cube origin must be within the destination region! Setting to {0}.", m_boundingOrigin.ToString());
             }
-
 
             if (options.ContainsKey("bounding-size"))
             {
@@ -1194,7 +1191,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
 
             dearchivedScenes.MultiRegionFormat = multiRegion;
-            if (!multiRegion)
+            if (!multiRegion && dearchivedScenes.GetScenesCount() == 0)
             {
                 // Add the single scene
                 dearchivedScenes.StartRow();
