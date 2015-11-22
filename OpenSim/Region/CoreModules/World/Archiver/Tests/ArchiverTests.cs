@@ -1022,7 +1022,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             {
                 m_scene.EventManager.OnOarFileLoaded += LoadCompleted;
                 Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
-                archiveOptions.Add("merge", null);
+//                archiveOptions.Add("merge", null);
                 m_archiverModule.DearchiveRegion(archiveReadStream, Guid.Empty, archiveOptions);
             }
             Monitor.Wait(this, 60000);
