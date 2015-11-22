@@ -127,10 +127,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// </value>
         protected float m_rotation = 0f;
 
-        /// <value>
-        /// Center around which to apply the rotation relative to the origional oar position
+       /// <value>
+        /// original oar region size. not using Constants.RegionSize
         /// </value>
-        protected Vector3 m_rotationCenter = new Vector3(Constants.RegionSize / 2f, Constants.RegionSize / 2f, 0f);
+        protected Vector3 m_incomingRegionSize = new Vector3(256f, 256f, float.MaxValue);
+
+        /// <value>
+        /// Center around which to apply the rotation relative to the original oar position
+        /// </value>
+        protected Vector3 m_rotationCenter = new Vector3(128f, 128f, 0f);
 
         /// <value>
         /// Corner 1 of a bounding cuboid which specifies which objects we load from the oar
@@ -140,13 +145,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <value>
         /// Size of a bounding cuboid which specifies which objects we load from the oar
         /// </value>
-        protected Vector3 m_boundingSize = new Vector3(Constants.MaximumRegionSize, Constants.MaximumRegionSize, Constants.MaximumRegionSize);
+        protected Vector3 m_boundingSize = new Vector3(Constants.MaximumRegionSize, Constants.MaximumRegionSize, float.MaxValue);
 
         protected bool m_noObjects = false;
         protected bool m_boundingBox = false;
         protected bool m_debug = false;
-
-        protected Vector3 m_incomingRegionSize = new Vector3(256f, 256f, 4096f);
 
         /// <summary>
         /// Used to cache lookups for valid uuids.
@@ -218,8 +221,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                                 : new Vector3(scene.RegionInfo.RegionSizeX / 2f, scene.RegionInfo.RegionSizeY / 2f, 0f);
 
             m_boundingOrigin = Vector3.Zero;
-            m_boundingSize = new Vector3(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY, Constants.RegionHeight);
-
+            m_boundingSize = new Vector3(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY, float.MaxValue);
+            
             if (options.ContainsKey("bounding-origin"))
             {
                 Vector3 boOption = (Vector3)options["bounding-origin"];
@@ -567,18 +570,19 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 SceneObjectGroup sceneObject = serialiser.DeserializeGroupFromXml2(serialisedSceneObject);
 
                 Vector3 pos = sceneObject.AbsolutePosition;
+                if (m_debug)
+                    m_log.DebugFormat("[ARCHIVER]: Loading object from OAR with original scene position {0}.", pos.ToString());
 
-                //fix the rotation center to the middle of the incoming region now as it's otherwise hopelessly confusing on varRegions
-                //as it only works with objects and terrain (using old Merge method) and not parcels
-                m_rotationCenter.X = m_incomingRegionSize.X / 2;
-                m_rotationCenter.Y = m_incomingRegionSize.Y / 2;
-
-                if (m_debug) m_log.DebugFormat("[ARCHIVER]: Loading object from OAR with original scene position {0}.", pos.ToString());
                 // Happily this does not do much to the object since it hasn't been added to the scene yet
                 if (!sceneObject.IsAttachment)
                 {
                     if (m_rotation != 0f)
                     {
+                        //fix the rotation center to the middle of the incoming region now as it's otherwise hopelessly confusing on varRegions
+                        //as it only works with objects and terrain (using old Merge method) and not parcels
+                        m_rotationCenter.X = m_incomingRegionSize.X / 2;
+                        m_rotationCenter.Y = m_incomingRegionSize.Y / 2;
+
                         // Rotate the object
                         sceneObject.RootPart.RotationOffset = rot * sceneObject.GroupRotation;
                         // Get object position relative to rotation axis
@@ -609,7 +613,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     }
                     sceneObject.AbsolutePosition = pos;
                 }
-                if (m_debug) m_log.DebugFormat("[ARCHIVER]: Placing object from OAR in scene at position {0}.  ", pos.ToString());
+                if (m_debug)
+                    m_log.DebugFormat("[ARCHIVER]: Placing object from OAR in scene at position {0}.  ", pos.ToString());
 
                 bool isTelehub = (sceneObject.UUID == oldTelehubUUID) && (oldTelehubUUID != UUID.Zero);
 
