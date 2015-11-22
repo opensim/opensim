@@ -202,7 +202,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             //while (assetServer.HasWaitingRequests())
             //    assetServer.ProcessNextRequest();              
 
-            Monitor.Wait( m_oarEvent, 60000);
+            m_oarEvent.WaitOne(60000);
             
             Assert.That(m_lastRequestId, Is.EqualTo(requestId));
 
@@ -401,7 +401,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             m_oarEvent.Reset();
             m_archiverModule.DearchiveRegion(archiveReadStream);
             
-            Monitor.Wait(m_oarEvent, 60000);
+             m_oarEvent.WaitOne(60000);
  
             Assert.That(m_lastErrorMessage, Is.Null);
 
@@ -450,7 +450,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             m_oarEvent.Reset();
             m_archiverModule.DearchiveRegion(archiveReadStream);
 
-            Monitor.Wait(m_oarEvent, 60000);
+             m_oarEvent.WaitOne(60000);
 
             Assert.That(m_lastErrorMessage, Is.Null);
 
@@ -500,7 +500,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             m_archiverModule.ArchiveRegion(
                     archiveWriteStream, requestId, new Dictionary<string, Object>() { { "wipe-owners", Boolean.TrueString } });               
             
-            Monitor.Wait(m_oarEvent, 60000);
+             m_oarEvent.WaitOne(60000);
 
             Assert.That(m_lastRequestId, Is.EqualTo(requestId));
 
@@ -530,7 +530,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 m_oarEvent.Reset();
                 archiverModule.DearchiveRegion(archiveReadStream);
                 
-                Monitor.Wait(m_oarEvent, 60000);
+                 m_oarEvent.WaitOne(60000);
 
                 Assert.That(m_lastErrorMessage, Is.Null);
 
@@ -595,7 +595,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             m_oarEvent.Reset();
             m_archiverModule.DearchiveRegion(oarStream);
             
-            Monitor.Wait(m_oarEvent, 60000);
+             m_oarEvent.WaitOne(60000);
 
             ILandObject rLo = m_scene.LandChannel.GetLandObject(16, 16);
             LandData rLd = rLo.LandData;
@@ -667,7 +667,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             m_oarEvent.Reset();
             m_archiverModule.DearchiveRegion(archiveReadStream);
             
-            Monitor.Wait(m_oarEvent, 60000);
+             m_oarEvent.WaitOne(60000);
             
             Assert.That(m_lastErrorMessage, Is.Null);
             RegionSettings loadedRs = m_scene.RegionInfo.RegionSettings;
@@ -742,7 +742,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 m_oarEvent.Reset();
                 m_archiverModule.ArchiveRegion(archiveWriteStream);
                 
-                Monitor.Wait(m_oarEvent, 60000);
+                 m_oarEvent.WaitOne(60000);
             }
 
             {
@@ -759,7 +759,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 m_oarEvent.Reset();
                 m_archiverModule.DearchiveRegion(archiveReadStream, Guid.Empty, archiveOptions);
                 
-                Monitor.Wait(m_oarEvent, 60000);
+                m_oarEvent.WaitOne(60000);
 
                 SceneObjectPart object1Existing = m_scene.GetSceneObjectPart(part1.Name);
                 Assert.That(object1Existing, Is.Not.Null, "object1 was not present after merge");
@@ -842,7 +842,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             m_oarEvent.Reset();
             m_archiverModule.ArchiveRegion(archiveWriteStream, requestId, options);
             
-            Monitor.Wait(m_oarEvent, 60000);
+             m_oarEvent.WaitOne(60000);
 
 
             // Check that the OAR contains the expected data
@@ -1013,7 +1013,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             m_oarEvent.Reset();
             m_archiverModule.DearchiveRegion(archiveReadStream);
             
-            Monitor.Wait(m_oarEvent, 60000);
+             m_oarEvent.WaitOne(60000);
 
             Assert.That(m_lastErrorMessage, Is.Null);
 
