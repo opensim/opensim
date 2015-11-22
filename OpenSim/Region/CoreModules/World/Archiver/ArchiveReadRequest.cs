@@ -224,44 +224,33 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (options.ContainsKey("bounding-origin"))
             {
                 Vector3 boOption = (Vector3)options["bounding-origin"];
-                if (boOption.X >= 0 && boOption.X < m_boundingSize.X
-                    && boOption.Y >= 0 && boOption.Y < m_boundingSize.Y
-                    && boOption.Z >= 0 && boOption.Z < m_boundingSize.Z)
+                if (boOption != m_boundingOrigin)
                 {
-                    if (m_boundingOrigin != boOption)
-                    {
-                        m_boundingOrigin = boOption;
-                        m_boundingBox = true;
-                    }
+                    m_boundingOrigin = boOption;
+                    m_boundingBox = true;
                 }
-                else m_log.InfoFormat("[ARCHIVER]: The bounding cube origin must be within the destination region! Setting to {0}.", m_boundingOrigin.ToString());
             }
 
             if (options.ContainsKey("bounding-size"))
             {
                 Vector3 bsOption = (Vector3)options["bounding-size"];
                 bool clip = false;
-                if (bsOption.X <= 0 && bsOption.X > (m_boundingSize.X - m_boundingOrigin.X))
+                if (bsOption.X <= 0 || bsOption.X > m_boundingSize.X)
                 {
-                    bsOption.X = m_boundingSize.X - m_boundingOrigin.X;
+                    bsOption.X = m_boundingSize.X;
                     clip = true;
                 }
-                if (bsOption.Y <= 0 && bsOption.Y > (m_boundingSize.Y - m_boundingOrigin.Y))
+                if (bsOption.Y <= 0 || bsOption.Y > m_boundingSize.Y)
                 {
-                    bsOption.Y = m_boundingSize.Y - m_boundingOrigin.Y;
+                    bsOption.Y = m_boundingSize.Y;
                     clip = true;
                 }
-                if (bsOption.Z <= 0 && bsOption.Z > (m_boundingSize.Z - m_boundingOrigin.Z))
-                {
-                    bsOption.Z = m_boundingSize.Y - m_boundingOrigin.Z;
-                    clip = true;
-                }
-                if (m_boundingSize != bsOption)
+                if (bsOption != m_boundingSize)
                 {
                     m_boundingSize = bsOption;
                     m_boundingBox = true;
-                    if (clip) m_log.InfoFormat("[ARCHIVER]: The bounding cube specified is larger than the destination region! Clipping to {0}.", m_boundingSize.ToString());
                 }
+                if (clip) m_log.InfoFormat("[ARCHIVER]: The bounding cube specified is larger than the destination region! Clipping to {0}.", m_boundingSize.ToString());
             }
 
             m_debug = options.ContainsKey("debug");
