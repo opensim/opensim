@@ -266,15 +266,18 @@ namespace OpenSim.Services.LLLoginService
         }
 
         public LoginResponse Login(string firstName, string lastName, string passwd, string startLocation, UUID scopeID, 
-            string clientVersion, string channel, string mac, string id0, IPEndPoint clientIP)
+            string clientVersion, string channel, string mac, string id0, IPEndPoint clientIP, bool LibOMVclient)
         {
             bool success = false;
             UUID session = UUID.Random();
 
             string processedMessage;
 
+            if (clientVersion.Contains("Radegast"))
+                LibOMVclient = false;
+
             m_log.InfoFormat("[LLOGIN SERVICE]: Login request for {0} {1} at {2} using viewer {3}, channel {4}, IP {5}, Mac {6}, Id0 {7}, Possible LibOMVGridProxy: {8} ",
-                firstName, lastName, startLocation, clientVersion, channel, clientIP.Address.ToString(), mac, id0);
+                firstName, lastName, startLocation, clientVersion, channel, clientIP.Address.ToString(), mac, id0, LibOMVclient.ToString());
             
             try
             {
