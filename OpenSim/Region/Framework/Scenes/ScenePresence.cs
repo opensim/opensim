@@ -3079,7 +3079,7 @@ namespace OpenSim.Region.Framework.Scenes
                     ControllingClient.SendAlertMessage(" There is no suitable surface to sit on, try another spot.");
                 else
                 { // non physical phantom  TODO
-                    ControllingClient.SendAlertMessage(" There is no suitable surface to sit on, try another spot.");
+//                    ControllingClient.SendAlertMessage(" There is no suitable surface to sit on, try another spot.");
                     return false;
                 }
                 return true;
