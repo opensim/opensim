@@ -294,7 +294,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 s.ForEachScenePresence(
                     delegate(ScenePresence presence)
                     {
-                        if (destination != UUID.Zero && presence.UUID != destination)
+                        if (destination != UUID.Zero && 
+                                (presence.UUID != destination || receiverIDs.Contains(presence.UUID)))
                             return;
                         ILandObject Presencecheck = s.LandChannel.GetLandObject(presence.AbsolutePosition.X, presence.AbsolutePosition.Y);
                         if (Presencecheck != null)
