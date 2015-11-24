@@ -556,6 +556,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             // In the future, we need to be able to do this programatically more predicably.
             scene.EventManager.OnChatFromWorld += OnChatFromWorld;
 
+            m_chatEvent.Reset();
             scene.AttachmentsModule.RezSingleAttachmentFromInventory(sp, userItem.ID, (uint)AttachmentPoint.Chest);
 
             m_chatEvent.WaitOne(60000);
@@ -669,6 +670,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             // In the future, we need to be able to do this programatically more predicably.
             scene.EventManager.OnChatFromWorld += OnChatFromWorld;
 
+            m_chatEvent.Reset();
             SceneObjectGroup rezzedSo
                 = (SceneObjectGroup)(scene.AttachmentsModule.RezSingleAttachmentFromInventory(sp, userItem.ID, (uint)AttachmentPoint.Chest));
 
