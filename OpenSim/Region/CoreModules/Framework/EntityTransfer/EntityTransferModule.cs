@@ -1049,6 +1049,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             sp.HasMovedAway(!(OutSideViewRange || logout));
             
+            ulong sourceRegionHandle = sp.RegionHandle;
+
              // Now let's make it officially a child agent
             sp.MakeChildAgent(destinationHandle);
 
@@ -1067,7 +1069,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // an agent cannot teleport back to this region if it has teleported away.
                 Thread.Sleep(2000);
                 if (m_eqModule != null && !sp.DoNotCloseAfterTeleport)
-                    m_eqModule.DisableSimulator(sp.RegionHandle,sp.UUID);
+                    m_eqModule.DisableSimulator(sourceRegionHandle,sp.UUID);
                 Thread.Sleep(500);
                 sp.Scene.CloseAgent(sp.UUID, false);
             }
@@ -1194,6 +1196,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             //HG hook
             AgentHasMovedAway(sp, logout);
 
+            ulong sourceRegionHandle = sp.RegionHandle;
+
             // Now let's make it officially a child agent
             sp.MakeChildAgent(destinationHandle);
 
@@ -1215,7 +1219,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 Thread.Sleep(14000);
                 if (m_eqModule != null && !sp.DoNotCloseAfterTeleport)
-                    m_eqModule.DisableSimulator(sp.RegionHandle,sp.UUID);
+                    m_eqModule.DisableSimulator(sourceRegionHandle,sp.UUID);
                 Thread.Sleep(1000);
 
                 // OK, it got this agent. Let's close everything
