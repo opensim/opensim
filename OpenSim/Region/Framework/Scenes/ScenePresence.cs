@@ -4143,8 +4143,8 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 byebyeRegions.Add(handle);
                                 // this should not be here
-                                if(eventQueue != null)
-                                    eventQueue.DisableSimulator(handle,UUID);
+//                                if(eventQueue != null)
+///                                    eventQueue.DisableSimulator(handle,UUID);
                             }
                         }
                         else
@@ -4154,8 +4154,8 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 byebyeRegions.Add(handle);
                                 // this should not be here
-                                if(eventQueue != null)
-                                    eventQueue.DisableSimulator(handle,UUID);
+//                                if(eventQueue != null)
+//                                    eventQueue.DisableSimulator(handle,UUID);
                             }
                         }
                     }

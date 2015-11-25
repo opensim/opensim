@@ -753,7 +753,7 @@ namespace OpenSim.Framework
             newy *= Constants.RegionSize;
             if (oldy + oldsizey + drawdist < newy)
                 return true;
-            if (newy + newsizey + drawdist< oldy)
+            if (newy + newsizey + drawdist < oldy)
                 return true;
 
             return false;
