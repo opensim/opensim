@@ -76,7 +76,7 @@ namespace OpenSim.Framework.Monitoring
         /// </remarks>
         private bool m_warnOverMaxQueue = true;
 
-        private BlockingCollection<Job> m_jobQueue;
+        private BlockingCollection<Job> m_jobQueue = new BlockingCollection<Job>(new ConcurrentQueue<Job>(), 5000);
 
         private CancellationTokenSource m_cancelSource;
 
@@ -104,7 +104,6 @@ namespace OpenSim.Framework.Monitoring
 
                 m_finishedProcessingAfterStop.Reset();
 
-                m_jobQueue = new BlockingCollection<Job>(new ConcurrentQueue<Job>(), 5000);
                 m_cancelSource = new CancellationTokenSource();
 
                 WorkManager.StartThread(
