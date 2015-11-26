@@ -174,6 +174,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public SynchronizeSceneHandler SynchronizeScene;
 
+        public bool ClampNegativeZ
+        {
+            get { return m_clampNegativeZ; }
+        }
+
+        private bool m_clampNegativeZ = false;
+
         /// <summary>
         /// Used to prevent simultaneous calls to code that adds and removes agents.
         /// </summary>
@@ -1028,6 +1035,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_clampPrimSize = true;
                 }
+
+                m_clampNegativeZ = startupConfig.GetBoolean("ClampNegativeZ", m_clampNegativeZ);
 
                 m_useTrashOnDelete = startupConfig.GetBoolean("UseTrashOnDelete",m_useTrashOnDelete);
                 m_trustBinaries = startupConfig.GetBoolean("TrustBinaries", m_trustBinaries);
