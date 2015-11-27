@@ -57,8 +57,10 @@ namespace OpenSim.Region.ClientStack.Linden
 //            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private Scene m_scene;
+        private string m_SceneName = "";
         private IAssetService m_AssetService;
         private bool m_Enabled = true;
+        private bool m_IsRunning = false;
         private string m_URL;
 
         private string m_URL2;
@@ -87,7 +89,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private IAssetService m_assetService = null;
 
         private Dictionary<UUID, string> m_capsDict = new Dictionary<UUID, string>();
-        private static Thread[] m_workerThreads = null;
+        private Thread[] m_workerThreads = null;
 
         private static OpenMetaverse.BlockingQueue<aPollRequest> m_queue =
                 new OpenMetaverse.BlockingQueue<aPollRequest>();
@@ -96,13 +98,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
 
         #region Region Module interfaceBase Members
-
-        ~GetMeshModule()
-        {
-            foreach (Thread t in m_workerThreads)
-                Watchdog.AbortThread(t.ManagedThreadId);
-
-        }
 
         public Type ReplaceableInterface
         {
@@ -167,6 +162,9 @@ namespace OpenSim.Region.ClientStack.Linden
             m_scene.EventManager.OnDeregisterCaps += DeregisterCaps;
             m_scene.EventManager.OnThrottleUpdate += ThrottleUpdate;
 
+            m_IsRunning = true;
+            m_SceneName = m_scene.Name;
+
             if (m_workerThreads == null)
             {
                 m_workerThreads = new Thread[2];
@@ -174,7 +172,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 for (uint i = 0; i < 2; i++)
                 {
                     m_workerThreads[i] = WorkManager.StartThread(DoMeshRequests,
-                            String.Format("MeshWorkerThread{0}", i),
+                            String.Format("GetMeshWorker[{0}]{1}",m_SceneName, i),
                             ThreadPriority.Normal,
                             false,
                             false,
@@ -182,11 +180,19 @@ namespace OpenSim.Region.ClientStack.Linden
                             int.MaxValue);
                 }
             }
-
         }
 
-
-        public void Close() { }
+        public void Close()
+        {
+            if(m_IsRunning && m_workerThreads != null)
+            {
+                m_log.DebugFormat("[GetMeshModule] Closing{0}", m_SceneName);
+                m_IsRunning = false;
+                foreach (Thread t in m_workerThreads)
+                    Watchdog.AbortThread(t.ManagedThreadId);
+            }
+            m_queue.Clear();       
+        }
 
         public string Name { get { return "GetMeshModule"; } }
 
@@ -194,10 +200,10 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private void DoMeshRequests()
         {
-            while (true)
+            while (m_IsRunning)
             {
                 aPollRequest poolreq = m_queue.Dequeue();
-
+                Watchdog.UpdateThread();
                 poolreq.thepoll.Process(poolreq);
             }
         }
@@ -386,7 +392,7 @@ namespace OpenSim.Region.ClientStack.Linden
             private volatile int BytesSent = 0;
             private int Lod3 = 0;
             private int Lod2 = 0;
-            private int Lod1 = 0;
+//            private int Lod1 = 0;
             private int UserSetThrottle = 0;
             private int UDPSetThrottle = 0;
             private int CapSetThrottle = 0;
@@ -501,7 +507,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     {
                         Lod3 = 0;
                         Lod2 = 0;
-                        Lod1 = 0;
+//                        Lod1 = 0;
                     }
                 }
             }
@@ -534,6 +540,5 @@ namespace OpenSim.Region.ClientStack.Linden
 
             }
         }
-
     }
 }
