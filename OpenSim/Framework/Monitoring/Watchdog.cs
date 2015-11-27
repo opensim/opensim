@@ -333,39 +333,45 @@ namespace OpenSim.Framework.Monitoring
             {
                 List<ThreadWatchdogInfo> callbackInfos = null;
 
+                // get a copy since we may change m_threads
+                List<ThreadWatchdogInfo> threadsInfo;
                 lock (m_threads)
+                    threadsInfo = m_threads.Values.ToList();
+                
+                foreach (ThreadWatchdogInfo threadInfo in threadsInfo)
                 {
-                    // get a copy since we may change m_threads
-                    List<ThreadWatchdogInfo> threadsInfo = m_threads.Values.ToList();
-                    foreach (ThreadWatchdogInfo threadInfo in threadsInfo)
+                    lock (m_threads)
                     {
-                        if (threadInfo.Thread.ThreadState == ThreadState.Stopped)
-                        {
-                            RemoveThread(threadInfo.Thread.ManagedThreadId);
+                        if(!m_threads.ContainsValue(threadInfo))
+                            continue;
+                    }
 
-                            if (callbackInfos == null)
+                    if(threadInfo.Thread.ThreadState == ThreadState.Stopped)
+                    {
+                        RemoveThread(threadInfo.Thread.ManagedThreadId);
+
+                        if(callbackInfos == null)
+                            callbackInfos = new List<ThreadWatchdogInfo>();
+
+                        callbackInfos.Add(threadInfo);
+                    }
+                    else if(!threadInfo.IsTimedOut && now - threadInfo.LastTick >= threadInfo.Timeout)
+                    {
+                        threadInfo.IsTimedOut = true;
+
+                        if(threadInfo.AlarmIfTimeout)
+                        {
+                            if(callbackInfos == null)
                                 callbackInfos = new List<ThreadWatchdogInfo>();
 
-                            callbackInfos.Add(threadInfo);
-                        }
-                        else if (!threadInfo.IsTimedOut && now - threadInfo.LastTick >= threadInfo.Timeout)
-                        {
-                            threadInfo.IsTimedOut = true;
-
-                            if (threadInfo.AlarmIfTimeout)
-                            {
-                                if (callbackInfos == null)
-                                    callbackInfos = new List<ThreadWatchdogInfo>();
-
-                                // Send a copy of the watchdog info to prevent race conditions where the watchdog
-                                // thread updates the monitoring info after an alarm has been sent out.
-                                callbackInfos.Add(new ThreadWatchdogInfo(threadInfo));
-                            }
+                            // Send a copy of the watchdog info to prevent race conditions where the watchdog
+                            // thread updates the monitoring info after an alarm has been sent out.
+                            callbackInfos.Add(new ThreadWatchdogInfo(threadInfo));
                         }
                     }
                 }
 
-                if (callbackInfos != null)
+                if(callbackInfos != null)
                     foreach (ThreadWatchdogInfo callbackInfo in callbackInfos)
                         callback(callbackInfo);
             }
