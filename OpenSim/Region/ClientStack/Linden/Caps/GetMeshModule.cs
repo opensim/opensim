@@ -57,10 +57,8 @@ namespace OpenSim.Region.ClientStack.Linden
 //            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private Scene m_scene;
-        private string m_SceneName = "";
         private IAssetService m_AssetService;
         private bool m_Enabled = true;
-        private bool m_IsRunning = false;
         private string m_URL;
 
         private string m_URL2;
@@ -89,8 +87,8 @@ namespace OpenSim.Region.ClientStack.Linden
         private IAssetService m_assetService = null;
 
         private Dictionary<UUID, string> m_capsDict = new Dictionary<UUID, string>();
-        private Thread[] m_workerThreads = null;
-
+        private static Thread[] m_workerThreads = null;
+        private static int m_NumberScenes = 0;
         private static OpenMetaverse.BlockingQueue<aPollRequest> m_queue =
                 new OpenMetaverse.BlockingQueue<aPollRequest>();
 
@@ -146,7 +144,7 @@ namespace OpenSim.Region.ClientStack.Linden
             m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
             m_scene.EventManager.OnDeregisterCaps -= DeregisterCaps;
             m_scene.EventManager.OnThrottleUpdate -= ThrottleUpdate;
-            
+            m_NumberScenes--;
             m_scene = null;
         }
 
@@ -162,8 +160,7 @@ namespace OpenSim.Region.ClientStack.Linden
             m_scene.EventManager.OnDeregisterCaps += DeregisterCaps;
             m_scene.EventManager.OnThrottleUpdate += ThrottleUpdate;
 
-            m_IsRunning = true;
-            m_SceneName = m_scene.Name;
+            m_NumberScenes++;
 
             if (m_workerThreads == null)
             {
@@ -172,7 +169,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 for (uint i = 0; i < 2; i++)
                 {
                     m_workerThreads[i] = WorkManager.StartThread(DoMeshRequests,
-                            String.Format("GetMeshWorker[{0}]{1}",m_SceneName, i),
+                            String.Format("GetMeshWorker{0}", i),
                             ThreadPriority.Normal,
                             false,
                             false,
@@ -184,23 +181,22 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void Close()
         {
-            if(m_IsRunning && m_workerThreads != null)
+            if(m_NumberScenes <= 0 && m_workerThreads != null)
             {
-                m_log.DebugFormat("[GetMeshModule] Closing{0}", m_SceneName);
-                m_IsRunning = false;
+                m_log.DebugFormat("[GetMeshModule] Closing");
                 foreach (Thread t in m_workerThreads)
                     Watchdog.AbortThread(t.ManagedThreadId);
+                m_queue.Clear();
             }
-            m_queue.Clear();       
         }
 
         public string Name { get { return "GetMeshModule"; } }
 
         #endregion
 
-        private void DoMeshRequests()
+        private static void DoMeshRequests()
         {
-            while (m_IsRunning)
+            while(true)
             {
                 aPollRequest poolreq = m_queue.Dequeue();
                 Watchdog.UpdateThread();
@@ -298,6 +294,9 @@ namespace OpenSim.Region.ClientStack.Linden
                 Hashtable response;
 
                 UUID requestID = requestinfo.reqID;
+
+                if(m_scene.ShuttingDown)
+                    return;
 
                 // If the avatar is gone, don't bother to get the texture
                 if (m_scene.GetScenePresence(Id) == null)
@@ -410,7 +409,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 User = puser;
             }
 
-
             public bool hasEvents(UUID key, Dictionary<UUID, aPollResponse> responses)
             {
                 const float ThirtyPercent = 0.30f;
@@ -492,7 +490,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 PassTime();
             }
 
-
             private void PassTime()
             {
                 currenttime = Util.EnvironmentTickCount();
@@ -511,6 +508,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 }
             }
+
             private void AlterThrottle(int setting, ScenePresence p)
             {
                 p.ControllingClient.SetAgentThrottleSilent((int)Throttle,setting);
