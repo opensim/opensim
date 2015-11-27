@@ -9104,8 +9104,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return true;
             }
             #endregion
-            string mapName = Util.UTF8.GetString(map.NameData.Name, 0,
-                                                     map.NameData.Name.Length - 1);
+            string mapName = (map.NameData.Name.Length == 0) ? m_scene.RegionInfo.RegionName :
+                Util.UTF8.GetString(map.NameData.Name, 0, map.NameData.Name.Length - 1);
             RequestMapName handlerMapNameRequest = OnMapNameRequest;
             if (handlerMapNameRequest != null)
             {
