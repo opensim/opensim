@@ -125,7 +125,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
         /// .../opensim/bin/libode-x86_64.so(_Z12dCollideCCTLP6dxGeomS0_iP12dContactGeomi+0x92) [0x7f03b44bcf82]
         /// </remarks>
         internal static Object UniversalColliderSyncObject = new Object();
-
+        internal static Object SimulationLock = new Object();
+        
         /// <summary>
         /// Is stats collecting enabled for this ODE scene?
         /// </summary>
@@ -647,7 +648,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                     physics_logging_interval = physicsconfig.GetInt("physics_logging_interval", 0);
                     physics_logging_append_existing_logfile = physicsconfig.GetBoolean("physics_logging_append_existing_logfile", false);
 
-                    m_NINJA_physics_joints_enabled = physicsconfig.GetBoolean("use_NINJA_physics_joints", false);
+//                    m_NINJA_physics_joints_enabled = physicsconfig.GetBoolean("use_NINJA_physics_joints", false);
                     minimumGroundFlightOffset = physicsconfig.GetFloat("minimum_ground_flight_offset", 3f);
                     maximumMassObject = physicsconfig.GetFloat("maximum_mass_object", 10000.01f);
                 }
@@ -2714,6 +2715,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 CreateRequestedJoints(); // this must be outside of the lock (OdeLock) to avoid deadlocks
             }
 
+            
             lock (OdeLock)
             {
                 d.AllocateODEDataForThread(~0U);
@@ -2867,7 +2869,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
                             tempTick = tempTick2;
                         }
 
-                        d.WorldQuickStep(world, ODE_STEPSIZE);
+                        lock(SimulationLock)
+                            d.WorldQuickStep(world, ODE_STEPSIZE);
 
                         if (CollectStats)
                             m_stats[ODENativeStepFrameMsStatName] += Util.EnvironmentTickCountSubtract(tempTick);
@@ -3377,7 +3380,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
         [HandleProcessCorruptedStateExceptions]
         public override void Dispose()
         {
-            lock (OdeLock)
+            lock(SimulationLock)
+                lock(OdeLock)
             {
                 if(world == IntPtr.Zero)
                     return;
@@ -3425,7 +3429,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 {
                     m_log.ErrorFormat("[ODE SCENE]: exception {0}", e.Message);
                 }
-                //d.CloseODE();
             }
         }
 
