@@ -1512,8 +1512,8 @@ namespace OpenSim.Region.Framework.Scenes
             EventManager.TriggerSceneShuttingDown(this);
 
             m_log.Debug("[SCENE]: Persisting changed objects");
+            Backup(true);
 
-            Backup(false);
             m_sceneGraph.Close();
 
             if (!GridService.DeregisterRegion(RegionInfo.RegionID))
