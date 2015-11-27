@@ -871,6 +871,9 @@
     ;; Time a thread must be idle (in seconds) before it dies
     ; IdleTimeout = 60
 
+	;; llSetTimerEvent minimum value. Default 0.5s, 0.05s whould be more resonable
+	; MinTimerInterval = 0.5
+	
     ;# {Priority} {Enabled:true} {Priority for script engine threads?} {Lowest BelowNormal Normal AboveNormal Highest} BelowNormal
     ;; Thread priority ("Lowest", "BelowNormal", "Normal", "AboveNormal",
     ;; "Highest")
