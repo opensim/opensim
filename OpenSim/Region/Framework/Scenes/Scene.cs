@@ -531,11 +531,11 @@ namespace OpenSim.Region.Framework.Scenes
 //        private int m_lastUpdate;
         private bool m_firstHeartbeat = true;
         
-        private UpdatePrioritizationSchemes m_priorityScheme = UpdatePrioritizationSchemes.Time;
-        private bool m_reprioritizationEnabled = true;
-        private double m_reprioritizationInterval = 5000.0;
-        private double m_rootReprioritizationDistance = 10.0;
-        private double m_childReprioritizationDistance = 20.0;
+//        private UpdatePrioritizationSchemes m_priorityScheme = UpdatePrioritizationSchemes.Time;
+//        private bool m_reprioritizationEnabled = true;
+//        private double m_reprioritizationInterval = 5000.0;
+//        private double m_rootReprioritizationDistance = 10.0;
+//        private double m_childReprioritizationDistance = 20.0;
 
 
         private Timer m_mapGenerationTimer = new Timer();
@@ -1628,6 +1628,8 @@ namespace OpenSim.Region.Framework.Scenes
             Watchdog.GetCurrentThreadInfo().AlarmIfTimeout = true;
             m_lastFrameTick = Util.EnvironmentTickCount();
             Update(-1);
+
+            Watchdog.RemoveThread();
 		}
 
         private void Maintenance()
