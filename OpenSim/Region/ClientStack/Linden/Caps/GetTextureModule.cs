@@ -76,14 +76,13 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private Dictionary<UUID, string> m_capsDict = new Dictionary<UUID, string>();
         private static Thread[] m_workerThreads = null;
-
-        private string m_Url = "localhost";
-
+        private static int m_NumberScenes = 0;
         private static OpenMetaverse.BlockingQueue<aPollRequest> m_queue =
                 new OpenMetaverse.BlockingQueue<aPollRequest>();
 
         private Dictionary<UUID,PollServiceTextureEventArgs> m_pollservices = new Dictionary<UUID,PollServiceTextureEventArgs>();
    
+        private string m_Url = "localhost";
 
         #region ISharedRegionModule Members
 
@@ -116,6 +115,7 @@ namespace OpenSim.Region.ClientStack.Linden
             m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
             m_scene.EventManager.OnDeregisterCaps -= DeregisterCaps;
             m_scene.EventManager.OnThrottleUpdate -= ThrottleUpdate;
+            m_NumberScenes--;
             m_scene = null;
         }
 
@@ -128,6 +128,8 @@ namespace OpenSim.Region.ClientStack.Linden
             m_scene.EventManager.OnDeregisterCaps += DeregisterCaps;
             m_scene.EventManager.OnThrottleUpdate += ThrottleUpdate;
 
+            m_NumberScenes++;
+
             if (m_workerThreads == null)
             {
                 m_workerThreads = new Thread[2];
@@ -135,7 +137,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 for (uint i = 0; i < 2; i++)
                 {
                     m_workerThreads[i] = WorkManager.StartThread(DoTextureRequests,
-                            String.Format("TextureWorkerThread{0}", i),
+                            String.Format("GetTextureWorker{0}", i),
                             ThreadPriority.Normal,
                             false,
                             false,
@@ -165,17 +167,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 adjData = pthrottles;
             }
 
-            // 0.125f converts from bits to bytes
-            //int resend = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); 
-            //pos += 4;
-           // int land = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); 
-            //pos += 4;
-           // int wind = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); 
-           // pos += 4;
-           // int cloud = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); 
-           // pos += 4;
-           // int task = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); 
-           // pos += 4;
             pos = pos + 20;
             int texture = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); //pos += 4;
             //int asset = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f);
@@ -199,7 +190,18 @@ namespace OpenSim.Region.ClientStack.Linden
         {
         }
 
-        public void Close() { }
+        public void Close()
+        {
+            if(m_NumberScenes <= 0 && m_workerThreads != null)
+            {
+                m_log.DebugFormat("[GetTextureModule] Closing");
+                
+                foreach (Thread t in m_workerThreads)
+                    Watchdog.AbortThread(t.ManagedThreadId);
+            
+                m_queue.Clear();
+            }
+        }
 
         public string Name { get { return "GetTextureModule"; } }
 
@@ -209,13 +211,6 @@ namespace OpenSim.Region.ClientStack.Linden
         }
 
         #endregion
-
-        ~GetTextureModule()
-        {
-            foreach (Thread t in m_workerThreads)
-                Watchdog.AbortThread(t.ManagedThreadId);
-
-        }
 
         private class PollServiceTextureEventArgs : PollServiceEventArgs
         {
@@ -306,10 +301,12 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 UUID requestID = requestinfo.reqID;
 
+                if(m_scene.ShuttingDown)
+                    return;
+
                 if (requestinfo.send503)
                 {
                     response = new Hashtable();
-
 
                     response["int_response_code"] = 503;
                     response["str_response_string"] = "Throttled";
@@ -412,15 +409,16 @@ namespace OpenSim.Region.ClientStack.Linden
             }
         }
 
-        private void DoTextureRequests()
+        private static void DoTextureRequests()
         {
             while (true)
             {
                 aPollRequest poolreq = m_queue.Dequeue();
-
+                Watchdog.UpdateThread();
                 poolreq.thepoll.Process(poolreq);
             }
         }
+
         internal sealed class CapsDataThrottler
         {
 
@@ -498,7 +496,5 @@ namespace OpenSim.Region.ClientStack.Linden
             }
             public int ThrottleBytes;
         }
-    }
-
-    
+    }   
 }

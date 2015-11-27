@@ -112,7 +112,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             float rotation = 0f;
             Vector3 rotationCenter = new Vector3(Scene.RegionInfo.RegionSizeX / 2f, Scene.RegionInfo.RegionSizeY / 2f, 0);
             Vector3 boundingOrigin = new Vector3(0f, 0f, 0f);
-            Vector3 boundingSize = new Vector3(Scene.RegionInfo.RegionSizeX, Scene.RegionInfo.RegionSizeY, Constants.RegionHeight);
+            Vector3 boundingSize = new Vector3(Scene.RegionInfo.RegionSizeX, Scene.RegionInfo.RegionSizeY, float.MaxValue);
             bool debug = false;
 
             OptionSet options = new OptionSet();
@@ -183,7 +183,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 try
                 {
-                    boundingSize = v == null ? new Vector3(Scene.RegionInfo.RegionSizeX, Scene.RegionInfo.RegionSizeY, Constants.RegionHeight) : Vector3.Parse(v);
+                    boundingSize = v == null ? new Vector3(Scene.RegionInfo.RegionSizeX, Scene.RegionInfo.RegionSizeY, float.MaxValue) : Vector3.Parse(v);
                 }
                 catch
                 {

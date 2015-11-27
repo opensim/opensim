@@ -196,6 +196,7 @@ default
 
                 EventParams ep = new EventParams("touch_start", new Object[] { new LSL_Types.LSLInteger(1) }, det);
 
+                Thread.Sleep(250); // wait for other change messages to pass
                 messageReceived = null;
                 chatEventB.Reset();
                 xEngineB.PostObjectEvent(soSceneB.LocalId, ep);

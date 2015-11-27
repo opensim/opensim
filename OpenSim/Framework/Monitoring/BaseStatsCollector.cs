@@ -56,22 +56,25 @@ namespace OpenSim.Framework.Monitoring
                 Math.Round((MemoryWatchdog.AverageHeapAllocationRate * 1000) / 1024.0 / 1024, 3));
 
             Process myprocess = Process.GetCurrentProcess();
-            if (!myprocess.HasExited)
+//            if (!myprocess.HasExited)
+            try
             {
                 myprocess.Refresh();
                 sb.AppendFormat(
                         "Process memory:      Physical {0} MB \t Paged {1} MB \t Virtual {2} MB\n",
-                        Math.Round(Process.GetCurrentProcess().WorkingSet64 / 1024.0 / 1024.0),
-                        Math.Round(Process.GetCurrentProcess().PagedMemorySize64 / 1024.0 / 1024.0),
-                        Math.Round(Process.GetCurrentProcess().VirtualMemorySize64 / 1024.0 / 1024.0));
+                        Math.Round(myprocess.WorkingSet64 / 1024.0 / 1024.0),
+                        Math.Round(myprocess.PagedMemorySize64 / 1024.0 / 1024.0),
+                        Math.Round(myprocess.VirtualMemorySize64 / 1024.0 / 1024.0));
                 sb.AppendFormat(
                         "Peak process memory: Physical {0} MB \t Paged {1} MB \t Virtual {2} MB\n",
-                        Math.Round(Process.GetCurrentProcess().PeakWorkingSet64 / 1024.0 / 1024.0),
-                        Math.Round(Process.GetCurrentProcess().PeakPagedMemorySize64 / 1024.0 / 1024.0),
-                        Math.Round(Process.GetCurrentProcess().PeakVirtualMemorySize64 / 1024.0 / 1024.0));
+                        Math.Round(myprocess.PeakWorkingSet64 / 1024.0 / 1024.0),
+                        Math.Round(myprocess.PeakPagedMemorySize64 / 1024.0 / 1024.0),
+                        Math.Round(myprocess.PeakVirtualMemorySize64 / 1024.0 / 1024.0));
             }
-            else
-                sb.Append("Process reported as Exited \n");
+            catch
+            { }
+//            else
+//                sb.Append("Process reported as Exited \n");
 
             return sb.ToString();
         }

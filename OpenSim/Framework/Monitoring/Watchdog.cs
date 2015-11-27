@@ -332,29 +332,31 @@ namespace OpenSim.Framework.Monitoring
             if (callback != null)
             {
                 List<ThreadWatchdogInfo> callbackInfos = null;
+                List<ThreadWatchdogInfo> threadsInfo;
 
                 lock (m_threads)
                 {
                     // get a copy since we may change m_threads
-                    List<ThreadWatchdogInfo> threadsInfo = m_threads.Values.ToList();
-                    foreach (ThreadWatchdogInfo threadInfo in threadsInfo)
+                    threadsInfo = m_threads.Values.ToList();
+
+                    foreach(ThreadWatchdogInfo threadInfo in threadsInfo)
                     {
-                        if (threadInfo.Thread.ThreadState == ThreadState.Stopped)
+                        if(threadInfo.Thread.ThreadState == ThreadState.Stopped)
                         {
                             RemoveThread(threadInfo.Thread.ManagedThreadId);
 
-                            if (callbackInfos == null)
+                            if(callbackInfos == null)
                                 callbackInfos = new List<ThreadWatchdogInfo>();
 
                             callbackInfos.Add(threadInfo);
                         }
-                        else if (!threadInfo.IsTimedOut && now - threadInfo.LastTick >= threadInfo.Timeout)
+                        else if(!threadInfo.IsTimedOut && now - threadInfo.LastTick >= threadInfo.Timeout)
                         {
                             threadInfo.IsTimedOut = true;
 
-                            if (threadInfo.AlarmIfTimeout)
+                            if(threadInfo.AlarmIfTimeout)
                             {
-                                if (callbackInfos == null)
+                                if(callbackInfos == null)
                                     callbackInfos = new List<ThreadWatchdogInfo>();
 
                                 // Send a copy of the watchdog info to prevent race conditions where the watchdog
@@ -365,7 +367,7 @@ namespace OpenSim.Framework.Monitoring
                     }
                 }
 
-                if (callbackInfos != null)
+                if(callbackInfos != null)
                     foreach (ThreadWatchdogInfo callbackInfo in callbackInfos)
                         callback(callbackInfo);
             }

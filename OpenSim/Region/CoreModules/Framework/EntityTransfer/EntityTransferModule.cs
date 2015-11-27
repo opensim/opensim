@@ -1049,6 +1049,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             sp.HasMovedAway(!(OutSideViewRange || logout));
             
+            ulong sourceRegionHandle = sp.RegionHandle;
+
              // Now let's make it officially a child agent
             sp.MakeChildAgent(destinationHandle);
 
@@ -1066,8 +1068,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // This sleep can be increased if necessary.  However, whilst it's active,
                 // an agent cannot teleport back to this region if it has teleported away.
                 Thread.Sleep(2000);
-                if (m_eqModule != null && !sp.DoNotCloseAfterTeleport)
-                    m_eqModule.DisableSimulator(sp.RegionHandle,sp.UUID);
+//                if (m_eqModule != null && !sp.DoNotCloseAfterTeleport)
+//                    m_eqModule.DisableSimulator(sourceRegionHandle,sp.UUID);
                 Thread.Sleep(500);
                 sp.Scene.CloseAgent(sp.UUID, false);
             }
@@ -1194,10 +1196,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             //HG hook
             AgentHasMovedAway(sp, logout);
 
+            ulong sourceRegionHandle = sp.RegionHandle;
+
             // Now let's make it officially a child agent
             sp.MakeChildAgent(destinationHandle);
-
-
 
             // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
             // go by HG hook
@@ -1213,10 +1215,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // DECREASING THE WAIT TIME HERE WILL EITHER RESULT IN A VIEWER CRASH OR
                 // IN THE AVIE BEING PLACED IN INFINITY FOR A COUPLE OF SECONDS.
 
-                Thread.Sleep(14000);
-                if (m_eqModule != null && !sp.DoNotCloseAfterTeleport)
-                    m_eqModule.DisableSimulator(sp.RegionHandle,sp.UUID);
-                Thread.Sleep(1000);
+                Thread.Sleep(15000);
+//                if (m_eqModule != null && !sp.DoNotCloseAfterTeleport)
+//                    m_eqModule.DisableSimulator(sourceRegionHandle,sp.UUID);
+//                Thread.Sleep(1000);
 
                 // OK, it got this agent. Let's close everything
                 // If we shouldn't close the agent due to some other region renewing the connection 
@@ -1802,6 +1804,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Unlike a teleport, here we do not wait for the destination region to confirm the receipt.
             m_entityTransferStateMachine.UpdateInTransit(agent.UUID, AgentTransferState.CleaningUp);
 
+
+
+            agent.CloseChildAgents(false, neighbourRegion.RegionHandle, neighbourRegion.RegionSizeX, neighbourRegion.RegionSizeY);
+
             // this may need the attachments
 
             agent.HasMovedAway(true);
@@ -1811,9 +1817,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // FIXME: Possibly this should occur lower down after other commands to close other agents,
             // but not sure yet what the side effects would be.
             m_entityTransferStateMachine.ResetFromTransit(agent.UUID);
-
-            agent.CloseChildAgents(false, neighbourRegion.RegionHandle, neighbourRegion.RegionSizeX, neighbourRegion.RegionSizeY);
-
             // TODO: Check since what version this wasn't needed anymore. May be as old as 0.6
 /*
             // Backwards compatibility. Best effort

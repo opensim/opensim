@@ -296,13 +296,15 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 npos = new Vector3(sceneObject.RootPart.GroupPosition.X,
                                            sceneObject.RootPart.GroupPosition.Y,
                                            sceneObject.RootPart.GroupPosition.Z);
-                if (!(((sceneObject.RootPart.Shape.PCode == (byte)PCode.Prim) && (sceneObject.RootPart.Shape.State != 0))) && (npos.X < 0.0 || npos.Y < 0.0 || npos.Z < 0.0 ||
+                bool clampZ = m_parentScene.ClampNegativeZ;
+
+                if (!(((sceneObject.RootPart.Shape.PCode == (byte)PCode.Prim) && (sceneObject.RootPart.Shape.State != 0))) && (npos.X < 0.0 || npos.Y < 0.0 || (npos.Z < 0.0 && clampZ) ||
                     npos.X > regionSizeX ||
                     npos.Y > regionSizeY))
                 {
                     if (npos.X < 0.0) npos.X = 1.0f;
                     if (npos.Y < 0.0) npos.Y = 1.0f;
-                    if (npos.Z < 0.0) npos.Z = 0.0f;
+                    if (npos.Z < 0.0 && clampZ) npos.Z = 0.0f;
                     if (npos.X > regionSizeX) npos.X = regionSizeX - 1.0f;
                     if (npos.Y > regionSizeY) npos.Y = regionSizeY - 1.0f;
 

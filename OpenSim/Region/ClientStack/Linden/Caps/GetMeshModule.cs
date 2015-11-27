@@ -88,7 +88,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private Dictionary<UUID, string> m_capsDict = new Dictionary<UUID, string>();
         private static Thread[] m_workerThreads = null;
-
+        private static int m_NumberScenes = 0;
         private static OpenMetaverse.BlockingQueue<aPollRequest> m_queue =
                 new OpenMetaverse.BlockingQueue<aPollRequest>();
 
@@ -96,13 +96,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
 
         #region Region Module interfaceBase Members
-
-        ~GetMeshModule()
-        {
-            foreach (Thread t in m_workerThreads)
-                Watchdog.AbortThread(t.ManagedThreadId);
-
-        }
 
         public Type ReplaceableInterface
         {
@@ -151,7 +144,7 @@ namespace OpenSim.Region.ClientStack.Linden
             m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
             m_scene.EventManager.OnDeregisterCaps -= DeregisterCaps;
             m_scene.EventManager.OnThrottleUpdate -= ThrottleUpdate;
-            
+            m_NumberScenes--;
             m_scene = null;
         }
 
@@ -167,6 +160,8 @@ namespace OpenSim.Region.ClientStack.Linden
             m_scene.EventManager.OnDeregisterCaps += DeregisterCaps;
             m_scene.EventManager.OnThrottleUpdate += ThrottleUpdate;
 
+            m_NumberScenes++;
+
             if (m_workerThreads == null)
             {
                 m_workerThreads = new Thread[2];
@@ -174,7 +169,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 for (uint i = 0; i < 2; i++)
                 {
                     m_workerThreads[i] = WorkManager.StartThread(DoMeshRequests,
-                            String.Format("MeshWorkerThread{0}", i),
+                            String.Format("GetMeshWorker{0}", i),
                             ThreadPriority.Normal,
                             false,
                             false,
@@ -182,22 +177,29 @@ namespace OpenSim.Region.ClientStack.Linden
                             int.MaxValue);
                 }
             }
-
         }
 
-
-        public void Close() { }
+        public void Close()
+        {
+            if(m_NumberScenes <= 0 && m_workerThreads != null)
+            {
+                m_log.DebugFormat("[GetMeshModule] Closing");
+                foreach (Thread t in m_workerThreads)
+                    Watchdog.AbortThread(t.ManagedThreadId);
+                m_queue.Clear();
+            }
+        }
 
         public string Name { get { return "GetMeshModule"; } }
 
         #endregion
 
-        private void DoMeshRequests()
+        private static void DoMeshRequests()
         {
-            while (true)
+            while(true)
             {
                 aPollRequest poolreq = m_queue.Dequeue();
-
+                Watchdog.UpdateThread();
                 poolreq.thepoll.Process(poolreq);
             }
         }
@@ -293,6 +295,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 UUID requestID = requestinfo.reqID;
 
+                if(m_scene.ShuttingDown)
+                    return;
+
                 // If the avatar is gone, don't bother to get the texture
                 if (m_scene.GetScenePresence(Id) == null)
                 {
@@ -386,7 +391,7 @@ namespace OpenSim.Region.ClientStack.Linden
             private volatile int BytesSent = 0;
             private int Lod3 = 0;
             private int Lod2 = 0;
-            private int Lod1 = 0;
+//            private int Lod1 = 0;
             private int UserSetThrottle = 0;
             private int UDPSetThrottle = 0;
             private int CapSetThrottle = 0;
@@ -403,7 +408,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_scene = pScene;
                 User = puser;
             }
-
 
             public bool hasEvents(UUID key, Dictionary<UUID, aPollResponse> responses)
             {
@@ -486,7 +490,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 PassTime();
             }
 
-
             private void PassTime()
             {
                 currenttime = Util.EnvironmentTickCount();
@@ -501,10 +504,11 @@ namespace OpenSim.Region.ClientStack.Linden
                     {
                         Lod3 = 0;
                         Lod2 = 0;
-                        Lod1 = 0;
+//                        Lod1 = 0;
                     }
                 }
             }
+
             private void AlterThrottle(int setting, ScenePresence p)
             {
                 p.ControllingClient.SetAgentThrottleSilent((int)Throttle,setting);
@@ -534,6 +538,5 @@ namespace OpenSim.Region.ClientStack.Linden
 
             }
         }
-
     }
 }

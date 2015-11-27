@@ -206,7 +206,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             UUID fromID = UUID.Zero;
             UUID ownerID = UUID.Zero;
             string message = c.Message;
-            IScene scene = c.Scene;
+            Scene scene = c.Scene as Scene;
             UUID destination = c.Destination;
             Vector3 fromPos = c.Position;
             Vector3 regionPos = new Vector3(scene.RegionInfo.WorldLocX, scene.RegionInfo.WorldLocY, 0);
@@ -217,47 +217,48 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
 
             if (c.Channel == DEBUG_CHANNEL) c.Type = ChatTypeEnum.DebugChannel;
 
+            if(!m_scenes.Contains(scene))
+            {
+                m_log.WarnFormat("[CHAT]: message from unkown scene {0} ignored",
+                                     scene.RegionInfo.RegionName);
+                return;
+            }
+
             switch (sourceType) 
             {
-            case ChatSourceType.Agent:
-                if (!(scene is Scene))
-                {
-                    m_log.WarnFormat("[CHAT]: scene {0} is not a Scene object, cannot obtain scene presence for {1}",
-                                     scene.RegionInfo.RegionName, c.Sender.AgentId);
-                    return;
-                }
-                ScenePresence avatar = (scene as Scene).GetScenePresence(c.Sender.AgentId);
-                fromPos = avatar.AbsolutePosition;
-                fromName = avatar.Name;
-                fromID = c.Sender.AgentId;
-                if (avatar.GodLevel >= 200)
-                { // let gods speak to outside or things may get confusing
-                    fromNamePrefix = m_adminPrefix;
-                    checkParcelHide = false;
-                }
-                else
-                {
-                    checkParcelHide = true;
-                }
-                destination = UUID.Zero; // Avatars cant "SayTo"
-                ownerID = c.Sender.AgentId;
-                
-                hidePos = fromPos;
-                break;
-
-            case ChatSourceType.Object:
-                fromID = c.SenderUUID;
-
-                if (c.SenderObject != null && c.SenderObject is SceneObjectPart)
-                {
-                    ownerID = ((SceneObjectPart)c.SenderObject).OwnerID;
-                    if (((SceneObjectPart)c.SenderObject).ParentGroup.IsAttachment)
+                case ChatSourceType.Agent:
+                    ScenePresence avatar = (scene as Scene).GetScenePresence(c.Sender.AgentId);
+                    fromPos = avatar.AbsolutePosition;
+                    fromName = avatar.Name;
+                    fromID = c.Sender.AgentId;
+                    if (avatar.GodLevel >= 200)
+                    { // let gods speak to outside or things may get confusing
+                        fromNamePrefix = m_adminPrefix;
+                        checkParcelHide = false;
+                    }
+                    else
                     {
                         checkParcelHide = true;
-                        hidePos = ((SceneObjectPart)c.SenderObject).ParentGroup.AbsolutePosition;
                     }
-                }
-                break;
+                    destination = UUID.Zero; // Avatars cant "SayTo"
+                    ownerID = c.Sender.AgentId;
+                
+                    hidePos = fromPos;
+                    break;
+
+                case ChatSourceType.Object:
+                    fromID = c.SenderUUID;
+
+                    if (c.SenderObject != null && c.SenderObject is SceneObjectPart)
+                    {
+                        ownerID = ((SceneObjectPart)c.SenderObject).OwnerID;
+                        if (((SceneObjectPart)c.SenderObject).ParentGroup.IsAttachment)
+                        {
+                            checkParcelHide = true;
+                            hidePos = ((SceneObjectPart)c.SenderObject).ParentGroup.AbsolutePosition;
+                        }
+                    }
+                    break;
             }
 
             // TODO: iterate over message
@@ -275,7 +276,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 checkParcelHide = false;
                 if (c.Type < ChatTypeEnum.DebugChannel && destination == UUID.Zero)
                 {
-                    ILandObject srcland = (scene as Scene).LandChannel.GetLandObject(hidePos.X, hidePos.Y);
+                    ILandObject srcland = scene.LandChannel.GetLandObject(hidePos.X, hidePos.Y);
                     if (srcland != null && !srcland.LandData.SeeAVs)
                     {
                         sourceParcelID = srcland.LandData.GlobalID;
@@ -284,50 +285,42 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 }
             }
 
-            foreach (Scene s in m_scenes)
-            {
-                // This should use ForEachClient, but clients don't have a position.
-                // If camera is moved into client, then camera position can be used
-                // MT: No, it can't, as chat is heard from the avatar position, not
-                // the camera position.
+            scene.ForEachScenePresence(
+                delegate(ScenePresence presence)
+                {
+                    if (destination != UUID.Zero && presence.UUID != destination)
+                        return;
 
-                s.ForEachScenePresence(
-                    delegate(ScenePresence presence)
-                    {
-                        if (destination != UUID.Zero && presence.UUID != destination)
-                            return;
-                        ILandObject Presencecheck = s.LandChannel.GetLandObject(presence.AbsolutePosition.X, presence.AbsolutePosition.Y);
-                        if (Presencecheck != null)
+                    if(presence.IsChildAgent)
                         {
-                            // This will pass all chat from objects. Not
-                            // perfect, but it will do. For now. Better
-                            // than the prior behavior of muting all
-                            // objects on a parcel with access restrictions
-                            if (checkParcelHide)
-                            {
-                                if (sourceParcelID != Presencecheck.LandData.GlobalID && presence.GodLevel < 200)
-                                    return;
-                            }
-                            if (c.Sender == null || Presencecheck.IsEitherBannedOrRestricted(c.Sender.AgentId) != true)
-                            {
-                                if (TrySendChatMessage(presence, fromPos, regionPos, fromID,
-                                            ownerID, fromNamePrefix + fromName, c.Type,
-                                            message, sourceType, (destination != UUID.Zero)))
-                                    receiverIDs.Add(presence.UUID);
-                            }
+                            if(checkParcelHide)
+                                return;
+                            if (TrySendChatMessage(presence, fromPos, regionPos, fromID,
+                                        ownerID, fromNamePrefix + fromName, c.Type,
+                                        message, sourceType, (destination != UUID.Zero)))
+                                receiverIDs.Add(presence.UUID);
+                            return;
                         }
-                        else if(!checkParcelHide && (presence.IsChildAgent))
+
+                    ILandObject Presencecheck = scene.LandChannel.GetLandObject(presence.AbsolutePosition.X,            presence.AbsolutePosition.Y);
+                    if (Presencecheck != null)
+                    {
+                        if (checkParcelHide)
+                        {
+                            if (sourceParcelID != Presencecheck.LandData.GlobalID && presence.GodLevel < 200)
+                                return;
+                        }
+                        if (c.Sender == null || Presencecheck.IsEitherBannedOrRestricted(c.Sender.AgentId) != true)
                         {
                             if (TrySendChatMessage(presence, fromPos, regionPos, fromID,
-                                            ownerID, fromNamePrefix + fromName, c.Type,
-                                            message, sourceType, (destination != UUID.Zero)))
+                                        ownerID, fromNamePrefix + fromName, c.Type,
+                                        message, sourceType, (destination != UUID.Zero)))
                                 receiverIDs.Add(presence.UUID);
                         }
                     }
-                );
-            }
+                });
             
-            (scene as Scene).EventManager.TriggerOnChatToClients(
+            scene.EventManager.TriggerOnChatToClients(
                 fromID, receiverIDs, message, c.Type, fromPos, fromName, sourceType, ChatAudibleLevel.Fully);
         }
 

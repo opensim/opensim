@@ -94,7 +94,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
             if (config == null)
                 return;
 
-            int refreshminutes = Convert.ToInt32(config.GetString("RefreshTime", "60"));
+            int refreshminutes = Convert.ToInt32(config.GetString("RefreshTime"));
             if (refreshminutes < 0)
             {
                 m_log.WarnFormat("[MAP IMAGE SERVICE MODULE]: Negative refresh time given in config. Module disabled.");

@@ -174,6 +174,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public SynchronizeSceneHandler SynchronizeScene;
 
+        public bool ClampNegativeZ
+        {
+            get { return m_clampNegativeZ; }
+        }
+
+        private bool m_clampNegativeZ = false;
+
         /// <summary>
         /// Used to prevent simultaneous calls to code that adds and removes agents.
         /// </summary>
@@ -524,11 +531,11 @@ namespace OpenSim.Region.Framework.Scenes
 //        private int m_lastUpdate;
         private bool m_firstHeartbeat = true;
         
-        private UpdatePrioritizationSchemes m_priorityScheme = UpdatePrioritizationSchemes.Time;
-        private bool m_reprioritizationEnabled = true;
-        private double m_reprioritizationInterval = 5000.0;
-        private double m_rootReprioritizationDistance = 10.0;
-        private double m_childReprioritizationDistance = 20.0;
+//        private UpdatePrioritizationSchemes m_priorityScheme = UpdatePrioritizationSchemes.Time;
+//        private bool m_reprioritizationEnabled = true;
+//        private double m_reprioritizationInterval = 5000.0;
+//        private double m_rootReprioritizationDistance = 10.0;
+//        private double m_childReprioritizationDistance = 20.0;
 
 
         private Timer m_mapGenerationTimer = new Timer();
@@ -1029,6 +1036,8 @@ namespace OpenSim.Region.Framework.Scenes
                     m_clampPrimSize = true;
                 }
 
+                m_clampNegativeZ = startupConfig.GetBoolean("ClampNegativeZ", m_clampNegativeZ);
+
                 m_useTrashOnDelete = startupConfig.GetBoolean("UseTrashOnDelete",m_useTrashOnDelete);
                 m_trustBinaries = startupConfig.GetBoolean("TrustBinaries", m_trustBinaries);
                 m_allowScriptCrossings = startupConfig.GetBoolean("AllowScriptCrossing", m_allowScriptCrossings);
@@ -1472,10 +1481,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_log.InfoFormat("[SCENE]: Closing down the single simulator: {0}", RegionInfo.RegionName);
 
-            StatsReporter.Close();
 
+            StatsReporter.Close();
             m_restartTimer.Stop();
             m_restartTimer.Close();
+
+            if (!GridService.DeregisterRegion(RegionInfo.RegionID))
+                m_log.WarnFormat("[SCENE]: Deregister from grid failed for region {0}", Name);
 
             // Kick all ROOT agents with the message, 'The simulator is going down'
             ForEachScenePresence(delegate(ScenePresence avatar)
@@ -1503,12 +1515,9 @@ namespace OpenSim.Region.Framework.Scenes
             EventManager.TriggerSceneShuttingDown(this);
 
             m_log.Debug("[SCENE]: Persisting changed objects");
+            Backup(true);
 
-            Backup(false);
             m_sceneGraph.Close();
-
-            if (!GridService.DeregisterRegion(RegionInfo.RegionID))
-                m_log.WarnFormat("[SCENE]: Deregister from grid failed for region {0}", Name);
 
             base.Close();
 
@@ -1619,6 +1628,8 @@ namespace OpenSim.Region.Framework.Scenes
             Watchdog.GetCurrentThreadInfo().AlarmIfTimeout = true;
             m_lastFrameTick = Util.EnvironmentTickCount();
             Update(-1);
+
+            Watchdog.RemoveThread();
 		}
 
         private void Maintenance()
