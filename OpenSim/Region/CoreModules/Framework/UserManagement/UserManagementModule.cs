@@ -182,6 +182,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 //            m_log.DebugFormat(
 //                "[USER MANAGEMENT MODULE]: Handling request for name binding of UUID {0} from {1}",
 //                uuid, remote_client.Name);
+            if(m_Scenes.Count <= 0)
+                return;
 
             if (m_Scenes[0].LibraryService != null && (m_Scenes[0].LibraryService.LibraryRootFolder.Owner == uuid))
             {
@@ -288,6 +290,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public List<UserData> GetUserData(string query, int page_size, int page_number)
         {
+             if(m_Scenes.Count <= 0)
+                return new List<UserData>();;
+
             // search the user accounts service
             List<UserAccount> accs = m_Scenes[0].UserAccountService.GetUserAccounts(m_Scenes[0].RegionInfo.ScopeID, query);
 
@@ -380,6 +385,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         /// <param name='names'>The array of names if found.  If not found, then names[0] = "Unknown" and names[1] = "User"</param>
         private bool TryGetUserNamesFromServices(UUID uuid, string[] names)
         {
+            if(m_Scenes.Count <= 0)
+                return false;
+
             UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(UUID.Zero, uuid);
 
             if (account != null)
@@ -445,6 +453,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public UUID GetUserIdByName(string firstName, string lastName)
         {
+            if(m_Scenes.Count <= 0)
+                return UUID.Zero;
+
             // TODO: Optimize for reverse lookup if this gets used by non-console commands.
             lock (m_UserCache)
             {
@@ -555,6 +566,12 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         #region Cache Management
         public bool GetUser(UUID uuid, out UserData userdata)
         {
+            if(m_Scenes.Count <= 0)
+            {
+                userdata = new UserData();
+                return false;
+            }
+
             lock (m_UserCache)
             {
                 if (m_UserCache.TryGetValue(uuid, out userdata))
