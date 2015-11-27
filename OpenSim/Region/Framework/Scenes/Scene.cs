@@ -1481,10 +1481,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_log.InfoFormat("[SCENE]: Closing down the single simulator: {0}", RegionInfo.RegionName);
 
-            StatsReporter.Close();
 
+            StatsReporter.Close();
             m_restartTimer.Stop();
             m_restartTimer.Close();
+
+            if (!GridService.DeregisterRegion(RegionInfo.RegionID))
+                m_log.WarnFormat("[SCENE]: Deregister from grid failed for region {0}", Name);
 
             // Kick all ROOT agents with the message, 'The simulator is going down'
             ForEachScenePresence(delegate(ScenePresence avatar)
@@ -1515,9 +1518,6 @@ namespace OpenSim.Region.Framework.Scenes
             Backup(true);
 
             m_sceneGraph.Close();
-
-            if (!GridService.DeregisterRegion(RegionInfo.RegionID))
-                m_log.WarnFormat("[SCENE]: Deregister from grid failed for region {0}", Name);
 
             base.Close();
 
