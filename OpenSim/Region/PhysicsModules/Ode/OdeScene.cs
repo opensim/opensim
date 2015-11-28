@@ -1442,8 +1442,27 @@ namespace OpenSim.Region.PhysicsModule.ODE
             obj2LocalID = 0;
             //ctype = 0;
             //cStartStop = 0;
-            if (!p2.SubscribedEvents() && !p1.SubscribedEvents())
+//            if (!p2.SubscribedEvents() && !p1.SubscribedEvents())
+//                return;
+            bool p1events = p1.SubscribedEvents();
+            bool p2events = p2.SubscribedEvents();
+
+            if (p1.IsVolumeDtc)
+                p2events = false;
+            if (p2.IsVolumeDtc)
+                p1events = false;
+
+            if (!p2events && !p1events)
                 return;
+
+            Vector3 vel = Vector3.Zero;
+            if (p2 != null && p2.IsPhysical)
+                vel = p2.Velocity;
+
+            if (p1 != null && p1.IsPhysical)
+                vel -= p1.Velocity;
+
+            contact.RelativeSpeed = Vector3.Dot(vel, contact.SurfaceNormal);
 
             switch ((ActorTypes)p2.PhysicsActorType)
             {
