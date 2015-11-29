@@ -3575,13 +3575,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (strength <= 0.0 || damping <= 0.0)
                     return;
 
-                llSetRot(rot);
+                llSetLocalRot(rot);
             }
             else
             {
                 if (strength == 0)
                 {
-                    llSetRot(rot);
+                    llSetLocalRot(rot);
                     return;
                 }
 
