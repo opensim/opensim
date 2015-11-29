@@ -2315,7 +2315,7 @@ namespace OpenSim.Framework
 
                     // It's possible that the thread won't abort. To make sure the thread pool isn't
                     // depleted, increase the pool size.
-                    m_ThreadPool.MaxThreads++;
+//                    m_ThreadPool.MaxThreads++;
                 }
             }
         }
@@ -2430,6 +2430,7 @@ namespace OpenSim.Framework
             long numQueued = Interlocked.Increment(ref numQueuedThreadFuncs);
             try
             {
+/*
                 long numRunning = numRunningThreadFuncs;
 
                 if (m_ThreadPool != null && LogOverloads)
@@ -2462,6 +2463,7 @@ namespace OpenSim.Framework
                     }
                 }
                 else
+*/
                 {
                     // Since we didn't log "Queue threadfunc", don't log "Run threadfunc" or "End threadfunc" either.
                     // Those log lines aren't useful when we don't know which function is running in the thread.

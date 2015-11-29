@@ -158,11 +158,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (Double.IsNaN(value) || Double.IsInfinity(value))
                     return;
-                if (value < 0)
-                    value = 0;
-                else
-                    if (value > 655.35)
-                        value = 655.35;
+ 
                 m_terrainData[x, y] = (float)value;
             }
         }

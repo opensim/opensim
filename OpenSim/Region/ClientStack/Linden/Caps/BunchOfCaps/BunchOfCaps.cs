@@ -1028,9 +1028,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         // for now viwers do send fixed defaults
                         // but this may change
 //                        int physicsShapeType = inner_instance_list["physics_shape_type"].AsInteger();
-                        byte physicsShapeType = (byte)PhysShapeType.prim; // default for mesh is simple convex
-                        if(hasmesh)
-                            physicsShapeType = (byte) PhysShapeType.convex; // default for mesh is simple convex
+                        byte physicsShapeType = (byte)PhysShapeType.convex; // default is simple convex
 //                        int material = inner_instance_list["material"].AsInteger();
                         byte material = (byte)Material.Wood;
 
