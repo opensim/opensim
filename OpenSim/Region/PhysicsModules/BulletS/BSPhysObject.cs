@@ -485,13 +485,20 @@ public abstract class BSPhysObject : PhysicsActor
             CollisionsLastTick = new CollisionEventUpdate();
             CollisionsLastTickStep = PhysScene.SimulationStep;
         }
+       
         CollisionsLastTick.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
 
         // If someone has subscribed for collision events log the collision so it will be reported up
         if (SubscribedEvents()) {
+            ContactPoint newContact = new ContactPoint(contactPoint, contactNormal, pentrationDepth);
+
+            // make collision sound work just setting a speed
+            // see ubOde          
+            newContact.RelativeSpeed = 2.0f;
+
             lock (PhysScene.CollisionLock)
             {
-                CollisionCollection.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
+                CollisionCollection.AddCollider(collidingWith, newContact);
             }
             DetailLog("{0},{1}.Collision.AddCollider,call,with={2},point={3},normal={4},depth={5},colliderMoving={6}",
                             LocalID, TypeName, collidingWith, contactPoint, contactNormal, pentrationDepth, ColliderIsMoving);
