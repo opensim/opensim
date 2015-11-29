@@ -3550,19 +3550,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             // Get the normalized vector to the target
-            LSL_Vector d1 = llVecNorm(target - llGetPos());
+            LSL_Vector from = llGetPos();
 
-            // Get the bearing (yaw)
-            LSL_Vector a1 = new LSL_Vector(0,0,0);
-            a1.z = llAtan2(d1.y, d1.x);
+             // normalized direction to target
+            LSL_Vector dir = llVecNorm(target - from);
 
-            // Get the elevation (pitch)
-            LSL_Vector a2 = new LSL_Vector(0,0,0);
-            a2.y= -llAtan2(d1.z, llSqrt((d1.x * d1.x) + (d1.y * d1.y)));
+            // use vertical to help compute left axis
+//            LSL_Vector up = new LSL_Vector(0.0, 0.0, 1.0);
+            // find normalized left axis parallel to horizon
+//            LSL_Vector left = llVecNorm(LSL_Vector.Cross(up, dir));
+            
+            LSL_Vector left = new LSL_Vector(-dir.y, dir.x, 0.0f);
+            left = llVecNorm(left);
+            // make up orthogonal to left and dir
+            LSL_Vector up  = LSL_Vector.Cross(dir, left);
 
-            LSL_Rotation r1 = llEuler2Rot(a1);
-            LSL_Rotation r2 = llEuler2Rot(a2);
-            LSL_Rotation r3 = new LSL_Rotation(0.000000, 0.707107, 0.000000, 0.707107);
+            // compute rotation based on orthogonal axes
+            // and rotate so Z points to target with X below horizont
+            LSL_Rotation rot = new LSL_Rotation(0.0, 0.707107, 0.0, 0.707107) * llAxes2Rot(dir, left, up);
 
             if (m_host.PhysActor == null || !m_host.PhysActor.IsPhysical)
             {
@@ -3570,17 +3575,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (strength <= 0.0 || damping <= 0.0)
                     return;
 
-                llSetRot(r3 * r2 * r1);
+                llSetRot(rot);
             }
             else
             {
                 if (strength == 0)
                 {
-                    llSetRot(r3 * r2 * r1);
+                    llSetRot(rot);
                     return;
                 }
 
-                m_host.StartLookAt((Quaternion)(r3 * r2 * r1), (float)strength, (float)damping);
+                m_host.StartLookAt(rot, (float)strength, (float)damping);
             }
         }
 
