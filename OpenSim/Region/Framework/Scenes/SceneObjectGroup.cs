@@ -2535,46 +2535,6 @@ namespace OpenSim.Region.Framework.Scenes
                 RootPart.ScheduleTerseUpdate(); // send a stop information
             }
         }
-        
-        public void rotLookAt(Quaternion target, float strength, float damping)
-        {
-            SceneObjectPart rootpart = m_rootPart;
-            if (rootpart != null)
-            {
-                if (IsAttachment)
-                {
-                /*
-                    ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
-                    if (avatar != null)
-                    {
-                    Rotate the Av?
-                    } */
-                }
-                else
-                {
-                    if (rootpart.PhysActor != null)
-                    {									// APID must be implemented in your physics system for this to function.
-                        rootpart.PhysActor.APIDTarget = new Quaternion(target.X, target.Y, target.Z, target.W);
-                        rootpart.PhysActor.APIDStrength = strength;
-                        rootpart.PhysActor.APIDDamping = damping;
-                        rootpart.PhysActor.APIDActive = true;
-                    }
-                }
-            }
-        }
-
-        public void stopLookAt()
-        {
-            SceneObjectPart rootpart = m_rootPart;
-            if (rootpart != null)
-            {
-                if (rootpart.PhysActor != null)
-                {							// APID must be implemented in your physics system for this to function.
-                    rootpart.PhysActor.APIDActive = false;
-                }
-            }
-        
-        }
 
         /// <summary>
         /// Uses a PID to attempt to clamp the object on the Z axis at the given height over tau seconds.
@@ -2726,12 +2686,14 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            // while physics doesn't suports LookAt, we do it in RootPart
+            if (!IsSelected)
+                RootPart.UpdateLookAt();
+
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
-                if (!IsSelected)
-                    part.UpdateLookAt();
                 part.SendScheduledUpdates();
             }
         }
