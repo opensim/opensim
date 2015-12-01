@@ -880,7 +880,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
             if (collider.IsInitialized)
             {
-                if (collider.Collide(collidingWith, collidee, collidePoint, collideNormal, penetration))
+                if (collider.Collide(collidee, collidePoint, collideNormal, penetration))
                 {
                     // If a collision was 'good', remember to send it to the simulator
                     lock (CollisionLock)

@@ -203,15 +203,14 @@ public class BSPrimLinkable : BSPrimDisplaced
     // Called after a simulation step to post a collision with this object.
     // This returns 'true' if the collision has been queued and the SendCollisions call must
     //     be made at the end of the simulation step.
-    public override bool Collide(uint collidingWith, BSPhysObject collidee,
-                    OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth)
+    public override bool Collide(BSPhysObject collidee, OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth)
     {
         bool ret = false;
         // Ask the linkset if it wants to handle the collision
-        if (!Linkset.HandleCollide(collidingWith, collidee, contactPoint, contactNormal, pentrationDepth))
+        if (!Linkset.HandleCollide(this, collidee, contactPoint, contactNormal, pentrationDepth))
         {
             // The linkset didn't handle it so pass the collision through normal processing
-            ret = base.Collide(collidingWith, collidee, contactPoint, contactNormal, pentrationDepth);
+            ret = base.Collide(collidee, contactPoint, contactNormal, pentrationDepth);
         }
         return ret;
     }
