@@ -396,8 +396,10 @@ namespace OpenSim.Services.Connectors.Simulation
                 // Version stuff
                 if (ctx.OutboundVersion < 0.5)
                     ctx.WearablesCount = AvatarWearable.LEGACY_VERSION_MAX_WEARABLES;
-                if (ctx.OutboundVersion < 0.6)
+                else if (ctx.OutboundVersion < 0.6)
                     ctx.WearablesCount = AvatarWearable.LEGACY_VERSION_MAX_WEARABLES + 1;
+                else
+                    ctx.WearablesCount = -1; // send all (just in case..)
 
                 return success;
             }
