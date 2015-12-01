@@ -3091,37 +3091,31 @@ namespace OpenSim.Region.Framework.Scenes
         
         public void RotLookAt(Quaternion target, float strength, float damping)
         {
-            // non physical is done on LSL
-            // physical is a rootpart thing
             if(ParentGroup.IsDeleted)
                 return;
 
+            // for now we only handle physics case
+            if(!ParentGroup.UsesPhysics || ParentGroup.IsAttachment)
+                return;
+
+            // physical is SOG
             if(ParentGroup.RootPart != this)
-                ParentGroup.RootPart.RotLookAt(target, strength, damping);
-
-            if (ParentGroup.IsAttachment)
             {
-                /*
-                    ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
-                    if (avatar != null)
-                    {
-                    Rotate the Av?
-                    } */
+                ParentGroup.RotLookAt(target, strength, damping);
+                return;
             }
-            else
-            {
-                APIDDamp = damping;
-                APIDStrength = strength;
-                APIDTarget = target;
 
-                if (APIDStrength <= 0)
-                {
-                    m_log.WarnFormat("[SceneObjectPart] Invalid rotation strength {0}",APIDStrength);
-                    return;
-                }
+            APIDDamp = damping;
+            APIDStrength = strength;
+            APIDTarget = target;
+
+            if (APIDStrength <= 0)
+            {
+                m_log.WarnFormat("[SceneObjectPart] Invalid rotation strength {0}",APIDStrength);
+                return;
+            }
                 
-                APIDActive = true;
-            }
+            APIDActive = true;
 
             // Necessary to get the lookat deltas applied
             ParentGroup.QueueForUpdateCheck();
@@ -3129,15 +3123,18 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void StartLookAt(Quaternion target, float strength, float damping)
         {
-           // non physical is done on LSL
-            // physical is a rootpart thing
             if(ParentGroup.IsDeleted)
                 return;
 
-            if(ParentGroup.RootPart != this)
-                ParentGroup.RootPart.RotLookAt(target, strength, damping);
+            // non physical is done on LSL
+            if(ParentGroup.IsAttachment || !ParentGroup.UsesPhysics)
+                return;
 
-            RotLookAt(target,strength,damping);
+            // physical is SOG
+            if(ParentGroup.RootPart != this)
+                ParentGroup.RotLookAt(target, strength, damping);
+            else
+                RotLookAt(target,strength,damping);
         }
 
         public void StopLookAt()
@@ -3145,9 +3142,10 @@ namespace OpenSim.Region.Framework.Scenes
             if(ParentGroup.IsDeleted)
                 return;
 
-            if(ParentGroup.RootPart != this)
-                 ParentGroup.RootPart.StopLookAt();
+            if(ParentGroup.RootPart != this && ParentGroup.UsesPhysics)
+                 ParentGroup.StopLookAt();
 
+            // just in case do this always
             if(APIDActive)
                 AngularVelocity = Vector3.Zero;
 

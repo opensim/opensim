@@ -329,6 +329,7 @@ namespace OpenSim.Region.Framework.Scenes
             get { return (RootPart.Flags & PrimFlags.Physics) != 0; }
         }
 
+
         /// <summary>
         /// Is this scene object temporary?
         /// </summary>
@@ -2536,6 +2537,58 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public void RotLookAt(Quaternion target, float strength, float damping)
+        {
+            if(IsDeleted)
+                return;
+
+            // non physical is handle in LSL api
+            if(!UsesPhysics || IsAttachment)
+                return;
+
+            SceneObjectPart rootpart = m_rootPart;
+            if (rootpart != null)
+            {
+/* physics still doesnt suport this
+                if (rootpart.PhysActor != null)
+                {
+                    rootpart.PhysActor.APIDTarget = new Quaternion(target.X, target.Y, target.Z, target.W);
+                    rootpart.PhysActor.APIDStrength = strength;
+                    rootpart.PhysActor.APIDDamping = damping;
+                    rootpart.PhysActor.APIDActive = true;
+                }
+*/
+                // so do it in rootpart
+                rootpart.RotLookAt(target, strength, damping);
+            }
+        }
+
+       public void StartLookAt(Quaternion target, float strength, float damping)
+        {
+            if(IsDeleted)
+                return;
+
+            // non physical is done by LSL APi
+            if(!UsesPhysics || IsAttachment)
+                return;
+
+            if (m_rootPart != null)
+                m_rootPart.RotLookAt(target, strength, damping);
+        }
+
+        public void StopLookAt()
+        {
+            SceneObjectPart rootpart = m_rootPart;
+            if (rootpart != null)
+            {
+                if (rootpart.PhysActor != null)
+                {
+                    rootpart.PhysActor.APIDActive = false;
+                }
+
+                rootpart.StopLookAt();
+            }
+        }
         /// <summary>
         /// Uses a PID to attempt to clamp the object on the Z axis at the given height over tau seconds.
         /// </summary>

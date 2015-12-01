@@ -3569,7 +3569,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // and rotate so Z points to target with X below horizont
             LSL_Rotation rot = new LSL_Rotation(0.0, 0.707107, 0.0, 0.707107) * llAxes2Rot(dir, left, up);
 
-            if (m_host.PhysActor == null || !m_host.PhysActor.IsPhysical)
+            SceneObjectGroup sog = m_host.ParentGroup;
+            if(sog == null || sog.IsDeleted)
+                return;
+
+            if (!sog.UsesPhysics || sog.IsAttachment)
             {
                 // Do nothing if either value is 0 (this has been checked in SL)
                 if (strength <= 0.0 || damping <= 0.0)
@@ -3585,7 +3589,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 }
 
-                m_host.StartLookAt(rot, (float)strength, (float)damping);
+                sog.StartLookAt(rot, (float)strength, (float)damping);
             }
         }
 
@@ -3991,15 +3995,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // Per discussion with Melanie, for non-physical objects llLookAt appears to simply
             // set the rotation of the object, copy that behavior
-            PhysicsActor pa = m_host.PhysActor;
+            SceneObjectGroup sog = m_host.ParentGroup;
+            if(sog == null || sog.IsDeleted)
+                return;
 
-            if (strength == 0 || pa == null || !pa.IsPhysical)
+            if (strength == 0 || !sog.UsesPhysics || sog.IsAttachment)
             {
                 llSetLocalRot(target);
             }
             else
             {
-                m_host.RotLookAt(target, (float)strength, (float)damping);
+                sog.RotLookAt(target, (float)strength, (float)damping);
             }
         }
 
