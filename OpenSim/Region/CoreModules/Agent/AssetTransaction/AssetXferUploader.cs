@@ -44,12 +44,12 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
        
         private List<UUID> defaultIDs = new List<UUID> {
                 // Viewer's notion of the default texture
-                new UUID("5748decc-f629-461c-9a36-a35a221fe21f"), // others == default white
+                new UUID("5748decc-f629-461c-9a36-a35a221fe21f"), // others == default blank
                 new UUID("7ca39b4c-bd19-4699-aff7-f93fd03d3e7b"), // hair
                 new UUID("6522e74d-1660-4e7f-b601-6f48c1659a77"), // eyes
                 new UUID("c228d1cf-4b5d-4ba8-84f4-899a0796aa97"), // skin
                 new UUID("8dcd4a48-2d37-4909-9f78-f7a9eb4ef903"), // transparency for alpha
-                // opensim assets skin textures possible obsolete now
+                // opensim assets skin textures possibly obsolete now
                 new UUID("00000000-0000-1111-9999-000000000010"),
                 new UUID("00000000-0000-1111-9999-000000000011"),
                 new UUID("00000000-0000-1111-9999-000000000012"),
