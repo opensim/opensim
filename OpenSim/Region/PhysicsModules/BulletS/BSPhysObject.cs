@@ -452,18 +452,20 @@ public abstract class BSPhysObject : PhysicsActor
     private long CollisionsLastTickStep = -1;
 
     // The simulation step is telling this object about a collision.
+    // I'm the 'collider', the thing I'm colliding with is the 'collidee'.
     // Return 'true' if a collision was processed and should be sent up.
     // Return 'false' if this object is not enabled/subscribed/appropriate for or has already seen this collision.
     // Called at taint time from within the Step() function
-    public delegate bool CollideCall(uint collidingWith, BSPhysObject collidee, OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth);
-    public virtual bool Collide(uint collidingWith, BSPhysObject collidee,
-                    OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth)
+    public virtual bool Collide(BSPhysObject collidee, OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth)
     {
         bool ret = false;
 
+        // if 'collidee' is null, that means it is terrain
+        uint collideeLocalID = (collidee == null) ? PhysScene.TerrainManager.HighestTerrainID : collidee.LocalID;
+
         // The following lines make IsColliding(), CollidingGround() and CollidingObj work
         CollidingStep = PhysScene.SimulationStep;
-        if (collidingWith <= PhysScene.TerrainManager.HighestTerrainID)
+        if (collideeLocalID <= PhysScene.TerrainManager.HighestTerrainID)
         {
             CollidingGroundStep = PhysScene.SimulationStep;
         }
@@ -474,9 +476,12 @@ public abstract class BSPhysObject : PhysicsActor
 
         CollisionAccumulation++;
 
-        // For movement tests, remember if we are colliding with an object that is moving.
-        ColliderIsMoving = collidee != null ? (collidee.RawVelocity != OMV.Vector3.Zero) : false;
+        // For movement tests, if the collider is me, remember if we are colliding with an object that is moving.
+        // Here the 'collider'/'collidee' thing gets messed up. In the larger context, when something is checking
+        //     if the thing it is colliding with is moving, for instance, it asks if the its collider is moving.
+        ColliderIsMoving = collidee != null ? (collidee.RawVelocity != OMV.Vector3.Zero || collidee.RotationalVelocity != OMV.Vector3.Zero) : false;
         ColliderIsVolumeDetect = collidee != null ? (collidee.IsVolumeDetect) : false;
+
 
         // Make a collection of the collisions that happened the last simulation tick.
         // This is different than the collection created for sending up to the simulator as it is cleared every tick.
@@ -485,23 +490,26 @@ public abstract class BSPhysObject : PhysicsActor
             CollisionsLastTick = new CollisionEventUpdate();
             CollisionsLastTickStep = PhysScene.SimulationStep;
         }
-       
-        CollisionsLastTick.AddCollider(collidingWith, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
+        CollisionsLastTick.AddCollider(collideeLocalID, new ContactPoint(contactPoint, contactNormal, pentrationDepth));
 
         // If someone has subscribed for collision events log the collision so it will be reported up
         if (SubscribedEvents()) {
             ContactPoint newContact = new ContactPoint(contactPoint, contactNormal, pentrationDepth);
 
-            // make collision sound work just setting a speed
-            // see ubOde          
-            newContact.RelativeSpeed = 2.0f;
-
+            // Collision sound requires a velocity to know it should happen. This is a lot of computation for a little used feature.
+            OMV.Vector3 relvel = OMV.Vector3.Zero;
+            if (IsPhysical)
+                relvel = Velocity;
+            if (collidee != null && collidee.IsPhysical)
+                relvel -= collidee.Velocity;
+            newContact.RelativeSpeed = OMV.Vector3.Dot(relvel, contactNormal);
+                    
             lock (PhysScene.CollisionLock)
             {
-                CollisionCollection.AddCollider(collidingWith, newContact);
+                CollisionCollection.AddCollider(collideeLocalID, newContact);
             }
             DetailLog("{0},{1}.Collision.AddCollider,call,with={2},point={3},normal={4},depth={5},colliderMoving={6}",
-                            LocalID, TypeName, collidingWith, contactPoint, contactNormal, pentrationDepth, ColliderIsMoving);
+                            LocalID, TypeName, collideeLocalID, contactPoint, contactNormal, pentrationDepth, ColliderIsMoving);
 
             ret = true;
         }

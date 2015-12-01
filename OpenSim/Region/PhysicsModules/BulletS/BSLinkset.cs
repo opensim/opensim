@@ -257,7 +257,7 @@ public abstract class BSLinkset
     // Return 'true' if linkset processed the collision. 'false' says the linkset didn't have
     //     anything to add for the collision and it should be passed through normal processing.
     // Default processing for a linkset.
-    public virtual bool HandleCollide(uint collidingWith, BSPhysObject collidee,
+    public virtual bool HandleCollide(BSPhysObject collider, BSPhysObject collidee,
                                 OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth)
     {
         bool ret = false;
