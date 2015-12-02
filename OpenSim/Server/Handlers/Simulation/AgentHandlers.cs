@@ -570,7 +570,7 @@ namespace OpenSim.Server.Handlers.Simulation
                 bool ret = m_SimulationService.CreateAgent(source, destination, aCircuit, teleportFlags, ctx, out reason);
 //                m_log.DebugFormat("[AGENT HANDLER]: SYNC CreateAgent {0} {1}", ret.ToString(), reason);
                 return ret;
-            }
+//            }
         }
     }
 
