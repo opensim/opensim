@@ -244,7 +244,6 @@ namespace OpenSim.Framework
                 request.Method = method;
                 request.Timeout = timeout;
                 request.KeepAlive = false;
-                request.Proxy = null;
                 request.MaximumAutomaticRedirections = 10;
                 request.ReadWriteTimeout = timeout / 4;
                 request.Headers[OSHeaderRequestID] = reqnum.ToString();
@@ -288,7 +287,6 @@ namespace OpenSim.Framework
                     }
                     else
                     {
-                        tickcompressdata = tickJsondata;
                         compsize = buffer.Length;
 
                         request.ContentLength = buffer.Length;   //Count bytes to send
@@ -450,7 +448,6 @@ namespace OpenSim.Framework
                 request.Method = "POST";
                 request.Timeout = timeout;
                 request.KeepAlive = false;
-                request.Proxy = null;
                 request.MaximumAutomaticRedirections = 10;
                 request.ReadWriteTimeout = timeout / 4;
                 request.Headers[OSHeaderRequestID] = reqnum.ToString();
