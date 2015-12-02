@@ -550,6 +550,8 @@ namespace OpenSim.Server.Handlers.Simulation
             reason = String.Empty;
             // The data and protocols are already defined so this is just a dummy to satisfy the interface
             // TODO: make this end-to-end
+
+/* this needs to be sync
             if ((teleportFlags & (uint)TeleportFlags.ViaLogin) == 0)
             {
                 Util.FireAndForget(x =>
@@ -563,9 +565,10 @@ namespace OpenSim.Server.Handlers.Simulation
             }
             else
             {
+*/
 
                 bool ret = m_SimulationService.CreateAgent(source, destination, aCircuit, teleportFlags, ctx, out reason);
-                m_log.DebugFormat("[AGENT HANDLER]: SYNC CreateAgent {0} {1}", ret.ToString(), reason);
+//                m_log.DebugFormat("[AGENT HANDLER]: SYNC CreateAgent {0} {1}", ret.ToString(), reason);
                 return ret;
             }
         }
