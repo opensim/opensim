@@ -1049,7 +1049,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             sp.HasMovedAway(!(OutSideViewRange || logout));
             
-            ulong sourceRegionHandle = sp.RegionHandle;
+//            ulong sourceRegionHandle = sp.RegionHandle;
 
              // Now let's make it officially a child agent
             sp.MakeChildAgent(destinationHandle);
@@ -1196,7 +1196,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             //HG hook
             AgentHasMovedAway(sp, logout);
 
-            ulong sourceRegionHandle = sp.RegionHandle;
+//            ulong sourceRegionHandle = sp.RegionHandle;
 
             // Now let's make it officially a child agent
             sp.MakeChildAgent(destinationHandle);
@@ -1804,8 +1804,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Unlike a teleport, here we do not wait for the destination region to confirm the receipt.
             m_entityTransferStateMachine.UpdateInTransit(agent.UUID, AgentTransferState.CleaningUp);
 
-
-
             agent.CloseChildAgents(false, neighbourRegion.RegionHandle, neighbourRegion.RegionSizeX, neighbourRegion.RegionSizeY);
 
             // this may need the attachments
@@ -1817,6 +1815,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // FIXME: Possibly this should occur lower down after other commands to close other agents,
             // but not sure yet what the side effects would be.
             m_entityTransferStateMachine.ResetFromTransit(agent.UUID);
+
+
             // TODO: Check since what version this wasn't needed anymore. May be as old as 0.6
 /*
             // Backwards compatibility. Best effort
@@ -1959,7 +1959,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 UUID scope = sp.Scene.RegionInfo.ScopeID;
                 foreach (ulong handler in oldregions)
                 {
-                    // crap code
                     Utils.LongToUInts(handler, out neighbourx, out neighboury);
                     GridRegion neighbour = sp.Scene.GridService.GetRegionByPosition(scope, (int)neighbourx, (int)neighboury);
                     sp.Scene.SimulationService.UpdateAgent(neighbour, agentpos);
@@ -2398,10 +2397,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Completed inform {0} {1} about neighbour {2}", sp.Name, sp.UUID, endPoint);
                 }
 
-                if (!regionAccepted)
+                else
+                {
+                    sp.RemoveNeighbourRegion(reg.RegionHandle);
                     m_log.WarnFormat(
                         "[ENTITY TRANSFER MODULE]: Region {0} did not accept {1} {2}: {3}",
                         reg.RegionName, sp.Name, sp.UUID, reason);
+                }
             }
  
         }
