@@ -741,7 +741,7 @@ namespace OpenSim.Framework
             int oldsizex, int oldsizey, int newsizex, int newsizey)
         {
             // we still need to make sure we see new region  1stNeighbors
-
+            drawdist--;
             oldx *= Constants.RegionSize;
             newx *= Constants.RegionSize;
             if (oldx + oldsizex + drawdist < newx)
