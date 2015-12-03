@@ -382,6 +382,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
             List<UUID> missing = new List<UUID>();
 
+            bool haveSkirt = (wearableCache[19].TextureAsset != null);
+            bool haveNewSkirt = false;
+
             // Process received baked textures
             for (int i = 0; i < cacheItems.Length; i++)
             {
@@ -392,8 +395,11 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 if (face == null)
                 {
                     // for some reason viewer is cleaning this
-                    sp.Appearance.Texture.FaceTextures[idx] = sp.Appearance.Texture.CreateFace((uint) idx);
-                    sp.Appearance.Texture.FaceTextures[idx].TextureID = AppearanceManager.DEFAULT_AVATAR_TEXTURE;
+                    if(idx != 19) // skirt is optional
+                        {
+                        sp.Appearance.Texture.FaceTextures[idx] = sp.Appearance.Texture.CreateFace((uint) idx);
+                        sp.Appearance.Texture.FaceTextures[idx].TextureID = AppearanceManager.DEFAULT_AVATAR_TEXTURE;
+                        }
                     wearableCache[idx].CacheId = UUID.Zero;
                     wearableCache[idx].TextureID = UUID.Zero;
                     wearableCache[idx].TextureAsset = null;
@@ -409,6 +415,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         continue;
                     }
 
+                    if(idx == 19)
+                        haveNewSkirt = true;
 /*
                     if (face.TextureID == wearableCache[idx].TextureID && m_BakedTextureModule != null)
                     {
@@ -448,6 +456,15 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 }
             }
 
+            // handle optional skirt case
+            if(!haveNewSkirt && haveSkirt)
+            {
+                wearableCache[19].CacheId = UUID.Zero;
+                wearableCache[19].TextureID = UUID.Zero;
+                wearableCache[19].TextureAsset = null;
+                validDirtyBakes++;
+            }
+
             sp.Appearance.WearableCacheItems = wearableCache;
            
             if (missing.Count > 0)
@@ -461,7 +478,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 // if we got a full set of baked textures save all in BakedTextureModule
                 if (m_BakedTextureModule != null)
                 {
-                    m_log.Debug("[UpdateBakedCache] uploading to bakedModule cache");
+                    m_log.Debug("[UpdateBakedCache] start async uploading to bakedModule cache");
 
                     m_BakedTextureModule.Store(sp.UUID, wearableCache);
                 }
@@ -573,12 +590,15 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     wearableCacheValid = (wearableCacheValid && (hits >= AvatarAppearance.BAKE_INDICES.Length - 1));
                     if (wearableCacheValid)
                         m_log.Debug("[ValidateBakedCache] have valid local cache");
+                    else
+                        wearableCache[19].TextureAsset = null; // clear optional skirt
                 }
 
                 bool checkExternal = false;
 
                 if (!wearableCacheValid)
                 {
+                    hits = 0;
                     // only use external bake module on login condition check                  
 //                    ScenePresence ssp = null;
 //                    if (sp is ScenePresence)
@@ -594,7 +614,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
                 if (checkExternal)
                 {
-                    hits = 0;
                     bool gotbacked = false;
 
                     m_log.Debug("[ValidateBakedCache] local cache invalid, checking bakedModule");
@@ -635,17 +654,26 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         for (int i = 0; i < AvatarAppearance.BAKE_INDICES.Length; i++)
                         {
                             int idx = AvatarAppearance.BAKE_INDICES[i];
+                            if(wearableCache[idx].TextureAsset == null)
+                            {
+                                if(idx == 19)
+                                {
+                                    sp.Appearance.Texture.FaceTextures[idx] = null;
+                                    hits++;
+                                }
+                                continue;
+                            }
+
                             Primitive.TextureEntryFace face = sp.Appearance.Texture.FaceTextures[idx];
 
-                            if (sp.Appearance.Texture.FaceTextures[idx] == null)
-                                sp.Appearance.Texture.FaceTextures[idx] = sp.Appearance.Texture.CreateFace((uint)idx);
-                            sp.Appearance.Texture.FaceTextures[idx].TextureID = wearableCache[idx].TextureID;
-                            face = sp.Appearance.Texture.FaceTextures[idx];
+                            if (face == null)
+                            {
+                                face = sp.Appearance.Texture.CreateFace((uint)idx);
+                                sp.Appearance.Texture.FaceTextures[idx] = face;
+                            }
 
-                            // this should be removed
-                            if (face.TextureID != UUID.Zero && face.TextureID != AppearanceManager.DEFAULT_AVATAR_TEXTURE)
-                                hits++;
-                            continue;
+                            face.TextureID = wearableCache[idx].TextureID;
+                            hits++;
                         }
                     }
                 }
