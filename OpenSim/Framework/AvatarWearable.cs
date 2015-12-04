@@ -82,6 +82,9 @@ namespace OpenSim.Framework
         public static readonly UUID DEFAULT_SKIN_ITEM = new UUID("77c41e39-38f9-f75a-024e-585989bfabc9");
         public static readonly UUID DEFAULT_SKIN_ASSET = new UUID("77c41e39-38f9-f75a-024e-585989bbabbb");
 
+        public static readonly UUID DEFAULT_EYES_ITEM = new UUID("cdc31054-eed8-4021-994f-4e0c6e861b50");
+        public static readonly UUID DEFAULT_EYES_ASSET = new UUID("4bb6fa4d-1cd2-498a-a84c-95c1a0e745a7");
+
         public static readonly UUID DEFAULT_SHIRT_ITEM = new UUID("77c41e39-38f9-f75a-0000-585989bf0000");
         public static readonly UUID DEFAULT_SHIRT_ASSET = new UUID("00000000-38f9-1111-024e-222222111110");
 
@@ -240,6 +243,9 @@ namespace OpenSim.Framework
 
                 // Skin
                 defaultWearables[SKIN].Add(DEFAULT_SKIN_ITEM, DEFAULT_SKIN_ASSET);
+
+                // Eyes
+                defaultWearables[EYES].Add(DEFAULT_EYES_ITEM, DEFAULT_EYES_ASSET);
 
                 // Shirt
                 defaultWearables[SHIRT].Add(DEFAULT_SHIRT_ITEM, DEFAULT_SHIRT_ASSET);

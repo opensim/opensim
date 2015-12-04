@@ -56,9 +56,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 // other transparency defined in assets
                 new UUID("3a367d1c-bef1-6d43-7595-e88c1e3aadb3"),
                 new UUID("1578a2b1-5179-4b53-b618-fe00ca5a5594"),
-                
-                new UUID("4bb6fa4d-1cd2-498a-a84c-95c1a0e745a7")  // other eyes
                 };
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
