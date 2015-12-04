@@ -12,21 +12,8 @@
     flags are only required for wearables.  See OpenMetaverse.WearableType enum in libopenmetaverse.
 -->
 
-<!--
-  <Section Name="Example Library Item">
-    <Key Name="inventoryID" Value="30000000-0000-2222-4444-000000000001" />
-    <Key Name="assetID" Value="30000000-0000-2222-3333-000000000001" />
-    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba003"/>
-    <Key Name="description" Value="Example Library Item" />
-    <Key Name="name" Value="Example Library Item" />
-    <Key Name="assetType" Value="7" />
-    <Key Name="inventoryType" Value="7" />
-    <Key Name="flags" Value="0" />
-  </Section>
---> 
-<!--
   <Section Name="Shirt">
-    <Key Name="inventoryID" Value="d5e46210-b9d1-11dc-95ff-0800200c9a66" />
+    <Key Name="inventoryID" Value="77c41e39-38f9-f75a-0000-585989bf0000" />
     <Key Name="assetID" Value="00000000-38f9-1111-024e-222222111110" />
     <Key Name="folderID" Value="b75056e0-b9bf-11dc-95ff-0800200c9a66"/>
     <Key Name="description" Value="Shirt" />
@@ -37,7 +24,7 @@
   </Section>
 
   <Section Name="Pants">
-    <Key Name="inventoryID" Value="d5e46211-b9d1-11dc-95ff-0800200c9a66" />
+    <Key Name="inventoryID" Value="77c41e39-38f9-f75a-0000-5859892f1111" />
     <Key Name="assetID" Value="00000000-38f9-1111-024e-222222111120" />
     <Key Name="folderID" Value="b75056e0-b9bf-11dc-95ff-0800200c9a66"/>
     <Key Name="description" Value="Pants" />
@@ -46,6 +33,5 @@
     <Key Name="inventoryType" Value="18" />
     <Key Name="flags" Value="5" />
   </Section>
--->
 
 </Nini>
