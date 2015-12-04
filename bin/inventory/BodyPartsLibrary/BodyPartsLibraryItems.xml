@@ -12,19 +12,6 @@
     flags are only required for wearables.  See OpenMetaverse.WearableType enum in libopenmetaverse.
 -->
 
-<!--
-  <Section Name="Example Library Item">
-    <Key Name="inventoryID" Value="30000000-0000-2222-4444-000000000001" />
-    <Key Name="assetID" Value="30000000-0000-2222-3333-000000000001" />
-    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba003"/>
-    <Key Name="description" Value="Example Library Item" />
-    <Key Name="name" Value="Example Library Item" />
-    <Key Name="assetType" Value="7" />
-    <Key Name="inventoryType" Value="7" />
-    <Key Name="flags" Value="0" />
-  </Section>
---> 
-<!--
   <Section Name="Hair">
     <Key Name="inventoryID" Value="d342e6c1-b9d2-11dc-95ff-0800200c9a66" />
     <Key Name="assetID" Value="d342e6c0-b9d2-11dc-95ff-0800200c9a66" />
@@ -46,7 +33,7 @@
     <Key Name="inventoryType" Value="18" />
     <Key Name="flags" Value="1" />
   </Section>
--->
+  
 <!--
   <Section Name="Jim Skin">
     <Key Name="inventoryID" Value="5c86b031-b9cc-11dc-95ff-0800200c9a66" />
@@ -70,7 +57,7 @@
     <Key Name="flags" Value="1" />
   </Section>
 -->
-<!--
+
   <Section Name="Shape">
     <Key Name="inventoryID" Value="5c86b033-b9cc-11dc-95ff-0800200c9a66" />
     <Key Name="assetID" Value="66c41e39-38f9-f75a-024e-585989bfab73" />
@@ -81,7 +68,18 @@
     <Key Name="inventoryType" Value="18" />
     <Key Name="flags" Value="0" />
   </Section>
--->
+
+  <Section Name="Eyes">
+    <Key Name="inventoryID" Value="cdc31054-eed8-4021-994f-4e0c6e861b50" />
+    <Key Name="assetID" Value="4bb6fa4d-1cd2-498a-a84c-95c1a0e745a7" />
+    <Key Name="folderID" Value="d499e5e0-b9bf-11dc-95ff-0800200c9a66"/>
+    <Key Name="description" Value="Default Eyes" />
+    <Key Name="name" Value="Default Eyes" />
+    <Key Name="assetType" Value="13" />
+    <Key Name="inventoryType" Value="18" />
+    <Key Name="flags" Value="3" />
+  </Section>
+  
 <!--
   <Section Name="Jim Shape">
     <Key Name="inventoryID" Value="5c86b034-b9cc-11dc-95ff-0800200c9a66" />
