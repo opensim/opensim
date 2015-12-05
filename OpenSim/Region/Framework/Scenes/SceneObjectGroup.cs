@@ -3930,7 +3930,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 HasGroupChanged = true;
                 m_rootPart.TriggerScriptChangedEvent(Changed.SCALE);
-                ScheduleGroupForTerseUpdate();
+                ScheduleGroupForFullUpdate();
             }
         }
 
