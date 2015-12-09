@@ -79,6 +79,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             if (!m_config.GetBoolean("enabled", false))
             {
                 //                m_log.InfoFormat("[IRC-Bridge] module disabled in configuration");
+                m_config = null;
                 return;
             }
 
@@ -104,7 +105,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                         MainServer.Instance.AddXmlRPCHandler("irc_admin", XmlRpcAdminMethod, false);
 
                     m_region = new RegionState(scene, m_config);
-                    lock (m_regions) m_regions.Add(m_region);
+                    lock (m_regions)
+                        m_regions.Add(m_region);
                     m_region.Open();
                 }
                 catch (Exception e)
