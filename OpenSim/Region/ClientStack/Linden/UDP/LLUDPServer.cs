@@ -2022,26 +2022,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 Scene.ThreadAlive(1);
                 try
                 {
-                    /*
-                    // HACK: This is a test to try and rate limit packet handling on Mono.
-                    // If it works, a more elegant solution can be devised
-                    if (Util.FireAndForgetCount() < 2)
-                    {
-                        //m_log.Debug("[LLUDPSERVER]: Incoming packet handler is sleeping");
-                        Thread.Sleep(30);
-                    }
-                     */
                     incomingPacket = packetInbox.Dequeue(250);
                     
-                    if (incomingPacket != null)
+                    if (incomingPacket != null && IsRunningInbound)
                     {
-                        ProcessInPacket(incomingPacket);//, incomingPacket); Util.FireAndForget(ProcessInPacket, incomingPacket);
+                        ProcessInPacket(incomingPacket);
 
                         if (UsePools)
                             m_incomingPacketPool.ReturnObject(incomingPacket);
-                    }
 
-                    incomingPacket = null;
+                        incomingPacket = null;
+                    }
                 }
                 catch(Exception ex)
                 {
