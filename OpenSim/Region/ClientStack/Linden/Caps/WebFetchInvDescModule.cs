@@ -99,8 +99,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private static Thread[] m_workerThreads = null;
 
-        private static DoubleQueue<aPollRequest> m_queue =
-                new DoubleQueue<aPollRequest>();
+        private static OpenSim.Framework.BlockingQueue<aPollRequest> m_queue =
+                new OpenSim.Framework.BlockingQueue<aPollRequest>();
 
         private static int m_NumberScenes = 0;
 
@@ -181,7 +181,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         "httpfetch",
                         StatType.Pull,
                         MeasuresOfInterest.AverageChangeOverTime,
-                        stat => { stat.Value = m_queue.Count; },
+                        stat => { stat.Value = m_queue.Count(); },
                         StatVerbosity.Debug);
 
             StatsManager.RegisterStat(s_processedRequestsStat);
@@ -332,9 +332,9 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
 
                     if (highPriority)
-                        m_queue.EnqueueHigh(reqinfo);
+                        m_queue.PriorityEnqueue(reqinfo);
                     else
-                        m_queue.EnqueueLow(reqinfo);
+                        m_queue.Enqueue(reqinfo);
                 };
 
                 NoEvents = (x, y) =>
@@ -381,7 +381,8 @@ namespace OpenSim.Region.ClientStack.Linden
                         m_log.WarnFormat("[FETCH INVENTORY DESCENDENTS2 MODULE]: Caught in the act of loosing responses! Please report this on mantis #7054");
                     responses[requestID] = response;
                 }
-
+                requestinfo.folders.Clear();
+                requestinfo.request.Clear();
                 WebFetchInvDescModule.ProcessedRequestsCount++;
             }
         }
@@ -444,7 +445,7 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 Watchdog.UpdateThread();
 
-                aPollRequest poolreq = m_queue.Dequeue();
+                aPollRequest poolreq = m_queue.Dequeue(5000);
 
                 if (poolreq != null && poolreq.thepoll != null)
                 {
