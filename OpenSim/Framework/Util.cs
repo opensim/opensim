@@ -3126,6 +3126,7 @@ namespace OpenSim.Framework
 
     }
 
+/*  don't like this code
     public class DoubleQueue<T> where T:class
     {
         private Queue<T> m_lowQueue = new Queue<T>();
@@ -3237,7 +3238,7 @@ namespace OpenSim.Framework
             }
         }
     }
-
+*/
     public class BetterRandom
     {
         private const int BufferSize = 1024;  // must be a multiple of 4
