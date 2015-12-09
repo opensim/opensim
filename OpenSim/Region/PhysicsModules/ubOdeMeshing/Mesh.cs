@@ -399,12 +399,14 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             if (m_verticesPtr != IntPtr.Zero)
             {
                 vhandler.Free();
+                GC.RemoveMemoryPressure(Buffer.ByteLength(vertices));
                 vertices = null;
                 m_verticesPtr = IntPtr.Zero;
             }
             if (m_indicesPtr != IntPtr.Zero)
             {
                 ihandler.Free();
+                GC.RemoveMemoryPressure(Buffer.ByteLength(indexes));
                 indexes = null;
                 m_indicesPtr = IntPtr.Zero;
             }
