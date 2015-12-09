@@ -2031,7 +2031,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         Thread.Sleep(30);
                     }
                      */
-                    incomingPacket = packetInbox.Dequeue(500);
+                    incomingPacket = packetInbox.Dequeue(250);
                     
                     if (incomingPacket != null)
                     {
