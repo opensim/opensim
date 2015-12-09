@@ -2301,41 +2301,35 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Packet packet = incomingPacket.Packet;
             LLClientView client = incomingPacket.Client;
 
-//            if (client.IsActive)
-//            {
-                m_currentIncomingClient = client;
+            if(!client.IsActive)
+                return;
 
-                try
-                {
-                    // Process this packet
-                    client.ProcessInPacket(packet);
-                }
-                catch (ThreadAbortException)
-                {
-                    // If something is trying to abort the packet processing thread, take that as a hint that it's time to shut down
-                    m_log.Info("[LLUDPSERVER]: Caught a thread abort, shutting down the LLUDP server");
-                    Stop();
-                }
-                catch (Exception e)
-                {
-                    // Don't let a failure in an individual client thread crash the whole sim.
-                    m_log.Error(
-                        string.Format(
-                            "[LLUDPSERVER]: Client packet handler for {0} for packet {1} threw ",
-                            client.Name, packet.Type),
-                        e);
-                }
-                finally
-                {
-                    m_currentIncomingClient = null;
-                }
-//            }
-//            else
-//            {
-//                m_log.DebugFormat(
-//                    "[LLUDPSERVER]: Dropped incoming {0} for dead client {1} in {2}",
-//                    packet.Type, client.Name, m_scene.RegionInfo.RegionName);
-//            }
+            m_currentIncomingClient = client;
+
+            try
+            {
+                // Process this packet
+                client.ProcessInPacket(packet);
+            }
+            catch(ThreadAbortException)
+            {
+                // If something is trying to abort the packet processing thread, take that as a hint that it's time to shut down
+                m_log.Info("[LLUDPSERVER]: Caught a thread abort, shutting down the LLUDP server");
+                Stop();
+            }
+            catch(Exception e)
+            {
+                // Don't let a failure in an individual client thread crash the whole sim.
+                m_log.Error(
+                    string.Format(
+                        "[LLUDPSERVER]: Client packet handler for {0} for packet {1} threw ",
+                        client.Name,packet.Type),
+                    e);
+            }
+            finally
+            {
+                m_currentIncomingClient = null;
+            }
 
             IncomingPacketsProcessed++;
         }
