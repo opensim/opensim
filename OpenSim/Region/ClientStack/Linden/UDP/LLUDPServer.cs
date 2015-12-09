@@ -522,8 +522,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Random rnd = new Random(Util.EnvironmentTickCount());
             m_animationSequenceNumber = rnd.Next(11474826);
 
-            if (usePools)
-                EnablePools();
+//            if (usePools)
+//                EnablePools();
+            DisablePools();
         }
 
         public void Start()
@@ -2027,10 +2028,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (incomingPacket != null && IsRunningInbound)
                     {
                         ProcessInPacket(incomingPacket);
-
+                        
                         if (UsePools)
+                        {
+                            incomingPacket.Client = null;
                             m_incomingPacketPool.ReturnObject(incomingPacket);
-
+                        }
                         incomingPacket = null;
                     }
                 }
