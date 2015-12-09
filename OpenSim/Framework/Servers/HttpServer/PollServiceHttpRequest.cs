@@ -90,29 +90,16 @@ namespace OpenSim.Framework.Servers.HttpServer
             try
             {
                 response.OutputStream.Write(buffer, 0, buffer.Length);
+                response.OutputStream.Flush();
+                response.Send();
+                buffer = null;
             }
             catch (Exception ex)
             {
                 m_log.Warn("[POLL SERVICE WORKER THREAD]: Error ", ex);
             }
-            finally
-            {
-                //response.OutputStream.Close();
-                try
-                {
-                    response.OutputStream.Flush();
-                    response.Send();
 
-                    //if (!response.KeepAlive && response.ReuseContext)
-                    //    response.FreeContext();
-                }
-                catch (Exception e)
-                {
-                    m_log.Warn("[POLL SERVICE WORKER THREAD]: Error ", e);
-                }
-
-                PollServiceArgs.RequestsHandled++;
-            }
+            PollServiceArgs.RequestsHandled++;
         }
 
         internal void DoHTTPstop(BaseHttpServer server)
