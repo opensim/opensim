@@ -171,11 +171,14 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // Test that we don't get back an object for a local id that doesn't exist
             Assert.That(scene.GetGroupByPrim(999), Is.Null);
 
+            uint soid = so.LocalId;
+            uint spid = parts[partsToTestCount - 1].LocalId;
+
             // Now delete the scene object and check again
             scene.DeleteSceneObject(so, false);
 
-            Assert.That(scene.GetGroupByPrim(so.LocalId), Is.Null);
-            Assert.That(scene.GetGroupByPrim(parts[partsToTestCount - 1].LocalId), Is.Null);
+            Assert.That(scene.GetGroupByPrim(soid), Is.Null);
+            Assert.That(scene.GetGroupByPrim(spid), Is.Null);
         }
         
         /// <summary>
@@ -194,12 +197,12 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             SceneObjectGroup so = SceneHelpers.AddSceneObject(scene);
 
             Assert.That(so.IsDeleted, Is.False);
+            uint retrievedPartID = so.LocalId;
 
             scene.DeleteSceneObject(so, false);
 
-            Assert.That(so.IsDeleted, Is.True);
+            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(retrievedPartID);
 
-            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(so.LocalId);
             Assert.That(retrievedPart, Is.Null);
         }
         
