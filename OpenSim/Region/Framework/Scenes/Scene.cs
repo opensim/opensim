@@ -1577,6 +1577,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_heartbeatThread = null;
             }
 
+            GC.Collect();
             // tell physics to finish building actor
             m_sceneGraph.ProcessPhysicsPreSimulation();
 
@@ -2798,7 +2799,11 @@ namespace OpenSim.Region.Framework.Scenes
             if (!silent)
                 SendKillObject(new List<uint>() { group.LocalId });
 
-            // m_log.DebugFormat("[SCENE]: Exit DeleteSceneObject() for {0} {1}", group.Name, group.UUID);            
+            // use this to mean also full delete
+            if (removeScripts)
+                group.Clear();
+            partList = null;
+            // m_log.DebugFormat("[SCENE]: Exit DeleteSceneObject() for {0} {1}", group.Name, group.UUID);          
         }
 
         /// <summary>

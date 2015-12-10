@@ -764,6 +764,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 avsToCross.Clear();
                 sog.RemoveScriptInstances(true);
+                sog.Clear();
                 return sog;
             }
             else // cross failed, put avas back ??
@@ -2245,7 +2246,6 @@ namespace OpenSim.Region.Framework.Scenes
                         { 
                             part.Inventory.ProcessInventoryBackup(datastore); 
 
-                            // take the change to delete things 
                             if(part.KeyframeMotion != null)
                             {
                                 part.KeyframeMotion.Delete();
@@ -2253,7 +2253,7 @@ namespace OpenSim.Region.Framework.Scenes
                             }
                         });
 
-
+                        backup_group.Clear();
                         backup_group = null;
                     }
 //                    else
@@ -4846,6 +4846,20 @@ namespace OpenSim.Region.Framework.Scenes
             });
         }
 
+        // clear some references to easy cg
+        public void Clear()
+        {
+            m_parts.Clear();
+            m_sittingAvatars.Clear();
+            m_rootPart = null;
+
+            m_PlaySoundMasterPrim = null;
+            m_PlaySoundSlavePrims.Clear();
+            m_LoopSoundMasterPrim = null;
+            m_targets.Clear();
+        }
+
         #endregion
     }
+
 }

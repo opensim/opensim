@@ -1083,6 +1083,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             // Now, remove the scripts
             so.RemoveScriptInstances(true);
+            so.Clear();
         }
 
         protected SceneObjectGroup RezSingleAttachmentFromInventoryInternal(
