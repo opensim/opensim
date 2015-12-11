@@ -761,7 +761,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             return VivoxCall(requrl, false);
         }
 
-        private static readonly string m_vivoxLogoutPath = "https://{0}/api2/viv_signout.php?auth_token={1}";
+        private static readonly string m_vivoxLogoutPath = "http://{0}/api2/viv_signout.php?auth_token={1}";
 
         /// <summary>
         /// Perform administrative logout for Vivox.
@@ -773,7 +773,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         }
 
 
-        private static readonly string m_vivoxGetAccountPath = "https://{0}/api2/viv_get_acct.php?auth_token={1}&user_name={2}";
+        private static readonly string m_vivoxGetAccountPath = "http://{0}/api2/viv_get_acct.php?auth_token={1}&user_name={2}";
 
         /// <summary>
         /// Retrieve account information for the specified user.
@@ -786,7 +786,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         }
 
 
-        private static readonly string m_vivoxNewAccountPath = "https://{0}/api2/viv_adm_acct_new.php?username={1}&pwd={2}&auth_token={3}";
+        private static readonly string m_vivoxNewAccountPath = "http://{0}/api2/viv_adm_acct_new.php?username={1}&pwd={2}&auth_token={3}";
 
         /// <summary>
         /// Creates a new account.
@@ -801,7 +801,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         }
 
 
-        private static readonly string m_vivoxPasswordPath = "https://{0}/api2/viv_adm_password.php?user_name={1}&new_pwd={2}&auth_token={3}";
+        private static readonly string m_vivoxPasswordPath = "http://{0}/api2/viv_adm_password.php?user_name={1}&new_pwd={2}&auth_token={3}";
 
         /// <summary>
         /// Change the user's password.
@@ -813,7 +813,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         }
 
 
-        private static readonly string m_vivoxChannelPath = "https://{0}/api2/viv_chan_mod.php?mode={1}&chan_name={2}&auth_token={3}";
+        private static readonly string m_vivoxChannelPath = "http://{0}/api2/viv_chan_mod.php?mode={1}&chan_name={2}&auth_token={3}";
 
         /// <summary>
         /// Create a channel.
@@ -885,7 +885,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             return false;
         }
 
-        private static readonly string m_vivoxChannelSearchPath = "https://{0}/api2/viv_chan_search.php?cond_channame={1}&auth_token={2}";
+        private static readonly string m_vivoxChannelSearchPath = "http://{0}/api2/viv_chan_search.php?cond_channame={1}&auth_token={2}";
 
         /// <summary>
         /// Retrieve a channel.
@@ -1040,7 +1040,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         //         return VivoxCall(requrl, true);
         // }
 
-        private static readonly string m_vivoxChannelDel = "https://{0}/api2/viv_chan_mod.php?mode={1}&chan_id={2}&auth_token={3}";
+        private static readonly string m_vivoxChannelDel = "http://{0}/api2/viv_chan_mod.php?mode={1}&chan_id={2}&auth_token={3}";
 
         /// <summary>
         /// Delete a channel.
@@ -1064,7 +1064,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             return VivoxCall(requrl, true);
         }
 
-        private static readonly string m_vivoxChannelSearch = "https://{0}/api2/viv_chan_search.php?&cond_chanparent={1}&auth_token={2}";
+        private static readonly string m_vivoxChannelSearch = "http://{0}/api2/viv_chan_search.php?&cond_chanparent={1}&auth_token={2}";
 
         /// <summary>
         /// Return information on channels in the given directory
