@@ -148,7 +148,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (value)
                 {
                     
-                    if (m_isBackedUp)
+                    if (Backup)
                     {
                         m_scene.SceneGraph.FireChangeBackup(this);
                     }
@@ -353,13 +353,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// Is this entity set to be saved in persistent storage?
         /// </summary>
         public bool Backup { get; private set; }
-
-        private bool m_isBackedUp;
-
-        public bool IsBackedUp
-        {
-            get { return m_isBackedUp; }
-        }
 
         protected MapAndArray<UUID, SceneObjectPart> m_parts = new MapAndArray<UUID, SceneObjectPart>();
 
@@ -2305,13 +2298,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_dupeInProgress = true;
             SceneObjectGroup dupe = (SceneObjectGroup)MemberwiseClone();
-            dupe.m_isBackedUp = false;
+  
             dupe.m_parts = new MapAndArray<OpenMetaverse.UUID, SceneObjectPart>();
 
             // a copy isnt backedup
             dupe.Backup = false;
-            dupe.m_isBackedUp = false;
-
+  
             // a copy is not in transit hopefully
             dupe.inTransit = false;
             
@@ -3305,7 +3297,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (m_scene != null)
                 m_scene.SceneGraph.FireDetachFromBackup(this);
-            if (m_isBackedUp && Scene != null)
+            if (Backup && Scene != null)
                 m_scene.EventManager.OnBackup -= ProcessBackup;
             
             Backup = false;
