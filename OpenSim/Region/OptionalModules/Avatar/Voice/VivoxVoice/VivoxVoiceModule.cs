@@ -197,7 +197,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                         break;
                 }
 
-                m_vivoxVoiceAccountApi = String.Format("https://{0}/api2", m_vivoxServer);
+                m_vivoxVoiceAccountApi = String.Format("http://{0}/api2", m_vivoxServer);
 
                 // Admin interface required values
                 if (String.IsNullOrEmpty(m_vivoxServer) ||
