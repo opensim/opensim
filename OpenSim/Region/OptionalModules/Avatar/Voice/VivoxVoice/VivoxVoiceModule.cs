@@ -749,8 +749,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             return channelUri;
         }
 
-
-        private static readonly string m_vivoxLoginPath = "https://{0}/api2/viv_signin.php?userid={1}&pwd={2}";
+        private static readonly string m_vivoxLoginPath = "http://{0}/api2/viv_signin.php?userid={1}&pwd={2}";
 
         /// <summary>
         /// Perform administrative login for Vivox.
