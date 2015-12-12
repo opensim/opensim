@@ -740,6 +740,17 @@ namespace OpenSim.Region.CoreModules.World.Land
                 newData.ParcelAccessList.Add(temp);
             }
 
+            // update use lists flags
+            // rights already checked or we wont be here
+            uint parcelflags = newData.Flags;
+            
+            if((flags & (uint)AccessList.Access) != 0)
+                    parcelflags |= (uint)ParcelFlags.UseAccessList;
+            if((flags & (uint)AccessList.Ban) != 0)
+                parcelflags |= (uint)ParcelFlags.UseBanList;
+
+            newData.Flags = parcelflags;
+
             m_scene.LandChannel.UpdateLandObject(LandData.LocalID, newData);
         }
 
