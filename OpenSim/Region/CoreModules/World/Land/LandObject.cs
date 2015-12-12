@@ -679,13 +679,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                                    IClientAPI remote_client)
         {
 
-            if (flags == (uint) AccessList.Access || flags == (uint) AccessList.Both)
+            if ((flags & (uint) AccessList.Access) != 0)
             {
                 List<LandAccessEntry> accessEntries = CreateAccessListArrayByFlag(AccessList.Access);
                 remote_client.SendLandAccessListData(accessEntries,(uint) AccessList.Access,LandData.LocalID);
             }
 
-            if (flags == (uint) AccessList.Ban || flags == (uint) AccessList.Both)
+            if ((flags & (uint) AccessList.Ban) != 0)
             {
                 List<LandAccessEntry> accessEntries = CreateAccessListArrayByFlag(AccessList.Ban);
                 remote_client.SendLandAccessListData(accessEntries, (uint)AccessList.Ban, LandData.LocalID);
