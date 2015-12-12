@@ -980,8 +980,14 @@ namespace OpenSim.Region.CoreModules.World.Land
                 return;
             }
 
-            //Lets create a new land object with bitmap activated at that point (keeping the old land objects info)
+            // invalidate landing point
+            startLandObject.LandData.LandingType = (byte)LandingType.None;
+            startLandObject.LandData.UserLocation = Vector3.Zero;
+            startLandObject.LandData.UserLookAt = Vector3.Zero;
+
+             //Lets create a new land object with bitmap activated at that point (keeping the old land objects info)
             ILandObject newLand = startLandObject.Copy();
+
             newLand.LandData.Name = newLand.LandData.Name;
             newLand.LandData.GlobalID = UUID.Random();
             newLand.LandData.Dwell = 0;
@@ -990,7 +996,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             newLand.SetLandBitmap(newLand.GetSquareLandBitmap(start_x, start_y, end_x, end_y));
 
-            //Now, lets set the subdivision area of the original to false
+            //lets set the subdivision area of the original to false
             int startLandObjectIndex = startLandObject.LandData.LocalID;
             lock (m_landList)
             {
@@ -999,7 +1005,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 m_landList[startLandObjectIndex].ForceUpdateLandInfo();
             }
 
-            //Now add the new land object
+            //add the new land object
             ILandObject result = AddLandObject(newLand);
 
             UpdateLandObject(startLandObject.LandData.LocalID, startLandObject.LandData);
