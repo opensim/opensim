@@ -271,6 +271,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_scene.Permissions.OnIsGod += IsGod;
             m_scene.Permissions.OnIsGridGod += IsGridGod;
             m_scene.Permissions.OnIsAdministrator += IsAdministrator;
+            m_scene.Permissions.OnIsEstateManager += IsEstateManager;
             m_scene.Permissions.OnDuplicateObject += CanDuplicateObject;
             m_scene.Permissions.OnDeleteObject += CanDeleteObject; 
             m_scene.Permissions.OnEditObject += CanEditObject; 
