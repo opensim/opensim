@@ -653,8 +653,15 @@ public sealed class BSCharacter : BSPhysObject
     {
         // Since this force is being applied in only one step, make this a force per second.
         OMV.Vector3 addForce = force / PhysScene.LastTimeStep;
+
+        // compensate for density variation
+        // with a adicional parameter to sync with old ode
+        if(pushforce)
+            addForce = addForce * Density * BSParam.DensityScaleFactor * 0.08f;;
+
         AddForce(addForce, pushforce, false);
     }
+
     public override void AddForce(OMV.Vector3 force, bool pushforce, bool inTaintTime) {
         if (force.IsFinite())
         {
@@ -668,6 +675,7 @@ public sealed class BSCharacter : BSPhysObject
                 if (PhysBody.HasPhysicalBody)
                 {
                     PhysScene.PE.ApplyCentralForce(PhysBody, addForce);
+                    PhysScene.PE.Activate(PhysBody, true);
                 }
             });
         }
