@@ -4458,8 +4458,8 @@ namespace OpenSim.Region.Framework.Scenes
                 
                 // finally test groups
 
-                if (m_groupsModule == null) // if no groups allow
-                    return true;
+                if (m_groupsModule == null) // if no groups refuse
+                    return false;
 
                 UUID[] estateGroups = RegionInfo.EstateSettings.EstateGroups;
 
