@@ -951,20 +951,26 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             ILandObject startLandObject = GetLandObject(start_x, start_y);
 
-            if (startLandObject == null) return;
+            if (startLandObject == null)
+                return;
+
+            if (!m_scene.Permissions.CanEditParcelProperties(attempting_user_id, startLandObject, GroupPowers.LandDivideJoin, true))
+            {
+                return;
+            }
 
             //Loop through the points
             try
             {
-                int totalX = end_x - start_x;
-                int totalY = end_y - start_y;
-                for (int y = 0; y < totalY; y++)
+                for (int y = start_y; y < end_y; y++)
                 {
-                    for (int x = 0; x < totalX; x++)
+                    for (int x = start_x; x < end_x; x++)
                     {
-                        ILandObject tempLandObject = GetLandObject(start_x + x, start_y + y);
-                        if (tempLandObject == null) return;
-                        if (tempLandObject != startLandObject) return;
+                        ILandObject tempLandObject = GetLandObject(x, y);
+                        if (tempLandObject == null)
+                            return;
+                        if (tempLandObject != startLandObject)
+                            return;
                     }
                 }
             }
@@ -972,18 +978,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 return;
             }
-
-            //If we are still here, then they are subdividing within one piece of land
-            //Check owner
-            if (!m_scene.Permissions.CanEditParcelProperties(attempting_user_id, startLandObject, GroupPowers.LandDivideJoin, true))
-            {
-                return;
-            }
-
-            // invalidate landing point
-            startLandObject.LandData.LandingType = (byte)LandingType.None;
-            startLandObject.LandData.UserLocation = Vector3.Zero;
-            startLandObject.LandData.UserLookAt = Vector3.Zero;
 
              //Lets create a new land object with bitmap activated at that point (keeping the old land objects info)
             ILandObject newLand = startLandObject.Copy();
@@ -993,6 +987,10 @@ namespace OpenSim.Region.CoreModules.World.Land
             newLand.LandData.Dwell = 0;
             // Clear "Show in search" on the cut out parcel to prevent double-charging
             newLand.LandData.Flags &= ~(uint)ParcelFlags.ShowDirectory;
+            // invalidate landing point
+            newLand.LandData.LandingType = (byte)LandingType.Direct;
+            newLand.LandData.UserLocation = Vector3.Zero;
+            newLand.LandData.UserLookAt = Vector3.Zero;
 
             newLand.SetLandBitmap(newLand.GetSquareLandBitmap(start_x, start_y, end_x, end_y));
 
@@ -1010,6 +1008,19 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             UpdateLandObject(startLandObject.LandData.LocalID, startLandObject.LandData);
             result.SendLandUpdateToAvatarsOverMe();
+
+            if(startLandObject.LandData.LandingType == (byte)LandingType.LandingPoint)
+            {
+                int x = (int)startLandObject.LandData.UserLocation.X;
+                int y = (int)startLandObject.LandData.UserLocation.Y;
+                if(!startLandObject.ContainsPoint(x, y))
+                {
+                    startLandObject.LandData.LandingType = (byte)LandingType.Direct;
+                    startLandObject.LandData.UserLocation = Vector3.Zero;
+                    startLandObject.LandData.UserLookAt = Vector3.Zero;
+                }
+             }
+
             startLandObject.SendLandUpdateToAvatarsOverMe();
             m_scene.ForEachClient(SendParcelOverlay);
 
