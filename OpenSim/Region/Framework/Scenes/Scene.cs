@@ -4060,7 +4060,6 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
 
-            ILandObject land;
             ScenePresence sp;
 
             lock (m_removeClientLock)
@@ -4166,27 +4165,18 @@ namespace OpenSim.Region.Framework.Scenes
                 // If the checks fail, we remove the circuit.
                 acd.teleportFlags = teleportFlags;
 
-                // Remove any preexisting circuit - we don't want duplicates
-                // This is a stab at preventing avatar "ghosting"
-                if (vialogin)
-                    m_authenticateHandler.RemoveCircuit(acd.AgentID);
-
-                m_authenticateHandler.AddNewCircuit(acd.circuitcode, acd);
-
-                land = LandChannel.GetLandObject(acd.startpos.X, acd.startpos.Y);
-
-                // On login test land permisions
                 if (vialogin)
                 {
                     IUserAccountCacheModule cache = RequestModuleInterface<IUserAccountCacheModule>();
                     if (cache != null)
                         cache.Remove(acd.firstname + " " + acd.lastname);
-                    if (land != null && !TestLandRestrictions(acd.AgentID, out reason, ref acd.startpos.X, ref acd.startpos.Y))
-                    {
-                        m_authenticateHandler.RemoveCircuit(acd.circuitcode);
-                        return false;
-                    }
+
+                    // Remove any preexisting circuit - we don't want duplicates
+                    // This is a stab at preventing avatar "ghosting"
+                    m_authenticateHandler.RemoveCircuit(acd.AgentID);
                 }
+
+                m_authenticateHandler.AddNewCircuit(acd.circuitcode, acd);
 
                 if (sp == null) // We don't have an [child] agent here already
                 {
@@ -4271,92 +4261,41 @@ namespace OpenSim.Region.Framework.Scenes
                 CapsModule.ActivateCaps(acd.circuitcode);
             }
 
-            if (vialogin)
-            {
+//            if (vialogin)
+//            {
 //                CleanDroppedAttachments();
+//            }
 
-                // Make sure avatar position is in the region (why it wouldn't be is a mystery but do sanity checking)
-                if (acd.startpos.X < 0) acd.startpos.X = 1f;
-                if (acd.startpos.X >= RegionInfo.RegionSizeX) acd.startpos.X = RegionInfo.RegionSizeX - 1f;
-                if (acd.startpos.Y < 0) acd.startpos.Y = 1f;
-                if (acd.startpos.Y >= RegionInfo.RegionSizeY) acd.startpos.Y = RegionInfo.RegionSizeY - 1f;
+            // Make sure avatar position is in the region (why it wouldn't be is a mystery but do sanity checking)
+            if (acd.startpos.X < 0)
+                acd.startpos.X = 1f;
+            else if (acd.startpos.X >= RegionInfo.RegionSizeX)
+                acd.startpos.X = RegionInfo.RegionSizeX - 1f;
+            if (acd.startpos.Y < 0)
+                acd.startpos.Y = 1f;
+            else if (acd.startpos.Y >= RegionInfo.RegionSizeY)
+                acd.startpos.Y = RegionInfo.RegionSizeY - 1f;
 
-//                m_log.DebugFormat(
-//                    "[SCENE]: Found telehub object {0} for new user connection {1} to {2}", 
-//                    RegionInfo.RegionSettings.TelehubObject, acd.Name, Name);
+            // only check access, actual relocations will happen later on ScenePresence MakeRoot
+            // allow child agents creation
+            if(!godlike || teleportFlags != (uint) TPFlags.Default)
+            {   
+                bool checkTeleHub;
 
-                // Honor Estate teleport routing via Telehubs excluding ViaHome and GodLike TeleportFlags
-                if (RegionInfo.RegionSettings.TelehubObject != UUID.Zero &&
-                    RegionInfo.EstateSettings.AllowDirectTeleport == false &&
-                    !viahome && !godlike)
+                // don't check hubs if via home or via lure
+                if((teleportFlags & (uint) TPFlags.ViaHome) != 0
+                        || (teleportFlags & (uint) TPFlags.ViaLure) != 0)
+                        checkTeleHub = false;
+                else
+                    checkTeleHub = vialogin
+                        || (TelehubAllowLandmarks == true ? false : ((teleportFlags & (uint)TPFlags.ViaLandmark) != 0 ))
+                        || (teleportFlags & (uint) TPFlags.ViaLocation) != 0;
+                 
+                if(!CheckLandPositionAccess(acd.AgentID, true, checkTeleHub, acd.startpos, out reason))
                 {
-                    SceneObjectGroup telehub = GetSceneObjectGroup(RegionInfo.RegionSettings.TelehubObject);
-
-                    if (telehub != null)
-                    {
-                        // Can have multiple SpawnPoints
-                        List<SpawnPoint> spawnpoints = RegionInfo.RegionSettings.SpawnPoints();
-                        if (spawnpoints.Count > 1)
-                        {
-                            // We have multiple SpawnPoints, Route the agent to a random or sequential one
-                            if (SpawnPointRouting == "random")
-                                acd.startpos = spawnpoints[Util.RandomClass.Next(spawnpoints.Count) - 1].GetLocation(
-                                    telehub.AbsolutePosition,
-                                    telehub.GroupRotation
-                                );
-                            else
-                                acd.startpos = spawnpoints[SpawnPoint()].GetLocation(
-                                    telehub.AbsolutePosition,
-                                    telehub.GroupRotation
-                                );
-                        }
-                        else if (spawnpoints.Count == 1)
-                        {
-                            // We have a single SpawnPoint and will route the agent to it
-                            acd.startpos = spawnpoints[0].GetLocation(telehub.AbsolutePosition, telehub.GroupRotation);
-                        }
-                        else
-                        {
-                            m_log.DebugFormat(
-                                "[SCENE]: No spawnpoints defined for telehub {0} for {1} in {2}.  Continuing.",
-                                RegionInfo.RegionSettings.TelehubObject, acd.Name, Name);
-                        }
-                    }
-                    else
-                    {
-                        m_log.DebugFormat(
-                            "[SCENE]: No telehub {0} found to direct {1} in {2}.  Continuing.",
-                            RegionInfo.RegionSettings.TelehubObject, acd.Name, Name);
-                    }
-
-                    // Final permissions check; this time we don't allow changing the position
-                    if (!IsPositionAllowed(acd.AgentID, acd.startpos, ref reason))
-                    {
-                        m_authenticateHandler.RemoveCircuit(acd.circuitcode);
-                        return false;
-                    }
-
-                    return true;
+                    m_authenticateHandler.RemoveCircuit(acd.circuitcode);
+                    return false;
                 }
-
-                // Honor parcel landing type and position.
-                /*
-                ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
-                if (land != null)
-                {
-                    if (land.LandData.LandingType == (byte)1 && land.LandData.UserLocation != Vector3.Zero)
-                    {
-                        acd.startpos = land.LandData.UserLocation;
-
-                        // Final permissions check; this time we don't allow changing the position
-                        if (!IsPositionAllowed(acd.AgentID, acd.startpos, ref reason))
-                        {
-                            m_authenticateHandler.RemoveCircuit(acd.circuitcode);
-                            return false;
-                        }
-                    }
-                }
-                */// This is now handled properly in ScenePresence.MakeRootAgent
             }
 
             return true;
@@ -4406,7 +4345,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (nearestParcel != null)
                 {
                     //Move agent to nearest allowed
-                    Vector3 newPosition = GetParcelCenterAtGround(nearestParcel);
+                    Vector2 newPosition = GetParcelSafeCorner(nearestParcel);
                     posX = newPosition.X;
                     posY = newPosition.Y;
                 }
@@ -4468,8 +4407,10 @@ namespace OpenSim.Region.Framework.Scenes
         {
             reason = String.Empty;
 
-            if (!m_strictAccessControl) return true;
-            if (Permissions.IsGod(agent.AgentID)) return true;
+            if (!m_strictAccessControl)
+                return true;
+            if (Permissions.IsGod(agent.AgentID))
+                return true;
 
             if (AuthorizationService != null)
             {
@@ -4489,98 +4430,84 @@ namespace OpenSim.Region.Framework.Scenes
             // the root is done elsewhere (QueryAccess)
             if (!bypassAccessControl)
             {
-                if (RegionInfo.EstateSettings != null)
+                if(RegionInfo.EstateSettings == null)
                 {
-                    int flags = GetUserFlags(agent.AgentID);
-                    if (RegionInfo.EstateSettings.IsBanned(agent.AgentID, flags))
-                    {
-                        m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user is on the banlist",
-                                         agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
-                        reason = String.Format("Denied access to region {0}: You have been banned from that region.",
-                                               RegionInfo.RegionName);
-                        return false;
-                    }
-                }
-                else
-                {
+                    // something is broken?  let it get in
                     m_log.ErrorFormat("[CONNECTION BEGIN]: Estate Settings is null!");
+                    return true;
+                }
+
+                // check estate ban
+                int flags = GetUserFlags(agent.AgentID);
+                if (RegionInfo.EstateSettings.IsBanned(agent.AgentID, flags))
+                {
+                    m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user is on the banlist",
+                            agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
+                    reason = String.Format("Denied access to region {0}: You have been banned from that region.",
+                            RegionInfo.RegionName);
+                    return false;
+                }
+
+                // public access
+                if (RegionInfo.EstateSettings.PublicAccess)
+                    return true;
+
+                // in access list / owner / manager
+                if (RegionInfo.EstateSettings.HasAccess(agent.AgentID))
+                    return true;
+                
+                // finally test groups
+
+                if (m_groupsModule == null) // if no groups allow
+                    return true;
+
+                UUID[] estateGroups = RegionInfo.EstateSettings.EstateGroups;
+
+                if (estateGroups == null)
+                {
+                    m_log.ErrorFormat("[CONNECTION BEGIN]: Estate GroupMembership is null!");
+                    return false;
+                }
+
+                if(estateGroups.Length == 0)
+                {
+                    return false;
                 }
 
                 List<UUID> agentGroups = new List<UUID>();
+                GroupMembershipData[] GroupMembership = m_groupsModule.GetMembershipData(agent.AgentID);
 
-                if (m_groupsModule != null)
+                if (GroupMembership == null)
                 {
-                    GroupMembershipData[] GroupMembership = m_groupsModule.GetMembershipData(agent.AgentID);
-
-                    if (GroupMembership != null)
-                    {
-                        for (int i = 0; i < GroupMembership.Length; i++)
-                            agentGroups.Add(GroupMembership[i].GroupID);
-                    }
-                    else
-                    {
-                        m_log.ErrorFormat("[CONNECTION BEGIN]: GroupMembership is null!");
-                    }
+                    m_log.ErrorFormat("[CONNECTION BEGIN]: GroupMembership is null!");
+                    return false;
                 }
-
+        
+                if(GroupMembership.Length == 0)
+                    return false;
+                        
+                for (int i = 0; i < GroupMembership.Length; i++)
+                  agentGroups.Add(GroupMembership[i].GroupID);
+ 
                 bool groupAccess = false;
-                UUID[] estateGroups = RegionInfo.EstateSettings.EstateGroups;
-
-                if (estateGroups != null)
+                foreach (UUID group in estateGroups)
                 {
-                    foreach (UUID group in estateGroups)
+                    if (agentGroups.Contains(group))
                     {
-                        if (agentGroups.Contains(group))
-                        {
-                            groupAccess = true;
-                            break;
-                        }
+                        groupAccess = true;
+                        break;
                     }
                 }
-                else
-                {
-                    m_log.ErrorFormat("[CONNECTION BEGIN]: EstateGroups is null!");
-                }
 
-                if (!RegionInfo.EstateSettings.PublicAccess &&
-                    !RegionInfo.EstateSettings.HasAccess(agent.AgentID) &&
-                    !groupAccess)
+                if (!groupAccess)
                 {
                     m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access to the estate",
                                      agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
                     reason = String.Format("Denied access to private region {0}: You are not on the access list for that region.",
-                                           RegionInfo.RegionName);
+                                     RegionInfo.RegionName);
                     return false;
                 }
             }
-
-            // TODO: estate/region settings are not properly hooked up
-            // to ILandObject.isRestrictedFromLand()
-            // if (null != LandChannel)
-            // {
-            //     // region seems to have local Id of 1
-            //     ILandObject land = LandChannel.GetLandObject(1);
-            //     if (null != land)
-            //     {
-            //         if (land.isBannedFromLand(agent.AgentID))
-            //         {
-            //             m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user has been banned from land",
-            //                              agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
-            //             reason = String.Format("Denied access to private region {0}: You are banned from that region.",
-            //                                    RegionInfo.RegionName);
-            //             return false;
-            //         }
-
-            //         if (land.isRestrictedFromLand(agent.AgentID))
-            //         {
-            //             m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access to the region",
-            //                              agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
-            //             reason = String.Format("Denied access to private region {0}: You are not on the access list for that region.",
-            //                                    RegionInfo.RegionName);
-            //             return false;
-            //         }
-            //     }
-            // }
 
             return true;
         }
@@ -5951,6 +5878,14 @@ Environment.Exit(1);
             return LandChannel.AllParcels();
         }
 
+        private Vector2 GetParcelSafeCorner(ILandObject parcel)
+        {
+            Vector3 start = parcel.StartPoint;
+            float x = start.X + 2.0f;
+            float y = start.Y + 2.0f;
+            return new Vector2(x, y);
+        }
+
         private float GetParcelDistancefromPoint(ILandObject parcel, float x, float y)
         {
             return Vector2.Distance(new Vector2(x, y), GetParcelCenter(parcel));
@@ -5962,9 +5897,16 @@ Environment.Exit(1);
             int count = 0;
             int avgx = 0;
             int avgy = 0;
-            for (int x = 0; x < RegionInfo.RegionSizeX; x++)
+            Vector3 start = parcel.StartPoint;
+            Vector3 end = parcel.EndPoint;
+            int startX = (int) start.X;
+            int startY = (int) start.Y;
+            int endX = (int) end.X;
+            int endY = (int) end.Y;
+
+            for (int x = startX; x < endX; x += 4)
             {
-                for (int y = 0; y < RegionInfo.RegionSizeY; y++)
+                for (int y = startY; y < endY; y += 4)
                 {
                     //Just keep a running average as we check if all the points are inside or not
                     if (parcel.ContainsPoint(x, y))
@@ -5983,6 +5925,7 @@ Environment.Exit(1);
                     }
                 }
             }
+
             return new Vector2(avgx, avgy);
         }
 
@@ -6230,13 +6173,16 @@ Environment.Exit(1);
             reason = string.Empty;
 
             if (Permissions.IsGod(agentID))
-            {
-                reason = String.Empty;
                 return true;
-            }
 
             if (!AllowAvatarCrossing && !viaTeleport)
+            {
+                reason = "Region Crossing not allowed";
                 return false;
+            }
+
+            bool isAdmin = Permissions.IsAdministrator(agentID);
+            bool isManager = Permissions.IsEstateManager(agentID);
 
             // FIXME: Root agent count is currently known to be inaccurate.  This forces a recount before we check.
             // However, the long term fix is to make sure root agent count is always accurate.
@@ -6246,7 +6192,7 @@ Environment.Exit(1);
 
             if (num >= RegionInfo.RegionSettings.AgentLimit)
             {
-                if (!Permissions.IsAdministrator(agentID))
+                if (!(isAdmin || isManager))
                 {
                     reason = "The region is full";
 
@@ -6284,6 +6230,7 @@ Environment.Exit(1);
                 if (!AuthorizeUser(aCircuit, false, out reason))
                 {
                     //m_log.DebugFormat("[SCENE]: Denying access for {0}", agentID);
+//                    reason = "Region authorization fail";
                     return false;
                 }
             }
@@ -6293,53 +6240,101 @@ Environment.Exit(1);
                 reason = "Error authorizing agent: " + e.Message;
                 return false;
             }
+            
+            // last check aditional land access restrictions and relocations
+            // if crossing (viaTeleport false) check only the specified parcel
+            return CheckLandPositionAccess(agentID, viaTeleport, true, position, out reason);
+        }            
 
-            if (viaTeleport)
+        // check access to land.
+        public bool CheckLandPositionAccess(UUID agentID, bool agentRootCrossing, bool checkTeleHub, Vector3 position, out string reason)
+        {
+            reason = string.Empty;
+
+            if (Permissions.IsGod(agentID))
+                return true;
+
+            bool isAdmin = Permissions.IsAdministrator(agentID);
+            if(isAdmin)
+                return true;
+
+            // also honor estate managers access rights
+            bool isManager = Permissions.IsEstateManager(agentID);
+            if(isManager)
+                return true;
+
+            if (!agentRootCrossing)
             {
                 if (!RegionInfo.EstateSettings.AllowDirectTeleport)
                 {
                     SceneObjectGroup telehub;
-                    if (RegionInfo.RegionSettings.TelehubObject != UUID.Zero && (telehub = GetSceneObjectGroup(RegionInfo.RegionSettings.TelehubObject)) != null)
-                    {
-                        List<SpawnPoint> spawnPoints = RegionInfo.RegionSettings.SpawnPoints();
+                    if (RegionInfo.RegionSettings.TelehubObject != UUID.Zero && (telehub = GetSceneObjectGroup  (RegionInfo.RegionSettings.TelehubObject)) != null && checkTeleHub)
+                    {   
                         bool banned = true;
-                        foreach (SpawnPoint sp in spawnPoints)
+                        bool validTelehub = false;
+                        List<SpawnPoint> spawnPoints = RegionInfo.RegionSettings.SpawnPoints();
+                        Vector3 spawnPoint;
+                        ILandObject land = null;
+                        Vector3 telehubPosition = telehub.AbsolutePosition;
+                        
+                        if(spawnPoints.Count == 0)
                         {
-                            Vector3 spawnPoint = sp.GetLocation(telehub.AbsolutePosition, telehub.GroupRotation);
-                            ILandObject land = LandChannel.GetLandObject(spawnPoint.X, spawnPoint.Y);
-                            if (land == null)
-                                continue;
-                            if (land.IsEitherBannedOrRestricted(agentID))
-                                continue;
-                            banned = false;
-                            break;
+                            // will this ever happen?
+                            // if so use the telehub object position
+                            spawnPoint = telehubPosition;
+                            land = LandChannel.GetLandObject(spawnPoint.X, spawnPoint.Y);
+                            if(land != null && !land.IsEitherBannedOrRestricted(agentID))
+                            {
+                                banned = false;
+                                validTelehub = true;
+                            }
+                        }
+                        else
+                        {   
+                            Quaternion telehubRotation = telehub.GroupRotation;
+                            foreach (SpawnPoint spawn in spawnPoints)
+                            {
+                                spawnPoint = spawn.GetLocation(telehubPosition, telehubRotation);
+                                land = LandChannel.GetLandObject(spawnPoint.X, spawnPoint.Y);
+                                if (land == null)
+                                    continue;
+                                validTelehub = true;
+                                if (!land.IsEitherBannedOrRestricted(agentID))
+                                {
+                                    banned = false;
+                                    break;
+                                }
+                            }
                         }
 
-                        if (banned)
+                        if(validTelehub)
                         {
-                            if (Permissions.IsAdministrator(agentID) == false || Permissions.IsGridGod(agentID) == false)
+                            if (banned)
                             {
                                 reason = "No suitable landing point found";
                                 return false;
                             }
-                            reason = "Administrative access only";
-                            return true;
+                            else
+                                return true;
                         }
+                       // possible broken telehub, fall into normal check
                     }
                 }
 
-                float posX = 128.0f;
-                float posY = 128.0f;
+                float posX = position.X;
+                float posY = position.Y;
 
+                // allow position relocation
                 if (!TestLandRestrictions(agentID, out reason, ref posX, ref posY))
                 {
                     // m_log.DebugFormat("[SCENE]: Denying {0} because they are banned on all parcels", agentID);
-                    reason = "You are banned from the region on all parcels";
+                    reason = "You dont have access to the region parcels";
                     return false;
                 }
             }
-            else // Walking
+            else // check for query region crossing only
             {
+                // no relocation allowed on crossings
                 ILandObject land = LandChannel.GetLandObject(position.X, position.Y);
                 if (land == null)
                 {
@@ -6360,7 +6355,6 @@ Environment.Exit(1);
                 }
             }
 
-            reason = String.Empty;
             return true;
         }
 
