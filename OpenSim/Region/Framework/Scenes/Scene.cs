@@ -4457,53 +4457,53 @@ namespace OpenSim.Region.Framework.Scenes
                     return true;
                 
                 // finally test groups
+                bool groupAccess = false;
 
-                if (m_groupsModule == null) // if no groups refuse
-                    return false;
+                // some say GOTO is ugly
+                if(m_groupsModule == null) // if no groups refuse
+                    goto Label_GroupsDone;
 
                 UUID[] estateGroups = RegionInfo.EstateSettings.EstateGroups;
 
-                if (estateGroups == null)
+                if(estateGroups == null)
                 {
                     m_log.ErrorFormat("[CONNECTION BEGIN]: Estate GroupMembership is null!");
-                    return false;
+                    goto Label_GroupsDone;
                 }
 
                 if(estateGroups.Length == 0)
-                {
-                    return false;
-                }
+                    goto Label_GroupsDone;
 
                 List<UUID> agentGroups = new List<UUID>();
                 GroupMembershipData[] GroupMembership = m_groupsModule.GetMembershipData(agent.AgentID);
 
-                if (GroupMembership == null)
+                if(GroupMembership == null)
                 {
                     m_log.ErrorFormat("[CONNECTION BEGIN]: GroupMembership is null!");
-                    return false;
+                    goto Label_GroupsDone;
                 }
-        
+
                 if(GroupMembership.Length == 0)
-                    return false;
-                        
-                for (int i = 0; i < GroupMembership.Length; i++)
-                  agentGroups.Add(GroupMembership[i].GroupID);
- 
-                bool groupAccess = false;
-                foreach (UUID group in estateGroups)
+                    goto Label_GroupsDone;
+
+                for(int i = 0;i < GroupMembership.Length;i++)
+                    agentGroups.Add(GroupMembership[i].GroupID);
+
+                foreach(UUID group in estateGroups)
                 {
-                    if (agentGroups.Contains(group))
+                    if(agentGroups.Contains(group))
                     {
                         groupAccess = true;
                         break;
                     }
                 }
 
+Label_GroupsDone:
                 if (!groupAccess)
                 {
                     m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access to the estate",
                                      agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
-                    reason = String.Format("Denied access to private region {0}: You are not on the access list for that region.",
+                    reason = String.Format("Denied access to private region {0}: You are do not have access to that region.",
                                      RegionInfo.RegionName);
                     return false;
                 }
