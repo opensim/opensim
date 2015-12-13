@@ -6257,7 +6257,7 @@ Environment.Exit(1);
             bool isAdmin = Permissions.IsAdministrator(agentID);
             if(isAdmin)
                 return true;
-
+                
             // also honor estate managers access rights
             bool isManager = Permissions.IsEstateManager(agentID);
             if(isManager)
