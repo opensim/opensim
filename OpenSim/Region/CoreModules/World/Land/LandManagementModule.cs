@@ -1007,7 +1007,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             ILandObject result = AddLandObject(newLand);
 
             UpdateLandObject(startLandObject.LandData.LocalID, startLandObject.LandData);
-            result.SendLandUpdateToAvatarsOverMe();
 
             if(startLandObject.LandData.LandingType == (byte)LandingType.LandingPoint)
             {
@@ -1021,6 +1020,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
              }
 
+            m_scene.EventManager.TriggerParcelPrimCountTainted();
+
+            result.SendLandUpdateToAvatarsOverMe();
             startLandObject.SendLandUpdateToAvatarsOverMe();
             m_scene.ForEachClient(SendParcelOverlay);
 
@@ -1087,6 +1089,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
             }
 
+            m_scene.EventManager.TriggerParcelPrimCountTainted();
             masterLandObject.SendLandUpdateToAvatarsOverMe();
             m_scene.ForEachClient(SendParcelOverlay);
         }
