@@ -4278,7 +4278,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // only check access, actual relocations will happen later on ScenePresence MakeRoot
             // allow child agents creation
-            if(!godlike || teleportFlags != (uint) TPFlags.Default)
+            if(!godlike && teleportFlags != (uint) TPFlags.Default)
             {   
                 bool checkTeleHub;
 
@@ -6222,7 +6222,7 @@ Environment.Exit(1);
             if(isManager)
                 return true;
 
-            if (!agentRootCrossing)
+            if (agentRootCrossing)
             {
                 if (!RegionInfo.EstateSettings.AllowDirectTeleport)
                 {
