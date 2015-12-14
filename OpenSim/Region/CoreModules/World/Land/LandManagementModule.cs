@@ -944,7 +944,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <param name="end_y">North Point</param>
         /// <param name="attempting_user_id">UUID of user who is trying to subdivide</param>
         /// <returns>Returns true if successful</returns>
-        private void subdivide(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
+        public void Subdivide(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
         {
             //First, lets loop through the points and make sure they are all in the same peice of land
             //Get the land object at start
@@ -1037,7 +1037,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <param name="end_y">end y of selection area</param>
         /// <param name="attempting_user_id">UUID of the avatar trying to join the land objects</param>
         /// <returns>Returns true if successful</returns>
-        private void join(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
+        public void Join(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
         {
             int index = 0;
             int maxindex = -1;
@@ -1098,17 +1098,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             masterLandObject.SendLandUpdateToAvatarsOverMe();
             m_scene.ForEachClient(SendParcelOverlay);
         }
-
-        public void Join(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
-        {
-            join(start_x, start_y, end_x, end_y, attempting_user_id);
-        }
-
-        public void Subdivide(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
-        {
-            subdivide(start_x, start_y, end_x, end_y, attempting_user_id);
-        }
-
         #endregion
 
         #region Parcel Updating
@@ -1334,12 +1323,12 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void ClientOnParcelDivideRequest(int west, int south, int east, int north, IClientAPI remote_client)
         {
-            subdivide(west, south, east, north, remote_client.AgentId);
+            Subdivide(west, south, east, north, remote_client.AgentId);
         }
 
         public void ClientOnParcelJoinRequest(int west, int south, int east, int north, IClientAPI remote_client)
         {
-            join(west, south, east, north, remote_client.AgentId);
+            Join(west, south, east, north, remote_client.AgentId);
         }
 
         public void ClientOnParcelSelectObjects(int local_id, int request_type,
