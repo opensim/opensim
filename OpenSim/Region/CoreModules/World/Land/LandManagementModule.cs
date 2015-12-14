@@ -1031,52 +1031,57 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <summary>
         /// Join 2 land objects together
         /// </summary>
-        /// <param name="start_x">x value in first piece of land</param>
-        /// <param name="start_y">y value in first piece of land</param>
-        /// <param name="end_x">x value in second peice of land</param>
-        /// <param name="end_y">y value in second peice of land</param>
+        /// <param name="start_x">start x of selection area</param>
+        /// <param name="start_y">start y of selection area</param>
+        /// <param name="end_x">end x of selection area</param>
+        /// <param name="end_y">end y of selection area</param>
         /// <param name="attempting_user_id">UUID of the avatar trying to join the land objects</param>
         /// <returns>Returns true if successful</returns>
         private void join(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
         {
-            end_x -= 4;
-            end_y -= 4;
+            int index = 0;
+            int maxindex = -1;
+            int maxArea = 0;
 
             List<ILandObject> selectedLandObjects = new List<ILandObject>();
-            int stepYSelected;
-            for (stepYSelected = start_y; stepYSelected <= end_y; stepYSelected += 4)
+            for (int x = start_x; x < end_x; x += 4)
             {
-                int stepXSelected;
-                for (stepXSelected = start_x; stepXSelected <= end_x; stepXSelected += 4)
+                for (int y = start_y; y < end_y; y += 4)
                 {
-                    ILandObject p = GetLandObject(stepXSelected, stepYSelected);
+                    ILandObject p = GetLandObject(x, y);
 
                     if (p != null)
                     {
                         if (!selectedLandObjects.Contains(p))
                         {
                             selectedLandObjects.Add(p);
+                            if(p.LandData.Area > maxArea)
+                            {
+                                maxArea = p.LandData.Area;
+                                maxindex = index;
+                            }
+                            index++;
                         }
                     }
                 }
             }
-            ILandObject masterLandObject = selectedLandObjects[0];
-            selectedLandObjects.RemoveAt(0);
 
-            if (selectedLandObjects.Count < 1)
-            {
+            if(maxindex < 0 || selectedLandObjects.Count < 2)
                 return;
-            }
+            
+            ILandObject masterLandObject = selectedLandObjects[maxindex];
+            selectedLandObjects.RemoveAt(maxindex);
+
             if (!m_scene.Permissions.CanEditParcelProperties(attempting_user_id, masterLandObject, GroupPowers.LandDivideJoin, true))
             {
                 return;
             }
+
+            UUID masterOwner = masterLandObject.LandData.OwnerID;
             foreach (ILandObject p in selectedLandObjects)
             {
-                if (p.LandData.OwnerID != masterLandObject.LandData.OwnerID)
-                {
+                if (p.LandData.OwnerID != masterOwner)
                     return;
-                }
             }
 
             lock (m_landList)
