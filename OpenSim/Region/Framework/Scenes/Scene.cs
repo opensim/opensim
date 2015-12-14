@@ -6206,7 +6206,7 @@ Environment.Exit(1);
         }            
 
         // check access to land.
-        public bool CheckLandPositionAccess(UUID agentID, bool agentRootCrossing, bool checkTeleHub, Vector3 position, out string reason)
+        public bool CheckLandPositionAccess(UUID agentID, bool NotCrossing, bool checkTeleHub, Vector3 position, out string reason)
         {
             reason = string.Empty;
 
@@ -6222,7 +6222,7 @@ Environment.Exit(1);
             if(isManager)
                 return true;
 
-            if (agentRootCrossing)
+            if (NotCrossing)
             {
                 if (!RegionInfo.EstateSettings.AllowDirectTeleport)
                 {
