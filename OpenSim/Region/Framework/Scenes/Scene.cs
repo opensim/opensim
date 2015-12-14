@@ -5827,7 +5827,7 @@ Environment.Exit(1);
 
         private Vector3 GetParcelCenterAtGround(ILandObject parcel)
         {
-            Vector2 center = GetParcelCenter(parcel);
+            Vector2 center = parcel.CenterPoint;
             return GetPositionAtGround(center.X, center.Y);
         }
 
@@ -5880,53 +5880,12 @@ Environment.Exit(1);
 
         private Vector2 GetParcelSafeCorner(ILandObject parcel)
         {
-            Vector3 start = parcel.StartPoint;
-            float x = start.X + 2.0f;
-            float y = start.Y + 2.0f;
-            return new Vector2(x, y);
+            return parcel.StartPoint;
         }
 
         private float GetParcelDistancefromPoint(ILandObject parcel, float x, float y)
         {
-            return Vector2.Distance(new Vector2(x, y), GetParcelCenter(parcel));
-        }
-
-        //calculate the average center point of a parcel
-        private Vector2 GetParcelCenter(ILandObject parcel)
-        {
-            int count = 0;
-            int avgx = 0;
-            int avgy = 0;
-            Vector3 start = parcel.StartPoint;
-            Vector3 end = parcel.EndPoint;
-            int startX = (int) start.X;
-            int startY = (int) start.Y;
-            int endX = (int) end.X;
-            int endY = (int) end.Y;
-
-            for (int x = startX; x < endX; x += 4)
-            {
-                for (int y = startY; y < endY; y += 4)
-                {
-                    //Just keep a running average as we check if all the points are inside or not
-                    if (parcel.ContainsPoint(x, y))
-                    {
-                        if (count == 0)
-                        {
-                            avgx = x;
-                            avgy = y;
-                        }
-                        else
-                        {
-                            avgx = (avgx * count + x) / (count + 1);
-                            avgy = (avgy * count + y) / (count + 1);
-                        }
-                        count += 1;
-                    }
-                }
-            }
-
-            return new Vector2(avgx, avgy);
+            return Vector2.Distance(new Vector2(x, y), parcel.CenterPoint);
         }
 
         private Vector3 GetNearestRegionEdgePosition(ScenePresence avatar)

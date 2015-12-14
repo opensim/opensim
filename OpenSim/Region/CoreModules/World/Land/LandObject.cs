@@ -90,43 +90,32 @@ namespace OpenSim.Region.CoreModules.World.Land
             get { return m_scene.RegionInfo.RegionID; }
         }
 
-        public Vector3 StartPoint
+        private Vector2 m_startPoint = Vector2.Zero;
+        private Vector2 m_endPoint = Vector2.Zero;
+        private Vector2 m_centerPoint = Vector2.Zero;
+
+        public Vector2 StartPoint
         {
             get
             {
-                for (int y = 0; y < LandBitmap.GetLength(1); y++)
-                {
-                    for (int x = 0; x < LandBitmap.GetLength(0); x++)
-                    {
-                        if (LandBitmap[x, y])
-                            return new Vector3(x * landUnit, y * landUnit, 0);
-                    }
-                }
-
-                m_log.ErrorFormat("{0} StartPoint. No start point found. bitmapSize=<{1},{2}>",
-                                    LogHeader, LandBitmap.GetLength(0), LandBitmap.GetLength(1));
-                return new Vector3(-1, -1, -1);
+                return m_startPoint;
             }
         }
 
-        public Vector3 EndPoint
+        public Vector2 EndPoint
         {
             get
             {
-                for (int y = LandBitmap.GetLength(1) - 1; y >= 0; y--)
-                {
-                    for (int x = LandBitmap.GetLength(0) - 1; x >= 0; x--)
-                    {
-                        if (LandBitmap[x, y])
-                        {
-                            return new Vector3(x * landUnit + landUnit, y * landUnit + landUnit, 0);
-                        }
-                    }
-                }
+                return m_endPoint;
+            }
+        }
 
-                m_log.ErrorFormat("{0} EndPoint. No end point found. bitmapSize=<{1},{2}>",
-                                    LogHeader, LandBitmap.GetLength(0), LandBitmap.GetLength(1));
-                return new Vector3(-1, -1, -1);
+        //estimate a center point of a parcel
+        public Vector2 CenterPoint
+        {
+            get
+            {
+                return m_centerPoint;
             }
         }
 
@@ -789,6 +778,14 @@ namespace OpenSim.Region.CoreModules.World.Land
             int max_y = Int32.MinValue;
             int tempArea = 0;
             int x, y;
+
+            int lastX = 0;
+            int lastY = 0;
+            float avgx = 0f;
+            float avgy = 0f;
+
+            bool needStart = true;
+
             for (x = 0; x < LandBitmap.GetLength(0); x++)
             {
                 for (y = 0; y < LandBitmap.GetLength(1); y++)
@@ -803,10 +800,37 @@ namespace OpenSim.Region.CoreModules.World.Land
                             max_x = x;
                         if (max_y < y)
                             max_y = y;
-                        tempArea += landUnit * landUnit; //16sqm peice of land
+
+                        if(needStart)
+                        {
+                            avgx = x;
+                            avgy = y;
+                            m_startPoint.X = x * landUnit;
+                            m_startPoint.Y = y * landUnit;
+                            needStart = false;
+                        }
+                        else
+                        {
+                            avgx = (avgx * tempArea + x) / (tempArea + 1);
+                            avgy = (avgy * tempArea + y) / (tempArea + 1);
+                        }
+
+                        tempArea++;
+
+                        lastX = x;
+                        lastY = y;
                     }
                 }
             }
+
+            int halfunit = landUnit/2;
+
+            m_centerPoint.X = avgx * landUnit + halfunit;
+            m_centerPoint.Y = avgy * landUnit + halfunit;
+
+            m_endPoint.X = lastX * landUnit + landUnit;
+            m_endPoint.Y = lastY * landUnit + landUnit;
+
             int tx = min_x * landUnit;
             if (tx > ((int)m_scene.RegionInfo.RegionSizeX - 1))
                 tx = ((int)m_scene.RegionInfo.RegionSizeX - 1);
@@ -847,7 +871,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 = new Vector3(
                     (float)(tx), (float)(ty), m_scene != null ? (float)m_scene.Heightmap[htx, hty] : 0);
 
-            LandData.Area = tempArea;
+            LandData.Area = tempArea * landUnit * landUnit;
         }
 
         #endregion
