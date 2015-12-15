@@ -37,9 +37,10 @@ namespace OpenSim.Region.CoreModules.World.Land
     {
         #region Constants
 
+        public const float BAN_LINE_SAFETY_HEIGHT = 100;
         //Land types set with flags in ParcelOverlay.
         //Only one of these can be used.
-        public const float BAN_LINE_SAFETY_HIEGHT = 100;
+
 
         //RequestResults (I think these are right, they seem to work):
         public const int LAND_RESULT_MULTIPLE = 1; // The request they made contained more than a single peice of land

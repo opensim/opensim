@@ -355,13 +355,10 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (!position.HasValue)
                 return;
 
-// land should have no word on avatar physics
-//            bool isFlying = avatar.PhysicsActor.Flying;
-//            avatar.RemoveFromPhysicalScene();
+            avatar.AbsolutePosition = position.Value;
+            avatar.lastKnownAllowedPosition = position.Value;
+            avatar.Velocity = Vector3.Zero;
 
-            avatar.AbsolutePosition = (Vector3)position;
-
-//            avatar.AddToPhysicalScene(isFlying);
         }
 
         public void SendYouAreRestrictedNotice(ScenePresence avatar)
@@ -462,7 +459,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             ILandObject parcel = GetLandObject(clientAvatar.AbsolutePosition.X, clientAvatar.AbsolutePosition.Y);
             if (parcel != null)
             {
-                if (clientAvatar.AbsolutePosition.Z < LandChannel.BAN_LINE_SAFETY_HIEGHT &&
+                if (clientAvatar.AbsolutePosition.Z < LandChannel.BAN_LINE_SAFETY_HEIGHT &&
                     clientAvatar.sentMessageAboutRestrictedParcelFlyingDown)
                 {
                     EventManagerOnAvatarEnteringNewParcel(clientAvatar, parcel.LandData.LocalID,
@@ -473,7 +470,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         clientAvatar.sentMessageAboutRestrictedParcelFlyingDown = false;
                     }
                 }
-                else if (clientAvatar.AbsolutePosition.Z < LandChannel.BAN_LINE_SAFETY_HIEGHT &&
+                else if (clientAvatar.AbsolutePosition.Z < LandChannel.BAN_LINE_SAFETY_HEIGHT &&
                          parcel.IsBannedFromLand(clientAvatar.UUID))
                 {
                     //once we've sent the message once, keep going toward the target until we are done
@@ -511,7 +508,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             ILandObject over = GetLandObject(pos.X, pos.Y);
             if (over != null)
             {
-                if (!over.IsRestrictedFromLand(avatar.UUID) && (!over.IsBannedFromLand(avatar.UUID) || pos.Z >= LandChannel.BAN_LINE_SAFETY_HIEGHT))
+                if (!over.IsRestrictedFromLand(avatar.UUID) && (!over.IsBannedFromLand(avatar.UUID) || pos.Z >= LandChannel.BAN_LINE_SAFETY_HEIGHT))
                     avatar.lastKnownAllowedPosition = pos;
             }
         }
@@ -2251,7 +2248,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void EnforceBans(ILandObject land, ScenePresence avatar)
         {
-            if (avatar.AbsolutePosition.Z > LandChannel.BAN_LINE_SAFETY_HIEGHT)
+            if (avatar.AbsolutePosition.Z > LandChannel.BAN_LINE_SAFETY_HEIGHT)
                 return;
 
             if (land.IsEitherBannedOrRestricted(avatar.UUID))
