@@ -93,6 +93,8 @@ namespace OpenSim.Region.CoreModules.World.Land
         private Vector2 m_startPoint = Vector2.Zero;
         private Vector2 m_endPoint = Vector2.Zero;
         private Vector2 m_centerPoint = Vector2.Zero;
+        private Vector2 m_AABBmin = Vector2.Zero;
+        private Vector2 m_AABBmax = Vector2.Zero;
 
         public Vector2 StartPoint
         {
@@ -757,7 +759,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// </summary>
         public void ForceUpdateLandInfo()
         {
-            UpdateAABBAndAreaValues();
+            UpdateGeometryValues();
             UpdateLandBitmapByteArray();
         }
 
@@ -767,11 +769,10 @@ namespace OpenSim.Region.CoreModules.World.Land
         }
 
         /// <summary>
-        /// Updates the AABBMin and AABBMax values after area/shape modification of the land object
+        /// Updates geomtric values after area/shape modification of the land object
         /// </summary>
-        private void UpdateAABBAndAreaValues()
+        private void UpdateGeometryValues()
         {
-
             int min_x = Int32.MaxValue;
             int min_y = Int32.MaxValue;
             int max_x = Int32.MinValue;
@@ -784,7 +785,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             float avgx = 0f;
             float avgy = 0f;
 
-            bool needStart = true;
+            bool needFirst = true;
 
             for (x = 0; x < LandBitmap.GetLength(0); x++)
             {
@@ -801,16 +802,17 @@ namespace OpenSim.Region.CoreModules.World.Land
                         if (max_y < y)
                             max_y = y;
 
-                        if(needStart)
+                        if(needFirst)
                         {
                             avgx = x;
                             avgy = y;
                             m_startPoint.X = x * landUnit;
                             m_startPoint.Y = y * landUnit;
-                            needStart = false;
+                            needFirst = false;
                         }
                         else
                         {
+                            // keeping previus odd average
                             avgx = (avgx * tempArea + x) / (tempArea + 1);
                             avgy = (avgy * tempArea + y) / (tempArea + 1);
                         }
@@ -831,46 +833,52 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_endPoint.X = lastX * landUnit + landUnit;
             m_endPoint.Y = lastY * landUnit + landUnit;
 
+            // next tests should not be needed
+            // if they fail, something is wrong
+
+            int regionSizeX = (int)Constants.RegionSize;
+            int regionSizeY = (int)Constants.RegionSize;
+
+            if(m_scene != null)
+            {
+                regionSizeX = (int)m_scene.RegionInfo.RegionSizeX;
+                regionSizeY = (int)m_scene.RegionInfo.RegionSizeX;
+            }
+
             int tx = min_x * landUnit;
-            if (tx > ((int)m_scene.RegionInfo.RegionSizeX - 1))
-                tx = ((int)m_scene.RegionInfo.RegionSizeX - 1);
-            int htx;
-            if (tx >= ((int)m_scene.RegionInfo.RegionSizeX))
-                htx = (int)m_scene.RegionInfo.RegionSizeX - 1;
-            else
-                htx = tx;
-            
+            if (tx >= regionSizeX)
+                tx = regionSizeX - 1;
+
             int ty = min_y * landUnit;
-            int hty;
+            if (ty >= regionSizeY)
+                ty = regionSizeY - 1;
 
-            if (ty >= ((int)m_scene.RegionInfo.RegionSizeY))
-                hty = (int)m_scene.RegionInfo.RegionSizeY - 1;
+            m_AABBmin.X = tx;
+            m_AABBmin.Y = ty;
+
+            if(m_scene == null)
+                LandData.AABBMin = new Vector3(tx, ty, 0f);
             else
-                hty = ty;
-
-            LandData.AABBMin =
-                new Vector3(
-                    (float)(tx), (float)(ty), m_scene != null ? (float)m_scene.Heightmap[htx, hty] : 0);
-
+                LandData.AABBMin = new Vector3(tx, ty, (float)m_scene.Heightmap[tx, ty]);
+               
             max_x++;
             tx = max_x * landUnit;
-            if (tx >= ((int)m_scene.RegionInfo.RegionSizeX))
-                htx = (int)m_scene.RegionInfo.RegionSizeX - 1;
-            else
-                htx = tx;
+            if (tx > regionSizeX)
+                tx = regionSizeX;
 
             max_y++;
-            ty = max_y * 4;
-           
-            if (ty >= ((int)m_scene.RegionInfo.RegionSizeY))
-                hty = (int)m_scene.RegionInfo.RegionSizeY - 1;
+            ty = max_y * landUnit;
+            if (ty > regionSizeY)
+                ty = regionSizeY;
+
+            m_AABBmax.X = tx;
+            m_AABBmax.Y = ty;
+
+            if(m_scene == null)
+                LandData.AABBMax = new Vector3(tx, ty, 0f);
             else
-                hty = ty;
-
-            LandData.AABBMax 
-                = new Vector3(
-                    (float)(tx), (float)(ty), m_scene != null ? (float)m_scene.Heightmap[htx, hty] : 0);
-
+                LandData.AABBMax = new Vector3(tx, ty, (float)m_scene.Heightmap[tx - 1, ty - 1]);
+                
             LandData.Area = tempArea * landUnit * landUnit;
         }
 
@@ -1223,23 +1231,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             if(tempByte != 0 && byteNum < 512)
                 tempConvertArr[byteNum] = (byte)tempByte;
 
-
-/*
-                    tempByte = Convert.ToByte(tempByte | Convert.ToByte(LandBitmap[x, y]) << (i++ % 8));
-                    if (i % 8 == 0)
-                    {
-                        tempConvertArr[byteNum] = tempByte;
-                        tempByte = (byte) 0;
-                        i = 0;
-                        byteNum++;
-                    }
-<<<<<<< HEAD
-                }
-            }
-            // m_log.DebugFormat("{0} ConvertLandBitmapToBytes. BitmapSize=<{1},{2}>",
-            //                         LogHeader, LandBitmap.GetLength(0), LandBitmap.GetLength(1));
-=======
- */
             return tempConvertArr;
         }
 
