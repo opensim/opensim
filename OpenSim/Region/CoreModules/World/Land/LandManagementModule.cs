@@ -2256,7 +2256,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             if (land.IsEitherBannedOrRestricted(avatar.UUID))
             {
-                if (land.ContainsPoint(Convert.ToInt32(avatar.lastKnownAllowedPosition.X), Convert.ToInt32(avatar.lastKnownAllowedPosition.Y)))
+                if (land.ContainsPoint((int)avatar.lastKnownAllowedPosition.X, (int)avatar.lastKnownAllowedPosition.Y))
                 {
                     Vector3? pos = m_scene.GetNearestAllowedPosition(avatar);
                     if (pos == null)
