@@ -121,6 +121,147 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
         }
 
+        public Vector2? GetNearestPoint(Vector3 pos)
+        {
+            Vector3 direction = new Vector3(m_centerPoint.X - pos.X, m_centerPoint.Y - pos.Y, 0f );
+            return GetNearestPointAlongDirection(pos, direction);
+        }
+
+        public Vector2? GetNearestPointAlongDirection(Vector3 pos, Vector3 pdirection)
+        {
+            Vector2 testpos;
+            Vector2 direction;
+
+            testpos.X = pos.X / landUnit;
+            testpos.Y = pos.Y / landUnit;
+
+            if(LandBitmap[(int)testpos.X, (int)testpos.Y])
+                return new Vector2(pos.X, pos.Y); // we are already here
+
+            direction.X = pdirection.X;
+            direction.Y = pdirection.Y;
+
+            if(direction.X == 0f && direction.Y == 0f)
+                return null; // we can't look anywhere
+
+            direction.Normalize();
+
+            int minx = (int)(m_AABBmin.X / landUnit);
+            int maxx = (int)(m_AABBmax.X / landUnit);
+
+            // check against AABB
+            if(direction.X > 0f)
+            {
+                if(testpos.X >= maxx)
+                    return null;  // will never get there
+                if(testpos.X < minx)
+                    testpos.X = minx;
+            }
+            else if(direction.X < 0f)
+            {
+                if(testpos.X < minx)
+                    return null;  // will never get there
+                if(testpos.X >= maxx)
+                    testpos.X = maxx - 1;
+            }
+            else
+            {
+                if(testpos.X < minx)
+                    return null;  // will never get there
+                else if(testpos.X >= maxx)
+                    return null;  // will never get there
+            }
+
+            int miny = (int)(m_AABBmin.Y / landUnit);
+            int maxy = (int)(m_AABBmax.Y / landUnit);
+
+            if(direction.Y > 0f)
+            {
+                if(testpos.Y >= maxy)
+                    return null;  // will never get there
+                if(testpos.Y < miny)
+                    testpos.Y = miny;
+            }
+            else if(direction.Y < 0f)
+            {
+                if(testpos.Y < miny)
+                    return null;  // will never get there
+                if(testpos.Y >= maxy)
+                    testpos.Y = maxy - 1;
+            }
+            else
+            {
+                if(testpos.Y < miny)
+                    return null;  // will never get there
+                else if(testpos.Y >= maxy)
+                    return null;  // will never get there
+            }
+            
+            while(!LandBitmap[(int)testpos.X, (int)testpos.Y])
+            {
+                testpos += direction;
+
+                if(testpos.X < minx)
+                    return null;
+                if (testpos.X >= maxx)
+                    return null;
+                if(testpos.Y < miny)
+                    return null;
+                if (testpos.Y >= maxy)
+                    return null;
+            }
+
+            testpos *= landUnit;
+            float ftmp;
+
+            if(Math.Abs(direction.X) > Math.Abs(direction.Y))
+            {
+                if(direction.X < 0)
+                    testpos.X += landUnit - 0.5f;
+                else
+                    testpos.X += 0.5f;
+                ftmp = testpos.X - pos.X;
+                ftmp /= direction.X;
+                ftmp = Math.Abs(ftmp);
+                ftmp *= direction.Y;
+                ftmp += pos.Y;
+
+                if(ftmp < testpos.Y + .5f)
+                    ftmp = testpos.Y + .5f;
+                else
+                {
+                    testpos.Y += landUnit - 0.5f;
+                    if(ftmp > testpos.Y)
+                        ftmp = testpos.Y;
+                }
+                testpos.Y = ftmp;
+            }
+            else
+            {
+                if(direction.Y < 0)
+                    testpos.Y += landUnit - 0.5f;
+                else
+                    testpos.Y += 0.5f;
+                ftmp = testpos.Y - pos.Y;
+                ftmp /= direction.Y;
+                ftmp = Math.Abs(ftmp);
+                ftmp *= direction.X;
+                ftmp += pos.X;
+
+                if(ftmp < testpos.X + .5f)
+                    ftmp = testpos.X + .5f;
+                else
+                {
+                    testpos.X += landUnit - 0.5f;
+                    if(ftmp > testpos.X)
+                        ftmp = testpos.X;
+                }
+                testpos.X = ftmp;
+            }
+            return testpos;
+        }
+
+
         #region Constructors
 
         public LandObject(LandData landData, Scene scene)
@@ -791,7 +932,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 for (y = 0; y < LandBitmap.GetLength(1); y++)
                 {
-                    if (LandBitmap[x, y] == true)
+                    if (LandBitmap[x, y])
                     {
                         if (min_x > x)
                             min_x = x;
@@ -856,7 +997,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_AABBmin.X = tx;
             m_AABBmin.Y = ty;
 
-            if(m_scene == null)
+            if(m_scene == null || m_scene.Heightmap == null)
                 LandData.AABBMin = new Vector3(tx, ty, 0f);
             else
                 LandData.AABBMin = new Vector3(tx, ty, (float)m_scene.Heightmap[tx, ty]);
@@ -874,7 +1015,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_AABBmax.X = tx;
             m_AABBmax.Y = ty;
 
-            if(m_scene == null)
+            if(m_scene == null || m_scene.Heightmap == null)
                 LandData.AABBMax = new Vector3(tx, ty, 0f);
             else
                 LandData.AABBMax = new Vector3(tx, ty, (float)m_scene.Heightmap[tx - 1, ty - 1]);

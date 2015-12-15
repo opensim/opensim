@@ -64,6 +64,10 @@ namespace OpenSim.Framework
         // a estimation of a parcel center. 
         Vector2 CenterPoint { get; }
         
+        // get positions
+        Vector2? GetNearestPoint(Vector3 pos);
+        Vector2? GetNearestPointAlongDirection(Vector3 pos, Vector3 pdirection);
+
         bool ContainsPoint(int x, int y);
         
         ILandObject Copy();

@@ -5783,27 +5783,34 @@ Environment.Exit(1);
 
         public Vector3 GetNearestAllowedPosition(ScenePresence avatar, ILandObject excludeParcel)
         {
-            ILandObject nearestParcel = GetNearestAllowedParcel(avatar.UUID, avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y, excludeParcel);
+            Vector3 pos = avatar.AbsolutePosition;
+
+            ILandObject nearestParcel = GetNearestAllowedParcel(avatar.UUID, pos.X, pos.Y, excludeParcel);
+
+            Vector3 retPos = Vector3.Zero;
 
             if (nearestParcel != null)
             {
-                Vector3 dir = Vector3.Normalize(Vector3.Multiply(avatar.Velocity, -1));
-                //Try to get a location that feels like where they came from
-                Vector3? nearestPoint = GetNearestPointInParcelAlongDirectionFromPoint(avatar.AbsolutePosition, dir, nearestParcel);
-                if (nearestPoint != null)
-                {
-                    m_log.Debug("Found a sane previous position based on velocity, sending them to: " + nearestPoint.ToString());
-                    return nearestPoint.Value;
-                }
+                Vector2? nearestPoint = null;
+                Vector3 dir = -avatar.Velocity;
+                float dirlen = dir.Length();
+                if(dirlen > 1.0f)
+                    //Try to get a location that feels like where they came from
+                    nearestPoint = nearestParcel.GetNearestPointAlongDirection(pos, dir);
 
-                //Sometimes velocity might be zero (local teleport), so try finding point along path from avatar to center of nearest parcel
-                Vector3 directionToParcelCenter = Vector3.Subtract(GetParcelCenterAtGround(nearestParcel), avatar.AbsolutePosition);
-                dir = Vector3.Normalize(directionToParcelCenter);
-                nearestPoint = GetNearestPointInParcelAlongDirectionFromPoint(avatar.AbsolutePosition, dir, nearestParcel);
+                if (nearestPoint == null)
+                    nearestPoint = nearestParcel.GetNearestPoint(pos);
+
                 if (nearestPoint != null)
                 {
-                    m_log.Debug("They had a zero velocity, sending them to: " + nearestPoint.ToString());
-                    return nearestPoint.Value;
+                    retPos.X = nearestPoint.Value.X;
+                    retPos.Y = nearestPoint.Value.Y;
+                    float h = GetGroundHeight(retPos.X, retPos.Y) + 0.8f;
+                    if(pos.Z > h)
+                        retPos.Z = pos.Z;
+                    else
+                        retPos.Z = h;
+                    return retPos;
                 }
 
                 ILandObject dest = LandChannel.GetLandObject(avatar.lastKnownAllowedPosition.X, avatar.lastKnownAllowedPosition.Y);
@@ -5833,15 +5840,36 @@ Environment.Exit(1);
 
         private Vector3? GetNearestPointInParcelAlongDirectionFromPoint(Vector3 pos, Vector3 direction, ILandObject parcel)
         {
-            Vector3 unitDirection = Vector3.Normalize(direction);
+            float maxX = RegionInfo.RegionSizeX;
+            float maxY = RegionInfo.RegionSizeY;
+            
+            // reduce resolution since regions can be very large now
+            direction *= 4.0f;
+            Vector3 testPos = pos;
             //Making distance to search go through some sane limit of distance
-            for (float distance = 0; distance < Math.Max(RegionInfo.RegionSizeX, RegionInfo.RegionSizeY) * 2; distance += .5f)
+            while(true)
             {
-                Vector3 testPos = Vector3.Add(pos, Vector3.Multiply(unitDirection, distance));
+                testPos += direction;
                 if (parcel.ContainsPoint((int)testPos.X, (int)testPos.Y))
                 {
+                    direction *= -0.125f; // .5m resolution
+                    Vector3 testPos2 = testPos - direction;
+                    for(int i = 0; i < 7; i++)
+                    {
+                        if (!parcel.ContainsPoint((int)testPos2.X, (int)testPos2.Y))
+                            return testPos;
+                        testPos = testPos2;
+                    }
                     return testPos;
                 }
+                if(testPos.X < 0)
+                    break;
+                else if (testPos.X >= maxX)
+                    break;
+                if(testPos.Y < 0)
+                    break;
+                else if (testPos.Y >= maxY)
+                    break;
             }
             return null;
         }
