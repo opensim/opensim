@@ -5838,42 +5838,6 @@ Environment.Exit(1);
             return GetPositionAtGround(center.X, center.Y);
         }
 
-        private Vector3? GetNearestPointInParcelAlongDirectionFromPoint(Vector3 pos, Vector3 direction, ILandObject parcel)
-        {
-            float maxX = RegionInfo.RegionSizeX;
-            float maxY = RegionInfo.RegionSizeY;
-            
-            // reduce resolution since regions can be very large now
-            direction *= 4.0f;
-            Vector3 testPos = pos;
-            //Making distance to search go through some sane limit of distance
-            while(true)
-            {
-                testPos += direction;
-                if (parcel.ContainsPoint((int)testPos.X, (int)testPos.Y))
-                {
-                    direction *= -0.125f; // .5m resolution
-                    Vector3 testPos2 = testPos - direction;
-                    for(int i = 0; i < 7; i++)
-                    {
-                        if (!parcel.ContainsPoint((int)testPos2.X, (int)testPos2.Y))
-                            return testPos;
-                        testPos = testPos2;
-                    }
-                    return testPos;
-                }
-                if(testPos.X < 0)
-                    break;
-                else if (testPos.X >= maxX)
-                    break;
-                if(testPos.Y < 0)
-                    break;
-                else if (testPos.Y >= maxY)
-                    break;
-            }
-            return null;
-        }
-
         public ILandObject GetNearestAllowedParcel(UUID avatarId, float x, float y)
         {
             return GetNearestAllowedParcel(avatarId, x, y, null);
