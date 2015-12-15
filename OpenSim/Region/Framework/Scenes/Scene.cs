@@ -5787,8 +5787,6 @@ Environment.Exit(1);
 
             ILandObject nearestParcel = GetNearestAllowedParcel(avatar.UUID, pos.X, pos.Y, excludeParcel);
 
-            Vector3 retPos = Vector3.Zero;
-
             if (nearestParcel != null)
             {
                 Vector2? nearestPoint = null;
@@ -5803,14 +5801,8 @@ Environment.Exit(1);
 
                 if (nearestPoint != null)
                 {
-                    retPos.X = nearestPoint.Value.X;
-                    retPos.Y = nearestPoint.Value.Y;
-                    float h = GetGroundHeight(retPos.X, retPos.Y) + 0.8f;
-                    if(pos.Z > h)
-                        retPos.Z = pos.Z;
-                    else
-                        retPos.Z = h;
-                    return retPos;
+                    return GetPositionAtAvatarHeightOrGroundHeight(avatar,
+                            nearestPoint.Value.X, nearestPoint.Value.Y);
                 }
 
                 ILandObject dest = LandChannel.GetLandObject(avatar.lastKnownAllowedPosition.X, avatar.lastKnownAllowedPosition.Y);
@@ -5845,18 +5837,30 @@ Environment.Exit(1);
 
         public ILandObject GetNearestAllowedParcel(UUID avatarId, float x, float y, ILandObject excludeParcel)
         {
-            List<ILandObject> all = AllParcels();
-            float minParcelDistance = float.MaxValue;
+            if(LandChannel == null)
+                return null;
+
+            List<ILandObject> all = LandChannel.AllParcels();
+
+            if(all == null || all.Count == 0)
+                return null;
+
+            float minParcelDistanceSQ = float.MaxValue;
             ILandObject nearestParcel = null;
+            Vector2 curCenter;
+            float parcelDistanceSQ;
 
             foreach (var parcel in all)
             {
-                if (!parcel.IsEitherBannedOrRestricted(avatarId) && parcel != excludeParcel)
+                if (parcel != excludeParcel && !parcel.IsEitherBannedOrRestricted(avatarId))
                 {
-                    float parcelDistance = GetParcelDistancefromPoint(parcel, x, y);
-                    if (parcelDistance < minParcelDistance)
+                    curCenter = parcel.CenterPoint;
+                    curCenter.X -= x;
+                    curCenter.Y -= y;
+                    parcelDistanceSQ = curCenter.LengthSquared();
+                    if (parcelDistanceSQ < minParcelDistanceSQ)
                     {
-                        minParcelDistance = parcelDistance;
+                        minParcelDistanceSQ = parcelDistanceSQ;
                         nearestParcel = parcel;
                     }
                 }
@@ -5865,57 +5869,52 @@ Environment.Exit(1);
             return nearestParcel;
         }
 
-        private List<ILandObject> AllParcels()
-        {
-            return LandChannel.AllParcels();
-        }
-
         private Vector2 GetParcelSafeCorner(ILandObject parcel)
         {
-            return parcel.StartPoint;
-        }
-
-        private float GetParcelDistancefromPoint(ILandObject parcel, float x, float y)
-        {
-            return Vector2.Distance(new Vector2(x, y), parcel.CenterPoint);
+            Vector2 place = parcel.StartPoint;
+            place.X += 2f;
+            place.Y += 2f;
+            return place;
         }
 
         private Vector3 GetNearestRegionEdgePosition(ScenePresence avatar)
         {
-            float xdistance = avatar.AbsolutePosition.X < RegionInfo.RegionSizeX / 2
-                                ? avatar.AbsolutePosition.X : RegionInfo.RegionSizeX - avatar.AbsolutePosition.X;
-            float ydistance = avatar.AbsolutePosition.Y < RegionInfo.RegionSizeY / 2
-                                ? avatar.AbsolutePosition.Y : RegionInfo.RegionSizeY - avatar.AbsolutePosition.Y;
+            float posX = avatar.AbsolutePosition.X;
+            float posY = avatar.AbsolutePosition.Y;
+            float regionSizeX = RegionInfo.RegionSizeX;
+            float halfRegionSizeX = regionSizeX * 0.5f;
+            float regionSizeY = RegionInfo.RegionSizeY;
+            float halfRegionSizeY = regionSizeY * 0.5f;
+
+            float xdistance = posX < halfRegionSizeX ? posX : regionSizeX - posX;
+            float ydistance = posY < halfRegionSizeY ? posY : regionSizeY - posY;
 
             //find out what vertical edge to go to
             if (xdistance < ydistance)
             {
-                if (avatar.AbsolutePosition.X < RegionInfo.RegionSizeX / 2)
-                {
-                    return GetPositionAtAvatarHeightOrGroundHeight(avatar, 0.0f, avatar.AbsolutePosition.Y);
-                }
+                if (posX < halfRegionSizeX)
+                    return GetPositionAtAvatarHeightOrGroundHeight(avatar, 0.5f, posY);
                 else
-                {
-                    return GetPositionAtAvatarHeightOrGroundHeight(avatar, RegionInfo.RegionSizeY, avatar.AbsolutePosition.Y);
-                }
+                    return GetPositionAtAvatarHeightOrGroundHeight(avatar, regionSizeX - 0.5f, posY);
             }
             //find out what horizontal edge to go to
             else
             {
-                if (avatar.AbsolutePosition.Y < RegionInfo.RegionSizeY / 2)
-                {
-                    return GetPositionAtAvatarHeightOrGroundHeight(avatar, avatar.AbsolutePosition.X, 0.0f);
-                }
+                if (posY < halfRegionSizeY)
+                    return GetPositionAtAvatarHeightOrGroundHeight(avatar, posX, 0.5f);
                 else
-                {
-                    return GetPositionAtAvatarHeightOrGroundHeight(avatar, avatar.AbsolutePosition.X, RegionInfo.RegionSizeY);
-                }
+                    return GetPositionAtAvatarHeightOrGroundHeight(avatar, posX, regionSizeY - 0.5f);
             }
         }
 
         private Vector3 GetPositionAtAvatarHeightOrGroundHeight(ScenePresence avatar, float x, float y)
         {
             Vector3 ground = GetPositionAtGround(x, y);
+            if(avatar.Appearance != null)
+                ground.Z += avatar.Appearance.AvatarHeight * 0.5f;
+            else
+                ground.Z += 0.8f;
+
             if (avatar.AbsolutePosition.Z > ground.Z)
             {
                 ground.Z = avatar.AbsolutePosition.Z;
