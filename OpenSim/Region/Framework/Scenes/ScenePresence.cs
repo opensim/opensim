@@ -331,7 +331,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private float m_sitAvatarHeight = 2.0f;
 
-        private bool childUpdatesActive = false;
+        private bool childUpdatesBusy = false;
         private int lastChildUpdatesTime;
         private Vector3 m_lastChildAgentUpdatePosition;
 //        private Vector3 m_lastChildAgentUpdateCamPosition;
@@ -1033,7 +1033,7 @@ namespace OpenSim.Region.Framework.Scenes
             AbsolutePosition = posLastMove = posLastSignificantMove = CameraPosition =
                 m_lastCameraPosition = ControllingClient.StartPos;
 
-            childUpdatesActive = true;  // disable it for now
+            childUpdatesBusy = true;  // disable it for now
 
             m_reprioritization_timer = new Timer(world.ReprioritizationInterval);
             m_reprioritization_timer.Elapsed += new ElapsedEventHandler(Reprioritize);
@@ -2036,8 +2036,10 @@ namespace OpenSim.Region.Framework.Scenes
                             m_agentTransfer.EnableChildAgents(this);
                         }
                         // let updates be sent,  with some delay
-                        lastChildUpdatesTime = Util.EnvironmentTickCount() + 10000;
-                        childUpdatesActive = false; // allow them
+//                        lastChildUpdatesTime = Util.EnvironmentTickCount() + 10000;
+                        // temporary make them on next update
+                        lastChildUpdatesTime = Util.EnvironmentTickCount() - 50000;
+                        childUpdatesBusy = false; // allow them
                     }
                 }
 
@@ -3896,7 +3898,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_scene.EventManager.TriggerSignificantClientMovement(this);
             }
 
-            if(!childUpdatesActive)            
+            if(!childUpdatesBusy)            
             {
                 int tdiff = Util.EnvironmentTickCountSubtract(lastChildUpdatesTime);
                 if(tdiff > CHILDUPDATES_TIME)
@@ -3904,7 +3906,7 @@ namespace OpenSim.Region.Framework.Scenes
                     diff = pos - m_lastChildAgentUpdatePosition; 
                     if (diff.LengthSquared() > CHILDUPDATES_MOVEMENT)
                     {
-                        childUpdatesActive = true;
+                        childUpdatesBusy = true;
                         m_lastChildAgentUpdatePosition = pos;
 //                        m_lastChildAgentUpdateCamPosition = CameraPosition;
 
@@ -3925,7 +3927,7 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 m_scene.SendOutChildAgentUpdates(agentpos, this); 
                                 lastChildUpdatesTime = Util.EnvironmentTickCount();
-                                childUpdatesActive= false;
+                                childUpdatesBusy = false;
                             }, null, "ScenePresence.SendOutChildAgentUpdates");
                     }
                 }
