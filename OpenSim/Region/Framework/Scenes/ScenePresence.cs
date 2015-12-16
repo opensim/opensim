@@ -150,8 +150,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// Movement updates for agents in neighboring regions are sent directly to clients.
         /// This value only affects how often agent positions are sent to neighbor regions
         /// for things such as distance-based update prioritization
+        /// this are the square of real distances
         /// </summary>
-        public static readonly float SIGNIFICANT_MOVEMENT = 2.0f;
+        public static readonly float MOVEMENT = .25f;
+        public static readonly float SIGNIFICANT_MOVEMENT = 16.0f;
+        public static readonly float CHILDUPDATES_MOVEMENT = 100.0f;
+        public static readonly float CHILDUPDATES_TIME = 10000f; // min time between child updates (ms)
 
         private UUID m_previusParcelUUID = UUID.Zero;
         private UUID m_currentParcelUUID = UUID.Zero;
@@ -189,6 +193,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void sitSOGmoved()
         {
+/*
             if (IsDeleted || !IsSatOnObject)
                 //what me?  nahh
                 return;
@@ -201,6 +206,7 @@ namespace OpenSim.Region.Framework.Scenes
             UUID parcelID = land.LandData.GlobalID;
             if (m_currentParcelUUID != parcelID)
                 currentParcelUUID = parcelID;
+*/
         }
 
 
@@ -325,6 +331,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         private float m_sitAvatarHeight = 2.0f;
 
+        private bool childUpdatesActive = false;
+        private int lastChildUpdatesTime;
         private Vector3 m_lastChildAgentUpdatePosition;
 //        private Vector3 m_lastChildAgentUpdateCamPosition;
 
@@ -417,6 +425,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Position at which a significant movement was made
         /// </summary>
         private Vector3 posLastSignificantMove;
+        private Vector3 posLastMove;
 
         #region For teleports and crossings callbacks
 
@@ -1021,8 +1030,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_scriptEngines = m_scene.RequestModuleInterfaces<IScriptModule>();
             
-            AbsolutePosition = posLastSignificantMove = CameraPosition =
+            AbsolutePosition = posLastMove = posLastSignificantMove = CameraPosition =
                 m_lastCameraPosition = ControllingClient.StartPos;
+
+            childUpdatesActive = true;  // disable it for now
 
             m_reprioritization_timer = new Timer(world.ReprioritizationInterval);
             m_reprioritization_timer.Elapsed += new ElapsedEventHandler(Reprioritize);
@@ -2024,6 +2035,9 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             m_agentTransfer.EnableChildAgents(this);
                         }
+                        // let updates be sent,  with some delay
+                        lastChildUpdatesTime = Util.EnvironmentTickCount() + 10000;
+                        childUpdatesActive = false; // allow them
                     }
                 }
 
@@ -2502,7 +2516,7 @@ namespace OpenSim.Region.Framework.Scenes
             if ((State & (uint)AgentState.Editing) != 0)
                 SendAgentTerseUpdate(this);
 
-            m_scene.EventManager.TriggerOnClientMovement(this);
+//            m_scene.EventManager.TriggerOnClientMovement(this);
         }
 
 
@@ -3464,7 +3478,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (Appearance.AvatarSize != m_lastSize && !IsLoggingIn)
                     SendAvatarDataToAllAgents();
 
-                if (!Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
+                if (!IsSatOnObject ||
+                    !Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
                     !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
                     !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
                 {
@@ -3865,63 +3880,55 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         protected void CheckForSignificantMovement()
         {
-            if (Util.GetDistanceTo(AbsolutePosition, posLastSignificantMove) > SIGNIFICANT_MOVEMENT)
+            Vector3 pos = AbsolutePosition;
+
+            Vector3 diff = pos - posLastMove;
+            if (diff.LengthSquared() > MOVEMENT)
             {
-                posLastSignificantMove = AbsolutePosition;
+                posLastMove = pos;
+                m_scene.EventManager.TriggerOnClientMovement(this);
+            }
+            
+            diff = pos - posLastSignificantMove;
+            if (diff.LengthSquared() > SIGNIFICANT_MOVEMENT)
+            {
+                posLastSignificantMove = pos;
                 m_scene.EventManager.TriggerSignificantClientMovement(this);
             }
 
-            // Minimum Draw distance is 64 meters, the Radius of the draw distance sphere is 32m
-            if (Util.GetDistanceTo(AbsolutePosition, m_lastChildAgentUpdatePosition) >= Scene.ChildReprioritizationDistance)
+            if(!childUpdatesActive)            
             {
-                m_lastChildAgentUpdatePosition = AbsolutePosition;
-//                m_lastChildAgentUpdateCamPosition = CameraPosition;
+                int tdiff = Util.EnvironmentTickCountSubtract(lastChildUpdatesTime);
+                if(tdiff > CHILDUPDATES_TIME)
+                {
+                    diff = pos - m_lastChildAgentUpdatePosition; 
+                    if (diff.LengthSquared() > CHILDUPDATES_MOVEMENT)
+                    {
+                        childUpdatesActive = true;
+                        m_lastChildAgentUpdatePosition = pos;
+//                        m_lastChildAgentUpdateCamPosition = CameraPosition;
 
-/*  cadu is not used
-                ChildAgentDataUpdate cadu = new ChildAgentDataUpdate();
-                cadu.ActiveGroupID = UUID.Zero.Guid;
-                cadu.AgentID = UUID.Guid;
-                cadu.alwaysrun = SetAlwaysRun;
-                cadu.AVHeight = Appearance.AvatarHeight;
-                cadu.cameraPosition = CameraPosition;
-                cadu.drawdistance = DrawDistance;
-                cadu.GroupAccess = 0;
-                cadu.Position = AbsolutePosition;
-                cadu.regionHandle = RegionHandle;
+                        AgentPosition agentpos = new AgentPosition();
+                        agentpos.AgentID = new UUID(UUID.Guid);
+                        agentpos.SessionID = ControllingClient.SessionId;
+                        agentpos.Size = Appearance.AvatarSize;
+                        agentpos.Center = CameraPosition;
+                        agentpos.Far = DrawDistance;
+                        agentpos.Position = AbsolutePosition;
+                        agentpos.Velocity = Velocity;
+                        agentpos.RegionHandle = RegionHandle;
+                        agentpos.Throttles = ControllingClient.GetThrottlesPacked(1);
 
-                // Throttles 
-                float multiplier = 1;
-
-                int childRegions = KnownRegionCount;
-                if (childRegions != 0)
-                    multiplier = 1f / childRegions;
-
-                // Minimum throttle for a child region is 1/4 of the root region throttle
-                if (multiplier <= 0.25f)
-                    multiplier = 0.25f;
-
-                cadu.throttles = ControllingClient.GetThrottlesPacked(multiplier);
-                cadu.Velocity = Velocity;
-*/
-                AgentPosition agentpos = new AgentPosition();
-//                agentpos.CopyFrom(cadu, ControllingClient.SessionId);
-
-                agentpos.AgentID = new UUID(UUID.Guid);
-                agentpos.SessionID = ControllingClient.SessionId;
-
-                agentpos.Size = Appearance.AvatarSize;
-
-                agentpos.Center = CameraPosition;
-                agentpos.Far = DrawDistance;
-                agentpos.Position = AbsolutePosition;
-                agentpos.Velocity = Velocity;
-                agentpos.RegionHandle = RegionHandle;
-                agentpos.Throttles = ControllingClient.GetThrottlesPacked(1);
-
-
-                // Let's get this out of the update loop
-                Util.FireAndForget(
-                    o => m_scene.SendOutChildAgentUpdates(agentpos, this), null, "ScenePresence.SendOutChildAgentUpdates");
+                        // Let's get this out of the update loop
+                        Util.FireAndForget(
+                            o =>
+                            {
+                                m_scene.SendOutChildAgentUpdates(agentpos, this); 
+                                lastChildUpdatesTime = Util.EnvironmentTickCount();
+                                childUpdatesActive= false;
+                            }, null, "ScenePresence.SendOutChildAgentUpdates");
+                    }
+                }
             }
         }
 
