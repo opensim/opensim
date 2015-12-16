@@ -167,9 +167,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat.Tests
 
             sp1Position = new Vector3(30, 128, 20);
             sp1.AbsolutePosition = sp1Position;
+            sceneWest.Update(1);
             sceneEast.Update(1);
+            Thread.Sleep(12000); // child updates are now time limited
+            sceneWest.Update(5);
+            sceneEast.Update(5);
 
-            Thread.Sleep(15000); // child updates are now time limited
             // Check child position is correct.
             Assert.AreEqual(
                 new Vector3(sp1Position.X + sceneEast.RegionInfo.RegionSizeX, sp1Position.Y, sp1Position.Z), 
@@ -257,8 +260,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat.Tests
             sp1.AbsolutePosition = sp1Position;
             sceneNorth.Update(1);
             sceneSouth.Update(1);
-
-            Thread.Sleep(15000); // child updates are now time limited
+            Thread.Sleep(12000); // child updates are now time limited
+            sceneNorth.Update(5);
+            sceneSouth.Update(5);
 
             // Check child position is correct.
             Assert.AreEqual(
