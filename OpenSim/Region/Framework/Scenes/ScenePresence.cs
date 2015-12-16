@@ -3896,8 +3896,16 @@ namespace OpenSim.Region.Framework.Scenes
                 m_scene.EventManager.TriggerSignificantClientMovement(this);
             }
 
-            if(!childUpdatesBusy)            
-            {
+            if(childUpdatesBusy)
+                return;
+            
+            //possible KnownRegionHandles always contains current region and this check is not needed
+            int minhandles = 0;
+            if(KnownRegionHandles.Contains(RegionHandle))
+                    minhandles++;
+
+            if(KnownRegionHandles.Count > minhandles)            
+            {              
                 int tdiff = Util.EnvironmentTickCountSubtract(lastChildUpdatesTime);
                 if(tdiff > CHILDUPDATES_TIME)
                 {
