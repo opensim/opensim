@@ -1136,7 +1136,10 @@
     ;# {InitialTerrain} {} {Initial terrain type} {pinhead-island flat} pinhead-island
     ; InitialTerrain = "pinhead-island"
 
-
+[LandManagement]
+	;; set this to false to not display parcel ban lines
+	;ShowParcelBansLines = true
+	
 [UserProfiles]
   ;# {ProfileServiceURL} {} {Set url to UserProfilesService} {}
   ;; Set the value of the url to your UserProfilesService
