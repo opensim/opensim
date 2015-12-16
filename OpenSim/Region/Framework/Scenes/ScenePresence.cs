@@ -2036,9 +2036,7 @@ namespace OpenSim.Region.Framework.Scenes
                             m_agentTransfer.EnableChildAgents(this);
                         }
                         // let updates be sent,  with some delay
-//                        lastChildUpdatesTime = Util.EnvironmentTickCount() + 10000;
-                        // temporary make them on next update
-                        lastChildUpdatesTime = Util.EnvironmentTickCount() - 50000;
+                        lastChildUpdatesTime = Util.EnvironmentTickCount() + 10000;
                         childUpdatesBusy = false; // allow them
                     }
                 }
