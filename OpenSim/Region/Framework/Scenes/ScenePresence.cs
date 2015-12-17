@@ -209,7 +209,6 @@ namespace OpenSim.Region.Framework.Scenes
 */
         }
 
-
         public bool ParcelAllowThisAvatarSounds
         {
             get
@@ -281,7 +280,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool m_followCamAuto = false;
 
-
         private Vector3? m_forceToApply;
         private int m_userFlags;
         public int UserFlags
@@ -349,10 +347,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         private readonly Vector3[] Dir_Vectors = new Vector3[12];
 
-        protected Timer m_reprioritization_timer;
-        protected bool m_reprioritizing;
-        protected bool m_reprioritization_called;
-
+        protected int  m_reprioritizationLastTime;
+        protected bool m_reprioritizationBusy;
+        
         private Quaternion m_headrotation = Quaternion.Identity;
 
         //PauPaw:Proper PID Controler for autopilot************
@@ -371,7 +368,7 @@ namespace OpenSim.Region.Framework.Scenes
         //private int m_moveToPositionStateStatus;
         //*****************************************************
 
-        private bool m_collisionEventFlag = false;
+        //private bool m_collisionEventFlag = false;
         private object m_collisionEventLock = new Object();
 		
         private int m_movementAnimationUpdateCounter = 0;
@@ -1033,12 +1030,10 @@ namespace OpenSim.Region.Framework.Scenes
             AbsolutePosition = posLastMove = posLastSignificantMove = CameraPosition =
                 m_lastCameraPosition = ControllingClient.StartPos;
 
-            childUpdatesBusy = true;  // disable it for now
-
-            m_reprioritization_timer = new Timer(world.ReprioritizationInterval);
-            m_reprioritization_timer.Elapsed += new ElapsedEventHandler(Reprioritize);
-            m_reprioritization_timer.AutoReset = false;
-
+            // disable updates workjobs for now
+            childUpdatesBusy = true;  
+            m_reprioritizationBusy = true;
+ 
             AdjustKnownSeeds();
 
             RegisterToEvents();
@@ -2047,6 +2042,10 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_teleportFlags > 0 && !isNPC || m_currentParcelHide)
                     SendInitialDataToMe();
 
+                m_lastCameraPosition = CameraPosition;
+                m_reprioritizationLastTime = Util.EnvironmentTickCount() + 15000; // delay it
+                m_reprioritizationBusy = false;
+
                 m_log.DebugFormat("[CompleteMovement] SendInitialDataToMe: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 if (!IsChildAgent && openChildAgents)
@@ -2544,12 +2543,6 @@ namespace OpenSim.Region.Framework.Scenes
             // Camera location in world.  We'll need to raytrace
             // from this location from time to time.
             CameraPosition = agentData.CameraCenter;
-            if (Vector3.Distance(m_lastCameraPosition, CameraPosition) >= Scene.RootReprioritizationDistance)
-            {
-                ReprioritizeUpdates();
-                m_lastCameraPosition = CameraPosition;
-            }
-
             // Use these three vectors to figure out what the agent is looking at
             // Convert it to a Matrix and/or Quaternion
             CameraAtAxis = agentData.CameraAtAxis;
@@ -2560,7 +2553,7 @@ namespace OpenSim.Region.Framework.Scenes
             // When we get to the point of re-computing neighbors everytime this
             // changes, then start using the agent's drawdistance rather than the 
             // region's draw distance.
-
+            
             DrawDistance = agentData.Far;
 
             // Check if Client has camera in 'follow cam' or 'build' mode.
@@ -3875,6 +3868,40 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Significant Movement Method
 
+        private void checkRePrioritization()
+        {
+            if(IsDeleted || !ControllingClient.IsActive)
+                return;
+
+            if(m_reprioritizationBusy)
+                return;
+
+            int tdiff =  Util.EnvironmentTickCountSubtract(m_reprioritizationLastTime);
+            if(tdiff < Scene.ReprioritizationInterval)
+                return;
+
+            Vector3 diff = CameraPosition - m_lastCameraPosition;
+            float limit;
+            if(IsChildAgent)
+                limit = (float)Scene.ChildReprioritizationDistance;
+            else
+                limit = (float)Scene.RootReprioritizationDistance;
+
+            limit *= limit;
+            if (diff.LengthSquared() < limit)
+                return;
+
+            m_reprioritizationBusy = true;
+            m_lastCameraPosition = CameraPosition;
+
+            Util.FireAndForget(
+                o =>
+                {
+                    ControllingClient.ReprioritizeUpdates(); 
+                    m_reprioritizationLastTime = Util.EnvironmentTickCount();
+                    m_reprioritizationBusy = false;
+                }, null, "ScenePresence.Reprioritization");
+        }
         /// <summary>
         /// This checks for a significant movement and sends a coarselocationchange update
         /// </summary>
@@ -3895,6 +3922,9 @@ namespace OpenSim.Region.Framework.Scenes
                 posLastSignificantMove = pos;
                 m_scene.EventManager.TriggerSignificantClientMovement(this);
             }
+
+            // updates priority recalc
+            checkRePrioritization();
 
             if(childUpdatesBusy)
                 return;
@@ -4222,12 +4252,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (cAgentData.Position != marker) // UGH!!
                 m_pos = cAgentData.Position + offset;
 
-            if (Vector3.Distance(AbsolutePosition, posLastSignificantMove) >= Scene.ChildReprioritizationDistance)
-            {
-                posLastSignificantMove = AbsolutePosition;
-                ReprioritizeUpdates();
-            }
-
             CameraPosition = cAgentData.Center + offset;
 
             if ((cAgentData.Throttles != null) && cAgentData.Throttles.Length > 0)
@@ -4262,6 +4286,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             //cAgentData.AVHeight;
             //m_velocity = cAgentData.Velocity;
+            checkRePrioritization();
         }
 
         public void CopyTo(AgentData cAgent)
@@ -4669,12 +4694,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             // Clear known regions
             KnownRegions = new Dictionary<ulong, string>();
-
-            lock (m_reprioritization_timer)
-            {
-                m_reprioritization_timer.Enabled = false;
-                m_reprioritization_timer.Elapsed -= new ElapsedEventHandler(Reprioritize);
-            }
             
             // I don't get it but mono crashes when you try to dispose of this timer,
             // unsetting the elapsed callback should be enough to allow for cleanup however.
@@ -5450,31 +5469,6 @@ namespace OpenSim.Region.Framework.Scenes
             return flags;
         }
 
-        private void ReprioritizeUpdates()
-        {
-            if (Scene.IsReprioritizationEnabled && Scene.UpdatePrioritizationScheme != UpdatePrioritizationSchemes.Time)
-            {
-                lock (m_reprioritization_timer)
-                {
-                    if (!m_reprioritizing)
-                        m_reprioritization_timer.Enabled = m_reprioritizing = true;
-                    else
-                        m_reprioritization_called = true;
-                }
-            }
-        }
-
-        private void Reprioritize(object sender, ElapsedEventArgs e)
-        {
-            ControllingClient.ReprioritizeUpdates();
-
-            lock (m_reprioritization_timer)
-            {
-                m_reprioritization_timer.Enabled = m_reprioritizing = m_reprioritization_called;
-                m_reprioritization_called = false;
-            }
-        }
-
         // returns true it local teleport allowed and sets the destiny position into pos
         
         private bool CheckLocalTPLandingPoint(ref Vector3 pos)
@@ -5946,10 +5940,11 @@ namespace OpenSim.Region.Framework.Scenes
                         SendLandCollisionEvent(att, scriptEvents.land_collision_end, m_scene.EventManager.TriggerScriptLandCollidingEnd);
                 }
             }
-            finally
-            {
-                m_collisionEventFlag = false;
-            }
+            catch { }
+//            finally
+//            {
+//                m_collisionEventFlag = false;
+//            }
         }
 
         private void TeleportFlagsDebug() {
