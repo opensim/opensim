@@ -349,6 +349,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected int  m_reprioritizationLastTime;
         protected bool m_reprioritizationBusy;
+        protected Vector3 m_reprioritizationLastPosition;
         
         private Quaternion m_headrotation = Quaternion.Identity;
 
@@ -522,7 +523,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Position of agent's camera in world (region cordinates)
         /// </summary>
-        protected Vector3 m_lastCameraPosition;
+//        protected Vector3 m_lastCameraPosition;
 
         private Vector4 m_lastCameraCollisionPlane = new Vector4(0f, 0f, 0f, 1);
         private bool m_doingCamRayCast = false;
@@ -1028,7 +1029,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_scriptEngines = m_scene.RequestModuleInterfaces<IScriptModule>();
             
             AbsolutePosition = posLastMove = posLastSignificantMove = CameraPosition =
-                m_lastCameraPosition = ControllingClient.StartPos;
+               m_reprioritizationLastPosition = ControllingClient.StartPos;
 
             // disable updates workjobs for now
             childUpdatesBusy = true;  
@@ -2042,7 +2043,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_teleportFlags > 0 && !isNPC || m_currentParcelHide)
                     SendInitialDataToMe();
 
-                m_lastCameraPosition = CameraPosition;
+                // priority uses avatar position only
+                m_reprioritizationLastPosition = AbsolutePosition;
                 m_reprioritizationLastTime = Util.EnvironmentTickCount() + 15000; // delay it
                 m_reprioritizationBusy = false;
 
@@ -3879,9 +3881,9 @@ namespace OpenSim.Region.Framework.Scenes
             int tdiff =  Util.EnvironmentTickCountSubtract(m_reprioritizationLastTime);
             if(tdiff < Scene.ReprioritizationInterval)
                 return;
-
-            Vector3 pos = CameraPosition;
-            Vector3 diff = pos - m_lastCameraPosition;
+            // priority uses avatar position
+            Vector3 pos = AbsolutePosition;
+            Vector3 diff = pos - m_reprioritizationLastPosition;
             float limit;
             if(IsChildAgent)
                 limit = (float)Scene.ChildReprioritizationDistance;
@@ -3893,7 +3895,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             m_reprioritizationBusy = true;
-            m_lastCameraPosition = pos;
+            m_reprioritizationLastPosition = pos;
 
             Util.FireAndForget(
                 o =>
