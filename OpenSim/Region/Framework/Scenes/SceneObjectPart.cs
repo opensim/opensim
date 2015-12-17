@@ -4922,7 +4922,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                     }
                 }
 
-                if (applyDynamics && LocalId != ParentGroup.RootPart.LocalId) 
+                if (applyDynamics && LocalId == ParentGroup.RootPart.LocalId) 
                     // do independent of isphysical so parameters get setted (at least some)                   
                 {
                     Velocity = velocity;
