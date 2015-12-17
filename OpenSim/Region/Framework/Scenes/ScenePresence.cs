@@ -3880,7 +3880,8 @@ namespace OpenSim.Region.Framework.Scenes
             if(tdiff < Scene.ReprioritizationInterval)
                 return;
 
-            Vector3 diff = CameraPosition - m_lastCameraPosition;
+            Vector3 pos = CameraPosition;
+            Vector3 diff = pos - m_lastCameraPosition;
             float limit;
             if(IsChildAgent)
                 limit = (float)Scene.ChildReprioritizationDistance;
@@ -3892,7 +3893,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             m_reprioritizationBusy = true;
-            m_lastCameraPosition = CameraPosition;
+            m_lastCameraPosition = pos;
 
             Util.FireAndForget(
                 o =>
