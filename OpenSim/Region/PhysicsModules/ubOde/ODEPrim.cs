@@ -520,30 +520,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
         }
 
-        public override Vector3 OOBsize
-            {
-            get
-                {
-                return m_OBB;
-                }
-            }
-
-        public override Vector3 OOBoffset
-            {
-            get
-                {
-                return m_OBBOffset;
-                }
-            }
-
-        public override float OOBRadiusSQ
-            {
-            get
-                {
-                return primOOBradiusSQ;
-                }
-            }
-
         public override PrimitiveBaseShape Shape
         {
             set

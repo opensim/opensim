@@ -351,35 +351,6 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public abstract Vector3 GeometricCenter { get; }
         public abstract Vector3 CenterOfMass { get; }
 
-        public virtual Vector3 OOBsize
-        {
-            get
-                {
-                Vector3 s=Size;
-                s.X *=0.5f;
-                s.Y *=0.5f;
-                s.Z *=0.5f;
-                return s;
-                } 
-        }
-
-        public virtual Vector3 OOBoffset
-        {
-            get
-            {
-                return Vector3.Zero;
-            }
-        }
-
-        public virtual float OOBRadiusSQ
-        {
-            get
-            {
-                return Size.LengthSquared() * 0.25f; // ((0.5^2)
-            }
-        }
-
-
         public virtual float PhysicsCost
         {
             get
