@@ -3037,7 +3037,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (sceneObject.IsAttachmentCheckFull()) // Attachment
             {
                 sceneObject.RootPart.AddFlag(PrimFlags.TemporaryOnRez);
-                sceneObject.RootPart.AddFlag(PrimFlags.Phantom);
+//                sceneObject.RootPart.AddFlag(PrimFlags.Phantom);
 
                 // Don't sent a full update here because this will cause full updates to be sent twice for 
                 // attachments on region crossings, resulting in viewer glitches.
@@ -3069,8 +3069,8 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                 {
                     m_log.DebugFormat("[SCENE]: Attachment {0} arrived and scene presence was not found, setting to temp", sceneObject.UUID);
-                    RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
-                    RootPrim.AddFlag(PrimFlags.TemporaryOnRez);
+//                    RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
+//                    RootPrim.AddFlag(PrimFlags.TemporaryOnRez);
                 }
                 if (sceneObject.OwnerID == UUID.Zero)
                 {
