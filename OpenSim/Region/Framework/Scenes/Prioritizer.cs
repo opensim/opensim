@@ -91,14 +91,10 @@ namespace OpenSim.Region.Framework.Scenes
                 return 0;
 
             uint priority;
-
-
-            // HACK 
-            return GetPriorityByBestAvatarResponsiveness(client, entity);
-
             
             switch (m_scene.UpdatePrioritizationScheme)
             {
+/*
                 case UpdatePrioritizationSchemes.Time:
                     priority = GetPriorityByTime(client, entity);
                     break;
@@ -111,11 +107,11 @@ namespace OpenSim.Region.Framework.Scenes
                 case UpdatePrioritizationSchemes.FrontBack:
                     priority = GetPriorityByFrontBack(client, entity);
                     break;
+*/
                 case UpdatePrioritizationSchemes.BestAvatarResponsiveness:
+                default:
                     priority = GetPriorityByBestAvatarResponsiveness(client, entity);
                     break;
-                default:
-                    throw new InvalidOperationException("UpdatePrioritizationScheme not defined.");
             }
             
             return priority;
