@@ -446,35 +446,42 @@ namespace OpenSim.Services.Connectors
             return exist;
         }
 
+        string stringUUIDZero = UUID.Zero.ToString();
+
         public string Store(AssetBase asset)
         {
             // Have to assign the asset ID here. This isn't likely to
             // trigger since current callers don't pass emtpy IDs
             // We need the asset ID to route the request to the proper
             // cluster member, so we can't have the server assign one.
-            if (asset.ID == string.Empty)
+            if (asset.ID == string.Empty || asset.ID == stringUUIDZero)
             {
                 if (asset.FullID == UUID.Zero)
                 {
                     asset.FullID = UUID.Random();
                 }
+                m_log.WarnFormat("[Assets] Zero ID: {0}",asset.Name);
                 asset.ID = asset.FullID.ToString();
             }
-            else if (asset.FullID == UUID.Zero)
+
+            if (asset.FullID == UUID.Zero)
             {
                 UUID uuid = UUID.Zero;
                 if (UUID.TryParse(asset.ID, out uuid))
                 {
                     asset.FullID = uuid;
                 }
-                else
+                if(asset.FullID == UUID.Zero)
                 {
+                    m_log.WarnFormat("[Assets] Zero IDs: {0}",asset.Name);
                     asset.FullID = UUID.Random();
+                    asset.ID = asset.FullID.ToString();
                 }
             }
 
             if (m_Cache != null)
                 m_Cache.Cache(asset);
+
             if (asset.Temporary || asset.Local)
             {
                 return asset.ID;
@@ -482,22 +489,15 @@ namespace OpenSim.Services.Connectors
 
             string uri = MapServer(asset.FullID.ToString()) + "/assets/";
 
-            string newID;
+            string newID = null;
             try
             {
                 newID = SynchronousRestObjectRequester.
                         MakeRequest<AssetBase, string>("POST", uri, asset, 100000, m_Auth);
-                if (newID == null || newID == "")
-                {
-                    newID = UUID.Zero.ToString();
-                }
             }
-            catch (Exception e)
-            {
-                newID = UUID.Zero.ToString();
-            }
+            catch {}
 
-            if (newID == UUID.Zero.ToString())
+            if (newID == null || newID == String.Empty || newID == stringUUIDZero)
             {
                 //The asset upload failed, put it in a queue for later
                 asset.UploadAttempts++;
@@ -525,13 +525,13 @@ namespace OpenSim.Services.Connectors
                 {
                     m_log.InfoFormat("[Assets] Upload of {0} succeeded after {1} failed attempts", asset.ID.ToString(), asset.UploadAttempts.ToString());
                 }
-                if (newID != String.Empty)
+                if (newID != asset.ID)
                 {
                     // Placing this here, so that this work with old asset servers that don't send any reply back
                     // SynchronousRestObjectRequester returns somethins that is not an empty string
-                    if (newID != null)
-                        asset.ID = newID;
 
+                    asset.ID = newID;
+// what about FullID ????
                     if (m_Cache != null)
                         m_Cache.Cache(asset);
                 }
