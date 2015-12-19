@@ -225,7 +225,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 
                 // FIXME: This can only come from the console at the moment but might not always be true.
                 if (ConsoleUtil.TryParseConsoleDouble(MainConsole.Instance, options["child-repri"], out newValue))
-                    m_scene.ChildReprioritizationDistance = newValue;                
+                    m_scene.ChildReprioritizationDistance = (float)newValue;                
             }
 
             if (options.ContainsKey("client-pos-upd"))
