@@ -180,6 +180,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
                 if (!(m_Cache is ISharedRegionModule))
                     m_Cache = null;
+                
             }
 
             m_log.InfoFormat("[HG ASSET CONNECTOR]: Enabled hypergrid asset broker for region {0}", scene.RegionInfo.RegionName);
@@ -338,20 +339,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
         public string Store(AssetBase asset)
         {
-            bool isHG = IsHG(asset.ID);
-
-            if ((m_Cache != null) && !isHG)
-                // Don't store it in the cache if the asset is to 
-                // be sent to the other grid, because this is already
-                // a copy of the local asset.
-                m_Cache.Cache(asset);
-
-            if (asset.Local)
+            if (asset.Local || asset.Temporary)
             {
                 if (m_Cache != null)
                     m_Cache.Cache(asset);
                 return asset.ID;
             }
+
+            bool isHG = IsHG(asset.ID);
+            if ((m_Cache != null) && !isHG)
+                // Don't store it in the cache if the asset is to 
+                // be sent to the other grid, because this is already
+                // a copy of the local asset.
+                m_Cache.Cache(asset);
 
             string id;
             if (IsHG(asset.ID))
