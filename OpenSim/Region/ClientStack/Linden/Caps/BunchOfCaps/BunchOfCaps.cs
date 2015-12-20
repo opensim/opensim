@@ -1442,41 +1442,36 @@ namespace OpenSim.Region.ClientStack.Linden
                 UUID uuid = object_ids[i].AsUUID();
                                 
                 SceneObjectPart part = m_Scene.GetSceneObjectPart(uuid);
-
+                SceneObjectGroup grp = null;
                 if (part != null)
+                    grp = part.ParentGroup;
+                if (grp != null)
                 {
-                    SceneObjectGroup grp = part.ParentGroup;
-                    if (grp != null)
-                    {
-                        float linksetCost;
-                        float linksetPhysCost;
-                        float partCost;
-                        float partPhysCost;
+                    float linksetCost;
+                    float linksetPhysCost;
+                    float partCost;
+                    float partPhysCost;
 
-                        grp.GetResourcesCosts(part, out linksetCost, out linksetPhysCost, out partCost, out  partPhysCost);
+                    grp.GetResourcesCosts(part,out linksetCost,out linksetPhysCost,out partCost,out partPhysCost);
 
-                        OSDMap object_data = new OSDMap();
-                        object_data["linked_set_resource_cost"] = linksetCost;
-                        object_data["resource_cost"] = partCost;
-                        object_data["physics_cost"] = partPhysCost;
-                        object_data["linked_set_physics_cost"] = linksetPhysCost;
-
-                        resp[uuid.ToString()] = object_data;
-                    }
-                    else
-                    {
-                        OSDMap object_data = new OSDMap();
-                        object_data["linked_set_resource_cost"] = 0;
-                        object_data["resource_cost"] = 0;
-                        object_data["physics_cost"] = 0;
-                        object_data["linked_set_physics_cost"] = 0;
-
-                        resp[uuid.ToString()] = object_data;
-                    }
-
+                    OSDMap object_data = new OSDMap();
+                    object_data["linked_set_resource_cost"] = linksetCost;
+                    object_data["resource_cost"] = partCost;
+                    object_data["physics_cost"] = partPhysCost;
+                    object_data["linked_set_physics_cost"] = linksetPhysCost;
+                    object_data["resource_limiting_type"] = "legacy";
+                    resp[uuid.ToString()] = object_data;
                 }
             }
-
+            if(resp.Count == 0)
+            {
+                OSDMap object_data = new OSDMap();
+                object_data["linked_set_resource_cost"] = 0;
+                object_data["resource_cost"] = 0;
+                object_data["physics_cost"] = 0;
+                object_data["linked_set_physics_cost"] = 0;
+                resp[UUID.Zero.ToString()] = object_data;
+            }
             string response = OSDParser.SerializeLLSDXmlString(resp);
             return response; 
         }
@@ -1538,17 +1533,14 @@ namespace OpenSim.Region.ClientStack.Linden
                 }
             }
 
- //           if (simul != 0)
-            {
-                OSDMap object_data = new OSDMap();
+            OSDMap object_data = new OSDMap();
 
-                object_data["physics"] = phys;
-                object_data["streaming"] = stream;
-                object_data["simulation"] = simul;
+            object_data["physics"] = phys;
+            object_data["streaming"] = stream;
+            object_data["simulation"] = simul;
 
-                resp["selected"] = object_data;
-            }
-
+            resp["selected"] = object_data;
+//            resp["transaction_id"] = "undef";
             string response = OSDParser.SerializeLLSDXmlString(resp);
             return response; 
         }
