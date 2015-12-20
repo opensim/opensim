@@ -3473,10 +3473,10 @@ namespace OpenSim.Region.Framework.Scenes
                 if (Appearance.AvatarSize != m_lastSize && !IsLoggingIn)
                     SendAvatarDataToAllAgents();
 
-                if (!IsSatOnObject ||
+                if (!IsSatOnObject && (
                     !Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
                     !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
-                    !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
+                    !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE)))
                 {
                     SendTerseUpdateToAllClients();
 
