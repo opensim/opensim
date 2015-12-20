@@ -737,11 +737,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 }
 
                 rootPart.RemFlag(PrimFlags.TemporaryOnRez);
-                
-                // not physical, not temporary, phaton, not volume detector
-//                so.UpdatePrimFlags(rootPart.LocalId,false,false,true,rootPart.VolumeDetectActive);
 
-                // restore full physical state instead
+                // not physical, not temporary, phaton, not volume detector
+                //  so.UpdatePrimFlags(rootPart.LocalId,false,false,true,rootPart.VolumeDetectActive);
+
+                // but do avoid nasty collisions set it phantom in this drop case
+                // until a better way is found
+                rootPart.AddFlag(PrimFlags.Phantom);
+                
                 so.ApplyPhysics();
 
                 so.HasGroupChanged = true;
@@ -761,8 +764,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             // Attach (NULL) stops scripts. We don't want that. Resume them.
             so.ResumeScripts();
-            so.ScheduleGroupForTerseUpdate();
             so.RootPart.ScheduleFullUpdate();
+            so.ScheduleGroupForTerseUpdate();
         }
 
         public void DetachSingleAttachmentToInv(IScenePresence sp, SceneObjectGroup so)
