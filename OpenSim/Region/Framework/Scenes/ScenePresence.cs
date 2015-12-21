@@ -1110,6 +1110,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Status Methods
 
+        void PhysicsCheckPositionZ()
+        {
+            if(m_scene.PhysicsScene == null)
+                return;
+        }
+
         /// <summary>
         /// Turns a child agent into a root agent.
         /// </summary>
@@ -1195,7 +1201,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (ParentID == 0)
             {
-                if(!CheckAndAdjustLandingPoint(ref pos, ref lookat))
+                bool positionChanged = false;
+                if(!CheckAndAdjustLandingPoint(ref pos, ref lookat, ref positionChanged ))
                 {
                 m_log.DebugFormat("[SCENE PRESENCE MakeRootAgent]: houston we have a problem.. {0}({1} got here banned",Name, UUID);
                 }
@@ -1218,6 +1225,13 @@ namespace OpenSim.Region.Framework.Scenes
                         pos.Y = m_scene.RegionInfo.RegionSizeY - 0.5f;
                 }
 
+                bool checkPhysics = !positionChanged &&
+                        m_scene.SupportsRayCastFiltered() &&
+                        ((m_teleportFlags & (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID)) ==
+                            (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID)
+                        || (m_teleportFlags & TeleportFlags.ViaLocation) != 0
+                        || (m_teleportFlags & TeleportFlags.ViaHGLogin) != 0);
+
                 float localAVHeight = 1.56f;
                 if (Appearance.AvatarHeight > 0)
                     localAVHeight = Appearance.AvatarHeight;
@@ -1226,6 +1240,29 @@ namespace OpenSim.Region.Framework.Scenes
                 newPosZ += 0.5f * localAVHeight;
                 if (newPosZ > pos.Z)
                     pos.Z = newPosZ;
+
+                if(checkPhysics)
+                {
+                    // no land!!
+                    RayFilterFlags rayfilter = RayFilterFlags.ClosestAndBackCull;
+                        rayfilter |= RayFilterFlags.physical;
+                        rayfilter |= RayFilterFlags.nonphysical;
+                        rayfilter |= RayFilterFlags.LSLPhantom; // ubODE will only see volume detectors
+                    int physcount = 1;
+                    float dist = 1024f;
+                    Vector3 direction = new Vector3(0f,0f,-1f);
+                    Vector3 RayStart = pos;
+                    RayStart.Z += dist;
+
+                    List<ContactResult> physresults =
+                            (List<ContactResult>)m_scene.RayCastFiltered(RayStart, direction, dist, physcount, rayfilter);
+                    if (physresults != null && physresults.Count > 0)
+                    {
+                        float d = physresults[0].Pos.Z + 0.5f * localAVHeight;
+                        if(d > pos.Z)
+                            pos.Z = d;
+                    }
+                }
 
                 AbsolutePosition = pos;
 
@@ -5531,7 +5568,7 @@ namespace OpenSim.Region.Framework.Scenes
         const TeleportFlags TeleHubTPFlags = TeleportFlags.ViaLogin 
                     | TeleportFlags.ViaHGLogin | TeleportFlags.ViaLocation;
 
-        private bool CheckAndAdjustTelehub(SceneObjectGroup telehub, ref Vector3 pos)
+        private bool CheckAndAdjustTelehub(SceneObjectGroup telehub, ref Vector3 pos, ref bool positionChanged)
         {
             // forcing telehubs on any tp that reachs this
             if ((m_teleportFlags & TeleHubTPFlags) != 0 ||
@@ -5549,6 +5586,7 @@ namespace OpenSim.Region.Framework.Scenes
                         pos = teleHubPosition;
                         if(land.IsEitherBannedOrRestricted(UUID))
                             return false;
+                        positionChanged = true;
                         return true;
                     }
                     else
@@ -5613,6 +5651,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                         if(!selected)
                             return false;
+                        positionChanged = true;
                         return true;
 
                     default:
@@ -5646,10 +5685,12 @@ namespace OpenSim.Region.Framework.Scenes
                         if(closest < 0)
                         {
                             pos = spawnPoints[0].GetLocation(teleHubPosition, teleHubRotation);
+                            positionChanged = true;
                             return false;
                         }
 
                         pos = spawnPoints[closest].GetLocation(teleHubPosition, teleHubRotation);
+                        positionChanged = true;
                         return true;
                 }
             }
@@ -5660,7 +5701,7 @@ namespace OpenSim.Region.Framework.Scenes
                     TeleportFlags.ViaLocation | TeleportFlags.ViaHGLogin;
 
        // Modify landing point based on telehubs or parcel restrictions.
-        private bool CheckAndAdjustLandingPoint(ref Vector3 pos, ref Vector3 lookat)
+        private bool CheckAndAdjustLandingPoint(ref Vector3 pos, ref Vector3 lookat, ref bool positionChanged)
         {
             string reason;
 
@@ -5677,7 +5718,7 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectGroup telehub = null;
                 if (m_scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero && (telehub = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject)) != null)
                 {
-                    if(CheckAndAdjustTelehub(telehub, ref pos))
+                    if(CheckAndAdjustTelehub(telehub, ref pos, ref positionChanged))
                         return true;
                 }
             }
@@ -5706,6 +5747,7 @@ namespace OpenSim.Region.Framework.Scenes
                         pos = land.LandData.UserLocation;
                         if(land.LandData.UserLookAt != Vector3.Zero)
                             lookat = land.LandData.UserLookAt;
+                        positionChanged = true;
                     }
                 }
             }
