@@ -737,13 +737,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 }
 
                 rootPart.RemFlag(PrimFlags.TemporaryOnRez);
-
-                // not physical, not temporary, phaton, not volume detector
-                //  so.UpdatePrimFlags(rootPart.LocalId,false,false,true,rootPart.VolumeDetectActive);
-
-                // but do avoid nasty collisions set it phantom in this drop case
-                // until a better way is found
-                rootPart.AddFlag(PrimFlags.Phantom);
                 
                 so.ApplyPhysics();
 
