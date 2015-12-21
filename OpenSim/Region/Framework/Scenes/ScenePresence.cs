@@ -1186,16 +1186,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (gm != null)
                 Grouptitle = gm.GetGroupTitle(m_uuid);
 
-
-            if ((m_teleportFlags & TeleportFlags.ViaHGLogin) != 0)
-            {
-                // The avatar is arriving from another grid. This means that we may have changed the
-                // avatar's name to or from the special Hypergrid format ("First.Last @grid.example.com").
-                // Unfortunately, due to a viewer bug, viewers don't always show the new name.
-                // But we have a trick that can force them to update the name anyway.
-//                ForceViewersUpdateName();
-            }
-
             m_log.DebugFormat("[MakeRootAgent] Grouptitle: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
             RegionHandle = m_scene.RegionInfo.RegionHandle;
@@ -1903,12 +1893,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (!IsChildAgent)
                 {
-
-                    // ValidateAndSendAppearanceAndAgentData();
-
-                    // do it here in line 
-                    // so sequence is clear
-
                     // verify baked textures and cache
                     bool cachedbaked = false;
 
@@ -3454,40 +3438,52 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Overridden Methods
 
+       const float ROTATION_TOLERANCE = 0.01f;
+       const float VELOCITY_TOLERANCE = 0.1f;
+       const float LOWVELOCITYSQ = 0.1f;
+       const float POSITION_LARGETOLERANCE = 5f;
+       const float POSITION_SMALLTOLERANCE = 0.05f;
+
         public override void Update()
         {
-            const float ROTATION_TOLERANCE = 0.01f;
-            const float VELOCITY_TOLERANCE = 0.001f;
-            const float POSITION_TOLERANCE = 0.05f;
+            if(IsChildAgent || IsDeleted)
+                return;
 
-            if (IsChildAgent == false)
+            CheckForBorderCrossing();
+
+            if (IsInTransit || IsLoggingIn)
+                return;
+
+            if (Appearance.AvatarSize != m_lastSize)
+                SendAvatarDataToAllAgents();
+
+            if (!IsSatOnObject)
             {
-                CheckForBorderCrossing();
+                // this does need to be more complex later
+                Vector3 vel = Velocity;
+                Vector3 dpos = m_pos - m_lastPosition;
+                if(     Math.Abs(vel.X - m_lastVelocity.X) > VELOCITY_TOLERANCE ||
+                        Math.Abs(vel.Y - m_lastVelocity.Y) > VELOCITY_TOLERANCE ||
+                        Math.Abs(vel.Z - m_lastVelocity.Z) > VELOCITY_TOLERANCE ||
 
-                if (IsInTransit)
-                    return;
+                        Math.Abs(m_bodyRot.X - m_lastRotation.X) > ROTATION_TOLERANCE ||
+                        Math.Abs(m_bodyRot.Y - m_lastRotation.Y) > ROTATION_TOLERANCE ||
+                        Math.Abs(m_bodyRot.Z - m_lastRotation.Z) > ROTATION_TOLERANCE ||
 
-                // NOTE: Velocity is not the same as m_velocity. Velocity will attempt to
-                // grab the latest PhysicsActor velocity, whereas m_velocity is often
-                // storing a requested force instead of an actual traveling velocity
-                if (Appearance.AvatarSize != m_lastSize && !IsLoggingIn)
-                    SendAvatarDataToAllAgents();
-
-                if (!IsSatOnObject && (
-                    !Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
-                    !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
-                    !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE)))
+                        Math.Abs(dpos.X) > POSITION_LARGETOLERANCE ||
+                        Math.Abs(dpos.Y) > POSITION_LARGETOLERANCE ||
+                        Math.Abs(dpos.Z) > POSITION_LARGETOLERANCE ||
+ 
+                        (  (Math.Abs(dpos.X) > POSITION_SMALLTOLERANCE ||
+                            Math.Abs(dpos.Y) > POSITION_SMALLTOLERANCE ||
+                            Math.Abs(dpos.Z) > POSITION_SMALLTOLERANCE)
+                            && vel.LengthSquared() < LOWVELOCITYSQ 
+                        ))
                 {
                     SendTerseUpdateToAllClients();
-
-                    // Update the "last" values
-                    m_lastPosition = m_pos;
-                    m_lastRotation = Rotation;
-                    m_lastVelocity = Velocity;
                 }
-
-                CheckForSignificantMovement(); // sends update to the modules.
             }
+            CheckForSignificantMovement();
         }
 
         #endregion
@@ -3576,50 +3572,16 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-
-        // vars to support reduced update frequency when velocity is unchanged
-        private Vector3 lastVelocitySentToAllClients = Vector3.Zero;
-        private Vector3 lastPositionSentToAllClients = Vector3.Zero;
-        private int lastTerseUpdateToAllClientsTick = Util.EnvironmentTickCount();
-
         /// <summary>
         /// Send a location/velocity/accelleration update to all agents in scene
         /// </summary>
         public void SendTerseUpdateToAllClients()
         {
-            int currentTick = Util.EnvironmentTickCount();
-
-            // Decrease update frequency when avatar is moving but velocity is
-            // not changing.
-            // If there is a mismatch between distance travelled and expected
-            // distance based on last velocity sent and velocity hasnt changed,
-            // then send a new terse update
-
-            float timeSinceLastUpdate = (currentTick - lastTerseUpdateToAllClientsTick) * 0.001f;
-
-            Vector3 expectedPosition = lastPositionSentToAllClients + lastVelocitySentToAllClients * timeSinceLastUpdate;
-
-            float distanceError = Vector3.Distance(OffsetPosition, expectedPosition);
-
-            float speed = Velocity.Length();
-            float velocityDiff = Vector3.Distance(lastVelocitySentToAllClients, Velocity);
-
-            // assuming 5 ms. worst case precision for timer, use 2x that 
-            // for distance error threshold
-            float distanceErrorThreshold = speed * 0.01f;
-
-            if (speed < 0.01f // allow rotation updates if avatar position is unchanged
-                || Math.Abs(distanceError) > distanceErrorThreshold
-                || velocityDiff > 0.01f) // did velocity change from last update?
-            {
-                lastVelocitySentToAllClients = Velocity;
-                lastTerseUpdateToAllClientsTick = currentTick;
-                lastPositionSentToAllClients = OffsetPosition;
-
- //                Console.WriteLine("Scheduled update for {0} in {1}", Name, Scene.Name);
-//                m_scene.ForEachClient(SendTerseUpdateToClient);
-                m_scene.ForEachScenePresence(SendTerseUpdateToAgent);
-            }
+            m_scene.ForEachScenePresence(SendTerseUpdateToAgent);
+            // Update the "last" values
+            m_lastPosition = m_pos;
+            m_lastRotation = m_bodyRot;
+            m_lastVelocity = Velocity;
             TriggerScenePresenceUpdated();
         }
 
