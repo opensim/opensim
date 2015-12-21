@@ -1110,12 +1110,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Status Methods
 
-        void PhysicsCheckPositionZ()
-        {
-            if(m_scene.PhysicsScene == null)
-                return;
-        }
-
         /// <summary>
         /// Turns a child agent into a root agent.
         /// </summary>
@@ -1243,12 +1237,12 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if(checkPhysics)
                 {
-                    // no land!!
+                    // land check was done above
                     RayFilterFlags rayfilter = RayFilterFlags.ClosestAndBackCull;
                         rayfilter |= RayFilterFlags.physical;
                         rayfilter |= RayFilterFlags.nonphysical;
                         rayfilter |= RayFilterFlags.LSLPhantom; // ubODE will only see volume detectors
-                    int physcount = 1;
+                    int physcount = 25;
                     float dist = 1024f;
                     Vector3 direction = new Vector3(0f,0f,-1f);
                     Vector3 RayStart = pos;
