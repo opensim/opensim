@@ -1251,9 +1251,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     // land check was done above
                     RayFilterFlags rayfilter = RayFilterFlags.BackFaceCull;
-                        rayfilter |= RayFilterFlags.physical;
-                        rayfilter |= RayFilterFlags.nonphysical;
-                        rayfilter |= RayFilterFlags.LSLPhantom; // ubODE will only see volume detectors
+                        rayfilter |= RayFilterFlags.PrimsNonPhantomAgents;
 
                     int physcount = PhysNumberCollisions;
 
