@@ -1123,6 +1123,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// delays that crossing.
         /// </remarks>
         
+        // constants for physics position search
+        const float PhysSearchHeight = 600f;
+        const float PhysMinSkipGap = 50f;
+        const int PhysNumberCollisions = 30;
 
         // only in use as part of completemovement
         // other uses need fix
@@ -1198,7 +1202,7 @@ namespace OpenSim.Region.Framework.Scenes
                 bool positionChanged = false;
                 if(!CheckAndAdjustLandingPoint(ref pos, ref lookat, ref positionChanged ))
                 {
-                m_log.DebugFormat("[SCENE PRESENCE MakeRootAgent]: houston we have a problem.. {0}({1} got here banned",Name, UUID);
+                    m_log.DebugFormat("[SCENE PRESENCE MakeRootAgent]: houston we have a problem.. {0}({1} got here banned",Name, UUID);
                 }
 
                 if (pos.X < 0f || pos.Y < 0f
@@ -1219,42 +1223,81 @@ namespace OpenSim.Region.Framework.Scenes
                         pos.Y = m_scene.RegionInfo.RegionSizeY - 0.5f;
                 }
 
+                float groundHeight = m_scene.GetGroundHeight(pos.X, pos.Y) + .01f;
+                float physTestHeight;
+
+                if(PhysSearchHeight < groundHeight + 100f)
+                    physTestHeight = groundHeight + 100f;
+                else
+                    physTestHeight = PhysSearchHeight;
+
+                float localAVHalfHeight = 0.8f;
+                if (Appearance != null && Appearance.AvatarHeight > 0)
+                    localAVHalfHeight = 0.5f * Appearance.AvatarHeight;
+
+                groundHeight += localAVHalfHeight;
+                if (groundHeight > pos.Z)
+                    pos.Z = groundHeight;
+
                 bool checkPhysics = !positionChanged &&
                         m_scene.SupportsRayCastFiltered() &&
+                        pos.Z < physTestHeight &&
                         ((m_teleportFlags & (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID)) ==
                             (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID)
                         || (m_teleportFlags & TeleportFlags.ViaLocation) != 0
                         || (m_teleportFlags & TeleportFlags.ViaHGLogin) != 0);
 
-                float localAVHeight = 1.56f;
-                if (Appearance.AvatarHeight > 0)
-                    localAVHeight = Appearance.AvatarHeight;
-
-                float newPosZ = m_scene.GetGroundHeight(pos.X, pos.Y) + .01f;
-                newPosZ += 0.5f * localAVHeight;
-                if (newPosZ > pos.Z)
-                    pos.Z = newPosZ;
-
                 if(checkPhysics)
                 {
                     // land check was done above
-                    RayFilterFlags rayfilter = RayFilterFlags.ClosestAndBackCull;
+                    RayFilterFlags rayfilter = RayFilterFlags.BackFaceCull;
                         rayfilter |= RayFilterFlags.physical;
                         rayfilter |= RayFilterFlags.nonphysical;
                         rayfilter |= RayFilterFlags.LSLPhantom; // ubODE will only see volume detectors
-                    int physcount = 25;
-                    float dist = 1024f;
-                    Vector3 direction = new Vector3(0f,0f,-1f);
+
+                    int physcount = PhysNumberCollisions;
+
+                    float dist = physTestHeight - groundHeight + localAVHalfHeight;
+                    
+                    Vector3 direction = new Vector3(0f, 0f, -1f);
                     Vector3 RayStart = pos;
-                    RayStart.Z += dist;
+                    RayStart.Z = physTestHeight;
 
                     List<ContactResult> physresults =
                             (List<ContactResult>)m_scene.RayCastFiltered(RayStart, direction, dist, physcount, rayfilter);
                     if (physresults != null && physresults.Count > 0)
                     {
-                        float d = physresults[0].Pos.Z + 0.5f * localAVHeight;
-                        if(d > pos.Z)
-                            pos.Z = d;
+                        float dest = physresults[0].Pos.Z;
+
+                        if(physresults.Count > 1)
+                        {
+                            physresults.Sort(delegate(ContactResult a, ContactResult b)
+                            {
+                                return a.Depth.CompareTo(b.Depth);
+                            });
+
+                            int sel = 0;
+                            int count = physresults.Count;
+                            float curd = physresults[0].Depth;
+                            float nextd = curd + PhysMinSkipGap;
+                            float maxDepth = dist - pos.Z;
+                            for(int i = 1; i < count; i++)
+                            {
+                                curd = physresults[i].Depth;
+                                if(curd >= nextd)
+                                {
+                                    sel = i;
+                                    if(curd >= maxDepth)
+                                        break;
+                                }
+                                nextd = curd + PhysMinSkipGap;
+                            }
+                            dest = physresults[sel].Pos.Z;
+                        }
+
+                        dest += localAVHalfHeight;
+                        if(dest > pos.Z)
+                            pos.Z = dest;
                     }
                 }
 
