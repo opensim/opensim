@@ -2467,7 +2467,7 @@ namespace OpenSim.Region.Framework.Scenes
                             // The UseClientAgentPosition is set if parcel ban is forcing the avatar to move to a
                             // certain position.  It's only check for tolerance on returning to that position is 0.2
                             // rather than 1, at which point it removes its force target.
-                            if (HandleMoveToTargetUpdate(agentData.UseClientAgentPosition ? 0.2 : 1, ref agent_control_v3))
+                            if (HandleMoveToTargetUpdate(agentData.UseClientAgentPosition ? 0.2f : 1f, ref agent_control_v3))
                                 update_movementflag = true;
                         }
                     }
@@ -2643,31 +2643,55 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         /// <param value="agent_control_v3">Cumulative agent movement that this method will update.</param>
         /// <returns>True if movement has been updated in some way.  False otherwise.</returns>
-        public bool HandleMoveToTargetUpdate(double tolerance, ref Vector3 agent_control_v3)
+        public bool HandleMoveToTargetUpdate(float tolerance, ref Vector3 agent_control_v3)
         {
 //            m_log.DebugFormat("[SCENE PRESENCE]: Called HandleMoveToTargetUpdate() for {0}", Name);
 
             bool updated = false;
-
+ 
             Vector3 LocalVectorToTarget3D = MoveToPositionTarget - AbsolutePosition;
 
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: bAllowUpdateMoveToPosition {0}, m_moveToPositionInProgress {1}, m_autopilotMoving {2}",
 //                allowUpdate, m_moveToPositionInProgress, m_autopilotMoving);
 
-            double distanceToTarget = LocalVectorToTarget3D.Length();
+            float distanceToTarget;
+            if(Flying && !LandAtTarget)
+            {
+                distanceToTarget = LocalVectorToTarget3D.Length();
+            }
+            else
+            {
+                Vector3 hdist = LocalVectorToTarget3D;
+                hdist.Z = 0;
+                distanceToTarget = hdist.Length();
+            }
 
-//                        m_log.DebugFormat(
-//                            "[SCENE PRESENCE]: Abs pos of {0} is {1}, target {2}, distance {3}",
-//                            Name, AbsolutePosition, MoveToPositionTarget, distanceToTarget);
+            // m_log.DebugFormat(
+            //      "[SCENE PRESENCE]: Abs pos of {0} is {1}, target {2}, distance {3}",
+            //           Name, AbsolutePosition, MoveToPositionTarget, distanceToTarget);
 
             // Check the error term of the current position in relation to the target position
             if (distanceToTarget <= tolerance)
             {
                 // We are close enough to the target
+                Velocity = Vector3.Zero;
                 AbsolutePosition = MoveToPositionTarget;
+                if (Flying)
+                {
+                if (LandAtTarget)
+                    Flying = false;
+
+                // A horrible hack to stop the avatar dead in its tracks rather than having them overshoot
+                // the target if flying.
+                // We really need to be more subtle (slow the avatar as it approaches the target) or at
+                // least be able to set collision status once, rather than 5 times to give it enough
+                // weighting so that that PhysicsActor thinks it really is colliding.
+                for (int i = 0; i < 5; i++)
+                    IsColliding = true;
+                }
                 ResetMoveToTarget();
-                updated = true;
+                return false;
             }
             else
             {
@@ -2680,8 +2704,6 @@ namespace OpenSim.Region.Framework.Scenes
                     // to such forces, but the following simple approach seems to works fine.
 
                     LocalVectorToTarget3D = LocalVectorToTarget3D * Quaternion.Inverse(Rotation); // change to avatar coords
-                    // Ignore z component of vector
-//                        Vector3 LocalVectorToTarget2D = new Vector3((float)(LocalVectorToTarget3D.X), (float)(LocalVectorToTarget3D.Y), 0f);
 
                     LocalVectorToTarget3D.Normalize();
 
@@ -2771,6 +2793,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             return updated;
+//                AddNewMovement(agent_control_v3);
         }
 
         /// <summary>
@@ -2807,6 +2830,7 @@ namespace OpenSim.Region.Framework.Scenes
                 || pos.Z < 0)
                 return;
      
+            float terrainHeight;
             Scene targetScene = m_scene;
             // Get terrain height for sub-region in a megaregion if necessary
         	if (regionCombinerModule != null)
@@ -2819,18 +2843,15 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 UUID target_regionID = target_region.RegionID;             
                 SceneManager.Instance.TryGetScene(target_region.RegionID, out targetScene);
+                terrainHeight = (float)targetScene.Heightmap[(int)(pos.X % regionSize.X), (int)(pos.Y % regionSize.Y)];
             }
-
-            float terrainHeight = (float)targetScene.Heightmap[(int)(pos.X % regionSize.X), (int)(pos.Y % regionSize.Y)];
+            else
+                terrainHeight = m_scene.GetGroundHeight(pos.X, pos.Y);
+            
             // dont try to land underground
-            terrainHeight += Appearance.AvatarHeight / 2;
+            terrainHeight += Appearance.AvatarHeight * 0.5f + 0.2f;
 
-            pos.Z = Math.Max(terrainHeight, pos.Z);
-
-            // Fudge factor.  It appears that if one clicks "go here" on a piece of ground, the go here request is
-            // always slightly higher than the actual terrain height.
-            // FIXME: This constrains NPC movements as well, so should be somewhere else.
-            if (pos.Z - terrainHeight < 0.2)
+            if(terrainHeight > pos.Z)
                 pos.Z = terrainHeight;
 
 //            m_log.DebugFormat(
@@ -2839,7 +2860,7 @@ namespace OpenSim.Region.Framework.Scenes
                      
             if (noFly)
                 Flying = false;
-            else if (pos.Z > terrainHeight + Appearance.AvatarHeight / 2 || Flying)
+            else if (pos.Z > terrainHeight || Flying)
                 Flying = true;
 
             LandAtTarget = landAtTarget;
@@ -2861,9 +2882,9 @@ namespace OpenSim.Region.Framework.Scenes
             Rotation = Quaternion.CreateFromEulers(angle);
 //            m_log.DebugFormat("[SCENE PRESENCE]: Body rot for {0} set to {1}", Name, Rotation);
             
-            Vector3 agent_control_v3 = new Vector3();
-            HandleMoveToTargetUpdate(1, ref agent_control_v3);
-            AddNewMovement(agent_control_v3);
+            Vector3 control = Vector3.Zero;
+            if(HandleMoveToTargetUpdate(1f, ref control))
+                AddNewMovement(control);
         }
 
         /// <summary>
@@ -3525,6 +3546,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (IsInTransit || IsLoggingIn)
                 return;
+
+            if(MovingToTarget)
+            {
+                Vector3 control = Vector3.Zero;
+                if(HandleMoveToTargetUpdate(1f, ref control))
+                    AddNewMovement(control);
+            }
 
             if (Appearance.AvatarSize != m_lastSize)
                 SendAvatarDataToAllAgents();

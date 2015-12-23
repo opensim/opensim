@@ -1309,7 +1309,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected virtual void RegisterDefaultSceneEvents()
         {
-            m_eventManager.OnSignificantClientMovement += HandleOnSignificantClientMovement;
+//            m_eventManager.OnSignificantClientMovement += HandleOnSignificantClientMovement;
         }
 
         public override string GetSimulatorVersion()
@@ -6334,6 +6334,7 @@ Environment.Exit(1);
         /// This is not intended as a permament location for this method.
         /// </remarks>
         /// <param name="presence"></param>
+/* move to target is now done on presence update
         private void HandleOnSignificantClientMovement(ScenePresence presence)
         {
             if (presence.MovingToTarget)
@@ -6390,7 +6391,7 @@ Environment.Exit(1);
                 }
             }
         }
-
+*/
         // manage and select spawn points in sequence
         public int SpawnPoint()
         {
