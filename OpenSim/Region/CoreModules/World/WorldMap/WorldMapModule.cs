@@ -1544,16 +1544,37 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 needRegionSave = true;
             }
 
-            // bypass terrain image for large regions
-            if (m_scene.RegionInfo.RegionSizeX <= Constants.RegionSize &&
-                    m_scene.RegionInfo.RegionSizeY <= Constants.RegionSize
-                    && mapbmp != null)
+            if(mapbmp != null)
             {
                 try
                 {
                     byte[] data;
 
-                    data = OpenJPEG.EncodeFromImage(mapbmp, true);
+                    // if large region limit its size since new viewers will not use it
+                    // but it is still usable for ossl
+                    if(m_scene.RegionInfo.RegionSizeX > Constants.RegionSize ||
+                            m_scene.RegionInfo.RegionSizeY > Constants.RegionSize)
+                    {
+                        int bx = mapbmp.Width;
+                        int by = mapbmp.Height;
+                        int mb = bx;
+                        if(mb < by)
+                            mb = by;
+                        if(mb > 2 * Constants.RegionSize && mb > 0)
+                        {
+                            float scale = 2.0f * (float)Constants.RegionSize/(float)mb;
+                            Size newsize = new Size();
+                            newsize.Width = (int)(bx * scale);
+                            newsize.Height = (int)(by * scale);
+
+                            using(Bitmap scaledbmp = new Bitmap(mapbmp,newsize))
+                                data = OpenJPEG.EncodeFromImage(scaledbmp, true);
+                        }
+                        else
+                            data = OpenJPEG.EncodeFromImage(mapbmp, true);
+                    }
+                    else
+                        data = OpenJPEG.EncodeFromImage(mapbmp, true);
 
                     if (data != null && data.Length > 0)
                     {
