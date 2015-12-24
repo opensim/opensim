@@ -410,6 +410,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (!needsMeshing(pbs))
             {
                 repData.meshState = MeshState.noNeed;
+                repData.hasOBB = false;
                 return;
             }
 
@@ -460,6 +461,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             repData.meshState = MeshState.AssetOK;
             repData.mesh = mesh;
+            repData.OBB = mesh.GetOBB();
+            repData.OBBOffset = mesh.GetCentroid();
+            repData.hasOBB = true;
 
             if (pbs.SculptEntry)
             {
