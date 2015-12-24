@@ -70,6 +70,36 @@ namespace OpenSim.Tools.Configger
 
             List<string> sources = new List<string>();
 
+            string masterFileName = startupConfig.GetString("inimaster", "OpenSimDefaults.ini");
+
+            if (masterFileName == "none")
+                masterFileName = String.Empty;
+
+            if (IsUri(masterFileName))
+            {
+                if (!sources.Contains(masterFileName))
+                    sources.Add(masterFileName);
+            }
+            else
+            {
+                string masterFilePath = Path.GetFullPath(
+                        Path.Combine(Util.configDir(), masterFileName));
+
+                if (masterFileName != String.Empty)
+                {
+                    if (File.Exists(masterFilePath))
+                    {
+                        if (!sources.Contains(masterFilePath))
+                            sources.Add(masterFilePath);
+                    }
+                    else
+                    {
+                        m_log.ErrorFormat("Master ini file {0} not found", Path.GetFullPath(masterFilePath));
+                        Environment.Exit(1);
+                    }
+                }
+            }
+
             string iniFileName = startupConfig.GetString("inifile", Path.Combine(".", "OpenSim.ini"));
 
             if (IsUri(iniFileName))

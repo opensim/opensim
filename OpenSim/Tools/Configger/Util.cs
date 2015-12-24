@@ -102,5 +102,11 @@ namespace OpenSim.Tools.Configger
 
             return found.ToArray();
         }
+
+        public static string configDir()
+        {
+            return ".";
+        }
+
     }
 }
