@@ -190,7 +190,15 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
                         case (int)HttpRequestConstants.HTTP_BODY_MAXLENGTH:
 
-                            // TODO implement me
+                            int len;
+                            if(int.TryParse(parms[i + 1], out len))
+                            {
+                                if(len > HttpRequestClass.HttpBodyMaxLenMAX)
+                                    len = HttpRequestClass.HttpBodyMaxLenMAX;
+                                else if(len < 64) //???
+                                    len = 64;
+                                htc.HttpBodyMaxLen = len;
+                            }
                             break;
 
                         case (int)HttpRequestConstants.HTTP_VERIFY_CERT:
@@ -445,9 +453,11 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         {
             get { return _finished; }
         }
-        // public int HttpBodyMaxLen = 2048; // not implemented
+
+        public const int HttpBodyMaxLenMAX = 16384;
 
         // Parameter members and default values
+        public int HttpBodyMaxLen = 2048;
         public string HttpMethod  = "GET";
         public string HttpMIMEType = "text/plain;charset=utf-8";
         public int HttpTimeout;
@@ -523,7 +533,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             HttpWebResponse response = null;
             Stream resStream = null;
             StringBuilder sb = new StringBuilder();
-            byte[] buf = new byte[8192];
+            byte[] buf = new byte[HttpBodyMaxLenMAX + 16];
             string tempString = null;
             int count = 0;
 
@@ -608,26 +618,32 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 Status = (int)response.StatusCode;
 
                 resStream = response.GetResponseStream();
+                int totalBodyBytes = 0;
+                int maxBytes = HttpBodyMaxLen;
+                if(maxBytes > buf.Length)
+                    maxBytes = buf.Length;
 
+                // we need to read all allowed or UFT8 conversion may fail
                 do
                 {
                     // fill the buffer with data
-                    count = resStream.Read(buf, 0, buf.Length);
+                    count = resStream.Read(buf, totalBodyBytes, maxBytes - totalBodyBytes);
+                    totalBodyBytes += count;
+                    if (totalBodyBytes >= maxBytes)
+                        break;
 
-                    // make sure we read some data
-                    if (count != 0)
-                    {
-                        // translate from bytes to ASCII text
-                        tempString = Util.UTF8.GetString(buf, 0, count);
-
-                        // continue building the string
-                        sb.Append(tempString);
-                        if (sb.Length > 2048)
-                            break;
-                    }
                 } while (count > 0); // any more data to read?
 
-                ResponseBody = sb.ToString().Replace("\r", "");
+                if(totalBodyBytes > 0)
+                {
+                    tempString = Util.UTF8.GetString(buf, 0, totalBodyBytes);
+                    sb.Append(tempString);
+                    sb.Replace("\r", "");
+                    ResponseBody = sb.ToString();
+                    sb.Clear();
+                }
+                else
+                    ResponseBody = "";
             }
             catch (WebException e)
             {
@@ -670,6 +686,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                     resStream.Close();
                 if (response != null)
                     response.Close();
+                
 
                 // We need to resubmit 
                 if (
