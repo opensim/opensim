@@ -354,7 +354,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                         }
 
                         urlData.requests[request].responseCode = status;
-                        urlData.requests[request].responseBody = body;
+                        urlData.requests[request].responseBody = responseBody;
                         //urlData.requests[request].ev.Set();
                         urlData.requests[request].requestDone = true;
                         urlData.requests[request].responseSent = true;
