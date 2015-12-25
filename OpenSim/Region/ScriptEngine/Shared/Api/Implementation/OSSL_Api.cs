@@ -991,32 +991,41 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private void AvatarPlayAnimation(string avatar, string animation)
         {
-            UUID avatarID = (UUID)avatar;
-
             m_host.AddScriptLPS(1);
-            if (World.Entities.ContainsKey((UUID)avatar) && World.Entities[avatarID] is ScenePresence)
+
+            UUID avatarID;
+            if(!UUID.TryParse(avatar, out avatarID))
+                return;
+
+            if(!World.Entities.ContainsKey(avatarID))
+                return;
+
+            ScenePresence target = null;
+            if ((World.Entities[avatarID] is ScenePresence))
+                target = (ScenePresence)World.Entities[avatarID];
+                
+            if (target == null)
+                return;
+
+            UUID animID = UUID.Zero;
+            m_host.TaskInventory.LockItemsForRead(true);
+            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
             {
-                ScenePresence target = (ScenePresence)World.Entities[avatarID];
-                if (target != null)
+                if (inv.Value.Type == (int)AssetType.Animation)
                 {
-                    UUID animID=UUID.Zero;
-                    m_host.TaskInventory.LockItemsForRead(true);
-                    foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-                    {
-                        if (inv.Value.Name == animation)
-                        {
-                            if (inv.Value.Type == (int)AssetType.Animation)
-                                animID = inv.Value.AssetID;
-                            continue;
-                        }
-                    }
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    if (animID == UUID.Zero)
-                        target.Animator.AddAnimation(animation, m_host.UUID);
-                    else
-                        target.Animator.AddAnimation(animID, m_host.UUID);
+                   if (inv.Value.Name == animation)
+                   {
+                       animID = inv.Value.AssetID;
+                       break;
+                   }
                 }
             }
+            m_host.TaskInventory.LockItemsForRead(false);
+
+            if (animID == UUID.Zero)
+                target.Animator.AddAnimation(animation, m_host.UUID);
+            else
+                target.Animator.AddAnimation(animID, m_host.UUID);
         }
 
         public void osAvatarStopAnimation(string avatar, string animation)
