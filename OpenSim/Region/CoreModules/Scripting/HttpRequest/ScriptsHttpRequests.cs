@@ -532,7 +532,6 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         {
             HttpWebResponse response = null;
             Stream resStream = null;
-            StringBuilder sb = new StringBuilder();
             byte[] buf = new byte[HttpBodyMaxLenMAX + 16];
             string tempString = null;
             int count = 0;
@@ -637,10 +636,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 if(totalBodyBytes > 0)
                 {
                     tempString = Util.UTF8.GetString(buf, 0, totalBodyBytes);
-                    sb.Append(tempString);
-                    sb.Replace("\r", "");
-                    ResponseBody = sb.ToString();
-                    sb.Clear();
+                    ResponseBody = tempString.Replace("\r", "");
                 }
                 else
                     ResponseBody = "";
