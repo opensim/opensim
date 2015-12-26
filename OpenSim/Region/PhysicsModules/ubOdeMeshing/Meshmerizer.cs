@@ -121,6 +121,22 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
                 CacheExpire = TimeSpan.FromHours(fcache);
                 
+                if(doMeshFileCache && cachePath != "")
+                {
+                    lock (diskLock)
+                    {
+                        try
+                        {
+                            if (!Directory.Exists(cachePath))
+                                Directory.CreateDirectory(cachePath);
+                        }
+                        catch
+                        {
+                            doMeshFileCache = false;
+                            doCacheExpire = false;
+                        }
+                    }
+                }
             }
         }
 
@@ -347,8 +363,8 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             {
                 Face f = faces[i];
                 mesh.Add(new Triangle(coords[f.v1].X, coords[f.v1].Y, coords[f.v1].Z,
-                                        coords[f.v2].X, coords[f.v2].Y, coords[f.v2].Z,
-                                        coords[f.v3].X, coords[f.v3].Y, coords[f.v3].Z));
+                                      coords[f.v2].X, coords[f.v2].Y, coords[f.v2].Z,
+                                      coords[f.v3].X, coords[f.v3].Y, coords[f.v3].Z));
             }
 
             coords.Clear();
@@ -971,6 +987,14 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                 primMesh.twistEnd = (primShape.PathTwist * 36) / 10;
                 primMesh.taperX = primShape.PathTaperX * 0.01f;
                 primMesh.taperY = primShape.PathTaperY * 0.01f;
+
+                if(profshape == (byte)ProfileShape.HalfCircle)
+                {
+                    if(primMesh.holeSizeY < 0.01f)
+                        primMesh.holeSizeY = 0.01f;
+                    else if(primMesh.holeSizeY > 1.0f)
+                        primMesh.holeSizeY = 1.0f;
+                }
 
 #if SPAM
             m_log.Debug("****** PrimMesh Parameters (Circular) ******\n" + primMesh.ParamsToDisplayString());

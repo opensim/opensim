@@ -234,9 +234,12 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             triangle.v3.Y = (float)Math.Round(triangle.v3.Y, 6);
             triangle.v3.Z = (float)Math.Round(triangle.v3.Z, 6);
 
-            if ((triangle.v1.X == triangle.v2.X && triangle.v1.Y == triangle.v2.Y && triangle.v1.Z == triangle.v2.Z)
-                || (triangle.v1.X == triangle.v3.X && triangle.v1.Y == triangle.v3.Y && triangle.v1.Z == triangle.v3.Z)
-                || (triangle.v2.X == triangle.v3.X && triangle.v2.Y == triangle.v3.Y && triangle.v2.Z == triangle.v3.Z)
+            if ((triangle.v1.X == triangle.v2.X && triangle.v1.Y == triangle.v2.Y && triangle.v1.Z ==
+                    triangle.v2.Z)
+                || (triangle.v1.X == triangle.v3.X && triangle.v1.Y == triangle.v3.Y && triangle.v1.Z ==
+                    triangle.v3.Z)
+                || (triangle.v2.X == triangle.v3.X && triangle.v2.Y == triangle.v3.Y && triangle.v2.Z ==
+                    triangle.v3.Z)
                 )               
             {               
                 return;
