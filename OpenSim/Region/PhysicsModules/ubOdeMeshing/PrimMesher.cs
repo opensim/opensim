@@ -1450,6 +1450,8 @@ namespace PrimMesher
                     int endVert = this.coords.Count;
                     if (!this.hasProfileCut)
                     {
+                        if(numVerts > 5 && !hasHollow)
+                            startVert++;
                         int i = startVert;
                         for (int l = 0; l < profile.numOuterVerts - 1; l++)
                         {
