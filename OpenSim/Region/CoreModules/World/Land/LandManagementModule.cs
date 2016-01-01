@@ -414,6 +414,8 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (!position.HasValue)
                 return;
 
+            if(avatar.MovingToTarget)
+                avatar.ResetMoveToTarget();
             avatar.AbsolutePosition = position.Value;
             avatar.lastKnownAllowedPosition = position.Value;
             avatar.Velocity = Vector3.Zero;
