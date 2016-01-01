@@ -38,7 +38,8 @@ namespace OpenSim.Region.Framework.Interfaces
         AllowNotOwned           = 0x01, // allow NPCs to be created not Owned
         AllowSenseAsAvatar      = 0x02, // allow NPCs to set to be sensed as Avatars
         AllowCloneOtherAvatars  = 0x04, // allow NPCs to created cloning a avatar in region
-        NoNPCGroup              = 0x08  // NPCs will have no group title, otherwise will have "- NPC -"
+        NoNPCGroup              = 0x08, // NPCs will have no group title, otherwise will have "- NPC -"
+        objectGroup               = 0x10  // NPC will have host sog groupID
     }
 
     /// <summary>
@@ -48,12 +49,14 @@ namespace OpenSim.Region.Framework.Interfaces
     /// </summary>
     public interface INPC
     {
+        
         /// <summary>
         /// Should this NPC be sensed by LSL sensors as an 'agent'
         /// (interpreted here to mean a normal user) rather than an OpenSim
         /// specific NPC extension?
         /// </summary>
         bool SenseAsAgent { get; }
+        UUID ActiveGroupId { get; set; }
     }
 
     public interface INPCModule

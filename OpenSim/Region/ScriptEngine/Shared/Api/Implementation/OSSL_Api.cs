@@ -2593,7 +2593,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
             bool owned = (module.NPCOptionFlags & NPCOptionsFlags.AllowNotOwned) == 0;
 
-            return NpcCreate(firstname, lastname, position, notecard, owned, false);
+            return NpcCreate(firstname, lastname, position, notecard, owned, false, false);
         }
 
         public LSL_Key osNpcCreate(string firstname, string lastname, LSL_Vector position, string notecard, int options)
@@ -2604,101 +2604,128 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return NpcCreate(
                 firstname, lastname, position, notecard,
                 (options & ScriptBaseClass.OS_NPC_NOT_OWNED) == 0,
-                (options & ScriptBaseClass.OS_NPC_SENSE_AS_AGENT) != 0);
+                (options & ScriptBaseClass.OS_NPC_SENSE_AS_AGENT) != 0,
+                (options & ScriptBaseClass.OS_NPC_OBJECT_GROUP) != 0);
         }
 
         private LSL_Key NpcCreate(
-            string firstname, string lastname, LSL_Vector position, string notecard, bool owned, bool senseAsAgent)
+            string firstname, string lastname, LSL_Vector position, string notecard, bool owned, bool senseAsAgent, bool hostGroupID)
         {
 
             if (!World.Permissions.CanRezObject(1, m_host.OwnerID, new Vector3((float)position.x, (float)position.y, (float)position.z)))
                 return new LSL_Key(UUID.Zero.ToString());
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
-            if (module != null)
+            if(module == null)
+                new LSL_Key(UUID.Zero.ToString());
+
+            string groupTitle = String.Empty;
+            UUID groupID = UUID.Zero;
+
+            AvatarAppearance appearance = null;
+
+            // check creation options
+            NPCOptionsFlags createFlags = module.NPCOptionFlags;
+
+            if((createFlags & NPCOptionsFlags.AllowNotOwned) == 0 && !owned)
             {
-                string groupTitle = String.Empty;
-                AvatarAppearance appearance = null;
-
-                // check creation options
-                NPCOptionsFlags createFlags = module.NPCOptionFlags;
-
-                if((createFlags & NPCOptionsFlags.AllowNotOwned) == 0 && !owned)
-                {
-                    OSSLError("Not owned NPCs disabled");
-                    owned = true; // we should get here...
-                }
-
-                if((createFlags & NPCOptionsFlags.AllowSenseAsAvatar) == 0 && senseAsAgent)
-                {
-                    OSSLError("NPC allow sense as Avatar disabled");
-                    senseAsAgent = false;
-                }
-
-                if((createFlags & NPCOptionsFlags.NoNPCGroup) == 0)
-                {
-                    if (firstname != String.Empty || lastname != String.Empty)
-                        {
-                            if (firstname != "Shown outfit:")
-                                groupTitle = "- NPC -";
-                        }
-                }
-               
-                if((createFlags & NPCOptionsFlags.AllowCloneOtherAvatars) != 0)
-                {
-                    UUID id;
-                    if (UUID.TryParse(notecard, out id))
-                    {
-                        ScenePresence clonePresence = World.GetScenePresence(id);
-                        if (clonePresence != null)
-                            appearance = clonePresence.Appearance;
-                    }
-                }
-
-                if (appearance == null)
-                {
-                    string appearanceSerialized = LoadNotecard(notecard);
-
-                    if (appearanceSerialized != null)
-                    {
-                        try
-                        {
-                            OSDMap appearanceOsd = (OSDMap)OSDParser.DeserializeLLSDXml(appearanceSerialized);
-                            appearance = new AvatarAppearance();
-                            appearance.Unpack(appearanceOsd);
-                        }
-                        catch
-                        {
-                            return UUID.Zero.ToString();
-                        }
-                    }
-                    else
-                    {
-                        OSSLError(string.Format("osNpcCreate: Notecard reference '{0}' not found.", notecard));
-                    }
-                }
-
-                UUID ownerID = UUID.Zero;
-                if (owned)
-                    ownerID = m_host.OwnerID;
-                UUID x = module.CreateNPC(firstname,
-                                          lastname,
-                                          position,
-                                          ownerID,
-                                          senseAsAgent,
-                                          World,
-                                          appearance);
-
-                ScenePresence sp;
-                if (World.TryGetScenePresence(x, out sp))
-                {
-                    sp.Grouptitle = groupTitle;
-                    sp.SendAvatarDataToAllAgents();
-                }
-                return new LSL_Key(x.ToString());
+                OSSLError("Not owned NPCs disabled");
+                owned = true; // we should get here...
             }
 
-            return new LSL_Key(UUID.Zero.ToString());
+            if((createFlags & NPCOptionsFlags.AllowSenseAsAvatar) == 0 && senseAsAgent)
+            {
+                OSSLError("NPC allow sense as Avatar disabled");
+                senseAsAgent = false;
+            }
+
+            if(hostGroupID && m_host.GroupID != UUID.Zero)
+            {
+                IGroupsModule groupsModule = m_ScriptEngine.World.RequestModuleInterface<IGroupsModule>();
+                if (groupsModule != null)
+                {
+                    GroupMembershipData member = groupsModule.GetMembershipData(m_host.GroupID, m_host.OwnerID);
+                    if (member == null)
+                    {
+                        OSSLError(string.Format("osNpcCreate: the object owner is not member of the object group"));
+                        return new LSL_Key(UUID.Zero.ToString());
+                    }
+
+                    groupID = m_host.GroupID;
+
+                    if((createFlags & NPCOptionsFlags.NoNPCGroup) != 0)
+                    {
+                        GroupRecord grprec = groupsModule.GetGroupRecord(m_host.GroupID);
+                        if(grprec != null && grprec.GroupName != "")
+                            groupTitle = grprec.GroupName;
+                    }
+                }
+            }
+
+            if((createFlags & NPCOptionsFlags.NoNPCGroup) == 0)
+            {
+                if (firstname != String.Empty || lastname != String.Empty)
+                {
+                    if (firstname != "Shown outfit:")
+                        groupTitle = "- NPC -";
+                }
+            }
+               
+            if((createFlags & NPCOptionsFlags.AllowCloneOtherAvatars) != 0)
+            {
+                UUID id;
+                if (UUID.TryParse(notecard, out id))
+                {
+                    ScenePresence clonePresence = World.GetScenePresence(id);
+                    if (clonePresence != null)
+                        appearance = clonePresence.Appearance;
+                }
+            }
+
+            if (appearance == null)
+            {
+                string appearanceSerialized = LoadNotecard(notecard);
+
+                if (appearanceSerialized != null)
+                {
+                    try
+                    {
+                        OSDMap appearanceOsd = (OSDMap)OSDParser.DeserializeLLSDXml(appearanceSerialized);
+                        appearance = new AvatarAppearance();
+                        appearance.Unpack(appearanceOsd);
+                    }
+                    catch
+                    {
+                        OSSLError(string.Format("osNpcCreate: Error processing notcard '{0}'", notecard));
+                        return new LSL_Key(UUID.Zero.ToString());
+                    }
+                }
+            else
+                {
+                    OSSLError(string.Format("osNpcCreate: Notecard reference '{0}' not found.", notecard));
+                }
+            }
+
+            UUID ownerID = UUID.Zero;
+            if (owned)
+                ownerID = m_host.OwnerID;
+            UUID x = module.CreateNPC(firstname,
+                                      lastname,
+                                      position,
+                                      ownerID,
+                                      senseAsAgent,
+                                      World,
+                                      appearance);
+
+            ScenePresence sp;
+            if (World.TryGetScenePresence(x, out sp))
+            {
+                sp.Grouptitle = groupTitle;
+                ((INPC)(sp.ControllingClient)).ActiveGroupId = groupID;
+                     
+                sp.SendAvatarDataToAllAgents();
+            }
+            return new LSL_Key(x.ToString());
         }
 
         /// <summary>

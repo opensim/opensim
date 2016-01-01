@@ -64,6 +64,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         private UUID m_uuid = UUID.Random();
         private readonly Scene m_scene;
         private readonly UUID m_ownerID;
+        private UUID m_hostGroupID;
 
         public List<uint> SelectedObjects {get; private set;}
 
@@ -77,6 +78,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             m_scene = scene;
             m_ownerID = ownerID;
             SenseAsAgent = senseAsAgent;
+            m_hostGroupID = UUID.Zero;
         }
 
         public NPCAvatar(
@@ -89,6 +91,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             m_scene = scene;
             m_ownerID = ownerID;
             SenseAsAgent = senseAsAgent;
+            m_hostGroupID = UUID.Zero;
         }
 
         public IScene Scene
@@ -576,7 +579,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         }
         public UUID ActiveGroupId
         {
-            get { return UUID.Zero; }
+            get { return m_hostGroupID; }
+            set { m_hostGroupID = value; }
         }
 
         public string ActiveGroupName
@@ -591,7 +595,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public bool IsGroupMember(UUID groupID)
         {
-            return false;
+            return (m_hostGroupID == groupID);
         }
 
         public ulong GetGroupPowers(UUID groupID)
