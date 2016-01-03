@@ -679,7 +679,6 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             try
             {
                 numSubSteps = PE.PhysicsStep(World, timeStep, m_maxSubSteps, m_fixedTimeStep, out updatedEntityCount, out collidersCount);
-
             }
             catch (Exception e)
             {

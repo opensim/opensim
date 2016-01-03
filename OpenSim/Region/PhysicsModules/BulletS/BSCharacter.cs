@@ -652,13 +652,16 @@ public sealed class BSCharacter : BSPhysObject
     public override void AddForce(OMV.Vector3 force, bool pushforce)
     {
         // Since this force is being applied in only one step, make this a force per second.
-        OMV.Vector3 addForce = force / PhysScene.LastTimeStep;
+        OMV.Vector3 addForce = force;
 
-        // compensate for density variation
-        // with a adicional parameter to sync with old ode
-        if(pushforce)
-            addForce = addForce * Density * BSParam.DensityScaleFactor * 0.08f;;
+        // The interaction of this force with the simulator rate and collision occurance is tricky.
+        // ODE multiplies the force by 100
+        // ubODE multiplies the force by 5.3
+        // BulletSim, after much in-world testing, thinks it gets a similar effect by multiplying mass*0.315f
+        //    This number could be a feature of friction or timing, but it seems to move avatars the same as ubODE
+        addForce *= Mass * BSParam.AvatarAddForcePushFactor;
 
+        DetailLog("{0},BSCharacter.addForce,call,force={1},addForce={2},push={3},mass={4}", LocalID, force, addForce, pushforce, Mass);
         AddForce(addForce, pushforce, false);
     }
 
@@ -666,7 +669,7 @@ public sealed class BSCharacter : BSPhysObject
         if (force.IsFinite())
         {
             OMV.Vector3 addForce = Util.ClampV(force, BSParam.MaxAddForceMagnitude);
-            // DetailLog("{0},BSCharacter.addForce,call,force={1}", LocalID, addForce);
+            // DetailLog("{0},BSCharacter.addForce,call,force={1},push={2},inTaint={3}", LocalID, addForce, pushforce, inTaintTime);
 
             PhysScene.TaintedObject(inTaintTime, LocalID, "BSCharacter.AddForce", delegate()
             {
@@ -674,6 +677,9 @@ public sealed class BSCharacter : BSPhysObject
                 // DetailLog("{0},BSCharacter.addForce,taint,force={1}", LocalID, addForce);
                 if (PhysBody.HasPhysicalBody)
                 {
+                    // Bullet adds this central force to the total force for this tick.
+                    // Deep down in Bullet:
+                    //      linearVelocity += totalForce / mass * timeStep;
                     PhysScene.PE.ApplyCentralForce(PhysBody, addForce);
                     PhysScene.PE.Activate(PhysBody, true);
                 }

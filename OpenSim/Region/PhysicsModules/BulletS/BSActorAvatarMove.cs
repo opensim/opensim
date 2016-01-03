@@ -187,12 +187,25 @@ public class BSActorAvatarMove : BSActor
 
             if (m_controllingPrim.IsColliding)
             {
-                // If we are colliding with a stationary object, presume we're standing and don't move around
+                // if colliding with something stationary and we're not doing volume detect .
                 if (!m_controllingPrim.ColliderIsMoving && !m_controllingPrim.ColliderIsVolumeDetect)
                 {
-                    m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,collidingWithStationary,zeroingMotion", m_controllingPrim.LocalID);
-                    m_controllingPrim.IsStationary = true;
-                    m_controllingPrim.ZeroMotion(true /* inTaintTime */);
+                    m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,collidingWithStationary,totalForce={1}, vel={2}",   /* DEBUG */
+                            m_controllingPrim.LocalID, m_physicsScene.PE.GetTotalForce(m_controllingPrim.PhysBody), m_controllingPrim.Velocity);    /* DEBUG */
+                    // If velocity is very small, assume it is movement creep and suppress it.
+                    // Applying push forces (Character.AddForce) should move the avatar and that is only seen here as velocity.
+                    if ( (m_controllingPrim.Velocity.LengthSquared() < BSParam.AvatarStopZeroThresholdSquared)
+                            && (m_physicsScene.PE.GetTotalForce(m_controllingPrim.PhysBody).LengthSquared() < BSParam.AvatarStopZeroThresholdSquared) )
+                    {
+                        m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,collidingWithStationary,zeroingMotion", m_controllingPrim.LocalID);
+                        m_controllingPrim.IsStationary = true;
+                        m_controllingPrim.ZeroMotion(true /* inTaintTime */);
+                    }
+                    else
+                    {
+                        m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,collidingWithStationary,not zeroing because velocity={1}",
+                                        m_controllingPrim.LocalID, m_controllingPrim.Velocity);
+                    }
                 }
 
                 // Standing has more friction on the ground
@@ -222,8 +235,8 @@ public class BSActorAvatarMove : BSActor
                 }
             }
 
-            m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,taint,stopping,target={1},colliding={2}",
-                            m_controllingPrim.LocalID, m_velocityMotor.TargetValue, m_controllingPrim.IsColliding);
+            m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,taint,stopping,target={1},colliding={2},isStationary={3}",
+                            m_controllingPrim.LocalID, m_velocityMotor.TargetValue, m_controllingPrim.IsColliding,m_controllingPrim.IsStationary);
         }
         else
         {
@@ -237,6 +250,8 @@ public class BSActorAvatarMove : BSActor
                 m_physicsScene.PE.SetFriction(m_controllingPrim.PhysBody, m_controllingPrim.Friction);
             }
 
+            // If not flying and not colliding, assume falling and keep the downward motion component.
+            //    This check is done here for the next jump test.
             if (!m_controllingPrim.Flying && !m_controllingPrim.IsColliding)
             {
                 stepVelocity.Z = m_controllingPrim.RawVelocity.Z;
@@ -267,11 +282,9 @@ public class BSActorAvatarMove : BSActor
                 }
                 else
                 {
-                    
                     // Since we're not affected by anything, the avatar must be falling and we do not want that to be too fast.
                     if (m_controllingPrim.RawVelocity.Z < BSParam.AvatarTerminalVelocity)
                     {
-                        
                         stepVelocity.Z = BSParam.AvatarTerminalVelocity;
                     }
                     else
@@ -315,7 +328,11 @@ public class BSActorAvatarMove : BSActor
         if (m_controllingPrim.IsStationary)
         {
             entprop.Position = m_controllingPrim.RawPosition;
-            entprop.Velocity = OMV.Vector3.Zero;
+            // Suppress small movement velocity
+            if (entprop.Velocity.LengthSquared() < BSParam.AvatarStopZeroThresholdSquared) {
+                m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,OnPreUpdate,zeroing velocity={1}", m_controllingPrim.LocalID, entprop.Velocity);
+                entprop.Velocity = OMV.Vector3.Zero;
+            }
             m_physicsScene.PE.SetTranslation(m_controllingPrim.PhysBody, entprop.Position, entprop.Rotation);
         }
 

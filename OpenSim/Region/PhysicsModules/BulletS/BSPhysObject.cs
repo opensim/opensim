@@ -239,8 +239,10 @@ public abstract class BSPhysObject : PhysicsActor
     public virtual OMV.Vector3 RawVelocity { get; set; }
     public abstract OMV.Vector3 ForceVelocity { get; set; }
 
+    // RawForce is a constant force applied to object (see Force { set; } )
     public OMV.Vector3 RawForce { get; set; }
     public OMV.Vector3 RawTorque { get; set; }
+
     public override void AddAngularForce(OMV.Vector3 force, bool pushforce)
     {
         AddAngularForce(force, pushforce, false);
@@ -570,7 +572,11 @@ public abstract class BSPhysObject : PhysicsActor
             PhysScene.TaintedObject(LocalID, TypeName+".SubscribeEvents", delegate()
             {
                 if (PhysBody.HasPhysicalBody)
+                {
                     CurrentCollisionFlags = PhysScene.PE.AddToCollisionFlags(PhysBody, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
+                    DetailLog("{0},{1}.SubscribeEvents,setting collision. ms={2}, collisionFlags={3:x}",
+                            LocalID, TypeName, ms, CurrentCollisionFlags);
+                }
             });
         }
         else
