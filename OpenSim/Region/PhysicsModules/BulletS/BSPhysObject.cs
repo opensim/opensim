@@ -463,11 +463,15 @@ public abstract class BSPhysObject : PhysicsActor
         bool ret = false;
 
         // if 'collidee' is null, that means it is terrain
-        uint collideeLocalID = (collidee == null) ? PhysScene.TerrainManager.HighestTerrainID : collidee.LocalID;
+        uint collideeLocalID = (collidee == null) ? BSScene.TERRAIN_ID : collidee.LocalID;
+        // All terrain goes by the TERRAIN_ID id when passed up as a collision
+        if (collideeLocalID <= PhysScene.TerrainManager.HighestTerrainID) {
+            collideeLocalID = BSScene.TERRAIN_ID;
+        }
 
         // The following lines make IsColliding(), CollidingGround() and CollidingObj work
         CollidingStep = PhysScene.SimulationStep;
-        if (collideeLocalID <= PhysScene.TerrainManager.HighestTerrainID)
+        if (collideeLocalID == BSScene.TERRAIN_ID)
         {
             CollidingGroundStep = PhysScene.SimulationStep;
         }
