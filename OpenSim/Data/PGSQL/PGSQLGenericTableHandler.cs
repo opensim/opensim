@@ -145,27 +145,22 @@ namespace OpenSim.Data.PGSQL
         private List<string> GetConstraints()
         {
             List<string> constraints = new List<string>();
-            string query = string.Format(@"SELECT kcu.column_name
-                        FROM information_schema.table_constraints tc
-                        LEFT JOIN information_schema.key_column_usage kcu
-                        ON tc.constraint_catalog = kcu.constraint_catalog
-                        AND tc.constraint_schema = kcu.constraint_schema
-                        AND tc.constraint_name = kcu.constraint_name
-
-                        LEFT JOIN information_schema.referential_constraints rc
-                        ON tc.constraint_catalog = rc.constraint_catalog
-                        AND tc.constraint_schema = rc.constraint_schema
-                        AND tc.constraint_name = rc.constraint_name
-
-                        LEFT JOIN information_schema.constraint_column_usage ccu
-                        ON rc.unique_constraint_catalog = ccu.constraint_catalog
-                        AND rc.unique_constraint_schema = ccu.constraint_schema
-                        AND rc.unique_constraint_name = ccu.constraint_name
-
-                        where tc.table_name = lower('{0}') 
-                        and lower(tc.constraint_type) in ('primary key')
-                        and kcu.column_name is not null
-                        ;", m_Realm);
+            string query = string.Format(@"select
+                    a.attname as column_name
+                from
+                    pg_class t,
+                    pg_class i,
+                    pg_index ix,
+                    pg_attribute a
+                where
+                    t.oid = ix.indrelid
+                    and i.oid = ix.indexrelid
+                    and a.attrelid = t.oid
+                    and a.attnum = ANY(ix.indkey)
+                    and t.relkind = 'r'
+                    and ix.indisunique = true
+                    and t.relname = lower('{0}')
+            ;", m_Realm);
 
             using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
             using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
