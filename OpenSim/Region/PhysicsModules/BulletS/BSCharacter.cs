@@ -683,6 +683,10 @@ public sealed class BSCharacter : BSPhysObject
                     PhysScene.PE.ApplyCentralForce(PhysBody, addForce);
                     PhysScene.PE.Activate(PhysBody, true);
                 }
+                if (m_moveActor != null)
+                {
+                    m_moveActor.SuppressStationayCheckUntilLowVelocity();
+                }
             });
         }
         else
