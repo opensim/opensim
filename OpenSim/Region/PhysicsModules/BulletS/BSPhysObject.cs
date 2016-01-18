@@ -245,10 +245,10 @@ public abstract class BSPhysObject : PhysicsActor
 
     public override void AddAngularForce(OMV.Vector3 force, bool pushforce)
     {
-        AddAngularForce(force, pushforce, false);
+        AddAngularForce(false, force);
     }
-    public abstract void AddAngularForce(OMV.Vector3 force, bool pushforce, bool inTaintTime);
-    public abstract void AddForce(OMV.Vector3 force, bool pushforce, bool inTaintTime);
+    public abstract void AddAngularForce(bool inTaintTime, OMV.Vector3 force);
+    public abstract void AddForce(bool inTaintTime, OMV.Vector3 force);
 
     public abstract OMV.Vector3 ForceRotationalVelocity { get; set; }
 

@@ -394,7 +394,7 @@ public class BSPrim : BSPhysObject
                 // Apply upforce and overcome gravity.
                 OMV.Vector3 correctionForce = upForce - PhysScene.DefaultGravity;
                 DetailLog("{0},BSPrim.PositionSanityCheck,applyForce,pos={1},upForce={2},correctionForce={3}", LocalID, RawPosition, upForce, correctionForce);
-                AddForce(correctionForce, false, inTaintTime);
+                AddForce(inTaintTime, correctionForce);
                 ret = true;
             }
         }
@@ -1249,14 +1249,18 @@ public class BSPrim : BSPhysObject
         // Per documentation, max force is limited.
         OMV.Vector3 addForce = Util.ClampV(force, BSParam.MaxAddForceMagnitude);
 
-        // Since this force is being applied in only one step, make this a force per second.
-        addForce /= PhysScene.LastTimeStep;
-        AddForce(addForce, pushforce, false /* inTaintTime */);
+        // Push forces seem to be scaled differently (follow pattern in ubODE)
+        if (!pushforce) {
+            // Since this force is being applied in only one step, make this a force per second.
+            addForce /= PhysScene.LastTimeStep;
+        }
+
+        AddForce(false /* inTaintTime */, addForce);
     }
 
     // Applying a force just adds this to the total force on the object.
     // This added force will only last the next simulation tick.
-    public override void AddForce(OMV.Vector3 force, bool pushforce, bool inTaintTime) {
+    public override void AddForce(bool inTaintTime, OMV.Vector3 force) {
         // for an object, doesn't matter if force is a pushforce or not
         if (IsPhysicallyActive)
         {
@@ -1315,7 +1319,7 @@ public class BSPrim : BSPhysObject
     }
 
     // BSPhysObject.AddAngularForce()
-    public override void AddAngularForce(OMV.Vector3 force, bool pushforce, bool inTaintTime)
+    public override void AddAngularForce(bool inTaintTime, OMV.Vector3 force)
     {
         if (force.IsFinite())
         {

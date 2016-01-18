@@ -457,7 +457,7 @@ public sealed class BSCharacter : BSPhysObject
         get { return RawVelocity; }
         set {
             RawVelocity = value;
-                OMV.Vector3 vel = RawVelocity;
+            OMV.Vector3 vel = RawVelocity;
 
             DetailLog("{0}: set Velocity = {1}", LocalID, value);
 
@@ -662,10 +662,10 @@ public sealed class BSCharacter : BSPhysObject
         addForce *= Mass * BSParam.AvatarAddForcePushFactor;
 
         DetailLog("{0},BSCharacter.addForce,call,force={1},addForce={2},push={3},mass={4}", LocalID, force, addForce, pushforce, Mass);
-        AddForce(addForce, pushforce, false);
+        AddForce(false, addForce);
     }
 
-    public override void AddForce(OMV.Vector3 force, bool pushforce, bool inTaintTime) {
+    public override void AddForce(bool inTaintTime, OMV.Vector3 force) {
         if (force.IsFinite())
         {
             OMV.Vector3 addForce = Util.ClampV(force, BSParam.MaxAddForceMagnitude);
@@ -692,7 +692,7 @@ public sealed class BSCharacter : BSPhysObject
         }
     }
 
-    public override void AddAngularForce(OMV.Vector3 force, bool pushforce, bool inTaintTime) {
+    public override void AddAngularForce(bool inTaintTime, OMV.Vector3 force) {
     }
     public override void SetMomentum(OMV.Vector3 momentum) {
     }

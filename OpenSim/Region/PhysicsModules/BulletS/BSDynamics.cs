@@ -768,7 +768,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 }
 
                 if ((m_knownChanged & m_knownChangedForce) != 0)
-                    ControllingPrim.AddForce((Vector3)m_knownForce, false /*pushForce*/, true /*inTaintTime*/);
+                    ControllingPrim.AddForce(false /* inTaintTime */, (Vector3)m_knownForce);
 
                 if ((m_knownChanged & m_knownChangedForceImpulse) != 0)
                     ControllingPrim.AddForceImpulse((Vector3)m_knownForceImpulse, false /*pushforce*/, true /*inTaintTime*/);
@@ -784,7 +784,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
                 if ((m_knownChanged & m_knownChangedRotationalForce) != 0)
                 {
-                    ControllingPrim.AddAngularForce((Vector3)m_knownRotationalForce, false /*pushForce*/, true /*inTaintTime*/);
+                    ControllingPrim.AddAngularForce(true /* inTaintTime */, (Vector3)m_knownRotationalForce);
                 }
 
                 // If we set one of the values (ie, the physics engine didn't do it) we must force
