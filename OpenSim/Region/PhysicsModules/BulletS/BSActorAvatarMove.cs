@@ -117,11 +117,13 @@ public class BSActorAvatarMove : BSActor
                 m_velocityMotor.SetTarget(targ);
                 m_velocityMotor.SetCurrent(vel);
                 m_velocityMotor.Enabled = true;
+                m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,SetVelocityAndTarget,vel={1}, targ={2}, inTaintTime={3}",
+                            m_controllingPrim.LocalID, vel, targ, inTaintTime);
             }
         });
     }
 
-    // If a hover motor has not been created, create one and start the hovering.
+    // If a movement motor has not been created, create one and start the hovering.
     private void ActivateAvatarMove()
     {
         if (m_velocityMotor == null)
@@ -133,7 +135,7 @@ public class BSActorAvatarMove : BSActor
                                                 1f                          // efficiency
             );
             m_velocityMotor.ErrorZeroThreshold = BSParam.AvatarStopZeroThreshold;
-            // _velocityMotor.PhysicsScene = PhysicsScene; // DEBUG DEBUG so motor will output detail log messages.
+            // m_velocityMotor.PhysicsScene = m_controllingPrim.PhysScene; // DEBUG DEBUG so motor will output detail log messages.
             SetVelocityAndTarget(m_controllingPrim.RawVelocity, m_controllingPrim.TargetVelocity, true /* inTaintTime */);
 
             m_physicsScene.BeforeStep += Mover;
@@ -190,8 +192,14 @@ public class BSActorAvatarMove : BSActor
                 // if colliding with something stationary and we're not doing volume detect .
                 if (!m_controllingPrim.ColliderIsMoving && !m_controllingPrim.ColliderIsVolumeDetect)
                 {
-                    m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,collidingWithStationary,totalForce={1}, vel={2}",   /* DEBUG */
-                            m_controllingPrim.LocalID, m_physicsScene.PE.GetTotalForce(m_controllingPrim.PhysBody), m_controllingPrim.Velocity);    /* DEBUG */
+                    m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,collidingWithStationary,zeroingMotion", m_controllingPrim.LocalID);
+                    m_controllingPrim.IsStationary = true;
+                    m_controllingPrim.ZeroMotion(true /* inTaintTime */);
+
+                    /* 20160118 Attempt to not be stationary if some velocity applied. Caused drifting since still can't tell who applied velocity.
+                     * Solution is to make clearer what is causing the added velocity (push or environment) when deciding if stationary.
+                    m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,collidingWithStationary,totalForce={1}, vel={2}",
+                            m_controllingPrim.LocalID, m_physicsScene.PE.GetTotalForce(m_controllingPrim.PhysBody), m_controllingPrim.Velocity);
                     // If velocity is very small, assume it is movement creep and suppress it.
                     // Applying push forces (Character.AddForce) should move the avatar and that is only seen here as velocity.
                     if ( (m_controllingPrim.Velocity.LengthSquared() < BSParam.AvatarStopZeroThresholdSquared)
@@ -199,13 +207,14 @@ public class BSActorAvatarMove : BSActor
                     {
                         m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,collidingWithStationary,zeroingMotion", m_controllingPrim.LocalID);
                         m_controllingPrim.IsStationary = true;
-                        m_controllingPrim.ZeroMotion(true /* inTaintTime */);
+                        m_controllingPrim.ZeroMotion(true);
                     }
                     else
                     {
                         m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,collidingWithStationary,not zeroing because velocity={1}",
                                         m_controllingPrim.LocalID, m_controllingPrim.Velocity);
                     }
+                    */
                 }
 
                 // Standing has more friction on the ground
