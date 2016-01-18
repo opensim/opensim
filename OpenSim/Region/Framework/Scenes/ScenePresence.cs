@@ -3557,31 +3557,16 @@ namespace OpenSim.Region.Framework.Scenes
             if (Appearance.AvatarSize != m_lastSize)
                 SendAvatarDataToAllAgents();
 
-            if (!IsSatOnObject)
+            // Send terse position update if not sitting and position, velocity, or rotation
+            //      has changed significantly from last sent update
+            if (!IsSatOnObject && (
+                        !Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE)
+                        || !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE)
+                        || !m_pos.ApproxEquals(m_lastPosition, POSITION_LARGETOLERANCE)
+                        || (!m_pos.ApproxEquals(m_lastPosition, POSITION_SMALLTOLERANCE) && Velocity.LengthSquared() < LOWVELOCITYSQ )
+                ) )
             {
-                // this does need to be more complex later
-                Vector3 vel = Velocity;
-                Vector3 dpos = m_pos - m_lastPosition;
-                if(     Math.Abs(vel.X - m_lastVelocity.X) > VELOCITY_TOLERANCE ||
-                        Math.Abs(vel.Y - m_lastVelocity.Y) > VELOCITY_TOLERANCE ||
-                        Math.Abs(vel.Z - m_lastVelocity.Z) > VELOCITY_TOLERANCE ||
-
-                        Math.Abs(m_bodyRot.X - m_lastRotation.X) > ROTATION_TOLERANCE ||
-                        Math.Abs(m_bodyRot.Y - m_lastRotation.Y) > ROTATION_TOLERANCE ||
-                        Math.Abs(m_bodyRot.Z - m_lastRotation.Z) > ROTATION_TOLERANCE ||
-
-                        Math.Abs(dpos.X) > POSITION_LARGETOLERANCE ||
-                        Math.Abs(dpos.Y) > POSITION_LARGETOLERANCE ||
-                        Math.Abs(dpos.Z) > POSITION_LARGETOLERANCE ||
- 
-                        (  (Math.Abs(dpos.X) > POSITION_SMALLTOLERANCE ||
-                            Math.Abs(dpos.Y) > POSITION_SMALLTOLERANCE ||
-                            Math.Abs(dpos.Z) > POSITION_SMALLTOLERANCE)
-                            && vel.LengthSquared() < LOWVELOCITYSQ 
-                        ))
-                {
-                    SendTerseUpdateToAllClients();
-                }
+                SendTerseUpdateToAllClients();
             }
             CheckForSignificantMovement();
         }
