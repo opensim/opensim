@@ -140,7 +140,7 @@ public class BSActorAvatarMove : BSActor
                                                 1f                          // efficiency
             );
             m_velocityMotor.ErrorZeroThreshold = BSParam.AvatarStopZeroThreshold;
-            m_velocityMotor.PhysicsScene = m_controllingPrim.PhysScene; // DEBUG DEBUG so motor will output detail log messages.
+            // m_velocityMotor.PhysicsScene = m_controllingPrim.PhysScene; // DEBUG DEBUG so motor will output detail log messages.
             SetVelocityAndTarget(m_controllingPrim.RawVelocity, m_controllingPrim.TargetVelocity, true /* inTaintTime */);
 
             m_physicsScene.BeforeStep += Mover;
