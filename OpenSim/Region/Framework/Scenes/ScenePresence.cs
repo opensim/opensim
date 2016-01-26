@@ -5792,8 +5792,8 @@ namespace OpenSim.Region.Framework.Scenes
                 return true;
 
             // respect region owner and managers
-            if(m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_uuid))
-                return true;
+//            if(m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_uuid))
+//                return true;
 
             if (!m_scene.RegionInfo.EstateSettings.AllowDirectTeleport)
             {
@@ -5823,8 +5823,9 @@ namespace OpenSim.Region.Framework.Scenes
                         || (m_teleportFlags & adicionalLandPointFlags) != 0)
                 {
                     if (land.LandData.LandingType == (byte)LandingType.LandingPoint &&
-                        land.LandData.UserLocation != Vector3.Zero &&
-                        land.LandData.OwnerID != m_uuid )
+                        land.LandData.UserLocation != Vector3.Zero )
+                        // &&
+                        // land.LandData.OwnerID != m_uuid )
                     {
                         pos = land.LandData.UserLocation;
                         if(land.LandData.UserLookAt != Vector3.Zero)
