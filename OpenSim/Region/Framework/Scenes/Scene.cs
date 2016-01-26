@@ -985,6 +985,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_defaultDrawDistance > m_maxDrawDistance)
                     m_defaultDrawDistance = m_maxDrawDistance;
 
+                if (m_maxRegionViewDistance > m_maxDrawDistance)
+                    m_maxRegionViewDistance = m_maxDrawDistance;
+
                 UseBackup = startupConfig.GetBoolean("UseSceneBackup", UseBackup);
                 if (!UseBackup)
                     m_log.InfoFormat("[SCENE]: Backup has been disabled for {0}", RegionInfo.RegionName);
