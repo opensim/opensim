@@ -583,6 +583,14 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public float RegionViewDistance
+        {
+            get
+            {
+            return Util.Clamp(m_drawDistance, 32f, m_scene.MaxRegionViewDistance);
+            }
+         }
+
         public bool AllowMovement { get; set; }
 
         private bool m_setAlwaysRun;
@@ -3566,7 +3574,33 @@ namespace OpenSim.Region.Framework.Scenes
                         || (!m_pos.ApproxEquals(m_lastPosition, POSITION_SMALLTOLERANCE) && Velocity.LengthSquared() < LOWVELOCITYSQ )
                 ) )
             {
-                SendTerseUpdateToAllClients();
+/*
+            if (!IsSatOnObject)
+            {
+                // this does need to be more complex later
+                Vector3 vel = Velocity;
+                Vector3 dpos = m_pos - m_lastPosition;
+                if(     Math.Abs(vel.X - m_lastVelocity.X) > VELOCITY_TOLERANCE ||
+                        Math.Abs(vel.Y - m_lastVelocity.Y) > VELOCITY_TOLERANCE ||
+                        Math.Abs(vel.Z - m_lastVelocity.Z) > VELOCITY_TOLERANCE ||
+
+                        Math.Abs(m_bodyRot.X - m_lastRotation.X) > ROTATION_TOLERANCE ||
+                        Math.Abs(m_bodyRot.Y - m_lastRotation.Y) > ROTATION_TOLERANCE ||
+                        Math.Abs(m_bodyRot.Z - m_lastRotation.Z) > ROTATION_TOLERANCE ||
+
+                        Math.Abs(dpos.X) > POSITION_LARGETOLERANCE ||
+                        Math.Abs(dpos.Y) > POSITION_LARGETOLERANCE ||
+                        Math.Abs(dpos.Z) > POSITION_LARGETOLERANCE ||
+ 
+                        (  (Math.Abs(dpos.X) > POSITION_SMALLTOLERANCE ||
+                            Math.Abs(dpos.Y) > POSITION_SMALLTOLERANCE ||
+                            Math.Abs(dpos.Z) > POSITION_SMALLTOLERANCE)
+                            && vel.LengthSquared() < LOWVELOCITYSQ 
+                        ))
+                {
+*/
+                    SendTerseUpdateToAllClients();
+//                }
             }
             CheckForSignificantMovement();
         }
@@ -4184,7 +4218,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                             //                    m_log.Debug("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs((int)(x - newRegionX)));
                             //                    m_log.Debug("---> y: " + y + "; newy:" + newRegionY + "; Abs:" + (int)Math.Abs((int)(y - newRegionY)));
-                            if (Util.IsOutsideView(DrawDistance, x, newRegionX, y, newRegionY,
+                            if (Util.IsOutsideView(RegionViewDistance, x, newRegionX, y, newRegionY,
                                 regInfo.sizeX, regInfo.sizeY, newRegionSizeX, newRegionSizeY))
                             {
                                 byebyeRegions.Add(handle);
@@ -4195,7 +4229,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         else
                         {
-                            if (Util.IsOutsideView(DrawDistance, x, newRegionX, y, newRegionY,
+                            if (Util.IsOutsideView(RegionViewDistance, x, newRegionX, y, newRegionY,
                                 (int)Constants.RegionSize, (int)Constants.RegionSize, newRegionSizeX, newRegionSizeY))
                             {
                                 byebyeRegions.Add(handle);

@@ -801,7 +801,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             int newSizeX = finalDestination.RegionSizeX;
             int newSizeY = finalDestination.RegionSizeY;
 
-            bool OutSideViewRange = NeedsNewAgent(sp.DrawDistance, oldRegionX, newRegionX, oldRegionY, newRegionY,
+            bool OutSideViewRange = NeedsNewAgent(sp.RegionViewDistance, oldRegionX, newRegionX, oldRegionY, newRegionY,
                 oldSizeX, oldSizeY, newSizeX, newSizeY);
 
             if (OutSideViewRange)
@@ -1338,7 +1338,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         // This returns 'true' if the new region already has a child agent for our
         //    incoming agent. The implication is that, if 'false', we have to create  the
         //    child and then teleport into the region.
-        protected virtual bool NeedsNewAgent(float drawdist, uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY,
+        protected virtual bool NeedsNewAgent(float viewdist, uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY,
             int oldsizeX, int oldsizeY, int newsizeX, int newsizeY)
         {
             if (m_regionCombinerModule != null && m_regionCombinerModule.IsRootForMegaregion(Scene.RegionInfo.RegionID))
@@ -1353,7 +1353,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return !(newRegionX >= swCorner.X && newRegionX <= neCorner.X && newRegionY >= swCorner.Y && newRegionY <= neCorner.Y);
             }
 
-            return Util.IsOutsideView(drawdist, oldRegionX, newRegionX, oldRegionY, newRegionY,
+            return Util.IsOutsideView(viewdist, oldRegionX, newRegionX, oldRegionY, newRegionY,
                     oldsizeX, oldsizeY, newsizeX, newsizeY);
         }
 
@@ -2449,7 +2449,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // view to include everything in the megaregion
             if (m_regionCombinerModule == null || !m_regionCombinerModule.IsRootForMegaregion(Scene.RegionInfo.RegionID))
             {
-                uint dd = (uint)avatar.DrawDistance;
+                uint dd = (uint)avatar.RegionViewDistance;
 
                 // until avatar movement updates client connections, we need to seend at least this current region imediate Neighbors
                 uint ddX = Math.Max(dd, Constants.RegionSize);
