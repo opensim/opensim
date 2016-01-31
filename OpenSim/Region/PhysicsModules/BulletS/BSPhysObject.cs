@@ -245,10 +245,10 @@ public abstract class BSPhysObject : PhysicsActor
 
     public override void AddAngularForce(OMV.Vector3 force, bool pushforce)
     {
-        AddAngularForce(force, pushforce, false);
+        AddAngularForce(false, force);
     }
-    public abstract void AddAngularForce(OMV.Vector3 force, bool pushforce, bool inTaintTime);
-    public abstract void AddForce(OMV.Vector3 force, bool pushforce, bool inTaintTime);
+    public abstract void AddAngularForce(bool inTaintTime, OMV.Vector3 force);
+    public abstract void AddForce(bool inTaintTime, OMV.Vector3 force);
 
     public abstract OMV.Vector3 ForceRotationalVelocity { get; set; }
 
@@ -505,17 +505,20 @@ public abstract class BSPhysObject : PhysicsActor
             // Collision sound requires a velocity to know it should happen. This is a lot of computation for a little used feature.
             OMV.Vector3 relvel = OMV.Vector3.Zero;
             if (IsPhysical)
-                relvel = Velocity;
+                relvel = RawVelocity;
             if (collidee != null && collidee.IsPhysical)
-                relvel -= collidee.Velocity;
+                relvel -= collidee.RawVelocity;
             newContact.RelativeSpeed = OMV.Vector3.Dot(relvel, contactNormal);
+            // DetailLog("{0},{1}.Collision.AddCollider,vel={2},contee.vel={3},relvel={4},relspeed={5}",
+            //         LocalID, TypeName, RawVelocity, (collidee == null ? OMV.Vector3.Zero : collidee.RawVelocity), relvel, newContact.RelativeSpeed);
                     
             lock (PhysScene.CollisionLock)
             {
                 CollisionCollection.AddCollider(collideeLocalID, newContact);
             }
-            DetailLog("{0},{1}.Collision.AddCollider,call,with={2},point={3},normal={4},depth={5},colliderMoving={6}",
-                            LocalID, TypeName, collideeLocalID, contactPoint, contactNormal, pentrationDepth, ColliderIsMoving);
+            DetailLog("{0},{1}.Collision.AddCollider,call,with={2},point={3},normal={4},depth={5},speed={6},colliderMoving={7}",
+                            LocalID, TypeName, collideeLocalID, contactPoint, contactNormal, pentrationDepth,
+                            newContact.RelativeSpeed, ColliderIsMoving);
 
             ret = true;
         }

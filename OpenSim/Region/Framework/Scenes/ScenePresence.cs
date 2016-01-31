@@ -583,6 +583,14 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public float RegionViewDistance
+        {
+            get
+            {
+            return Util.Clamp(m_drawDistance, 32f, m_scene.MaxRegionViewDistance);
+            }
+         }
+
         public bool AllowMovement { get; set; }
 
         private bool m_setAlwaysRun;
@@ -3557,6 +3565,16 @@ namespace OpenSim.Region.Framework.Scenes
             if (Appearance.AvatarSize != m_lastSize)
                 SendAvatarDataToAllAgents();
 
+            // Send terse position update if not sitting and position, velocity, or rotation
+            //      has changed significantly from last sent update
+            if (!IsSatOnObject && (
+                        !Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE)
+                        || !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE)
+                        || !m_pos.ApproxEquals(m_lastPosition, POSITION_LARGETOLERANCE)
+                        || (!m_pos.ApproxEquals(m_lastPosition, POSITION_SMALLTOLERANCE) && Velocity.LengthSquared() < LOWVELOCITYSQ )
+                ) )
+            {
+/*
             if (!IsSatOnObject)
             {
                 // this does need to be more complex later
@@ -3580,8 +3598,9 @@ namespace OpenSim.Region.Framework.Scenes
                             && vel.LengthSquared() < LOWVELOCITYSQ 
                         ))
                 {
+*/
                     SendTerseUpdateToAllClients();
-                }
+//                }
             }
             CheckForSignificantMovement();
         }
@@ -4199,7 +4218,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                             //                    m_log.Debug("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs((int)(x - newRegionX)));
                             //                    m_log.Debug("---> y: " + y + "; newy:" + newRegionY + "; Abs:" + (int)Math.Abs((int)(y - newRegionY)));
-                            if (Util.IsOutsideView(DrawDistance, x, newRegionX, y, newRegionY,
+                            if (Util.IsOutsideView(RegionViewDistance, x, newRegionX, y, newRegionY,
                                 regInfo.sizeX, regInfo.sizeY, newRegionSizeX, newRegionSizeY))
                             {
                                 byebyeRegions.Add(handle);
@@ -4210,7 +4229,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         else
                         {
-                            if (Util.IsOutsideView(DrawDistance, x, newRegionX, y, newRegionY,
+                            if (Util.IsOutsideView(RegionViewDistance, x, newRegionX, y, newRegionY,
                                 (int)Constants.RegionSize, (int)Constants.RegionSize, newRegionSizeX, newRegionSizeY))
                             {
                                 byebyeRegions.Add(handle);
@@ -5773,8 +5792,8 @@ namespace OpenSim.Region.Framework.Scenes
                 return true;
 
             // respect region owner and managers
-            if(m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_uuid))
-                return true;
+//            if(m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_uuid))
+//                return true;
 
             if (!m_scene.RegionInfo.EstateSettings.AllowDirectTeleport)
             {
@@ -5804,8 +5823,9 @@ namespace OpenSim.Region.Framework.Scenes
                         || (m_teleportFlags & adicionalLandPointFlags) != 0)
                 {
                     if (land.LandData.LandingType == (byte)LandingType.LandingPoint &&
-                        land.LandData.UserLocation != Vector3.Zero &&
-                        land.LandData.OwnerID != m_uuid )
+                        land.LandData.UserLocation != Vector3.Zero )
+                        // &&
+                        // land.LandData.OwnerID != m_uuid )
                     {
                         pos = land.LandData.UserLocation;
                         if(land.LandData.UserLookAt != Vector3.Zero)

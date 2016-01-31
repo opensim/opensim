@@ -211,7 +211,7 @@ public class BSActorMoveToTarget : BSActor
             // Add enough force to overcome the mass of the object
             addedForce *= m_controllingPrim.Mass;
 
-            m_controllingPrim.AddForce(addedForce, false /* pushForce */, true /* inTaintTime */);
+            m_controllingPrim.AddForce(true /* inTaintTime */, addedForce);
         }
         m_physicsScene.DetailLog("{0},BSActorMoveToTarget.Mover3,move,fromPos={1},addedForce={2}",
                                         m_controllingPrim.LocalID, origPosition, addedForce);

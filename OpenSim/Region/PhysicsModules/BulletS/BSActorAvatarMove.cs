@@ -47,10 +47,9 @@ public class BSActorAvatarMove : BSActor
     // The amount the step up is applying. Used to smooth stair walking.
     float m_lastStepUp;
 
-    // Jumping happens over several frames. If use applies up force while colliding, start the
-    //    jump and allow the jump to continue for this number of frames.
-    int m_jumpFrames = 0;
-    float m_jumpVelocity = 0f;
+    // There are times the velocity is set but we don't want to inforce stationary until the
+    //    real velocity drops.
+    bool m_waitingForLowVelocityForStationary = false;
 
     public BSActorAvatarMove(BSScene physicsScene, BSPhysObject pObj, string actorName)
         : base(physicsScene, pObj, actorName)
@@ -117,11 +116,19 @@ public class BSActorAvatarMove : BSActor
                 m_velocityMotor.SetTarget(targ);
                 m_velocityMotor.SetCurrent(vel);
                 m_velocityMotor.Enabled = true;
+                m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,SetVelocityAndTarget,vel={1}, targ={2}",
+                            m_controllingPrim.LocalID, vel, targ);
+                m_waitingForLowVelocityForStationary = false;
             }
         });
     }
 
-    // If a hover motor has not been created, create one and start the hovering.
+    public void SuppressStationayCheckUntilLowVelocity()
+    {
+        m_waitingForLowVelocityForStationary = true;
+    }
+
+    // If a movement motor has not been created, create one and start the hovering.
     private void ActivateAvatarMove()
     {
         if (m_velocityMotor == null)
@@ -133,13 +140,14 @@ public class BSActorAvatarMove : BSActor
                                                 1f                          // efficiency
             );
             m_velocityMotor.ErrorZeroThreshold = BSParam.AvatarStopZeroThreshold;
-            // _velocityMotor.PhysicsScene = PhysicsScene; // DEBUG DEBUG so motor will output detail log messages.
+            // m_velocityMotor.PhysicsScene = m_controllingPrim.PhysScene; // DEBUG DEBUG so motor will output detail log messages.
             SetVelocityAndTarget(m_controllingPrim.RawVelocity, m_controllingPrim.TargetVelocity, true /* inTaintTime */);
 
             m_physicsScene.BeforeStep += Mover;
             m_controllingPrim.OnPreUpdateProperty += Process_OnPreUpdateProperty;
 
             m_walkingUpStairs = 0;
+            m_waitingForLowVelocityForStationary = false;
         }
     }
 
@@ -190,12 +198,15 @@ public class BSActorAvatarMove : BSActor
                 // if colliding with something stationary and we're not doing volume detect .
                 if (!m_controllingPrim.ColliderIsMoving && !m_controllingPrim.ColliderIsVolumeDetect)
                 {
-                    m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,collidingWithStationary,totalForce={1}, vel={2}",   /* DEBUG */
-                            m_controllingPrim.LocalID, m_physicsScene.PE.GetTotalForce(m_controllingPrim.PhysBody), m_controllingPrim.Velocity);    /* DEBUG */
-                    // If velocity is very small, assume it is movement creep and suppress it.
-                    // Applying push forces (Character.AddForce) should move the avatar and that is only seen here as velocity.
-                    if ( (m_controllingPrim.Velocity.LengthSquared() < BSParam.AvatarStopZeroThresholdSquared)
-                            && (m_physicsScene.PE.GetTotalForce(m_controllingPrim.PhysBody).LengthSquared() < BSParam.AvatarStopZeroThresholdSquared) )
+                    if (m_waitingForLowVelocityForStationary)
+                    {
+                        // if waiting for velocity to drop and it has finally dropped, we can be stationary
+                        if (m_controllingPrim.RawVelocity.LengthSquared() < BSParam.AvatarStopZeroThresholdSquared)
+                        {
+                            m_waitingForLowVelocityForStationary = false;
+                        }
+                    }
+                    if (!m_waitingForLowVelocityForStationary)
                     {
                         m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,collidingWithStationary,zeroingMotion", m_controllingPrim.LocalID);
                         m_controllingPrim.IsStationary = true;
@@ -203,8 +214,8 @@ public class BSActorAvatarMove : BSActor
                     }
                     else
                     {
-                        m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,collidingWithStationary,not zeroing because velocity={1}",
-                                        m_controllingPrim.LocalID, m_controllingPrim.Velocity);
+                        m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,waitingForLowVel,rawvel={1}",
+                                    m_controllingPrim.LocalID, m_controllingPrim.RawVelocity.Length());
                     }
                 }
 
@@ -250,50 +261,24 @@ public class BSActorAvatarMove : BSActor
                 m_physicsScene.PE.SetFriction(m_controllingPrim.PhysBody, m_controllingPrim.Friction);
             }
 
-            // If not flying and not colliding, assume falling and keep the downward motion component.
-            //    This check is done here for the next jump test.
-            if (!m_controllingPrim.Flying && !m_controllingPrim.IsColliding)
-            {
-                stepVelocity.Z = m_controllingPrim.RawVelocity.Z;
-            }
+            // 'm_velocityMotor is used for walking, flying, and jumping and will thus have the correct values
+            //    for Z. But in come cases it must be over-ridden. Like when falling or jumping.
 
-            // Colliding and not flying with an upward force. The avatar must be trying to jump.
-            if (!m_controllingPrim.Flying && m_controllingPrim.IsColliding && stepVelocity.Z > 0)
-            {
-                // We allow the upward force to happen for this many frames.
-                m_jumpFrames = BSParam.AvatarJumpFrames;
-                m_jumpVelocity = stepVelocity.Z;
-            }
+            float realVelocityZ = m_controllingPrim.RawVelocity.Z;
 
-            // The case where the avatar is not colliding and is not flying is special.
-            // The avatar is either falling or jumping and the user can be applying force to the avatar
-            //     (force in some direction or force up or down).
-            // If the avatar has negative Z velocity and is not colliding, presume we're falling and keep the velocity.
-            // If the user is trying to apply upward force but we're not colliding, assume the avatar
-            //     is trying to jump and don't apply the upward force if not touching the ground any more.
-            if (!m_controllingPrim.Flying && !m_controllingPrim.IsColliding)
+            // If not flying and falling, we over-ride the stepping motor so we can fall to the ground
+            if (!m_controllingPrim.Flying && realVelocityZ < 0)
             {
-                // If upward velocity is being applied, this must be a jump and only allow that to go on so long
-                if (m_jumpFrames > 0)
+                // Can't fall faster than this
+                if (realVelocityZ < BSParam.AvatarTerminalVelocity)
                 {
-                    // Since not touching the ground, only apply upward force for so long.
-                    m_jumpFrames--;
-                    stepVelocity.Z = m_jumpVelocity;
+                    realVelocityZ = BSParam.AvatarTerminalVelocity;
                 }
-                else
-                {
-                    // Since we're not affected by anything, the avatar must be falling and we do not want that to be too fast.
-                    if (m_controllingPrim.RawVelocity.Z < BSParam.AvatarTerminalVelocity)
-                    {
-                        stepVelocity.Z = BSParam.AvatarTerminalVelocity;
-                    }
-                    else
-                    {
-                        stepVelocity.Z = m_controllingPrim.RawVelocity.Z;
-                    }
-                }
-                // DetailLog("{0},BSCharacter.MoveMotor,taint,overrideStepZWithWorldZ,stepVel={1}", LocalID, stepVelocity);
+
+                stepVelocity.Z = realVelocityZ;
             }
+            // m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,DEBUG,motorCurrent={1},realZ={2},flying={3},collid={4},jFrames={5}",
+            //     m_controllingPrim.LocalID, m_velocityMotor.CurrentValue, realVelocityZ, m_controllingPrim.Flying, m_controllingPrim.IsColliding, m_jumpFrames);
 
             //Alicia: Maintain minimum height when flying.
             // SL has a flying effect that keeps the avatar flying above the ground by some margin
@@ -304,6 +289,8 @@ public class BSActorAvatarMove : BSActor
 
                 if( m_controllingPrim.Position.Z < hover_height)
                 {
+                    m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,addingUpforceForGroundMargin,height={1},hoverHeight={2}",
+                                m_controllingPrim.LocalID, m_controllingPrim.Position.Z, hover_height);
                     stepVelocity.Z += BSParam.AvatarFlyingGroundUpForce;
                 }
             }
@@ -328,11 +315,7 @@ public class BSActorAvatarMove : BSActor
         if (m_controllingPrim.IsStationary)
         {
             entprop.Position = m_controllingPrim.RawPosition;
-            // Suppress small movement velocity
-            if (entprop.Velocity.LengthSquared() < BSParam.AvatarStopZeroThresholdSquared) {
-                m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,OnPreUpdate,zeroing velocity={1}", m_controllingPrim.LocalID, entprop.Velocity);
-                entprop.Velocity = OMV.Vector3.Zero;
-            }
+            entprop.Velocity = OMV.Vector3.Zero;
             m_physicsScene.PE.SetTranslation(m_controllingPrim.PhysBody, entprop.Position, entprop.Rotation);
         }
 

@@ -127,7 +127,7 @@ public class BSActorSetTorque : BSActor
         m_physicsScene.DetailLog("{0},BSActorSetTorque,preStep,force={1}", m_controllingPrim.LocalID, m_controllingPrim.RawTorque);
         if (m_controllingPrim.PhysBody.HasPhysicalBody)
         {
-            m_controllingPrim.AddAngularForce(m_controllingPrim.RawTorque, false, true);
+            m_controllingPrim.AddAngularForce(true /* inTaintTime */, m_controllingPrim.RawTorque);
             m_controllingPrim.ActivateIfPhysical(false);
         }
 
