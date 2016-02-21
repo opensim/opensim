@@ -1,54 +1,24 @@
-﻿:VERSION 1		# -------------------------
+﻿:VERSION 5		# -------------------------
 
 BEGIN;
 
-CREATE TABLE `UserAccounts` (
-    `PrincipalID` CHAR(36) NOT NULL,
-    `ScopeID` CHAR(36) NOT NULL,
-    `FirstName` VARCHAR(64) NOT NULL,
-    `LastName` VARCHAR(64) NOT NULL,
-    `Email` VARCHAR(64),
-    `ServiceURLs` TEXT,
-    `Created` INT(11)
+CREATE TABLE IF NOT EXISTS `useraccounts` (
+  `PrincipalID` char(36) NOT NULL,
+  `ScopeID` char(36) NOT NULL,
+  `FirstName` varchar(64) NOT NULL,
+  `LastName` varchar(64) NOT NULL,
+  `Email` varchar(64) DEFAULT NULL,
+  `ServiceURLs` text,
+  `Created` int(11) DEFAULT NULL,
+  `UserLevel` int(11) NOT NULL DEFAULT '0',
+  `UserFlags` int(11) NOT NULL DEFAULT '0',
+  `UserTitle` varchar(64) NOT NULL DEFAULT '',
+  UNIQUE KEY `PrincipalID` (`PrincipalID`),
+  KEY `Email` (`Email`),
+  KEY `FirstName` (`FirstName`),
+  KEY `LastName` (`LastName`),
+  KEY `Name` (`FirstName`,`LastName`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-COMMIT;
-
-:VERSION 2		# -------------------------
-
-BEGIN;
-
-INSERT INTO UserAccounts (PrincipalID, ScopeID, FirstName, LastName, Email, ServiceURLs, Created) SELECT `UUID` AS PrincipalID, '00000000-0000-0000-0000-000000000000' AS ScopeID, username AS FirstName, lastname AS LastName, email as Email, CONCAT('AssetServerURI=', userAssetURI, ' InventoryServerURI=', userInventoryURI, ' GatewayURI= HomeURI=') AS ServiceURLs, created as Created FROM users;
-
-COMMIT;
-
-:VERSION 3		# -------------------------
-
-BEGIN;
-
-CREATE UNIQUE INDEX PrincipalID ON UserAccounts(PrincipalID);
-CREATE INDEX Email ON UserAccounts(Email);
-CREATE INDEX FirstName ON UserAccounts(FirstName);
-CREATE INDEX LastName ON UserAccounts(LastName);
-CREATE INDEX Name ON UserAccounts(FirstName,LastName);
-
-COMMIT;
-
-:VERSION 4		# -------------------------
-
-BEGIN;
-
-ALTER TABLE UserAccounts ADD COLUMN UserLevel integer NOT NULL DEFAULT 0;
-ALTER TABLE UserAccounts ADD COLUMN UserFlags integer NOT NULL DEFAULT 0;
-ALTER TABLE UserAccounts ADD COLUMN UserTitle varchar(64) NOT NULL DEFAULT '';
-
-COMMIT;
-
-:VERSION 5		# -------------------------
-
-BEGIN;
-
-ALTER TABLE `UserAccounts` ADD `active` INT NOT NULL DEFAULT '1';
 
 COMMIT;
 

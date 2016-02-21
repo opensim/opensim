@@ -1,109 +1,52 @@
-﻿:VERSION 1
+﻿:VERSION 10
 
 BEGIN;
 
-CREATE TABLE `regions` (
+CREATE TABLE IF NOT EXISTS `regions` (
   `uuid` varchar(36) NOT NULL,
   `regionHandle` bigint(20) unsigned NOT NULL,
-  `regionName` varchar(32) default NULL,
-  `regionRecvKey` varchar(128) default NULL,
-  `regionSendKey` varchar(128) default NULL,
-  `regionSecret` varchar(128) default NULL,
-  `regionDataURI` varchar(255) default NULL,
-  `serverIP` varchar(64) default NULL,
-  `serverPort` int(10) unsigned default NULL,
-  `serverURI` varchar(255) default NULL,
-  `locX` int(10) unsigned default NULL,
-  `locY` int(10) unsigned default NULL,
-  `locZ` int(10) unsigned default NULL,
-  `eastOverrideHandle` bigint(20) unsigned default NULL,
-  `westOverrideHandle` bigint(20) unsigned default NULL,
-  `southOverrideHandle` bigint(20) unsigned default NULL,
-  `northOverrideHandle` bigint(20) unsigned default NULL,
-  `regionAssetURI` varchar(255) default NULL,
-  `regionAssetRecvKey` varchar(128) default NULL,
-  `regionAssetSendKey` varchar(128) default NULL,
-  `regionUserURI` varchar(255) default NULL,
-  `regionUserRecvKey` varchar(128) default NULL,
-  `regionUserSendKey` varchar(128) default NULL, `regionMapTexture` varchar(36) default NULL,
-  `serverHttpPort` int(10) default NULL, `serverRemotingPort` int(10) default NULL,
-  `owner_uuid` varchar(36) default '00000000-0000-0000-0000-000000000000' not null,
-  `originUUID` varchar(36),
-  PRIMARY KEY  (`uuid`),
+  `regionName` varchar(128) DEFAULT NULL,
+  `regionRecvKey` varchar(128) DEFAULT NULL,
+  `regionSendKey` varchar(128) DEFAULT NULL,
+  `regionSecret` varchar(128) DEFAULT NULL,
+  `regionDataURI` varchar(255) DEFAULT NULL,
+  `serverIP` varchar(64) DEFAULT NULL,
+  `serverPort` int(10) unsigned DEFAULT NULL,
+  `serverURI` varchar(255) DEFAULT NULL,
+  `locX` int(10) unsigned DEFAULT NULL,
+  `locY` int(10) unsigned DEFAULT NULL,
+  `locZ` int(10) unsigned DEFAULT NULL,
+  `eastOverrideHandle` bigint(20) unsigned DEFAULT NULL,
+  `westOverrideHandle` bigint(20) unsigned DEFAULT NULL,
+  `southOverrideHandle` bigint(20) unsigned DEFAULT NULL,
+  `northOverrideHandle` bigint(20) unsigned DEFAULT NULL,
+  `regionAssetURI` varchar(255) DEFAULT NULL,
+  `regionAssetRecvKey` varchar(128) DEFAULT NULL,
+  `regionAssetSendKey` varchar(128) DEFAULT NULL,
+  `regionUserURI` varchar(255) DEFAULT NULL,
+  `regionUserRecvKey` varchar(128) DEFAULT NULL,
+  `regionUserSendKey` varchar(128) DEFAULT NULL,
+  `regionMapTexture` varchar(36) DEFAULT NULL,
+  `serverHttpPort` int(10) DEFAULT NULL,
+  `serverRemotingPort` int(10) DEFAULT NULL,
+  `owner_uuid` varchar(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000',
+  `originUUID` varchar(36) DEFAULT NULL,
+  `access` int(10) unsigned DEFAULT '1',
+  `ScopeID` char(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000',
+  `sizeX` int(11) NOT NULL DEFAULT '0',
+  `sizeY` int(11) NOT NULL DEFAULT '0',
+  `flags` int(11) NOT NULL DEFAULT '0',
+  `last_seen` int(11) NOT NULL DEFAULT '0',
+  `PrincipalID` char(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000',
+  `Token` varchar(255) NOT NULL,
+  `parcelMapTexture` varchar(36) DEFAULT NULL,
+  PRIMARY KEY (`uuid`),
   KEY `regionName` (`regionName`),
   KEY `regionHandle` (`regionHandle`),
-  KEY `overrideHandles` (`eastOverrideHandle`,`westOverrideHandle`,`southOverrideHandle`,`northOverrideHandle`)
+  KEY `overrideHandles` (`eastOverrideHandle`,`westOverrideHandle`,`southOverrideHandle`,`northOverrideHandle`),
+  KEY `ScopeID` (`ScopeID`),
+  KEY `flags` (`flags`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-COMMIT;
-
-:VERSION 2
-
-BEGIN;
-
-ALTER TABLE regions add column access integer unsigned default 1;
-
-COMMIT;
-
-:VERSION 3
-
-BEGIN;
-
-ALTER TABLE regions add column ScopeID char(36) not null default '00000000-0000-0000-0000-000000000000';
-
-create index ScopeID on regions(ScopeID);
-
-COMMIT;
-
-:VERSION 4
-
-BEGIN;
-
-ALTER TABLE regions add column sizeX integer not null default 0;
-ALTER TABLE regions add column sizeY integer not null default 0;
-
-COMMIT;
-
-:VERSION 5
-
-BEGIN;
-
-ALTER TABLE `regions` ADD COLUMN `flags` integer NOT NULL DEFAULT 0;
-CREATE INDEX flags ON regions(flags);
-
-COMMIT;
-
-:VERSION 6
-
-BEGIN;
-
-ALTER TABLE `regions` ADD COLUMN `last_seen` integer NOT NULL DEFAULT 0;
-
-COMMIT;
-
-:VERSION 7
-
-BEGIN;
-
-ALTER TABLE `regions` ADD COLUMN `PrincipalID` char(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
-ALTER TABLE `regions` ADD COLUMN `Token` varchar(255) NOT NULL;
-
-COMMIT;
-
-
-:VERSION 8		# ------------
-
-BEGIN;
-
-alter table regions modify column regionName varchar(128) default NULL;
-
-COMMIT;
-
-:VERSION 9      # ------------
-
-BEGIN;
-
-alter table regions add column `parcelMapTexture` varchar(36) default NULL;
 
 COMMIT;
 

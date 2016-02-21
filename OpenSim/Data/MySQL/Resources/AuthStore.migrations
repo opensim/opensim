@@ -1,16 +1,17 @@
-﻿:VERSION 1         # -------------------------------
+﻿:VERSION 4         # -------------------------------
 
 begin;
 
-CREATE TABLE `auth` (
+CREATE TABLE IF NOT EXISTS `auth` (
   `UUID` char(36) NOT NULL,
-  `passwordHash` char(32) NOT NULL default '',
-  `passwordSalt` char(32) NOT NULL default '',
-  `webLoginKey` varchar(255) NOT NULL default '',
-  PRIMARY KEY  (`UUID`)
-) ENGINE=InnoDB;
+  `passwordHash` char(32) NOT NULL DEFAULT '',
+  `passwordSalt` char(32) NOT NULL DEFAULT '',
+  `webLoginKey` varchar(255) NOT NULL DEFAULT '',
+  `accountType` varchar(32) NOT NULL DEFAULT 'UserAccount',
+  PRIMARY KEY (`UUID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `tokens` (
+CREATE TABLE IF NOT EXISTS `tokens` (
   `UUID` char(36) NOT NULL,
   `token` varchar(255) NOT NULL,
   `validity` datetime NOT NULL,
@@ -18,22 +19,6 @@ CREATE TABLE `tokens` (
   KEY `UUID` (`UUID`),
   KEY `token` (`token`),
   KEY `validity` (`validity`)
-) ENGINE=InnoDB;
-
-commit;
-
-:VERSION 2         # -------------------------------
-
-BEGIN;
-
-INSERT INTO auth (UUID, passwordHash, passwordSalt, webLoginKey) SELECT `UUID` AS UUID, `passwordHash` AS passwordHash, `passwordSalt` AS passwordSalt, `webLoginKey` AS webLoginKey FROM users;
-
-COMMIT;
-
-:VERSION 3         # -------------------------------
-
-BEGIN;
-
-ALTER TABLE `auth` ADD COLUMN `accountType` VARCHAR(32) NOT NULL DEFAULT 'UserAccount';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 COMMIT;

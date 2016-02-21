@@ -1,81 +1,21 @@
 ﻿# -----------------
-:VERSION 1
+:VERSION 10
 
 BEGIN;
 
-CREATE TABLE `assets` (
-  `id` binary(16) NOT NULL,
+CREATE TABLE IF NOT EXISTS `assets` (
   `name` varchar(64) NOT NULL,
   `description` varchar(64) NOT NULL,
   `assetType` tinyint(4) NOT NULL,
-  `invType` tinyint(4) NOT NULL,
   `local` tinyint(1) NOT NULL,
   `temporary` tinyint(1) NOT NULL,
   `data` longblob NOT NULL,
+  `id` char(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000',
+  `create_time` int(11) DEFAULT '0',
+  `access_time` int(11) DEFAULT '0',
+  `asset_flags` int(11) NOT NULL DEFAULT '0',
+  `CreatorID` varchar(128) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev. 1';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-COMMIT;
-
-# -----------------
-:VERSION 2
-
-BEGIN;
-
-ALTER TABLE assets change id oldid binary(16);
-ALTER TABLE assets add id varchar(36) not null default '';
-UPDATE assets set id = concat(substr(hex(oldid),1,8),"-",substr(hex(oldid),9,4),"-",substr(hex(oldid),13,4),"-",substr(hex(oldid),17,4),"-",substr(hex(oldid),21,12));
-ALTER TABLE assets drop oldid;
-ALTER TABLE assets add constraint primary key(id);
-
-COMMIT;
-
-# -----------------
-:VERSION 3
-
-BEGIN;
-
-ALTER TABLE assets change id oldid varchar(36);
-ALTER TABLE assets add id char(36) not null default '00000000-0000-0000-0000-000000000000';
-UPDATE assets set id = oldid;
-ALTER TABLE assets drop oldid;
-ALTER TABLE assets add constraint primary key(id);
-
-COMMIT;
-
-# -----------------
-:VERSION 4
-
-BEGIN;
-
-ALTER TABLE assets drop InvType;
-
-COMMIT;
-
-# -----------------
-:VERSION 5
-
-BEGIN;
-
-ALTER TABLE assets add create_time integer default 0;
-ALTER TABLE assets add access_time integer default 0;
-
-COMMIT;
-
-# -----------------
-:VERSION 6
-
-DELETE FROM assets WHERE id = 'dc4b9f0b-d008-45c6-96a4-01dd947ac621'
-
-:VERSION 7
-
-ALTER TABLE assets ADD COLUMN asset_flags INTEGER NOT NULL DEFAULT 0;
-
-:VERSION 8
-
-ALTER TABLE assets ADD COLUMN CreatorID varchar(128) NOT NULL DEFAULT '';
-
-:VERSION 9
-
-BEGIN;
 COMMIT;

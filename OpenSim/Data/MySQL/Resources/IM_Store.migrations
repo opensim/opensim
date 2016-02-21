@@ -1,42 +1,16 @@
-:VERSION 1         # -------------------------- 
+:VERSION 5         # -------------------------- 
 
 BEGIN;
 
-CREATE TABLE `im_offline` (
-  `ID` MEDIUMINT NOT NULL AUTO_INCREMENT,
-  `PrincipalID` char(36) NOT NULL default '',
+CREATE TABLE IF NOT EXISTS `im_offline` (
+  `ID` mediumint(9) NOT NULL AUTO_INCREMENT,
+  `PrincipalID` char(36) NOT NULL DEFAULT '',
+  `FromID` char(36) NOT NULL DEFAULT '',
   `Message` text NOT NULL,
-  `TMStamp` timestamp NOT NULL,
-  PRIMARY KEY  (`ID`),
-  KEY `PrincipalID` (`PrincipalID`)
-) ENGINE=MyISAM;
-
-COMMIT;
-
-:VERSION 2         # -------------------------- 
-
-BEGIN;
-
-INSERT INTO `im_offline` SELECT * from `diva_im_offline`;
-DROP TABLE `diva_im_offline`;
-DELETE FROM `migrations` WHERE name='diva_im_Store';
-
-COMMIT;
-
-:VERSION 3         # -------------------------- 
-
-BEGIN;
-
-ALTER TABLE `im_offline`
-  ADD `FromID` char(36) NOT NULL default '' AFTER `PrincipalID`,
-  ADD KEY `FromID` (`FromID`);
-
-COMMIT;
-
-:VERSION 4         # -------------------------- 
-
-BEGIN;
-
-ALTER TABLE im_offline CONVERT TO CHARACTER SET utf8;
+  `TMStamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`ID`),
+  KEY `PrincipalID` (`PrincipalID`),
+  KEY `FromID` (`FromID`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 COMMIT;

@@ -1,109 +1,42 @@
-﻿:VERSION 1		# ------------
+﻿:VERSION 7		# ------------
 BEGIN;
 
-CREATE TABLE `inventoryfolders` (
-  `folderID` varchar(36) NOT NULL default '',
-  `agentID` varchar(36) default NULL,
-  `parentFolderID` varchar(36) default NULL,
-  `folderName` varchar(64) default NULL,
-  `type` smallint NOT NULL default 0,
-  `version` int NOT NULL default 0,
-  PRIMARY KEY  (`folderID`),
-  KEY `owner` (`agentID`),
-  KEY `parent` (`parentFolderID`)
+CREATE TABLE IF NOT EXISTS `inventoryitems` (
+  `assetID` varchar(36) DEFAULT NULL,
+  `assetType` int(11) DEFAULT NULL,
+  `inventoryName` varchar(64) DEFAULT NULL,
+  `inventoryDescription` varchar(128) DEFAULT NULL,
+  `inventoryNextPermissions` int(10) unsigned DEFAULT NULL,
+  `inventoryCurrentPermissions` int(10) unsigned DEFAULT NULL,
+  `invType` int(11) DEFAULT NULL,
+  `creatorID` varchar(255) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000',
+  `inventoryBasePermissions` int(10) unsigned NOT NULL DEFAULT '0',
+  `inventoryEveryOnePermissions` int(10) unsigned NOT NULL DEFAULT '0',
+  `salePrice` int(11) NOT NULL DEFAULT '0',
+  `saleType` tinyint(4) NOT NULL DEFAULT '0',
+  `creationDate` int(11) NOT NULL DEFAULT '0',
+  `groupID` varchar(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000',
+  `groupOwned` tinyint(4) NOT NULL DEFAULT '0',
+  `flags` int(11) unsigned NOT NULL DEFAULT '0',
+  `inventoryID` char(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000',
+  `avatarID` char(36) DEFAULT NULL,
+  `parentFolderID` char(36) DEFAULT NULL,
+  `inventoryGroupPermissions` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`inventoryID`),
+  KEY `inventoryitems_avatarid` (`avatarID`),
+  KEY `inventoryitems_parentFolderid` (`parentFolderID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `inventoryitems` (
-  `inventoryID` varchar(36) NOT NULL default '',
-  `assetID` varchar(36) default NULL,
-  `assetType` int(11) default NULL,
-  `parentFolderID` varchar(36) default NULL,
-  `avatarID` varchar(36) default NULL,
-  `inventoryName` varchar(64) default NULL,
-  `inventoryDescription` varchar(128) default NULL,
-  `inventoryNextPermissions` int(10) unsigned default NULL,
-  `inventoryCurrentPermissions` int(10) unsigned default NULL,
-  `invType` int(11) default NULL,
-  `creatorID` varchar(36) default NULL,
-  `inventoryBasePermissions` int(10) unsigned NOT NULL default 0,
-  `inventoryEveryOnePermissions` int(10) unsigned NOT NULL default 0,
-  `salePrice` int(11) NOT NULL default 0,
-  `saleType` tinyint(4) NOT NULL default 0,
-  `creationDate` int(11) NOT NULL default 0,
-  `groupID` varchar(36) NOT NULL default '00000000-0000-0000-0000-000000000000',
-  `groupOwned` tinyint(4) NOT NULL default 0,
-  `flags` int(11) unsigned NOT NULL default 0,
-  PRIMARY KEY  (`inventoryID`),
-  KEY `owner` (`avatarID`),
-  KEY `folder` (`parentFolderID`)
+CREATE TABLE IF NOT EXISTS `inventoryfolders` (
+  `folderName` varchar(64) DEFAULT NULL,
+  `type` smallint(6) NOT NULL DEFAULT '0',
+  `version` int(11) NOT NULL DEFAULT '0',
+  `folderID` char(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000',
+  `agentID` char(36) DEFAULT NULL,
+  `parentFolderID` char(36) DEFAULT NULL,
+  PRIMARY KEY (`folderID`),
+  KEY `inventoryfolders_agentid` (`agentID`),
+  KEY `inventoryfolders_parentFolderid` (`parentFolderID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-COMMIT;
-
-:VERSION 2		# ------------
-
-BEGIN;
-
-ALTER TABLE inventoryfolders change folderID folderIDold varchar(36);
-ALTER TABLE inventoryfolders change agentID agentIDold varchar(36);
-ALTER TABLE inventoryfolders change parentFolderID parentFolderIDold varchar(36);
-ALTER TABLE inventoryfolders add folderID char(36) not null default '00000000-0000-0000-0000-000000000000';
-ALTER TABLE inventoryfolders add agentID char(36) default NULL;
-ALTER TABLE inventoryfolders add parentFolderID char(36) default NULL;
-UPDATE inventoryfolders set folderID = folderIDold, agentID = agentIDold, parentFolderID = parentFolderIDold;
-ALTER TABLE inventoryfolders drop folderIDold;
-ALTER TABLE inventoryfolders drop agentIDold;
-ALTER TABLE inventoryfolders drop parentFolderIDold;
-ALTER TABLE inventoryfolders add constraint primary key(folderID);
-ALTER TABLE inventoryfolders add index inventoryfolders_agentid(agentID);
-ALTER TABLE inventoryfolders add index inventoryfolders_parentFolderid(parentFolderID);
-
-ALTER TABLE inventoryitems change inventoryID inventoryIDold varchar(36);
-ALTER TABLE inventoryitems change avatarID avatarIDold varchar(36);
-ALTER TABLE inventoryitems change parentFolderID parentFolderIDold varchar(36);
-ALTER TABLE inventoryitems add inventoryID char(36) not null default '00000000-0000-0000-0000-000000000000';
-ALTER TABLE inventoryitems add avatarID char(36) default NULL;
-ALTER TABLE inventoryitems add parentFolderID char(36) default NULL;
-UPDATE inventoryitems set inventoryID = inventoryIDold, avatarID = avatarIDold, parentFolderID = parentFolderIDold;
-ALTER TABLE inventoryitems drop inventoryIDold;
-ALTER TABLE inventoryitems drop avatarIDold;
-ALTER TABLE inventoryitems drop parentFolderIDold;
-ALTER TABLE inventoryitems add constraint primary key(inventoryID);
-ALTER TABLE inventoryitems add index inventoryitems_avatarid(avatarID);
-ALTER TABLE inventoryitems add index inventoryitems_parentFolderid(parentFolderID);
-
-COMMIT;
-
-:VERSION 3		# ------------
-
-BEGIN;
-
-alter table inventoryitems add column inventoryGroupPermissions integer unsigned not null default 0;
-
-COMMIT;
-
-:VERSION 4		# ------------
-
-BEGIN;
-
-update inventoryitems set creatorID = '00000000-0000-0000-0000-000000000000' where creatorID is NULL;
-update inventoryitems set creatorID = '00000000-0000-0000-0000-000000000000' where creatorID = '';
-alter table inventoryitems modify column creatorID varchar(36) not NULL default '00000000-0000-0000-0000-000000000000';
-
-COMMIT;
-
-:VERSION 5		# ------------
-
-BEGIN;
-
-alter table inventoryitems modify column creatorID varchar(128) not NULL default '00000000-0000-0000-0000-000000000000';
-
-COMMIT;
-
-:VERSION 6		# ------------
-
-BEGIN;
-
-alter table inventoryitems modify column creatorID varchar(255) not NULL default '00000000-0000-0000-0000-000000000000';
 
 COMMIT;
