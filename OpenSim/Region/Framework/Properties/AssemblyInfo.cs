@@ -31,6 +31,6 @@ using Mono.Addins;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("0.8.3.*")]
+[assembly: AssemblyVersion(OpenSim.VersionInfo.AssemblyVersionNumber)]
 [assembly: AddinRoot("OpenSim.Region.Framework", OpenSim.VersionInfo.VersionNumber)]
 

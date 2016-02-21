@@ -59,4 +59,4 @@ using System.Runtime.InteropServices;
 //      Revision
 //
 
-[assembly : AssemblyVersion("0.8.2.*")]
+[assembly : AssemblyVersion(OpenSim.VersionInfo.AssemblyVersionNumber)]
