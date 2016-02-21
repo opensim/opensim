@@ -44,11 +44,6 @@ using OpenSim.Data.SQLite;
 
 namespace OpenSim.Data.Tests
 {
-    [TestFixture(Description = "Inventory store tests (SQLite)")]
-    public class SQLiteInventoryTests : InventoryTests<SqliteConnection, SQLiteInventoryStore>
-    {
-    }
-
     [TestFixture(Description = "Inventory store tests (MySQL)")]
     public class MySqlInventoryTests : InventoryTests<MySqlConnection, MySQLInventoryData>
     { 
