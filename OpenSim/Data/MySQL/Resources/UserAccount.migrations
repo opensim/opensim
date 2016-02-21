@@ -22,3 +22,10 @@ CREATE TABLE IF NOT EXISTS `useraccounts` (
 
 COMMIT;
 
+:VERSION 6		# -------------------------
+
+BEGIN;
+
+ALTER TABLE `UserAccounts` ADD `active` INT NOT NULL DEFAULT '1';
+
+COMMIT;
