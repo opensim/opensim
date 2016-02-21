@@ -1,23 +1,27 @@
-﻿:VERSION 6
+﻿:VERSION 10
 
 BEGIN TRANSACTION;
 
-CREATE TABLE estate_groups (
+CREATE TABLE IF NOT EXISTS estate_groups (
   EstateID int(10) NOT NULL,
   uuid char(36) NOT NULL
 );
+CREATE INDEX estate_groups_estate_id on estate_groups(EstateID);
 
-CREATE TABLE estate_managers (
+CREATE TABLE IF NOT EXISTS estate_managers (
   EstateID int(10) NOT NULL,
   uuid char(36) NOT NULL
 );
+CREATE INDEX estate_managers_estate_id on estate_managers(EstateID);
 
-CREATE TABLE estate_map (
+CREATE TABLE IF NOT EXISTS estate_map (
   RegionID char(36) NOT NULL default '00000000-0000-0000-0000-000000000000',
   EstateID int(11) NOT NULL
 );
+CREATE INDEX estate_map_estate_id on estate_map(EstateID);
+CREATE UNIQUE INDEX estate_map_region_id on estate_map(RegionID);
 
-CREATE TABLE estate_settings (
+CREATE TABLE IF NOT EXISTS estate_settings (
   EstateID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   EstateName varchar(64) default NULL,
   AbuseEmailToEstateOwner tinyint(4) NOT NULL,
@@ -38,60 +42,28 @@ CREATE TABLE estate_settings (
   SunPosition double NOT NULL,
   EstateSkipScripts tinyint(4) NOT NULL,
   BillableFactor float NOT NULL,
-  PublicAccess tinyint(4) NOT NULL
-);
+  PublicAccess tinyint(4) NOT NULL, 
+  AbuseEmail varchar(255) not null default '', 
+  EstateOwner varchar(36) not null default '', 
+  DenyMinors tinyint not null default 0, 
+  AllowLandmark tinyint not null default '1', 
+  AllowParcelChanges tinyint not null default '1', 
+  AllowSetHome tinyint not null default '1');
 
-insert into estate_settings (
-	EstateID,EstateName,AbuseEmailToEstateOwner,DenyAnonymous,ResetHomeOnTeleport,FixedSun,DenyTransacted,BlockDwell,DenyIdentified,AllowVoice,UseGlobalTime,PricePerMeter,TaxFree,AllowDirectTeleport,RedirectGridX,RedirectGridY,ParentEstateID,SunPosition,PublicAccess,EstateSkipScripts,BillableFactor) 
-	values ( 99, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '');
-delete from estate_settings;
-
-CREATE TABLE estate_users (
+CREATE TABLE IF NOT EXISTS estate_users (
   EstateID int(10) NOT NULL,
   uuid char(36) NOT NULL
 );
+CREATE INDEX estate_users_estate_id on estate_users(EstateID);
 
-CREATE TABLE estateban (
+CREATE TABLE IF NOT EXISTS estateban (
   EstateID int(10) NOT NULL,
   bannedUUID varchar(36) NOT NULL,
   bannedIp varchar(16) NOT NULL,
   bannedIpHostMask varchar(16) NOT NULL,
   bannedNameMask varchar(64) default NULL
 );
-
 CREATE INDEX estate_ban_estate_id on estateban(EstateID);
-CREATE INDEX estate_groups_estate_id on estate_groups(EstateID);
-CREATE INDEX estate_managers_estate_id on estate_managers(EstateID);
-CREATE INDEX estate_map_estate_id on estate_map(EstateID);
-CREATE UNIQUE INDEX estate_map_region_id on estate_map(RegionID);
-CREATE INDEX estate_users_estate_id on estate_users(EstateID);
 
 COMMIT;
-
-
-:VERSION 7
-
-begin;
-
-alter table estate_settings add column AbuseEmail varchar(255) not null default '';
-
-alter table estate_settings add column EstateOwner varchar(36) not null default '';
-
-commit;
-
-:VERSION 8
-
-begin;
-
-alter table estate_settings add column DenyMinors tinyint not null default 0;
-
-commit;
-
-:VERSION 9
-
-begin;
-alter table estate_settings add column AllowLandmark tinyint not null default '1';
-alter table estate_settings add column AllowParcelChanges tinyint not null default '1';
-alter table estate_settings add column AllowSetHome tinyint not null default '1';
-commit;
 

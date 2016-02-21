@@ -1,66 +1,17 @@
-﻿:VERSION 1
-
-BEGIN TRANSACTION;
-CREATE TABLE assets(
-       UUID varchar(255) primary key,
-       Name varchar(255),
-       Description varchar(255),
-       Type integer,
-       InvType integer,
-       Local integer,
-       Temporary integer,
-       Data blob);
-
-COMMIT;
-
-:VERSION 2
+﻿:VERSION 6
 
 BEGIN TRANSACTION;
 
-CREATE TEMPORARY TABLE assets_backup(UUID,Name,Description,Type,Local,Temporary,Data);
-INSERT INTO assets_backup SELECT UUID,Name,Description,Type,Local,Temporary,Data FROM assets;
-DROP TABLE assets;
-CREATE TABLE assets(UUID,Name,Description,Type,Local,Temporary,Data);
-INSERT INTO assets SELECT UUID,Name,Description,Type,Local,Temporary,Data FROM assets_backup;
-DROP TABLE assets_backup;
-
-COMMIT;
-
-:VERSION 3
-
-DELETE FROM assets WHERE UUID = 'dc4b9f0bd00845c696a401dd947ac621'
-
-:VERSION 4
-
-BEGIN;
-
-update assets
-  set UUID = substr(UUID, 1, 8) || "-" || substr(UUID, 9, 4) || "-" || substr(UUID, 13, 4) || "-" || substr(UUID, 17, 4) || "-" || substr(UUID, 21, 12)
-  where UUID not like '%-%';
-
-COMMIT;
-
-:VERSION 5
-
-BEGIN TRANSACTION;
-
-CREATE TEMPORARY TABLE assets_backup(UUID,Name,Description,Type,Local,Temporary,Data);
-INSERT INTO assets_backup SELECT UUID,Name,Description,Type,Local,Temporary,Data FROM assets;
-DROP TABLE assets;
-CREATE TABLE assets(
-	UUID NOT NULL PRIMARY KEY,
-	Name,
-	Description,
-	Type,
-	Local,
-	Temporary,
-	asset_flags INTEGER NOT NULL DEFAULT 0,
-	CreatorID varchar(128) default '',
-	Data);
-	
-INSERT INTO assets(UUID,Name,Description,Type,Local,Temporary,Data) 
-SELECT UUID,Name,Description,Type,Local,Temporary,Data FROM assets_backup;
-DROP TABLE assets_backup;
+CREATE TABLE IF NOT EXISTS assets(
+        UUID NOT NULL PRIMARY KEY,
+        Name,
+        Description,
+        Type,
+        Local,
+        Temporary,
+        asset_flags INTEGER NOT NULL DEFAULT 0,
+        CreatorID varchar(128) default '',
+        Data);
 
 COMMIT;
 

@@ -1,56 +1,99 @@
-:VERSION 1
+:VERSION 31
 
 BEGIN TRANSACTION;
 
-CREATE TABLE prims(
-       UUID varchar(255) primary key,
-       RegionUUID varchar(255),
-       ParentID integer,
-       CreationDate integer,
-       Name varchar(255),
-       SceneGroupID varchar(255),
-       Text varchar(255),
-       Description varchar(255),
-       SitName varchar(255),
-       TouchName varchar(255),
-       CreatorID varchar(255),
-       OwnerID varchar(255),
-       GroupID varchar(255),
-       LastOwnerID varchar(255),
-       OwnerMask integer,
-       NextOwnerMask integer,
-       GroupMask integer,
-       EveryoneMask integer,
-       BaseMask integer,
-       PositionX float,
-       PositionY float,
-       PositionZ float,
-       GroupPositionX float,
-       GroupPositionY float,
-       GroupPositionZ float,
-       VelocityX float,
-       VelocityY float,
-       VelocityZ float,
-       AngularVelocityX float,
-       AngularVelocityY float,
-       AngularVelocityZ float,
-       AccelerationX float,
-       AccelerationY float,
-       AccelerationZ float,
-       RotationX float,
-       RotationY float,
-       RotationZ float,
-       RotationW float, 
-       ObjectFlags integer, 
-       SitTargetOffsetX float NOT NULL default 0, 
-       SitTargetOffsetY float NOT NULL default 0, 
-       SitTargetOffsetZ float NOT NULL default 0, 
-       SitTargetOrientW float NOT NULL default 0, 
-       SitTargetOrientX float NOT NULL default 0, 
-       SitTargetOrientY float NOT NULL default 0, 
-       SitTargetOrientZ float NOT NULL default 0);
+CREATE TABLE IF NOT EXISTS prims(
+    UUID varchar(255) primary key,
+    RegionUUID varchar(255),
+	CreationDate integer,
+	Name varchar(255),
+	SceneGroupID varchar(255),
+	Text varchar(255),
+	Description varchar(255),
+	SitName varchar(255),
+	TouchName varchar(255),
+	CreatorID varchar(255),
+	OwnerID varchar(255),
+	GroupID varchar(255),
+	LastOwnerID varchar(255),
+	OwnerMask integer,
+	NextOwnerMask integer,
+	GroupMask integer,
+	EveryoneMask integer,
+	BaseMask integer,
+	PositionX float,
+	PositionY float,
+	PositionZ float,
+	GroupPositionX float,
+	GroupPositionY float,
+	GroupPositionZ float,
+	VelocityX float,
+	VelocityY float,
+	VelocityZ float,
+	AngularVelocityX float,
+	AngularVelocityY float,
+	AngularVelocityZ float,
+	AccelerationX float,
+	AccelerationY float,
+	AccelerationZ float,
+	RotationX float,
+	RotationY float,
+	RotationZ float,
+	RotationW float,
+	ObjectFlags integer,
+	SitTargetOffsetX float NOT NULL default 0,
+	SitTargetOffsetY float NOT NULL default 0,
+	SitTargetOffsetZ float NOT NULL default 0,
+	SitTargetOrientW float NOT NULL default 0,
+	SitTargetOrientX float NOT NULL default 0,
+	SitTargetOrientY float NOT NULL default 0,
+	SitTargetOrientZ float NOT NULL default 0,
+	ColorR integer not null default 0,
+	ColorG integer not null default 0,
+	ColorB integer not null default 0,
+	ColorA integer not null default 0,
+	ClickAction integer not null default 0,
+	PayPrice integer not null default 0,
+	PayButton1 integer not null default 0,
+	PayButton2 integer not null default 0,
+	PayButton3 integer not null default 0,
+	PayButton4 integer not null default 0,
+	LoopedSound varchar(36) NOT NULL default '00000000-0000-0000-0000-000000000000',
+	LoopedSoundGain float NOT NULL default 0,
+	TextureAnimation string,
+	ParticleSystem string,
+	OmegaX float NOT NULL default 0,
+	OmegaY float NOT NULL default 0,
+	OmegaZ float NOT NULL default 0,
+	CameraEyeOffsetX float NOT NULL default 0,
+	CameraEyeOffsetY float NOT NULL default 0,
+	CameraEyeOffsetZ float NOT NULL default 0,
+	CameraAtOffsetX float NOT NULL default 0,
+	CameraAtOffsetY float NOT NULL default 0,
+	CameraAtOffsetZ float NOT NULL default 0,
+	ForceMouselook string NOT NULL default 0,
+	ScriptAccessPin INTEGER NOT NULL default 0,
+	AllowedDrop INTEGER NOT NULL default 0,
+	DieAtEdge string NOT NULL default 0,
+	SalePrice INTEGER NOT NULL default 0,
+	SaleType string NOT NULL default 0,
+	Material INTEGER NOT NULL default 3,
+	CollisionSound varchar(36) NOT NULL default '00000000-0000-0000-0000-000000000000',
+	CollisionSoundVolume float NOT NULL default 0,
+	VolumeDetect INTEGER NOT NULL DEFAULT 0, 
+	MediaURL varchar(255), 
+	DynAttrs TEXT, 
+	`PhysicsShapeType` tinyint(4) NOT NULL default '0', 
+	`Density` double NOT NULL default '1000', 
+	`GravityModifier` double NOT NULL default '1', 
+	`Friction` double NOT NULL default '0.6', 
+	`Restitution` double NOT NULL default '0.5', 
+	`KeyframeMotion` blob, 
+	AttachedPosX double default '0', 
+	AttachedPosY double default '0', 
+	AttachedPosZ double default '0');
 
-CREATE TABLE primshapes(
+CREATE TABLE IF NOT EXISTS primshapes(
        UUID varchar(255) primary key,
        Shape integer,
        ScaleX float,
@@ -76,10 +119,12 @@ CREATE TABLE primshapes(
        ProfileCurve integer,
        ProfileHollow integer,
        Texture blob,
-       ExtraParams blob, 
-       State Integer NOT NULL default 0);
+       ExtraParams blob,
+       State Integer NOT NULL default 0, 
+	   Media TEXT, 
+	   LastAttachPoint int not null default '0');
 
-CREATE TABLE primitems(
+CREATE TABLE IF NOT EXISTS primitems(
        itemID varchar(255) primary key,
        primID varchar(255),
        assetID varchar(255),
@@ -97,14 +142,15 @@ CREATE TABLE primitems(
        currentPermissions string,
        basePermissions string,
        everyonePermissions string,
-       groupPermissions string);
+       groupPermissions string, 
+	   flags integer not null default 0);
 
-CREATE TABLE terrain(
+CREATE TABLE IF NOT EXISTS terrain(
        RegionUUID varchar(255),
        Revision integer,
        Heightfield blob);
 
-CREATE TABLE land(
+CREATE TABLE IF NOT EXISTS land(
        UUID varchar(255) primary key,
        RegionUUID varchar(255),
        LocalLandID string,
@@ -135,92 +181,30 @@ CREATE TABLE land(
        UserLocationZ float,
        UserLookAtX float,
        UserLookAtY float,
-       UserLookAtZ float, 
-       AuthbuyerID varchar(36) NOT NULL default  '00000000-0000-0000-0000-000000000000');
+       UserLookAtZ float,
+       AuthbuyerID varchar(36) NOT NULL default  '00000000-0000-0000-0000-000000000000', 
+	   OtherCleanTime INTEGER NOT NULL default 0, 
+	   Dwell INTEGER NOT NULL default 0, 
+	   `MediaType` VARCHAR(32) NOT NULL DEFAULT 'none/none', 
+	   `MediaDescription` VARCHAR(255) NOT NULL DEFAULT '', 
+	   `MediaSize` VARCHAR(16) NOT NULL DEFAULT '0,0', 
+	   `MediaLoop` BOOLEAN NOT NULL DEFAULT FALSE, 
+	   `ObscureMusic` BOOLEAN NOT NULL DEFAULT FALSE, 
+	   `ObscureMedia` BOOLEAN NOT NULL DEFAULT FALSE);
 
-CREATE TABLE landaccesslist(
+CREATE TABLE IF NOT EXISTS landaccesslist(
        LandUUID varchar(255),
        AccessUUID varchar(255),
        Flags string);
 
-COMMIT;
+CREATE TABLE IF NOT EXISTS regionban(
+                regionUUID varchar (255),
+                bannedUUID varchar (255),
+                bannedIp varchar (255),
+                bannedIpHostMask varchar (255)
+                );
 
-:VERSION 2
-
-BEGIN TRANSACTION;
-
-CREATE TABLE regionban(
-		regionUUID varchar (255),
-		bannedUUID varchar (255),
-		bannedIp varchar (255),
-		bannedIpHostMask varchar (255)
-		);
-       
-COMMIT;
-
-:VERSION 3
-
-BEGIN;
-
-ALTER TABLE primitems add flags integer not null default 0;
-
-COMMIT;
-
-:VERSION 4
-
-BEGIN;
-
-create table regionsettings (
-	regionUUID char(36) not null,
-	block_terraform integer not null,
-	block_fly integer not null,
-	allow_damage integer not null,
-	restrict_pushing integer not null,
-	allow_land_resell integer not null,
-	allow_land_join_divide integer not null,
-	block_show_in_search integer not null,
-	agent_limit integer not null,
-	object_bonus float not null,
-	maturity integer not null,
-	disable_scripts integer not null,
-	disable_collisions integer not null,
-	disable_physics integer not null,
-	terrain_texture_1 char(36) not null,
-	terrain_texture_2 char(36) not null,
-	terrain_texture_3 char(36) not null,
-	terrain_texture_4 char(36) not null,
-	elevation_1_nw float not null,
-	elevation_2_nw float not null,
-	elevation_1_ne float not null,
-	elevation_2_ne float not null,
-	elevation_1_se float not null,
-	elevation_2_se float not null,
-	elevation_1_sw float not null,
-	elevation_2_sw float not null,
-	water_height float not null,
-	terrain_raise_limit float not null,
-	terrain_lower_limit float not null,
-	use_estate_sun integer not null,
-	fixed_sun integer not null,
-	sun_position float not null,
-	covenant char(36));
-
-COMMIT;
-
-:VERSION 5
-
-BEGIN;
-
-delete from regionsettings;
-
-COMMIT;
-
-:VERSION 6
-
-BEGIN TRANSACTION;
-
-drop table regionsettings;
-CREATE TABLE regionsettings (
+CREATE TABLE IF NOT EXISTS regionsettings (
   regionUUID char(36) NOT NULL,
   block_terraform int(11) NOT NULL,
   block_fly int(11) NOT NULL,
@@ -254,228 +238,18 @@ CREATE TABLE regionsettings (
   fixed_sun int(11) NOT NULL,
   sun_position float NOT NULL,
   covenant char(36) default NULL,
-  sandbox tinyint(4) NOT NULL,
+  sandbox tinyint(4) NOT NULL, 
+  sunvectorx double NOT NULL default 0, 
+  sunvectory double NOT NULL default 0, 
+  sunvectorz double NOT NULL default 0, 
+  map_tile_ID varchar(36) NOT NULL default '00000000-0000-0000-0000-000000000000', 
+  covenant_datetime INTEGER NOT NULL default 0, 
+  `TelehubObject` varchar(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000', 
+  `parcel_tile_ID` char(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000',
   PRIMARY KEY  (regionUUID)
 );
 
-COMMIT;
-
-:VERSION 9
-
-BEGIN;
-
-ALTER TABLE prims ADD COLUMN ColorR integer not null default 0;
-ALTER TABLE prims ADD COLUMN ColorG integer not null default 0;
-ALTER TABLE prims ADD COLUMN ColorB integer not null default 0;
-ALTER TABLE prims ADD COLUMN ColorA integer not null default 0;
-
-COMMIT;
-
-:VERSION 10
-
-BEGIN;
-
-ALTER TABLE prims ADD COLUMN ClickAction INTEGER NOT NULL default 0;
-
-COMMIT;
-
-:VERSION 11
-
-BEGIN;
-
-ALTER TABLE prims ADD COLUMN PayPrice INTEGER NOT NULL default 0;
-ALTER TABLE prims ADD COLUMN PayButton1 INTEGER NOT NULL default 0;
-ALTER TABLE prims ADD COLUMN PayButton2 INTEGER NOT NULL default 0;
-ALTER TABLE prims ADD COLUMN PayButton3 INTEGER NOT NULL default 0;
-ALTER TABLE prims ADD COLUMN PayButton4 INTEGER NOT NULL default 0;
-ALTER TABLE prims ADD COLUMN LoopedSound varchar(36) NOT NULL default '00000000-0000-0000-0000-000000000000';
-ALTER TABLE prims ADD COLUMN LoopedSoundGain float NOT NULL default 0;
-ALTER TABLE prims ADD COLUMN TextureAnimation string;
-ALTER TABLE prims ADD COLUMN ParticleSystem string;
-ALTER TABLE prims ADD COLUMN OmegaX float NOT NULL default 0;
-ALTER TABLE prims ADD COLUMN OmegaY float NOT NULL default 0;
-ALTER TABLE prims ADD COLUMN OmegaZ float NOT NULL default 0;
-ALTER TABLE prims ADD COLUMN CameraEyeOffsetX float NOT NULL default 0;
-ALTER TABLE prims ADD COLUMN CameraEyeOffsetY float NOT NULL default 0;
-ALTER TABLE prims ADD COLUMN CameraEyeOffsetZ float NOT NULL default 0;
-ALTER TABLE prims ADD COLUMN CameraAtOffsetX float NOT NULL default 0;
-ALTER TABLE prims ADD COLUMN CameraAtOffsetY float NOT NULL default 0;
-ALTER TABLE prims ADD COLUMN CameraAtOffsetZ float NOT NULL default 0;
-ALTER TABLE prims ADD COLUMN ForceMouselook string NOT NULL default 0;
-ALTER TABLE prims ADD COLUMN ScriptAccessPin INTEGER NOT NULL default 0;
-ALTER TABLE prims ADD COLUMN AllowedDrop INTEGER NOT NULL default 0;
-ALTER TABLE prims ADD COLUMN DieAtEdge string NOT NULL default 0;
-ALTER TABLE prims ADD COLUMN SalePrice INTEGER NOT NULL default 0;
-ALTER TABLE prims ADD COLUMN SaleType string NOT NULL default 0;
-
-COMMIT;
-
-:VERSION 12
-
-BEGIN;
-
-ALTER TABLE prims ADD COLUMN Material INTEGER NOT NULL default 3;
-
-COMMIT;
-
-:VERSION 13
-
-BEGIN;
-
-ALTER TABLE land ADD COLUMN OtherCleanTime INTEGER NOT NULL default 0;
-ALTER TABLE land ADD COLUMN Dwell INTEGER NOT NULL default 0;
-
-COMMIT;
-
-:VERSION 14
-
-begin;
-
-ALTER TABLE regionsettings ADD COLUMN sunvectorx double NOT NULL default 0;
-ALTER TABLE regionsettings ADD COLUMN sunvectory double NOT NULL default 0;
-ALTER TABLE regionsettings ADD COLUMN sunvectorz double NOT NULL default 0;
-
-commit;
-
-:VERSION 15
-
-BEGIN;
-
-ALTER TABLE prims ADD COLUMN CollisionSound varchar(36) NOT NULL default '00000000-0000-0000-0000-000000000000';
-ALTER TABLE prims ADD COLUMN CollisionSoundVolume float NOT NULL default 0;
-
-COMMIT;
-
-:VERSION 16
-
-BEGIN;
-
-ALTER TABLE prims ADD COLUMN VolumeDetect INTEGER NOT NULL DEFAULT 0;
-
-COMMIT;
-
-:VERSION 17
-
-BEGIN;
-CREATE TEMPORARY TABLE prims_backup(UUID,RegionUUID,CreationDate,Name,SceneGroupID,Text,Description,SitName,TouchName,CreatorID,OwnerID,GroupID,LastOwnerID,OwnerMask,NextOwnerMask,GroupMask,EveryoneMask,BaseMask,PositionX,PositionY,PositionZ,GroupPositionX,GroupPositionY,GroupPositionZ,VelocityX,VelocityY,VelocityZ,AngularVelocityX,AngularVelocityY,AngularVelocityZ,AccelerationX,AccelerationY,AccelerationZ,RotationX,RotationY,RotationZ,RotationW,ObjectFlags,SitTargetOffsetX,SitTargetOffsetY,SitTargetOffsetZ,SitTargetOrientW,SitTargetOrientX,SitTargetOrientY,SitTargetOrientZ,ColorR,ColorG,ColorB,ColorA,ClickAction,PayPrice,PayButton1,PayButton2,PayButton3,PayButton4,LoopedSound,LoopedSoundGain,TextureAnimation,ParticleSystem,OmegaX,OmegaY,OmegaZ,CameraEyeOffsetX,CameraEyeOffsetY,CameraEyeOffsetZ,CameraAtOffsetX,CameraAtOffsetY,CameraAtOffsetZ,ForceMouselook,ScriptAccessPin,AllowedDrop,DieAtEdge,SalePrice,SaleType,Material,CollisionSound,CollisionSoundVolume,VolumeDetect);
-INSERT INTO prims_backup SELECT UUID,RegionUUID,CreationDate,Name,SceneGroupID,Text,Description,SitName,TouchName,CreatorID,OwnerID,GroupID,LastOwnerID,OwnerMask,NextOwnerMask,GroupMask,EveryoneMask,BaseMask,PositionX,PositionY,PositionZ,GroupPositionX,GroupPositionY,GroupPositionZ,VelocityX,VelocityY,VelocityZ,AngularVelocityX,AngularVelocityY,AngularVelocityZ,AccelerationX,AccelerationY,AccelerationZ,RotationX,RotationY,RotationZ,RotationW,ObjectFlags,SitTargetOffsetX,SitTargetOffsetY,SitTargetOffsetZ,SitTargetOrientW,SitTargetOrientX,SitTargetOrientY,SitTargetOrientZ,ColorR,ColorG,ColorB,ColorA,ClickAction,PayPrice,PayButton1,PayButton2,PayButton3,PayButton4,LoopedSound,LoopedSoundGain,TextureAnimation,ParticleSystem,OmegaX,OmegaY,OmegaZ,CameraEyeOffsetX,CameraEyeOffsetY,CameraEyeOffsetZ,CameraAtOffsetX,CameraAtOffsetY,CameraAtOffsetZ,ForceMouselook,ScriptAccessPin,AllowedDrop,DieAtEdge,SalePrice,SaleType,Material,CollisionSound,CollisionSoundVolume,VolumeDetect FROM prims;
-DROP TABLE prims;
-CREATE TABLE prims(UUID,RegionUUID,CreationDate,Name,SceneGroupID,Text,Description,SitName,TouchName,CreatorID,OwnerID,GroupID,LastOwnerID,OwnerMask,NextOwnerMask,GroupMask,EveryoneMask,BaseMask,PositionX,PositionY,PositionZ,GroupPositionX,GroupPositionY,GroupPositionZ,VelocityX,VelocityY,VelocityZ,AngularVelocityX,AngularVelocityY,AngularVelocityZ,AccelerationX,AccelerationY,AccelerationZ,RotationX,RotationY,RotationZ,RotationW,ObjectFlags,SitTargetOffsetX,SitTargetOffsetY,SitTargetOffsetZ,SitTargetOrientW,SitTargetOrientX,SitTargetOrientY,SitTargetOrientZ,ColorR,ColorG,ColorB,ColorA,ClickAction,PayPrice,PayButton1,PayButton2,PayButton3,PayButton4,LoopedSound,LoopedSoundGain,TextureAnimation,ParticleSystem,OmegaX,OmegaY,OmegaZ,CameraEyeOffsetX,CameraEyeOffsetY,CameraEyeOffsetZ,CameraAtOffsetX,CameraAtOffsetY,CameraAtOffsetZ,ForceMouselook,ScriptAccessPin,AllowedDrop,DieAtEdge,SalePrice,SaleType,Material,CollisionSound,CollisionSoundVolume,VolumeDetect);
-INSERT INTO prims SELECT UUID,RegionUUID,CreationDate,Name,SceneGroupID,Text,Description,SitName,TouchName,CreatorID,OwnerID,GroupID,LastOwnerID,OwnerMask,NextOwnerMask,GroupMask,EveryoneMask,BaseMask,PositionX,PositionY,PositionZ,GroupPositionX,GroupPositionY,GroupPositionZ,VelocityX,VelocityY,VelocityZ,AngularVelocityX,AngularVelocityY,AngularVelocityZ,AccelerationX,AccelerationY,AccelerationZ,RotationX,RotationY,RotationZ,RotationW,ObjectFlags,SitTargetOffsetX,SitTargetOffsetY,SitTargetOffsetZ,SitTargetOrientW,SitTargetOrientX,SitTargetOrientY,SitTargetOrientZ,ColorR,ColorG,ColorB,ColorA,ClickAction,PayPrice,PayButton1,PayButton2,PayButton3,PayButton4,LoopedSound,LoopedSoundGain,TextureAnimation,ParticleSystem,OmegaX,OmegaY,OmegaZ,CameraEyeOffsetX,CameraEyeOffsetY,CameraEyeOffsetZ,CameraAtOffsetX,CameraAtOffsetY,CameraAtOffsetZ,ForceMouselook,ScriptAccessPin,AllowedDrop,DieAtEdge,SalePrice,SaleType,Material,CollisionSound,CollisionSoundVolume,VolumeDetect FROM prims_backup;
-DROP TABLE prims_backup;
-COMMIT;
-
-:VERSION 18
-
-BEGIN;
-
-update terrain 
-  set RegionUUID = substr(RegionUUID, 1, 8) || "-" || substr(RegionUUID, 9, 4) || "-" || substr(RegionUUID, 13, 4) || "-" || substr(RegionUUID, 17, 4) || "-" || substr(RegionUUID, 21, 12)
-  where RegionUUID not like '%-%';
-  
-
-update landaccesslist
-  set LandUUID = substr(LandUUID, 1, 8) || "-" || substr(LandUUID, 9, 4) || "-" || substr(LandUUID, 13, 4) || "-" || substr(LandUUID, 17, 4) || "-" || substr(LandUUID, 21, 12) 
-  where LandUUID not like '%-%';
-
-update landaccesslist
-  set AccessUUID = substr(AccessUUID, 1, 8) || "-" || substr(AccessUUID, 9, 4) || "-" || substr(AccessUUID, 13, 4) || "-" || substr(AccessUUID, 17, 4) || "-" || substr(AccessUUID, 21, 12) 
-  where AccessUUID not like '%-%';
-  
-
-update prims
-  set UUID = substr(UUID, 1, 8) || "-" || substr(UUID, 9, 4) || "-" || substr(UUID, 13, 4) || "-" || substr(UUID, 17, 4) || "-" || substr(UUID, 21, 12) 
-  where UUID not like '%-%';
-
-update prims
-  set RegionUUID = substr(RegionUUID, 1, 8) || "-" || substr(RegionUUID, 9, 4) || "-" || substr(RegionUUID, 13, 4) || "-" || substr(RegionUUID, 17, 4) || "-" || substr(RegionUUID, 21, 12) 
-  where RegionUUID not like '%-%';
-
-update prims
-  set SceneGroupID = substr(SceneGroupID, 1, 8) || "-" || substr(SceneGroupID, 9, 4) || "-" || substr(SceneGroupID, 13, 4) || "-" || substr(SceneGroupID, 17, 4) || "-" || substr(SceneGroupID, 21, 12) 
-  where SceneGroupID not like '%-%';
-
-update prims
-  set CreatorID = substr(CreatorID, 1, 8) || "-" || substr(CreatorID, 9, 4) || "-" || substr(CreatorID, 13, 4) || "-" || substr(CreatorID, 17, 4) || "-" || substr(CreatorID, 21, 12) 
-  where CreatorID not like '%-%';
-
-update prims
-  set OwnerID = substr(OwnerID, 1, 8) || "-" || substr(OwnerID, 9, 4) || "-" || substr(OwnerID, 13, 4) || "-" || substr(OwnerID, 17, 4) || "-" || substr(OwnerID, 21, 12) 
-  where OwnerID not like '%-%';
-
-update prims
-  set GroupID = substr(GroupID, 1, 8) || "-" || substr(GroupID, 9, 4) || "-" || substr(GroupID, 13, 4) || "-" || substr(GroupID, 17, 4) || "-" || substr(GroupID, 21, 12) 
-  where GroupID not like '%-%';
-
-update prims
-  set LastOwnerID = substr(LastOwnerID, 1, 8) || "-" || substr(LastOwnerID, 9, 4) || "-" || substr(LastOwnerID, 13, 4) || "-" || substr(LastOwnerID, 17, 4) || "-" || substr(LastOwnerID, 21, 12) 
-  where LastOwnerID not like '%-%';
-
-
-update primshapes
-  set UUID = substr(UUID, 1, 8) || "-" || substr(UUID, 9, 4) || "-" || substr(UUID, 13, 4) || "-" || substr(UUID, 17, 4) || "-" || substr(UUID, 21, 12) 
-  where UUID not like '%-%';
-
-
-update land
-  set UUID = substr(UUID, 1, 8) || "-" || substr(UUID, 9, 4) || "-" || substr(UUID, 13, 4) || "-" || substr(UUID, 17, 4) || "-" || substr(UUID, 21, 12) 
-  where UUID not like '%-%';
-  
-update land
-  set RegionUUID = substr(RegionUUID, 1, 8) || "-" || substr(RegionUUID, 9, 4) || "-" || substr(RegionUUID, 13, 4) || "-" || substr(RegionUUID, 17, 4) || "-" || substr(RegionUUID, 21, 12)
-  where RegionUUID not like '%-%';
-
-update land
-  set OwnerUUID = substr(OwnerUUID, 1, 8) || "-" || substr(OwnerUUID, 9, 4) || "-" || substr(OwnerUUID, 13, 4) || "-" || substr(OwnerUUID, 17, 4) || "-" || substr(OwnerUUID, 21, 12)
-  where OwnerUUID not like '%-%';
-
-update land
-  set GroupUUID = substr(GroupUUID, 1, 8) || "-" || substr(GroupUUID, 9, 4) || "-" || substr(GroupUUID, 13, 4) || "-" || substr(GroupUUID, 17, 4) || "-" || substr(GroupUUID, 21, 12)
-  where GroupUUID not like '%-%';
-
-update land
-  set MediaTextureUUID = substr(MediaTextureUUID, 1, 8) || "-" || substr(MediaTextureUUID, 9, 4) || "-" || substr(MediaTextureUUID, 13, 4) || "-" || substr(MediaTextureUUID, 17, 4) || "-" || substr(MediaTextureUUID, 21, 12)
-  where MediaTextureUUID not like '%-%';
-
-update land
-  set SnapshotUUID = substr(SnapshotUUID, 1, 8) || "-" || substr(SnapshotUUID, 9, 4) || "-" || substr(SnapshotUUID, 13, 4) || "-" || substr(SnapshotUUID, 17, 4) || "-" || substr(SnapshotUUID, 21, 12)
-  where SnapshotUUID not like '%-%';
-
-update land
-  set AuthbuyerID = substr(AuthbuyerID, 1, 8) || "-" || substr(AuthbuyerID, 9, 4) || "-" || substr(AuthbuyerID, 13, 4) || "-" || substr(AuthbuyerID, 17, 4) || "-" || substr(AuthbuyerID, 21, 12)
-  where AuthbuyerID not like '%-%';
-  
-COMMIT;
-
-:VERSION 19
-BEGIN;
-ALTER TABLE regionsettings ADD COLUMN map_tile_ID varchar(36) NOT NULL default '00000000-0000-0000-0000-000000000000';
-COMMIT;
-
-:VERSION 20
-BEGIN;
-ALTER TABLE prims ADD COLUMN MediaURL varchar(255);
-ALTER TABLE primshapes ADD COLUMN Media TEXT;
-COMMIT;
-
-:VERSION 21
-BEGIN;
-ALTER TABLE `land` ADD COLUMN `MediaType` VARCHAR(32) NOT NULL DEFAULT 'none/none';
-ALTER TABLE `land` ADD COLUMN `MediaDescription` VARCHAR(255) NOT NULL DEFAULT '';
-ALTER TABLE `land` ADD COLUMN `MediaSize` VARCHAR(16) NOT NULL DEFAULT '0,0';
-ALTER TABLE `land` ADD COLUMN `MediaLoop` BOOLEAN NOT NULL DEFAULT FALSE;
-ALTER TABLE `land` ADD COLUMN `ObscureMusic` BOOLEAN NOT NULL DEFAULT FALSE;
-ALTER TABLE `land` ADD COLUMN `ObscureMedia` BOOLEAN NOT NULL DEFAULT FALSE;
-COMMIT;
-
-:VERSION 22
-BEGIN;
-ALTER TABLE regionsettings ADD COLUMN covenant_datetime INTEGER NOT NULL default 0;
-COMMIT;
-
-:VERSION 23
-BEGIN;
-CREATE TABLE regionwindlight (
+CREATE TABLE IF NOT EXISTS regionwindlight (
   region_id VARCHAR(36) NOT NULL DEFAULT '000000-0000-0000-0000-000000000000' PRIMARY KEY,
   water_color_r FLOAT NOT NULL DEFAULT '4.000000',
   water_color_g FLOAT NOT NULL DEFAULT '38.000000',
@@ -541,13 +315,6 @@ CREATE TABLE regionwindlight (
   cloud_scroll_y_lock INTEGER NOT NULL DEFAULT '0',
   draw_classic_clouds INTEGER NOT NULL DEFAULT '1');
 
-COMMIT;
-
-
-:VERSION 24
-
-BEGIN;
-
 CREATE TABLE IF NOT EXISTS `spawn_points` (
   `RegionID` varchar(36) NOT NULL DEFAULT '000000-0000-0000-0000-000000000000',
   `Yaw` float NOT NULL,
@@ -555,64 +322,15 @@ CREATE TABLE IF NOT EXISTS `spawn_points` (
   `Distance` float NOT NULL
 );
 
-ALTER TABLE `regionsettings` ADD COLUMN `TelehubObject` varchar(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
-
-COMMIT;
-
-:VERSION 25
-
-BEGIN;
-ALTER TABLE `regionsettings` ADD COLUMN `parcel_tile_ID` char(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
-COMMIT;
-
-:VERSION 26
-
-BEGIN;
-
-CREATE TABLE `regionenvironment` (
+CREATE TABLE IF NOT EXISTS `regionenvironment` (
   `region_id` varchar(36) NOT NULL DEFAULT '000000-0000-0000-0000-000000000000' PRIMARY KEY,
   `llsd_settings` TEXT NOT NULL
 );
 
 COMMIT;
 
-:VERSION 27
-BEGIN;
-ALTER TABLE prims ADD COLUMN DynAttrs TEXT;
-COMMIT;
 
-:VERSION 28
-
-BEGIN;
-
-ALTER TABLE prims ADD COLUMN `PhysicsShapeType` tinyint(4) NOT NULL default '0';
-ALTER TABLE prims ADD COLUMN `Density` double NOT NULL default '1000';
-ALTER TABLE prims ADD COLUMN `GravityModifier` double NOT NULL default '1';
-ALTER TABLE prims ADD COLUMN `Friction` double NOT NULL default '0.6';
-ALTER TABLE prims ADD COLUMN `Restitution` double NOT NULL default '0.5';
-
-COMMIT;
-
-:VERSION 29       #---------------- Keyframes
-
-BEGIN;
-
-ALTER TABLE prims ADD COLUMN `KeyframeMotion` blob;
-
-COMMIT;
-
-:VERSION 30       #---------------- Save Attachment info
-
-BEGIN;
-
-ALTER TABLE prims ADD COLUMN AttachedPosX double default '0';
-ALTER TABLE prims ADD COLUMN AttachedPosY double default '0';
-ALTER TABLE prims ADD COLUMN AttachedPosZ double default '0';
-ALTER TABLE primshapes ADD COLUMN LastAttachPoint int not null default '0';
-
-COMMIT;
-
-:VERSION 31         #---- avination fields plus a few others
+:VERSION 32         #---- avination fields plus a few others
 
 BEGIN;
 
@@ -627,7 +345,7 @@ ALTER TABLE `land` ADD COLUMN `GroupAVSounds` BOOLEAN NOT NULL DEFAULT TRUE;
 
 COMMIT;
 
-:VERSION 32         #---- Rotation axis locks
+:VERSION 33         #---- Rotation axis locks
 
 BEGIN;
 
