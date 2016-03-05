@@ -119,8 +119,8 @@ namespace OpenSim.Services.FSAssetService
 
             // Get Database Connector from Asset Config (If present)
             string dllName = assetConfig.GetString("StorageProvider", string.Empty);
-            string m_ConnectionString = assetConfig.GetString("ConnectionString", string.Empty);
-            string m_Realm = assetConfig.GetString("Realm", "fsassets");
+            string connectionString = assetConfig.GetString("ConnectionString", string.Empty);
+            string realm = assetConfig.GetString("Realm", "fsassets");
 
             int SkipAccessTimeDays = assetConfig.GetInt("DaysBetweenAccessTimeUpdates", 0);
 
@@ -132,15 +132,15 @@ namespace OpenSim.Services.FSAssetService
                 if (dllName == String.Empty)
                     dllName = dbConfig.GetString("StorageProvider", String.Empty);
                 
-                if (m_ConnectionString == String.Empty)
-                    m_ConnectionString = dbConfig.GetString("ConnectionString", String.Empty);
+                if (connectionString == String.Empty)
+                    connectionString = dbConfig.GetString("ConnectionString", String.Empty);
             }
 
             // No databse connection found in either config
             if (dllName.Equals(String.Empty))
                 throw new Exception("No StorageProvider configured");
 
-            if (m_ConnectionString.Equals(String.Empty))
+            if (connectionString.Equals(String.Empty))
                 throw new Exception("Missing database connection string");
 
             // Create Storage Provider
@@ -150,7 +150,7 @@ namespace OpenSim.Services.FSAssetService
                 throw new Exception(string.Format("Could not find a storage interface in the module {0}", dllName));
 
             // Initialize DB And perform any migrations required
-            m_DataConnector.Initialise(m_ConnectionString, m_Realm, SkipAccessTimeDays);
+            m_DataConnector.Initialise(connectionString, realm, SkipAccessTimeDays);
 
             // Setup Fallback Service
             string str = assetConfig.GetString("FallbackService", string.Empty);
@@ -232,7 +232,7 @@ namespace OpenSim.Services.FSAssetService
 
         private void Writer()
         {
-            m_log.Info("[FSASSETS]: Writer started");
+            m_log.Info("[ASSET]: Writer started");
 
             while (true)
             {
@@ -246,33 +246,98 @@ namespace OpenSim.Services.FSAssetService
                         string hash = Path.GetFileNameWithoutExtension(files[i]);
                         string s = HashToFile(hash);
                         string diskFile = Path.Combine(m_FSBase, s);
+                        bool pathOk = false;
 
-                        Directory.CreateDirectory(Path.GetDirectoryName(diskFile));
-                        try
+                        // The cure for chicken bones!
+                        while(true)
                         {
-                            byte[] data = File.ReadAllBytes(files[i]);
-
-                            using (GZipStream gz = new GZipStream(new FileStream(diskFile + ".gz", FileMode.Create), CompressionMode.Compress))
+                            try
                             {
-                                gz.Write(data, 0, data.Length);
-                                gz.Close();
+                                // Try to make the directory we need for this file
+                                Directory.CreateDirectory(Path.GetDirectoryName(diskFile));
+                                pathOk = true;
+                                break;
                             }
-                            File.Delete(files[i]);
+                            catch (System.IO.IOException)
+                            {
+                                // Creating the directory failed. This can't happen unless
+                                // a part of the path already exists as a file. Sadly the
+                                // SRAS data contains such files.
+                                string d = Path.GetDirectoryName(diskFile);
 
-                            //File.Move(files[i], diskFile);
+                                // Test each path component in turn. If we can successfully
+                                // make a directory, the level below must be the chicken bone.
+                                while (d.Length > 0)
+                                {
+                                    Console.WriteLine(d);
+                                    try
+                                    {
+                                        Directory.CreateDirectory(Path.GetDirectoryName(d));
+                                    }
+                                    catch (System.IO.IOException)
+                                    {
+                                        d = Path.GetDirectoryName(d);
+
+                                        // We failed making the directory and need to
+                                        // go up a bit more
+                                        continue;
+                                    }
+
+                                    // We succeeded in making the directory and (d) is
+                                    // the chicken bone
+                                    break;
+                                }
+
+                                // Is the chicken alive?
+                                if (d.Length > 0)
+                                {
+                                    Console.WriteLine(d);
+
+                                    FileAttributes attr = File.GetAttributes(d);
+
+                                    if ((attr & FileAttributes.Directory) == 0)
+                                    {
+                                        // The chicken bone should be resolved.
+                                        // Return to writing the file.
+                                        File.Delete(d);
+                                        continue;
+                                    }
+                                }
+                            }
+                            // Could not resolve, skipping
+                            m_log.ErrorFormat("[ASSET]: Could not resolve path creation error for {0}", diskFile);
+                            break;
                         }
-                        catch(System.IO.IOException e)
+
+                        if (pathOk)
                         {
-                            if (e.Message.StartsWith("Win32 IO returned ERROR_ALREADY_EXISTS"))
+                            try
+                            {
+                                byte[] data = File.ReadAllBytes(files[i]);
+
+                                using (GZipStream gz = new GZipStream(new FileStream(diskFile + ".gz", FileMode.Create), CompressionMode.Compress))
+                                {
+                                    gz.Write(data, 0, data.Length);
+                                    gz.Close();
+                                }
                                 File.Delete(files[i]);
-                            else
-                                throw;
+
+                                //File.Move(files[i], diskFile);
+                            }
+                            catch(System.IO.IOException e)
+                            {
+                                if (e.Message.StartsWith("Win32 IO returned ERROR_ALREADY_EXISTS"))
+                                    File.Delete(files[i]);
+                                else
+                                    throw;
+                            }
                         }
                     }
+
                     int totalTicks = System.Environment.TickCount - tickCount;
                     if (totalTicks > 0) // Wrap?
                     {
-                        m_log.InfoFormat("[FSASSETS]: Write cycle complete, {0} files, {1} ticks, avg {2:F2}", files.Length, totalTicks, (double)totalTicks / (double)files.Length);
+                        m_log.InfoFormat("[ASSET]: Write cycle complete, {0} files, {1} ticks, avg {2:F2}", files.Length, totalTicks, (double)totalTicks / (double)files.Length);
                     }
                 }
 
@@ -292,20 +357,25 @@ namespace OpenSim.Services.FSAssetService
             if (hash == null || hash.Length < 10)
                 return "junkyard";
 
+            /*
+             * The code below is the OSGrid code.
+             * This should probably become a config option.
+             */
+            /*
             return Path.Combine(hash.Substring(0, 3),
                    Path.Combine(hash.Substring(3, 3)));
+            */
+
             /*
              * The below is what core would normally use.
              * This is modified to work in OSGrid, as seen
              * above, because the SRAS data is structured
              * that way.
              */
-            /*
             return Path.Combine(hash.Substring(0, 2),
                    Path.Combine(hash.Substring(2, 2),
                    Path.Combine(hash.Substring(4, 2),
                    hash.Substring(6, 4))));
-            */
         }
 
         private bool AssetExists(string hash)
