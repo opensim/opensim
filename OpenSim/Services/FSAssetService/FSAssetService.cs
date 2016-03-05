@@ -76,6 +76,7 @@ namespace OpenSim.Services.FSAssetService
         protected int m_missingAssets = 0;
         protected int m_missingAssetsFS = 0;
         protected string m_FSBase;
+        protected bool m_useOsgridFormat = false;
 
         private static bool m_Initialized;
         private bool m_MainInstance;
@@ -182,6 +183,8 @@ namespace OpenSim.Services.FSAssetService
                 m_log.ErrorFormat("[FSASSETS]: BaseDirectory not specified");
                 throw new Exception("Configuration error");
             }
+
+            m_useOsgridFormat = assetConfig.GetBoolean("UseOsgridFormat", m_useOsgridFormat);
 
             if (m_MainInstance)
             {
@@ -357,25 +360,27 @@ namespace OpenSim.Services.FSAssetService
             if (hash == null || hash.Length < 10)
                 return "junkyard";
 
-            /*
-             * The code below is the OSGrid code.
-             * This should probably become a config option.
-             */
-            /*
-            return Path.Combine(hash.Substring(0, 3),
-                   Path.Combine(hash.Substring(3, 3)));
-            */
-
-            /*
-             * The below is what core would normally use.
-             * This is modified to work in OSGrid, as seen
-             * above, because the SRAS data is structured
-             * that way.
-             */
-            return Path.Combine(hash.Substring(0, 2),
-                   Path.Combine(hash.Substring(2, 2),
-                   Path.Combine(hash.Substring(4, 2),
-                   hash.Substring(6, 4))));
+            if (m_useOsgridFormat)
+            {
+                /*
+                 * The code below is the OSGrid code.
+                 */
+                return Path.Combine(hash.Substring(0, 3),
+                       Path.Combine(hash.Substring(3, 3)));
+            }
+            else
+            {
+                /*
+                 * The below is what core would normally use.
+                 * This is modified to work in OSGrid, as seen
+                 * above, because the SRAS data is structured
+                 * that way.
+                 */
+                return Path.Combine(hash.Substring(0, 2),
+                       Path.Combine(hash.Substring(2, 2),
+                       Path.Combine(hash.Substring(4, 2),
+                       hash.Substring(6, 4))));
+            }
         }
 
         private bool AssetExists(string hash)
