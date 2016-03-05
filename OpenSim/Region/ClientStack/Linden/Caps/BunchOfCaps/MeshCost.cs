@@ -140,7 +140,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             int numberInstances = resources.instance_list.Array.Count;
 
-            if( numberInstances > ObjectLinkedPartsMax )
+            if (ObjectLinkedPartsMax != 0 && numberInstances > ObjectLinkedPartsMax)
             {
                 error = "Model would have more than " + ObjectLinkedPartsMax.ToString() + " linked prims";
                 return false;

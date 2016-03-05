@@ -153,6 +153,7 @@ namespace OpenSim.Region.ClientStack.Linden
             // tell it about scene object limits
             m_ModelCost.NonPhysicalPrimScaleMax = m_Scene.m_maxNonphys;
             m_ModelCost.PhysicalPrimScaleMax = m_Scene.m_maxPhys;
+            m_ModelCost.ObjectLinkedPartsMax = m_Scene.m_linksetCapacity;
             
 //            m_ModelCost.ObjectLinkedPartsMax = ??
 //            m_ModelCost.PrimScaleMin = ??
