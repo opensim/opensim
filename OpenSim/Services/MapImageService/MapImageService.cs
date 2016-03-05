@@ -298,7 +298,7 @@ namespace OpenSim.Services.MapImageService
                 {
                     // Create a new output tile with a transparent background
                     Bitmap bm = new Bitmap(IMAGE_WIDTH, IMAGE_WIDTH, PixelFormat.Format24bppRgb);
-                    //bm.MakeTransparent(); // 24bpp does not have transparency, this whould make it 32bpp
+                    //bm.MakeTransparent(); // 24bpp does not have transparency, this would make it 32bpp
                     return bm;
                 }
             }

@@ -142,7 +142,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if( numberInstances > ObjectLinkedPartsMax )
             {
-                error = "Model whould have more than " + ObjectLinkedPartsMax.ToString() + " linked prims";
+                error = "Model would have more than " + ObjectLinkedPartsMax.ToString() + " linked prims";
                 return false;
             }
 
