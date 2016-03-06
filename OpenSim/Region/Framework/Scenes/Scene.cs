@@ -418,17 +418,6 @@ namespace OpenSim.Region.Framework.Scenes
         private float terrainMS;
         private float landMS;
 
-        // A temporary configuration flag to enable using FireAndForget to process
-        //   collisions from the physics engine. There is a problem with collisions
-        //   stopping sometimes and MB's suspicion is some race condition passing
-        //   collisions from the physics engine callback to the script engine.
-        //   This causes the collision events to be passed with a FireAndForget
-        //   call which should eliminate that linkage. Testers can turn this on
-        //   and see if collisions stop. If they don't, the problem is somewhere else.
-        //   This feature defaults to 'off' so, by default, the simulator operation
-        //   is not changed.
-        public bool ShouldUseFireAndForgetForCollisions = false;
-
         /// <summary>
         /// Tick at which the last frame was processed.
         /// </summary>
@@ -1147,10 +1136,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_update_terrain          = startupConfig.GetInt("UpdateTerrainEveryNFrames",         m_update_terrain);
                 m_update_temp_cleaning    = startupConfig.GetInt("UpdateTempCleaningEveryNSeconds",   m_update_temp_cleaning);
 
-                if (startupConfig.Contains("ShouldUseFireAndForgetForCollisions"))
-                {
-                    ShouldUseFireAndForgetForCollisions = startupConfig.GetBoolean("ShouldUseFireAndForgetForCollisions", false);
-                }
             }
 
 
