@@ -633,7 +633,7 @@ public static class BSParam
 	    new ParameterDefn<float>("AvatarAddForcePushFactor", "BSCharacter.AddForce is multiplied by this and mass to be like other physics engines",
             0.315f ),
 	    new ParameterDefn<float>("AvatarStopZeroThreshold", "Movement velocity below which avatar is assumed to be stopped",
-            0.4f,
+            0.45f,
             (s) => { return (float)AvatarStopZeroThreshold; },
             (s,v) => { AvatarStopZeroThreshold = v; AvatarStopZeroThresholdSquared = v * v; } ),
 	    new ParameterDefn<float>("AvatarBelowGroundUpCorrectionMeters", "Meters to move avatar up if it seems to be below ground",

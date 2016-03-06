@@ -3571,6 +3571,9 @@ namespace OpenSim.Region.Framework.Scenes
                         !Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE)
                         || !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE)
                         || !m_pos.ApproxEquals(m_lastPosition, POSITION_LARGETOLERANCE)
+                        // if velocity is zero and it wasn't zero last time, send the update
+                        || (Velocity == Vector3.Zero && m_lastVelocity != Vector3.Zero)
+                        // if position has moved just a little and velocity is very low, send  the update
                         || (!m_pos.ApproxEquals(m_lastPosition, POSITION_SMALLTOLERANCE) && Velocity.LengthSquared() < LOWVELOCITYSQ )
                 ) )
             {
