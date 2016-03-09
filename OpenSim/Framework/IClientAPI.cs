@@ -51,6 +51,7 @@ namespace OpenSim.Framework
                                    UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                                    bool RezSelected, bool RemoveItem, UUID fromTaskID);
 
+    public delegate void RezRestoreToWorld(IClientAPI remoteClient, UUID itemId);
     public delegate ISceneEntity RezSingleAttachmentFromInv(IClientAPI remoteClient, UUID itemID, uint AttachmentPt);
 
     public delegate void RezMultipleAttachmentsFromInv(IClientAPI remoteClient, List<KeyValuePair<UUID, uint>> rezlist );
@@ -818,6 +819,7 @@ namespace OpenSim.Framework
         event TeleportLandmarkRequest OnTeleportLandmarkRequest;
         event TeleportCancel OnTeleportCancel;
         event DeRezObject OnDeRezObject;
+        event RezRestoreToWorld OnRezRestoreToWorld;
         event Action<IClientAPI> OnRegionHandShakeReply;
         event GenericCall1 OnRequestWearables;
         event Action<IClientAPI, bool> OnCompleteMovementToRegion;
