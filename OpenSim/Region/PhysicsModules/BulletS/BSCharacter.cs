@@ -40,7 +40,6 @@ public sealed class BSCharacter : BSPhysObject
     private static readonly string LogHeader = "[BULLETS CHAR]";
 
     // private bool _stopped;
-    private OMV.Vector3 _size;
     private bool _grabbed;
     private bool _selected;
     private float _mass;
@@ -56,6 +55,9 @@ public sealed class BSCharacter : BSPhysObject
     private OMV.Vector3 _rotationalVelocity;
     private bool _kinematic;
     private float _buoyancy;
+
+    private OMV.Vector3 _size;
+    private float _footOffset;
 
     private BSActorAvatarMove m_moveActor;
     private const string AvatarMoveActorName = "BSCharacter.AvatarMove";
@@ -76,7 +78,7 @@ public sealed class BSCharacter : BSPhysObject
     public override bool IsIncomplete { get { return false; } }
 
     public BSCharacter(
-            uint localID, String avName, BSScene parent_scene, OMV.Vector3 pos, OMV.Vector3 vel, OMV.Vector3 size, bool isFlying)
+            uint localID, String avName, BSScene parent_scene, OMV.Vector3 pos, OMV.Vector3 vel, OMV.Vector3 size, float footOffset, bool isFlying)
 
             : base(parent_scene, localID, avName, "BSCharacter")
     {
@@ -91,21 +93,13 @@ public sealed class BSCharacter : BSPhysObject
         Density = BSParam.AvatarDensity;
         _isPhysical = true;
 
-        // Old versions of ScenePresence passed only the height. If width and/or depth are zero,
-        //     replace with the default values.
-        _size = size;
-        if (_size.X == 0f) _size.X = BSParam.AvatarCapsuleDepth;
-        if (_size.Y == 0f) _size.Y = BSParam.AvatarCapsuleWidth;
-
-        // The dimensions of the physical capsule are kept in the scale.
-        // Physics creates a unit capsule which is scaled by the physics engine.
-        Scale = ComputeAvatarScale(_size);
-        // set _avatarVolume and _mass based on capsule size, _density and Scale
-        ComputeAvatarVolumeAndMass();
+        // Adjustments for zero X and Y made in Size()
+        // This also computes avatar scale, volume, and mass
+        SetAvatarSize(size, footOffset, true /* initializing */);
 
         DetailLog(
             "{0},BSCharacter.create,call,size={1},scale={2},density={3},volume={4},mass={5},pos={6},vel={7}",
-            LocalID, _size, Scale, Density, _avatarVolume, RawMass, pos, vel);
+            LocalID, Size, Scale, Density, _avatarVolume, RawMass, pos, vel);
 
         // do actual creation in taint time
         PhysScene.TaintedObject(LocalID, "BSCharacter.create", delegate()
@@ -209,45 +203,68 @@ public sealed class BSCharacter : BSPhysObject
     public override OMV.Vector3 Size {
         get
         {
-            // Avatar capsule size is kept in the scale parameter.
             return _size;
         }
 
         set {
-            // This is how much the avatar size is changing. Positive means getting bigger.
-            // The avatar altitude must be adjusted for this change.
-            float heightChange = value.Z - _size.Z;
-
-            _size = value;
-            // Old versions of ScenePresence passed only the height. If width and/or depth are zero,
-            //     replace with the default values.
-            if (_size.X == 0f) _size.X = BSParam.AvatarCapsuleDepth;
-            if (_size.Y == 0f) _size.Y = BSParam.AvatarCapsuleWidth;
-
-            Scale = ComputeAvatarScale(_size);
-            ComputeAvatarVolumeAndMass();
-            DetailLog("{0},BSCharacter.setSize,call,size={1},scale={2},density={3},volume={4},mass={5}",
-                            LocalID, _size, Scale, Density, _avatarVolume, RawMass);
-
-            PhysScene.TaintedObject(LocalID, "BSCharacter.setSize", delegate()
-            {
-                if (PhysBody.HasPhysicalBody && PhysShape.physShapeInfo.HasPhysicalShape)
-                {
-                    PhysScene.PE.SetLocalScaling(PhysShape.physShapeInfo, Scale);
-                    UpdatePhysicalMassProperties(RawMass, true);
-
-                    // Adjust the avatar's position to account for the increase/decrease in size
-                    ForcePosition = new OMV.Vector3(RawPosition.X, RawPosition.Y, RawPosition.Z + heightChange / 2f);
-
-                    // Make sure this change appears as a property update event
-                    PhysScene.PE.PushUpdate(PhysBody);
-                }
-            });
-
+            setAvatarSize(value, _footOffset);
         }
     }
 
-    public override PrimitiveBaseShape Shape
+    // OpenSim 0.9 introduces a common avatar size computation
+    public override void setAvatarSize(OMV.Vector3 size, float feetOffset)
+    {
+        SetAvatarSize(size, feetOffset, false /* initializing */);
+    }
+
+    // Internal version that, if initializing, doesn't do all the updating of the physics engine
+    public void SetAvatarSize(OMV.Vector3 size, float feetOffset, bool initializing)
+    {
+        OMV.Vector3 newSize = size;
+        if (newSize.IsFinite())
+        {
+            // Old versions of ScenePresence passed only the height. If width and/or depth are zero,
+            //     replace with the default values.
+            if (newSize.X == 0f) newSize.X = BSParam.AvatarCapsuleDepth;
+            if (newSize.Y == 0f) newSize.Y = BSParam.AvatarCapsuleWidth;
+
+            if (newSize.X < 0.01f) newSize.X = 0.01f;
+            if (newSize.Y < 0.01f) newSize.Y = 0.01f;
+            if (newSize.Z < 0.01f) newSize.Z = BSParam.AvatarCapsuleHeight;
+        }
+        else
+        {
+            newSize = new OMV.Vector3(BSParam.AvatarCapsuleDepth, BSParam.AvatarCapsuleWidth, BSParam.AvatarCapsuleHeight);
+        }
+
+        // This is how much the avatar size is changing. Positive means getting bigger.
+        // The avatar altitude must be adjusted for this change.
+        float heightChange = newSize.Z - Size.Z;
+
+        _size = newSize;
+
+        Scale = ComputeAvatarScale(Size);
+        ComputeAvatarVolumeAndMass();
+        DetailLog("{0},BSCharacter.setSize,call,size={1},scale={2},density={3},volume={4},mass={5}",
+                        LocalID, _size, Scale, Density, _avatarVolume, RawMass);
+
+        PhysScene.TaintedObject(LocalID, "BSCharacter.setSize", delegate()
+        {
+            if (PhysBody.HasPhysicalBody && PhysShape.physShapeInfo.HasPhysicalShape)
+            {
+                PhysScene.PE.SetLocalScaling(PhysShape.physShapeInfo, Scale);
+                UpdatePhysicalMassProperties(RawMass, true);
+
+                // Adjust the avatar's position to account for the increase/decrease in size
+                ForcePosition = new OMV.Vector3(RawPosition.X, RawPosition.Y, RawPosition.Z + heightChange / 2f);
+
+                // Make sure this change appears as a property update event
+                PhysScene.PE.PushUpdate(PhysBody);
+            }
+        });
+    }
+
+        public override PrimitiveBaseShape Shape
     {
         set { BaseShape = value; }
     }
@@ -702,60 +719,71 @@ public sealed class BSCharacter : BSPhysObject
     public override void SetMomentum(OMV.Vector3 momentum) {
     }
 
+    // The avatar's physical shape (whether capsule or cube) is unit sized. BulletSim sets
+    //    the scale of that unit shape to create the avatars full size.
     private OMV.Vector3 ComputeAvatarScale(OMV.Vector3 size)
     {
         OMV.Vector3 newScale = size;
 
-        // Bullet's capsule total height is the "passed height + radius * 2";
-        // The base capsule is 1 unit in diameter and 2 units in height (passed radius=0.5, passed height = 1)
-        // The number we pass in for 'scaling' is the multiplier to get that base
-        //     shape to be the size desired.
-        // So, when creating the scale for the avatar height, we take the passed height
-        //     (size.Z) and remove the caps.
-        // An oddity of the Bullet capsule implementation is that it presumes the Y
-        //     dimension is the radius of the capsule. Even though some of the code allows
-        //     for a asymmetrical capsule, other parts of the code presume it is cylindrical.
-
-        // Scale is multiplier of radius with one of "0.5"
-
-        float heightAdjust = BSParam.AvatarHeightMidFudge;
-        if (BSParam.AvatarHeightLowFudge != 0f || BSParam.AvatarHeightHighFudge != 0f)
+        if (BSParam.AvatarUseBefore09SizeComputation)
         {
-            const float AVATAR_LOW = 1.1f;
-            const float AVATAR_MID = 1.775f; // 1.87f
-            const float AVATAR_HI = 2.45f;
-            // An avatar is between 1.1 and 2.45 meters. Midpoint is 1.775m.
-            float midHeightOffset = size.Z - AVATAR_MID;
-            if (midHeightOffset < 0f)
+
+            // Bullet's capsule total height is the "passed height + radius * 2";
+            // The base capsule is 1 unit in diameter and 2 units in height (passed radius=0.5, passed height = 1)
+            // The number we pass in for 'scaling' is the multiplier to get that base
+            //     shape to be the size desired.
+            // So, when creating the scale for the avatar height, we take the passed height
+            //     (size.Z) and remove the caps.
+            // An oddity of the Bullet capsule implementation is that it presumes the Y
+            //     dimension is the radius of the capsule. Even though some of the code allows
+            //     for a asymmetrical capsule, other parts of the code presume it is cylindrical.
+
+            // Scale is multiplier of radius with one of "0.5"
+
+            float heightAdjust = BSParam.AvatarHeightMidFudge;
+            if (BSParam.AvatarHeightLowFudge != 0f || BSParam.AvatarHeightHighFudge != 0f)
             {
-                // Small avatar. Add the adjustment based on the distance from midheight
-                heightAdjust += ((-1f * midHeightOffset) / (AVATAR_MID - AVATAR_LOW)) * BSParam.AvatarHeightLowFudge;
+                const float AVATAR_LOW = 1.1f;
+                const float AVATAR_MID = 1.775f; // 1.87f
+                const float AVATAR_HI = 2.45f;
+                // An avatar is between 1.1 and 2.45 meters. Midpoint is 1.775m.
+                float midHeightOffset = size.Z - AVATAR_MID;
+                if (midHeightOffset < 0f)
+                {
+                    // Small avatar. Add the adjustment based on the distance from midheight
+                    heightAdjust += ((-1f * midHeightOffset) / (AVATAR_MID - AVATAR_LOW)) * BSParam.AvatarHeightLowFudge;
+                }
+                else
+                {
+                    // Large avatar. Add the adjustment based on the distance from midheight
+                    heightAdjust += ((midHeightOffset) / (AVATAR_HI - AVATAR_MID)) * BSParam.AvatarHeightHighFudge;
+                }
+            }
+            if (BSParam.AvatarShape == BSShapeCollection.AvatarShapeCapsule)
+            {
+                newScale.X = size.X / 2f;
+                newScale.Y = size.Y / 2f;
+                // The total scale height is the central cylindar plus the caps on the two ends.
+                newScale.Z = (size.Z + (Math.Min(size.X, size.Y) * 2) + heightAdjust) / 2f;
             }
             else
             {
-                // Large avatar. Add the adjustment based on the distance from midheight
-                heightAdjust += ((midHeightOffset) / (AVATAR_HI - AVATAR_MID)) * BSParam.AvatarHeightHighFudge;
+                newScale.Z = size.Z + heightAdjust;
             }
-        }
-        if (BSParam.AvatarShape == BSShapeCollection.AvatarShapeCapsule)
-        {
-            newScale.X = size.X / 2f;
-            newScale.Y = size.Y / 2f;
-            // The total scale height is the central cylindar plus the caps on the two ends.
-            newScale.Z = (size.Z + (Math.Min(size.X, size.Y) * 2) + heightAdjust) / 2f;
+            // m_log.DebugFormat("{0} ComputeAvatarScale: size={1},adj={2},scale={3}", LogHeader, size, heightAdjust, newScale);
+
+            // If smaller than the endcaps, just fake like we're almost that small
+            if (newScale.Z < 0)
+                newScale.Z = 0.1f;
+
+            DetailLog("{0},BSCharacter.ComputeAvatarScale,size={1},lowF={2},midF={3},hiF={4},adj={5},newScale={6}",
+                LocalID, size, BSParam.AvatarHeightLowFudge, BSParam.AvatarHeightMidFudge, BSParam.AvatarHeightHighFudge, heightAdjust, newScale);
         }
         else
         {
-            newScale.Z = size.Z + heightAdjust;
+            newScale.Z = size.Z + _footOffset;
+            DetailLog("{0},BSCharacter.ComputeAvatarScale,using newScale={1}, footOffset={2}", LocalID, newScale, _footOffset);
         }
-        // m_log.DebugFormat("{0} ComputeAvatarScale: size={1},adj={2},scale={3}", LogHeader, size, heightAdjust, newScale);
-
-        // If smaller than the endcaps, just fake like we're almost that small
-        if (newScale.Z < 0)
-            newScale.Z = 0.1f;
-
-        DetailLog("{0},BSCharacter.ComputerAvatarScale,size={1},lowF={2},midF={3},hiF={4},adj={5},newScale={6}",
-            LocalID, size, BSParam.AvatarHeightLowFudge, BSParam.AvatarHeightMidFudge, BSParam.AvatarHeightHighFudge, heightAdjust, newScale);
 
         return newScale;
     }
@@ -763,17 +791,24 @@ public sealed class BSCharacter : BSPhysObject
     // set _avatarVolume and _mass based on capsule size, _density and Scale
     private void ComputeAvatarVolumeAndMass()
     {
-        _avatarVolume = (float)(
-                        Math.PI
-                        * Size.X / 2f
-                        * Size.Y / 2f    // the area of capsule cylinder
-                        * Size.Z         // times height of capsule cylinder
-                      + 1.33333333f
-                        * Math.PI
-                        * Size.X / 2f
-                        * Math.Min(Size.X, Size.Y) / 2
-                        * Size.Y / 2f    // plus the volume of the capsule end caps
-                        );
+        if (BSParam.AvatarShape == BSShapeCollection.AvatarShapeCapsule)
+        {
+            _avatarVolume = (float)(
+                            Math.PI
+                            * Size.X / 2f
+                            * Size.Y / 2f    // the area of capsule cylinder
+                            * Size.Z         // times height of capsule cylinder
+                          + 1.33333333f
+                            * Math.PI
+                            * Size.X / 2f
+                            * Math.Min(Size.X, Size.Y) / 2
+                            * Size.Y / 2f    // plus the volume of the capsule end caps
+                            );
+        }
+        else
+        {
+            _avatarVolume = Size.X * Size.Y * Size.Z;
+        }
         _mass = Density * BSParam.DensityScaleFactor * _avatarVolume;
     }
 

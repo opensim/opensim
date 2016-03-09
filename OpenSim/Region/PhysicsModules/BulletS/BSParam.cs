@@ -142,6 +142,7 @@ public static class BSParam
     public static float AvatarCapsuleWidth { get; private set; }
     public static float AvatarCapsuleDepth { get; private set; }
     public static float AvatarCapsuleHeight { get; private set; }
+    public static bool AvatarUseBefore09SizeComputation { get; private set; }
     public static float AvatarHeightLowFudge { get; private set; }
     public static float AvatarHeightMidFudge { get; private set; }
     public static float AvatarHeightHighFudge { get; private set; }
@@ -616,6 +617,8 @@ public static class BSParam
             0.45f ),
         new ParameterDefn<float>("AvatarCapsuleHeight", "Default height of space around avatar",
             1.5f ),
+        new ParameterDefn<bool>("AvatarUseBefore09SizeComputation", "Use the old fudge method of computing avatar capsule size",
+            true ),
         new ParameterDefn<float>("AvatarHeightLowFudge", "A fudge factor to make small avatars stand on the ground",
             0f ),
         new ParameterDefn<float>("AvatarHeightMidFudge", "A fudge distance to adjust average sized avatars to be standing on ground",
@@ -633,7 +636,7 @@ public static class BSParam
 	    new ParameterDefn<float>("AvatarAddForcePushFactor", "BSCharacter.AddForce is multiplied by this and mass to be like other physics engines",
             0.315f ),
 	    new ParameterDefn<float>("AvatarStopZeroThreshold", "Movement velocity below which avatar is assumed to be stopped",
-            0.4f,
+            0.45f,
             (s) => { return (float)AvatarStopZeroThreshold; },
             (s,v) => { AvatarStopZeroThreshold = v; AvatarStopZeroThresholdSquared = v * v; } ),
 	    new ParameterDefn<float>("AvatarBelowGroundUpCorrectionMeters", "Meters to move avatar up if it seems to be below ground",
