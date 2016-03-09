@@ -6588,7 +6588,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool HandlerRezRestoreToWorld(IClientAPI sender, Packet Pack)
         {
-            return false;
+            RezRestoreToWorldPacket restore = (RezRestoreToWorldPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (restore.AgentData.SessionID != SessionId ||
+                    restore.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            RezRestoreToWorld handlerRezRestoreToWorld = OnRezRestoreToWorld;
+            if (handlerRezRestoreToWorld != null)
+                handlerRezRestoreToWorld(this, restore.InventoryData.ItemID);
+
+            return true;
         }
 
         private bool HandlerModifyLand(IClientAPI sender, Packet Pack)
