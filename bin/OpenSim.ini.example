@@ -526,6 +526,11 @@
     ;; By default, llHTTPRequest limits the response body to 2048 bytes.
     ;; This limit can be extended using HTTP_BODY_MAXLENGTH to a maximum
     ;; of HttpBodyMaxLenMAX bytes. 
+    ;; Please be aware that the limit can be set to insanely high values,
+    ;; effectively removing any limitation. This will expose your sim to a
+    ;; known attack. It is not recommended to set this limit higher than
+    ;; the highest value that is actually needed by existing applications!
+    ;; 16384 is the SL compatible value.
     ; HttpBodyMaxLenMAX=16384
 
     ;# {ExternalHostNameForLSL} {} {Hostname to use for HTTP-IN URLs. This should be reachable from the internet.} {}
