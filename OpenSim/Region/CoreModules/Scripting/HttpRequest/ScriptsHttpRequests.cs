@@ -365,6 +365,8 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             m_proxyurl = config.Configs["Startup"].GetString("HttpProxy");
             m_proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
 
+            HttpRequestClass.HttpBodyMaxLenMAX = config.Configs["Network"].GetInt("HttpBodyMaxLenMAX", 16384);
+
 
             m_outboundUrlFilter = new OutboundUrlFilter("Script HTTP request module", config);
             int maxThreads = 15;
@@ -454,7 +456,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             get { return _finished; }
         }
 
-        public const int HttpBodyMaxLenMAX = 16384;
+        public static int HttpBodyMaxLenMAX = 16384;
 
         // Parameter members and default values
         public int HttpBodyMaxLen = 2048;
