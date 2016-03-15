@@ -12307,7 +12307,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-            m_log.DebugFormat("texture cached: hits {0}", cacheHits);
+            //m_log.DebugFormat("texture cached: hits {0}", cacheHits);
 
             cachedresp.Header.Zerocoded = true;
             OutPacket(cachedresp, ThrottleOutPacketType.Task);
