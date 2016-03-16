@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections;
 using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -35,8 +36,8 @@ namespace OpenSim.Region.Framework.Interfaces
     public interface IUrlModule
     {
         string ExternalHostNameForLSL { get; }
-        UUID RequestURL(IScriptModule engine, SceneObjectPart host, UUID itemID);
-        UUID RequestSecureURL(IScriptModule engine, SceneObjectPart host, UUID itemID);
+        UUID RequestURL(IScriptModule engine, SceneObjectPart host, UUID itemID, Hashtable options);
+        UUID RequestSecureURL(IScriptModule engine, SceneObjectPart host, UUID itemID, Hashtable options);
         void ReleaseURL(string url);
         void HttpResponse(UUID request, int status, string body);
         void HttpContentType(UUID request, string type);

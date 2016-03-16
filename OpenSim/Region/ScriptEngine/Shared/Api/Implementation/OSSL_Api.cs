@@ -4134,5 +4134,41 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return 0;
             }
         }
+
+        public LSL_String osRequestURL(LSL_List options)
+        {
+            CheckThreatLevel(ThreatLevel.Moderate, "osRequestSecureURL");
+            m_host.AddScriptLPS(1);
+            
+            Hashtable opts = new Hashtable();
+            for (int i = 0 ; i < options.Length ; i++)
+            {
+                object opt = options.Data[i];
+                if (opt.ToString() == "allowXss")
+                    opts["allowXss"] = true;
+            }
+
+            if (m_UrlModule != null)
+                return m_UrlModule.RequestURL(m_ScriptEngine.ScriptModule, m_host, m_item.ItemID, opts).ToString();
+            return UUID.Zero.ToString();
+        }
+
+        public LSL_String osRequestSecureURL(LSL_List options)
+        {
+            CheckThreatLevel(ThreatLevel.Moderate, "osRequestSecureURL");
+            m_host.AddScriptLPS(1);
+            
+            Hashtable opts = new Hashtable();
+            for (int i = 0 ; i < options.Length ; i++)
+            {
+                object opt = options.Data[i];
+                if (opt.ToString() == "allowXss")
+                    opts["allowXss"] = true;
+            }
+
+            if (m_UrlModule != null)
+                return m_UrlModule.RequestSecureURL(m_ScriptEngine.ScriptModule, m_host, m_item.ItemID, opts).ToString();
+            return UUID.Zero.ToString();
+        }
     }
 }

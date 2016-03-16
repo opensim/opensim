@@ -52,6 +52,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         public Dictionary<UUID, RequestData> requests;
         public bool isSsl;
         public Scene scene;
+        public bool allowXss;
     }
 
     public class RequestData
@@ -192,7 +193,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         {
         }
 
-        public UUID RequestURL(IScriptModule engine, SceneObjectPart host, UUID itemID)
+        public UUID RequestURL(IScriptModule engine, SceneObjectPart host, UUID itemID, Hashtable options)
         {
             UUID urlcode = UUID.Random();
 
@@ -214,6 +215,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 urlData.isSsl = false;
                 urlData.requests = new Dictionary<UUID, RequestData>();
                 urlData.scene = host.ParentGroup.Scene;
+                urlData.allowXss = false;
+
+                if (options != null && options["allowXss"] != null)
+                    urlData.allowXss = true;
 
                 m_UrlMap[url] = urlData;
                 
@@ -234,7 +239,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             return urlcode;
         }
 
-        public UUID RequestSecureURL(IScriptModule engine, SceneObjectPart host, UUID itemID)
+        public UUID RequestSecureURL(IScriptModule engine, SceneObjectPart host, UUID itemID, Hashtable options)
         {
             UUID urlcode = UUID.Random();
 
@@ -261,7 +266,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 urlData.urlcode = urlcode;
                 urlData.isSsl = true;
                 urlData.requests = new Dictionary<UUID, RequestData>();
+                urlData.allowXss = false;
 
+                if (options != null && options["allowXss"] != null)
+                    urlData.allowXss = true;
                 
                 m_UrlMap[url] = urlData;
                 
@@ -559,7 +567,8 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             response["keepalive"] = false;
             response["reusecontext"] = false;
 
-			response["access_control_allow_origin"] = "*";
+            if (url.allowXss)
+                response["access_control_allow_origin"] = "*";
             
             //remove from map
             lock (url.requests)

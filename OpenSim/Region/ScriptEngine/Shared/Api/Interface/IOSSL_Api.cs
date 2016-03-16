@@ -468,5 +468,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         /// <param name="regex">string to use as pattern</param>
         /// <returns>boolean</returns>
         LSL_Integer osRegexIsMatch(string input, string pattern);
+
+        LSL_String osRequestURL(LSL_List options);
+        LSL_String osRequestSecureURL(LSL_List options);
     }
 }
