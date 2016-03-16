@@ -31,11 +31,13 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Data;
 using Npgsql;
 
 namespace OpenSim.Data.PGSQL
@@ -552,8 +554,11 @@ namespace OpenSim.Data.PGSQL
                         if (reader.Read())
                         {
                             rev = Convert.ToInt32(reader["Revision"]);
-                            byte[] blob = (byte[])reader["Heightfield"];
-                            terrData = TerrainData.CreateFromDatabaseBlobFactory(pSizeX, pSizeY, pSizeZ, rev, blob);
+                            if ((reader["Heightfield"] != DBNull.Value))
+                            {
+                                byte[] blob = (byte[])reader["Heightfield"];
+                                terrData = TerrainData.CreateFromDatabaseBlobFactory(pSizeX, pSizeY, pSizeZ, rev, blob);
+                            }
                         }
                         else
                         {
