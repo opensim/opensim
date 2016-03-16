@@ -1153,10 +1153,32 @@ ALTER TABLE regionwindlight ALTER COLUMN draw_classic_clouds SET DEFAULT FALSE;
 
 COMMIT;
 
-VERSION 41       #-- Change Landlags to bigint
+:VERSION 41       #-- Change Landlags to bigint
 
 BEGIN TRANSACTION;
 
 ALTER TABLE land ALTER "LandFlags" TYPE bigint;
+
+COMMIT;
+
+:VERSION 42      #-- avination fields
+
+BEGIN TRANSACTION;
+
+ALTER TABLE prims ADD "PassCollisions" smallint NOT NULL DEFAULT (0);
+ALTER TABLE prims ADD "Vehicle" text COLLATE "default";
+ALTER TABLE regionsettings ADD "block_search" smallint NOT NULL DEFAULT (0);
+ALTER TABLE regionsettings ADD	"casino" smallint NOT NULL DEFAULT (0);
+ALTER TABLE land ADD "SeeAVs" smallint NOT NULL DEFAULT (1);
+ALTER TABLE land ADD "AnyAVSounds" smallint NOT NULL DEFAULT (1);
+ALTER TABLE land ADD "GroupAVSounds" smallint NOT NULL DEFAULT (1);
+
+COMMIT;
+
+:VERSION 43     #---- STATUS ROTATION axis locks
+
+BEGIN TRANSACTION;
+
+ALTER TABLE prims ADD "RotationAxisLocks" smallint NOT NULL DEFAULT (0);
 
 COMMIT;

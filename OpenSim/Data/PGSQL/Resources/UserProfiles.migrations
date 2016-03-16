@@ -153,3 +153,11 @@ BEGIN;
 ALTER TABLE usersettings ALTER COLUMN imviaemail SET DATA TYPE boolean USING CASE WHEN false THEN false ELSE true END;
 
 COMMIT;
+
+:VERSION 6         # -------------------------------
+
+BEGIN TRANSACTION;
+
+ALTER TABLE userpicks ADD "gatekeeper" varchar(255) COLLATE "default";
+
+COMMIT;
