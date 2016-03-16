@@ -2909,68 +2909,7 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v4_0" name="OpenSim.Region.OptionalModules.Tests" path="OpenSim/Region/OptionalModules" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Core"/>
-      <Reference name="System.Xml"/>
-      <Reference name="System.Drawing"/>
-      <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
-      <Reference name="OpenMetaverse" path="../../../bin/"/>
-      <Reference name="OpenMetaverse.StructuredData" path="../../../bin/"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Serialization"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.Monitoring"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="OpenSim.Region.ClientStack.LindenCaps"/>
-      <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Region.Framework.Interfaces"/>
-      <Reference name="OpenSim.Region.CoreModules"/>
-      <Reference name="OpenSim.Region.OptionalModules"/>
-      <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
-      <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
-      <Reference name="OpenSim.Services.AvatarService"/>
-      <Reference name="OpenSim.Services.Interfaces"/>
-
-      <!-- Unit tests -->
-      <Reference name="OpenSim.Tests.Common"/>
-      <Reference name="Nini" path="../../../bin/"/>
-      <Reference name="nunit.framework" path="../../../bin/"/>
-
-      <!-- For scripting in funny languages by default -->
-      <Reference name="XMLRPC" path="../../../bin/"/>
-      <Reference name="Nini" path="../../../bin/"/>
-      <Reference name="log4net" path="../../../bin/"/>
-      <Reference name="DotNetOpenMail" path="../../../bin/"/>
-
-      <!--
-           TODO: this is kind of lame, we basically build a duplicate
-           assembly but with tests added in, just so that we don't
-           need to hard code in a bunch of Test directories here.  If
-           pattern="Tests/*.cs" worked, we wouldn't need this.
-      -->
-      <Files>
-        <!-- SADLY the way this works means you need to keep adding these paths -->
-        <Match path="Avatar/XmlRpcGroups/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="Scripting/JsonStore/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="World/NPC/Tests" pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
+    
     <Project frameworkVersion="v4_0" name="OpenSim.Region.Framework.Tests" path="OpenSim/Region/Framework" type="Library">
       <Configuration name="Debug">
         <Options>
