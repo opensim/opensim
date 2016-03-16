@@ -558,6 +558,8 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             response["content_type"] = requestData.responseType;
             response["keepalive"] = false;
             response["reusecontext"] = false;
+
+			response["access_control_allow_origin"] = "*";
             
             //remove from map
             lock (url.requests)
