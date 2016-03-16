@@ -1347,6 +1347,8 @@
       <Reference name="OpenMetaverse.StructuredData" path="../../../../../bin/"/>
 
       <Reference name="OpenSim.Region.Framework"/>
+      <Reference name="OpenSim.Region.Framework.Interfaces"/>
+      <Reference name="OpenSim.Region.Framework.Scenes"/>
       <Reference name="OpenSim.Capabilities"/>
       <Reference name="OpenSim.Capabilities.Handlers"/>
       <Reference name="OpenSim.Framework"/>
