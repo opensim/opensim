@@ -44,20 +44,12 @@ namespace OpenSim.Data.PGSQL
 
         public AgentPreferencesData GetPrefs(UUID agentID)
         {
-            // Until someone sends in a table that works
-            return null;
-            //AgentPreferencesData[] ret = Get("PrincipalID", agentID.ToString());
 
-            //if (ret.Length == 0)
-            //    return null;
+            AgentPreferencesData[] ret = Get("PrincipalID", agentID.ToString());
 
-            //return ret[0];
-        }
-
-        public override bool Store(AgentPreferencesData row)
-        {
-            // Until someone sends in a table that works
-            return false;
+            if (ret.Length == 0)
+                return null;
+            return ret[0];
         }
 
     }
