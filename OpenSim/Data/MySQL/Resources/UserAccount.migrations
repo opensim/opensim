@@ -2,7 +2,7 @@
 
 BEGIN;
 
-CREATE TABLE IF NOT EXISTS `useraccounts` (
+CREATE TABLE IF NOT EXISTS `UserAccounts` (
   `PrincipalID` char(36) NOT NULL,
   `ScopeID` char(36) NOT NULL,
   `FirstName` varchar(64) NOT NULL,
