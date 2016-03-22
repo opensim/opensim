@@ -75,6 +75,7 @@ namespace OpenSim.Data.MySQL
             {
                 using (MySqlConnection conn = new MySqlConnection(m_ConnectionString))
                 {
+                    conn.Open();
                     Migration m = new Migration(conn, Assembly, "FSAssetStore");
                     m.Update();
                 }
@@ -150,7 +151,7 @@ namespace OpenSim.Data.MySQL
 
                 using (MySqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = String.Format("select id, name, description, type, hash, create_time, asset_flags from {0} where id = ?id", m_Table);
+                    cmd.CommandText = String.Format("select id, name, description, type, hash, create_time, asset_flags, access_time from {0} where id = ?id", m_Table);
                     cmd.Parameters.AddWithValue("?id", id);
 
                     using (IDataReader reader = cmd.ExecuteReader())
