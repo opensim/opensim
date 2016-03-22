@@ -48,4 +48,10 @@ ALTER TABLE UserAccounts ADD "UserTitle" varchar(64) NOT NULL DEFAULT '';
 
 COMMIT;
 
+:VERSION 5
 
+BEGIN TRANSACTION;
+
+ALTER TABLE UserAccounts ADD "active" integer NOT NULL DEFAULT 1;
+
+COMMIT;
