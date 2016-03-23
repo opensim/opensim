@@ -274,27 +274,27 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
                     stream.Close();
 
                 if (response != null)
+                {
+                    if (response.StatusCode == HttpStatusCode.MovedPermanently
+                            || response.StatusCode == HttpStatusCode.Found
+                            || response.StatusCode == HttpStatusCode.SeeOther
+                            || response.StatusCode == HttpStatusCode.TemporaryRedirect)
+                    {
+                        string redirectedUrl = response.Headers["Location"];
+
+                        MakeHttpRequest(redirectedUrl, state.RequestID);
+                    }
+                    else
+                    {
+                        m_log.DebugFormat("[LOADIMAGEURLMODULE]: Returning {0} bytes of image data for request {1}",
+                                          imageJ2000.Length, state.RequestID);
+
+                        m_textureManager.ReturnData(
+                            state.RequestID,
+                            new OpenSim.Region.CoreModules.Scripting.DynamicTexture.DynamicTexture(
+                            request.RequestUri, null, imageJ2000, newSize, false));
+                    }
                     response.Close();
-
-                if (
-                    response.StatusCode == HttpStatusCode.MovedPermanently
-                        || response.StatusCode == HttpStatusCode.Found
-                        || response.StatusCode == HttpStatusCode.SeeOther
-                        || response.StatusCode == HttpStatusCode.TemporaryRedirect)
-                {
-                    string redirectedUrl = response.Headers["Location"];
-
-                    MakeHttpRequest(redirectedUrl, state.RequestID);
-                }
-                else
-                {
-                    m_log.DebugFormat("[LOADIMAGEURLMODULE]: Returning {0} bytes of image data for request {1}",
-                                      imageJ2000.Length, state.RequestID);
-
-                    m_textureManager.ReturnData(
-                        state.RequestID,
-                        new OpenSim.Region.CoreModules.Scripting.DynamicTexture.DynamicTexture(
-                        request.RequestUri, null, imageJ2000, newSize, false));
                 }
             }
         }
