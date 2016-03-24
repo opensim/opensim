@@ -2,7 +2,7 @@
 
 BEGIN;
 
-CREATE TABLE IF NOT EXISTS `friends` (
+CREATE TABLE IF NOT EXISTS `Friends` (
   `PrincipalID` varchar(255) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000',
   `Friend` varchar(255) NOT NULL,
   `Flags` varchar(16) NOT NULL DEFAULT '0',

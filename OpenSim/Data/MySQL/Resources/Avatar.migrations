@@ -2,7 +2,7 @@
 
 BEGIN;
 
-CREATE TABLE IF NOT EXISTS `avatars` (
+CREATE TABLE IF NOT EXISTS `Avatars` (
   `PrincipalID` char(36) NOT NULL,
   `Name` varchar(32) NOT NULL,
   `Value` text,
