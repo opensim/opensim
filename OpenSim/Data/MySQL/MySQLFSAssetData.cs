@@ -172,7 +172,7 @@ namespace OpenSim.Data.MySQL
                         meta.Flags = (AssetFlags)Convert.ToInt32(reader["asset_flags"]);
 
                         int AccessTime = Convert.ToInt32(reader["access_time"]);
-                        UpdateAccessTime(AccessTime);
+                        UpdateAccessTime(id, AccessTime);
                     }
                 }
 
@@ -181,7 +181,7 @@ namespace OpenSim.Data.MySQL
             return meta;
         }
 
-        private void UpdateAccessTime(int AccessTime)
+        private void UpdateAccessTime(string AssetID, int AccessTime)
         {
             // Reduce DB work by only updating access time if asset hasn't recently been accessed
             // 0 By Default, Config option is "DaysBetweenAccessTimeUpdates"
@@ -203,7 +203,7 @@ namespace OpenSim.Data.MySQL
                 using (MySqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = String.Format("UPDATE {0} SET `access_time` = UNIX_TIMESTAMP() WHERE `id` = ?id", m_Table);
-
+                    cmd.Parameters.AddWithValue("?id", AssetID);
                     cmd.ExecuteNonQuery();
                 }
             }
