@@ -687,7 +687,10 @@
 ; * the assets of this world.
 ; * 
 [HGAssetService]
+    ;; Use the second option if you have FSAsset service enabled
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGAssetService"
+    ;LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGFSAssetService"
+    
     UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
 
     ; HGAssetService is a public-facing service that allows users to  
