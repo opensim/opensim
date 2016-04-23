@@ -1322,7 +1322,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             ScenePresence sp = m_scene.GetScenePresence(remoteClient.AgentId);
             SceneObjectGroup group = m_scene.GetGroupByPrim(objectLocalID);
 
-            if (sp != null && group != null && group.FromItemID != UUID.Zero)
+            if (sp != null && group != null)
                 DetachSingleAttachmentToInv(sp, group);
         }
 
