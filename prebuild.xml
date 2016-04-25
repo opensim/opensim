@@ -700,7 +700,7 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
-    
+
     <Project frameworkVersion="v4_0" name="OpenSim.Services.FSAssetService" path="OpenSim/Services/FSAssetService" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -734,7 +734,7 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
-    
+
     <Project frameworkVersion="v4_0" name="OpenSim.Services.AuthorizationService" path="OpenSim/Services/AuthorizationService" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -989,7 +989,7 @@
         </Match>
       </Files>
     </Project>
-    
+
 
     <Project frameworkVersion="v4_0" name="OpenSim.Services.LLLoginService" path="OpenSim/Services/LLLoginService" type="Library">
       <Configuration name="Debug">
@@ -1371,7 +1371,7 @@
       </Files>
     </Project>
 
-    
+
     <Project frameworkVersion="v4_0" name="OpenSim.Region.CoreModules" path="OpenSim/Region/CoreModules" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -1544,9 +1544,9 @@
       <Reference name="System.Core"/>
       <Reference name="System.Data"/>
       <Reference name="System.Xml"/>
-      <Reference name="OpenSim.Framework"/>	  
+      <Reference name="OpenSim.Framework"/>
 	  <Reference name="Mono.Addins" path="../../../../bin/"/>
-	  
+
       <Files>
         <Match pattern="*.cs" recurse="true">
           <Exclude name="Tests" pattern="Tests"/>
@@ -1699,8 +1699,8 @@
           <Exclude name="Tests" pattern="Tests"/>
         </Match>
       </Files>
-    </Project>	
-	
+    </Project>
+
     <Project frameworkVersion="v4_0" name="OpenSim.Region.PhysicsModule.ubOdeMeshing" path="OpenSim/Region/PhysicsModules/ubOdeMeshing" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -1728,7 +1728,7 @@
       <Reference name="OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet"/>
       <Reference name="Mono.Addins" path="../../../../bin/"/>
       <Reference name="log4net" path="../../../../bin/"/>
-	  
+
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -1993,7 +1993,7 @@
         <Match buildAction="EmbeddedResource" path="Resources" pattern="*.addin.xml" recurse="true"/>
       </Files>
     </Project>
-	
+
     <Project frameworkVersion="v4_0" name="OpenSim.Data.SQLite" path="OpenSim/Data/SQLite" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -2033,7 +2033,7 @@
       </Files>
     </Project>
 
-    
+
     <Project frameworkVersion="v4_0" name="OpenSim.Region.ScriptEngine.Shared" path="OpenSim/Region/ScriptEngine/Shared" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -2291,7 +2291,7 @@
     </Project>
 
     <!-- Addons -->
-    
+
     <Project frameworkVersion="v4_0" name="OpenSim.Addons.OfflineIM" path="OpenSim/Addons/OfflineIM" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -2686,7 +2686,7 @@
       <Reference name="log4net" path="../../../bin/"/>
       <Reference name="DotNetOpenId" path="../../../bin/"/>
 
-      <!-- 
+      <!--
            TODO: this is kind of lame, we basically build a duplicate
            assembly but with tests added in, just so that we don't
            need to hard code in a bunch of Test directories here.  If
@@ -2732,7 +2732,7 @@
 
       <Reference name="OpenSim.Data.MySQL"/>
       <Reference name="OpenSim.Data.SQLite"/>
-      
+
       <Reference name="MySql.Data" path="../../../bin/"/>
       <Reference name="Mono.Data.Sqlite" path="../../../bin/"/>
       <Files>
@@ -2911,7 +2911,7 @@
       </Files>
     </Project>
 
-    
+
     <Project frameworkVersion="v4_0" name="OpenSim.Region.Framework.Tests" path="OpenSim/Region/Framework" type="Library">
       <Configuration name="Debug">
         <Options>
