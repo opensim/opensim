@@ -113,10 +113,12 @@
   </exec>
   <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.coremodules.tests)==0}" /> 
 
+<!--
   <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.region.optionalmodules.tests">
     <arg value="./bin/OpenSim.Region.OptionalModules.Tests.dll" />
   </exec>
   <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.optionalmodules.tests)==0}" /> 
+-->
 
   <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.region.framework.tests">
     <arg value="./bin/OpenSim.Region.Framework.Tests.dll" />
@@ -226,10 +228,12 @@
     <arg value="-xml=test-results/OpenSim.Region.CoreModules.Tests.dll-Results.xml" />
   </exec>
 
+<!--
  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.optionalmodules.tests">
     <arg value="./bin/OpenSim.Region.OptionalModules.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Region.OptionalModules.Tests.dll-Results.xml" />
   </exec>
+-->
 
  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.framework.tests">
     <arg value="./bin/OpenSim.Region.Framework.Tests.dll" />
