@@ -775,6 +775,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return;
             }
 
+            // If this didn't come from inventory, it also shouldn't go there
+            // on detach. It's likely a temp attachment.
+            if (so.FromItemID != UUID.Zero)
+            {
+                sp.RemoveAttachment(so);
+                m_scene.DeleteSceneObject(so, false, false);
+                so.RemoveScriptInstances(true);
+                so.Clear();
+
+                return;
+            }
+
             if (DebugLevel > 0)
                 m_log.DebugFormat(
                     "[ATTACHMENTS MODULE]: Detaching object {0} {1} (FromItemID {2}) for {3} in {4}", 
