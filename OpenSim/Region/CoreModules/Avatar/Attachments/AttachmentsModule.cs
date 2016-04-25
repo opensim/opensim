@@ -779,7 +779,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             // on detach. It's likely a temp attachment.
             if (so.FromItemID != UUID.Zero)
             {
-                sp.RemoveAttachment(so);
+                lock (sp.AttachmentsSyncLock)
+                {
+                    bool changed = sp.Appearance.DetachAttachment(so.FromItemID);
+                    if (changed && m_scene.AvatarFactory != null)
+                        m_scene.AvatarFactory.QueueAppearanceSave(sp.UUID);
+
+                    sp.RemoveAttachment(so);
+                }
+
                 m_scene.DeleteSceneObject(so, false, false);
                 so.RemoveScriptInstances(true);
                 so.Clear();
