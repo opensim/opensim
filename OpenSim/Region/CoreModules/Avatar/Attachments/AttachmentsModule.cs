@@ -779,6 +779,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             // on detach. It's likely a temp attachment.
             if (so.FromItemID == UUID.Zero)
             {
+                // Retirn value is ignored
+                PrepareScriptInstanceForSave(so, true);
+
                 lock (sp.AttachmentsSyncLock)
                 {
                     bool changed = sp.Appearance.DetachAttachment(so.FromItemID);
