@@ -55,7 +55,7 @@ namespace OpenSim.Region.ClientStack.Linden
     /// the normal part of the response in the capability handler.
     /// </remarks>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SimulatorFeaturesModule")]
-    public class SimulatorFeaturesModule : ISharedRegionModule, ISimulatorFeaturesModule
+    public class SimulatorFeaturesModule : INonSharedRegionModule, ISimulatorFeaturesModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -124,10 +124,6 @@ namespace OpenSim.Region.ClientStack.Linden
         public void RegionLoaded(Scene s)
         {
             GetGridExtraFeatures(s);
-        }
-
-        public void PostInitialise()
-        {
         }
 
         public void Close() { }
