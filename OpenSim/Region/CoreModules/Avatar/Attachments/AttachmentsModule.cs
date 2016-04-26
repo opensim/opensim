@@ -777,7 +777,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             // If this didn't come from inventory, it also shouldn't go there
             // on detach. It's likely a temp attachment.
-            if (so.FromItemID != UUID.Zero)
+            if (so.FromItemID == UUID.Zero)
             {
                 lock (sp.AttachmentsSyncLock)
                 {
