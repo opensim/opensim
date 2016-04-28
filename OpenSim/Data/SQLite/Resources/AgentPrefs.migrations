@@ -11,7 +11,7 @@ CREATE TABLE `AgentPrefs` (
     `PermEveryone` INT(6) NOT NULL DEFAULT 0,
     `PermGroup` INT(6) NOT NULL DEFAULT 0,
     `PermNextOwner` INT(6) NOT NULL DEFAULT 532480,
-    UNIQUE KEY `PrincipalID` (`PrincipalID`),
+    UNIQUE (`PrincipalID`),
     PRIMARY KEY(`PrincipalID`));
 
 COMMIT;
