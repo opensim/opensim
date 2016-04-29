@@ -2144,8 +2144,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             foreach (uint localID in localIDs)
             {
-
-
                 // Invalid id
                 SceneObjectPart part = GetSceneObjectPart(localID);
                 if (part == null)
@@ -2168,6 +2166,8 @@ namespace OpenSim.Region.Framework.Scenes
                     continue;
 
                 SceneObjectGroup grp = part.ParentGroup;
+                if (grp.IsAttachment)
+                    continue;
 
                 // If child prims have invalid perms, fix them
                 grp.AdjustChildPrimPermissions(false);
