@@ -2566,6 +2566,18 @@ namespace OpenSim.Region.Framework.Scenes
                 sceneObject = new SceneObjectGroup(ownerID, pos, rot, shape);
                 AddNewSceneObject(sceneObject, true);
                 sceneObject.SetGroup(groupID, null);
+
+                if (AgentPreferencesService != null) // This will override the brave new full perm world!
+                {
+                    AgentPrefs prefs = AgentPreferencesService.GetAgentPreferences(ownerID);
+                    // Only apply user selected prefs if the user set them
+                    if (prefs.PermNextOwner != 0)
+                    {
+                        sceneObject.RootPart.GroupMask = (uint)prefs.PermGroup;
+                        sceneObject.RootPart.EveryoneMask = (uint)prefs.PermEveryone;
+                        sceneObject.RootPart.NextOwnerMask = (uint)prefs.PermNextOwner;
+                    }
+                }
             }
 
             if (UserManagementModule != null)

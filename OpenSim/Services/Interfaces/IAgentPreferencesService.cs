@@ -101,7 +101,7 @@ namespace OpenSim.Services.Interfaces
         // DefaultObjectPermMasks
         public int PermEveryone = 0;
         public int PermGroup = 0;
-        public int PermNextOwner = 532480;
+        public int PermNextOwner = 0; // Illegal value by design
     }
 
     public interface IAgentPreferencesService

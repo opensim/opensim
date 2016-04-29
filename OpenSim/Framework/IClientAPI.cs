@@ -242,7 +242,7 @@ namespace OpenSim.Framework
 
     public delegate void CreateNewInventoryItem(
         IClientAPI remoteClient, UUID transActionID, UUID folderID, uint callbackID, string description, string name,
-        sbyte invType, sbyte type, byte wearableType, uint nextOwnerMask, int creationDate);
+        sbyte invType, sbyte type, byte wearableType, uint everyoneMask, int creationDate);
 
     public delegate void LinkInventoryItem(
         IClientAPI remoteClient, UUID transActionID, UUID folderID, uint callbackID, string description, string name,

@@ -175,8 +175,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         /// <param name="nextOwnerMask"></param>
         public void CreateNewInventoryItem(IClientAPI remoteClient, UUID transactionID, UUID folderID,
                                            uint callbackID, string description, string name, sbyte invType,
-                                           sbyte assetType,
-                                           byte wearableType, uint nextOwnerMask, int creationDate)
+                                           sbyte assetType, byte wearableType,
+                                           uint nextOwnerMask, int creationDate)
         {
             m_log.DebugFormat("[INVENTORY ACCESS MODULE]: Received request to create inventory item {0} in folder {1}, transactionID {2}", name,
                 folderID, transactionID);
@@ -220,7 +220,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 m_Scene.AssetService.Store(asset);
                 m_Scene.CreateNewInventoryItem(
                         remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
-                        name, description, 0, callbackID, asset.FullID, asset.Type, invType, nextOwnerMask, creationDate);              
+                        name, description, 0, callbackID, asset.FullID, asset.Type, invType,
+                        (uint)PermissionMask.All | (uint)PermissionMask.Export, // Base
+                        (uint)PermissionMask.All | (uint)PermissionMask.Export, // Current
+                        0, nextOwnerMask, 0, creationDate, false); // Data from viewer
             }
             else
             {

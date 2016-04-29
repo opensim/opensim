@@ -106,7 +106,8 @@ namespace OpenSim.Server.Handlers.AgentPreferences
                 return FailureResult();
             AgentPrefs prefs = m_AgentPreferencesService.GetAgentPreferences(userID);
             Dictionary<string, object> result = new Dictionary<string, object>();
-            result = prefs.ToKeyValuePairs();
+            if (prefs != null)
+                result = prefs.ToKeyValuePairs();
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
 
