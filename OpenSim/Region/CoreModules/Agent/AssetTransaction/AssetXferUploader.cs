@@ -429,7 +429,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
             m_transactions.RemoveXferUploader(m_transactionID);
 
-            m_Scene.EventManager.TriggerOnNewInventoryItemUploadComplete(ourClient.AgentId, (AssetType)type, m_asset.FullID, m_asset.Name, 0);
+            m_Scene.EventManager.TriggerOnNewInventoryItemUploadComplete(item, 0);
         }
 
         /// <summary>

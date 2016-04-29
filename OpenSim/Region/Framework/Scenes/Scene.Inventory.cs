@@ -149,7 +149,7 @@ namespace OpenSim.Region.Framework.Scenes
                     userlevel = 1;
                 }
                 if (trigger)
-                    EventManager.TriggerOnNewInventoryItemUploadComplete(item.Owner, (AssetType)item.AssetType, item.AssetID, item.Name, userlevel);
+                    EventManager.TriggerOnNewInventoryItemUploadComplete(item, userlevel);
 
                 return true;
             }
@@ -191,7 +191,7 @@ namespace OpenSim.Region.Framework.Scenes
                     userlevel = 1;
                 }
                 if (trigger)
-                    EventManager.TriggerOnNewInventoryItemUploadComplete(item.Owner, (AssetType)item.AssetType, item.AssetID, item.Name, userlevel);
+                    EventManager.TriggerOnNewInventoryItemUploadComplete(item, userlevel);
 
                 if (originalFolder != UUID.Zero)
                 {

@@ -58,7 +58,7 @@ namespace OpenSim.Region.ClientStack.Linden
         string assetName, string description, UUID assetID, UUID inventoryItem, UUID parentFolder,
         byte[] data, string inventoryType, string assetType,
         int cost, UUID texturesFolder, int nreqtextures, int nreqmeshs, int nreqinstances,
-        bool IsAtestUpload, ref string error);
+        bool IsAtestUpload, ref string error, ref int nextOwnerMask, ref int groupMask, ref int everyoneMask);
 
     public delegate UUID UpdateItem(UUID itemID, byte[] data);
 
@@ -666,7 +666,8 @@ namespace OpenSim.Region.ClientStack.Linden
             AssetUploader uploader =
                 new AssetUploader(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type,
                         llsdRequest.asset_type, capsBase + uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile, cost,
-                        texturesFolder, nreqtextures, nreqmeshs, nreqinstances, IsAtestUpload);
+                        texturesFolder, nreqtextures, nreqmeshs, nreqinstances, IsAtestUpload,
+                        llsdRequest.next_owner_mask, llsdRequest.group_mask, llsdRequest.everyone_mask);
 
             m_HostCapsObj.HttpListener.AddStreamHandler(
                 new BinaryStreamHandler(
@@ -713,9 +714,9 @@ namespace OpenSim.Region.ClientStack.Linden
                                           UUID inventoryItem, UUID parentFolder, byte[] data, string inventoryType,
                                           string assetType, int cost,
                                           UUID texturesFolder, int nreqtextures, int nreqmeshs, int nreqinstances,
-                                          bool IsAtestUpload, ref string error)
+                                          bool IsAtestUpload, ref string error,
+                                          ref int nextOwnerMask, ref int groupMask, ref int everyoneMask)
         {
-
             lock (m_ModelCost)
                 m_FileAgentInventoryState = FileAgentInventoryState.processUpload;
 
@@ -1081,7 +1082,13 @@ namespace OpenSim.Region.ClientStack.Linden
                         {
                             prim.BaseMask = (uint)PermissionMask.All | (uint)PermissionMask.Export;
                             prim.OwnerMask = (uint)PermissionMask.All | (uint)PermissionMask.Export;
-                            prim.NextOwnerMask = (uint)PermissionMask.Transfer;
+                            prim.GroupMask = prim.BaseMask & (uint)groupMask;
+                            prim.EveryoneMask = prim.BaseMask & (uint)everyoneMask;
+                            prim.NextOwnerMask = prim.BaseMask & (uint)nextOwnerMask;
+                            // If the viewer gives us bogus permissions, revert to the SL
+                            // default of transfer only.
+                            if ((prim.NextOwnerMask & (uint)PermissionMask.All) == 0)
+                                prim.NextOwnerMask = (uint)PermissionMask.Transfer;
                         }
 
                         if(istest)
@@ -1191,6 +1198,7 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 item.BasePermissions = (uint)(PermissionMask.Move | PermissionMask.Modify);
                 item.CurrentPermissions = (uint)(PermissionMask.Move | PermissionMask.Modify);
+                item.GroupPermissions = 0;
                 item.EveryOnePermissions = 0;
                 item.NextPermissions = 0;
             }
@@ -1198,11 +1206,18 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 item.BasePermissions = (uint)PermissionMask.All | (uint)PermissionMask.Export;
                 item.CurrentPermissions = (uint)PermissionMask.All | (uint)PermissionMask.Export;
-                item.EveryOnePermissions = 0;
-                item.NextPermissions = (uint)PermissionMask.Transfer;
+                item.GroupPermissions = item.BasePermissions & (uint)groupMask;
+                item.EveryOnePermissions = item.BasePermissions & (uint)everyoneMask;
+                item.NextPermissions = item.BasePermissions & (uint)nextOwnerMask;
+                if ((item.NextPermissions & (uint)PermissionMask.All) == 0)
+                    item.NextPermissions = (uint)PermissionMask.Transfer;
             }
 
             item.CreationDate = Util.UnixTimeSinceEpoch();
+
+            everyoneMask = (int)item.EveryOnePermissions;
+            groupMask = (int)item.GroupPermissions;
+            nextOwnerMask = (int)item.NextPermissions;
 
             m_Scene.TryGetClient(m_HostCapsObj.AgentID, out client);
 
@@ -1592,12 +1607,17 @@ namespace OpenSim.Region.ClientStack.Linden
         private int m_nreqmeshs;
         private int m_nreqinstances;
         private bool m_IsAtestUpload;
+
+        private int m_nextOwnerMask;
+        private int m_groupMask;
+        private int m_everyoneMask;
+
         
         public AssetUploader(string assetName, string description, UUID assetID, UUID inventoryItem,
                                 UUID parentFolderID, string invType, string assetType, string path,
                                 IHttpServer httpServer, bool dumpAssetsToFile,
                                 int totalCost, UUID texturesFolder, int nreqtextures, int nreqmeshs, int nreqinstances,
-                                bool IsAtestUpload)
+                                bool IsAtestUpload, int nextOwnerMask, int groupMask, int everyoneMask)
         {
             m_assetName = assetName;
             m_assetDes = description;
@@ -1621,6 +1641,10 @@ namespace OpenSim.Region.ClientStack.Linden
             m_timeoutTimer.Interval = 120000;
             m_timeoutTimer.AutoReset = false;
             m_timeoutTimer.Start();
+
+            m_nextOwnerMask = nextOwnerMask;
+            m_groupMask = groupMask;
+            m_everyoneMask = everyoneMask;
         }
 
         /// <summary>
@@ -1661,8 +1685,13 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 handlerUpLoad(m_assetName, m_assetDes, newAssetID, inv, parentFolder, data, m_invType, m_assetType,
                     m_cost, m_texturesFolder, m_nreqtextures, m_nreqmeshs, m_nreqinstances, m_IsAtestUpload,
-                    ref m_error);
+                    ref m_error, ref m_nextOwnerMask, ref m_groupMask, ref m_everyoneMask);
             }
+
+            uploadComplete.new_next_owner_mask = m_nextOwnerMask;
+            uploadComplete.new_group_mask = m_groupMask;
+            uploadComplete.new_everyone_mask = m_everyoneMask;
+
             if (m_IsAtestUpload)
             {
                 LLSDAssetUploadError resperror = new LLSDAssetUploadError();

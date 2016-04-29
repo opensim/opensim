@@ -40,6 +40,10 @@ namespace OpenSim.Framework.Capabilities
         public string state = String.Empty;
         public LLSDAssetUploadError error = null;
         //public bool success = false;
+        public int new_next_owner_mask = 0;
+        public int new_group_mask = 0;
+        public int new_everyone_mask = 0;
+        public int inventory_item_flags = 0;
 
         public LLSDAssetUploadComplete()
         {
