@@ -11918,7 +11918,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (m_ScriptEngine.Config.GetBoolean("AllowGodFunctions", false))
             {
-                if (World.Permissions.CanRunConsoleCommand(m_host.OwnerID))
+                if (World.Permissions.IsAdministrator(m_host.OwnerID))
                 {
                     if (mask == ScriptBaseClass.MASK_BASE)//0
                     {
@@ -11980,7 +11980,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (m_ScriptEngine.Config.GetBoolean("AllowGodFunctions", false))
             {
-                if (World.Permissions.CanRunConsoleCommand(m_host.OwnerID))
+                if (World.Permissions.IsAdministrator(m_host.OwnerID))
                 {
                     TaskInventoryItem item = m_host.Inventory.GetInventoryItem(itemName);
 
