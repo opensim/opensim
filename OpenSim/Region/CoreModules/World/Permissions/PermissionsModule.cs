@@ -1508,7 +1508,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            return GenericParcelOwnerPermission(user, parcel, (ulong)GroupPowers.LandSetSale, false);
+            return GenericParcelOwnerPermission(user, parcel, (ulong)GroupPowers.LandSetSale, true);
         }
 
         private bool CanTakeObject(UUID objectID, UUID stealer, Scene scene)
