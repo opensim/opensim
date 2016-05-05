@@ -121,7 +121,8 @@ namespace OpenSim.Framework.Monitoring
             Thread thread = new Thread(start);
             thread.Priority = priority;
             thread.IsBackground = isBackground;
-
+            thread.Name = name;
+            
             Watchdog.ThreadWatchdogInfo twi
                 = new Watchdog.ThreadWatchdogInfo(thread, timeout, name)
             { AlarmIfTimeout = alarmIfTimeout, AlarmMethod = alarmMethod };
@@ -129,7 +130,7 @@ namespace OpenSim.Framework.Monitoring
             Watchdog.AddThread(twi, name, log:log);
 
             thread.Start();
-            thread.Name = name;
+
 
             return thread;
         }

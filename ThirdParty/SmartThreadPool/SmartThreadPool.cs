@@ -689,9 +689,10 @@ namespace Amib.Threading
 #if !(_SILVERLIGHT) && !(WINDOWS_PHONE)
                     workerThread.Priority = _stpStartInfo.ThreadPriority;
 #endif
-                    workerThread.Start();
                     workerThread.Name = string.Format("STP:{0}:{1}", Name, _threadCounter);
-					++_threadCounter;
+                    workerThread.Start();
+
+                    ++_threadCounter;
 
                     // Add it to the dictionary and update its creation time.
                     _workerThreads[workerThread] = new ThreadEntry(this);
