@@ -187,7 +187,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             InventoryFolderBase f = new InventoryFolderBase(folderID, remoteClient.AgentId);
             InventoryFolderBase folder = m_Scene.InventoryService.GetFolder(f);
 
-            if (folder == null)
+            if (folder == null && Enum.IsDefined(typeof(FolderType), (sbyte)invType))
             {
                 folder = m_Scene.InventoryService.GetFolderForType(remoteClient.AgentId, (FolderType)invType);
                 if (folder != null)
