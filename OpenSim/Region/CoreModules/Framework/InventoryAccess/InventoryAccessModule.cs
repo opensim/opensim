@@ -187,6 +187,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             InventoryFolderBase f = new InventoryFolderBase(folderID, remoteClient.AgentId);
             InventoryFolderBase folder = m_Scene.InventoryService.GetFolder(f);
 
+            if (folder == null)
+            {
+                folder = m_Scene.InventoryService.GetFolderForType(remoteClient.AgentId, (FolderType)invType);
+                if (folder != null)
+                    m_log.DebugFormat("[INVENTORY ACCESS MODULE]: Requested folder not found but found folder for type {0}", invType);
+            }
+
             if (folder == null || folder.Owner != remoteClient.AgentId)
                 return;
 
