@@ -1874,6 +1874,43 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     "dataserver", resobj, new DetectParams[0]));
         }
 
+
+        /// <summary>
+        /// Similar to llDie but given an object UUID
+        /// </summary>
+        /// <param name="objectUUID"></param>
+
+        public void osDie(LSL_Key objectUUID)
+        {
+            CheckThreatLevel(ThreatLevel.VeryHigh, "osDie");
+            m_host.AddScriptLPS(1);
+
+            UUID objUUID;
+            if (!UUID.TryParse(objectUUID, out objUUID)) // prior to patching, a thrown exception regarding invalid GUID format would be shouted instead.
+            {
+                OSSLShoutError("osDie() cannot delete objects with invalid UUIDs");
+                return;
+            }
+
+            DeleteObject(objUUID);
+        }
+
+        private void DeleteObject(UUID objUUID)
+        {
+            SceneObjectGroup sceneOG = World.GetSceneObjectGroup(objUUID);
+
+            if (sceneOG == null) // prior to patching, PostObjectEvent() would cause a throw exception to be shouted instead.
+            {
+                OSSLShoutError("osDie() cannot delete " + objUUID.ToString() + ", object was not found in scene.");
+                return;
+            }
+
+            if (sceneOG.OwnerID != m_host.OwnerID)
+                return;
+
+            World.DeleteSceneObject(sceneOG, false);
+        }
+
         /// <summary>
         /// Write a notecard directly to the prim's inventory.
         /// </summary>
