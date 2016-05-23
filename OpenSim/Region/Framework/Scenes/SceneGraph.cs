@@ -219,6 +219,7 @@ namespace OpenSim.Region.Framework.Scenes
             // position).
             //
             // Therefore, JointMoved and JointDeactivated events will be fired as a result of the following Simulate().
+
             return PhysicsScene.Simulate((float)elapsed);
         }
 
