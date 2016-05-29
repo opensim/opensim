@@ -135,6 +135,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osTerrainFlush();
 
         int osRegionRestart(double seconds);
+        int osRegionRestart(double seconds, string msg);
         void osRegionNotice(string msg);
         bool osConsoleCommand(string Command);
         void osSetParcelMediaURL(string url);

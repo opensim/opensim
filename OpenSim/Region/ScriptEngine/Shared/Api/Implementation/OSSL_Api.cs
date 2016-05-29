@@ -523,29 +523,65 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (seconds < 15)
                 {
-                    restartModule.AbortRestart("Restart aborted");
+                    restartModule.AbortRestart("Region restart has been aborted\n");
                     return 1;
                 }
 
-                List<int> times = new List<int>();
-                while (seconds > 0)
-                {
-                    times.Add((int)seconds);
-                    if (seconds > 300)
-                        seconds -= 120;
-                    else if (seconds > 30)
-                        seconds -= 30;
-                    else
-                        seconds -= 15;
-                }
-
-                restartModule.ScheduleRestart(UUID.Zero, "Region will restart in {0}", times.ToArray(), true);
+                RegionRestart(seconds, String.Empty);
                 return 1;
             }
             else
             {
                 return 0;
             }
+        }
+
+        public int osRegionRestart(double seconds, string msg)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osRegionRestart");
+
+            IRestartModule restartModule = World.RequestModuleInterface<IRestartModule>();
+            m_host.AddScriptLPS(1);
+            if (World.Permissions.CanIssueEstateCommand(m_host.OwnerID, false) && (restartModule != null))
+            {
+                if (seconds < 15)
+                {
+                    restartModule.AbortRestart("Region restart has been aborted\n");
+                    return 1;
+                }
+
+                RegionRestart(seconds, msg);
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        private void RegionRestart(double seconds, string msg)
+        {
+            IRestartModule restartModule = World.RequestModuleInterface<IRestartModule>();
+
+            List<int> times = new List<int>();
+            while (seconds > 0)
+            {
+                times.Add((int)seconds);
+                if (seconds > 300)
+                    seconds -= 120;
+                else if (seconds > 120)
+                    seconds -= 60;
+                else if (seconds > 60)
+                    seconds -= 30;
+                else
+                    seconds -= 15;
+            }
+
+            if (msg == String.Empty)
+                restartModule.ScheduleRestart(UUID.Zero, "Region: " + World.RegionInfo.RegionName + " is about to restart.\n\nIf You stay here You will be logged out.\n\n\nTime remained: {0}.\n", times.ToArray(), true);
+
+            else
+                restartModule.ScheduleRestart(UUID.Zero, msg + "\n\nTime remained: {0}.\n", times.ToArray(), true);
         }
 
         public void osRegionNotice(string msg)

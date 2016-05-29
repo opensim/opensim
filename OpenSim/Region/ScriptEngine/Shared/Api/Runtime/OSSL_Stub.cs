@@ -209,6 +209,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osRegionRestart(seconds);
         }
 
+        public int osRegionRestart(double seconds, string msg)
+        {
+            return m_OSSL_Functions.osRegionRestart(seconds, msg);
+        }
+
         public void osRegionNotice(string msg)
         {
             m_OSSL_Functions.osRegionNotice(msg);
