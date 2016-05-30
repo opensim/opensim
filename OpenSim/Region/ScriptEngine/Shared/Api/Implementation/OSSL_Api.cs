@@ -578,10 +578,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             if (msg == String.Empty)
-                restartModule.ScheduleRestart(UUID.Zero, "Region: " + World.RegionInfo.RegionName + " is about to restart.\n\nIf You stay here You will be logged out.\n\n\nTime remained: {0}.\n", times.ToArray(), true);
+                restartModule.ScheduleRestart(UUID.Zero, "Region: " + World.RegionInfo.RegionName + " is about to restart.\n\nIf you stay here you will be logged out.\n\n\nTime remaining: {0}.\n", times.ToArray(), true);
 
             else
-                restartModule.ScheduleRestart(UUID.Zero, msg + "\n\nTime remained: {0}.\n", times.ToArray(), true);
+                restartModule.ScheduleRestart(UUID.Zero, msg + "\n\nTime remaining: {0}.\n", times.ToArray(), true);
         }
 
         public void osRegionNotice(string msg)
