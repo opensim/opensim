@@ -209,7 +209,14 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
         }
 
-        public void PostInventoryAsset(InventoryItemBase item, int userlevel)
+        private void PostInventoryAsset(InventoryItemBase item, int userlevel)
+        {
+            InventoryFolderBase f = m_Scene.InventoryService.GetFolderForType(item.Owner, FolderType.Trash);
+            if (f == null || (f != null && item.Folder != f.ID))
+                PostInventoryAsset(item.Owner, (AssetType)item.AssetType, item.AssetID, item.Name, userlevel);
+        }
+
+        private void PostInventoryAsset(UUID avatarID, AssetType type, UUID assetID, string name, int userlevel)
         {
             if (item.AssetType == (int)AssetType.Link)
                 return;
