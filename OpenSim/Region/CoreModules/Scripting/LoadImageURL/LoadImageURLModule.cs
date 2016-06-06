@@ -268,6 +268,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
             catch (WebException)
             {
             }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[LOADIMAGEURLMODULE]: unexpected exception {0}", e.Message);
+            }
             finally
             {
                 if (stream != null)
