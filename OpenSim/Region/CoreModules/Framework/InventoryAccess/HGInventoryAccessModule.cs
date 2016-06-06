@@ -218,13 +218,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         private void PostInventoryAsset(UUID avatarID, AssetType type, UUID assetID, string name, int userlevel)
         {
-            if (item.AssetType == (int)AssetType.Link)
+            if (type == AssetType.Link)
                 return;
 
             string userAssetServer = string.Empty;
-            if (IsForeignUser(item.Owner, out userAssetServer) && userAssetServer != string.Empty && m_OutboundPermission)
+            if (IsForeignUser(avatarID, out userAssetServer) && userAssetServer != string.Empty && m_OutboundPermission)
             {
-                m_assMapper.Post(item.AssetID, item.Owner, userAssetServer);
+                m_assMapper.Post(assetID, avatarID, userAssetServer);
             }
         }
 
