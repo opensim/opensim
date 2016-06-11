@@ -179,9 +179,7 @@ namespace OpenSim.Groups
             scene.EventManager.OnMakeRootAgent += OnMakeRoot;
             scene.EventManager.OnMakeChildAgent += OnMakeChild;
             scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
-            // The InstantMessageModule itself doesn't do this, 
-            // so lets see if things explode if we don't do it
-            // scene.EventManager.OnClientClosed += OnClientClosed;
+            scene.EventManager.OnClientClosed += OnClientClosed;
 
         }
 
@@ -246,9 +244,11 @@ namespace OpenSim.Groups
             // Used for Notices and Group Invites/Accept/Reject
             sp.ControllingClient.OnInstantMessage += OnInstantMessage;
 
-            // we should send a DataUpdate here for compatibility,
-            // but this is a bad place and a bad thread to do it
-            // also current viewers do ignore it and ask later on a much nicer thread 
+            // Send out group data update for compatibility.
+            // There might be some problem with the thread we're generating this on but not
+            //   doing the update at this time causes problems (Mantis #7920 and #7915)
+            // TODO: move sending this update to a later time in the rootification of the client.
+            SendAgentGroupDataUpdate(sp.ControllingClient, false);
         }
 
         private void OnMakeChild(ScenePresence sp)
@@ -315,6 +315,8 @@ namespace OpenSim.Groups
                 return;
 
             SendAgentGroupDataUpdate(remoteClient, false);
+
+            // also current viewers do ignore it and ask later on a much nicer thread 
             // its a info request not a change, so nothing is sent to others
             // they do get the group title with the avatar object update on arrivel to a region
         }
@@ -578,6 +580,10 @@ namespace OpenSim.Groups
 
             m_groupData.SetAgentActiveGroup(GetRequestingAgentIDStr(remoteClient), GetRequestingAgentIDStr(remoteClient), groupID);
 
+            // Changing active group changes title, active powers, all kinds of things
+            // anyone who is in any region that can see this client, should probably be 
+            // updated with new group info.  At a minimum, they should get ScenePresence
+            // updated with new title.
             SendAgentGroupDataUpdate(remoteClient, true);
         }
 
@@ -1240,7 +1246,7 @@ namespace OpenSim.Groups
             GroupMembershipData[] membershipArray = GetProfileListedGroupMemberships(remoteClient, agentID);
             remoteClient.SendAgentGroupDataUpdate(agentID, membershipArray);
 
-           remoteClient.RefreshGroupMembership();
+            remoteClient.RefreshGroupMembership();
         }
 
         /// <summary>
