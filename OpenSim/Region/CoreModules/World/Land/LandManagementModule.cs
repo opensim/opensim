@@ -526,7 +526,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                 ILandObject newover = GetLandObject(pos.X, pos.Y);
                 if(over != newover || avatar.currentParcelUUID != newover.LandData.GlobalID)
                 {
-                    avatar.currentParcelUUID = newover.LandData.GlobalID;
                     m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar,
                             newover.LandData.LocalID, m_scene.RegionInfo.RegionID);
                 }
