@@ -2809,8 +2809,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             group.DeleteGroupFromScene(silent);
-            if (!silent)
-                SendKillObject(new List<uint>() { group.LocalId });
 
             // use this to mean also full delete
             if (removeScripts)
