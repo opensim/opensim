@@ -1998,9 +1998,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (Scene != null)
                 {
-                    Scene.ForEachRootScenePresence(delegate(ScenePresence avatar)
+                    Scene.ForEachScenePresence(delegate(ScenePresence avatar)
                     {
-                        if (avatar.ParentID == LocalId)
+                        if (!avatar.IsChildAgent && avatar.ParentID == LocalId)
                             avatar.StandUp();
 
                         if (!silent)
