@@ -357,7 +357,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// All manipulation of this set has to occur under an m_entityUpdates.SyncRoot lock
         ///
         /// </value>
-//        protected HashSet<uint> m_killRecord;
+        protected List<uint> m_killRecord;
 
 //        protected HashSet<uint> m_attachmentsSent;
 
@@ -509,7 +509,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_entityUpdates = new PriorityQueue(m_scene.Entities.Count);
             m_entityProps = new PriorityQueue(m_scene.Entities.Count);
             m_fullUpdateDataBlocksBuilder = new List<ObjectUpdatePacket.ObjectDataBlock>();
-//            m_killRecord = new HashSet<uint>();
+            m_killRecord = new List<uint>();
 //            m_attachmentsSent = new HashSet<uint>();
 
             m_assetService = m_scene.RequestModuleInterface<IAssetService>();
@@ -3992,7 +3992,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             foreach (EntityUpdate update in updates)
                 ResendPrimUpdate(update);
         }
- 
+
         private void ProcessEntityUpdates(int maxUpdates)
         {
             OpenSim.Framework.Lazy<List<ObjectUpdatePacket.ObjectDataBlock>> objectUpdateBlocks = new OpenSim.Framework.Lazy<List<ObjectUpdatePacket.ObjectDataBlock>>();
@@ -4004,6 +4004,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OpenSim.Framework.Lazy<List<EntityUpdate>> compressedUpdates = new OpenSim.Framework.Lazy<List<EntityUpdate>>();
             OpenSim.Framework.Lazy<List<EntityUpdate>> terseUpdates = new OpenSim.Framework.Lazy<List<EntityUpdate>>();
             OpenSim.Framework.Lazy<List<EntityUpdate>> terseAgentUpdates = new OpenSim.Framework.Lazy<List<EntityUpdate>>();
+
 
             // Check to see if this is a flush
             if (maxUpdates <= 0)
@@ -4033,8 +4034,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     SceneObjectPart part = (SceneObjectPart)update.Entity;
 
-                    if (part.ParentGroup.IsDeleted || part.ParentGroup.inTransit)
+                    if (part.ParentGroup.inTransit)
                         continue;
+
+                    if (part.ParentGroup.IsDeleted)
+                    {
+                        // Don't send updates for objects that have been marked deleted.
+                        // Instead send another kill object, because the first one may have gotten
+                        // into a race condition
+                        if (!m_killRecord.Contains(part.ParentGroup.LocalId))
+                            m_killRecord.Add(part.ParentGroup.LocalId);
+                        continue;
+                    }
 
                     if (part.ParentGroup.IsAttachment)
                     {   // Someone else's HUD, why are we getting these?
@@ -4233,7 +4244,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     
                 for (int i = 0; i < blocks.Count; i++)
                     packet.ObjectData[i] = blocks[i];
-    
+
                 OutPacket(packet, ThrottleOutPacketType.Task, true);
             }
     
@@ -4248,7 +4259,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 for (int i = 0; i < blocks.Count; i++)
                     packet.ObjectData[i] = blocks[i];
-    
+
                 OutPacket(packet, ThrottleOutPacketType.Task, true);
             }
     
@@ -4270,6 +4281,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             #endregion Packet Sending
+
+            #region Handle deleted objects
+            if (m_killRecord.Count > 0)
+            {
+                SendKillObject(m_killRecord);
+                m_killRecord.Clear();
+            }
+            #endregion
+
+
         }
 
         // hack.. dont use

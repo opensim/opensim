@@ -1987,6 +1987,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             // We need to keep track of this state in case this group is still queued for backup.
             IsDeleted = true;
+            HasGroupChanged = true;
 
             DetachFromBackup();
 
@@ -2010,7 +2011,13 @@ namespace OpenSim.Region.Framework.Scenes
                                 if (!IsAttachment
                                     || AttachedAvatar == avatar.ControllingClient.AgentId
                                     || !HasPrivateAttachmentPoint)
+                                {
+                                    // Send a kill object immediately
                                     avatar.ControllingClient.SendKillObject(new List<uint> { part.LocalId });
+                                    // Also, send a terse update; in case race conditions make the object pop again in the client,
+                                    // this update will send another kill object
+                                    m_rootPart.SendTerseUpdateToClient(avatar.ControllingClient);
+                                }
                             }
                         }
                     });
