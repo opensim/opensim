@@ -6409,7 +6409,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 else
                 {
                     // Y is the only valid direction
-                    edge.y = dir.y / Math.Abs(dir.y);
+                    edge.y = dir.y / Math.Abs(dir.y) * (World.RegionInfo.RegionSizeY / Constants.RegionSize);
                 }
             }
             else
@@ -6431,20 +6431,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (edge.y > World.RegionInfo.RegionSizeY || edge.y < 0)
                 {
                     // Y goes out of bounds first
-                    edge.y = dir.y / Math.Abs(dir.y);
+                    edge.y = dir.y / Math.Abs(dir.y) * (World.RegionInfo.RegionSizeY / Constants.RegionSize);
                 }
                 else
                 {
                     // X goes out of bounds first or its a corner exit
                     edge.y = 0;
-                    edge.x = dir.x / Math.Abs(dir.x);
+                    edge.x = dir.x / Math.Abs(dir.x) * (World.RegionInfo.RegionSizeY / Constants.RegionSize);
                 }
             }
 
             List<GridRegion> neighbors = World.GridService.GetNeighbours(World.RegionInfo.ScopeID, World.RegionInfo.RegionID);
 
-            uint neighborX = World.RegionInfo.RegionLocX + (uint)dir.x;
-            uint neighborY = World.RegionInfo.RegionLocY + (uint)dir.y;
+            uint neighborX = World.RegionInfo.RegionLocX + (uint)edge.x;
+            uint neighborY = World.RegionInfo.RegionLocY + (uint)edge.y;
 
             foreach (GridRegion sri in neighbors)
             {
