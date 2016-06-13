@@ -54,7 +54,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     public class LLUDPServerShim : INonSharedRegionModule
     {
         protected IConfigSource m_Config;
-        LLUDPServer m_udpServer;
+        protected LLUDPServer m_udpServer;
 
         #region INonSharedRegionModule
         public virtual string Name
