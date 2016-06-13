@@ -5290,11 +5290,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 angularVelocity = presence.AngularVelocity;
                 rotation = presence.Rotation;
 
-                attachPoint = 0;
 //                m_log.DebugFormat(
 //                    "[LLCLIENTVIEW]: Sending terse update to {0} with position {1} in {2}", Name, presence.OffsetPosition, m_scene.Name);
 
-                // attachPoint = presence.State; // Core: commented
+                attachPoint = presence.State;
                 collisionPlane = presence.CollisionPlane;
                 velocity = presence.Velocity;
                 acceleration = Vector3.Zero;
