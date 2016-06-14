@@ -70,6 +70,7 @@ namespace OpenSim.Server.Handlers.Grid
             sr.Close();
             body = body.Trim();
 
+            m_log.DebugFormat("[TEST]: ProcessRequest client IP is {0}", httpRequest.RemoteIPEndPoint.ToString());
             //m_log.DebugFormat("[XXX]: query String: {0}", body);
 
             try
