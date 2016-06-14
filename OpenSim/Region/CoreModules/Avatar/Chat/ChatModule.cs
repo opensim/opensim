@@ -45,18 +45,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private const int DEBUG_CHANNEL = 2147483647;
+        protected const int DEBUG_CHANNEL = 2147483647;
 
-        private bool m_enabled = true;
-        private int m_saydistance = 20;
-        private int m_shoutdistance = 100;
-        private int m_whisperdistance = 10;
-        private List<Scene> m_scenes = new List<Scene>();
-        private List<string> FreezeCache = new List<string>();
-        private string m_adminPrefix = "";
-        internal object m_syncy = new object();
+        protected bool m_enabled = true;
+        protected int m_saydistance = 20;
+        protected int m_shoutdistance = 100;
+        protected int m_whisperdistance = 10;
+        protected List<Scene> m_scenes = new List<Scene>();
+        protected List<string> FreezeCache = new List<string>();
+        protected string m_adminPrefix = "";
+        protected object m_syncy = new object();
 
-        internal IConfig m_config;
+        protected IConfig m_config;
 
         #region ISharedRegionModule Members
         public virtual void Initialise(IConfigSource config)
@@ -134,7 +134,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         {
         }
 
-        public Type ReplaceableInterface 
+        public virtual Type ReplaceableInterface 
         {
             get { return null; }
         }
@@ -152,7 +152,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             client.OnChatFromClient += OnChatFromClient;
         }
 
-        protected OSChatMessage FixPositionOfChatMessage(OSChatMessage c)
+        protected virtual OSChatMessage FixPositionOfChatMessage(OSChatMessage c)
         {
             ScenePresence avatar;
             Scene scene = (Scene)c.Scene;
@@ -324,7 +324,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 fromID, receiverIDs, message, c.Type, fromPos, fromName, sourceType, ChatAudibleLevel.Fully);
         }
 
-        static private Vector3 CenterOfRegion = new Vector3(128, 128, 30);
+        static protected Vector3 CenterOfRegion = new Vector3(128, 128, 30);
         
         public virtual void OnChatBroadcast(Object sender, OSChatMessage c)
         {
@@ -437,7 +437,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         }
 
         Dictionary<UUID, System.Threading.Timer> Timers = new Dictionary<UUID, System.Threading.Timer>();
-        public void ParcelFreezeUser(IClientAPI client, UUID parcelowner, uint flags, UUID target)
+        public virtual void ParcelFreezeUser(IClientAPI client, UUID parcelowner, uint flags, UUID target)
         {
             System.Threading.Timer Timer;
             if (flags == 0)
@@ -456,7 +456,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             }
         }
 
-        private void OnEndParcelFrozen(object avatar)
+        protected virtual void OnEndParcelFrozen(object avatar)
         {
             UUID target = (UUID)avatar;
             FreezeCache.Remove(target.ToString());
@@ -467,9 +467,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         }
         #region SimulatorFeaturesRequest
 
-        static OSDInteger m_SayRange, m_WhisperRange, m_ShoutRange;
+        protected static OSDInteger m_SayRange, m_WhisperRange, m_ShoutRange;
 
-        private void OnSimulatorFeaturesRequest(UUID agentID, ref OSDMap features)
+        protected virtual void OnSimulatorFeaturesRequest(UUID agentID, ref OSDMap features)
         {
             OSD extras = new OSDMap();
             if (features.ContainsKey("OpenSimExtras"))
