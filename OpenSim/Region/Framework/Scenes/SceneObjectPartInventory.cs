@@ -1111,7 +1111,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="xferManager"></param>
         public void RequestInventoryFile(IClientAPI client, IXfer xferManager)
         {
-            m_log.DebugFormat("[XXX]: RequestInventoryFile");
+
             lock (m_inventoryFileLock)
             {
                 string filename = "inventory_" + UUID.Random().ToString() + ".tmp";
