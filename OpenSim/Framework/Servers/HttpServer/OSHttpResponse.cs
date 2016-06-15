@@ -322,10 +322,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             _httpResponse.Body.Flush();
 
-            // disable this till they are safe to use
-            _httpResponse.Connection = ConnectionType.Close;
-            _httpResponse.Chunked = false;
-
             _httpResponse.Send();
         }
 

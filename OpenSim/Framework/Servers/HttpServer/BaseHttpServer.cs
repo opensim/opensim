@@ -461,7 +461,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             
             OSHttpResponse resp = new OSHttpResponse(new HttpResponse(context, request),context);
-            resp.ReuseContext = false;
+            resp.ReuseContext = true;
             HandleRequest(req, resp);           
 
             // !!!HACK ALERT!!!
@@ -1270,8 +1270,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             requestStream.Close();
 
             //m_log.DebugFormat("[OGP]: {0}:{1}", request.RawUrl, requestBody);
-            // response.KeepAlive = true;
-            response.KeepAlive = false;
+            response.KeepAlive = true;
 
             OSD llsdRequest = null;
             OSD llsdResponse = null;
