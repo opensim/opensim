@@ -52,7 +52,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         #region ISharedRegionModule
 
-        public new void Initialise(IConfigSource config)
+        public override void Initialise(IConfigSource config)
         {
             string umanmod = config.Configs["Modules"].GetString("UserManagementModule", null);
             if (umanmod == Name)
