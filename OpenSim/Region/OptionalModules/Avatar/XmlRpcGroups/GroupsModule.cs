@@ -267,9 +267,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             // comented out because some viewers no longer suport it
             //  sp.ControllingClient.AddGenericPacketHandler("avatargroupsrequest", AvatarGroupsRequest);
 
-            // we should send a DataUpdate here for compatibility,
-            // but this is a bad place and a bad thread to do it
-            // also current viewers do ignore it and ask later on a much nicer thread 
+            // Send out group data update for compatibility.
+            // There might be some problem with the thread we're generating this on but not
+            //   doing the update at this time causes problems (Mantis #7920 and #7915)
+            // TODO: move sending this update to a later time in the rootification of the client.
+            SendAgentGroupDataUpdate(sp.ControllingClient, false);
         }
 
         private void OnMakeChild(ScenePresence sp)
