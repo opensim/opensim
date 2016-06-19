@@ -884,7 +884,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
         }
 
-        public void FinalizeLandPrimCountUpdate()
+        private void FinalizeLandPrimCountUpdate()
         {
             //Get Simwide prim count for owner
             Dictionary<UUID, List<LandObject>> landOwnersAndParcels = new Dictionary<UUID, List<LandObject>>();
@@ -925,10 +925,10 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void EventManagerOnParcelPrimCountUpdate()
         {
-//            m_log.DebugFormat(
-//                "[LAND MANAGEMENT MODULE]: Triggered EventManagerOnParcelPrimCountUpdate() for {0}", 
-//                m_scene.RegionInfo.RegionName);
-            
+            //m_log.DebugFormat(
+            //    "[land management module]: triggered eventmanageronparcelprimcountupdate() for {0}",
+            //    m_scene.RegionInfo.RegionName);
+
             ResetOverMeRecords();
             EntityBase[] entities = m_scene.Entities.GetEntities();
             foreach (EntityBase obj in entities)
@@ -1843,7 +1843,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             LLSDRemoteParcelResponse response = new LLSDRemoteParcelResponse();
             response.parcel_id = parcelID;
-            m_log.DebugFormat("[LAND MANAGEMENT MODULE]: Got parcelID {0}", parcelID);
+            //m_log.DebugFormat("[LAND MANAGEMENT MODULE]: Got parcelID {0}", parcelID);
 
             return LLSDHelpers.SerialiseLLSDReply(response);
         }
@@ -2306,12 +2306,14 @@ namespace OpenSim.Region.CoreModules.World.Land
             cdl.AddRow("Other clean time", ld.OtherCleanTime);
 
             cdl.AddRow("Max Prims", lo.GetParcelMaxPrimCount());
+            cdl.AddRow("Simwide Max Prims (owner)", lo.GetSimulatorMaxPrimCount());
             IPrimCounts pc = lo.PrimCounts;
             cdl.AddRow("Owner Prims", pc.Owner);
             cdl.AddRow("Group Prims", pc.Group);
             cdl.AddRow("Other Prims", pc.Others);
             cdl.AddRow("Selected Prims", pc.Selected);
             cdl.AddRow("Total Prims", pc.Total);
+            cdl.AddRow("SimWide Prims (owner)", pc.Simulator);
 
             cdl.AddRow("Music URL", ld.MusicURL);
             cdl.AddRow("Obscure Music", ld.ObscureMusic);

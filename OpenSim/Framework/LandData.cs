@@ -620,7 +620,7 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Number of meters^2 in the Simulator
+        /// Number of meters^2 that the land owner has in the Simulator
         /// </summary>
         [XmlIgnore]
         public int SimwideArea
