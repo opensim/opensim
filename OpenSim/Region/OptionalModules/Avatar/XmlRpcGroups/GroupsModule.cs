@@ -1372,7 +1372,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             SendDataUpdate(remoteClient,  tellOthers);
 
             GroupMembershipData[] membershipArray = GetProfileListedGroupMemberships(remoteClient, agentID);
-            remoteClient.SendAgentGroupDataUpdate(agentID, membershipArray);
+            IEventQueue eq = remoteClient.Scene.RequestModuleInterface<IEventQueue>();
+            eq.GroupMembershipData(GetRequestingAgentID(remoteClient), membershipArray);
 
             remoteClient.RefreshGroupMembership();
          }

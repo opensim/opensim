@@ -162,6 +162,11 @@ namespace OpenSim.Tests.Common
             AddEvent(avatarID, "GroupMembership", groupUpdate);
         }
 
+        public void GroupMembershipData(UUID receiverAgent, GroupMembershipData[] data)
+        {
+            AddEvent(receiverAgent, "AgentGroupDataUpdate", data);
+        }
+
         public OSD ScriptRunningEvent (UUID objectID, UUID itemID, bool running, bool mono)
         {
             Console.WriteLine("ONE");

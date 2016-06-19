@@ -32,6 +32,8 @@ using OpenMetaverse.Packets;
 using OpenMetaverse.StructuredData;
 using OpenMetaverse.Messages.Linden;
 
+using OpenSim.Framework;
+
 namespace OpenSim.Region.ClientStack.Linden
 {
     public class EventQueueHelper
@@ -364,7 +366,53 @@ namespace OpenSim.Region.ClientStack.Linden
 
             return groupUpdate;
         }
-        
+
+        public static OSD GroupMembershipData(UUID receiverAgent, GroupMembershipData[] data)
+        {
+            OSDArray AgentData = new OSDArray(1);
+            OSDMap AgentDataMap = new OSDMap(1);
+            AgentDataMap.Add("AgentID", OSD.FromUUID(receiverAgent));
+            AgentData.Add(AgentDataMap);
+
+            OSDArray GroupData = new OSDArray(data.Length);
+            OSDArray NewGroupData = new OSDArray(data.Length);
+
+            foreach (GroupMembershipData membership in data)
+            {
+                //if (receiverAgent != dataForAgentID)
+                //{
+                //    if (!membership.ListInProfile)
+                //    {
+                //        // If we're sending group info to remoteclient about another agent, 
+                //        // filter out groups the other agent doesn't want to share.
+                //        continue;
+                //    }
+                //}
+
+                OSDMap GroupDataMap = new OSDMap(6);
+                OSDMap NewGroupDataMap = new OSDMap(1);
+
+                GroupDataMap.Add("GroupID", OSD.FromUUID(membership.GroupID));
+                GroupDataMap.Add("GroupPowers", OSD.FromULong(membership.GroupPowers));
+                GroupDataMap.Add("AcceptNotices", OSD.FromBoolean(membership.AcceptNotices));
+                GroupDataMap.Add("GroupInsigniaID", OSD.FromUUID(membership.GroupPicture));
+                GroupDataMap.Add("Contribution", OSD.FromInteger(membership.Contribution));
+                GroupDataMap.Add("GroupName", OSD.FromString(membership.GroupName));
+                NewGroupDataMap.Add("ListInProfile", OSD.FromBoolean(membership.ListInProfile));
+
+                GroupData.Add(GroupDataMap);
+                NewGroupData.Add(NewGroupDataMap);
+            }
+
+            OSDMap llDataStruct = new OSDMap(3);
+            llDataStruct.Add("AgentData", AgentData);
+            llDataStruct.Add("GroupData", GroupData);
+            llDataStruct.Add("NewGroupData", NewGroupData);
+
+            return BuildEvent("AgentGroupDataUpdate", llDataStruct);
+
+        }
+
         public static OSD PlacesQuery(PlacesReplyPacket PlacesReply)
         {
             OSDMap placesReply = new OSDMap();
