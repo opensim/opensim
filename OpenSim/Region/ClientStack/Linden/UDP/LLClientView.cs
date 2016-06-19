@@ -2777,7 +2777,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Groupupdate.GroupData = Groups;
             Groupupdate.AgentData = new AgentGroupDataUpdatePacket.AgentDataBlock();
             Groupupdate.AgentData.AgentID = AgentId;
-            OutPacket(Groupupdate, ThrottleOutPacketType.Task);
+            //OutPacket(Groupupdate, ThrottleOutPacketType.Task);
 
             try
             {
