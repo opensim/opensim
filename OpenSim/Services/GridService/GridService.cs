@@ -799,14 +799,14 @@ namespace OpenSim.Services.GridService
                 return;
             }
 
-            List<RegionData> regions = m_Database.Get(int.MinValue, int.MinValue, int.MaxValue, int.MaxValue, UUID.Zero);
+            List<RegionData> regions = m_Database.Get(0, 0, int.MaxValue, int.MaxValue, UUID.Zero);
 
             OutputRegionsToConsoleSummary(regions);
         }
 
         private void HandleShowGridSize(string module, string[] cmd)
         {
-            List<RegionData> regions = m_Database.Get(int.MinValue, int.MinValue, int.MaxValue, int.MaxValue, UUID.Zero);
+            List<RegionData> regions = m_Database.Get(0, 0, int.MaxValue, int.MaxValue, UUID.Zero);
 
             double size = 0;
 
