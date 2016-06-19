@@ -2571,7 +2571,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     AgentPrefs prefs = AgentPreferencesService.GetAgentPreferences(ownerID);
                     // Only apply user selected prefs if the user set them
-                    if (prefs.PermNextOwner != 0)
+                    if (prefs != null && prefs.PermNextOwner != 0)
                     {
                         sceneObject.RootPart.GroupMask = (uint)prefs.PermGroup;
                         sceneObject.RootPart.EveryoneMask = (uint)prefs.PermEveryone;
