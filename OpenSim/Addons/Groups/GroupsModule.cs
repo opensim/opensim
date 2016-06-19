@@ -194,6 +194,7 @@ namespace OpenSim.Groups
             scene.EventManager.OnMakeRootAgent -= OnMakeRoot;
             scene.EventManager.OnMakeChildAgent -= OnMakeChild;
             scene.EventManager.OnIncomingInstantMessage -= OnGridInstantMessage;
+            scene.EventManager.OnClientClosed -= OnClientClosed;
 
             lock (m_sceneList)
             {
