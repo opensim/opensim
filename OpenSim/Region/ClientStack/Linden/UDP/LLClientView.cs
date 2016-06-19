@@ -5076,11 +5076,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             
             if (landData.SimwideArea > 0)
             {
-                int simulatorCapacity = (int)((long)landData.SimwideArea * (long)m_scene.RegionInfo.ObjectCapacity * (long)m_scene.RegionInfo.RegionSettings.ObjectBonus / 65536L);
+                int simulatorCapacity = (int)((long)landData.SimwideArea * (long)m_scene.RegionInfo.ObjectCapacity * (long)m_scene.RegionInfo.RegionSettings.ObjectBonus 
+                                              / (long)m_scene.RegionInfo.RegionSizeX * m_scene.RegionInfo.RegionSizeY);
                 // Never report more than sim total capacity
                 if (simulatorCapacity > m_scene.RegionInfo.ObjectCapacity)
                     simulatorCapacity = m_scene.RegionInfo.ObjectCapacity;
-                updateMessage.SimWideMaxPrims = simulatorCapacity;
+                updateMessage.SimWideMaxPrims = simulatorCapacity; 
             }
             else
             {
@@ -5109,6 +5110,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updateMessage.TotalPrims        = pc.Total;
             updateMessage.SimWideTotalPrims = pc.Simulator;
 
+            //m_log.DebugFormat("[YYY]: SimWideMaxPrims={0} OwnerPrims={1} TotalPrims={2} SimWideTotalPrims={3} MaxPrims={4}",
+            //    updateMessage.SimWideMaxPrims, updateMessage.OwnerPrims, updateMessage.TotalPrims, updateMessage.SimWideTotalPrims, updateMessage.MaxPrims);
             try
             {
                 IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();

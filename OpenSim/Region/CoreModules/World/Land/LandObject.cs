@@ -350,22 +350,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
         }
 
-        private int GetParcelBasePrimCount()
-        {
-            if (overrideParcelMaxPrimCount != null)
-            {
-                return overrideParcelMaxPrimCount(this);
-            }
-            else
-            {
-                // Normal Calculations
-                int parcelMax = (int)((long)LandData.Area
-                              * (long)m_scene.RegionInfo.ObjectCapacity
-                              / 65536L);
-                return parcelMax;
-            }
-        }
-
         public int GetSimulatorMaxPrimCount()
         {
             if (overrideSimulatorMaxPrimCount != null)
@@ -378,7 +362,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 int simMax = (int)(   (long)LandData.SimwideArea
                                     * (long)m_scene.RegionInfo.ObjectCapacity
                                     / (long)(m_scene.RegionInfo.RegionSizeX * m_scene.RegionInfo.RegionSizeY) );
-                // m_log.DebugFormat("Simwide Area: {0}, Capacity {1}, SimMax {2}", LandData.SimwideArea, m_scene.RegionInfo.ObjectCapacity, simMax);
+                 //m_log.DebugFormat("Simwide Area: {0}, Capacity {1}, SimMax {2}", LandData.SimwideArea, m_scene.RegionInfo.ObjectCapacity, simMax);
                 return simMax;
             }
         }
@@ -416,7 +400,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             remote_client.SendLandProperties(seq_id,
                     snap_selection, request_result, this,
                     (float)m_scene.RegionInfo.RegionSettings.ObjectBonus,
-                    GetParcelBasePrimCount(),
+                    GetParcelMaxPrimCount(),
                     GetSimulatorMaxPrimCount(), regionFlags);
         }
 
