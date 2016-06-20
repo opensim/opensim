@@ -2123,11 +2123,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetOwnerId(UUID userId)
         {
-                ForEachPart(delegate(SceneObjectPart part) 
+                ForEachPart(delegate(SceneObjectPart part)
                 {
-                    part.LastOwnerID = part.OwnerID;
-                    part.OwnerID = userId;
-                    
+                    if (OwnerID != userId)
+                    {
+                        part.LastOwnerID = part.OwnerID;
+                        part.OwnerID = userId;
+                    }
                 });
         }
 
