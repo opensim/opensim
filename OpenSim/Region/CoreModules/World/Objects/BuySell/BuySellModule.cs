@@ -45,8 +45,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "BuySellModule")]
     public class BuySellModule : IBuySellModule, INonSharedRegionModule
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         protected Scene m_scene = null;
         protected IDialogModule m_dialogModule;
         
@@ -92,8 +92,18 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
             if (part.ParentGroup.IsDeleted)
                 return;
 
-            if (part.OwnerID != client.AgentId && (!m_scene.Permissions.IsGod(client.AgentId)))
+            if (part.OwnerID != part.GroupID && part.OwnerID != client.AgentId && (!m_scene.Permissions.IsGod(client.AgentId)))
                 return;
+
+            if (part.OwnerID == part.GroupID) // Group owned
+            {
+                // Does the user have the power to put the object on sale?
+                if (!m_scene.Permissions.CanSellGroupObject(client.AgentId, part.GroupID, m_scene))
+                {
+                    client.SendAgentAlertMessage("You don't have permission to set group-owned objects on sale", false);
+                    return;
+                }
+            }
 
             part = part.ParentGroup.RootPart;
 

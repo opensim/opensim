@@ -45,6 +45,7 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool DeleteObjectHandler(UUID objectID, UUID deleter, Scene scene);
     public delegate bool TransferObjectHandler(UUID objectID, UUID recipient, Scene scene);
     public delegate bool TakeObjectHandler(UUID objectID, UUID stealer, Scene scene);
+    public delegate bool SellGroupObjectHandler(UUID userID, UUID groupID, Scene scene);
     public delegate bool TakeCopyObjectHandler(UUID objectID, UUID userID, Scene inScene);
     public delegate bool DuplicateObjectHandler(int objectCount, UUID objectID, UUID owner, Scene scene, Vector3 objectPosition);
     public delegate bool EditObjectHandler(UUID objectID, UUID editorID, Scene scene);
@@ -114,6 +115,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event DeleteObjectHandler OnDeleteObject;
         public event TransferObjectHandler OnTransferObject;
         public event TakeObjectHandler OnTakeObject;
+        public event SellGroupObjectHandler OnSellGroupObject;
         public event TakeCopyObjectHandler OnTakeCopyObject;
         public event DuplicateObjectHandler OnDuplicateObject;
         public event EditObjectHandler OnEditObject;
@@ -327,6 +329,35 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         #endregion
+
+        #region SELL GROUP OBJECT
+        public bool CanSellGroupObject(UUID userID, UUID groupID, Scene scene)
+        {
+            bool result = true;
+
+            SellGroupObjectHandler handler = OnSellGroupObject;
+            if (handler != null)
+            {
+                Delegate[] list = handler.GetInvocationList();
+                foreach (SellGroupObjectHandler h in list)
+                {
+                    if (h(userID, groupID, scene) == false)
+                    {
+                        result = false;
+                        break;
+                    }
+                }
+            }
+
+            //m_log.DebugFormat(
+            //    "[SCENE PERMISSIONS]: CanSellGroupObject() fired for user {0}, group {1}, result {2}",
+            //    userID, groupID, result);
+
+            return result;
+        }
+
+        #endregion
+
 
         #region TAKE COPY OBJECT
         public bool CanTakeCopyObject(UUID objectID, UUID userID)

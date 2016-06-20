@@ -288,6 +288,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_scene.Permissions.OnCompileScript += CanCompileScript;
             m_scene.Permissions.OnSellParcel += CanSellParcel;
             m_scene.Permissions.OnTakeObject += CanTakeObject;
+            m_scene.Permissions.OnSellGroupObject += CanSellGroupObject;
             m_scene.Permissions.OnTakeCopyObject += CanTakeCopyObject;
             m_scene.Permissions.OnTerraformLand += CanTerraformLand;
             m_scene.Permissions.OnLinkObject += CanLinkObject; 
@@ -1509,6 +1510,14 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
             return GenericParcelOwnerPermission(user, parcel, (ulong)GroupPowers.LandSetSale, true);
+        }
+
+        private bool CanSellGroupObject(UUID userID, UUID groupID, Scene scene)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            return IsGroupMember(groupID, userID, (ulong)GroupPowers.ObjectSetForSale);
         }
 
         private bool CanTakeObject(UUID objectID, UUID stealer, Scene scene)
