@@ -2729,7 +2729,7 @@ namespace OpenSim.Region.Framework.Scenes
                         child.TriggerScriptChangedEvent(Changed.OWNER);
                     }
                 }
-                else
+                else // The object was deeded to the group
                 {
                     if (!Permissions.IsGod(remoteClient.AgentId) && sog.OwnerID != remoteClient.AgentId)
                         continue;
@@ -2739,18 +2739,21 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (sog.GroupID != groupID)
                         continue;
-                    
-                    SceneObjectPart[] partList = sog.Parts;
 
+                    sog.SetOwnerId(groupID);
+                    // Make the group mask be the previous owner mask
+                    sog.RootPart.GroupMask = sog.RootPart.OwnerMask;
+
+                    sog.ScheduleGroupForFullUpdate();
+
+                    SceneObjectPart[] partList = sog.Parts;
                     foreach (SceneObjectPart child in partList)
                     {
-                        child.LastOwnerID = child.OwnerID;
                         child.Inventory.ChangeInventoryOwner(groupID);
                         child.TriggerScriptChangedEvent(Changed.OWNER);
                     }
 
-                    sog.SetOwnerId(groupID);
-                    sog.ApplyNextOwnerPermissions();
+
                 }
             }
 

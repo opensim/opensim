@@ -2125,7 +2125,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
                 ForEachPart(delegate(SceneObjectPart part) 
                 {
-                    
+                    part.LastOwnerID = part.OwnerID;
                     part.OwnerID = userId;
                     
                 });
