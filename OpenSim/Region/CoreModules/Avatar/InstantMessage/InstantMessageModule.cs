@@ -154,6 +154,12 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         #endregion
 
+        public virtual void OnViewerInstantMessage(IClientAPI client, GridInstantMessage im)
+        {
+            im.fromAgentName = client.FirstName + " " + client.LastName;
+            OnInstantMessage(client, im);
+        }
+
         public virtual void OnInstantMessage(IClientAPI client, GridInstantMessage im)
         {
             byte dialog = im.dialog;
@@ -198,8 +204,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
             if (m_TransferModule != null)
             {
-                if (client != null)
-                    im.fromAgentName = client.FirstName + " " + client.LastName;
                 m_TransferModule.SendInstantMessage(im,
                     delegate(bool success)
                     {
