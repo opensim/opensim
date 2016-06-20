@@ -244,7 +244,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         public void Close()
         {
-            m_log.InfoFormat("[SIMIAN-GROUPS-CONNECTOR]: Closing {0}", this.Name);
         }
 
         public void AddRegion(OpenSim.Region.Framework.Scenes.Scene scene)
