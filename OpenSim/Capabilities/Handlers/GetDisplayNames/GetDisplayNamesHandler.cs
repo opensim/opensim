@@ -57,7 +57,7 @@ namespace OpenSim.Capabilities.Handlers
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         protected IUserManagement m_UserManagement;
 
-        public virtual GetDisplayNamesHandler(string path, IUserManagement umService, string name, string description)
+        public GetDisplayNamesHandler(string path, IUserManagement umService, string name, string description)
             : base("GET", path, name, description)
         {
             m_UserManagement = umService;
