@@ -442,12 +442,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                         OutgoingInstantMessage(msg, inviteInfo.AgentID);
 
-                        IClientAPI client = GetActiveClient(inviteInfo.AgentID);
-                        if (client != null)
-                            SendDataUpdate(remoteClient, true);
-
-                        // TODO: If the inviter is still online, they need an agent dataupdate 
-                        // and maybe group membership updates for the invitee
+                        UpdateAllClientsWithGroupInfo(inviteInfo.AgentID);
 
                         m_groupData.RemoveAgentToGroupInvite(GetRequestingAgentID(remoteClient), inviteID);
                     }
@@ -1207,8 +1202,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             // SL sends out messages to everyone in the group
             // Who all should receive updates and what should they be updated with?
             // just tell this the group change
-            SendAgentGroupDataUpdate(remoteClient, false);
-            // TODO fix the rest of sends
+            UpdateAllClientsWithGroupInfo(ejecteeID);
         }
 
         public void InviteGroupRequest(IClientAPI remoteClient, UUID groupID, UUID invitedAgentID, UUID roleID)
@@ -1353,15 +1347,43 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             }
         }
 
+        /// <summary>
+        /// Send updates to all clients who might be interested in groups data for dataForClientID
+        /// </summary>
+        private void UpdateAllClientsWithGroupInfo(UUID dataForClientID)
+        {
+            if (m_debugEnabled) m_log.InfoFormat("[Groups]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+
+            // TODO: Probably isn't nessesary to update every client in every scene.
+            // Need to examine client updates and do only what's nessesary.
+            lock (m_sceneList)
+            {
+                foreach (Scene scene in m_sceneList)
+                {
+                    scene.ForEachClient(delegate (IClientAPI client) { SendAgentGroupDataUpdate(client, dataForClientID); });
+                }
+            }
+        }
+
         public void SendAgentGroupDataUpdate(IClientAPI remoteClient)
         {
             SendAgentGroupDataUpdate(remoteClient, true);
         }
 
-         /// <summary>
-         /// Tell remoteClient about its agent groups, and optionally send title to others
-         /// </summary>
+        public void SendAgentGroupDataUpdate(IClientAPI remoteClient, UUID dataForClientID)
+        {
+            SendAgentGroupDataUpdate(remoteClient, dataForClientID, true);
+        }
+
         private void SendAgentGroupDataUpdate(IClientAPI remoteClient, bool tellOthers)
+        {
+            SendAgentGroupDataUpdate(remoteClient, GetRequestingAgentID(remoteClient), tellOthers);
+        }
+
+        /// <summary>
+        /// Tell remoteClient about its agent groups, and optionally send title to others
+        /// </summary>
+        private void SendAgentGroupDataUpdate(IClientAPI remoteClient, UUID dataForClientID, bool tellOthers)
         {
             if (m_debugEnabled) m_log.InfoFormat("[GROUPS]: {0} called for {1}", System.Reflection.MethodBase.GetCurrentMethod().Name, remoteClient.Name);
 
@@ -1373,7 +1395,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             GroupMembershipData[] membershipArray = GetProfileListedGroupMemberships(remoteClient, agentID);
             IEventQueue eq = remoteClient.Scene.RequestModuleInterface<IEventQueue>();
-            eq.GroupMembershipData(GetRequestingAgentID(remoteClient), membershipArray);
+            eq.GroupMembershipData(GetRequestingAgentID(remoteClient), dataForClientID, membershipArray);
 
             remoteClient.RefreshGroupMembership();
          }
