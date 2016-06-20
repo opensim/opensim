@@ -2743,6 +2743,7 @@ namespace OpenSim.Region.Framework.Scenes
                     sog.SetOwnerId(groupID);
                     // Make the group mask be the previous owner mask
                     sog.RootPart.GroupMask = sog.RootPart.OwnerMask;
+                    sog.ApplyNextOwnerPermissions();
 
                     sog.ScheduleGroupForFullUpdate();
 
