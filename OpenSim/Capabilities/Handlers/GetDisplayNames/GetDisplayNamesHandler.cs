@@ -55,9 +55,9 @@ namespace OpenSim.Capabilities.Handlers
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private IUserManagement m_UserManagement;
+        protected IUserManagement m_UserManagement;
 
-        public GetDisplayNamesHandler(string path, IUserManagement umService, string name, string description)
+        public virtual GetDisplayNamesHandler(string path, IUserManagement umService, string name, string description)
             : base("GET", path, name, description)
         {
             m_UserManagement = umService;
