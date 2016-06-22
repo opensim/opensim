@@ -57,16 +57,16 @@ namespace OpenSim.Region.ClientStack.Linden
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
-        private Scene m_scene;
-        private IUserManagement m_UserManager;
+        protected Scene m_scene;
+        protected IUserManagement m_UserManager;
 
-        private bool m_Enabled = false;
+        protected bool m_Enabled = false;
 
-        private string m_URL;
+        protected string m_URL;
 
         #region ISharedRegionModule Members
 
-        public void Initialise(IConfigSource source)
+        public virtual void Initialise(IConfigSource source)
         {
             IConfig config = source.Configs["ClientStack.LindenCaps"];
             if (config == null)
@@ -77,7 +77,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_Enabled = true;
         }
 
-        public void AddRegion(Scene s)
+        public virtual void AddRegion(Scene s)
         {
             if (!m_Enabled)
                 return;
@@ -85,7 +85,7 @@ namespace OpenSim.Region.ClientStack.Linden
             m_scene = s;
         }
 
-        public void RemoveRegion(Scene s)
+        public virtual void RemoveRegion(Scene s)
         {
             if (!m_Enabled)
                 return;
@@ -94,7 +94,7 @@ namespace OpenSim.Region.ClientStack.Linden
             m_scene = null;
         }
 
-        public void RegionLoaded(Scene s)
+        public virtual void RegionLoaded(Scene s)
         {
             if (!m_Enabled)
                 return;
@@ -103,22 +103,22 @@ namespace OpenSim.Region.ClientStack.Linden
             m_scene.EventManager.OnRegisterCaps += RegisterCaps;
         }
 
-        public void PostInitialise()
+        public virtual void PostInitialise()
         {
         }
 
-        public void Close() { }
+        public virtual void Close() { }
 
-        public string Name { get { return "GetDisplayNamesModule"; } }
+        public virtual string Name { get { return "GetDisplayNamesModule"; } }
 
-        public Type ReplaceableInterface
+        public virtual Type ReplaceableInterface
         {
             get { return null; }
         }
 
         #endregion
 
-        public void RegisterCaps(UUID agentID, Caps caps)
+        public virtual void RegisterCaps(UUID agentID, Caps caps)
         {
             UUID capID = UUID.Random();
 
