@@ -2954,52 +2954,8 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
 
-            // If the user is banned, we won't let any of their objects
-            // enter. Period.
-            //
-            if (RegionInfo.EstateSettings.IsBanned(newObject.OwnerID, 36))
-            {
-                m_log.InfoFormat("[INTERREGION]: Denied prim crossing for banned avatar {0}", newObject.OwnerID);
+            if (!EntityTransferModule.HandleIncomingSceneObject(newObject, newPosition))
                 return false;
-            }
-
-            if (newPosition != Vector3.Zero)
-                newObject.RootPart.GroupPosition = newPosition;
-
-            if (!AddSceneObject(newObject))
-            {
-                m_log.DebugFormat(
-                    "[INTERREGION]: Problem adding scene object {0} in {1} ", newObject.UUID, RegionInfo.RegionName);
-                return false;
-            }
-
-            if (!newObject.IsAttachment)
-            {
-                // FIXME: It would be better to never add the scene object at all rather than add it and then delete
-                // it
-                if (!Permissions.CanObjectEntry(newObject.UUID, true, newObject.AbsolutePosition))
-                {
-                    // Deny non attachments based on parcel settings
-                    //
-                    m_log.Info("[INTERREGION]: Denied prim crossing because of parcel settings");
-
-                    DeleteSceneObject(newObject, false);
-
-                    return false;
-                }
-
-                // For attachments, we need to wait until the agent is root
-                // before we restart the scripts, or else some functions won't work.
-                newObject.RootPart.ParentGroup.CreateScriptInstances(0, false, DefaultScriptEngine, GetStateSource(newObject));
-                newObject.ResumeScripts();
-
-                // AddSceneObject already does this and doing it again messes
-                // up region crossings, so don't.
-                //if (newObject.RootPart.KeyframeMotion != null)
-                //    newObject.RootPart.KeyframeMotion.UpdateSceneObject(newObject);
-            }
-
-            
 
             // Do this as late as possible so that listeners have full access to the incoming object
             EventManager.TriggerOnIncomingSceneObject(newObject);
