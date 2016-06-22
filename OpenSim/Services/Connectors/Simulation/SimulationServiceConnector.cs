@@ -331,7 +331,7 @@ namespace OpenSim.Services.Connectors.Simulation
 
                     // FIXME: If there is a _Result map then it's the success key here that indicates the true success
                     // or failure, not the sibling result node.
-                    success = data["success"];
+                    success = data["success"].AsBoolean();
 
                     reason = data["reason"].AsString();
                     // We will need to plumb this and start sing the outbound version as well
