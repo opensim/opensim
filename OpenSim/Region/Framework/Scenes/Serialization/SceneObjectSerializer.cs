@@ -1671,7 +1671,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 writer.WriteElementString("ProfileBegin", shp.ProfileBegin.ToString());
                 writer.WriteElementString("ProfileEnd", shp.ProfileEnd.ToString());
                 writer.WriteElementString("ProfileHollow", shp.ProfileHollow.ToString());
-                writer.WriteElementString("State", shp.State.ToString());
+                // There's no such thing as a primitive with state != 0 (attachment)
+                writer.WriteElementString("State", (shp.PCode == (byte)PCodeEnum.Primitive ? "0" : shp.State.ToString()));
                 writer.WriteElementString("LastAttachPoint", shp.LastAttachPoint.ToString());
 
                 WriteFlags(writer, "ProfileShape", shp.ProfileShape.ToString(), options);
@@ -1798,6 +1799,10 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 });
 
             reader.ReadEndElement(); // Shape
+
+            if (shape.PCode == (byte)PCodeEnum.Primitive && shape.State != 0)
+                // This should not happen!
+                shape.State = 0;
 
             errorNodeNames = internalErrorNodeNames;
 
