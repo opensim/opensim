@@ -219,9 +219,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 rinfo = m_RemoteGridService.GetRegionByPosition(scopeID, x, y);
 
             m_RegionInfoCache.Cache(rinfo);
-            
-            m_log.DebugFormat("[REMOTE GRID CONNECTOR]: GetRegionByPosition. Added region {0} to the cache. Pos=<{1},{2}>, RegionHandle={3}",
-                (rinfo == null) ? "<missing>" : rinfo.RegionName, regionX, regionY, (rinfo == null) ? regionHandle : rinfo.RegionHandle);
+
+            if (rinfo == null)
+                m_log.WarnFormat("[REMOTE GRID CONNECTOR]: Requested region {0}-{1} not found", regionX, regionY);
+            else
+                m_log.DebugFormat("[REMOTE GRID CONNECTOR]: GetRegionByPosition. Added region {0} to the cache. Pos=<{1},{2}>, RegionHandle={3}",
+                    rinfo.RegionName, rinfo.RegionCoordX, rinfo.RegionCoordY, (rinfo == null) ? regionHandle : rinfo.RegionHandle);
 
             return rinfo;
         }
