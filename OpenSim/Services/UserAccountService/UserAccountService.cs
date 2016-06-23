@@ -179,7 +179,7 @@ namespace OpenSim.Services.UserAccountService
             if (d.Data.ContainsKey("UserCountry") && d.Data["UserCountry"] != null)
                 u.UserCountry = d.Data["UserCountry"].ToString();
             else
-                u.UserTitle = string.Empty;
+                u.UserCountry = string.Empty;
 
             if (d.Data.ContainsKey("ServiceURLs") && d.Data["ServiceURLs"] != null)
             {
