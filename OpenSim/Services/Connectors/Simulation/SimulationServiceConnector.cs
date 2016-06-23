@@ -288,6 +288,8 @@ namespace OpenSim.Services.Connectors.Simulation
 
         public bool QueryAccess(GridRegion destination, UUID agentID, string agentHomeURI, bool viaTeleport, Vector3 position, List<UUID> featuresAvailable, EntityTransferContext ctx, out string reason)
         {
+            Culture.SetCurrentCulture();
+
             reason = "Failed to contact destination";
 
             // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess start, position={0}", position);
