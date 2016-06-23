@@ -462,6 +462,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// </value>
         private IScriptModule[] m_scriptEngines;
 
+        private enum LandingPointBehavior
+        {
+            OS = 1,
+            SL = 2
+        }
+
+        private LandingPointBehavior m_LandingPointBehavior = LandingPointBehavior.OS;
+
         #region Properties
 
         /// <summary>
@@ -1051,6 +1059,15 @@ namespace OpenSim.Region.Framework.Scenes
             Appearance = appearance;
 
             m_stateMachine = new ScenePresenceStateMachine(this);
+
+            IConfig sconfig = m_scene.Config.Configs["EntityTransfer"];
+            if (sconfig != null)
+            {
+                string lpb = sconfig.GetString("LandingPointBehavior", "LandingPointBehavior_OS");
+                if (lpb == "LandingPointBehavior_SL")
+                    m_LandingPointBehavior = LandingPointBehavior.SL;
+            }
+
         }
 
         private void RegionHeartbeatEnd(Scene scene)
@@ -1208,10 +1225,14 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentID == 0)
             {
                 bool positionChanged = false;
-                if(!CheckAndAdjustLandingPoint(ref pos, ref lookat, ref positionChanged ))
-                {
-                    m_log.DebugFormat("[SCENE PRESENCE MakeRootAgent]: houston we have a problem.. {0}({1} got here banned",Name, UUID);
-                }
+                bool success = true;
+                if (m_LandingPointBehavior == LandingPointBehavior.OS)
+                    success = CheckAndAdjustLandingPoint_OS(ref pos, ref lookat, ref positionChanged);
+                else
+                    success = CheckAndAdjustLandingPoint_SL(ref pos, ref lookat, ref positionChanged);
+
+                if (!success)
+                    m_log.DebugFormat("[SCENE PRESENCE MakeRootAgent]: houston we have a problem.. {0} ({1} got banned)", Name, UUID);
 
                 if (pos.X < 0f || pos.Y < 0f
                           || pos.X >= m_scene.RegionInfo.RegionSizeX
@@ -5788,8 +5809,63 @@ namespace OpenSim.Region.Framework.Scenes
         const TeleportFlags adicionalLandPointFlags = TeleportFlags.ViaLandmark |
                     TeleportFlags.ViaLocation | TeleportFlags.ViaHGLogin;
 
-       // Modify landing point based on telehubs or parcel restrictions.
-        private bool CheckAndAdjustLandingPoint(ref Vector3 pos, ref Vector3 lookat, ref bool positionChanged)
+        // Modify landing point based on possible banning, telehubs or parcel restrictions.
+        // This is the behavior in OpenSim for a very long time, different from SL
+        private bool CheckAndAdjustLandingPoint_OS(ref Vector3 pos, ref Vector3 lookat, ref bool positionChanged)
+        {
+            string reason;
+
+            // Honor bans
+            if (!m_scene.TestLandRestrictions(UUID, out reason, ref pos.X, ref pos.Y))
+                return false;
+
+            SceneObjectGroup telehub = null;
+            if (m_scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero && (telehub = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject)) != null)
+            {
+                if (!m_scene.RegionInfo.EstateSettings.AllowDirectTeleport)
+                {
+                    CheckAndAdjustTelehub(telehub, ref pos, ref positionChanged);
+                    return true;
+                }
+            }
+
+            ILandObject land = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
+            if (land != null)
+            {
+                if (Scene.DebugTeleporting)
+                    TeleportFlagsDebug();
+
+                // If we come in via login, landmark or map, we want to
+                // honor landing points. If we come in via Lure, we want
+                // to ignore them.
+                if ((m_teleportFlags & (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID)) ==
+                    (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID) ||
+                    (m_teleportFlags & adicionalLandPointFlags) != 0)
+                {
+                    // Don't restrict gods, estate managers, or land owners to
+                    // the TP point. This behaviour mimics agni.
+                    if (land.LandData.LandingType == (byte)LandingType.LandingPoint &&
+                        land.LandData.UserLocation != Vector3.Zero &&
+                        GodLevel < 200 &&
+                        ((land.LandData.OwnerID != m_uuid &&
+                          !m_scene.Permissions.IsGod(m_uuid) &&
+                          !m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_uuid)) ||
+                         (m_teleportFlags & TeleportFlags.ViaLocation) != 0 ||
+                         (m_teleportFlags & Constants.TeleportFlags.ViaHGLogin) != 0))
+                    {
+                        pos = land.LandData.UserLocation;
+                    }
+                }
+
+                land.SendLandUpdateToClient(ControllingClient);
+            }
+
+            return true;
+        }
+
+        // Modify landing point based on telehubs or parcel restrictions.
+        // This is a behavior coming from AVN, somewhat mimicking SL
+        private bool CheckAndAdjustLandingPoint_SL(ref Vector3 pos, ref Vector3 lookat, ref bool positionChanged)
         {
             string reason;
 
