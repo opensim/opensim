@@ -1265,6 +1265,11 @@ namespace OpenSim.Groups
         {
             if (m_debugEnabled) m_log.InfoFormat("[Groups]: {0} called for {1}", System.Reflection.MethodBase.GetCurrentMethod().Name, remoteClient.Name);
 
+            // NPCs currently don't have a CAPs structure or event queues.  There is a strong argument for conveying this information
+            // to them anyway since it makes writing server-side bots a lot easier, but for now we don't do anything.
+            if (remoteClient.SceneAgent.PresenceType == PresenceType.Npc)
+                return;
+
             // TODO: All the client update functions need to be reexamined because most do too much and send too much stuff
 
             UUID agentID = GetRequestingAgentID(remoteClient);
