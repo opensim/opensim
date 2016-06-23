@@ -120,6 +120,8 @@ namespace OpenSim.Server.Handlers.Simulation
 
         protected virtual void DoQueryAccess(Hashtable request, Hashtable responsedata, UUID agentID, UUID regionID)
         {
+            Culture.SetCurrentCulture();
+
             EntityTransferContext ctx = new EntityTransferContext();
 
             if (m_SimulationService == null)
