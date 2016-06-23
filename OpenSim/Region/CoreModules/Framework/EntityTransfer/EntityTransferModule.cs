@@ -2625,6 +2625,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             //m_log.Debug("  >>> CrossPrimGroupIntoNewRegion <<<");
 
+            Culture.SetCurrentCulture();
+
             bool successYN = false;
             grp.RootPart.ClearUpdateSchedule();
             //int primcrossingXMLmethod = 0;

@@ -69,6 +69,8 @@ namespace OpenSim.Server.Handlers.Simulation
             //m_log.Debug(" >> http-method=" + request["http-method"]);
             //m_log.Debug("---------------------------\n");
 
+            Culture.SetCurrentCulture();
+
             Hashtable responsedata = new Hashtable();
             responsedata["content_type"] = "text/html";
 
