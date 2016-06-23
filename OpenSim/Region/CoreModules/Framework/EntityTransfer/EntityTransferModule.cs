@@ -1470,11 +1470,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return true;
         }
 
-        public GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos, EntityTransferContext ctx, out Vector3 newpos)
-        {
-            string r = String.Empty;
-            return GetDestination(scene, agentID, pos, ctx, out newpos, out r);
-        }
 
         // Given a position relative to the current region and outside of it
         // find the new region that the point is actually in.
@@ -1561,6 +1556,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             Vector3 newpos;
             EntityTransferContext ctx = new EntityTransferContext();
             string failureReason;
+
+            // We need this because of decimal number parsing of the protocols.
+            Culture.SetCurrentCulture();
 
             Vector3 pos = agent.AbsolutePosition + agent.Velocity;
 
