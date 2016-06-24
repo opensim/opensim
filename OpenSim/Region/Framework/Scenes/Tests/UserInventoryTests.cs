@@ -38,10 +38,7 @@ using OpenMetaverse;
 using OpenMetaverse.Assets;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.CoreModules.Avatar.Inventory.Archiver;
-using OpenSim.Region.CoreModules.World.Serialiser;
-using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
+using OpenSim.Region.CoreModules.Framework.InventoryAccess;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
 
@@ -138,5 +135,66 @@ namespace OpenSim.Region.Framework.Tests
 
             Assert.That(reretrievedFolders.Count, Is.EqualTo(2));
         }
+
+        // Work in Progress test. All Assertions pertaining permissions are commented for now.
+        [Test]
+        public void TestGiveInventoryItemFullPerms()
+        {
+            TestHelpers.InMethod();
+
+            List<Object> modules = new List<object>();
+            IConfigSource config = DefaultConfig(modules);
+            Scene scene = new SceneHelpers().SetupScene("Inventory Permissions", UUID.Random(), 1000, 1000, config);
+            SceneHelpers.SetupSceneModules(scene, config, modules.ToArray());
+
+            UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene, TestHelpers.ParseTail(1001));
+            UserAccount user2 = UserAccountHelpers.CreateUserWithInventory(scene, TestHelpers.ParseTail(1002));
+            ScenePresence sp1 = SceneHelpers.AddScenePresence(scene, user1.PrincipalID);
+            ScenePresence sp2 = SceneHelpers.AddScenePresence(scene, user2.PrincipalID);
+
+            InventoryItemBase item1 = UserInventoryHelpers.CreateInventoryItem(scene, "SomeObject", user1.PrincipalID, InventoryType.Object);
+            // Set All perms in inventory
+            item1.NextPermissions = (uint)OpenMetaverse.PermissionMask.All;
+            scene.UpdateInventoryItemAsset(sp1.ControllingClient, UUID.Zero, item1.ID, item1);
+            //Assert.That((item1.NextPermissions & (uint)OpenMetaverse.PermissionMask.All) == (uint)OpenMetaverse.PermissionMask.All);
+
+            string message;
+
+            InventoryItemBase retrievedItem1 = scene.GiveInventoryItem(user2.PrincipalID, user1.PrincipalID, item1.ID, out message);
+            Assert.That(retrievedItem1, Is.Not.Null);
+            //Assert.That((retrievedItem1.CurrentPermissions & (uint)OpenMetaverse.PermissionMask.All) == (uint)OpenMetaverse.PermissionMask.All);
+
+            retrievedItem1
+                = UserInventoryHelpers.GetInventoryItem(scene.InventoryService, user2.PrincipalID, "Objects/SomeObject");
+            Assert.That(retrievedItem1, Is.Not.Null);
+            //Assert.That((retrievedItem1.BasePermissions & (uint)OpenMetaverse.PermissionMask.All) == (uint)OpenMetaverse.PermissionMask.All);
+            //Assert.That((retrievedItem1.CurrentPermissions & (uint)OpenMetaverse.PermissionMask.All) == (uint)OpenMetaverse.PermissionMask.All);
+
+            // Rez the object
+            scene.RezObject(sp2.ControllingClient, retrievedItem1.ID, Vector3.Zero, Vector3.Zero, UUID.Zero, 0, false, false, false, UUID.Zero);
+            SceneObjectGroup sog = scene.GetSceneObjectGroup("SomeObject");
+            Assert.That(sog, Is.Not.Null);
+
+            // This is failing for all sorts of reasons. We'll fix it after perms are fixed.
+            //Console.WriteLine("Item Perms " + retrievedItem1.CurrentPermissions + " Obj Owner Perms " + sog.RootPart.OwnerMask + " Base Perms " + sog.RootPart.BaseMask + "\n");
+            //Assert.True((sog.RootPart.OwnerMask & (uint)OpenMetaverse.PermissionMask.All) == (uint)OpenMetaverse.PermissionMask.All);
+
+        }
+
+        public static IConfigSource DefaultConfig(List<object> modules)
+        {
+            IConfigSource config = new IniConfigSource();
+            config.AddConfig("Modules");
+            config.Configs["Modules"].Set("InventoryAccessModule", "BasicInventoryAccessModule");
+
+            config.AddConfig("Permissions");
+            config.Configs["Permissions"].Set("permissionmodules", "DefaultPermissionsModule");
+            config.Configs["Permissions"].Set("serverside_object_permissions", true);
+            config.Configs["Permissions"].Set("propagate_permissions", true);
+
+            modules.Add(new BasicInventoryAccessModule());
+            return config;
+        }
+
     }
 }

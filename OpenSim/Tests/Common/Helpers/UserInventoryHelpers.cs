@@ -128,6 +128,10 @@ namespace OpenSim.Tests.Common
             item.Owner = userId;
             item.AssetType = asset.Type;
             item.InvType = (int)itemType;
+            item.BasePermissions = (uint)OpenMetaverse.PermissionMask.All | 
+                (uint)(Framework.PermissionMask.foldedMask | Framework.PermissionMask.foldedCopy | Framework.PermissionMask.foldedModify | Framework.PermissionMask.foldedTransfer);
+            item.CurrentPermissions = (uint)OpenMetaverse.PermissionMask.All |
+                (uint)(Framework.PermissionMask.foldedMask | Framework.PermissionMask.foldedCopy | Framework.PermissionMask.foldedModify | Framework.PermissionMask.foldedTransfer);
 
             InventoryFolderBase folder = InventoryArchiveUtils.FindFoldersByPath(scene.InventoryService, userId, path)[0];
 
