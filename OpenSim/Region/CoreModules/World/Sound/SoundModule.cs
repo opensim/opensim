@@ -145,15 +145,15 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 if (!m_scene.TryGetScenePresence(grp.AttachedAvatar, out ssp))
                     return;
 
-                if (!ssp.ParcelAllowThisAvatarSounds)
-                    return;
-
                 if (grp.HasPrivateAttachmentPoint)
                 {
                     ssp.ControllingClient.SendPlayAttachedSound(soundID, objectID,
                         ownerID, (float)gain, flags);
                     return;
                 }
+
+                if (!ssp.ParcelAllowThisAvatarSounds)
+                    return;
             }
 
             m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
