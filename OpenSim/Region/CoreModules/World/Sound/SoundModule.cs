@@ -187,6 +187,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
                     if (!ssp.ParcelAllowThisAvatarSounds)
                         return;
 
+/* mantis 7942: coment out to allow trigger in HUDs to send sounds to all
                     if (grp.HasPrivateAttachmentPoint)
                     {
                         ssp.ControllingClient.SendTriggeredSound(soundId, ownerID,
@@ -194,6 +195,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
                                 (float)gain);
                         return;
                     }
+*/
                 }
             }
 
