@@ -11132,6 +11132,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             0
                         ));
                         break;
+
+                    case (int)ScriptBaseClass.PRIM_OMEGA:
+                        // this may return values diferent from SL since we don't handle set the same way
+                        float gain = 1.0f; // we don't use gain and don't store it
+                        Vector3 axis = part.AngularVelocity;
+                        float spin = axis.Length();
+                        if(spin < 1.0e-6)
+                        {
+                            axis = Vector3.Zero;
+                            gain = 0.0f;
+                            spin = 0.0f;
+                        }
+                        else
+                        {
+                            axis = axis * (1.0f/spin);
+                        }
+
+                        res.Add(new LSL_Vector(axis.X,
+                                               axis.Y,
+                                               axis.Z));
+                        res.Add(new LSL_Float(spin));
+                        res.Add(new LSL_Float(gain));
+                        break;
+                                            
                     case (int)ScriptBaseClass.PRIM_LINK_TARGET:
 
                         // TODO: Should be issuing a runtime script warning in this case.
