@@ -2748,7 +2748,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID x = module.CreateNPC(firstname,
                                       lastname,
                                       position,
+                                      UUID.Random(),
                                       ownerID,
+                                      groupTitle,
+                                      groupID,
                                       senseAsAgent,
                                       World,
                                       appearance);
@@ -2756,9 +2759,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScenePresence sp;
             if (World.TryGetScenePresence(x, out sp))
             {
-                sp.Grouptitle = groupTitle;
-                ((INPC)(sp.ControllingClient)).ActiveGroupId = groupID;
-                     
                 sp.SendAvatarDataToAllAgents();
             }
             return new LSL_Key(x.ToString());
