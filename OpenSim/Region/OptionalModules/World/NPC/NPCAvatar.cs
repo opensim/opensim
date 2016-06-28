@@ -43,6 +43,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
     public class NPCAvatar : IClientAPI, INPC
     {
         public bool SenseAsAgent { get; set; }
+        public UUID Owner
+        {
+            get { return m_ownerID;}
+        }
 
         public delegate void ChatToNPC(
             string message, byte type, Vector3 fromPos, string fromName, 

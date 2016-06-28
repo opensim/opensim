@@ -694,7 +694,30 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (HasGroupAccess(avatar))
                 return false;
 
-            return !IsInLandAccessList(avatar);
+            if(IsInLandAccessList(avatar))
+                return false;
+
+            // check for a NPC
+            ScenePresence sp;
+            if (!m_scene.TryGetScenePresence(avatar, out sp))
+                return true;
+
+            if(sp==null || !sp.isNPC)
+                return true;
+            
+            INPC npccli = (INPC)sp.ControllingClient;
+            if(npccli== null)
+                return true;
+            
+            UUID owner = npccli.Owner;
+
+            if(owner == UUID.Zero)
+                return true;
+
+            if (owner == LandData.OwnerID)
+                return false;
+
+            return !IsInLandAccessList(owner);
         }
 
         public bool IsInLandAccessList(UUID avatar)

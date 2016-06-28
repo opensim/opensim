@@ -57,6 +57,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         bool SenseAsAgent { get; }
         UUID ActiveGroupId { get; set; }
+        UUID Owner { get; }
     }
 
     public interface INPCModule
