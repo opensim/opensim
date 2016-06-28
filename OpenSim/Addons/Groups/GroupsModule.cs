@@ -249,8 +249,7 @@ namespace OpenSim.Groups
             // There might be some problem with the thread we're generating this on but not
             //   doing the update at this time causes problems (Mantis #7920 and #7915)
             // TODO: move sending this update to a later time in the rootification of the client.
-            if(!sp.isNPC)
-                SendAgentGroupDataUpdate(sp.ControllingClient, false);
+            SendAgentGroupDataUpdate(sp.ControllingClient, false);
         }
 
         private void OnMakeChild(ScenePresence sp)
@@ -1266,6 +1265,11 @@ namespace OpenSim.Groups
         {
             if (m_debugEnabled) m_log.InfoFormat("[Groups]: {0} called for {1}", System.Reflection.MethodBase.GetCurrentMethod().Name, remoteClient.Name);
 
+            // NPCs currently don't have a CAPs structure or event queues.  There is a strong argument for conveying this information
+            // to them anyway since it makes writing server-side bots a lot easier, but for now we don't do anything.
+            if (remoteClient.SceneAgent.PresenceType == PresenceType.Npc)
+                return;
+
             // TODO: All the client update functions need to be reexamined because most do too much and send too much stuff
 
             UUID agentID = GetRequestingAgentID(remoteClient);
@@ -1274,7 +1278,10 @@ namespace OpenSim.Groups
 
             GroupMembershipData[] membershipArray = GetProfileListedGroupMemberships(remoteClient, agentID);
             IEventQueue eq = remoteClient.Scene.RequestModuleInterface<IEventQueue>();
-            eq.GroupMembershipData(GetRequestingAgentID(remoteClient), dataForClientID, membershipArray);
+            if (eq != null)
+                eq.GroupMembershipData(GetRequestingAgentID(remoteClient), dataForClientID, membershipArray);
+            else
+                remoteClient.SendGroupMembership(membershipArray);
 
             remoteClient.RefreshGroupMembership();
         }
