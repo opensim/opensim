@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using Nini.Config;
@@ -15,10 +16,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private static Dictionary<Scene, ODEScene> m_scenes = new Dictionary<Scene, ODEScene>();
         private bool m_Enabled = false;
 		private IConfigSource m_config;
-		private ODEScene  m_scene;
         private bool OSOdeLib;
+        
 
        #region INonSharedRegionModule
 
@@ -42,6 +44,22 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     m_config = source;
                     m_Enabled = true;
+
+                    if (Util.IsWindows())
+                        Util.LoadArchSpecificWindowsDll("ode.dll");
+
+                    d.InitODE();
+
+                    string ode_config = d.GetConfiguration();
+                    if (ode_config != null && ode_config != "")
+                    {
+                        m_log.InfoFormat("[ubODE] ode library configuration: {0}", ode_config);
+
+                        if (ode_config.Contains("ODE_OPENSIM"))
+                        {
+                            OSOdeLib = true;
+                        }
+                    }
                 }
             }
         }
@@ -55,42 +73,34 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (!m_Enabled)
                 return;
 
-            if (Util.IsWindows())
-                Util.LoadArchSpecificWindowsDll("ode.dll");
-
-            // Initializing ODE only when a scene is created allows alternative ODE plugins to co-habit (according to
-            // http://opensimulator.org/mantis/view.php?id=2750).
-            d.InitODE();
-
-            string ode_config = d.GetConfiguration();
-            if (ode_config != null && ode_config != "")
-            {
-                m_log.InfoFormat("[ubODE] ode library configuration: {0}", ode_config);
-                // ubODE still not avaiable
-                if (ode_config.Contains("ODE_OPENSIM"))
-                {
-                    OSOdeLib = true;
-                }
-            }
-
-		m_scene = new ODEScene(scene, m_config, Name, OSOdeLib);
+            if(m_scenes.ContainsKey(scene)) // ???
+                return;
+		    ODEScene newodescene = new ODEScene(scene, m_config, Name, OSOdeLib);
+            m_scenes[scene] = newodescene;
         }
 
         public void RemoveRegion(Scene scene)
         {
-            if (!m_Enabled || m_scene == null)
+            if (!m_Enabled)
                 return;
 
-            m_scene.Dispose();
-            m_scene = null;
+            // a odescene.dispose is called later directly by scene.cs
+            // since it is seen as a module interface
+
+            if(m_scenes.ContainsKey(scene))
+                m_scenes.Remove(scene);
         }
 
         public void RegionLoaded(Scene scene)
         {
-            if (!m_Enabled || m_scene == null)
+            if (!m_Enabled)
                 return;
+            
+            if(m_scenes.ContainsKey(scene))
+            {
+                m_scenes[scene].RegionLoaded();
+            }
 
-            m_scene.RegionLoaded();
         }
         #endregion			
     }
