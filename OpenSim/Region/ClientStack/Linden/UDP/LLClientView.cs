@@ -2777,11 +2777,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Groupupdate.GroupData = Groups;
             Groupupdate.AgentData = new AgentGroupDataUpdatePacket.AgentDataBlock();
             Groupupdate.AgentData.AgentID = AgentId;
-            //OutPacket(Groupupdate, ThrottleOutPacketType.Task);
 
+            IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
             try
             {
-                IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
                 if (eq != null)
                 {
                     eq.GroupMembership(Groupupdate, this.AgentId);
@@ -2791,8 +2790,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 m_log.Error("Unable to send group membership data via eventqueue - exception: " + ex.ToString());
                 m_log.Warn("sending group membership data via UDP");
-                OutPacket(Groupupdate, ThrottleOutPacketType.Task);
+                eq = null;
             }
+
+            if(eq == null) // udp if no eq
+                OutPacket(Groupupdate, ThrottleOutPacketType.Task);
+
         }
 
         public void SendPartPhysicsProprieties(ISceneEntity entity)
@@ -3423,41 +3426,35 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendAgentGroupDataUpdate(UUID avatarID, GroupMembershipData[] data)
         {
+            if(avatarID != AgentId)
+                m_log.Debug("[CLIENT]: SendAgentGroupDataUpdate avatarID != AgentId");
+                 
             IEventQueue eq = this.Scene.RequestModuleInterface<IEventQueue>();
-
-            // use UDP if no caps
-            if (eq == null)
+            if(eq != null)
             {
-                SendGroupMembership(data);
+                eq.GroupMembershipData(avatarID,data);
             }
-
-            OSDMap llsd = new OSDMap(3);
-            OSDArray AgentData = new OSDArray(1);
-            OSDMap AgentDataMap = new OSDMap(1);
-            AgentDataMap.Add("AgentID", OSD.FromUUID(this.AgentId));
-            AgentDataMap.Add("AvatarID", OSD.FromUUID(avatarID));
-            AgentData.Add(AgentDataMap);
-            llsd.Add("AgentData", AgentData);
-            OSDArray GroupData = new OSDArray(data.Length);
-            OSDArray NewGroupData = new OSDArray(data.Length);
-            foreach (GroupMembershipData m in data)
+            else
             {
-                OSDMap GroupDataMap = new OSDMap(6);
-                OSDMap NewGroupDataMap = new OSDMap(1);
-                GroupDataMap.Add("GroupPowers", OSD.FromULong(m.GroupPowers));
-                GroupDataMap.Add("AcceptNotices", OSD.FromBoolean(m.AcceptNotices));
-                GroupDataMap.Add("GroupTitle", OSD.FromString(m.GroupTitle));
-                GroupDataMap.Add("GroupID", OSD.FromUUID(m.GroupID));
-                GroupDataMap.Add("GroupName", OSD.FromString(m.GroupName));
-                GroupDataMap.Add("GroupInsigniaID", OSD.FromUUID(m.GroupPicture));
-                NewGroupDataMap.Add("ListInProfile", OSD.FromBoolean(m.ListInProfile));
-                GroupData.Add(GroupDataMap);
-                NewGroupData.Add(NewGroupDataMap);
+                // use UDP if no caps
+                AgentGroupDataUpdatePacket Groupupdate = new AgentGroupDataUpdatePacket();
+                AgentGroupDataUpdatePacket.GroupDataBlock[] Groups = new AgentGroupDataUpdatePacket.GroupDataBlock[data.Length];
+                for (int i = 0; i < data.Length; i++)
+                {
+                    AgentGroupDataUpdatePacket.GroupDataBlock Group = new AgentGroupDataUpdatePacket.GroupDataBlock();
+                    Group.AcceptNotices = data[i].AcceptNotices;
+                    Group.Contribution = data[i].Contribution;
+                    Group.GroupID = data[i].GroupID;
+                    Group.GroupInsigniaID = data[i].GroupPicture;
+                    Group.GroupName = Util.StringToBytes256(data[i].GroupName);
+                    Group.GroupPowers = data[i].GroupPowers;
+                    Groups[i] = Group;
+                }
+                Groupupdate.GroupData = Groups;
+                Groupupdate.AgentData = new AgentGroupDataUpdatePacket.AgentDataBlock();
+                Groupupdate.AgentData.AgentID = avatarID;
+                OutPacket(Groupupdate, ThrottleOutPacketType.Task);
             }
-            llsd.Add("GroupData", GroupData);
-            llsd.Add("NewGroupData", NewGroupData);
-
-            eq.Enqueue(BuildEvent("AgentGroupDataUpdate", llsd), this.AgentId);
         }
 
         public void SendJoinGroupReply(UUID groupID, bool success)

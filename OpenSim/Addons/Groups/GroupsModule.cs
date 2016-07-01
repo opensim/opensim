@@ -1277,13 +1277,9 @@ namespace OpenSim.Groups
             SendDataUpdate(remoteClient,  tellOthers);
 
             GroupMembershipData[] membershipArray = GetProfileListedGroupMemberships(remoteClient, agentID);
-            IEventQueue eq = remoteClient.Scene.RequestModuleInterface<IEventQueue>();
-            if (eq != null)
-                eq.GroupMembershipData(agentID, membershipArray);
-            else
-                remoteClient.SendGroupMembership(membershipArray);
 
             remoteClient.RefreshGroupMembership();
+            remoteClient.SendAgentGroupDataUpdate(agentID, membershipArray);
         }
 
         /// <summary>
