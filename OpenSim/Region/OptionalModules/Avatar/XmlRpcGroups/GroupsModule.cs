@@ -785,6 +785,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         {
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
+/*
             GroupProfileData profile = new GroupProfileData();
 
 
@@ -813,7 +814,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 profile.MemberTitle = memberInfo.GroupTitle;
                 profile.PowersMask = memberInfo.GroupPowers;
             }
-
+*/
+            UUID agent = GetRequestingAgentID(remoteClient);
+            GroupProfileData profile = m_groupData.GetMemberGroupProfile(agent, groupID, agent);
             return profile;
         }
 
