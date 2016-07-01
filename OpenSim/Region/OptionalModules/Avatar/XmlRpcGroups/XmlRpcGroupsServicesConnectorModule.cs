@@ -180,6 +180,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 m_groupWriteKey = groupsConfig.GetString("XmlRpcServiceWriteKey", string.Empty);
 
                 m_cacheTimeout = groupsConfig.GetInt("GroupsCacheTimeout", 30);
+
+                // disable cache until it is fixed
+                m_cacheTimeout = 0;
+
                 if (m_cacheTimeout == 0)
                 {
                     m_log.WarnFormat("[XMLRPC-GROUPS-CONNECTOR]: Groups Cache Disabled.");
@@ -973,7 +977,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                 try
                 {
-                    resp = req.Send(m_groupsServerURI, 10000);
+                    resp = req.Send(m_groupsServerURI, 30000);
 
                     if ((m_cacheTimeout > 0) && (CacheKey != null))
                     {
