@@ -11096,11 +11096,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             return true;
         }
+
+        UUID lastGroupProfileRequestID = UUID.Zero;
+        double lastGroupProfileRequestTS = Util.GetTimeStampMS();
+
         private bool HandleGroupProfileRequest(IClientAPI sender, Packet Pack)
         {
+            if(m_GroupsModule == null)
+                return true;
+
             GroupProfileRequestPacket groupProfileRequest =
                        (GroupProfileRequestPacket)Pack;
 
+           
             #region Packet Session and User Check
             if (m_checkPackets)
             {
@@ -11110,50 +11118,59 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             #endregion
 
-            if (m_GroupsModule != null)
+            UUID grpID = groupProfileRequest.GroupData.GroupID;
+            double ts = Util.GetTimeStampMS();
+            if(grpID == lastGroupProfileRequestID && ts - lastGroupProfileRequestTS < 10000)
+                return true;
+
+            lastGroupProfileRequestID = grpID;
+            lastGroupProfileRequestTS = ts;
+
+            GroupProfileReplyPacket groupProfileReply = (GroupProfileReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupProfileReply);
+
+            groupProfileReply.AgentData = new GroupProfileReplyPacket.AgentDataBlock();
+            groupProfileReply.GroupData = new GroupProfileReplyPacket.GroupDataBlock();
+            groupProfileReply.AgentData.AgentID = AgentId;
+
+            GroupProfileData d = m_GroupsModule.GroupProfileRequest(this,
+                                                                    groupProfileRequest.GroupData.GroupID);
+
+            groupProfileReply.GroupData.GroupID = d.GroupID;
+            groupProfileReply.GroupData.Name = Util.StringToBytes256(d.Name);
+            groupProfileReply.GroupData.Charter = Util.StringToBytes1024(d.Charter);
+            groupProfileReply.GroupData.ShowInList = d.ShowInList;
+            groupProfileReply.GroupData.MemberTitle = Util.StringToBytes256(d.MemberTitle);
+            groupProfileReply.GroupData.PowersMask = d.PowersMask;
+            groupProfileReply.GroupData.InsigniaID = d.InsigniaID;
+            groupProfileReply.GroupData.FounderID = d.FounderID;
+            groupProfileReply.GroupData.MembershipFee = d.MembershipFee;
+            groupProfileReply.GroupData.OpenEnrollment = d.OpenEnrollment;
+            groupProfileReply.GroupData.Money = d.Money;
+            groupProfileReply.GroupData.GroupMembershipCount = d.GroupMembershipCount;
+            groupProfileReply.GroupData.GroupRolesCount = d.GroupRolesCount;
+            groupProfileReply.GroupData.AllowPublish = d.AllowPublish;
+            groupProfileReply.GroupData.MaturePublish = d.MaturePublish;
+            groupProfileReply.GroupData.OwnerRole = d.OwnerRole;
+
+            Scene scene = (Scene)m_scene;
+            if (scene.Permissions.IsGod(sender.AgentId) && (!sender.IsGroupMember(groupProfileRequest.GroupData.GroupID)))
             {
-                GroupProfileReplyPacket groupProfileReply = (GroupProfileReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupProfileReply);
-
-                groupProfileReply.AgentData = new GroupProfileReplyPacket.AgentDataBlock();
-                groupProfileReply.GroupData = new GroupProfileReplyPacket.GroupDataBlock();
-                groupProfileReply.AgentData.AgentID = AgentId;
-
-                GroupProfileData d = m_GroupsModule.GroupProfileRequest(this,
-                                                                        groupProfileRequest.GroupData.GroupID);
-
-                groupProfileReply.GroupData.GroupID = d.GroupID;
-                groupProfileReply.GroupData.Name = Util.StringToBytes256(d.Name);
-                groupProfileReply.GroupData.Charter = Util.StringToBytes1024(d.Charter);
-                groupProfileReply.GroupData.ShowInList = d.ShowInList;
-                groupProfileReply.GroupData.MemberTitle = Util.StringToBytes256(d.MemberTitle);
-                groupProfileReply.GroupData.PowersMask = d.PowersMask;
-                groupProfileReply.GroupData.InsigniaID = d.InsigniaID;
-                groupProfileReply.GroupData.FounderID = d.FounderID;
-                groupProfileReply.GroupData.MembershipFee = d.MembershipFee;
-                groupProfileReply.GroupData.OpenEnrollment = d.OpenEnrollment;
-                groupProfileReply.GroupData.Money = d.Money;
-                groupProfileReply.GroupData.GroupMembershipCount = d.GroupMembershipCount;
-                groupProfileReply.GroupData.GroupRolesCount = d.GroupRolesCount;
-                groupProfileReply.GroupData.AllowPublish = d.AllowPublish;
-                groupProfileReply.GroupData.MaturePublish = d.MaturePublish;
-                groupProfileReply.GroupData.OwnerRole = d.OwnerRole;
-
-                Scene scene = (Scene)m_scene;
-                if (scene.Permissions.IsGod(sender.AgentId) && (!sender.IsGroupMember(groupProfileRequest.GroupData.GroupID)))
+                ScenePresence p;
+                if (scene.TryGetScenePresence(sender.AgentId, out p))
                 {
-                    ScenePresence p;
-                    if (scene.TryGetScenePresence(sender.AgentId, out p))
+                    if (p.GodLevel >= 200)
                     {
-                        if (p.GodLevel >= 200)
-                        {
-                            groupProfileReply.GroupData.OpenEnrollment = true;
-                            groupProfileReply.GroupData.MembershipFee = 0;
-                        }
+                        groupProfileReply.GroupData.OpenEnrollment = true;
+                        groupProfileReply.GroupData.MembershipFee = 0;
                     }
                 }
-
-                OutPacket(groupProfileReply, ThrottleOutPacketType.Task);
             }
+
+            OutPacket(groupProfileReply, ThrottleOutPacketType.Task);
+                        
+            if(grpID == lastGroupProfileRequestID)
+                lastGroupProfileRequestTS = Util.GetTimeStampMS() - 7000;
+
             return true;
         }
         private bool HandleGroupMembersRequest(IClientAPI sender, Packet Pack)
