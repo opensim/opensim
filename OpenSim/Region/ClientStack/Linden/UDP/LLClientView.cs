@@ -12988,7 +12988,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (data != null)
                 {
                     for (int i = 0; i < data.Length; i++)
-                     m_groupPowers[data[i].GroupID] = data[i].GroupPowers;
+                        m_groupPowers[data[i].GroupID] = data[i].GroupPowers;
                 }
             }
         }
