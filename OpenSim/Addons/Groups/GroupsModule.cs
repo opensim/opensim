@@ -393,9 +393,11 @@ namespace OpenSim.Groups
                             msg.binaryBucket = new byte[0];
 
                             OutgoingInstantMessage(msg, invitee);
-
-                            UpdateAllClientsWithGroupInfo(invitee);
-
+                            IClientAPI inviteeClient = GetActiveRootClient(invitee);
+                            if(inviteeClient !=null)
+                            {
+                                SendAgentGroupDataUpdate(inviteeClient,true);
+                            }
                         }
 
                         m_groupData.RemoveAgentToGroupInvite(GetRequestingAgentIDStr(remoteClient), inviteID);
@@ -521,14 +523,16 @@ namespace OpenSim.Groups
 
                 UUID ejecteeID = new UUID(im.toAgentID);
 
+				im.imSessionID = UUID.Zero.Guid;
                 im.dialog = (byte)InstantMessageDialog.MessageFromAgent;
                 OutgoingInstantMessage(im, ejecteeID);
 
-                IClientAPI ejectee = GetActiveClient(ejecteeID);
+                IClientAPI ejectee = GetActiveRootClient(ejecteeID);
                 if (ejectee != null)
                 {
                     UUID groupID = new UUID(im.imSessionID);
                     ejectee.SendAgentDropGroup(groupID);
+                    SendAgentGroupDataUpdate(ejectee,true);
                 }
             }
         }
@@ -548,7 +552,7 @@ namespace OpenSim.Groups
                     case (byte)InstantMessageDialog.GroupInvitation:
                     case (byte)InstantMessageDialog.GroupNotice:
                         UUID toAgentID = new UUID(msg.toAgentID);
-                        IClientAPI localClient = GetActiveClient(toAgentID);
+                        IClientAPI localClient = GetActiveRootClient(toAgentID);
                         if (localClient != null)
                         {
                             localClient.SendInstantMessage(msg);
@@ -1058,10 +1062,31 @@ namespace OpenSim.Groups
                 return;
             }
 
+            IClientAPI ejecteeClient = GetActiveRootClient(ejecteeID);
+
             // Send Message to Ejectee
             GridInstantMessage msg = new GridInstantMessage();
             
-            msg.imSessionID = UUID.Zero.Guid;
+            // if local send a normal message
+            if(ejecteeClient != null)
+            {
+                msg.imSessionID = UUID.Zero.Guid;
+                msg.dialog = (byte)OpenMetaverse.InstantMessageDialog.MessageFromAgent;
+                // also execute and send update
+                ejecteeClient.SendAgentDropGroup(groupID);
+                SendAgentGroupDataUpdate(ejecteeClient,true);
+            }
+            else // send
+            {
+                // Interop, received special 210 code for ejecting a group member
+                // this only works within the comms servers domain, and won't work hypergrid
+                // TODO:FIXME: Use a presence server of some kind to find out where the
+                // client actually is, and try contacting that region directly to notify them,
+                // or provide the notification via xmlrpc update queue
+
+                msg.imSessionID = groupInfo.GroupID.Guid;
+                msg.dialog = (byte)210; //interop
+            }
             msg.fromAgentID = agentID.Guid;
             // msg.fromAgentID = info.GroupID;
             msg.toAgentID = ejecteeID.Guid;
@@ -1069,7 +1094,7 @@ namespace OpenSim.Groups
             msg.timestamp = 0;
             msg.fromAgentName = agentName;
             msg.message = string.Format("You have been ejected from '{1}' by {0}.", agentName, groupInfo.GroupName);
-            msg.dialog = (byte)OpenMetaverse.InstantMessageDialog.MessageFromAgent;
+
             msg.fromGroup = false;
             msg.offline = (byte)0;
             msg.ParentEstateID = 0;
@@ -1079,11 +1104,7 @@ namespace OpenSim.Groups
             OutgoingInstantMessage(msg, ejecteeID);
 
             // Message to ejector
-            // Interop, received special 210 code for ejecting a group member
-            // this only works within the comms servers domain, and won't work hypergrid
-            // TODO:FIXME: Use a presense server of some kind to find out where the 
-            // client actually is, and try contacting that region directly to notify them,
-            // or provide the notification via xmlrpc update queue
+
 
             msg = new GridInstantMessage();
             msg.imSessionID = UUID.Zero.Guid;
@@ -1099,7 +1120,7 @@ namespace OpenSim.Groups
             {
                 msg.message = string.Format("{2} has been ejected from '{1}' by {0}.", agentName, groupInfo.GroupName, "Unknown member");
             }
-            msg.dialog = (byte)210; //interop
+            msg.dialog = (byte)OpenMetaverse.InstantMessageDialog.MessageFromAgent;
             msg.fromGroup = false;
             msg.offline = (byte)0;
             msg.ParentEstateID = 0;
@@ -1107,11 +1128,6 @@ namespace OpenSim.Groups
             msg.RegionID = regionInfo.RegionID.Guid;
             msg.binaryBucket = new byte[0];
             OutgoingInstantMessage(msg, agentID);
-
-
-            // SL sends out messages to everyone in the group
-            // Who all should receive updates and what should they be updated with?
-            UpdateAllClientsWithGroupInfo(ejecteeID);
         }
 
         public void InviteGroupRequest(IClientAPI remoteClient, UUID groupID, UUID invitedAgentID, UUID roleID)
@@ -1174,6 +1190,18 @@ namespace OpenSim.Groups
         #endregion
 
         #region Client/Update Tools
+        private IClientAPI GetActiveRootClient(UUID agentID)
+        {
+            foreach (Scene scene in m_sceneList)
+            {
+                ScenePresence sp = scene.GetScenePresence(agentID);
+                if (sp != null && !sp.IsChildAgent && !sp.IsDeleted)
+                {
+                        return sp.ControllingClient;
+                }
+            }
+            return null;
+         }
 
         /// <summary>
         /// Try to find an active IClientAPI reference for agentID giving preference to root connections
@@ -1186,7 +1214,7 @@ namespace OpenSim.Groups
             foreach (Scene scene in m_sceneList)
             {
                 ScenePresence sp = scene.GetScenePresence(agentID);
-                if (sp != null)
+                if (sp != null&& !sp.IsDeleted)
                 {
                     if (!sp.IsChildAgent)
                     {
@@ -1225,43 +1253,15 @@ namespace OpenSim.Groups
             }
         }
 
-        /// <summary>
-        /// Send updates to all clients who might be interested in groups data for dataForClientID
-        /// </summary>
-        private void UpdateAllClientsWithGroupInfo(UUID dataForClientID)
-        {
-            if (m_debugEnabled) m_log.InfoFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
-
-            // TODO: Probably isn't nessesary to update every client in every scene.
-            // Need to examine client updates and do only what's nessesary.
-            lock (m_sceneList)
-            {
-                foreach (Scene scene in m_sceneList)
-                {
-                    scene.ForEachClient(delegate (IClientAPI client) { SendAgentGroupDataUpdate(client, dataForClientID); });
-                }
-            }
-        }
-
         public void SendAgentGroupDataUpdate(IClientAPI remoteClient)
         {
-            SendAgentGroupDataUpdate(remoteClient, GetRequestingAgentID(remoteClient), true);
-        }
-
-        public void SendAgentGroupDataUpdate(IClientAPI remoteClient, UUID dataForClientID)
-        {
-            SendAgentGroupDataUpdate(remoteClient, dataForClientID, true);
-        }
-
-        private void SendAgentGroupDataUpdate(IClientAPI remoteClient, bool tellOthers)
-        {
-            SendAgentGroupDataUpdate(remoteClient, GetRequestingAgentID(remoteClient), tellOthers);
+            SendAgentGroupDataUpdate(remoteClient, true);
         }
 
         /// <summary>
         /// Tell remoteClient about its agent groups, and optionally send title to others
         /// </summary>
-        private void SendAgentGroupDataUpdate(IClientAPI remoteClient, UUID dataForClientID, bool tellOthers)
+        private void SendAgentGroupDataUpdate(IClientAPI remoteClient, bool tellOthers)
         {
             if (m_debugEnabled) m_log.InfoFormat("[Groups]: {0} called for {1}", System.Reflection.MethodBase.GetCurrentMethod().Name, remoteClient.Name);
 
@@ -1279,7 +1279,7 @@ namespace OpenSim.Groups
             GroupMembershipData[] membershipArray = GetProfileListedGroupMemberships(remoteClient, agentID);
             IEventQueue eq = remoteClient.Scene.RequestModuleInterface<IEventQueue>();
             if (eq != null)
-                eq.GroupMembershipData(GetRequestingAgentID(remoteClient), dataForClientID, membershipArray);
+                eq.GroupMembershipData(agentID, membershipArray);
             else
                 remoteClient.SendGroupMembership(membershipArray);
 
@@ -1388,7 +1388,7 @@ namespace OpenSim.Groups
         {
             if (m_debugEnabled) m_log.InfoFormat("[Groups]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
-            IClientAPI localClient = GetActiveClient(msgTo);
+            IClientAPI localClient = GetActiveRootClient(msgTo);
             if (localClient != null)
             {
                 if (m_debugEnabled) m_log.InfoFormat("[Groups]: MsgTo ({0}) is local, delivering directly", localClient.Name);

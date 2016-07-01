@@ -162,7 +162,7 @@ namespace OpenSim.Tests.Common
             AddEvent(avatarID, "GroupMembership", groupUpdate);
         }
 
-        public void GroupMembershipData(UUID receiverAgent, UUID dataForClientID, GroupMembershipData[] data)
+        public void GroupMembershipData(UUID receiverAgent, GroupMembershipData[] data)
         {
             AddEvent(receiverAgent, "AgentGroupDataUpdate", data);
         }

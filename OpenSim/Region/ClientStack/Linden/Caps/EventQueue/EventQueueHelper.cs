@@ -367,7 +367,7 @@ namespace OpenSim.Region.ClientStack.Linden
             return groupUpdate;
         }
 
-        public static OSD GroupMembershipData(UUID receiverAgent, UUID dataForAgentID, GroupMembershipData[] data)
+        public static OSD GroupMembershipData(UUID receiverAgent, GroupMembershipData[] data)
         {
             OSDArray AgentData = new OSDArray(1);
             OSDMap AgentDataMap = new OSDMap(1);
@@ -379,16 +379,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
             foreach (GroupMembershipData membership in data)
             {
-                if (receiverAgent != dataForAgentID)
-                {
-                    if (!membership.ListInProfile)
-                    {
-                        // If we're sending group info to remoteclient about another agent, 
-                        // filter out groups the other agent doesn't want to share.
-                        continue;
-                    }
-                }
-
                 OSDMap GroupDataMap = new OSDMap(6);
                 OSDMap NewGroupDataMap = new OSDMap(1);
 

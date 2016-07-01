@@ -59,7 +59,7 @@ namespace OpenSim.Region.Framework.Interfaces
                                                bool isModerator, bool textMute);
         void ParcelProperties(ParcelPropertiesMessage parcelPropertiesMessage, UUID avatarID);
         void GroupMembership(AgentGroupDataUpdatePacket groupUpdate, UUID avatarID);
-        void GroupMembershipData(UUID receiverAgent, UUID dataForClientID, GroupMembershipData[] data);
+        void GroupMembershipData(UUID receiverAgent, GroupMembershipData[] data);
         OSD ScriptRunningEvent(UUID objectID, UUID itemID, bool running, bool mono);
         OSD BuildEvent(string eventName, OSD eventBody);
         void partPhysicsProperties(uint localID, byte physhapetype, float density, float friction, float bounce, float gravmod, UUID avatarID);
