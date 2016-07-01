@@ -2755,29 +2755,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendGroupMembership(GroupMembershipData[] GroupMembership)
         {
-            m_groupPowers.Clear();
 
+            // maybe removed in future, use SendAgentGroupDataUpdate instead ( but make sure to update groupPowers )
             AgentGroupDataUpdatePacket Groupupdate = new AgentGroupDataUpdatePacket();
             AgentGroupDataUpdatePacket.GroupDataBlock[] Groups = new AgentGroupDataUpdatePacket.GroupDataBlock[GroupMembership.Length];
-            for (int i = 0; i < GroupMembership.Length; i++)
+
+            lock(m_groupPowers)
             {
-                m_groupPowers[GroupMembership[i].GroupID] = GroupMembership[i].GroupPowers;
+                m_groupPowers.Clear();
 
-                AgentGroupDataUpdatePacket.GroupDataBlock Group = new AgentGroupDataUpdatePacket.GroupDataBlock();
-                Group.AcceptNotices = GroupMembership[i].AcceptNotices;
-                Group.Contribution = GroupMembership[i].Contribution;
-                Group.GroupID = GroupMembership[i].GroupID;
-                Group.GroupInsigniaID = GroupMembership[i].GroupPicture;
-                Group.GroupName = Util.StringToBytes256(GroupMembership[i].GroupName);
-                Group.GroupPowers = GroupMembership[i].GroupPowers;
-                Groups[i] = Group;
+                for (int i = 0; i < GroupMembership.Length; i++)
+                {
+                    m_groupPowers[GroupMembership[i].GroupID] = GroupMembership[i].GroupPowers;
 
-
+                    AgentGroupDataUpdatePacket.GroupDataBlock Group = new AgentGroupDataUpdatePacket.GroupDataBlock();
+                    Group.AcceptNotices = GroupMembership[i].AcceptNotices;
+                    Group.Contribution = GroupMembership[i].Contribution;
+                    Group.GroupID = GroupMembership[i].GroupID;
+                    Group.GroupInsigniaID = GroupMembership[i].GroupPicture;
+                    Group.GroupName = Util.StringToBytes256(GroupMembership[i].GroupName);
+                    Group.GroupPowers = GroupMembership[i].GroupPowers;
+                    Groups[i] = Group;
+                }
             }
+
             Groupupdate.GroupData = Groups;
             Groupupdate.AgentData = new AgentGroupDataUpdatePacket.AgentDataBlock();
             Groupupdate.AgentData.AgentID = AgentId;
-
+            
             IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
             try
             {
@@ -5639,9 +5644,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (groupID == ActiveGroupId)
                 return ActiveGroupPowers;
 
-            if (m_groupPowers.ContainsKey(groupID))
-                return m_groupPowers[groupID];
-
+            lock(m_groupPowers)
+            {
+                if (m_groupPowers.ContainsKey(groupID))
+                    return m_groupPowers[groupID];
+            }
             return 0;
         }
 
@@ -12952,20 +12959,54 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void RefreshGroupMembership()
         {
-            if (m_GroupsModule != null)
+            lock(m_groupPowers)
             {
-                GroupMembershipData[] GroupMembership =
+                if (m_GroupsModule != null)
+                {
+                    GroupMembershipData[] GroupMembership =
                         m_GroupsModule.GetMembershipData(AgentId);
 
-                m_groupPowers.Clear();
-
-                if (GroupMembership != null)
-                {
-                    for (int i = 0; i < GroupMembership.Length; i++)
+                    m_groupPowers.Clear();
+                        
+                    if (GroupMembership != null)
                     {
-                        m_groupPowers[GroupMembership[i].GroupID] = GroupMembership[i].GroupPowers;
+                        for (int i = 0; i < GroupMembership.Length; i++)
+                        {
+                            m_groupPowers[GroupMembership[i].GroupID] = GroupMembership[i].GroupPowers;
+                        }
                     }
                 }
+            }
+        }
+
+        public void UpdateGroupMembership(GroupMembershipData[] data)
+        {
+            lock(m_groupPowers)
+            {
+                m_groupPowers.Clear();
+                       
+                if (data != null)
+                {
+                    for (int i = 0; i < data.Length; i++)
+                     m_groupPowers[data[i].GroupID] = data[i].GroupPowers;
+                }
+            }
+        }
+
+        public void GroupMembershipRemove(UUID GroupID)
+        {
+            lock(m_groupPowers)
+            {
+                if(m_groupPowers.ContainsKey(GroupID))
+                    m_groupPowers.Remove(GroupID);
+            }
+        }
+
+        public void GroupMembershipAddReplace(UUID GroupID,ulong GroupPowers)
+        {
+            lock(m_groupPowers)
+            {
+                m_groupPowers[GroupID] = GroupPowers;
             }
         }
 
