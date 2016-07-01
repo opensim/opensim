@@ -2756,51 +2756,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendGroupMembership(GroupMembershipData[] GroupMembership)
         {
 
-            // maybe removed in future, use SendAgentGroupDataUpdate instead ( but make sure to update groupPowers )
-            AgentGroupDataUpdatePacket Groupupdate = new AgentGroupDataUpdatePacket();
-            AgentGroupDataUpdatePacket.GroupDataBlock[] Groups = new AgentGroupDataUpdatePacket.GroupDataBlock[GroupMembership.Length];
-
-            lock(m_groupPowers)
-            {
-                m_groupPowers.Clear();
-
-                for (int i = 0; i < GroupMembership.Length; i++)
-                {
-                    m_groupPowers[GroupMembership[i].GroupID] = GroupMembership[i].GroupPowers;
-
-                    AgentGroupDataUpdatePacket.GroupDataBlock Group = new AgentGroupDataUpdatePacket.GroupDataBlock();
-                    Group.AcceptNotices = GroupMembership[i].AcceptNotices;
-                    Group.Contribution = GroupMembership[i].Contribution;
-                    Group.GroupID = GroupMembership[i].GroupID;
-                    Group.GroupInsigniaID = GroupMembership[i].GroupPicture;
-                    Group.GroupName = Util.StringToBytes256(GroupMembership[i].GroupName);
-                    Group.GroupPowers = GroupMembership[i].GroupPowers;
-                    Groups[i] = Group;
-                }
-            }
-
-            Groupupdate.GroupData = Groups;
-            Groupupdate.AgentData = new AgentGroupDataUpdatePacket.AgentDataBlock();
-            Groupupdate.AgentData.AgentID = AgentId;
-            
-            IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
-            try
-            {
-                if (eq != null)
-                {
-                    eq.GroupMembership(Groupupdate, this.AgentId);
-                }
-            }
-            catch (Exception ex)
-            {
-                m_log.Error("Unable to send group membership data via eventqueue - exception: " + ex.ToString());
-                m_log.Warn("sending group membership data via UDP");
-                eq = null;
-            }
-
-            if(eq == null) // udp if no eq
-                OutPacket(Groupupdate, ThrottleOutPacketType.Task);
-
+            UpdateGroupMembership(GroupMembership);
+            SendAgentGroupDataUpdate(AgentId,GroupMembership);
         }
 
         public void SendPartPhysicsProprieties(ISceneEntity entity)
@@ -11015,7 +10972,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (m_GroupsModule != null)
             {
                 m_GroupsModule.ActivateGroup(this, activateGroupPacket.AgentData.GroupID);
-                m_GroupsModule.SendAgentGroupDataUpdate(this);
             }
             return true;
 
