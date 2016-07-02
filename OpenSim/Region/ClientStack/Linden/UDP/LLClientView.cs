@@ -11135,6 +11135,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             GroupProfileData d = m_GroupsModule.GroupProfileRequest(this,
                                                                     groupProfileRequest.GroupData.GroupID);
 
+            if(d.GroupID == UUID.Zero) // don't send broken data
+                return true;
+
             groupProfileReply.GroupData.GroupID = d.GroupID;
             groupProfileReply.GroupData.Name = Util.StringToBytes256(d.Name);
             groupProfileReply.GroupData.Charter = Util.StringToBytes1024(d.Charter);
