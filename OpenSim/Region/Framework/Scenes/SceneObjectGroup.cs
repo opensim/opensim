@@ -556,6 +556,7 @@ namespace OpenSim.Region.Framework.Scenes
                         && !Scene.PositionIsInCurrentRegion(val)
                         && !IsAttachmentCheckFull()
                         && !Scene.LoadingPrims
+                        && !Scene.DisableObjectTransfer
                     )
                 {
                     if (!inTransit)

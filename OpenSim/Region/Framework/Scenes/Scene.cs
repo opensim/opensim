@@ -250,6 +250,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// 
         public int m_linksetPhysCapacity = 0;
 
+        /// <summary>
+        /// When placed outside the region's border, do we transfer the objects or
+        /// do we keep simulating them here?
+        /// </summary>
+        public bool DisableObjectTransfer { get; set; }
+
         public bool m_useFlySlow;
         public bool m_useTrashOnDelete = true;
 
@@ -1155,6 +1161,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (entityTransferConfig != null)
             {
                 AllowAvatarCrossing = entityTransferConfig.GetBoolean("AllowAvatarCrossing", AllowAvatarCrossing);
+                DisableObjectTransfer = entityTransferConfig.GetBoolean("DisableObjectTransfer", false);
             }
 
             #region Interest Management
