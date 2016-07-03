@@ -4309,14 +4309,14 @@ namespace OpenSim.Region.Framework.Scenes
             if (banned || restricted)
             {
                 ILandObject nearestParcel = GetNearestAllowedParcel(agentID, posX, posY);
+                Vector2? newPosition = null;
                 if (nearestParcel != null)
                 {
                     //Move agent to nearest allowed
-                    Vector2 newPosition = GetParcelSafeCorner(nearestParcel);
-                    posX = newPosition.X;
-                    posY = newPosition.Y;
+//                    Vector2 newPosition = GetParcelSafeCorner(nearestParcel);
+                    newPosition = nearestParcel.GetNearestPoint(new Vector3(posX, posY,0));
                 }
-                else
+                if(newPosition == null)
                 {
                     if (banned)
                     {
@@ -4328,6 +4328,11 @@ namespace OpenSim.Region.Framework.Scenes
                             RegionInfo.RegionName);
                     }
                     return false;
+                }
+                else
+                {
+                    posX = newPosition.Value.X;
+                    posY = newPosition.Value.Y;
                 }
             }
             reason = "";
