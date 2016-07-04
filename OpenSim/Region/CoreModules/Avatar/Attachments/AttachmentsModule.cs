@@ -898,8 +898,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
                 string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp, scriptedState);
 
-                InventoryItemBase item = new InventoryItemBase(grp.FromItemID, sp.UUID);
-                item = m_scene.InventoryService.GetItem(item);
+                InventoryItemBase item = m_scene.InventoryService.GetItem(sp.UUID, grp.FromItemID);
 
                 if (item != null)
                 {
@@ -1223,8 +1222,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return;
             }
 
-            InventoryItemBase item = new InventoryItemBase(itemID, sp.UUID);
-            item = m_scene.InventoryService.GetItem(item);
+            InventoryItemBase item = m_scene.InventoryService.GetItem(sp.UUID, itemID);
             if (item == null)
                 return;
 

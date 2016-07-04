@@ -291,9 +291,9 @@ namespace OpenSim.Services.HypergridService
         //{
         //}
 
-        public override InventoryItemBase GetItem(InventoryItemBase item)
+        public override InventoryItemBase GetItem(UUID principalID, UUID itemID)
         {
-            InventoryItemBase it = base.GetItem(item);
+            InventoryItemBase it = base.GetItem(principalID, itemID);
             if (it != null)
             {
                 UserAccount user = m_Cache.GetUser(it.CreatorId);

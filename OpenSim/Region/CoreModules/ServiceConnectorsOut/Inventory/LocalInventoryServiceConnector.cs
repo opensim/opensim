@@ -292,13 +292,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_InventoryService.DeleteItems(ownerID, itemIDs);
         }
 
-        public InventoryItemBase GetItem(InventoryItemBase item)
+        public InventoryItemBase GetItem(UUID principalID, UUID itemID)
         {
 //            m_log.DebugFormat("[LOCAL INVENTORY SERVICES CONNECTOR]: Requesting inventory item {0}", item.ID);
 
 //            UUID requestedItemId = item.ID;
             
-            item = m_InventoryService.GetItem(item);
+            InventoryItemBase item = m_InventoryService.GetItem(principalID, itemID);
 
 //            if (null == item)
 //                m_log.ErrorFormat(
@@ -312,9 +312,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_InventoryService.GetMultipleItems(userID, itemIDs);
         }
 
-        public InventoryFolderBase GetFolder(InventoryFolderBase folder)
+        public InventoryFolderBase GetFolder(UUID principalID, UUID folderID)
         {
-            return m_InventoryService.GetFolder(folder);
+            return m_InventoryService.GetFolder(principalID, folderID);
         }
 
         /// <summary>

@@ -103,13 +103,8 @@ namespace OpenSim.Region.CoreModules.Framework.Library
         {
             InventoryItemBase[] itemColl = new InventoryItemBase[itemIDs.Length];
             int i = 0;
-            InventoryItemBase item = new InventoryItemBase();
-            item.Owner = principalID;
             foreach (UUID fid in itemIDs)
-            {
-                item.ID = fid;
-                itemColl[i++] = GetItem(item);
-            }
+                itemColl[i++] = GetItem(principalID, fid);
 
             return itemColl;
         }
@@ -239,14 +234,14 @@ namespace OpenSim.Region.CoreModules.Framework.Library
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public InventoryItemBase GetItem(InventoryItemBase item) { return null; }
+        public InventoryItemBase GetItem(UUID principalID, UUID itemID) { return null; }
 
         /// <summary>
         /// Get a folder, given by its UUID
         /// </summary>
         /// <param name="folder"></param>
         /// <returns></returns>
-        public InventoryFolderBase GetFolder(InventoryFolderBase folder) { return null; }
+        public InventoryFolderBase GetFolder(UUID principalID, UUID folderID) { return null; }
 
         /// <summary>
         /// Does the given user have an inventory structure?

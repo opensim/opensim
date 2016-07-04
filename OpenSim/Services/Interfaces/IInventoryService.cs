@@ -161,7 +161,7 @@ namespace OpenSim.Services.Interfaces
         /// </summary>
         /// <param name="item"></param>
         /// <returns>null if no item was found, otherwise the found item</returns>
-        InventoryItemBase GetItem(InventoryItemBase item);
+        InventoryItemBase GetItem(UUID userID, UUID itemID);
 
         /// <summary>
         /// Get multiple items, given by their UUIDs
@@ -175,7 +175,7 @@ namespace OpenSim.Services.Interfaces
         /// </summary>
         /// <param name="folder"></param>
         /// <returns></returns>
-        InventoryFolderBase GetFolder(InventoryFolderBase folder);
+        InventoryFolderBase GetFolder(UUID userID, UUID folderID);
 
         /// <summary>
         /// Does the given user have an inventory structure?

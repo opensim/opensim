@@ -566,9 +566,11 @@ namespace OpenSim.Server.Handlers.Inventory
             Dictionary<string,object> result = new Dictionary<string,object>();
             UUID id = UUID.Zero;
             UUID.TryParse(request["ID"].ToString(), out id);
+            UUID user = UUID.Zero;
+            if (request.ContainsKey("PRINCIPAL"))
+                UUID.TryParse(request["PRINCIPAL"].ToString(), out user);
 
-            InventoryItemBase item = new InventoryItemBase(id);
-            item = m_InventoryService.GetItem(item);
+            InventoryItemBase item = m_InventoryService.GetItem(user, id);
             if (item != null)
                 result["item"] = EncodeItem(item);
 
@@ -617,9 +619,11 @@ namespace OpenSim.Server.Handlers.Inventory
             Dictionary<string, object> result = new Dictionary<string, object>();
             UUID id = UUID.Zero;
             UUID.TryParse(request["ID"].ToString(), out id);
+            UUID user = UUID.Zero;
+            if (request.ContainsKey("PRINCIPAL"))
+                UUID.TryParse(request["PRINCIPAL"].ToString(), out user);
 
-            InventoryFolderBase folder = new InventoryFolderBase(id);
-            folder = m_InventoryService.GetFolder(folder);
+            InventoryFolderBase folder = m_InventoryService.GetFolder(user, id);
             if (folder != null)
                 result["folder"] = EncodeFolder(folder);
 

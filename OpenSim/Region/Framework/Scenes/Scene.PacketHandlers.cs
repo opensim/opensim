@@ -627,8 +627,7 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat(
 //                "[AGENT INVENTORY]: Updating inventory folder {0} {1} for {2} {3}", folderID, name, remoteClient.Name, remoteClient.AgentId);
 
-            InventoryFolderBase folder = new InventoryFolderBase(folderID, remoteClient.AgentId);
-            folder = InventoryService.GetFolder(folder);
+            InventoryFolderBase folder = InventoryService.GetFolder(remoteClient.AgentId, folderID);
             if (folder != null)
             {
                 folder.Name = name;
@@ -645,8 +644,7 @@ namespace OpenSim.Region.Framework.Scenes
         
         public void HandleMoveInventoryFolder(IClientAPI remoteClient, UUID folderID, UUID parentID)
         {
-            InventoryFolderBase folder = new InventoryFolderBase(folderID, remoteClient.AgentId);
-            folder = InventoryService.GetFolder(folder);
+            InventoryFolderBase folder = InventoryService.GetFolder(remoteClient.AgentId, folderID);
             if (folder != null)
             {
                 folder.ParentID = parentID;

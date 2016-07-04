@@ -219,7 +219,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 //                sp.Appearance.GetAttachpoint(attSo.FromItemID),
 //                Is.EqualTo((int)AttachmentPoint.Chest));
 
-            InventoryItemBase attachmentItem = scene.InventoryService.GetItem(new InventoryItemBase(attSo.FromItemID));
+            InventoryItemBase attachmentItem = scene.InventoryService.GetItem(sp.UUID, attSo.FromItemID);
             Assert.That(attachmentItem, Is.Not.Null);
             Assert.That(attachmentItem.Name, Is.EqualTo(attName));
 
@@ -266,7 +266,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 //                    sp.Appearance.GetAttachpoint(attSo.FromItemID),
 //                    Is.EqualTo((int)AttachmentPoint.LeftHand));
 
-                InventoryItemBase attachmentItem = scene.InventoryService.GetItem(new InventoryItemBase(attSo.FromItemID));
+                InventoryItemBase attachmentItem = scene.InventoryService.GetItem(sp.UUID, attSo.FromItemID);
                 Assert.That(attachmentItem, Is.Not.Null);
                 Assert.That(attachmentItem.Name, Is.EqualTo(so.Name));
 
@@ -299,7 +299,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 //                    sp.Appearance.GetAttachpoint(attSo.FromItemID),
 //                    Is.EqualTo((int)AttachmentPoint.LeftHand));
 
-                InventoryItemBase attachmentItem = scene.InventoryService.GetItem(new InventoryItemBase(attSo.FromItemID));
+                InventoryItemBase attachmentItem = scene.InventoryService.GetItem(sp.UUID, attSo.FromItemID);
                 Assert.That(attachmentItem, Is.Not.Null);
                 Assert.That(attachmentItem.Name, Is.EqualTo(so2.Name));
 
@@ -332,7 +332,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 //                    sp.Appearance.GetAttachpoint(attSo.FromItemID),
 //                    Is.EqualTo((int)AttachmentPoint.LeftHand));
 
-                InventoryItemBase attachmentItem = scene.InventoryService.GetItem(new InventoryItemBase(attSo.FromItemID));
+                InventoryItemBase attachmentItem = scene.InventoryService.GetItem(sp.UUID, attSo.FromItemID);
                 Assert.That(attachmentItem, Is.Not.Null);
                 Assert.That(attachmentItem.Name, Is.EqualTo(so2.Name));
 
@@ -600,7 +600,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 //            Assert.That(sp.Appearance.GetAttachments().Count, Is.EqualTo(0));
 
             // Check item status
-            Assert.That(scene.InventoryService.GetItem(new InventoryItemBase(attItem.ID)), Is.Null);
+            Assert.That(scene.InventoryService.GetItem(sp.UUID, attItem.ID), Is.Null);
 
             // Check object in scene
             SceneObjectGroup soInScene = scene.GetSceneObjectGroup("att");
@@ -679,7 +679,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             scene.AttachmentsModule.DetachSingleAttachmentToInv(sp, rezzedSo);
 
-            InventoryItemBase userItemUpdated = scene.InventoryService.GetItem(userItem);
+            InventoryItemBase userItemUpdated = scene.InventoryService.GetItem(userItem.Owner, userItem.ID);
             AssetBase asset = scene.AssetService.Get(userItemUpdated.AssetID.ToString());
 
             // TODO: It would probably be better here to check script state via the saving and retrieval of state

@@ -445,8 +445,7 @@ namespace OpenSim.Groups
 
                             UUID itemID = binBucketMap["item_id"].AsUUID();
                             UUID ownerID = binBucketMap["owner_id"].AsUUID();
-                            item = new InventoryItemBase(itemID, ownerID);
-                            item = m_sceneList[0].InventoryService.GetItem(item);
+                            item = m_sceneList[0].InventoryService.GetItem(ownerID, itemID);
                         }
                         else
                             m_log.DebugFormat("[Groups]: Received OSD with unexpected type: {0}", binBucketOSD.GetType());

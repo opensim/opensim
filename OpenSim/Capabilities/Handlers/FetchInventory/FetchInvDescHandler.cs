@@ -403,10 +403,7 @@ namespace OpenSim.Capabilities.Handlers
                     return contents;
                 }
                 contents = fetchedContents;
-                InventoryFolderBase containingFolder = new InventoryFolderBase();
-                containingFolder.ID = folderID;
-                containingFolder.Owner = agentID;
-                containingFolder = m_InventoryService.GetFolder(containingFolder);
+                InventoryFolderBase containingFolder = m_InventoryService.GetFolder(agentID, folderID);
 
                 if (containingFolder != null)
                 {
@@ -429,7 +426,7 @@ namespace OpenSim.Capabilities.Handlers
                         {
                             if (item.AssetType == (int)AssetType.Link)
                             {
-                                InventoryItemBase linkedItem = m_InventoryService.GetItem(new InventoryItemBase(item.AssetID));
+                                InventoryItemBase linkedItem = m_InventoryService.GetItem(agentID, item.AssetID);
 
                                 // Take care of genuinely broken links where the target doesn't exist
                                 // HACK: Also, don't follow up links that just point to other links.  In theory this is legitimate,
@@ -659,10 +656,7 @@ from docs seems this was never a spec
             // Must fetch it individually
             else if (contents.FolderID == UUID.Zero)
             {
-                InventoryFolderBase containingFolder = new InventoryFolderBase();
-                containingFolder.ID = freq.folder_id;
-                containingFolder.Owner = freq.owner_id;
-                containingFolder = m_InventoryService.GetFolder(containingFolder);
+                InventoryFolderBase containingFolder = m_InventoryService.GetFolder(freq.owner_id, freq.folder_id);
 
                 if (containingFolder != null)
                 {
@@ -759,12 +753,9 @@ from docs seems this was never a spec
                         m_log.WarnFormat("[WEB FETCH INV DESC HANDLER]: GetMultipleItems failed. Falling back to fetching inventory items one by one.");
                         linked = new InventoryItemBase[itemIDs.Count];
                         int i = 0;
-                        InventoryItemBase item = new InventoryItemBase();
-                        item.Owner = freq.owner_id;
                         foreach (UUID id in itemIDs)
                         {
-                            item.ID = id;
-                            linked[i++] = m_InventoryService.GetItem(item);
+                            linked[i++] = m_InventoryService.GetItem(freq.owner_id, id);
                         }
                     }
 

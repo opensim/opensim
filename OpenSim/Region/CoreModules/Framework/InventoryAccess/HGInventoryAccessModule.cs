@@ -314,9 +314,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             //if (fromTaskID.Equals(UUID.Zero))
             //{
-            InventoryItemBase item = new InventoryItemBase(itemID);
-            item.Owner = remoteClient.AgentId;
-            item = m_Scene.InventoryService.GetItem(item);
+            InventoryItemBase item = m_Scene.InventoryService.GetItem(remoteClient.AgentId, itemID);
             //if (item == null)
             //{ // Fetch the item
             //    item = new InventoryItemBase();

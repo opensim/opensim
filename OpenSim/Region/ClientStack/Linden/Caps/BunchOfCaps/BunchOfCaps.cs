@@ -1386,7 +1386,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 IClientAPI client = null;
 
                 m_Scene.TryGetClient(m_HostCapsObj.AgentID, out client);
-                item = m_Scene.InventoryService.GetItem(new InventoryItemBase(itemID));
+                item = m_Scene.InventoryService.GetItem(m_HostCapsObj.AgentID, itemID);
                 if (item != null)
                 {
                     string message;
