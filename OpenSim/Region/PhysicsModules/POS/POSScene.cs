@@ -54,6 +54,11 @@ namespace OpenSim.Region.PhysicsModule.POS
             get { return "POS"; }
         }
 
+        public string Version
+        {
+            get { return "1.0"; }
+        }
+
         public Type ReplaceableInterface
         {
             get { return null; }
@@ -83,6 +88,7 @@ namespace OpenSim.Region.PhysicsModule.POS
 
             EngineType = Name;
             PhysicsSceneName = EngineType + "/" + scene.RegionInfo.RegionName;
+            EngineName = Name + " " + Version;
 
             scene.RegisterModuleInterface<PhysicsScene>(this);
             base.Initialise(scene.PhysicsRequestAsset,

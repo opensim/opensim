@@ -61,6 +61,11 @@ namespace OpenSim.Region.PhysicsModule.BasicPhysics
             get { return "basicphysics"; }
         }
 
+        public string Version
+        {
+            get { return "1.0"; }
+        }
+
         public Type ReplaceableInterface
         {
             get { return null; }
@@ -90,6 +95,7 @@ namespace OpenSim.Region.PhysicsModule.BasicPhysics
 
             EngineType = Name;
             PhysicsSceneName = EngineType + "/" + scene.RegionInfo.RegionName;
+            EngineName = Name + " " + Version;
 
             scene.RegisterModuleInterface<PhysicsScene>(this);
             m_regionExtent = new Vector3(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY, scene.RegionInfo.RegionSizeZ);
