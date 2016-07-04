@@ -292,15 +292,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.DeleteItems(ownerID, itemIDs);
         }
 
-        public  InventoryItemBase GetItem(InventoryItemBase item)
+        public  InventoryItemBase GetItem(UUID userID, UUID itemID)
         {
             //m_log.DebugFormat("[XINVENTORY CONNECTOR]: GetItem {0}", item.ID);
-            if (item == null)
-                return null;
 
             if (m_RemoteConnector == null)
                 m_log.DebugFormat("[XINVENTORY CONNECTOR]: connector stub is null!!!");
-            return m_RemoteConnector.GetItem(item);
+            return m_RemoteConnector.GetItem(userID, itemID);
         }
 
         public InventoryItemBase[] GetMultipleItems(UUID userID, UUID[] itemIDs)
@@ -311,13 +309,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.GetMultipleItems(userID, itemIDs);
         }
 
-        public  InventoryFolderBase GetFolder(InventoryFolderBase folder)
+        public  InventoryFolderBase GetFolder(UUID userID, UUID folderID)
         {
             //m_log.DebugFormat("[XINVENTORY CONNECTOR]: GetFolder {0}", folder.ID);
-            if (folder == null)
-                return null;
 
-            return m_RemoteConnector.GetFolder(folder);
+            return m_RemoteConnector.GetFolder(userID, folderID);
         }
 
         public  bool HasInventoryForUser(UUID userID)

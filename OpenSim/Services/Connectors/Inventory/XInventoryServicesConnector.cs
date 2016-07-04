@@ -520,10 +520,10 @@ namespace OpenSim.Services.Connectors
             return CheckReturn(ret);
         }
 
-        public InventoryItemBase GetItem(InventoryItemBase item)
+        public InventoryItemBase GetItem(UUID principalID, UUID itemID)
         {
             InventoryItemBase retrieved = null;
-            if (m_ItemCache.TryGetValue(item.ID, out retrieved))
+            if (m_ItemCache.TryGetValue(itemID, out retrieved))
             {
                 return retrieved;
             }
@@ -532,7 +532,8 @@ namespace OpenSim.Services.Connectors
             {
                 Dictionary<string, object> ret = MakeRequest("GETITEM",
                         new Dictionary<string, object> {
-                        { "ID", item.ID.ToString() }
+                        { "ID", itemID.ToString() },
+                        { "PRINCIPAL", principalID.ToString() }
                     });
 
                 if (!CheckReturn(ret))
@@ -545,7 +546,7 @@ namespace OpenSim.Services.Connectors
                 m_log.Error("[XINVENTORY SERVICES CONNECTOR]: Exception in GetItem: ", e);
             }
 
-            m_ItemCache.AddOrUpdate(item.ID, retrieved, CACHE_EXPIRATION_SECONDS);
+            m_ItemCache.AddOrUpdate(itemID, retrieved, CACHE_EXPIRATION_SECONDS);
 
             return retrieved;
         }
@@ -613,13 +614,14 @@ namespace OpenSim.Services.Connectors
             return itemArr;
         }
 
-        public InventoryFolderBase GetFolder(InventoryFolderBase folder)
+        public InventoryFolderBase GetFolder(UUID principalID, UUID folderID)
         {
             try
             {
                 Dictionary<string, object> ret = MakeRequest("GETFOLDER",
                         new Dictionary<string, object> {
-                        { "ID", folder.ID.ToString() }
+                        { "ID", folderID.ToString() },
+                        { "PRINCIPAL", principalID.ToString() }
                     });
 
                 if (!CheckReturn(ret))

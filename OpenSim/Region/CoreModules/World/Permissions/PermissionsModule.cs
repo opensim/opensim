@@ -1100,8 +1100,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (objectID == UUID.Zero) // User inventory
             {
                 IInventoryService invService = m_scene.InventoryService;
-                InventoryItemBase assetRequestItem = new InventoryItemBase(notecard, user);
-                assetRequestItem = invService.GetItem(assetRequestItem);
+                InventoryItemBase assetRequestItem = invService.GetItem(user, notecard);
                 if (assetRequestItem == null && LibraryRootFolder != null) // Library item
                 {
                     assetRequestItem = LibraryRootFolder.FindItem(notecard);
@@ -1625,8 +1624,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (objectID == UUID.Zero) // User inventory
             {
                 IInventoryService invService = m_scene.InventoryService;
-                InventoryItemBase assetRequestItem = new InventoryItemBase(script, user);
-                assetRequestItem = invService.GetItem(assetRequestItem);
+                InventoryItemBase assetRequestItem = invService.GetItem(user, script);
                 if (assetRequestItem == null && LibraryRootFolder != null) // Library item
                 {
                     assetRequestItem = LibraryRootFolder.FindItem(script);
@@ -1722,8 +1720,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (objectID == UUID.Zero) // User inventory
             {
                 IInventoryService invService = m_scene.InventoryService;
-                InventoryItemBase assetRequestItem = new InventoryItemBase(notecard, user);
-                assetRequestItem = invService.GetItem(assetRequestItem);
+                InventoryItemBase assetRequestItem = invService.GetItem(user, notecard);
                 if (assetRequestItem == null && LibraryRootFolder != null) // Library item
                 {
                     assetRequestItem = LibraryRootFolder.FindItem(notecard);

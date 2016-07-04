@@ -81,24 +81,15 @@ namespace OpenSim.Capabilities.Handlers
                     // OMG!!! One by one!!! This is fallback code, in case the backend isn't updated
                     m_log.WarnFormat("[FETCH INVENTORY HANDLER]: GetMultipleItems failed. Falling back to fetching inventory items one by one.");
                     items = new InventoryItemBase[itemsRequested.Count];                   
-                    InventoryItemBase item = new InventoryItemBase();
-                    item.Owner = m_agentID;
                     foreach (UUID id in itemIDs)
-                    {
-                        item.ID = id;
-                        items[i++] = m_inventoryService.GetItem(item);
-                    }
+                        items[i++] = m_inventoryService.GetItem(m_agentID, id);
                 }
             }
             else
             {
                 items = new InventoryItemBase[itemsRequested.Count];
-                InventoryItemBase item = new InventoryItemBase();
                 foreach (UUID id in itemIDs)
-                {
-                    item.ID = id;
-                    items[i++] = m_inventoryService.GetItem(item);
-                }
+                    items[i++] = m_inventoryService.GetItem(UUID.Zero, id);
             }
 
             foreach (InventoryItemBase item in items)

@@ -383,7 +383,7 @@ namespace OpenSim.Services.HypergridService
             // Check the items' current folders
             foreach (InventoryItemBase item in items)
             {
-                InventoryItemBase originalItem = base.GetItem(item);
+                InventoryItemBase originalItem = base.GetItem(item.Owner, item.ID);
                 if (!IsWithinSuitcaseTree(originalItem.Owner, originalItem.Folder))
                 {
                     m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: MoveItems: folder {0} (user {1}) is not within Suitcase tree", item.Folder, item.Owner);
@@ -401,7 +401,7 @@ namespace OpenSim.Services.HypergridService
 
         public new InventoryItemBase GetItem(InventoryItemBase item)
         {
-            InventoryItemBase it = base.GetItem(item);
+            InventoryItemBase it = base.GetItem(item.Owner, item.ID);
             if (it == null)
             {
                 m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: Unable to retrieve item {0} ({1}) in folder {2}",
@@ -426,9 +426,9 @@ namespace OpenSim.Services.HypergridService
             return it;
         }
 
-        public new InventoryFolderBase GetFolder(InventoryFolderBase folder)
+        public new InventoryFolderBase GetFolder(UUID principalID, UUID folderID)
         {
-            InventoryFolderBase f = base.GetFolder(folder);
+            InventoryFolderBase f = base.GetFolder(principalID, folderID);
 
             if (f != null)
             {

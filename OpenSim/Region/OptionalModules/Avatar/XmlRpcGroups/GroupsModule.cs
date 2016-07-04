@@ -505,8 +505,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                             //variable will be set to null and attachment will
                             //not be included with the group notice.
                             Scene scene = (Scene)remoteClient.Scene;
-                            item = new InventoryItemBase(itemID, ownerID);
-                            item = scene.InventoryService.GetItem(item);
+                            item = scene.InventoryService.GetItem(ownerID, itemID);
 
                             if (item != null)
                             {

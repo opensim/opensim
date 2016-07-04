@@ -184,8 +184,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (!m_Scene.Permissions.CanCreateUserInventory(invType, remoteClient.AgentId))
                 return;
 
-            InventoryFolderBase f = new InventoryFolderBase(folderID, remoteClient.AgentId);
-            InventoryFolderBase folder = m_Scene.InventoryService.GetFolder(f);
+            InventoryFolderBase folder = m_Scene.InventoryService.GetFolder(remoteClient.AgentId, folderID);
 
             if (folder == null && Enum.IsDefined(typeof(FolderType), (sbyte)invType))
             {
@@ -260,8 +259,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         /// <returns></returns>
         public virtual UUID CapsUpdateInventoryItemAsset(IClientAPI remoteClient, UUID itemID, byte[] data)
         {
-            InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
-            item = m_Scene.InventoryService.GetItem(item);
+            InventoryItemBase item = m_Scene.InventoryService.GetItem(remoteClient.AgentId, itemID);
 
             if (item.Owner != remoteClient.AgentId)
                 return UUID.Zero;
@@ -719,8 +717,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             if (DeRezAction.SaveToExistingUserInventoryItem == action)
             {
-                item = new InventoryItemBase(so.RootPart.FromUserInventoryItemID, userID);
-                item = m_Scene.InventoryService.GetItem(item);
+                item = m_Scene.InventoryService.GetItem(userID, so.RootPart.FromUserInventoryItemID);
 
                 //item = userInfo.RootFolder.FindItem(
                 //        objectGroup.RootPart.FromUserInventoryItemID);
@@ -792,9 +789,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 {
                     if (so.FromFolderID != UUID.Zero && so.RootPart.OwnerID == remoteClient.AgentId)
                     {
-                        InventoryFolderBase f = new InventoryFolderBase(so.FromFolderID, userID);
-                        if (f != null)
-                            folder = m_Scene.InventoryService.GetFolder(f);
+                        folder = m_Scene.InventoryService.GetFolder(userID, so.FromFolderID);
 
                         if(folder.Type == 14 || folder.Type == 16)
                         {
@@ -830,8 +825,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
         {
 //            m_log.DebugFormat("[INVENTORY ACCESS MODULE]: RezObject for {0}, item {1}", remoteClient.Name, itemID);
-            InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
-            item = m_Scene.InventoryService.GetItem(item);
+            InventoryItemBase item = m_Scene.InventoryService.GetItem(remoteClient.AgentId, itemID);
 
             if (item == null)
             {
@@ -1289,8 +1283,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         protected virtual InventoryItemBase GetItem(UUID agentID, UUID itemID)
         {
             IInventoryService invService = m_Scene.RequestModuleInterface<IInventoryService>();
-            InventoryItemBase item = new InventoryItemBase(itemID, agentID);
-            item = invService.GetItem(item);
+            InventoryItemBase item = invService.GetItem(agentID, itemID);
             
             if (item != null && item.CreatorData != null && item.CreatorData != string.Empty)
                 UserManagementModule.AddUser(item.CreatorIdAsUuid, item.CreatorData);

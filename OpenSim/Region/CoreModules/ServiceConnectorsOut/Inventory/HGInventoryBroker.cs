@@ -598,21 +598,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return connector.DeleteItems(ownerID, itemIDs);
         }
 
-        public InventoryItemBase GetItem(InventoryItemBase item)
+        public InventoryItemBase GetItem(UUID principalID, UUID itemID)
         {
-            if (item == null)
-                return null;
             //m_log.Debug("[HG INVENTORY CONNECTOR]: GetItem " + item.ID);
 
-            string invURL = GetInventoryServiceURL(item.Owner);
+            string invURL = GetInventoryServiceURL(principalID);
 
             if (invURL == null) // not there, forward to local inventory connector to resolve
                 lock (m_Lock)
-                    return m_LocalGridInventoryService.GetItem(item);
+                    return m_LocalGridInventoryService.GetItem(principalID, itemID);
 
             IInventoryService connector = GetConnector(invURL);
 
-            return connector.GetItem(item);
+            return connector.GetItem(principalID, itemID);
         }
 
         public InventoryItemBase[] GetMultipleItems(UUID userID, UUID[] itemIDs)
@@ -632,22 +630,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return connector.GetMultipleItems(userID, itemIDs);
         }
 
-        public InventoryFolderBase GetFolder(InventoryFolderBase folder)
+        public InventoryFolderBase GetFolder(UUID principalID, UUID folderID)
         {
-            if (folder == null)
-                return null;
-
             //m_log.Debug("[HG INVENTORY CONNECTOR]: GetFolder " + folder.ID);
 
-            string invURL = GetInventoryServiceURL(folder.Owner);
+            string invURL = GetInventoryServiceURL(principalID);
 
             if (invURL == null) // not there, forward to local inventory connector to resolve
                 lock (m_Lock)
-                    return m_LocalGridInventoryService.GetFolder(folder);
+                    return m_LocalGridInventoryService.GetFolder(principalID, folderID);
 
             IInventoryService connector = GetConnector(invURL);
 
-            return connector.GetFolder(folder);
+            return connector.GetFolder(principalID, folderID);
         }
 
         public bool HasInventoryForUser(UUID userID)

@@ -239,8 +239,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             InventoryFolderBase trashFolder =
                     invService.GetFolderForType(client.AgentId, FolderType.Trash);
 
-            InventoryItemBase item = new InventoryItemBase(transactionID, client.AgentId);
-            item = invService.GetItem(item);
+            InventoryItemBase item = invService.GetItem(client.AgentId, transactionID);
 
             if (item != null && trashFolder != null)
             {

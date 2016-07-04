@@ -277,17 +277,17 @@ namespace OpenSim.Services.Connectors.SimianGrid
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public InventoryItemBase GetItem(InventoryItemBase item)
+        public InventoryItemBase GetItem(UUID principalID, UUID itemID)
         {
             InventoryItemBase retrieved = null;
-            if (m_ItemCache.TryGetValue(item.ID, out retrieved))
+            if (m_ItemCache.TryGetValue(itemID, out retrieved))
                 return retrieved;
 
             NameValueCollection requestArgs = new NameValueCollection
             {
                 { "RequestMethod", "GetInventoryNode" },
-                { "ItemID", item.ID.ToString() },
-                { "OwnerID", item.Owner.ToString() },
+                { "ItemID", itemID.ToString() },
+                { "OwnerID", principalID.ToString() },
                 { "IncludeFolders", "1" },
                 { "IncludeItems", "1" },
                 { "ChildrenOnly", "1" }
@@ -303,17 +303,17 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     // and sanity check just in case
                     for (int i = 0; i < items.Count; i++)
                     {
-                        if (items[i].ID == item.ID)
+                        if (items[i].ID == itemID)
                         {
                             retrieved = items[i];
-                            m_ItemCache.AddOrUpdate(item.ID, retrieved, CACHE_EXPIRATION_SECONDS);
+                            m_ItemCache.AddOrUpdate(itemID, retrieved, CACHE_EXPIRATION_SECONDS);
                             return retrieved;
                         }
                     }
                 }
             }
 
-            m_log.Warn("[SIMIAN INVENTORY CONNECTOR]: Item " + item.ID + " owned by " + item.Owner + " not found");
+            m_log.Warn("[SIMIAN INVENTORY CONNECTOR]: Item " + itemID + " owned by " + principalID + " not found");
             return null;
         }
 
@@ -321,13 +321,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
         {
             InventoryItemBase[] result = new InventoryItemBase[itemIDs.Length];
             int i = 0;
-            InventoryItemBase item = new InventoryItemBase();
-            item.Owner = principalID;
             foreach (UUID id in itemIDs)
-            {
-                item.ID = id;
-                result[i++] = GetItem(item);
-            }
+                result[i++] = GetItem(principalID, id);
 
             return result;
         }
@@ -337,13 +332,13 @@ namespace OpenSim.Services.Connectors.SimianGrid
         /// </summary>
         /// <param name="folder"></param>
         /// <returns></returns>
-        public InventoryFolderBase GetFolder(InventoryFolderBase folder)
+        public InventoryFolderBase GetFolder(UUID principalID, UUID folderID)
         {
             NameValueCollection requestArgs = new NameValueCollection
             {
                 { "RequestMethod", "GetInventoryNode" },
-                { "ItemID", folder.ID.ToString() },
-                { "OwnerID", folder.Owner.ToString() },
+                { "ItemID", folderID.ToString() },
+                { "OwnerID", principalID.ToString() },
                 { "IncludeFolders", "1" },
                 { "IncludeItems", "0" },
                 { "ChildrenOnly", "1" }
@@ -353,7 +348,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             if (response["Success"].AsBoolean() && response["Items"] is OSDArray)
             {
                 OSDArray items = (OSDArray)response["Items"];
-                List<InventoryFolderBase> folders = GetFoldersFromResponse(items, folder.ID, true);
+                List<InventoryFolderBase> folders = GetFoldersFromResponse(items, folderID, true);
 
                 if (folders.Count > 0)
                     return folders[0];

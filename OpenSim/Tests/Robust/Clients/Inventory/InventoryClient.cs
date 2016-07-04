@@ -159,8 +159,7 @@ namespace Robust.Tests
             XInventoryServicesConnector m_Connector = new XInventoryServicesConnector(DemonServer.Address);
 
             // Prefetch Notecard 1, will be cached from here on
-            InventoryItemBase item = new InventoryItemBase(new UUID("10000000-0000-0000-0000-000000000001"), m_userID);
-            item = m_Connector.GetItem(item);
+            InventoryItemBase item = m_Connector.GetItem(m_userID, new UUID("10000000-0000-0000-0000-000000000001"));
             Assert.NotNull(item, "Failed to get Notecard 1");
             Assert.AreEqual("Test Notecard 1", item.Name, "Wrong name for Notecard 1");
 

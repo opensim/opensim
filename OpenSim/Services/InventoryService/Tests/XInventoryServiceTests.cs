@@ -90,8 +90,7 @@ namespace OpenSim.Services.InventoryService.Tests
 
             Assert.That(xis.AddItem(itemToStore), Is.True);
 
-            InventoryItemBase itemRetrieved = new InventoryItemBase(itemId);
-            itemRetrieved = xis.GetItem(itemRetrieved);
+            InventoryItemBase itemRetrieved = xis.GetItem(UUID.Zero, itemId);
 
             Assert.That(itemRetrieved, Is.Not.Null);
             Assert.That(itemRetrieved.CreatorId, Is.EqualTo(creatorId));
@@ -139,8 +138,7 @@ namespace OpenSim.Services.InventoryService.Tests
 
             Assert.That(xis.UpdateItem(itemToStore), Is.True);
 
-            InventoryItemBase itemRetrieved = new InventoryItemBase(itemId);
-            itemRetrieved = xis.GetItem(itemRetrieved);
+            InventoryItemBase itemRetrieved = xis.GetItem(UUID.Zero, itemId);
 
             Assert.That(itemRetrieved, Is.Not.Null);
             Assert.That(itemRetrieved.Name, Is.EqualTo(itemName2));
@@ -162,7 +160,7 @@ namespace OpenSim.Services.InventoryService.Tests
 
             Assert.That(xis.UpdateItem(itemToStore), Is.True);
 
-            itemRetrieved = xis.GetItem(itemRetrieved);
+            itemRetrieved = xis.GetItem(itemRetrieved.Owner, itemRetrieved.ID);
 
             Assert.That(itemRetrieved, Is.Not.Null);
             Assert.That(itemRetrieved.CreatorId, Is.EqualTo(creatorId));

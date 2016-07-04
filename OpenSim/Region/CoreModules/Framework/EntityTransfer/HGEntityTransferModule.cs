@@ -95,8 +95,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                     foreach (AvatarAttachment att in a.GetAttachments())
                     {
-                        InventoryItemBase item = new InventoryItemBase(att.ItemID, account.PrincipalID);
-                        item = Scene.InventoryService.GetItem(item);
+                        InventoryItemBase item = Scene.InventoryService.GetItem(account.PrincipalID, att.ItemID);
                         if (item != null)
                             a.SetAttachment(att.AttachPoint, att.ItemID, item.AssetID);
                         else

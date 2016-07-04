@@ -86,8 +86,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gestures
         {
             IInventoryService invService = m_scene.InventoryService;
 
-            InventoryItemBase item = new InventoryItemBase(gestureId, client.AgentId);
-            item = invService.GetItem(item);
+            InventoryItemBase item = invService.GetItem(client.AgentId, gestureId);
             if (item != null)
             {
                 item.Flags |= 1;
@@ -102,8 +101,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gestures
         {
             IInventoryService invService = m_scene.InventoryService;
 
-            InventoryItemBase item = new InventoryItemBase(gestureId, client.AgentId);
-            item = invService.GetItem(item);
+            InventoryItemBase item = invService.GetItem(client.AgentId, gestureId);
             if (item != null)
             {
                 item.Flags &= ~(uint)1;

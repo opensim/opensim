@@ -223,8 +223,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (core.TryGet<IClientInventory>(out inv))
                     {
-                        InventoryFolderBase parent = new InventoryFolderBase(f.ParentID, f.Owner);
-                        parent = InventoryService.GetFolder(parent);
+                        InventoryFolderBase parent = InventoryService.GetFolder(f.Owner, f.ParentID);
                         inv.SendRemoveInventoryItems(new UUID[] { item.ID });
                         inv.SendBulkUpdateInventory(new InventoryFolderBase[0], new InventoryItemBase[] { item });
                         string message = "The item was placed in folder " + f.Name;
@@ -407,8 +406,7 @@ namespace OpenSim.Region.Framework.Scenes
             // inventory. Rut-Roh. Whatever. Make this secure. Yeah.
             //
             // Passing something to another avatar or a an object will already
-            InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
-            item = InventoryService.GetItem(item);
+            InventoryItemBase item = InventoryService.GetItem(remoteClient.AgentId, itemID);
 
             if (item != null)
             {
@@ -585,8 +583,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return null;
             }
 
-            InventoryItemBase item = new InventoryItemBase(itemId, senderId);
-            item = InventoryService.GetItem(item);
+            InventoryItemBase item = InventoryService.GetItem(senderId, itemId);
 
             if (item == null)
             {
@@ -807,7 +804,7 @@ namespace OpenSim.Region.Framework.Scenes
             UUID recipientId, UUID senderId, UUID folderId, UUID recipientParentFolderId)
         {
             //// Retrieve the folder from the sender
-            InventoryFolderBase folder = InventoryService.GetFolder(new InventoryFolderBase(folderId, senderId));
+            InventoryFolderBase folder = InventoryService.GetFolder(senderId, folderId);
             if (null == folder)
             {
                 m_log.ErrorFormat(
@@ -868,8 +865,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (item == null)
             {
-                item = new InventoryItemBase(oldItemID, remoteClient.AgentId);
-                item = InventoryService.GetItem(item);
+                item = InventoryService.GetItem(remoteClient.AgentId, oldItemID);
 
                 if (item == null)
                 {
@@ -953,7 +949,7 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (InventoryItemBase b in items)
             {
                 CopyInventoryItem(remoteClient, 0, remoteClient.AgentId, b.ID, b.Folder, null);
-                InventoryItemBase n = InventoryService.GetItem(b);
+                InventoryItemBase n = InventoryService.GetItem(b.Owner, b.ID);
                 n.Folder = destfolder;
                 moveitems.Add(n);
                 remoteClient.SendInventoryItemCreateUpdate(n, 0);
@@ -1605,8 +1601,7 @@ namespace OpenSim.Region.Framework.Scenes
             InventoryCollection contents = InventoryService.GetFolderContent(client.AgentId, folder.ID);
 
             // Fetch the folder itself to get its current version
-            InventoryFolderBase containingFolder = new InventoryFolderBase(folder.ID, client.AgentId);
-            containingFolder = InventoryService.GetFolder(containingFolder);
+            InventoryFolderBase containingFolder = InventoryService.GetFolder(client.AgentId, folder.ID);
 
 //            m_log.DebugFormat("[AGENT INVENTORY]: Sending inventory folder contents ({0} nodes) for \"{1}\" to {2} {3}",
 //                contents.Folders.Count + contents.Items.Count, containingFolder.Name, client.FirstName, client.LastName);
@@ -1620,7 +1615,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (item.AssetType == (int)AssetType.Link)
                     {
-                        InventoryItemBase linkedItem = InventoryService.GetItem(new InventoryItemBase(item.AssetID));
+                        InventoryItemBase linkedItem = InventoryService.GetItem(client.AgentId, item.AssetID);
 
                         // Take care of genuinely broken links where the target doesn't exist
                         // HACK: Also, don't follow up links that just point to other links.  In theory this is legitimate,
@@ -1680,8 +1675,7 @@ namespace OpenSim.Region.Framework.Scenes
                     UUID copyID = UUID.Random();
                     if (itemID != UUID.Zero)
                     {
-                        InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
-                        item = InventoryService.GetItem(item);
+                        InventoryItemBase item = InventoryService.GetItem(remoteClient.AgentId, itemID);
 
                         // Try library
                         if (null == item && LibraryService != null && LibraryService.LibraryRootFolder != null)
@@ -1836,8 +1830,7 @@ namespace OpenSim.Region.Framework.Scenes
         public SceneObjectPart RezScriptFromAgentInventory(UUID agentID, UUID fromItemID, uint localID)
         {
             UUID copyID = UUID.Random();
-            InventoryItemBase item = new InventoryItemBase(fromItemID, agentID);
-            item = InventoryService.GetItem(item);
+            InventoryItemBase item = InventoryService.GetItem(agentID, fromItemID);
 
             // Try library
             // XXX clumsy, possibly should be one call
