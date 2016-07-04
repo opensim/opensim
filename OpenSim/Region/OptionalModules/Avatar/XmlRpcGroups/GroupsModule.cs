@@ -786,7 +786,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             GroupProfileData profile = new GroupProfileData();
 
-
             GroupRecord groupInfo = m_groupData.GetGroupRecord(GetRequestingAgentID(remoteClient), groupID, null);
             if (groupInfo != null)
             {
@@ -812,7 +811,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 profile.MemberTitle = memberInfo.GroupTitle;
                 profile.PowersMask = memberInfo.GroupPowers;
             }
-
+/*
+            this should save xmlrpc calls, but seems to return wrong GroupMembershipCount and GroupRolesCount
+            UUID agent = GetRequestingAgentID(remoteClient);
+            GroupProfileData profile = m_groupData.GetMemberGroupProfile(agent, groupID, agent);
+*/
             return profile;
         }
 
@@ -1407,13 +1410,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             SendDataUpdate(remoteClient,  tellOthers);
 
             GroupMembershipData[] membershipArray = GetProfileListedGroupMemberships(remoteClient, agentID);
-            IEventQueue eq = remoteClient.Scene.RequestModuleInterface<IEventQueue>();
-            if (eq != null)
-                eq.GroupMembershipData(agentID, membershipArray);
-            else
-                remoteClient.SendGroupMembership(membershipArray);
+            remoteClient.UpdateGroupMembership(membershipArray);
 
-            remoteClient.RefreshGroupMembership();
+            remoteClient.SendAgentGroupDataUpdate(agentID, membershipArray);
          }
 
         /// <summary>

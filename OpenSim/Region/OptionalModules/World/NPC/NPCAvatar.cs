@@ -1255,6 +1255,18 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
+        public void UpdateGroupMembership(GroupMembershipData[] data)
+        {
+        }
+
+        public void GroupMembershipRemove(UUID GroupID)
+        {
+        }
+
+        public void GroupMembershipAddReplace(UUID GroupID,ulong GroupPowers)
+        {
+        }
+
         public void SendUseCachedMuteList()
         {
         }

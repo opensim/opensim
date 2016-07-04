@@ -242,6 +242,19 @@ namespace OpenSim.Region.Framework.Scenes
             coarseLocations = new List<Vector3>();
             avatarUUIDs = new List<UUID>();
 
+            // coarse locations are sent as BYTE, so limited to the 255m max of normal regions
+            // try to work around that scale down X and Y acording to region size, so reducing the resolution
+            // 
+            // viewers need to scale up
+            float scaleX = m_parentScene.RegionInfo.RegionSizeX / Constants.RegionSize;
+            if (scaleX == 0)
+                scaleX = 1.0f;
+            scaleX = 1.0f / scaleX;
+            float scaleY = m_parentScene.RegionInfo.RegionSizeY / Constants.RegionSize;
+            if (scaleY == 0)
+                    scaleY = 1.0f;
+            scaleY = 1.0f / scaleY;
+
             List<ScenePresence> presences = GetScenePresences();
             for (int i = 0; i < Math.Min(presences.Count, maxLocations); ++i)
             {
@@ -250,9 +263,11 @@ namespace OpenSim.Region.Framework.Scenes
                 // If this presence is a child agent, we don't want its coarse locations
                 if (sp.IsChildAgent)
                     continue;
+                Vector3 pos = sp.AbsolutePosition;
+                pos.X *= scaleX;
+                pos.Y *= scaleY;
 
-                coarseLocations.Add(sp.AbsolutePosition);
-
+                coarseLocations.Add(pos);
                 avatarUUIDs.Add(sp.UUID);
             }
         }

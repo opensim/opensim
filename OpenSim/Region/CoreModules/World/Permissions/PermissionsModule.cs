@@ -1302,7 +1302,11 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            if ((newPoint.X > 257f || newPoint.X < -1f || newPoint.Y > 257f || newPoint.Y < -1f))
+
+            // allow outide region??
+            if (newPoint.X < -1f || newPoint.Y < -1f)
+                return true;
+            if (newPoint.X > scene.RegionInfo.RegionSizeX + 1.0f ||  newPoint.Y > scene.RegionInfo.RegionSizeY + 1.0f)
             {
                 return true;
             }

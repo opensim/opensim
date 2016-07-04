@@ -1626,6 +1626,22 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
+        public void UpdateGroupMembership(GroupMembershipData[] data)
+        {
+            
+        }
+
+        public void GroupMembershipRemove(UUID GroupID)
+        {
+            
+        }
+
+        public void GroupMembershipAddReplace(UUID GroupID,ulong GroupPowers)
+        {
+            
+        }
+
+
         public void SendAvatarNotesReply(UUID targetID, string text)
         {
             

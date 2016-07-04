@@ -333,40 +333,6 @@ namespace OpenSim.Region.ClientStack.Linden
             return chatterBoxSessionAgentListUpdates;
         }
 
-        public static OSD GroupMembership(AgentGroupDataUpdatePacket groupUpdatePacket)
-        {
-            OSDMap groupUpdate = new OSDMap();
-            groupUpdate.Add("message", OSD.FromString("AgentGroupDataUpdate"));
-
-            OSDMap body = new OSDMap();
-            OSDArray agentData = new OSDArray();
-            OSDMap agentDataMap = new OSDMap();
-            agentDataMap.Add("AgentID", OSD.FromUUID(groupUpdatePacket.AgentData.AgentID));
-            agentData.Add(agentDataMap);
-            body.Add("AgentData", agentData);
-
-            OSDArray groupData = new OSDArray();
-
-            foreach (AgentGroupDataUpdatePacket.GroupDataBlock groupDataBlock in groupUpdatePacket.GroupData)
-            {
-                OSDMap groupDataMap = new OSDMap();
-                groupDataMap.Add("ListInProfile", OSD.FromBoolean(false));
-                groupDataMap.Add("GroupID", OSD.FromUUID(groupDataBlock.GroupID));
-                groupDataMap.Add("GroupInsigniaID", OSD.FromUUID(groupDataBlock.GroupInsigniaID));
-                groupDataMap.Add("Contribution", OSD.FromInteger(groupDataBlock.Contribution));
-                groupDataMap.Add("GroupPowers", OSD.FromBinary(ulongToByteArray(groupDataBlock.GroupPowers)));
-                groupDataMap.Add("GroupName", OSD.FromString(Utils.BytesToString(groupDataBlock.GroupName)));
-                groupDataMap.Add("AcceptNotices", OSD.FromBoolean(groupDataBlock.AcceptNotices));
-
-                groupData.Add(groupDataMap);
-
-            }
-            body.Add("GroupData", groupData);
-            groupUpdate.Add("body", body);
-
-            return groupUpdate;
-        }
-
         public static OSD GroupMembershipData(UUID receiverAgent, GroupMembershipData[] data)
         {
             OSDArray AgentData = new OSDArray(1);

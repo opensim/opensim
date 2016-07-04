@@ -51,7 +51,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         /// GroupID may be specified instead, in which case this parmeter will be null.
         /// </param>
         GroupRecord GetGroupRecord(UUID RequestingAgentID, UUID GroupID, string GroupName);
-       
+        GroupProfileData GetMemberGroupProfile(UUID requestingAgentID, UUID GroupID, UUID AgentID);
+
         List<DirGroupsReplyData> FindGroups(UUID RequestingAgentID, string search);
         List<GroupMembersData> GetGroupMembers(UUID RequestingAgentID, UUID GroupID);
 

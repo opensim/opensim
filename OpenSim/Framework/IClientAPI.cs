@@ -1473,6 +1473,9 @@ namespace OpenSim.Framework
 
         void SendAgentDropGroup(UUID groupID);
         void RefreshGroupMembership();
+        void UpdateGroupMembership(GroupMembershipData[] data);
+        void GroupMembershipRemove(UUID GroupID);
+        void GroupMembershipAddReplace(UUID GroupID,ulong GroupPowers);
         void SendAvatarNotesReply(UUID targetID, string text);
         void SendAvatarPicksReply(UUID targetID, Dictionary<UUID, string> picks);
         void SendPickInfoReply(UUID pickID,UUID creatorID, bool topPick, UUID parcelID, string name, string desc, UUID snapshotID, string user, string originalName, string simName, Vector3 posGlobal, int sortOrder, bool enabled);

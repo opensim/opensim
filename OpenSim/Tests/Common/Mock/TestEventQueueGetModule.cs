@@ -157,11 +157,6 @@ namespace OpenSim.Tests.Common
             AddEvent(avatarID, "ParcelProperties", parcelPropertiesMessage);
         }
 
-        public void GroupMembership (OpenMetaverse.Packets.AgentGroupDataUpdatePacket groupUpdate, UUID avatarID)
-        {
-            AddEvent(avatarID, "GroupMembership", groupUpdate);
-        }
-
         public void GroupMembershipData(UUID receiverAgent, GroupMembershipData[] data)
         {
             AddEvent(receiverAgent, "AgentGroupDataUpdate", data);

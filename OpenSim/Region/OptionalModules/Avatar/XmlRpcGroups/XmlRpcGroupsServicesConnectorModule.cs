@@ -181,9 +181,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                 m_cacheTimeout = groupsConfig.GetInt("GroupsCacheTimeout", 30);
 
-                // disable cache until it is fixed
-                m_cacheTimeout = 0;
-
                 if (m_cacheTimeout == 0)
                 {
                     m_log.WarnFormat("[XMLRPC-GROUPS-CONNECTOR]: Groups Cache Disabled.");
@@ -385,10 +382,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             GroupMembershipData MemberInfo = GetAgentGroupMembership(requestingAgentID, AgentID, GroupID);
             GroupProfileData MemberGroupProfile = GroupProfileHashtableToGroupProfileData(respData);
-
-            MemberGroupProfile.MemberTitle = MemberInfo.GroupTitle;
-            MemberGroupProfile.PowersMask = MemberInfo.GroupPowers;
-
+            if(MemberInfo != null)
+            {
+                MemberGroupProfile.MemberTitle = MemberInfo.GroupTitle;
+                MemberGroupProfile.PowersMask = MemberInfo.GroupPowers;
+            }
             return MemberGroupProfile;
         }
 
@@ -977,12 +975,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                 try
                 {
-                    resp = req.Send(m_groupsServerURI, 30000);
-
-                    if ((m_cacheTimeout > 0) && (CacheKey != null))
-                    {
-                        m_memoryCache.AddOrUpdate(CacheKey, resp, TimeSpan.FromSeconds(m_cacheTimeout));
-                    }
+                    resp = req.Send(m_groupsServerURI);
                 }
                 catch (Exception e)
                 {
@@ -1004,10 +997,20 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                             m_log.WarnFormat("[XMLRPC-GROUPS-CONNECTOR]: {0} :: {1}", key, param[key].ToString());
                         }
                     }
+
+                    if ((m_cacheTimeout > 0) && (CacheKey != null))
+                    {
+                        m_memoryCache.AddOrUpdate(CacheKey, resp, 10.0);
+                    }
                     Hashtable respData = new Hashtable();
                     respData.Add("error", e.ToString());
                     return respData;
                 }
+            }
+
+            if ((m_cacheTimeout > 0) && (CacheKey != null))
+            {
+                m_memoryCache.AddOrUpdate(CacheKey, resp, TimeSpan.FromSeconds(m_cacheTimeout));
             }
 
             if (resp.Value is Hashtable)
@@ -1138,6 +1141,7 @@ namespace Nwc.XmlRpc
             request.ContentType = "text/xml";
             request.AllowWriteStreamBuffering = true;
             request.KeepAlive = !_disableKeepAlive;
+            request.Timeout = 30000;
 
             using (Stream stream = request.GetRequestStream())
             {

@@ -579,12 +579,6 @@ namespace OpenSim.Region.ClientStack.Linden
             Enqueue(item, avatarID);
         }
 
-        public void GroupMembership(AgentGroupDataUpdatePacket groupUpdate, UUID avatarID)
-        {
-            OSD item = EventQueueHelper.GroupMembership(groupUpdate);
-            Enqueue(item, avatarID);
-        }
-
         public void GroupMembershipData(UUID receiverAgent, GroupMembershipData[] data)
         {
             OSD item = EventQueueHelper.GroupMembershipData(receiverAgent, data);

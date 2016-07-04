@@ -58,7 +58,6 @@ namespace OpenSim.Region.Framework.Interfaces
         void ChatterBoxSessionAgentListUpdates(UUID sessionID, UUID fromAgent, UUID anotherAgent, bool canVoiceChat, 
                                                bool isModerator, bool textMute);
         void ParcelProperties(ParcelPropertiesMessage parcelPropertiesMessage, UUID avatarID);
-        void GroupMembership(AgentGroupDataUpdatePacket groupUpdate, UUID avatarID);
         void GroupMembershipData(UUID receiverAgent, GroupMembershipData[] data);
         OSD ScriptRunningEvent(UUID objectID, UUID itemID, bool running, bool mono);
         OSD BuildEvent(string eventName, OSD eventBody);
