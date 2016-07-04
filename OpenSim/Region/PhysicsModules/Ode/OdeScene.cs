@@ -500,13 +500,14 @@ namespace OpenSim.Region.PhysicsModule.ODE
 	
 		public Scene m_frameWorkScene = null;
 
-        public OdeScene(Scene pscene, IConfigSource psourceconfig, string pname)
+        public OdeScene(Scene pscene, IConfigSource psourceconfig, string pname, string pversion)
 		{
 			m_config = psourceconfig;
 			m_frameWorkScene = pscene;
 			
             EngineType = pname;
             PhysicsSceneName = EngineType + "/" + pscene.RegionInfo.RegionName;
+            EngineName = pname + " " + pversion;
 
             pscene.RegisterModuleInterface<PhysicsScene>(this);
             Vector3 extent = new Vector3(pscene.RegionInfo.RegionSizeX, pscene.RegionInfo.RegionSizeY, pscene.RegionInfo.RegionSizeZ);

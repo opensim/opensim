@@ -25,6 +25,11 @@ namespace OpenSim.Region.PhysicsModule.ODE
             get { return "OpenDynamicsEngine"; }
         }
 
+        public string Version
+        {
+            get { return "1.0"; }
+        }
+
         public Type ReplaceableInterface
         {
             get { return null; }
@@ -60,7 +65,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             // http://opensimulator.org/mantis/view.php?id=2750).
             d.InitODE();
 
-            m_scene = new OdeScene(scene, m_config, Name);
+            m_scene = new OdeScene(scene, m_config, Name, Version);
         }
 
         public void RemoveRegion(Scene scene)
