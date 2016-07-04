@@ -29,6 +29,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             get { return "ubODE"; }
         }
 
+        public string Version
+        {
+            get { return "1.0"; }
+        }
+
         public Type ReplaceableInterface
         {
             get { return null; }
@@ -75,7 +80,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             if(m_scenes.ContainsKey(scene)) // ???
                 return;
-		    ODEScene newodescene = new ODEScene(scene, m_config, Name, OSOdeLib);
+		    ODEScene newodescene = new ODEScene(scene, m_config, Name, Version, OSOdeLib);
             m_scenes[scene] = newodescene;
         }
 

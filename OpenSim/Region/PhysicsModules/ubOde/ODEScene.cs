@@ -324,13 +324,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         IConfig physicsconfig = null;
 
-        public ODEScene(Scene pscene, IConfigSource psourceconfig, string pname, bool pOSOdeLib)
+        public ODEScene(Scene pscene, IConfigSource psourceconfig, string pname, string pversion, bool pOSOdeLib)
         {
             OdeLock = new Object();
 
             EngineType = pname;
             PhysicsSceneName = EngineType + "/" + pscene.RegionInfo.RegionName;
-
+            EngineName = pname + " " + pversion;
 			m_config = psourceconfig;
             m_OSOdeLib = pOSOdeLib;
 
@@ -355,7 +355,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 m_log.ErrorFormat("[ubOde] No mesher. module disabled");
                 return;
             }
-
+            
             m_meshWorker = new ODEMeshWorker(this, m_log, mesher, physicsconfig);
             m_frameWorkScene.PhysicsEnabled = true;
         }

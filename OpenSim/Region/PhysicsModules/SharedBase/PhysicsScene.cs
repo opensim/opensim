@@ -112,6 +112,8 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         /// </summary>
         public string EngineType { get; protected set; }
 
+        public string EngineName { get; protected set; }
+
         // The only thing that should register for this event is the SceneGraph
         // Anything else could cause problems.
         public event physicsCrash OnPhysicsCrash;

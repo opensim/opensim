@@ -435,6 +435,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetPhysicsEngineType();
         }
 
+        public string osGetPhysicsEngineName()
+        {
+            return m_OSSL_Functions.osGetPhysicsEngineName();
+        }
+
         public string osGetSimulatorVersion()
         {
            return m_OSSL_Functions.osGetSimulatorVersion();
