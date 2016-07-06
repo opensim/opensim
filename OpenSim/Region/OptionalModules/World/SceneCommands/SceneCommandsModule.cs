@@ -156,7 +156,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
             cdl.AddRow("active", m_scene.Active);
             cdl.AddRow("animations", m_scene.DebugAnimations);
             cdl.AddRow("appear-refresh", m_scene.SendPeriodicAppearanceUpdates);
-            cdl.AddRow("child-repri", m_scene.ChildReprioritizationDistance);
             cdl.AddRow("client-pos-upd", m_scene.RootPositionUpdateTolerance);
             cdl.AddRow("client-rot-upd", m_scene.RootRotationUpdateTolerance);
             cdl.AddRow("client-vel-upd", m_scene.RootVelocityUpdateTolerance);
@@ -217,15 +216,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
                 // FIXME: This can only come from the console at the moment but might not always be true.
                 if (ConsoleUtil.TryParseConsoleBool(MainConsole.Instance, options["appear-refresh"], out newValue))
                     m_scene.SendPeriodicAppearanceUpdates = newValue;     
-            }
-
-            if (options.ContainsKey("child-repri"))
-            {
-                double newValue;
-
-                // FIXME: This can only come from the console at the moment but might not always be true.
-                if (ConsoleUtil.TryParseConsoleDouble(MainConsole.Instance, options["child-repri"], out newValue))
-                    m_scene.ChildReprioritizationDistance = (float)newValue;                
             }
 
             if (options.ContainsKey("client-pos-upd"))

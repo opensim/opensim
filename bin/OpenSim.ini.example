@@ -1122,6 +1122,9 @@
      ;; SimpleAngularDistance, FrontBack
      ; UpdatePrioritizationScheme = BestAvatarResponsiveness
 
+	; TEST OPTION KEEP AS FALSE
+	; if true, don't send object updates if outside view range
+	; ObjectsCullingByDistance = false	 
 
 [MediaOnAPrim]
     ;# {Enabled} {} {Enable Media-on-a-Prim (MOAP)} {true false} true

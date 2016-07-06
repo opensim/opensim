@@ -1567,6 +1567,39 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
+        private float? m_boundsRadius = null;
+
+        public float GetBoundsRadius()
+        {
+        // this may need more threading work
+            if(m_boundsRadius == null)
+            {
+                float res = 0;
+                SceneObjectPart p;
+                SceneObjectPart[] parts;
+                float partR;
+                lock (m_parts)
+                {
+                    parts = m_parts.GetArray();
+                }
+
+                int nparts = parts.Length;
+                for (int i = 0; i < nparts; i++)
+                {
+                    p = parts[i];
+                    partR = p.Scale.Length();
+                    if(p != RootPart)
+                        partR += p.OffsetPosition.Length();
+                    if(partR > res)
+                        res = partR;
+                }
+                m_boundsRadius = res;
+                return res;
+            }
+
+            return m_boundsRadius.Value;
+        }
+
         public void GetResourcesCosts(SceneObjectPart apart,
             out float linksetResCost, out float linksetPhysCost, out float partCost, out float partPhysCost)
         {
@@ -4596,14 +4629,11 @@ namespace OpenSim.Region.Framework.Scenes
             if (nparts <= 1)
                 return gc;
 
-            Quaternion parentRot = RootPart.RotationOffset;
             Vector3 pPos;
 
             // average all parts positions
             for (int i = 0; i < nparts; i++)
             {
-                // do it directly
-                //                gc += parts[i].GetWorldPosition();
                 if (parts[i] != RootPart)
                 {
                     pPos = parts[i].OffsetPosition;
@@ -4613,8 +4643,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
             gc /= nparts;
 
-            // relative to root:
-//            gc -= AbsolutePosition;
             return gc;
         }
 
@@ -4661,30 +4689,6 @@ namespace OpenSim.Region.Framework.Scenes
             return Ptot;
         }
 
-        /// <summary>
-        /// If the object is a sculpt/mesh, retrieve the mesh data for each part and reinsert it into each shape so that
-        /// the physics engine can use it.
-        /// </summary>
-        /// <remarks>
-        /// When the physics engine has finished with it, the sculpt data is discarded to save memory.
-        /// </remarks>
-/*        
-        public void CheckSculptAndLoad()
-        {
-            if (IsDeleted)
-                return;
-
-            if ((RootPart.GetEffectiveObjectFlags() & (uint)PrimFlags.Phantom) != 0)
-                return;
-
-//            m_log.Debug("Processing CheckSculptAndLoad for {0} {1}", Name, LocalId);
-
-            SceneObjectPart[] parts = m_parts.GetArray();
-
-            for (int i = 0; i < parts.Length; i++)
-                parts[i].CheckSculptAndLoad();
-        }
-*/
         /// <summary>
         /// Set the user group to which this scene object belongs.
         /// </summary>

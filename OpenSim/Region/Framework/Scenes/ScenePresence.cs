@@ -350,6 +350,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected int  m_reprioritizationLastTime;
         protected bool m_reprioritizationBusy;
         protected Vector3 m_reprioritizationLastPosition;
+        protected float m_reprioritizationLastDrawDistance;
         
         private Quaternion m_headrotation = Quaternion.Identity;
 
@@ -1046,6 +1047,8 @@ namespace OpenSim.Region.Framework.Scenes
             
             AbsolutePosition = posLastMove = posLastSignificantMove = CameraPosition =
                m_reprioritizationLastPosition = ControllingClient.StartPos;
+
+            m_reprioritizationLastDrawDistance = DrawDistance;
 
             // disable updates workjobs for now
             childUpdatesBusy = true;  
@@ -2130,6 +2133,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // priority uses avatar position only
                 m_reprioritizationLastPosition = AbsolutePosition;
+                m_reprioritizationLastDrawDistance = DrawDistance;
                 m_reprioritizationLastTime = Util.EnvironmentTickCount() + 15000; // delay it
                 m_reprioritizationBusy = false;
 
@@ -3986,24 +3990,24 @@ namespace OpenSim.Region.Framework.Scenes
             if(m_reprioritizationBusy)
                 return;
 
+            float limit = Scene.ReprioritizationDistance;
+            bool byDrawdistance = Scene.ObjectsCullingByDistance;
+            if(byDrawdistance)
+                byDrawdistance = (Math.Abs(DrawDistance-m_reprioritizationLastDrawDistance) > 0.5f * limit);
+
             int tdiff =  Util.EnvironmentTickCountSubtract(m_reprioritizationLastTime);
-            if(tdiff < Scene.ReprioritizationInterval)
+            if(!byDrawdistance && tdiff < Scene.ReprioritizationInterval)
                 return;
             // priority uses avatar position
             Vector3 pos = AbsolutePosition;
             Vector3 diff = pos - m_reprioritizationLastPosition;
-            float limit;
-            if(IsChildAgent)
-                limit = (float)Scene.ChildReprioritizationDistance;
-            else
-                limit = (float)Scene.RootReprioritizationDistance;
-
             limit *= limit;
-            if (diff.LengthSquared() < limit)
+            if (!byDrawdistance && diff.LengthSquared() < limit)
                 return;
 
             m_reprioritizationBusy = true;
             m_reprioritizationLastPosition = pos;
+            m_reprioritizationLastDrawDistance = DrawDistance;
 
             Util.FireAndForget(
                 o =>

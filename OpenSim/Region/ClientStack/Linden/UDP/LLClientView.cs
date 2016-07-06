@@ -340,6 +340,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private Prioritizer m_prioritizer;
         private bool m_disableFacelights = false;
 
+        // needs optimazation
+        private HashSet<SceneObjectGroup> GroupsInView = new HashSet<SceneObjectGroup>();
+
         private bool m_VelocityInterpolate = false;
         private const uint MaxTransferBytesPerPacket = 600;
 
@@ -3978,7 +3981,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //            float avgTimeDilation = 0.0f;
             IEntityUpdate iupdate;
             Int32 timeinqueue; // this is just debugging code & can be dropped later
-                
+
+            bool doCulling = m_scene.ObjectsCullingByDistance;
+            float cullingrange = 64.0f;
+            HashSet<SceneObjectGroup> GroupsNeedFullUpdate = new HashSet<SceneObjectGroup>();
+            Vector3 mycamera = Vector3.Zero;
+            Vector3 mypos = Vector3.Zero;
+            ScenePresence mysp = (ScenePresence)SceneAgent;
+            if(mysp != null && !mysp.IsDeleted)
+            {
+                cullingrange = mysp.DrawDistance + m_scene.ReprioritizationDistance +16f;
+                mycamera = mysp.CameraPosition;
+                mypos = mysp.AbsolutePosition;
+            }
+            else
+                 doCulling = false;
+
             while (updatesThisCall < maxUpdates)
             {
                 lock (m_entityUpdates.SyncRoot)
@@ -4056,6 +4074,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             part.Shape.ProfileBegin = 12500;
                             part.Shape.ProfileEnd = 0;
                             part.Shape.ProfileHollow = 27500;
+                        }
+                    }
+
+                    if(doCulling && !part.ParentGroup.IsAttachment)
+                    {
+                        lock(GroupsInView)
+                        {
+                            if(!GroupsInView.Contains(part.ParentGroup))
+                            {
+                                Vector3 partpos = part.ParentGroup.AbsolutePosition;
+                                float dcam = (partpos - mycamera).LengthSquared();
+                                float dpos = (partpos - mypos).LengthSquared();
+                                if(dcam < dpos)
+                                    dpos = dcam;
+                                dpos = (float)Math.Sqrt(dpos) + part.ParentGroup.GetBoundsRadius();
+                                if(dpos > cullingrange)
+                                    continue;
+ 
+                                if(!GroupsNeedFullUpdate.Contains(part.ParentGroup))
+                                   GroupsNeedFullUpdate.Add(part.ParentGroup);
+                                continue;
+                            }
                         }
                     }
 
@@ -4247,8 +4287,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 SendKillObject(m_killRecord);
                 m_killRecord.Clear();
             }
-            #endregion
 
+            lock(GroupsNeedFullUpdate)
+            {
+                if(GroupsNeedFullUpdate.Count > 0)
+                {
+                    foreach(SceneObjectGroup grp in GroupsNeedFullUpdate)
+                    {
+                        grp.ScheduleGroupForFullUpdate();
+                        lock(GroupsInView)
+                            GroupsInView.Add(grp);
+                    }
+                    GroupsNeedFullUpdate.Clear();
+                }
+            }
+            #endregion
 
         }
 
@@ -4282,8 +4335,79 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         
         public void ReprioritizeUpdates()
         {
+            CheckGroupsInView();
             lock (m_entityUpdates.SyncRoot)
                 m_entityUpdates.Reprioritize(UpdatePriorityHandler);
+        }
+
+        public void CheckGroupsInView()
+        {
+            bool doCulling = m_scene.ObjectsCullingByDistance;
+            if(!doCulling)
+                return;
+            float cullingrange = 64.0f;
+            Vector3 mycamera = Vector3.Zero;
+            Vector3 mypos = Vector3.Zero;
+            ScenePresence mysp = (ScenePresence)SceneAgent;
+            if(mysp != null && !mysp.IsDeleted)
+            {
+                cullingrange  = mysp.DrawDistance + m_scene.ReprioritizationDistance + 16f;
+                mycamera = mysp.CameraPosition;
+                mypos = mysp.AbsolutePosition;
+            }
+            else
+                 return;
+
+            HashSet<SceneObjectGroup> NewGroupsInView = new HashSet<SceneObjectGroup>();
+            HashSet<SceneObjectGroup> GroupsNeedFullUpdate = new HashSet<SceneObjectGroup>();
+
+            lock(GroupsInView)
+            {
+            EntityBase[] entities = m_scene.Entities.GetEntities();
+            foreach (EntityBase e in entities)
+            {
+                if (e != null && e is SceneObjectGroup && !((SceneObjectGroup)e).IsAttachment)
+                {
+                    SceneObjectGroup grp = (SceneObjectGroup)e;
+                    Vector3 grppos = grp.AbsolutePosition;
+                    float dcam = (grppos - mycamera).LengthSquared();
+                    float dpos = (grppos - mypos).LengthSquared();
+                    if(dcam < dpos)
+                        dpos = dcam;
+                    dpos = (float)Math.Sqrt(dpos) + grp.GetBoundsRadius();
+                    if(dpos > cullingrange)
+                    {
+                        if(GroupsInView.Contains(grp))
+                        {
+                            GroupsInView.Remove(grp);
+                            if (!m_killRecord.Contains(grp.LocalId))
+                                m_killRecord.Add(grp.LocalId);
+                           }
+                        }
+                    else
+                    {
+                        if(!GroupsInView.Contains(grp) && !GroupsNeedFullUpdate.Contains(grp))
+                            GroupsNeedFullUpdate.Add(grp);
+                        NewGroupsInView.Add(grp);
+                        }
+                    }
+                }
+            }
+
+            GroupsInView = NewGroupsInView;
+
+            if (m_killRecord.Count > 0)
+            {
+                SendKillObject(m_killRecord);
+                m_killRecord.Clear();
+            }
+
+            if(GroupsNeedFullUpdate.Count > 0)
+            {
+                foreach(SceneObjectGroup grp in GroupsNeedFullUpdate)
+                    grp.ScheduleGroupForFullUpdate();
+            }
+            GroupsNeedFullUpdate.Clear();
         }
 
         private bool UpdatePriorityHandler(ref uint priority, ISceneEntity entity)

@@ -803,9 +803,9 @@ namespace OpenSim.Region.Framework.Scenes
         public UpdatePrioritizationSchemes UpdatePrioritizationScheme { get; set; }
         public bool IsReprioritizationEnabled { get; set; }
         public float ReprioritizationInterval { get; set; }
-        public float RootReprioritizationDistance { get; set; }
-        public float ChildReprioritizationDistance { get; set; }
+        public float ReprioritizationDistance { get; set; }
         private float m_minReprioritizationDistance = 32f;
+        public bool ObjectsCullingByDistance = false;
 
         public AgentCircuitManager AuthenticateHandler
         {
@@ -1185,15 +1185,15 @@ namespace OpenSim.Region.Framework.Scenes
                     = interestConfig.GetBoolean("ReprioritizationEnabled", IsReprioritizationEnabled);
                 ReprioritizationInterval
                     = interestConfig.GetFloat("ReprioritizationInterval", ReprioritizationInterval);
-                RootReprioritizationDistance
-                    = interestConfig.GetFloat("RootReprioritizationDistance", RootReprioritizationDistance);
-                ChildReprioritizationDistance
-                    = interestConfig.GetFloat("ChildReprioritizationDistance", ChildReprioritizationDistance);
+                ReprioritizationDistance
+                    = interestConfig.GetFloat("RootReprioritizationDistance", ReprioritizationDistance);
 
-                if(RootReprioritizationDistance < m_minReprioritizationDistance)
-                    RootReprioritizationDistance = m_minReprioritizationDistance;
-                if(ChildReprioritizationDistance < m_minReprioritizationDistance)
-                    ChildReprioritizationDistance = m_minReprioritizationDistance;
+                if(ReprioritizationDistance < m_minReprioritizationDistance)
+                    ReprioritizationDistance = m_minReprioritizationDistance;
+
+                ObjectsCullingByDistance
+                    = interestConfig.GetBoolean("ObjectsCullingByDistance", ObjectsCullingByDistance);
+
 
                 RootTerseUpdatePeriod = interestConfig.GetInt("RootTerseUpdatePeriod", RootTerseUpdatePeriod);
                 ChildTerseUpdatePeriod = interestConfig.GetInt("ChildTerseUpdatePeriod", ChildTerseUpdatePeriod);
@@ -1252,8 +1252,7 @@ namespace OpenSim.Region.Framework.Scenes
             RootRotationUpdateTolerance = 0.1f;
             RootVelocityUpdateTolerance = 0.001f;
             RootPositionUpdateTolerance = 0.05f;
-            RootReprioritizationDistance = m_minReprioritizationDistance;
-            ChildReprioritizationDistance = m_minReprioritizationDistance;
+            ReprioritizationDistance = m_minReprioritizationDistance;
 
             m_eventManager = new EventManager();
 
