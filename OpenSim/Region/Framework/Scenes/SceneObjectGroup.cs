@@ -1568,6 +1568,10 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         private float? m_boundsRadius = null;
+        public void InvalidBoundsRadius()
+        {
+            m_boundsRadius = null;
+        }
 
         public float GetBoundsRadius()
         {
@@ -2346,6 +2350,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // a copy isnt backedup
             dupe.Backup = false;
+            dupe.InvalidBoundsRadius();
   
             // a copy is not in transit hopefully
             dupe.inTransit = false;
@@ -3175,6 +3180,8 @@ namespace OpenSim.Region.Framework.Scenes
             // unmoved prims!
             ResetChildPrimPhysicsPositions();
 
+            InvalidBoundsRadius();
+
             if (m_rootPart.PhysActor != null)
                 m_rootPart.PhysActor.Building = false;
 
@@ -3325,6 +3332,8 @@ namespace OpenSim.Region.Framework.Scenes
                 m_rootPart.PhysActor.Building = false;
 
             objectGroup.HasGroupChangedDueToDelink = true;
+
+            InvalidBoundsRadius();
 
             if (sendEvents)
                 linkPart.TriggerScriptChangedEvent(Changed.LINK);
@@ -3832,6 +3841,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (pa != null)
                     m_scene.PhysicsScene.AddPhysicsActorTaint(pa);
             }
+            InvalidBoundsRadius();
         }
 
         #endregion
@@ -3962,11 +3972,13 @@ namespace OpenSim.Region.Framework.Scenes
                     obPart.Scale = newSize;
                     obPart.UpdateOffSet(currentpos);
                 }
-
-                HasGroupChanged = true;
-                m_rootPart.TriggerScriptChangedEvent(Changed.SCALE);
-                ScheduleGroupForFullUpdate();
             }
+
+            InvalidBoundsRadius();
+            HasGroupChanged = true;
+            m_rootPart.TriggerScriptChangedEvent(Changed.SCALE);
+            ScheduleGroupForFullUpdate();
+
         }
 
         #endregion
