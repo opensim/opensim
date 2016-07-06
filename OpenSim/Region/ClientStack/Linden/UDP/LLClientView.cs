@@ -4088,7 +4088,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 float dpos = (partpos - mypos).LengthSquared();
                                 if(dcam < dpos)
                                     dpos = dcam;
-                                dpos = (float)Math.Sqrt(dpos) + part.ParentGroup.GetBoundsRadius();
+                                dpos = (float)Math.Sqrt(dpos) - part.ParentGroup.GetBoundsRadius();
                                 if(dpos > cullingrange)
                                     continue;
  
@@ -4361,6 +4361,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             HashSet<SceneObjectGroup> NewGroupsInView = new HashSet<SceneObjectGroup>();
             HashSet<SceneObjectGroup> GroupsNeedFullUpdate = new HashSet<SceneObjectGroup>();
 
+
+            // will this take for ever ?
             lock(GroupsInView)
             {
             EntityBase[] entities = m_scene.Entities.GetEntities();
@@ -4374,7 +4376,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     float dpos = (grppos - mypos).LengthSquared();
                     if(dcam < dpos)
                         dpos = dcam;
-                    dpos = (float)Math.Sqrt(dpos) + grp.GetBoundsRadius();
+                    dpos = (float)Math.Sqrt(dpos) - grp.GetBoundsRadius();
                     if(dpos > cullingrange)
                     {
                         if(GroupsInView.Contains(grp))
