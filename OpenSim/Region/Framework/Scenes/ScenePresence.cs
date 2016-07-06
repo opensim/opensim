@@ -3993,8 +3993,15 @@ namespace OpenSim.Region.Framework.Scenes
             float limit = Scene.ReprioritizationDistance;
             bool byDrawdistance = Scene.ObjectsCullingByDistance;
             if(byDrawdistance)
-                byDrawdistance = (Math.Abs(DrawDistance-m_reprioritizationLastDrawDistance) > 0.5f * limit);
-
+            {
+                float minregionSize = (float)Scene.RegionInfo.RegionSizeX;
+                if(minregionSize > (float)Scene.RegionInfo.RegionSizeY)
+                    minregionSize = (float)Scene.RegionInfo.RegionSizeY;
+                if(DrawDistance > minregionSize && m_reprioritizationLastDrawDistance > minregionSize)
+                    byDrawdistance = false;
+                else
+                    byDrawdistance = (Math.Abs(DrawDistance-m_reprioritizationLastDrawDistance) > 0.5f * limit);
+            }
             int tdiff =  Util.EnvironmentTickCountSubtract(m_reprioritizationLastTime);
             if(!byDrawdistance && tdiff < Scene.ReprioritizationInterval)
                 return;
@@ -4012,7 +4019,7 @@ namespace OpenSim.Region.Framework.Scenes
             Util.FireAndForget(
                 o =>
                 {
-                    ControllingClient.ReprioritizeUpdates(); 
+                    ControllingClient.ReprioritizeUpdates();
                     m_reprioritizationLastTime = Util.EnvironmentTickCount();
                     m_reprioritizationBusy = false;
                 }, null, "ScenePresence.Reprioritization");
