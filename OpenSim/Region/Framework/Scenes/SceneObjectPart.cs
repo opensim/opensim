@@ -867,7 +867,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (ParentGroup != null && !ParentGroup.IsDeleted)
                 {
-                    ParentGroup.InvalidBoundsRadius();
+                    if((oldpos - m_offsetPosition).LengthSquared() > 1.0f)
+                        ParentGroup.InvalidBoundsRadius();
 
                     PhysicsActor actor = PhysActor;
                     if (ParentID != 0 && actor != null)
@@ -1165,9 +1166,9 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_shape != null)
                 {
-
+                    Vector3 oldscale = m_shape.Scale;
                     m_shape.Scale = value;
-                    if (ParentGroup != null)
+                    if (ParentGroup != null && ((value - oldscale).LengthSquared() >1.0f))
                         ParentGroup.InvalidBoundsRadius();
                     PhysicsActor actor = PhysActor;
                     if (actor != null)
