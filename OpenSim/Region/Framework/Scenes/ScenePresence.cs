@@ -2132,10 +2132,10 @@ namespace OpenSim.Region.Framework.Scenes
                     SendInitialDataToMe();
 
                 // priority uses avatar position only
-                m_reprioritizationLastPosition = AbsolutePosition;
-                m_reprioritizationLastDrawDistance = DrawDistance;
-                m_reprioritizationLastTime = Util.EnvironmentTickCount() + 15000; // delay it
-                m_reprioritizationBusy = false;
+//                m_reprioritizationLastPosition = AbsolutePosition;
+//                m_reprioritizationLastDrawDistance = DrawDistance;
+//                m_reprioritizationLastTime = Util.EnvironmentTickCount() + 15000; // delay it
+//                m_reprioritizationBusy = false;
 
                 m_log.DebugFormat("[CompleteMovement] SendInitialDataToMe: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
@@ -3781,6 +3781,12 @@ namespace OpenSim.Region.Framework.Scenes
                     if (e != null && e is SceneObjectGroup && !((SceneObjectGroup)e).IsAttachment)
                         ((SceneObjectGroup)e).SendFullUpdateToClient(ControllingClient);
                 }
+
+                m_reprioritizationLastPosition = AbsolutePosition;
+                m_reprioritizationLastDrawDistance = DrawDistance;
+                m_reprioritizationLastTime = Util.EnvironmentTickCount() + 15000; // delay it
+                m_reprioritizationBusy = false;
+
             });
         }
 
@@ -3997,11 +4003,13 @@ namespace OpenSim.Region.Framework.Scenes
                 float minregionSize = (float)Scene.RegionInfo.RegionSizeX;
                 if(minregionSize > (float)Scene.RegionInfo.RegionSizeY)
                     minregionSize = (float)Scene.RegionInfo.RegionSizeY;
+                minregionSize *= 0.5f;
                 if(DrawDistance > minregionSize && m_reprioritizationLastDrawDistance > minregionSize)
                     byDrawdistance = false;
                 else
                     byDrawdistance = (Math.Abs(DrawDistance-m_reprioritizationLastDrawDistance) > 0.5f * limit);
             }
+
             int tdiff =  Util.EnvironmentTickCountSubtract(m_reprioritizationLastTime);
             if(!byDrawdistance && tdiff < Scene.ReprioritizationInterval)
                 return;
