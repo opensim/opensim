@@ -1219,7 +1219,6 @@ namespace OpenSim.Region.Framework.Scenes
                 Items.LockItemsForRead(false);
 
                 m_inventoryFileData = Utils.StringToBytes(invString.GetString());
-//                invString.Close();
 
                 if (m_inventoryFileData.Length > 2)
                 {
@@ -1322,8 +1321,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             public void Close()
             {
-//                BuildString.Clear();
-//                BuildString = null;
             }
         }
 
