@@ -2163,7 +2163,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
                 ForEachPart(delegate(SceneObjectPart part)
                 {
-                    if (OwnerID != userId)
+                    if (part.OwnerID != userId)
                     {
                         part.LastOwnerID = part.OwnerID;
                         part.OwnerID = userId;
