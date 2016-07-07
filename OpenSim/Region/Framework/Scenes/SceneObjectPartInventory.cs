@@ -1246,17 +1246,14 @@ namespace OpenSim.Region.Framework.Scenes
 //            if (HasInventoryChanged)
 //            {
                 Items.LockItemsForRead(true);
+                ICollection<TaskInventoryItem> itemsvalues = Items.Values;
+                HasInventoryChanged = false;
+                Items.LockItemsForRead(false);
                 try
                 {
-                    datastore.StorePrimInventory(m_part.UUID, Items.Values);
+                    datastore.StorePrimInventory(m_part.UUID, itemsvalues);
                 }
                 catch {}
-
-                HasInventoryChanged = false;
-
-                Items.LockItemsForRead(false);
-
-                
 //            }
         }
 
