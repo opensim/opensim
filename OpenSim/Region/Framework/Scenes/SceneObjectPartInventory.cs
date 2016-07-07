@@ -1262,7 +1262,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public class InventoryStringBuilder
         {
-            private StringBuilder BuildString = new StringBuilder(16384);
+            private StringBuilder BuildString = new StringBuilder(1024);
 
             public InventoryStringBuilder(UUID folderID, UUID parentID)
             {
