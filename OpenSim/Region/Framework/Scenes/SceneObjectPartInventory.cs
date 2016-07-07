@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Text;
 using System.Xml;
 using System.IO;
 using System.Collections.Generic;
@@ -1217,7 +1218,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 Items.LockItemsForRead(false);
 
-                m_inventoryFileData = Utils.StringToBytes(invString.BuildString);
+                m_inventoryFileData = Utils.StringToBytes(invString.GetString());
+                invString.Close();
 
                 if (m_inventoryFileData.Length > 2)
                 {
@@ -1261,11 +1263,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         public class InventoryStringBuilder
         {
-            public string BuildString = String.Empty;
+            private StringBuilder BuildString = new StringBuilder(16384);
 
             public InventoryStringBuilder(UUID folderID, UUID parentID)
             {
-                BuildString += "\tinv_object\t0\n\t{\n";
+                BuildString.Append("\tinv_object\t0\n\t{\n");
                 AddNameValueLine("obj_id", folderID.ToString());
                 AddNameValueLine("parent_id", parentID.ToString());
                 AddNameValueLine("type", "category");
@@ -1275,46 +1277,53 @@ namespace OpenSim.Region.Framework.Scenes
 
             public void AddItemStart()
             {
-                BuildString += "\tinv_item\t0\n";
+                BuildString.Append("\tinv_item\t0\n");
                 AddSectionStart();
             }
 
             public void AddPermissionsStart()
             {
-                BuildString += "\tpermissions 0\n";
+                BuildString.Append("\tpermissions 0\n");
                 AddSectionStart();
             }
 
             public void AddSaleStart()
             {
-                BuildString += "\tsale_info\t0\n";
+                BuildString.Append("\tsale_info\t0\n");
                 AddSectionStart();
             }
 
             protected void AddSectionStart()
             {
-                BuildString += "\t{\n";
+                BuildString.Append("\t{\n");
             }
 
             public void AddSectionEnd()
             {
-                BuildString += "\t}\n";
+                BuildString.Append("\t}\n");
             }
 
             public void AddLine(string addLine)
             {
-                BuildString += addLine;
+                BuildString.Append(addLine);
             }
 
             public void AddNameValueLine(string name, string value)
             {
-                BuildString += "\t\t";
-                BuildString += name + "\t";
-                BuildString += value + "\n";
+                BuildString.Append("\t\t");
+                BuildString.Append(name + "\t");
+                BuildString.Append(value + "\n");
+            }
+
+            public String GetString()
+            {
+                return BuildString.ToString();
             }
 
             public void Close()
             {
+                BuildString.Clear();
+                BuildString = null;
             }
         }
 
