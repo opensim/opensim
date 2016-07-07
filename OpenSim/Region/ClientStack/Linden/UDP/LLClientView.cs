@@ -837,7 +837,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             m_scene.AddNewAgent(this, PresenceType.User);
 
-            RefreshGroupMembership();
+//            RefreshGroupMembership();
         }
 
         # endregion
@@ -2281,14 +2281,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             replytask.InventoryData.TaskID = taskID;
             replytask.InventoryData.Serial = serial;
             replytask.InventoryData.Filename = fileName;
-            OutPacket(replytask, ThrottleOutPacketType.Task);
+//            OutPacket(replytask, ThrottleOutPacketType.Task);
+            OutPacket(replytask, ThrottleOutPacketType.Asset);
         }
 
         public void SendXferPacket(ulong xferID, uint packet, byte[] data, bool isTaskInventory)
         {
             ThrottleOutPacketType type = ThrottleOutPacketType.Asset;
-            if (isTaskInventory)
-                type = ThrottleOutPacketType.Task;
+//            if (isTaskInventory)
+//                type = ThrottleOutPacketType.Task;
 
             SendXferPacketPacket sendXfer = (SendXferPacketPacket)PacketPool.Instance.GetPacket(PacketType.SendXferPacket);
             sendXfer.XferID.ID = xferID;
@@ -4361,30 +4362,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             HashSet<SceneObjectGroup> NewGroupsInView = new HashSet<SceneObjectGroup>();
             HashSet<SceneObjectGroup> GroupsNeedFullUpdate = new HashSet<SceneObjectGroup>();
 
-
             // will this take for ever ?
             lock(GroupsInView)
             {
-            EntityBase[] entities = m_scene.Entities.GetEntities();
-            foreach (EntityBase e in entities)
-            {
-                if (e != null && e is SceneObjectGroup && !((SceneObjectGroup)e).IsAttachment)
+                EntityBase[] entities = m_scene.Entities.GetEntities();
+                foreach (EntityBase e in entities)
                 {
-                    SceneObjectGroup grp = (SceneObjectGroup)e;
-                    Vector3 grppos = grp.AbsolutePosition;
-                    float dcam = (grppos - mycamera).LengthSquared();
-                    float dpos = (grppos - mypos).LengthSquared();
-                    if(dcam < dpos)
-                        dpos = dcam;
-                    dpos = (float)Math.Sqrt(dpos) - grp.GetBoundsRadius();
-                    if(dpos > cullingrange)
+                    if (e != null && e is SceneObjectGroup && !((SceneObjectGroup)e).IsAttachment)
                     {
-                        if(GroupsInView.Contains(grp))
+                        SceneObjectGroup grp = (SceneObjectGroup)e;
+                        Vector3 grppos = grp.AbsolutePosition;
+                        float dcam = (grppos - mycamera).LengthSquared();
+                        float dpos = (grppos - mypos).LengthSquared();
+                        if(dcam < dpos)
+                            dpos = dcam;
+                        dpos = (float)Math.Sqrt(dpos) - grp.GetBoundsRadius();
+                        if(dpos > cullingrange)
                         {
-                            GroupsInView.Remove(grp);
-                            if (!m_killRecord.Contains(grp.LocalId))
-                                m_killRecord.Add(grp.LocalId);
-                           }
+                            if(GroupsInView.Contains(grp))
+                            {
+                                GroupsInView.Remove(grp);
+                                if (!m_killRecord.Contains(grp.LocalId))
+                                    m_killRecord.Add(grp.LocalId);
+                            }
                         }
                     else
                     {

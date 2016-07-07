@@ -1178,11 +1178,7 @@ namespace OpenSim.Region.Framework.Scenes
                             if (ParentGroup.Scene.PhysicsScene != null)
                             {
                                 actor.Size = m_shape.Scale;
-
-//                                if (Shape.SculptEntry)
-//                                    CheckSculptAndLoad();
-//                                else
-                                    ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
+                                ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                             }
                         }
                     }
