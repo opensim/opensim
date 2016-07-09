@@ -28,10 +28,12 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
 using Nini.Config;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -45,8 +47,13 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
         private Scene m_scene;
         private Dictionary<string, FileData> NewFiles = new Dictionary<string, FileData>();
         private Dictionary<ulong, XferDownLoad> Transfers = new Dictionary<ulong, XferDownLoad>();
-        private double lastFilesExpire = 0;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+
+        private object timeTickLock = new object();
+        private double lastTimeTick = 0.0;
+        private bool   inTimeTick = false;
+        private double lastFilesExpire = 0.0;
 
         public struct XferRequest
         {
@@ -67,20 +74,22 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
 
         public void Initialise(IConfigSource config)
         {
-            lastFilesExpire = Util.GetTimeStampMS() + 300000.0;
+            lastTimeTick = Util.GetTimeStampMS() + 30000.0;
+            lastFilesExpire = lastTimeTick + 180000.0;
         }
 
         public void AddRegion(Scene scene)
         {
             m_scene = scene;
             m_scene.EventManager.OnNewClient += NewClient;
-
+            m_scene.EventManager.OnRegionHeartbeatEnd += OnTimeTick;
             m_scene.RegisterModuleInterface<IXfer>(this);
         }
 
         public void RemoveRegion(Scene scene)
         {
             m_scene.EventManager.OnNewClient -= NewClient;
+             m_scene.EventManager.OnRegionHeartbeatEnd -= OnTimeTick;
 
             m_scene.UnregisterModuleInterface<IXfer>(this);
             m_scene = null;
@@ -106,6 +115,35 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
 
         #endregion
 
+        public void OnTimeTick(Scene scene)
+        {
+            // we are on a heartbeat thread we there can be several
+            if(Monitor.TryEnter(timeTickLock))
+            {
+                if(!inTimeTick)
+                {
+                    double now = Util.GetTimeStampMS();
+                    if(now - lastTimeTick > 1500.0) // 1.5 second
+                    {
+                        inTimeTick = true;
+
+                        //don't overload busy heartbeat
+                        WorkManager.RunInThread(
+                        delegate
+                        {
+                            transfersTimeTick(now);
+                            expireFiles(now);
+
+                            lastTimeTick = now;
+                            inTimeTick = false;
+                        },
+                        null,
+                        "XferTimeTick");
+                    }
+                }
+                Monitor.Exit(timeTickLock);
+            }
+        }
         #region IXfer Members
 
         /// <summary>
@@ -135,31 +173,41 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                     fd.timeStampMS = now;
                     NewFiles.Add(fileName, fd);
                 }
+            }
+            return true;
+        }
 
-                // lazy expires hopefully we will not have many files so nasty code will do it
-                if(now - lastFilesExpire > 180000.0)
+        #endregion
+        public void expireFiles(double now)
+        {
+            lock (NewFiles)
+            {
+                // hopefully we will not have many files so nasty code will do it
+                if(now - lastFilesExpire > 120000.0)
                 {
                     lastFilesExpire = now;
                     List<string> expires = new List<string>();
                     foreach(string fname in NewFiles.Keys)
                     {
-                        if(NewFiles[fname].refsCount == 0 && now - NewFiles[fname].timeStampMS > 180000.0)
+                        if(NewFiles[fname].refsCount == 0 && now - NewFiles[fname].timeStampMS > 120000.0)
                             expires.Add(fname);
                     }
                     foreach(string fname in expires)
                         NewFiles.Remove(fname);
                 }
             }
-            return true;
         }
-
-        #endregion
 
         public void NewClient(IClientAPI client)
         {
             client.OnRequestXfer += RequestXfer;
             client.OnConfirmXfer += AckPacket;
             client.OnAbortXfer += AbortXfer;
+        }
+
+        public void transfersTimeTick(double now)
+        {
+        
         }
 
         /// <summary>
