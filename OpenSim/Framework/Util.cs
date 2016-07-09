@@ -1303,7 +1303,7 @@ namespace OpenSim.Framework
                 }
                 catch (Exception e)
                 {
-                    m_log.WarnFormat("[UTILS]: Exception copying configuration file {0} to {1}: {2}", configFile, exampleConfigFile, e.Message);
+                    m_log.WarnFormat("[UTILS]: Exception copying configuration file {0} to {1}: {2}", exampleConfigFile, configFile, e.Message);
                     return false;
                 }
             }
