@@ -45,7 +45,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
         private Scene m_scene;
         private Dictionary<string, FileData> NewFiles = new Dictionary<string, FileData>();
         private Dictionary<ulong, XferDownLoad> Transfers = new Dictionary<ulong, XferDownLoad>();
-
+        private double lastFilesExpire = 0;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public struct XferRequest
@@ -59,13 +59,15 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
         private class FileData
         {
             public byte[] Data;
-            public int Count;
+            public int refsCount;
+            public double timeStampMS;
         }
        
         #region INonSharedRegionModule Members
 
         public void Initialise(IConfigSource config)
         {
+            lastFilesExpire = Util.GetTimeStampMS() + 300000.0;
         }
 
         public void AddRegion(Scene scene)
@@ -118,20 +120,36 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
         {
             lock (NewFiles)
             {
+                double now = Util.GetTimeStampMS();
                 if (NewFiles.ContainsKey(fileName))
                 {
-                    NewFiles[fileName].Count++;
+                    NewFiles[fileName].refsCount++;
                     NewFiles[fileName].Data = data;
+                    NewFiles[fileName].timeStampMS = now;
                 }
                 else
                 {
                     FileData fd = new FileData();
-                    fd.Count = 1;
+                    fd.refsCount = 1;
                     fd.Data = data;
+                    fd.timeStampMS = now;
                     NewFiles.Add(fileName, fd);
                 }
-            }
 
+                // lazy expires hopefully we will not have many files so nasty code will do it
+                if(now - lastFilesExpire > 180000.0)
+                {
+                    lastFilesExpire = now;
+                    List<string> expires = new List<string>();
+                    foreach(string fname in NewFiles.Keys)
+                    {
+                        if(NewFiles[fname].refsCount == 0 && now - NewFiles[fname].timeStampMS > 180000.0)
+                            expires.Add(fname);
+                    }
+                    foreach(string fname in expires)
+                        NewFiles.Remove(fname);
+                }
+            }
             return true;
         }
 
@@ -226,10 +244,10 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
 
             if (NewFiles.ContainsKey(fileName))
             {
-                if (NewFiles[fileName].Count == 1)
+                if (NewFiles[fileName].refsCount == 1)
                     NewFiles.Remove(fileName);
                 else
-                    NewFiles[fileName].Count--;
+                    NewFiles[fileName].refsCount--;
             }
         }
 
