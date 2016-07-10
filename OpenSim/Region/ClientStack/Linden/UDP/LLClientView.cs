@@ -4796,7 +4796,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             block.SaleType = sop.ObjectSaleType;
             block.SalePrice = sop.SalePrice;
             block.Category = sop.Category;
-            block.LastOwnerID = sop.CreatorID; // copied from old SOG call... is this right?
+            block.LastOwnerID = sop.LastOwnerID;
             block.Name = Util.StringToBytes256(sop.Name);
             block.Description = Util.StringToBytes256(sop.Description);
 
