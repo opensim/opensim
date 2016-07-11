@@ -572,7 +572,11 @@ namespace OpenSim.Services.Connectors.Hypergrid
             XmlRpcResponse response = null;
             try
             {
-                response = request.Send(m_ServerURL, 10000);
+                // We can not use m_ServerURL here anymore because it causes
+                // the HTTP request to be built without a host name. This messes
+                // with OSGrid's NGINX and can make OSGrid avatars unable to TP 
+                // to other grids running recent mono.
+                response = request.Send(m_ServerURLHost, 10000);
             }
             catch (Exception e)
             {
