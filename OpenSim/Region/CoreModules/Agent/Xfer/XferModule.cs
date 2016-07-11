@@ -266,8 +266,11 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                         if (!Transfers.ContainsKey(xferID))
                         {
                             byte[] fileData = NewFiles[fileName].Data;
+                            int burstSize = remoteClient.GetAgentThrottleSilent((int)ThrottleOutPacketType.Asset) >> 11;
+                            if(Transfers.Count > 1)
+                                burstSize /= Transfers.Count;
                             XferDownLoad transaction = 
-                                new XferDownLoad(fileName, fileData, xferID, remoteClient);
+                                new XferDownLoad(fileName, fileData, xferID, remoteClient, burstSize);
 
                             Transfers.Add(xferID, transaction);
 
@@ -326,12 +329,13 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
             private int burstSize;
             private int retries = 0;
 
-            public XferDownLoad(string fileName, byte[] data, ulong xferID, IClientAPI client)
+            public XferDownLoad(string fileName, byte[] data, ulong xferID, IClientAPI client, int burstsz)
             {
                 FileName = fileName;
                 Data = data;
                 XferID = xferID;
                 Client = client;
+                burstSize = burstsz;
             }
 
             public XferDownLoad()
@@ -371,7 +375,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                             lastBytes = 1024;
                             LastPacket--;
                         }
-                        burstSize = Client.GetAgentThrottleSilent((int)ThrottleOutPacketType.Asset) >> 11;
+                        
                     }
                 
                     lastAckPacket = -1;
