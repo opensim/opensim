@@ -4240,16 +4240,18 @@ namespace OpenSim.Region.Framework.Scenes
 //                CleanDroppedAttachments();
 //            }
 
-            // Make sure avatar position is in the region (why it wouldn't be is a mystery but do sanity checking)
-            if (acd.startpos.X < 0)
-                acd.startpos.X = 1f;
-            else if (acd.startpos.X >= RegionInfo.RegionSizeX)
-                acd.startpos.X = RegionInfo.RegionSizeX - 1f;
-            if (acd.startpos.Y < 0)
-                acd.startpos.Y = 1f;
-            else if (acd.startpos.Y >= RegionInfo.RegionSizeY)
-                acd.startpos.Y = RegionInfo.RegionSizeY - 1f;
-
+            if(teleportFlags != (uint) TPFlags.Default)
+            {
+                // Make sure root avatar position is in the region
+                if (acd.startpos.X < 0)
+                    acd.startpos.X = 1f;
+                else if (acd.startpos.X >= RegionInfo.RegionSizeX)
+                    acd.startpos.X = RegionInfo.RegionSizeX - 1f;
+                if (acd.startpos.Y < 0)
+                    acd.startpos.Y = 1f;
+                else if (acd.startpos.Y >= RegionInfo.RegionSizeY)
+                    acd.startpos.Y = RegionInfo.RegionSizeY - 1f;
+            }
             // only check access, actual relocations will happen later on ScenePresence MakeRoot
             // allow child agents creation
             if(!godlike && teleportFlags != (uint) TPFlags.Default)
