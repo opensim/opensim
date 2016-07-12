@@ -5409,6 +5409,11 @@ Label_GroupsDone:
             m_clientManager.ForEachSync(action);
         }
 
+        public int GetNumberOfClients()
+        {
+            return m_clientManager.Count;
+        }
+
         public bool TryGetClient(UUID avatarID, out IClientAPI client)
         {
             return m_clientManager.TryGetValue(avatarID, out client);

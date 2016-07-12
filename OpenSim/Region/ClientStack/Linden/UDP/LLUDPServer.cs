@@ -2066,6 +2066,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             while (base.IsRunningOutbound)
             {
                 Scene.ThreadAlive(2);
+
+
                 try
                 {
                     m_packetSent = false;
@@ -2125,11 +2127,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // If nothing was sent, sleep for the minimum amount of time before a
                     // token bucket could get more tokens
 
-                    if (!m_packetSent)
-                        Thread.Sleep((int)TickCountResolution);
-
-                    // .... wrong core code removed
- 
+                    if(Scene.GetNumberOfClients() == 0)
+                    {
+                        Thread.Sleep(250); // be friendly to PIs, but how long ??
+                    }
+                    else if (!m_packetSent)
+//                        Thread.Sleep((int)TickCountResolution);  outch this is bad on linux
+                        Thread.Sleep(15); // match the 16ms of windows7, dont ask 16 or win may decide to do 32ms.
 
                     Watchdog.UpdateThread();
                 }
