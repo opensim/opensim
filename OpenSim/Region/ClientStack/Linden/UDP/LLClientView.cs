@@ -4080,23 +4080,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     if(doCulling && !part.ParentGroup.IsAttachment)
                     {
+                        bool inview = false;
                         lock(GroupsInView)
+                            inview = GroupsInView.Contains(part.ParentGroup);
+
+                        if(!inview)
                         {
-                            if(!GroupsInView.Contains(part.ParentGroup))
-                            {
-                                Vector3 partpos = part.ParentGroup.AbsolutePosition;
-                                float dcam = (partpos - mycamera).LengthSquared();
-                                float dpos = (partpos - mypos).LengthSquared();
-                                if(dcam < dpos)
-                                    dpos = dcam;
-                                dpos = (float)Math.Sqrt(dpos) - part.ParentGroup.GetBoundsRadius();
-                                if(dpos > cullingrange)
-                                    continue;
- 
-                                if(!GroupsNeedFullUpdate.Contains(part.ParentGroup))
-                                   GroupsNeedFullUpdate.Add(part.ParentGroup);
+                            Vector3 partpos = part.ParentGroup.AbsolutePosition;
+                            float dcam = (partpos - mycamera).LengthSquared();
+                            float dpos = (partpos - mypos).LengthSquared();
+                            if(dcam < dpos)
+                                dpos = dcam;
+                            dpos = (float)Math.Sqrt(dpos) - part.ParentGroup.GetBoundsRadius();
+                            if(dpos > cullingrange)
                                 continue;
-                            }
+ 
+                            if(!GroupsNeedFullUpdate.Contains(part.ParentGroup))
+                                    GroupsNeedFullUpdate.Add(part.ParentGroup);
+                                continue;
                         }
                     }
 
@@ -4363,40 +4364,41 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             HashSet<SceneObjectGroup> GroupsNeedFullUpdate = new HashSet<SceneObjectGroup>();
 
             // will this take for ever ?
-            lock(GroupsInView)
+            EntityBase[] entities = m_scene.Entities.GetEntities();
+            foreach (EntityBase e in entities)
             {
-                EntityBase[] entities = m_scene.Entities.GetEntities();
-                foreach (EntityBase e in entities)
+                if (e != null && e is SceneObjectGroup && !((SceneObjectGroup)e).IsAttachment)
                 {
-                    if (e != null && e is SceneObjectGroup && !((SceneObjectGroup)e).IsAttachment)
+                    SceneObjectGroup grp = (SceneObjectGroup)e;
+                    Vector3 grppos = grp.AbsolutePosition;
+                    float dcam = (grppos - mycamera).LengthSquared();
+                    float dpos = (grppos - mypos).LengthSquared();
+                    if(dcam < dpos)
+                        dpos = dcam;
+                    dpos = (float)Math.Sqrt(dpos) - grp.GetBoundsRadius();
+                    bool inview;
+                    lock(GroupsInView)
+                        inview = GroupsInView.Contains(grp);
+                    if(dpos > cullingrange)
                     {
-                        SceneObjectGroup grp = (SceneObjectGroup)e;
-                        Vector3 grppos = grp.AbsolutePosition;
-                        float dcam = (grppos - mycamera).LengthSquared();
-                        float dpos = (grppos - mypos).LengthSquared();
-                        if(dcam < dpos)
-                            dpos = dcam;
-                        dpos = (float)Math.Sqrt(dpos) - grp.GetBoundsRadius();
-                        if(dpos > cullingrange)
+                        if(inview)
                         {
-                            if(GroupsInView.Contains(grp))
-                            {
-                                GroupsInView.Remove(grp);
-                                if (!m_killRecord.Contains(grp.LocalId))
-                                    m_killRecord.Add(grp.LocalId);
-                            }
+                            GroupsInView.Remove(grp);
+                            if (!m_killRecord.Contains(grp.LocalId))
+                                m_killRecord.Add(grp.LocalId);
                         }
+                    }
                     else
                     {
-                        if(!GroupsInView.Contains(grp) && !GroupsNeedFullUpdate.Contains(grp))
-                            GroupsNeedFullUpdate.Add(grp);
+                       if(!inview && !GroupsNeedFullUpdate.Contains(grp))
+                           GroupsNeedFullUpdate.Add(grp);
                         NewGroupsInView.Add(grp);
-                        }
                     }
                 }
             }
 
-            GroupsInView = NewGroupsInView;
+            lock(GroupsInView)
+                GroupsInView = NewGroupsInView;
 
             if (m_killRecord.Count > 0)
             {
