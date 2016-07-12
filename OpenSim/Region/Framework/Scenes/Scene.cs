@@ -290,9 +290,10 @@ namespace OpenSim.Region.Framework.Scenes
         public int ChildTerseUpdatePeriod { get; set; }
 
         protected float m_defaultDrawDistance = 255f;
+        protected float m_defaultCullingDrawDistance = 16f;
         public float DefaultDrawDistance
         {
-             get { return m_defaultDrawDistance; }
+             get { return ObjectsCullingByDistance?m_defaultCullingDrawDistance:m_defaultDrawDistance; }
         }
 
         protected float m_maxDrawDistance = 512.0f;
