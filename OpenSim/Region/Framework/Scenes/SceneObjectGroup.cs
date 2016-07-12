@@ -1591,7 +1591,7 @@ namespace OpenSim.Region.Framework.Scenes
                 for (int i = 0; i < nparts; i++)
                 {
                     p = parts[i];
-                    partR = p.Scale.Length();
+                    partR = 0.5f * p.Scale.Length();
                     if(p != RootPart)
                         partR += p.OffsetPosition.Length();
                     if(partR > res)
