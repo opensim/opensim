@@ -1576,9 +1576,12 @@ namespace OpenSim.Region.Framework.Scenes
         private Vector3 m_boundsCenter;
         public Vector3 getBoundsCenter()
         {
-            // this needs to be called after GetBoundsRadius() so its updated
+            // math is done in GetBoundsRadius();
+            if(m_boundsRadius == null)
+                GetBoundsRadius();
             return m_boundsCenter;
         }
+
         public float GetBoundsRadius()
         {
         // this may need more threading work
