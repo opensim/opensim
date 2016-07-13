@@ -4011,23 +4011,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (update.Entity is SceneObjectPart)
                 {
                     SceneObjectPart part = (SceneObjectPart)update.Entity;
-
-                    if (part.ParentGroup.inTransit)
+                    SceneObjectGroup grp = part.ParentGroup;
+                    if (grp.inTransit)
                         continue;
 
-                    if (part.ParentGroup.IsDeleted)
+                    if (grp.IsDeleted)
                     {
                         // Don't send updates for objects that have been marked deleted.
                         // Instead send another kill object, because the first one may have gotten
                         // into a race condition
-                        if (!m_killRecord.Contains(part.ParentGroup.LocalId))
-                            m_killRecord.Add(part.ParentGroup.LocalId);
+                        if (!m_killRecord.Contains(grp.LocalId))
+                            m_killRecord.Add(grp.LocalId);
                         continue;
                     }
 
-                    if (part.ParentGroup.IsAttachment)
+                    if (grp.IsAttachment)
                     {   // Someone else's HUD, why are we getting these?
-                        if (part.ParentGroup.OwnerID != AgentId && part.ParentGroup.HasPrivateAttachmentPoint)
+                        if (grp.OwnerID != AgentId && grp.HasPrivateAttachmentPoint)
                             continue;
                         ScenePresence sp;
                         // Owner is not in the sim, don't update it to
@@ -4039,7 +4039,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         bool found = false;
                         foreach (SceneObjectGroup att in atts)
                         {
-                            if (att == part.ParentGroup)
+                            if (att == grp)
                             {
                                 found = true;
                                 break;
@@ -4061,10 +4061,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     }
 
-                    if (part.ParentGroup.IsAttachment && m_disableFacelights)
+                    if (grp.IsAttachment && m_disableFacelights)
                     {
-                        if (part.ParentGroup.RootPart.Shape.State != (byte)AttachmentPoint.LeftHand &&
-                            part.ParentGroup.RootPart.Shape.State != (byte)AttachmentPoint.RightHand)
+                        if (grp.RootPart.Shape.State != (byte)AttachmentPoint.LeftHand &&
+                            grp.RootPart.Shape.State != (byte)AttachmentPoint.RightHand)
                         {
                             part.Shape.LightEntry = false;
                         }
@@ -4078,26 +4078,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
 
-                    if(doCulling && !part.ParentGroup.IsAttachment)
+                    if(doCulling && !grp.IsAttachment)
                     {
+                        if(GroupsNeedFullUpdate.Contains(grp))
+                            continue;
+
                         bool inview = false;
                         lock(GroupsInView)
-                            inview = GroupsInView.Contains(part.ParentGroup);
+                            inview = GroupsInView.Contains(grp);
 
                         if(!inview)
                         {
-                            Vector3 partpos = part.ParentGroup.AbsolutePosition;
+                            Vector3 partpos = grp.AbsolutePosition;
                             float dcam = (partpos - mycamera).LengthSquared();
                             float dpos = (partpos - mypos).LengthSquared();
                             if(dcam < dpos)
                                 dpos = dcam;
-                            dpos = (float)Math.Sqrt(dpos) - part.ParentGroup.GetBoundsRadius();
+                            dpos = (float)Math.Sqrt(dpos) - grp.GetBoundsRadius();
                             if(dpos > cullingrange)
                                 continue;
  
-                            if(!GroupsNeedFullUpdate.Contains(part.ParentGroup))
-                                    GroupsNeedFullUpdate.Add(part.ParentGroup);
-                                continue;
+                            GroupsNeedFullUpdate.Add(grp);
+                            continue;
                         }
                     }
 
@@ -4362,7 +4364,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             HashSet<SceneObjectGroup> NewGroupsInView = new HashSet<SceneObjectGroup>();
             HashSet<SceneObjectGroup> GroupsNeedFullUpdate = new HashSet<SceneObjectGroup>();
-
+            List<uint> kills = new List<uint>();
             // will this take for ever ?
             EntityBase[] entities = m_scene.Entities.GetEntities();
             foreach (EntityBase e in entities)
@@ -4383,14 +4385,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         if(inview)
                         {
-                            GroupsInView.Remove(grp);
-                            if (!m_killRecord.Contains(grp.LocalId))
-                                m_killRecord.Add(grp.LocalId);
+//                            GroupsInView.Remove(grp);
+                            if (!kills.Contains(grp.LocalId))
+                                kills.Add(grp.LocalId);
                         }
                     }
                     else
                     {
-                       if(!inview && !GroupsNeedFullUpdate.Contains(grp))
+                       if(!inview)
                            GroupsNeedFullUpdate.Add(grp);
                         NewGroupsInView.Add(grp);
                     }
@@ -4400,10 +4402,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             lock(GroupsInView)
                 GroupsInView = NewGroupsInView;
 
-            if (m_killRecord.Count > 0)
+            if (kills.Count > 0)
             {
-                SendKillObject(m_killRecord);
-                m_killRecord.Clear();
+                SendKillObject(kills);
+                kills.Clear();
             }
 
             if(GroupsNeedFullUpdate.Count > 0)
