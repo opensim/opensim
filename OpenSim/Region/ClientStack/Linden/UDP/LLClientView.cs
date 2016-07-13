@@ -4012,13 +4012,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bool doCulling = m_scene.ObjectsCullingByDistance;
             float cullingrange = 64.0f;
             HashSet<SceneObjectGroup> GroupsNeedFullUpdate = new HashSet<SceneObjectGroup>();
-            Vector3 mycamera = Vector3.Zero;
+//            Vector3 mycamera = Vector3.Zero;
             Vector3 mypos = Vector3.Zero;
             ScenePresence mysp = (ScenePresence)SceneAgent;
             if(mysp != null && !mysp.IsDeleted)
             {
                 cullingrange = mysp.DrawDistance + m_scene.ReprioritizationDistance +16f;
-                mycamera = mysp.CameraPosition;
+//                mycamera = mysp.CameraPosition;
                 mypos = mysp.AbsolutePosition;
             }
             else
@@ -4116,10 +4116,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         if(!inview)
                         {
                             Vector3 partpos = grp.AbsolutePosition;
-                            float dcam = (partpos - mycamera).LengthSquared();
+//                            float dcam = (partpos - mycamera).LengthSquared();
                             float dpos = (partpos - mypos).LengthSquared();
-                            if(dcam < dpos)
-                                dpos = dcam;
+//                            if(dcam < dpos)
+//                                dpos = dcam;
                             dpos = (float)Math.Sqrt(dpos) - grp.GetBoundsRadius();
                             if(dpos > cullingrange)
                                 continue;
@@ -4386,13 +4386,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 CheckGroupsInViewOverRun = false;
 
                 float cullingrange = 64.0f;
-                Vector3 mycamera = Vector3.Zero;
+//                Vector3 mycamera = Vector3.Zero;
                 Vector3 mypos = Vector3.Zero;
                 ScenePresence mysp = (ScenePresence)SceneAgent;
                 if(mysp != null && !mysp.IsDeleted)
                 {
                     cullingrange  = mysp.DrawDistance + m_scene.ReprioritizationDistance + 16f;
-                    mycamera = mysp.CameraPosition;
+//                    mycamera = mysp.CameraPosition;
                     mypos = mysp.AbsolutePosition;
                 }
                 else
@@ -4410,15 +4410,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     if(!IsActive)
                         return;
-                    if (e != null && e is SceneObjectGroup && !((SceneObjectGroup)e).IsAttachment)
+
+                    if (e != null && e is SceneObjectGroup)
                     {
                         SceneObjectGroup grp = (SceneObjectGroup)e;
-                        Vector3 grppos = grp.AbsolutePosition;
+                        if(grp.IsDeleted || grp.IsAttachment)
+                            continue;
 
-                        float dcam = (grppos - mycamera).LengthSquared();
+                        Vector3 grppos = grp.AbsolutePosition;
+//                        float dcam = (grppos - mycamera).LengthSquared();
                         float dpos = (grppos - mypos).LengthSquared();
-                        if(dcam < dpos)
-                            dpos = dcam;
+//                        if(dcam < dpos)
+//                            dpos = dcam;
 
                         dpos = (float)Math.Sqrt(dpos) - grp.GetBoundsRadius();
 
@@ -4436,6 +4439,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     SendKillObject(kills);
                                     kills.Clear();
                                     Thread.Sleep(50);
+                                    if(mysp != null && !mysp.IsDeleted)
+                                    {
+                                        cullingrange  = mysp.DrawDistance + m_scene.ReprioritizationDistance + 16f;
+//                                        mycamera = mysp.CameraPosition;
+                                        mypos = mysp.AbsolutePosition;
+                                    }
+                                    else
+                                    {
+                                        CheckGroupsInViewBusy= false;
+                                        return;
+                                    }
                                 }
                             }
                         }
