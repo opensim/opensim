@@ -4435,9 +4435,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             if(inview)
                             {
                                 kills.Add(grp.LocalId);
-                                killedParst = grp.PrimCount;
+                                killedParst += grp.PrimCount;
 
-                                if (killedParst > 200 )
+                                if (killedParst > 199 )
                                 {
                                     SendKillObject(kills);
                                     kills.Clear();
