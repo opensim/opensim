@@ -7681,15 +7681,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #endregion
 
             ObjectSelect handlerObjectSelect = null;
-
-            for (int i = 0; i < incomingselect.ObjectData.Length; i++)
+            uint objID;
+            lock(SelectedObjects)
             {
-                if (!SelectedObjects.Contains(incomingselect.ObjectData[i].ObjectLocalID))
-                    SelectedObjects.Add(incomingselect.ObjectData[i].ObjectLocalID);
-                handlerObjectSelect = OnObjectSelect;
-                if (handlerObjectSelect != null)
+                for (int i = 0; i < incomingselect.ObjectData.Length; i++)
                 {
-                    handlerObjectSelect(incomingselect.ObjectData[i].ObjectLocalID, this);
+                    objID = incomingselect.ObjectData[i].ObjectLocalID;
+
+                    if (!SelectedObjects.Contains(objID))
+                    {
+                        SelectedObjects.Add(objID);
+
+                        handlerObjectSelect = OnObjectSelect;
+                        if (handlerObjectSelect != null)
+                        {
+                            handlerObjectSelect(objID, this);
+                        }
+                    }
                 }
             }
             return true;
@@ -7709,15 +7717,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #endregion
 
             ObjectDeselect handlerObjectDeselect = null;
-
-            for (int i = 0; i < incomingdeselect.ObjectData.Length; i++)
+            uint objID;
+            lock(SelectedObjects)
             {
-                if (!SelectedObjects.Contains(incomingdeselect.ObjectData[i].ObjectLocalID))
-                    SelectedObjects.Add(incomingdeselect.ObjectData[i].ObjectLocalID);
-                handlerObjectDeselect = OnObjectDeselect;
-                if (handlerObjectDeselect != null)
+                for (int i = 0; i < incomingdeselect.ObjectData.Length; i++)
                 {
-                    OnObjectDeselect(incomingdeselect.ObjectData[i].ObjectLocalID, this);
+                    objID = incomingdeselect.ObjectData[i].ObjectLocalID;
+                    if (SelectedObjects.Contains(objID))
+                    {
+                        SelectedObjects.Remove(objID);
+
+                        handlerObjectDeselect = OnObjectDeselect;
+                        if (handlerObjectDeselect != null)
+                        {
+                            OnObjectDeselect(objID, this);
+                        }
+                    }
                 }
             }
             return true;
