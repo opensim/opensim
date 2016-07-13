@@ -4404,6 +4404,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 HashSet<SceneObjectGroup> NewGroupsInView = new HashSet<SceneObjectGroup>();
                 HashSet<SceneObjectGroup> GroupsNeedFullUpdate = new HashSet<SceneObjectGroup>();
                 List<uint> kills = new List<uint>();
+                int killedParst = 0;
 
                 EntityBase[] entities = m_scene.Entities.GetEntities();
                 foreach (EntityBase e in entities)
@@ -4434,10 +4435,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             if(inview)
                             {
                                 kills.Add(grp.LocalId);
-                                if (kills.Count > 100)
+                                killedParst = grp.PrimCount;
+
+                                if (killedParst > 200 )
                                 {
                                     SendKillObject(kills);
                                     kills.Clear();
+                                    killedParst = 0;
                                     Thread.Sleep(50);
                                     if(mysp != null && !mysp.IsDeleted)
                                     {
