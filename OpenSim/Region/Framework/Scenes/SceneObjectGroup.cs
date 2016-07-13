@@ -1573,6 +1573,12 @@ namespace OpenSim.Region.Framework.Scenes
             m_boundsRadius = null;
         }
 
+        private Vector3 m_boundsCenter;
+        public Vector3 getBoundsCenter()
+        {
+            // this needs to be called after GetBoundsRadius() so its updated
+            return m_boundsCenter;
+        }
         public float GetBoundsRadius()
         {
         // this may need more threading work
@@ -1582,6 +1588,7 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectPart p;
                 SceneObjectPart[] parts;
                 float partR;
+                Vector3 offset = Vector3.Zero;
                 lock (m_parts)
                 {
                     parts = m_parts.GetArray();
@@ -1593,10 +1600,19 @@ namespace OpenSim.Region.Framework.Scenes
                     p = parts[i];
                     partR = 0.5f * p.Scale.Length();
                     if(p != RootPart)
+                    {
                         partR += p.OffsetPosition.Length();
+                        offset += p.OffsetPosition;
+                    }
                     if(partR > res)
                         res = partR;
                 }
+                if(parts.Length > 1)
+                {
+                    offset /= parts.Length; // basicly geometric center
+                    offset = offset * RootPart.RotationOffset;
+                }
+                m_boundsCenter = offset;
                 m_boundsRadius = res;
                 return res;
             }
@@ -4646,26 +4662,16 @@ namespace OpenSim.Region.Framework.Scenes
             
             Vector3 gc = Vector3.Zero;
 
-            int nparts = m_parts.Count;
-            if (nparts <= 1)
-                return gc;
-
             SceneObjectPart[] parts = m_parts.GetArray();
-            nparts = parts.Length; // just in case it changed
-            if (nparts <= 1)
+            int nparts = parts.Length;
+            if (nparts < 2)
                 return gc;
-
-            Vector3 pPos;
 
             // average all parts positions
             for (int i = 0; i < nparts; i++)
             {
                 if (parts[i] != RootPart)
-                {
-                    pPos = parts[i].OffsetPosition;
-                    gc += pPos;
-                }
-
+                    gc += parts[i].OffsetPosition;
             }
             gc /= nparts;
 

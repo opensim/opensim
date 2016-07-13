@@ -4115,12 +4115,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         if(!inview)
                         {
-                            Vector3 partpos = grp.AbsolutePosition;
+                            float bradius = grp.GetBoundsRadius(); // needs to be called before getBoundsCenter
+                            Vector3 partpos = grp.AbsolutePosition + grp.getBoundsCenter();
 //                            float dcam = (partpos - mycamera).LengthSquared();
                             float dpos = (partpos - mypos).LengthSquared();
 //                            if(dcam < dpos)
 //                                dpos = dcam;
-                            dpos = (float)Math.Sqrt(dpos) - grp.GetBoundsRadius();
+                            dpos = (float)Math.Sqrt(dpos) - bradius;
                             if(dpos > cullingrange)
                                 continue;
  
@@ -4418,13 +4419,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         if(grp.IsDeleted || grp.IsAttachment)
                             continue;
 
-                        Vector3 grppos = grp.AbsolutePosition;
+                        float bradius = grp.GetBoundsRadius(); // needs to be called before getBoundsCenter
+                        Vector3 grppos = grp.AbsolutePosition + grp.getBoundsCenter();
 //                        float dcam = (grppos - mycamera).LengthSquared();
                         float dpos = (grppos - mypos).LengthSquared();
 //                        if(dcam < dpos)
 //                            dpos = dcam;
 
-                        dpos = (float)Math.Sqrt(dpos) - grp.GetBoundsRadius();
+                        dpos = (float)Math.Sqrt(dpos) - bradius;
 
                         bool inview;
                         lock(GroupsInView)
