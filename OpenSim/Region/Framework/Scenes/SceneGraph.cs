@@ -2211,8 +2211,16 @@ namespace OpenSim.Region.Framework.Scenes
                         SceneObjectGroupsByFullID[copy.UUID] = copy;
 
                     SceneObjectPart[] parts = copy.Parts;
+
+                    m_numTotalPrim += parts.Length;
+
                     foreach (SceneObjectPart part in parts)
                     {
+                        if (part.GetPrimType() == PrimType.SCULPT)
+                            m_numMesh++;
+                        else
+                            m_numPrim++;
+
                         lock (SceneObjectGroupsByFullPartID)
                             SceneObjectGroupsByFullPartID[part.UUID] = copy;
                         lock (SceneObjectGroupsByLocalPartID)
