@@ -4115,7 +4115,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         if(!inview)
                         {
-                            float bradius = grp.GetBoundsRadius(); // needs to be called before getBoundsCenter
+                            float bradius = grp.GetBoundsRadius();
                             Vector3 partpos = grp.AbsolutePosition + grp.getBoundsCenter();
 //                            float dcam = (partpos - mycamera).LengthSquared();
                             float dpos = (partpos - mypos).LengthSquared();
@@ -4419,7 +4419,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         if(grp.IsDeleted || grp.IsAttachment)
                             continue;
 
-                        float bradius = grp.GetBoundsRadius(); // needs to be called before getBoundsCenter
+                        float bradius = grp.GetBoundsRadius();
                         Vector3 grppos = grp.AbsolutePosition + grp.getBoundsCenter();
 //                        float dcam = (grppos - mycamera).LengthSquared();
                         float dpos = (grppos - mypos).LengthSquared();
@@ -7688,22 +7688,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             ObjectSelect handlerObjectSelect = null;
             uint objID;
-            lock(SelectedObjects)
+            for (int i = 0; i < incomingselect.ObjectData.Length; i++)
             {
-                for (int i = 0; i < incomingselect.ObjectData.Length; i++)
+                objID = incomingselect.ObjectData[i].ObjectLocalID;
+                if (!SelectedObjects.Contains(objID))
+                    SelectedObjects.Add(objID);
+
+                handlerObjectSelect = OnObjectSelect;
+                if (handlerObjectSelect != null)
                 {
-                    objID = incomingselect.ObjectData[i].ObjectLocalID;
-
-                    if (!SelectedObjects.Contains(objID))
-                    {
-                        SelectedObjects.Add(objID);
-
-                        handlerObjectSelect = OnObjectSelect;
-                        if (handlerObjectSelect != null)
-                        {
-                            handlerObjectSelect(objID, this);
-                        }
-                    }
+                    handlerObjectSelect(objID, this);
                 }
             }
             return true;
@@ -7724,21 +7718,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             ObjectDeselect handlerObjectDeselect = null;
             uint objID;
-            lock(SelectedObjects)
+            for (int i = 0; i < incomingdeselect.ObjectData.Length; i++)
             {
-                for (int i = 0; i < incomingdeselect.ObjectData.Length; i++)
-                {
-                    objID = incomingdeselect.ObjectData[i].ObjectLocalID;
-                    if (SelectedObjects.Contains(objID))
-                    {
-                        SelectedObjects.Remove(objID);
+                objID = incomingdeselect.ObjectData[i].ObjectLocalID;
+                if (SelectedObjects.Contains(objID))
+                    SelectedObjects.Remove(objID);
 
-                        handlerObjectDeselect = OnObjectDeselect;
-                        if (handlerObjectDeselect != null)
-                        {
-                            OnObjectDeselect(objID, this);
-                        }
-                    }
+                handlerObjectDeselect = OnObjectDeselect;
+                if (handlerObjectDeselect != null)
+                {
+                   OnObjectDeselect(objID, this);
                 }
             }
             return true;
