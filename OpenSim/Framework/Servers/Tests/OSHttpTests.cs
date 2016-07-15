@@ -39,6 +39,8 @@ using OpenSim.Tests.Common;
 
 namespace OpenSim.Framework.Servers.Tests
 {
+/*
+
     [TestFixture]
     public class OSHttpTests : OpenSimTestCase
     {
@@ -433,4 +435,5 @@ namespace OpenSim.Framework.Servers.Tests
             Assert.That(rsp0.ContentType, Is.EqualTo("text/xml"));
         }
     }
+*/
 }

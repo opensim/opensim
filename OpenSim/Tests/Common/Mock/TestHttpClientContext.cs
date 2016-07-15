@@ -36,6 +36,7 @@ using OpenSim.Framework;
 
 namespace OpenSim.Tests.Common
 {
+/*
     public class TestHttpClientContext: IHttpClientContext
     {
         /// <summary>
@@ -107,4 +108,5 @@ namespace OpenSim.Tests.Common
         /// </summary>
         public event EventHandler<RequestEventArgs> RequestReceived = delegate { };
     }
+*/
 }

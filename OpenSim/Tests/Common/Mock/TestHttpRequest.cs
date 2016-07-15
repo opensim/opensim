@@ -33,6 +33,7 @@ using HttpServer.FormDecoders;
 
 namespace OpenSim.Tests.Common
 {
+/*
     public class TestHttpRequest: IHttpRequest
     {
         private string _uriPath;
@@ -171,4 +172,5 @@ namespace OpenSim.Tests.Common
             }
         }
     }
+*/
 }

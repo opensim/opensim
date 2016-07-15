@@ -33,6 +33,7 @@ using HttpServer;
 
 namespace OpenSim.Tests.Common
 {
+/*
     public class TestHttpResponse: IHttpResponse
     {
         public Stream Body 
@@ -168,4 +169,5 @@ namespace OpenSim.Tests.Common
         public void Redirect(Uri uri) {}
         public void Redirect(string url) {}
     }
+*/
 }
