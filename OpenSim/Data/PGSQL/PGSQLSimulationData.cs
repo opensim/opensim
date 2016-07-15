@@ -688,11 +688,14 @@ namespace OpenSim.Data.PGSQL
             string sql = @"INSERT INTO land
                 (""UUID"",""RegionUUID"",""LocalLandID"",""Bitmap"",""Name"",""Description"",""OwnerUUID"",""IsGroupOwned"",""Area"",""AuctionID"",""Category"",""ClaimDate"",""ClaimPrice"",
                  ""GroupUUID"",""SalePrice"",""LandStatus"",""LandFlags"",""LandingType"",""MediaAutoScale"",""MediaTextureUUID"",""MediaURL"",""MusicURL"",""PassHours"",""PassPrice"",
-                 ""SnapshotUUID"",""UserLocationX"",""UserLocationY"",""UserLocationZ"",""UserLookAtX"",""UserLookAtY"",""UserLookAtZ"",""AuthbuyerID"",""OtherCleanTime"")
+                 ""SnapshotUUID"",""UserLocationX"",""UserLocationY"",""UserLocationZ"",""UserLookAtX"",""UserLookAtY"",""UserLookAtZ"",""AuthbuyerID"",""OtherCleanTime"",""Dwell"",
+                 ""MediaType"",""MediaDescription"",""MediaSize"",""MediaLoop"",""ObscureMusic"",""ObscureMedia"",""SeeAVs"",""AnyAVSounds"",""GroupAVSounds"")
                 VALUES
                 (:UUID,:RegionUUID,:LocalLandID,:Bitmap,:Name,:Description,:OwnerUUID,:IsGroupOwned,:Area,:AuctionID,:Category,:ClaimDate,:ClaimPrice,
                  :GroupUUID,:SalePrice,:LandStatus,:LandFlags,:LandingType,:MediaAutoScale,:MediaTextureUUID,:MediaURL,:MusicURL,:PassHours,:PassPrice,
-                 :SnapshotUUID,:UserLocationX,:UserLocationY,:UserLocationZ,:UserLookAtX,:UserLookAtY,:UserLookAtZ,:AuthbuyerID,:OtherCleanTime)";
+                 :SnapshotUUID,:UserLocationX,:UserLocationY,:UserLocationZ,:UserLookAtX,:UserLookAtY,:UserLookAtZ,:AuthbuyerID,:OtherCleanTime,:Dwell,
+                 :MediaType,:MediaDescription,:MediaWidth::text || ',' || :MediaHeight::text,:MediaLoop,:ObscureMusic,:ObscureMedia,:SeeAVs::int::smallint,
+                 :AnyAVSounds::int::smallint,:GroupAVSounds::int::smallint)";
 
             using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
             using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
@@ -1520,6 +1523,8 @@ namespace OpenSim.Data.PGSQL
             newData.SnapshotID = new UUID((Guid)row["SnapshotUUID"]);
 
             newData.OtherCleanTime = Convert.ToInt32(row["OtherCleanTime"]);
+            newData.Dwell = Convert.ToSingle(row["Dwell"]);
+
 
             try
             {
@@ -1545,6 +1550,10 @@ namespace OpenSim.Data.PGSQL
             newData.MediaLoop = Convert.ToBoolean(row["MediaLoop"]);
             newData.ObscureMusic = Convert.ToBoolean(row["ObscureMusic"]);
             newData.ObscureMedia = Convert.ToBoolean(row["ObscureMedia"]);
+            
+            newData.SeeAVs = Convert.ToBoolean(row["SeeAVs"]);
+            newData.AnyAVSounds = Convert.ToBoolean(row["AnyAVSounds"]);
+            newData.GroupAVSounds = Convert.ToBoolean(row["GroupAVSounds"]);
 
             return newData;
         }
@@ -1947,6 +1956,17 @@ namespace OpenSim.Data.PGSQL
             parameters.Add(_Database.CreateParameter("UserLookAtZ", land.UserLookAt.Z));
             parameters.Add(_Database.CreateParameter("AuthBuyerID", land.AuthBuyerID));
             parameters.Add(_Database.CreateParameter("OtherCleanTime", land.OtherCleanTime));
+            parameters.Add(_Database.CreateParameter("Dwell", land.Dwell));
+            parameters.Add(_Database.CreateParameter("MediaDescription", land.MediaDescription));
+            parameters.Add(_Database.CreateParameter("MediaType", land.MediaType));
+            parameters.Add(_Database.CreateParameter("MediaWidth", land.MediaWidth));
+            parameters.Add(_Database.CreateParameter("MediaHeight", land.MediaHeight));
+            parameters.Add(_Database.CreateParameter("MediaLoop", land.MediaLoop));
+            parameters.Add(_Database.CreateParameter("ObscureMusic", land.ObscureMusic));
+            parameters.Add(_Database.CreateParameter("ObscureMedia", land.ObscureMedia));
+            parameters.Add(_Database.CreateParameter("SeeAVs", land.SeeAVs));
+            parameters.Add(_Database.CreateParameter("AnyAVSounds", land.AnyAVSounds));
+            parameters.Add(_Database.CreateParameter("GroupAVSounds", land.GroupAVSounds));
 
             return parameters.ToArray();
         }
