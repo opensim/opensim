@@ -5256,6 +5256,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updateMessage.MediaLoop     = landData.MediaLoop;
             updateMessage.ObscureMusic  = landData.ObscureMusic;
             updateMessage.ObscureMedia  = landData.ObscureMedia;
+
+            updateMessage.SeeAVs        = landData.SeeAVs;
+            updateMessage.AnyAVSounds   = landData.AnyAVSounds;
+            updateMessage.GroupAVSounds = landData.GroupAVSounds;
             
             IPrimCounts pc = lo.PrimCounts;
             updateMessage.OwnerPrims        = pc.Owner;            
@@ -5272,22 +5276,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
                 if (eq != null)
                 {
-
-                    OSD message_body = updateMessage.Serialize();
-                    // Add new fields here until OMV has them
-                    OSDMap bodyMap = (OSDMap)message_body;
-                    OSDArray parcelDataArray = (OSDArray)bodyMap["ParcelData"];
-                    OSDMap parcelData = (OSDMap)parcelDataArray[0];
-                    parcelData["SeeAVs"] = OSD.FromBoolean(landData.SeeAVs);
-                    parcelData["AnyAVSounds"] = OSD.FromBoolean(landData.AnyAVSounds);
-                    parcelData["GroupAVSounds"] = OSD.FromBoolean(landData.GroupAVSounds);
-                    OSDMap message = new OSDMap();
-                    message.Add("message", OSD.FromString("ParcelProperties"));
-                    message.Add("body", message_body);
- 
-                    eq.Enqueue (message, this.AgentId);
-
-//                    eq.ParcelProperties(updateMessage, this.AgentId);
+                    eq.ParcelProperties(updateMessage, this.AgentId);
                 } 
                 else 
                 {
