@@ -356,7 +356,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
             internal void UpdateThrottle(int pimagethrottle)
             {
-                m_throttler.ThrottleBytes = pimagethrottle;
+                m_throttler.ThrottleBytes = 2 * pimagethrottle;
+                if(m_throttler.ThrottleBytes < 10000)
+                    m_throttler.ThrottleBytes = 10000;
             }
         }
 
@@ -425,10 +427,11 @@ namespace OpenSim.Region.ClientStack.Linden
             private volatile int currenttime = 0;
             private volatile int lastTimeElapsed = 0;
             private volatile int BytesSent = 0;
-            private int oversizedImages = 0;
             public CapsDataThrottler(int pBytes, int max, int min)
             {
                 ThrottleBytes = pBytes;
+                if(ThrottleBytes < 10000)
+                    ThrottleBytes = 10000;
                 lastTimeElapsed = Util.EnvironmentTickCount();
             }
             public bool hasEvents(UUID key, Dictionary<UUID, GetTextureModule.aPollResponse> responses)
@@ -448,20 +451,9 @@ namespace OpenSim.Region.ClientStack.Linden
                         return true;
 
                     // Normal
-                    if (BytesSent + response.bytes <= ThrottleBytes)
+                    if (BytesSent <= ThrottleBytes)
                     {
                         BytesSent += response.bytes;
-                        //TimeBasedAction timeBasedAction = new TimeBasedAction { byteRemoval = response.bytes, requestId = key, timeMS = currenttime + 1000, unlockyn = false };
-                        //m_actions.Add(timeBasedAction);
-                        return true;
-                    }
-                    // Big textures
-                    else if (response.bytes > ThrottleBytes && oversizedImages <= ((ThrottleBytes % 50000) + 1))
-                    {
-                        Interlocked.Increment(ref oversizedImages);
-                        BytesSent += response.bytes;
-                        //TimeBasedAction timeBasedAction = new TimeBasedAction { byteRemoval = response.bytes, requestId = key, timeMS = currenttime + (((response.bytes % ThrottleBytes)+1)*1000) , unlockyn = false };
-                        //m_actions.Add(timeBasedAction);
                         return true;
                     }
                     else
@@ -483,15 +475,11 @@ namespace OpenSim.Region.ClientStack.Linden
                 currenttime = Util.EnvironmentTickCount();
                 int timeElapsed = Util.EnvironmentTickCountSubtract(currenttime, lastTimeElapsed);
                 //processTimeBasedActions(responses);
-                if (Util.EnvironmentTickCountSubtract(currenttime, timeElapsed) >= 1000)
+                if (timeElapsed >= 100)
                 {
-                    lastTimeElapsed = Util.EnvironmentTickCount();
-                    BytesSent -= ThrottleBytes;
+                    lastTimeElapsed = currenttime;
+                    BytesSent -= (ThrottleBytes * timeElapsed / 1000);
                     if (BytesSent < 0) BytesSent = 0;
-                    if (BytesSent < ThrottleBytes)
-                    {
-                        oversizedImages = 0;
-                    }
                 }
             }
             public int ThrottleBytes;

@@ -389,11 +389,6 @@ namespace OpenSim.Region.ClientStack.Linden
             private volatile int currenttime = 0;
             private volatile int lastTimeElapsed = 0;
             private volatile int BytesSent = 0;
-            private int Lod3 = 0;
-            private int Lod2 = 0;
-//            private int Lod1 = 0;
-            private int UserSetThrottle = 0;
-            private int UDPSetThrottle = 0;
             private int CapSetThrottle = 0;
             private float CapThrottleDistributon = 0.30f;
             private readonly Scene m_scene;
@@ -403,6 +398,8 @@ namespace OpenSim.Region.ClientStack.Linden
             public MeshCapsDataThrottler(int pBytes, int max, int min, Scene pScene, UUID puser)
             {
                 ThrottleBytes = pBytes;
+                if(ThrottleBytes < 10000)
+                    ThrottleBytes = 10000;
                 lastTimeElapsed = Util.EnvironmentTickCount();
                 Throttle = ThrottleOutPacketType.Asset;
                 m_scene = pScene;
@@ -411,20 +408,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
             public bool hasEvents(UUID key, Dictionary<UUID, aPollResponse> responses)
             {
-                const float ThirtyPercent = 0.30f;
-                const float FivePercent = 0.05f;
                 PassTime();
                 // Note, this is called IN LOCK
                 bool haskey = responses.ContainsKey(key);
-
-                if (responses.Count > 2)
-                {
-                    SplitThrottle(ThirtyPercent);
-                }
-                else
-                {
-                    SplitThrottle(FivePercent);
-                }
 
                 if (!haskey)
                 {
@@ -433,29 +419,10 @@ namespace OpenSim.Region.ClientStack.Linden
                 aPollResponse response;
                 if (responses.TryGetValue(key, out response))
                 {
-                    float LOD3Over = (((ThrottleBytes*CapThrottleDistributon)%50000) + 1);
-                    float LOD2Over = (((ThrottleBytes*CapThrottleDistributon)%10000) + 1);
                     // Normal
-                    if (BytesSent + response.bytes <= ThrottleBytes)
+                    if (BytesSent <= ThrottleBytes)
                     {
-                        BytesSent += response.bytes;
-                       
-                        return true;
-                    }
-                    // Lod3 Over Throttle protection to keep things processing even when the throttle bandwidth is set too little.
-                    else if (response.bytes > ThrottleBytes && Lod3 <= ((LOD3Over < 1)? 1: LOD3Over) )
-                    {
-                        Interlocked.Increment(ref Lod3);
-                        BytesSent += response.bytes;
-                       
-                        return true;
-                    }
-                    // Lod2 Over Throttle protection to keep things processing even when the throttle bandwidth is set too little.
-                    else if (response.bytes > ThrottleBytes && Lod2 <= ((LOD2Over < 1) ? 1 : LOD2Over))
-                    {
-                        Interlocked.Increment(ref Lod2);
-                        BytesSent += response.bytes;
-                       
+                        BytesSent += response.bytes;                     
                         return true;
                     }
                     else
@@ -463,26 +430,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         return false;
                     }
                 }
-
                 return haskey;
-            }
-            public void SubtractBytes(int bytes,int lod)
-            {
-                BytesSent -= bytes;
-            }
-            private void SplitThrottle(float percentMultiplier)
-            {
-
-                if (CapThrottleDistributon != percentMultiplier) // don't switch it if it's already set at the % multipler
-                {
-                    CapThrottleDistributon = percentMultiplier;
-                    ScenePresence p;
-                    if (m_scene.TryGetScenePresence(User, out p)) // If we don't get a user they're not here anymore.
-                    {
-//                        AlterThrottle(UserSetThrottle, p);
-                        UpdateThrottle(UserSetThrottle, p);
-                    }
-                }
             }
            
             public void ProcessTime()
@@ -494,18 +442,11 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 currenttime = Util.EnvironmentTickCount();
                 int timeElapsed = Util.EnvironmentTickCountSubtract(currenttime, lastTimeElapsed);
-                //processTimeBasedActions(responses);
-                if (currenttime - timeElapsed >= 1000)
+                if (timeElapsed >= 100)
                 {
-                    lastTimeElapsed = Util.EnvironmentTickCount();
-                    BytesSent -= ThrottleBytes;
+                    lastTimeElapsed = currenttime;
+                    BytesSent -= (ThrottleBytes * timeElapsed / 1000);
                     if (BytesSent < 0) BytesSent = 0;
-                    if (BytesSent < ThrottleBytes)
-                    {
-                        Lod3 = 0;
-                        Lod2 = 0;
-//                        Lod1 = 0;
-                    }
                 }
             }
 
@@ -517,25 +458,20 @@ namespace OpenSim.Region.ClientStack.Linden
             public int ThrottleBytes
             {
                 get { return CapSetThrottle; }
-                set { CapSetThrottle = value; }
+                set
+                {
+                    if (value > 10000)
+                        CapSetThrottle = value;
+                    else
+                        CapSetThrottle = 10000;
+                }
             }
 
             internal void UpdateThrottle(int pimagethrottle, ScenePresence p)
             {
                 // Client set throttle !
-                UserSetThrottle = pimagethrottle;
-                CapSetThrottle = (int)(pimagethrottle*CapThrottleDistributon);
-//                UDPSetThrottle = (int) (pimagethrottle*(100 - CapThrottleDistributon));
-
-                float udp = 1.0f - CapThrottleDistributon;
-                if(udp < 0.7f)
-                    udp = 0.7f;
-                UDPSetThrottle = (int) ((float)pimagethrottle * udp);
-                if (CapSetThrottle < 4068)
-                    CapSetThrottle = 4068;  // at least two discovery mesh
-                p.ControllingClient.SetAgentThrottleSilent((int) Throttle, UDPSetThrottle);
+                CapSetThrottle = 2 * pimagethrottle;
                 ProcessTime();
-
             }
         }
     }
