@@ -47,8 +47,10 @@ namespace OpenSim.Framework.Servers.HttpServer
         public readonly UUID RequestID;
         public int  contextHash;
 
+/*
         private void GenContextHash()
         {
+
             Random rnd = new Random();
             contextHash = 0;
             if (Request.Headers["remote_addr"] != null)
@@ -62,8 +64,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             else
                 contextHash += rnd.Next() & 0xffff;
-        }
 
+        }
+*/
         public PollServiceHttpRequest(
             PollServiceEventArgs pPollServiceArgs, IHttpClientContext pHttpContext, IHttpRequest pRequest)
         {
@@ -72,7 +75,8 @@ namespace OpenSim.Framework.Servers.HttpServer
             Request = pRequest;
             RequestTime = System.Environment.TickCount;
             RequestID = UUID.Random();
-            GenContextHash();
+//            GenContextHash();
+            contextHash = HttpContext.contextID;
         }
 
         internal void DoHTTPGruntWork(BaseHttpServer server, Hashtable responsedata)
@@ -132,8 +136,9 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             if (b1.contextHash != b2.contextHash)
                 return false;
-            bool b = Object.ReferenceEquals(b1.HttpContext, b2.HttpContext);
-            return b;
+//            bool b = Object.ReferenceEquals(b1.HttpContext, b2.HttpContext);
+//            return b;
+            return true;
         }
 
         public int GetHashCode(PollServiceHttpRequest b2)
