@@ -226,7 +226,7 @@ namespace OpenSim.Region.ClientStack.Linden
             private Scene m_scene;
             private MeshCapsDataThrottler m_throttler;
             public PollServiceMeshEventArgs(string uri, UUID pId, Scene scene) :
-                base(null, uri, null, null, null, pId, int.MaxValue)
+                base(null, uri, null, null, null, null, pId, int.MaxValue)
             {
                 m_scene = scene;
                 m_throttler = new MeshCapsDataThrottler(100000, 1400000, 10000, scene, pId);
@@ -241,6 +241,15 @@ namespace OpenSim.Region.ClientStack.Linden
 
                     }
                 };
+
+                Drop= (x, y) =>
+                {
+                    lock (responses)
+                    {
+                        responses.Remove(x);
+                    }
+                };
+
                 GetEvents = (x, y) =>
                 {
                     lock (responses)

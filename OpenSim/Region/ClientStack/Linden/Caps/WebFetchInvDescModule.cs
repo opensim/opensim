@@ -256,11 +256,13 @@ namespace OpenSim.Region.ClientStack.Linden
             private WebFetchInvDescModule m_module;
 
             public PollServiceInventoryEventArgs(WebFetchInvDescModule module, string url, UUID pId) :
-                base(null, url, null, null, null, pId, int.MaxValue)
+                base(null, url, null, null, null, null, pId, int.MaxValue)
             {
                 m_module = module;
 
                 HasEvents = (x, y) => { lock (responses) return responses.ContainsKey(x); };
+                Drop = (x, y) => { lock (responses) responses.Remove(x); };
+
                 GetEvents = (x, y) =>
                 {
                     lock (responses)
