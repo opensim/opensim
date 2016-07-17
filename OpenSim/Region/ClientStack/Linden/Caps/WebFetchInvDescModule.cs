@@ -250,8 +250,8 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-            private Dictionary<UUID, Hashtable> responses =
-                    new Dictionary<UUID, Hashtable>();
+            private Dictionary<UUID, Hashtable> responses = new Dictionary<UUID, Hashtable>();
+            private HashSet<UUID> dropedResponses = new HashSet<UUID>();
 
             private WebFetchInvDescModule m_module;
 
@@ -261,7 +261,16 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_module = module;
 
                 HasEvents = (x, y) => { lock (responses) return responses.ContainsKey(x); };
-                Drop = (x, y) => { lock (responses) responses.Remove(x); };
+
+                Drop = (x, y) =>
+                {
+                    lock (responses)
+                    {
+                        responses.Remove(x);
+                        lock(dropedResponses)
+                            dropedResponses.Add(x);
+                    }
+                };
 
                 GetEvents = (x, y) =>
                 {
@@ -367,6 +376,19 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 UUID requestID = requestinfo.reqID;
 
+
+                lock(responses)
+                {
+                    lock(dropedResponses)
+                    {
+                        if(dropedResponses.Contains(requestID))
+                        {
+                            dropedResponses.Remove(requestID);
+                            return;
+                        }
+                    }
+                }
+
                 Hashtable response = new Hashtable();
 
                 response["int_response_code"] = 200;
@@ -379,6 +401,18 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 lock (responses)
                 {
+                    lock(dropedResponses)
+                    {
+                        if(dropedResponses.Contains(requestID))
+                        {
+                            dropedResponses.Remove(requestID);
+                            requestinfo.folders.Clear();
+                            requestinfo.request.Clear();
+                            WebFetchInvDescModule.ProcessedRequestsCount++;
+                            return;
+                        }
+                    }
+
                     if (responses.ContainsKey(requestID))
                         m_log.WarnFormat("[FETCH INVENTORY DESCENDENTS2 MODULE]: Caught in the act of loosing responses! Please report this on mantis #7054");
                     responses[requestID] = response;

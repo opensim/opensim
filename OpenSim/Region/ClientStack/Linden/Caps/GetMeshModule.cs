@@ -222,6 +222,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     new List<Hashtable>();
             private Dictionary<UUID, aPollResponse> responses =
                     new Dictionary<UUID, aPollResponse>();
+            private HashSet<UUID> dropedResponses = new HashSet<UUID>();
 
             private Scene m_scene;
             private MeshCapsDataThrottler m_throttler;
@@ -242,11 +243,13 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 };
 
-                Drop= (x, y) =>
+                Drop = (x, y) =>
                 {
                     lock (responses)
                     {
                         responses.Remove(x);
+                        lock(dropedResponses)
+                            dropedResponses.Add(x);
                     }
                 };
 
@@ -307,26 +310,47 @@ namespace OpenSim.Region.ClientStack.Linden
                 if(m_scene.ShuttingDown)
                     return;
 
-                // If the avatar is gone, don't bother to get the texture
-                if (m_scene.GetScenePresence(Id) == null)
+               lock(responses)
                 {
-                    response = new Hashtable();
+                    lock(dropedResponses)
+                    {
+                        if(dropedResponses.Contains(requestID))
+                        {
+                            dropedResponses.Remove(requestID);
+                            return;
+                        }
+                    }
+                
+                    // If the avatar is gone, don't bother to get the texture
+                    if (m_scene.GetScenePresence(Id) == null)
+                    {
+                        response = new Hashtable();
 
-                    response["int_response_code"] = 500;
-                    response["str_response_string"] = "Script timeout";
-                    response["content_type"] = "text/plain";
-                    response["keepalive"] = false;
-                    response["reusecontext"] = false;
+                        response["int_response_code"] = 500;
+                        response["str_response_string"] = "Script timeout";
+                        response["content_type"] = "text/plain";
+                        response["keepalive"] = false;
+                        response["reusecontext"] = false;
 
-                    lock (responses)
                         responses[requestID] = new aPollResponse() { bytes = 0, response = response, lod = 0 };
 
-                    return;
+                        return;
+                    }
                 }
 
                 response = m_getMeshHandler.Handle(requestinfo.request);
+
                 lock (responses)
                 {
+                    lock(dropedResponses)
+                    {
+                        if(dropedResponses.Contains(requestID))
+                        {
+                            dropedResponses.Remove(requestID);
+                            return;
+                        }
+                    }
+
                     responses[requestID] = new aPollResponse()
                     {
                         bytes = (int)response["int_bytes"],
