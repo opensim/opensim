@@ -248,8 +248,6 @@ namespace OpenSim.Capabilities.Handlers
                 {
                     contents.categories.Array.Add(ConvertInventoryFolder(invFolder));
                 }
-
-                descendents += inv.Folders.Count;
             }
 
             if (inv.Items != null)
@@ -449,13 +447,14 @@ namespace OpenSim.Capabilities.Handlers
                     {
                         InventoryCollectionWithDescendents ret = new InventoryCollectionWithDescendents();
                         ret.Collection = new InventoryCollection();
-                        ret.Collection.Folders = new List<InventoryFolderBase>();
+//                        ret.Collection.Folders = new List<InventoryFolderBase>();
+                        ret.Collection.Folders = fold.RequestListOfFolders();
                         ret.Collection.Items = fold.RequestListOfItems();
                         ret.Collection.OwnerID = m_LibraryService.LibraryRootFolder.Owner;
                         ret.Collection.FolderID = f.folder_id;
                         ret.Collection.Version = fold.Version;
 
-                        ret.Descendents = ret.Collection.Items.Count;
+                        ret.Descendents = ret.Collection.Items.Count + ret.Collection.Folders.Count;
                         result.Add(ret);
 
                         //m_log.DebugFormat("[XXX]: Added libfolder {0} ({1}) {2}", ret.Collection.FolderID, ret.Collection.OwnerID);
@@ -477,11 +476,18 @@ namespace OpenSim.Capabilities.Handlers
 
             // Filter folder Zero right here. Some viewers (Firestorm) send request for folder Zero, which doesn't make sense
             // and can kill the sim (all root folders have parent_id Zero)
+            // send something.
             LLSDFetchInventoryDescendents zero = fetchFolders.Find(f => f.folder_id == UUID.Zero);
             if (zero != null)
             {
                 fetchFolders.Remove(zero);
-                BadFolder(zero, null, bad_folders);
+                InventoryCollectionWithDescendents zeroColl = new InventoryCollectionWithDescendents();
+                zeroColl.Collection = new InventoryCollection();
+                zeroColl.Collection.OwnerID = zero.owner_id;
+                zeroColl.Collection.Version = 0;
+                zeroColl.Collection.FolderID = zero.folder_id;
+                zeroColl.Descendents = 0;
+                result.Add(zeroColl);
             }
 
             if (fetchFolders.Count > 0)
@@ -549,35 +555,8 @@ namespace OpenSim.Capabilities.Handlers
                 }
                 else
                 {
-                    // Was it really a request for folder Zero?
-                    // This is an overkill, but Firestorm really asks for folder Zero.
-                    // I'm leaving the code here for the time being, but commented.
-                    if (freq.folder_id == UUID.Zero)
-                    {
-                        //coll.Collection.OwnerID = freq.owner_id;
-                        //coll.Collection.FolderID = contents.FolderID;
-                        //containingFolder = m_InventoryService.GetRootFolder(freq.owner_id);
-                        //if (containingFolder != null)
-                        //{
-                        //    m_log.WarnFormat("[WEB FETCH INV DESC HANDLER]: Request for parent of folder {0}", containingFolder.ID);
-                        //    coll.Collection.Folders.Clear();
-                        //    coll.Collection.Folders.Add(containingFolder);
-                        //    if (m_LibraryService != null && m_LibraryService.LibraryRootFolder != null)
-                        //    {
-                        //        InventoryFolderBase lib = new InventoryFolderBase(m_LibraryService.LibraryRootFolder.ID, m_LibraryService.LibraryRootFolder.Owner);
-                        //        lib.Name = m_LibraryService.LibraryRootFolder.Name;
-                        //        lib.Type = m_LibraryService.LibraryRootFolder.Type;
-                        //        lib.Version = m_LibraryService.LibraryRootFolder.Version;
-                        //        coll.Collection.Folders.Add(lib);
-                        //    }
-                        //    coll.Collection.Items.Clear();
-                        //}
-                    }
-                    else
-                    {
-                        m_log.WarnFormat("[WEB FETCH INV DESC HANDLER]: Unable to fetch folder {0}", freq.folder_id);
-                        bad_folders.Add(freq.folder_id);
-                    }
+                    m_log.WarnFormat("[WEB FETCH INV DESC HANDLER]: Unable to fetch folder {0}", freq.folder_id);
+                    bad_folders.Add(freq.folder_id);
                     bad = true;
                 }
             }
@@ -594,7 +573,7 @@ namespace OpenSim.Capabilities.Handlers
                 // viewers are lasy and want a copy of the linked item sent before the link to it
                  
                 // descendents must only include the links, not the linked items we add
-                coll.Descendents = contents.Items.Count;
+                coll.Descendents = contents.Items.Count + contents.Folders.Count;
 
                 // look for item links
                 List<UUID> itemIDs = new List<UUID>();
