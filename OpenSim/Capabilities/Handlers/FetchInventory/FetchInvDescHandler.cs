@@ -591,7 +591,7 @@ namespace OpenSim.Capabilities.Handlers
 
             if (freq.fetch_items && contents.Items != null)
             {
-                // viewers are lasy and want a copy of the link item sent before the link to it
+                // viewers are lasy and want a copy of the linked item sent before the link to it
                  
                 // descendents must only include the links, not the linked items we add
                 coll.Descendents = contents.Items.Count;
