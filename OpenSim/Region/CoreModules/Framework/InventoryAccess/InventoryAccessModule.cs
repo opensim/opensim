@@ -867,6 +867,15 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 return null;
             }
 
+            if(rezAsset.Data == null || rezAsset.Data.Length == 0)
+            {
+                m_log.WarnFormat(
+                    "[INVENTORY ACCESS MODULE]: missing data in asset {0} to RezObject()",
+                    assetID, remoteClient.Name);
+                remoteClient.SendAgentAlertMessage(string.Format("Unable to rez: missing data in asset {0} ", assetID), false);
+                return null;           
+            }
+
             SceneObjectGroup group = null;
 
             List<SceneObjectGroup> objlist;
