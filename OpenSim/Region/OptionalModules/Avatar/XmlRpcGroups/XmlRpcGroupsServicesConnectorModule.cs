@@ -803,11 +803,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         {
             if (m_groupsAgentsDroppedFromChatSession.ContainsKey(groupID))
             {
+            if (m_groupsAgentsInvitedToChatSession[groupID].Contains(agentID))
+                m_groupsAgentsInvitedToChatSession[groupID].Remove(agentID);
+
                 // If not in dropped list, add
                 if (!m_groupsAgentsDroppedFromChatSession[groupID].Contains(agentID))
-                {
                     m_groupsAgentsDroppedFromChatSession[groupID].Add(agentID);
-                }
             }
         }
 
@@ -818,10 +819,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             // If nessesary, remove from dropped list
             if (m_groupsAgentsDroppedFromChatSession[groupID].Contains(agentID))
-            {
                 m_groupsAgentsDroppedFromChatSession[groupID].Remove(agentID);
-            }
-        }
+
+            if (!m_groupsAgentsInvitedToChatSession[groupID].Contains(agentID))
+                m_groupsAgentsInvitedToChatSession[groupID].Add(agentID);
+        }   
 
         private void CreateGroupChatSessionTracking(UUID groupID)
         {
