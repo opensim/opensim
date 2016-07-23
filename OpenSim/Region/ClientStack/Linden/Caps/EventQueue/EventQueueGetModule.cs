@@ -372,7 +372,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             caps.RegisterPollHandler(
                 "EventQueueGet",
-                new PollServiceEventArgs(null, GenerateEqgCapPath(eventQueueGetUUID), HasEvents, GetEvents, NoEvents, Drop, agentID, SERVER_EQ_TIME_NO_EVENTS));
+                new PollServiceEventArgs(null, GenerateEqgCapPath(eventQueueGetUUID), HasEvents, GetEvents, NoEvents, agentID, SERVER_EQ_TIME_NO_EVENTS));
         }
 
         public bool HasEvents(UUID requestID, UUID agentID)
