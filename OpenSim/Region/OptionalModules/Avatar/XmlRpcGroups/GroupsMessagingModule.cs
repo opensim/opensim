@@ -526,6 +526,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                                 , false //canVoiceChat
                                 , false //isModerator
                                 , false //text mute
+                                , true // enter
                                 );
                         }
 
@@ -574,7 +575,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     m_groupData.AgentInvitedToGroupChatSession(AgentID, GroupID);
 
                     ChatterBoxSessionStartReplyViaCaps(remoteClient, groupInfo.GroupName, GroupID);
-
+/* this seems wrong
                     IEventQueue queue = remoteClient.Scene.RequestModuleInterface<IEventQueue>();
                     queue.ChatterBoxSessionAgentListUpdates(
                         GroupID
@@ -583,7 +584,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                         , false //canVoiceChat
                         , false //isModerator
                         , false //text mute
+                        , true
                         );
+*/
                 }
             }
 

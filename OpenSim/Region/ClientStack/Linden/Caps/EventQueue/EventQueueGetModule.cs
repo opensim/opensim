@@ -372,7 +372,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             caps.RegisterPollHandler(
                 "EventQueueGet",
-                new PollServiceEventArgs(null, GenerateEqgCapPath(eventQueueGetUUID), HasEvents, GetEvents, NoEvents, agentID, SERVER_EQ_TIME_NO_EVENTS));
+                new PollServiceEventArgs(null, GenerateEqgCapPath(eventQueueGetUUID), HasEvents, GetEvents, NoEvents, Drop, agentID, SERVER_EQ_TIME_NO_EVENTS));
         }
 
         public bool HasEvents(UUID requestID, UUID agentID)
@@ -402,6 +402,10 @@ namespace OpenSim.Region.ClientStack.Linden
                     "Eq OUT {0,-30} to {1,-20} {2,-20}",
                     ev["message"], m_scene.GetScenePresence(agentId).Name, m_scene.Name);
             }
+        }
+        public void Drop(UUID requestID, UUID pAgentId)
+        {
+            // do nothing for now, hope client close will do it        
         }
 
         public Hashtable GetEvents(UUID requestID, UUID pAgentId)
@@ -564,12 +568,12 @@ namespace OpenSim.Region.ClientStack.Linden
 
         }
 
-        public void ChatterBoxSessionAgentListUpdates(UUID sessionID, UUID fromAgent, UUID anotherAgent, bool canVoiceChat, 
-                                                      bool isModerator, bool textMute)
+        public void ChatterBoxSessionAgentListUpdates(UUID sessionID, UUID fromAgent, UUID toAgent, bool canVoiceChat, 
+                                                      bool isModerator, bool textMute, bool isEnterorLeave)
         {
             OSD item = EventQueueHelper.ChatterBoxSessionAgentListUpdates(sessionID, fromAgent, canVoiceChat,
-                                                                          isModerator, textMute);
-            Enqueue(item, fromAgent);
+                                                                          isModerator, textMute, isEnterorLeave);
+            Enqueue(item, toAgent);
             //m_log.InfoFormat("########### eq ChatterBoxSessionAgentListUpdates #############\n{0}", item);
         }
 

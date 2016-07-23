@@ -308,7 +308,7 @@ namespace OpenSim.Region.ClientStack.Linden
         }
 
         public static OSD ChatterBoxSessionAgentListUpdates(UUID sessionID,
-            UUID agentID, bool canVoiceChat, bool isModerator, bool textMute)
+            UUID agentID, bool canVoiceChat, bool isModerator, bool textMute, bool isEnterorLeave)
         {
             OSDMap body = new OSDMap();
             OSDMap agentUpdates = new OSDMap();
@@ -321,7 +321,13 @@ namespace OpenSim.Region.ClientStack.Linden
             infoDetail.Add("mutes", mutes);
             OSDMap info = new OSDMap();
             info.Add("info", infoDetail);
+            if(isEnterorLeave)
+                info.Add("transition",OSD.FromString("ENTER"));
+            else
+                info.Add("transition",OSD.FromString("LEAVE"));
             agentUpdates.Add(agentID.ToString(), info);
+
+
             body.Add("agent_updates", agentUpdates);
             body.Add("session_id", OSD.FromUUID(sessionID));
             body.Add("updates", new OSD());
