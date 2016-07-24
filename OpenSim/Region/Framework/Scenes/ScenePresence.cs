@@ -277,6 +277,7 @@ namespace OpenSim.Region.Framework.Scenes
         private Quaternion m_lastRotation;
         private Vector3 m_lastVelocity;
         private Vector3 m_lastSize = new Vector3(0.45f,0.6f,1.9f);
+        private bool SentInitialData = false;
 
         private bool m_followCamAuto = false;
 
@@ -1073,6 +1074,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         }
 
+        private float lastHealthSent = 0;
+
         private void RegionHeartbeatEnd(Scene scene)
         {
             if (IsChildAgent)
@@ -1095,7 +1098,24 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    m_scene.EventManager.OnRegionHeartbeatEnd -= RegionHeartbeatEnd;
+//                    m_scene.EventManager.OnRegionHeartbeatEnd -= RegionHeartbeatEnd;
+                }
+            }
+
+            if(Health != 100.0f)
+            {
+                float last = Health;
+                Health += 0.05f;
+                if(Health > 100.0f)
+                {
+                    Health = 100.0f;
+                    lastHealthSent = Health;
+                    ControllingClient.SendHealth(Health);
+                }
+                else if(Math.Abs(Health - lastHealthSent) > 1.0)
+                {
+                    lastHealthSent = Health;
+                    ControllingClient.SendHealth(Health);
                 }
             }
         }
@@ -3758,6 +3778,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendInitialDataToMe()
         {
             // Send all scene object to the new client
+            SentInitialData = true;
             Util.FireAndForget(delegate
             {
                 // we created a new ScenePresence (a new child agent) in a fresh region.
@@ -3992,6 +4013,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if(IsDeleted || !ControllingClient.IsActive)
                 return;
+
+            if(!SentInitialData)
+            {
+                SendInitialDataToMe();
+                return;
+            }
 
             if(m_reprioritizationBusy)
                 return;
@@ -4667,25 +4694,25 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="e"></param>
         public void PhysicsCollisionUpdate(EventArgs e)
         {
-            if (IsChildAgent || Animator == null)
+            if (IsChildAgent)
                 return;
 
             if(IsInTransit)
                 return;
+
             //if ((Math.Abs(Velocity.X) > 0.1e-9f) || (Math.Abs(Velocity.Y) > 0.1e-9f))
             // The Physics Scene will send updates every 500 ms grep: PhysicsActor.SubscribeEvents(
             // as of this comment the interval is set in AddToPhysicalScene
 
 //                if (m_updateCount > 0)
 //                {
-            if (Animator.UpdateMovementAnimations())
+            if (Animator != null && Animator.UpdateMovementAnimations())
                 TriggerScenePresenceUpdated();
 //                    m_updateCount--;
 //                }
 
             CollisionEventUpdate collisionData = (CollisionEventUpdate)e;
             Dictionary<uint, ContactPoint> coldata = collisionData.m_objCollisionList;
-
 
 //            // No collisions at all means we may be flying. Update always
 //            // to make falling work
@@ -4697,42 +4724,24 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (coldata.Count != 0)
             {
-/*
-                switch (Animator.CurrentMovementAnimation)
+                ContactPoint lowest;
+                lowest.SurfaceNormal = Vector3.Zero;
+                lowest.Position = Vector3.Zero;
+                lowest.Position.Z = float.MaxValue;
+
+                foreach (ContactPoint contact in coldata.Values)
                 {
-                    case "STAND":
-                    case "WALK":
-                    case "RUN":
-                    case "CROUCH":
-                    case "CROUCHWALK":
-                        {
- */
-                            ContactPoint lowest;
-                            lowest.SurfaceNormal = Vector3.Zero;
-                            lowest.Position = Vector3.Zero;
-                            lowest.Position.Z = float.MaxValue;
-
-                            foreach (ContactPoint contact in coldata.Values)
-                            {
-                                
-                                if (contact.CharacterFeet && contact.Position.Z < lowest.Position.Z)
-                                {
-                                    lowest = contact;
-                                }
-                            }
-
-                            if (lowest.Position.Z != float.MaxValue)
-                            {
-                                lowest.SurfaceNormal = -lowest.SurfaceNormal;
-                                CollisionPlane = new Vector4(lowest.SurfaceNormal, Vector3.Dot(lowest.Position, lowest.SurfaceNormal));
-                            }
-                            else
-                                CollisionPlane = Vector4.UnitW;
-/*
-                        }
-                        break;
+                    if (contact.CharacterFeet && contact.Position.Z < lowest.Position.Z)
+                        lowest = contact;
                 }
-*/
+
+                if (lowest.Position.Z != float.MaxValue)
+                {
+                    lowest.SurfaceNormal = -lowest.SurfaceNormal;
+                    CollisionPlane = new Vector4(lowest.SurfaceNormal, Vector3.Dot(lowest.Position, lowest.SurfaceNormal));
+                }
+                else
+                   CollisionPlane = Vector4.UnitW;
             }
             else
                 CollisionPlane = Vector4.UnitW;
@@ -4745,73 +4754,62 @@ namespace OpenSim.Region.Framework.Scenes
 
             // The following may be better in the ICombatModule
             // probably tweaking of the values for ground and normal prim collisions will be needed
-            float starthealth = Health;
-            uint killerObj = 0;
-            SceneObjectPart part = null;
-            foreach (uint localid in coldata.Keys)
+            float startHealth = Health;
+            if(coldata.Count > 0)
             {
-                if (localid == 0)
+                uint killerObj = 0;
+                SceneObjectPart part = null;
+                float rvel; // relative velocity, negative on approch
+                foreach (uint localid in coldata.Keys)
                 {
-                    part = null;
-                }
-                else
-                {
-                    part = Scene.GetSceneObjectPart(localid);
-                }
-                if (part != null)
-                {
-                    // Ignore if it has been deleted or volume detect
-                    if (!part.ParentGroup.IsDeleted && !part.ParentGroup.IsVolumeDetect)
+                    if (localid == 0)
                     {
-                        if (part.ParentGroup.Damage > 0.0f)
+                        // 0 is the ground
+                        rvel = coldata[0].RelativeSpeed;
+                        if(rvel < -5.0f)
+                            Health -= 0.01f * rvel * rvel;
+                    }
+                    else
+                    {
+                        part = Scene.GetSceneObjectPart(localid);
+
+                        if(part != null && !part.ParentGroup.IsDeleted && !part.ParentGroup.IsVolumeDetect)
                         {
-                            // Something with damage...
-                            Health -= part.ParentGroup.Damage;
-                            part.ParentGroup.Scene.DeleteSceneObject(part.ParentGroup, false);
-                        }
-                        else
-                        {
-                            // An ordinary prim
-                            if (coldata[localid].PenetrationDepth >= 0.10f)
-                                Health -= coldata[localid].PenetrationDepth * 5.0f;
+                            if (part.ParentGroup.Damage > 0.0f)
+                            {
+                                // Something with damage...
+                                Health -= part.ParentGroup.Damage;
+                                part.ParentGroup.Scene.DeleteSceneObject(part.ParentGroup, false);
+                            }
+                            else
+                            {
+                                // An ordinary prim
+                                rvel = coldata[localid].RelativeSpeed;
+                                if(rvel < -5.0f)
+                                {
+                                    Health -=  0.005f * rvel * rvel;;
+                                }
+                            }
                         }
                     }
-                }
-                else
-                {
-                    // 0 is the ground
-                    // what about collisions with other avatars?
-                    if (localid == 0 && coldata[localid].PenetrationDepth >= 0.10f)
-                        Health -= coldata[localid].PenetrationDepth * 5.0f;
+
+                    if (Health <= 0.0f)
+                    {
+                        if (localid != 0)
+                            killerObj = localid;
+                    }
                 }
 
-
-                if (Health <= 0.0f)
-                {
-                    if (localid != 0)
-                        killerObj = localid;
-                }
-                //m_log.Debug("[AVATAR]: Collision with localid: " + localid.ToString() + " at depth: " + coldata[localid].ToString());
-            }
-            //Health = 100;
-            if (!Invulnerable)
-            {
-                if (starthealth != Health)
-                {
-                    ControllingClient.SendHealth(Health);
-                }
                 if (Health <= 0)
                 {
-                    m_scene.EventManager.TriggerAvatarKill(killerObj, this);
-                }
-                if (starthealth == Health && Health < 100.0f)
-                {
-                    Health += 0.03f;
-                    if (Health > 100.0f)
-                        Health = 100.0f;
                     ControllingClient.SendHealth(Health);
+                    m_scene.EventManager.TriggerAvatarKill(killerObj, this);
+                    return;
                 }
             }
+
+            if(Math.Abs(Health - startHealth) > 1.0)
+                ControllingClient.SendHealth(Health);
         }
 
         public void setHealthWithUpdate(float health)
