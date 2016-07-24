@@ -142,47 +142,36 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             if (toAgentID == UUID.Zero)
                 return;
 
+            IClientAPI client = null;
+
             // Try root avatar only first
             foreach (Scene scene in m_Scenes)
             {
-//                m_log.DebugFormat(
-//                    "[INSTANT MESSAGE]: Looking for root agent {0} in {1}",
-//                    toAgentID.ToString(), scene.RegionInfo.RegionName);
-
                 ScenePresence sp = scene.GetScenePresence(toAgentID);
-                if (sp != null && !sp.IsChildAgent)
+                if (sp != null && !sp.IsDeleted && sp.ControllingClient.IsActive)
                 {
-                    // Local message
+                    // actualy don't send via child agents
+                    // ims can be complex things, and not sure viewers will not mess up
+                    if(sp.IsChildAgent)
+                        continue;
+
+                    client = sp.ControllingClient;
+                    if(!sp.IsChildAgent)
+                        break;
+                }
+            }
+
+            if(client != null)
+            {
+                // Local message
 //                    m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to root agent {0} {1}", sp.Name, toAgentID);
 
-                    sp.ControllingClient.SendInstantMessage(im);
+                client.SendInstantMessage(im);
 
                     // Message sent
-                    result(true);
-                    return;
-                }
+                result(true);
+                return;
             }
-
-            // try child avatar second
-            foreach (Scene scene in m_Scenes)
-            {
-//                m_log.DebugFormat(
-//                    "[INSTANT MESSAGE]: Looking for child of {0} in {1}", toAgentID, scene.RegionInfo.RegionName);
-
-                ScenePresence sp = scene.GetScenePresence(toAgentID);
-                if (sp != null)
-                {
-                    // Local message
-//                    m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to child agent {0} {1}", sp.Name, toAgentID);
-
-                    sp.ControllingClient.SendInstantMessage(im);
-
-                    // Message sent
-                    result(true);
-                    return;
-                }
-            }
-
 //            m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to {0} via XMLRPC", im.toAgentID);
 
             SendGridInstantMessageViaXMLRPC(im, result);
