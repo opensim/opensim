@@ -945,6 +945,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osCauseHealing(avatar, healing);
         }
 
+        public void osSetHealth(string avatar, double health)
+        {
+            m_OSSL_Functions.osSetHealth(avatar, health);
+        }
+
         public void osForceOtherSit(string avatar)
         {
             m_OSSL_Functions.osForceOtherSit(avatar);

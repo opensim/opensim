@@ -3469,6 +3469,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        public void osSetHealth(string avatar, double health)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osSetHealth");
+            m_host.AddScriptLPS(1);
+
+            UUID avatarId = new UUID(avatar);
+            ScenePresence presence = World.GetScenePresence(avatarId);
+
+            if (presence != null && World.ScriptDanger(m_host.LocalId, m_host.GetWorldPosition()))
+            {
+                if (health > 100.0)
+                    health = 100.0;
+                else if (health < 1.0)
+                    health = 1.0;
+
+                presence.setHealthWithUpdate((float)health);
+            }
+        }
+
         public LSL_List osGetPrimitiveParams(LSL_Key prim, LSL_List rules)
         {
             CheckThreatLevel(ThreatLevel.High, "osGetPrimitiveParams");

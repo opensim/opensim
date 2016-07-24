@@ -368,6 +368,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osSetSpeed(string UUID, LSL_Float SpeedModifier);
         LSL_Float osGetHealth(string avatar);
         void osCauseHealing(string avatar, double healing);
+        void osSetHealth(string avatar, double health);
         void osCauseDamage(string avatar, double damage);
         void osForceOtherSit(string avatar);
         void osForceOtherSit(string avatar, string target);
