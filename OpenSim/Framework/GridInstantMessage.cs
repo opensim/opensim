@@ -110,9 +110,9 @@ namespace OpenSim.Framework
                 string _fromAgentName, UUID _toAgentID,
                 byte _dialog, bool _fromGroup, string _message,
                 UUID _imSessionID, bool _offline, Vector3 _position,
-                byte[] _binaryBucket, bool addTimestamp) : this(scene, _fromAgentID, _fromAgentName,
-                _toAgentID, _dialog, false, _message,
-                _fromAgentID ^ _toAgentID, _offline, _position, _binaryBucket, UUID.Zero, true)
+                byte[] _binaryBucket, bool addTimestamp) : this (scene, _fromAgentID,
+                    _fromAgentName, _toAgentID, _dialog, _fromGroup, _message,
+                    _imSessionID, _offline, _position, _binaryBucket, UUID.Zero, addTimestamp)
         {
         }
 
