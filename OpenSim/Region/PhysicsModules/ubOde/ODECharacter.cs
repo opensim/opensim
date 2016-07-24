@@ -1580,14 +1580,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 int ncolisions = CollisionEventsThisFrame.m_objCollisionList.Count;
 
-//                if (!SentEmptyCollisionsEvent || ncolisions > 0)
+                if (!SentEmptyCollisionsEvent || ncolisions > 0)
                 {
                     base.SendCollisionUpdate(CollisionEventsThisFrame);
 
                     if (ncolisions == 0)
                     {
                         SentEmptyCollisionsEvent = true;
-//                        _parent_scene.RemoveCollisionEventReporting(this);
+                        _parent_scene.RemoveCollisionEventReporting(this);
                     }
                     else
                     {
