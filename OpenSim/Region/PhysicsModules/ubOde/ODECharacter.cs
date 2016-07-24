@@ -110,6 +110,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private bool m_alwaysRun = false;
 
         private bool _zeroFlag = false;
+        private bool m_haveLastFallVel = false;
 
 
         private uint m_localID = 0;
@@ -1087,6 +1088,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if (ctz.Z < 0)
                     ctz.Z = 0;
 
+                if(!m_haveLastFallVel)
+                {
+                    m_lastFallVel = vel;
+                    m_haveLastFallVel = true;
+                }
+
                 Vector3 n = _parent_scene.GetTerrainNormalAtXY(posch.X, posch.Y);
                 float depth = terrainheight - chrminZ;
 
@@ -1123,7 +1130,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         contact.SurfaceNormal.X = -n.X;
                         contact.SurfaceNormal.Y = -n.Y;
                         contact.SurfaceNormal.Z = -n.Z;
-                        contact.RelativeSpeed = -Vector3.Dot(m_lastFallVel, contact.SurfaceNormal);;
+                        contact.RelativeSpeed = Vector3.Dot(m_lastFallVel, n);
                         contact.CharacterFeet = true;
                         AddCollisionEvent(0, contact);
                         m_lastFallVel = vel;
@@ -1134,7 +1141,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 else
                 {
-                    m_lastFallVel = vel;
                     m_colliderGroundfilter -= 5;
                     if (m_colliderGroundfilter <= 0)
                     {
@@ -1145,7 +1151,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
             else
             {
-                m_lastFallVel = vel;
+                m_haveLastFallVel = false;
                 m_colliderGroundfilter -= 5;
                 if (m_colliderGroundfilter <= 0)
                 {
@@ -1574,14 +1580,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 int ncolisions = CollisionEventsThisFrame.m_objCollisionList.Count;
 
-                if (!SentEmptyCollisionsEvent || ncolisions > 0)
+//                if (!SentEmptyCollisionsEvent || ncolisions > 0)
                 {
                     base.SendCollisionUpdate(CollisionEventsThisFrame);
 
                     if (ncolisions == 0)
                     {
                         SentEmptyCollisionsEvent = true;
-                        _parent_scene.RemoveCollisionEventReporting(this);
+//                        _parent_scene.RemoveCollisionEventReporting(this);
                     }
                     else
                     {
