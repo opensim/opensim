@@ -1079,44 +1079,45 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 case ActorTypes.Agent:
                 case ActorTypes.Prim:
+                {
+                    switch ((ActorTypes)p2.PhysicsActorType)
                     {
-                        switch ((ActorTypes)p2.PhysicsActorType)
-                        {
-                            case ActorTypes.Agent:
-                            case ActorTypes.Prim:
-                                if (p2events)
-                                {
-                                    AddCollisionEventReporting(p2);
-                                    p2.AddCollisionEvent(p1.ParentActor.LocalID, contact);
-                                }
-                                obj2LocalID = p2.ParentActor.LocalID;
-                                break;
+                        case ActorTypes.Agent:
+                        case ActorTypes.Prim:
+                            if (p2events)
+                            {
+                                AddCollisionEventReporting(p2);
+                                p2.AddCollisionEvent(p1.ParentActor.LocalID, contact);
+                            }
+                            obj2LocalID = p2.ParentActor.LocalID;
+                            break;
 
-                            case ActorTypes.Ground:
-                            case ActorTypes.Unknown:
-                            default:
-                                obj2LocalID = 0;
-                                break;
-                        }
-                        if (p1events)
-                        {
-                            contact.SurfaceNormal = -contact.SurfaceNormal;
-                            AddCollisionEventReporting(p1);
-                            p1.AddCollisionEvent(obj2LocalID, contact);
-                        }
-                        break;
+                        case ActorTypes.Ground:
+                        case ActorTypes.Unknown:
+                        default:
+                            obj2LocalID = 0;
+                            break;
                     }
+                    if (p1events)
+                    {
+                        contact.SurfaceNormal = -contact.SurfaceNormal;
+                        contact.RelativeSpeed = -contact.RelativeSpeed;
+                        AddCollisionEventReporting(p1);
+                        p1.AddCollisionEvent(obj2LocalID, contact);
+                    }
+                    break;
+                }
                 case ActorTypes.Ground:
                 case ActorTypes.Unknown:
                 default:
+                {
+                    if (p2events && !p2.IsVolumeDtc)
                     {
-                        if (p2events && !p2.IsVolumeDtc)
-                        {
-                            AddCollisionEventReporting(p2);
-                            p2.AddCollisionEvent(0, contact);
-                        }
-                        break;
+                        AddCollisionEventReporting(p2);
+                        p2.AddCollisionEvent(0, contact);
                     }
+                    break;
+                }
             }
         }
 
