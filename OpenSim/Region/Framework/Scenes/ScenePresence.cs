@@ -343,6 +343,8 @@ namespace OpenSim.Region.Framework.Scenes
         private const float FLY_ROLL_RESET_RADIANS_PER_UPDATE = 0.02f;
 
         private float m_health = 100f;
+        private float m_healRate = 1f;
+        private float m_healRatePerFrame = 0.05f;
 
         protected ulong crossingFromRegion;
 
@@ -861,6 +863,26 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_health = value; }
         }
 
+        public float HealRate
+        {
+            get { return m_healRate; }
+            set
+            {
+                if(value > 100.0f)
+                    m_healRate = 100.0f;
+                else if (value <= 0.0)
+                    m_healRate = 0.0f;
+                else
+                    m_healRate = value;
+
+                if(Scene != null)
+                    m_healRatePerFrame = m_healRate * Scene.FrameTime;
+                else
+                    m_healRatePerFrame = 0.05f;
+            }
+        }
+
+
         /// <summary>
         /// Gets the world rotation of this presence.
         /// </summary>
@@ -1064,6 +1086,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_stateMachine = new ScenePresenceStateMachine(this);
 
+            HealRate = 0.5f;
+
             IConfig sconfig = m_scene.Config.Configs["EntityTransfer"];
             if (sconfig != null)
             {
@@ -1102,10 +1126,10 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if(Health != 100.0f)
+            if(m_healRatePerFrame != 0f && Health != 100.0f)
             {
                 float last = Health;
-                Health += 0.05f;
+                Health += m_healRatePerFrame;
                 if(Health > 100.0f)
                 {
                     Health = 100.0f;
