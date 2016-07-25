@@ -874,7 +874,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                 break;
 
                             case (int)ActorTypes.Prim:
-                                Vector3 relV = p1.Velocity - p2.Velocity;
+                                Vector3 relV = p1.rootVelocity - p2.rootVelocity;
                                 float relVlenSQ = relV.LengthSquared();
                                 if (relVlenSQ > 0.0001f)
                                 {
@@ -899,7 +899,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                 bounce = contactdata1.bounce * TerrainBounce;
                                 mu = (float)Math.Sqrt(contactdata1.mu * TerrainFriction);
 
-                                if (Math.Abs(p1.Velocity.X) > 0.1f || Math.Abs(p1.Velocity.Y) > 0.1f)
+                                Vector3 v1 = p1.rootVelocity;
+                                if (Math.Abs(v1.X) > 0.1f || Math.Abs(v1.Y) > 0.1f)
                                     mu *= frictionMovementMult;
                                 p1.CollidingGround = true;
 
@@ -925,8 +926,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
 //                        if (curContact.side1 > 0) // should be 2 ?
 //                            IgnoreNegSides = true;
-
-                        if (Math.Abs(p2.Velocity.X) > 0.1f || Math.Abs(p2.Velocity.Y) > 0.1f)
+                        Vector3 v2 = p2.rootVelocity;
+                        if (Math.Abs(v2.X) > 0.1f || Math.Abs(v2.Y) > 0.1f)
                             mu *= frictionMovementMult;
 
                         if(d.GeomGetClass(g2) == d.GeomClassID.TriMeshClass)
@@ -980,7 +981,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             p1.CollidingObj = true;
                             p2.CollidingObj = true;
                         }
-                        else if (p2.Velocity.LengthSquared() > 0.0f)
+                        else if (p2.rootVelocity.LengthSquared() > 0.0f)
                             p2.CollidingObj = true;
                     }
                     else
@@ -995,7 +996,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             p1.CollidingObj = true;
                             p2.CollidingObj = true;
                         }
-                    else if (p1.Velocity.LengthSquared() > 0.0f)
+                    else if (p1.rootVelocity.LengthSquared() > 0.0f)
                         p1.CollidingObj = true;
                     }
                 else
@@ -1068,10 +1069,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             Vector3 vel = Vector3.Zero;
             if (p2 != null && p2.IsPhysical)
-                vel = p2.Velocity;
+                vel = p2.rootVelocity;
 
             if (p1 != null && p1.IsPhysical)
-                vel -= p1.Velocity;
+                vel -= p1.rootVelocity;
 
             contact.RelativeSpeed = Vector3.Dot(vel, contact.SurfaceNormal);
 

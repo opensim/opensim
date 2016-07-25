@@ -542,13 +542,20 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
         }
 
+        public Vector3 rootVelocity
+        {
+            get
+            {
+                if(_parent != null)
+                    return ((OdePrim)_parent).Velocity;
+                return Velocity;
+            }
+        }
+
         public override Vector3 Velocity
         {
             get
             {
-                if (_parent != null)
-                    return ((OdePrim)_parent).Velocity;
-
                 if (_zeroFlag)
                     return Vector3.Zero;
                 return _velocity;
