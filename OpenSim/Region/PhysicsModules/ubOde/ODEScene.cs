@@ -995,7 +995,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             p1.CollidingObj = true;
                             p2.CollidingObj = true;
                         }
-                    else if (p2.Velocity.LengthSquared() > 0.0f)
+                    else if (p1.Velocity.LengthSquared() > 0.0f)
                         p1.CollidingObj = true;
                     }
                 else
