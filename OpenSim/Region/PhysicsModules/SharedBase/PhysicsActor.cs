@@ -396,7 +396,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         }
 
         public abstract Vector3 Velocity { get; set; }
-        public virtual Vector3 rootVelocity { get; }
+        public virtual Vector3 rootVelocity { get { return Vector3.Zero; } }
 
         public abstract Vector3 Torque { get; set; }
         public abstract float CollisionScore { get; set;}
