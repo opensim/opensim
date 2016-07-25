@@ -607,7 +607,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             set { return; }
         }
 
-        public Vector3 rootVelocity
+        public override Vector3 rootVelocity
         {
             get
             {
