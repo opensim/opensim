@@ -3488,6 +3488,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        public void osSetHealRate(string avatar, double healrate)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osSetHealRate");
+            m_host.AddScriptLPS(1);
+
+            UUID avatarId = new UUID(avatar);
+            ScenePresence presence = World.GetScenePresence(avatarId);
+
+            if (presence != null && World.ScriptDanger(m_host.LocalId, m_host.GetWorldPosition()))
+                 presence.HealRate = (float)healrate;
+        }
+
+        public LSL_Float osGetHealRate(string avatar)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osGetHealRate");
+            m_host.AddScriptLPS(1);
+
+            LSL_Float rate = new LSL_Float(0);
+            ScenePresence presence = World.GetScenePresence(new UUID(avatar));
+            if (presence != null)
+                rate = presence.HealRate;
+            return rate;
+        }
+
         public LSL_List osGetPrimitiveParams(LSL_Key prim, LSL_List rules)
         {
             CheckThreatLevel(ThreatLevel.High, "osGetPrimitiveParams");
