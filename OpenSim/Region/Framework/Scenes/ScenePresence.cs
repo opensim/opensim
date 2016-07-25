@@ -4797,7 +4797,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         part = Scene.GetSceneObjectPart(localid);
 
-                        if(part != null && !part.ParentGroup.IsDeleted && !part.ParentGroup.IsVolumeDetect)
+                        if(part != null && !part.ParentGroup.IsVolumeDetect)
                         {
                             if (part.ParentGroup.Damage > 0.0f)
                             {
@@ -4811,9 +4811,13 @@ namespace OpenSim.Region.Framework.Scenes
                                 rvel = coldata[localid].RelativeSpeed;
                                 if(rvel < -5.0f)
                                 {
-                                    Health -=  0.005f * rvel * rvel;;
+                                    Health -=  0.005f * rvel * rvel;
                                 }
                             }
+                        }
+                        else
+                        {
+                        
                         }
                     }
 
