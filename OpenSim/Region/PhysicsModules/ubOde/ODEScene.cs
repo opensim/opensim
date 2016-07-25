@@ -1724,8 +1724,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                                 case ActorTypes.Prim:
                                     OdePrim pobj = (OdePrim)obj;
-                                    if (pobj.Body == IntPtr.Zero || (d.BodyIsEnabled(pobj.Body) && !pobj.m_outbounds))
-                                    if (!pobj.m_outbounds)
+                                    if (!pobj.m_outbounds && (pobj.Body == IntPtr.Zero || d.BodyIsEnabled(pobj.Body)))
                                     {
                                         pobj.AddCollisionFrameTime((int)(odetimestepMS));
                                         pobj.SendCollisions();
