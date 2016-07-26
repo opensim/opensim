@@ -28,6 +28,7 @@
 using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Region.Framework.Scenes;
 using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
 
 namespace OpenSim.Region.Framework.Interfaces
@@ -93,6 +94,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="perms">These come from the FriendRights enum.</param>
         void GrantRights(IClientAPI remoteClient, UUID friendID, int perms);
 
+        void IsNpwRoot(ScenePresence sp);
         bool SendFriendsOnlineIfNeeded(IClientAPI client);
     }
 }
