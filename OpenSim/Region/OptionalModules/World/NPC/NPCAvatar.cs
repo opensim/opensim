@@ -603,6 +603,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             return (m_hostGroupID == groupID);
         }
 
+        public Dictionary<UUID, ulong> GetGroupPowers()
+        {
+            return new Dictionary<UUID, ulong>();
+        }
+
         public ulong GetGroupPowers(UUID groupID)
         {
             return 0;

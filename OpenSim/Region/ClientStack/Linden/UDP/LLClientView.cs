@@ -5782,6 +5782,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(packet, ThrottleOutPacketType.Task);
         }
 
+        public Dictionary<UUID, ulong> GetGroupPowers()
+        {
+            lock(m_groupPowers)
+            {
+                return new Dictionary<UUID, ulong>(m_groupPowers);
+            }
+        }
+
         public ulong GetGroupPowers(UUID groupID)
         {
             if (groupID == ActiveGroupId)

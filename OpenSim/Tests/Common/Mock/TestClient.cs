@@ -421,6 +421,11 @@ namespace OpenSim.Tests.Common
             return false;
         }
 
+        public Dictionary<UUID, ulong> GetGroupPowers()
+        {
+            return new Dictionary<UUID, ulong>();
+        }
+
         public ulong GetGroupPowers(UUID groupID)
         {
             return 0;
