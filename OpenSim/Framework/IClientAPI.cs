@@ -735,6 +735,8 @@ namespace OpenSim.Framework
 
         Dictionary<UUID, ulong> GetGroupPowers();
 
+        void SetGroupPowers(Dictionary<UUID, ulong> powers);
+
         ulong GetGroupPowers(UUID groupID);
 
         bool IsGroupMember(UUID GroupID);

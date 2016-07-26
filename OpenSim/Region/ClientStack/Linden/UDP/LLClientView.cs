@@ -5790,6 +5790,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        public void SetGroupPowers(Dictionary<UUID, ulong> powers)
+        {
+            lock(m_groupPowers)
+            {
+                m_groupPowers.Clear();
+                m_groupPowers = powers;
+            }       
+        }
+
         public ulong GetGroupPowers(UUID groupID)
         {
             if (groupID == ActiveGroupId)

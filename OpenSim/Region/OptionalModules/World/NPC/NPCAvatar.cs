@@ -610,6 +610,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             return new Dictionary<UUID, ulong>();
         }
 
+        public void SetGroupPowers(Dictionary<UUID, ulong> powers) { }
+
         public ulong GetGroupPowers(UUID groupID)
         {
             return 0;

@@ -589,7 +589,9 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         {
             return new Dictionary<UUID, ulong>();
         }
-                
+        
+        public void SetGroupPowers(Dictionary<UUID, ulong> powers) { }        
+
         public ulong GetGroupPowers(UUID groupID)
         {
             return 0;
