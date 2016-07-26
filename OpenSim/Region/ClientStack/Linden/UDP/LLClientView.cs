@@ -421,9 +421,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
         public UUID AgentId { get { return m_agentId; } }
         public ISceneAgent SceneAgent { get; set; }
-        public UUID ActiveGroupId { get { return m_activeGroupID; } private set { m_activeGroupID = value; } }
-        public string ActiveGroupName { get { return m_activeGroupName; } private set { m_activeGroupName = value; } }
-        public ulong ActiveGroupPowers { get { return m_activeGroupPowers; } private set { m_activeGroupPowers = value; } }
+        public UUID ActiveGroupId { get { return m_activeGroupID; } set { m_activeGroupID = value; } }
+        public string ActiveGroupName { get { return m_activeGroupName; } set { m_activeGroupName = value; } }
+        public ulong ActiveGroupPowers { get { return m_activeGroupPowers; } set { m_activeGroupPowers = value; } }
         public bool IsGroupMember(UUID groupID) { return m_groupPowers.ContainsKey(groupID); }
 
         public int PingTimeMS

@@ -591,11 +591,13 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public string ActiveGroupName
         {
             get { return String.Empty; }
+            set { }
         }
 
         public ulong ActiveGroupPowers
         {
             get { return 0; }
+            set { }
         }
 
         public bool IsGroupMember(UUID groupID)

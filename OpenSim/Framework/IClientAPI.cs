@@ -727,11 +727,11 @@ namespace OpenSim.Framework
 
         UUID SecureSessionId { get; }
 
-        UUID ActiveGroupId { get; }
+        UUID ActiveGroupId { get; set; }
 
-        string ActiveGroupName { get; }
+        string ActiveGroupName { get; set;}
 
-        ulong ActiveGroupPowers { get; }
+        ulong ActiveGroupPowers { get; set;}
 
         Dictionary<UUID, ulong> GetGroupPowers();
 
