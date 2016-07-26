@@ -346,7 +346,7 @@ namespace OpenSim.Region.Framework.Scenes
         private float m_healRate = 1f;
         private float m_healRatePerFrame = 0.05f;
 
-        protected ulong crossingFromRegion;
+//        protected ulong crossingFromRegion;
 
         private readonly Vector3[] Dir_Vectors = new Vector3[12];
 
@@ -568,18 +568,15 @@ namespace OpenSim.Region.Framework.Scenes
         public string Firstname { get; private set; }
         public string Lastname { get; private set; }
 
+        public bool haveGroupInformation;
+        public bool gotCrossUpdate;
+
         public string Grouptitle
         {
-            get { return UseFakeGroupTitle ? "(Loading)" : m_groupTitle; }
+            get { return m_groupTitle; }
             set { m_groupTitle = value; }
         }
         private string m_groupTitle;
-
-        /// <summary>
-        /// When this is 'true', return a dummy group title instead of the real group title. This is
-        /// used as part of a hack to force viewers to update the displayed avatar name.
-        /// </summary>
-        public bool UseFakeGroupTitle { get; set; }
 
         // Agent's Draw distance.
         private float m_drawDistance = 255f;
@@ -1062,9 +1059,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (account != null)
                 UserLevel = account.UserLevel;
 
-            IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
-            if (gm != null)
-               Grouptitle = gm.GetGroupTitle(m_uuid);
+ //           IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
+ //           if (gm != null)
+ //              Grouptitle = gm.GetGroupTitle(m_uuid);
 
             m_scriptEngines = m_scene.RequestModuleInterfaces<IScriptModule>();
             
@@ -1258,11 +1255,6 @@ namespace OpenSim.Region.Framework.Scenes
             // Should not be needed if we are not trying to tell this region to close
             //            DoNotCloseAfterTeleport = false;
 
-            IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
-            if (gm != null)
-                Grouptitle = gm.GetGroupTitle(m_uuid);
-
-            m_log.DebugFormat("[MakeRootAgent] Grouptitle: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
             RegionHandle = m_scene.RegionInfo.RegionHandle;
 
@@ -1511,6 +1503,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public void MakeChildAgent(ulong newRegionHandle)
         {
+            haveGroupInformation = false;
+            gotCrossUpdate = false;
             m_scene.EventManager.OnRegionHeartbeatEnd -= RegionHeartbeatEnd;
 
             RegionHandle = newRegionHandle;
@@ -1978,24 +1972,28 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_log.DebugFormat("[CompleteMovement] MakeRootAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
-
-// start sending terrain patchs
-                if (!isNPC)
-                    Scene.SendLayerData(ControllingClient);
-
-                if (!IsChildAgent && !isNPC)
+                if(!haveGroupInformation && !IsChildAgent && !isNPC)
                 {
+                    // oh crap.. lets retry it directly
+                    IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
+                    if (gm != null)
+                        Grouptitle = gm.GetGroupTitle(m_uuid);
+
+                    m_log.DebugFormat("[CompleteMovement] Missing Grouptitle: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+
                     InventoryFolderBase cof = m_scene.InventoryService.GetFolderForType(client.AgentId, (FolderType)46);
                     if (cof == null)
                         COF = UUID.Zero;
                     else
                         COF = cof.ID;
 
-                    m_log.DebugFormat("[ScenePresence]: CompleteMovement COF for {0} is {1}", client.AgentId, COF);
+                    m_log.DebugFormat("[CompleteMovement]: Missing COF for {0} is {1}", client.AgentId, COF);
                 }
+
 
                 // Tell the client that we're totally ready
                 ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
+
 
                 m_log.DebugFormat("[CompleteMovement] MoveAgentIntoRegion: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
@@ -2028,6 +2026,10 @@ namespace OpenSim.Region.Framework.Scenes
 //            }
 
                 m_log.DebugFormat("[CompleteMovement] ReleaseAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+
+// start sending terrain patchs
+                if (!gotCrossUpdate && !isNPC)
+                    Scene.SendLayerData(ControllingClient);
 
                 m_previusParcelHide = false;
                 m_previusParcelUUID = UUID.Zero;
@@ -2203,6 +2205,9 @@ namespace OpenSim.Region.Framework.Scenes
  //               ParcelLoginCheck(m_currentParcelUUID);
  //               m_currentParcelHide = newhide;
  //           }
+
+            haveGroupInformation = true;
+            gotCrossUpdate = false;
 
             m_scene.EventManager.OnRegionHeartbeatEnd += RegionHeartbeatEnd;
 
@@ -4470,7 +4475,7 @@ namespace OpenSim.Region.Framework.Scenes
             checkRePrioritization();
         }
 
-        public void CopyTo(AgentData cAgent)
+        public void CopyTo(AgentData cAgent, bool isCrossUpdate)
         {
             cAgent.CallbackURI = m_callbackURI;
 
@@ -4534,6 +4539,29 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (Scene.AttachmentsModule != null)
                 Scene.AttachmentsModule.CopyAttachments(this, cAgent);
+
+            cAgent.isCrossingUpdate = isCrossUpdate;
+
+            if(isCrossUpdate && haveGroupInformation)
+            {
+                
+                cAgent.agentCOF = COF;
+                cAgent.ActiveGroupID = ControllingClient.ActiveGroupId;
+                cAgent.ActiveGroupName = ControllingClient.ActiveGroupName;
+                cAgent.ActiveGroupTitle = Grouptitle;
+                Dictionary<UUID, ulong> gpowers = ControllingClient.GetGroupPowers();
+                if(gpowers.Count >0)
+                {
+                    cAgent.Groups = new AgentGroupData[gpowers.Count];
+                    int i = 0;
+                    foreach (UUID gid in gpowers.Keys)
+                    {
+                        // WARNING we dont' have AcceptNotices in cache.. sending as true mb no one notices ;)
+                        AgentGroupData agd = new AgentGroupData(gid,gpowers[gid],true);
+                        cAgent.Groups[i++] = agd;
+                    }
+                }
+            }
         }
 
         private void CopyFrom(AgentData cAgent)
@@ -4629,6 +4657,45 @@ namespace OpenSim.Region.Framework.Scenes
             if (Scene.AttachmentsModule != null)
                 Scene.AttachmentsModule.CopyAttachments(cAgent, this);
 
+            haveGroupInformation = false;
+
+            // using this as protocol detection don't want to mess with the numbers for now
+            if(cAgent.ActiveGroupTitle != null)
+            {
+                COF = cAgent.agentCOF;
+                ControllingClient.ActiveGroupId = cAgent.ActiveGroupID;
+                ControllingClient.ActiveGroupName = cAgent.ActiveGroupName;
+                ControllingClient.ActiveGroupPowers = 0;
+                Grouptitle = cAgent.ActiveGroupTitle;
+                int ngroups = cAgent.Groups.Length;
+                if(ngroups > 0)
+                {
+                    Dictionary<UUID, ulong> gpowers = new Dictionary<UUID, ulong>(ngroups);
+                    for(int i = 0 ; i < ngroups; i++)
+                    {
+                        AgentGroupData agd = cAgent.Groups[i];
+                        gpowers[agd.GroupID] = agd.GroupPowers;
+                    }
+
+                    ControllingClient.SetGroupPowers(gpowers);
+
+                    if(cAgent.ActiveGroupID == UUID.Zero)
+                        haveGroupInformation = true;
+                    else if(gpowers.ContainsKey(cAgent.ActiveGroupID))
+                    {
+                        ControllingClient.ActiveGroupPowers = gpowers[cAgent.ActiveGroupID];
+                        haveGroupInformation = true;
+                    }
+                }
+                else if(cAgent.ActiveGroupID == UUID.Zero)
+                {
+                    haveGroupInformation = true;
+                }
+            }
+
+            gotCrossUpdate = cAgent.isCrossingUpdate;
+
+
             lock (m_originRegionIDAccessLock)
                 m_originRegionID = cAgent.RegionID;
         }
@@ -4636,7 +4703,7 @@ namespace OpenSim.Region.Framework.Scenes
         public bool CopyAgent(out IAgentData agent)
         {
             agent = new CompleteAgentData();
-            CopyTo((AgentData)agent);
+            CopyTo((AgentData)agent, false);
             return true;
         }
 

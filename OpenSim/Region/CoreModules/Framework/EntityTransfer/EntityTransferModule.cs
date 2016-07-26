@@ -922,7 +922,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // Let's send a full update of the agent. This is a synchronous call.
             AgentData agent = new AgentData();
-            sp.CopyTo(agent);
+            sp.CopyTo(agent,false);
 
             if ((teleportFlags & (uint)TeleportFlags.IsFlying) != 0)
                 agent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
@@ -1142,7 +1142,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // Let's send a full update of the agent. 
             AgentData agent = new AgentData();
-            sp.CopyTo(agent);
+            sp.CopyTo(agent,false);
             agent.Position = agentCircuit.startpos;
 
             if ((teleportFlags & (uint)TeleportFlags.IsFlying) != 0)
@@ -1701,7 +1701,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             try
             {
                 AgentData cAgent = new AgentData(); 
-                agent.CopyTo(cAgent);
+                agent.CopyTo(cAgent,true);
 
 //                agent.Appearance.WearableCacheItems = null;
 
@@ -2534,10 +2534,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (newRegionSizeY == 0)
                 newRegionSizeY = Constants.RegionSize;
 
-
             newpos.X = targetPosition.X - (neighbourRegion.RegionLocX - (int)scene.RegionInfo.WorldLocX);
             newpos.Y = targetPosition.Y - (neighbourRegion.RegionLocY - (int)scene.RegionInfo.WorldLocY);
-
 
             const float enterDistance = 0.2f;
             newpos.X = Util.Clamp(newpos.X, enterDistance, newRegionSizeX - enterDistance);
@@ -2546,72 +2544,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return neighbourRegion;
         }
 
-/*  not in use.  -> CrossPrimGroupIntoNewRegion
-        /// <summary>
-        /// Move the given scene object into a new region depending on which region its absolute position has moved
-        /// into.
-        ///
-        /// Using the objects new world location, ask the grid service for a the new region and adjust the prim
-        /// position to be relative to the new region.
-        /// </summary>
-        /// <param name="grp">the scene object that we're crossing</param>
-        /// <param name="attemptedPosition">the attempted out of region position of the scene object. This position is
-        /// relative to the region the object currently is in.</param>
-        /// <param name="silent">if 'true', the deletion of the client from the region is not broadcast to the clients</param>
-        public void Cross(SceneObjectGroup grp, Vector3 attemptedPosition, bool silent)
-        {
-            if (grp == null)
-                return;
-            if (grp.IsDeleted)
-                return;
-
-            Scene scene = grp.Scene;
-            if (scene == null)
-                return;
-
-            // Remember the old group position in case the region lookup fails so position can be restored.
-            Vector3 oldGroupPosition = grp.RootPart.GroupPosition;
-
-            // Compute the absolute position of the object.
-            double objectWorldLocX = (double)scene.RegionInfo.WorldLocX + attemptedPosition.X;
-            double objectWorldLocY = (double)scene.RegionInfo.WorldLocY + attemptedPosition.Y;
-
-            // Ask the grid service for the region that contains the passed address
-            GridRegion destination = GetRegionContainingWorldLocation(scene.GridService, scene.RegionInfo.ScopeID,
-                                objectWorldLocX, objectWorldLocY);
-
-            Vector3 pos = Vector3.Zero;
-            if (destination != null)
-            {
-                // Adjust the object's relative position from the old region (attemptedPosition)
-                //    to be relative to the new region (pos).
-                pos = new Vector3(  (float)(objectWorldLocX - (double)destination.RegionLocX),
-                                    (float)(objectWorldLocY - (double)destination.RegionLocY),
-                                    attemptedPosition.Z);
-            }
-
-            if (destination == null || !CrossPrimGroupIntoNewRegion(destination, pos, grp, silent))
-            {
-                m_log.InfoFormat("[ENTITY TRANSFER MODULE] cross region transfer failed for object {0}", grp.UUID);
-
-                // We are going to move the object back to the old position so long as the old position
-                // is in the region
-                oldGroupPosition.X = Util.Clamp<float>(oldGroupPosition.X, 1.0f, (float)(scene.RegionInfo.RegionSizeX - 1));
-                oldGroupPosition.Y = Util.Clamp<float>(oldGroupPosition.Y, 1.0f, (float)(scene.RegionInfo.RegionSizeY - 1));
-                oldGroupPosition.Z = Util.Clamp<float>(oldGroupPosition.Z, 1.0f, Constants.RegionHeight);
-
-                grp.AbsolutePosition = oldGroupPosition;
-                grp.Velocity = Vector3.Zero;
-                if (grp.RootPart.PhysActor != null)
-                    grp.RootPart.PhysActor.CrossingFailure();
-
-                if (grp.RootPart.KeyframeMotion != null)
-                    grp.RootPart.KeyframeMotion.CrossingFailure();
-
-                grp.ScheduleGroupForFullUpdate();
-            }
-        }
-*/
         /// <summary>
         /// Move the given scene object into a new region
         /// </summary>
