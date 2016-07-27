@@ -2080,66 +2080,63 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             sp.KnownRegions = seeds;
             sp.SetNeighbourRegionSizeInfo(neighbours);
 
-            AgentPosition agentpos = new AgentPosition();
-            agentpos.AgentID = new UUID(sp.UUID.Guid);
-            agentpos.SessionID = spClient.SessionId;
-            agentpos.Size = sp.Appearance.AvatarSize;
-            agentpos.Center = sp.CameraPosition;
-            agentpos.Far = sp.DrawDistance;
-            agentpos.Position = sp.AbsolutePosition;
-            agentpos.Velocity = sp.Velocity;
-            agentpos.RegionHandle = currentRegionHandler;
-            agentpos.Throttles = spClient.GetThrottlesPacked(1);
-            //            agentpos.ChildrenCapSeeds = seeds;
-
-            Util.FireAndForget(delegate
+            if(newneighbours.Count > 0 || previousRegionNeighbourHandles.Count > 0)
             {
-                Thread.Sleep(200);  // the original delay that was at InformClientOfNeighbourAsync start
-                int count = 0;
+                AgentPosition agentpos = new AgentPosition();
+                agentpos.AgentID = new UUID(sp.UUID.Guid);
+                agentpos.SessionID = spClient.SessionId;
+                agentpos.Size = sp.Appearance.AvatarSize;
+                agentpos.Center = sp.CameraPosition;
+                agentpos.Far = sp.DrawDistance;
+                agentpos.Position = sp.AbsolutePosition;
+                agentpos.Velocity = sp.Velocity;
+                agentpos.RegionHandle = currentRegionHandler;
+                agentpos.Throttles = spClient.GetThrottlesPacked(1);
+                //            agentpos.ChildrenCapSeeds = seeds;
 
-                foreach (GridRegion neighbour in neighbours)
+                Util.FireAndForget(delegate
                 {
-                    ulong handler = neighbour.RegionHandle;
-                    try
-                    {
-                        if (newneighbours.Contains(handler))
-                        {
-                            InformClientOfNeighbourAsync(sp, cagents[count], neighbour,
-                                neighbour.ExternalEndPoint, true);
-                            count++;
-                        }
-                        else if (!previousRegionNeighbourHandles.Contains(handler))
-                        {
-                            spScene.SimulationService.UpdateAgent(neighbour, agentpos);
-                        }
-                    }
-                    catch (ArgumentOutOfRangeException)
-                    {
-                        m_log.ErrorFormat(
-                           "[ENTITY TRANSFER MODULE]: Neighbour Regions response included the current region in the neighbour list.  The following region will not display to the client: {0} for region {1} ({2}, {3}).",
-                           neighbour.ExternalHostName,
-                            neighbour.RegionHandle,
-                        neighbour.RegionLocX,
-                       neighbour.RegionLocY);
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.ErrorFormat(
-                            "[ENTITY TRANSFER MODULE]: Could not resolve external hostname {0} for region {1} ({2}, {3}).  {4}",
-                            neighbour.ExternalHostName,
-                            neighbour.RegionHandle,
-                            neighbour.RegionLocX,
-                            neighbour.RegionLocY,
-                            e);
+                    Thread.Sleep(200);  // the original delay that was at InformClientOfNeighbourAsync start
+                    int count = 0;
 
-                        // FIXME: Okay, even though we've failed, we're still going to throw the exception on,
-                        // since I don't know what will happen if we just let the client continue
-
-                        // XXX: Well, decided to swallow the exception instead for now.  Let us see how that goes.
-                        // throw e;
+                    foreach (GridRegion neighbour in neighbours)
+                    {
+                        ulong handler = neighbour.RegionHandle;
+                        try
+                        {
+                            if (newneighbours.Contains(handler))
+                            {
+                                InformClientOfNeighbourAsync(sp, cagents[count], neighbour,
+                                    neighbour.ExternalEndPoint, true);
+                                count++;
+                            }
+                            else if (!previousRegionNeighbourHandles.Contains(handler))
+                            {
+                                spScene.SimulationService.UpdateAgent(neighbour, agentpos);
+                            }
+                        }
+                        catch (ArgumentOutOfRangeException)
+                        {
+                            m_log.ErrorFormat(
+                            "[ENTITY TRANSFER MODULE]: Neighbour Regions response included the current region in the neighbour list.  The following region will not display to the client: {0} for region {1} ({2}, {3}).",
+                                neighbour.ExternalHostName,
+                                neighbour.RegionHandle,
+                                neighbour.RegionLocX,
+                                neighbour.RegionLocY);
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.ErrorFormat(
+                                "[ENTITY TRANSFER MODULE]: Could not resolve external hostname {0} for region {1} ({2}, {3}).  {4}",
+                                neighbour.ExternalHostName,
+                                neighbour.RegionHandle,
+                                neighbour.RegionLocX,
+                                neighbour.RegionLocY,
+                                e);
+                        }
                     }
-                }
-            });
+                });
+            }
         }
 
         // Computes the difference between two region bases.
