@@ -298,45 +298,42 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal bool AddRestoredSceneObject(
             SceneObjectGroup sceneObject, bool attachToBackup, bool alreadyPersisted, bool sendClientUpdates)
         {
-            if (!m_parentScene.CombineRegions)
+            // temporary checks to remove after varsize suport
+            float regionSizeX = m_parentScene.RegionInfo.RegionSizeX;
+            if (regionSizeX == 0)
+                regionSizeX = Constants.RegionSize;
+            float regionSizeY = m_parentScene.RegionInfo.RegionSizeY;
+            if (regionSizeY == 0)
+                regionSizeY = Constants.RegionSize;
+
+            // KF: Check for out-of-region, move inside and make static.
+            Vector3 npos = new Vector3(sceneObject.RootPart.GroupPosition.X,
+                                        sceneObject.RootPart.GroupPosition.Y,
+                                        sceneObject.RootPart.GroupPosition.Z);
+            bool clampZ = m_parentScene.ClampNegativeZ;
+
+            if (!(((sceneObject.RootPart.Shape.PCode == (byte)PCode.Prim) && (sceneObject.RootPart.Shape.State != 0))) && (npos.X < 0.0 || npos.Y < 0.0 || (npos.Z < 0.0 && clampZ) ||
+                npos.X > regionSizeX ||
+                npos.Y > regionSizeY))
             {
-                // temporary checks to remove after varsize suport
-                float regionSizeX = m_parentScene.RegionInfo.RegionSizeX;
-                if (regionSizeX == 0)
-                    regionSizeX = Constants.RegionSize;
-                float regionSizeY = m_parentScene.RegionInfo.RegionSizeY;
-                if (regionSizeY == 0)
-                    regionSizeY = Constants.RegionSize;
+                if (npos.X < 0.0) npos.X = 1.0f;
+                if (npos.Y < 0.0) npos.Y = 1.0f;
+                if (npos.Z < 0.0 && clampZ) npos.Z = 0.0f;
+                if (npos.X > regionSizeX) npos.X = regionSizeX - 1.0f;
+                if (npos.Y > regionSizeY) npos.Y = regionSizeY - 1.0f;
 
-                // KF: Check for out-of-region, move inside and make static.
-                Vector3 npos = new Vector3(sceneObject.RootPart.GroupPosition.X,
-                                           sceneObject.RootPart.GroupPosition.Y,
-                                           sceneObject.RootPart.GroupPosition.Z);
-                bool clampZ = m_parentScene.ClampNegativeZ;
+                SceneObjectPart rootpart = sceneObject.RootPart;
+                rootpart.GroupPosition = npos;
 
-                if (!(((sceneObject.RootPart.Shape.PCode == (byte)PCode.Prim) && (sceneObject.RootPart.Shape.State != 0))) && (npos.X < 0.0 || npos.Y < 0.0 || (npos.Z < 0.0 && clampZ) ||
-                    npos.X > regionSizeX ||
-                    npos.Y > regionSizeY))
+                foreach (SceneObjectPart part in sceneObject.Parts)
                 {
-                    if (npos.X < 0.0) npos.X = 1.0f;
-                    if (npos.Y < 0.0) npos.Y = 1.0f;
-                    if (npos.Z < 0.0 && clampZ) npos.Z = 0.0f;
-                    if (npos.X > regionSizeX) npos.X = regionSizeX - 1.0f;
-                    if (npos.Y > regionSizeY) npos.Y = regionSizeY - 1.0f;
-
-                    SceneObjectPart rootpart = sceneObject.RootPart;
-                    rootpart.GroupPosition = npos;
-
-                    foreach (SceneObjectPart part in sceneObject.Parts)
-                    {
-                        if (part == rootpart)
-                            continue;
-                        part.GroupPosition = npos;
-                    }
-                    rootpart.Velocity = Vector3.Zero;
-                    rootpart.AngularVelocity = Vector3.Zero;
-                    rootpart.Acceleration = Vector3.Zero;
+                    if (part == rootpart)
+                        continue;
+                    part.GroupPosition = npos;
                 }
+                rootpart.Velocity = Vector3.Zero;
+                rootpart.AngularVelocity = Vector3.Zero;
+                rootpart.Acceleration = Vector3.Zero;
             }
 
             bool ret = AddSceneObject(sceneObject, attachToBackup, sendClientUpdates);

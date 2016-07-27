@@ -430,7 +430,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         private int m_lastFrameTick;
 
-        public bool CombineRegions = false;
         /// <summary>
         /// Tick at which the last maintenance run occurred.
         /// </summary>
@@ -1060,7 +1059,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_strictAccessControl = startupConfig.GetBoolean("StrictAccessControl", m_strictAccessControl);
                 m_seeIntoBannedRegion = startupConfig.GetBoolean("SeeIntoBannedRegion", m_seeIntoBannedRegion);
-                CombineRegions = startupConfig.GetBoolean("CombineContiguousRegions", false);
 
                 string[] possibleMapConfigSections = new string[] { "Map", "Startup" };
 
