@@ -63,18 +63,31 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
             scene.EventManager.OnNewClient -= OnNewClient;
         }
 
-        public void OnMakeRootAgent(ScenePresence sp)
-        {
-            if (sp.PresenceType != PresenceType.Npc)
+       public void OnMakeRootAgent(ScenePresence sp)
+       {
+            if (sp.isNPC)
+                return;
+            
+            if(sp.gotCrossUpdate)
             {
-                string userid;
-                //m_log.DebugFormat("[ACTIVITY DETECTOR]: Detected root presence {0} in {1}", userid, sp.Scene.RegionInfo.RegionName);
-                if (sp.Scene.UserManagementModule.GetUserUUI(sp.UUID, out userid))
+                Util.FireAndForget(delegate
                 {
-                    /* we only setposition on known agents that have a valid lookup */
-                    m_GridUserService.SetLastPosition(
-                        userid, UUID.Zero, sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
-                }
+                    DoOnMakeRootAgent(sp);
+                }, null, "ActivityDetector_MakeRoot");
+            }
+            else
+                DoOnMakeRootAgent(sp);
+       }
+
+        public void DoOnMakeRootAgent(ScenePresence sp)
+        {
+            string userid;
+            //m_log.DebugFormat("[ACTIVITY DETECTOR]: Detected root presence {0} in {1}", userid, sp.Scene.RegionInfo.RegionName);
+            if (sp.Scene.UserManagementModule.GetUserUUI(sp.UUID, out userid))
+            {
+                /* we only setposition on known agents that have a valid lookup */
+                m_GridUserService.SetLastPosition(
+                    userid, UUID.Zero, sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
             }
         }
 

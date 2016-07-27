@@ -542,6 +542,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
         }
 
+        public override Vector3 rootVelocity
+        {
+            get
+            {
+                if(_parent != null)
+                    return ((OdePrim)_parent).Velocity;
+                return Velocity;
+            }
+        }
+
         public override Vector3 Velocity
         {
             get
@@ -560,7 +570,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     m_log.WarnFormat("[PHYSICS]: Got NaN Velocity in Object {0}", Name);
                 }
-
             }
         }
 

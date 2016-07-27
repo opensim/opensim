@@ -627,6 +627,7 @@ namespace OpenSim.Groups
                         , false //canVoiceChat
                         , false //isModerator
                         , false //text mute
+                        , true // Enter
                         );
                 }
             }
@@ -669,6 +670,7 @@ namespace OpenSim.Groups
                         , false //canVoiceChat
                         , false //isModerator
                         , false //text mute
+                        , true
                         );
                 }
             }

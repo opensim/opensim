@@ -568,12 +568,12 @@ namespace OpenSim.Region.ClientStack.Linden
 
         }
 
-        public void ChatterBoxSessionAgentListUpdates(UUID sessionID, UUID fromAgent, UUID anotherAgent, bool canVoiceChat, 
-                                                      bool isModerator, bool textMute)
+        public void ChatterBoxSessionAgentListUpdates(UUID sessionID, UUID fromAgent, UUID toAgent, bool canVoiceChat, 
+                                                      bool isModerator, bool textMute, bool isEnterorLeave)
         {
             OSD item = EventQueueHelper.ChatterBoxSessionAgentListUpdates(sessionID, fromAgent, canVoiceChat,
-                                                                          isModerator, textMute);
-            Enqueue(item, fromAgent);
+                                                                          isModerator, textMute, isEnterorLeave);
+            Enqueue(item, toAgent);
             //m_log.InfoFormat("########### eq ChatterBoxSessionAgentListUpdates #############\n{0}", item);
         }
 

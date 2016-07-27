@@ -68,6 +68,22 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 
         public void OnMakeRootAgent(ScenePresence sp)
         {
+            if (sp.isNPC)
+                return;
+            
+            if(sp.gotCrossUpdate)
+            {
+                Util.FireAndForget(delegate
+                {
+                    DoOnMakeRootAgent(sp);
+                }, null, "PresenceDetector_MakeRoot");
+            }
+            else
+                DoOnMakeRootAgent(sp);
+        }
+
+        public void DoOnMakeRootAgent(ScenePresence sp)
+        {
 //            m_log.DebugFormat("[PRESENCE DETECTOR]: Detected root presence {0} in {1}", sp.UUID, sp.Scene.RegionInfo.RegionName);
             if (sp.PresenceType != PresenceType.Npc)
                 m_PresenceService.ReportAgent(sp.ControllingClient.SessionId, sp.Scene.RegionInfo.RegionID);

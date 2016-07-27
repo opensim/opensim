@@ -147,29 +147,10 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 //                    "[HG INSTANT MESSAGE]: Looking for root agent {0} in {1}", 
 //                    toAgentID.ToString(), scene.RegionInfo.RegionName);
                 ScenePresence sp = scene.GetScenePresence(toAgentID); 
-                if (sp != null && !sp.IsChildAgent)
+                if (sp != null && !sp.IsChildAgent && !sp.IsDeleted)
                 {                                        
                     // Local message
 //                  m_log.DebugFormat("[HG INSTANT MESSAGE]: Delivering IM to root agent {0} {1}", user.Name, toAgentID);
-                    sp.ControllingClient.SendInstantMessage(im);
-
-                    // Message sent
-                    result(true);
-                    return;
-                }
-            }
-
-            // try child avatar second
-            foreach (Scene scene in m_Scenes)
-            {
-//                m_log.DebugFormat(
-//                    "[HG INSTANT MESSAGE]: Looking for child of {0} in {1}", 
-//                    toAgentID, scene.RegionInfo.RegionName);
-                ScenePresence sp = scene.GetScenePresence(toAgentID); 
-                if (sp != null)
-                {                   
-                    // Local message
-//                    m_log.DebugFormat("[HG INSTANT MESSAGE]: Delivering IM to child agent {0} {1}", user.Name, toAgentID);
                     sp.ControllingClient.SendInstantMessage(im);
 
                     // Message sent
@@ -224,7 +205,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             foreach (Scene scene in m_Scenes)
             {
                 ScenePresence sp = scene.GetScenePresence(toAgentID);
-                if(sp != null && !sp.IsChildAgent)
+                if(sp != null && !sp.IsChildAgent && !sp.IsDeleted)
                 {
                     scene.EventManager.TriggerIncomingInstantMessage(gim);
                     successful = true;
@@ -310,7 +291,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 foreach (Scene scene in m_Scenes)
                 {
                     ScenePresence presence = scene.GetScenePresence(agentID);
-                    if (presence != null && !presence.IsChildAgent)
+                    if (presence != null && !presence.IsChildAgent && !presence.IsDeleted)
                         return presence.ControllingClient;
                 }
             }

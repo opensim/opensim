@@ -421,9 +421,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
         public UUID AgentId { get { return m_agentId; } }
         public ISceneAgent SceneAgent { get; set; }
-        public UUID ActiveGroupId { get { return m_activeGroupID; } private set { m_activeGroupID = value; } }
-        public string ActiveGroupName { get { return m_activeGroupName; } private set { m_activeGroupName = value; } }
-        public ulong ActiveGroupPowers { get { return m_activeGroupPowers; } private set { m_activeGroupPowers = value; } }
+        public UUID ActiveGroupId { get { return m_activeGroupID; } set { m_activeGroupID = value; } }
+        public string ActiveGroupName { get { return m_activeGroupName; } set { m_activeGroupName = value; } }
+        public ulong ActiveGroupPowers { get { return m_activeGroupPowers; } set { m_activeGroupPowers = value; } }
         public bool IsGroupMember(UUID groupID) { return m_groupPowers.ContainsKey(groupID); }
 
         public int PingTimeMS
@@ -953,7 +953,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Send an instant message to this client
         /// </summary>
         //
-        // Don't remove transaction ID! Groups and item gives need to set it!
         public void SendInstantMessage(GridInstantMessage im)
         {
             if (((Scene)(m_scene)).Permissions.CanInstantMessage(new UUID(im.fromAgentID), new UUID(im.toAgentID)))
@@ -962,14 +961,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     = (ImprovedInstantMessagePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedInstantMessage);
 
                 msg.AgentData.AgentID = new UUID(im.fromAgentID);
-                msg.AgentData.SessionID = UUID.Zero;
+                msg.AgentData.SessionID = new UUID(im.imSessionID);
                 msg.MessageBlock.FromAgentName = Util.StringToBytes256(im.fromAgentName);
                 msg.MessageBlock.Dialog = im.dialog;
                 msg.MessageBlock.FromGroup = im.fromGroup;
-                if (im.imSessionID == UUID.Zero.Guid)
-                    msg.MessageBlock.ID = new UUID(im.fromAgentID) ^ new UUID(im.toAgentID);
-                else
-                    msg.MessageBlock.ID = new UUID(im.imSessionID);
+                msg.MessageBlock.ID = new UUID(im.ID);
                 msg.MessageBlock.Offline = im.offline;
                 msg.MessageBlock.ParentEstateID = im.ParentEstateID;
                 msg.MessageBlock.Position = im.Position;
@@ -5784,6 +5780,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.UUIDNameBlock[0].LastName = Util.StringToBytes256(lastname);
 
             OutPacket(packet, ThrottleOutPacketType.Task);
+        }
+
+        public Dictionary<UUID, ulong> GetGroupPowers()
+        {
+            lock(m_groupPowers)
+            {
+                return new Dictionary<UUID, ulong>(m_groupPowers);
+            }
+        }
+
+        public void SetGroupPowers(Dictionary<UUID, ulong> powers)
+        {
+            lock(m_groupPowers)
+            {
+                m_groupPowers.Clear();
+                m_groupPowers = powers;
+            }       
         }
 
         public ulong GetGroupPowers(UUID groupID)

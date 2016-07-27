@@ -308,20 +308,29 @@ namespace OpenSim.Region.ClientStack.Linden
         }
 
         public static OSD ChatterBoxSessionAgentListUpdates(UUID sessionID,
-            UUID agentID, bool canVoiceChat, bool isModerator, bool textMute)
+            UUID agentID, bool canVoiceChat, bool isModerator, bool textMute, bool isEnterorLeave)
         {
             OSDMap body = new OSDMap();
             OSDMap agentUpdates = new OSDMap();
             OSDMap infoDetail = new OSDMap();
             OSDMap mutes = new OSDMap();
 
+            // this should be a list of agents and parameters
+            // foreach agent
             mutes.Add("text", OSD.FromBoolean(textMute));
             infoDetail.Add("can_voice_chat", OSD.FromBoolean(canVoiceChat));
             infoDetail.Add("is_moderator", OSD.FromBoolean(isModerator));
             infoDetail.Add("mutes", mutes);
             OSDMap info = new OSDMap();
             info.Add("info", infoDetail);
+            if(isEnterorLeave)
+                info.Add("transition",OSD.FromString("ENTER"));
+            else
+                info.Add("transition",OSD.FromString("LEAVE"));
             agentUpdates.Add(agentID.ToString(), info);
+
+            // foreach end
+
             body.Add("agent_updates", agentUpdates);
             body.Add("session_id", OSD.FromUUID(sessionID));
             body.Add("updates", new OSD());

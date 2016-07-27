@@ -2213,7 +2213,7 @@ namespace OpenSim.Region.Framework.Scenes
             dupe.Shape.ExtraParams = extraP;
 
             dupe.m_sittingAvatars = new HashSet<ScenePresence>();
-
+            dupe.SitTargetAvatar = UUID.Zero;
             // safeguard  actual copy is done in sog.copy
             dupe.KeyframeMotion = null;
             dupe.PayPrice = (int[])PayPrice.Clone();
@@ -4883,6 +4883,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                 pa.GravModifier = GravityModifier;
                 pa.Friction = Friction;
                 pa.Restitution = Restitution;
+                pa.Buoyancy = Buoyancy;
 
                 if(LocalId == ParentGroup.RootPart.LocalId)
                 {
@@ -4927,7 +4928,6 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                 {
                     Velocity = velocity;
                     AngularVelocity = rotationalVelocity;
-                    pa.RotationalVelocity = rotationalVelocity;
 
                     // if not vehicle and root part apply force and torque
                     if ((m_vehicleParams == null || m_vehicleParams.Type == Vehicle.TYPE_NONE))

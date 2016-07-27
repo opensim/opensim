@@ -1289,35 +1289,34 @@ namespace OpenSim.Region.CoreModules.World.Land
             bool needOverlay = false;
             if (land.UpdateLandProperties(args, remote_client, out snap_selection, out needOverlay))
             {
-                //the proprieties to who changed them
-                ScenePresence av = m_scene.GetScenePresence(remote_client.AgentId);
-                if(av.IsChildAgent || land != GetLandObject(av.AbsolutePosition.X, av.AbsolutePosition.Y))
-                    land.SendLandProperties(-10000, false, LandChannel.LAND_RESULT_SINGLE, remote_client);
-                else
-                    land.SendLandProperties(0, false, LandChannel.LAND_RESULT_SINGLE, remote_client);
-
                 UUID parcelID = land.LandData.GlobalID;
                 m_scene.ForEachScenePresence(delegate(ScenePresence avatar)
-                 {
-                     if (avatar.IsDeleted || avatar.isNPC)
-                         return;
+                {
+                    if (avatar.IsDeleted || avatar.isNPC)
+                        return;
 
-                     IClientAPI client = avatar.ControllingClient;
-                     if (needOverlay)
-                         SendParcelOverlay(client);
+                    IClientAPI client = avatar.ControllingClient;
+                    if (needOverlay)
+                        SendParcelOverlay(client);
 
-                     if (avatar.IsChildAgent)
-                         return;
+                    if (avatar.IsChildAgent)
+                    {
+                        if(client == remote_client)
+                            land.SendLandProperties(-10000, false, LandChannel.LAND_RESULT_SINGLE, client);
+                        return;
+                    }
 
-                     ILandObject aland = GetLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
-                     if (aland != null)
-                     {
-                         if (client != remote_client && land == aland)
+                    ILandObject aland = GetLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
+                    if (aland != null)
+                    {
+                        if(client == remote_client && land != aland)
+                            land.SendLandProperties(-10000, false, LandChannel.LAND_RESULT_SINGLE, client);
+                        else if (land == aland)
                              aland.SendLandProperties(0, false, LandChannel.LAND_RESULT_SINGLE, client);
-                     }
-                     if (avatar.currentParcelUUID == parcelID)
-                         avatar.currentParcelUUID = parcelID; // force parcel flags review
-                 });
+                    }
+                    if (avatar.currentParcelUUID == parcelID)
+                        avatar.currentParcelUUID = parcelID; // force parcel flags review
+                });
             }
         }
 

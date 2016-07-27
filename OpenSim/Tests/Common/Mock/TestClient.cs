@@ -404,22 +404,32 @@ namespace OpenSim.Tests.Common
         public UUID ActiveGroupId
         {
             get { return UUID.Zero; }
+            set { }
         }
 
         public string ActiveGroupName
         {
             get { return String.Empty; }
+            set { }
         }
 
         public ulong ActiveGroupPowers
         {
             get { return 0; }
+            set { }
         }
 
         public bool IsGroupMember(UUID groupID)
         {
             return false;
         }
+
+        public Dictionary<UUID, ulong> GetGroupPowers()
+        {
+            return new Dictionary<UUID, ulong>();
+        }
+
+        public void SetGroupPowers(Dictionary<UUID, ulong> powers) { }
 
         public ulong GetGroupPowers(UUID groupID)
         {

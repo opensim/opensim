@@ -508,7 +508,7 @@ public abstract class BSPhysObject : PhysicsActor
                 relvel = RawVelocity;
             if (collidee != null && collidee.IsPhysical)
                 relvel -= collidee.RawVelocity;
-            newContact.RelativeSpeed = OMV.Vector3.Dot(relvel, contactNormal);
+            newContact.RelativeSpeed = -OMV.Vector3.Dot(relvel, contactNormal);
             // DetailLog("{0},{1}.Collision.AddCollider,vel={2},contee.vel={3},relvel={4},relspeed={5}",
             //         LocalID, TypeName, RawVelocity, (collidee == null ? OMV.Vector3.Zero : collidee.RawVelocity), relvel, newContact.RelativeSpeed);
                     

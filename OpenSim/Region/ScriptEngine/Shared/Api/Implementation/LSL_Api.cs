@@ -15678,10 +15678,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 try
                 {
+                    if (amount <= 0)
+                    {
+                        replydata = "INVALID_AMOUNT";
+                        return;
+                    }
+
                     TaskInventoryItem item = m_item;
                     if (item == null)
                     {
                         replydata = "SERVICE_ERROR";
+                        return;
+                    }
+
+                    if (m_host.OwnerID == m_host.GroupID)
+                    {
+                        replydata = "GROUP_OWNED";
                         return;
                     }
 
@@ -15707,6 +15719,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         return;
                     }
 
+                    UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, toID);
+                    if (account == null)
+                    {
+                        replydata = "LINDENDOLLAR_ENTITYDOESNOTEXIST";
+                        return;
+                    }
+
                     IMoneyModule money = World.RequestModuleInterface<IMoneyModule>();
 
                     if (money == null)
@@ -15716,8 +15735,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
 
                     string reason;
-                    bool result = money.ObjectGiveMoney(
-                        m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount, txn, out reason);
+                    bool result = money.ObjectGiveMoney( m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount, txn, out reason);
 
                     if (result)
                     {

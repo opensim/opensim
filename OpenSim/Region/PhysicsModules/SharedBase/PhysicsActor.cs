@@ -126,9 +126,20 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
                 m_objCollisionList.Add(localID, contact);
             }
             else
-            {              
+            {   
+                float lastVel = m_objCollisionList[localID].RelativeSpeed;        
                 if (m_objCollisionList[localID].PenetrationDepth < contact.PenetrationDepth)
+                {
+                    if(Math.Abs(lastVel) > Math.Abs(contact.RelativeSpeed))
+                        contact.RelativeSpeed = lastVel;
                     m_objCollisionList[localID] = contact;
+                }
+                else if(Math.Abs(lastVel) < Math.Abs(contact.RelativeSpeed))
+                {
+                    ContactPoint tmp = m_objCollisionList[localID];
+                    tmp.RelativeSpeed = contact.RelativeSpeed;
+                    m_objCollisionList[localID] = tmp;
+                }
             }
         }
 
@@ -385,6 +396,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         }
 
         public abstract Vector3 Velocity { get; set; }
+        public virtual Vector3 rootVelocity { get { return Vector3.Zero; } }
 
         public abstract Vector3 Torque { get; set; }
         public abstract float CollisionScore { get; set;}

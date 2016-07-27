@@ -570,17 +570,27 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public UUID ActiveGroupId
         {
             get { return UUID.Zero; }
+            set {}
         }
 
         public string ActiveGroupName
         {
             get { return "IRCd User"; }
+            set {}
         }
 
         public ulong ActiveGroupPowers
         {
             get { return 0; }
+            set {}
         }
+
+        public Dictionary<UUID, ulong> GetGroupPowers()
+        {
+            return new Dictionary<UUID, ulong>();
+        }
+        
+        public void SetGroupPowers(Dictionary<UUID, ulong> powers) { }        
 
         public ulong GetGroupPowers(UUID groupID)
         {

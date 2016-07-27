@@ -353,6 +353,10 @@ namespace OpenSim.Framework
         public UUID PreyAgent;
         public Byte AgentAccess;
         public UUID ActiveGroupID;
+        public string ActiveGroupName;
+        public string ActiveGroupTitle = null;
+        public UUID agentCOF;
+        public byte CrossingFlags;
 
         public AgentGroupData[] Groups;
         public Dictionary<ulong, string> ChildrenCapSeeds = null;
@@ -361,7 +365,6 @@ namespace OpenSim.Framework
         public Animation AnimState = null;
         public Byte MotionState = 0;
 
-        public UUID GranterID;
         public UUID ParentPart;
         public Vector3 SitOffset;
 
@@ -374,12 +377,6 @@ namespace OpenSim.Framework
                 MethodBase.GetCurrentMethod().DeclaringType);
 // DEBUG OFF
 
-/*
-        public byte[] AgentTextures;
-        public byte[] VisualParams;
-        public UUID[] Wearables;
-        public AvatarAttachment[] Attachments;
-*/
         // Scripted
         public ControllerData[] Controllers;
 
@@ -393,8 +390,6 @@ namespace OpenSim.Framework
 
         public virtual OSDMap Pack(EntityTransferContext ctx)
         {
-            int wearablesCount = -1;
-
 //            m_log.InfoFormat("[CHILDAGENTDATAUPDATE] Pack data");
 
             OSDMap args = new OSDMap();
@@ -433,8 +428,14 @@ namespace OpenSim.Framework
             args["prey_agent"] = OSD.FromUUID(PreyAgent);
             args["agent_access"] = OSD.FromString(AgentAccess.ToString());
 
+            args["agent_cof"] = OSD.FromUUID(agentCOF);
+            args["crossingflags"] = OSD.FromInteger(CrossingFlags);
+
             args["active_group_id"] = OSD.FromUUID(ActiveGroupID);
-          
+            args["active_group_name"] = OSD.FromString(ActiveGroupName);
+            if(ActiveGroupTitle != null)
+                args["active_group_title"] = OSD.FromString(ActiveGroupTitle);
+           
             if ((Groups != null) && (Groups.Length > 0))
             {
                 OSDArray groups = new OSDArray(Groups.Length);
@@ -497,48 +498,6 @@ namespace OpenSim.Framework
             if (Appearance != null)
                 args["packed_appearance"] = Appearance.Pack(ctx);
 
-            //if ((AgentTextures != null) && (AgentTextures.Length > 0))
-            //{
-            //    OSDArray textures = new OSDArray(AgentTextures.Length);
-            //    foreach (UUID uuid in AgentTextures)
-            //        textures.Add(OSD.FromUUID(uuid));
-            //    args["agent_textures"] = textures;
-            //}
-
-            // The code to pack textures, visuals, wearables and attachments
-            // should be removed; packed appearance contains the full appearance
-            // This is retained for backward compatibility only
-
-/*  then lets remove
-            if (Appearance.Texture != null)
-            {
-                byte[] rawtextures = Appearance.Texture.GetBytes();
-                args["texture_entry"] = OSD.FromBinary(rawtextures);
-            }
-
-            if ((Appearance.VisualParams != null) && (Appearance.VisualParams.Length > 0))
-                args["visual_params"] = OSD.FromBinary(Appearance.VisualParams);
-
-            // We might not pass this in all cases...
-            if ((Appearance.Wearables != null) && (Appearance.Wearables.Length > 0))
-            {
-                OSDArray wears = new OSDArray(Appearance.Wearables.Length);
-                foreach (AvatarWearable awear in Appearance.Wearables)
-                    wears.Add(awear.Pack());
-
-                args["wearables"] = wears;
-            }
-
-            List<AvatarAttachment> attachments = Appearance.GetAttachments();
-            if ((attachments != null) && (attachments.Count > 0))
-            {
-                OSDArray attachs = new OSDArray(attachments.Count);
-                foreach (AvatarAttachment att in attachments)
-                    attachs.Add(att.Pack());
-                args["attachments"] = attachs;
-            }
-            // End of code to remove
-*/
             if ((Controllers != null) && (Controllers.Length > 0))
             {
                 OSDArray controls = new OSDArray(Controllers.Length);
@@ -662,10 +621,22 @@ namespace OpenSim.Framework
             if (args["agent_access"] != null)
                 Byte.TryParse(args["agent_access"].AsString(), out AgentAccess);
 
-            if (args["active_group_id"] != null)
+            if (args.ContainsKey("agent_cof") && args["agent_cof"] != null)
+                agentCOF = args["agent_cof"].AsUUID();
+
+            if (args.ContainsKey("crossingflags") && args["crossingflags"] != null)
+                CrossingFlags = (byte)args["crossingflags"].AsInteger();
+
+            if (args.ContainsKey("active_group_id") && args["active_group_id"] != null)
                 ActiveGroupID = args["active_group_id"].AsUUID();
 
-            if ((args["groups"] != null) && (args["groups"]).Type == OSDType.Array)
+            if (args.ContainsKey("active_group_name") && args["active_group_name"] != null)
+                ActiveGroupName = args["active_group_name"].AsString();
+            
+            if(args.ContainsKey("active_group_title") && args["active_group_title"] != null)
+                ActiveGroupTitle = args["active_group_title"].AsString();
+
+            if (args.ContainsKey("groups") && (args["groups"] != null) && (args["groups"]).Type == OSDType.Array)
             {
                 OSDArray groups = (OSDArray)(args["groups"]);
                 Groups = new AgentGroupData[groups.Count];

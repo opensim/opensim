@@ -55,6 +55,7 @@ namespace OpenSim.Framework
         /// </summary>
         bool IsChildAgent { get; }
 
+        bool Invulnerable { get; set; }
         /// <summary>
         /// Avatar appearance data.
         /// </summary>

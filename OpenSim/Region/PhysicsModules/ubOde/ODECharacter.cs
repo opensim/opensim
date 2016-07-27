@@ -80,6 +80,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private Vector3 m_rotationalVelocity;
         private Vector3 m_size;
         private Vector3 m_collideNormal;
+        private Vector3 m_lastFallVel;
         private Quaternion m_orientation;
         private Quaternion m_orientation2D;
         private float m_mass = 80f;
@@ -109,6 +110,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private bool m_alwaysRun = false;
 
         private bool _zeroFlag = false;
+        private bool m_haveLastFallVel = false;
 
 
         private uint m_localID = 0;
@@ -605,6 +607,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             set { return; }
         }
 
+        public override Vector3 rootVelocity
+        {
+            get
+            {
+                return _velocity;
+            }
+        }
+
         public override Vector3 Velocity
         {
             get
@@ -1086,6 +1096,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if (ctz.Z < 0)
                     ctz.Z = 0;
 
+                if(!m_haveLastFallVel)
+                {
+                    m_lastFallVel = vel;
+                    m_haveLastFallVel = true;
+                }
+
                 Vector3 n = _parent_scene.GetTerrainNormalAtXY(posch.X, posch.Y);
                 float depth = terrainheight - chrminZ;
 
@@ -1114,7 +1130,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                         m_iscollidingGround = true;
 
-
                         ContactPoint contact = new ContactPoint();
                         contact.PenetrationDepth = depth;
                         contact.Position.X = localpos.X;
@@ -1123,9 +1138,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         contact.SurfaceNormal.X = -n.X;
                         contact.SurfaceNormal.Y = -n.Y;
                         contact.SurfaceNormal.Z = -n.Z;
-                        contact.RelativeSpeed = -vel.Z;
+                        contact.RelativeSpeed = Vector3.Dot(m_lastFallVel, n);
                         contact.CharacterFeet = true;
                         AddCollisionEvent(0, contact);
+                        m_lastFallVel = vel;
 
 //                        vec.Z *= 0.5f;
                     }
@@ -1143,6 +1159,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
             else
             {
+                m_haveLastFallVel = false;
                 m_colliderGroundfilter -= 5;
                 if (m_colliderGroundfilter <= 0)
                 {
