@@ -1560,7 +1560,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // We need this because of decimal number parsing of the protocols.
             Culture.SetCurrentCulture();
 
-            Vector3 pos = agent.AbsolutePosition + agent.Velocity;
+            Vector3 pos = agent.AbsolutePosition + agent.Velocity * 0.2f;
 
             GridRegion neighbourRegion = GetDestination(agent.Scene, agent.UUID, pos,
                                                             ctx, out newpos, out failureReason);
@@ -1648,17 +1648,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             icon.EndInvoke(iar);
         }
 
-        public bool CrossAgentToNewRegionPrep(ScenePresence agent, GridRegion neighbourRegion)
-        {
-            if (neighbourRegion == null)
-                return false;
-            
-            m_entityTransferStateMachine.SetInTransit(agent.UUID);
-
-            agent.RemoveFromPhysicalScene();
-
-            return true;
-        }
+ 
 
         /// <summary>
         /// This Closes child agents on neighbouring regions
@@ -1673,16 +1663,20 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 m_log.DebugFormat("{0}: CrossAgentToNewRegionAsync: new region={1} at <{2},{3}>. newpos={4}",
                             LogHeader, neighbourRegion.RegionName, neighbourRegion.RegionLocX, neighbourRegion.RegionLocY, pos);
 
-                if (!CrossAgentToNewRegionPrep(agent, neighbourRegion))
+                if (neighbourRegion == null)
                 {
-                    m_log.DebugFormat("{0}: CrossAgentToNewRegionAsync: prep failed. Resetting transfer state", LogHeader);
-                    m_entityTransferStateMachine.ResetFromTransit(agent.UUID);
+                    m_log.DebugFormat("{0}: CrossAgentToNewRegionAsync: invalid destiny", LogHeader);
+                    return agent;
                 }
+
+                m_entityTransferStateMachine.SetInTransit(agent.UUID);
+                agent.RemoveFromPhysicalScene();
 
                 if (!CrossAgentIntoNewRegionMain(agent, pos, neighbourRegion, isFlying, ctx))
                 {
                     m_log.DebugFormat("{0}: CrossAgentToNewRegionAsync: cross main failed. Resetting transfer state", LogHeader);
                     m_entityTransferStateMachine.ResetFromTransit(agent.UUID);
+                    return agent;
                 }
 
                 CrossAgentToNewRegionPost(agent, pos, neighbourRegion, isFlying, ctx);
@@ -1706,7 +1700,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 //                agent.Appearance.WearableCacheItems = null;
 
                 cAgent.Position = pos;
-
                 cAgent.ChildrenCapSeeds = agent.KnownRegions;
 
                 if (isFlying)
@@ -1787,15 +1780,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                             capsPath);
             }
 
-/*
-            // Backwards compatibility. Best effort
-            if (version == 0f)
-            {
-                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: neighbor with old version, passing attachments one by one...");
-                Thread.Sleep(3000); // wait a little now that we're not waiting for the callback
-                CrossAttachmentsIntoNewRegion(neighbourRegion, agent, true);
-            }
-*/
             // SUCCESS!
             m_entityTransferStateMachine.UpdateInTransit(agent.UUID, AgentTransferState.ReceivedAtDestination);
 
@@ -1813,18 +1797,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // FIXME: Possibly this should occur lower down after other commands to close other agents,
             // but not sure yet what the side effects would be.
             m_entityTransferStateMachine.ResetFromTransit(agent.UUID);
-
-
-            // TODO: Check since what version this wasn't needed anymore. May be as old as 0.6
-/*
-            // Backwards compatibility. Best effort
-            if (version == 0f)
-            {
-                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: neighbor with old version, passing attachments one by one...");
-                Thread.Sleep(3000); // wait a little now that we're not waiting for the callback
-                CrossAttachmentsIntoNewRegion(neighbourRegion, agent, true);
-            }
-*/
 
             // the user may change their profile information in other region,
             // so the userinfo in UserProfileCache is not reliable any more, delete it

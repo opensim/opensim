@@ -4206,19 +4206,21 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // we don't have entity transfer module
                 Vector3 pos = AbsolutePosition;
+                vel = Velocity;
                 float px = pos.X;
                 if (px < 0)
-                    pos.X += Velocity.X * 2;
+                    pos.X += vel.X * 2;
                 else if (px > m_scene.RegionInfo.RegionSizeX)
-                    pos.X -= Velocity.X * 2;
+                    pos.X -= vel.X * 2;
 
                 float py = pos.Y;
                 if (py < 0)
-                    pos.Y += Velocity.Y * 2;
+                    pos.Y += vel.Y * 2;
                 else if (py > m_scene.RegionInfo.RegionSizeY)
-                    pos.Y -= Velocity.Y * 2;
+                    pos.Y -= vel.Y * 2;
 
                 Velocity = Vector3.Zero;
+                m_AngularVelocity = Vector3.Zero;
                 AbsolutePosition = pos;
             }
         }
@@ -4231,21 +4233,21 @@ namespace OpenSim.Region.Framework.Scenes
                 RemoveFromPhysicalScene();
 
                 Vector3 pos = AbsolutePosition;
+                Vector3 vel = Velocity;
                 float px = pos.X;
                 if (px < 0)
-                    pos.X += Velocity.X * 2;
+                    pos.X += vel.X * 2;
                 else if (px > m_scene.RegionInfo.RegionSizeX)
-                    pos.X -= Velocity.X * 2;
+                    pos.X -= vel.X * 2;
 
                 float py = pos.Y;
                 if (py < 0)
-                    pos.Y += Velocity.Y * 2;
+                    pos.Y += vel.Y * 2;
                 else if (py > m_scene.RegionInfo.RegionSizeY)
-                    pos.Y -= Velocity.Y * 2;
+                    pos.Y -= vel.Y * 2;
 
                 Velocity = Vector3.Zero;
                 m_AngularVelocity = Vector3.Zero;
-
                 AbsolutePosition = pos;
 
                 AddToPhysicalScene(isFlying);
