@@ -173,7 +173,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         private BannedRegionCache m_bannedRegionCache = new BannedRegionCache();
 
         private IEventQueue m_eqModule;
-        private IRegionCombinerModule m_regionCombinerModule;
 
         #region ISharedRegionModule
 
@@ -339,7 +338,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
 
             m_eqModule = Scene.RequestModuleInterface<IEventQueue>();
-            m_regionCombinerModule = Scene.RequestModuleInterface<IRegionCombinerModule>();
         }
 
         #endregion
@@ -1341,18 +1339,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected virtual bool NeedsNewAgent(float viewdist, uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY,
             int oldsizeX, int oldsizeY, int newsizeX, int newsizeY)
         {
-            if (m_regionCombinerModule != null && m_regionCombinerModule.IsRootForMegaregion(Scene.RegionInfo.RegionID))
-            {
-                Vector2 swCorner, neCorner;
-                GetMegaregionViewRange(out swCorner, out neCorner);
-
-                m_log.DebugFormat(
-                    "[ENTITY TRANSFER MODULE]: Megaregion view of {0} is from {1} to {2} with new agent check for {3},{4}",
-                    Scene.Name, swCorner, neCorner, newRegionX, newRegionY);
-
-                return !(newRegionX >= swCorner.X && newRegionX <= neCorner.X && newRegionY >= swCorner.Y && newRegionY <= neCorner.Y);
-            }
-
             return Util.IsOutsideView(viewdist, oldRegionX, newRegionX, oldRegionY, newRegionY,
                     oldsizeX, oldsizeY, newsizeX, newsizeY);
         }
@@ -2385,13 +2371,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             Vector2 extent = Vector2.Zero;
 
-            if (m_regionCombinerModule != null)
-            {
-                Vector2 megaRegionSize = m_regionCombinerModule.GetSizeOfMegaregion(Scene.RegionInfo.RegionID);
-                extent.X = (float)Util.WorldToRegionLoc((uint)megaRegionSize.X);
-                extent.Y = (float)Util.WorldToRegionLoc((uint)megaRegionSize.Y);
-            }
-
             swCorner.X = Scene.RegionInfo.RegionLocX - 1;
             swCorner.Y = Scene.RegionInfo.RegionLocY - 1;
             neCorner.X = Scene.RegionInfo.RegionLocX + extent.X;
@@ -2411,46 +2390,29 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             RegionInfo m_regionInfo = pScene.RegionInfo;
             List<GridRegion> neighbours;
 
-            // Leaving this as a "megaregions" computation vs "non-megaregions" computation; it isn't
-            // clear what should be done with a "far view" given that megaregions already extended the
-            // view to include everything in the megaregion
-            if (m_regionCombinerModule == null || !m_regionCombinerModule.IsRootForMegaregion(Scene.RegionInfo.RegionID))
-            {
-                uint dd = (uint)avatar.RegionViewDistance;
+            uint dd = (uint)avatar.RegionViewDistance;
 
-                // until avatar movement updates client connections, we need to seend at least this current region imediate Neighbors
-                uint ddX = Math.Max(dd, Constants.RegionSize);
-                uint ddY = Math.Max(dd, Constants.RegionSize);
+            // until avatar movement updates client connections, we need to seend at least this current region imediate neighbors
+            uint ddX = Math.Max(dd, Constants.RegionSize);
+            uint ddY = Math.Max(dd, Constants.RegionSize);
 
-                ddX--;
-                ddY--;
+            ddX--;
+            ddY--;
 
-                // reference to region edges. Should be avatar position
-                uint startX = Util.RegionToWorldLoc(pRegionLocX);
-                uint endX = startX + m_regionInfo.RegionSizeX;
-                uint startY = Util.RegionToWorldLoc(pRegionLocY);
-                uint endY = startY + m_regionInfo.RegionSizeY;
+            // reference to region edges. Should be avatar position
+            uint startX = Util.RegionToWorldLoc(pRegionLocX);
+            uint endX = startX + m_regionInfo.RegionSizeX;
+            uint startY = Util.RegionToWorldLoc(pRegionLocY);
+            uint endY = startY + m_regionInfo.RegionSizeY;
 
-                startX -= ddX;
-                startY -= ddY;
-                endX += ddX;
-                endY += ddY;
+            startX -= ddX;
+            startY -= ddY;
+            endX += ddX;
+            endY += ddY;
 
-                neighbours
-                    = avatar.Scene.GridService.GetRegionRange(
-                        m_regionInfo.ScopeID, (int)startX, (int)endX, (int)startY, (int)endY);
-            }
-            else
-            {
-                Vector2 swCorner, neCorner;
-                GetMegaregionViewRange(out swCorner, out neCorner);
-
-                neighbours 
-                    = pScene.GridService.GetRegionRange(
-                        m_regionInfo.ScopeID, 
-                        (int)Util.RegionToWorldLoc((uint)swCorner.X), (int)Util.RegionToWorldLoc((uint)neCorner.X),
-                        (int)Util.RegionToWorldLoc((uint)swCorner.Y), (int)Util.RegionToWorldLoc((uint)neCorner.Y));
-            }
+            neighbours
+                = avatar.Scene.GridService.GetRegionRange(
+                    m_regionInfo.ScopeID, (int)startX, (int)endX, (int)startY, (int)endY);
 
             // The r.RegionFlags == null check only needs to be made for simulators before 2015-01-14 (pre 0.8.1).
             neighbours.RemoveAll( r => r.RegionID == m_regionInfo.RegionID );

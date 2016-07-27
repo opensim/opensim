@@ -522,22 +522,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         protected static void WriteRegionInfo(Scene scene, XmlTextWriter xtw)
         {
-            bool isMegaregion;
             Vector2 size;
 
-            IRegionCombinerModule rcMod = scene.RequestModuleInterface<IRegionCombinerModule>();
-
-            if (rcMod != null)
-                isMegaregion = rcMod.IsRootForMegaregion(scene.RegionInfo.RegionID);
-            else
-                isMegaregion = false;
+            size = new Vector2((float)scene.RegionInfo.RegionSizeX, (float)scene.RegionInfo.RegionSizeY);
     
-            if (isMegaregion)
-                size = rcMod.GetSizeOfMegaregion(scene.RegionInfo.RegionID);
-            else
-                size = new Vector2((float)scene.RegionInfo.RegionSizeX, (float)scene.RegionInfo.RegionSizeY);
-    
-            xtw.WriteElementString("is_megaregion", isMegaregion.ToString());
             xtw.WriteElementString("size_in_meters", string.Format("{0},{1}", size.X, size.Y));
         }
 

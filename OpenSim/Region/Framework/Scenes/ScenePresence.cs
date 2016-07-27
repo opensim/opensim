@@ -2910,11 +2910,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Allow move to another sub-region within a megaregion
             Vector2 regionSize;
-            IRegionCombinerModule regionCombinerModule = m_scene.RequestModuleInterface<IRegionCombinerModule>();
-            if (regionCombinerModule != null)
-                regionSize = regionCombinerModule.GetSizeOfMegaregion(m_scene.RegionInfo.RegionID);
-            else
-                regionSize = new Vector2(m_scene.RegionInfo.RegionSizeX, m_scene.RegionInfo.RegionSizeY);
+            regionSize = new Vector2(m_scene.RegionInfo.RegionSizeX, m_scene.RegionInfo.RegionSizeY);
 
             if (pos.X < 0 || pos.X >= regionSize.X
                 || pos.Y < 0 || pos.Y >= regionSize.Y
@@ -2923,21 +2919,7 @@ namespace OpenSim.Region.Framework.Scenes
      
             float terrainHeight;
             Scene targetScene = m_scene;
-            // Get terrain height for sub-region in a megaregion if necessary
-        	if (regionCombinerModule != null)
-            {
-                int X = (int)((m_scene.RegionInfo.WorldLocX) + pos.X);
-                int Y = (int)((m_scene.RegionInfo.WorldLocY) + pos.Y);
-                GridRegion target_region = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, X, Y);
-                // If X and Y is NaN, target_region will be null
-                if (target_region == null)
-                    return;
-                UUID target_regionID = target_region.RegionID;             
-                SceneManager.Instance.TryGetScene(target_region.RegionID, out targetScene);
-                terrainHeight = (float)targetScene.Heightmap[(int)(pos.X % regionSize.X), (int)(pos.Y % regionSize.Y)];
-            }
-            else
-                terrainHeight = m_scene.GetGroundHeight(pos.X, pos.Y);
+            terrainHeight = m_scene.GetGroundHeight(pos.X, pos.Y);
             
             // dont try to land underground
             terrainHeight += Appearance.AvatarHeight * 0.5f + 0.2f;

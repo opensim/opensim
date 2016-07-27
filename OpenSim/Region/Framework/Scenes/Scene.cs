@@ -2925,18 +2925,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (xx < 0 || yy < 0)
                 return false;
 
-            IRegionCombinerModule regionCombinerModule = RequestModuleInterface<IRegionCombinerModule>();
-            if (regionCombinerModule == null)
-            {
-                // Regular region. Just check for region size
-                if (xx < RegionInfo.RegionSizeX && yy < RegionInfo.RegionSizeY )
-                    ret = true;
-            }
-            else
-            {
-                // We're in a mega-region so see if we are still in that larger region
-                ret = regionCombinerModule.PositionIsInMegaregion(this.RegionInfo.RegionID, xx, yy);
-            }
+            if (xx < RegionInfo.RegionSizeX && yy < RegionInfo.RegionSizeY )
+                ret = true;
             return ret;
         }
 
