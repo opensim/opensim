@@ -1237,7 +1237,7 @@ namespace OpenSim.Region.Framework.Scenes
                 //m_log.DebugFormat("[SCENE]: Given local id {0} to part {1}, linknum {2}, parent {3} {4}", part.LocalId, part.UUID, part.LinkNum, part.ParentID, part.ParentUUID);
             }
 
-            ApplyPhysics(true);
+            ApplyPhysics();
 
             // Don't trigger the update here - otherwise some client issues occur when multiple updates are scheduled
             // for the same object with very different properties.  The caller must schedule the update.
@@ -1846,7 +1846,7 @@ namespace OpenSim.Region.Framework.Scenes
             AttachmentPoint = (byte)0;
             // must check if buildind should be true or false here
 //            m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_rootPart.VolumeDetectActive,false);
-            ApplyPhysics(false);
+            ApplyPhysics();
 
             HasGroupChanged = true;
             RootPart.Rezzed = DateTime.Now;
@@ -2151,7 +2151,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Apply physics to this group
         /// </summary>
-        public void ApplyPhysics(bool refreshForces)
+        public void ApplyPhysics()
         {
             SceneObjectPart[] parts = m_parts.GetArray();
             if (parts.Length > 1)
@@ -2178,13 +2178,6 @@ namespace OpenSim.Region.Framework.Scenes
 			{
                 // Apply physics to the root prim
                 m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_rootPart.VolumeDetectActive, false);
-            }
-
-            if (m_rootPart.PhysActor != null && refreshForces)
-            {
-                m_rootPart.Force = m_rootPart.Force;
-                m_rootPart.Torque = m_rootPart.Torque;
-                m_rootPart.Buoyancy = m_rootPart.Buoyancy;                
             }
         }
 
@@ -3079,7 +3072,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     // cancel physics
                     RootPart.Flags &= ~PrimFlags.Physics;
-                    ApplyPhysics(false);
+                    ApplyPhysics();
                 }
             }
 

@@ -741,7 +741,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
                 rootPart.RemFlag(PrimFlags.TemporaryOnRez);
                 
-                so.ApplyPhysics(false);
+                so.ApplyPhysics();
 
                 rootPart.Rezzed = DateTime.Now;
                 so.AttachToBackup();
