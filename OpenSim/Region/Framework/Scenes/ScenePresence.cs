@@ -570,6 +570,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool haveGroupInformation;
         public bool gotCrossUpdate;
+        public byte crossingFlags;
 
         public string Grouptitle
         {
@@ -1231,8 +1232,10 @@ namespace OpenSim.Region.Framework.Scenes
                     else
                     {
                         part.AddSittingAvatar(this);
-                        if (part.SitTargetPosition != Vector3.Zero)
-                            part.SitTargetAvatar = UUID;
+                        // if not actually on the target invalidate it
+                        if(gotCrossUpdate && (crossingFlags & 0x04) == 0)
+                                part.SitTargetAvatar = UUID.Zero;
+                        
                         ParentID = part.LocalId;
                         ParentPart = part;
                         m_pos = PrevSitOffset;
@@ -1505,6 +1508,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             haveGroupInformation = false;
             gotCrossUpdate = false;
+            crossingFlags = 0;
             m_scene.EventManager.OnRegionHeartbeatEnd -= RegionHeartbeatEnd;
 
             RegionHandle = newRegionHandle;
@@ -2212,6 +2216,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             haveGroupInformation = true;
             gotCrossUpdate = false;
+            crossingFlags = 0;
 
             m_scene.EventManager.OnRegionHeartbeatEnd += RegionHeartbeatEnd;
 
@@ -4552,11 +4557,10 @@ namespace OpenSim.Region.Framework.Scenes
             if (Scene.AttachmentsModule != null)
                 Scene.AttachmentsModule.CopyAttachments(this, cAgent);
 
-            cAgent.isCrossingUpdate = isCrossUpdate;
+            cAgent.CrossingFlags = isCrossUpdate ? crossingFlags : (byte)0; 
 
             if(isCrossUpdate && haveGroupInformation)
             {
-                
                 cAgent.agentCOF = COF;
                 cAgent.ActiveGroupID = ControllingClient.ActiveGroupId;
                 cAgent.ActiveGroupName = ControllingClient.ActiveGroupName;
@@ -4705,8 +4709,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            gotCrossUpdate = cAgent.isCrossingUpdate;
-
+            crossingFlags = cAgent.CrossingFlags;
+            gotCrossUpdate = (crossingFlags != 0);
 
             lock (m_originRegionIDAccessLock)
                 m_originRegionID = cAgent.RegionID;

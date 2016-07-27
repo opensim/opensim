@@ -356,7 +356,7 @@ namespace OpenSim.Framework
         public string ActiveGroupName;
         public string ActiveGroupTitle = null;
         public UUID agentCOF;
-        public bool isCrossingUpdate;
+        public byte CrossingFlags;
 
         public AgentGroupData[] Groups;
         public Dictionary<ulong, string> ChildrenCapSeeds = null;
@@ -365,7 +365,6 @@ namespace OpenSim.Framework
         public Animation AnimState = null;
         public Byte MotionState = 0;
 
-        public UUID GranterID;
         public UUID ParentPart;
         public Vector3 SitOffset;
 
@@ -430,7 +429,7 @@ namespace OpenSim.Framework
             args["agent_access"] = OSD.FromString(AgentAccess.ToString());
 
             args["agent_cof"] = OSD.FromUUID(agentCOF);
-            args["crossingupdate"] = OSD.FromBoolean(isCrossingUpdate);
+            args["crossingflags"] = OSD.FromInteger(CrossingFlags);
 
             args["active_group_id"] = OSD.FromUUID(ActiveGroupID);
             args["active_group_name"] = OSD.FromString(ActiveGroupName);
@@ -625,8 +624,8 @@ namespace OpenSim.Framework
             if (args.ContainsKey("agent_cof") && args["agent_cof"] != null)
                 agentCOF = args["agent_cof"].AsUUID();
 
-            if (args.ContainsKey("crossingupdate") && args["crossingupdate"] != null)
-                isCrossingUpdate = args["crossingupdate"].AsBoolean();
+            if (args.ContainsKey("crossingflags") && args["crossingflags"] != null)
+                CrossingFlags = (byte)args["crossingflags"].AsInteger();
 
             if (args.ContainsKey("active_group_id") && args["active_group_id"] != null)
                 ActiveGroupID = args["active_group_id"].AsUUID();

@@ -346,9 +346,6 @@ namespace OpenSim.Region.Framework.Scenes
             get { return RootPart.VolumeDetectActive; }
         }
 
-        private Vector3 lastPhysGroupPos;
-        private Quaternion lastPhysGroupRot;
-
         /// <summary>
         /// Is this entity set to be saved in persistent storage?
         /// </summary>
@@ -702,10 +699,23 @@ namespace OpenSim.Region.Framework.Scenes
 
             foreach (ScenePresence av in sog.m_sittingAvatars)
             {
+                byte cflags = 1;
+
                 avtocrossInfo avinfo = new avtocrossInfo();
                 SceneObjectPart parentPart = sogScene.GetSceneObjectPart(av.ParentID);
                 if (parentPart != null)
+                {
                     av.ParentUUID = parentPart.UUID;
+                    if(parentPart.SitTargetAvatar == av.UUID)
+                        cflags = 7; // low 3 bits set
+                    else
+                        cflags = 3;
+                }
+
+                // 1 is crossing
+                // 2 is sitting
+                // 4 is sitting at sittarget
+                av.crossingFlags = cflags;
 
                 avinfo.av = av;
                 avinfo.ParentID = av.ParentID;
@@ -750,7 +760,7 @@ namespace OpenSim.Region.Framework.Scenes
                         av.ParentUUID = UUID.Zero;
                         // In any case
                         av.IsInTransit = false;
-
+                        av.crossingFlags = 0;
                         m_log.DebugFormat("[SCENE OBJECT]: Crossing agent {0} {1} completed.", av.Firstname, av.Lastname);
                     }
                     else
@@ -768,6 +778,7 @@ namespace OpenSim.Region.Framework.Scenes
                     ScenePresence av = avinfo.av;
                     av.ParentUUID = UUID.Zero;
                     av.ParentID = avinfo.ParentID;
+                    av.crossingFlags = 0;
                 }
             }
             avsToCross.Clear();
