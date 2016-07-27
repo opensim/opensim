@@ -2189,8 +2189,12 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
                     if (friendsModule != null)
-                        friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
-
+                    { 
+                        if(gotCrossUpdate)
+                            friendsModule.IsNpwRoot(this);
+                        else
+                            friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
+                    }
                     m_log.DebugFormat("[CompleteMovement] friendsModule: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 }
@@ -3163,6 +3167,7 @@ namespace OpenSim.Region.Framework.Scenes
                     ResetMoveToTarget();
 
                 Velocity = Vector3.Zero;
+                m_AngularVelocity = Vector3.Zero;
 
                 part.AddSittingAvatar(this);
 
@@ -3488,9 +3493,10 @@ namespace OpenSim.Region.Framework.Scenes
                 part.AddSittingAvatar(this);
                 ParentPart = part;
                 ParentID = m_requestedSitTargetID;
+
+                RemoveFromPhysicalScene();
                 m_AngularVelocity = Vector3.Zero;
                 Velocity = Vector3.Zero;
-                RemoveFromPhysicalScene();
 
                 m_requestedSitTargetID = 0;
 
@@ -3513,12 +3519,14 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
 //            m_updateCount = 0;  // Kill animation update burst so that the SIT_G.. will stick..
-            m_AngularVelocity = Vector3.Zero;
             sitAnimation = "SIT_GROUND_CONSTRAINED";
 //            Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
 //            TriggerScenePresenceUpdated();
             SitGround = true;
             RemoveFromPhysicalScene();
+
+            m_AngularVelocity = Vector3.Zero;
+            Velocity = Vector3.Zero;
 
             Animator.SetMovementAnimations("SITGROUND");
             TriggerScenePresenceUpdated();
@@ -4236,6 +4244,8 @@ namespace OpenSim.Region.Framework.Scenes
                     pos.Y -= Velocity.Y * 2;
 
                 Velocity = Vector3.Zero;
+                m_AngularVelocity = Vector3.Zero;
+
                 AbsolutePosition = pos;
 
                 AddToPhysicalScene(isFlying);
