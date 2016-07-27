@@ -218,6 +218,13 @@ namespace OpenSim
             IConfig startupConfig = Config.Configs["Startup"];
             if (startupConfig != null)
             {
+                // refuse to run MegaRegions
+                if(startupConfig.GetBoolean("CombineContiguousRegions", false))
+                {
+                    m_log.Fatal("CombineContiguousRegions (MegaRegions) option is no longer suported. Use a older version to save region contents as OAR, then import into a fresh install of this new version");
+                    throw new Exception("CombineContiguousRegions not suported");
+                }
+
                 string pidFile = startupConfig.GetString("PIDFile", String.Empty);
                 if (pidFile != String.Empty)
                     CreatePIDFile(pidFile);

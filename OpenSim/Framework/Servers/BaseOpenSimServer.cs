@@ -157,7 +157,16 @@ namespace OpenSim.Framework.Servers
                 "[STARTUP]: Operating system version: {0}, .NET platform {1}, {2}-bit\n",
                 Environment.OSVersion, Environment.OSVersion.Platform, Util.Is64BitProcess() ? "64" : "32");
             
-            StartupSpecific();
+            try
+            {
+                StartupSpecific();
+            }
+            catch(Exception e)
+            {
+                m_log.FatalFormat("Fatal error: {0}",
+                    (e.Message == null || e.Message == String.Empty) ? "Unknown reason":e.Message );
+                Environment.Exit(1);
+            }
             
             TimeSpan timeTaken = DateTime.Now - m_startuptime;
             
