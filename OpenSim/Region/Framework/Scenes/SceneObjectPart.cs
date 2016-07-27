@@ -2213,7 +2213,7 @@ namespace OpenSim.Region.Framework.Scenes
             dupe.Shape.ExtraParams = extraP;
 
             dupe.m_sittingAvatars = new HashSet<ScenePresence>();
-
+            dupe.SitTargetAvatar = UUID.Zero;
             // safeguard  actual copy is done in sog.copy
             dupe.KeyframeMotion = null;
             dupe.PayPrice = (int[])PayPrice.Clone();
