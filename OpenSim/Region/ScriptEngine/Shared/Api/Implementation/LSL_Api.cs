@@ -6404,7 +6404,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     // Direction vector is 0,0 so return
                     // false since we're staying in the sim
-                    return 0;
+                    // no SL says true
+                    return 1;
                 }
                 else
                 {
