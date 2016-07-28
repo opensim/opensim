@@ -216,7 +216,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 UUID fromAgentID = UUID.Zero;
                 UUID toAgentID = UUID.Zero;
                 UUID imSessionID = UUID.Zero;
-                UUID imID = UUID.Zero;
                 uint timestamp = 0;
                 string fromAgentName = "";
                 string message = "";
@@ -263,7 +262,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     UUID.TryParse((string)requestData["to_agent_id"], out toAgentID);
                     UUID.TryParse((string)requestData["im_session_id"], out imSessionID);
                     UUID.TryParse((string)requestData["region_id"], out RegionID);
-                    UUID.TryParse((string)requestData["id"], out imID);
 
                     try
                     {
@@ -391,8 +389,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     gim.ParentEstateID = ParentEstateID;
                     gim.Position = Position;
                     gim.binaryBucket = binaryBucket;
-                    gim.ID = imID.Guid;
-
 
                     // Trigger the Instant message in the scene.
                     foreach (Scene scene in m_Scenes)
@@ -702,8 +698,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             gim["from_agent_session"] = UUID.Zero.ToString();
             gim["to_agent_id"] = msg.toAgentID.ToString();
             gim["im_session_id"] = msg.imSessionID.ToString();
-            if(msg.ID != Guid.Empty)
-                gim["id"] = msg.ID.ToString();
             gim["timestamp"] = msg.timestamp.ToString();
             gim["from_agent_name"] = msg.fromAgentName;
             gim["message"] = msg.message;
