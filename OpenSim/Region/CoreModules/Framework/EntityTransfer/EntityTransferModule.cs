@@ -2191,7 +2191,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         #endregion // NotFoundLocationCache class
         private NotFoundLocationCache m_notFoundLocationCache = new NotFoundLocationCache();
 
-// needed for current OSG or old grid code
+// needed for old grid code
  
         protected GridRegion GetRegionContainingWorldLocation(IGridService pGridService, UUID pScopeID, double px, double py)
         {
@@ -2359,22 +2359,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
             }
  
-        }
-
-        /// <summary>
-        /// Gets the range considered in view of this megaregion (assuming this is a megaregion).
-        /// </summary>
-        /// <remarks>Expressed in 256m units</remarks>
-        /// <param name='swCorner'></param>
-        /// <param name='neCorner'></param>
-        private void GetMegaregionViewRange(out Vector2 swCorner, out Vector2 neCorner)
-        {
-            Vector2 extent = Vector2.Zero;
-
-            swCorner.X = Scene.RegionInfo.RegionLocX - 1;
-            swCorner.Y = Scene.RegionInfo.RegionLocY - 1;
-            neCorner.X = Scene.RegionInfo.RegionLocX + extent.X;
-            neCorner.Y = Scene.RegionInfo.RegionLocY + extent.Y;
         }
 
         /// <summary>
