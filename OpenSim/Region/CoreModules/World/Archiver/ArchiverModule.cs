@@ -53,7 +53,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public Scene Scene { get; private set; }
-        public IRegionCombinerModule RegionCombinerModule { get; private set; }
 
         /// <value>
         /// The file used to load and save an opensimulator archive if no filename has been specified
@@ -85,7 +84,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void RegionLoaded(Scene scene)
         {
-            RegionCombinerModule = scene.RequestModuleInterface<IRegionCombinerModule>();
         }
 
         public void RemoveRegion(Scene scene)

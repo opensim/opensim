@@ -961,11 +961,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     = (ImprovedInstantMessagePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedInstantMessage);
 
                 msg.AgentData.AgentID = new UUID(im.fromAgentID);
-                msg.AgentData.SessionID = new UUID(im.imSessionID);
+                msg.AgentData.SessionID = UUID.Zero;
                 msg.MessageBlock.FromAgentName = Util.StringToBytes256(im.fromAgentName);
                 msg.MessageBlock.Dialog = im.dialog;
                 msg.MessageBlock.FromGroup = im.fromGroup;
-                msg.MessageBlock.ID = new UUID(im.ID);
+                // this is odd
+                if (im.imSessionID == UUID.Zero.Guid)
+                    msg.MessageBlock.ID = new UUID(im.fromAgentID) ^ new UUID(im.toAgentID);
+                else
+                    msg.MessageBlock.ID = new UUID(im.imSessionID);                
                 msg.MessageBlock.Offline = im.offline;
                 msg.MessageBlock.ParentEstateID = im.ParentEstateID;
                 msg.MessageBlock.Position = im.Position;

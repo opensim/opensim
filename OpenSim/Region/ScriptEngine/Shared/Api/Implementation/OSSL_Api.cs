@@ -3347,24 +3347,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.None, "osGetRegionSize");
             m_host.AddScriptLPS(1);
 
-            bool isMegaregion;
-            IRegionCombinerModule rcMod = World.RequestModuleInterface<IRegionCombinerModule>();
-            if (rcMod != null)
-                isMegaregion = rcMod.IsRootForMegaregion(World.RegionInfo.RegionID);
-            else
-                isMegaregion = false;
-
-            if (isMegaregion)
-            {
-                Vector2 size = rcMod.GetSizeOfMegaregion(World.RegionInfo.RegionID);
-                return new LSL_Vector(size.X, size.Y, Constants.RegionHeight);
-            }
-            else
-            {
-                Scene scene = m_ScriptEngine.World;
-                GridRegion region = scene.GridService.GetRegionByUUID(UUID.Zero, World.RegionInfo.RegionID);
-                return new LSL_Vector((float)region.RegionSizeX, (float)region.RegionSizeY, (float)Constants.RegionHeight);
-            }
+            Scene scene = m_ScriptEngine.World;
+            GridRegion region = scene.GridService.GetRegionByUUID(UUID.Zero, World.RegionInfo.RegionID);
+            return new LSL_Vector((float)region.RegionSizeX, (float)region.RegionSizeY, (float)Constants.RegionHeight);
         }
 
         public int osGetSimulatorMemory()
