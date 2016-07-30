@@ -6394,64 +6394,61 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            // edge will be used to pass the Region Coordinates offset
-            // we want to check for a neighboring sim
-            LSL_Vector edge = new LSL_Vector(0, 0, 0);
+            if(dir.x == 0.0 && dir.y == 0.0)
+                return 1; // SL wiki
+
+            float rsx = World.RegionInfo.RegionSizeX;
+            float rsy = World.RegionInfo.RegionSizeY;
+
+            // can understand what sl does if position is not in region, so do something :)
+            float px = (float)Util.Clamp(pos.x, 0.5, rsx - 0.5);
+            float py = (float)Util.Clamp(pos.y, 0.5, rsy - 0.5);
+
+            float ex, ey;
 
             if (dir.x == 0)
             {
-                if (dir.y == 0)
-                {
-                    // Direction vector is 0,0 so return
-                    // false since we're staying in the sim
-                    return 0;
-                }
-                else
-                {
-                    // Y is the only valid direction
-                    edge.y = dir.y / Math.Abs(dir.y) * (World.RegionInfo.RegionSizeY / Constants.RegionSize);
-                }
+                ex = px;
+                ey = dir.y > 0.0 ? rsy + 1.0f : -1.0f;
+            }
+            else if(dir.y == 0.0f)
+            {
+                ex = dir.x > 0 ? rsx + 1.0f : -1.0f;
+                ey = py;
             }
             else
             {
-                LSL_Float mag;
-                if (dir.x > 0)
-                {
-                    mag = (World.RegionInfo.RegionSizeX - pos.x) / dir.x;
-                }
+                float dx = (float) dir.x;
+                float dy = (float) dir.y;
+
+                float t1 = dx * dx + dy * dy;
+                dx /= t1;
+                dy /= t1;
+
+                if(dx > 0)
+                    t1 = (rsx + 1f - px)/dx;
                 else
-                {
-                    mag = (pos.x/dir.x);
-                }
+                    t1 = -(px + 1f)/dx;
 
-                mag = Math.Abs(mag);
 
-                edge.y = pos.y + (dir.y * mag);
-
-                if (edge.y > World.RegionInfo.RegionSizeY || edge.y < 0)
-                {
-                    // Y goes out of bounds first
-                    edge.y = dir.y / Math.Abs(dir.y) * (World.RegionInfo.RegionSizeY / Constants.RegionSize);
-                }
+                float t2;
+                if(dy > 0)
+                    t2 = (rsy + 1f - py)/dy;
                 else
-                {
-                    // X goes out of bounds first or its a corner exit
-                    edge.y = 0;
-                    edge.x = dir.x / Math.Abs(dir.x) * (World.RegionInfo.RegionSizeY / Constants.RegionSize);
-                }
+                    t2 = -(py + 1f)/dy;
+
+                if(t1 > t2)
+                    t1 = t2;
+
+                ex = px + t1 * dx;
+                ey = py + t1 * dy;
             }
 
-            List<GridRegion> neighbors = World.GridService.GetNeighbours(World.RegionInfo.ScopeID, World.RegionInfo.RegionID);
+            ex += World.RegionInfo.WorldLocX;
+            ey += World.RegionInfo.WorldLocY;
 
-            uint neighborX = World.RegionInfo.RegionLocX + (uint)edge.x;
-            uint neighborY = World.RegionInfo.RegionLocY + (uint)edge.y;
-
-            foreach (GridRegion sri in neighbors)
-            {
-                if (sri.RegionCoordX == neighborX && sri.RegionCoordY == neighborY)
-                    return 0;
-            }
-
+            if(World.GridService.GetRegionByPosition(World.RegionInfo.ScopeID, (int)ex, (int)ey) != null)
+                return 0;
             return 1;
         }
 
