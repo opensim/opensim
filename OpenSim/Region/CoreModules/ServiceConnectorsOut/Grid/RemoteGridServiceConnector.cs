@@ -127,7 +127,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public void PostInitialise()
         {
-            ((ISharedRegionModule)m_LocalGridService).PostInitialise();
+            if (m_Enabled)
+                ((ISharedRegionModule)m_LocalGridService).PostInitialise();
         }
 
         public void Close()
@@ -137,14 +138,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         public void AddRegion(Scene scene)
         {
             if (m_Enabled)
+            {
                 scene.RegisterModuleInterface<IGridService>(this);
-
-            ((ISharedRegionModule)m_LocalGridService).AddRegion(scene);
+                ((ISharedRegionModule)m_LocalGridService).AddRegion(scene);
+            }
         }
 
         public void RemoveRegion(Scene scene)
         {
-            ((ISharedRegionModule)m_LocalGridService).RemoveRegion(scene);
+            if (m_Enabled)
+                ((ISharedRegionModule)m_LocalGridService).RemoveRegion(scene);
         }
 
         public void RegionLoaded(Scene scene)
