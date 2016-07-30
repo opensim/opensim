@@ -56,7 +56,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         private IGridService m_LocalGridService;
         private IGridService m_RemoteGridService;
 
-        static private RegionInfoCache m_RegionInfoCache;
+        private RegionInfoCache m_RegionInfoCache;
         
         public RemoteGridServicesConnector()
         {
