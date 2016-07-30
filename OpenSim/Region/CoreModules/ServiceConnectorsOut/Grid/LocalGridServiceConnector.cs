@@ -60,9 +60,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             m_log.DebugFormat("{0} LocalGridServicesConnector no parms.", LogHeader);
         }
 
-        public LocalGridServicesConnector(IConfigSource source, RegionInfoCache regionInfoCache)
+        public LocalGridServicesConnector(IConfigSource source)
         {
             m_log.DebugFormat("{0} LocalGridServicesConnector instantiated directly.", LogHeader);
+            InitialiseService(source, null);        
+        }
+
+        public LocalGridServicesConnector(IConfigSource source, RegionInfoCache regionInfoCache)
+        {
+            m_log.DebugFormat("{0} LocalGridServicesConnector instantiated directly witj cache.", LogHeader);
             InitialiseService(source, regionInfoCache);
         }
 
@@ -148,6 +154,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 return;
 
             scene.RegisterModuleInterface<IGridService>(this);
+
+            
+
+            // tests seem not to init this correctly, so brute force
+            if( m_RegionInfoCache == null)
+                m_RegionInfoCache = new RegionInfoCache();
+
+            GridRegion r = new GridRegion(scene.RegionInfo);
+            m_RegionInfoCache.CacheLocal(r);
+
+            scene.EventManager.OnRegionUp += OnRegionUp;
         }
 
         public void RemoveRegion(Scene scene)
@@ -161,18 +178,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public void RegionLoaded(Scene scene)
         {
-            if (!m_Enabled)
-                return;
-
-            GridRegion r = new GridRegion(scene.RegionInfo);
-
-            // tests seem not to init this correctly, so brute force
-            if( m_RegionInfoCache == null)
-                m_RegionInfoCache = new RegionInfoCache();
-
-            m_RegionInfoCache.CacheLocal(r);
-
-            scene.EventManager.OnRegionUp += OnRegionUp;
         }
 
         #endregion
