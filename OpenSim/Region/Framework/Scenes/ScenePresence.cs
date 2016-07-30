@@ -4671,9 +4671,10 @@ namespace OpenSim.Region.Framework.Scenes
                 ControllingClient.ActiveGroupName = cAgent.ActiveGroupName;
                 ControllingClient.ActiveGroupPowers = 0;
                 Grouptitle = cAgent.ActiveGroupTitle;
-                int ngroups = cAgent.Groups.Length;
-                if(ngroups > 0)
+                
+                if(cAgent.Groups != null && cAgent.Groups.Length > 0)
                 {
+                    int ngroups = cAgent.Groups.Length;
                     Dictionary<UUID, ulong> gpowers = new Dictionary<UUID, ulong>(ngroups);
                     for(int i = 0 ; i < ngroups; i++)
                     {
