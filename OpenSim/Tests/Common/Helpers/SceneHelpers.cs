@@ -156,6 +156,9 @@ namespace OpenSim.Tests.Common
             TestScene testScene = new TestScene(
                 regInfo, m_acm, SimDataService, m_estateDataService, configSource, null);
 
+            testScene.RegionInfo.EstateSettings = new EstateSettings();
+            testScene.RegionInfo.EstateSettings.EstateOwner = UUID.Random();
+
             INonSharedRegionModule godsModule = new GodsModule();
             godsModule.Initialise(new IniConfigSource());
             godsModule.AddRegion(testScene);
@@ -197,13 +200,12 @@ namespace OpenSim.Tests.Common
             m_presenceService.RegionLoaded(testScene);
             testScene.AddRegionModule(m_presenceService.Name, m_presenceService);
             
-            testScene.RegionInfo.EstateSettings.EstateOwner = UUID.Random();
+            
             testScene.SetModuleInterfaces();
 
             testScene.LandChannel = new TestLandChannel(testScene);
             testScene.LoadWorldMap();
-
-            testScene.RegionInfo.EstateSettings = new EstateSettings();
+            
             testScene.LoginsEnabled = true;
             testScene.RegisterRegionWithGrid();
 

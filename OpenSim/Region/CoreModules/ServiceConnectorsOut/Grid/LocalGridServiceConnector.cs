@@ -85,9 +85,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             {
                 string name = moduleConfig.GetString("GridServices", "");
                 if (name == Name)
-                {
-                    
-                    if(InitialiseService(source,null))
+                {                   
+                    if(InitialiseService(source, null))
                         m_log.Info("[LOCAL GRID SERVICE CONNECTOR]: Local grid connector enabled");
                 }
             }
@@ -151,7 +150,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             scene.RegisterModuleInterface<IGridService>(this);
 
             m_RegionInfoCache.CacheLocal(new GridRegion(scene.RegionInfo));
-            scene.EventManager.OnRegionUp += OnRegionUp;
+//            scene.EventManager.OnRegionUp += OnRegionUp;
         }
 
         public void RemoveRegion(Scene scene)
@@ -160,7 +159,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 return;
 
             m_RegionInfoCache.Remove(scene.RegionInfo.ScopeID, scene.RegionInfo.RegionID);
-            scene.EventManager.OnRegionUp -= OnRegionUp;
+ //           scene.EventManager.OnRegionUp -= OnRegionUp;
         }
 
         public void RegionLoaded(Scene scene)
