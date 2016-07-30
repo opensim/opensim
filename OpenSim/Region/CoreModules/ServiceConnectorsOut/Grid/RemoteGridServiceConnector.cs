@@ -56,7 +56,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         private IGridService m_LocalGridService;
         private IGridService m_RemoteGridService;
 
-        private RegionInfoCache m_RegionInfoCache = new RegionInfoCache();
+        static private RegionInfoCache m_RegionInfoCache;
         
         public RemoteGridServicesConnector()
         {
@@ -121,6 +121,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 m_log.Error("[REMOTE GRID CONNECTOR]: failed to loar local connector");
                 return false;
             }
+
+            if(m_RegionInfoCache == null)
+                m_RegionInfoCache = new RegionInfoCache();
 
             return true;
         }   

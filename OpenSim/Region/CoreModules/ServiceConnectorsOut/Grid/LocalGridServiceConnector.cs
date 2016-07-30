@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         private static string LogHeader = "[LOCAL GRID SERVICE CONNECTOR]";
 
         private IGridService m_GridService;
-        private RegionInfoCache m_RegionInfoCache = null;
+        static private RegionInfoCache m_RegionInfoCache = null;
 
         private bool m_Enabled;
 
@@ -95,7 +95,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         private bool InitialiseService(IConfigSource source, RegionInfoCache ric)
         {
-            if(ric == null)
+            if(ric == null && m_RegionInfoCache == null)
                 m_RegionInfoCache = new RegionInfoCache();
             else
                 m_RegionInfoCache = ric;
