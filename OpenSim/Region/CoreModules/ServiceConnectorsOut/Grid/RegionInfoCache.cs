@@ -59,24 +59,40 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         
         public void Cache(UUID scopeID, GridRegion rinfo)
         {
-            // for now, do not cache negative results; this is because
-            // we need to figure out how to handle regions coming online
-            // in a timely way
             if (rinfo == null)
                 return;
             
             m_Cache.AddOrUpdate(scopeID, rinfo, CACHE_EXPIRATION_SECONDS);
         }
 
+        public void CacheLocal(GridRegion rinfo)
+        {
+            if (rinfo == null)
+                return;
+            
+            m_Cache.AddOrUpdate(rinfo.ScopeID, rinfo, 1e7f);
+        }
+
+        public void CacheNearNeighbour(UUID scopeID, GridRegion rinfo)
+        {
+            if (rinfo == null)
+                return;
+            
+//            m_Cache.AddOrUpdate(scopeID, rinfo, CACHE_EXPIRATION_SECONDS);
+            m_Cache.Add(scopeID, rinfo, CACHE_EXPIRATION_SECONDS); // don't override local regions
+        }
+
         public void Cache(UUID scopeID, GridRegion rinfo, float expireSeconds)
         {
-            // for now, do not cache negative results; this is because
-            // we need to figure out how to handle regions coming online
-            // in a timely way
             if (rinfo == null)
                 return;
             
             m_Cache.AddOrUpdate(scopeID, rinfo, expireSeconds);
+        }
+
+        public void Remove(UUID scopeID, UUID regionID)
+        {
+            m_Cache.Remove(scopeID, regionID);
         }
 
         public GridRegion Get(UUID scopeID, UUID regionID, out bool inCache)
@@ -134,15 +150,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             
             return null;
         }
-
     }
 
 
     // following code partialy adapted from lib OpenMetaverse
-    public class RegionKey : IComparable<RegionKey>
+    public class RegionKey 
     {
-        private UUID m_scopeID;
-        private UUID m_RegionID;
+        public UUID m_scopeID;
+        public UUID m_RegionID;
         private DateTime m_expirationDate;
 
         public RegionKey(UUID scopeID, UUID id)
@@ -161,16 +176,34 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             set { m_expirationDate = value; }
         }
 
-        public int GetHaskCode()
+        public override int GetHashCode()
         {
             int hash = m_scopeID.GetHashCode();
             hash += hash * 23 + m_RegionID.GetHashCode();
             return hash;
         }
 
-        public int CompareTo(RegionKey other)
+        public override bool Equals(Object b)
         {
-            return GetHashCode().CompareTo(other.GetHashCode());
+            if(b == null)
+                return false;
+            RegionKey kb = b as RegionKey;
+            return (m_scopeID == kb.m_scopeID && m_RegionID == kb.m_RegionID);    
+        }
+    }
+
+    class RegionKeyEqual : EqualityComparer<RegionKey>
+    {
+        public override int GetHashCode(RegionKey rk)
+        {
+            int hash = rk.m_scopeID.GetHashCode();
+            hash += hash * 23 + rk.m_RegionID.GetHashCode();
+            return hash;
+        }
+
+        public override bool Equals(RegionKey a, RegionKey b)
+        {
+            return (a.m_scopeID == b.m_scopeID && a.m_RegionID == b.m_RegionID);    
         }
     }
 
@@ -246,7 +279,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         }
     }
   
-    public sealed class RegionsExpiringCache
+    public class RegionsExpiringCache
     {
         const double CACHE_PURGE_HZ = 60; // seconds
         const int MAX_LOCK_WAIT = 10000; // milliseconds
@@ -256,7 +289,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         /// <summary>For thread safety</summary>
         object isPurging = new object();
 
-        Dictionary<RegionKey, GridRegion> timedStorage = new Dictionary<RegionKey, GridRegion>();
+        static RegionKeyEqual keyequal = new RegionKeyEqual();
+        Dictionary<RegionKey, GridRegion> timedStorage = new Dictionary<RegionKey, GridRegion>(keyequal);
         Dictionary<UUID, RegionInfoByScope> InfobyScope = new Dictionary<UUID, RegionInfoByScope>();
         private System.Timers.Timer timer = new System.Timers.Timer(TimeSpan.FromSeconds(CACHE_PURGE_HZ).TotalMilliseconds);
 
@@ -370,10 +404,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 return timedStorage.Count;
             }
         }
-
         public bool Remove(UUID scope, GridRegion region)
         {
-            RegionKey key = new RegionKey(scope, region.RegionID);
+            return Remove(scope, region.RegionID);
+        }
+        public bool Remove(UUID scope, UUID regionID)
+        {
+            RegionKey key = new RegionKey(scope, regionID);
 
             if (!Monitor.TryEnter(syncRoot, MAX_LOCK_WAIT))
                 throw new ApplicationException("Lock could not be acquired after " + MAX_LOCK_WAIT + "ms");

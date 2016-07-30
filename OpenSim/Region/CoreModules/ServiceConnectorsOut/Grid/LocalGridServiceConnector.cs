@@ -51,7 +51,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         private static string LogHeader = "[LOCAL GRID SERVICE CONNECTOR]";
 
         private IGridService m_GridService;
-        private Dictionary<UUID, RegionCache> m_LocalCache = new Dictionary<UUID, RegionCache>();
         private RegionInfoCache m_RegionInfoCache = null;
 
         private bool m_Enabled;
@@ -151,13 +150,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             scene.RegisterModuleInterface<IGridService>(this);
 
-            lock (m_LocalCache)
-            {
-                if (m_LocalCache.ContainsKey(scene.RegionInfo.RegionID))
-                    m_log.ErrorFormat("[LOCAL GRID SERVICE CONNECTOR]: simulator seems to have more than one region with the same UUID. Please correct this!");
-                else
-                    m_LocalCache.Add(scene.RegionInfo.RegionID, new RegionCache(scene));
-            }
+            m_RegionInfoCache.CacheLocal(new GridRegion(scene.RegionInfo));
+            scene.EventManager.OnRegionUp += OnRegionUp;
         }
 
         public void RemoveRegion(Scene scene)
@@ -165,11 +159,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (!m_Enabled)
                 return;
 
-            lock (m_LocalCache)
-            {
-                m_LocalCache[scene.RegionInfo.RegionID].Clear();
-                m_LocalCache.Remove(scene.RegionInfo.RegionID);
-            }
+            m_RegionInfoCache.Remove(scene.RegionInfo.ScopeID, scene.RegionInfo.RegionID);
+            scene.EventManager.OnRegionUp -= OnRegionUp;
         }
 
         public void RegionLoaded(Scene scene)
@@ -179,6 +170,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         #endregion
 
         #region IGridService
+
+        private void OnRegionUp(GridRegion region)
+        {
+            // This shouldn't happen
+            if (region == null)
+                return;
+            
+            m_RegionInfoCache.CacheNearNeighbour(region.ScopeID, region);           
+        }
 
         public string RegisterRegion(UUID scopeID, GridRegion regionInfo)
         {
@@ -291,7 +291,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         public void HandleShowNeighboursCommand(string module, string[] cmdparams)
         {
             System.Text.StringBuilder caps = new System.Text.StringBuilder();
-
+/*   temporary broken
             lock (m_LocalCache)
             {
                 foreach (KeyValuePair<UUID, RegionCache> kvp in m_LocalCache)
@@ -304,6 +304,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             }
 
             MainConsole.Instance.Output(caps.ToString());
+*/
+            MainConsole.Instance.Output("Neighbours list not avaiable in this version\n");
         }
     }
 }
