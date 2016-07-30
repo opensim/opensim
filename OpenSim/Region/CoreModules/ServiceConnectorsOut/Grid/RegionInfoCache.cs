@@ -38,7 +38,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 {
     public class RegionInfoCache
     {
-        private const double CACHE_EXPIRATION_SECONDS = 120; // 2 minutes  opensim regions change a lot
+        private const float CACHE_EXPIRATION_SECONDS = 120; // 2 minutes  opensim regions change a lot
 
 //        private static readonly ILog m_log =
 //                LogManager.GetLogger(
@@ -66,6 +66,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 return;
             
             m_Cache.AddOrUpdate(scopeID, rinfo, CACHE_EXPIRATION_SECONDS);
+        }
+
+        public void Cache(UUID scopeID, UUID regionID, GridRegion rinfo, float expireSeconds)
+        {
+            // for now, do not cache negative results; this is because
+            // we need to figure out how to handle regions coming online
+            // in a timely way
+            if (rinfo == null)
+                return;
+            
+            m_Cache.AddOrUpdate(scopeID, rinfo, expireSeconds);
         }
 
         public GridRegion Get(UUID scopeID, UUID regionID, out bool inCache)
@@ -255,7 +266,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             timer.Start();
         }
 
-        public bool Add(UUID scope, GridRegion region, double expirationSeconds)
+        public bool Add(UUID scope, GridRegion region, float expirationSeconds)
         {
             if (!Monitor.TryEnter(syncRoot, MAX_LOCK_WAIT))
                 throw new ApplicationException("Lock could not be acquired after " + MAX_LOCK_WAIT + "ms");
@@ -284,7 +295,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             finally { Monitor.Exit(syncRoot);}
         }
 
-        public bool AddOrUpdate(UUID scope, GridRegion region, double expirationSeconds)
+        public bool AddOrUpdate(UUID scope, GridRegion region, float expirationSeconds)
         {
             if (!Monitor.TryEnter(syncRoot, MAX_LOCK_WAIT))
                 throw new ApplicationException("Lock could not be acquired after " + MAX_LOCK_WAIT + "ms");
