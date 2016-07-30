@@ -38,7 +38,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 {
     public class RegionInfoCache
     {
-        private const double CACHE_EXPIRATION_SECONDS = 120; // 2 minutes  opensim regions change a lot
+        private const float CACHE_EXPIRATION_SECONDS = 120; // 2 minutes  opensim regions change a lot
 
 //        private static readonly ILog m_log =
 //                LogManager.GetLogger(
@@ -54,10 +54,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         public void Cache(GridRegion rinfo)
         {
             if (rinfo != null)
-                this.Cache(rinfo.ScopeID,rinfo.RegionID,rinfo);
+                this.Cache(rinfo.ScopeID, rinfo);
         }
         
-        public void Cache(UUID scopeID, UUID regionID, GridRegion rinfo)
+        public void Cache(UUID scopeID, GridRegion rinfo)
         {
             // for now, do not cache negative results; this is because
             // we need to figure out how to handle regions coming online
@@ -66,6 +66,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 return;
             
             m_Cache.AddOrUpdate(scopeID, rinfo, CACHE_EXPIRATION_SECONDS);
+        }
+
+        public void Cache(UUID scopeID, GridRegion rinfo, float expireSeconds)
+        {
+            // for now, do not cache negative results; this is because
+            // we need to figure out how to handle regions coming online
+            // in a timely way
+            if (rinfo == null)
+                return;
+            
+            m_Cache.AddOrUpdate(scopeID, rinfo, expireSeconds);
         }
 
         public GridRegion Get(UUID scopeID, UUID regionID, out bool inCache)
@@ -109,6 +120,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             
             return null;
         }
+
+        public GridRegion Get(UUID scopeID, int x, int y, out bool inCache)
+        {
+            inCache = false;
+
+            GridRegion rinfo = null;
+            if (m_Cache.TryGetValue(scopeID, x, y, out rinfo))
+            {
+                inCache = true;
+                return rinfo;
+            }
+            
+            return null;
+        }
+
     }
 
 
@@ -222,8 +248,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
   
     public sealed class RegionsExpiringCache
     {
-        const double CACHE_PURGE_HZ = 60;
-        const int MAX_LOCK_WAIT = 5000; // milliseconds
+        const double CACHE_PURGE_HZ = 60; // seconds
+        const int MAX_LOCK_WAIT = 10000; // milliseconds
  
         /// <summary>For thread safety</summary>
         object syncRoot = new object();
@@ -240,7 +266,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             timer.Start();
         }
 
-        public bool Add(UUID scope, GridRegion region, double expirationSeconds)
+        public bool Add(UUID scope, GridRegion region, float expirationSeconds)
         {
             if (!Monitor.TryEnter(syncRoot, MAX_LOCK_WAIT))
                 throw new ApplicationException("Lock could not be acquired after " + MAX_LOCK_WAIT + "ms");
@@ -269,7 +295,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             finally { Monitor.Exit(syncRoot);}
         }
 
-        public bool AddOrUpdate(UUID scope, GridRegion region, double expirationSeconds)
+        public bool AddOrUpdate(UUID scope, GridRegion region, float expirationSeconds)
         {
             if (!Monitor.TryEnter(syncRoot, MAX_LOCK_WAIT))
                 throw new ApplicationException("Lock could not be acquired after " + MAX_LOCK_WAIT + "ms");
@@ -456,6 +482,50 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     value = timedStorage[key];
                     return true;
                 }
+            }
+            finally { Monitor.Exit(syncRoot); }
+
+            value = null;
+            return false;
+        }
+
+        // gets a region that contains world position (x,y)
+        // hopefull will not take ages
+        public bool TryGetValue(UUID scope, int x, int y, out GridRegion value)
+        {
+            if (!Monitor.TryEnter(syncRoot, MAX_LOCK_WAIT))
+                throw new ApplicationException("Lock could not be acquired after " + MAX_LOCK_WAIT + "ms");
+            try
+            {
+                value = null;
+
+                if(timedStorage.Count == 0)
+                    return false;
+
+                foreach(KeyValuePair<RegionKey, GridRegion> kvp in timedStorage)
+                {
+                    if(kvp.Key.ScopeID != scope)
+                        continue;
+
+                    GridRegion r = kvp.Value;
+                    if(r == null) // ??
+                        continue;
+                    int test = r.RegionLocX;
+                    if(x < test)
+                        continue;
+                    test += r.RegionSizeX;
+                    if(x >= test)
+                        continue;
+                    test = r.RegionLocY;
+                    if(y < test)
+                        continue;
+                    test += r.RegionSizeY;
+                    if (y < test)
+                    {
+                        value = r;
+                        return true;
+                    }
+                 }
             }
             finally { Monitor.Exit(syncRoot); }
 

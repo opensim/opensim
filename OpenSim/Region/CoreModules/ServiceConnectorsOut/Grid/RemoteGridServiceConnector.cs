@@ -183,7 +183,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (rinfo == null)
                 rinfo = m_RemoteGridService.GetRegionByUUID(scopeID, regionID);
 
-            m_RegionInfoCache.Cache(scopeID,regionID,rinfo);
+            m_RegionInfoCache.Cache(scopeID, rinfo);
             return rinfo;
         }
 
@@ -193,46 +193,45 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         // The coordinates are world coords (meters), NOT region units.
         public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
+            // try in cache by handler first
             ulong regionHandle = Util.RegionWorldLocToHandle((uint)x, (uint)y);
-            uint regionX = Util.WorldToRegionLoc((uint)x);
-            uint regionY = Util.WorldToRegionLoc((uint)y);
 
-/*      this is no longer valid      
-            // Sanity check
-            if ((Util.RegionToWorldLoc(regionX) != (uint)x) || (Util.RegionToWorldLoc(regionY) != (uint)y))
-            {
-                m_log.WarnFormat("[REMOTE GRID CONNECTOR]: GetRegionByPosition. Bad position requested: not the base of the region. Requested Pos=<{0},{1}>, Should Be=<{2},{3}>",
-                    x, y, Util.RegionToWorldLoc(regionX), Util.RegionToWorldLoc(regionY));
-            }
-*/
             bool inCache = false;
             GridRegion rinfo = m_RegionInfoCache.Get(scopeID, regionHandle, out inCache);
             if (inCache)
-            {
-//                m_log.DebugFormat("[REMOTE GRID CONNECTOR]: GetRegionByPosition. Found region {0} in cache. Pos=<{1},{2}>, RegionHandle={3}",
-//                    (rinfo == null) ? "<missing>" : rinfo.RegionName, regionX, regionY, (rinfo == null) ? regionHandle : rinfo.RegionHandle);
                 return rinfo;
-            }
+
+            // try in cache by slower position next
+            rinfo = m_RegionInfoCache.Get(scopeID, x, y, out inCache);
+            if (inCache)
+                return rinfo;
 
             rinfo = m_LocalGridService.GetRegionByPosition(scopeID, x, y);
             if (rinfo == null)
                 rinfo = m_RemoteGridService.GetRegionByPosition(scopeID, x, y);
 
-            m_RegionInfoCache.Cache(rinfo);
+            
 
             if (rinfo == null)
+            {
+                uint regionX = Util.WorldToRegionLoc((uint)x);
+                uint regionY = Util.WorldToRegionLoc((uint)y);
                 m_log.WarnFormat("[REMOTE GRID CONNECTOR]: Requested region {0}-{1} not found", regionX, regionY);
+            }
             else
+            {
+                m_RegionInfoCache.Cache(scopeID, rinfo);
+
                 m_log.DebugFormat("[REMOTE GRID CONNECTOR]: GetRegionByPosition. Added region {0} to the cache. Pos=<{1},{2}>, RegionHandle={3}",
                     rinfo.RegionName, rinfo.RegionCoordX, rinfo.RegionCoordY, (rinfo == null) ? regionHandle : rinfo.RegionHandle);
-
+            }
             return rinfo;
         }
 
         public GridRegion GetRegionByName(UUID scopeID, string regionName)
         {
             bool inCache = false;
-            GridRegion rinfo = m_RegionInfoCache.Get(scopeID,regionName, out inCache);
+            GridRegion rinfo = m_RegionInfoCache.Get(scopeID, regionName, out inCache);
             if (inCache)
                 return rinfo;
             
@@ -241,7 +240,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 rinfo = m_RemoteGridService.GetRegionByName(scopeID, regionName);
 
             // can't cache negative results for name lookups
-            m_RegionInfoCache.Cache(rinfo);
+            m_RegionInfoCache.Cache(scopeID, rinfo);
             return rinfo;
         }
 

@@ -4539,7 +4539,13 @@ namespace OpenSim.Region.Framework.Scenes
             if (Scene.AttachmentsModule != null)
                 Scene.AttachmentsModule.CopyAttachments(this, cAgent);
 
-            cAgent.CrossingFlags = isCrossUpdate ? crossingFlags : (byte)0; 
+            if(isCrossUpdate)
+            {
+                cAgent.CrossingFlags = crossingFlags;
+                cAgent.CrossingFlags |= 1;
+            }
+            else
+                 cAgent.CrossingFlags = 0;           
 
             if(isCrossUpdate && haveGroupInformation)
             {
