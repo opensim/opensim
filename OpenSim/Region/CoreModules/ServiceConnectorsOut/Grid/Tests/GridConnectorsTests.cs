@@ -64,7 +64,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
             config.Configs["GridService"].Set("Region_Test_Region_3", "FallbackRegion");
             config.Configs["GridService"].Set("Region_Other_Region_4", "FallbackRegion");
 
-            m_LocalConnector = new LocalGridServicesConnector(config);
+            m_LocalConnector = new LocalGridServicesConnector(config, null);
         }
 
         /// <summary>
