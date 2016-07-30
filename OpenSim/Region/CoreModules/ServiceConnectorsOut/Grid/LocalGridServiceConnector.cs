@@ -148,12 +148,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 return;
 
             scene.RegisterModuleInterface<IGridService>(this);
-
-            GridRegion r = new GridRegion(scene.RegionInfo);
-
-            m_RegionInfoCache.CacheLocal(r);
-
-            scene.EventManager.OnRegionUp += OnRegionUp;
         }
 
         public void RemoveRegion(Scene scene)
@@ -167,6 +161,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public void RegionLoaded(Scene scene)
         {
+            if (!m_Enabled)
+                return;
+
+            GridRegion r = new GridRegion(scene.RegionInfo);
+
+            // tests seem not to init this correctly, so brute force
+            if( m_RegionInfoCache == null)
+                m_RegionInfoCache = new RegionInfoCache();
+
+            m_RegionInfoCache.CacheLocal(r);
+
+            scene.EventManager.OnRegionUp += OnRegionUp;
         }
 
         #endregion
