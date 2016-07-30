@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         private static string LogHeader = "[LOCAL GRID SERVICE CONNECTOR]";
 
         private IGridService m_GridService;
-        private RegionInfoCache m_RegionInfoCache = null;
+        private RegionInfoCache m_RegionInfoCache;
 
         private bool m_Enabled;
 
@@ -60,9 +60,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             m_log.DebugFormat("{0} LocalGridServicesConnector no parms.", LogHeader);
         }
 
-        public LocalGridServicesConnector(IConfigSource source, RegionInfoCache regionInfoCache)
+        public LocalGridServicesConnector(IConfigSource source)
         {
             m_log.DebugFormat("{0} LocalGridServicesConnector instantiated directly.", LogHeader);
+            InitialiseService(source, null);        
+        }
+
+        public LocalGridServicesConnector(IConfigSource source, RegionInfoCache regionInfoCache)
+        {
+            m_log.DebugFormat("{0} LocalGridServicesConnector instantiated directly witj cache.", LogHeader);
             InitialiseService(source, regionInfoCache);
         }
 
@@ -85,9 +91,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             {
                 string name = moduleConfig.GetString("GridServices", "");
                 if (name == Name)
-                {
-                    
-                    if(InitialiseService(source,null))
+                {                   
+                    if(InitialiseService(source, null))
                         m_log.Info("[LOCAL GRID SERVICE CONNECTOR]: Local grid connector enabled");
                 }
             }
@@ -95,7 +100,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         private bool InitialiseService(IConfigSource source, RegionInfoCache ric)
         {
-            if(ric == null)
+            if(ric == null && m_RegionInfoCache == null)
                 m_RegionInfoCache = new RegionInfoCache();
             else
                 m_RegionInfoCache = ric;
@@ -150,7 +155,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             scene.RegisterModuleInterface<IGridService>(this);
 
-            m_RegionInfoCache.CacheLocal(new GridRegion(scene.RegionInfo));
+            GridRegion r = new GridRegion(scene.RegionInfo);
+            m_RegionInfoCache.CacheLocal(r);
+
             scene.EventManager.OnRegionUp += OnRegionUp;
         }
 
