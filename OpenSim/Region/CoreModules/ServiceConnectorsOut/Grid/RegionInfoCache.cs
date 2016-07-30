@@ -109,6 +109,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             
             return null;
         }
+
+        public GridRegion Get(UUID scopeID, int x, int y, out bool inCache)
+        {
+            inCache = false;
+
+            GridRegion rinfo = null;
+            if (m_Cache.TryGetValue(scopeID, x, y, out rinfo))
+            {
+                inCache = true;
+                return rinfo;
+            }
+            
+            return null;
+        }
+
     }
 
 
@@ -222,8 +237,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
   
     public sealed class RegionsExpiringCache
     {
-        const double CACHE_PURGE_HZ = 60;
-        const int MAX_LOCK_WAIT = 5000; // milliseconds
+        const double CACHE_PURGE_HZ = 60; // seconds
+        const int MAX_LOCK_WAIT = 10000; // milliseconds
  
         /// <summary>For thread safety</summary>
         object syncRoot = new object();
@@ -456,6 +471,50 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     value = timedStorage[key];
                     return true;
                 }
+            }
+            finally { Monitor.Exit(syncRoot); }
+
+            value = null;
+            return false;
+        }
+
+        // gets a region that contains world position (x,y)
+        // hopefull will not take ages
+        public bool TryGetValue(UUID scope, int x, int y, out GridRegion value)
+        {
+            if (!Monitor.TryEnter(syncRoot, MAX_LOCK_WAIT))
+                throw new ApplicationException("Lock could not be acquired after " + MAX_LOCK_WAIT + "ms");
+            try
+            {
+                value = null;
+
+                if(timedStorage.Count == 0)
+                    return false;
+
+                foreach(KeyValuePair<RegionKey, GridRegion> kvp in timedStorage)
+                {
+                    if(kvp.Key.ScopeID != scope)
+                        continue;
+
+                    GridRegion r = kvp.Value;
+                    if(r == null) // ??
+                        continue;
+                    int test = r.RegionLocX;
+                    if(x < test)
+                        continue;
+                    test += r.RegionSizeX;
+                    if(x >= test)
+                        continue;
+                    test = r.RegionLocY;
+                    if(y < test)
+                        continue;
+                    test += r.RegionSizeY;
+                    if (y < test)
+                    {
+                        value = r;
+                        return true;
+                    }
+                 }
             }
             finally { Monitor.Exit(syncRoot); }
 
