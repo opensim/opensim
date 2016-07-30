@@ -54,10 +54,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         public void Cache(GridRegion rinfo)
         {
             if (rinfo != null)
-                this.Cache(rinfo.ScopeID,rinfo.RegionID,rinfo);
+                this.Cache(rinfo.ScopeID, rinfo);
         }
         
-        public void Cache(UUID scopeID, UUID regionID, GridRegion rinfo)
+        public void Cache(UUID scopeID, GridRegion rinfo)
         {
             // for now, do not cache negative results; this is because
             // we need to figure out how to handle regions coming online
@@ -68,7 +68,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             m_Cache.AddOrUpdate(scopeID, rinfo, CACHE_EXPIRATION_SECONDS);
         }
 
-        public void Cache(UUID scopeID, UUID regionID, GridRegion rinfo, float expireSeconds)
+        public void Cache(UUID scopeID, GridRegion rinfo, float expireSeconds)
         {
             // for now, do not cache negative results; this is because
             // we need to figure out how to handle regions coming online
