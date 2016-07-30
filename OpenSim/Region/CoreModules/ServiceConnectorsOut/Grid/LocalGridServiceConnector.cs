@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         private static string LogHeader = "[LOCAL GRID SERVICE CONNECTOR]";
 
         private IGridService m_GridService;
-        static private RegionInfoCache m_RegionInfoCache = null;
+        static private RegionInfoCache m_RegionInfoCache;
 
         private bool m_Enabled;
 
