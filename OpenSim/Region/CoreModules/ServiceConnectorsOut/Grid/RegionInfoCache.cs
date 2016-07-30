@@ -156,30 +156,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
     // following code partialy adapted from lib OpenMetaverse
     public class RegionKey 
     {
-        public UUID m_scopeID;
-        public UUID m_RegionID;
-        private DateTime m_expirationDate;
+        public UUID ScopeID;
+        public UUID RegionID;
 
         public RegionKey(UUID scopeID, UUID id)
         {
-            m_scopeID = scopeID;
-            m_RegionID = id;
+            ScopeID = scopeID;
+            RegionID = id;
         }
-
-        public UUID ScopeID
-        {
-            get { return m_scopeID; }
-        }
-        public DateTime ExpirationDate
-        {
-            get { return m_expirationDate; }
-            set { m_expirationDate = value; }
-        }
-
+  
         public override int GetHashCode()
         {
-            int hash = m_scopeID.GetHashCode();
-            hash += hash * 23 + m_RegionID.GetHashCode();
+            int hash = ScopeID.GetHashCode();
+            hash += hash * 23 + RegionID.GetHashCode();
             return hash;
         }
 
@@ -188,7 +177,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if(b == null)
                 return false;
             RegionKey kb = b as RegionKey;
-            return (m_scopeID == kb.m_scopeID && m_RegionID == kb.m_RegionID);    
+            return (ScopeID == kb.ScopeID && RegionID == kb.RegionID);    
         }
     }
 
@@ -196,14 +185,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
     {
         public override int GetHashCode(RegionKey rk)
         {
-            int hash = rk.m_scopeID.GetHashCode();
-            hash += hash * 23 + rk.m_RegionID.GetHashCode();
-            return hash;
+            return rk.GetHashCode();
         }
 
         public override bool Equals(RegionKey a, RegionKey b)
         {
-            return (a.m_scopeID == b.m_scopeID && a.m_RegionID == b.m_RegionID);    
+            return (a.ScopeID == b.ScopeID && a.RegionID == b.RegionID);    
         }
     }
 
@@ -291,6 +278,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         static RegionKeyEqual keyequal = new RegionKeyEqual();
         Dictionary<RegionKey, GridRegion> timedStorage = new Dictionary<RegionKey, GridRegion>(keyequal);
+        Dictionary<RegionKey, DateTime> timedExpires = new Dictionary<RegionKey, DateTime>();
         Dictionary<UUID, RegionInfoByScope> InfobyScope = new Dictionary<UUID, RegionInfoByScope>();
         private System.Timers.Timer timer = new System.Timers.Timer(TimeSpan.FromSeconds(CACHE_PURGE_HZ).TotalMilliseconds);
 
@@ -312,8 +300,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 if (timedStorage.ContainsKey(key))
                     return false;
 
-                key.ExpirationDate = DateTime.UtcNow + TimeSpan.FromSeconds(expirationSeconds);
-                timedStorage.Add(key, region);
+                DateTime expire = DateTime.UtcNow + TimeSpan.FromSeconds(expirationSeconds);
+                timedStorage[key] = region;
+                timedExpires[key] = expire;
 
                 RegionInfoByScope ris = null;
                 if(!InfobyScope.TryGetValue(scope, out ris) || ris == null)
@@ -337,12 +326,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             try
             {
                 RegionKey key = new RegionKey(scope, region.RegionID);
-                key.ExpirationDate = DateTime.UtcNow + TimeSpan.FromSeconds(expirationSeconds);
+                DateTime expire = DateTime.UtcNow + TimeSpan.FromSeconds(expirationSeconds);
 
                 if (timedStorage.ContainsKey(key))
                 {
-                    timedStorage.Remove(key);
-                    timedStorage.Add(key, region);
+                    timedStorage[key] = region;
+                    if(expire > timedExpires[key])
+                        timedExpires[key] = expire;
 
                     if(!InfobyScope.ContainsKey(scope))
                     {
@@ -353,7 +343,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 }
                 else
                 {
-                    timedStorage.Add(key, region);
+                    timedStorage[key] = region;
+                    timedExpires[key] = expire;
                     RegionInfoByScope ris = null;
                     if(!InfobyScope.TryGetValue(scope, out ris) || ris == null)
                     {
@@ -375,6 +366,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             try
             {
                 timedStorage.Clear();
+                timedExpires.Clear();
                 InfobyScope.Clear();
             }
             finally { Monitor.Exit(syncRoot); }
@@ -428,6 +420,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                             InfobyScope.Remove(scope);
                     }
                     timedStorage.Remove(key);
+                    timedExpires.Remove(key);
                     return true;
                 }
                 else
@@ -581,9 +574,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 if (!timedStorage.ContainsKey(key))
                     return false;
 
-                timedStorage.Remove(key);
-                key.ExpirationDate = DateTime.UtcNow + TimeSpan.FromSeconds(expirationSeconds);
-                timedStorage.Add(key, region);
+                DateTime expire = DateTime.UtcNow + TimeSpan.FromSeconds(expirationSeconds);
+                timedStorage[key] = region;
+                if(expire > timedExpires[key])
+                    timedExpires[key] = expire;
+
                 return true;
             }
             finally { Monitor.Exit(syncRoot); }
@@ -609,26 +604,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     return;
                 try
                 {
-                    OpenMetaverse.Lazy<List<object>> expiredItems = new OpenMetaverse.Lazy<List<object>>();
+                    List<RegionKey> expiredkeys = new List<RegionKey>();
 
-                    foreach (RegionKey timedKey in timedStorage.Keys)
+                    foreach (KeyValuePair<RegionKey, DateTime> kvp in timedExpires)
                     {
-                        if (timedKey.ExpirationDate < signalTime)
-                        {
-                            // Mark the object for purge
-                            expiredItems.Value.Add(timedKey);
-                        }
-                        else
-                        {
-                            break;
-                        }
+                        if (kvp.Value < signalTime)
+                            expiredkeys.Add(kvp.Key);
                     }
-
-
-                    RegionInfoByScope ris;
-                    if (expiredItems.IsValueCreated)
+                    
+                    if (expiredkeys.Count > 0)
                     {
-                        foreach (RegionKey key in expiredItems.Value)
+                        RegionInfoByScope ris;
+                        foreach (RegionKey key in expiredkeys)
                         {
                             ris = null;
                             if(InfobyScope.TryGetValue(key.ScopeID, out ris) && ris != null)
@@ -641,6 +628,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                                     InfobyScope.Remove(key.ScopeID);
                             }
                             timedStorage.Remove(key);
+                            timedExpires.Remove(key);
                         }
                     }
                 }
