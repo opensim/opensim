@@ -155,10 +155,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             scene.RegisterModuleInterface<IGridService>(this);
 
-            // tests seem not to init this correctly, so brute force
-//            if( m_RegionInfoCache == null)
-//                m_RegionInfoCache = new RegionInfoCache();
-
             GridRegion r = new GridRegion(scene.RegionInfo);
             m_RegionInfoCache.CacheLocal(r);
 
