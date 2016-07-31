@@ -368,13 +368,16 @@ namespace OpenSim.Framework
             return Utils.UIntsToLong(X, Y);
         }
 
-        // Regions are identified with a 'handle' made up of its region coordinates packed into a ulong.
-        // Several places rely on the ability to extract a region's location from its handle.
-        // Note the location is in 'world coordinates' (see below).
-        // Region handles are based on the lowest coordinate of the region so trim the passed x,y to be the regions 0,0.
+        // Regions are identified with a 'handle' made up of its world coordinates packed into a ulong.
+        // Region handles are based on the coordinate of the region corner with lower X and Y
+        // var regions need more work than this to get that right corner from a generic world position
+        // this corner must be on a grid point 
         public static ulong RegionWorldLocToHandle(uint X, uint Y)
         {
-            return Utils.UIntsToLong(X, Y);
+           ulong handle = X & 0xffffff00; // make sure it matchs grid coord points.
+           handle <<= 32; // to higher half
+           handle |= (Y & 0xffffff00);
+           return handle;
         }
 
         public static ulong RegionGridLocToHandle(uint X, uint Y)
@@ -387,30 +390,27 @@ namespace OpenSim.Framework
         public static void RegionHandleToWorldLoc(ulong handle, out uint X, out uint Y)
         {
             X = (uint)(handle >> 32);
-            Y = (uint)(handle & (ulong)uint.MaxValue);
+            Y = (uint)(handle & 0xfffffffful);
         }
 
         public static void RegionHandleToRegionLoc(ulong handle, out uint X, out uint Y)
         {
-            uint worldX, worldY;
-            RegionHandleToWorldLoc(handle, out worldX, out worldY);
-            X = WorldToRegionLoc(worldX);
-            Y = WorldToRegionLoc(worldY);
+            X = (uint)(handle >> 40) & 0x00ffffffu; //  bring from higher half, divide by 256 and clean
+            Y = (uint)(handle >> 8) & 0x00ffffffu; // divide by 256 and clean
+            // if you trust the uint cast then the clean can be removed.
         }
 
-        // A region location can be 'world coordinates' (meters from zero) or 'region coordinates'
-        //      (number of regions from zero). This measurement of regions relies on the legacy 256 region size.
-        // These routines exist to make what is being converted explicit so the next person knows what was meant.
-        // Convert a region's 'world coordinate' to its 'region coordinate'.
+        // A region location can be 'world coordinates' (meters) or 'region grid coordinates'
+        // grid coordinates have a fixed step of 256m as defined by viewers
         public static uint WorldToRegionLoc(uint worldCoord)
         {
-            return worldCoord / Constants.RegionSize;
+            return worldCoord >> 8;
         }
 
-        // Convert a region's 'region coordinate' to its 'world coordinate'.
+        // Convert a region's 'region grid coordinate' to its 'world coordinate'.
         public static uint RegionToWorldLoc(uint regionCoord)
         {
-            return regionCoord * Constants.RegionSize;
+            return regionCoord << 8;
         }
 
         public static T Clamp<T>(T x, T min, T max)
