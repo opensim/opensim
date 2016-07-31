@@ -1537,8 +1537,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public ScenePresence CrossAsync(ScenePresence agent, bool isFlying)
         {
-            uint x;
-            uint y;
             Vector3 newpos;
             EntityTransferContext ctx = new EntityTransferContext();
             string failureReason;
@@ -1814,7 +1812,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // In any case
             agent.IsInTransit = false;
 
-            m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
+//            m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
         }
 
         #endregion
@@ -2115,79 +2113,62 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         //    contains that point. A conservitive estimate.
         private class NotFoundLocationCache
         {
-            private struct NotFoundLocation
-            {
-                public double minX, maxX, minY, maxY;
-                public DateTime expireTime;
-            }
-            private List<NotFoundLocation> m_notFoundLocations = new List<NotFoundLocation>();
+            private Dictionary<ulong, DateTime> m_notFoundLocations = new Dictionary<ulong, DateTime>();
             public NotFoundLocationCache()
             {
             }
-            // Add an area to the list of 'not found' places. The area is the snapped region
-            //    area around the added point.
+            // just use normal regions handlers and sizes
             public void Add(double pX, double pY)
             {
+                ulong psh = (ulong)pX & 0xffffff00ul;
+                psh <<= 32;
+                psh |= (ulong)pY & 0xffffff00ul;
+
                 lock (m_notFoundLocations)
-                {
-                    if (!LockedContains(pX, pY))
-                    {
-                        NotFoundLocation nfl = new NotFoundLocation();
-                        // A not found location is not found for at least a whole region sized area
-                        nfl.minX = pX - (pX % (double)Constants.RegionSize);
-                        nfl.minY = pY - (pY % (double)Constants.RegionSize);
-                        nfl.maxX = nfl.minX + (double)Constants.RegionSize;
-                        nfl.maxY = nfl.minY + (double)Constants.RegionSize;
-                        nfl.expireTime = DateTime.Now + TimeSpan.FromSeconds(30);
-                        m_notFoundLocations.Add(nfl);
-                    }
-                }
-                
+                    m_notFoundLocations[psh] = DateTime.Now + TimeSpan.FromSeconds(30);;
             }
             // Test to see of this point is in any of the 'not found' areas.
             // Return 'true' if the point is found inside the 'not found' areas.
             public bool Contains(double pX, double pY)
             {
-                bool ret = false;
+                ulong psh = (ulong)pX & 0xffffff00ul;
+                psh <<= 32;
+                psh |= (ulong)pY & 0xffffff00ul;
+
                 lock (m_notFoundLocations)
-                    ret = LockedContains(pX, pY);
-                return ret;
-            }
-            private bool LockedContains(double pX, double pY)
-            {
-                bool ret = false;
-                this.DoExpiration();
-                foreach (NotFoundLocation nfl in m_notFoundLocations)
                 {
-                    if (pX >= nfl.minX && pX < nfl.maxX && pY >= nfl.minY && pY < nfl.maxY)
+                    if(m_notFoundLocations.ContainsKey(psh))
                     {
-                        ret = true;
-                        break;
+                        if(m_notFoundLocations[psh] > DateTime.UtcNow)
+                            return true;
+                        m_notFoundLocations.Remove(psh);
                     }
+                    return false;
                 }
-                return ret;
             }
+
             private void DoExpiration()
             {
-                List<NotFoundLocation> m_toRemove = null;
-                DateTime now = DateTime.Now;
-                foreach (NotFoundLocation nfl in m_notFoundLocations)
+                List<ulong> m_toRemove = new List<ulong>();;
+                DateTime now = DateTime.UtcNow;
+                lock (m_notFoundLocations)
                 {
-                    if (nfl.expireTime < now)
+                    foreach (KeyValuePair<ulong, DateTime> kvp in m_notFoundLocations)
                     {
-                        if (m_toRemove == null)
-                            m_toRemove = new List<NotFoundLocation>();
-                        m_toRemove.Add(nfl);
+                        if (kvp.Value < now)
+                            m_toRemove.Add(kvp.Key);
                     }
-                }
-                if (m_toRemove != null)
-                {
-                    foreach (NotFoundLocation nfl in m_toRemove)
-                        m_notFoundLocations.Remove(nfl);
-                    m_toRemove.Clear();
+ 
+                    if (m_toRemove.Count > 0)
+                    {
+                        foreach (ulong u in m_toRemove)
+                            m_notFoundLocations.Remove(u);
+                        m_toRemove.Clear();
+                    }
                 }
             }
         }
+
         #endregion // NotFoundLocationCache class
         private NotFoundLocationCache m_notFoundLocationCache = new NotFoundLocationCache();
 
@@ -2202,7 +2183,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
  
         // Given a world position, get the GridRegion info for
         //   the region containing that point.
-        // Someday this should be a method on GridService.
+        // Not needed on 0.9 grids
         // 'pSizeHint' is the size of the source region but since the destination point can be anywhere
         //     the size of the target region is unknown thus the search area might have to be very large.
         // Return 'null' if no such region exists.
@@ -2233,8 +2214,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             ret = pGridService.GetRegionByPosition(pScopeID, (int)possibleX, (int)possibleY);
             if (ret != null)
             {
-                m_log.DebugFormat("{0} GetRegionContainingWorldLocation: Found region using legacy size. rloc=<{1},{2}>. Rname={3}",
-                                    LogHeader, possibleX, possibleY, ret.RegionName);
+//                m_log.DebugFormat("{0} GetRegionContainingWorldLocation: Found region using legacy size. rloc=<{1},{2}>. Rname={3}",
+//                                    LogHeader, possibleX, possibleY, ret.RegionName);
             }
 
             if (ret == null)
@@ -2248,21 +2229,21 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     List<GridRegion> possibleRegions = pGridService.GetRegionRange(pScopeID,
                                         (int)(px - range), (int)(px),
                                         (int)(py - range), (int)(py));
-                    m_log.DebugFormat("{0} GetRegionContainingWorldLocation: possibleRegions cnt={1}, range={2}",
-                                        LogHeader, possibleRegions.Count, range);
+//                    m_log.DebugFormat("{0} GetRegionContainingWorldLocation: possibleRegions cnt={1}, range={2}",
+//                                        LogHeader, possibleRegions.Count, range);
                     if (possibleRegions != null && possibleRegions.Count > 0)
                     {
                         // If we found some regions, check to see if the point is within
                         foreach (GridRegion gr in possibleRegions)
                         {
-                            m_log.DebugFormat("{0} GetRegionContainingWorldLocation: possibleRegion nm={1}, regionLoc=<{2},{3}>, regionSize=<{4},{5}>",
-                                                LogHeader, gr.RegionName, gr.RegionLocX, gr.RegionLocY, gr.RegionSizeX, gr.RegionSizeY);
+//                           m_log.DebugFormat("{0} GetRegionContainingWorldLocation: possibleRegion nm={1}, regionLoc=<{2},{3}>, regionSize=<{4},{5}>",
+//                                                LogHeader, gr.RegionName, gr.RegionLocX, gr.RegionLocY, gr.RegionSizeX, gr.RegionSizeY);
                             if (px >= (double)gr.RegionLocX && px < (double)(gr.RegionLocX + gr.RegionSizeX)
                                 && py >= (double)gr.RegionLocY && py < (double)(gr.RegionLocY + gr.RegionSizeY))
                             {
                                 // Found a region that contains the point
                                 ret = gr;
-                                m_log.DebugFormat("{0} GetRegionContainingWorldLocation: found. RegionName={1}", LogHeader, ret.RegionName);
+//                                m_log.DebugFormat("{0} GetRegionContainingWorldLocation: found. RegionName={1}", LogHeader, ret.RegionName);
                                 break;
                             }
                         }
@@ -2276,7 +2257,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 // remember this location was not found so we can quickly not find it next time
                 m_notFoundLocationCache.Add(px, py);
-                m_log.DebugFormat("{0} GetRegionContainingWorldLocation: Not found. Remembering loc=<{1},{2}>", LogHeader, px, py);
+//                m_log.DebugFormat("{0} GetRegionContainingWorldLocation: Not found. Remembering loc=<{1},{2}>", LogHeader, px, py);
             }
 
             return ret;
