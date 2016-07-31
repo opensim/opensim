@@ -373,12 +373,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 if(r == null) // ??
                     continue;
 
-                if(handle < r.RegionHandle)
+                int test = r.RegionLocX;
+                if(x < test)
                     continue;
-                int test = r.RegionLocX + r.RegionSizeX;
+                test += r.RegionSizeX;
                 if(x >= test)
                     continue;
-                test = r.RegionLocY + r.RegionSizeY;
+                test = r.RegionLocY;
+                if (y < test)
+                    continue;
+                test +=  r.RegionSizeY;
                 if (y < test)
                     return r;
             }
