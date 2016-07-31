@@ -1588,7 +1588,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             agent.Scene.RequestTeleportLocation(
                 agent.ControllingClient, 
-                Util.RegionLocToHandle(regionX, regionY),
+                Util.RegionGridLocToHandle(regionX, regionY),
                 position, 
                 agent.Lookat, 
                 (uint)Constants.TeleportFlags.ViaLocation);

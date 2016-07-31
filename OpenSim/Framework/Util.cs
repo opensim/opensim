@@ -377,9 +377,11 @@ namespace OpenSim.Framework
             return Utils.UIntsToLong(X, Y);
         }
 
-        public static ulong RegionLocToHandle(uint X, uint Y)
+        public static ulong RegionGridLocToHandle(uint X, uint Y)
         {
-            return Utils.UIntsToLong(Util.RegionToWorldLoc(X), Util.RegionToWorldLoc(Y));
+            ulong handle = X << 40; // shift to higher half and mult by 256)
+            handle |= (Y << 8);  // mult by 256)
+            return handle;
         }
 
         public static void RegionHandleToWorldLoc(ulong handle, out uint X, out uint Y)
@@ -1303,7 +1305,7 @@ namespace OpenSim.Framework
                 }
                 catch (Exception e)
                 {
-                    m_log.WarnFormat("[UTILS]: Exception copying configuration file {0} to {1}: {2}", exampleConfigFile, configFile, e.Message);
+                    m_log.WarnFormat("[UTILS]: Exception copying configuration file {0} to {1}: {2}", configFile, exampleConfigFile, e.Message);
                     return false;
                 }
             }
