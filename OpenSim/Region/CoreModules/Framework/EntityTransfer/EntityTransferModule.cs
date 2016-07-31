@@ -136,7 +136,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     if (m_idCache.TryGetValue(pRegionHandle, out m_banUntil))
                     {
-                        if (DateTime.Now < m_banUntil)
+                        if (DateTime.UtcNow < m_banUntil)
                         {
                             ret = true;
                         }
@@ -157,7 +157,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     m_idCache = new ExpiringCache<ulong, DateTime>();
                     m_bannedRegions.Add(pAgentID, m_idCache, TimeSpan.FromSeconds(newTime));
                 }
-                m_idCache.Add(pRegionHandle, DateTime.Now + TimeSpan.FromSeconds(extendTime), TimeSpan.FromSeconds(extendTime));
+                m_idCache.Add(pRegionHandle, DateTime.UtcNow + TimeSpan.FromSeconds(extendTime), TimeSpan.FromSeconds(extendTime));
             }
 
             // Remove the agent from the region's banned list
