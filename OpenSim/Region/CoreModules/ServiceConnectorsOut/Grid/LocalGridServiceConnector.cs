@@ -166,7 +166,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (!m_Enabled)
                 return;
 
-            m_RegionInfoCache.Remove(scene.RegionInfo.ScopeID, scene.RegionInfo.RegionID);
+            m_RegionInfoCache.Remove(scene.RegionInfo.ScopeID, scene.RegionInfo.RegionHandle);
             scene.EventManager.OnRegionUp -= OnRegionUp;
         }
 
@@ -220,16 +220,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         //     be the base coordinate of the region.
         public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
+
             // try in cache by handler first
-            ulong regionHandle = Util.RegionWorldLocToHandle((uint)x, (uint)y);
+//            ulong regionHandle = Util.RegionWorldLocToHandle((uint)x, (uint)y);
 
             bool inCache = false;
-            GridRegion rinfo = m_RegionInfoCache.Get(scopeID, regionHandle, out inCache);
-            if (inCache)
-                return rinfo;
+//            GridRegion rinfo = m_RegionInfoCache.Get(scopeID, regionHandle, out inCache);
+//            if (inCache)
+//                return rinfo;
 
-            // try in cache by slower position next
-            rinfo = m_RegionInfoCache.Get(scopeID, x, y, out inCache);
+            GridRegion rinfo = m_RegionInfoCache.Get(scopeID, (uint)x, (uint)y, out inCache);
             if (inCache)
                 return rinfo;
 
