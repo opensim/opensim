@@ -852,19 +852,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public void osTeleportAgent(string agent, int regionX, int regionY, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
+        public void osTeleportAgent(string agent, int regionGridX, int regionGridY, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
             // High because there is no security check. High griefer potential
             //
             CheckThreatLevel(ThreatLevel.Severe, "osTeleportAgent");
 
-            TeleportAgent(agent, regionX, regionY, position, lookat, false);
+            TeleportAgent(agent, regionGridX, regionGridY, position, lookat, false);
         }
 
-        private void TeleportAgent(string agent, int regionX, int regionY,
+        private void TeleportAgent(string agent, int regionGridX, int regionGridY,
             LSL_Types.Vector3 position, LSL_Types.Vector3 lookat, bool relaxRestrictions)
         {
-            ulong regionHandle = Util.RegionLocToHandle((uint)regionX, (uint)regionY);
+            ulong regionHandle = Util.RegionGridLocToHandle((uint)regionGridX, (uint)regionGridY);
 
             m_host.AddScriptLPS(1);
             UUID agentId = new UUID();
@@ -917,11 +917,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             osTeleportOwner(World.RegionInfo.RegionName, position, lookat);
         }
 
-        public void osTeleportOwner(int regionX, int regionY, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
+        public void osTeleportOwner(int regionGridX, int regionGridY, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
             CheckThreatLevel(ThreatLevel.None, "osTeleportOwner");
 
-            TeleportAgent(m_host.OwnerID.ToString(), regionX, regionY, position, lookat, true);
+            TeleportAgent(m_host.OwnerID.ToString(), regionGridX, regionGridY, position, lookat, true);
         }
 
         ///<summary>

@@ -204,8 +204,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             GridRegion rinfo = m_LocalGridService.GetRegionByPosition(scopeID, x, y);
             if (rinfo != null)
             {
-                m_log.DebugFormat("[REMOTE GRID CONNECTOR]: GetRegionByPosition. Added region {0} to the cache from local. Pos=<{1},{2}>, RegionHandle={3}",
-                    rinfo.RegionName, rinfo.RegionCoordX, rinfo.RegionCoordY, rinfo.RegionHandle);
+//                m_log.DebugFormat("[REMOTE GRID CONNECTOR]: GetRegionByPosition. Found region {0} on local. Pos=<{1},{2}>, RegionHandle={3}",
+//                    rinfo.RegionName, rinfo.RegionCoordX, rinfo.RegionCoordY, rinfo.RegionHandle);
                 return rinfo;
             }
 
@@ -213,16 +213,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             if (rinfo == null)
             {
-                uint regionX = Util.WorldToRegionLoc((uint)x);
-                uint regionY = Util.WorldToRegionLoc((uint)y);
-                m_log.WarnFormat("[REMOTE GRID CONNECTOR]: Requested region {0}-{1} not found", regionX, regionY);
+//                uint regionX = Util.WorldToRegionLoc((uint)x);
+//                uint regionY = Util.WorldToRegionLoc((uint)y);
+//                m_log.WarnFormat("[REMOTE GRID CONNECTOR]: Requested region {0}-{1} not found", regionX, regionY);
             }
             else
             {
                 m_RegionInfoCache.Cache(scopeID, rinfo);
 
-                m_log.DebugFormat("[REMOTE GRID CONNECTOR]: GetRegionByPosition. Added region {0} to the cache. Pos=<{1},{2}>, RegionHandle={3}",
-                    rinfo.RegionName, rinfo.RegionCoordX, rinfo.RegionCoordY, rinfo.RegionHandle);
+//                m_log.DebugFormat("[REMOTE GRID CONNECTOR]: GetRegionByPosition. Added region {0} to the cache. Pos=<{1},{2}>, RegionHandle={3}",
+//                    rinfo.RegionName, rinfo.RegionCoordX, rinfo.RegionCoordY, rinfo.RegionHandle);
             }
             return rinfo;
         }
