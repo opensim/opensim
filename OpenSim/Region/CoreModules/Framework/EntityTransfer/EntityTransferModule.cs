@@ -2125,7 +2125,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 psh |= (ulong)pY & 0xffffff00ul;
 
                 lock (m_notFoundLocations)
-                    m_notFoundLocations[psh] = DateTime.Now + TimeSpan.FromSeconds(30);;
+                    m_notFoundLocations[psh] = DateTime.UtcNow + TimeSpan.FromSeconds(30);
             }
             // Test to see of this point is in any of the 'not found' areas.
             // Return 'true' if the point is found inside the 'not found' areas.
@@ -2146,7 +2146,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     return false;
                 }
             }
-
+            
             private void DoExpiration()
             {
                 List<ulong> m_toRemove = new List<ulong>();;
