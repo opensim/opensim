@@ -136,7 +136,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     if (m_idCache.TryGetValue(pRegionHandle, out m_banUntil))
                     {
-                        if (DateTime.Now < m_banUntil)
+                        if (DateTime.UtcNow < m_banUntil)
                         {
                             ret = true;
                         }
@@ -157,7 +157,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     m_idCache = new ExpiringCache<ulong, DateTime>();
                     m_bannedRegions.Add(pAgentID, m_idCache, TimeSpan.FromSeconds(newTime));
                 }
-                m_idCache.Add(pRegionHandle, DateTime.Now + TimeSpan.FromSeconds(extendTime), TimeSpan.FromSeconds(extendTime));
+                m_idCache.Add(pRegionHandle, DateTime.UtcNow + TimeSpan.FromSeconds(extendTime), TimeSpan.FromSeconds(extendTime));
             }
 
             // Remove the agent from the region's banned list
@@ -2125,7 +2125,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 psh |= (ulong)pY & 0xffffff00ul;
 
                 lock (m_notFoundLocations)
-                    m_notFoundLocations[psh] = DateTime.Now + TimeSpan.FromSeconds(30);;
+                    m_notFoundLocations[psh] = DateTime.UtcNow + TimeSpan.FromSeconds(30);
             }
             // Test to see of this point is in any of the 'not found' areas.
             // Return 'true' if the point is found inside the 'not found' areas.
@@ -2146,7 +2146,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     return false;
                 }
             }
-
+            
             private void DoExpiration()
             {
                 List<ulong> m_toRemove = new List<ulong>();;
