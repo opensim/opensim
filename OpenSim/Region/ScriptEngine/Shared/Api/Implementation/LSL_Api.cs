@@ -6394,7 +6394,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if(dir.x == 0.0 && dir.y == 0.0)
+            if(dir.x == 0 && dir.y == 0)
                 return 1; // SL wiki
 
             float rsx = World.RegionInfo.RegionSizeX;
@@ -6409,9 +6409,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (dir.x == 0)
             {
                 ex = px;
-                ey = dir.y > 0.0 ? rsy + 1.0f : -1.0f;
+                ey = dir.y > 0 ? rsy + 1.0f : -1.0f;
             }
-            else if(dir.y == 0.0f)
+            else if(dir.y == 0)
             {
                 ex = dir.x > 0 ? rsx + 1.0f : -1.0f;
                 ey = py;
@@ -6422,6 +6422,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 float dy = (float) dir.y;
 
                 float t1 = dx * dx + dy * dy;
+                t1 = (float)Math.Sqrt(t1);
                 dx /= t1;
                 dy /= t1;
 
@@ -6429,7 +6430,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     t1 = (rsx + 1f - px)/dx;
                 else
                     t1 = -(px + 1f)/dx;
-
 
                 float t2;
                 if(dy > 0)
