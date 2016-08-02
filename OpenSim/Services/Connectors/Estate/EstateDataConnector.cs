@@ -119,7 +119,7 @@ namespace OpenSim.Services.Connectors
             List<int> eids = new List<int>();
             // If we don't have them, load them from the server
             List<EstateSettings> estates = null;
-            if (!m_EstateCache.TryGetValue("estates", out estates))
+            if (!m_EstateCache.TryGetValue("estates", out estates) || estates == null)
                 LoadEstateSettingsAll();
 
             foreach (EstateSettings es in estates)
@@ -132,7 +132,7 @@ namespace OpenSim.Services.Connectors
         {
             // If we don't have them, load them from the server
             List<EstateSettings> estates = null;
-            if (!m_EstateCache.TryGetValue("estates", out estates))
+            if (!m_EstateCache.TryGetValue("estates", out estates) || estates == null)
                 LoadEstateSettingsAll();
 
             List<int> eids = new List<int>();
@@ -147,7 +147,7 @@ namespace OpenSim.Services.Connectors
         {
             // If we don't have them, load them from the server
             List<EstateSettings> estates = null;
-            if (!m_EstateCache.TryGetValue("estates", out estates))
+            if (!m_EstateCache.TryGetValue("estates", out estates) || estates == null)
                 LoadEstateSettingsAll();
 
             List<int> eids = new List<int>();
