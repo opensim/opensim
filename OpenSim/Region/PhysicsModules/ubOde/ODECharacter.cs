@@ -1108,7 +1108,24 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 vec.Z = depth * PID_P * 50;
 
                 if (!flying)
+                {
                     vec.Z += -vel.Z * PID_D;
+                    if(n.Z < 0.4f)
+                    {
+                        vec.X = depth * PID_P * 50 - vel.X * PID_D;
+                        vec.X *= n.X;
+                        vec.Y = depth * PID_P * 50 - vel.Y * PID_D;
+                        vec.Y *= n.Y;
+                        vec.Z *= n.Z;
+                        if(n.Z < 0.1f)
+                        {
+                            // cancel the slope pose
+                            n.X = 0f;
+                            n.Y = 0f;
+                            n.Z = 1.0f;
+                         }
+                    }               
+                }
 
                 if (depth < 0.2f)
                 {
