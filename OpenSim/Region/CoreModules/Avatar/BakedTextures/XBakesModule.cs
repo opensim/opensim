@@ -131,7 +131,13 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
                                 if(sr.Name=="AssetBase")
                                 {
                                     AssetBase a = (AssetBase)m_serializer.Deserialize(sr);
-                                    ret.Add(new WearableCacheItem() { CacheId = lCacheId,TextureIndex =                 (uint)lTextureIndex,TextureAsset = a,TextureID = a.FullID });
+                                    ret.Add(new WearableCacheItem()
+                                        {
+                                        CacheId = lCacheId,
+                                        TextureIndex = (uint)lTextureIndex,
+                                        TextureAsset = a,
+                                        TextureID = a.FullID
+                                        });
                                     sr.ReadEndElement();
                                 }
                             }
