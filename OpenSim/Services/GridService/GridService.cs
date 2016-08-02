@@ -341,7 +341,7 @@ namespace OpenSim.Services.GridService
 
             return String.Empty;
         }
-
+/*
         /// <summary>
         /// Search the region map for regions conflicting with this region.
         /// The region to be added is passed and we look for any existing regions that are
@@ -433,7 +433,7 @@ namespace OpenSim.Services.GridService
             //     is the non-conflicting region found at the location being requested.
             return region;
         }
-
+*/
         // String describing name and region location of passed region
         private String RegionString(RegionData reg)
         {
@@ -548,8 +548,8 @@ namespace OpenSim.Services.GridService
             }
             else
             {
-                m_log.DebugFormat("{0} GetRegionByPosition. Did not find region in database. Pos=<{1},{2}>",
-                                 LogHeader, regionX, regionY);
+//                m_log.DebugFormat("{0} GetRegionByPosition. Did not find region in database. Pos=<{1},{2}>",
+//                                 LogHeader, regionX, regionY);
                 return null;
             }
         }

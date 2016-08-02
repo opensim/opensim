@@ -288,23 +288,24 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             if (bakedTextures.Count == 0)
                 return false;
 
+            IImprovedAssetCache cache = sp.Scene.RequestModuleInterface<IImprovedAssetCache>();
+            if(cache == null)
+                return true; // no baked local caching so nothing to do
+
             foreach (BakeType bakeType in bakedTextures.Keys)
             {
                 Primitive.TextureEntryFace bakedTextureFace = bakedTextures[bakeType];
 
                 if (bakedTextureFace == null)
-                {
-                    // This can happen legitimately, since some baked textures might not exist
-                    //m_log.WarnFormat(
-                    //    "[AV FACTORY]: No texture ID set for {0} for {1} in {2} not found when trying to save permanently",
-                    //    bakeType, sp.Name, m_scene.RegionInfo.RegionName);
                     continue;
-                }
 
-                AssetBase asset = m_scene.AssetService.Get(bakedTextureFace.TextureID.ToString());
+                AssetBase asset = cache.Get(bakedTextureFace.TextureID.ToString());
 
-                if (asset != null)
+                if (asset != null && asset.Local)
                 {
+                    // cache does not update asset contents
+                    cache.Expire(bakedTextureFace.TextureID.ToString());
+
                     // Replace an HG ID with the simple asset ID so that we can persist textures for foreign HG avatars
                     asset.ID = asset.FullID.ToString();
 
@@ -312,7 +313,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     asset.Local = false;
                     m_scene.AssetService.Store(asset);
                 }
-                else
+
+                if (asset == null)
                 {
                     m_log.WarnFormat(
                         "[AV FACTORY]: Baked texture id {0} not found for bake {1} for avatar {2} in {3} when trying to save permanently",
