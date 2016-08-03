@@ -27,6 +27,7 @@
 using System;
 using System.Reflection;
 using System.Threading;
+using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
@@ -159,6 +160,136 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         }
     }
 
+    //  dont care about endianess
+    [StructLayout(LayoutKind.Explicit, Size = 8, Pack = 8)]
+    public class fastRegionHandle
+    {
+        [FieldOffset(0)] public ulong handle;
+        [FieldOffset(0)] public uint y;
+        [FieldOffset(4)] public uint x;
+
+        public fastRegionHandle(ulong h)
+        {
+            handle = h;
+        }
+
+        public fastRegionHandle(uint px, uint py)
+        {
+            y = py & 0xffffff00;
+            x = px & 0xffffff00;
+        }
+        // actually do care
+        public ulong toHandle()
+        {
+            if(BitConverter.IsLittleEndian)
+                return handle;
+            return  (ulong) x << 32 | (ulong)y ;
+        }
+
+        public static bool operator ==(fastRegionHandle value1, fastRegionHandle value2)
+        {
+            return value1.handle == value2.handle;
+        }
+        public static bool operator !=(fastRegionHandle value1, fastRegionHandle value2)
+        {
+            return value1.handle != value2.handle;
+        }
+        public override int GetHashCode()
+        {
+            return handle.GetHashCode();
+        }
+        public override bool Equals(Object obj)
+        {
+            if(obj == null)
+                return false;
+            fastRegionHandle p = obj as fastRegionHandle;
+            return p.handle == handle;
+        }
+    }
+
+/*
+    [StructLayout(LayoutKind.Explicit, Size = 8, Pack = 8)]
+    public class regionHandle
+    {
+        [FieldOffset(0)] private ulong handle;
+        [FieldOffset(0)] public uint a;
+        [FieldOffset(4)] public uint b;
+
+        public regionHandle(ulong h)
+        {
+            handle = h;
+        }
+
+        public regionHandle(uint px, uint py)
+        {
+            if(BitConverter.IsLittleEndian)
+            {
+                a = py & 0xffffff00;
+                b = px & 0xffffff00;
+            }
+            else
+            {
+                a = px & 0xffffff00;
+                b = py & 0xffffff00;
+            }
+        }
+
+        public uint x
+        {
+            get
+            {
+                if(BitConverter.IsLittleEndian)
+                    return b;
+                return a;
+            }
+            set
+            {
+                if(BitConverter.IsLittleEndian)
+                    b = value & 0xffffff00;
+                else
+                    a = value & 0xffffff00;
+             }
+        }
+
+        public uint y
+        {
+            get
+            {
+                if(BitConverter.IsLittleEndian)
+                    return a;
+                return b;
+            }
+            set
+            {
+                if(BitConverter.IsLittleEndian)
+                    a = value;
+                else
+                    b = value;
+             }
+        }
+
+        public static bool operator ==(regionHandle value1, regionHandle value2)
+        {
+            return value1.handle == value2.handle;
+        }
+        public static bool operator !=(regionHandle value1, regionHandle value2)
+        {
+            return value1.handle != value2.handle;
+        }
+        public override int GetHashCode()
+        {
+            return handle.GetHashCode();
+        }
+        public override bool Equals(Object obj)
+        {
+            if(obj == null)
+                return false;
+            regionHandle p = obj as regionHandle;
+            return p.handle == handle;
+        }
+    }
+*/
+
     public class RegionInfoForScope
     {
         public const ulong HANDLEMASH = 0xffffff00ffffff00ul;
@@ -168,6 +299,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         private Dictionary<ulong, DateTime> expires;
         private Dictionary<string, ulong> byname;
         private Dictionary<UUID, ulong> byuuid;
+        // includes handles to the inside of large regions
+        private Dictionary<ulong, ulong> innerHandles = new Dictionary<ulong, ulong>(); 
 
         public RegionInfoForScope()
         {
@@ -189,6 +322,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
            expires[handle] = expire;
            byname[region.RegionName] = handle;
            byuuid[region.RegionID] = handle;
+           addToInner(region);
         }
 
         public void Add(GridRegion region, DateTime expire)
@@ -211,6 +345,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             expires[handle] = expire; 
             byname[region.RegionName] = handle;
             byuuid[region.RegionID] = handle;
+
+            addToInner(region);
         }
 
         public void AddUpdate(GridRegion region, DateTime expire)
@@ -226,16 +362,30 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             ulong handle = region.RegionHandle & HANDLEMASH;
 
-            storage[handle] = region;
             if(expires.ContainsKey(handle))
             {
                 if(expires[handle] < expire)
                     expires[handle] = expire;
+                if(storage.ContainsKey(handle))
+                {
+                    GridRegion oldr = storage[handle];
+                    if (oldr.RegionSizeX != region.RegionSizeX
+                        || oldr.RegionSizeY != region.RegionSizeY)
+                    {
+                        removeFromInner(oldr);
+                        addToInner(region);
+                    }
+                }
             }
             else
-                expires[handle] = expire; 
+            {
+                expires[handle] = expire;
+                addToInner(region);
+            }
+            storage[handle] = region;
             byname[region.RegionName] = handle;
             byuuid[region.RegionID] = handle;
+           
         }
 
         public void Remove(GridRegion region)
@@ -272,6 +422,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                         byname.Remove(r.RegionName);
                     if(byuuid != null)
                         byuuid.Remove(r.RegionID);
+                    removeFromInner(r);
                 }
                 storage.Remove(handle);
             }
@@ -297,6 +448,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             byuuid = null;
             storage = null;
             expires = null;
+            innerHandles.Clear();
         }
 
         public bool Contains(GridRegion region)
@@ -365,7 +517,34 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             if(storage.ContainsKey(handle))
                 return storage[handle];
- 
+
+            if(!innerHandles.ContainsKey(handle))
+                return null;
+            
+            ulong rhandle = innerHandles[handle];
+            if(!storage.ContainsKey(rhandle))
+                return null;
+
+            GridRegion r = storage[rhandle];
+            if(r == null)
+                return null;
+                
+            // extra check, possible redundant
+
+            int test = r.RegionLocX;
+            if(x < test)
+                return null;
+            test += r.RegionSizeX;
+            if(x >= test)
+                return null;
+            test = r.RegionLocY;
+            if (y < test)
+                return null;
+            test +=  r.RegionSizeY;
+            if (y < test)
+                return r;
+
+/* 
             // next do the harder work
             foreach(KeyValuePair<ulong, GridRegion> kvp in storage)
             {
@@ -386,6 +565,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 if (y < test)
                     return r;
             }
+*/
             return null;
         }
 
@@ -421,6 +601,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                             byname.Remove(r.RegionName);
                         if(byuuid != null)
                             byuuid.Remove(r.RegionID);
+                        removeFromInner(r);
                     }
                    storage.Remove(h);
                 }
@@ -446,6 +627,46 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 return 0;
             else
                 return byname.Count;
+        }
+
+        private void addToInner(GridRegion region)
+        {
+            int rsx = region.RegionSizeX >> 8;
+            int rsy = region.RegionSizeY >> 8;
+            ulong handle = region.RegionHandle & HANDLEMASH;
+            fastRegionHandle fh = new fastRegionHandle(handle);
+            uint startY = fh.y;
+            for(int i = 0; i < rsx; i++)
+            {
+                for(int j = 0; j < rsy ; j++)
+                {
+                    innerHandles[fh.toHandle()] = handle;
+                    fh.y += 256;
+                }
+                    
+                fh.y = startY;
+                fh.x += 256;
+            }
+        }
+
+        private void removeFromInner(GridRegion region)
+        {
+            int rsx = region.RegionSizeX >> 8;
+            int rsy = region.RegionSizeY >> 8;
+            ulong handle = region.RegionHandle & HANDLEMASH;
+            fastRegionHandle fh = new fastRegionHandle(handle);
+            uint startY = fh.y;
+            for(int i = 0; i < rsx; i++)
+            {
+                for(int j = 0; j < rsy ; j++)
+                {
+                    innerHandles.Remove(fh.toHandle());
+                    fh.y += 256;
+                }
+                    
+                fh.y = startY;
+                fh.x += 256;
+            }
         }
     }
   
