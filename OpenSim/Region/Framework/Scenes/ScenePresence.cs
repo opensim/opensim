@@ -568,7 +568,7 @@ namespace OpenSim.Region.Framework.Scenes
         public string Firstname { get; private set; }
         public string Lastname { get; private set; }
 
-        public bool haveGroupInformation;
+        public bool haveGroupUpdate;
         public bool gotCrossUpdate;
         public byte crossingFlags;
 
@@ -1508,7 +1508,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public void MakeChildAgent(ulong newRegionHandle)
         {
-            haveGroupInformation = false;
+            haveGroupUpdate = false;
             gotCrossUpdate = false;
             crossingFlags = 0;
             m_scene.EventManager.OnRegionHeartbeatEnd -= RegionHeartbeatEnd;
@@ -1978,9 +1978,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_log.DebugFormat("[CompleteMovement] MakeRootAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
-                if(!haveGroupInformation && !IsChildAgent && !isNPC)
+                if(!haveGroupUpdate && !IsChildAgent && !isNPC)
                 {
-                    // oh crap.. lets retry it directly
                     IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
                     if (gm != null)
                         Grouptitle = gm.GetGroupTitle(m_uuid);
@@ -2204,14 +2203,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.DebugFormat("[CompleteMovement] friendsModule: {0}ms",    Util.EnvironmentTickCountSubtract(ts));
 
                 }
-                if(gotCrossUpdate)
-                {
-                    // override group info with authorative data
-                    IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
-                    if (gm != null)
-                        gm.SendAgentGroupDataUpdate(ControllingClient);
-                    m_log.DebugFormat("[CompleteMovement] delayed groups: {0}ms",    Util.EnvironmentTickCountSubtract(ts));
-                }               
+
             }
             finally
             {
@@ -2224,7 +2216,7 @@ namespace OpenSim.Region.Framework.Scenes
  //               m_currentParcelHide = newhide;
  //           }
 
-            haveGroupInformation = true;
+            haveGroupUpdate = false;
             gotCrossUpdate = false;
             crossingFlags = 0;
 
@@ -4557,24 +4549,12 @@ namespace OpenSim.Region.Framework.Scenes
             else
                  cAgent.CrossingFlags = 0;           
 
-            if(isCrossUpdate && haveGroupInformation)
+            if(isCrossUpdate)
             {
                 cAgent.agentCOF = COF;
                 cAgent.ActiveGroupID = ControllingClient.ActiveGroupId;
                 cAgent.ActiveGroupName = ControllingClient.ActiveGroupName;
                 cAgent.ActiveGroupTitle = Grouptitle;
-                Dictionary<UUID, ulong> gpowers = ControllingClient.GetGroupPowers();
-                if(gpowers.Count >0)
-                {
-                    cAgent.Groups = new AgentGroupData[gpowers.Count];
-                    int i = 0;
-                    foreach (UUID gid in gpowers.Keys)
-                    {
-                        // WARNING we dont' have AcceptNotices in cache.. sending as true mb no one notices ;)
-                        AgentGroupData agd = new AgentGroupData(gid,gpowers[gid],true);
-                        cAgent.Groups[i++] = agd;
-                    }
-                }
             }
         }
 
@@ -4671,45 +4651,31 @@ namespace OpenSim.Region.Framework.Scenes
             if (Scene.AttachmentsModule != null)
                 Scene.AttachmentsModule.CopyAttachments(cAgent, this);
 
-            haveGroupInformation = false;
+            crossingFlags = cAgent.CrossingFlags;
+            gotCrossUpdate = (crossingFlags != 0);
 
+            haveGroupUpdate = false;
             // using this as protocol detection don't want to mess with the numbers for now
             if(cAgent.ActiveGroupTitle != null)
             {
+                haveGroupUpdate = true;
                 COF = cAgent.agentCOF;
-                ControllingClient.ActiveGroupId = cAgent.ActiveGroupID;
-                ControllingClient.ActiveGroupName = cAgent.ActiveGroupName;
-                ControllingClient.ActiveGroupPowers = 0;
-                Grouptitle = cAgent.ActiveGroupTitle;
-                
-                if(cAgent.Groups != null && cAgent.Groups.Length > 0)
+                if(ControllingClient.IsGroupMember(cAgent.ActiveGroupID))
                 {
-                    int ngroups = cAgent.Groups.Length;
-                    Dictionary<UUID, ulong> gpowers = new Dictionary<UUID, ulong>(ngroups);
-                    for(int i = 0 ; i < ngroups; i++)
-                    {
-                        AgentGroupData agd = cAgent.Groups[i];
-                        gpowers[agd.GroupID] = agd.GroupPowers;
-                    }
-
-                    ControllingClient.SetGroupPowers(gpowers);
-
-                    if(cAgent.ActiveGroupID == UUID.Zero)
-                        haveGroupInformation = true;
-                    else if(gpowers.ContainsKey(cAgent.ActiveGroupID))
-                    {
-                        ControllingClient.ActiveGroupPowers = gpowers[cAgent.ActiveGroupID];
-                        haveGroupInformation = true;
-                    }
+                    ControllingClient.ActiveGroupId = cAgent.ActiveGroupID;
+                    ControllingClient.ActiveGroupName = cAgent.ActiveGroupName;
+                    Grouptitle = cAgent.ActiveGroupTitle;
+                    ControllingClient.ActiveGroupPowers = 
+                            ControllingClient.GetGroupPowers(cAgent.ActiveGroupID);
                 }
-                else if(cAgent.ActiveGroupID == UUID.Zero)
+                else
                 {
-                    haveGroupInformation = true;
+                    // we got a unknown active group so get what groups thinks about us
+                    IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
+                    if (gm != null)
+                        gm.SendAgentGroupDataUpdate(ControllingClient);
                 }
             }
-
-            crossingFlags = cAgent.CrossingFlags;
-            gotCrossUpdate = (crossingFlags != 0);
 
             lock (m_originRegionIDAccessLock)
                 m_originRegionID = cAgent.RegionID;

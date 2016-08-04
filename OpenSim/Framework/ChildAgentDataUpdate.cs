@@ -358,7 +358,6 @@ namespace OpenSim.Framework
         public UUID agentCOF;
         public byte CrossingFlags;
 
-        public AgentGroupData[] Groups;
         public Dictionary<ulong, string> ChildrenCapSeeds = null;
         public Animation[] Anims;
         public Animation DefaultAnim = null;
@@ -436,14 +435,6 @@ namespace OpenSim.Framework
             if(ActiveGroupTitle != null)
                 args["active_group_title"] = OSD.FromString(ActiveGroupTitle);
            
-            if ((Groups != null) && (Groups.Length > 0))
-            {
-                OSDArray groups = new OSDArray(Groups.Length);
-                foreach (AgentGroupData agd in Groups)
-                    groups.Add(agd.PackUpdateMessage());
-                args["groups"] = groups;
-            }
-
             if (ChildrenCapSeeds != null && ChildrenCapSeeds.Count > 0)
             {
                 OSDArray childrenSeeds = new OSDArray(ChildrenCapSeeds.Count);
@@ -635,20 +626,6 @@ namespace OpenSim.Framework
             
             if(args.ContainsKey("active_group_title") && args["active_group_title"] != null)
                 ActiveGroupTitle = args["active_group_title"].AsString();
-
-            if (args.ContainsKey("groups") && (args["groups"] != null) && (args["groups"]).Type == OSDType.Array)
-            {
-                OSDArray groups = (OSDArray)(args["groups"]);
-                Groups = new AgentGroupData[groups.Count];
-                int i = 0;
-                foreach (OSD o in groups)
-                {
-                    if (o.Type == OSDType.Map)
-                    {
-                        Groups[i++] = new AgentGroupData((OSDMap)o);
-                    }
-                }
-            }
 
             if (args.ContainsKey("children_seeds") && (args["children_seeds"] != null) &&
                             (args["children_seeds"].Type == OSDType.Array))
