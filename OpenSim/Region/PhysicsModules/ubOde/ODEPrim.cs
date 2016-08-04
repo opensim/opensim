@@ -81,7 +81,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private Vector3 _position;
         private Vector3 _velocity;
-        private Vector3 m_torque;
         private Vector3 m_lastVelocity;
         private Vector3 m_lastposition;
         private Vector3 m_rotationalVelocity;
@@ -89,9 +88,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private Vector3 _acceleration;
         private IntPtr Amotor;
 
-        private Vector3 m_force;
-        private Vector3 m_forceacc;
-        private Vector3 m_angularForceacc;
+        internal Vector3 m_force;
+        internal Vector3 m_forceacc;
+        internal Vector3 m_torque;
+        internal Vector3 m_angularForceacc;
 
         private float m_invTimeStep;
         private float m_timeStep;

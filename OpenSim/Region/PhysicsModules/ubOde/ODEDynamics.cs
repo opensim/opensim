@@ -935,8 +935,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 float roll;
                 float pitch;
 
-
-
                 float ftmp = m_invtimestep / m_verticalAttractionTimescale / m_verticalAttractionTimescale;
 
                 float ftmp2;
@@ -956,7 +954,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 effroll *= effroll;
                 effroll = 1 - effroll;
                 effroll *= roll;
-
 
                 torque.X += effroll * ftmp;
 
@@ -1074,10 +1071,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 torque.Z -= curLocalAngVel.Z * m_amdampZ;
             }
           
+            force *= dmass.mass;
+
+            force += rootPrim.m_force;
+            force += rootPrim.m_forceacc;
+            rootPrim.m_forceacc = Vector3.Zero;
 
             if (force.X != 0 || force.Y != 0 || force.Z != 0)
             {
-                force *= dmass.mass;
                 d.BodyAddForce(Body, force.X, force.Y, force.Z);
             }
 
@@ -1091,6 +1092,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 d.MultiplyM3V3(out dvtmp, ref dmass.I, ref dtorque);
                 d.BodyAddRelTorque(Body, dvtmp.X, dvtmp.Y, dvtmp.Z); // add torque in object frame
             }
+
+            torque = rootPrim.m_torque;
+            torque += rootPrim.m_angularForceacc;
+            rootPrim.m_angularForceacc = Vector3.Zero;
+            if (torque.X != 0 || torque.Y != 0 || torque.Z != 0)
+                d.BodyAddTorque(Body,torque.X, torque.Y, torque.Z);
         }
     }
 }
