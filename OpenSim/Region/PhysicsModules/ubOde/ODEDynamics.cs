@@ -828,7 +828,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
            
             // hover
-            if (m_VhoverTimescale < 300 && rootPrim.prim_geom != IntPtr.Zero)
+            if (m_VhoverTimescale < 300 && m_VhoverHeight >0 && rootPrim.prim_geom != IntPtr.Zero)
             {
                 //                d.Vector3 pos = d.BodyGetPosition(Body);
                 d.Vector3 pos = d.GeomGetPosition(rootPrim.prim_geom);
