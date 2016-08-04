@@ -292,8 +292,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
     public class RegionInfoForScope
     {
-        public const ulong HANDLEMASH = 0xffffff00ffffff00ul;
-        public const ulong HANDLECOORDMASH = 0xffffff00ul;
+        public const ulong HANDLEMASK = 0xffffff00ffffff00ul;
+        public const ulong HANDLECOORDMASK = 0xffffff00ul;
 
         private Dictionary<ulong, GridRegion> storage;
         private Dictionary<ulong, DateTime> expires;
@@ -317,7 +317,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
            byname = new Dictionary<string, ulong>();
            byuuid = new Dictionary<UUID, ulong>();
 
-           ulong handle = region.RegionHandle & HANDLEMASH;
+           ulong handle = region.RegionHandle & HANDLEMASK;
            storage[handle] = region;
            expires[handle] = expire;
            byname[region.RegionName] = handle;
@@ -327,7 +327,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public void Add(GridRegion region, DateTime expire)
         {
-            ulong handle = region.RegionHandle & HANDLEMASH;
+            ulong handle = region.RegionHandle & HANDLEMASK;
 
             if(storage != null && storage.ContainsKey(handle))
                 return;
@@ -360,7 +360,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if(byuuid == null)
                 byuuid = new Dictionary<UUID, ulong>();
 
-            ulong handle = region.RegionHandle & HANDLEMASH;
+            ulong handle = region.RegionHandle & HANDLEMASK;
 
             if(expires.ContainsKey(handle))
             {
@@ -398,7 +398,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if(byuuid != null)
                 byuuid.Remove(region.RegionID);
 
-            ulong handle = region.RegionHandle & HANDLEMASH;
+            ulong handle = region.RegionHandle & HANDLEMASK;
             if(storage != null)
                storage.Remove(handle);
             if(expires != null)
@@ -411,7 +411,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public void Remove(ulong handle)
         {
-            handle &= HANDLEMASH;
+            handle &= HANDLEMASK;
 
             if(storage != null)
             {
@@ -458,7 +458,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if(region == null)
                 return false;
 
-            ulong handle = region.RegionHandle & HANDLEMASH;
+            ulong handle = region.RegionHandle & HANDLEMASK;
             return storage.ContainsKey(handle);
         }
 
@@ -467,7 +467,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if(storage == null)
                 return false;
 
-            handle &= HANDLEMASH;
+            handle &= HANDLEMASK;
             return storage.ContainsKey(handle);
         }
 
@@ -476,7 +476,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if(storage == null)
                 return null;
 
-            handle &= HANDLEMASH;
+            handle &= HANDLEMASK;
             if(storage.ContainsKey(handle))
                 return storage[handle];
             
@@ -511,9 +511,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 return null;
 
             // look for a handle first this should find normal size regions
-            ulong handle = (ulong)x & HANDLECOORDMASH;
+            ulong handle = (ulong)x & HANDLECOORDMASK;
             handle <<= 32;
-            handle |= ((ulong)y & HANDLECOORDMASH);
+            handle |= ((ulong)y & HANDLECOORDMASK);
 
             if(storage.ContainsKey(handle))
                 return storage[handle];
@@ -640,7 +640,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             rsx >>= 8;
             rsy >>= 8;
 
-            ulong handle = region.RegionHandle & HANDLEMASH;
+            ulong handle = region.RegionHandle & HANDLEMASK;
             fastRegionHandle fh = new fastRegionHandle(handle);
             uint startY = fh.y;
             for(int i = 0; i < rsx; i++)
@@ -658,9 +658,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         private void removeFromInner(GridRegion region)
         {
-            int rsx = region.RegionSizeX >> 8;
-            int rsy = region.RegionSizeY >> 8;
-            ulong handle = region.RegionHandle & HANDLEMASH;
+            int rsx = region.RegionSizeX;
+            int rsy = region.RegionSizeY;
+
+            if(rsx < 512 && rsy < 512)
+                return;
+
+            rsx >>= 8;
+            rsy >>= 8;
+            ulong handle = region.RegionHandle & HANDLEMASK;
             fastRegionHandle fh = new fastRegionHandle(handle);
             uint startY = fh.y;
             for(int i = 0; i < rsx; i++)
