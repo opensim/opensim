@@ -401,6 +401,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             ulong handle = region.RegionHandle & HANDLEMASK;
             if(storage != null)
                storage.Remove(handle);
+            removeFromInner(region);
             if(expires != null)
             {
                 expires.Remove(handle);
@@ -479,7 +480,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             handle &= HANDLEMASK;
             if(storage.ContainsKey(handle))
                 return storage[handle];
+
+            if(!innerHandles.ContainsKey(handle))
+                return null;
             
+            ulong rhandle = innerHandles[handle];
+            if(storage.ContainsKey(rhandle))
+                return storage[rhandle];
+
             return null;
         }
 
