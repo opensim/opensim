@@ -631,8 +631,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         private void addToInner(GridRegion region)
         {
-            int rsx = region.RegionSizeX >> 8;
-            int rsy = region.RegionSizeY >> 8;
+            int rsx = region.RegionSizeX;
+            int rsy = region.RegionSizeY;
+
+            if(rsx < 512 && rsy < 512)
+                return;
+
+            rsx >>= 8;
+            rsy >>= 8;
+
             ulong handle = region.RegionHandle & HANDLEMASH;
             fastRegionHandle fh = new fastRegionHandle(handle);
             uint startY = fh.y;
