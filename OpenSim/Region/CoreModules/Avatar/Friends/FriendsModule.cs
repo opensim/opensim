@@ -217,7 +217,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnClientClosed += OnClientClosed;
-//            scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
+            scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
             scene.EventManager.OnClientLogin += OnClientLogin;
         }
 
@@ -364,16 +364,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         public void IsNowRoot(ScenePresence sp)
         {
-            RecacheFriends(sp.ControllingClient);
-
-            lock (m_NeedsToNotifyStatus)
-            {
-                if (m_NeedsToNotifyStatus.Remove(sp.UUID))
-                {
-                    // Inform the friends that this user is online. This can only be done once the client is a Root Agent.
-                    StatusChange(sp.UUID, true);
-                }
-            }
+            OnMakeRootAgent(sp);
         }
 
         public virtual bool SendFriendsOnlineIfNeeded(IClientAPI client)
