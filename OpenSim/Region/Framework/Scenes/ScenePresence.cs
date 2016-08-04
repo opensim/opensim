@@ -2199,9 +2199,17 @@ namespace OpenSim.Region.Framework.Scenes
                         else
                             friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
                     }
-                    m_log.DebugFormat("[CompleteMovement] friendsModule: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                    m_log.DebugFormat("[CompleteMovement] friendsModule: {0}ms",    Util.EnvironmentTickCountSubtract(ts));
 
                 }
+                if(gotCrossUpdate)
+                {
+                    // override group info with authorative data
+                    IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
+                    if (gm != null)
+                        gm.SendAgentGroupDataUpdate(ControllingClient);
+                    m_log.DebugFormat("[CompleteMovement] delayed groups: {0}ms",    Util.EnvironmentTickCountSubtract(ts));
+                }               
             }
             finally
             {
