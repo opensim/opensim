@@ -568,7 +568,7 @@ namespace OpenSim.Region.Framework.Scenes
         public string Firstname { get; private set; }
         public string Lastname { get; private set; }
 
-        public bool haveGroupUpdate;
+        public bool haveGroupInformation;
         public bool gotCrossUpdate;
         public byte crossingFlags;
 
@@ -1508,7 +1508,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public void MakeChildAgent(ulong newRegionHandle)
         {
-            haveGroupUpdate = false;
+            haveGroupInformation = false;
             gotCrossUpdate = false;
             crossingFlags = 0;
             m_scene.EventManager.OnRegionHeartbeatEnd -= RegionHeartbeatEnd;
@@ -1978,7 +1978,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_log.DebugFormat("[CompleteMovement] MakeRootAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
-                if(!haveGroupUpdate && !IsChildAgent && !isNPC)
+                if(!haveGroupInformation && !IsChildAgent && !isNPC)
                 {
                     IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
                     if (gm != null)
@@ -2216,7 +2216,7 @@ namespace OpenSim.Region.Framework.Scenes
  //               m_currentParcelHide = newhide;
  //           }
 
-            haveGroupUpdate = false;
+            haveGroupInformation = false;
             gotCrossUpdate = false;
             crossingFlags = 0;
 
@@ -4654,11 +4654,11 @@ namespace OpenSim.Region.Framework.Scenes
             crossingFlags = cAgent.CrossingFlags;
             gotCrossUpdate = (crossingFlags != 0);
 
-            haveGroupUpdate = false;
+            haveGroupInformation = false;
             // using this as protocol detection don't want to mess with the numbers for now
             if(cAgent.ActiveGroupTitle != null)
             {
-                haveGroupUpdate = true;
+                haveGroupInformation = true;
                 COF = cAgent.agentCOF;
                 if(ControllingClient.IsGroupMember(cAgent.ActiveGroupID))
                 {
