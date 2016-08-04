@@ -714,6 +714,12 @@ namespace OpenSim.Groups
             return m_groupData.GetAgentGroupMembership(UUID.Zero.ToString(), agentID.ToString(), groupID);
         }
 
+        public GroupMembershipData GetActiveMembershipData(UUID agentID)
+        {
+            string agentIDstr = agentID.ToString();
+            return m_groupData.GetAgentActiveMembership(agentIDstr, agentIDstr);
+        }
+
         public void UpdateGroupInfo(IClientAPI remoteClient, UUID groupID, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment, bool allowPublish, bool maturePublish)
         {
             if (m_debugEnabled) m_log.DebugFormat("[Groups]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);

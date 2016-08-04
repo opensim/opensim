@@ -182,11 +182,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
                     m_ClientMap.Add(client.AgentId, client);
                 }
             }
-
-            GroupMembershipData[] updateGroups = new GroupMembershipData[1];
-            updateGroups[0] = osGroup;
-
-            client.SendGroupMembership(updateGroups);
         }
 
         private void OnAgentDataUpdateRequest(IClientAPI remoteClient,
@@ -235,6 +230,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
                 }
             }
             remote_client.SendGroupNameReply(groupUUID, groupnamereply);
+        }
+
+        public GroupMembershipData[] GetMembershipData(UUID agentID)
+        {
+            GroupMembershipData[] updateGroups = new GroupMembershipData[1];
+            updateGroups[0] = osGroup;
+            return updateGroups;
+        }
+
+        public GroupMembershipData GetActiveMembershipData(UUID agentID)
+        {
+            return osGroup;
         }
 
         private void OnClientClosed(UUID agentID, Scene scene)

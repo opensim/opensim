@@ -76,6 +76,7 @@ namespace OpenSim.Region.Framework.Interfaces
         GroupProfileData GroupProfileRequest(IClientAPI remoteClient, UUID groupID);
         GroupMembershipData[] GetMembershipData(UUID UserID);
         GroupMembershipData GetMembershipData(UUID GroupID, UUID UserID);
+        GroupMembershipData GetActiveMembershipData(UUID UserID);
 
         void UpdateGroupInfo(IClientAPI remoteClient, UUID groupID, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment, bool allowPublish, bool maturePublish);
 
