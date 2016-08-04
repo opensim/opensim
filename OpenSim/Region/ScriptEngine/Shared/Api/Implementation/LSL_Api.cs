@@ -16426,11 +16426,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private OSD ListToJson(object o)
         {
-            if (o is LSL_Float)
-                return OSD.FromReal(((LSL_Float)o).value);
-            if (o is LSL_Integer)
+            if (o is LSL_Float || o is double)
             {
-                int i = ((LSL_Integer)o).value;
+                double float_val;
+                if (o is double)
+                    float_val = ((double)o);
+                else
+                    float_val = ((LSL_Float)o).value;
+
+                return OSD.FromReal(float_val);
+            }
+            if (o is LSL_Integer || o is int)
+            {
+                int i;
+                if (o is int)
+                    i = ((int)o);
+                else
+                    i = ((LSL_Integer)o).value;
+
                 if (i == 0)
                     return OSD.FromBoolean(false);
                 else if (i == 1)
@@ -16441,9 +16454,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return OSD.FromString(((LSL_Rotation)o).ToString());
             if (o is LSL_Vector)
                 return OSD.FromString(((LSL_Vector)o).ToString());
-            if (o is LSL_String)
+            if (o is LSL_String || o is string)
             {
-                string str = ((LSL_String)o).m_string;
+                string str;
+                if (o is string)
+                    str = ((string)o);
+                else
+                    str = ((LSL_String)o).m_string;
+
                 if (str == ScriptBaseClass.JSON_NULL)
                     return new OSD();
                 return OSD.FromString(str);
