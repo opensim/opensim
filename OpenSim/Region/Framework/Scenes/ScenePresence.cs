@@ -1094,6 +1094,8 @@ namespace OpenSim.Region.Framework.Scenes
                     m_LandingPointBehavior = LandingPointBehavior.SL;
             }
 
+            ControllingClient.RefreshGroupMembership();
+
         }
 
         private float lastHealthSent = 0;

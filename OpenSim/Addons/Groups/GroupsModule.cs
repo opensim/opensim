@@ -1284,7 +1284,7 @@ namespace OpenSim.Groups
 
             GroupMembershipData[] membershipArray = GetProfileListedGroupMemberships(remoteClient, agentID);
 
-            remoteClient.RefreshGroupMembership();
+            remoteClient.UpdateGroupMembership(membershipArray);
             remoteClient.SendAgentGroupDataUpdate(agentID, membershipArray);
         }
 

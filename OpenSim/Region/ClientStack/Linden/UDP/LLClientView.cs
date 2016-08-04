@@ -13148,11 +13148,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             lock(m_groupPowers)
             {
+                GroupMembershipData activeMembership = null;
                 if (m_GroupsModule != null)
                 {
                     GroupMembershipData[] GroupMembership =
                         m_GroupsModule.GetMembershipData(AgentId);
-
+                    
                     m_groupPowers.Clear();
                         
                     if (GroupMembership != null)
@@ -13162,6 +13163,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             m_groupPowers[GroupMembership[i].GroupID] = GroupMembership[i].GroupPowers;
                         }
                     }
+
+                    activeMembership = m_GroupsModule.GetActiveMembershipData(AgentId);
+                    if(activeMembership != null)
+                    {
+                        if(!m_groupPowers.ContainsKey(activeMembership.GroupID))
+                            activeMembership = null;
+                        else
+                        {
+                            m_activeGroupID = activeMembership.GroupID;
+                            m_activeGroupName = activeMembership.GroupName;
+                            m_activeGroupPowers = ActiveGroupPowers;
+                        }
+                    }    
+                }
+
+                if(activeMembership == null)
+                {
+                    m_activeGroupID = UUID.Zero;
+                    m_activeGroupName = "";
+                    m_activeGroupPowers = 0;
                 }
             }
         }
