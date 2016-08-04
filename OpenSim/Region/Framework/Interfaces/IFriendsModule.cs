@@ -94,7 +94,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="perms">These come from the FriendRights enum.</param>
         void GrantRights(IClientAPI remoteClient, UUID friendID, int perms);
 
-        void IsNpwRoot(ScenePresence sp);
+        void IsNowRoot(ScenePresence sp);
         bool SendFriendsOnlineIfNeeded(IClientAPI client);
     }
 }

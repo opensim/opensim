@@ -2195,7 +2195,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (friendsModule != null)
                     { 
                         if(gotCrossUpdate)
-                            friendsModule.IsNpwRoot(this);
+                            friendsModule.IsNowRoot(this);
                         else
                             friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
                     }

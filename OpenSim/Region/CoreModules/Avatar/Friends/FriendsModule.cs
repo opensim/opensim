@@ -362,7 +362,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 m_NeedsListOfOnlineFriends.Add(agentID);
         }
 
-        public void IsNpwRoot(ScenePresence sp)
+        public void IsNowRoot(ScenePresence sp)
         {
             RecacheFriends(sp.ControllingClient);
 
