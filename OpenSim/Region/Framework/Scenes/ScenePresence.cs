@@ -224,7 +224,7 @@ namespace OpenSim.Region.Framework.Scenes
                             return true;
                         if (!land.LandData.GroupAVSounds)
                             return false;
-                        return land.LandData.GroupID == ControllingClient.ActiveGroupId;
+                        return ControllingClient.IsGroupMember(land.LandData.GroupID);
                     }
                 }
                 catch
