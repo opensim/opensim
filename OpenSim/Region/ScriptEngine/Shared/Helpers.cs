@@ -266,7 +266,8 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return;
 
                 Name = obj.nameStr;
-                Owner = obj.keyUUID;
+                Key = obj.keyUUID;
+                Owner = obj.ownerUUID;
                 Group = obj.groupUUID;
                 Position = new LSL_Types.Vector3(obj.posVector);
                 Rotation = new LSL_Types.Quaternion(obj.rotQuat);
@@ -281,7 +282,8 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return;
 
             Name = obj.nameStr;
-            Owner = obj.keyUUID;
+            Key = obj.keyUUID;
+            Owner = obj.ownerUUID;
             Group = obj.groupUUID;
             Position = new LSL_Types.Vector3(obj.posVector);
             Rotation = new LSL_Types.Quaternion(obj.rotQuat);
