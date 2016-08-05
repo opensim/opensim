@@ -2454,7 +2454,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="itemID"></param>
-        /// <param name="groupID"></param>
+        /// <param name="rezGroupID"></param>
         /// <param name="RayEnd"></param>
         /// <param name="RayStart"></param>
         /// <param name="RayTargetID"></param>
@@ -2465,7 +2465,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="RezSelected"></param>
         /// <param name="RemoveItem"></param>
         /// <param name="fromTaskID"></param>
-        public virtual void RezObject(IClientAPI remoteClient, UUID itemID, UUID groupID,
+        public virtual void RezObject(IClientAPI remoteClient, UUID itemID, UUID rezGroupID,
                                     Vector3 RayEnd, Vector3 RayStart,
                                     UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                                     bool RezSelected, bool RemoveItem, UUID fromTaskID)
@@ -2479,7 +2479,7 @@ namespace OpenSim.Region.Framework.Scenes
                 IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
                 if (invAccess != null)
                     invAccess.RezObject(
-                        remoteClient, itemID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
+                        remoteClient, itemID, rezGroupID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
                         RezSelected, RemoveItem, fromTaskID, false);
             }
             else
