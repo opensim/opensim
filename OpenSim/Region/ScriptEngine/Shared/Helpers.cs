@@ -121,7 +121,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
             Type = 0;
             Velocity = new LSL_Types.Vector3();
             initializeSurfaceTouch();
-            Country = String.Empty;
         }
 
         public UUID Key;
@@ -152,8 +151,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
         private int touchFace;
         public int TouchFace { get { return touchFace; } }
-
-        public string Country;
 
         // This can be done in two places including the constructor
         // so be carefull what gets added here
@@ -202,9 +199,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return;
 
                 Name = presence.Firstname + " " + presence.Lastname;
-                UserAccount account = scene.UserAccountService.GetUserAccount(scene.RegionInfo.ScopeID, Key);
-                if (account != null)
-                    Country = account.UserCountry;
 
                 Owner = Key;
                 Position = new LSL_Types.Vector3(presence.AbsolutePosition);

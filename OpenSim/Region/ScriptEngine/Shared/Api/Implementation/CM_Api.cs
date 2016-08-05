@@ -94,14 +94,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public string cmDetectedCountry(int number)
         {
             m_host.AddScriptLPS(1);
+            if(!m_CMFunctionsEnabled)
+                return String.Empty;
+            if(World.UserAccountService == null)
+                return String.Empty;
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
             if (detectedParams == null)
                 return String.Empty;
-            return detectedParams.Country;
+            UUID key = detectedParams.Key;
+            if(key == UUID.Zero)
+                return String.Empty;
+            UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, key);
+            return account.UserCountry;
         }
 
         public string cmGetAgentCountry(LSL_Key key)
         {
+            if(! m_CMFunctionsEnabled)
+                return "";
+            if(World.UserAccountService == null)
+                return String.Empty;
             if (!World.Permissions.IsGod(m_host.OwnerID))
                 return String.Empty;
 
