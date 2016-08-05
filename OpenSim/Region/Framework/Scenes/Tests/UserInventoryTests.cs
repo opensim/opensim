@@ -171,7 +171,7 @@ namespace OpenSim.Region.Framework.Tests
             //Assert.That((retrievedItem1.CurrentPermissions & (uint)OpenMetaverse.PermissionMask.All) == (uint)OpenMetaverse.PermissionMask.All);
 
             // Rez the object
-            scene.RezObject(sp2.ControllingClient, retrievedItem1.ID, Vector3.Zero, Vector3.Zero, UUID.Zero, 0, false, false, false, UUID.Zero);
+            scene.RezObject(sp2.ControllingClient, retrievedItem1.ID, UUID.Zero, Vector3.Zero, Vector3.Zero, UUID.Zero, 0, false, false, false, UUID.Zero);
             SceneObjectGroup sog = scene.GetSceneObjectGroup("SomeObject");
             Assert.That(sog, Is.Not.Null);
 

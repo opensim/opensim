@@ -818,9 +818,19 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             
             return item;
         }
-
+        // compatibility do not use
         public virtual SceneObjectGroup RezObject(
             IClientAPI remoteClient, UUID itemID, Vector3 RayEnd, Vector3 RayStart,
+            UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
+            bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
+        {
+            return RezObject(remoteClient, itemID, UUID.Zero, RayEnd, RayStart,
+                    RayTargetID, BypassRayCast, RayEndIsIntersection,
+                    RezSelected, RemoveItem, fromTaskID, attachment);
+        }
+
+        public virtual SceneObjectGroup RezObject(
+            IClientAPI remoteClient, UUID itemID, UUID rezGroupID, Vector3 RayEnd, Vector3 RayStart,
             UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
             bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
         {
@@ -835,15 +845,27 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             item.Owner = remoteClient.AgentId;
 
             return RezObject(
-                remoteClient, item, item.AssetID,
+                remoteClient, item, rezGroupID, item.AssetID,
                 RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
                 RezSelected, RemoveItem, fromTaskID, attachment);
         }
-
+        // compatility
         public virtual SceneObjectGroup RezObject(
             IClientAPI remoteClient, InventoryItemBase item, UUID assetID, Vector3 RayEnd, Vector3 RayStart,
             UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
             bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
+        {
+            return RezObject(remoteClient, item, UUID.Zero, assetID,
+                    RayEnd, RayStart, RayTargetID,
+                    BypassRayCast, RayEndIsIntersection,
+                    RezSelected, RemoveItem, fromTaskID, attachment);
+        }
+
+        public virtual SceneObjectGroup RezObject(
+            IClientAPI remoteClient, InventoryItemBase item, UUID groupID, UUID assetID,
+                Vector3 RayEnd, Vector3 RayStart, UUID RayTargetID,
+                byte BypassRayCast, bool RayEndIsIntersection,
+                bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
         {
             AssetBase rezAsset = m_Scene.AssetService.Get(assetID.ToString());           
 
@@ -986,6 +1008,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     group.IsAttachment = true;
                 }
 
+                group.SetGroup(groupID, remoteClient);
+
                 // If we're rezzing an attachment then don't ask
                 // AddNewSceneObject() to update the client since
                 // we'll be doing that later on.  Scheduling more than
@@ -995,12 +1019,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 m_Scene.AddNewSceneObject(group, true, false);
 
                 if (!attachment)
+                {
                     group.AbsolutePosition = pos + veclist[i];
 
-                group.SetGroup(remoteClient.ActiveGroupId, remoteClient);
-
-                if (!attachment)
-                {
                     // Fire on_rez
                     group.CreateScriptInstances(0, true, m_Scene.DefaultScriptEngine, 1);
                     rootPart.ParentGroup.ResumeScripts();

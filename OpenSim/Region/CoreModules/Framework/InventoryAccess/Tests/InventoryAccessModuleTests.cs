@@ -166,7 +166,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             
             SceneObjectGroup so 
                 = m_iam.RezObject(
-                    m_tc, item1Id, Vector3.Zero, Vector3.Zero, UUID.Zero, 1, false, false, false, UUID.Zero, false);            
+                    m_tc, item1Id, UUID.Zero, Vector3.Zero, Vector3.Zero, UUID.Zero, 1, false, false, false, UUID.Zero, false);            
             
             Assert.That(so, Is.Not.Null);
             

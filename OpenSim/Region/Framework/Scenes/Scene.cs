@@ -3115,14 +3115,9 @@ namespace OpenSim.Region.Framework.Scenes
                         || (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0;
     
                 CheckHeartbeat();
-    
 
                 sp = GetScenePresence(client.AgentId);
 
-                // XXX: Not sure how good it is to add a new client if a scene presence already exists.  Possibly this
-                // could occur if a viewer crashes and relogs before the old client is kicked out.  But this could cause
-                // other problems, and possibly the code calling AddNewAgent() should ensure that no client is already
-                // connected.
                 if (sp == null)
                 {
                     m_log.DebugFormat(
@@ -3137,15 +3132,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                     sp.TeleportFlags = (TPFlags)aCircuit.teleportFlags;
 
-/* done in completMovement
-                    InventoryFolderBase cof = InventoryService.GetFolderForType(client.AgentId, (AssetType)46);
-                    if (cof == null)
-                        sp.COF = UUID.Zero;
-                    else
-                        sp.COF = cof.ID;
-
-                    m_log.DebugFormat("[SCENE]: COF for {0} is {1}", client.AgentId, sp.COF);
- */
                     m_eventManager.TriggerOnNewPresence(sp);
                 }
                 else

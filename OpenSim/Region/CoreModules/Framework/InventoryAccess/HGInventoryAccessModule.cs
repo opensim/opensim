@@ -306,9 +306,21 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         ///
         /// RezObject
         ///
-        public override SceneObjectGroup RezObject(IClientAPI remoteClient, UUID itemID, Vector3 RayEnd, Vector3 RayStart,
-                                                   UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
-                                                   bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
+        // compatibility do not use
+        public override SceneObjectGroup RezObject(
+            IClientAPI remoteClient, UUID itemID, Vector3 RayEnd, Vector3 RayStart,
+            UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
+            bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
+        {
+            return RezObject(remoteClient, itemID, UUID.Zero, RayEnd, RayStart,
+                    RayTargetID, BypassRayCast, RayEndIsIntersection,
+                    RezSelected, RemoveItem, fromTaskID, attachment);
+        }
+
+        public override SceneObjectGroup RezObject(IClientAPI remoteClient, UUID itemID, 
+                            UUID groupID, Vector3 RayEnd, Vector3 RayStart,
+                            UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
+                            bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
         {
             m_log.DebugFormat("[HGScene]: RezObject itemID={0} fromTaskID={1}", itemID, fromTaskID);
 
@@ -331,7 +343,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             //}
 
             // OK, we're done fetching. Pass it up to the default RezObject
-            SceneObjectGroup sog = base.RezObject(remoteClient, itemID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
+            SceneObjectGroup sog = base.RezObject(remoteClient, itemID, groupID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
                                    RezSelected, RemoveItem, fromTaskID, attachment);
 
             return sog;

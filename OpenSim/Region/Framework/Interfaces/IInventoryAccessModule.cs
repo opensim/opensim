@@ -70,6 +70,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </remarks>
         /// <param name="remoteClient"></param>
         /// <param name="itemID"></param>
+        /// <param name="rezGroupID"></param>
         /// <param name="RayEnd"></param>
         /// <param name="RayStart"></param>
         /// <param name="RayTargetID"></param>
@@ -80,6 +81,11 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="fromTaskID"></param>
         /// <param name="attachment"></param>
         /// <returns>The SceneObjectGroup rezzed or null if rez was unsuccessful.</returns>
+        SceneObjectGroup RezObject(
+            IClientAPI remoteClient, UUID itemID, UUID rezGroupID, Vector3 RayEnd, Vector3 RayStart,
+            UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
+            bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment);
+        // compatibily do not use
         SceneObjectGroup RezObject(
             IClientAPI remoteClient, UUID itemID, Vector3 RayEnd, Vector3 RayStart,
             UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
@@ -97,6 +103,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// The item from which the object asset came.  Can be null, in which case pre and post rez item adjustment and checks are not performed.
         /// </param>
         /// <param name="assetID">The asset id for the object to rez.</param>
+        /// <param name="rezObjectID">The requested group id for the object to rez.</param>
         /// <param name="RayEnd"></param>
         /// <param name="RayStart"></param>
         /// <param name="RayTargetID"></param>
@@ -107,8 +114,16 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="fromTaskID"></param>
         /// <param name="attachment"></param>
         /// <returns>The SceneObjectGroup rezzed or null if rez was unsuccessful.</returns>
+
+        SceneObjectGroup RezObject(IClientAPI remoteClient, InventoryItemBase item, UUID rezGroupID,
+            UUID assetID, Vector3 RayEnd, Vector3 RayStart,
+            UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
+            bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment);
+
+        // compatibility do not use
         SceneObjectGroup RezObject(
-            IClientAPI remoteClient, InventoryItemBase item, UUID assetID, Vector3 RayEnd, Vector3 RayStart,
+            IClientAPI remoteClient, InventoryItemBase item,
+            UUID assetID, Vector3 RayEnd, Vector3 RayStart,
             UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
             bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment);
 

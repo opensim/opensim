@@ -47,9 +47,10 @@ namespace OpenSim.Framework
 
     public delegate void ImprovedInstantMessage(IClientAPI remoteclient, GridInstantMessage im);
 
-    public delegate void RezObject(IClientAPI remoteClient, UUID itemID, Vector3 RayEnd, Vector3 RayStart,
-                                   UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
-                                   bool RezSelected, bool RemoveItem, UUID fromTaskID);
+    public delegate void RezObject(IClientAPI remoteClient, UUID itemID, UUID GroupID,
+                                Vector3 RayEnd, Vector3 RayStart,
+                                UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
+                                bool RezSelected, bool RemoveItem, UUID fromTaskID);
 
     public delegate void RezRestoreToWorld(IClientAPI remoteClient, UUID itemId);
     public delegate ISceneEntity RezSingleAttachmentFromInv(IClientAPI remoteClient, UUID itemID, uint AttachmentPt);

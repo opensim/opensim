@@ -5805,9 +5805,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public ulong GetGroupPowers(UUID groupID)
         {
-            if (groupID == ActiveGroupId)
-                return ActiveGroupPowers;
-
             lock(m_groupPowers)
             {
                 if (m_groupPowers.ContainsKey(groupID))
@@ -6729,11 +6726,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             RezObject handlerRezObject = OnRezObject;
             if (handlerRezObject != null)
             {
-                handlerRezObject(this, rezPacket.InventoryData.ItemID, rezPacket.RezData.RayEnd,
-                                 rezPacket.RezData.RayStart, rezPacket.RezData.RayTargetID,
-                                 rezPacket.RezData.BypassRaycast, rezPacket.RezData.RayEndIsIntersection,
-                                 rezPacket.RezData.RezSelected, rezPacket.RezData.RemoveItem,
-                                 rezPacket.RezData.FromTaskID);
+                UUID rezGroupID = rezPacket.AgentData.GroupID;
+                if(!IsGroupMember(rezGroupID))
+                    rezGroupID = UUID.Zero;
+                handlerRezObject(this, rezPacket.InventoryData.ItemID, rezGroupID, rezPacket.RezData.RayEnd,
+                                rezPacket.RezData.RayStart, rezPacket.RezData.RayTargetID,
+                                rezPacket.RezData.BypassRaycast, rezPacket.RezData.RayEndIsIntersection,
+                                rezPacket.RezData.RezSelected, rezPacket.RezData.RemoveItem,
+                                rezPacket.RezData.FromTaskID);
             }
             return true;
         }
@@ -7644,9 +7644,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 handlerObjectDuplicate = OnObjectDuplicate;
                 if (handlerObjectDuplicate != null)
                 {
+                    UUID rezGroupID = dupe.AgentData.GroupID;
+                    if(!IsGroupMember(rezGroupID))
+                        rezGroupID = UUID.Zero;
                     handlerObjectDuplicate(dupe.ObjectData[i].ObjectLocalID, dupe.SharedData.Offset,
                                            dupe.SharedData.DuplicateFlags, AgentId,
-                                           dupe.AgentData.GroupID);
+                                           rezGroupID);
                 }
             }
 
@@ -8266,10 +8269,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 handlerObjectDuplicateOnRay = OnObjectDuplicateOnRay;
                 if (handlerObjectDuplicateOnRay != null)
                 {
-                    handlerObjectDuplicateOnRay(dupeOnRay.ObjectData[i].ObjectLocalID, dupeOnRay.AgentData.DuplicateFlags,
-                                                AgentId, dupeOnRay.AgentData.GroupID, dupeOnRay.AgentData.RayTargetID, dupeOnRay.AgentData.RayEnd,
-                                                dupeOnRay.AgentData.RayStart, dupeOnRay.AgentData.BypassRaycast, dupeOnRay.AgentData.RayEndIsIntersection,
-                                                dupeOnRay.AgentData.CopyCenters, dupeOnRay.AgentData.CopyRotates);
+                
+                    UUID rezGroupID = dupeOnRay.AgentData.GroupID;
+                    if(!IsGroupMember(rezGroupID))
+                        rezGroupID = UUID.Zero;
+
+                    handlerObjectDuplicateOnRay(dupeOnRay.ObjectData[i].ObjectLocalID,
+                                    dupeOnRay.AgentData.DuplicateFlags, AgentId, rezGroupID,
+                                    dupeOnRay.AgentData.RayTargetID, dupeOnRay.AgentData.RayEnd,
+                                    dupeOnRay.AgentData.RayStart, dupeOnRay.AgentData.BypassRaycast,
+                                    dupeOnRay.AgentData.RayEndIsIntersection,
+                                    dupeOnRay.AgentData.CopyCenters, dupeOnRay.AgentData.CopyRotates);
                 }
             }
 

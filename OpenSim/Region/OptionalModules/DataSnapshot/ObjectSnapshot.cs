@@ -83,7 +83,8 @@ namespace OpenSim.Region.DataSnapshot.Providers
                 { this.Stale = true; };
             client.OnObjectPermissions += delegate(IClientAPI controller, UUID agentID, UUID sessionID,
                 byte field, uint localId, uint mask, byte set) { this.Stale = true; };
-            client.OnRezObject += delegate(IClientAPI remoteClient, UUID itemID, Vector3 RayEnd,
+            client.OnRezObject += delegate(IClientAPI remoteClient, UUID itemID, UUID groupID,
+                Vector3 RayEnd,
                 Vector3 RayStart, UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                 bool RezSelected,
                 bool RemoveItem, UUID fromTaskID) { this.Stale = true; };

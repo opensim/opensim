@@ -2454,6 +2454,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="itemID"></param>
+        /// <param name="groupID"></param>
         /// <param name="RayEnd"></param>
         /// <param name="RayStart"></param>
         /// <param name="RayTargetID"></param>
@@ -2464,7 +2465,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="RezSelected"></param>
         /// <param name="RemoveItem"></param>
         /// <param name="fromTaskID"></param>
-        public virtual void RezObject(IClientAPI remoteClient, UUID itemID, Vector3 RayEnd, Vector3 RayStart,
+        public virtual void RezObject(IClientAPI remoteClient, UUID itemID, UUID groupID,
+                                    Vector3 RayEnd, Vector3 RayStart,
                                     UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                                     bool RezSelected, bool RemoveItem, UUID fromTaskID)
         {
@@ -2504,8 +2506,7 @@ namespace OpenSim.Region.Framework.Scenes
                                
                 byte bRayEndIsIntersection = (byte)(RayEndIsIntersection ? 1 : 0);
                 Vector3 scale = new Vector3(0.5f, 0.5f, 0.5f);
-                Vector3 pos 
-                    = GetNewRezLocation(
+                Vector3 pos = GetNewRezLocation(
                         RayStart, RayEnd, RayTargetID, Quaternion.Identity,
                         BypassRayCast, bRayEndIsIntersection, true, scale, false);            
                 
