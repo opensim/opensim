@@ -213,24 +213,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 if (presence.PresenceType == PresenceType.Npc)
                     Type = 0x20;
 
-                // Cope Impl. We don't use OS_NPC.
-                //if (presence.PresenceType != PresenceType.Npc)
-                //{
-                //    Type = AGENT;
-                //}
-                //else
-                //{
-                //    Type = OS_NPC;
-
-                //    INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
-                //    INPC npcData = npcModule.GetNPC(presence.UUID, presence.Scene);
-
-                //    if (npcData.SenseAsAgent)
-                //    {
-                //        Type |= AGENT;
-                //    }
-                //}
-
                 if (presence.Velocity != Vector3.Zero)
                     Type |= ACTIVE;
 
@@ -266,6 +248,64 @@ namespace OpenSim.Region.ScriptEngine.Shared
             Rotation = new LSL_Types.Quaternion(wr.X, wr.Y, wr.Z, wr.W);
 
             Velocity = new LSL_Types.Vector3(part.Velocity);
+        }
+
+        public void Populate(Scene scene, DetectedObject obj)
+        {
+            if(obj.keyUUID == UUID.Zero) // land
+            {
+                Position = new LSL_Types.Vector3(obj.posVector);
+                Rotation.s = 1.0;
+                return;
+            }
+
+            if((obj.colliderType & 0x21) != 0) // avatar or npc
+            {
+                ScenePresence presence = scene.GetScenePresence(obj.keyUUID);
+                if (presence == null)
+                    return;
+
+                Name = obj.nameStr;
+                Owner = obj.keyUUID;
+                Group = obj.groupUUID;
+                Position = new LSL_Types.Vector3(obj.posVector);
+                Rotation = new LSL_Types.Quaternion(obj.rotQuat);
+                Velocity = new LSL_Types.Vector3(obj.velVector);
+                LinkNum = obj.linkNumber;
+                Type = obj.colliderType;
+                return;
+            }
+
+            SceneObjectPart part = scene.GetSceneObjectPart(obj.keyUUID);
+            if(part == null)
+                return;
+
+            Name = obj.nameStr;
+            Owner = obj.keyUUID;
+            Group = obj.groupUUID;
+            Position = new LSL_Types.Vector3(obj.posVector);
+            Rotation = new LSL_Types.Quaternion(obj.rotQuat);
+            Velocity = new LSL_Types.Vector3(obj.velVector);
+            LinkNum = obj.linkNumber;
+            if(obj.velVector == Vector3.Zero)
+                Type = 4;
+            else
+                Type = 2;
+
+            part = part.ParentGroup.RootPart;
+            foreach (SceneObjectPart p in part.ParentGroup.Parts)
+            {
+                if (p.Inventory.ContainsScripts())
+                {
+                    // at sl a physical prim is active also if has active scripts
+                    // assuming all scripts are in run state to save time
+                    if((part.Flags & PrimFlags.Physics) != 0 )
+                        Type = 10; // script + active
+                    else
+                       Type |= SCRIPTED; // Scripted
+                    break;
+                }
+            }
         }
     }
 

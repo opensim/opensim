@@ -2712,8 +2712,7 @@ namespace OpenSim.Region.Framework.Scenes
             detobj.velVector = obj.Velocity;
             detobj.colliderType = 0;
             detobj.groupUUID = obj.GroupID;
-            detobj.linkNumber = LinkNum; // pass my link number
-
+            detobj.linkNumber = LinkNum;
             return detobj;
         }
 
@@ -2726,9 +2725,13 @@ namespace OpenSim.Region.Framework.Scenes
             detobj.posVector = av.AbsolutePosition;
             detobj.rotQuat = av.Rotation;
             detobj.velVector = av.Velocity;
-            detobj.colliderType = 0;
+            detobj.colliderType = av.isNPC ? 0x20 : 0x1; // OpenSim\Region\ScriptEngine\Shared\Helpers.cs
+            if(av.IsSatOnObject)
+                detobj.colliderType |= 0x4; //passive
+            else if(detobj.velVector != Vector3.Zero)
+                detobj.colliderType |= 0x2; //active
             detobj.groupUUID = av.ControllingClient.ActiveGroupId;
-            detobj.linkNumber = LinkNum; // pass my link number
+            detobj.linkNumber = LinkNum;
 
             return detobj;
         }
@@ -2842,7 +2845,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup.Scene == null || ParentGroup.IsDeleted)
                 return;
 
-            // single threaded here
+            // this a thread from physics ( heartbeat )
+
             CollisionEventUpdate a = (CollisionEventUpdate)e;
             Dictionary<uint, ContactPoint> collissionswith = a.m_objCollisionList;
             List<uint> thisHitColliders = new List<uint>();
@@ -2860,7 +2864,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 m_lastColliders.Clear();
             }
-
             else
             {
                 List<CollisionForSoundInfo> soundinfolist = new List<CollisionForSoundInfo>();
@@ -5256,7 +5259,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             {
                 // subscribe to physics updates.
                 pa.OnCollisionUpdate += PhysicsCollision;
-                pa.SubscribeEvents(50); // 20 reports per second
+                pa.SubscribeEvents(100); // 10 reports per second
             }
             else
             {

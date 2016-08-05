@@ -6037,7 +6037,11 @@ namespace OpenSim.Region.Framework.Scenes
             detobj.posVector = av.AbsolutePosition;
             detobj.rotQuat = av.Rotation;
             detobj.velVector = av.Velocity;
-            detobj.colliderType = 0;
+            detobj.colliderType = av.isNPC ? 0x20 : 0x1; // OpenSim\Region\ScriptEngine\Shared\Helpers.cs
+            if(av.IsSatOnObject)
+                detobj.colliderType |= 0x4; //passive
+            else if(detobj.velVector != Vector3.Zero)
+                detobj.colliderType |= 0x2; //active
             detobj.groupUUID = av.ControllingClient.ActiveGroupId;
             detobj.linkNumber = 0;
 
@@ -6129,9 +6133,6 @@ namespace OpenSim.Region.Framework.Scenes
                 List<uint> thisHitColliders = new List<uint>();
                 List<uint> endedColliders = new List<uint>();
                 List<uint> startedColliders = new List<uint>();
-                List<CollisionForSoundInfo> soundinfolist = new List<CollisionForSoundInfo>();
-                CollisionForSoundInfo soundinfo;
-                ContactPoint curcontact;
 
                 if (coldata.Count == 0)
                 {
@@ -6144,30 +6145,41 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     m_lastColliders.Clear();
                 }
-
                 else
                 {
-                    bool candoparcelSound = ParcelAllowThisAvatarSounds;
-
-                    foreach (uint id in coldata.Keys)
+                    List<CollisionForSoundInfo> soundinfolist = new List<CollisionForSoundInfo>();
+                    if(ParcelAllowThisAvatarSounds)
                     {
-                        thisHitColliders.Add(id);
-                        if (!m_lastColliders.Contains(id))
+                        CollisionForSoundInfo soundinfo;
+                        ContactPoint curcontact;
+
+                        foreach (uint id in coldata.Keys)
                         {
-                            startedColliders.Add(id);
-                            curcontact = coldata[id];
-                            if (candoparcelSound && Math.Abs(curcontact.RelativeSpeed) > 0.2)
+                            thisHitColliders.Add(id);
+                            if (!m_lastColliders.Contains(id))
                             {
-                                soundinfo = new CollisionForSoundInfo();
-                                soundinfo.colliderID = id;
-                                soundinfo.position = curcontact.Position;
-                                soundinfo.relativeVel = curcontact.RelativeSpeed;
-                                soundinfolist.Add(soundinfo);
+                                startedColliders.Add(id);
+                                curcontact = coldata[id];
+                                if (Math.Abs(curcontact.RelativeSpeed) > 0.2)
+                                {
+                                    soundinfo = new CollisionForSoundInfo();
+                                    soundinfo.colliderID = id;
+                                    soundinfo.position = curcontact.Position;
+                                    soundinfo.relativeVel = curcontact.RelativeSpeed;
+                                    soundinfolist.Add(soundinfo);
+                                }
                             }
                         }
-                        //m_log.Debug("[SCENE PRESENCE]: Collided with:" + localid.ToString() + " at depth of: " + collissionswith[localid].ToString());
                     }
-
+                    else
+                    {
+                        foreach (uint id in coldata.Keys)
+                        {
+                            thisHitColliders.Add(id);
+                            if (!m_lastColliders.Contains(id))
+                                startedColliders.Add(id);
+                        }
+                    }
                     // calculate things that ended colliding
                     foreach (uint localID in m_lastColliders)
                     {

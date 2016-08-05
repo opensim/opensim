@@ -244,7 +244,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 DetectParams d = new DetectParams();
                 d.Key =detobj.keyUUID;
-                d.Populate(myScriptEngine.World);
+                d.Populate(myScriptEngine.World, detobj);
                 d.LinkNum = detobj.linkNumber; // do it here since currently linknum is collided part
                 det.Add(d);
             }
@@ -264,9 +264,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             foreach (DetectedObject detobj in col.Colliders)
             {
                 DetectParams d = new DetectParams();
-                d.Key =detobj.keyUUID;
-                d.Populate(myScriptEngine.World);
-                d.LinkNum = detobj.linkNumber; // do it here since currently linknum is collided part
+                d.Populate(myScriptEngine.World, detobj);
                 det.Add(d);
             }
 
@@ -284,9 +282,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             foreach (DetectedObject detobj in col.Colliders)
             {
                 DetectParams d = new DetectParams();
-                d.Key =detobj.keyUUID;
-                d.Populate(myScriptEngine.World);
-                d.LinkNum = detobj.linkNumber; // do it here since currently linknum is collided part
+                d.Populate(myScriptEngine.World, detobj);
                 det.Add(d);
             }
 
@@ -304,8 +300,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             foreach (DetectedObject detobj in col.Colliders)
             {
                 DetectParams d = new DetectParams();
-                d.Position = detobj.posVector;
-                d.Populate(myScriptEngine.World);
+                d.Populate(myScriptEngine.World, detobj);
                 det.Add(d);
                 myScriptEngine.PostObjectEvent(localID, new EventParams(
                         "land_collision_start",
@@ -322,8 +317,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             foreach (DetectedObject detobj in col.Colliders)
             {
                 DetectParams d = new DetectParams();
-                d.Position = detobj.posVector;
-                d.Populate(myScriptEngine.World);
+                d.Populate(myScriptEngine.World,detobj);
                 det.Add(d);
                 myScriptEngine.PostObjectEvent(localID, new EventParams(
                         "land_collision",
@@ -339,8 +333,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             foreach (DetectedObject detobj in col.Colliders)
             {
                 DetectParams d = new DetectParams();
-                d.Position = detobj.posVector;
-                d.Populate(myScriptEngine.World);
+                d.Populate(myScriptEngine.World,detobj);
                 det.Add(d);
                 myScriptEngine.PostObjectEvent(localID, new EventParams(
                         "land_collision_end",
