@@ -6861,9 +6861,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (uuid == m_host.ParentGroup.RootPart.GroupID)
                 return new LSL_Integer(1);
 
-            // We got passed a UUID.Zero
-            if (uuid == UUID.Zero)
-                return new LSL_Integer(0);
+            // Handle object case
+            SceneObjectPart part = World.GetSceneObjectPart(uuid);
+            if (part != null)
+            {
+                
+                if(part.ParentGroup.IsAttachment)
+                {
+                    uuid = part.ParentGroup.AttachedAvatar;   
+                }
+                else
+                {
+                    // This will handle both deed and non-deed and also the no
+                    // group case
+                    if (part.ParentGroup.RootPart.GroupID == m_host.ParentGroup.RootPart.GroupID)
+                        return new LSL_Integer(1);
+
+                    return new LSL_Integer(0);
+                }
+            }
 
             // Handle the case where id names an avatar
             ScenePresence presence = World.GetScenePresence(uuid);
@@ -6874,18 +6890,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 IClientAPI client = presence.ControllingClient;
                 if (m_host.ParentGroup.RootPart.GroupID == client.ActiveGroupId)
-                    return new LSL_Integer(1);
-
-                return new LSL_Integer(0);
-            }
-
-            // Handle object case
-            SceneObjectPart part = World.GetSceneObjectPart(uuid);
-            if (part != null)
-            {
-                // This will handle both deed and non-deed and also the no
-                // group case
-                if (part.ParentGroup.RootPart.GroupID == m_host.ParentGroup.RootPart.GroupID)
                     return new LSL_Integer(1);
 
                 return new LSL_Integer(0);
