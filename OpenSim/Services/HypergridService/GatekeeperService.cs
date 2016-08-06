@@ -275,6 +275,7 @@ namespace OpenSim.Services.HypergridService
 
                 if (!am.Success)
                 {
+                    reason = "Login failed: client " + curViewer + " is not allowed";
                     m_log.InfoFormat("[GATEKEEPER SERVICE]: Login failed, reason: client {0} is not allowed", curViewer);
                     return false;
                 }
@@ -287,6 +288,7 @@ namespace OpenSim.Services.HypergridService
 
                 if (dm.Success)
                 {
+                    reason = "Login failed: client " + curViewer + " is denied";
                     m_log.InfoFormat("[GATEKEEPER SERVICE]: Login failed, reason: client {0} is denied", curViewer);
                     return false;
                 }

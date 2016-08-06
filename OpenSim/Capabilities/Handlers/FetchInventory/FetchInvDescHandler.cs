@@ -30,6 +30,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
@@ -59,7 +60,6 @@ namespace OpenSim.Capabilities.Handlers
             m_LibraryService = libService;
             m_Scene = s;
         }
-
         
         public string FetchInventoryDescendentsRequest(string request, string path, string param, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
@@ -93,8 +93,8 @@ namespace OpenSim.Capabilities.Handlers
     
             ArrayList foldersrequested = (ArrayList)hash["folders"];
     
-            string response = "";
-            string bad_folders_response = "";
+            StringBuilder tmpresponse = new StringBuilder(1024);
+            StringBuilder tmpbadfolders = new StringBuilder(1024);
 
             List<LLSDFetchInventoryDescendents> folders = new List<LLSDFetchInventoryDescendents>();
             for (int i = 0; i < foldersrequested.Count; i++)
@@ -136,49 +136,44 @@ namespace OpenSim.Capabilities.Handlers
                 string inventoryitemstr = string.Empty;
                 foreach (InventoryCollectionWithDescendents icoll in invcollSet)
                 {
-                    LLSDInventoryDescendents reply = ToLLSD(icoll.Collection, icoll.Descendents);
-
-                    inventoryitemstr = LLSDHelpers.SerialiseLLSDReply(reply);
-                    inventoryitemstr = inventoryitemstr.Replace("<llsd><map><key>folders</key><array>", "");
-                    inventoryitemstr = inventoryitemstr.Replace("</array></map></llsd>", "");
-
-                    response += inventoryitemstr;
+                    LLSDInventoryFolderContents thiscontents = contentsToLLSD(icoll.Collection, icoll.Descendents);
+                    inventoryitemstr = LLSDHelpers.SerialiseLLSDReply(thiscontents);
+//                    inventoryitemstr = inventoryitemstr.Replace("<llsd>", "");
+//                    inventoryitemstr = inventoryitemstr.Replace("</llsd>", "");
+//                    inventoryitemstr = inventoryitemstr.Substring(6,inventoryitemstr.Length - 13);
+//                    tmpresponse.Append(inventoryitemstr);
+                    tmpresponse.Append(inventoryitemstr.Substring(6,inventoryitemstr.Length - 13));
                 }
 
                 //m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Bad folders {0}", string.Join(", ", bad_folders));
                 foreach (UUID bad in bad_folders)
-                    bad_folders_response += "<uuid>" + bad + "</uuid>";
+                {
+                    tmpbadfolders.Append("<map><key>folder_id</key><uuid>");
+                    tmpbadfolders.Append(bad.ToString());
+                    tmpbadfolders.Append("</uuid><key>error</key><string>Unknown</string></map>");
+                }
             }
 
-            if (response.Length == 0)
+            StringBuilder lastresponse = new StringBuilder(1024);
+            lastresponse.Append("<llsd>");
+            if(tmpresponse.Length > 0)
             {
-                /* Viewers expect a bad_folders array when not available */
-                if (bad_folders_response.Length != 0)
-                {
-                    response = "<llsd><map><key>bad_folders</key><array>" + bad_folders_response + "</array></map></llsd>";
-                }
-                else
-                {
-                    response = "<llsd><map><key>folders</key><array /></map></llsd>";
-                }
+                lastresponse.Append("<map><key>folders</key><array>");
+                lastresponse.Append(tmpresponse.ToString());
+                lastresponse.Append("</array></map>");
             }
             else
+                lastresponse.Append("<map><key>folders</key><array /></map>");
+
+            if(tmpbadfolders.Length > 0)
             {
-                if (bad_folders_response.Length != 0)
-                {
-                    response = "<llsd><map><key>folders</key><array>" + response + "</array><key>bad_folders</key><array>" + bad_folders_response + "</array></map></llsd>";
-                }
-                else
-                {
-                    response = "<llsd><map><key>folders</key><array>" + response + "</array></map></llsd>";
-                }
+                lastresponse.Append("<map><key>bad_folders</key><array>");
+                lastresponse.Append(tmpbadfolders.ToString());
+                lastresponse.Append("</array></map>");
             }
+            lastresponse.Append("</llsd>");
 
-            //m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Replying to CAPS fetch inventory request for {0} folders. Item count {1}", folders.Count, item_count);
-            //m_log.Debug("[WEB FETCH INV DESC HANDLER] " + response);
-
-            return response;
-
+            return lastresponse.ToString();
         }
 
         /// <summary>
@@ -240,15 +235,12 @@ namespace OpenSim.Capabilities.Handlers
             return reply;
         }
 
-        private LLSDInventoryDescendents ToLLSD(InventoryCollection inv, int descendents)
+        private LLSDInventoryFolderContents contentsToLLSD(InventoryCollection inv, int descendents)
         {
-            LLSDInventoryDescendents reply = new LLSDInventoryDescendents();
             LLSDInventoryFolderContents contents = new LLSDInventoryFolderContents();
             contents.agent_id = inv.OwnerID;
             contents.owner_id = inv.OwnerID;
             contents.folder_id = inv.FolderID;
-
-            reply.folders.Array.Add(contents);
 
             if (inv.Folders != null)
             {
@@ -256,8 +248,6 @@ namespace OpenSim.Capabilities.Handlers
                 {
                     contents.categories.Array.Add(ConvertInventoryFolder(invFolder));
                 }
-
-                descendents += inv.Folders.Count;
             }
 
             if (inv.Items != null)
@@ -271,7 +261,7 @@ namespace OpenSim.Capabilities.Handlers
             contents.descendents = descendents;
             contents.version = inv.Version;
 
-            return reply;
+            return contents;
         }
         /// <summary>
         /// Old style. Soon to be deprecated.
@@ -285,8 +275,8 @@ namespace OpenSim.Capabilities.Handlers
         {
             //m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Received request for {0} folders", foldersrequested.Count);
 
-            string response = "";
-            string bad_folders_response = "";
+            StringBuilder tmpresponse = new StringBuilder(1024);
+            StringBuilder tmpbadfolders = new StringBuilder(1024);
 
             for (int i = 0; i < foldersrequested.Count; i++)
             {
@@ -308,7 +298,9 @@ namespace OpenSim.Capabilities.Handlers
 
                 if (null == reply)
                 {
-                    bad_folders_response += "<uuid>" + llsdRequest.folder_id.ToString() + "</uuid>";
+                    tmpbadfolders.Append("<map><key>folder_id</key><uuid>");
+                    tmpbadfolders.Append(llsdRequest.folder_id.ToString());
+                    tmpbadfolders.Append("</uuid><key>error</key><string>Unknown</string></map>");
                 }
                 else
                 {
@@ -317,39 +309,29 @@ namespace OpenSim.Capabilities.Handlers
                     inventoryitemstr = inventoryitemstr.Replace("</array></map></llsd>", "");
                 }
 
-                response += inventoryitemstr;
+                tmpresponse.Append(inventoryitemstr);
             }
 
-            if (response.Length == 0)
+            StringBuilder lastresponse = new StringBuilder(1024);
+            lastresponse.Append("<llsd>");
+            if(tmpresponse.Length > 0)
             {
-                /* Viewers expect a bad_folders array when not available */
-                if (bad_folders_response.Length != 0)
-                {
-                    response = "<llsd><map><key>bad_folders</key><array>" + bad_folders_response + "</array></map></llsd>";
-                }
-                else
-                {
-                    response = "<llsd><map><key>folders</key><array /></map></llsd>";
-                }
+                lastresponse.Append("<map><key>folders</key><array>");
+                lastresponse.Append(tmpresponse.ToString());
+                lastresponse.Append("</array></map>");
             }
             else
+                lastresponse.Append("<map><key>folders</key><array /></map>");
+
+            if(tmpbadfolders.Length > 0)
             {
-                if (bad_folders_response.Length != 0)
-                {
-                    response = "<llsd><map><key>folders</key><array>" + response + "</array><key>bad_folders</key><array>" + bad_folders_response + "</array></map></llsd>";
-                }
-                else
-                {
-                    response = "<llsd><map><key>folders</key><array>" + response + "</array></map></llsd>";
-                }
+                lastresponse.Append("<map><key>bad_folders</key><array>");
+                lastresponse.Append(tmpbadfolders.ToString());
+                lastresponse.Append("</array></map>");
             }
+            lastresponse.Append("</llsd>");
 
-            //                m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Replying to CAPS fetch inventory request");
-            //m_log.Debug("[WEB FETCH INV DESC HANDLER] "+response);
-
-            return response;
-
-            //            }
+            return lastresponse.ToString();
         }
 
         /// <summary>
@@ -436,108 +418,7 @@ namespace OpenSim.Capabilities.Handlers
                                     itemsToReturn.Insert(0, linkedItem);
                             }
                         }
-
-                        // Now scan for folder links and insert the items they target and those links at the head of the return data
-
-/* dont send contents of LinkFolders.
-from docs seems this was never a spec
-
-                        foreach (InventoryItemBase item in originalItems)
-                        {
-                            if (item.AssetType == (int)AssetType.LinkFolder)
-                            {
-                                InventoryCollection linkedFolderContents = m_InventoryService.GetFolderContent(ownerID, item.AssetID);
-                                List<InventoryItemBase> links = linkedFolderContents.Items;
-
-                                itemsToReturn.InsertRange(0, links);
-
-                                foreach (InventoryItemBase link in linkedFolderContents.Items)
-                                {
-                                    // Take care of genuinely broken links where the target doesn't exist
-                                    // HACK: Also, don't follow up links that just point to other links.  In theory this is legitimate,
-                                    // but no viewer has been observed to set these up and this is the lazy way of avoiding cycles
-                                    // rather than having to keep track of every folder requested in the recursion.
-                                    if (link != null)
-                                    {
-//                                        m_log.DebugFormat(
-//                                            "[WEB FETCH INV DESC HANDLER]: Adding item {0} {1} from folder {2} linked from {3}",
-//                                            link.Name, (AssetType)link.AssetType, item.AssetID, containingFolder.Name);
-
-                                        InventoryItemBase linkedItem
-                                            = m_InventoryService.GetItem(new InventoryItemBase(link.AssetID));
-
-                                        if (linkedItem != null)
-                                            itemsToReturn.Insert(0, linkedItem);
-                                    }
-                                }
-                            }
-                        }
-*/
                     }
-
-//                    foreach (InventoryItemBase item in contents.Items)
-//                    {
-//                        m_log.DebugFormat(
-//                            "[WEB FETCH INV DESC HANDLER]: Returning item {0}, type {1}, parent {2} in {3} {4}",
-//                            item.Name, (AssetType)item.AssetType, item.Folder, containingFolder.Name, containingFolder.ID);
-//                    }
-
-                    // =====
-
-//
-//                        foreach (InventoryItemBase linkedItem in linkedItemsToAdd)
-//                        {
-//                            m_log.DebugFormat(
-//                                "[WEB FETCH INV DESC HANDLER]: Inserted linked item {0} for link in folder {1} for agent {2}",
-//                                linkedItem.Name, folderID, agentID);
-//
-//                            contents.Items.Add(linkedItem);
-//                        }
-//
-//                        // If the folder requested contains links, then we need to send those folders first, otherwise the links
-//                        // will be broken in the viewer.
-//                        HashSet<UUID> linkedItemFolderIdsToSend = new HashSet<UUID>();
-//                        foreach (InventoryItemBase item in contents.Items)
-//                        {
-//                            if (item.AssetType == (int)AssetType.Link)
-//                            {
-//                                InventoryItemBase linkedItem = m_InventoryService.GetItem(new InventoryItemBase(item.AssetID));
-//
-//                                // Take care of genuinely broken links where the target doesn't exist
-//                                // HACK: Also, don't follow up links that just point to other links.  In theory this is legitimate,
-//                                // but no viewer has been observed to set these up and this is the lazy way of avoiding cycles
-//                                // rather than having to keep track of every folder requested in the recursion.
-//                                if (linkedItem != null && linkedItem.AssetType != (int)AssetType.Link)
-//                                {
-//                                    // We don't need to send the folder if source and destination of the link are in the same
-//                                    // folder.
-//                                    if (linkedItem.Folder != containingFolder.ID)
-//                                        linkedItemFolderIdsToSend.Add(linkedItem.Folder);
-//                                }
-//                            }
-//                        }
-//    
-//                        foreach (UUID linkedItemFolderId in linkedItemFolderIdsToSend)
-//                        {
-//                            m_log.DebugFormat(
-//                                "[WEB FETCH INV DESC HANDLER]: Recursively fetching folder {0} linked by item in folder {1} for agent {2}",
-//                                linkedItemFolderId, folderID, agentID);
-//
-//                            int dummyVersion;
-//                            InventoryCollection linkedCollection
-//                                = Fetch(
-//                                    agentID, linkedItemFolderId, ownerID, fetchFolders, fetchItems, sortOrder, out dummyVersion);
-//
-//                            InventoryFolderBase linkedFolder = new InventoryFolderBase(linkedItemFolderId);
-//                            linkedFolder.Owner = agentID;
-//                            linkedFolder = m_InventoryService.GetFolder(linkedFolder);
-//
-////                            contents.Folders.AddRange(linkedCollection.Folders);
-//
-//                            contents.Folders.Add(linkedFolder);
-//                            contents.Items.AddRange(linkedCollection.Items);
-//                        }
-//                    }
                 }
             }
             else
@@ -566,13 +447,14 @@ from docs seems this was never a spec
                     {
                         InventoryCollectionWithDescendents ret = new InventoryCollectionWithDescendents();
                         ret.Collection = new InventoryCollection();
-                        ret.Collection.Folders = new List<InventoryFolderBase>();
+//                        ret.Collection.Folders = new List<InventoryFolderBase>();
+                        ret.Collection.Folders = fold.RequestListOfFolders();
                         ret.Collection.Items = fold.RequestListOfItems();
                         ret.Collection.OwnerID = m_LibraryService.LibraryRootFolder.Owner;
                         ret.Collection.FolderID = f.folder_id;
                         ret.Collection.Version = fold.Version;
 
-                        ret.Descendents = ret.Collection.Items.Count;
+                        ret.Descendents = ret.Collection.Items.Count + ret.Collection.Folders.Count;
                         result.Add(ret);
 
                         //m_log.DebugFormat("[XXX]: Added libfolder {0} ({1}) {2}", ret.Collection.FolderID, ret.Collection.OwnerID);
@@ -594,11 +476,18 @@ from docs seems this was never a spec
 
             // Filter folder Zero right here. Some viewers (Firestorm) send request for folder Zero, which doesn't make sense
             // and can kill the sim (all root folders have parent_id Zero)
+            // send something.
             LLSDFetchInventoryDescendents zero = fetchFolders.Find(f => f.folder_id == UUID.Zero);
             if (zero != null)
             {
                 fetchFolders.Remove(zero);
-                BadFolder(zero, null, bad_folders);
+                InventoryCollectionWithDescendents zeroColl = new InventoryCollectionWithDescendents();
+                zeroColl.Collection = new InventoryCollection();
+                zeroColl.Collection.OwnerID = zero.owner_id;
+                zeroColl.Collection.Version = 0;
+                zeroColl.Collection.FolderID = zero.folder_id;
+                zeroColl.Descendents = 0;
+                result.Add(zeroColl);
             }
 
             if (fetchFolders.Count > 0)
@@ -666,35 +555,8 @@ from docs seems this was never a spec
                 }
                 else
                 {
-                    // Was it really a request for folder Zero?
-                    // This is an overkill, but Firestorm really asks for folder Zero.
-                    // I'm leaving the code here for the time being, but commented.
-                    if (freq.folder_id == UUID.Zero)
-                    {
-                        //coll.Collection.OwnerID = freq.owner_id;
-                        //coll.Collection.FolderID = contents.FolderID;
-                        //containingFolder = m_InventoryService.GetRootFolder(freq.owner_id);
-                        //if (containingFolder != null)
-                        //{
-                        //    m_log.WarnFormat("[WEB FETCH INV DESC HANDLER]: Request for parent of folder {0}", containingFolder.ID);
-                        //    coll.Collection.Folders.Clear();
-                        //    coll.Collection.Folders.Add(containingFolder);
-                        //    if (m_LibraryService != null && m_LibraryService.LibraryRootFolder != null)
-                        //    {
-                        //        InventoryFolderBase lib = new InventoryFolderBase(m_LibraryService.LibraryRootFolder.ID, m_LibraryService.LibraryRootFolder.Owner);
-                        //        lib.Name = m_LibraryService.LibraryRootFolder.Name;
-                        //        lib.Type = m_LibraryService.LibraryRootFolder.Type;
-                        //        lib.Version = m_LibraryService.LibraryRootFolder.Version;
-                        //        coll.Collection.Folders.Add(lib);
-                        //    }
-                        //    coll.Collection.Items.Clear();
-                        //}
-                    }
-                    else
-                    {
-                        m_log.WarnFormat("[WEB FETCH INV DESC HANDLER]: Unable to fetch folder {0}", freq.folder_id);
-                        bad_folders.Add(freq.folder_id);
-                    }
+                    m_log.WarnFormat("[WEB FETCH INV DESC HANDLER]: Unable to fetch folder {0}", freq.folder_id);
+                    bad_folders.Add(freq.folder_id);
                     bad = true;
                 }
             }
@@ -708,42 +570,21 @@ from docs seems this was never a spec
 
             if (freq.fetch_items && contents.Items != null)
             {
-                List<InventoryItemBase> itemsToReturn = contents.Items;
-
+                // viewers are lasy and want a copy of the linked item sent before the link to it
+                 
                 // descendents must only include the links, not the linked items we add
-                coll.Descendents = itemsToReturn.Count;
+                coll.Descendents = contents.Items.Count + contents.Folders.Count;
 
-                // Add target items for links in this folder before the links themselves.
+                // look for item links
                 List<UUID> itemIDs = new List<UUID>();
-                List<UUID> folderIDs = new List<UUID>();
-                foreach (InventoryItemBase item in itemsToReturn)
+                foreach (InventoryItemBase item in contents.Items)
                 {
                     //m_log.DebugFormat("[XXX]:   {0} {1}", item.Name, item.AssetType);
                     if (item.AssetType == (int)AssetType.Link)
                         itemIDs.Add(item.AssetID);
-
-//                    else if (item.AssetType == (int)AssetType.LinkFolder)
-//                        folderIDs.Add(item.AssetID);
                 }
 
-                //m_log.DebugFormat("[XXX]: folder {0} has {1} links and {2} linkfolders", contents.FolderID, itemIDs.Count, folderIDs.Count);
-
-                // Scan for folder links and insert the items they target and those links at the head of the return data
-                if (folderIDs.Count > 0)
-                {
-                    InventoryCollection[] linkedFolders = m_InventoryService.GetMultipleFoldersContent(coll.Collection.OwnerID, folderIDs.ToArray());
-                    foreach (InventoryCollection linkedFolderContents in linkedFolders)
-                    {
-                        if (linkedFolderContents == null)
-                            continue;
-
-                        List<InventoryItemBase> links = linkedFolderContents.Items;
-
-                        itemsToReturn.InsertRange(0, links);
-
-                    }
-                }
-
+                // get the linked if any
                 if (itemIDs.Count > 0)
                 {
                     InventoryItemBase[] linked = m_InventoryService.GetMultipleItems(freq.owner_id, itemIDs.ToArray());
@@ -758,13 +599,11 @@ from docs seems this was never a spec
                             linked[i++] = m_InventoryService.GetItem(freq.owner_id, id);
                         }
                     }
-
-                    //m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Processing folder {0}. Existing items:", freq.folder_id);
-                    //foreach (InventoryItemBase item in itemsToReturn)
-                    //    m_log.DebugFormat("[XXX]: {0} {1} {2}", item.Name, item.AssetType, item.Folder);
-
+                    
                     if (linked != null)
                     {
+                        List<InventoryItemBase> linkedItems = new List<InventoryItemBase>();
+                        // check for broken
                         foreach (InventoryItemBase linkedItem in linked)
                         {
                             // Take care of genuinely broken links where the target doesn't exist
@@ -773,14 +612,16 @@ from docs seems this was never a spec
                             // rather than having to keep track of every folder requested in the recursion.
                             if (linkedItem != null && linkedItem.AssetType != (int)AssetType.Link)
                             {
-                                itemsToReturn.Insert(0, linkedItem);
+                                linkedItems.Add(linkedItem);
                                 //m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Added {0} {1} {2}", linkedItem.Name, linkedItem.AssetType, linkedItem.Folder);
                             }
                         }
+                        // insert them
+                        if(linkedItems.Count > 0)
+                            contents.Items.InsertRange(0,linkedItems);
                     }
                 }
             }
-
         }
 
         /// <summary>

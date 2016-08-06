@@ -61,7 +61,6 @@ namespace OpenSim.Region.ClientStack.Linden
             public UUID reqID;
             public Hashtable request;
             public ScenePresence presence;
-            public List<UUID> folders;
         }
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -250,17 +249,28 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-            private Dictionary<UUID, Hashtable> responses =
-                    new Dictionary<UUID, Hashtable>();
+            private Dictionary<UUID, Hashtable> responses = new Dictionary<UUID, Hashtable>();
+            private HashSet<UUID> dropedResponses = new HashSet<UUID>();
 
             private WebFetchInvDescModule m_module;
 
             public PollServiceInventoryEventArgs(WebFetchInvDescModule module, string url, UUID pId) :
-                base(null, url, null, null, null, pId, int.MaxValue)
+                base(null, url, null, null, null, null, pId, int.MaxValue)
             {
                 m_module = module;
 
                 HasEvents = (x, y) => { lock (responses) return responses.ContainsKey(x); };
+
+                Drop = (x, y) =>
+                {
+                    lock (responses)
+                    {
+                        responses.Remove(x);
+                        lock(dropedResponses)
+                            dropedResponses.Add(x);
+                    }
+                };
+
                 GetEvents = (x, y) =>
                 {
                     lock (responses)
@@ -285,8 +295,10 @@ namespace OpenSim.Region.ClientStack.Linden
                     reqinfo.reqID = x;
                     reqinfo.request = y;
                     reqinfo.presence = sp;
-                    reqinfo.folders = new List<UUID>();
 
+/* why where we doing this? just to get cof ?
+                    List<UUID> folders = new List<UUID>();
+                                        
                     // Decode the request here
                     string request = y["body"].ToString();
 
@@ -322,11 +334,11 @@ namespace OpenSim.Region.ClientStack.Linden
                         UUID folderID;
                         if (UUID.TryParse(folder, out folderID))
                         {
-                            if (!reqinfo.folders.Contains(folderID))
+                            if (!folders.Contains(folderID))
                             {
                                 if (sp.COF != UUID.Zero && sp.COF == folderID)
                                     highPriority = true;
-                                reqinfo.folders.Add(folderID);
+                                folders.Add(folderID);
                             }
                         }
                     }
@@ -334,6 +346,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     if (highPriority)
                         m_queue.PriorityEnqueue(reqinfo);
                     else
+*/
                         m_queue.Enqueue(reqinfo);
                 };
 
@@ -365,6 +378,19 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 UUID requestID = requestinfo.reqID;
 
+
+                lock(responses)
+                {
+                    lock(dropedResponses)
+                    {
+                        if(dropedResponses.Contains(requestID))
+                        {
+                            dropedResponses.Remove(requestID);
+                            return;
+                        }
+                    }
+                }
+
                 Hashtable response = new Hashtable();
 
                 response["int_response_code"] = 200;
@@ -377,11 +403,21 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 lock (responses)
                 {
+                    lock(dropedResponses)
+                    {
+                        if(dropedResponses.Contains(requestID))
+                        {
+                            dropedResponses.Remove(requestID);
+                            requestinfo.request.Clear();
+                            WebFetchInvDescModule.ProcessedRequestsCount++;
+                            return;
+                        }
+                    }
+
                     if (responses.ContainsKey(requestID))
                         m_log.WarnFormat("[FETCH INVENTORY DESCENDENTS2 MODULE]: Caught in the act of loosing responses! Please report this on mantis #7054");
                     responses[requestID] = response;
                 }
-                requestinfo.folders.Clear();
                 requestinfo.request.Clear();
                 WebFetchInvDescModule.ProcessedRequestsCount++;
             }

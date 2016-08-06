@@ -234,7 +234,7 @@ namespace OpenSim.Framework.Console
             string uri = "/ReadResponses/" + sessionID.ToString() + "/";
 
             m_Server.AddPollServiceHTTPHandler(
-                uri, new PollServiceEventArgs(null, uri, HasEvents, GetEvents, NoEvents, sessionID,25000)); // 25 secs timeout
+                uri, new PollServiceEventArgs(null, uri, HasEvents, GetEvents, NoEvents, Drop, sessionID, 25000)); // 25 secs timeout
 
             XmlDocument xmldoc = new XmlDocument();
             XmlNode xmlnode = xmldoc.CreateNode(XmlNodeType.XmlDeclaration,
@@ -423,6 +423,15 @@ namespace OpenSim.Framework.Console
             if (c.lastLineSeen < m_LineNumber)
                 return true;
             return false;
+        }
+
+        private void Drop(UUID RequestID, UUID sessionID)
+        {
+            lock (m_Connections)
+            {
+                if (m_Connections.ContainsKey(sessionID))
+                    m_Connections.Remove(sessionID);
+            }
         }
 
         private Hashtable GetEvents(UUID RequestID, UUID sessionID)

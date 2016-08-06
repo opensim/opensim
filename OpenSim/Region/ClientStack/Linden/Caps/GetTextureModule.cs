@@ -218,11 +218,12 @@ namespace OpenSim.Region.ClientStack.Linden
                     new List<Hashtable>();
             private Dictionary<UUID, aPollResponse> responses =
                     new Dictionary<UUID, aPollResponse>();
+            private HashSet<UUID> dropedResponses = new HashSet<UUID>();
 
             private Scene m_scene;
             private CapsDataThrottler m_throttler = new CapsDataThrottler(100000, 1400000,10000);
             public PollServiceTextureEventArgs(UUID pId, Scene scene) :
-                    base(null, "", null, null, null, pId, int.MaxValue)              
+                    base(null, "", null, null, null, null, pId, int.MaxValue)              
             {
                 m_scene = scene;
                 // x is request id, y is userid
@@ -236,6 +237,16 @@ namespace OpenSim.Region.ClientStack.Linden
 
                     }
                 };
+
+                Drop = (x, y) =>
+                {
+                    lock (responses)
+                    {
+                        responses.Remove(x);
+                        dropedResponses.Add(x);
+                    }
+               };
+
                 GetEvents = (x, y) =>
                 {
                     lock (responses)
@@ -304,52 +315,71 @@ namespace OpenSim.Region.ClientStack.Linden
                 if(m_scene.ShuttingDown)
                     return;
 
-                if (requestinfo.send503)
-                {
-                    response = new Hashtable();
-
-                    response["int_response_code"] = 503;
-                    response["str_response_string"] = "Throttled";
-                    response["content_type"] = "text/plain";
-                    response["keepalive"] = false;
-                    response["reusecontext"] = false;
-
-                    Hashtable headers = new Hashtable();
-                    headers["Retry-After"] = 30;
-                    response["headers"] = headers;
-                    
-                    lock (responses)
-                        responses[requestID] = new aPollResponse() {bytes = 0, response = response};
-
-                    return;
-                }
-
-                // If the avatar is gone, don't bother to get the texture
-                if (m_scene.GetScenePresence(Id) == null)
-                {
-                    response = new Hashtable();
-
-                    response["int_response_code"] = 500;
-                    response["str_response_string"] = "Script timeout";
-                    response["content_type"] = "text/plain";
-                    response["keepalive"] = false;
-                    response["reusecontext"] = false;
-                    
-                    lock (responses)
-                        responses[requestID] = new aPollResponse() {bytes = 0, response = response};
-
-                    return;
-                }
-                
-                response = m_getTextureHandler.Handle(requestinfo.request);
                 lock (responses)
                 {
-                    responses[requestID] = new aPollResponse()
-                                               {
-                                                   bytes = (int) response["int_bytes"],
-                                                   response = response
-                                               };
+                    lock(dropedResponses)
+                    {
+                        if(dropedResponses.Contains(requestID))
+                        {
+                            dropedResponses.Remove(requestID);
+                            return;
+                        }
+                    }
+
+                    if (requestinfo.send503)
+                    {
+                        response = new Hashtable();
+
+                        response["int_response_code"] = 503;
+                        response["str_response_string"] = "Throttled";
+                        response["content_type"] = "text/plain";
+                        response["keepalive"] = false;
+                        response["reusecontext"] = false;
+
+                        Hashtable headers = new Hashtable();
+                        headers["Retry-After"] = 30;
+                        response["headers"] = headers;
                    
+                        responses[requestID] = new aPollResponse() {bytes = 0, response = response};
+
+                        return;
+                    }
+
+                // If the avatar is gone, don't bother to get the texture
+                    if (m_scene.GetScenePresence(Id) == null)
+                    {
+                        response = new Hashtable();
+
+                        response["int_response_code"] = 500;
+                        response["str_response_string"] = "Script timeout";
+                        response["content_type"] = "text/plain";
+                        response["keepalive"] = false;
+                        response["reusecontext"] = false;
+                    
+                        responses[requestID] = new aPollResponse() {bytes = 0, response = response};
+
+                        return;
+                    }
+                }
+                        
+                response = m_getTextureHandler.Handle(requestinfo.request);
+
+                lock (responses)
+                {
+                    lock(dropedResponses)
+                    {
+                        if(dropedResponses.Contains(requestID))
+                        {
+                            dropedResponses.Remove(requestID);
+                            m_throttler.ProcessTime();
+                            return;
+                        }
+                    }
+                    responses[requestID] = new aPollResponse()
+                        {
+                            bytes = (int) response["int_bytes"],
+                            response = response
+                        };
                 } 
                 m_throttler.ProcessTime();
             }
@@ -423,7 +453,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
         internal sealed class CapsDataThrottler
         {
-
             private volatile int currenttime = 0;
             private volatile int lastTimeElapsed = 0;
             private volatile int BytesSent = 0;
