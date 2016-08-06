@@ -65,7 +65,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         internal bool m_isVolumeDetect; // If true, this prim only detects collisions but doesn't collide actively
         private bool m_fakeisVolumeDetect; // If true, this prim only detects collisions but doesn't collide actively
 
-        protected bool m_building;
+        internal bool m_building;
         protected bool m_forcePosOrRotation;
         private bool m_iscolliding;
 
@@ -1000,14 +1000,36 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public override void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
         {
+
             if (CollisionEventsThisFrame == null)
                 CollisionEventsThisFrame = new CollisionEventUpdate();
-//            if(CollisionEventsThisFrame.Count < 32)
-                CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
+            CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
+            _parent_scene.AddCollisionEventReporting(this);
         }
 
-        public void SendCollisions()
+        internal void SleeperAddCollisionEvents()
         {
+            if (CollisionEventsThisFrame == null)
+                return;
+            if(CollisionEventsThisFrame.m_objCollisionList.Count == 0)
+                return;
+            foreach(KeyValuePair<uint,ContactPoint> kvp in CollisionEventsThisFrame.m_objCollisionList)
+            {
+                OdePrim other = _parent_scene.getPrim(kvp.Key);
+                if(other == null)
+                    continue;
+                ContactPoint cp = kvp.Value;
+                cp.SurfaceNormal = - cp.SurfaceNormal;
+                cp.RelativeSpeed = -cp.RelativeSpeed;
+                other.AddCollisionEvent(ParentActor.LocalID,cp);
+            }
+        }
+
+        public void SendCollisions(int timestep)
+        {
+            if (m_cureventsubscription < 50000)
+                m_cureventsubscription += timestep;
+
             if (CollisionEventsThisFrame == null)
                 return;
 
@@ -1027,18 +1049,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     SentEmptyCollisionsEvent = true;
                     _parent_scene.RemoveCollisionEventReporting(this);
                 }
-                else
+                else if(Body == IntPtr.Zero || d.BodyIsEnabled(Body))
                 {
                     SentEmptyCollisionsEvent = false;
                     CollisionEventsThisFrame.Clear();
                 }
             }           
-        }
-
-        internal void AddCollisionFrameTime(int t)
-        {
-            if (m_cureventsubscription < 50000)
-                m_cureventsubscription += t;
         }
 
         public override bool SubscribedEvents()

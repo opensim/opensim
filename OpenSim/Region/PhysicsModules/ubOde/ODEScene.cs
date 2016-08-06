@@ -228,8 +228,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private d.NearCallback nearCallback;
 
+        private Dictionary<uint,OdePrim> _prims = new Dictionary<uint,OdePrim>();
         private HashSet<OdeCharacter> _characters = new HashSet<OdeCharacter>();
-        private HashSet<OdePrim> _prims = new HashSet<OdePrim>();
         private HashSet<OdePrim> _activeprims = new HashSet<OdePrim>();
         private HashSet<OdePrim> _activegroups = new HashSet<OdePrim>();
 
@@ -1329,7 +1329,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
               
                 newPrim = new OdePrim(name, this, position, size, rotation, pbs, isphysical, isPhantom, shapeType, localID);
                 lock (_prims)
-                    _prims.Add(newPrim);
+                    _prims[newPrim.LocalID] = newPrim;
             }
             return newPrim;
         }
@@ -1391,15 +1391,26 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
 //                RemoveCollisionEventReporting(prim);
                 lock (_prims)
-                    _prims.Remove(prim);
+                    _prims.Remove(prim.LocalID);
             }
 
+        }
+
+        public OdePrim getPrim(uint id)
+        {
+            lock (_prims)
+            {
+                if(_prims.ContainsKey(id))
+                    return _prims[id];
+                else
+                    return null;
+            }
         }
 
         public bool havePrim(OdePrim prm)
         {
             lock (_prims)
-                return _prims.Contains(prm);
+                return _prims.ContainsKey(prm.LocalID);
         }
 
         public bool haveActor(PhysicsActor actor)
@@ -1407,7 +1418,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (actor is OdePrim)
             {
                 lock (_prims)
-                    return _prims.Contains((OdePrim)actor);
+                    return _prims.ContainsKey(((OdePrim)actor).LocalID);
             }
             else if (actor is OdeCharacter)
             {
@@ -1708,6 +1719,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         m_rayCastManager.ProcessQueuedRequests();
 
                         collision_optimized();
+                        List<OdePrim> sleepers = new List<OdePrim>();
 
                         foreach (PhysicsActor obj in _collisionEventPrim)
                         {
@@ -1718,20 +1730,26 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             {
                                 case ActorTypes.Agent:
                                     OdeCharacter cobj = (OdeCharacter)obj;
-                                    cobj.AddCollisionFrameTime((int)(odetimestepMS));
-                                    cobj.SendCollisions();
+                                    cobj.SendCollisions((int)(odetimestepMS));
                                     break;
 
                                 case ActorTypes.Prim:
                                     OdePrim pobj = (OdePrim)obj;
-                                    if (!pobj.m_outbounds && (pobj.Body == IntPtr.Zero || d.BodyIsEnabled(pobj.Body)))
+                                    if (!pobj.m_outbounds)
                                     {
-                                        pobj.AddCollisionFrameTime((int)(odetimestepMS));
-                                        pobj.SendCollisions();
+                                        pobj.SendCollisions((int)(odetimestepMS));
+                                        if(pobj.Body != IntPtr.Zero && !pobj.m_isSelected &&
+                                            !pobj.m_disabled && !pobj.m_building && 
+                                            !d.BodyIsEnabled(pobj.Body))
+                                        sleepers.Add(pobj);
                                     }
                                     break;
                             }
                         }
+
+                        foreach(OdePrim prm in sleepers)
+                            prm.SleeperAddCollisionEvents();
+                        sleepers.Clear();
 
                         foreach (PhysicsActor obj in _collisionEventPrimRemove)
                             _collisionEventPrim.Remove(obj);
@@ -2481,7 +2499,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 lock (_prims)
                 {
                     ChangesQueue.Clear();
-                    foreach (OdePrim prm in _prims)
+                    foreach (OdePrim prm in _prims.Values)
                     {
                         prm.DoAChange(changes.Remove, null);
                         _collisionEventPrim.Remove(prm);
@@ -2544,7 +2562,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             int cnt = 0;
             lock (_prims)
             {
-                foreach (OdePrim prm in _prims)
+                foreach (OdePrim prm in _prims.Values)
                 {
                     if (prm.CollisionScore > 0)
                     {

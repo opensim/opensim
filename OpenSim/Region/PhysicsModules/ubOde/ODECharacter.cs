@@ -1578,6 +1578,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
             }
             m_eventsubscription = 0;
+            _parent_scene.RemoveCollisionEventReporting(this);
         }
 
         public override void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
@@ -1591,8 +1592,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
         }
 
-        public void SendCollisions()
+        public void SendCollisions(int timestep)
         {
+            if (m_cureventsubscription < 50000)
+                m_cureventsubscription += timestep;
+
             if (CollisionEventsThisFrame == null)
                 return;
 
@@ -1621,13 +1625,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     }
                 }
             }           
-        }
-
-        internal void AddCollisionFrameTime(int t)
-        {
-            // protect it from overflow crashing
-            if (m_cureventsubscription < 50000)
-                m_cureventsubscription += t;
         }
 
         public override bool SubscribedEvents()
