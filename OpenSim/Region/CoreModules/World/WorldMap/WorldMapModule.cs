@@ -1060,27 +1060,80 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// <param name="maxY"></param>
         public void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
         {
-            m_log.DebugFormat("[WoldMapModule] RequestMapBlocks {0}={1}={2}={3} {4}", minX, minY, maxX, maxY, flag);
+//            m_log.DebugFormat("[WoldMapModule] RequestMapBlocks {0}={1}={2}={3} {4}", minX, minY, maxX, maxY, flag);
 
             GetAndSendBlocks(remoteClient, minX, minY, maxX, maxY, flag);
         }
 
+        private const double SPAMBLOCKTIMEms = 300000; // 5 minutes
+        private Dictionary<UUID,double> spamBlocked = new Dictionary<UUID,double>();
+
         protected virtual List<MapBlockData> GetAndSendBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
         {
-            MapBlockRequestData req = new MapBlockRequestData();
+            // anti spam because of FireStorm 4.7.7 absurd request repeat rates
+            // possible others
 
-            req.client = remoteClient;
-            req.minX = minX;
-            req.maxX = maxX;
-            req.minY = minY;
-            req.maxY = maxY;
-            req.flags = flag;
+            double now = Util.GetTimeStampMS();
+            UUID agentID = remoteClient.AgentId;
 
             lock (m_mapBlockRequestEvent)
             {
-                if (!m_mapBlockRequests.ContainsKey(remoteClient.AgentId))
-                    m_mapBlockRequests[remoteClient.AgentId] = new Queue<MapBlockRequestData>();
-                m_mapBlockRequests[remoteClient.AgentId].Enqueue(req);
+                if(spamBlocked.ContainsKey(agentID))
+                {
+                    if(spamBlocked[agentID] < now &&
+                            (!m_mapBlockRequests.ContainsKey(agentID) ||
+                            m_mapBlockRequests[agentID].Count == 0 ))
+                    {
+                        spamBlocked.Remove(agentID);
+                        m_log.DebugFormat("[WoldMapModule] RequestMapBlocks release spammer {0}", agentID);
+                    }
+                    else
+                        return new List<MapBlockData>();
+                }
+                else
+                {
+                // ugly slow expire spammers
+                    if(spamBlocked.Count > 0)
+                    {
+                        UUID k = UUID.Zero;
+                        bool expireone = false;
+                        foreach(UUID k2 in spamBlocked.Keys)
+                        {
+                            if(spamBlocked[k2] < now &&
+                                (!m_mapBlockRequests.ContainsKey(k2) ||
+                                m_mapBlockRequests[k2].Count == 0 ))
+                            {
+                                m_log.DebugFormat("[WoldMapModule] RequestMapBlocks release spammer {0}", k2);
+                                k = k2;
+                                expireone = true;
+                            }
+                        break; // doing one at a time
+                        }
+                    if(expireone)
+                        spamBlocked.Remove(k);
+                    }
+                }
+
+//                m_log.DebugFormat("[WoldMapModule] RequestMapBlocks {0}={1}={2}={3} {4}", minX, minY, maxX, maxY, flag);
+
+                MapBlockRequestData req = new MapBlockRequestData();
+
+                req.client = remoteClient;
+                req.minX = minX;
+                req.maxX = maxX;
+                req.minY = minY;
+                req.maxY = maxY;
+                req.flags = flag;
+
+                if (!m_mapBlockRequests.ContainsKey(agentID))
+                    m_mapBlockRequests[agentID] = new Queue<MapBlockRequestData>();
+                if(m_mapBlockRequests[agentID].Count < 150 )
+                    m_mapBlockRequests[agentID].Enqueue(req);
+                else
+                { 
+                    spamBlocked[agentID] = now + SPAMBLOCKTIMEms;
+                    m_log.DebugFormat("[WoldMapModule] RequestMapBlocks blocking spammer {0} for {1} s",agentID, SPAMBLOCKTIMEms/1000.0);
+                }
                 m_mapBlockRequestEvent.Set();
             }
 
