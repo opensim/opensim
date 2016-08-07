@@ -3982,7 +3982,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 ResendPrimUpdate(update);
         }
 
-        private void ProcessEntityUpdates(int maxUpdates)
+        private void ProcessEntityUpdates(int maxUpdatesBytes)
         {
             OpenSim.Framework.Lazy<List<ObjectUpdatePacket.ObjectDataBlock>> objectUpdateBlocks = new OpenSim.Framework.Lazy<List<ObjectUpdatePacket.ObjectDataBlock>>();
             OpenSim.Framework.Lazy<List<ObjectUpdateCompressedPacket.ObjectDataBlock>> compressedUpdateBlocks = new OpenSim.Framework.Lazy<List<ObjectUpdateCompressedPacket.ObjectDataBlock>>();
@@ -3996,16 +3996,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
 
             // Check to see if this is a flush
-            if (maxUpdates <= 0)
+            if (maxUpdatesBytes <= 0)
             {
-                maxUpdates = Int32.MaxValue;
+                maxUpdatesBytes = Int32.MaxValue;
             }
 
-            int updatesThisCall = 0;
-
-            // We must lock for both manipulating the kill record and sending the packet, in order to avoid a race
-            // condition where a kill can be processed before an out-of-date update for the same object.                        
-//            float avgTimeDilation = 0.0f;
             EntityUpdate update;
             Int32 timeinqueue; // this is just debugging code & can be dropped later
 
@@ -4018,25 +4013,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ScenePresence mysp = (ScenePresence)SceneAgent;
             if(mysp != null && !mysp.IsDeleted)
             {
-                cullingrange = mysp.DrawDistance + m_scene.ReprioritizationDistance +16f;
+                cullingrange = mysp.DrawDistance + m_scene.ReprioritizationDistance + 16f;
 //                mycamera = mysp.CameraPosition;
                 mypos = mysp.AbsolutePosition;
             }
             else
                  doCulling = false;
 
-            while (updatesThisCall < maxUpdates)
+            while (maxUpdatesBytes > 0)
             {
                 lock (m_entityUpdates.SyncRoot)
                     if (!m_entityUpdates.TryDequeue(out update, out timeinqueue))
                         break;
                    
-//                avgTimeDilation += update.TimeDilation;
                 PrimUpdateFlags updateFlags = (PrimUpdateFlags)update.Flags;
 
                 if(updateFlags.HasFlag(PrimUpdateFlags.Kill))
                 {
                     m_killRecord.Add(update.Entity.LocalId);
+                    maxUpdatesBytes -= 30;
                     continue;
                 }
 
@@ -4158,8 +4153,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         continue;
                 }
 
-                ++updatesThisCall;
-
                 #region UpdateFlags to packet type conversion
 
                 bool canUseCompressed = true;
@@ -4212,30 +4205,49 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 // TODO: Remove this once we can build compressed updates
                 canUseCompressed = false;
-
+              
                 if (!canUseImproved && !canUseCompressed)
                 {
                     if (update.Entity is ScenePresence)
                     {
-                        objectUpdateBlocks.Value.Add(CreateAvatarUpdateBlock((ScenePresence)update.Entity));
+                        ObjectUpdatePacket.ObjectDataBlock ablock =
+                                CreateAvatarUpdateBlock((ScenePresence)update.Entity);
+                        objectUpdateBlocks.Value.Add(ablock);
+                        maxUpdatesBytes -= ablock.Length;
                     }
                     else
                     {
-                        objectUpdateBlocks.Value.Add(CreatePrimUpdateBlock((SceneObjectPart)update.Entity, this.m_agentId));
+                        ObjectUpdatePacket.ObjectDataBlock ablock =
+                                CreatePrimUpdateBlock((SceneObjectPart)update.Entity, this.m_agentId);
+                        objectUpdateBlocks.Value.Add(ablock);
+                        maxUpdatesBytes -= ablock.Length;
                     }
                 }
                 else if (!canUseImproved)
                 {
-                    compressedUpdateBlocks.Value.Add(CreateCompressedUpdateBlock((SceneObjectPart)update.Entity, updateFlags));
+                    ObjectUpdateCompressedPacket.ObjectDataBlock ablock =
+                            CreateCompressedUpdateBlock((SceneObjectPart)update.Entity, updateFlags);
+                    compressedUpdateBlocks.Value.Add(ablock);
+                    maxUpdatesBytes -= ablock.Length;
                 }
                 else
                 {
                     if (update.Entity is ScenePresence)
+                    {
                         // ALL presence updates go into a special list
-                        terseAgentUpdateBlocks.Value.Add(CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures)));
+                        ImprovedTerseObjectUpdatePacket.ObjectDataBlock ablock = 
+                                CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures));
+                        terseAgentUpdateBlocks.Value.Add(ablock);
+                        maxUpdatesBytes -= ablock.Length;
+                    }
                     else
+                    {
                         // Everything else goes here
-                        terseUpdateBlocks.Value.Add(CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures)));
+                        ImprovedTerseObjectUpdatePacket.ObjectDataBlock ablock =
+                                CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures));
+                        terseUpdateBlocks.Value.Add(ablock);
+                        maxUpdatesBytes -= ablock.Length;
+                    }
                 }
 
                 #endregion Block Construction
@@ -4504,8 +4516,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // of updates converted to packets. Since we don't want packets
         // to sit in the queue with old data, only convert enough updates
         // to packets that can be sent in 200ms.
-        private Int32 m_LastQueueFill = 0;
-        private Int32 m_maxUpdates = 0;
+//        private Int32 m_LastQueueFill = 0;
+//        private Int32 m_maxUpdates = 0;
 
         void HandleQueueEmpty(ThrottleOutPacketTypeFlags categories)
         {
@@ -4516,7 +4528,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
 //                if (!m_udpServer.IsRunningOutbound)
 //                    return;
-
+/*
                 if (m_maxUpdates == 0 || m_LastQueueFill == 0)
                 {
                     m_maxUpdates = m_udpServer.PrimUpdatesPerCallback;
@@ -4530,17 +4542,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 m_maxUpdates = Util.Clamp<Int32>(m_maxUpdates,10,500);
                 m_LastQueueFill = Util.EnvironmentTickCount();
-            
+*/
+                int maxUpdateBytes = m_udpClient.GetCatBytesCanSend(ThrottleOutPacketType.Task, 30);   
+                       
                 if (m_entityUpdates.Count > 0)
-                    ProcessEntityUpdates(m_maxUpdates);
+                    ProcessEntityUpdates(maxUpdateBytes);
 
                 if (m_entityProps.Count > 0)
-                    ProcessEntityPropertyRequests(m_maxUpdates);
+                    ProcessEntityPropertyRequests(maxUpdateBytes);
             }
 
             if ((categories & ThrottleOutPacketTypeFlags.Texture) != 0)
                 ImageManager.ProcessImageQueue(m_udpServer.TextureSendLimit);
-        }
+    }
 
         internal bool HandleHasUpdates(ThrottleOutPacketTypeFlags categories)
         {
@@ -4723,7 +4737,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_entityProps.Enqueue(priority, new ObjectPropertyUpdate(entity,0,false,true));
         }
 
-        private void ProcessEntityPropertyRequests(int maxUpdates)
+        private void ProcessEntityPropertyRequests(int maxUpdateBytes)
         {
             OpenSim.Framework.Lazy<List<ObjectPropertiesFamilyPacket.ObjectDataBlock>> objectFamilyBlocks =
                 new OpenSim.Framework.Lazy<List<ObjectPropertiesFamilyPacket.ObjectDataBlock>>();
@@ -4740,8 +4754,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             EntityUpdate iupdate;
             Int32 timeinqueue; // this is just debugging code & can be dropped later
 
-            int updatesThisCall = 0;
-            while (updatesThisCall < m_maxUpdates)
+            while (maxUpdateBytes > 0)
             {
                 lock (m_entityProps.SyncRoot)
                     if (!m_entityProps.TryDequeue(out iupdate, out timeinqueue))
@@ -4756,6 +4769,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         ObjectPropertiesFamilyPacket.ObjectDataBlock objPropDB = CreateObjectPropertiesFamilyBlock(sop,update.Flags);
                         objectFamilyBlocks.Value.Add(objPropDB);
                         familyUpdates.Value.Add(update);
+                        maxUpdateBytes -= objPropDB.Length;
                     }
                 }
 
@@ -4767,16 +4781,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         ObjectPropertiesPacket.ObjectDataBlock objPropDB = CreateObjectPropertiesBlock(sop);
                         objectPropertiesBlocks.Value.Add(objPropDB);
                         propertyUpdates.Value.Add(update);
+                        maxUpdateBytes -= objPropDB.Length;
                     }
                 }
-
-                updatesThisCall++;
             }
-            
-
-            // Int32 ppcnt = 0;
-            // Int32 pbcnt = 0;
-            
+           
             if (objectPropertiesBlocks.IsValueCreated)
             {
                 List<ObjectPropertiesPacket.ObjectDataBlock> blocks = objectPropertiesBlocks.Value;
