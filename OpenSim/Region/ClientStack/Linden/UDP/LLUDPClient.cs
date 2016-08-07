@@ -771,8 +771,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             RTO = Math.Min(RTO * 2, m_maxRTO);
         }
 
-
-        const int MIN_CALLBACK_MS = 10;              
+        const int MIN_CALLBACK_MS = 20;
 
         /// <summary>
         /// Does an early check to see if this queue empty callback is already
@@ -807,9 +806,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                 }
                 else
-                {
                     m_isQueueEmptyRunning = false;
-                }
             }
         }
 
