@@ -606,21 +606,20 @@ namespace OpenSim.Framework
             get { return m_updateTime; }
         }
 
-        public virtual void Update(EntityUpdate update)
+        public virtual void Update(EntityUpdate oldupdate)
         {
-            PrimUpdateFlags updateFlags = update.Flags;
-            if(updateFlags.HasFlag(PrimUpdateFlags.CancelKill))
+            // we are on the new one
+            PrimUpdateFlags updateFlags = oldupdate.Flags;
+            if(m_flags.HasFlag(PrimUpdateFlags.CancelKill))
                 m_flags = PrimUpdateFlags.FullUpdate;
-            else if(m_flags.HasFlag(PrimUpdateFlags.Kill))
-                return;
             else if(updateFlags.HasFlag(PrimUpdateFlags.Kill))
-                m_flags = PrimUpdateFlags.Kill;
-            else
+                return;
+            else // kill case will just merge in
                 m_flags |= updateFlags;
 
             // Use the older of the updates as the updateTime
-            if (Util.EnvironmentTickCountCompare(UpdateTime, update.UpdateTime) > 0)
-                m_updateTime = update.UpdateTime;
+            if (Util.EnvironmentTickCountCompare(UpdateTime, oldupdate.UpdateTime) > 0)
+                m_updateTime = oldupdate.UpdateTime;
         }
 
         public EntityUpdate(ISceneEntity entity, PrimUpdateFlags flags)
