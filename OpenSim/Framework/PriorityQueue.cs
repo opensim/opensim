@@ -113,7 +113,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Enqueue an item into the specified priority queue
         /// </summary>
-        public bool Enqueue(uint pqueue, IEntityUpdate value)
+        public bool Enqueue(uint pqueue, EntityUpdate value)
         {
             LookupItem lookup;
 
@@ -154,7 +154,7 @@ namespace OpenSim.Framework
         /// oldest item from the next queue in order to provide fair access to
         /// all of the queues
         /// </summary>
-        public bool TryDequeue(out IEntityUpdate value, out Int32 timeinqueue)
+        public bool TryDequeue(out EntityUpdate value, out Int32 timeinqueue)
         {
             // If there is anything in imediate queues, return it first no
             // matter what else. Breaks fairness. But very useful.
@@ -212,7 +212,7 @@ namespace OpenSim.Framework
             }
 
             timeinqueue = 0;
-            value = default(IEntityUpdate);
+            value = default(EntityUpdate);
             return false;
         }
 
@@ -270,8 +270,8 @@ namespace OpenSim.Framework
 #region MinHeapItem
         private struct MinHeapItem : IComparable<MinHeapItem>
         {
-            private IEntityUpdate value;
-            internal IEntityUpdate Value {
+            private EntityUpdate value;
+            internal EntityUpdate Value {
                 get {
                     return this.value;
                 }
@@ -307,7 +307,7 @@ namespace OpenSim.Framework
                 this.pqueue = pqueue;
             }
 
-            internal MinHeapItem(uint pqueue, UInt64 entryorder, IEntityUpdate value)
+            internal MinHeapItem(uint pqueue, UInt64 entryorder, EntityUpdate value)
             {
                 this.entrytime = Util.EnvironmentTickCount();
                 this.entryorder = entryorder;

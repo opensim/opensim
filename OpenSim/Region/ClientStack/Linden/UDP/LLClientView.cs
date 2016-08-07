@@ -3937,7 +3937,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             uint priority = m_prioritizer.GetUpdatePriority(this, entity);
 
             lock (m_entityUpdates.SyncRoot)
-                m_entityUpdates.Enqueue(priority, new EntityUpdate(entity, updateFlags, m_scene.TimeDilation));
+                m_entityUpdates.Enqueue(priority, new EntityUpdate(entity, updateFlags)); 
         }
 
         /// <summary>
@@ -4006,12 +4006,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // We must lock for both manipulating the kill record and sending the packet, in order to avoid a race
             // condition where a kill can be processed before an out-of-date update for the same object.                        
 //            float avgTimeDilation = 0.0f;
-            IEntityUpdate iupdate;
+            EntityUpdate update;
             Int32 timeinqueue; // this is just debugging code & can be dropped later
 
             bool doCulling = m_scene.ObjectsCullingByDistance;
             float cullingrange = 64.0f;
             HashSet<SceneObjectGroup> GroupsNeedFullUpdate = new HashSet<SceneObjectGroup>();
+            List<SceneObjectGroup> kills = new List<SceneObjectGroup>();
 //            Vector3 mycamera = Vector3.Zero;
             Vector3 mypos = Vector3.Zero;
             ScenePresence mysp = (ScenePresence)SceneAgent;
@@ -4027,12 +4028,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             while (updatesThisCall < maxUpdates)
             {
                 lock (m_entityUpdates.SyncRoot)
-                    if (!m_entityUpdates.TryDequeue(out iupdate, out timeinqueue))
+                    if (!m_entityUpdates.TryDequeue(out update, out timeinqueue))
                         break;
-
-                EntityUpdate update = (EntityUpdate)iupdate;
-                    
+                   
 //                avgTimeDilation += update.TimeDilation;
+                PrimUpdateFlags updateFlags = (PrimUpdateFlags)update.Flags;
+
+                if(updateFlags.HasFlag(PrimUpdateFlags.Kill))
+                {
+                    m_killRecord.Add(update.Entity.LocalId);
+                    continue;
+                }
 
                 if (update.Entity is SceneObjectPart)
                 {
@@ -4156,11 +4162,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 #region UpdateFlags to packet type conversion
 
-                PrimUpdateFlags updateFlags = (PrimUpdateFlags)update.Flags;
-
                 bool canUseCompressed = true;
                 bool canUseImproved = true;
 
+                
                 // Compressed object updates only make sense for LL primitives
                 if (!(update.Entity is SceneObjectPart))
                 {
@@ -4319,17 +4324,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_killRecord.Clear();
             }
 
+            if (kills.Count > 0)
+            {
+                foreach(SceneObjectGroup grp in kills)
+                {
+                    foreach(SceneObjectPart p in grp.Parts)
+                        SendEntityUpdate(p,PrimUpdateFlags.Kill);
+                }
+                kills.Clear();
+            }
+
             if(GroupsNeedFullUpdate.Count > 0)
             {
                 foreach(SceneObjectGroup grp in GroupsNeedFullUpdate)
                 {
-                    grp.ScheduleGroupForFullUpdate();
+                    foreach(SceneObjectPart p in grp.Parts)
+                        SendEntityUpdate(p,PrimUpdateFlags.CancelKill);
                     lock(GroupsInView)
                         GroupsInView.Add(grp);
                 }
             }
             #endregion
-
         }
 
         // hack.. dont use
@@ -4368,7 +4383,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         private bool CheckGroupsInViewBusy = false;
-        private bool CheckGroupsInViewOverRun = false;
 
         public void CheckGroupsInView()
         {
@@ -4377,112 +4391,90 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
 
             if(CheckGroupsInViewBusy)
+                return;
+
+            CheckGroupsInViewBusy = true;
+
+            float cullingrange = 64.0f;
+//                Vector3 mycamera = Vector3.Zero;
+            Vector3 mypos = Vector3.Zero;
+            ScenePresence mysp = (ScenePresence)SceneAgent;
+            if(mysp != null && !mysp.IsDeleted)
             {
-                CheckGroupsInViewOverRun = true;
+                cullingrange  = mysp.DrawDistance + m_scene.ReprioritizationDistance + 16f;
+//                    mycamera = mysp.CameraPosition;
+                mypos = mysp.AbsolutePosition;
+            }
+            else
+            {
+                CheckGroupsInViewBusy= false;
                 return;
             }
-            CheckGroupsInViewBusy = true;
-            do
+
+            HashSet<SceneObjectGroup> NewGroupsInView = new HashSet<SceneObjectGroup>();
+            HashSet<SceneObjectGroup> GroupsNeedFullUpdate = new HashSet<SceneObjectGroup>();
+            List<SceneObjectGroup> kills = new List<SceneObjectGroup>();
+
+            EntityBase[] entities = m_scene.Entities.GetEntities();
+            foreach (EntityBase e in entities)
             {
-                CheckGroupsInViewOverRun = false;
-
-                float cullingrange = 64.0f;
-//                Vector3 mycamera = Vector3.Zero;
-                Vector3 mypos = Vector3.Zero;
-                ScenePresence mysp = (ScenePresence)SceneAgent;
-                if(mysp != null && !mysp.IsDeleted)
-                {
-                    cullingrange  = mysp.DrawDistance + m_scene.ReprioritizationDistance + 16f;
-//                    mycamera = mysp.CameraPosition;
-                    mypos = mysp.AbsolutePosition;
-                }
-                else
-                {
-                    CheckGroupsInViewBusy= false;
+                if(!IsActive)
                     return;
-                }
 
-                HashSet<SceneObjectGroup> NewGroupsInView = new HashSet<SceneObjectGroup>();
-                HashSet<SceneObjectGroup> GroupsNeedFullUpdate = new HashSet<SceneObjectGroup>();
-                List<uint> kills = new List<uint>();
-                int killedParst = 0;
-
-                EntityBase[] entities = m_scene.Entities.GetEntities();
-                foreach (EntityBase e in entities)
+                if (e != null && e is SceneObjectGroup)
                 {
-                    if(!IsActive)
-                        return;
+                    SceneObjectGroup grp = (SceneObjectGroup)e;
+                    if(grp.IsDeleted || grp.IsAttachment)
+                        continue;
 
-                    if (e != null && e is SceneObjectGroup)
-                    {
-                        SceneObjectGroup grp = (SceneObjectGroup)e;
-                        if(grp.IsDeleted || grp.IsAttachment)
-                            continue;
-
-                        float bradius = grp.GetBoundsRadius();
-                        Vector3 grppos = grp.AbsolutePosition + grp.getBoundsCenter();
+                    float bradius = grp.GetBoundsRadius();
+                    Vector3 grppos = grp.AbsolutePosition + grp.getBoundsCenter();
 //                        float dcam = (grppos - mycamera).LengthSquared();
-                        float dpos = (grppos - mypos).LengthSquared();
+                    float dpos = (grppos - mypos).LengthSquared();
 //                        if(dcam < dpos)
 //                            dpos = dcam;
 
-                        dpos = (float)Math.Sqrt(dpos) - bradius;
+                    dpos = (float)Math.Sqrt(dpos) - bradius;
 
-                        bool inview;
-                        lock(GroupsInView)
-                            inview = GroupsInView.Contains(grp);
+                    bool inview;
+                    lock(GroupsInView)
+                        inview = GroupsInView.Contains(grp);
 
-                        if(dpos > cullingrange)
-                        {
-                            if(inview)
-                            {
-                                kills.Add(grp.LocalId);
-                                killedParst += grp.PrimCount;
-
-                                if (killedParst > 199 )
-                                {
-                                    SendKillObject(kills);
-                                    kills.Clear();
-                                    killedParst = 0;
-                                    Thread.Sleep(50);
-                                    if(mysp != null && !mysp.IsDeleted)
-                                    {
-                                        cullingrange  = mysp.DrawDistance + m_scene.ReprioritizationDistance + 16f;
-//                                        mycamera = mysp.CameraPosition;
-                                        mypos = mysp.AbsolutePosition;
-                                    }
-                                    else
-                                    {
-                                        CheckGroupsInViewBusy= false;
-                                        return;
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            if(!inview)
-                                GroupsNeedFullUpdate.Add(grp);
-                            NewGroupsInView.Add(grp);
-                        }
+                    if(dpos > cullingrange)
+                    {
+                        if(inview)
+                            kills.Add(grp);
+                    }
+                    else
+                    {
+                        if(!inview)
+                            GroupsNeedFullUpdate.Add(grp);
+                        NewGroupsInView.Add(grp);
                     }
                 }
+            }
 
-                lock(GroupsInView)
-                    GroupsInView = NewGroupsInView;
+            lock(GroupsInView)
+                GroupsInView = NewGroupsInView;
 
-                if (kills.Count > 0)
+            if (kills.Count > 0)
+            {
+                foreach(SceneObjectGroup grp in kills)
                 {
-                    SendKillObject(kills);
-                    kills.Clear();
+                    foreach(SceneObjectPart p in grp.Parts)
+                        SendEntityUpdate(p,PrimUpdateFlags.Kill);
                 }
+                kills.Clear();
+            }
 
-                if(GroupsNeedFullUpdate.Count > 0)
+            if(GroupsNeedFullUpdate.Count > 0)
+            {
+                foreach(SceneObjectGroup grp in GroupsNeedFullUpdate)
                 {
-                    foreach(SceneObjectGroup grp in GroupsNeedFullUpdate)
-                        grp.ScheduleGroupForFullUpdate();
+                    foreach(SceneObjectPart p in grp.Parts)
+                        SendEntityUpdate(p,PrimUpdateFlags.CancelKill);
                 }
-            } while(CheckGroupsInViewOverRun);
+            }       
 
             CheckGroupsInViewBusy = false;
         }
@@ -4670,13 +4662,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(pack, ThrottleOutPacketType.Task);
         }
 
-        private class ObjectPropertyUpdate : IEntityUpdate
+        private class ObjectPropertyUpdate : EntityUpdate
         {
             internal bool SendFamilyProps;
             internal bool SendObjectProps;
             
             public ObjectPropertyUpdate(ISceneEntity entity, uint flags, bool sendfam, bool sendobj)
-                : base(entity,flags)
+                : base(entity,(PrimUpdateFlags)flags)
             {
                 SendFamilyProps = sendfam;
                 SendObjectProps = sendobj;
@@ -4745,7 +4737,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>> propertyUpdates =
                 new OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>>();
             
-            IEntityUpdate iupdate;
+            EntityUpdate iupdate;
             Int32 timeinqueue; // this is just debugging code & can be dropped later
 
             int updatesThisCall = 0;
@@ -4849,11 +4841,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // m_log.WarnFormat("[PACKETCOUNTS] queued {0} family property packets with {1} blocks",fpcnt,fbcnt);
         }
 
-        private ObjectPropertiesFamilyPacket.ObjectDataBlock CreateObjectPropertiesFamilyBlock(SceneObjectPart sop, uint requestFlags)
+        private ObjectPropertiesFamilyPacket.ObjectDataBlock CreateObjectPropertiesFamilyBlock(SceneObjectPart sop, PrimUpdateFlags requestFlags)
         {
             ObjectPropertiesFamilyPacket.ObjectDataBlock block = new ObjectPropertiesFamilyPacket.ObjectDataBlock();
 
-            block.RequestFlags = requestFlags;
+            block.RequestFlags = (uint)requestFlags;
             block.ObjectID = sop.UUID;
             if (sop.OwnerID == sop.GroupID)
                 block.OwnerID = UUID.Zero;
