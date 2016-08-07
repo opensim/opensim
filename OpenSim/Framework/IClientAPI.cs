@@ -585,10 +585,10 @@ namespace OpenSim.Framework
         public float dwell;
     }
 
-    public class IEntityUpdate
+    public class EntityUpdate
     {
         private ISceneEntity m_entity;
-        private uint m_flags;
+        private PrimUpdateFlags m_flags;
         private int m_updateTime;
 
         public ISceneEntity Entity
@@ -596,7 +596,7 @@ namespace OpenSim.Framework
             get { return m_entity; }
         }
 
-        public uint Flags
+        public PrimUpdateFlags Flags
         {
             get { return m_flags; }
         }
@@ -606,50 +606,35 @@ namespace OpenSim.Framework
             get { return m_updateTime; }
         }
 
-        public virtual void Update(IEntityUpdate update)
+        public virtual void Update(EntityUpdate update)
         {
-            m_flags |= update.Flags;
+            PrimUpdateFlags updateFlags = update.Flags;
+            if(updateFlags.HasFlag(PrimUpdateFlags.CancelKill))
+                m_flags = PrimUpdateFlags.FullUpdate;
+            else if(m_flags.HasFlag(PrimUpdateFlags.Kill))
+                return;
+            else if(updateFlags.HasFlag(PrimUpdateFlags.Kill))
+                m_flags = PrimUpdateFlags.Kill;
+            else
+                m_flags |= updateFlags;
 
             // Use the older of the updates as the updateTime
             if (Util.EnvironmentTickCountCompare(UpdateTime, update.UpdateTime) > 0)
                 m_updateTime = update.UpdateTime;
         }
 
-        public IEntityUpdate(ISceneEntity entity, uint flags)
+        public EntityUpdate(ISceneEntity entity, PrimUpdateFlags flags)
         {
             m_entity = entity;
             m_flags = flags;
             m_updateTime = Util.EnvironmentTickCount();
         }
 
-        public IEntityUpdate(ISceneEntity entity, uint flags, Int32 updateTime)
+        public EntityUpdate(ISceneEntity entity, PrimUpdateFlags flags, Int32 updateTime)
         {
             m_entity = entity;
             m_flags = flags;
             m_updateTime = updateTime;
-        }
-    }
-
-    public class EntityUpdate : IEntityUpdate
-    {
-        private float m_timeDilation;
-
-        public float TimeDilation
-        {
-            get { return m_timeDilation; }
-        }
-
-        public EntityUpdate(ISceneEntity entity, PrimUpdateFlags flags, float timedilation)
-            : base(entity, (uint)flags)
-        {
-            // Flags = flags;
-            m_timeDilation = timedilation;
-        }
-
-        public EntityUpdate(ISceneEntity entity, PrimUpdateFlags flags, float timedilation, Int32 updateTime)
-            : base(entity,(uint)flags,updateTime)
-        {
-            m_timeDilation = timedilation;
         }
     }
 
@@ -701,9 +686,12 @@ namespace OpenSim.Framework
         ExtraData = 1 << 20,
         Sound = 1 << 21,
         Joint = 1 << 22,
-        FullUpdate = UInt32.MaxValue
+        FullUpdate = 0x3fffffff,
+        CancelKill = 0x7fffffff,
+        Kill = 0x80000000
     }
 
+/* included in .net 4.0
     public static class PrimUpdateFlagsExtensions
     {
         public static bool HasFlag(this PrimUpdateFlags updateFlags, PrimUpdateFlags flag)
@@ -711,7 +699,7 @@ namespace OpenSim.Framework
             return (updateFlags & flag) == flag;
         }
     }
-
+*/
     public interface IClientAPI
     {
         Vector3 StartPos { get; set; }
