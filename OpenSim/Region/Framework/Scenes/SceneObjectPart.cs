@@ -1188,6 +1188,29 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public float maxSimpleArea()
+        {
+            float a,b;
+            if(m_shape.Scale.X  > m_shape.Scale.Y)
+            {
+                a = m_shape.Scale.X;
+                if(m_shape.Scale.Y  > m_shape.Scale.Z)
+                    b = m_shape.Scale.Y;
+                else
+                    b = m_shape.Scale.Z;
+            }
+            else
+            {
+                a = m_shape.Scale.Y;
+                if(m_shape.Scale.X  > m_shape.Scale.Z)
+                    b = m_shape.Scale.X;
+                else
+                    b = m_shape.Scale.Z;
+            }
+            
+            return a*b;       
+        }
+
         public UpdateRequired UpdateFlag { get; set; }
         public bool UpdatePhysRequired { get; set; }
         
