@@ -108,6 +108,9 @@ namespace OpenSim.Region.Framework.Scenes
                     priority = GetPriorityByFrontBack(client, entity);
                     break;
 */
+                case UpdatePrioritizationSchemes.SimpleAngularDistance:
+                    priority = GetPriorityByAngularDistance(client, entity); // TODO: Reimplement SimpleAngularDistance
+                    break;
                 case UpdatePrioritizationSchemes.BestAvatarResponsiveness:
                 default:
                     priority = GetPriorityByBestAvatarResponsiveness(client, entity);
@@ -241,7 +244,7 @@ namespace OpenSim.Region.Framework.Scenes
 */
             if (distance > 10f)
             {
-                float tmp = (float)Math.Log((double)distance) * 1.4426950408889634073599246810019f - 3.3219280948873623478703194294894f;
+                float tmp = (float)Math.Log((double)distance) * 1.442695f - 3.321928f;
                 // for a map identical to original:
                 // now 
                 // 1st constant is 1/(log(2)) (natural log) so we get log2(distance)
@@ -269,5 +272,67 @@ namespace OpenSim.Region.Framework.Scenes
             return pqueue;
         }
 
+        private uint GetPriorityByAngularDistance(IClientAPI client, ISceneEntity entity)
+        {
+            uint pqueue = 2; // keep compiler happy
+
+            ScenePresence presence = m_scene.GetScenePresence(client.AgentId);
+            if (presence == null)
+                return PriorityQueue.NumberOfQueues - 1;
+
+            // All avatars other than our own go into pqueue 1
+            if (entity is ScenePresence)
+                return 1;
+
+            if (entity is SceneObjectPart)
+            {
+                // Attachments are high priority, 
+                if (((SceneObjectPart)entity).ParentGroup.IsAttachment)
+                    return 2;
+
+                pqueue = ComputeAngleDistancePriority(presence, entity);
+
+                // Non physical prims are lower priority than physical prims
+                PhysicsActor physActor = ((SceneObjectPart)entity).ParentGroup.RootPart.PhysActor;
+                if (physActor == null || !physActor.IsPhysical)
+                    pqueue++;
+            }
+
+            return pqueue;
+        }
+
+        private uint ComputeAngleDistancePriority(ScenePresence presence, ISceneEntity entity)
+        {
+            double distance;
+                
+            Vector3 presencePos = presence.AbsolutePosition;
+
+            SceneObjectGroup group = (entity as SceneObjectPart).ParentGroup;
+            float bradius = group.GetBoundsRadius();
+            Vector3 grppos = group.AbsolutePosition + group.getBoundsCenter();
+            distance = Vector3.Distance(presencePos, grppos);
+            distance -= bradius;
+            distance *= group.getAreaFactor();
+
+            // And convert the distance to a priority queue, this computation gives queues
+            // at 10, 20, 40, 80, 160, 320, 640, and 1280m
+            uint pqueue = PriorityQueue.NumberOfImmediateQueues + 1; // reserve attachments queue
+            uint queues = PriorityQueue.NumberOfQueues - PriorityQueue.NumberOfImmediateQueues;
+
+            if (distance > 10f)
+            {
+                float tmp = (float)Math.Log(distance) * 1.442695f - 3.321928f;
+                // for a map identical to original:
+                // now 
+                // 1st constant is 1/(log(2)) (natural log) so we get log2(distance)
+                // 2st constant makes it be log2(distance/10)
+                
+                pqueue += (uint)tmp;
+                if (pqueue > queues - 1)
+                    pqueue = queues - 1;
+            }
+
+            return pqueue;
+        }
     }
 }
