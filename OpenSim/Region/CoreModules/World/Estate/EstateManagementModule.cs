@@ -572,6 +572,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 bool UseEstateSun, bool UseFixedSun, float SunHour,
                 bool UseGlobal, bool EstateFixedSun, float EstateSunHour)
         {
+            double lastwaterlevel = Scene.RegionInfo.RegionSettings.WaterHeight;
             // Water Height
             Scene.RegionInfo.RegionSettings.WaterHeight = WaterHeight;
 
@@ -583,6 +584,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
             Scene.RegionInfo.RegionSettings.UseEstateSun = UseEstateSun;
             Scene.RegionInfo.RegionSettings.FixedSun = UseFixedSun;
             Scene.RegionInfo.RegionSettings.SunPosition = SunHour;
+
+            if(Scene.PhysicsEnabled && Scene.PhysicsScene != null && lastwaterlevel != WaterHeight)
+                Scene.PhysicsScene.SetWaterLevel(WaterHeight);
 
             Scene.TriggerEstateSunUpdate();
 
@@ -1471,7 +1475,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     Scene.RegionInfo.EstateSettings.FixedSun,
                     (float)Scene.RegionInfo.EstateSettings.SunPosition);
 
-            sendRegionInfoPacketToAll();
+//            sendRegionInfoPacketToAll(); already done by setRegionTerrainSettings
         }
 
 
