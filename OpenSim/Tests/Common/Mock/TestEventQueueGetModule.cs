@@ -152,6 +152,11 @@ namespace OpenSim.Tests.Common
             AddEvent(toAgent, "ChatterBoxSessionAgentListUpdates", sessionID, fromAgent, canVoiceChat, isModerator, textMute, isEnterorLeave);
         }
 
+        public void ChatterBoxForceClose (UUID toAgent, UUID sessionID, string reason)
+        {
+            AddEvent(toAgent, "ForceCloseChatterBoxSession", sessionID, reason);
+        }
+
         public void ParcelProperties (OpenMetaverse.Messages.Linden.ParcelPropertiesMessage parcelPropertiesMessage, UUID avatarID)
         {
             AddEvent(avatarID, "ParcelProperties", parcelPropertiesMessage);

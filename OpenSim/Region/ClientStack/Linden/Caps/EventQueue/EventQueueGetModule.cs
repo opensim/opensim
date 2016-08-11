@@ -372,7 +372,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             caps.RegisterPollHandler(
                 "EventQueueGet",
-                new PollServiceEventArgs(null, GenerateEqgCapPath(eventQueueGetUUID), HasEvents, GetEvents, NoEvents, agentID, SERVER_EQ_TIME_NO_EVENTS));
+                new PollServiceEventArgs(null, GenerateEqgCapPath(eventQueueGetUUID), HasEvents, GetEvents, NoEvents, Drop, agentID, SERVER_EQ_TIME_NO_EVENTS));
         }
 
         public bool HasEvents(UUID requestID, UUID agentID)
@@ -573,6 +573,14 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             OSD item = EventQueueHelper.ChatterBoxSessionAgentListUpdates(sessionID, fromAgent, canVoiceChat,
                                                                           isModerator, textMute, isEnterorLeave);
+            Enqueue(item, toAgent);
+            //m_log.InfoFormat("########### eq ChatterBoxSessionAgentListUpdates #############\n{0}", item);
+        }
+
+        public void ChatterBoxForceClose(UUID toAgent, UUID sessionID, string reason)
+        {
+            OSD item = EventQueueHelper.ChatterBoxForceClose(sessionID, reason);
+
             Enqueue(item, toAgent);
             //m_log.InfoFormat("########### eq ChatterBoxSessionAgentListUpdates #############\n{0}", item);
         }

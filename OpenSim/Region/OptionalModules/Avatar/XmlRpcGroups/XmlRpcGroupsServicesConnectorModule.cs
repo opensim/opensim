@@ -1011,7 +1011,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                 if ((m_cacheTimeout > 0) && (CacheKey != null))
                 {
-                    m_memoryCache.AddOrUpdate(CacheKey, resp, TimeSpan.FromSeconds(10));
+                    m_memoryCache.AddOrUpdate(CacheKey, resp, 10.0);
                 }
             }
 

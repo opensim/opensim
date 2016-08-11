@@ -52,11 +52,12 @@ namespace OpenSim.Region.Framework.Interfaces
                          string capsURL, UUID avatarID, UUID sessionID,
                             int regionSizeX, int regionSizeY);
         void ChatterboxInvitation(UUID sessionID, string sessionName,
-                                  UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog,
-                                  uint timeStamp, bool offline, int parentEstateID, Vector3 position,
-                                  uint ttl, UUID transactionID, bool fromGroup, byte[] binaryBucket);
-        void ChatterBoxSessionAgentListUpdates(UUID sessionID, UUID fromAgent, UUID anotherAgent, bool canVoiceChat, 
-                                               bool isModerator, bool textMute, bool isEnterorLeave);
+                                UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog,
+                                uint timeStamp, bool offline, int parentEstateID, Vector3 position,
+                                uint ttl, UUID transactionID, bool fromGroup, byte[] binaryBucket);
+        void ChatterBoxSessionAgentListUpdates(UUID sessionID, UUID fromAgent, UUID anotherAgent,
+                                bool canVoiceChat, bool isModerator, bool textMute, bool isEnterorLeave);
+        void ChatterBoxForceClose(UUID toAgent, UUID sessionID, string reason);
         void ParcelProperties(ParcelPropertiesMessage parcelPropertiesMessage, UUID avatarID);
         void GroupMembershipData(UUID receiverAgent, GroupMembershipData[] data);
         OSD ScriptRunningEvent(UUID objectID, UUID itemID, bool running, bool mono);
