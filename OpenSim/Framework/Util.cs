@@ -382,7 +382,8 @@ namespace OpenSim.Framework
 
         public static ulong RegionGridLocToHandle(uint X, uint Y)
         {
-            ulong handle = X << 40; // shift to higher half and mult by 256)
+            ulong handle = X;
+            handle <<= 40; // shift to higher half and mult by 256)
             handle |= (Y << 8);  // mult by 256)
             return handle;
         }
