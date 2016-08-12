@@ -4462,12 +4462,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (kills.Count > 0)
             {
+                List<uint> partIDs = new List<uint>();
                 foreach(SceneObjectGroup grp in kills)
                 {
+                    SendEntityUpdate(grp.RootPart,PrimUpdateFlags.Kill);
                     foreach(SceneObjectPart p in grp.Parts)
-                        SendEntityUpdate(p,PrimUpdateFlags.Kill);
+                    {
+                        if(p != grp.RootPart)
+                            partIDs.Add(p.LocalId);
+                    }
                 }
                 kills.Clear();
+                if(partIDs.Count > 0)
+                {
+                    lock (m_entityProps.SyncRoot)
+                        m_entityProps.Remove(partIDs);
+                    lock (m_entityUpdates.SyncRoot)
+                        m_entityUpdates.Remove(partIDs);
+                }
             }
 
             if(GroupsNeedFullUpdate.Count > 0)
@@ -11409,12 +11421,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_GroupsModule.GroupMembersRequest(this, groupMembersRequestPacket.GroupData.GroupID);
 
                 int memberCount = members.Count;
-
-                while (true)
+                int indx = 0;
+                while (indx < memberCount)
                 {
-                    int blockCount = members.Count;
-                    if (blockCount > 40)
-                        blockCount = 40;
+                    int blockCount = memberCount - indx;
+                    if (blockCount > 25)
+                        blockCount = 25;
 
                     GroupMembersReplyPacket groupMembersReply = (GroupMembersReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupMembersReply);
 
@@ -11435,8 +11447,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     for (int i = 0; i < blockCount; i++)
                     {
-                        GroupMembersData m = members[0];
-                        members.RemoveAt(0);
+                        GroupMembersData m = members[indx++];
 
                         groupMembersReply.MemberData[i] =
                             new GroupMembersReplyPacket.MemberDataBlock();
@@ -11454,8 +11465,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             m.IsOwner;
                     }
                     OutPacket(groupMembersReply, ThrottleOutPacketType.Task);
-                    if (members.Count == 0)
-                        return true;
                 }
             }
             return true;
