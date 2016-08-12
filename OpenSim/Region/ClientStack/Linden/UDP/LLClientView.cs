@@ -1711,11 +1711,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendKillObject(List<uint> localIDs)
         {
-            // think we do need this
             //            foreach (uint id in localIDs)
             //                m_log.DebugFormat("[CLIENT]: Sending KillObjectPacket to {0} for {1} in {2}", Name, id, regionHandle);
 
-            // remove pending entities
+            // remove pending entities to reduce looping chances.
             lock (m_entityProps.SyncRoot)
                 m_entityProps.Remove(localIDs);
             lock (m_entityUpdates.SyncRoot)
@@ -4046,7 +4045,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // Don't send updates for objects that have been marked deleted.
                         // Instead send another kill object, because the first one may have gotten
                         // into a race condition
-                        if (!m_killRecord.Contains(grp.LocalId))
+                        if (part == grp.RootPart && !m_killRecord.Contains(grp.LocalId))
                         {
                             m_killRecord.Add(grp.LocalId);
                             maxUpdatesBytes -= 30;
