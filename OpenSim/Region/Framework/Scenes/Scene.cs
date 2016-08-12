@@ -3866,15 +3866,9 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (uint localID in localIDs)
             {
                 SceneObjectPart part = GetSceneObjectPart(localID);
-                if (part != null) // It is a prim
-                {
-                    if (part.ParentGroup != null && !part.ParentGroup.IsDeleted) // Valid
-                    {
-                        if (part.ParentGroup.RootPart != part) // Child part
-                            continue;
-                    }
-                }
-                deleteIDs.Add(localID);
+                if (part != null && part.ParentGroup != null &&
+                            part.ParentGroup.RootPart == part)
+                    deleteIDs.Add(localID);
             }
 
             ForEachClient(c => c.SendKillObject(deleteIDs));

@@ -5420,6 +5420,9 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
         public void SendTerseUpdateToClient(IClientAPI remoteClient)
         {
+            if (ParentGroup.IsDeleted)
+                return;
+
             if (ParentGroup.IsAttachment
                 && (ParentGroup.RootPart != this
                     || ParentGroup.AttachedAvatar != remoteClient.AgentId && ParentGroup.HasPrivateAttachmentPoint))

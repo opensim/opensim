@@ -4007,7 +4007,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bool doCulling = m_scene.ObjectsCullingByDistance;
             float cullingrange = 64.0f;
             HashSet<SceneObjectGroup> GroupsNeedFullUpdate = new HashSet<SceneObjectGroup>();
-            List<SceneObjectGroup> kills = new List<SceneObjectGroup>();
 //            Vector3 mycamera = Vector3.Zero;
             Vector3 mypos = Vector3.Zero;
             ScenePresence mysp = (ScenePresence)SceneAgent;
@@ -4048,7 +4047,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // Instead send another kill object, because the first one may have gotten
                         // into a race condition
                         if (!m_killRecord.Contains(grp.LocalId))
+                        {
                             m_killRecord.Add(grp.LocalId);
+                            maxUpdatesBytes -= 30;
+                        }
                         continue;
                     }
 
@@ -4334,16 +4336,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 SendKillObject(m_killRecord);
                 m_killRecord.Clear();
-            }
-
-            if (kills.Count > 0)
-            {
-                foreach(SceneObjectGroup grp in kills)
-                {
-                    foreach(SceneObjectPart p in grp.Parts)
-                        SendEntityUpdate(p,PrimUpdateFlags.Kill);
-                }
-                kills.Clear();
             }
 
             if(GroupsNeedFullUpdate.Count > 0)

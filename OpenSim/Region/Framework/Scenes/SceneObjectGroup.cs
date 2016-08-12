@@ -2065,41 +2065,37 @@ namespace OpenSim.Region.Framework.Scenes
         {
             // We need to keep track of this state in case this group is still queued for backup.
             IsDeleted = true;
-            HasGroupChanged = true;
 
             DetachFromBackup();
+
+            if(Scene == null)  // should not happen unless restart/shutdown ?
+                return;
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
 
-                if (Scene != null)
+                Scene.ForEachScenePresence(delegate(ScenePresence avatar)
                 {
-                    Scene.ForEachScenePresence(delegate(ScenePresence avatar)
-                    {
-                        if (!avatar.IsChildAgent && avatar.ParentID == LocalId)
-                            avatar.StandUp();
+                    if (!avatar.IsChildAgent && avatar.ParentID == LocalId)
+                        avatar.StandUp();
 
-                        if (!silent)
+                    if (!silent)
+                    {
+                        part.ClearUpdateSchedule();
+                        if (part == m_rootPart)
                         {
-                            part.ClearUpdateSchedule();
-                            if (part == m_rootPart)
+                            if (!IsAttachment
+                                || AttachedAvatar == avatar.ControllingClient.AgentId
+                                || !HasPrivateAttachmentPoint)
                             {
-                                if (!IsAttachment
-                                    || AttachedAvatar == avatar.ControllingClient.AgentId
-                                    || !HasPrivateAttachmentPoint)
-                                {
-                                    // Send a kill object immediately
-                                    avatar.ControllingClient.SendKillObject(new List<uint> { part.LocalId });
-                                    // Also, send a terse update; in case race conditions make the object pop again in the client,
-                                    // this update will send another kill object
-                                    m_rootPart.SendTerseUpdateToClient(avatar.ControllingClient);
-                                }
+                                // Send a kill object immediately
+                                avatar.ControllingClient.SendKillObject(new List<uint> { part.LocalId });
                             }
                         }
-                    });
-                }
+                    }
+                });
             }
         }
 
