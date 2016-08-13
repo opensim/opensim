@@ -26,6 +26,8 @@
  */
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using Nini.Config;
 using log4net;
 using Mono.Addins;
@@ -157,6 +159,39 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 
             return account;
         }
+
+        public override List<UserAccount> GetUserAccounts(UUID scopeID, List<string> IDs, out bool suported)
+        {
+            suported = true;
+            List<UserAccount> accs = new List<UserAccount>();
+            List<string> missing = new List<string>();
+
+            UUID uuid = UUID.Zero;;
+            UserAccount account;
+            bool inCache = false;
+
+            foreach(string id in IDs)
+            {
+                if(UUID.TryParse(id, out uuid))
+                {
+                    account = m_Cache.Get(uuid, out inCache);
+                    if (inCache)
+                        accs.Add(account);
+                    else
+                        missing.Add(id);
+                }
+            }
+
+            if(missing.Count > 0)
+            {
+                List<UserAccount> ext = base.GetUserAccounts(scopeID, missing, out suported);
+                if(suported && ext != null)
+                    accs.AddRange(ext);
+            }
+
+            return accs;
+        }
+
 
         public override bool StoreUserAccount(UserAccount data)
         {

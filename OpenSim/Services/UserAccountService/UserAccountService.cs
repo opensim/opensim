@@ -265,6 +265,19 @@ namespace OpenSim.Services.UserAccountService
             return MakeUserAccount(d[0]);
         }
 
+        public List<UserAccount> GetUserAccounts(UUID scopeID, List<string> IDs, out bool suported)
+        {
+            suported = true;
+            List<UserAccount> accs = new List<UserAccount>();
+            UUID uuid = UUID.Zero;
+            foreach(string id in IDs)
+            {
+                if (UUID.TryParse(id, out uuid) && uuid != UUID.Zero)
+                    accs.Add(GetUserAccount(scopeID, uuid));
+            }
+            return accs;
+        }
+
         public void InvalidateCache(UUID userID)
         {
         }

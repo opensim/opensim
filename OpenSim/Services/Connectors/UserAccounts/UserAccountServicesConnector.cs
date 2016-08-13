@@ -191,6 +191,78 @@ namespace OpenSim.Services.Connectors
             return accounts;
         }
 
+        public virtual List<UserAccount> GetUserAccounts(UUID scopeID, List<string> IDs, out bool suported)
+        {
+            suported = true;
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            //sendData["SCOPEID"] = scopeID.ToString();
+            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
+            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
+            sendData["METHOD"] = "getmultiaccounts";
+
+            sendData["ScopeID"] = scopeID.ToString();
+            sendData["IDS"] = new List<string>(IDs);
+
+            string reply = string.Empty;
+            string reqString = ServerUtils.BuildQueryString(sendData);
+            string uri = m_ServerURI + "/accounts";
+            // m_log.DebugFormat("[ACCOUNTS CONNECTOR]: queryString = {0}", reqString);
+            try
+            {
+                reply = SynchronousRestFormsRequester.MakeRequest("POST",
+                        uri,
+                        reqString,
+                        m_Auth);
+                if (reply == null || (reply != null && reply == string.Empty))
+                {
+                    m_log.DebugFormat("[ACCOUNT CONNECTOR]: GetMultiUserAccounts received null or empty reply");
+                    return null;
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[ACCOUNT CONNECTOR]: Exception when contacting user accounts server at {0}: {1}", uri, e.Message);
+            }
+
+            List<UserAccount> accounts = new List<UserAccount>();
+
+            Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
+
+            if (replyData != null)
+            {
+                if (replyData.ContainsKey("result"))
+                {
+                    if(replyData["result"].ToString() == "null")
+                        return accounts;
+
+                    if(replyData["result"].ToString() == "Failure")
+                    {
+                        suported = false;
+                        return accounts;
+                    }
+                }
+
+                Dictionary<string, object>.ValueCollection accountList = replyData.Values;
+                //m_log.DebugFormat("[ACCOUNTS CONNECTOR]: GetAgents returned {0} elements", pinfosList.Count);
+                foreach (object acc in accountList)
+                {
+                    if (acc is Dictionary<string, object>)
+                    {
+                        UserAccount pinfo = new UserAccount((Dictionary<string, object>)acc);
+                        accounts.Add(pinfo);
+                    }
+                    else
+                        m_log.DebugFormat("[ACCOUNT CONNECTOR]: GetMultiUserAccounts received invalid response type {0}",
+                            acc.GetType());
+                }
+            }
+            else
+                m_log.DebugFormat("[ACCOUNTS CONNECTOR]: GetMultiUserAccounts received null response");
+
+            return accounts;
+        }
+
+
         public void InvalidateCache(UUID userID)
         {
         }
