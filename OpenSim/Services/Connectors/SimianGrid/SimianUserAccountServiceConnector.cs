@@ -201,9 +201,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return null;
         }
 
-        public List<UserAccount> GetUserAccounts(UUID scopeID, List<string> IDs, out bool suported)
+        public List<UserAccount> GetUserAccounts(UUID scopeID, List<string> IDs)
         {
-            suported = false;
             return null;
         }
 

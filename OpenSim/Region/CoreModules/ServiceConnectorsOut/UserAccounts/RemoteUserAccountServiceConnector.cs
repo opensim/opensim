@@ -160,9 +160,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
             return account;
         }
 
-        public override List<UserAccount> GetUserAccounts(UUID scopeID, List<string> IDs, out bool suported)
+        public override List<UserAccount> GetUserAccounts(UUID scopeID, List<string> IDs)
         {
-            suported = true;
             List<UserAccount> accs = new List<UserAccount>();
             List<string> missing = new List<string>();
 
@@ -184,14 +183,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 
             if(missing.Count > 0)
             {
-                List<UserAccount> ext = base.GetUserAccounts(scopeID, missing, out suported);
-                if(suported && ext != null)
+                List<UserAccount> ext = base.GetUserAccounts(scopeID, missing);
+                if(ext != null)
                     accs.AddRange(ext);
             }
 
             return accs;
         }
-
 
         public override bool StoreUserAccount(UserAccount data)
         {

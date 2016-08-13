@@ -191,7 +191,27 @@ namespace OpenSim.Services.Connectors
             return accounts;
         }
 
-        public virtual List<UserAccount> GetUserAccounts(UUID scopeID, List<string> IDs, out bool suported)
+        public virtual List<UserAccount> GetUserAccounts(UUID scopeID, List<string> IDs)
+        {
+            List<UserAccount> accs = new List<UserAccount>();
+            bool multisuported = true;
+            accs = doGetMultiUserAccounts(scopeID, IDs, out multisuported);
+            if(multisuported)
+                return accs;
+            
+            // service does not do multi accounts so need to do it one by one
+
+            UUID uuid = UUID.Zero;
+            foreach(string id in IDs)
+            {
+                if(UUID.TryParse(id, out uuid) && uuid != UUID.Zero)
+                    accs.Add(GetUserAccount(scopeID,uuid));
+            }
+
+            return accs;
+        }
+
+        private List<UserAccount> doGetMultiUserAccounts(UUID scopeID, List<string> IDs, out bool suported)
         {
             suported = true;
             Dictionary<string, object> sendData = new Dictionary<string, object>();
