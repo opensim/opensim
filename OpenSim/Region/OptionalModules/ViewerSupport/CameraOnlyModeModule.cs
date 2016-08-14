@@ -108,8 +108,7 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
         {
             if (m_Enabled)
             {
-                IEntityTransferModule et = m_scene.RequestModuleInterface<IEntityTransferModule>();
-                m_Helper = new SimulatorFeaturesHelper(scene, et);
+                m_Helper = new SimulatorFeaturesHelper(scene);
 
                 ISimulatorFeaturesModule featuresModule = m_scene.RequestModuleInterface<ISimulatorFeaturesModule>();
                 if (featuresModule != null)
@@ -124,7 +123,7 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
         private void OnSimulatorFeaturesRequest(UUID agentID, ref OSDMap features)
         {
             m_log.DebugFormat("[CAMERA-ONLY MODE]: OnSimulatorFeaturesRequest in {0}", m_scene.RegionInfo.RegionName);
-            if (m_Helper.ShouldSend(agentID) && m_Helper.UserLevel(agentID) <= m_UserLevel)
+            if (m_Helper.UserLevel(agentID) <= m_UserLevel)
             {
                 OSDMap extrasMap;
                 if (features.ContainsKey("OpenSimExtras"))
