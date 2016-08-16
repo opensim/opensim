@@ -4452,7 +4452,7 @@ Label_GroupsDone:
                 {
                     m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access to the estate",
                                      agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
-                    reason = String.Format("Denied access to private region {0}: You are do not have access to that region.",
+                    reason = String.Format("Denied access to private region {0}: You do not have access to that region.",
                                      RegionInfo.RegionName);
                     return false;
                 }
