@@ -4741,9 +4741,11 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
             VolumeDetectActive = SetVD;
 
-            // volume detector implies phantom
+            // volume detector implies phantom we need to decouple this mess
             if (VolumeDetectActive)
                 SetPhantom = true;
+            else if(wasVD)
+                SetPhantom = false;
 
             if (UsePhysics)
                 AddFlag(PrimFlags.Physics);
@@ -4759,7 +4761,6 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                 AddFlag(PrimFlags.TemporaryOnRez);
             else
                 RemFlag(PrimFlags.TemporaryOnRez);
-
 
             if (ParentGroup.Scene == null)
                 return;
@@ -4790,26 +4791,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                     {
                         AddToPhysics(UsePhysics, SetPhantom, building, false);
                         pa = PhysActor;
-/*
-                        if (pa != null)
-                        {
-                            if (
-//                                ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
-//                                ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
-//                                ((AggregateScriptEvents & scriptEvents.collision_start) != 0) ||
-//                                ((AggregateScriptEvents & scriptEvents.land_collision_start) != 0) ||
-//                                ((AggregateScriptEvents & scriptEvents.land_collision) != 0) ||
-//                                ((AggregateScriptEvents & scriptEvents.land_collision_end) != 0) ||
-                                ((AggregateScriptEvents & PhysicsNeededSubsEvents) != 0) ||
-                                ((ParentGroup.RootPart.AggregateScriptEvents & PhysicsNeededSubsEvents) != 0) ||
-                                (CollisionSound != UUID.Zero)
-                                )
-                            {
-                                pa.OnCollisionUpdate += PhysicsCollision;
-                                pa.SubscribeEvents(1000);
-                            }
-                        }
-*/
+
                         if (pa != null)
                         {
                             pa.SetMaterial(Material);
@@ -4820,12 +4802,6 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                     {
 
                         DoPhysicsPropertyUpdate(UsePhysics, false); // Update physical status.
-/* moved into DoPhysicsPropertyUpdate
-                        if(VolumeDetectActive)
-                            pa.SetVolumeDetect(1);
-                        else
-                            pa.SetVolumeDetect(0);
-*/
 
                         if (pa.Building != building)
                             pa.Building = building;
@@ -4834,32 +4810,8 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                     UpdatePhysicsSubscribedEvents();
                 }
             }         
-            if (SetVD)
-            {
-                // If the above logic worked (this is urgent candidate to unit tests!)
-                // we now have a physicsactor.
-                // Defensive programming calls for a check here.
-                // Better would be throwing an exception that could be catched by a unit test as the internal 
-                // logic should make sure, this Physactor is always here.
-                if (pa != null)
-                {
-                    pa.SetVolumeDetect(1);
-                    AddFlag(PrimFlags.Phantom); // We set this flag also if VD is active
-                    VolumeDetectActive = true;
-                }
-            //            m_log.Debug("Update:  PHY:" + UsePhysics.ToString() + ", T:" + IsTemporary.ToString() + ", PHA:" + IsPhantom.ToString() + " S:" + CastsShadows.ToString());
-            }
-            else if (SetVD != wasVD)
-            {
-                // Remove VolumeDetect in any case. Note, it's safe to call SetVolumeDetect as often as you like
-                // (mumbles, well, at least if you have infinte CPU powers :-))
-                if (pa != null)
-                    pa.SetVolumeDetect(0);
 
-                RemFlag(PrimFlags.Phantom);
-                VolumeDetectActive = false;
-            }
-           // and last in case we have a new actor and not building
+            // and last in case we have a new actor and not building
 
             if (ParentGroup != null)
             {
