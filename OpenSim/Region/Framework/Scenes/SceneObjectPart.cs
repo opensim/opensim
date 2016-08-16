@@ -285,7 +285,23 @@ namespace OpenSim.Region.Framework.Scenes
         // but reversed logic: bit cleared means free to rotate
         public byte RotationAxisLocks = 0;
 
-        public bool VolumeDetectActive;
+        // WRONG flag in libOmvPrimFlags
+        private const uint primFlagVolumeDetect = (uint)PrimFlags.JointLP2P;
+
+        public bool VolumeDetectActive
+        {
+            get  
+            {
+                return (Flags & (PrimFlags)primFlagVolumeDetect) != 0;
+            }
+            set
+            {
+                if(value)
+                    Flags |= (PrimFlags)primFlagVolumeDetect;
+                else
+                    Flags &= (PrimFlags)(~primFlagVolumeDetect);
+            }
+        }
 
         public bool IsWaitingForFirstSpinUpdatePacket;
 
@@ -4742,7 +4758,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             VolumeDetectActive = SetVD;
 
             // volume detector implies phantom we need to decouple this mess
-            if (VolumeDetectActive)
+            if (SetVD)
                 SetPhantom = true;
             else if(wasVD)
                 SetPhantom = false;
