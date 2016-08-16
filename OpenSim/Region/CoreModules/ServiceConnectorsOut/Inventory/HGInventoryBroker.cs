@@ -203,21 +203,22 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         void OnClientClosed(UUID clientID, Scene scene)
         {
-            if (m_InventoryURLs.ContainsKey(clientID)) // if it's in cache
+            ScenePresence sp = null;
+            foreach (Scene s in m_Scenes)
             {
-                ScenePresence sp = null;
-                foreach (Scene s in m_Scenes)
+                s.TryGetScenePresence(clientID, out sp);
+                if ((sp != null) && !sp.IsChildAgent && (s != scene))
                 {
-                    s.TryGetScenePresence(clientID, out sp);
-                    if ((sp != null) && !sp.IsChildAgent && (s != scene))
-                    {
-                        m_log.DebugFormat("[INVENTORY CACHE]: OnClientClosed in {0}, but user {1} still in sim. Keeping inventoryURL in cache",
+                    m_log.DebugFormat("[INVENTORY CACHE]: OnClientClosed in {0}, but user {1} still in sim. Keeping inventoryURL in cache",
                             scene.RegionInfo.RegionName, clientID);
                         return;
-                    }
                 }
-                DropInventoryServiceURL(clientID);
             }
+
+            if (m_InventoryURLs.ContainsKey(clientID)) // if it's in cache
+                    DropInventoryServiceURL(clientID);
+
+            m_Cache.RemoveAll(clientID);
         }
 
         /// <summary>
