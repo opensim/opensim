@@ -374,9 +374,10 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void SendLandProperties(int sequence_id, bool snap_selection, int request_result, IClientAPI remote_client)
         {
-            remote_client.SceneAgent.Invulnerable =
-                           !m_scene.RegionInfo.RegionSettings.AllowDamage ||
-                           (m_landData.Flags & (uint)ParcelFlags.AllowDamage) == 0;
+            if(m_scene.RegionInfo.RegionSettings.AllowDamage)
+                remote_client.SceneAgent.Invulnerable = false;
+            else
+                remote_client.SceneAgent.Invulnerable = (m_landData.Flags & (uint)ParcelFlags.AllowDamage) == 0;
 
             if (remote_client.SceneAgent.PresenceType == PresenceType.Npc)
                 return;
@@ -779,11 +780,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                 {
                     if (over.LandData.LocalID == LandData.LocalID)
                     {
-                        if (((over.LandData.Flags & (uint)ParcelFlags.AllowDamage) != 0) &&
-                            m_scene.RegionInfo.RegionSettings.AllowDamage)
+                        if(m_scene.RegionInfo.RegionSettings.AllowDamage)
                             avatar.Invulnerable = false;
                         else
-                            avatar.Invulnerable = true;
+                            avatar.Invulnerable = (over.LandData.Flags & (uint)ParcelFlags.AllowDamage) == 0;
 
                         SendLandUpdateToClient(snap_selection, avatar.ControllingClient);
                         avatar.currentParcelUUID = LandData.GlobalID;
