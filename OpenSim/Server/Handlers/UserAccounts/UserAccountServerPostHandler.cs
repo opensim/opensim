@@ -103,6 +103,8 @@ namespace OpenSim.Server.Handlers.UserAccounts
                         return GetAccount(request);
                     case "getaccounts":
                         return GetAccounts(request);
+                    case "getmultiaccounts":
+                        return GetMultiAccounts(request);
                     case "setaccount":
                         if (m_AllowSetAccount)
                             return StoreAccount(request);
@@ -178,6 +180,50 @@ namespace OpenSim.Server.Handlers.UserAccounts
             string query = request["query"].ToString();
 
             List<UserAccount> accounts = m_UserAccountService.GetUserAccounts(scopeID, query);
+
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            if ((accounts == null) || ((accounts != null) && (accounts.Count == 0)))
+            {
+                result["result"] = "null";
+            }
+            else
+            {
+                int i = 0;
+                foreach (UserAccount acc in accounts)
+                {
+                    Dictionary<string, object> rinfoDict = acc.ToKeyValuePairs();
+                    result["account" + i] = rinfoDict;
+                    i++;
+                }
+            }
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+
+            //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
+        }
+
+        byte[] GetMultiAccounts(Dictionary<string, object> request)
+        {
+            UUID scopeID = UUID.Zero;
+            if (request.ContainsKey("ScopeID") && !UUID.TryParse(request["ScopeID"].ToString(), out scopeID))
+                return FailureResult();
+
+            if (!request.ContainsKey("IDS"))
+            {
+                m_log.DebugFormat("[USER SERVICE HANDLER]: GetMultiAccounts called without required uuids argument");
+                return FailureResult();
+            }
+
+            if (!(request["IDS"] is List<string>))
+            {
+                m_log.DebugFormat("[USER SERVICE HANDLER]: GetMultiAccounts input argument was of unexpected type {0}", request["IDS"].GetType().ToString());
+                return FailureResult();
+            }
+
+            List<string> userIDs = (List<string>)request["IDS"];
+
+            List<UserAccount> accounts = m_UserAccountService.GetUserAccounts(scopeID, userIDs);
 
             Dictionary<string, object> result = new Dictionary<string, object>();
             if ((accounts == null) || ((accounts != null) && (accounts.Count == 0)))
