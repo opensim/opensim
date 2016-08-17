@@ -165,7 +165,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
             List<UserAccount> accs = new List<UserAccount>();
             List<string> missing = new List<string>();
 
-            UUID uuid = UUID.Zero;;
+            UUID uuid = UUID.Zero;
             UserAccount account;
             bool inCache = false;
 

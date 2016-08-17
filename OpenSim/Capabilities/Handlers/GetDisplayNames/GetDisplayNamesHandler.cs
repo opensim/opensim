@@ -29,8 +29,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Reflection;
 using System.IO;
 using System.Web;
@@ -38,12 +36,7 @@ using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
-using OpenMetaverse.Imaging;
-using OpenSim.Framework;
-using OpenSim.Framework.Capabilities;
-using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 using OSDMap = OpenMetaverse.StructuredData.OSDMap;
@@ -70,7 +63,6 @@ namespace OpenSim.Capabilities.Handlers
             NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
             string[] ids = query.GetValues("ids");
 
-
             if (m_UserManagement == null)
             {
                 m_log.Error("[GET_DISPLAY_NAMES]: Cannot fetch display names without a user management component");
@@ -78,35 +70,39 @@ namespace OpenSim.Capabilities.Handlers
                 return new byte[0];
             }
 
+            Dictionary<UUID,string> names = m_UserManagement.GetUsersNames(ids);
+
             OSDMap osdReply = new OSDMap();
             OSDArray agents = new OSDArray();
 
             osdReply["agents"] = agents;
-            foreach (string id in ids)
+            foreach (KeyValuePair<UUID,string> kvp in names)
             {
-                UUID uuid = UUID.Zero;
-                if (UUID.TryParse(id, out uuid))
-                {
-                    string name = m_UserManagement.GetUserName(uuid);
-                    if (!string.IsNullOrEmpty(name))
-                    {
-                        string[] parts = name.Split(new char[] {' '});
-                        OSDMap osdname = new OSDMap();
-                        // a date that is valid
-//                        osdname["display_name_next_update"] = OSD.FromDate(new DateTime(1970,1,1));
-                        // but send one that blocks edition, since we actually don't suport this
-                        osdname["display_name_next_update"] = OSD.FromDate(DateTime.UtcNow.AddDays(8));        
-                        osdname["display_name_expires"] = OSD.FromDate(DateTime.UtcNow.AddMonths(1));
-                        osdname["display_name"] = OSD.FromString(name);
-                        osdname["legacy_first_name"] = parts[0];
-                        osdname["legacy_last_name"] = parts[1];
-                        osdname["username"] = OSD.FromString(name);
-                        osdname["id"] = OSD.FromUUID(uuid);
-                        osdname["is_display_name_default"] = OSD.FromBoolean(true);
+                if (string.IsNullOrEmpty(kvp.Value))
+                    continue;
+                if(kvp.Key == UUID.Zero)
+                    continue;
 
-                        agents.Add(osdname);
-                    }
+                string[] parts = kvp.Value.Split(new char[] {' '});
+                OSDMap osdname = new OSDMap();
+                if(parts[0] == "Unknown")
+                {
+                    osdname["display_name_next_update"] = OSD.FromDate(DateTime.UtcNow.AddHours(1));        
+                    osdname["display_name_expires"] = OSD.FromDate(DateTime.UtcNow.AddHours(2));
                 }
+                else
+                {
+                    osdname["display_name_next_update"] = OSD.FromDate(DateTime.UtcNow.AddDays(8));        
+                    osdname["display_name_expires"] = OSD.FromDate(DateTime.UtcNow.AddMonths(1));
+                }
+                osdname["display_name"] = OSD.FromString(kvp.Value);
+                osdname["legacy_first_name"] = parts[0];
+                osdname["legacy_last_name"] = parts[1];
+                osdname["username"] = OSD.FromString(kvp.Value);
+                osdname["id"] = OSD.FromUUID(kvp.Key);
+                osdname["is_display_name_default"] = OSD.FromBoolean(true);
+
+                agents.Add(osdname);
             }
 
             // Full content request
@@ -116,8 +112,6 @@ namespace OpenSim.Capabilities.Handlers
 
             string reply = OSDParser.SerializeLLSDXmlString(osdReply);
             return System.Text.Encoding.UTF8.GetBytes(reply);
-
         }
-
     }
 }
