@@ -5254,7 +5254,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             {
                 // subscribe to physics updates.
                 pa.OnCollisionUpdate += PhysicsCollision;
-                pa.SubscribeEvents(100); // 10 reports per second
+                pa.SubscribeEvents(50); // 20 reports per second
             }
             else
             {
