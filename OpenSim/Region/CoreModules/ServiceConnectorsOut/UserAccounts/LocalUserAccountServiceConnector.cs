@@ -153,12 +153,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
         public UserAccount GetUserAccount(UUID scopeID, UUID userID)
         {
             bool inCache = false;
-            UserAccount account = m_Cache.Get(userID, out inCache);
+            UserAccount account;
+            lock(m_Cache)
+               account = m_Cache.Get(userID, out inCache);
             if (inCache)
                 return account;
 
             account = UserAccountService.GetUserAccount(scopeID, userID);
-            m_Cache.Cache(userID, account);
+            lock(m_Cache)
+                m_Cache.Cache(userID, account);
 
             return account;
         }
@@ -166,13 +169,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
         public UserAccount GetUserAccount(UUID scopeID, string firstName, string lastName)
         {
             bool inCache = false;
-            UserAccount account = m_Cache.Get(firstName + " " + lastName, out inCache);
+            UserAccount account;
+            lock(m_Cache)
+                account = m_Cache.Get(firstName + " " + lastName, out inCache);
             if (inCache)
                 return account;
 
             account = UserAccountService.GetUserAccount(scopeID, firstName, lastName);
             if (account != null)
-                m_Cache.Cache(account.PrincipalID, account);
+                lock(m_Cache)
+                    m_Cache.Cache(account.PrincipalID, account);
 
             return account;
         }
@@ -184,9 +190,42 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 
         public List<UserAccount> GetUserAccounts(UUID scopeID, List<string> IDs)
         {
-            return UserAccountService.GetUserAccounts(scopeID, IDs);
-        }
+            List<UserAccount> ret = new List<UserAccount>();
+            List<string> missing = new List<string>();
 
+            // still another cache..
+            bool inCache = false;
+            UUID uuid = UUID.Zero;
+            UserAccount account;
+            foreach(string id in IDs)
+            {
+                if(UUID.TryParse(id, out uuid))
+                {
+                    lock(m_Cache)
+                        account = m_Cache.Get(uuid, out inCache);
+                    if (inCache)
+                        ret.Add(account);
+                    else                        
+                        missing.Add(id);
+                }
+            }
+
+            if(missing.Count == 0)
+                return ret;
+
+            List<UserAccount> ext = UserAccountService.GetUserAccounts(scopeID, missing);
+            if(ext != null && ext.Count > 0)
+            {
+                ret.AddRange(ext);
+                foreach(UserAccount acc in ext)
+                {
+                    if(acc != null)
+                        lock(m_Cache)
+                            m_Cache.Cache(acc.PrincipalID, acc);
+                }
+            }
+            return ret;
+        }
 
         public List<UserAccount> GetUserAccountsWhere(UUID scopeID, string query)
         {

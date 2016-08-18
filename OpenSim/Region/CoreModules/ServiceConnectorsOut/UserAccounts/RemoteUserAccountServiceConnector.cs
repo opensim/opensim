@@ -128,7 +128,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
         // flags, title, etc. And country, don't forget country!
         private void OnNewClient(IClientAPI client)
         {
-            m_Cache.Remove(client.Name);
+            lock(m_Cache)
+                m_Cache.Remove(client.Name);
         }
 
         #region Overwritten methods from IUserAccountService
@@ -136,12 +137,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
         public override UserAccount GetUserAccount(UUID scopeID, UUID userID)
         {
             bool inCache = false;
-            UserAccount account = m_Cache.Get(userID, out inCache);
+            UserAccount account;
+            lock(m_Cache)
+                account = m_Cache.Get(userID, out inCache);
             if (inCache)
                 return account;
 
             account = base.GetUserAccount(scopeID, userID);
-            m_Cache.Cache(userID, account);
+            lock(m_Cache)
+                if(account != null)
+                    m_Cache.Cache(userID, account);
 
             return account;
         }
@@ -149,13 +154,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
         public override UserAccount GetUserAccount(UUID scopeID, string firstName, string lastName)
         {
             bool inCache = false;
-            UserAccount account = m_Cache.Get(firstName + " " + lastName, out inCache);
+            UserAccount account;
+            lock(m_Cache)
+                account = m_Cache.Get(firstName + " " + lastName, out inCache);
             if (inCache)
                 return account;
 
             account = base.GetUserAccount(scopeID, firstName, lastName);
             if (account != null)
-                m_Cache.Cache(account.PrincipalID, account);
+                lock(m_Cache)
+                    m_Cache.Cache(account.PrincipalID, account);
 
             return account;
         }
@@ -173,7 +181,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
             {
                 if(UUID.TryParse(id, out uuid))
                 {
-                    account = m_Cache.Get(uuid, out inCache);
+                    lock(m_Cache)
+                        account = m_Cache.Get(uuid, out inCache);
                     if (inCache)
                         accs.Add(account);
                     else
@@ -184,8 +193,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
             if(missing.Count > 0)
             {
                 List<UserAccount> ext = base.GetUserAccounts(scopeID, missing);
-                if(ext != null)
+                if(ext != null && ext.Count >0 )
+                {
                     accs.AddRange(ext);
+                    foreach(UserAccount acc in ext)
+                    {
+                        if(acc != null)
+                            lock(m_Cache)
+                                m_Cache.Cache(acc.PrincipalID, acc);
+                    }
+                }
             }
 
             return accs;
