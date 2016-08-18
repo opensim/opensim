@@ -489,6 +489,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             List<string> missing = new List<string>();
             Dictionary<UUID,string> untried = new Dictionary<UUID, string>();
+
             // look in cache
             UserData userdata = new UserData();
 
@@ -500,7 +501,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     lock (m_UserCache)
                     {
                         if (m_UserCache.TryGetValue(uuid, out userdata) &&
-                                userdata.FirstName != "Unknown")
+                                userdata.FirstName != "Unknown" && userdata.FirstName != string.Empty)
                         {
                             string name = userdata.FirstName + " " + userdata.LastName;
 
@@ -562,20 +563,30 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     if (uInfo != null)
                     {
                         string url, first, last, tmp;
-                        UUID u;
+
                         if(uInfo.UserID.Length <= 36)
                             continue;
 
-                        if (Util.ParseUniversalUserIdentifier(uInfo.UserID, out u, out url, out first, out last, out tmp))
+                        if (Util.ParseUniversalUserIdentifier(uInfo.UserID, out uuid, out url, out first, out last, out tmp))
                         {
                             if (url != string.Empty)
                             {
                                 try
                                 {
-                                    string name = first.Replace(" ", ".") + "." + last.Replace(" ", ".") + " @" + new Uri(url).Authority;
-                                    ret[u] = name;
-                                    missing.Remove(u.ToString());
-                                    untried.Remove(u);
+                                    userdata = new UserData();
+                                    userdata.FirstName = first.Replace(" ", ".") + "." + last.Replace(" ", ".");
+                                    userdata.LastName = "@" + new Uri(url).Authority;
+                                    userdata.Id = uuid;
+                                    userdata.HomeURL = url;
+                                    userdata.IsUnknownUser = false;
+                                    userdata.HasGridUserTried = true;
+                                    lock (m_UserCache)
+                                        m_UserCache[uuid] = userdata;
+
+                                    string name =  userdata.FirstName + " " + userdata.LastName;
+                                    ret[uuid] = name;
+                                    missing.Remove(uuid.ToString());
+                                    untried.Remove(uuid);
                                 }
                                 catch
                                 {
@@ -592,7 +603,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 foreach(KeyValuePair<UUID, string> kvp in untried)
                 {
                     ret[kvp.Key] = kvp.Value;
-                    missing.Remove(kvp.Key.ToString());
+                    missing.Remove((kvp.Key).ToString());
                 }
             }
 
