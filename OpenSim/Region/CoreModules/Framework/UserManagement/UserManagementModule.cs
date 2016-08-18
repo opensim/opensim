@@ -488,9 +488,10 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 return ret;
 
             List<string> missing = new List<string>();
-           
+            Dictionary<UUID,string> untried = new Dictionary<UUID, string>();
             // look in cache
             UserData userdata = new UserData();
+
             UUID uuid = UUID.Zero;
             foreach(string id in ids)
             {
@@ -499,11 +500,17 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     lock (m_UserCache)
                     {
                         if (m_UserCache.TryGetValue(uuid, out userdata) &&
-                                userdata.HasGridUserTried &&
                                 userdata.FirstName != "Unknown")
                         {
                             string name = userdata.FirstName + " " + userdata.LastName;
-                            ret[uuid] = name;
+
+                            if(userdata.HasGridUserTried)
+                                ret[uuid] = name;
+                            else
+                            {
+                                untried[uuid] = name;
+                                missing.Add(id);
+                            }
                         }
                         else
                             missing.Add(id);
@@ -527,6 +534,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                         string name = uac.FirstName + " " + uac.LastName;
                         ret[uac.PrincipalID] = name;
                         missing.Remove(uac.PrincipalID.ToString()); // slowww
+                        untried.Remove(uac.PrincipalID);
 
                         userdata = new UserData();
                         userdata.Id = uac.PrincipalID;
@@ -567,6 +575,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                                     string name = first.Replace(" ", ".") + "." + last.Replace(" ", ".") + " @" + new Uri(url).Authority;
                                     ret[u] = name;
                                     missing.Remove(u.ToString());
+                                    untried.Remove(u);
                                 }
                                 catch
                                 {
@@ -574,6 +583,16 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                             }
                         }
                     }
+                }
+            }
+
+            // add the untried in cache that still failed
+            if(untried.Count > 0)
+            {
+                foreach(KeyValuePair<UUID, string> kvp in untried)
+                {
+                    ret[kvp.Key] = kvp.Value;
+                    missing.Remove(kvp.Key.ToString());
                 }
             }
 
