@@ -1256,9 +1256,11 @@ namespace OpenSim.Framework
         void SendAttachedSoundGainChange(UUID objectID, float gain);
 
         void SendNameReply(UUID profileId, string firstname, string lastname);
-        void SendAlertMessage(string message);
 
+        void SendAlertMessage(string message);
+        void SendAlertMessage(string message, string into);
         void SendAgentAlertMessage(string message, bool modal);
+
         void SendLoadURL(string objectname, UUID objectID, UUID ownerID, bool groupOwned, string message, string url);
 
         /// <summary>

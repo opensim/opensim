@@ -1217,6 +1217,11 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
+        public void SendAlertMessage(string message, string info)
+        {
+            
+        }
+
         public void SendLoadURL(string objectname, UUID objectID, UUID ownerID, bool groupOwned, string message, string url)
         {
             IRC_SendChannelPrivmsg(objectname,url);

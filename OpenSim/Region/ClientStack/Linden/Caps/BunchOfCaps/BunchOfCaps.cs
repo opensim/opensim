@@ -193,8 +193,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public string GetNewCapPath()
         {
-            UUID tmpid = UUID.Random();
-            return  "/CAPS/" + tmpid.ToString(); 
+            return  "/CAPS/" + UUID.Random(); 
         }
 
         /// <summary>
@@ -241,6 +240,10 @@ namespace OpenSim.Region.ClientStack.Linden
                         "POST", GetNewCapPath(), ScriptTaskInventory, "UpdateScript", null);
                 m_HostCapsObj.RegisterHandler("UpdateScriptTaskInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptTask", req);
+
+                IRequestHandler HomeLocationHandler = new RestStreamHandler(
+                        "POST", GetNewCapPath(), HomeLocation, "HomeLocation", null);
+                m_HostCapsObj.RegisterHandler("HomeLocation", HomeLocationHandler);
 
 //                IRequestHandler animSetRequestHandler
 //                    = new RestStreamHandler(
@@ -1503,6 +1506,144 @@ namespace OpenSim.Region.ClientStack.Linden
 
             string response = OSDParser.SerializeLLSDXmlString(resp);
             return response; 
+        }
+
+        public bool OSDMapTOVector3(OSDMap map, out Vector3 v)
+        {
+            v = Vector3.Zero;
+            if(!map.ContainsKey("X"))
+                return false;
+            if(!map.ContainsKey("Y"))
+                return false;
+            if(!map.ContainsKey("Z"))
+                return false;
+            v.X = (float)map["X"].AsReal();
+            v.Y = (float)map["Y"].AsReal();
+            v.Z = (float)map["Z"].AsReal();
+            return true;
+        }
+
+        public string HomeLocation(string request, string path, string param, IOSHttpRequest httpRequest,
+                IOSHttpResponse httpResponse)
+        {
+            OSDMap resp = new OSDMap();
+
+            resp["success"] = "false";
+
+
+            bool fail = true;
+            string message = "Set Home request failed";
+            int locationID = 1;
+            Vector3 pos = Vector3.Zero;
+            Vector3 lookAt = Vector3.Zero;
+
+            IClientAPI client = null;
+            ScenePresence sp;
+           
+            while(true)
+            {
+                if(m_Scene.GridUserService == null)
+                    break;
+                    
+                if(m_Scene.UserManagementModule == null)
+                    break;
+
+                m_Scene.TryGetScenePresence(m_AgentID, out sp);
+                if(sp == null || sp.IsChildAgent || sp.IsDeleted || sp.IsInTransit)
+                    break;
+                
+                client = sp.ControllingClient;
+
+                if(!m_Scene.UserManagementModule.IsLocalGridUser(m_AgentID))
+                    break;
+
+                OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
+                if(!req.ContainsKey("HomeLocation"))
+                    break;
+
+                OSDMap HLocation = (OSDMap)req["HomeLocation"];
+                if(!HLocation.ContainsKey("LocationPos"))
+                    break;
+                if(!HLocation.ContainsKey("LocationLookAt"))
+                    break;
+
+                locationID = HLocation["LocationId"].AsInteger();
+
+                if(!OSDMapTOVector3((OSDMap)HLocation["LocationPos"], out pos))
+                    break;
+
+                if(!OSDMapTOVector3((OSDMap)HLocation["LocationLookAt"], out lookAt))
+                    break;
+
+                ILandObject land = m_Scene.LandChannel.GetLandObject(pos);
+                if(land == null)
+                    break;
+                
+                ulong gpowers = client.GetGroupPowers(land.LandData.GroupID);
+                SceneObjectGroup telehub = null;
+                if (m_Scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero)
+                // Does the telehub exist in the scene?
+                    telehub = m_Scene.GetSceneObjectGroup(m_Scene.RegionInfo.RegionSettings.TelehubObject);
+
+                if (!m_Scene.Permissions.IsAdministrator(m_AgentID) && // (a) gods and land managers can set home
+                    !m_Scene.Permissions.IsGod(m_AgentID) &&
+                    m_AgentID != land.LandData.OwnerID && // (b) land owners can set home
+                    // (c) members of the land-associated group in roles that can set home
+                    ((gpowers & (ulong)GroupPowers.AllowSetHome) != (ulong)GroupPowers.AllowSetHome) && 
+                    // (d) parcels with telehubs can be the home of anyone
+                    (telehub == null || !land.ContainsPoint((int)telehub.AbsolutePosition.X, (int)telehub.AbsolutePosition.Y)))
+                {
+                    message = "You are not allowed to set your home location in this parcel.";
+                    break;
+                }
+
+                string userId;
+                UUID test;
+                if (!m_Scene.UserManagementModule.GetUserUUI(m_AgentID, out userId))
+                {
+                    message = "Set Home request failed. (User Lookup)";
+                    break;
+                }
+
+                if (!UUID.TryParse(userId, out test))
+                {
+                    message = "Set Home request failed. (HG visitor)";
+                    break;
+                }
+
+                if (m_Scene.GridUserService.SetHome(userId, land.RegionUUID, pos, lookAt))
+                    fail = false;
+
+                break;
+            }
+            
+            string response;
+
+            if(fail)
+            {
+                if(client != null)
+                    client.SendAlertMessage(message, "HomePositionSet");
+                response = OSDParser.SerializeLLSDXmlString(resp);
+                return response;
+            }
+
+            // so its http but still needs a udp reply to inform user? crap :p
+            if(client != null)
+               client.SendAlertMessage("Home position set.","HomePositionSet");
+
+            resp["success"] = "true";
+            OSDMap homeloc = new OSDMap();
+            OSDMap homelocpos = new OSDMap();
+            // for some odd reason viewers send pos as reals but read as integer
+            homelocpos["X"] = new OSDReal(pos.X);
+            homelocpos["Y"] = new OSDReal(pos.Y);
+            homelocpos["Z"] = new OSDReal(pos.Z);
+            homeloc["LocationPos"] = homelocpos;
+
+            resp["HomeLocation"] = homeloc;
+
+            response = OSDParser.SerializeLLSDXmlString(resp);
+            return response;
         }
     }
 
