@@ -84,7 +84,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private void OnRegisterCaps(UUID agentID, Caps caps)
         {
-            new BunchOfCaps(m_Scene, caps);
+            new BunchOfCaps(m_Scene, agentID, caps);
         }
 
     }

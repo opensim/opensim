@@ -89,23 +89,11 @@ namespace OpenSim.Region.ClientStack.Linden
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_Scene;
+        private UUID m_AgentID;
         private Caps m_HostCapsObj;
         private ModelCost m_ModelCost;
 
-        private static readonly string m_requestPath = "0000/";
-        // private static readonly string m_mapLayerPath = "0001/";
-        private static readonly string m_newInventory = "0002/";
-        //private static readonly string m_requestTexture = "0003/";
-        private static readonly string m_notecardUpdatePath = "0004/";
-        private static readonly string m_notecardTaskUpdatePath = "0005/";
-        //        private static readonly string m_fetchInventoryPath = "0006/";
-        private static readonly string m_copyFromNotecardPath = "0007/";
         // private static readonly string m_remoteParcelRequestPath = "0009/";// This is in the LandManagementModule.
-        private static readonly string m_getObjectPhysicsDataPath = "0101/";
-        private static readonly string m_getObjectCostPath = "0102/";
-        private static readonly string m_ResourceCostSelectedPath = "0103/";
-        private static readonly string m_UpdateAgentInformationPath = "0500/";
-        private static readonly string m_animSetTaskUpdatePath = "0260/";
         
         // These are callbacks which will be setup by the scene so that we can update scene data when we
         // receive capability calls
@@ -143,27 +131,16 @@ namespace OpenSim.Region.ClientStack.Linden
         }
         private FileAgentInventoryState m_FileAgentInventoryState = FileAgentInventoryState.idle;
         
-        public BunchOfCaps(Scene scene, Caps caps)
+        public BunchOfCaps(Scene scene, UUID agentID, Caps caps)
         {
             m_Scene = scene;
+            m_AgentID = agentID;
             m_HostCapsObj = caps;
 
             // create a model upload cost provider
-            m_ModelCost = new ModelCost();
-            // tell it about scene object limits
-            m_ModelCost.NonPhysicalPrimScaleMax = m_Scene.m_maxNonphys;
-            m_ModelCost.PhysicalPrimScaleMax = m_Scene.m_maxPhys;
-            m_ModelCost.ObjectLinkedPartsMax = m_Scene.m_linksetCapacity;
-            
-//            m_ModelCost.ObjectLinkedPartsMax = ??
-//            m_ModelCost.PrimScaleMin = ??
-
+            m_ModelCost = new ModelCost(scene);
+           
             m_PrimScaleMin = m_ModelCost.PrimScaleMin;
-            float modelTextureUploadFactor = m_ModelCost.ModelTextureCostFactor;
-            float modelUploadFactor = m_ModelCost.ModelMeshCostFactor;
-            float modelMinUploadCostFactor = m_ModelCost.ModelMinCostFactor;
-            float modelPrimCreationCost = m_ModelCost.primCreationCost;
-            float modelMeshByteCost = m_ModelCost.bytecost;
 
             IConfigSource config = m_Scene.Config;
             if (config != null)
@@ -183,12 +160,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 IConfig EconomyConfig = config.Configs["Economy"];
                 if (EconomyConfig != null)
                 {
-                    modelUploadFactor = EconomyConfig.GetFloat("MeshModelUploadCostFactor", modelUploadFactor);
-                    modelTextureUploadFactor = EconomyConfig.GetFloat("MeshModelUploadTextureCostFactor", modelTextureUploadFactor);
-                    modelMinUploadCostFactor = EconomyConfig.GetFloat("MeshModelMinCostFactor", modelMinUploadCostFactor);
-                    // next 2 are normalized so final cost is afected by modelUploadFactor above and normal cost
-                    modelPrimCreationCost = EconomyConfig.GetFloat("ModelPrimCreationCost", modelPrimCreationCost);
-                    modelMeshByteCost = EconomyConfig.GetFloat("ModelMeshByteCost", modelMeshByteCost);
+                    m_ModelCost.Econfig(EconomyConfig);
 
                     m_enableModelUploadTextureToInventory = EconomyConfig.GetBoolean("MeshModelAllowTextureToInventory", m_enableModelUploadTextureToInventory);
 
@@ -203,12 +175,6 @@ namespace OpenSim.Region.ClientStack.Linden
                         if (id != null)
                             m_testAssetsCreatorID = id;
                     }
-
-                    m_ModelCost.ModelMeshCostFactor = modelUploadFactor;
-                    m_ModelCost.ModelTextureCostFactor = modelTextureUploadFactor;
-                    m_ModelCost.ModelMinCostFactor = modelMinUploadCostFactor;
-                    m_ModelCost.primCreationCost = modelPrimCreationCost;
-                    m_ModelCost.bytecost = modelMeshByteCost;
                 }
             }
 
@@ -225,48 +191,54 @@ namespace OpenSim.Region.ClientStack.Linden
             m_FileAgentInventoryState = FileAgentInventoryState.idle;
         }
 
+        public string GetNewCapPath()
+        {
+            UUID tmpid = UUID.Random();
+            return  "/CAPS/" + tmpid.ToString(); 
+        }
+
         /// <summary>
         /// Register a bunch of CAPS http service handlers
         /// </summary>
         public void RegisterHandlers()
         {
-            string capsBase = "/CAPS/" + m_HostCapsObj.CapsObjectPath;
+            // this path is also defined elsewhere so keeping it
+            string seedcapsBase = "/CAPS/" + m_HostCapsObj.CapsObjectPath +"0000/";
 
-            RegisterRegionServiceHandlers(capsBase);
-            RegisterInventoryServiceHandlers(capsBase);
+            // the root of all evil path needs to be capsBase + m_requestPath
+            m_HostCapsObj.RegisterHandler(
+                    "SEED", new RestStreamHandler("POST", seedcapsBase, SeedCapRequest, "SEED", null));
+
+//                m_log.DebugFormat(
+//                    "[CAPS]: Registered seed capability {0} for {1}", seedcapsBase, m_HostCapsObj.AgentID);
+
+            RegisterRegionServiceHandlers();
+            RegisterInventoryServiceHandlers();
         }
 
-        public void RegisterRegionServiceHandlers(string capsBase)
+        public void RegisterRegionServiceHandlers()
         {
             try
             {
-                // the root of all evil
-                m_HostCapsObj.RegisterHandler(
-                    "SEED", new RestStreamHandler("POST", capsBase + m_requestPath, SeedCapRequest, "SEED", null));
-
-//                m_log.DebugFormat(
-//                    "[CAPS]: Registered seed capability {0} for {1}", capsBase + m_requestPath, m_HostCapsObj.AgentID);
-
                 //m_capsHandlers["MapLayer"] =
                 //    new LLSDStreamhandler<OSDMapRequest, OSDMapLayerResponse>("POST",
-                //                                                                capsBase + m_mapLayerPath,
+                //                                                                GetNewCapPath(),
                 //                                                               GetMapLayer);
 
-                IRequestHandler getObjectPhysicsDataHandler
-                    = new RestStreamHandler(
-                        "POST", capsBase + m_getObjectPhysicsDataPath, GetObjectPhysicsData, "GetObjectPhysicsData", null);
+                IRequestHandler getObjectPhysicsDataHandler = new RestStreamHandler(
+                        "POST", GetNewCapPath(), GetObjectPhysicsData, "GetObjectPhysicsData", null);
                 m_HostCapsObj.RegisterHandler("GetObjectPhysicsData", getObjectPhysicsDataHandler);
 
-                IRequestHandler getObjectCostHandler = new RestStreamHandler("POST", capsBase + m_getObjectCostPath, GetObjectCost);
+                IRequestHandler getObjectCostHandler = new RestStreamHandler(
+                        "POST", GetNewCapPath(), GetObjectCost, "GetObjectCost", null );
                 m_HostCapsObj.RegisterHandler("GetObjectCost", getObjectCostHandler);
-                IRequestHandler ResourceCostSelectedHandler = new RestStreamHandler("POST", capsBase + m_ResourceCostSelectedPath, ResourceCostSelected);
+
+                IRequestHandler ResourceCostSelectedHandler = new RestStreamHandler(
+                        "POST", GetNewCapPath(), ResourceCostSelected, "ResourceCostSelected", null);
                 m_HostCapsObj.RegisterHandler("ResourceCostSelected", ResourceCostSelectedHandler);
-   
 
-                IRequestHandler req
-                    = new RestStreamHandler(
-                        "POST", capsBase + m_notecardTaskUpdatePath, ScriptTaskInventory, "UpdateScript", null);
-
+                IRequestHandler req = new RestStreamHandler(
+                        "POST", GetNewCapPath(), ScriptTaskInventory, "UpdateScript", null);
                 m_HostCapsObj.RegisterHandler("UpdateScriptTaskInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptTask", req);
 
@@ -282,65 +254,29 @@ namespace OpenSim.Region.ClientStack.Linden
             }
         }
 
-        public void RegisterInventoryServiceHandlers(string capsBase)
+        public void RegisterInventoryServiceHandlers()
         {
             try
             {
-                m_HostCapsObj.RegisterHandler(
-                    "NewFileAgentInventory",
+                m_HostCapsObj.RegisterHandler("NewFileAgentInventory",
                     new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDAssetUploadResponse>(
-                        "POST",
-                        capsBase + m_newInventory,
-                        NewAgentInventoryRequest,
-                        "NewFileAgentInventory",
-                        null));
+                        "POST", GetNewCapPath(), NewAgentInventoryRequest, "NewFileAgentInventory", null));
 
-                IRequestHandler req
-                    = new RestStreamHandler(
-                        "POST", capsBase + m_notecardUpdatePath, NoteCardAgentInventory, "Update*", null);
-
+                IRequestHandler req = new RestStreamHandler(
+                        "POST",  GetNewCapPath(), NoteCardAgentInventory, "Update*", null);
                 m_HostCapsObj.RegisterHandler("UpdateNotecardAgentInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateAnimSetAgentInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptAgentInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptAgent", req);
 
-    
-
-                IRequestHandler UpdateAgentInformationHandler
-                    = new RestStreamHandler(
-                        "POST", capsBase + m_UpdateAgentInformationPath, UpdateAgentInformation, "UpdateAgentInformation", null);
+                IRequestHandler UpdateAgentInformationHandler = new RestStreamHandler(
+                        "POST",  GetNewCapPath(), UpdateAgentInformation, "UpdateAgentInformation", null);
                 m_HostCapsObj.RegisterHandler("UpdateAgentInformation", UpdateAgentInformationHandler);
 
-                m_HostCapsObj.RegisterHandler(
-                    "CopyInventoryFromNotecard",
-                    new RestStreamHandler(
-                        "POST", capsBase + m_copyFromNotecardPath, CopyInventoryFromNotecard, "CopyInventoryFromNotecard", null));
+                IRequestHandler CopyInventoryFromNotecardHandler = new RestStreamHandler(
+                        "POST",  GetNewCapPath(), CopyInventoryFromNotecard, "CopyInventoryFromNotecard", null);
+                m_HostCapsObj.RegisterHandler("CopyInventoryFromNotecard", CopyInventoryFromNotecardHandler);
              
-                // As of RC 1.22.9 of the Linden client this is
-                // supported
-
-                //m_capsHandlers["WebFetchInventoryDescendents"] =new RestStreamHandler("POST", capsBase + m_fetchInventoryPath, FetchInventoryDescendentsRequest);
-
-                // justincc: I've disabled the CAPS service for now to fix problems with selecting textures, and
-                // subsequent inventory breakage, in the edit object pane (such as mantis 1085).  This requires
-                // enhancements (probably filling out the folder part of the LLSD reply) to our CAPS service,
-                // but when I went on the Linden grid, the
-                // simulators I visited (version 1.21) were, surprisingly, no longer supplying this capability.  Instead,
-                // the 1.19.1.4 client appeared to be happily flowing inventory data over UDP
-                //
-                // This is very probably just a temporary measure - once the CAPS service appears again on the Linden grid
-                // we will be
-                // able to get the data we need to implement the necessary part of the protocol to fix the issue above.
-                //                m_capsHandlers["FetchInventoryDescendents"] =
-                //                    new RestStreamHandler("POST", capsBase + m_fetchInventoryPath, FetchInventoryRequest);
-
-                // m_capsHandlers["FetchInventoryDescendents"] =
-                //     new LLSDStreamhandler<LLSDFetchInventoryDescendents, LLSDInventoryDescendents>("POST",
-                //                                                                                    capsBase + m_fetchInventory,
-                //                                                                                    FetchInventory));
-                // m_capsHandlers["RequestTextureDownload"] = new RestStreamHandler("POST",
-                //                                                                  capsBase + m_requestTexture,
-                //                                                                  RequestTexture);
             }
             catch (Exception e)
             {
@@ -409,30 +345,28 @@ namespace OpenSim.Region.ClientStack.Linden
                 LLSDTaskScriptUpdate llsdUpdateRequest = new LLSDTaskScriptUpdate();
                 LLSDHelpers.DeserialiseOSDMap(hash, llsdUpdateRequest);
 
-                string capsBase = "/CAPS/" + m_HostCapsObj.CapsObjectPath;
-                string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
+                string uploaderPath = GetNewCapPath();
 
                 TaskInventoryScriptUpdater uploader =
                     new TaskInventoryScriptUpdater(
                         llsdUpdateRequest.item_id,
                         llsdUpdateRequest.task_id,
                         llsdUpdateRequest.is_script_running,
-                        capsBase + uploaderPath,
+                        uploaderPath,
                         m_HostCapsObj.HttpListener,
                         m_dumpAssetsToFile);
                 uploader.OnUpLoad += TaskScriptUpdated;
 
                 m_HostCapsObj.HttpListener.AddStreamHandler(
                     new BinaryStreamHandler(
-                        "POST", capsBase + uploaderPath, uploader.uploaderCaps, "TaskInventoryScriptUpdater", null));
+                        "POST", uploaderPath, uploader.uploaderCaps, "TaskInventoryScriptUpdater", null));
 
                 string protocol = "http://";
 
                 if (m_HostCapsObj.SSLCaps)
                     protocol = "https://";
 
-                string uploaderURL = protocol + m_HostCapsObj.HostName + ":" + m_HostCapsObj.Port.ToString() + capsBase +
-                                     uploaderPath;
+                string uploaderURL = protocol + m_HostCapsObj.HostName + ":" + m_HostCapsObj.Port.ToString() + uploaderPath;
 
                 LLSDAssetUploadResponse uploadResponse = new LLSDAssetUploadResponse();
                 uploadResponse.uploader = uploaderURL;
@@ -653,11 +587,10 @@ namespace OpenSim.Region.ClientStack.Linden
             }
             
             string assetDes = llsdRequest.description;
-            string capsBase = "/CAPS/" + m_HostCapsObj.CapsObjectPath;
             UUID newAsset = UUID.Random();
             UUID newInvItem = UUID.Random();
             UUID parentFolder = llsdRequest.folder_id;
-            string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
+            string uploaderPath = GetNewCapPath();
             UUID texturesFolder = UUID.Zero;
 
             if(!IsAtestUpload && m_enableModelUploadTextureToInventory)
@@ -665,26 +598,23 @@ namespace OpenSim.Region.ClientStack.Linden
 
             AssetUploader uploader =
                 new AssetUploader(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type,
-                        llsdRequest.asset_type, capsBase + uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile, cost,
+                        llsdRequest.asset_type, uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile, cost,
                         texturesFolder, nreqtextures, nreqmeshs, nreqinstances, IsAtestUpload,
                         llsdRequest.next_owner_mask, llsdRequest.group_mask, llsdRequest.everyone_mask);
 
             m_HostCapsObj.HttpListener.AddStreamHandler(
                 new BinaryStreamHandler(
                     "POST",
-                    capsBase + uploaderPath,
+                    uploaderPath,
                     uploader.uploaderCaps,
                     "NewAgentInventoryRequest",
                     m_HostCapsObj.AgentID.ToString()));
 
             string protocol = "http://";
-
             if (m_HostCapsObj.SSLCaps)
                 protocol = "https://";
 
-            string uploaderURL = protocol + m_HostCapsObj.HostName + ":" + m_HostCapsObj.Port.ToString() + capsBase +
-                                 uploaderPath;
-
+            string uploaderURL = protocol + m_HostCapsObj.HostName + ":" + m_HostCapsObj.Port.ToString() + uploaderPath;
 
             LLSDAssetUploadResponse uploadResponse = new LLSDAssetUploadResponse();
             uploadResponse.uploader = uploaderURL;
@@ -1313,24 +1243,22 @@ namespace OpenSim.Region.ClientStack.Linden
             LLSDItemUpdate llsdRequest = new LLSDItemUpdate();
             LLSDHelpers.DeserialiseOSDMap(hash, llsdRequest);
 
-            string capsBase = "/CAPS/" + m_HostCapsObj.CapsObjectPath;
-            string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
+            string uploaderPath = GetNewCapPath();
 
             ItemUpdater uploader =
-                new ItemUpdater(llsdRequest.item_id, capsBase + uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile);
+                new ItemUpdater(llsdRequest.item_id, uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile);
             uploader.OnUpLoad += ItemUpdated;
 
             m_HostCapsObj.HttpListener.AddStreamHandler(
                 new BinaryStreamHandler(
-                    "POST", capsBase + uploaderPath, uploader.uploaderCaps, "NoteCardAgentInventory", null));
+                    "POST", uploaderPath, uploader.uploaderCaps, "NoteCardAgentInventory", null));
 
             string protocol = "http://";
 
             if (m_HostCapsObj.SSLCaps)
                 protocol = "https://";
 
-            string uploaderURL = protocol + m_HostCapsObj.HostName + ":" + m_HostCapsObj.Port.ToString() + capsBase +
-                                 uploaderPath;
+            string uploaderURL = protocol + m_HostCapsObj.HostName + ":" + m_HostCapsObj.Port.ToString() + uploaderPath;
 
             LLSDAssetUploadResponse uploadResponse = new LLSDAssetUploadResponse();
             uploadResponse.uploader = uploaderURL;
