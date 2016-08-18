@@ -235,6 +235,8 @@ namespace OpenSim.Server.Handlers.UserAccounts
                 int i = 0;
                 foreach (UserAccount acc in accounts)
                 {
+                    if(acc == null)
+                        continue;
                     Dictionary<string, object> rinfoDict = acc.ToKeyValuePairs();
                     result["account" + i] = rinfoDict;
                     i++;

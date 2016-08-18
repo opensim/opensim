@@ -228,6 +228,8 @@ namespace OpenSim.Server.Handlers.GridUser
                 int i = 0;
                 foreach (GridUserInfo pinfo in pinfos)
                 {
+                    if(pinfo == null)
+                        continue;
                     Dictionary<string, object> rinfoDict = pinfo.ToKeyValuePairs();
                     result["griduser" + i] = rinfoDict;
                     i++;
