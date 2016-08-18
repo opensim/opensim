@@ -896,7 +896,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             }
             UUID groupID = m_groupData.CreateGroup(GetRequestingAgentID(remoteClient), name, charter, showInList, insigniaID, membershipFee, openEnrollment, allowPublish, maturePublish, GetRequestingAgentID(remoteClient));
 
-            remoteClient.SendCreateGroupReply(groupID, true, "Group created successfullly");
+            remoteClient.SendCreateGroupReply(groupID, true, "Group created successfully");
 
             // Update the founder with new group information.
             SendAgentGroupDataUpdate(remoteClient, false);

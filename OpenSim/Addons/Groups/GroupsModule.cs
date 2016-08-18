@@ -784,7 +784,7 @@ namespace OpenSim.Groups
                 if (money != null)
                     money.ApplyCharge(remoteClient.AgentId, money.GroupCreationCharge, MoneyTransactionType.GroupCreate);
 
-                remoteClient.SendCreateGroupReply(groupID, true, "Group created successfullly");
+                remoteClient.SendCreateGroupReply(groupID, true, "Group created successfully");
 
                 // Update the founder with new group information.
                 SendAgentGroupDataUpdate(remoteClient, false);
