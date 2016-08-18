@@ -764,7 +764,7 @@ namespace OpenSim.Groups
             }
 
             // check funds
-            // is there is a money module present ?
+            // is there a money module present ?
             IMoneyModule money = scene.RequestModuleInterface<IMoneyModule>();
             if (money != null)
             {
