@@ -122,6 +122,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private float m_PrimScaleMin = 0.001f;
 
+        private bool m_AllowCapHomeLocation = true;
+
         private enum FileAgentInventoryState : int
         {
             idle = 0,
@@ -175,6 +177,15 @@ namespace OpenSim.Region.ClientStack.Linden
                         if (id != null)
                             m_testAssetsCreatorID = id;
                     }
+                }
+
+                IConfig CapsConfig = config.Configs["ClientStack.LindenCaps"];
+                if (CapsConfig != null)
+                {
+                    string homeLocationUrl = CapsConfig.GetString("Cap_HomeLocation", "localhost");
+                    if(homeLocationUrl == String.Empty)
+                        m_AllowCapHomeLocation = false;
+                
                 }
             }
 
@@ -241,10 +252,12 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_HostCapsObj.RegisterHandler("UpdateScriptTaskInventory", req);
                 m_HostCapsObj.RegisterHandler("UpdateScriptTask", req);
 
-                IRequestHandler HomeLocationHandler = new RestStreamHandler(
+                if(m_AllowCapHomeLocation)
+                {
+                    IRequestHandler HomeLocationHandler = new RestStreamHandler(
                         "POST", GetNewCapPath(), HomeLocation, "HomeLocation", null);
-                m_HostCapsObj.RegisterHandler("HomeLocation", HomeLocationHandler);
-
+                    m_HostCapsObj.RegisterHandler("HomeLocation", HomeLocationHandler);
+                }
 //                IRequestHandler animSetRequestHandler
 //                    = new RestStreamHandler(
 //                        "POST", capsBase + m_animSetTaskUpdatePath, AnimSetTaskInventory, "UpdateScript", null);
