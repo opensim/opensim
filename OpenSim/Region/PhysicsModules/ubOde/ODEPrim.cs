@@ -1000,9 +1000,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public override void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
         {
-
             if (CollisionEventsThisFrame == null)
                 CollisionEventsThisFrame = new CollisionEventUpdate();
+
             CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
             _parent_scene.AddCollisionEventReporting(this);
         }
@@ -1033,28 +1033,27 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (CollisionEventsThisFrame == null)
                 return;
 
+            int ncolisions = CollisionEventsThisFrame.m_objCollisionList.Count;
+
             if (m_cureventsubscription < m_eventsubscription)
                 return;
-
-            m_cureventsubscription = 0;
-
-            int ncolisions = CollisionEventsThisFrame.m_objCollisionList.Count;
 
             if (!SentEmptyCollisionsEvent || ncolisions > 0)
             {
                 base.SendCollisionUpdate(CollisionEventsThisFrame);
+                m_cureventsubscription = 0;
 
                 if (ncolisions == 0)
                 {
                     SentEmptyCollisionsEvent = true;
-                    _parent_scene.RemoveCollisionEventReporting(this);
+//                    _parent_scene.RemoveCollisionEventReporting(this);
                 }
                 else if(Body == IntPtr.Zero || d.BodyIsEnabled(Body))
                 {
                     SentEmptyCollisionsEvent = false;
                     CollisionEventsThisFrame.Clear();
                 }
-            }           
+            }
         }
 
         public override bool SubscribedEvents()

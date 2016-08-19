@@ -1605,18 +1605,17 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if (m_cureventsubscription < m_eventsubscription)
                     return;
 
-                m_cureventsubscription = 0;
-
                 int ncolisions = CollisionEventsThisFrame.m_objCollisionList.Count;
 
                 if (!SentEmptyCollisionsEvent || ncolisions > 0)
                 {
                     base.SendCollisionUpdate(CollisionEventsThisFrame);
+                    m_cureventsubscription = 0;
 
                     if (ncolisions == 0)
                     {
                         SentEmptyCollisionsEvent = true;
-                        _parent_scene.RemoveCollisionEventReporting(this);
+//                        _parent_scene.RemoveCollisionEventReporting(this);
                     }
                     else
                     {

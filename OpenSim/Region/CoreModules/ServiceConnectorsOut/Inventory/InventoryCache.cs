@@ -38,11 +38,22 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
     /// </summary>
     public class InventoryCache
     {
-        private const double CACHE_EXPIRATION_SECONDS = 3600.0; // 1 hour
+        private const double CACHE_EXPIRATION_SECONDS = 60.0; // 1 minute
 
         private static ExpiringCache<UUID, InventoryFolderBase> m_RootFolders = new ExpiringCache<UUID, InventoryFolderBase>();
         private static ExpiringCache<UUID, Dictionary<FolderType, InventoryFolderBase>> m_FolderTypes = new ExpiringCache<UUID, Dictionary<FolderType, InventoryFolderBase>>();
         private static ExpiringCache<UUID, InventoryCollection> m_Inventories = new ExpiringCache<UUID, InventoryCollection>();
+
+
+        public void RemoveAll(UUID userID)
+        {
+            if(m_RootFolders.Contains(userID))
+                m_RootFolders.Remove(userID);
+            if(m_FolderTypes.Contains(userID))
+                m_FolderTypes.Remove(userID);
+            if(m_Inventories.Contains(userID))
+                m_Inventories.Remove(userID);
+        }
 
         public void Cache(UUID userID, InventoryFolderBase root)
         {

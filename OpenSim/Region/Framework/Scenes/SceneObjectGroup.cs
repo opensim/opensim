@@ -1586,12 +1586,22 @@ namespace OpenSim.Region.Framework.Scenes
             return m_boundsCenter;
         }
 
+        private float m_areaFactor;
+        public float getAreaFactor()
+        {
+            // math is done in GetBoundsRadius();
+            if(m_boundsRadius == null)
+                GetBoundsRadius();
+            return m_areaFactor;
+        }
+
         public float GetBoundsRadius()
         {
         // this may need more threading work
             if(m_boundsRadius == null)
             {
                 float res = 0;
+                float areaF = 0;
                 SceneObjectPart p;
                 SceneObjectPart[] parts;
                 float partR;
@@ -1613,12 +1623,19 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     if(partR > res)
                         res = partR;
+                    if(p.maxSimpleArea() > areaF)
+                        areaF = p.maxSimpleArea();
                 }
                 if(parts.Length > 1)
                 {
                     offset /= parts.Length; // basicly geometric center
                     offset = offset * RootPart.RotationOffset;
                 }
+
+                areaF = 10.0f / areaF;  // scale it
+                areaF = Util.Clamp(areaF, 0.001f, 1000f); // clamp it
+
+                m_areaFactor = (float)Math.Sqrt(areaF);
                 m_boundsCenter = offset;
                 m_boundsRadius = res;
                 return res;
@@ -2048,41 +2065,37 @@ namespace OpenSim.Region.Framework.Scenes
         {
             // We need to keep track of this state in case this group is still queued for backup.
             IsDeleted = true;
-            HasGroupChanged = true;
 
             DetachFromBackup();
+
+            if(Scene == null)  // should not happen unless restart/shutdown ?
+                return;
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
 
-                if (Scene != null)
+                Scene.ForEachScenePresence(delegate(ScenePresence avatar)
                 {
-                    Scene.ForEachScenePresence(delegate(ScenePresence avatar)
-                    {
-                        if (!avatar.IsChildAgent && avatar.ParentID == LocalId)
-                            avatar.StandUp();
+                    if (!avatar.IsChildAgent && avatar.ParentID == LocalId)
+                        avatar.StandUp();
 
-                        if (!silent)
+                    if (!silent)
+                    {
+                        part.ClearUpdateSchedule();
+                        if (part == m_rootPart)
                         {
-                            part.ClearUpdateSchedule();
-                            if (part == m_rootPart)
+                            if (!IsAttachment
+                                || AttachedAvatar == avatar.ControllingClient.AgentId
+                                || !HasPrivateAttachmentPoint)
                             {
-                                if (!IsAttachment
-                                    || AttachedAvatar == avatar.ControllingClient.AgentId
-                                    || !HasPrivateAttachmentPoint)
-                                {
-                                    // Send a kill object immediately
-                                    avatar.ControllingClient.SendKillObject(new List<uint> { part.LocalId });
-                                    // Also, send a terse update; in case race conditions make the object pop again in the client,
-                                    // this update will send another kill object
-                                    m_rootPart.SendTerseUpdateToClient(avatar.ControllingClient);
-                                }
+                                // Send a kill object immediately
+                                avatar.ControllingClient.SendKillObject(new List<uint> { part.LocalId });
                             }
                         }
-                    });
-                }
+                    }
+                });
             }
         }
 

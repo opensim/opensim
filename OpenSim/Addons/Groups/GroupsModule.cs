@@ -764,7 +764,7 @@ namespace OpenSim.Groups
             }
 
             // check funds
-            // is there is a money module present ?
+            // is there a money module present ?
             IMoneyModule money = scene.RequestModuleInterface<IMoneyModule>();
             if (money != null)
             {
@@ -784,7 +784,7 @@ namespace OpenSim.Groups
                 if (money != null)
                     money.ApplyCharge(remoteClient.AgentId, money.GroupCreationCharge, MoneyTransactionType.GroupCreate);
 
-                remoteClient.SendCreateGroupReply(groupID, true, "Group created successfullly");
+                remoteClient.SendCreateGroupReply(groupID, true, "Group created successfully");
 
                 // Update the founder with new group information.
                 SendAgentGroupDataUpdate(remoteClient, false);

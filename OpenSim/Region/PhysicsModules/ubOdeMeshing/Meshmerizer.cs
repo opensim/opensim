@@ -417,7 +417,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                         meshOsd = (OSDMap)osd;
                     else
                     {
-                        m_log.Warn("[Mesh}: unable to cast mesh asset to OSDMap");
+                        m_log.WarnFormat("[Mesh}: unable to cast mesh asset to OSDMap prim: {0}",primName);
                         return false;
                     }
                 }
@@ -451,7 +451,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
                 if (physicsParms == null)
                 {
-                    m_log.Warn("[MESH]: unknown mesh type");
+                    m_log.WarnFormat("[MESH]: unknown mesh type for {0}",primName);
                     return false;
                 }
 

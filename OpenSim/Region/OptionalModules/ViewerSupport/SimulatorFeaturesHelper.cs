@@ -53,86 +53,11 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IEntityTransferModule m_TransferModule;
         private Scene m_scene;
 
-        private struct RegionSend {
-            public UUID region;
-            public bool send;
-        };
-        // Using a static cache so that we don't have to perform the time-consuming tests
-        // in ShouldSend on Extra SimFeatures that go on the same response but come from
-        // different modules.
-        // This cached is indexed on the agentID and maps to a list of regions
-        private static ExpiringCache<UUID, List<RegionSend>> m_Cache = new ExpiringCache<UUID, List<RegionSend>>();
-        private const double TIMEOUT = 1.0; // time in cache
-
-        public SimulatorFeaturesHelper(Scene scene, IEntityTransferModule et)
+        public SimulatorFeaturesHelper(Scene scene)
         {
             m_scene = scene;
-            m_TransferModule = et;
-        }
-
-        public bool ShouldSend(UUID agentID)
-        {
-            List<RegionSend> rsendlist;
-            RegionSend rsend;
-            if (m_Cache.TryGetValue(agentID, out rsendlist))
-            {
-                rsend = rsendlist.Find(r => r.region == m_scene.RegionInfo.RegionID);
-                if (rsend.region != UUID.Zero) // Found it
-                {
-                    return rsend.send;
-                }
-            }
-
-            // Relatively complex logic for deciding whether to send the extra SimFeature or not.
-            // This is because the viewer calls this cap to all sims that it knows about,
-            // including the departing sims and non-neighbors (those that are cached).
-            rsend.region = m_scene.RegionInfo.RegionID;
-            rsend.send = false;
-            IClientAPI client = null;
-            int counter = 200;
-
-            // Let's wait a little to see if we get a client here
-            while (!m_scene.TryGetClient(agentID, out client) && counter-- > 0)
-                Thread.Sleep(50);
-
-            if (client != null)
-            {
-                ScenePresence sp = WaitGetScenePresence(agentID);
-
-                if (sp != null)
-                {
-                    // On the receiving region, the call to this cap may arrive before
-                    // the agent is root. Make sure we only proceed from here when the agent
-                    // has been made root
-                    counter = 200;
-                    while ((sp.IsInTransit || sp.IsChildAgent) && counter-- > 0)
-                    {
-                        Thread.Sleep(50);
-                    }
-
-                    // The viewer calls this cap on the departing sims too. Make sure
-                    // that we only proceed after the agent is not in transit anymore.
-                    // The agent must be root and not going anywhere
-                    if (!sp.IsChildAgent && !m_TransferModule.IsInTransit(agentID))
-                        rsend.send = true;
-
-                }
-            }
-            //else
-            //    m_log.DebugFormat("[XXX]: client is null");
-
-
-            if (rsendlist == null)
-            {
-                rsendlist = new List<RegionSend>();
-                m_Cache.AddOrUpdate(agentID, rsendlist, TIMEOUT);
-            }
-            rsendlist.Add(rsend);
-
-            return rsend.send;
         }
 
         public int UserLevel(UUID agentID)
@@ -144,28 +69,5 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
 
             return level;
         }
-
-        protected virtual ScenePresence WaitGetScenePresence(UUID agentID)
-        {
-            int ntimes = 20;
-            ScenePresence sp = null;
-            while ((sp = m_scene.GetScenePresence(agentID)) == null && (ntimes-- > 0))
-                Thread.Sleep(1000);
-
-            if (sp == null)
-                m_log.WarnFormat(
-                    "[XXX]: Did not find presence with id {0} in {1} before timeout",
-                    agentID, m_scene.RegionInfo.RegionName);
-            else
-            {
-                ntimes = 10;
-                while (sp.IsInTransit && (ntimes-- > 0))
-                    Thread.Sleep(1000);
-            }
-
-            return sp;
-        }
-
     }
-
 }

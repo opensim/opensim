@@ -577,6 +577,13 @@ namespace OpenSim.Region.ClientStack.Linden
             //m_log.InfoFormat("########### eq ChatterBoxSessionAgentListUpdates #############\n{0}", item);
         }
 
+        public void ChatterBoxForceClose(UUID toAgent, UUID sessionID, string reason)
+        {
+            OSD item = EventQueueHelper.ChatterBoxForceClose(sessionID, reason);
+
+            Enqueue(item, toAgent);
+        }
+
         public void ParcelProperties(ParcelPropertiesMessage parcelPropertiesMessage, UUID avatarID)
         {
             OSD item = EventQueueHelper.ParcelProperties(parcelPropertiesMessage);

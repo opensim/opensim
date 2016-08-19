@@ -100,6 +100,11 @@ namespace OpenSim.Services.HypergridService
             return null;
         }
 
+        public List<UserAccount> GetUserAccounts(UUID scopeID, List<string> IDs)
+        {
+            return null;
+        }
+
         public void InvalidateCache(UUID userID)
         {
             m_UUIDCache.Remove(userID);

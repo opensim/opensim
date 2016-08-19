@@ -187,6 +187,7 @@ namespace OpenSim.Services.Interfaces
         /// <returns></returns>
         List<UserAccount> GetUserAccounts(UUID scopeID, string query);
         List<UserAccount> GetUserAccountsWhere(UUID scopeID, string where);
+        List<UserAccount> GetUserAccounts(UUID scopeID, List<string> IDs);
 
         /// <summary>
         /// Store the data given, wich replaces the stored data, therefore must be complete.

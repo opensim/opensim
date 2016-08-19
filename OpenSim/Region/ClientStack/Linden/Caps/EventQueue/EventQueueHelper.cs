@@ -342,6 +342,18 @@ namespace OpenSim.Region.ClientStack.Linden
             return chatterBoxSessionAgentListUpdates;
         }
 
+        public static OSD ChatterBoxForceClose(UUID sessionID, string reason)
+        {
+            OSDMap body = new OSDMap(2);
+            body.Add("session_id", new OSDUUID(sessionID));
+            body.Add("reason", new OSDString(reason));
+
+            OSDMap chatterBoxForceClose = new OSDMap(2);
+            chatterBoxForceClose.Add("message", new OSDString("ForceCloseChatterBoxSession"));
+            chatterBoxForceClose.Add("body", body);
+            return chatterBoxForceClose;
+        }
+
         public static OSD GroupMembershipData(UUID receiverAgent, GroupMembershipData[] data)
         {
             OSDArray AgentData = new OSDArray(1);

@@ -862,7 +862,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         {
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
-            if (m_groupData.GetGroupRecord(GetRequestingAgentID(remoteClient), UUID.Zero, name) != null)
+            GroupRecord groupRecord = m_groupData.GetGroupRecord(GetRequestingAgentID(remoteClient), UUID.Zero, name);
+
+            if (groupRecord != null)
             {
                 remoteClient.SendCreateGroupReply(UUID.Zero, false, "A group with the same name already exists.");
                 return UUID.Zero;
@@ -877,26 +879,26 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             {
                 if (avatar.UserLevel < m_levelGroupCreate)
                 {
-                    remoteClient.SendCreateGroupReply(UUID.Zero, false, "You have got insufficient permissions to create a group.");
+                    remoteClient.SendCreateGroupReply(UUID.Zero, false, "You have insufficient permissions to create a group.");
                     return UUID.Zero;
                 }
             }
 
             // check funds
-            // is there is a money module present ?
+            // is there a money module present ?
             IMoneyModule money = scene.RequestModuleInterface<IMoneyModule>();
-            if (money != null)
+            if (money != null && money.GroupCreationCharge > 0)
             {
-                // do the transaction, that is if the agent has got sufficient funds
+                // do the transaction, that is if the agent has sufficient funds
                 if (!money.AmountCovered(remoteClient.AgentId, money.GroupCreationCharge)) {
-                    remoteClient.SendCreateGroupReply(UUID.Zero, false, "You have got insufficient funds to create a group.");
+                    remoteClient.SendCreateGroupReply(UUID.Zero, false, "You have insufficient funds to create a group.");
                     return UUID.Zero;
                 }
-                money.ApplyCharge(GetRequestingAgentID(remoteClient), money.GroupCreationCharge, MoneyTransactionType.GroupCreate);
+                money.ApplyCharge(GetRequestingAgentID(remoteClient), money.GroupCreationCharge, MoneyTransactionType.GroupCreate, name);
             }
             UUID groupID = m_groupData.CreateGroup(GetRequestingAgentID(remoteClient), name, charter, showInList, insigniaID, membershipFee, openEnrollment, allowPublish, maturePublish, GetRequestingAgentID(remoteClient));
 
-            remoteClient.SendCreateGroupReply(groupID, true, "Group created successfullly");
+            remoteClient.SendCreateGroupReply(groupID, true, "Group created successfully");
 
             // Update the founder with new group information.
             SendAgentGroupDataUpdate(remoteClient, false);
@@ -1091,6 +1093,20 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             // Should check to see if OpenEnrollment, or if there's an outstanding invitation
             m_groupData.AddAgentToGroup(GetRequestingAgentID(remoteClient), GetRequestingAgentID(remoteClient), groupID, UUID.Zero);
+
+            // check funds
+            // is there a money module present ?
+            GroupRecord groupRecord = m_groupData.GetGroupRecord(GetRequestingAgentID(remoteClient), groupID, null);
+            IMoneyModule money = remoteClient.Scene.RequestModuleInterface<IMoneyModule>();
+            if (money != null && groupRecord.MembershipFee > 0)
+            {
+                // do the transaction, that is if the agent has sufficient funds
+                if (!money.AmountCovered(GetRequestingAgentID(remoteClient), groupRecord.MembershipFee)) {
+                    remoteClient.SendCreateGroupReply(UUID.Zero, false, "You have insufficient funds to join the group.");
+                    return;
+                }
+                money.ApplyCharge(GetRequestingAgentID(remoteClient), groupRecord.MembershipFee, MoneyTransactionType.GroupJoin, groupRecord.GroupName);
+            }
 
             remoteClient.SendJoinGroupReply(groupID, true);
 

@@ -1711,11 +1711,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendKillObject(List<uint> localIDs)
         {
-            // think we do need this
             //            foreach (uint id in localIDs)
             //                m_log.DebugFormat("[CLIENT]: Sending KillObjectPacket to {0} for {1} in {2}", Name, id, regionHandle);
 
-            // remove pending entities
+            // remove pending entities to reduce looping chances.
             lock (m_entityProps.SyncRoot)
                 m_entityProps.Remove(localIDs);
             lock (m_entityUpdates.SyncRoot)
@@ -2409,6 +2408,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             alertPack.AlertData = new AlertMessagePacket.AlertDataBlock();
             alertPack.AlertData.Message = Util.StringToBytes256(message);
             alertPack.AlertInfo = new AlertMessagePacket.AlertInfoBlock[0];
+            OutPacket(alertPack, ThrottleOutPacketType.Task);
+        }
+
+        public void SendAlertMessage(string message, string info)
+        {
+            AlertMessagePacket alertPack = (AlertMessagePacket)PacketPool.Instance.GetPacket(PacketType.AlertMessage);
+            alertPack.AlertData = new AlertMessagePacket.AlertDataBlock();
+            alertPack.AlertData.Message = Util.StringToBytes256(message);
+            alertPack.AlertInfo = new AlertMessagePacket.AlertInfoBlock[1];
+            alertPack.AlertInfo[0] = new AlertMessagePacket.AlertInfoBlock();
+            alertPack.AlertInfo[0].Message = Util.StringToBytes256(info);
+            alertPack.AlertInfo[0].ExtraParams = new Byte[0];
             OutPacket(alertPack, ThrottleOutPacketType.Task);
         }
 
@@ -4007,7 +4018,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bool doCulling = m_scene.ObjectsCullingByDistance;
             float cullingrange = 64.0f;
             HashSet<SceneObjectGroup> GroupsNeedFullUpdate = new HashSet<SceneObjectGroup>();
-            List<SceneObjectGroup> kills = new List<SceneObjectGroup>();
 //            Vector3 mycamera = Vector3.Zero;
             Vector3 mypos = Vector3.Zero;
             ScenePresence mysp = (ScenePresence)SceneAgent;
@@ -4047,8 +4057,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // Don't send updates for objects that have been marked deleted.
                         // Instead send another kill object, because the first one may have gotten
                         // into a race condition
-                        if (!m_killRecord.Contains(grp.LocalId))
+                        if (part == grp.RootPart && !m_killRecord.Contains(grp.LocalId))
+                        {
                             m_killRecord.Add(grp.LocalId);
+                            maxUpdatesBytes -= 30;
+                        }
                         continue;
                     }
 
@@ -4336,16 +4349,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_killRecord.Clear();
             }
 
-            if (kills.Count > 0)
-            {
-                foreach(SceneObjectGroup grp in kills)
-                {
-                    foreach(SceneObjectPart p in grp.Parts)
-                        SendEntityUpdate(p,PrimUpdateFlags.Kill);
-                }
-                kills.Clear();
-            }
-
             if(GroupsNeedFullUpdate.Count > 0)
             {
                 foreach(SceneObjectGroup grp in GroupsNeedFullUpdate)
@@ -4471,12 +4474,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (kills.Count > 0)
             {
+                List<uint> partIDs = new List<uint>();
                 foreach(SceneObjectGroup grp in kills)
                 {
+                    SendEntityUpdate(grp.RootPart,PrimUpdateFlags.Kill);
                     foreach(SceneObjectPart p in grp.Parts)
-                        SendEntityUpdate(p,PrimUpdateFlags.Kill);
+                    {
+                        if(p != grp.RootPart)
+                            partIDs.Add(p.LocalId);
+                    }
                 }
                 kills.Clear();
+                if(partIDs.Count > 0)
+                {
+                    lock (m_entityProps.SyncRoot)
+                        m_entityProps.Remove(partIDs);
+                    lock (m_entityUpdates.SyncRoot)
+                        m_entityUpdates.Remove(partIDs);
+                }
             }
 
             if(GroupsNeedFullUpdate.Count > 0)
@@ -11418,12 +11433,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_GroupsModule.GroupMembersRequest(this, groupMembersRequestPacket.GroupData.GroupID);
 
                 int memberCount = members.Count;
-
-                while (true)
+                int indx = 0;
+                while (indx < memberCount)
                 {
-                    int blockCount = members.Count;
-                    if (blockCount > 40)
-                        blockCount = 40;
+                    int blockCount = memberCount - indx;
+                    if (blockCount > 25)
+                        blockCount = 25;
 
                     GroupMembersReplyPacket groupMembersReply = (GroupMembersReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupMembersReply);
 
@@ -11444,8 +11459,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     for (int i = 0; i < blockCount; i++)
                     {
-                        GroupMembersData m = members[0];
-                        members.RemoveAt(0);
+                        GroupMembersData m = members[indx++];
 
                         groupMembersReply.MemberData[i] =
                             new GroupMembersReplyPacket.MemberDataBlock();
@@ -11463,8 +11477,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             m.IsOwner;
                     }
                     OutPacket(groupMembersReply, ThrottleOutPacketType.Task);
-                    if (members.Count == 0)
-                        return true;
                 }
             }
             return true;

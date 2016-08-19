@@ -1008,11 +1008,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     respData.Add("error", e.ToString());
                     return respData;
                 }
-            }
 
-            if ((m_cacheTimeout > 0) && (CacheKey != null))
-            {
-                m_memoryCache.AddOrUpdate(CacheKey, resp, TimeSpan.FromSeconds(m_cacheTimeout));
+                if ((m_cacheTimeout > 0) && (CacheKey != null))
+                {
+                    m_memoryCache.AddOrUpdate(CacheKey, resp, 10.0);
+                }
             }
 
             if (resp.Value is Hashtable)
