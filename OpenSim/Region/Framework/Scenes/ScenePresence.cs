@@ -3304,7 +3304,6 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 cameraEyeOffset = part.GetCameraEyeOffset();
             bool forceMouselook = part.GetForceMouselook();
 
-            m_bodyRot = Orientation;
 
             if (!part.IsRoot)
             {
@@ -3326,6 +3325,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            m_bodyRot = Orientation;
             m_pos = offset;
 
             ControllingClient.SendSitResponse(
