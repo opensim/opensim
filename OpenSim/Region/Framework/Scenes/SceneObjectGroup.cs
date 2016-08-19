@@ -3347,7 +3347,10 @@ namespace OpenSim.Region.Framework.Scenes
             //    engine about the delink. Someday, linksets should be made first
             //    class objects in the physics engine interface).
             if (linkPartPa != null)
+            {
                 m_scene.PhysicsScene.RemovePrim(linkPartPa);
+                linkPart.PhysActor = null;
+            }
 
             // We need to reset the child part's position
             // ready for life as a separate object after being a part of another object
