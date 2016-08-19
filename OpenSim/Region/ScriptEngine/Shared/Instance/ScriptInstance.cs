@@ -871,12 +871,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             }
             else
             {
+                Exception e = null;
+
                 if (Engine.World.PipeEventsForScript(LocalID) ||
                     data.EventName == "control") // Don't freeze avies!
                 {
                     //                        m_log.DebugFormat("[Script] Delivered event {2} in state {3} to {0}.{1}",
                     //                                PrimName, ScriptName, data.EventName, State);
-
 
                     try
                     {
@@ -892,6 +893,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         {
                             m_InEvent = false;
                             m_CurrentEvent = String.Empty;
+                            m_CurrentWorkItem = null; // no longer in a event that can be canceled
                         }
 
                         if (m_SaveState)
@@ -904,7 +906,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             m_SaveState = false;
                         }
                     }
-                    catch (Exception e)
+                    catch (Exception exx)
+                    {
+                        e = exx;
+                    }
+
+                    if(e != null)
                     {
                         //                            m_log.DebugFormat(
                         //                                "[SCRIPT] Exception in script {0} {1}: {2}{3}",
