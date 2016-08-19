@@ -41,6 +41,7 @@ using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Capabilities;
 using OpenSim.Region.Framework;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Framework.Servers;
@@ -123,6 +124,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private float m_PrimScaleMin = 0.001f;
 
         private bool m_AllowCapHomeLocation = true;
+        private bool m_AllowCapGroupMemberData = true;
 
         private enum FileAgentInventoryState : int
         {
@@ -185,7 +187,10 @@ namespace OpenSim.Region.ClientStack.Linden
                     string homeLocationUrl = CapsConfig.GetString("Cap_HomeLocation", "localhost");
                     if(homeLocationUrl == String.Empty)
                         m_AllowCapHomeLocation = false;
-                
+
+                    string GroupMemberDataUrl = CapsConfig.GetString("Cap_GroupMemberData", "localhost");
+                    if(GroupMemberDataUrl == String.Empty)
+                        m_AllowCapGroupMemberData = false;
                 }
             }
 
@@ -258,6 +263,15 @@ namespace OpenSim.Region.ClientStack.Linden
                         "POST", GetNewCapPath(), HomeLocation, "HomeLocation", null);
                     m_HostCapsObj.RegisterHandler("HomeLocation", HomeLocationHandler);
                 }
+                
+                if(m_AllowCapGroupMemberData)
+                {
+                    IRequestHandler GroupMemberDataHandler = new RestStreamHandler(
+                        "POST", GetNewCapPath(), GroupMemberData, "GroupMemberData", null);
+                    m_HostCapsObj.RegisterHandler("GroupMemberData", GroupMemberDataHandler);
+                }
+
+
 //                IRequestHandler animSetRequestHandler
 //                    = new RestStreamHandler(
 //                        "POST", capsBase + m_animSetTaskUpdatePath, AnimSetTaskInventory, "UpdateScript", null);
@@ -1654,6 +1668,123 @@ namespace OpenSim.Region.ClientStack.Linden
             homeloc["LocationPos"] = homelocpos;
 
             resp["HomeLocation"] = homeloc;
+
+            response = OSDParser.SerializeLLSDXmlString(resp);
+            return response;
+        }
+
+        private static int CompareRolesByMembersDesc(GroupRolesData x, GroupRolesData y)
+        {
+            return -(x.Members.CompareTo(y.Members));
+        }
+
+        public string GroupMemberData(string request, string path, string param, IOSHttpRequest httpRequest,
+                IOSHttpResponse httpResponse)
+        {
+            OSDMap resp = new OSDMap();
+
+            string response;
+
+            bool fail = true;
+            IClientAPI client = null;
+            ScenePresence sp;
+            IGroupsModule m_GroupsModule;
+            UUID groupID = UUID.Zero;
+
+            while(true)
+            {
+                m_GroupsModule = m_Scene.RequestModuleInterface<IGroupsModule>();
+                if(m_GroupsModule == null)
+                    break;
+                    
+                m_Scene.TryGetScenePresence(m_AgentID, out sp);
+                if(sp == null || sp.IsChildAgent || sp.IsDeleted || sp.IsInTransit)
+                    break;
+                
+                client = sp.ControllingClient;
+
+                OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
+                if(!req.ContainsKey("group_id"))
+                    break;
+
+                groupID = req["group_id"].AsUUID();
+                if(groupID == UUID.Zero)
+                    break;
+
+                List<GroupRolesData> roles = m_GroupsModule.GroupRoleDataRequest(client, groupID);
+                if(roles == null || roles.Count == 0)
+                    break;
+
+                List<GroupMembersData> members = m_GroupsModule.GroupMembersRequest(client, groupID);
+                if(members == null || members.Count == 0)
+                    break;
+
+                int memberCount = members.Count;
+
+                Dictionary<string,int> titles = new Dictionary<string,int>();
+                int i = 0;
+
+                ulong defaultPowers = 0;
+
+
+                // build titles array and index
+                roles.Sort(CompareRolesByMembersDesc);
+
+                OSDArray osdtitles = new OSDArray();
+                foreach(GroupRolesData grd in roles)
+                {
+                    string title = grd.Title;
+                    if(i==0)
+                        defaultPowers = grd.Powers;
+
+                    if(!titles.ContainsKey(title))
+                    {
+                        titles[title] = i++;
+                        osdtitles.Add(new OSDString(title));
+                    }
+                }
+
+                OSDMap osdmembers = new OSDMap();
+                foreach(GroupMembersData gmd in members)
+                {
+                    OSDMap m = new OSDMap();
+                    if(gmd.OnlineStatus != null && gmd.OnlineStatus != "")
+                        m["last_login"] = new OSDString(gmd.OnlineStatus);
+                    if(gmd.AgentPowers != defaultPowers)
+                        m["powers"] = new OSDString((gmd.AgentPowers).ToString("X"));
+                    if(titles.ContainsKey(gmd.Title) && titles[gmd.Title] != 0)
+                        m["title"] = new OSDInteger(titles[gmd.Title]);
+                    if(gmd.IsOwner)
+                        m["owner"] = new OSDString("true");
+                    if(gmd.Contribution != 0)
+                        m["donated_square_meters"] = new OSDInteger(gmd.Contribution);
+
+                    osdmembers[(gmd.AgentID).ToString()] = m;
+                }
+
+                OSDMap osddefaults = new OSDMap();
+                osddefaults["default_powers"] = new OSDString(defaultPowers.ToString("X"));
+
+                resp["group_id"] = new OSDUUID(groupID);
+                resp["agent_id"] = new OSDUUID(m_AgentID);
+                resp["member_count"] = new OSDInteger(memberCount);
+                resp["defaults"] = osddefaults;
+                resp["titles"] = osdtitles;
+                resp["members"] = osdmembers;
+
+                fail = false;
+                break;
+            }
+
+            if(fail)
+            {
+                resp["group_id"] = new OSDUUID(groupID);
+                resp["agent_id"] = new OSDUUID(m_AgentID);
+                resp["member_count"] = new OSDInteger(0);
+                resp["defaults"] = new OSDMap();
+                resp["titles"] = new OSDArray();
+                resp["members"] = new OSDMap();
+            }
 
             response = OSDParser.SerializeLLSDXmlString(resp);
             return response;
