@@ -1328,8 +1328,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
               
                 newPrim = new OdePrim(name, this, position, size, rotation, pbs, isphysical, isPhantom, shapeType, localID);
-                lock (_prims)
-                    _prims[newPrim.LocalID] = newPrim;
             }
             return newPrim;
         }
@@ -1350,7 +1348,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
                                                   Vector3 size, Quaternion rotation, bool isPhysical, bool isPhantom, byte shapeType, uint localid)
         {
-
             return AddPrim(primName, position, size, rotation, pbs, isPhysical,isPhantom, shapeType, localid);
         }
 
@@ -1396,6 +1393,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         }
 
+        public void addToPrims(OdePrim prim)
+        {
+            lock (_prims)
+                _prims[prim.LocalID] = prim;
+        }
+
         public OdePrim getPrim(uint id)
         {
             lock (_prims)
@@ -1413,6 +1416,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 return _prims.ContainsKey(prm.LocalID);
         }
 
+        public void changePrimID(OdePrim prim,uint oldID)
+        {
+            lock (_prims)
+            {
+                if(_prims.ContainsKey(oldID))
+                    _prims.Remove(oldID);
+                _prims[prim.LocalID] = prim;
+            }
+        }
+        
         public bool haveActor(PhysicsActor actor)
         {
             if (actor is OdePrim)
