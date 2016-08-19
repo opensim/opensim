@@ -807,9 +807,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             lock (EventQueue)
             {
                 data = (EventParams)EventQueue.Dequeue();
-                if (data == null) // Shouldn't happen
+                if (data == null)
                 {
-                    if (EventQueue.Count > 0 && Running && !ShuttingDown)
+                    // check if a null event was enqueued or if its really empty
+                    if (EventQueue.Count > 0 && Running && !ShuttingDown && !m_InSelfDelete)
                     {
                         m_CurrentWorkItem = Engine.QueueEventHandler(this);
                     }
@@ -979,7 +980,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                     ScriptTask.ItemID, ScriptTask.AssetID, data.EventName, EventsProcessed);
                 }
 
-                if (EventQueue.Count > 0 && Running && !ShuttingDown)
+                if (EventQueue.Count > 0 && Running && !ShuttingDown && !m_InSelfDelete)
                 {
                     m_CurrentWorkItem = Engine.QueueEventHandler(this);
                 }
