@@ -4221,26 +4221,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
               
                 if (!canUseImproved && !canUseCompressed)
                 {
+                    ObjectUpdatePacket.ObjectDataBlock ablock;
                     if (update.Entity is ScenePresence)
-                    {
-                        ObjectUpdatePacket.ObjectDataBlock ablock =
-                                CreateAvatarUpdateBlock((ScenePresence)update.Entity);
-                        objectUpdateBlocks.Value.Add(ablock);
-                        maxUpdatesBytes -= ablock.Length;
-                    }
+                        ablock = CreateAvatarUpdateBlock((ScenePresence)update.Entity);
                     else
-                    {
-                        ObjectUpdatePacket.ObjectDataBlock ablock =
-                                CreatePrimUpdateBlock((SceneObjectPart)update.Entity, this.m_agentId);
-                        objectUpdateBlocks.Value.Add(ablock);
-                        maxUpdatesBytes -= ablock.Length;
-                    }
+                        ablock = CreatePrimUpdateBlock((SceneObjectPart)update.Entity, this.m_agentId);
+                    objectUpdateBlocks.Value.Add(ablock);
+                    objectUpdates.Value.Add(update);
+                    maxUpdatesBytes -= ablock.Length;
+
                 }
                 else if (!canUseImproved)
                 {
                     ObjectUpdateCompressedPacket.ObjectDataBlock ablock =
                             CreateCompressedUpdateBlock((SceneObjectPart)update.Entity, updateFlags);
                     compressedUpdateBlocks.Value.Add(ablock);
+                    compressedUpdates.Value.Add(update);
                     maxUpdatesBytes -= ablock.Length;
                 }
                 else
@@ -4251,6 +4247,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         ImprovedTerseObjectUpdatePacket.ObjectDataBlock ablock = 
                                 CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures));
                         terseAgentUpdateBlocks.Value.Add(ablock);
+                        terseAgentUpdates.Value.Add(update);
                         maxUpdatesBytes -= ablock.Length;
                     }
                     else
@@ -4259,6 +4256,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         ImprovedTerseObjectUpdatePacket.ObjectDataBlock ablock =
                                 CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures));
                         terseUpdateBlocks.Value.Add(ablock);
+                        terseUpdates.Value.Add(update);
                         maxUpdatesBytes -= ablock.Length;
                     }
                 }
@@ -4290,7 +4288,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int i = 0; i < blocks.Count; i++)
                     packet.ObjectData[i] = blocks[i];
 
-                OutPacket(packet, ThrottleOutPacketType.Unknown, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(terseUpdates.Value, oPacket); });
+                OutPacket(packet, ThrottleOutPacketType.Unknown, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(terseAgentUpdates.Value, oPacket); });
             }
 
             if (objectUpdateBlocks.IsValueCreated)
@@ -4305,7 +4303,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int i = 0; i < blocks.Count; i++)
                     packet.ObjectData[i] = blocks[i];
 
-                OutPacket(packet, ThrottleOutPacketType.Task, true);
+                OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(objectUpdates.Value, oPacket); });
             }
     
             if (compressedUpdateBlocks.IsValueCreated)
@@ -4320,7 +4318,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int i = 0; i < blocks.Count; i++)
                     packet.ObjectData[i] = blocks[i];
 
-                OutPacket(packet, ThrottleOutPacketType.Task, true);
+                OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(compressedUpdates.Value, oPacket); });
             }
     
             if (terseUpdateBlocks.IsValueCreated)
