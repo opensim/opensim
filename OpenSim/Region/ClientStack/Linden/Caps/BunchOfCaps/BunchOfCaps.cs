@@ -1733,6 +1733,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 OSDArray osdtitles = new OSDArray();
                 foreach(GroupRolesData grd in roles)
                 {
+                    if(grd.Title == null)
+                        continue;
                     string title = grd.Title;
                     if(i==0)
                         defaultPowers = grd.Powers;
@@ -1744,6 +1746,9 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 }
 
+                if(titles.Count == 0)
+                    break;
+
                 OSDMap osdmembers = new OSDMap();
                 foreach(GroupMembersData gmd in members)
                 {
@@ -1752,7 +1757,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         m["last_login"] = new OSDString(gmd.OnlineStatus);
                     if(gmd.AgentPowers != defaultPowers)
                         m["powers"] = new OSDString((gmd.AgentPowers).ToString("X"));
-                    if(titles.ContainsKey(gmd.Title) && titles[gmd.Title] != 0)
+                    if(gmd.Title != null && titles.ContainsKey(gmd.Title) && titles[gmd.Title] != 0)
                         m["title"] = new OSDInteger(titles[gmd.Title]);
                     if(gmd.IsOwner)
                         m["owner"] = new OSDString("true");
