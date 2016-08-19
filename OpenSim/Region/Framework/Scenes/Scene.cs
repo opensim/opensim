@@ -2780,13 +2780,6 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 group.StopScriptInstances();
 
-            List<ScenePresence> avatars = group.GetSittingAvatars();
-            foreach (ScenePresence av in avatars)
-            {
-                if(av.ParentUUID == UUID.Zero)
-                    av.StandUp();
-            }
-
             SceneObjectPart[] partList = group.Parts;
 
             foreach (SceneObjectPart part in partList)

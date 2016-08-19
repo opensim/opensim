@@ -2078,7 +2078,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 Scene.ForEachScenePresence(delegate(ScenePresence avatar)
                 {
-                    if (!avatar.IsChildAgent && avatar.ParentID == LocalId)
+                    if (!avatar.IsChildAgent && avatar.ParentID == LocalId && avatar.ParentUUID == UUID.Zero)
                         avatar.StandUp();
 
                     if (!silent)
@@ -2092,6 +2092,8 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 // Send a kill object immediately
                                 avatar.ControllingClient.SendKillObject(new List<uint> { part.LocalId });
+                                //direct enqueue another delayed kill
+                                avatar.ControllingClient.SendEntityUpdate(part,PrimUpdateFlags.Kill);
                             }
                         }
                     }
