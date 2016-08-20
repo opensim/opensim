@@ -5120,8 +5120,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_host.CollisionSound = m_host.invalidCollisionSoundUUID;
                 if(impact_volume == 0.0)
                     m_host.CollisionSoundType = -1; // disable all sounds
+                else if(impact_volume == 1.0f)
+                    m_host.CollisionSoundType = 0; // full return to default sounds
                 else
-                    m_host.CollisionSoundType = 2; // allow change of default sounds volume
+                    m_host.CollisionSoundType = 2; // default sounds with volume
                 return;
             }
             // TODO: Parameter check logic required.
