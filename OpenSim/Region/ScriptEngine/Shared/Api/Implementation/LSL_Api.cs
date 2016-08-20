@@ -4741,20 +4741,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             Vector3 av3 = Util.Clip(color, 0.0f, 1.0f);
-            if (text.Length > 254)
-                text = text.Remove(254);
-
             byte[] data;
-            do
-            {
-                data = Util.UTF8.GetBytes(text);
-                if (data.Length > 254)
-                    text = text.Substring(0, text.Length - 1);
-            } while (data.Length > 254);
-
+            data = Util.StringToBytes256(text);
+            text = Util.UTF8.GetString(data);
             m_host.SetText(text, av3, Util.Clip((float)alpha, 0.0f, 1.0f));
-            //m_host.ParentGroup.HasGroupChanged = true;
-            //m_host.ParentGroup.ScheduleGroupForFullUpdate();
         }
 
         public LSL_Float llWater(LSL_Vector offset)
