@@ -61,7 +61,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         {
             Bitmap colours = CreateGrayscaleBitmapFromMap(map);
 
-            colours.Save(stream, ImageFormat.Png);
+            colours.Save(stream, ImageFormat.Bmp);
         }
 
         /// <summary>
