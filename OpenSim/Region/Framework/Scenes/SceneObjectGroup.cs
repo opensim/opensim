@@ -2078,7 +2078,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 Scene.ForEachScenePresence(delegate(ScenePresence avatar)
                 {
-                    if (!avatar.IsChildAgent && avatar.ParentID == LocalId && avatar.ParentUUID == UUID.Zero)
+                    if (!avatar.IsChildAgent && avatar.ParentID == part.LocalId && avatar.ParentUUID == UUID.Zero)
                         avatar.StandUp();
 
                     if (!silent)
