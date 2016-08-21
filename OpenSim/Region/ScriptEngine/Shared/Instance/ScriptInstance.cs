@@ -893,7 +893,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         {
                             m_InEvent = false;
                             m_CurrentEvent = String.Empty;
-                            m_CurrentWorkItem = null; // no longer in a event that can be canceled
+                            lock (EventQueue)
+                                m_CurrentWorkItem = null; // no longer in a event that can be canceled
                         }
 
                         if (m_SaveState)
