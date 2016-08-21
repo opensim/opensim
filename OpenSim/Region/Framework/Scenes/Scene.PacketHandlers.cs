@@ -377,8 +377,21 @@ namespace OpenSim.Region.Framework.Scenes
             if (part == null)
                 return;
 
-            SceneObjectGroup obj = part.ParentGroup;
+            SceneObjectGroup group = part.ParentGroup;
+            if(group == null || group.IsDeleted)
+                return;
 
+            if (Permissions.CanMoveObject(group.UUID, remoteClient.AgentId))// && PermissionsMngr.)
+            {
+                group.GrabMovement(objectID, offset, pos, remoteClient);
+            }
+
+            // This is outside the above permissions condition
+            // so that if the object is locked the client moving the object
+            // get's it's position on the simulator even if it was the same as before
+            // This keeps the moving user's client in sync with the rest of the world.
+            group.SendGroupTerseUpdate();
+ 
             SurfaceTouchEventArgs surfaceArg = null;
             if (surfaceArgs != null && surfaceArgs.Count > 0)
                 surfaceArg = surfaceArgs[0];
@@ -391,9 +404,9 @@ namespace OpenSim.Region.Framework.Scenes
             // or if we're meant to pass on touches anyway. Don't send to root prim
             // if prim touched is the root prim as we just did it
             if (((part.ScriptEvents & scriptEvents.touch) == 0) ||
-                (part.PassTouches && (part.LocalId != obj.RootPart.LocalId)))
+                (part.PassTouches && (part.LocalId != group.RootPart.LocalId)))
             {
-                EventManager.TriggerObjectGrabbing(obj.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
+                EventManager.TriggerObjectGrabbing(group.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
             }
         }
 

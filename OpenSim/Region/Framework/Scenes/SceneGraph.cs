@@ -1674,7 +1674,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
-
+/* moved to scene ProcessObjectGrabUpdate
         /// <summary>
         /// Move the given object
         /// </summary>
@@ -1699,7 +1699,7 @@ namespace OpenSim.Region.Framework.Scenes
                 group.SendGroupTerseUpdate();
             }
         }
-
+*/
         /// <summary>
         /// Start spinning the given object
         /// </summary>
