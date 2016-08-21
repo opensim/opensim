@@ -367,12 +367,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             if (String.IsNullOrEmpty(id))
                 return string.Empty;
             
-            asset.ID = id;
+           if(asset.ID != id)
+           {
+                asset.ID = id;
+                if (m_Cache != null)
+                    m_Cache.Cache(asset);
+           }
 
-            if (isHG && m_Cache != null)
-                m_Cache.Cache(asset);
-
-            return id;
+           return id;
         }
 
         public bool UpdateContent(string id, byte[] data)
