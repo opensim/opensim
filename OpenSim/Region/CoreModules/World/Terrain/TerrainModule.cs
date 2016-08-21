@@ -963,6 +963,27 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             return wasLimited;
         }
 
+        private bool EnforceEstateLimits(int startX, int startY, int endX, int endY)
+        {
+            TerrainData terrData = m_channel.GetTerrainData();
+
+            bool wasLimited = false;
+            for (int x = startX; x <= endX; x += Constants.TerrainPatchSize)
+            {
+                for (int y = startX; y <= endY; y += Constants.TerrainPatchSize)
+                {
+                    if (terrData.IsTaintedAt(x, y, false /* clearOnTest */))
+                   {
+                        // If we should respect the estate settings then
+                        //     fixup and height deltas that don't respect them.
+                        // Note that LimitChannelChanges() modifies the TerrainChannel with the limited height values.
+                        wasLimited |= LimitChannelChanges(terrData, x, y);
+                    }
+                }
+            }
+            return wasLimited;
+        }
+
         /// <summary>
         /// Checks to see height deltas in the tainted terrain patch at xStart ,yStart
         /// are all within the current estate limits
@@ -1341,7 +1362,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
                         //block changes outside estate limits
                         if (!god)
-                            EnforceEstateLimits();
+                            EnforceEstateLimits(startX, endX, startY, endY);
                     }
                 }
                 else
@@ -1404,7 +1425,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
                         //block changes outside estate limits
                         if (!god)
-                            EnforceEstateLimits();
+                            EnforceEstateLimits(startX, endX, startY, endY);
                     }
                 }
                 else
