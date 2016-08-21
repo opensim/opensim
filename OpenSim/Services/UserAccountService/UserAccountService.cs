@@ -92,7 +92,7 @@ namespace OpenSim.Services.UserAccountService
                 m_RootInstance = this;
                 MainConsole.Instance.Commands.AddCommand("Users", false,
                         "create user",
-                        "create user [<first> [<last> [<pass> [<email> [<user id>]]]]]",
+                        "create user [<first> [<last> [<pass> [<email> [<user id> [<model>]]]]]]",
                         "Create a new user", HandleCreateUser);
 
                 MainConsole.Instance.Commands.AddCommand("Users", false,
@@ -353,7 +353,7 @@ namespace OpenSim.Services.UserAccountService
         /// <summary>
         /// Handle the create user command from the console.
         /// </summary>
-        /// <param name="cmdparams">string array with parameters: firstname, lastname, password, locationX, locationY, email</param>
+        /// <param name="cmdparams">string array with parameters: firstname, lastname, password, locationX, locationY, email, userID, model name </param>
         protected void HandleCreateUser(string module, string[] cmdparams)
         {
             string firstName;
@@ -361,6 +361,7 @@ namespace OpenSim.Services.UserAccountService
             string password;
             string email;
             string rawPrincipalId;
+            string model;
 
             List<char> excluded = new List<char>(new char[]{' '});
 
@@ -385,11 +386,16 @@ namespace OpenSim.Services.UserAccountService
             else
                 rawPrincipalId = cmdparams[6];
 
+            if (cmdparams.Length < 8)
+                model = MainConsole.Instance.CmdPrompt("Model name","");
+            else
+                model = cmdparams[7];
+
             UUID principalId = UUID.Zero;
             if (!UUID.TryParse(rawPrincipalId, out principalId))
                 throw new Exception(string.Format("ID {0} is not a valid UUID", rawPrincipalId));
 
-            CreateUser(UUID.Zero, principalId, firstName, lastName, password, email);
+            CreateUser(UUID.Zero, principalId, firstName, lastName, password, email, model);
         }
 
         protected void HandleShowAccount(string module, string[] cmdparams)
