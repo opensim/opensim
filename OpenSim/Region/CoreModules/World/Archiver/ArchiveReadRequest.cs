@@ -1193,6 +1193,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
 
             ControlFileLoaded = true;
+            if(xtr != null)
+                xtr.Close();
 
             return dearchivedScenes;
         }
