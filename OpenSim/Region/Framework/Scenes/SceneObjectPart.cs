@@ -345,6 +345,7 @@ namespace OpenSim.Region.Framework.Scenes
         private string m_text = String.Empty;
         private string m_touchName = String.Empty;
         private UndoRedoState m_UndoRedo = null;
+        private object m_UndoLock = new object();
 
         private bool m_passTouches = false;
         private bool m_passCollisions = false;
@@ -399,12 +400,11 @@ namespace OpenSim.Region.Framework.Scenes
 
 
         // 0 for default collision sounds, -1 for script disabled sound 1 for script defined sound
-        private sbyte m_collisionSoundType;
+        private sbyte m_collisionSoundType = 0;
         private UUID m_collisionSound;
         private float m_collisionSoundVolume;
 
         private int LastColSoundSentTime; 
-
 
         private SOPVehicle m_vehicleParams = null;
 
@@ -3932,11 +3932,11 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
         public void StoreUndoState(ObjectChangeType change)
         {
-            if (m_UndoRedo == null)
-                m_UndoRedo = new UndoRedoState(5);
-
-            lock (m_UndoRedo)
+            lock (m_UndoLock)
             {
+                if (m_UndoRedo == null)
+                    m_UndoRedo = new UndoRedoState(5);
+
                 if (!Undoing && !IgnoreUndoUpdate && ParentGroup != null) // just to read better  - undo is in progress, or suspended
                 {
                     m_UndoRedo.StoreUndo(this, change);
@@ -3959,11 +3959,11 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
         public void Undo()
         {
-            if (m_UndoRedo == null || Undoing || ParentGroup == null)
-                return;
-
-            lock (m_UndoRedo)
+            lock (m_UndoLock)
             {
+                if (m_UndoRedo == null || Undoing || ParentGroup == null)
+                    return;
+
                 Undoing = true;
                 m_UndoRedo.Undo(this);
                 Undoing = false;
@@ -3972,11 +3972,11 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
         public void Redo()
         {
-            if (m_UndoRedo == null || Undoing || ParentGroup == null)
-                return;
-
-            lock (m_UndoRedo)
+            lock (m_UndoLock)
             {
+                if (m_UndoRedo == null || Undoing || ParentGroup == null)
+                    return;
+
                 Undoing = true;
                 m_UndoRedo.Redo(this);
                 Undoing = false;
@@ -3985,11 +3985,11 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
         public void ClearUndoState()
         {
-            if (m_UndoRedo == null || Undoing)
-                return;
-
-            lock (m_UndoRedo)
+            lock (m_UndoLock)
             {
+                if (m_UndoRedo == null || Undoing)
+                    return;
+
                 m_UndoRedo.Clear();
             }
         }
