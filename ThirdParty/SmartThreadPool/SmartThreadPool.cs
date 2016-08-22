@@ -1485,6 +1485,9 @@ namespace Amib.Threading
                     _isIdleWaitHandle = null;
                 }
 
+                if (_stpStartInfo.EnableLocalPerformanceCounters)
+                    _localPCs.Dispose();
+
                 _isDisposed = true;
             }
         }
