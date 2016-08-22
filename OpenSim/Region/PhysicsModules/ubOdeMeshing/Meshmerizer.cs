@@ -121,9 +121,9 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
                 CacheExpire = TimeSpan.FromHours(fcache);
                 
-                if(doMeshFileCache && cachePath != "")
+                lock (diskLock)
                 {
-                    lock (diskLock)
+                    if(doMeshFileCache && cachePath != "")
                     {
                         try
                         {
