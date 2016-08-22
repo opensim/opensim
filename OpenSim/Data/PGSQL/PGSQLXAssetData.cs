@@ -518,40 +518,42 @@ namespace OpenSim.Data.PGSQL
                 using (NpgsqlConnection dbcon = new NpgsqlConnection(m_connectionString))
                 {
                     dbcon.Open();
-                    NpgsqlCommand cmd = new NpgsqlCommand( @"SELECT name, description, access_time, ""AssetType"", temporary, id, asset_flags, creatorid
+                    using(NpgsqlCommand cmd = new NpgsqlCommand(@"SELECT name, description, access_time, ""AssetType"", temporary, id, asset_flags, creatorid
                                             FROM XAssetsMeta 
-                                            LIMIT :start, :count", dbcon);
-                    cmd.Parameters.Add(m_database.CreateParameter("start", start));
-                    cmd.Parameters.Add(m_database.CreateParameter("count", count));
-
-                    try
+                                            LIMIT :start, :count",dbcon))
                     {
-                        using (NpgsqlDataReader dbReader = cmd.ExecuteReader())
+                        cmd.Parameters.Add(m_database.CreateParameter("start",start));
+                        cmd.Parameters.Add(m_database.CreateParameter("count", count));
+
+                        try
                         {
-                            while (dbReader.Read())
+                            using (NpgsqlDataReader dbReader = cmd.ExecuteReader())
                             {
-                                AssetMetadata metadata = new AssetMetadata();
-                                metadata.Name = (string)dbReader["name"];
-                                metadata.Description = (string)dbReader["description"];
-                                metadata.Type = Convert.ToSByte(dbReader["AssetType"]);
-                                metadata.Temporary = Convert.ToBoolean(dbReader["temporary"]);
-                                metadata.Flags = (AssetFlags)Convert.ToInt32(dbReader["asset_flags"]);
-                                metadata.FullID = DBGuid.FromDB(dbReader["id"]);
-                                metadata.CreatorID = dbReader["creatorid"].ToString();
+                                while (dbReader.Read())
+                                {
+                                    AssetMetadata metadata = new AssetMetadata();
+                                    metadata.Name = (string)dbReader["name"];
+                                    metadata.Description = (string)dbReader["description"];
+                                    metadata.Type = Convert.ToSByte(dbReader["AssetType"]);
+                                    metadata.Temporary = Convert.ToBoolean(dbReader["temporary"]);
+                                    metadata.Flags = (AssetFlags)Convert.ToInt32(dbReader["asset_flags"]);
+                                    metadata.FullID = DBGuid.FromDB(dbReader["id"]);
+                                    metadata.CreatorID = dbReader["creatorid"].ToString();
 
-                                // We'll ignore this for now - it appears unused!
-//                                metadata.SHA1 = dbReader["hash"]);
+                                    // We'll ignore this for now - it appears unused!
+    //                                metadata.SHA1 = dbReader["hash"]);
 
-                                UpdateAccessTime(metadata, (int)dbReader["access_time"]);
+                                    UpdateAccessTime(metadata, (int)dbReader["access_time"]);
 
-                                retList.Add(metadata);
+                                    retList.Add(metadata);
+                                }
                             }
                         }
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.Error("[XASSETS DB]: PGSql failure fetching asset set" + Environment.NewLine + e.ToString());
-                    }
+                        catch (Exception e)
+                        {
+                            m_log.Error("[XASSETS DB]: PGSql failure fetching asset set" + Environment.NewLine + e.ToString());
+                        }
+                   }
                 }
             }
 
