@@ -270,7 +270,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
         public void Close()
         {
-
             m_log.InfoFormat("[IRC-Connector-{0}] Closing", idn);
 
             lock (msyncConnect)
@@ -295,7 +294,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                         }
                         catch (Exception) { }
 
-
                         m_connected = false;
 
                         try { m_writer.Close(); }
@@ -308,10 +306,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                         catch (Exception) { }
 
                     }
-
                     lock (m_connectors)
                         m_connectors.Remove(this);
-
                 }
             }
 
@@ -327,25 +323,21 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
         public void Connect()
         {
-
             if (!m_enabled)
                 return;
 
             // Delay until next WD cycle if this is too close to the last start attempt
-
-            while (_icc_ < ICCD_PERIOD)
+            if(_icc_ < ICCD_PERIOD)
                 return;
 
             m_log.DebugFormat("[IRC-Connector-{0}]: Connection request for {1} on {2}:{3}", idn, m_nick, m_server, m_ircChannel);
 
+            _icc_ = 0;
+
             lock (msyncConnect)
             {
-
-                _icc_ = 0;
-
                 try
                 {
-
                     if (m_connected) return;
 
                     m_connected = true;
@@ -379,11 +371,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                     // expires. By leaving them as they are, the connection will be retried
                     // when the login timeout expires. Which is preferred.
                 }
-
             }
 
             return;
-
         }
 
         // Reconnect is used to force a re-cycle of the IRC connection. Should generally
