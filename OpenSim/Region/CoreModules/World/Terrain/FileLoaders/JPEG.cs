@@ -59,9 +59,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         public void SaveFile(string filename, ITerrainChannel map)
         {
-            Bitmap colours = CreateBitmapFromMap(map);
-
-            colours.Save(filename, ImageFormat.Jpeg);
+            using(Bitmap colours = CreateBitmapFromMap(map))
+                colours.Save(filename,ImageFormat.Jpeg);
         }
 
         /// <summary>
@@ -71,9 +70,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         /// <param name="map">The terrain channel being saved</param>
         public void SaveStream(Stream stream, ITerrainChannel map)
         {
-            Bitmap colours = CreateBitmapFromMap(map);
-
-            colours.Save(stream, ImageFormat.Jpeg);
+            using(Bitmap colours = CreateBitmapFromMap(map))
+                colours.Save(stream,ImageFormat.Jpeg);
         }
 
         public virtual void SaveFile(ITerrainChannel m_channel, string filename,

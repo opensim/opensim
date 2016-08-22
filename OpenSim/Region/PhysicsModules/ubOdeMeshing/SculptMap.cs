@@ -57,7 +57,7 @@ namespace PrimMesher
             int numLodPixels = lod * lod;  // (32 * 2)^2  = 64^2 pixels for default sculpt map image
 
             bool needsScaling = false;
-            bool smallMap = false;
+            bool smallMap = false;          
 
             width = bmW;
             height = bmH;
@@ -69,16 +69,8 @@ namespace PrimMesher
                 needsScaling = true;
             }
 
-            try
-            {
-                if (needsScaling)
-                    bm = ScaleImage(bm, width, height);
-            }
-
-            catch (Exception e)
-            {
-                throw new Exception("Exception in ScaleImage(): e: " + e.ToString());
-            }
+            if (needsScaling)
+                bm = ScaleImage(bm, width, height);
 
             if (width * height > numLodPixels)
             {
@@ -129,11 +121,15 @@ namespace PrimMesher
             }
             catch (Exception e)
             {
+                if (needsScaling)
+                    bm.Dispose();
                 throw new Exception("Caught exception processing byte arrays in SculptMap(): e: " + e.ToString());
             }
 
             width++;
             height++;
+            if(needsScaling)
+                bm.Dispose();
         }
 
         public List<List<Coord>> ToRows(bool mirror)
@@ -168,11 +164,9 @@ namespace PrimMesher
 
         private Bitmap ScaleImage(Bitmap srcImage, int destWidth, int destHeight)
         {
-
             Bitmap scaledImage = new Bitmap(destWidth, destHeight, PixelFormat.Format24bppRgb);
 
             Color c;
-            
 
             // will let last step to be eventually diferent, as seems to be in sl
 
