@@ -1684,6 +1684,7 @@ namespace Amib.Threading
             }
 	        workItemsGroup.Start();
             anActionCompleted.WaitOne();
+            anActionCompleted.Dispose();
 
             return choiceIndex._index;
         }
