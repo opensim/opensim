@@ -30,6 +30,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -803,14 +804,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 return;
             }
 
-            // update actors collision score
-            if (p1.CollisionScore >= float.MaxValue - count)
-                p1.CollisionScore = 0;
-            p1.CollisionScore += count;
-
-            if (p2.CollisionScore >= float.MaxValue - count)
-                p2.CollisionScore = 0;
-            p2.CollisionScore += count;
 
             // get first contact
             d.ContactGeom curContact = new d.ContactGeom();
@@ -1055,6 +1048,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private void collision_accounting_events(PhysicsActor p1, PhysicsActor p2, ContactPoint contact)
         {
             uint obj2LocalID = 0;
+
+            // update actors collision score
+            if (p1.CollisionScore < float.MaxValue)
+                p1.CollisionScore += 1.0f;
+            if (p2.CollisionScore < float.MaxValue)
+                p2.CollisionScore += 1.0f;
 
             bool p1events = p1.SubscribedEvents();
             bool p2events = p2.SubscribedEvents();
@@ -2569,27 +2568,22 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
         }
 
+        private int compareByCollisionsDesc(OdePrim A, OdePrim B)
+        {
+            return -A.CollisionScore.CompareTo(B.CollisionScore);
+        }
+
         public override Dictionary<uint, float> GetTopColliders()
         {
-            Dictionary<uint, float> returncolliders = new Dictionary<uint, float>();
-            int cnt = 0;
-            lock (_prims)
-            {
-                foreach (OdePrim prm in _prims.Values)
-                {
-                    if (prm.CollisionScore > 0)
-                    {
-                        returncolliders.Add(prm.LocalID, prm.CollisionScore);
-                        cnt++;
-                        prm.CollisionScore = 0f;
-                        if (cnt > 25)
-                        {
-                            break;
-                        }
-                    }
-                }
-            }
-            return returncolliders;
+            Dictionary<uint, float> topColliders;
+            List<OdePrim> orderedPrims;
+            lock (_activeprims)
+                orderedPrims = new List<OdePrim>(_activeprims);
+
+            orderedPrims.Sort(compareByCollisionsDesc);
+            topColliders = orderedPrims.Take(25).ToDictionary(p => p.LocalID, p => p.CollisionScore);
+           
+            return topColliders;
         }
 
         public override bool SupportsRayCast()

@@ -3452,6 +3452,11 @@ namespace OpenSim.Region.PhysicsModule.ODE
             }
         }
 
+        private int compareByCollisionsDesc(OdePrim A, OdePrim B)
+        {
+            return -A.CollisionScore.CompareTo(B.CollisionScore);
+        }
+
         public override Dictionary<uint, float> GetTopColliders()
         {
             Dictionary<uint, float> topColliders;
@@ -3459,7 +3464,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             lock (_prims)
             {
                 List<OdePrim> orderedPrims = new List<OdePrim>(_prims);
-                orderedPrims.OrderByDescending(p => p.CollisionScore);
+                orderedPrims.Sort(compareByCollisionsDesc);
                 topColliders = orderedPrims.Take(25).ToDictionary(p => p.LocalID, p => p.CollisionScore);
 
                 foreach (OdePrim p in _prims)
