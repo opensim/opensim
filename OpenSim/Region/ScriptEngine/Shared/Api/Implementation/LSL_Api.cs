@@ -14674,13 +14674,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             msAvailable -= m_castRayCalls[i].UsedMs;
                     }
                 }
-            }
 
-            // Return failure if not enough available time
-            if (msAvailable < m_msMinInCastRay)
-            {
-                result.Add(new LSL_Integer(ScriptBaseClass.RCERR_CAST_TIME_EXCEEDED));
-                return result;
+                // Return failure if not enough available time
+                if (msAvailable < m_msMinInCastRay)
+                {
+                    result.Add(new LSL_Integer(ScriptBaseClass.RCERR_CAST_TIME_EXCEEDED));
+                    return result;
+                }
             }
 
             // Initialize
@@ -15068,13 +15068,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // Add to throttle data
             stopWatch.Stop();
-            CastRayCall castRayCall = new CastRayCall();
-            castRayCall.RegionId = regionId;
-            castRayCall.UserId = userId;
-            castRayCall.CalledMs = calledMs;
-            castRayCall.UsedMs = (int)stopWatch.ElapsedMilliseconds;
             lock (m_castRayCalls)
             {
+                CastRayCall castRayCall = new CastRayCall();
+                castRayCall.RegionId = regionId;
+                castRayCall.UserId = userId;
+                castRayCall.CalledMs = calledMs;
+                castRayCall.UsedMs = (int)stopWatch.ElapsedMilliseconds;
                 m_castRayCalls.Add(castRayCall);
             }
 
