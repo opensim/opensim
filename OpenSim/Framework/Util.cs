@@ -705,9 +705,9 @@ namespace OpenSim.Framework
 
         private static byte[] ComputeSHA1Hash(byte[] src)
         {
-            SHA1CryptoServiceProvider SHA1 = new SHA1CryptoServiceProvider();
-            byte[] ret = SHA1.ComputeHash(src);
-            SHA1.Dispose();
+            byte[] ret;
+            using(SHA1CryptoServiceProvider SHA1 = new SHA1CryptoServiceProvider())
+                 ret = SHA1.ComputeHash(src);
             return ret;
         }
 
