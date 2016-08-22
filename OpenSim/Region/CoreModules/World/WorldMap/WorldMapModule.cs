@@ -1428,6 +1428,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             mapTexture.Save(exportPath, ImageFormat.Jpeg);
 
+            g.Dispose();
+            mapTexture.Dispose();
+            sea.Dispose();
+
             m_log.InfoFormat(
                 "[WORLD MAP]: Successfully exported world map for {0} to {1}",
                 m_scene.RegionInfo.RegionName, exportPath);
