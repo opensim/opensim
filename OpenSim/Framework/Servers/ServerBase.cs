@@ -842,7 +842,7 @@ namespace OpenSim.Framework.Servers
                 {
                     StreamReader RevisionFile = File.OpenText(svnRevisionFileName);
                     buildVersion = RevisionFile.ReadLine();
-                    buildVersion.Trim();
+                    buildVersion = buildVersion.Trim();
                     RevisionFile.Close();
                 }
 
