@@ -324,15 +324,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 if (destinationFolderID != UUID.Zero)
                 {
                     InventoryFolderBase destinationFolder = new InventoryFolderBase(destinationFolderID, client.AgentId);
-                    if (destinationFolder == null)
-                    {
-                        m_log.WarnFormat(
-                            "[INVENTORY TRANSFER]: TaskInventoryAccepted message from {0} in {1} specified folder {2} which does not exist",
-                            client.Name, scene.Name, destinationFolderID);
-
-                        return;
-                    }
-
                     IInventoryService invService = scene.InventoryService;
 
                     UUID inventoryID = new UUID(im.imSessionID); // The inventory item/folder, back from it's trip
