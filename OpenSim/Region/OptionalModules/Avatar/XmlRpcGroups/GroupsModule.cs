@@ -1177,18 +1177,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             }
 
             GroupRecord groupInfo = m_groupData.GetGroupRecord(agentID, groupID, null);
-
-            UserAccount account = m_sceneList[0].UserAccountService.GetUserAccount(regionInfo.ScopeID, ejecteeID);
-            if ((groupInfo == null) || (account == null))
-            {
+            if (groupInfo == null)
                 return;
-            }
+
 
             IClientAPI ejecteeClient = GetActiveRootClient(ejecteeID);
 
             // Send Message to Ejectee
             GridInstantMessage msg = new GridInstantMessage();
             
+            string ejecteeName = "Unknown member";
             // if local send a normal message
             if(ejecteeClient != null)
             {
@@ -1197,6 +1195,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 // also execute and send update
                 ejecteeClient.SendAgentDropGroup(groupID);
                 SendAgentGroupDataUpdate(ejecteeClient,true);
+                ejecteeName = ejecteeClient.Name;
             }
             else // send
             {
@@ -1208,6 +1207,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                 msg.imSessionID = groupInfo.GroupID.Guid;
                 msg.dialog = (byte)210; //interop
+                UserAccount account = m_sceneList[0].UserAccountService.GetUserAccount(regionInfo.ScopeID, ejecteeID);
+                if (account != null)
+                    ejecteeName = account.FirstName + " " + account.LastName;
             }
 
             msg.fromAgentID = agentID.Guid;
@@ -1234,14 +1236,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             msg.toAgentID = agentID.Guid;
             msg.timestamp = 0;
             msg.fromAgentName = agentName;
-            if (account != null)
-            {
-                msg.message = string.Format("{2} has been ejected from '{1}' by {0}.", agentName, groupInfo.GroupName, account.FirstName + " " + account.LastName);
-            }
-            else
-            {
-                msg.message = string.Format("{2} has been ejected from '{1}' by {0}.", agentName, groupInfo.GroupName, "Unknown member");
-            }
+
+            msg.message = string.Format("{2} has been ejected from '{1}' by {0}.", agentName, groupInfo.GroupName, ejecteeName);
+
 //            msg.dialog = (byte)210; //interop
             msg.dialog = (byte)OpenMetaverse.InstantMessageDialog.MessageFromAgent;
             msg.fromGroup = false;
