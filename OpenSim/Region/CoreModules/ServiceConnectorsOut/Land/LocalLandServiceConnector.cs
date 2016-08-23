@@ -121,8 +121,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Land
         public LandData GetLandData(UUID scopeID, ulong regionHandle, uint x, uint y, out byte regionAccess)
         {
             regionAccess = 2;
-            m_log.DebugFormat("[LAND CONNECTOR]: request for land data in {0} at {1}, {2}",
-                  regionHandle, x, y);
+//            m_log.DebugFormat("[LAND CONNECTOR]: request for land data in {0} at {1}, {2}",
+//                  regionHandle, x, y);
 
             uint rx = 0, ry = 0;
             Util.RegionHandleToWorldLoc(regionHandle, out rx, out ry);

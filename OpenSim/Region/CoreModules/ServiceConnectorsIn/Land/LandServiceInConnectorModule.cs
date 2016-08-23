@@ -126,8 +126,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Land
 
         public LandData GetLandData(UUID scopeID, ulong regionHandle, uint x, uint y, out byte regionAccess)
         {
-            m_log.DebugFormat("[LAND IN CONNECTOR]: GetLandData for {0}. Count = {1}",
-                regionHandle, m_Scenes.Count);
+//            m_log.DebugFormat("[LAND IN CONNECTOR]: GetLandData for {0}. Count = {1}",
+//                regionHandle, m_Scenes.Count);
 
             uint rx = 0, ry = 0;
             Util.RegionHandleToWorldLoc(regionHandle, out rx, out ry);
@@ -146,7 +146,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Land
                 t += s.RegionInfo.RegionSizeY;
                 if( ry  < t)
                 {
-                    m_log.Debug("[LAND IN CONNECTOR]: Found region to GetLandData from");
+//                    m_log.Debug("[LAND IN CONNECTOR]: Found region to GetLandData from");
                     regionAccess = s.RegionInfo.AccessLevel;
                     return s.GetLandData(x, y);
                 }
