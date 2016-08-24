@@ -139,10 +139,12 @@ namespace OpenSim.Server.Base
                 startupConfig = Config.Configs["Startup"];
             }
 
-            ConfigDirectory = startupConfig.GetString("ConfigDirectory", ".");
+            if (startupConfig != null)
+            {
+                ConfigDirectory = startupConfig.GetString("ConfigDirectory", ".");
 
-            prompt = startupConfig.GetString("Prompt", prompt);
-
+                prompt = startupConfig.GetString("Prompt", prompt);
+            }
             // Allow derived classes to load config before the console is opened.
             ReadConfig();
 
