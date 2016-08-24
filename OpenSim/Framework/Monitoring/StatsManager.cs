@@ -361,8 +361,8 @@ namespace OpenSim.Framework.Monitoring
         /// <returns></returns>
         public static bool RegisterStat(Stat stat)
         {
-            SortedDictionary<string, SortedDictionary<string, Stat>> category = null, newCategory;
-            SortedDictionary<string, Stat> container = null, newContainer;
+            SortedDictionary<string, SortedDictionary<string, Stat>> category = null;
+            SortedDictionary<string, Stat> container = null;
 
             lock (RegisteredStats)
             {
@@ -375,19 +375,15 @@ namespace OpenSim.Framework.Monitoring
                 // We take a copy-on-write approach here of replacing dictionaries when keys are added or removed.
                 // This means that we don't need to lock or copy them on iteration, which will be a much more
                 // common operation after startup.
-                if (container != null)
-                    newContainer = new SortedDictionary<string, Stat>(container);
-                else
-                    newContainer = new SortedDictionary<string, Stat>();
+                if (container == null)
+                    container = new SortedDictionary<string, Stat>();
 
-                if (category != null)
-                    newCategory = new SortedDictionary<string, SortedDictionary<string, Stat>>(category);
-                else
-                    newCategory = new SortedDictionary<string, SortedDictionary<string, Stat>>();
+                if (category == null)
+                    category = new SortedDictionary<string, SortedDictionary<string, Stat>>();
 
-                newContainer[stat.ShortName] = stat;
-                newCategory[stat.Container] = newContainer;
-                RegisteredStats[stat.Category] = newCategory;
+                container[stat.ShortName] = stat;
+                category[stat.Container] = container;
+                RegisteredStats[stat.Category] = category;
             }
 
             return true;
