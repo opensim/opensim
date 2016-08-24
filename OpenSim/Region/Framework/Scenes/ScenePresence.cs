@@ -5947,6 +5947,7 @@ namespace OpenSim.Region.Framework.Scenes
                          (m_teleportFlags & Constants.TeleportFlags.ViaHGLogin) != 0))
                     {
                         pos = land.LandData.UserLocation;
+                        positionChanged = true;
                     }
                 }
 
