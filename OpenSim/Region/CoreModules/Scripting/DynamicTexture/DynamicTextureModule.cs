@@ -553,37 +553,44 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 ManagedImage managedImage;
                 Image image;
 
-                if (OpenJPEG.DecodeToImage(frontImage, out managedImage, out image))
+                if (!OpenJPEG.DecodeToImage(frontImage, out managedImage, out image) || image == null)
+                    return null;
+
+                Bitmap image1 = new Bitmap(image);
+                image.Dispose();
+                
+                if (!OpenJPEG.DecodeToImage(backImage, out managedImage, out image) || image == null)
                 {
-                    Bitmap image1 = new Bitmap(image);
-
-                    if (OpenJPEG.DecodeToImage(backImage, out managedImage, out image))
-                    {
-                        Bitmap image2 = new Bitmap(image);
-
-                        if (setNewAlpha)
-                            SetAlpha(ref image1, newAlpha);
-
-                        Bitmap joint = MergeBitMaps(image1, image2);
-
-                        byte[] result = new byte[0];
-
-                        try
-                        {
-                            result = OpenJPEG.EncodeFromImage(joint, true);
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.ErrorFormat(
-                                "[DYNAMICTEXTUREMODULE]: OpenJpeg Encode Failed.  Exception {0}{1}",
-                                e.Message, e.StackTrace);
-                        }
-
-                        return result;
-                    }
+                    image1.Dispose();
+                    return null;
                 }
 
-                return null;
+                Bitmap image2 = new Bitmap(image);
+                image.Dispose();
+
+                if (setNewAlpha)
+                    SetAlpha(ref image1, newAlpha);
+
+                using(Bitmap joint = MergeBitMaps(image1, image2))
+                {
+                    image1.Dispose();
+                    image2.Dispose();
+
+                    byte[] result = new byte[0];
+
+                    try
+                    {
+                        result = OpenJPEG.EncodeFromImage(joint, true);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                        "[DYNAMICTEXTUREMODULE]: OpenJpeg Encode Failed.  Exception {0}{1}",
+                                e.Message, e.StackTrace);
+                    }
+
+                    return result;
+                }
             }
 
             public Bitmap MergeBitMaps(Bitmap front, Bitmap back)
@@ -592,12 +599,12 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 Graphics jG;
 
                 joint = new Bitmap(back.Width, back.Height, PixelFormat.Format32bppArgb);
-                jG = Graphics.FromImage(joint);
-
-                jG.DrawImage(back, 0, 0, back.Width, back.Height);
-                jG.DrawImage(front, 0, 0, back.Width, back.Height);
-
-                return joint;
+                using(jG = Graphics.FromImage(joint))
+                {
+                    jG.DrawImage(back, 0, 0, back.Width, back.Height);
+                    jG.DrawImage(front, 0, 0, back.Width, back.Height);
+                    return joint;
+                }
             }
 
             private void SetAlpha(ref Bitmap b, byte alpha)
