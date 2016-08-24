@@ -4323,6 +4323,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;           
 
             SceneObjectPart targetPart = World.GetSceneObjectPart((UUID)targetID);
+            if (targetPart == null)
+                return;
 
             if (targetPart.ParentGroup.AttachmentPoint != 0)
                 return; // Fail silently if attached
@@ -4332,23 +4334,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             SceneObjectGroup parentPrim = null, childPrim = null;
 
-            if (targetPart != null)
+            if (parent != 0)
             {
-                if (parent != 0)
-                {
-                    parentPrim = m_host.ParentGroup;
-                    childPrim = targetPart.ParentGroup;
-                }
-                else
-                {
-                    parentPrim = targetPart.ParentGroup;
-                    childPrim = m_host.ParentGroup;
-                }
-
-                // Required for linking
-                childPrim.RootPart.ClearUpdateSchedule();
-                parentPrim.LinkToGroup(childPrim, true);
+                parentPrim = m_host.ParentGroup;
+                childPrim = targetPart.ParentGroup;
             }
+            else
+            {
+                parentPrim = targetPart.ParentGroup;
+                childPrim = m_host.ParentGroup;
+            }
+
+            // Required for linking
+            childPrim.RootPart.ClearUpdateSchedule();
+            parentPrim.LinkToGroup(childPrim, true);
+
 
             parentPrim.TriggerScriptChangedEvent(Changed.LINK);
             parentPrim.RootPart.CreateSelected = true;
