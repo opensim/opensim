@@ -2244,10 +2244,10 @@ namespace OpenSim.Region.Framework.Scenes
             // any exception propogate upwards.
             try
             {
-                if (!m_scene.ShuttingDown || // if shutting down then there will be nothing to handle the return so leave till next restart
-                        !m_scene.LoginsEnabled || // We're starting up or doing maintenance, don't mess with things
-                        m_scene.LoadingPrims) // Land may not be valid yet
-                
+                 // if shutting down then there will be nothing to handle the return so leave till next restart
+                if (!m_scene.ShuttingDown &&
+                        m_scene.LoginsEnabled && // We're starting up or doing maintenance, don't mess with things
+                        !m_scene.LoadingPrims) // Land may not be valid yet
                 {
                     ILandObject parcel = m_scene.LandChannel.GetLandObject(
                             m_rootPart.GroupPosition.X, m_rootPart.GroupPosition.Y);
@@ -3402,10 +3402,11 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void DetachFromBackup()
         {
             if (m_scene != null)
+            {
                 m_scene.SceneGraph.FireDetachFromBackup(this);
-            if (Backup && Scene != null)
-                m_scene.EventManager.OnBackup -= ProcessBackup;
-            
+                if (Backup)
+                    m_scene.EventManager.OnBackup -= ProcessBackup;
+            }
             Backup = false;
         }
 
