@@ -261,64 +261,60 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         {
             InventoryItemBase item = m_Scene.InventoryService.GetItem(remoteClient.AgentId, itemID);
 
+            if (item == null)
+            {
+                m_log.ErrorFormat(
+                    "[INVENTORY ACCESS MODULE]: Could not find item {0} for caps inventory update", itemID);
+                return UUID.Zero;
+            }
+
             if (item.Owner != remoteClient.AgentId)
                 return UUID.Zero;
 
-            if (item != null)
+            if ((InventoryType)item.InvType == InventoryType.Notecard)
             {
-                if ((InventoryType)item.InvType == InventoryType.Notecard)
+                if (!m_Scene.Permissions.CanEditNotecard(itemID, UUID.Zero, remoteClient.AgentId))
                 {
-                    if (!m_Scene.Permissions.CanEditNotecard(itemID, UUID.Zero, remoteClient.AgentId))
-                    {
-                        remoteClient.SendAgentAlertMessage("Insufficient permissions to edit notecard", false);
-                        return UUID.Zero;
-                    }
-
-                    remoteClient.SendAlertMessage("Notecard saved");
+                    remoteClient.SendAgentAlertMessage("Insufficient permissions to edit notecard", false);
+                    return UUID.Zero;
                 }
-                else if ((InventoryType)item.InvType == InventoryType.LSL)
-                {
-                    if (!m_Scene.Permissions.CanEditScript(itemID, UUID.Zero, remoteClient.AgentId))
-                    {
-                        remoteClient.SendAgentAlertMessage("Insufficient permissions to edit script", false);
-                        return UUID.Zero;
-                    }
 
-                    remoteClient.SendAlertMessage("Script saved");
-                }
-                else if ((CustomInventoryType)item.InvType == CustomInventoryType.AnimationSet)
+               remoteClient.SendAlertMessage("Notecard saved");
+            }
+            else if ((InventoryType)item.InvType == InventoryType.LSL)
+            {
+                if (!m_Scene.Permissions.CanEditScript(itemID, UUID.Zero, remoteClient.AgentId))
                 {
-                    AnimationSet animSet = new AnimationSet(data);
-                    if (!animSet.Validate(x => {
+                    remoteClient.SendAgentAlertMessage("Insufficient permissions to edit script", false);
+                    return UUID.Zero;
+                }
+
+                remoteClient.SendAlertMessage("Script saved");
+            }
+            else if ((CustomInventoryType)item.InvType == CustomInventoryType.AnimationSet)
+            {
+                AnimationSet animSet = new AnimationSet(data);
+                if (!animSet.Validate(x => {
                         int perms = m_Scene.InventoryService.GetAssetPermissions(remoteClient.AgentId, x);
                         int required = (int)(PermissionMask.Transfer | PermissionMask.Copy);
                         if ((perms & required) != required)
                             return false;
                         return true;
                     }))
-                    {
-                        data = animSet.ToBytes();
-                    }
+                {
+                    data = animSet.ToBytes();
                 }
-
-                AssetBase asset =
-                    CreateAsset(item.Name, item.Description, (sbyte)item.AssetType, data, remoteClient.AgentId.ToString());
-                item.AssetID = asset.FullID;
-                m_Scene.AssetService.Store(asset);
-
-                m_Scene.InventoryService.UpdateItem(item);
-
-                // remoteClient.SendInventoryItemCreateUpdate(item);
-                return (asset.FullID);
-            }
-            else
-            {
-                m_log.ErrorFormat(
-                    "[INVENTORY ACCESS MODULE]: Could not find item {0} for caps inventory update",
-                    itemID);
             }
 
-            return UUID.Zero;
+            AssetBase asset =
+                CreateAsset(item.Name, item.Description, (sbyte)item.AssetType, data, remoteClient.AgentId.ToString());
+            item.AssetID = asset.FullID;
+            m_Scene.AssetService.Store(asset);
+
+            m_Scene.InventoryService.UpdateItem(item);
+
+            // remoteClient.SendInventoryItemCreateUpdate(item);
+            return (asset.FullID);
         }
 
         public virtual bool UpdateInventoryItemAsset(UUID ownerID, InventoryItemBase item, AssetBase asset)
