@@ -363,9 +363,6 @@ namespace OpenSim.Framework.Monitoring
                 if (TryGetStatParents(stat, out category, out container))
                     return false;
 
-                // We take a copy-on-write approach here of replacing dictionaries when keys are added or removed.
-                // This means that we don't need to lock or copy them on iteration, which will be a much more
-                // common operation after startup.
                 if (container == null)
                     container = new SortedDictionary<string, Stat>();
 

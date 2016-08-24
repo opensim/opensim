@@ -132,8 +132,8 @@ namespace OpenSim.Framework.Monitoring
         /// <returns></returns>
         public static bool RegisterCheck(Check check)
         {
-            SortedDictionary<string, SortedDictionary<string, Check>> category = null, newCategory;
-            SortedDictionary<string, Check> container = null, newContainer;
+            SortedDictionary<string, SortedDictionary<string, Check>> category = null;
+            SortedDictionary<string, Check> container = null;
 
             lock (RegisteredChecks)
             {
@@ -146,19 +146,15 @@ namespace OpenSim.Framework.Monitoring
                 // We take a copy-on-write approach here of replacing dictionaries when keys are added or removed.
                 // This means that we don't need to lock or copy them on iteration, which will be a much more
                 // common operation after startup.
-                if (container != null)
-                    newContainer = new SortedDictionary<string, Check>(container);
-                else
-                    newContainer = new SortedDictionary<string, Check>();
+                if (container == null)
+                    container = new SortedDictionary<string, Check>();
 
-                if (category != null)
-                    newCategory = new SortedDictionary<string, SortedDictionary<string, Check>>(category);
-                else
-                    newCategory = new SortedDictionary<string, SortedDictionary<string, Check>>();
+                if (category == null)
+                    category = new SortedDictionary<string, SortedDictionary<string, Check>>();
 
-                newContainer[check.ShortName] = check;
-                newCategory[check.Container] = newContainer;
-                RegisteredChecks[check.Category] = newCategory;
+                container[check.ShortName] = check;
+                category[check.Container] = container;
+                RegisteredChecks[check.Category] = category;
             }
 
             return true;
@@ -171,23 +167,24 @@ namespace OpenSim.Framework.Monitoring
         /// <returns></returns>
         public static bool DeregisterCheck(Check check)
         {
-            SortedDictionary<string, SortedDictionary<string, Check>> category = null, newCategory;
-            SortedDictionary<string, Check> container = null, newContainer;
+            SortedDictionary<string, SortedDictionary<string, Check>> category = null;
+            SortedDictionary<string, Check> container = null;
 
             lock (RegisteredChecks)
             {
                 if (!TryGetCheckParents(check, out category, out container))
                     return false;
 
-                newContainer = new SortedDictionary<string, Check>(container);
-                newContainer.Remove(check.ShortName);
-
-                newCategory = new SortedDictionary<string, SortedDictionary<string, Check>>(category);
-                newCategory.Remove(check.Container);
-
-                newCategory[check.Container] = newContainer;
-                RegisteredChecks[check.Category] = newCategory;
-
+                if(container != null)
+                {
+                    container.Remove(check.ShortName);
+                    if(category != null && container.Count == 0)
+                    {
+                        category.Remove(check.Container);
+                        if(category.Count == 0)
+                            RegisteredChecks.Remove(check.Category);
+                    }
+                }
                 return true;
             }
         }
