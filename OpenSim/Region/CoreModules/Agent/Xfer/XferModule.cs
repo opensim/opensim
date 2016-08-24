@@ -124,20 +124,26 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                     double now = Util.GetTimeStampMS();
                     if(now - lastTimeTick > 1750.0)
                     {
-                        inTimeTick = true;
 
-                        //don't overload busy heartbeat
-                        WorkManager.RunInThread(
-                        delegate
-                        {
-                            transfersTimeTick(now);
-                            expireFiles(now);
-
+                        if(Transfers.Count == 0 && NewFiles.Count == 0)
                             lastTimeTick = now;
-                            inTimeTick = false;
-                        },
-                        null,
-                        "XferTimeTick");
+                        else
+                        {
+                            inTimeTick = true;
+
+                            //don't overload busy heartbeat
+                            WorkManager.RunInThread(
+                                delegate
+                                {
+                                    transfersTimeTick(now);
+                                    expireFiles(now);
+
+                                    lastTimeTick = now;
+                                    inTimeTick = false;
+                                },
+                                null,
+                                "XferTimeTick");
+                        }
                     }
                 }
                 Monitor.Exit(timeTickLock);
