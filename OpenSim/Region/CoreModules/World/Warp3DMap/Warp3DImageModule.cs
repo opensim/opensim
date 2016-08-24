@@ -212,9 +212,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             if (viewport.Orthographic)
             {
-                renderer.Scene.defaultCamera.isOrthographic = true;
-                renderer.Scene.defaultCamera.orthoViewWidth = viewport.OrthoWindowWidth;
-                renderer.Scene.defaultCamera.orthoViewHeight = viewport.OrthoWindowHeight;
+                renderer.Scene.defaultCamera.setOrthographic(true,viewport.OrthoWindowWidth, viewport.OrthoWindowHeight);
             }
             else
             {
