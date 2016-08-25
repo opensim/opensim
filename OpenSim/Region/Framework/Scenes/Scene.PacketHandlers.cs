@@ -166,7 +166,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         public void SelectPrim(List<uint> primIDs, IClientAPI remoteClient)
         {
-            List<SceneObjectPart> needUpdates = new List<SceneObjectPart>();
+            List<ISceneEntity> needUpdates = new List<ISceneEntity>();
 
             foreach(uint primLocalID in primIDs)
             {
@@ -179,7 +179,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (sog == null)
                     continue;
 
-                needUpdates.Add(part);
+                needUpdates.Add((ISceneEntity)part);
 
                 // waste of time because properties do not send prim flags as they should
                 // if a friend got or lost edit rights after login, a full update is needed
@@ -196,15 +196,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             if(needUpdates.Count > 0)
-            {
-                // this will be replaced by single client function
-                // that will send the UDP and Caps part
-                foreach(SceneObjectPart part in needUpdates)
-                {
-                    part.SendPropertiesToClient(remoteClient);
-                    remoteClient.SendPartPhysicsProprieties(part);
-                }
-            }
+                remoteClient.SendSelectedPartsProprieties(needUpdates);
         }
 
         /// <summary>

@@ -2801,6 +2801,48 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             SendAgentGroupDataUpdate(AgentId,GroupMembership);
         }
 
+        public void SendSelectedPartsProprieties(List<ISceneEntity> parts)
+        {
+            // udp part           
+            ObjectPropertiesPacket packet = 
+                (ObjectPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ObjectProperties);
+            ObjectPropertiesPacket.ObjectDataBlock[] ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[parts.Count];
+
+            int i = 0;
+            foreach(SceneObjectPart sop in parts)
+                ObjectData[i++] = CreateObjectPropertiesBlock(sop);
+   
+            packet.ObjectData = ObjectData;
+            packet.Header.Zerocoded = true;
+            // udp send splits this mega packets correctly
+            // mb later will avoid that to reduce gc stress
+            OutPacket(packet, ThrottleOutPacketType.Task, true);
+
+            // caps physics part
+            IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
+            if(eq == null)
+                return;
+
+            OSDArray array = new OSDArray();
+            foreach(SceneObjectPart sop in parts)
+            {
+                OSDMap physinfo = new OSDMap(6);
+                physinfo["LocalID"] = sop.LocalId;
+                physinfo["Density"] = sop.Density;
+                physinfo["Friction"] = sop.Friction;
+                physinfo["GravityMultiplier"] = sop.GravityModifier;
+                physinfo["Restitution"] = sop.Restitution;
+                physinfo["PhysicsShapeType"] = (int)sop.PhysicsShapeType;
+                array.Add(physinfo);
+            }
+
+            OSDMap llsdBody = new OSDMap(1);
+            llsdBody.Add("ObjectData", array);
+
+            eq.Enqueue(BuildEvent("ObjectPhysicsProperties", llsdBody),AgentId);
+        }
+
+
         public void SendPartPhysicsProprieties(ISceneEntity entity)
         {
             SceneObjectPart part = (SceneObjectPart)entity;

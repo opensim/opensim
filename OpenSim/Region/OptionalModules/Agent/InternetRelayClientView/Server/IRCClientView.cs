@@ -1753,6 +1753,10 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         {
         }
 
+        public void SendSelectedPartsProprieties(List<ISceneEntity> parts)
+        {
+        }
+
         public void SendPartPhysicsProprieties(ISceneEntity entity)
         {
         }
