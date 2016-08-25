@@ -7720,8 +7720,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int i = 0; i < incomingselect.ObjectData.Length; i++)
                 {
                     objID = incomingselect.ObjectData[i].ObjectLocalID;
-                    if (!SelectedObjects.Contains(objID))
-                        SelectedObjects.Add(objID);
                     thisSelection.Add(objID);
                 }
 
@@ -7748,8 +7746,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             for (int i = 0; i < incomingdeselect.ObjectData.Length; i++)
             {
                 objID = incomingdeselect.ObjectData[i].ObjectLocalID;
-                if (SelectedObjects.Contains(objID))
-                    SelectedObjects.Remove(objID);
 
                 handlerObjectDeselect = OnObjectDeselect;
                 if (handlerObjectDeselect != null)
