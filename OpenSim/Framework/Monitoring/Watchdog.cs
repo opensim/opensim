@@ -332,18 +332,18 @@ namespace OpenSim.Framework.Monitoring
             if (callback != null)
             {
                 List<ThreadWatchdogInfo> callbackInfos = null;
-                List<ThreadWatchdogInfo> threadsInfo;
+                List<ThreadWatchdogInfo> threadsToRemove = null;
 
                 lock (m_threads)
                 {
-                    // get a copy since we may change m_threads
-                    threadsInfo = m_threads.Values.ToList();
-
-                    foreach(ThreadWatchdogInfo threadInfo in threadsInfo)
+                    foreach(ThreadWatchdogInfo threadInfo in m_threads.Values)
                     {
                         if(threadInfo.Thread.ThreadState == ThreadState.Stopped)
                         {
-                            RemoveThread(threadInfo.Thread.ManagedThreadId);
+                            if(threadsToRemove == null)
+                                threadsToRemove = new List<ThreadWatchdogInfo>();
+
+                            threadsToRemove.Add(threadInfo);
 
                             if(callbackInfos == null)
                                 callbackInfos = new List<ThreadWatchdogInfo>();
@@ -365,6 +365,10 @@ namespace OpenSim.Framework.Monitoring
                             }
                         }
                     }
+
+                    if(threadsToRemove != null)
+                        foreach(ThreadWatchdogInfo twi in threadsToRemove)
+                            RemoveThread(twi.Thread.ManagedThreadId);
                 }
 
                 if(callbackInfos != null)
