@@ -166,30 +166,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         public void SelectPrim(uint primLocalID, IClientAPI remoteClient)
         {
-            /*
-                        SceneObjectPart part = GetSceneObjectPart(primLocalID);
-
-                        if (null == part)
-                            return;
-
-                        if (part.IsRoot)
-                        {
-                            SceneObjectGroup sog = part.ParentGroup;
-                            sog.SendPropertiesToClient(remoteClient);
-
-                            // A prim is only tainted if it's allowed to be edited by the person clicking it.
-                            if (Permissions.CanEditObject(sog.UUID, remoteClient.AgentId)
-                                || Permissions.CanMoveObject(sog.UUID, remoteClient.AgentId))
-                            {
-                                sog.IsSelected = true;
-                                EventManager.TriggerParcelPrimCountTainted();
-                            }
-                        }
-                        else
-                        {
-                             part.SendPropertiesToClient(remoteClient);
-                        }
-             */
             SceneObjectPart part = GetSceneObjectPart(primLocalID);
 
             if (null == part)
@@ -200,6 +176,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             part.SendPropertiesToClient(remoteClient);
+            remoteClient.SendPartPhysicsProprieties(part);
 
             // waste of time because properties do not send prim flags as they should
             // if a friend got or lost edit rights after login, a full update is needed
