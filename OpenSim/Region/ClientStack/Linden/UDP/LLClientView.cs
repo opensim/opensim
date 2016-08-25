@@ -2882,18 +2882,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendAsset(AssetRequestToClient req)
         {
+            if (req.AssetInf == null)
+            {
+                m_log.ErrorFormat("{0} Cannot send asset {1} ({2}), asset is null",
+                                LogHeader);
+                return;
+            }
+
             if (req.AssetInf.Data == null)
             {
                 m_log.ErrorFormat("{0} Cannot send asset {1} ({2}), asset data is null",
                                 LogHeader, req.AssetInf.ID, req.AssetInf.Metadata.ContentType);
                 return;
             }
+
             int WearableOut = 0;
             bool isWearable = false;
 
-            if (req.AssetInf != null)
-                isWearable =
-                    ((AssetType) req.AssetInf.Type ==
+            isWearable = ((AssetType) req.AssetInf.Type ==
                      AssetType.Bodypart || (AssetType) req.AssetInf.Type == AssetType.Clothing);
 
             
@@ -3013,7 +3019,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             reply.Data.ParcelID = parcelID;
             reply.Data.OwnerID = land.OwnerID;
             reply.Data.Name = Utils.StringToBytes(land.Name);
-            if (land != null && land.Description != null && land.Description != String.Empty)
+            if (land.Description != null && land.Description != String.Empty)
                 reply.Data.Desc = Utils.StringToBytes(land.Description.Substring(0, land.Description.Length > 254 ? 254: land.Description.Length));
             else
                 reply.Data.Desc = new Byte[0];
@@ -4241,24 +4247,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 else
                 {
+                    ImprovedTerseObjectUpdatePacket.ObjectDataBlock ablock;
                     if (update.Entity is ScenePresence)
                     {
                         // ALL presence updates go into a special list
-                        ImprovedTerseObjectUpdatePacket.ObjectDataBlock ablock = 
-                                CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures));
+                        ablock = CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures));
                         terseAgentUpdateBlocks.Value.Add(ablock);
                         terseAgentUpdates.Value.Add(update);
-                        maxUpdatesBytes -= ablock.Length;
                     }
                     else
                     {
                         // Everything else goes here
-                        ImprovedTerseObjectUpdatePacket.ObjectDataBlock ablock =
-                                CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures));
+                        ablock = CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures));
                         terseUpdateBlocks.Value.Add(ablock);
                         terseUpdates.Value.Add(update);
-                        maxUpdatesBytes -= ablock.Length;
                     }
+                    maxUpdatesBytes -= ablock.Length;
                 }
 
                 #endregion Block Construction
@@ -5442,22 +5446,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Quaternion rotation;
             byte[] textureEntry;
 
-            if (entity is ScenePresence)
+            if (avatar)
             {
                 ScenePresence presence = (ScenePresence)entity;
 
                 position = presence.OffsetPosition;
+                velocity = presence.Velocity;
+                acceleration = Vector3.Zero;
                 rotation = presence.Rotation;
                 angularVelocity = presence.AngularVelocity;
-                rotation = presence.Rotation;
 
 //                m_log.DebugFormat(
 //                    "[LLCLIENTVIEW]: Sending terse update to {0} with position {1} in {2}", Name, presence.OffsetPosition, m_scene.Name);
 
                 attachPoint = presence.State;
                 collisionPlane = presence.CollisionPlane;
-                velocity = presence.Velocity;
-                acceleration = Vector3.Zero;
 
                 if (sendTexture)
                 {
@@ -7708,20 +7711,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return true;
             }
             #endregion
-
+            List<uint> thisSelection = new List<uint>();
             ObjectSelect handlerObjectSelect = null;
             uint objID;
-            for (int i = 0; i < incomingselect.ObjectData.Length; i++)
+            handlerObjectSelect = OnObjectSelect;
+            if (handlerObjectSelect != null)
             {
-                objID = incomingselect.ObjectData[i].ObjectLocalID;
-                if (!SelectedObjects.Contains(objID))
-                    SelectedObjects.Add(objID);
-
-                handlerObjectSelect = OnObjectSelect;
-                if (handlerObjectSelect != null)
+                for (int i = 0; i < incomingselect.ObjectData.Length; i++)
                 {
-                    handlerObjectSelect(objID, this);
+                    objID = incomingselect.ObjectData[i].ObjectLocalID;
+                    if (!SelectedObjects.Contains(objID))
+                        SelectedObjects.Add(objID);
+                    thisSelection.Add(objID);
                 }
+
+                handlerObjectSelect(thisSelection, this);
             }
             return true;
         }
@@ -7967,6 +7971,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         touchArgs.Add(arg);
                     }
                 }
+
                 handlerGrabUpdate(grabUpdate.ObjectData.ObjectID, grabUpdate.ObjectData.GrabOffsetInitial,
                                   grabUpdate.ObjectData.GrabPosition, this, touchArgs);
             }
@@ -12407,72 +12412,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="simclient"></param>
         /// <param name="packet"></param>
         /// <returns></returns>
-        // TODO: Convert old handler to use new method
-/*
-        protected bool HandleAgentTextureCached(IClientAPI simclient, Packet packet)
-        {
-            AgentCachedTexturePacket cachedtex = (AgentCachedTexturePacket)packet;
-            AgentCachedTextureResponsePacket cachedresp = (AgentCachedTextureResponsePacket)PacketPool.Instance.GetPacket(PacketType.AgentCachedTextureResponse);
-
-            if (cachedtex.AgentData.SessionID != SessionId)
-                return false;
-            
-
-
-            // TODO: don't create new blocks if recycling an old packet
-            cachedresp.AgentData.AgentID = AgentId;
-            cachedresp.AgentData.SessionID = m_sessionId;
-            cachedresp.AgentData.SerialNum = m_cachedTextureSerial;
-            m_cachedTextureSerial++;
-            cachedresp.WearableData =
-                new AgentCachedTextureResponsePacket.WearableDataBlock[cachedtex.WearableData.Length];
-
-            int maxWearablesLoop = cachedtex.WearableData.Length;
-            if (maxWearablesLoop > AvatarWearable.MAX_WEARABLES)
-                maxWearablesLoop = AvatarWearable.MAX_WEARABLES;
-
-            // Find the cached baked textures for this user, if they're available
-
-            IAssetService cache = m_scene.AssetService;
-            IBakedTextureModule bakedTextureModule = m_scene.RequestModuleInterface<IBakedTextureModule>();
-            
-            WearableCacheItem[] cacheItems = null;
-
-            if (bakedTextureModule != null && cache != null)
-            {
-                ScenePresence p = m_scene.GetScenePresence(AgentId);
-                if (p.Appearance != null)
-                {
-                    if (p.Appearance.WearableCacheItems == null || p.Appearance.WearableCacheItemsDirty)
-                    {
-                        try
-                        {
-                            cacheItems = bakedTextureModule.Get(AgentId);
-                            p.Appearance.WearableCacheItems = cacheItems;
-                            p.Appearance.WearableCacheItemsDirty = false;
-                        }
-                        catch (Exception)
-                        {
-                            cacheItems = null;
-                        }
-
-                    }
-                    else if (p.Appearance.WearableCacheItems != null)
-                    {
-                        cacheItems = p.Appearance.WearableCacheItems;
-                    }
-                }
-            }
-
-            CachedTextureRequest handlerCachedTextureRequest = OnCachedTextureRequest;
-            if (handlerCachedTextureRequest != null)
-            {
-                handlerCachedTextureRequest(simclient,cachedtex.AgentData.SerialNum,requestArgs);
-            }
-
-            return true;
-        }
-*/
 
         protected bool HandleAgentTextureCached(IClientAPI simclient, Packet packet)
         {

@@ -164,31 +164,46 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="primLocalID"></param>
         /// <param name="remoteClient"></param>
-        public void SelectPrim(uint primLocalID, IClientAPI remoteClient)
+        public void SelectPrim(List<uint> primIDs, IClientAPI remoteClient)
         {
-            SceneObjectPart part = GetSceneObjectPart(primLocalID);
+            List<SceneObjectPart> needUpdates = new List<SceneObjectPart>();
 
-            if (null == part)
-                return;
-
-            SceneObjectGroup sog = part.ParentGroup;
-            if (sog == null)
-                return;
-
-            part.SendPropertiesToClient(remoteClient);
-            remoteClient.SendPartPhysicsProprieties(part);
-
-            // waste of time because properties do not send prim flags as they should
-            // if a friend got or lost edit rights after login, a full update is needed
-            if(sog.OwnerID != remoteClient.AgentId)
-                part.SendFullUpdate(remoteClient);
-
-            // A prim is only tainted if it's allowed to be edited by the person clicking it.
-            if (Permissions.CanEditObject(sog.UUID, remoteClient.AgentId)
-                || Permissions.CanMoveObject(sog.UUID, remoteClient.AgentId))
+            foreach(uint primLocalID in primIDs)
             {
-                part.IsSelected = true;
-                EventManager.TriggerParcelPrimCountTainted();
+                SceneObjectPart part = GetSceneObjectPart(primLocalID);
+
+                if (part == null)
+                    continue;
+
+                SceneObjectGroup sog = part.ParentGroup;
+                if (sog == null)
+                    continue;
+
+                needUpdates.Add(part);
+
+                // waste of time because properties do not send prim flags as they should
+                // if a friend got or lost edit rights after login, a full update is needed
+                if(sog.OwnerID != remoteClient.AgentId)
+                    part.SendFullUpdate(remoteClient);
+
+                // A prim is only tainted if it's allowed to be edited by the person clicking it.
+                if (Permissions.CanEditObject(sog.UUID, remoteClient.AgentId)
+                    || Permissions.CanMoveObject(sog.UUID, remoteClient.AgentId))
+                {
+                    part.IsSelected = true;
+                    EventManager.TriggerParcelPrimCountTainted();
+                }
+            }
+
+            if(needUpdates.Count > 0)
+            {
+                // this will be replaced by single client function
+                // that will send the UDP and Caps part
+                foreach(SceneObjectPart part in needUpdates)
+                {
+                    part.SendPropertiesToClient(remoteClient);
+                    remoteClient.SendPartPhysicsProprieties(part);
+                }
             }
         }
 
