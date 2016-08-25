@@ -132,7 +132,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                             inTimeTick = true;
 
                             //don't overload busy heartbeat
-                            WorkManager.RunInThread(
+                            WorkManager.RunInThreadPool(
                                 delegate
                                 {
                                     transfersTimeTick(now);
