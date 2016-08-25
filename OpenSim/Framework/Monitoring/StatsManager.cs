@@ -83,6 +83,13 @@ namespace OpenSim.Framework.Monitoring
                     + "More than one name can be given separated by spaces.\n",
                 HandleShowStatsCommand);
 
+            console.Commands.AddCommand(
+                "General",
+                false,
+                "show stats",
+                "show stats [list|all|(<category>[.<container>])+",
+                "Alias for 'stats show' command",
+                HandleShowStatsCommand);
             StatsLogger.RegisterConsoleCommands(console);
         }
 
