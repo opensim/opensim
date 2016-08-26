@@ -5429,10 +5429,23 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        CameraData physActor_OnPhysicsRequestingCameraData()
+        {
+            return new CameraData
+            {
+                Valid = true,
+                CameraPosition = this.CameraPosition,
+                CameraRotation = this.CameraRotation,
+                MouseLook = this.m_mouseLook,
+                HeadRotation = this.m_headrotation,
+                BodyRotation = this.m_bodyRot
+            };
+        }
+
         public void RegisterControlEventsToScript(int controls, int accept, int pass_on, uint Obj_localID, UUID Script_item_UUID)
         {
-            SceneObjectPart p = m_scene.GetSceneObjectPart(Obj_localID);
-            if (p == null)
+            SceneObjectPart part = m_scene.GetSceneObjectPart(Obj_localID);
+            if (part == null)
                 return;
 
             ControllingClient.SendTakeControls(controls, false, false);
@@ -5442,7 +5455,7 @@ namespace OpenSim.Region.Framework.Scenes
             obj.ignoreControls = ScriptControlled.CONTROL_ZERO;
             obj.eventControls = ScriptControlled.CONTROL_ZERO;
 
-            obj.objectID = p.ParentGroup.UUID;
+            obj.objectID = part.ParentGroup.UUID;
             obj.itemID = Script_item_UUID;
             if (pass_on == 0 && accept == 0)
             {
@@ -5470,15 +5483,41 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     IgnoredControls &= ~(ScriptControlled)controls;
                     if (scriptedcontrols.ContainsKey(Script_item_UUID))
-                        scriptedcontrols.Remove(Script_item_UUID);
+                        RemoveScriptFromControlNotifications(Script_item_UUID, part);
                 }
                 else
                 {
-                    scriptedcontrols[Script_item_UUID] = obj;
+                    AddScriptToControlNotifications(Script_item_UUID, part, ref obj);
                 }
             }
 
             ControllingClient.SendTakeControls(controls, pass_on == 1 ? true : false, true);
+        }
+
+        private void AddScriptToControlNotifications(OpenMetaverse.UUID Script_item_UUID, SceneObjectPart part, ref ScriptControllers obj)
+        {
+            scriptedcontrols[Script_item_UUID] = obj;
+
+            PhysicsActor physActor = part.ParentGroup.RootPart.PhysActor;
+            if (physActor != null)
+            {
+                physActor.OnPhysicsRequestingCameraData -= physActor_OnPhysicsRequestingCameraData;
+                physActor.OnPhysicsRequestingCameraData += physActor_OnPhysicsRequestingCameraData;
+            }
+        }
+
+        private void RemoveScriptFromControlNotifications(OpenMetaverse.UUID Script_item_UUID, SceneObjectPart part)
+        {
+            scriptedcontrols.Remove(Script_item_UUID);
+
+            if (part != null)
+            {
+                PhysicsActor physActor = part.ParentGroup.RootPart.PhysActor;
+                if (physActor != null)
+                {
+                    physActor.OnPhysicsRequestingCameraData -= physActor_OnPhysicsRequestingCameraData;
+                }
+            }
         }
 
         public void HandleForceReleaseControls(IClientAPI remoteClient, UUID agentID)
@@ -5518,6 +5557,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void UnRegisterControlEventsToScript(uint Obj_localID, UUID Script_item_UUID)
         {
             ScriptControllers takecontrols;
+            SceneObjectPart part = m_scene.GetSceneObjectPart(Obj_localID);
 
             lock (scriptedcontrols)
             {
@@ -5528,7 +5568,7 @@ namespace OpenSim.Region.Framework.Scenes
                     ControllingClient.SendTakeControls((int)sctc, false, false);
                     ControllingClient.SendTakeControls((int)sctc, true, false);
 
-                    scriptedcontrols.Remove(Script_item_UUID);
+                    RemoveScriptFromControlNotifications(Script_item_UUID, part);
                     IgnoredControls = ScriptControlled.CONTROL_ZERO;
                     foreach (ScriptControllers scData in scriptedcontrols.Values)
                     {
