@@ -5408,5 +5408,24 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             Acceleration = Vector3.Zero;
             APIDActive = false;
         }
+
+        // handle osVolumeDetect
+        public void ScriptSetVolumeDetect(bool makeVolumeDetect)
+        {
+            if(_parentID == 0)
+            {
+                // if root prim do it via SOG
+                ParentGroup.ScriptSetVolumeDetect(makeVolumeDetect);
+                return;
+            }
+
+            bool wasUsingPhysics = ((Flags & PrimFlags.Physics) != 0);
+            bool wasTemporary = ((Flags & PrimFlags.TemporaryOnRez) != 0);
+            bool wasPhantom = ((Flags & PrimFlags.Phantom) != 0);
+
+            if(PhysActor != null)
+                PhysActor.Building = true;
+            UpdatePrimFlags(wasUsingPhysics,wasTemporary,wasPhantom,makeVolumeDetect,false);
+        }
     }
 }
