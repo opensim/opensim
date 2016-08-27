@@ -542,10 +542,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Vector3 CameraPosition { get; set; }
 
-        public Quaternion CameraRotation
-        {
-            get { return Util.Axes2Rot(CameraAtAxis, CameraLeftAxis, CameraUpAxis); }
-        }
+        public Quaternion CameraRotation { get; private set; }
 
         // Use these three vectors to figure out what the agent is looking at
         // Convert it to a Matrix and/or Quaternion
@@ -2696,9 +2693,13 @@ namespace OpenSim.Region.Framework.Scenes
             CameraPosition = agentData.CameraCenter;
             // Use these three vectors to figure out what the agent is looking at
             // Convert it to a Matrix and/or Quaternion
+
+            // this my need lock
             CameraAtAxis = agentData.CameraAtAxis;
             CameraLeftAxis = agentData.CameraLeftAxis;
             CameraUpAxis = agentData.CameraUpAxis;
+            Quaternion camRot = Util.Axes2Rot(CameraAtAxis, CameraLeftAxis, CameraUpAxis);
+            CameraRotation = camRot;
 
             // The Agent's Draw distance setting
             // When we get to the point of re-computing neighbors everytime this
@@ -3171,9 +3172,9 @@ namespace OpenSim.Region.Framework.Scenes
                     offset = offset * part.RotationOffset;
                     offset += part.OffsetPosition;
 
-                    if (CameraAtAxis == Vector3.Zero && cameraEyeOffset == Vector3.Zero)
+                    if (cameraAtOffset == Vector3.Zero && cameraEyeOffset == Vector3.Zero)
                     {
-                        CameraAtAxis = part.ParentGroup.RootPart.GetCameraAtOffset();
+                        cameraAtOffset = part.ParentGroup.RootPart.GetCameraAtOffset();
                         cameraEyeOffset = part.ParentGroup.RootPart.GetCameraEyeOffset();
                     }
                     else
@@ -3311,9 +3312,9 @@ namespace OpenSim.Region.Framework.Scenes
                 offset = offset * part.RotationOffset;
                 offset += part.OffsetPosition;
 
-                if (CameraAtAxis == Vector3.Zero && cameraEyeOffset == Vector3.Zero)
+                if (cameraAtOffset == Vector3.Zero && cameraEyeOffset == Vector3.Zero)
                 {
-                    CameraAtAxis = part.ParentGroup.RootPart.GetCameraAtOffset();
+                    cameraAtOffset = part.ParentGroup.RootPart.GetCameraAtOffset();
                     cameraEyeOffset = part.ParentGroup.RootPart.GetCameraEyeOffset();
                 }
                 else
@@ -4571,6 +4572,11 @@ namespace OpenSim.Region.Framework.Scenes
             CameraAtAxis = cAgent.AtAxis;
             CameraLeftAxis = cAgent.LeftAxis;
             CameraUpAxis = cAgent.UpAxis;
+
+            Quaternion camRot = Util.Axes2Rot(CameraAtAxis, CameraLeftAxis, CameraUpAxis);
+            CameraRotation = camRot;
+
+
             ParentUUID = cAgent.ParentPart;
             PrevSitOffset = cAgent.SitOffset;
 
