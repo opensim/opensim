@@ -476,5 +476,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         LSL_String osRequestURL(LSL_List options);
         LSL_String osRequestSecureURL(LSL_List options);
+        void osCollisionSound(string impact_sound, double impact_volume);
     }
 }

@@ -5108,18 +5108,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 m_host.CollisionSoundVolume = (float)impact_volume;
                 m_host.CollisionSound = m_host.invalidCollisionSoundUUID;
-                if(impact_volume == 0.0)
-                    m_host.CollisionSoundType = -1; // disable all sounds
-                else if(impact_volume == 1.0f)
-                    m_host.CollisionSoundType = 0; // full return to default sounds
-                else
-                    m_host.CollisionSoundType = 2; // default sounds with volume
+                m_host.CollisionSoundType = -1; // disable all sounds
                 return;
             }
+
             // TODO: Parameter check logic required.
-            m_host.CollisionSound = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, impact_sound, AssetType.Sound);
-            m_host.CollisionSoundVolume = (float)impact_volume;
-            m_host.CollisionSoundType = 1;
+            UUID soundId = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, impact_sound, AssetType.Sound);
+            if(soundId != UUID.Zero)
+            {
+                m_host.CollisionSound = soundId;
+                m_host.CollisionSoundVolume = (float)impact_volume;
+                m_host.CollisionSoundType = 1;
+            }
+            else
+                 m_host.CollisionSoundType = -1;
         }
 
         public LSL_String llGetAnimation(string id)
