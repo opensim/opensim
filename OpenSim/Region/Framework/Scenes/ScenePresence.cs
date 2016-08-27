@@ -5434,11 +5434,8 @@ namespace OpenSim.Region.Framework.Scenes
             return new CameraData
             {
                 Valid = true,
-                CameraPosition = this.CameraPosition,
-                CameraRotation = this.CameraRotation,
                 MouseLook = this.m_mouseLook,
-                HeadRotation = this.m_headrotation,
-                BodyRotation = this.m_bodyRot
+                CameraRotation = this.CameraRotation,
             };
         }
 
