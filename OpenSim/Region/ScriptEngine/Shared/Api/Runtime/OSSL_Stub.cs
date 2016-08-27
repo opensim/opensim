@@ -1092,7 +1092,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
         public void osCollisionSound(string impact_sound, double impact_volume)
         {
-            osCollisionSound(impact_sound, impact_volume);
+            m_OSSL_Functions.osCollisionSound(impact_sound, impact_volume);
         }
+/*
+        public void osVolumeDetect(int detect)
+        {
+            m_OSSL_Functions.osVolumeDetect(detect);
+        }
+*/
     }
 }
