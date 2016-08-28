@@ -5442,6 +5442,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Valid = true,
                 MouseLook = this.m_mouseLook,
                 CameraRotation = this.CameraRotation,
+                CameraAtAxis = this.CameraAtAxis
             };
         }
 

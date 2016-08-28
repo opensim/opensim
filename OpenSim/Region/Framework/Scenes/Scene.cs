@@ -5431,7 +5431,6 @@ Label_GroupsDone:
                     }
                 }
             }
-
         }
 
         public void DeleteFromStorage(UUID uuid)

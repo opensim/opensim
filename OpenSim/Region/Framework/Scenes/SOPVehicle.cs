@@ -406,6 +406,16 @@ namespace OpenSim.Region.Framework.Scenes
             ph.SetVehicle(vd);
         }
 
+        public bool CameraDecoupled
+        {
+            get
+            {
+                if((vd.m_flags & VehicleFlag.CAMERA_DECOUPLED) != 0)
+                    return true;
+                return false;
+            }
+        }
+
         private XmlTextWriter writer;
 
         private void XWint(string name, int i)

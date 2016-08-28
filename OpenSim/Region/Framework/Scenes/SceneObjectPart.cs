@@ -2162,9 +2162,19 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     AddToPhysics(isPhysical, isPhantom, building, isPhysical);
                     UpdatePhysicsSubscribedEvents(); // not sure if appliable here
+                    if(!_VolumeDetectActive &&
+                            m_vehicleParams != null &&
+                            m_vehicleParams.CameraDecoupled &&
+                            m_localId == ParentGroup.RootPart.LocalId)
+                        AddFlag(PrimFlags.CameraDecoupled);
+                    else
+                        RemFlag(PrimFlags.CameraDecoupled);
                 }
                 else
+                {
                     PhysActor = null; // just to be sure
+                    RemFlag(PrimFlags.CameraDecoupled);
+                }
             }
         }
 
@@ -3539,6 +3549,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             set
             {
                 m_vehicleParams = value;
+
             }
         }
 
@@ -3583,7 +3594,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
             m_vehicleParams.ProcessVehicleFlags(param, remove);
 
-            if (_parentID ==0 && PhysActor != null)
+            if (_parentID == 0 && PhysActor != null)
             {
                 PhysActor.VehicleFlags(param, remove);
             }
@@ -4662,6 +4673,11 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
             if (ParentGroup != null)
             {
+                if(UsePhysics && !SetPhantom &&  m_localId == ParentGroup.RootPart.LocalId &&
+                        m_vehicleParams != null && m_vehicleParams.CameraDecoupled)
+                    AddFlag(PrimFlags.CameraDecoupled);
+                else
+                    RemFlag(PrimFlags.CameraDecoupled);
                 ParentGroup.HasGroupChanged = true;
                 ScheduleFullUpdate();
             }
@@ -4722,9 +4738,16 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                 if (VolumeDetectActive) // change if not the default only
                     pa.SetVolumeDetect(1);
 
-                if (m_vehicleParams != null && LocalId == ParentGroup.RootPart.LocalId)
+                if (m_vehicleParams != null && m_localId == ParentGroup.RootPart.LocalId)
+                {
                     m_vehicleParams.SetVehicle(pa);
-
+                    if(isPhysical && !isPhantom && m_vehicleParams.CameraDecoupled)
+                        AddFlag(PrimFlags.CameraDecoupled);
+                    else
+                        RemFlag(PrimFlags.CameraDecoupled);
+                }                
+                else
+                    RemFlag(PrimFlags.CameraDecoupled);
                 // we are going to tell rest of code about physics so better have this here
                 PhysActor = pa;
 
@@ -4800,6 +4823,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
                 ParentGroup.Scene.EventManager.TriggerObjectRemovedFromPhysicalScene(this);
             }
+            RemFlag(PrimFlags.CameraDecoupled);
             PhysActor = null;
         }
 
