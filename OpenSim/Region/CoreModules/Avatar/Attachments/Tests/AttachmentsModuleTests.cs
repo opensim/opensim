@@ -55,6 +55,7 @@ using OpenSim.Tests.Common;
 
 namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 {
+/*
     /// <summary>
     /// Attachment tests
     /// </summary>
@@ -804,7 +805,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(m_numberOfAttachEventsFired, Is.EqualTo(0));
         }
 
-/*
+
         [Test]
         public void TestSameSimulatorNeighbouringRegionsTeleportV1()
         {
@@ -912,7 +913,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             // Check events
             Assert.That(m_numberOfAttachEventsFired, Is.EqualTo(0));
         }
-*/
+
 
         [Test]
         public void TestSameSimulatorNeighbouringRegionsTeleportV2()
@@ -1025,4 +1026,5 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(m_numberOfAttachEventsFired, Is.EqualTo(0));
         }
     }
+*/
 }
