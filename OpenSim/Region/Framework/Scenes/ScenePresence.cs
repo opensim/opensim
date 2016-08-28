@@ -1927,6 +1927,31 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
+        public void RotateToLookAt(Vector3 lookAt)
+        {
+            if(ParentID == 0)
+            {
+                float n = lookAt.X * lookAt.X + lookAt.Y * lookAt.Y;
+                if(n < 0.0001f)
+                {
+                    Rotation = Quaternion.Identity;
+                    return;
+                }
+                n = lookAt.X/(float)Math.Sqrt(n);
+                float angle = (float)Math.Acos(n);
+                angle *= 0.5f;
+                float s = (float)Math.Sin(angle);
+                if(lookAt.Y < 0)
+                    s = -s;
+                Rotation = new Quaternion(
+                    0f,
+                    0f,
+                    s,
+                    (float)Math.Cos(angle)
+                    );
+            }
+        }
+
         /// <summary>
         /// Complete Avatar's movement into the region.
         /// </summary>
@@ -1963,10 +1988,10 @@ namespace OpenSim.Region.Framework.Scenes
                 bool flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
 
                 Vector3 look = Lookat;
+                look.Z = 0f;
                 if ((Math.Abs(look.X) < 0.01) && (Math.Abs(look.Y) < 0.01))
                 {
                     look = Velocity;
-                    look.Z = 0;
                     look.Normalize();
                     if ((Math.Abs(look.X) < 0.01) && (Math.Abs(look.Y) < 0.01) )
                         look = new Vector3(0.99f, 0.042f, 0);
@@ -2000,10 +2025,11 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.DebugFormat("[CompleteMovement]: Missing COF for {0} is {1}", client.AgentId, COF);
                 }
 
+                if(!gotCrossUpdate)
+                    RotateToLookAt(look);
 
                 // Tell the client that we're totally ready
                 ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
-
 
                 m_log.DebugFormat("[CompleteMovement] MoveAgentIntoRegion: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 

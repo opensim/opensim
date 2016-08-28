@@ -478,9 +478,17 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.Transferring);
 
             sp.ControllingClient.SendTeleportStart(teleportFlags);
+            lookAt.Z = 0f;
+
+            if(Math.Abs(lookAt.X) < 0.01f && Math.Abs(lookAt.Y) < 0.01f)
+            {
+                lookAt.X = 1.0f;
+                lookAt.Y = 0;
+            }
 
             sp.ControllingClient.SendLocalTeleport(position, lookAt, teleportFlags);
             sp.TeleportFlags = (Constants.TeleportFlags)teleportFlags;
+            sp.RotateToLookAt(lookAt);
             sp.Velocity = Vector3.Zero;
             sp.Teleport(position);
 
