@@ -2112,6 +2112,12 @@ namespace OpenSim.Region.Framework.Scenes
             d.AddActiveScripts(count);
         }
 
+        private const scriptEvents PhysicsNeeedSubsEvents = (
+            scriptEvents.collision | scriptEvents.collision_start | scriptEvents.collision_end |
+            scriptEvents.land_collision | scriptEvents.land_collision_start | scriptEvents.land_collision_end);
+
+        private scriptEvents lastRootPartPhysEvents = 0;
+
         public void aggregateScriptEvents()
         {
             PrimFlags objectflagupdate = (PrimFlags)RootPart.GetEffectiveObjectFlags();
@@ -2146,6 +2152,20 @@ namespace OpenSim.Region.Framework.Scenes
                 lock (m_rotTargets)
                     m_rotTargets.Clear();
                 m_scene.RemoveGroupTarget(this);
+            }
+
+            scriptEvents rootPartPhysEvents = RootPart.AggregateScriptEvents;
+            rootPartPhysEvents &= PhysicsNeeedSubsEvents;
+            if (rootPartPhysEvents != lastRootPartPhysEvents)
+            {
+                lastRootPartPhysEvents = rootPartPhysEvents;
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    SceneObjectPart part = parts[i];
+                    if (part == null)
+                        continue;
+                    part.UpdatePhysicsSubscribedEvents();
+                }
             }
 
             ScheduleGroupForFullUpdate();

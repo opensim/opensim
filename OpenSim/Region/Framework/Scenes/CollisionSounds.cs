@@ -129,8 +129,6 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             float volume = part.CollisionSoundVolume;
-            if (volume == 0.0f)
-                return;
 
             UUID soundID = part.CollisionSound;
 
@@ -149,6 +147,9 @@ namespace OpenSim.Region.Framework.Scenes
                 default:
                     break;
             }
+
+            if (volume == 0.0f)
+                return;
 
             bool doneownsound = false;
 

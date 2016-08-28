@@ -1246,7 +1246,7 @@ namespace OpenSim.Region.Framework.Scenes
                                         physActor_OnPhysicsRequestingCameraData;
                             partPhysActor.OnPhysicsRequestingCameraData +=
                                         physActor_OnPhysicsRequestingCameraData;
-                         }
+                        }
                     }
                     ParentUUID = UUID.Zero;
                 }

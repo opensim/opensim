@@ -1534,7 +1534,6 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                     m_collisionSoundType = 1;
 
-                aggregateScriptEvents();
             }
         }
 
@@ -5033,7 +5032,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
         }
 
 
-        private void UpdatePhysicsSubscribedEvents()
+        internal void UpdatePhysicsSubscribedEvents()
         {
             PhysicsActor pa = PhysActor;
             if (pa == null)
@@ -5107,8 +5106,6 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                 objectflagupdate |= (uint) PrimFlags.AllowInventoryDrop;
             }
 
-            UpdatePhysicsSubscribedEvents();
-
             LocalFlags = (PrimFlags)objectflagupdate;
 
             if (ParentGroup != null && ParentGroup.RootPart == this)
@@ -5119,6 +5116,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             {
 //                m_log.DebugFormat(
 //                    "[SCENE OBJECT PART]: Scheduling part {0} {1} for full update in aggregateScriptEvents()", Name, LocalId);
+                UpdatePhysicsSubscribedEvents();
                 ScheduleFullUpdate();
             }
         }

@@ -5109,6 +5109,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_host.CollisionSoundVolume = (float)impact_volume;
                 m_host.CollisionSound = m_host.invalidCollisionSoundUUID;
                 m_host.CollisionSoundType = -1; // disable all sounds
+                m_host.aggregateScriptEvents();
                 return;
             }
 
@@ -5122,6 +5123,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
                  m_host.CollisionSoundType = -1;
+
+            m_host.aggregateScriptEvents();
         }
 
         public LSL_String llGetAnimation(string id)

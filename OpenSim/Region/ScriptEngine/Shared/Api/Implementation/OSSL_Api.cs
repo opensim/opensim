@@ -4266,6 +4266,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     m_host.CollisionSoundType = 0; // full return to default sounds
                 else
                     m_host.CollisionSoundType = 2; // default sounds with volume
+                m_host.aggregateScriptEvents();           
                 return;
             }
             // TODO: Parameter check logic required.
@@ -4278,6 +4279,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
                  m_host.CollisionSoundType = -1;
+
+            m_host.aggregateScriptEvents();           
         }
 
         // still not very usefull, detector is lost on rez, restarts, etc
