@@ -595,7 +595,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 }
 
                 // Do this last so that event listeners have access to all the effects of the attachment
-                m_scene.EventManager.TriggerOnAttach(group.LocalId, group.FromItemID, sp.UUID);
+                // this can't be done
+                // scripts do internal enqueue of attach even
+                // and not all scripts are loaded at this point
+//                m_scene.EventManager.TriggerOnAttach(group.LocalId, group.FromItemID, sp.UUID);
             }
 
             return true;
@@ -1318,7 +1321,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 AttachmentPt &= 0x7f;
 
                 // Calls attach with a Zero position
-                if (AttachObject(sp, part.ParentGroup, AttachmentPt, false, true, append))
+                SceneObjectGroup group = part.ParentGroup;
+                if (AttachObject(sp, group , AttachmentPt, false, true, append))
                 {
                     if (DebugLevel > 0)
                         m_log.Debug(
@@ -1327,6 +1331,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
                     // Save avatar attachment information
                     m_scene.AvatarFactory.QueueAppearanceSave(sp.UUID);
+                    m_scene.EventManager.TriggerOnAttach(group.LocalId, group.FromItemID, sp.UUID);
                 }
             }
             catch (Exception e)
