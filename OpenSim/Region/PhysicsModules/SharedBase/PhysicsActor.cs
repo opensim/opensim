@@ -58,6 +58,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
     public struct CameraData
     {
         public Quaternion CameraRotation;
+        public Vector3 CameraAtAxis;
         public bool MouseLook;
         public bool Valid;
     }
