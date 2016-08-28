@@ -2162,13 +2162,6 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     AddToPhysics(isPhysical, isPhantom, building, isPhysical);
                     UpdatePhysicsSubscribedEvents(); // not sure if appliable here
-                    if(!_VolumeDetectActive &&
-                            m_vehicleParams != null &&
-                            m_vehicleParams.CameraDecoupled &&
-                            m_localId == ParentGroup.RootPart.LocalId)
-                        AddFlag(PrimFlags.CameraDecoupled);
-                    else
-                        RemFlag(PrimFlags.CameraDecoupled);
                 }
                 else
                 {
@@ -4673,11 +4666,6 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
             if (ParentGroup != null)
             {
-                if(UsePhysics && !SetPhantom &&  m_localId == ParentGroup.RootPart.LocalId &&
-                        m_vehicleParams != null && m_vehicleParams.CameraDecoupled)
-                    AddFlag(PrimFlags.CameraDecoupled);
-                else
-                    RemFlag(PrimFlags.CameraDecoupled);
                 ParentGroup.HasGroupChanged = true;
                 ScheduleFullUpdate();
             }

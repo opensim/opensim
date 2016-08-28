@@ -1239,6 +1239,14 @@ namespace OpenSim.Region.Framework.Scenes
                         ParentPart = part;
                         m_pos = PrevSitOffset;
                         pos = part.GetWorldPosition();
+                        PhysicsActor partPhysActor = part.PhysActor;
+                        if(partPhysActor != null)
+                        {
+                            partPhysActor.OnPhysicsRequestingCameraData -=
+                                        physActor_OnPhysicsRequestingCameraData;
+                            partPhysActor.OnPhysicsRequestingCameraData +=
+                                        physActor_OnPhysicsRequestingCameraData;
+                         }
                     }
                     ParentUUID = UUID.Zero;
                 }
