@@ -599,8 +599,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 // this can't be done when creating scripts:
                 // scripts do internal enqueue of attach event
                 // and not all scripts are loaded at this point
-//                    m_scene.EventManager.TriggerOnAttach(group.LocalId, group.FromItemID, sp.UUID);
-                    TriggerGroupOnAttach(group, sp.UUID);
+                    m_scene.EventManager.TriggerOnAttach(group.LocalId, group.FromItemID, sp.UUID);
             }
 
             return true;
@@ -760,8 +759,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 sp.ControllingClient.SendRemoveInventoryItem(inventoryID);
             }
 
-            //m_scene.EventManager.TriggerOnAttach(so.LocalId, so.UUID, UUID.Zero);
-            TriggerGroupOnAttach(so, UUID.Zero);
+            m_scene.EventManager.TriggerOnAttach(so.LocalId, so.UUID, UUID.Zero);
 
             // Attach (NULL) stops scripts. We don't want that. Resume them.
             so.ResumeScripts();
@@ -1058,8 +1056,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         {
             if (fireDetachEvent)
             {
-//                m_scene.EventManager.TriggerOnAttach(grp.LocalId, grp.FromItemID, UUID.Zero);
-                TriggerGroupOnAttach(grp, UUID.Zero);
+                m_scene.EventManager.TriggerOnAttach(grp.LocalId, grp.FromItemID, UUID.Zero);
                 // Allow detach event time to do some work before stopping the script
                 Thread.Sleep(2);
             }
@@ -1384,13 +1381,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (sp != null)
                 DetachSingleAttachmentToGround(sp, soLocalId);
         }
-
-        private void TriggerGroupOnAttach(SceneObjectGroup grp, UUID avatarID)
-        {
-            UUID item = grp.FromItemID;  // this maybe wrong  but xengine ignores it
-            foreach(SceneObjectPart part in grp.Parts)
-                m_scene.EventManager.TriggerOnAttach(part.LocalId, item, avatarID);
-        }        
         #endregion
     }
 }
