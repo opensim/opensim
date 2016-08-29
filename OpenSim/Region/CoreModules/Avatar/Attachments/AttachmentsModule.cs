@@ -594,11 +594,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     group.ResumeScripts();
                 }
 
+                else
                 // Do this last so that event listeners have access to all the effects of the attachment
-                // this can't be done
-                // scripts do internal enqueue of attach even
+                // this can't be done when creating scripts:
+                // scripts do internal enqueue of attach event
                 // and not all scripts are loaded at this point
-//                m_scene.EventManager.TriggerOnAttach(group.LocalId, group.FromItemID, sp.UUID);
+                    m_scene.EventManager.TriggerOnAttach(group.LocalId, group.FromItemID, sp.UUID);
             }
 
             return true;
@@ -1331,7 +1332,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
                     // Save avatar attachment information
                     m_scene.AvatarFactory.QueueAppearanceSave(sp.UUID);
-                    m_scene.EventManager.TriggerOnAttach(group.LocalId, group.FromItemID, sp.UUID);
                 }
             }
             catch (Exception e)
