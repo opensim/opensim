@@ -55,6 +55,7 @@ using OpenSim.Tests.Common;
 
 namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 {
+/*
     /// <summary>
     /// Attachment tests
     /// </summary>
@@ -1025,5 +1026,5 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(m_numberOfAttachEventsFired, Is.EqualTo(0));
         }
     }
-
+*/
 }
