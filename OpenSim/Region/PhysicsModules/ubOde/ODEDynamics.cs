@@ -1054,9 +1054,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     float invamts = 1.0f/m_angularMotorTimescale;
                     float tmp;
 
-                    // get out x == 0 plane 
+                    // get out of x == 0 plane 
                     if(Math.Abs(dirv.X) < 0.001f)
-                        dirv.X = 0001f;
+                        dirv.X = 0.001f;
 
                     if (Math.Abs(dirv.Z) > 0.01)
                     {
