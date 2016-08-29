@@ -799,12 +799,24 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             float ldampZ = 0;
             
             bool mousemode = false;
-            if((m_flags & (VehicleFlag.MOUSELOOK_STEER |VehicleFlag.MOUSELOOK_BANK)) != 0 )
-                    mousemode = true;
+            bool mousemodebank = false;
 
             float bankingEfficiency;
-            if(mousemode)
-                bankingEfficiency = 0;
+            float verticalAttractionTimescale = m_verticalAttractionTimescale;
+
+            if((m_flags & (VehicleFlag.MOUSELOOK_STEER | VehicleFlag.MOUSELOOK_BANK)) != 0 )
+            {
+                mousemode = true;
+                mousemodebank = (m_flags & VehicleFlag.MOUSELOOK_BANK) != 0;
+                if(mousemodebank)
+                {
+                    bankingEfficiency = m_bankingEfficiency;
+                    if(verticalAttractionTimescale < 149.9)
+                        verticalAttractionTimescale *= 2.0f; // reduce current instability
+                }
+                else
+                    bankingEfficiency = 0;
+            }
             else
                 bankingEfficiency = m_bankingEfficiency;
 
@@ -944,12 +956,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
 
             // vertical atractor
-            if (m_verticalAttractionTimescale < 300)
+            if (verticalAttractionTimescale < 300)
             {
                 float roll;
                 float pitch;
 
-                float ftmp = m_invtimestep / m_verticalAttractionTimescale / m_verticalAttractionTimescale;
+                float ftmp = m_invtimestep / verticalAttractionTimescale / verticalAttractionTimescale;
 
                 float ftmp2;
                 ftmp2 = 0.5f * m_verticalAttractionEfficiency * m_invtimestep;
@@ -1039,35 +1051,56 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     Vector3 dirv = cam.CameraAtAxis * irotq;
 
+                    float invamts = 1.0f/m_angularMotorTimescale;
                     float tmp;
-                    if(Math.Abs(dirv.X) > 0.01f)
+
+                    // get out x == 0 plane 
+                    if(Math.Abs(dirv.X) < 0.001f)
+                        dirv.X = 0001f;
+
+                    if (Math.Abs(dirv.Z) > 0.01)
                     {
-                        if (Math.Abs(dirv.Z) > 0.01)
+                        tmp = -(float)Math.Atan2(dirv.Z, dirv.X) * m_angularMotorDirection.Y;
+                        if(tmp < -4f)
+                            tmp = -4f;
+                        else if(tmp > 4f)
+                            tmp = 4f;
+                        torque.Y += (tmp - curLocalAngVel.Y) * invamts;
+                        torque.Y -= curLocalAngVel.Y * m_amdampY;
+                    }
+                    else 
+                        torque.Y -= curLocalAngVel.Y * m_invtimestep;
+
+                    if (Math.Abs(dirv.Y) > 0.01)
+                    {
+                        if(mousemodebank)
                         {
-                            tmp = -(float)Math.Atan2(dirv.Z, dirv.X) * m_angularMotorDirection.Y;
+                            tmp = -(float)Math.Atan2(dirv.Y, dirv.X) * m_angularMotorDirection.X;
                             if(tmp < -4f)
                                 tmp = -4f;
                             else if(tmp > 4f)
                                 tmp = 4f;
-                            torque.Y += (tmp - curLocalAngVel.Y) / m_angularMotorTimescale;
+                            torque.X += (tmp - curLocalAngVel.X) * invamts;
                         }
-
-                        if (Math.Abs(dirv.Y) > 0.01)
+                        else
                         {
                             tmp = (float)Math.Atan2(dirv.Y, dirv.X) * m_angularMotorDirection.Z;
+                            tmp *= invamts;
                             if(tmp < -4f)
                                 tmp = -4f;
                             else if(tmp > 4f)
                                 tmp = 4f;
-                            torque.Z += (tmp - curLocalAngVel.Z) / m_angularMotorTimescale;
+                            torque.Z += (tmp - curLocalAngVel.Z) * invamts;
                         }
-                    }
-                                // angular friction
-                    if (curLocalAngVel.X != 0 || curLocalAngVel.Y != 0 || curLocalAngVel.Z != 0)
-                    {
                         torque.X -= curLocalAngVel.X * m_amdampX;
-                        torque.Y -= curLocalAngVel.Y * m_amdampY;
                         torque.Z -= curLocalAngVel.Z * m_amdampZ;
+                    }
+                    else
+                    {
+                        if(mousemodebank)
+                            torque.X -= curLocalAngVel.X * m_invtimestep;
+                        else 
+                            torque.Z -= curLocalAngVel.Z * m_invtimestep;
                     }
                 }
                 else
