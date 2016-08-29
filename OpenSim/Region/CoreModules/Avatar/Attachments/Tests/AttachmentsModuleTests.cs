@@ -55,7 +55,6 @@ using OpenSim.Tests.Common;
 
 namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 {
-/*
     /// <summary>
     /// Attachment tests
     /// </summary>
@@ -845,7 +844,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
                 sceneB, config, new CapabilitiesModule(), etmB, attModB, new BasicInventoryAccessModule());
 
             // FIXME: Hack - this is here temporarily to revert back to older entity transfer behaviour
-            lscm.ServiceVersion = 0.1f;
+            //lscm.ServiceVersion = 0.1f;
 
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(sceneA, 0x1);
 
@@ -1026,5 +1025,5 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(m_numberOfAttachEventsFired, Is.EqualTo(0));
         }
     }
-*/
+
 }
