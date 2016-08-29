@@ -1118,13 +1118,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             SceneObjectGroup objatt;
 
+            UUID rezGroupID = sp.ControllingClient.ActiveGroupId;
+
             if (itemID != UUID.Zero)
                 objatt = m_invAccessModule.RezObject(sp.ControllingClient,
-                    itemID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
+                    itemID, rezGroupID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
                     false, false, sp.UUID, true);
             else
-                objatt = m_invAccessModule.RezObject(sp.ControllingClient,
-                    null, assetID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
+                objatt = m_invAccessModule.RezObject(sp.ControllingClient, 
+                    null, rezGroupID, assetID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
                     false, false, sp.UUID, true);
 
             if (objatt == null)
