@@ -1024,18 +1024,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
 //                m_log.DebugFormat("[XEngine]: Added script {0} to compile queue", itemID);
 
-                if (m_CurrentCompile == null)
+                // NOTE: Although we use a lockless queue, the lock here
+                // is required. It ensures that there are never two
+                // compile threads running, which, due to a race
+                // conndition, might otherwise happen
+                //
+                lock (m_CompileQueue)
                 {
-                    // NOTE: Although we use a lockless queue, the lock here
-                    // is required. It ensures that there are never two
-                    // compile threads running, which, due to a race
-                    // conndition, might otherwise happen
-                    //
-                    lock (m_CompileQueue)
-                    {
-                        if (m_CurrentCompile == null)
-                            m_CurrentCompile = m_ThreadPool.QueueWorkItem(DoOnRezScriptQueue, null);
-                    }
+                    if (m_CurrentCompile == null)
+                        m_CurrentCompile = m_ThreadPool.QueueWorkItem(DoOnRezScriptQueue, null);
                 }
             }
         }
@@ -1297,17 +1294,17 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     {
                         try
                         {
-                            AppDomainSetup appSetup = new AppDomainSetup();
-                            appSetup.PrivateBinPath = Path.Combine(
-                                    m_ScriptEnginesPath,
-                                    m_Scene.RegionInfo.RegionID.ToString());
-
-                            Evidence baseEvidence = AppDomain.CurrentDomain.Evidence;
-                            Evidence evidence = new Evidence(baseEvidence);
-
                             AppDomain sandbox;
                             if (m_AppDomainLoading)
                             {
+                                AppDomainSetup appSetup = new AppDomainSetup();
+                                appSetup.PrivateBinPath = Path.Combine(
+                                    m_ScriptEnginesPath,
+                                    m_Scene.RegionInfo.RegionID.ToString());
+
+                                Evidence baseEvidence = AppDomain.CurrentDomain.Evidence;
+                                Evidence evidence = new Evidence(baseEvidence);
+
                                 sandbox = AppDomain.CreateDomain(
                                                 m_Scene.RegionInfo.RegionID.ToString(),
                                                 evidence, appSetup);
@@ -1472,9 +1469,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                                   startParam, postOnRez,
                                                   m_MaxScriptQueue);
 
-                    if (
-                        !instance.Load(
-                            scriptObj, coopSleepHandle, assemblyPath,
+                    if(!instance.Load(scriptObj, coopSleepHandle, assemblyPath,
                             Path.Combine(ScriptEnginePath, World.RegionInfo.RegionID.ToString()), stateSource, coopTerminationForThisScript))
                             return false;
 
