@@ -1289,10 +1289,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 if ((!m_Scripts.ContainsKey(itemID)) ||
                     (m_Scripts[itemID].AssetID != assetID))
                 {
-                    UUID appDomain = assetID;
+//                    UUID appDomain = assetID;
 
-                    if (part.ParentGroup.IsAttachment)
-                        appDomain = part.ParentGroup.RootPart.UUID;
+//                    if (part.ParentGroup.IsAttachment)
+//                        appDomain = part.ParentGroup.RootPart.UUID;
+                    UUID appDomain = part.ParentGroup.RootPart.UUID;
 
                     if (!m_AppDomains.ContainsKey(appDomain))
                     {
