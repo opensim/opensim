@@ -1138,7 +1138,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         private void Indent(StringBuilder sb)
         {
             for (int i = 0; i < m_braceCount; i++)
+            {
                 sb.Append("    ");
+                m_CSharpCol += 4;
+            }
         }
 
         /// <summary>
