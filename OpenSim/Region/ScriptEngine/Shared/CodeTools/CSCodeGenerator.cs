@@ -169,18 +169,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
 
             // standard preamble
-            //retstr = GenerateLine("using OpenSim.Region.ScriptEngine.Common;");
-            //retstr += GenerateLine("using System.Collections.Generic;");
-            //retstr += GenerateLine("");
-            //retstr += GenerateLine("namespace SecondLife");
-            //retstr += GenerateLine("{");
+
+
+
             m_braceCount++;
-            //retstr += GenerateIndentedLine("public class Script : OpenSim.Region.ScriptEngine.Common");
-            //retstr += GenerateIndentedLine("{");
             m_braceCount++;
 
             // line number
-            m_CSharpLine += 9;
+            m_CSharpLine += 10;
 
             // here's the payload
             sb.Append("\n");

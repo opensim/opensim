@@ -456,7 +456,7 @@ namespace SecondLife
 
         public static void AddCSScriptTail(StringBuilder sb)
         {
-            sb.Append(string.Format("\n    }}\n}}\n"));
+            sb.Append(string.Format("    }}\n}}\n"));
         }
 
         public static string CreateCSCompilerScript(
