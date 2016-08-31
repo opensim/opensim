@@ -1137,7 +1137,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         /// <returns>Indentation based on brace count.</returns>
         private void Indent(StringBuilder sb)
         {
-            sb.Append("    ");
+            for (int i = 0; i < m_braceCount; i++)
+                sb.Append("    ");
         }
 
         /// <summary>
