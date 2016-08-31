@@ -109,7 +109,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             m_insertCoopTerminationCalls = m_scriptEngine.Config.GetString("ScriptStopStrategy", "abort") == "co-op";
 
             // Get file prefix from scriptengine name and make it file system safe:
-            FilePrefix = "CommonCompiler";
+            FilePrefix = "";
             foreach (char c in Path.GetInvalidFileNameChars())
             {
                 FilePrefix = FilePrefix.Replace(c, '_');
@@ -441,8 +441,8 @@ namespace SecondLife
 {{ 
     public class {0} : {1} 
     {{
-        public {0}({2}) : base({3}) {{}}
-",
+        public {0}({2}) : base({3}) {{}}"
+,
                 className,
                 baseClassName, 
                 constructorParameters != null 

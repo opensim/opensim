@@ -1021,6 +1021,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         private void GenerateLine(StringBuilder sb)
         {
             sb.Append("\n");
+            m_CSharpLine++;
+            m_CSharpCol = 1;
         }
 
         /// <summary>
@@ -1032,6 +1034,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         {
             sb.Append(s);
             sb.Append("\n");
+            m_CSharpLine++;
+            m_CSharpCol = 1;
         }
 
         /// <summary>
