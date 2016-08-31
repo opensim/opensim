@@ -1278,6 +1278,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 }
             }
 
+            // do not load a assembly on top of a lot of to release memory
+            // also yield a bit
+            GC.Collect(2);
+
             ScriptInstance instance = null;
             lock (m_Scripts)
             {
@@ -1501,11 +1505,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     m_PrimObjects[localID].Add(itemID);
             }
 
-            if (!m_Assemblies.ContainsKey(assetID))
-                m_Assemblies[assetID] = assemblyPath;
 
             lock (m_AddingAssemblies) 
             {
+                if (!m_Assemblies.ContainsKey(assetID))
+                    m_Assemblies[assetID] = assemblyPath;
+
                 m_AddingAssemblies[assemblyPath]--;
             }
 
