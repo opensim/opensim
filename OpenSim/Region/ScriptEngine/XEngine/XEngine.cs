@@ -1280,7 +1280,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             // do not load a assembly on top of a lot of to release memory
             // also yield a bit
-            GC.Collect(2);
+            // only if logins disable since causes a lot of rubber banding
+            if(!m_Scene.LoginsEnabled)
+                GC.Collect(2);
 
             ScriptInstance instance = null;
             lock (m_Scripts)
