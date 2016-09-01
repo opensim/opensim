@@ -46,8 +46,8 @@ namespace OpenSim.Services.Connectors
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-//        const int MAXSENDRETRIESLEN = 30;
-        const int MAXSENDRETRIESLEN = 2;
+        const int MAXSENDRETRIESLEN = 30;
+
         private string m_ServerURI = String.Empty;
         private IImprovedAssetCache m_Cache = null;
         private int m_retryCounter;
