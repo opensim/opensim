@@ -51,6 +51,7 @@ namespace OpenSim.Services.Connectors
         private string m_ServerURI = String.Empty;
         private IImprovedAssetCache m_Cache = null;
         private int m_retryCounter;
+        private bool m_inRetries;
         private List<AssetBase>[] m_sendRetries = new  List<AssetBase>[MAXSENDRETRIESLEN];
         private System.Timers.Timer m_retryTimer;
         private int m_maxAssetRequestConcurrency = 30;
@@ -114,7 +115,7 @@ namespace OpenSim.Services.Connectors
 
             m_retryTimer = new System.Timers.Timer();
             m_retryTimer.Elapsed += new ElapsedEventHandler(retryCheck);
-            m_retryTimer.AutoReset = false;
+            m_retryTimer.AutoReset = true;
             m_retryTimer.Interval = 60000;
 
             Uri serverUri = new Uri(m_ServerURI);
@@ -168,6 +169,13 @@ namespace OpenSim.Services.Connectors
 
         protected void retryCheck(object source, ElapsedEventArgs e)
         {
+            lock(m_sendRetries)
+            {
+                if(m_inRetries)
+                    return;
+                m_inRetries = true;
+            }
+
             m_retryCounter++;
             if(m_retryCounter >= 61 ) // avoid overflow 60 is max in use below
                 m_retryCounter = 1;
@@ -218,8 +226,10 @@ namespace OpenSim.Services.Connectors
 
             lock(m_sendRetries)
             {          
-                if(inUse > 0 && !m_retryTimer.Enabled)
-                    m_retryTimer.Start();
+                if(inUse == 0 )
+                    m_retryTimer.Stop();
+
+                m_inRetries = false;
             }
         }
 
@@ -512,8 +522,7 @@ namespace OpenSim.Services.Connectors
                     m_queue.Add(asset);
                     m_log.WarnFormat("[Assets] Upload failed: {0} type {1} will retry later",
                             asset.ID.ToString(), asset.Type.ToString());
-                    if(!m_retryTimer.Enabled)
-                        m_retryTimer.Start();
+                    m_retryTimer.Start();
                 }
             }
             else
