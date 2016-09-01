@@ -258,9 +258,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public ContactData[] m_materialContactsData = new ContactData[8];
 
-        private Dictionary<Vector3, IntPtr> RegionTerrain = new Dictionary<Vector3, IntPtr>();
-        private Dictionary<IntPtr, float[]> TerrainHeightFieldHeights = new Dictionary<IntPtr, float[]>();
-        private Dictionary<IntPtr, GCHandle> TerrainHeightFieldHeightsHandlers = new Dictionary<IntPtr, GCHandle>();
+        private IntPtr TerrainGeom;
+        private float[] TerrainHeightFieldHeight;
+        private GCHandle TerrainHeightFieldHeightsHandler = new GCHandle();
        
         private int m_physicsiterations = 15;
         private const float m_SkipFramesAtms = 0.40f; // Drop frames gracefully at a 400 ms lag
@@ -302,9 +302,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public int physics_logging_interval = 0;
         public bool physics_logging_append_existing_logfile = false;
 
-        private Vector3 m_worldOffset = Vector3.Zero;
         public Vector2 WorldExtents = new Vector2((int)Constants.RegionSize, (int)Constants.RegionSize);
-        private PhysicsScene m_parentScene = null;
 
         private ODERayCastRequestManager m_rayCastManager;
         public ODEMeshWorker m_meshWorker;
@@ -1931,24 +1929,15 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public float GetTerrainHeightAtXY(float x, float y)
         {
-
-            int offsetX = 0;
-            int offsetY = 0;
-
-            // get region map
-            IntPtr heightFieldGeom = IntPtr.Zero;
-            if (!RegionTerrain.TryGetValue(new Vector3(offsetX, offsetY, 0), out heightFieldGeom))
+            if (TerrainGeom == IntPtr.Zero)
                 return 0f;
 
-            if (heightFieldGeom == IntPtr.Zero)
-                return 0f;
-
-            if (!TerrainHeightFieldHeights.ContainsKey(heightFieldGeom))
+            if (TerrainHeightFieldHeight == null || TerrainHeightFieldHeight.Length == 0)
                 return 0f;
 
             // TerrainHeightField for ODE as offset 1m
-            x += 1f - offsetX;
-            y += 1f - offsetY;
+            x += 1f;
+            y += 1f;
 
             // make position fit into array
             if (x < 0)
@@ -2027,7 +2016,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             iy *= regsize;
             iy += ix; // all indexes have iy + ix
 
-            float[] heights = TerrainHeightFieldHeights[heightFieldGeom];
+            float[] heights = TerrainHeightFieldHeight;
             /*
                         if ((dx + dy) <= 1.0f)
                         {
@@ -2064,25 +2053,17 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public Vector3 GetTerrainNormalAtXY(float x, float y)
         {
-            int offsetX = 0;
-            int offsetY = 0;
-
-            // get region map
-            IntPtr heightFieldGeom = IntPtr.Zero;
             Vector3 norm = new Vector3(0, 0, 1);
 
-            if (!RegionTerrain.TryGetValue(new Vector3(offsetX, offsetY, 0), out heightFieldGeom))
-                return norm; ;
-
-            if (heightFieldGeom == IntPtr.Zero)
+            if (TerrainGeom == IntPtr.Zero)
                 return norm;
 
-            if (!TerrainHeightFieldHeights.ContainsKey(heightFieldGeom))
+            if (TerrainHeightFieldHeight == null || TerrainHeightFieldHeight.Length == 0)
                 return norm;
 
             // TerrainHeightField for ODE as offset 1m
-            x += 1f - offsetX;
-            y += 1f - offsetY;
+            x += 1f;
+            y += 1f;
 
             // make position fit into array
             if (x < 0)
@@ -2169,7 +2150,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             iy *= regsize;
             iy += ix; // all indexes have iy + ix
 
-            float[] heights = TerrainHeightFieldHeights[heightFieldGeom];
+            float[] heights = TerrainHeightFieldHeight;
 
             if (firstTri)
             {
@@ -2196,28 +2177,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public override void SetTerrain(float[] heightMap)
         {
-            if (m_worldOffset != Vector3.Zero && m_parentScene != null)
-            {
-                if (m_parentScene is ODEScene)
-                {
-                    ((ODEScene)m_parentScene).SetTerrain(heightMap, m_worldOffset);
-                }
-            }
-            else
-            {
-                SetTerrain(heightMap, m_worldOffset);
-            }
-        }
-
-        public void SetTerrain(float[] heightMap, Vector3 pOffset)
-        {
             if (m_OSOdeLib)
-                OSSetTerrain(heightMap, pOffset);
+                OSSetTerrain(heightMap);
             else
-                OriSetTerrain(heightMap, pOffset);
+                OriSetTerrain(heightMap);
         }
 
-        public void OriSetTerrain(float[] heightMap, Vector3 pOffset)
+        public void OriSetTerrain(float[] heightMap)
         {
             // assumes 1m size grid and constante size square regions
             // needs to know about sims around in future
@@ -2282,45 +2248,40 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 d.AllocateODEDataForThread(~0U);
 
-                IntPtr GroundGeom = IntPtr.Zero;
-                if (RegionTerrain.TryGetValue(pOffset, out GroundGeom))
+                if (TerrainGeom != IntPtr.Zero)
                 {
-                    RegionTerrain.Remove(pOffset);
-                    if (GroundGeom != IntPtr.Zero)
-                    {
-                        actor_name_map.Remove(GroundGeom);
-                        d.GeomDestroy(GroundGeom);
+                    actor_name_map.Remove(TerrainGeom);
+                    d.GeomDestroy(TerrainGeom);
 
-                        if (TerrainHeightFieldHeights.ContainsKey(GroundGeom))
-                            {
-                            TerrainHeightFieldHeightsHandlers[GroundGeom].Free();
-                            TerrainHeightFieldHeightsHandlers.Remove(GroundGeom);
-                            TerrainHeightFieldHeights.Remove(GroundGeom);
-                            }
-                    }
                 }
+
+                if (TerrainHeightFieldHeightsHandler.IsAllocated)
+                    TerrainHeightFieldHeightsHandler.Free();
+
                 IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
 
-                GCHandle _heightmaphandler = GCHandle.Alloc(_heightmap, GCHandleType.Pinned);
+                GC.Collect(1);
 
-                d.GeomHeightfieldDataBuildSingle(HeightmapData, _heightmaphandler.AddrOfPinnedObject(), 0,
+                TerrainHeightFieldHeightsHandler = GCHandle.Alloc(_heightmap, GCHandleType.Pinned);
+
+                d.GeomHeightfieldDataBuildSingle(HeightmapData, TerrainHeightFieldHeightsHandler.AddrOfPinnedObject(), 0,
                                                 heightmapHeight, heightmapWidth ,
                                                  (int)heightmapHeightSamples, (int)heightmapWidthSamples, scale,
                                                 offset, thickness, wrap);
 
                 d.GeomHeightfieldDataSetBounds(HeightmapData, hfmin - 1, hfmax + 1);
 
-                GroundGeom = d.CreateHeightfield(GroundSpace, HeightmapData, 1);
+                TerrainGeom = d.CreateHeightfield(GroundSpace, HeightmapData, 1);
 
-                if (GroundGeom != IntPtr.Zero)
+                if (TerrainGeom != IntPtr.Zero)
                 {
-                    d.GeomSetCategoryBits(GroundGeom, (uint)(CollisionCategories.Land));
-                    d.GeomSetCollideBits(GroundGeom, 0);
+                    d.GeomSetCategoryBits(TerrainGeom, (uint)(CollisionCategories.Land));
+                    d.GeomSetCollideBits(TerrainGeom, 0);
 
                     PhysicsActor pa = new NullPhysicsActor();
                     pa.Name = "Terrain";
                     pa.PhysicsActorType = (int)ActorTypes.Ground;
-                    actor_name_map[GroundGeom] = pa;
+                    actor_name_map[TerrainGeom] = pa;
 
 //                    geom_name_map[GroundGeom] = "Terrain";
 
@@ -2330,16 +2291,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     q.Z = 0.5f;
                     q.W = 0.5f;
 
-                    d.GeomSetQuaternion(GroundGeom, ref q);
-                    d.GeomSetPosition(GroundGeom, pOffset.X + m_regionWidth * 0.5f, pOffset.Y + m_regionHeight * 0.5f, 0.0f);
-                    RegionTerrain.Add(pOffset, GroundGeom);
-                    TerrainHeightFieldHeights.Add(GroundGeom, _heightmap);
-                    TerrainHeightFieldHeightsHandlers.Add(GroundGeom, _heightmaphandler);
+                    d.GeomSetQuaternion(TerrainGeom, ref q);
+                    d.GeomSetPosition(TerrainGeom, m_regionWidth * 0.5f, m_regionHeight * 0.5f, 0.0f);
+                    TerrainHeightFieldHeight = _heightmap;
                 }
+                else
+                    TerrainHeightFieldHeightsHandler.Free();
             }
         }
 
-        public void OSSetTerrain(float[] heightMap, Vector3 pOffset)
+        public void OSSetTerrain(float[] heightMap)
         {
             // assumes 1m size grid and constante size square regions
             // needs to know about sims around in future
@@ -2393,26 +2354,20 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
                 yt += heightmapWidthSamples;
             }
+
             lock (OdeLock)
             {
-                IntPtr GroundGeom = IntPtr.Zero;
-                if (RegionTerrain.TryGetValue(pOffset, out GroundGeom))
+                if (TerrainGeom != IntPtr.Zero)
                 {
-                    RegionTerrain.Remove(pOffset);
-                    if (GroundGeom != IntPtr.Zero)
-                    {
-                        actor_name_map.Remove(GroundGeom);
-                        d.GeomDestroy(GroundGeom);
-
-                        if (TerrainHeightFieldHeights.ContainsKey(GroundGeom))
-                        {
-                            if (TerrainHeightFieldHeightsHandlers[GroundGeom].IsAllocated)
-                                TerrainHeightFieldHeightsHandlers[GroundGeom].Free();
-                            TerrainHeightFieldHeightsHandlers.Remove(GroundGeom);
-                            TerrainHeightFieldHeights.Remove(GroundGeom);
-                        }
-                    }
+                    actor_name_map.Remove(TerrainGeom);
+                    d.GeomDestroy(TerrainGeom);
                 }
+
+                if (TerrainHeightFieldHeightsHandler.IsAllocated)
+                            TerrainHeightFieldHeightsHandler.Free();
+
+                TerrainHeightFieldHeight = null;
+
                 IntPtr HeightmapData = d.GeomOSTerrainDataCreate();
 
                 const int wrap = 0;
@@ -2420,32 +2375,31 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if (thickness < 0)
                     thickness = 1;
 
-                GCHandle _heightmaphandler = GCHandle.Alloc(_heightmap, GCHandleType.Pinned);
+                TerrainHeightFieldHeightsHandler = GCHandle.Alloc(_heightmap, GCHandleType.Pinned);
 
-                d.GeomOSTerrainDataBuild(HeightmapData, _heightmaphandler.AddrOfPinnedObject(), 0, 1.0f,
+                d.GeomOSTerrainDataBuild(HeightmapData, TerrainHeightFieldHeightsHandler.AddrOfPinnedObject(), 0, 1.0f,
                                                  (int)heightmapWidthSamples, (int)heightmapHeightSamples,
                                                  thickness, wrap);
 
 //                d.GeomOSTerrainDataSetBounds(HeightmapData, hfmin - 1, hfmax + 1);
-                GroundGeom = d.CreateOSTerrain(GroundSpace, HeightmapData, 1);
-                if (GroundGeom != IntPtr.Zero)
+                TerrainGeom = d.CreateOSTerrain(GroundSpace, HeightmapData, 1);
+                if (TerrainGeom != IntPtr.Zero)
                 {
-                    d.GeomSetCategoryBits(GroundGeom, (uint)(CollisionCategories.Land));
-                    d.GeomSetCollideBits(GroundGeom, 0);
-
+                    d.GeomSetCategoryBits(TerrainGeom, (uint)(CollisionCategories.Land));
+                    d.GeomSetCollideBits(TerrainGeom, 0);
 
                     PhysicsActor pa = new NullPhysicsActor();
                     pa.Name = "Terrain";
                     pa.PhysicsActorType = (int)ActorTypes.Ground;
-                    actor_name_map[GroundGeom] = pa;
+                    actor_name_map[TerrainGeom] = pa;
 
 //                    geom_name_map[GroundGeom] = "Terrain";
 
-                    d.GeomSetPosition(GroundGeom, pOffset.X + m_regionWidth * 0.5f, pOffset.Y + m_regionHeight * 0.5f, 0.0f);
-                    RegionTerrain.Add(pOffset, GroundGeom);
-                    TerrainHeightFieldHeights.Add(GroundGeom, _heightmap);
-                    TerrainHeightFieldHeightsHandlers.Add(GroundGeom, _heightmaphandler);
-                }
+                    d.GeomSetPosition(TerrainGeom, m_regionWidth * 0.5f, m_regionHeight * 0.5f, 0.0f);
+                    TerrainHeightFieldHeight = _heightmap;
+                 }
+                 else
+                    TerrainHeightFieldHeightsHandler.Free();
             }
         }
 
@@ -2504,26 +2458,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 foreach (OdeCharacter ch in chtorem)
                     ch.DoAChange(changes.Remove, null);
 
+                if (TerrainGeom != IntPtr.Zero)
+                        d.GeomDestroy(TerrainGeom);
+                TerrainGeom = IntPtr.Zero;
 
-                foreach (IntPtr GroundGeom in RegionTerrain.Values)
-                {
-                    if (GroundGeom != IntPtr.Zero)
-                        d.GeomDestroy(GroundGeom);
-                }
+                if (TerrainHeightFieldHeightsHandler.IsAllocated)
+                    TerrainHeightFieldHeightsHandler.Free();
 
-                RegionTerrain.Clear();
-
-                if (TerrainHeightFieldHeightsHandlers.Count > 0)
-                {
-                    foreach (GCHandle gch in TerrainHeightFieldHeightsHandlers.Values)
-                    {
-                        if (gch.IsAllocated)
-                            gch.Free();
-                    }
-                }
-
-                TerrainHeightFieldHeightsHandlers.Clear();
-                TerrainHeightFieldHeights.Clear();
+                TerrainHeightFieldHeight = null;
 
                 if (ContactgeomsArray != IntPtr.Zero)
                 {
