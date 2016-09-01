@@ -332,15 +332,6 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
             return false;
         }
 
-        public virtual bool SupportsCombining()
-        {
-            return false;
-        }
-
-        public virtual void Combine(PhysicsScene pScene, Vector3 offset, Vector3 extents) {}
-        public virtual void CombineTerrain(float[] heightMap, Vector3 pOffset) {}
-        public virtual void UnCombine(PhysicsScene pScene) {}
-
         /// <summary>
         /// Queue a raycast against the physics scene.
         /// The provided callback method will be called when the raycast is complete

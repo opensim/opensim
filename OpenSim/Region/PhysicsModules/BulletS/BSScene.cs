@@ -954,25 +954,6 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             // m_log.DebugFormat("{0}: DeleteTerrain()", LogHeader);
         }
 
-        // Although no one seems to check this, I do support combining.
-        public override bool SupportsCombining()
-        {
-            return TerrainManager.SupportsCombining();
-        }
-        // This call says I am a child to region zero in a mega-region. 'pScene' is that
-        //    of region zero, 'offset' is my offset from regions zero's origin, and
-        //    'extents' is the largest XY that is handled in my region.
-        public override void Combine(PhysicsScene pScene, Vector3 offset, Vector3 extents)
-        {
-            TerrainManager.Combine(pScene, offset, extents);
-        }
-
-        // Unhook all the combining that I know about.
-        public override void UnCombine(PhysicsScene pScene)
-        {
-            TerrainManager.UnCombine(pScene);
-        }
-
         #endregion // Terrain
 
         public override Dictionary<uint, float> GetTopColliders()

@@ -171,7 +171,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public bool m_OSOdeLib = false;
-        public bool m_suportCombine = false; // mega suport not tested
         public Scene m_frameWorkScene = null;
 
 //        private int threadid = 0;
@@ -379,8 +378,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_regionWidth = (uint)WorldExtents.X;
             WorldExtents.Y = m_frameWorkScene.RegionInfo.RegionSizeY;
             m_regionHeight = (uint)WorldExtents.Y;
-
-            m_suportCombine = false;
 
             lock (OdeLock)
             {
@@ -1938,12 +1935,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             int offsetX = 0;
             int offsetY = 0;
 
-            if (m_suportCombine)
-            {
-                offsetX = ((int)(x / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
-                offsetY = ((int)(y / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
-            }
-
             // get region map
             IntPtr heightFieldGeom = IntPtr.Zero;
             if (!RegionTerrain.TryGetValue(new Vector3(offsetX, offsetY, 0), out heightFieldGeom))
@@ -2075,12 +2066,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             int offsetX = 0;
             int offsetY = 0;
-
-            if (m_suportCombine)
-            {
-                offsetX = ((int)(x / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
-                offsetY = ((int)(y / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
-            }
 
             // get region map
             IntPtr heightFieldGeom = IntPtr.Zero;
@@ -2222,12 +2207,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 SetTerrain(heightMap, m_worldOffset);
             }
-        }
-
-        public override void CombineTerrain(float[] heightMap, Vector3 pOffset)
-        {
-            if(m_suportCombine)
-                SetTerrain(heightMap, pOffset);
         }
 
         public void SetTerrain(float[] heightMap, Vector3 pOffset)
@@ -2477,11 +2456,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public float GetWaterLevel()
         {
             return waterlevel;
-        }
-
-        public override bool SupportsCombining()
-        {
-            return m_suportCombine;
         }
 
         public override void SetWaterLevel(float baseheight)
