@@ -1094,7 +1094,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
                 return m;
             }
 
-            for (int i = m; i < count; i++)
+            for (int i = m + 1; i < count; i++)
             {
                 if (allow[i] != 0)
                 {
@@ -1538,6 +1538,19 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
                 return true;
             }
+        }
+
+        public static bool ComputeHull(List<float3> vertices, out List<int> indices)
+        {
+            List<HullTriangle> tris = new List<HullTriangle>();
+            
+            bool ret = calchull(vertices, out indices, 0, tris);
+            if (ret == false)
+            {
+                indices = new List<int>();
+                return false;
+            }
+            return true;
         }
 
         private static bool CleanupVertices(List<float3> svertices, out List<float3> vertices, float normalepsilon, out float3 scale)
