@@ -339,7 +339,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 y = (float)Quat.y;
                 z = (float)Quat.z;
                 s = (float)Quat.s;
-                if (x == 0 && y == 0 && z == 0 && s == 0)
+                if (s == 0 && x == 0 && y == 0 && z == 0)
                     s = 1;
             }
 
@@ -349,7 +349,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 y = Y;
                 z = Z;
                 s = S;
-                if (x == 0 && y == 0 && z == 0 && s == 0)
+                if (s == 0 && x == 0 && y == 0 && z == 0)
                     s = 1;
             }
 
@@ -368,7 +368,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 res = res & Double.TryParse(tmps[1], NumberStyles.Float, Culture.NumberFormatInfo, out y);
                 res = res & Double.TryParse(tmps[2], NumberStyles.Float, Culture.NumberFormatInfo, out z);
                 res = res & Double.TryParse(tmps[3], NumberStyles.Float, Culture.NumberFormatInfo, out s);
-                if (x == 0 && y == 0 && z == 0 && s == 0)
+                if (s == 0 && x == 0 && y == 0 && z == 0)
                     s = 1;
             }
 
