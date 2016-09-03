@@ -705,8 +705,10 @@ namespace OpenSim.Framework
 
         private static byte[] ComputeSHA1Hash(byte[] src)
         {
-            SHA1CryptoServiceProvider SHA1 = new SHA1CryptoServiceProvider();
-            return SHA1.ComputeHash(src);
+            byte[] ret;
+            using(SHA1CryptoServiceProvider SHA1 = new SHA1CryptoServiceProvider())
+                 ret = SHA1.ComputeHash(src);
+            return ret;
         }
 
         public static int fast_distance2d(int x, int y)

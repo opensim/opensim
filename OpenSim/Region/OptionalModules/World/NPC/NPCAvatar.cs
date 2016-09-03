@@ -1337,6 +1337,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
+        public void SendSelectedPartsProprieties(List<ISceneEntity> parts)
+        {
+        }
+
         public void SendPartPhysicsProprieties(ISceneEntity entity)
         {
         }

@@ -1229,15 +1229,24 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 }
                 terr.SaveToFile(Util.dataDir() + "/terrain.raw");
 
-                FileStream input = new FileStream(Util.dataDir() + "/terrain.raw", FileMode.Open);
-                byte[] bdata = new byte[input.Length];
-                input.Read(bdata, 0, (int)input.Length);
+                byte[] bdata;
+                using(FileStream input = new FileStream(Util.dataDir() + "/terrain.raw",FileMode.Open))
+                {
+                    bdata = new byte[input.Length];
+                    input.Read(bdata, 0, (int)input.Length);
+                }
+                if(bdata == null || bdata.Length == 0)
+                {
+                    remote_client.SendAlertMessage("Terrain error");
+                    return;
+                }
+
                 remote_client.SendAlertMessage("Terrain file written, starting download...");
-                Scene.XferManager.AddNewFile("terrain.raw", bdata);
+                string xfername = (UUID.Random()).ToString();
+                Scene.XferManager.AddNewFile(xfername, bdata);
 
                 m_log.DebugFormat("[CLIENT]: Sending terrain for region {0} to {1}", Scene.Name, remote_client.Name);
-
-                remote_client.SendInitiateDownload("terrain.raw", clientFileName);
+                remote_client.SendInitiateDownload(xfername, clientFileName);
             }
         }
 

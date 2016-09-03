@@ -121,9 +121,9 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
                 CacheExpire = TimeSpan.FromHours(fcache);
                 
-                if(doMeshFileCache && cachePath != "")
+                lock (diskLock)
                 {
-                    lock (diskLock)
+                    if(doMeshFileCache && cachePath != "")
                     {
                         try
                         {
@@ -619,7 +619,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                                     vs.Clear(); 
                                     continue;
                                 }
-
+/*
                                 if (!HullUtils.ComputeHull(vs, ref hullr, 0, 0.0f))
                                 {
                                     vs.Clear();
@@ -657,6 +657,45 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                                     f = new Face(vertsoffset + t1, vertsoffset + t2, vertsoffset + t3);
                                     faces.Add(f);
                                 }
+*/
+                                List<int> indices;
+                                if (!HullUtils.ComputeHull(vs, out indices))
+                                {
+                                    vs.Clear();
+                                    continue;
+                                }
+
+                                nverts = vs.Count;
+                                nindexs = indices.Count;
+
+                                if (nindexs % 3 != 0)
+                                {
+                                    vs.Clear();
+                                    continue;
+                                }
+
+                                for (i = 0; i < nverts; i++)
+                                {
+                                    c.X = vs[i].x;
+                                    c.Y = vs[i].y;
+                                    c.Z = vs[i].z;
+                                    coords.Add(c);
+                                }
+                               
+                                for (i = 0; i < nindexs; i += 3)
+                                {
+                                    t1 = indices[i];
+                                    if (t1 > nverts)
+                                        break;
+                                    t2 = indices[i + 1];
+                                    if (t2 > nverts)
+                                        break;
+                                    t3 = indices[i + 2];
+                                    if (t3 > nverts)
+                                        break;
+                                    f = new Face(vertsoffset + t1, vertsoffset + t2, vertsoffset + t3);
+                                    faces.Add(f);
+                                }
                                 vertsoffset += nverts;
                                 vs.Clear();
                             }
@@ -686,13 +725,15 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                             vs.Add(f3);
                         }
 
-                        if (vs.Count < 3)
+                        nverts = vs.Count;
+
+                        if (nverts < 3)
                         {
                             vs.Clear();
                             return false;
                         }
 
-                        if (vs.Count < 5)
+                        if (nverts < 5)
                         {
                             foreach (float3 point in vs)
                             {
@@ -701,10 +742,11 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                                 c.Z = point.z;
                                 coords.Add(c);
                             }
+
                             f = new Face(0, 1, 2);
                             faces.Add(f);
 
-                            if (vs.Count == 4)
+                            if (nverts == 4)
                             {
                                 f = new Face(0, 2, 3);
                                 faces.Add(f);
@@ -716,7 +758,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                             vs.Clear();
                             return true;
                         }
-
+/*
                         if (!HullUtils.ComputeHull(vs, ref hullr, 0, 0.0f))
                             return false;
 
@@ -747,7 +789,38 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                             f = new Face(t1, t2, t3);
                             faces.Add(f);
                         }
+*/
+                        List<int> indices;
+                        if (!HullUtils.ComputeHull(vs, out indices))
+                            return false;
 
+                        nindexs = indices.Count;
+
+                        if (nindexs % 3 != 0)
+                            return false;
+
+                        for (i = 0; i < nverts; i++)
+                        {
+                            c.X = vs[i].x;
+                            c.Y = vs[i].y;
+                            c.Z = vs[i].z;
+                            coords.Add(c);
+                        }
+                        for (i = 0; i < nindexs; i += 3)
+                        {
+                            t1 = indices[i];
+                            if (t1 > nverts)
+                                break;
+                            t2 = indices[i + 1];
+                            if (t2 > nverts)
+                                break;
+                            t3 = indices[i + 2];
+                            if (t3 > nverts)
+                                break;
+                            f = new Face(t1, t2, t3);
+                            faces.Add(f);
+                        }
+                        vs.Clear();
                         if (coords.Count > 0 && faces.Count > 0)
                             return true;
                     }

@@ -27,12 +27,15 @@
 */
 
 using System;
+using System.Text;
 
 namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 {
     public interface ICodeConverter
     {
         string Convert(string script);
+        void Convert(string script, StringBuilder sb);
         string[] GetWarnings();
+        void Clear();
     }
 }

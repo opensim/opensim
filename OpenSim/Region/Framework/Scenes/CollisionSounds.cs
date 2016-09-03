@@ -128,19 +128,28 @@ namespace OpenSim.Region.Framework.Scenes
             if (part.CollisionSoundType < 0)
                 return;
 
-            float volume = 0.0f;
-            bool HaveSound = false;
+            float volume = part.CollisionSoundVolume;
 
             UUID soundID = part.CollisionSound;
 
-            if (part.CollisionSoundType > 0)
+            bool HaveSound = false;
+            switch (part.CollisionSoundType)
             {
-                //                soundID = part.CollisionSound;
-                volume = part.CollisionSoundVolume;
-                if (volume == 0.0f)
-                    return;
-                HaveSound = true;
+                case 0: // default sounds
+                    volume = 1.0f;
+                    break;
+                case 1: // selected sound
+                    if(soundID == part.invalidCollisionSoundUUID)
+                        return;
+                    HaveSound = true;
+                    break;
+                case 2: // default sounds with volume set by script
+                default:
+                    break;
             }
+
+            if (volume == 0.0f)
+                return;
 
             bool doneownsound = false;
 
@@ -152,7 +161,7 @@ namespace OpenSim.Region.Framework.Scenes
             CollisionForSoundInfo colInfo;
             uint id;
 
-            for(int i = 0; i< collidersinfolist.Count; i++)
+            for(int i = 0; i < collidersinfolist.Count; i++)
             {
                 colInfo = collidersinfolist[i];
 
@@ -163,15 +172,16 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             if (!HaveSound)
                             {
-                                volume = Math.Abs(colInfo.relativeVel);
-                                if (volume < 0.2f)
+                                float vol = Math.Abs(colInfo.relativeVel);
+                                if (vol < 0.2f)
                                     continue;
 
-                                volume *= volume * .0625f; // 4m/s == full volume
-                                if (volume > 1.0f)
-                                    volume = 1.0f;
+                                vol *= vol * .0625f; // 4m/s == full volume
+                                if (vol > 1.0f)
+                                    vol = 1.0f;
 
                                 soundID = m_TerrainPart[thisMaterial];
+                                volume *= vol;
                             }
                             part.SendCollisionSound(soundID, volume, colInfo.position);
                             doneownsound = true;
@@ -187,7 +197,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (!HaveSound)
                     {
-                        if (otherPart.CollisionSoundType > 0)
+                        if (otherPart.CollisionSoundType == 1)
                         {
                             soundID = otherPart.CollisionSound;
                             volume = otherPart.CollisionSoundVolume;
@@ -196,19 +206,27 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         else
                         {
-                            volume = Math.Abs(colInfo.relativeVel);
-                            if (volume < 0.2f)
+                            if (otherPart.CollisionSoundType == 2)
+                            {
+                                volume = otherPart.CollisionSoundVolume;
+                                if (volume == 0.0f)
+                                    continue;
+                            }
+
+                            float vol = Math.Abs(colInfo.relativeVel);
+                            if (vol < 0.2f)
                                 continue;
 
-                            volume *= volume * .0625f; // 4m/s == full volume
-                            if (volume > 1.0f)
-                                volume = 1.0f;
+                            vol *= vol * .0625f; // 4m/s == full volume
+                            if (vol > 1.0f)
+                                vol = 1.0f;
 
                             int otherMaterial = (int)otherPart.Material;
                             if (otherMaterial >= MaxMaterials)
                                 otherMaterial = 3;
 
                             soundID = m_PartPart[thisMatScaled + otherMaterial];
+                            volume *= vol;
                         }
                     }
 
@@ -261,10 +279,17 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (otherPart.CollisionSoundType < 0)
                         continue;
-                    if (otherPart.CollisionSoundType > 0 && otherPart.CollisionSoundVolume > 0f)
+                    if (otherPart.CollisionSoundType == 1 && otherPart.CollisionSoundVolume > 0f)
                         otherPart.SendCollisionSound(otherPart.CollisionSound, otherPart.CollisionSoundVolume, colInfo.position);
                     else
                     {
+                        float volmod = 1.0f;
+                        if (otherPart.CollisionSoundType == 2)
+                        {
+                            volmod = otherPart.CollisionSoundVolume;
+                            if(volmod == 0.0)
+                                continue;
+                        }
                         volume = Math.Abs(colInfo.relativeVel);
                         // Most noral collisions (running into walls, stairs)
                         // should never be heard.
@@ -281,6 +306,7 @@ namespace OpenSim.Region.Framework.Scenes
                         if (otherMaterial >= MaxMaterials)
                             otherMaterial = 3;
 
+                        volume *= volmod;
                         soundID = m_PartPart[thisMatScaled + otherMaterial];
                         otherPart.SendCollisionSound(soundID, volume, colInfo.position);
                     }

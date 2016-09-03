@@ -512,8 +512,8 @@ namespace OpenSim.Services.LLLoginService
                 //
                 if (m_MessageUrl != String.Empty)
                 {
-                    WebClient client = new WebClient();
-                    processedMessage = client.DownloadString(m_MessageUrl);
+                    using(WebClient client = new WebClient())
+                        processedMessage = client.DownloadString(m_MessageUrl);
                 }
                 else
                 {

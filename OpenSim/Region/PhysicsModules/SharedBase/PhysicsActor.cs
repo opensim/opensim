@@ -55,6 +55,14 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         Absolute
     }
 
+    public struct CameraData
+    {
+        public Quaternion CameraRotation;
+        public Vector3 CameraAtAxis;
+        public bool MouseLook;
+        public bool Valid;
+    }
+
     public struct ContactPoint
     {
         public Vector3 Position;
@@ -159,13 +167,15 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public delegate void RequestTerseUpdate();
         public delegate void CollisionUpdate(EventArgs e);
         public delegate void OutOfBounds(Vector3 pos);
+        public delegate CameraData GetCameraData();
 
-// disable warning: public events
+        // disable warning: public events
 #pragma warning disable 67
         public event PositionUpdate OnPositionUpdate;
         public event VelocityUpdate OnVelocityUpdate;
         public event OrientationUpdate OnOrientationUpdate;
         public event RequestTerseUpdate OnRequestTerseUpdate;
+        public event GetCameraData OnPhysicsRequestingCameraData;
 
         /// <summary>
         /// Subscribers to this event must synchronously handle the dictionary of collisions received, since the event
@@ -175,6 +185,17 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
         public event OutOfBounds OnOutOfBounds;
 #pragma warning restore 67
+
+        public CameraData TryGetCameraData()
+        {
+            GetCameraData handler = OnPhysicsRequestingCameraData;
+            if (handler != null)
+            {
+                return handler();
+            }
+
+            return new CameraData { Valid = false };
+        }
 
         public static PhysicsActor Null
         {

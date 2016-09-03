@@ -1089,5 +1089,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osRequestSecureURL(options);
         }
+
+        public void osCollisionSound(string impact_sound, double impact_volume)
+        {
+            m_OSSL_Functions.osCollisionSound(impact_sound, impact_volume);
+        }
+
+        public void osVolumeDetect(int detect)
+        {
+            m_OSSL_Functions.osVolumeDetect(detect);
+        }
     }
 }

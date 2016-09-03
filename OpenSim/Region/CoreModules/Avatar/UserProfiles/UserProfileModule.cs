@@ -31,6 +31,7 @@ using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
@@ -458,36 +459,43 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                                          int queryclassifiedPrice, IClientAPI remoteClient)
         {
             Scene s = (Scene)remoteClient.Scene;
-            IMoneyModule money = s.RequestModuleInterface<IMoneyModule>();
+            Vector3 pos = remoteClient.SceneAgent.AbsolutePosition;
+            ILandObject land = s.LandChannel.GetLandObject(pos.X, pos.Y);
+            UUID creatorId = remoteClient.AgentId;
+            ScenePresence p = FindPresence(creatorId);
 
-            if (money != null)
+            string serverURI = string.Empty;
+            GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
+
+            OSDMap parameters = new OSDMap {{"creatorId", OSD.FromUUID(creatorId)}};
+            OSD Params = (OSD)parameters;
+            if (!rpc.JsonRpcRequest(ref Params, "avatarclassifiedsrequest", serverURI, UUID.Random().ToString()))
             {
-                if (!money.AmountCovered(remoteClient.AgentId, queryclassifiedPrice))
+                remoteClient.SendAgentAlertMessage("Error fetching classifieds", false);
+                return;
+            }
+            parameters = (OSDMap)Params;
+            OSDArray list = (OSDArray)parameters["result"];
+            bool exists = list.Cast<OSDMap>().Where(map => map.ContainsKey("classifieduuid"))
+              .Any(map => map["classifieduuid"].AsUUID().Equals(queryclassifiedID));
+
+            if (!exists)
+            {
+                IMoneyModule money = s.RequestModuleInterface<IMoneyModule>();
+                if (money != null)
                 {
-                    remoteClient.SendAgentAlertMessage("You do not have enough money to create requested classified.", false);
-                    return;
+                    if (!money.AmountCovered(remoteClient.AgentId, queryclassifiedPrice))
+                    {
+                        remoteClient.SendAgentAlertMessage("You do not have enough money to create this classified.", false);
+                        return;
+                    }
+                    money.ApplyCharge(remoteClient.AgentId, queryclassifiedPrice, MoneyTransactionType.ClassifiedCharge);
                 }
-                money.ApplyCharge(remoteClient.AgentId, queryclassifiedPrice, MoneyTransactionType.ClassifiedCharge);
             }
 
             UserClassifiedAdd ad = new UserClassifiedAdd();
 
-            Vector3 pos = remoteClient.SceneAgent.AbsolutePosition;
-            ILandObject land = s.LandChannel.GetLandObject(pos.X, pos.Y);
-            ScenePresence p = FindPresence(remoteClient.AgentId);
-            
-            string serverURI = string.Empty;
-            GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
-
-            if (land == null)
-            {
-                ad.ParcelName = string.Empty;
-            }
-            else
-            {
-                ad.ParcelName = land.LandData.Name;
-            }
-
+            ad.ParcelName = land == null ? string.Empty : land.LandData.Name;
             ad.CreatorId = remoteClient.AgentId;
             ad.ClassifiedId = queryclassifiedID;
             ad.Category = Convert.ToInt32(queryCategory);
@@ -507,9 +515,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
             if(!rpc.JsonRpcRequest(ref Ad, "classified_update", serverURI, UUID.Random().ToString()))
             {
-                remoteClient.SendAgentAlertMessage(
-                        "Error updating classified", false);
-                return;
+                remoteClient.SendAgentAlertMessage("Error updating classified", false);
             }
         }
 

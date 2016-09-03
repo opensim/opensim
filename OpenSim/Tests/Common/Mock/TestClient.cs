@@ -1384,6 +1384,10 @@ namespace OpenSim.Tests.Common
         {
         }
 
+        public void SendSelectedPartsProprieties(List<ISceneEntity> parts)
+        {
+        }
+
         public void SendPartPhysicsProprieties(ISceneEntity entity)
         {
         }

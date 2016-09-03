@@ -594,8 +594,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     group.ResumeScripts();
                 }
 
+                else
                 // Do this last so that event listeners have access to all the effects of the attachment
-                m_scene.EventManager.TriggerOnAttach(group.LocalId, group.FromItemID, sp.UUID);
+                // this can't be done when creating scripts:
+                // scripts do internal enqueue of attach event
+                // and not all scripts are loaded at this point
+                    m_scene.EventManager.TriggerOnAttach(group.LocalId, group.FromItemID, sp.UUID);
             }
 
             return true;
@@ -1053,7 +1057,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (fireDetachEvent)
             {
                 m_scene.EventManager.TriggerOnAttach(grp.LocalId, grp.FromItemID, UUID.Zero);
-
                 // Allow detach event time to do some work before stopping the script
                 Thread.Sleep(2);
             }
@@ -1115,13 +1118,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             SceneObjectGroup objatt;
 
+            UUID rezGroupID = sp.ControllingClient.ActiveGroupId;
+
             if (itemID != UUID.Zero)
                 objatt = m_invAccessModule.RezObject(sp.ControllingClient,
-                    itemID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
+                    itemID, rezGroupID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
                     false, false, sp.UUID, true);
             else
-                objatt = m_invAccessModule.RezObject(sp.ControllingClient,
-                    null, assetID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
+                objatt = m_invAccessModule.RezObject(sp.ControllingClient, 
+                    null, rezGroupID, assetID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
                     false, false, sp.UUID, true);
 
             if (objatt == null)
@@ -1318,7 +1323,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 AttachmentPt &= 0x7f;
 
                 // Calls attach with a Zero position
-                if (AttachObject(sp, part.ParentGroup, AttachmentPt, false, true, append))
+                SceneObjectGroup group = part.ParentGroup;
+                if (AttachObject(sp, group , AttachmentPt, false, true, append))
                 {
                     if (DebugLevel > 0)
                         m_log.Debug(
@@ -1377,7 +1383,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (sp != null)
                 DetachSingleAttachmentToGround(sp, soLocalId);
         }
-
         #endregion
     }
 }

@@ -117,7 +117,7 @@ namespace OpenSim.Framework
 
     public delegate void ObjectExtraParams(UUID agentID, uint localID, ushort type, bool inUse, byte[] data);
 
-    public delegate void ObjectSelect(uint localID, IClientAPI remoteClient);
+    public delegate void ObjectSelect(List<uint> localID, IClientAPI remoteClient);
 
     public delegate void ObjectRequest(uint localID, IClientAPI remoteClient);
 
@@ -1381,6 +1381,8 @@ namespace OpenSim.Framework
         void SendObjectPropertiesFamilyData(ISceneEntity Entity, uint RequestFlags);
 
         void SendObjectPropertiesReply(ISceneEntity Entity);
+
+        void SendSelectedPartsProprieties(List<ISceneEntity> parts);
 
         void SendPartPhysicsProprieties(ISceneEntity Entity);
 

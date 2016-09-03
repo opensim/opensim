@@ -97,9 +97,8 @@ namespace OpenSim.Region.UserStatistics
                     sdr.Read();
                     totalregions = Convert.ToInt32(sdr["regcnt"]);
                 }
-
                 sdr.Close();
-                sdr.Dispose();
+                cmd.Dispose();
 
                 sql =
                     "select client_version, count(*) as cnt, avg(avg_sim_fps) as simfps from stats_session_data group by client_version order by count(*) desc LIMIT 10;";
@@ -120,7 +119,7 @@ namespace OpenSim.Region.UserStatistics
                     }
                 }
                 sdr.Close();
-                sdr.Dispose();
+                cmd.Dispose();
 
                 if (totalregions > 1)
                 {
@@ -143,11 +142,8 @@ namespace OpenSim.Region.UserStatistics
                         }
                     }
                     sdr.Close();
-                    sdr.Dispose();
-
-
+                    cmd.Dispose();
                 }
-
             }
             
             foreach (ClientVersionData cvd in cliRegData)
@@ -163,9 +159,6 @@ namespace OpenSim.Region.UserStatistics
                 {
                     regionTotals.Add(cvd.region_id, cvd.count);
                 }
-                
-                
-
             }
 
             modeldata["ClientData"] = clidata;

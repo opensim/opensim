@@ -559,9 +559,9 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 return coll[0].GetHandle();
             }
 
-            if (m_curlisteners < m_maxlisteners)
+            lock (m_listeners)
             {
-                lock (m_listeners)
+                if (m_curlisteners < m_maxlisteners)
                 {
                     int newHandle = GetNewHandle(itemID);
 

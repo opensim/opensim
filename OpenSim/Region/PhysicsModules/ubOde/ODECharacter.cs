@@ -122,8 +122,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private float m_buoyancy = 0f;
 
         private bool m_freemove = false;
-        // private CollisionLocker ode;
-
+ 
 //        private string m_name = String.Empty;
         // other filter control
         int m_colliderfilter = 0;
@@ -1571,11 +1570,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             if (CollisionEventsThisFrame != null)
             {
-                lock (CollisionEventsThisFrame)
-                {
-                    CollisionEventsThisFrame.Clear();
-                    CollisionEventsThisFrame = null;
-                }
+                CollisionEventsThisFrame.Clear();
+                CollisionEventsThisFrame = null;
             }
             m_eventsubscription = 0;
             _parent_scene.RemoveCollisionEventReporting(this);
@@ -1585,11 +1581,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             if (CollisionEventsThisFrame == null)
                 CollisionEventsThisFrame = new CollisionEventUpdate();
-            lock (CollisionEventsThisFrame)
-            {
-                CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
-                _parent_scene.AddCollisionEventReporting(this);
-            }
+            CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
+            _parent_scene.AddCollisionEventReporting(this);
         }
 
         public void SendCollisions(int timestep)
@@ -1600,28 +1593,25 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (CollisionEventsThisFrame == null)
                 return;
 
-            lock (CollisionEventsThisFrame)
+            if (m_cureventsubscription < m_eventsubscription)
+                return;
+
+            int ncolisions = CollisionEventsThisFrame.m_objCollisionList.Count;
+
+            if (!SentEmptyCollisionsEvent || ncolisions > 0)
             {
-                if (m_cureventsubscription < m_eventsubscription)
-                    return;
+                base.SendCollisionUpdate(CollisionEventsThisFrame);
+                m_cureventsubscription = 0;
 
-                int ncolisions = CollisionEventsThisFrame.m_objCollisionList.Count;
-
-                if (!SentEmptyCollisionsEvent || ncolisions > 0)
+                if (ncolisions == 0)
                 {
-                    base.SendCollisionUpdate(CollisionEventsThisFrame);
-                    m_cureventsubscription = 0;
-
-                    if (ncolisions == 0)
-                    {
-                        SentEmptyCollisionsEvent = true;
-//                        _parent_scene.RemoveCollisionEventReporting(this);
-                    }
-                    else
-                    {
-                        SentEmptyCollisionsEvent = false;
-                        CollisionEventsThisFrame.Clear();
-                    }
+                    SentEmptyCollisionsEvent = true;
+//                  _parent_scene.RemoveCollisionEventReporting(this);
+                }
+                else
+                {
+                    SentEmptyCollisionsEvent = false;
+                    CollisionEventsThisFrame.Clear();
                 }
             }           
         }

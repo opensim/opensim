@@ -306,7 +306,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public override uint LocalID
         {
             get { return m_localID; }
-            set { m_localID = value; }
+            set
+            {
+                uint oldid = m_localID;
+                m_localID = value;
+                _parent_scene.changePrimID(this, oldid);
+            }
         }
 
         public override PhysicsActor ParentActor
@@ -1066,8 +1071,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public OdePrim(String primName, ODEScene parent_scene, Vector3 pos, Vector3 size,
                        Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical,bool pisPhantom,byte _shapeType,uint plocalID)
         {
+            _parent_scene = parent_scene;
+
             Name = primName;
-            LocalID = plocalID;
+            m_localID = plocalID;
 
             m_vehicle = null;
 
@@ -1113,7 +1120,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             _pbs = pbs;
 
-            _parent_scene = parent_scene;
             m_targetSpace = IntPtr.Zero;
 
             if (pos.Z < 0)
@@ -1159,6 +1165,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_OBBOffset = repData.OBBOffset;
 
             UpdatePrimBodyData();
+
+            AddChange(changes.Add, null);
         }
 
         private void resetCollisionAccounting()
@@ -2441,6 +2449,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private void changeadd()
         {
+            _parent_scene.addToPrims(this);
         }
 
         private void changeAngularLock(byte newLocks)

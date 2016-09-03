@@ -1074,14 +1074,27 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
         public static int maxdirfiltered(List<float3> p, int count, float3 dir, byte[] allow)
         {
             //Debug.Assert(count != 0);
-            int m = 0;
-            float currDotm = float3.dot(p[0], dir);
+            int m = -1;
+            float currDotm = 0;
             float currDoti;
 
-            while (allow[m] == 0)
-                m++;
+            for (int i = 0; i < count; i++)
+            {
+                if (allow[i] != 0)
+                {
+                    currDotm = float3.dot(p[i], dir);
+                    m = i;
+                    break;
+               }
+            }
 
-            for (int i = 1; i < count; i++)
+            if(m == -1)
+            {
+                Debug.Assert(false);
+                return m;
+            }
+
+            for (int i = m + 1; i < count; i++)
             {
                 if (allow[i] != 0)
                 {
@@ -1093,7 +1106,8 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
                     }
                 }
             }
-            //Debug.Assert(m != -1);
+
+//            Debug.Assert(m != -1);
             return m;
         }
 
@@ -1112,8 +1126,8 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
                 {
                     int mb;
                     {
-                        float s = (float)Math.Sin((3.14159264f / 180.0f) * (x));
-                        float c = (float)Math.Cos((3.14159264f / 180.0f) * (x));
+                        float s = (float)Math.Sin(0.01745329f * x);
+                        float c = (float)Math.Cos(0.01745329f * x);
                         mb = maxdirfiltered(p, count, dir + (u * s + v * c) * 0.025f, allow);
                     }
                     if (ma == m && mb == m)
@@ -1126,8 +1140,8 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
                         int mc = ma;
                         for (float xx = x - 40.0f; xx <= x; xx += 5.0f)
                         {
-                            float s = (float)Math.Sin((3.14159264f / 180.0f) * (xx));
-                            float c = (float)Math.Cos((3.14159264f / 180.0f) * (xx));
+                            float s = (float)Math.Sin(0.01745329f * xx);
+                            float c = (float)Math.Cos(0.01745329f * xx);
                             int md = maxdirfiltered(p, count, dir + (u * s + v * c) * 0.025f, allow);
                             if (mc == m && md == m)
                             {
@@ -1176,7 +1190,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             Debug.Assert(!(p0 == p1 || p0 == p2 || p0 == p3 || p1 == p2 || p1 == p3 || p2 == p3));
             if (float3.dot(verts[p3] - verts[p0], float3.cross(verts[p1] - verts[p0], verts[p2] - verts[p0])) < 0)
             {
-                Swap(ref p2, ref p3);
+                return new int4(p0, p1, p3, p2);
             }
             return new int4(p0, p1, p2, p3);
         }
@@ -1207,12 +1221,12 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             int j;
             float3 bmin = new float3(verts[0]);
             float3 bmax = new float3(verts[0]);
-            List<int> isextreme = new List<int>(verts.Count);
+            byte[] isextreme = new byte[verts.Count];
             byte[] allow = new byte[verts.Count];
             for (j = 0; j < verts.Count; j++)
             {
                 allow[j] = 1;
-                isextreme.Add(0);
+                isextreme[j] = 0;
                 bmin = float3.VectorMin(bmin, verts[j]);
                 bmax = float3.VectorMax(bmax, verts[j]);
             }
@@ -1524,6 +1538,19 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
                 return true;
             }
+        }
+
+        public static bool ComputeHull(List<float3> vertices, out List<int> indices)
+        {
+            List<HullTriangle> tris = new List<HullTriangle>();
+            
+            bool ret = calchull(vertices, out indices, 0, tris);
+            if (ret == false)
+            {
+                indices = new List<int>();
+                return false;
+            }
+            return true;
         }
 
         private static bool CleanupVertices(List<float3> svertices, out List<float3> vertices, float normalepsilon, out float3 scale)

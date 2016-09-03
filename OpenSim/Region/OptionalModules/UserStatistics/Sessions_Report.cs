@@ -145,8 +145,7 @@ namespace OpenSim.Region.UserStatistics
                     }
                 }
                 sdr.Close();
-                sdr.Dispose();
-                
+                cmd.Dispose();               
             }
             modeldata["SessionData"] = lstSessions;
             return modeldata;

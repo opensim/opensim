@@ -59,7 +59,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         /// <returns>A terrain channel generated from the image.</returns>
         public virtual ITerrainChannel LoadFile(string filename)
         {
-            using (Bitmap b = new Bitmap(filename))
+            using(Bitmap b = new Bitmap(filename))
                 return LoadBitmap(b);
         }
 
@@ -111,9 +111,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         /// <param name="map">The terrain channel being saved</param>
         public virtual void SaveFile(string filename, ITerrainChannel map)
         {
-            Bitmap colours = CreateGrayscaleBitmapFromMap(map);
-
-            colours.Save(filename, ImageFormat.Png);
+            using(Bitmap colours = CreateGrayscaleBitmapFromMap(map))
+                colours.Save(filename,ImageFormat.Png);
         }
 
         /// <summary>
@@ -123,9 +122,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         /// <param name="map">The terrain channel being saved</param>
         public virtual void SaveStream(Stream stream, ITerrainChannel map)
         {
-            Bitmap colours = CreateGrayscaleBitmapFromMap(map);
-
-            colours.Save(stream, ImageFormat.Png);
+            using(Bitmap colours = CreateGrayscaleBitmapFromMap(map))
+                colours.Save(stream,ImageFormat.Png);
         }
 
         public virtual void SaveFile(ITerrainChannel m_channel, string filename,

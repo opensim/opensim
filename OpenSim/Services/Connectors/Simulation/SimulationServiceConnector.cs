@@ -106,16 +106,17 @@ namespace OpenSim.Services.Connectors.Simulation
 
         public bool CreateAgent(GridRegion source, GridRegion destination, AgentCircuitData aCircuit, uint flags, EntityTransferContext ctx, out string myipaddress, out string reason)
         {
-            m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: Creating agent at {0}", destination.ServerURI);
             reason = String.Empty;
             myipaddress = String.Empty;
 
             if (destination == null)
             {
                 reason = "Destination not found";
-                m_log.Debug("[REMOTE SIMULATION CONNECTOR]: Given destination is null");
+                m_log.Debug("[REMOTE SIMULATION CONNECTOR]: Create agent destination is null");
                 return false;
             }
+
+            m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: Creating agent at {0}", destination.ServerURI);
 
             string uri = destination.ServerURI + AgentPath() + aCircuit.AgentID + "/";
             

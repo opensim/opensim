@@ -416,7 +416,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     PostEvent(new EventParams("on_rez",
                         new Object[] {new LSL_Types.LSLInteger(StartParam)}, new DetectParams[0]));
                 }
-
                 if (m_stateSource == StateSource.AttachedRez)
                 {
                     PostEvent(new EventParams("attach",
@@ -457,7 +456,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     PostEvent(new EventParams("attach",
                         new object[] { new LSL_Types.LSLString(m_AttachedAvatar.ToString()) }, new DetectParams[0]));
                 }
-
             }
         }
 
@@ -807,9 +805,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             lock (EventQueue)
             {
                 data = (EventParams)EventQueue.Dequeue();
-                if (data == null) // Shouldn't happen
+                if (data == null)
                 {
-                    if (EventQueue.Count > 0 && Running && !ShuttingDown)
+                    // check if a null event was enqueued or if its really empty
+                    if (EventQueue.Count > 0 && Running && !ShuttingDown && !m_InSelfDelete)
                     {
                         m_CurrentWorkItem = Engine.QueueEventHandler(this);
                     }
@@ -870,12 +869,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             }
             else
             {
+                Exception e = null;
+
                 if (Engine.World.PipeEventsForScript(LocalID) ||
                     data.EventName == "control") // Don't freeze avies!
                 {
                     //                        m_log.DebugFormat("[Script] Delivered event {2} in state {3} to {0}.{1}",
                     //                                PrimName, ScriptName, data.EventName, State);
-
 
                     try
                     {
@@ -891,6 +891,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         {
                             m_InEvent = false;
                             m_CurrentEvent = String.Empty;
+                            lock (EventQueue)
+                                m_CurrentWorkItem = null; // no longer in a event that can be canceled
                         }
 
                         if (m_SaveState)
@@ -903,7 +905,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             m_SaveState = false;
                         }
                     }
-                    catch (Exception e)
+                    catch (Exception exx)
+                    {
+                        e = exx;
+                    }
+
+                    if(e != null)
                     {
                         //                            m_log.DebugFormat(
                         //                                "[SCRIPT] Exception in script {0} {1}: {2}{3}",
@@ -979,7 +986,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                     ScriptTask.ItemID, ScriptTask.AssetID, data.EventName, EventsProcessed);
                 }
 
-                if (EventQueue.Count > 0 && Running && !ShuttingDown)
+                if (EventQueue.Count > 0 && Running && !ShuttingDown && !m_InSelfDelete)
                 {
                     m_CurrentWorkItem = Engine.QueueEventHandler(this);
                 }

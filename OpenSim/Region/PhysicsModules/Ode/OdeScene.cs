@@ -258,8 +258,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
         private Random fluidRandomizer = new Random(Environment.TickCount);
 
-        public bool m_suportCombine = true;
-
         private uint m_regionWidth = Constants.RegionSize;
         private uint m_regionHeight = Constants.RegionSize;
 
@@ -541,8 +539,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
             m_regionWidth = (uint)regionExtent.X;
             WorldExtents.Y = regionExtent.Y;
             m_regionHeight = (uint)regionExtent.Y;
-			
-            m_suportCombine = false;
 			
             nearCallback = near;
             m_rayCastManager = new ODERayCastRequestManager(this);
@@ -1627,27 +1623,12 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
         #endregion
 
-        public override void Combine(PhysicsScene pScene, Vector3 offset, Vector3 extents)
-        {
-            if (!m_suportCombine)
-                return;
-            m_worldOffset = offset;
-            WorldExtents = new Vector2(extents.X, extents.Y);
-            m_parentScene = pScene;
-        }
-
         // Recovered for use by fly height. Kitto Flora
         internal float GetTerrainHeightAtXY(float x, float y)
         {
             IntPtr heightFieldGeom = IntPtr.Zero;
             int offsetX = 0;
             int offsetY = 0;
-
-            if (m_suportCombine)
-            {
-                offsetX = ((int)(x / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
-                offsetY = ((int)(y / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
-            }
 
             if(RegionTerrain.TryGetValue(new Vector3(offsetX,offsetY,0), out heightFieldGeom))
             {
@@ -3387,11 +3368,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
             return waterlevel;
         }
 
-        public override bool SupportsCombining()
-        {
-            return m_suportCombine;
-        }
-
         public override void SetWaterLevel(float baseheight)
         {
             waterlevel = baseheight;
@@ -3452,6 +3428,11 @@ namespace OpenSim.Region.PhysicsModule.ODE
             }
         }
 
+        private int compareByCollisionsDesc(OdePrim A, OdePrim B)
+        {
+            return -A.CollisionScore.CompareTo(B.CollisionScore);
+        }
+
         public override Dictionary<uint, float> GetTopColliders()
         {
             Dictionary<uint, float> topColliders;
@@ -3459,7 +3440,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             lock (_prims)
             {
                 List<OdePrim> orderedPrims = new List<OdePrim>(_prims);
-                orderedPrims.OrderByDescending(p => p.CollisionScore);
+                orderedPrims.Sort(compareByCollisionsDesc);
                 topColliders = orderedPrims.Take(25).ToDictionary(p => p.LocalID, p => p.CollisionScore);
 
                 foreach (OdePrim p in _prims)

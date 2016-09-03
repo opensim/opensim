@@ -159,8 +159,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             string filename = string.Empty;
 
             try
-            {
-                WebClient c = new WebClient();
+            {               
                 //m_log.Debug("JPEG: " + imageURL);
                 string name = regionID.ToString();
                 filename = Path.Combine(storagePath, name + ".jpg");
@@ -168,7 +167,8 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 if (!File.Exists(filename))
                 {
                     m_log.DebugFormat("[GATEKEEPER SERVICE CONNECTOR]: downloading...");
-                    c.DownloadFile(imageURL, filename);
+                    using(WebClient c = new WebClient())
+                        c.DownloadFile(imageURL, filename);
                 }
                 else
                 {

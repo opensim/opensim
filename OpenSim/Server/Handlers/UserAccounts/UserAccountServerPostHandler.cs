@@ -328,12 +328,16 @@ namespace OpenSim.Server.Handlers.UserAccounts
             if (request.ContainsKey("Email"))
                 email = request["Email"].ToString();
 
+            string model = "";
+            if (request.ContainsKey("Model"))
+                model = request["Model"].ToString();
+
             UserAccount createdUserAccount = null;
 
             if (m_UserAccountService is UserAccountService)
                 createdUserAccount
                     = ((UserAccountService)m_UserAccountService).CreateUser(
-                        scopeID, principalID, firstName, lastName, password, email);
+                        scopeID, principalID, firstName, lastName, password, email, model);
 
             if (createdUserAccount == null)
                 return FailureResult();

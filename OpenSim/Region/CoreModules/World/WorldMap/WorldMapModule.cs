@@ -1428,6 +1428,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             mapTexture.Save(exportPath, ImageFormat.Jpeg);
 
+            g.Dispose();
+            mapTexture.Dispose();
+            sea.Dispose();
+
             m_log.InfoFormat(
                 "[WORLD MAP]: Successfully exported world map for {0} to {1}",
                 m_scene.RegionInfo.RegionName, exportPath);
@@ -1613,9 +1617,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         int mb = bx;
                         if(mb < by)
                             mb = by;
-                        if(mb > 2 * Constants.RegionSize && mb > 0)
+                        if(mb > Constants.RegionSize && mb > 0)
                         {
-                            float scale = 2.0f * (float)Constants.RegionSize/(float)mb;
+                            float scale = (float)Constants.RegionSize/(float)mb;
                             Size newsize = new Size();
                             newsize.Width = (int)(bx * scale);
                             newsize.Height = (int)(by * scale);

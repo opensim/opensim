@@ -164,55 +164,39 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="primLocalID"></param>
         /// <param name="remoteClient"></param>
-        public void SelectPrim(uint primLocalID, IClientAPI remoteClient)
+        public void SelectPrim(List<uint> primIDs, IClientAPI remoteClient)
         {
-            /*
-                        SceneObjectPart part = GetSceneObjectPart(primLocalID);
+            List<ISceneEntity> needUpdates = new List<ISceneEntity>();
 
-                        if (null == part)
-                            return;
-
-                        if (part.IsRoot)
-                        {
-                            SceneObjectGroup sog = part.ParentGroup;
-                            sog.SendPropertiesToClient(remoteClient);
-
-                            // A prim is only tainted if it's allowed to be edited by the person clicking it.
-                            if (Permissions.CanEditObject(sog.UUID, remoteClient.AgentId)
-                                || Permissions.CanMoveObject(sog.UUID, remoteClient.AgentId))
-                            {
-                                sog.IsSelected = true;
-                                EventManager.TriggerParcelPrimCountTainted();
-                            }
-                        }
-                        else
-                        {
-                             part.SendPropertiesToClient(remoteClient);
-                        }
-             */
-            SceneObjectPart part = GetSceneObjectPart(primLocalID);
-
-            if (null == part)
-                return;
-
-            SceneObjectGroup sog = part.ParentGroup;
-            if (sog == null)
-                return;
-
-            part.SendPropertiesToClient(remoteClient);
-
-            // waste of time because properties do not send prim flags as they should
-            // if a friend got or lost edit rights after login, a full update is needed
-            if(sog.OwnerID != remoteClient.AgentId)
-                part.SendFullUpdate(remoteClient);
-
-            // A prim is only tainted if it's allowed to be edited by the person clicking it.
-            if (Permissions.CanEditObject(sog.UUID, remoteClient.AgentId)
-                || Permissions.CanMoveObject(sog.UUID, remoteClient.AgentId))
+            foreach(uint primLocalID in primIDs)
             {
-                part.IsSelected = true;
-                EventManager.TriggerParcelPrimCountTainted();
+                SceneObjectPart part = GetSceneObjectPart(primLocalID);
+
+                if (part == null)
+                    continue;
+
+                SceneObjectGroup sog = part.ParentGroup;
+                if (sog == null)
+                    continue;
+
+                needUpdates.Add((ISceneEntity)part);
+
+                // waste of time because properties do not send prim flags as they should
+                // if a friend got or lost edit rights after login, a full update is needed
+                if(sog.OwnerID != remoteClient.AgentId)
+                    part.SendFullUpdate(remoteClient);
+
+                // A prim is only tainted if it's allowed to be edited by the person clicking it.
+                if (Permissions.CanEditObject(sog.UUID, remoteClient.AgentId)
+                    || Permissions.CanMoveObject(sog.UUID, remoteClient.AgentId))
+                {
+                    part.IsSelected = true;
+                    EventManager.TriggerParcelPrimCountTainted();
+                }
             }
+
+            if(needUpdates.Count > 0)
+                remoteClient.SendSelectedPartsProprieties(needUpdates);
         }
 
         /// <summary>
@@ -377,8 +361,21 @@ namespace OpenSim.Region.Framework.Scenes
             if (part == null)
                 return;
 
-            SceneObjectGroup obj = part.ParentGroup;
+            SceneObjectGroup group = part.ParentGroup;
+            if(group == null || group.IsDeleted)
+                return;
 
+            if (Permissions.CanMoveObject(group.UUID, remoteClient.AgentId))// && PermissionsMngr.)
+            {
+                group.GrabMovement(objectID, offset, pos, remoteClient);
+            }
+
+            // This is outside the above permissions condition
+            // so that if the object is locked the client moving the object
+            // get's it's position on the simulator even if it was the same as before
+            // This keeps the moving user's client in sync with the rest of the world.
+            group.SendGroupTerseUpdate();
+ 
             SurfaceTouchEventArgs surfaceArg = null;
             if (surfaceArgs != null && surfaceArgs.Count > 0)
                 surfaceArg = surfaceArgs[0];
@@ -391,9 +388,9 @@ namespace OpenSim.Region.Framework.Scenes
             // or if we're meant to pass on touches anyway. Don't send to root prim
             // if prim touched is the root prim as we just did it
             if (((part.ScriptEvents & scriptEvents.touch) == 0) ||
-                (part.PassTouches && (part.LocalId != obj.RootPart.LocalId)))
+                (part.PassTouches && (part.LocalId != group.RootPart.LocalId)))
             {
-                EventManager.TriggerObjectGrabbing(obj.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
+                EventManager.TriggerObjectGrabbing(group.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
             }
         }
 

@@ -1024,18 +1024,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
 //                m_log.DebugFormat("[XEngine]: Added script {0} to compile queue", itemID);
 
-                if (m_CurrentCompile == null)
+                // NOTE: Although we use a lockless queue, the lock here
+                // is required. It ensures that there are never two
+                // compile threads running, which, due to a race
+                // conndition, might otherwise happen
+                //
+                lock (m_CompileQueue)
                 {
-                    // NOTE: Although we use a lockless queue, the lock here
-                    // is required. It ensures that there are never two
-                    // compile threads running, which, due to a race
-                    // conndition, might otherwise happen
-                    //
-                    lock (m_CompileQueue)
-                    {
-                        if (m_CurrentCompile == null)
-                            m_CurrentCompile = m_ThreadPool.QueueWorkItem(DoOnRezScriptQueue, null);
-                    }
+                    if (m_CurrentCompile == null)
+                        m_CurrentCompile = m_ThreadPool.QueueWorkItem(DoOnRezScriptQueue, null);
                 }
             }
         }
@@ -1281,6 +1278,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 }
             }
 
+            // do not load a assembly on top of a lot of to release memory
+            // also yield a bit
+            // only if logins disable since causes a lot of rubber banding
+            if(!m_Scene.LoginsEnabled)
+                GC.Collect(2);
+
             ScriptInstance instance = null;
             lock (m_Scripts)
             {
@@ -1288,26 +1291,27 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 if ((!m_Scripts.ContainsKey(itemID)) ||
                     (m_Scripts[itemID].AssetID != assetID))
                 {
-                    UUID appDomain = assetID;
+//                    UUID appDomain = assetID;
 
-                    if (part.ParentGroup.IsAttachment)
-                        appDomain = part.ParentGroup.RootPart.UUID;
+//                    if (part.ParentGroup.IsAttachment)
+//                        appDomain = part.ParentGroup.RootPart.UUID;
+                    UUID appDomain = part.ParentGroup.RootPart.UUID;
 
                     if (!m_AppDomains.ContainsKey(appDomain))
                     {
                         try
                         {
-                            AppDomainSetup appSetup = new AppDomainSetup();
-                            appSetup.PrivateBinPath = Path.Combine(
-                                    m_ScriptEnginesPath,
-                                    m_Scene.RegionInfo.RegionID.ToString());
-
-                            Evidence baseEvidence = AppDomain.CurrentDomain.Evidence;
-                            Evidence evidence = new Evidence(baseEvidence);
-
                             AppDomain sandbox;
                             if (m_AppDomainLoading)
                             {
+                                AppDomainSetup appSetup = new AppDomainSetup();
+                                appSetup.PrivateBinPath = Path.Combine(
+                                    m_ScriptEnginesPath,
+                                    m_Scene.RegionInfo.RegionID.ToString());
+
+                                Evidence baseEvidence = AppDomain.CurrentDomain.Evidence;
+                                Evidence evidence = new Evidence(baseEvidence);
+
                                 sandbox = AppDomain.CreateDomain(
                                                 m_Scene.RegionInfo.RegionID.ToString(),
                                                 evidence, appSetup);
@@ -1472,9 +1476,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                                   startParam, postOnRez,
                                                   m_MaxScriptQueue);
 
-                    if (
-                        !instance.Load(
-                            scriptObj, coopSleepHandle, assemblyPath,
+                    if(!instance.Load(scriptObj, coopSleepHandle, assemblyPath,
                             Path.Combine(ScriptEnginePath, World.RegionInfo.RegionID.ToString()), stateSource, coopTerminationForThisScript))
                             return false;
 
@@ -1506,11 +1508,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     m_PrimObjects[localID].Add(itemID);
             }
 
-            if (!m_Assemblies.ContainsKey(assetID))
-                m_Assemblies[assetID] = assemblyPath;
 
             lock (m_AddingAssemblies) 
             {
+                if (!m_Assemblies.ContainsKey(assetID))
+                    m_Assemblies[assetID] = assemblyPath;
+
                 m_AddingAssemblies[assemblyPath]--;
             }
 

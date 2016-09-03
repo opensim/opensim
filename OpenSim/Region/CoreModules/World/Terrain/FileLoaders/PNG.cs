@@ -36,9 +36,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
     {
         public override void SaveFile(string filename, ITerrainChannel map)
         {
-            Bitmap colours = CreateGrayscaleBitmapFromMap(map);
-
-            colours.Save(filename, ImageFormat.Png);
+            using(Bitmap colours = CreateGrayscaleBitmapFromMap(map))
+                colours.Save(filename,ImageFormat.Png);
         }
 
         /// <summary>
@@ -48,9 +47,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         /// <param name="map">The terrain channel being saved</param>
         public override void SaveStream(Stream stream, ITerrainChannel map)
         {
-            Bitmap colours = CreateGrayscaleBitmapFromMap(map);
-
-            colours.Save(stream, ImageFormat.Png);
+            using(Bitmap colours = CreateGrayscaleBitmapFromMap(map))
+                colours.Save(stream,ImageFormat.Png);
         }
 
         public override string ToString()

@@ -92,7 +92,7 @@ namespace OpenSim.Services.UserAccountService
                 m_RootInstance = this;
                 MainConsole.Instance.Commands.AddCommand("Users", false,
                         "create user",
-                        "create user [<first> [<last> [<pass> [<email> [<user id>]]]]]",
+                        "create user [<first> [<last> [<pass> [<email> [<user id> [<model>]]]]]]",
                         "Create a new user", HandleCreateUser);
 
                 MainConsole.Instance.Commands.AddCommand("Users", false,
@@ -353,7 +353,7 @@ namespace OpenSim.Services.UserAccountService
         /// <summary>
         /// Handle the create user command from the console.
         /// </summary>
-        /// <param name="cmdparams">string array with parameters: firstname, lastname, password, locationX, locationY, email</param>
+        /// <param name="cmdparams">string array with parameters: firstname, lastname, password, locationX, locationY, email, userID, model name </param>
         protected void HandleCreateUser(string module, string[] cmdparams)
         {
             string firstName;
@@ -361,6 +361,7 @@ namespace OpenSim.Services.UserAccountService
             string password;
             string email;
             string rawPrincipalId;
+            string model;
 
             List<char> excluded = new List<char>(new char[]{' '});
 
@@ -385,11 +386,16 @@ namespace OpenSim.Services.UserAccountService
             else
                 rawPrincipalId = cmdparams[6];
 
+            if (cmdparams.Length < 8)
+                model = MainConsole.Instance.CmdPrompt("Model name","");
+            else
+                model = cmdparams[7];
+
             UUID principalId = UUID.Zero;
             if (!UUID.TryParse(rawPrincipalId, out principalId))
                 throw new Exception(string.Format("ID {0} is not a valid UUID", rawPrincipalId));
 
-            CreateUser(UUID.Zero, principalId, firstName, lastName, password, email);
+            CreateUser(UUID.Zero, principalId, firstName, lastName, password, email, model);
         }
 
         protected void HandleShowAccount(string module, string[] cmdparams)
@@ -544,7 +550,8 @@ namespace OpenSim.Services.UserAccountService
         /// <param name="lastName"></param>
         /// <param name="password"></param>
         /// <param name="email"></param>
-        public UserAccount CreateUser(UUID scopeID, UUID principalID, string firstName, string lastName, string password, string email)
+        /// <param name="model"></param>
+        public UserAccount CreateUser(UUID scopeID, UUID principalID, string firstName, string lastName, string password, string email, string model = "")
         {
             UserAccount account = GetUserAccount(UUID.Zero, firstName, lastName);
             if (null == account)
@@ -603,7 +610,12 @@ namespace OpenSim.Services.UserAccountService
                         }
 
                         if (m_CreateDefaultAvatarEntries)
-                            CreateDefaultAppearanceEntries(account.PrincipalID);
+                        {
+                            if (String.IsNullOrEmpty(model))
+                                CreateDefaultAppearanceEntries(account.PrincipalID);
+                            else
+                                EstablishAppearance(account.PrincipalID, model);
+                        }
                     }
 
                     m_log.InfoFormat(
@@ -734,6 +746,7 @@ namespace OpenSim.Services.UserAccountService
                 wearables[AvatarWearable.PANTS] = new AvatarWearable(pants.ID, pants.AssetID);
 
                 AvatarAppearance ap = new AvatarAppearance();
+                // this loop works, but is questionable
                 for (int i = 0; i < 6; i++)
                 {
                     ap.SetWearable(i, wearables[i]);
@@ -741,6 +754,206 @@ namespace OpenSim.Services.UserAccountService
 
                 m_AvatarService.SetAppearance(principalID, ap);
             }
+        }
+
+        protected void EstablishAppearance(UUID destinationAgent, string model)
+        {
+            m_log.DebugFormat("[USER ACCOUNT SERVICE]: Establishing new appearance for {0} - {1}",
+                              destinationAgent.ToString(), model);
+
+            string[] modelSpecifiers = model.Split();
+            if (modelSpecifiers.Length != 2)
+            {
+                m_log.WarnFormat("[USER ACCOUNT SERVICE]: Invalid model name \'{0}\'. Falling back to Ruth for {1}", 
+                                 model, destinationAgent);
+                CreateDefaultAppearanceEntries(destinationAgent);
+                return;
+            }
+
+            // Does the source model exist?
+            UserAccount modelAccount = GetUserAccount(UUID.Zero, modelSpecifiers[0], modelSpecifiers[1]);
+            if (modelAccount == null)
+            {
+                m_log.WarnFormat("[USER ACCOUNT SERVICE]: Requested model \'{0}\' not found. Falling back to Ruth for {1}", 
+                                 model, destinationAgent);
+                CreateDefaultAppearanceEntries(destinationAgent);
+                return;
+            }
+
+            // Does the source model have an established appearance herself?
+            AvatarAppearance modelAppearance = m_AvatarService.GetAppearance(modelAccount.PrincipalID);
+            if (modelAppearance == null)
+            {
+                m_log.WarnFormat("USER ACCOUNT SERVICE]: Requested model \'{0}\' does not have an established appearance. Falling back to Ruth for {1}",
+                                 model, destinationAgent);
+                CreateDefaultAppearanceEntries(destinationAgent);
+                return;
+            }
+
+            try
+            {
+                CopyWearablesAndAttachments(destinationAgent, modelAccount.PrincipalID, modelAppearance);
+
+                m_AvatarService.SetAppearance(destinationAgent, modelAppearance);
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[USER ACCOUNT SERVICE]: Error transferring appearance for {0} : {1}",
+                    destinationAgent, e.Message);
+            }
+
+            m_log.DebugFormat("[USER ACCOUNT SERVICE]: Finished establishing appearance for {0}",
+                destinationAgent.ToString());
+        }
+
+        /// <summary>
+        /// This method is called by EstablishAppearance to do a copy all inventory items
+        /// worn or attached to the Clothing inventory folder of the receiving avatar.
+        /// In parallel the avatar wearables and attachments are updated.
+        /// </summary>
+        private void CopyWearablesAndAttachments(UUID destination, UUID source, AvatarAppearance avatarAppearance)
+        {
+            // Get Clothing folder of receiver
+            InventoryFolderBase destinationFolder = m_InventoryService.GetFolderForType(destination, FolderType.Clothing);
+
+            if (destinationFolder == null)
+                throw new Exception("Cannot locate folder(s)");
+
+            // Missing destination folder? This should *never* be the case
+            if (destinationFolder.Type != (short)FolderType.Clothing)
+            {
+                destinationFolder = new InventoryFolderBase();
+
+                destinationFolder.ID       = UUID.Random();
+                destinationFolder.Name     = "Clothing";
+                destinationFolder.Owner    = destination;
+                destinationFolder.Type     = (short)AssetType.Clothing;
+                destinationFolder.ParentID = m_InventoryService.GetRootFolder(destination).ID;
+                destinationFolder.Version  = 1;
+                m_InventoryService.AddFolder(destinationFolder);     // store base record
+                m_log.ErrorFormat("[USER ACCOUNT SERVICE]: Created folder for destination {0}", source);
+            }
+
+            // Wearables
+            AvatarWearable[] wearables = avatarAppearance.Wearables;
+            AvatarWearable wearable;
+
+            for (int i = 0; i < wearables.Length; i++)
+            {
+                wearable = wearables[i];
+                if (wearable[0].ItemID != UUID.Zero)
+                {
+                    // Get inventory item and copy it
+                    InventoryItemBase item = m_InventoryService.GetItem(source, wearable[0].ItemID);
+
+                    if (item != null)
+                    {
+                        InventoryItemBase destinationItem = new InventoryItemBase(UUID.Random(), destination);
+                        destinationItem.Name = item.Name;
+                        destinationItem.Owner = destination;
+                        destinationItem.Description = item.Description;
+                        destinationItem.InvType = item.InvType;
+                        destinationItem.CreatorId = item.CreatorId;
+                        destinationItem.CreatorData = item.CreatorData;
+                        destinationItem.NextPermissions = item.NextPermissions;
+                        destinationItem.CurrentPermissions = item.CurrentPermissions;
+                        destinationItem.BasePermissions = item.BasePermissions;
+                        destinationItem.EveryOnePermissions = item.EveryOnePermissions;
+                        destinationItem.GroupPermissions = item.GroupPermissions;
+                        destinationItem.AssetType = item.AssetType;
+                        destinationItem.AssetID = item.AssetID;
+                        destinationItem.GroupID = item.GroupID;
+                        destinationItem.GroupOwned = item.GroupOwned;
+                        destinationItem.SalePrice = item.SalePrice;
+                        destinationItem.SaleType = item.SaleType;
+                        destinationItem.Flags = item.Flags;
+                        destinationItem.CreationDate = item.CreationDate;
+                        destinationItem.Folder = destinationFolder.ID;
+                        ApplyNextOwnerPermissions(destinationItem);
+
+                        m_InventoryService.AddItem(destinationItem);
+                        m_log.DebugFormat("[USER ACCOUNT SERVICE]: Added item {0} to folder {1}", destinationItem.ID, destinationFolder.ID);
+
+                        // Wear item
+                        AvatarWearable newWearable = new AvatarWearable();
+                        newWearable.Wear(destinationItem.ID, wearable[0].AssetID);
+                        avatarAppearance.SetWearable(i, newWearable);
+                    }
+                    else
+                    {
+                        m_log.WarnFormat("[USER ACCOUNT SERVICE]: Error transferring {0} to folder {1}", wearable[0].ItemID, destinationFolder.ID);
+                    }
+                }
+            }
+
+            // Attachments
+            List<AvatarAttachment> attachments = avatarAppearance.GetAttachments();
+
+            foreach (AvatarAttachment attachment in attachments)
+            {
+                int attachpoint = attachment.AttachPoint;
+                UUID itemID = attachment.ItemID;
+
+                if (itemID != UUID.Zero)
+                {
+                    // Get inventory item and copy it
+                    InventoryItemBase item = m_InventoryService.GetItem(source, itemID);
+
+                    if (item != null)
+                    {
+                        InventoryItemBase destinationItem = new InventoryItemBase(UUID.Random(), destination);
+                        destinationItem.Name = item.Name;
+                        destinationItem.Owner = destination;
+                        destinationItem.Description = item.Description;
+                        destinationItem.InvType = item.InvType;
+                        destinationItem.CreatorId = item.CreatorId;
+                        destinationItem.CreatorData = item.CreatorData;
+                        destinationItem.NextPermissions = item.NextPermissions;
+                        destinationItem.CurrentPermissions = item.CurrentPermissions;
+                        destinationItem.BasePermissions = item.BasePermissions;
+                        destinationItem.EveryOnePermissions = item.EveryOnePermissions;
+                        destinationItem.GroupPermissions = item.GroupPermissions;
+                        destinationItem.AssetType = item.AssetType;
+                        destinationItem.AssetID = item.AssetID;
+                        destinationItem.GroupID = item.GroupID;
+                        destinationItem.GroupOwned = item.GroupOwned;
+                        destinationItem.SalePrice = item.SalePrice;
+                        destinationItem.SaleType = item.SaleType;
+                        destinationItem.Flags = item.Flags;
+                        destinationItem.CreationDate = item.CreationDate;
+                        destinationItem.Folder = destinationFolder.ID;
+                        ApplyNextOwnerPermissions(destinationItem);
+
+                        m_InventoryService.AddItem(destinationItem);
+                        m_log.DebugFormat("[USER ACCOUNT SERVICE]: Added item {0} to folder {1}", destinationItem.ID, destinationFolder.ID);
+
+                        // Attach item
+                        avatarAppearance.SetAttachment(attachpoint, destinationItem.ID, destinationItem.AssetID);
+                        m_log.DebugFormat("[USER ACCOUNT SERVICE]: Attached {0}", destinationItem.ID);
+                    }
+                    else
+                    {
+                        m_log.WarnFormat("[USER ACCOUNT SERVICE]: Error transferring {0} to folder {1}", itemID, destinationFolder.ID);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Apply next owner permissions.
+        /// </summary>
+        private void ApplyNextOwnerPermissions(InventoryItemBase item)
+        {
+            if (item.InvType == (int)InventoryType.Object)
+            {
+                uint perms = item.CurrentPermissions;
+                PermissionsUtil.ApplyFoldedPermissions(item.CurrentPermissions, ref perms);
+                item.CurrentPermissions = perms;
+            }
+
+            item.CurrentPermissions &= item.NextPermissions;
+            item.BasePermissions &= item.NextPermissions;
+            item.EveryOnePermissions &= item.NextPermissions;
         }
     }
 }

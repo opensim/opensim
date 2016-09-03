@@ -4323,6 +4323,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;           
 
             SceneObjectPart targetPart = World.GetSceneObjectPart((UUID)targetID);
+            if (targetPart == null)
+                return;
 
             if (targetPart.ParentGroup.AttachmentPoint != 0)
                 return; // Fail silently if attached
@@ -4332,23 +4334,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             SceneObjectGroup parentPrim = null, childPrim = null;
 
-            if (targetPart != null)
+            if (parent != 0)
             {
-                if (parent != 0)
-                {
-                    parentPrim = m_host.ParentGroup;
-                    childPrim = targetPart.ParentGroup;
-                }
-                else
-                {
-                    parentPrim = targetPart.ParentGroup;
-                    childPrim = m_host.ParentGroup;
-                }
-
-                // Required for linking
-                childPrim.RootPart.ClearUpdateSchedule();
-                parentPrim.LinkToGroup(childPrim, true);
+                parentPrim = m_host.ParentGroup;
+                childPrim = targetPart.ParentGroup;
             }
+            else
+            {
+                parentPrim = targetPart.ParentGroup;
+                childPrim = m_host.ParentGroup;
+            }
+
+            // Required for linking
+            childPrim.RootPart.ClearUpdateSchedule();
+            parentPrim.LinkToGroup(childPrim, true);
+
 
             parentPrim.TriggerScriptChangedEvent(Changed.LINK);
             parentPrim.RootPart.CreateSelected = true;
@@ -4741,20 +4741,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             Vector3 av3 = Util.Clip(color, 0.0f, 1.0f);
-            if (text.Length > 254)
-                text = text.Remove(254);
-
             byte[] data;
-            do
-            {
-                data = Util.UTF8.GetBytes(text);
-                if (data.Length > 254)
-                    text = text.Substring(0, text.Length - 1);
-            } while (data.Length > 254);
-
+            data = Util.StringToBytes256(text);
+            text = Util.UTF8.GetString(data);
             m_host.SetText(text, av3, Util.Clip((float)alpha, 0.0f, 1.0f));
-            //m_host.ParentGroup.HasGroupChanged = true;
-            //m_host.ParentGroup.ScheduleGroupForFullUpdate();
         }
 
         public LSL_Float llWater(LSL_Vector offset)
@@ -5118,13 +5108,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 m_host.CollisionSoundVolume = (float)impact_volume;
                 m_host.CollisionSound = m_host.invalidCollisionSoundUUID;
-                m_host.CollisionSoundType = 0;
+                m_host.CollisionSoundType = -1; // disable all sounds
+                m_host.aggregateScriptEvents();
                 return;
             }
+
             // TODO: Parameter check logic required.
-            m_host.CollisionSound = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, impact_sound, AssetType.Sound);
-            m_host.CollisionSoundVolume = (float)impact_volume;
-            m_host.CollisionSoundType = 1;
+            UUID soundId = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, impact_sound, AssetType.Sound);
+            if(soundId != UUID.Zero)
+            {
+                m_host.CollisionSound = soundId;
+                m_host.CollisionSoundVolume = (float)impact_volume;
+                m_host.CollisionSoundType = 1;
+            }
+            else
+                 m_host.CollisionSoundType = -1;
+
+            m_host.aggregateScriptEvents();
         }
 
         public LSL_String llGetAnimation(string id)
@@ -14679,13 +14679,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             msAvailable -= m_castRayCalls[i].UsedMs;
                     }
                 }
-            }
 
-            // Return failure if not enough available time
-            if (msAvailable < m_msMinInCastRay)
-            {
-                result.Add(new LSL_Integer(ScriptBaseClass.RCERR_CAST_TIME_EXCEEDED));
-                return result;
+                // Return failure if not enough available time
+                if (msAvailable < m_msMinInCastRay)
+                {
+                    result.Add(new LSL_Integer(ScriptBaseClass.RCERR_CAST_TIME_EXCEEDED));
+                    return result;
+                }
             }
 
             // Initialize
@@ -15073,13 +15073,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // Add to throttle data
             stopWatch.Stop();
-            CastRayCall castRayCall = new CastRayCall();
-            castRayCall.RegionId = regionId;
-            castRayCall.UserId = userId;
-            castRayCall.CalledMs = calledMs;
-            castRayCall.UsedMs = (int)stopWatch.ElapsedMilliseconds;
             lock (m_castRayCalls)
             {
+                CastRayCall castRayCall = new CastRayCall();
+                castRayCall.RegionId = regionId;
+                castRayCall.UserId = userId;
+                castRayCall.CalledMs = calledMs;
+                castRayCall.UsedMs = (int)stopWatch.ElapsedMilliseconds;
                 m_castRayCalls.Add(castRayCall);
             }
 

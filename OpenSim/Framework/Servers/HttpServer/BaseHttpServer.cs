@@ -461,8 +461,8 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             
             OSHttpResponse resp = new OSHttpResponse(new HttpResponse(context, request),context);
-//            resp.ReuseContext = true;
-            resp.ReuseContext = false;
+            resp.ReuseContext = true;
+//            resp.ReuseContext = false;
             HandleRequest(req, resp);           
 
             // !!!HACK ALERT!!!

@@ -80,8 +80,7 @@ namespace OpenSim.Framework.Monitoring
                     + "'all' will show all statistics.\n"
                     + "A <category> name will show statistics from that category.\n"
                     + "A <category>.<container> name will show statistics from that category in that container.\n"
-                    + "More than one name can be given separated by spaces.\n"
-                    + "THIS STATS FACILITY IS EXPERIMENTAL AND DOES NOT YET CONTAIN ALL STATS",
+                    + "More than one name can be given separated by spaces.\n",
                 HandleShowStatsCommand);
 
             console.Commands.AddCommand(
@@ -91,7 +90,6 @@ namespace OpenSim.Framework.Monitoring
                 "show stats [list|all|(<category>[.<container>])+",
                 "Alias for 'stats show' command",
                 HandleShowStatsCommand);
-
             StatsLogger.RegisterConsoleCommands(console);
         }
 
@@ -361,8 +359,8 @@ namespace OpenSim.Framework.Monitoring
         /// <returns></returns>
         public static bool RegisterStat(Stat stat)
         {
-            SortedDictionary<string, SortedDictionary<string, Stat>> category = null, newCategory;
-            SortedDictionary<string, Stat> container = null, newContainer;
+            SortedDictionary<string, SortedDictionary<string, Stat>> category = null;
+            SortedDictionary<string, Stat> container = null;
 
             lock (RegisteredStats)
             {
@@ -372,22 +370,15 @@ namespace OpenSim.Framework.Monitoring
                 if (TryGetStatParents(stat, out category, out container))
                     return false;
 
-                // We take a copy-on-write approach here of replacing dictionaries when keys are added or removed.
-                // This means that we don't need to lock or copy them on iteration, which will be a much more
-                // common operation after startup.
-                if (container != null)
-                    newContainer = new SortedDictionary<string, Stat>(container);
-                else
-                    newContainer = new SortedDictionary<string, Stat>();
+                if (container == null)
+                    container = new SortedDictionary<string, Stat>();
 
-                if (category != null)
-                    newCategory = new SortedDictionary<string, SortedDictionary<string, Stat>>(category);
-                else
-                    newCategory = new SortedDictionary<string, SortedDictionary<string, Stat>>();
+                if (category == null)
+                    category = new SortedDictionary<string, SortedDictionary<string, Stat>>();
 
-                newContainer[stat.ShortName] = stat;
-                newCategory[stat.Container] = newContainer;
-                RegisteredStats[stat.Category] = newCategory;
+                container[stat.ShortName] = stat;
+                category[stat.Container] = container;
+                RegisteredStats[stat.Category] = category;
             }
 
             return true;
@@ -400,23 +391,24 @@ namespace OpenSim.Framework.Monitoring
         /// <returns></returns>
         public static bool DeregisterStat(Stat stat)
         {
-            SortedDictionary<string, SortedDictionary<string, Stat>> category = null, newCategory;
-            SortedDictionary<string, Stat> container = null, newContainer;
+            SortedDictionary<string, SortedDictionary<string, Stat>> category = null;
+            SortedDictionary<string, Stat> container = null;
 
             lock (RegisteredStats)
             {
                 if (!TryGetStatParents(stat, out category, out container))
                     return false;
-
-                newContainer = new SortedDictionary<string, Stat>(container);
-                newContainer.Remove(stat.ShortName);
-
-                newCategory = new SortedDictionary<string, SortedDictionary<string, Stat>>(category);
-                newCategory.Remove(stat.Container);
-
-                newCategory[stat.Container] = newContainer;
-                RegisteredStats[stat.Category] = newCategory;
-
+                
+                if(container != null)
+                {
+                    container.Remove(stat.ShortName);
+                    if(category != null && container.Count == 0)
+                    {
+                        category.Remove(stat.Container);
+                        if(category.Count == 0)
+                            RegisteredStats.Remove(stat.Category);
+                    }
+                }
                 return true;
             }
         }

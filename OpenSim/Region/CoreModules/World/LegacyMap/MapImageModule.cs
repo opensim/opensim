@@ -382,7 +382,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 
                                     Vector3 pos = part.GetWorldPosition();
 
-                                    // skip prim outside of retion
+                                    // skip prim outside of region
                                     if (!m_scene.PositionIsInCurrentRegion(pos))
                                         continue;
 
@@ -406,12 +406,13 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                                     {
                                         // Translate scale by rotation so scale is represented properly when object is rotated
                                         Vector3 lscale = new Vector3(part.Shape.Scale.X, part.Shape.Scale.Y, part.Shape.Scale.Z);
+                                        lscale *= 0.5f;
+
                                         Vector3 scale = new Vector3();
                                         Vector3 tScale = new Vector3();
                                         Vector3 axPos = new Vector3(pos.X, pos.Y, pos.Z);
 
-                                        Quaternion llrot = part.GetWorldRotation();
-                                        Quaternion rot = new Quaternion(llrot.W, llrot.X, llrot.Y, llrot.Z);
+                                        Quaternion rot = part.GetWorldRotation();
                                         scale = lscale * rot;
 
                                         // negative scales don't work in this situation
@@ -470,7 +471,6 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 
                                         tScale = new Vector3(lscale.X, -lscale.Y, -lscale.Z);
                                         scale = ((tScale * rot));
-
                                         vertexes[2] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
 
                                         //vertexes[2].x = pos.X + vertexes[2].x;

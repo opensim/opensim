@@ -345,6 +345,7 @@ namespace OpenSim.Region.Framework.Scenes
         private string m_text = String.Empty;
         private string m_touchName = String.Empty;
         private UndoRedoState m_UndoRedo = null;
+        private object m_UndoLock = new object();
 
         private bool m_passTouches = false;
         private bool m_passCollisions = false;
@@ -399,12 +400,11 @@ namespace OpenSim.Region.Framework.Scenes
 
 
         // 0 for default collision sounds, -1 for script disabled sound 1 for script defined sound
-        private sbyte m_collisionSoundType;
+        private sbyte m_collisionSoundType = 0;
         private UUID m_collisionSound;
         private float m_collisionSoundVolume;
 
         private int LastColSoundSentTime; 
-
 
         private SOPVehicle m_vehicleParams = null;
 
@@ -1534,7 +1534,6 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                     m_collisionSoundType = 1;
 
-                aggregateScriptEvents();
             }
         }
 
@@ -2164,7 +2163,10 @@ namespace OpenSim.Region.Framework.Scenes
                     UpdatePhysicsSubscribedEvents(); // not sure if appliable here
                 }
                 else
+                {
                     PhysActor = null; // just to be sure
+                    RemFlag(PrimFlags.CameraDecoupled);
+                }
             }
         }
 
@@ -3539,6 +3541,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             set
             {
                 m_vehicleParams = value;
+
             }
         }
 
@@ -3583,7 +3586,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
             m_vehicleParams.ProcessVehicleFlags(param, remove);
 
-            if (_parentID ==0 && PhysActor != null)
+            if (_parentID == 0 && PhysActor != null)
             {
                 PhysActor.VehicleFlags(param, remove);
             }
@@ -3932,11 +3935,11 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
         public void StoreUndoState(ObjectChangeType change)
         {
-            if (m_UndoRedo == null)
-                m_UndoRedo = new UndoRedoState(5);
-
-            lock (m_UndoRedo)
+            lock (m_UndoLock)
             {
+                if (m_UndoRedo == null)
+                    m_UndoRedo = new UndoRedoState(5);
+
                 if (!Undoing && !IgnoreUndoUpdate && ParentGroup != null) // just to read better  - undo is in progress, or suspended
                 {
                     m_UndoRedo.StoreUndo(this, change);
@@ -3959,11 +3962,11 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
         public void Undo()
         {
-            if (m_UndoRedo == null || Undoing || ParentGroup == null)
-                return;
-
-            lock (m_UndoRedo)
+            lock (m_UndoLock)
             {
+                if (m_UndoRedo == null || Undoing || ParentGroup == null)
+                    return;
+
                 Undoing = true;
                 m_UndoRedo.Undo(this);
                 Undoing = false;
@@ -3972,11 +3975,11 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
         public void Redo()
         {
-            if (m_UndoRedo == null || Undoing || ParentGroup == null)
-                return;
-
-            lock (m_UndoRedo)
+            lock (m_UndoLock)
             {
+                if (m_UndoRedo == null || Undoing || ParentGroup == null)
+                    return;
+
                 Undoing = true;
                 m_UndoRedo.Redo(this);
                 Undoing = false;
@@ -3985,11 +3988,11 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
         public void ClearUndoState()
         {
-            if (m_UndoRedo == null || Undoing)
-                return;
-
-            lock (m_UndoRedo)
+            lock (m_UndoLock)
             {
+                if (m_UndoRedo == null || Undoing)
+                    return;
+
                 m_UndoRedo.Clear();
             }
         }
@@ -4722,9 +4725,16 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                 if (VolumeDetectActive) // change if not the default only
                     pa.SetVolumeDetect(1);
 
-                if (m_vehicleParams != null && LocalId == ParentGroup.RootPart.LocalId)
+                if (m_vehicleParams != null && m_localId == ParentGroup.RootPart.LocalId)
+                {
                     m_vehicleParams.SetVehicle(pa);
-
+                    if(isPhysical && !isPhantom && m_vehicleParams.CameraDecoupled)
+                        AddFlag(PrimFlags.CameraDecoupled);
+                    else
+                        RemFlag(PrimFlags.CameraDecoupled);
+                }                
+                else
+                    RemFlag(PrimFlags.CameraDecoupled);
                 // we are going to tell rest of code about physics so better have this here
                 PhysActor = pa;
 
@@ -4800,6 +4810,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
                 ParentGroup.Scene.EventManager.TriggerObjectRemovedFromPhysicalScene(this);
             }
+            RemFlag(PrimFlags.CameraDecoupled);
             PhysActor = null;
         }
 
@@ -5021,7 +5032,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
         }
 
 
-        private void UpdatePhysicsSubscribedEvents()
+        internal void UpdatePhysicsSubscribedEvents()
         {
             PhysicsActor pa = PhysActor;
             if (pa == null)
@@ -5095,8 +5106,6 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                 objectflagupdate |= (uint) PrimFlags.AllowInventoryDrop;
             }
 
-            UpdatePhysicsSubscribedEvents();
-
             LocalFlags = (PrimFlags)objectflagupdate;
 
             if (ParentGroup != null && ParentGroup.RootPart == this)
@@ -5107,6 +5116,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             {
 //                m_log.DebugFormat(
 //                    "[SCENE OBJECT PART]: Scheduling part {0} {1} for full update in aggregateScriptEvents()", Name, LocalId);
+                UpdatePhysicsSubscribedEvents();
                 ScheduleFullUpdate();
             }
         }
@@ -5407,6 +5417,25 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             AngularVelocity = Vector3.Zero;
             Acceleration = Vector3.Zero;
             APIDActive = false;
+        }
+
+        // handle osVolumeDetect
+        public void ScriptSetVolumeDetect(bool makeVolumeDetect)
+        {
+            if(_parentID == 0)
+            {
+                // if root prim do it via SOG
+                ParentGroup.ScriptSetVolumeDetect(makeVolumeDetect);
+                return;
+            }
+
+            bool wasUsingPhysics = ((Flags & PrimFlags.Physics) != 0);
+            bool wasTemporary = ((Flags & PrimFlags.TemporaryOnRez) != 0);
+            bool wasPhantom = ((Flags & PrimFlags.Phantom) != 0);
+
+            if(PhysActor != null)
+                PhysActor.Building = true;
+            UpdatePrimFlags(wasUsingPhysics,wasTemporary,wasPhantom,makeVolumeDetect,false);
         }
     }
 }

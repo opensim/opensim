@@ -64,7 +64,7 @@ namespace OpenSim.Server.Handlers.Land
             ulong regionHandle = Convert.ToUInt64(requestData["region_handle"]);
             uint x = Convert.ToUInt32(requestData["x"]);
             uint y = Convert.ToUInt32(requestData["y"]);
-            m_log.DebugFormat("[LAND HANDLER]: Got request for land data at {0}, {1} for region {2}", x, y, regionHandle);
+//            m_log.DebugFormat("[LAND HANDLER]: Got request for land data at {0}, {1} for region {2}", x, y, regionHandle);
 
             byte regionAccess;
             LandData landData = m_LocalService.GetLandData(UUID.Zero, regionHandle, x, y, out regionAccess);

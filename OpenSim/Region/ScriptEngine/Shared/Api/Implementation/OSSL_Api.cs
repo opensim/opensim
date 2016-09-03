@@ -45,6 +45,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Scripting;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api.Plugins;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
@@ -4250,5 +4251,48 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return m_UrlModule.RequestSecureURL(m_ScriptEngine.ScriptModule, m_host, m_item.ItemID, opts).ToString();
             return UUID.Zero.ToString();
         }
+
+        public void osCollisionSound(string impact_sound, double impact_volume)
+        {
+            m_host.AddScriptLPS(1);
+
+            if(impact_sound == "")
+            {
+                m_host.CollisionSoundVolume = (float)impact_volume;
+                m_host.CollisionSound = m_host.invalidCollisionSoundUUID;
+                if(impact_volume == 0.0)
+                    m_host.CollisionSoundType = -1; // disable all sounds
+                else if(impact_volume == 1.0f)
+                    m_host.CollisionSoundType = 0; // full return to default sounds
+                else
+                    m_host.CollisionSoundType = 2; // default sounds with volume
+                m_host.aggregateScriptEvents();           
+                return;
+            }
+            // TODO: Parameter check logic required.
+            UUID soundId = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, impact_sound, AssetType.Sound);
+            if(soundId != UUID.Zero)
+            {
+                m_host.CollisionSound = soundId;
+                m_host.CollisionSoundVolume = (float)impact_volume;
+                m_host.CollisionSoundType = 1;
+            }
+            else
+                 m_host.CollisionSoundType = -1;
+
+            m_host.aggregateScriptEvents();           
+        }
+
+        // still not very usefull, detector is lost on rez, restarts, etc
+        public void osVolumeDetect(int detect)
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_host.ParentGroup == null || m_host.ParentGroup.IsDeleted || m_host.ParentGroup.IsAttachment)
+                return;
+
+            m_host.ScriptSetVolumeDetect(detect != 0);
+        }
+
     }
 }

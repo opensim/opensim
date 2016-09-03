@@ -227,7 +227,10 @@ TD.align_top { vertical-align: top; }
                     returnstruct.avg_client_mem_use = Convert.ToSingle(sdr["sav_mem_use"]);
 
                 }
+                sdr.Close();
+                cmd.Dispose();
             }
+            
             return returnstruct;
         }
 

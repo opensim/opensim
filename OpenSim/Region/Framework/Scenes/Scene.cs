@@ -2780,13 +2780,6 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 group.StopScriptInstances();
 
-            List<ScenePresence> avatars = group.GetSittingAvatars();
-            foreach (ScenePresence av in avatars)
-            {
-                if(av.ParentUUID == UUID.Zero)
-                    av.StandUp();
-            }
-
             SceneObjectPart[] partList = group.Parts;
 
             foreach (SceneObjectPart part in partList)
@@ -3336,7 +3329,6 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnObjectRequest += RequestPrim;
             client.OnObjectSelect += SelectPrim;
             client.OnObjectDeselect += DeselectPrim;
-            client.OnGrabUpdate += m_sceneGraph.MoveObject;
             client.OnSpinStart += m_sceneGraph.SpinStart;
             client.OnSpinUpdate += m_sceneGraph.SpinObject;
             client.OnDeRezObject += DeRezObjects;
@@ -3464,7 +3456,6 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnObjectRequest -= RequestPrim;
             client.OnObjectSelect -= SelectPrim;
             client.OnObjectDeselect -= DeselectPrim;
-            client.OnGrabUpdate -= m_sceneGraph.MoveObject;
             client.OnSpinStart -= m_sceneGraph.SpinStart;
             client.OnSpinUpdate -= m_sceneGraph.SpinObject;
             client.OnDeRezObject -= DeRezObjects;
@@ -3479,6 +3470,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnRequestObjectPropertiesFamily -= m_sceneGraph.RequestObjectPropertiesFamily;
             client.OnObjectPermissions -= HandleObjectPermissionsUpdate;
             client.OnGrabObject -= ProcessObjectGrab;
+            client.OnGrabUpdate -= ProcessObjectGrabUpdate;
             client.OnDeGrabObject -= ProcessObjectDeGrab;
             client.OnUndo -= m_sceneGraph.HandleUndo;
             client.OnRedo -= m_sceneGraph.HandleRedo;
@@ -5036,7 +5028,7 @@ Label_GroupsDone:
 
         public LandData GetLandData(uint x, uint y)
         {
-            m_log.DebugFormat("[SCENE]: returning land for {0},{1}", x, y);
+//            m_log.DebugFormat("[SCENE]: returning land for {0},{1}", x, y);
             ILandObject parcel = LandChannel.GetLandObject((int)x, (int)y);
             if (parcel == null)
                 return null;
@@ -5439,7 +5431,6 @@ Label_GroupsDone:
                     }
                 }
             }
-
         }
 
         public void DeleteFromStorage(UUID uuid)

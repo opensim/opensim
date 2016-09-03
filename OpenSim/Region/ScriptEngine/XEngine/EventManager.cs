@@ -408,10 +408,17 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void attach(uint localID, UUID itemID, UUID avatar)
         {
-            myScriptEngine.PostObjectEvent(localID, new EventParams(
+            SceneObjectGroup grp = myScriptEngine.World.GetSceneObjectGroup(localID);
+            if(grp == null)
+                return;
+
+            foreach(SceneObjectPart part in grp.Parts)
+            { 
+                myScriptEngine.PostObjectEvent(part.LocalId, new EventParams(
                     "attach",new object[] {
                     new LSL_Types.LSLString(avatar.ToString()) },
                     new DetectParams[0]));
+            }
         }
 
         // dataserver: not handled here

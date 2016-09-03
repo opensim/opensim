@@ -1388,7 +1388,7 @@ default
                 "\n            LSL_Types.list m = new LSL_Types.list(new LSL_Types.LSLInteger(1), new LSL_Types.LSLInteger(2), new LSL_Types.LSLInteger(3));" +
                 "\n            LSL_Types.Vector3 v = new LSL_Types.Vector3(new LSL_Types.LSLFloat(0.0), new LSL_Types.LSLFloat(0.0), new LSL_Types.LSLFloat(0.0));" +
                 "\n            LSL_Types.Vector3 w = new LSL_Types.Vector3(new LSL_Types.LSLFloat(1.0), new LSL_Types.LSLFloat(0.1), new LSL_Types.LSLFloat(0.5));" +
-                "\n            LSL_Types.Quaternion r = new LSL_Types.Quaternion(new LSL_Types.LSLFloat(0.0), new LSL_Types.LSLFloat(0.0), new LSL_Types.LSLFloat(0.0), new LSL_Types.LSLFloat(0.0));" +
+                "\n            LSL_Types.Quaternion r = new LSL_Types.Quaternion(new LSL_Types.LSLFloat(0.0), new LSL_Types.LSLFloat(0.0), new LSL_Types.LSLFloat(0.0), new LSL_Types.LSLFloat(1.0));" +
                 "\n            LSL_Types.Quaternion u = new LSL_Types.Quaternion(new LSL_Types.LSLFloat(0.8), new LSL_Types.LSLFloat(0.7), new LSL_Types.LSLFloat(0.6), llSomeFunc());" +
                 "\n            LSL_Types.LSLString k = new LSL_Types.LSLString(\"\");" +
                 "\n            LSL_Types.LSLString n = new LSL_Types.LSLString(\"ping\");" +
