@@ -461,7 +461,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             
             OSHttpResponse resp = new OSHttpResponse(new HttpResponse(context, request),context);
-            resp.ReuseContext = true;
+//            resp.ReuseContext = true;
 //            resp.ReuseContext = false;
             HandleRequest(req, resp);           
 
@@ -1804,7 +1804,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 */
             // disable this things
             response.KeepAlive = false;
-            response.ReuseContext = false;
+ //           response.ReuseContext = false;
 
             // Cross-Origin Resource Sharing with simple requests
             if (responsedata.ContainsKey("access_control_allow_origin"))

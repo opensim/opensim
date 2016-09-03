@@ -256,7 +256,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 _httpResponse.Reason = value;
             }
         }
-
+/*
         public bool ReuseContext
         {
             get
@@ -275,7 +275,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
             }
         }
-
+*/
         protected IHttpResponse _httpResponse;
         private IHttpClientContext _httpClientContext;
 
