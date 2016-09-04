@@ -133,7 +133,7 @@ namespace OpenSim.Region.OptionalModules.Materials
             IRequestHandler renderMaterialsPutHandler 
                 = new RestStreamHandler("PUT", capsBase + "/",
                     (request, path, param, httpRequest, httpResponse)
-                        => RenderMaterialsPostCap(request, agentID),
+                        => RenderMaterialsPutCap(request, agentID),
                     "RenderMaterials", null);
             MainServer.Instance.AddStreamHandler(renderMaterialsPutHandler);
         }
@@ -256,14 +256,19 @@ namespace OpenSim.Region.OptionalModules.Materials
             {
                 if (m_regionMaterials.ContainsKey(id))
                     return;
-                
-                byte[] data = m_scene.AssetService.GetData(id.ToString());
-                if (data == null)
+            
+
+                // get all asset so it gets into cache
+                AssetBase matAsset = m_scene.AssetService.Get(id.ToString());
+
+//              byte[] data = m_scene.AssetService.GetData(id.ToString());
+                if (matAsset == null || matAsset.Data == null || matAsset.Data.Length == 0 )
                 {
                     m_log.WarnFormat("[Materials]: Prim \"{0}\" ({1}) contains unknown material ID {2}", part.Name, part.UUID, id);
                     return;
                 }
 
+                byte[] data = matAsset.Data;
                 OSDMap mat;
                 try
                 {
@@ -284,6 +289,75 @@ namespace OpenSim.Region.OptionalModules.Materials
             OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
             OSDMap resp = new OSDMap();
 
+            OSDArray respArr = new OSDArray();
+
+            if (req.ContainsKey("Zipped"))
+            {
+                OSD osd = null;
+
+                byte[] inBytes = req["Zipped"].AsBinary();
+
+                try 
+                {
+                    osd = ZDecompressBytesToOsd(inBytes);
+
+                    if (osd != null && osd is OSDArray)
+                    {
+                        foreach (OSD elem in (OSDArray)osd)
+                        {
+                            try
+                            {
+                                UUID id = new UUID(elem.AsBinary(), 0);
+
+                                lock (m_regionMaterials)
+                                {
+                                    if (m_regionMaterials.ContainsKey(id))
+                                    {
+                                        OSDMap matMap = new OSDMap();
+                                        matMap["ID"] = OSD.FromBinary(id.GetBytes());
+                                        matMap["Material"] = m_regionMaterials[id];
+                                        respArr.Add(matMap);
+                                    }
+                                    else
+                                    {
+                                        m_log.Warn("[Materials]: request for unknown material ID: " + id.ToString());
+
+                                        // Theoretically we could try to load the material from the assets service,
+                                        // but that shouldn't be necessary because the viewer should only request
+                                        // materials that exist in a prim on the region, and all of these materials
+                                        // are already stored in m_regionMaterials.
+                                    }
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                m_log.Error("Error getting materials in response to viewer request", e);
+                                continue;
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    m_log.Warn("[Materials]: exception decoding zipped CAP payload ", e);
+                    //return "";
+                }
+            }
+            
+            resp["Zipped"] = ZCompressOSD(respArr, false);
+            string response = OSDParser.SerializeLLSDXmlString(resp);
+
+            //m_log.Debug("[Materials]: cap request: " + request);
+            //m_log.Debug("[Materials]: cap request (zipped portion): " + ZippedOsdBytesToString(req["Zipped"].AsBinary()));
+            //m_log.Debug("[Materials]: cap response: " + response);
+            return response;
+        }
+
+        public string RenderMaterialsPutCap(string request, UUID agentID)
+        {
+            OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
+            OSDMap resp = new OSDMap();
+
             OSDMap materialsFromViewer = null;
 
             OSDArray respArr = new OSDArray();
@@ -298,150 +372,108 @@ namespace OpenSim.Region.OptionalModules.Materials
                 {
                     osd = ZDecompressBytesToOsd(inBytes);
 
-                    if (osd != null)
+                    if (osd != null && osd is OSDMap)
                     {
-                        if (osd is OSDArray) // assume array of MaterialIDs designating requested material entries
+                        materialsFromViewer = osd as OSDMap;
+
+                        if (materialsFromViewer.ContainsKey("FullMaterialsPerFace"))
                         {
-                            foreach (OSD elem in (OSDArray)osd)
+                            OSD matsOsd = materialsFromViewer["FullMaterialsPerFace"];
+                            if (matsOsd is OSDArray)
                             {
+                                OSDArray matsArr = matsOsd as OSDArray;
+
                                 try
                                 {
-                                    UUID id = new UUID(elem.AsBinary(), 0);
-
-                                    lock (m_regionMaterials)
+                                    foreach (OSDMap matsMap in matsArr)
                                     {
-                                        if (m_regionMaterials.ContainsKey(id))
+                                        uint primLocalID = 0;
+                                        try {
+                                            primLocalID = matsMap["ID"].AsUInteger();
+                                        }
+                                        catch (Exception e) {
+                                            m_log.Warn("[Materials]: cannot decode \"ID\" from matsMap: " + e.Message);
+                                            continue;
+                                        }
+
+                                        SceneObjectPart sop = m_scene.GetSceneObjectPart(primLocalID);
+                                        if (sop == null)
                                         {
-                                            OSDMap matMap = new OSDMap();
-                                            matMap["ID"] = OSD.FromBinary(id.GetBytes());
-                                            matMap["Material"] = m_regionMaterials[id];
-                                            respArr.Add(matMap);
+                                            m_log.WarnFormat("[Materials]: SOP not found for localId: {0}", primLocalID.ToString());
+                                            continue;
+                                        }
+
+                                        if (!m_scene.Permissions.CanEditObject(sop.UUID, agentID))
+                                        {
+                                            m_log.WarnFormat("User {0} can't edit object {1} {2}", agentID, sop.Name, sop.UUID);
+                                            continue;
+                                        }
+
+                                        OSDMap mat = null;
+                                        try
+                                        {
+                                            mat = matsMap["Material"] as OSDMap;
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            m_log.Warn("[Materials]: cannot decode \"Material\" from matsMap: " + e.Message);
+                                            continue;
+                                        }
+
+                                        Primitive.TextureEntry te = new Primitive.TextureEntry(sop.Shape.TextureEntry, 0, sop.Shape.TextureEntry.Length);
+                                        if (te == null)
+                                        {
+                                            m_log.WarnFormat("[Materials]: Error in TextureEntry for SOP {0} {1}", sop.Name, sop.UUID);
+                                            continue;
+                                        }
+
+                                        UUID id;
+                                        if (mat == null)
+                                        {
+                                            // This happens then the user removes a material from a prim
+                                            id = UUID.Zero;
                                         }
                                         else
                                         {
-                                            m_log.Warn("[Materials]: request for unknown material ID: " + id.ToString());
+                                            id = StoreMaterialAsAsset(agentID, mat, sop);
+                                        }
 
-                                            // Theoretically we could try to load the material from the assets service,
-                                            // but that shouldn't be necessary because the viewer should only request
-                                            // materials that exist in a prim on the region, and all of these materials
-                                            // are already stored in m_regionMaterials.
+                                        int face = -1;
+
+                                        if (matsMap.ContainsKey("Face"))
+                                        {
+                                            face = matsMap["Face"].AsInteger();
+                                            Primitive.TextureEntryFace faceEntry = te.CreateFace((uint)face);
+                                            faceEntry.MaterialID = id;
+                                        }
+                                        else
+                                        {
+                                            if (te.DefaultTexture == null)
+                                                m_log.WarnFormat("[Materials]: TextureEntry.DefaultTexture is null in {0} {1}", sop.Name, sop.UUID);
+                                            else
+                                                te.DefaultTexture.MaterialID = id;
+                                        }
+
+                                        //m_log.DebugFormat("[Materials]: in \"{0}\" {1}, setting material ID for face {2} to {3}", sop.Name, sop.UUID, face, id);
+
+                                        // We can't use sop.UpdateTextureEntry(te) because it filters, so do it manually
+                                        sop.Shape.TextureEntry = te.GetBytes();
+
+                                        if (sop.ParentGroup != null)
+                                        {
+                                            sop.TriggerScriptChangedEvent(Changed.TEXTURE);
+                                            sop.ParentGroup.HasGroupChanged = true;
+                                            sop.ScheduleFullUpdate();
                                         }
                                     }
                                 }
                                 catch (Exception e)
                                 {
-                                    m_log.Error("Error getting materials in response to viewer request", e);
-                                    continue;
-                                }
-                            }
-                        }
-                        else if (osd is OSDMap) // request to assign a material
-                        {
-                            materialsFromViewer = osd as OSDMap;
-
-                            if (materialsFromViewer.ContainsKey("FullMaterialsPerFace"))
-                            {
-                                OSD matsOsd = materialsFromViewer["FullMaterialsPerFace"];
-                                if (matsOsd is OSDArray)
-                                {
-                                    OSDArray matsArr = matsOsd as OSDArray;
-
-                                    try
-                                    {
-                                        foreach (OSDMap matsMap in matsArr)
-                                        {
-                                            uint primLocalID = 0;
-                                            try {
-                                                primLocalID = matsMap["ID"].AsUInteger();
-                                            }
-                                            catch (Exception e) {
-                                                m_log.Warn("[Materials]: cannot decode \"ID\" from matsMap: " + e.Message);
-                                                continue;
-                                            }
-
-                                            OSDMap mat = null;
-                                            try
-                                            {
-                                                mat = matsMap["Material"] as OSDMap;
-                                            }
-                                            catch (Exception e)
-                                            {
-                                                m_log.Warn("[Materials]: cannot decode \"Material\" from matsMap: " + e.Message);
-                                                continue;
-                                            }
-
-                                            SceneObjectPart sop = m_scene.GetSceneObjectPart(primLocalID);
-                                            if (sop == null)
-                                            {
-                                                m_log.WarnFormat("[Materials]: SOP not found for localId: {0}", primLocalID.ToString());
-                                                continue;
-                                            }
-
-                                            if (!m_scene.Permissions.CanEditObject(sop.UUID, agentID))
-                                            {
-                                                m_log.WarnFormat("User {0} can't edit object {1} {2}", agentID, sop.Name, sop.UUID);
-                                                continue;
-                                            }
-
-                                            Primitive.TextureEntry te = new Primitive.TextureEntry(sop.Shape.TextureEntry, 0, sop.Shape.TextureEntry.Length);
-                                            if (te == null)
-                                            {
-                                                m_log.WarnFormat("[Materials]: Error in TextureEntry for SOP {0} {1}", sop.Name, sop.UUID);
-                                                continue;
-                                            }
-
-
-                                            UUID id;
-                                            if (mat == null)
-                                            {
-                                                // This happens then the user removes a material from a prim
-                                                id = UUID.Zero;
-                                            }
-                                            else
-                                            {
-                                                id = StoreMaterialAsAsset(agentID, mat, sop);
-                                            }
-
-
-                                            int face = -1;
-
-                                            if (matsMap.ContainsKey("Face"))
-                                            {
-                                                face = matsMap["Face"].AsInteger();
-                                                Primitive.TextureEntryFace faceEntry = te.CreateFace((uint)face);
-                                                faceEntry.MaterialID = id;
-                                            }
-                                            else
-                                            {
-                                                if (te.DefaultTexture == null)
-                                                    m_log.WarnFormat("[Materials]: TextureEntry.DefaultTexture is null in {0} {1}", sop.Name, sop.UUID);
-                                                else
-                                                    te.DefaultTexture.MaterialID = id;
-                                            }
-
-                                            //m_log.DebugFormat("[Materials]: in \"{0}\" {1}, setting material ID for face {2} to {3}", sop.Name, sop.UUID, face, id);
-
-                                            // We can't use sop.UpdateTextureEntry(te) because it filters, so do it manually
-                                            sop.Shape.TextureEntry = te.GetBytes();
-
-                                            if (sop.ParentGroup != null)
-                                            {
-                                                sop.TriggerScriptChangedEvent(Changed.TEXTURE);
-                                                sop.UpdateFlag = UpdateRequired.FULL;
-                                                sop.ParentGroup.HasGroupChanged = true;
-                                                sop.ScheduleFullUpdate();
-                                            }
-                                        }
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        m_log.Warn("[Materials]: exception processing received material ", e);
-                                    }
+                                    m_log.Warn("[Materials]: exception processing received material ", e);
                                 }
                             }
                         }
                     }
-
                 }
                 catch (Exception e)
                 {
@@ -449,7 +481,6 @@ namespace OpenSim.Region.OptionalModules.Materials
                     //return "";
                 }
             }
-
             
             resp["Zipped"] = ZCompressOSD(respArr, false);
             string response = OSDParser.SerializeLLSDXmlString(resp);
