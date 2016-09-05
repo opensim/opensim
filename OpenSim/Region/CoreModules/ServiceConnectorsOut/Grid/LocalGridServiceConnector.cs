@@ -52,6 +52,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         private IGridService m_GridService;
         private RegionInfoCache m_RegionInfoCache;
+        private HashSet<Scene> m_scenes = new HashSet<Scene>();
 
         private bool m_Enabled;
 
@@ -68,7 +69,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public LocalGridServicesConnector(IConfigSource source, RegionInfoCache regionInfoCache)
         {
-            m_log.DebugFormat("{0} LocalGridServicesConnector instantiated directly witj cache.", LogHeader);
+            m_log.DebugFormat("{0} LocalGridServicesConnector instantiated directly with cache.", LogHeader);
             InitialiseService(source, regionInfoCache);
         }
 
@@ -153,6 +154,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (!m_Enabled)
                 return;
 
+            lock(m_scenes)
+            {
+                if(!m_scenes.Contains(scene))
+                    m_scenes.Add(scene);
+            }
             scene.RegisterModuleInterface<IGridService>(this);
 
             GridRegion r = new GridRegion(scene.RegionInfo);
@@ -165,6 +171,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         {
             if (!m_Enabled)
                 return;
+
+            lock(m_scenes)
+            {
+                if(m_scenes.Contains(scene))
+                    m_scenes.Remove(scene);
+            }
 
             m_RegionInfoCache.Remove(scene.RegionInfo.ScopeID, scene.RegionInfo.RegionHandle);
             scene.EventManager.OnRegionUp -= OnRegionUp;
@@ -221,14 +233,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
 
-            // try in cache by handler first
-//            ulong regionHandle = Util.RegionWorldLocToHandle((uint)x, (uint)y);
-
             bool inCache = false;
-//            GridRegion rinfo = m_RegionInfoCache.Get(scopeID, regionHandle, out inCache);
-//            if (inCache)
-//                return rinfo;
-
             GridRegion rinfo = m_RegionInfoCache.Get(scopeID, (uint)x, (uint)y, out inCache);
             if (inCache)
                 return rinfo;
@@ -297,22 +302,26 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public void HandleShowNeighboursCommand(string module, string[] cmdparams)
         {
+            if(!m_Enabled || m_scenes.Count == 0)
+                return;
+
             System.Text.StringBuilder caps = new System.Text.StringBuilder();
-/*   temporary broken
-            lock (m_LocalCache)
+
+            List<Scene> scenes;
+            lock (m_scenes)
+                scenes = new List<Scene>(m_scenes);
+
+            foreach (Scene s in scenes)
             {
-                foreach (KeyValuePair<UUID, RegionCache> kvp in m_LocalCache)
-                {
-                    caps.AppendFormat("*** Neighbours of {0} ({1}) ***\n", kvp.Value.RegionName, kvp.Key);
-                    List<GridRegion> regions = kvp.Value.GetNeighbours();
-                    foreach (GridRegion r in regions)
-                        caps.AppendFormat("    {0} @ {1}-{2}\n", r.RegionName, Util.WorldToRegionLoc((uint)r.RegionLocX), Util.WorldToRegionLoc((uint)r.RegionLocY));
-                }
+                RegionInfo sr = s.RegionInfo;
+                caps.AppendFormat("*** Neighbours of {0} ({1}) ***\n", sr.RegionName, sr.RegionID);
+                List<GridRegion> regions = GetNeighbours(sr.ScopeID, sr.RegionID);
+                foreach (GridRegion r in regions)
+                    caps.AppendFormat("    {0} @ {1}-{2}\n", r.RegionName, Util.WorldToRegionLoc((uint)r.RegionLocX), Util.WorldToRegionLoc((uint)r.RegionLocY));
             }
 
             MainConsole.Instance.Output(caps.ToString());
-*/
-            MainConsole.Instance.Output("Neighbours list not avaiable in this version\n");
+
         }
     }
 }
