@@ -1435,6 +1435,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                     land.LandData.IsGroupOwned = false;
                     land.LandData.SalePrice = 0;
                     land.LandData.AuthBuyerID = UUID.Zero;
+                    land.LandData.SeeAVs = true;
+                    land.LandData.AnyAVSounds = true;
+                    land.LandData.GroupAVSounds = true;
                     land.LandData.Flags &= ~(uint) (ParcelFlags.ForSale | ParcelFlags.ForSaleObjects | ParcelFlags.SellParcelObjects | ParcelFlags.ShowDirectory);
                     m_scene.ForEachClient(SendParcelOverlay);
                     land.SendLandUpdateToClient(true, remote_client);
