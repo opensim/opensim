@@ -142,7 +142,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             // will have instantiated us directly.
             MainConsole.Instance.Commands.AddCommand("Regions", false, "show neighbours",
                 "show neighbours",
-                "Shows the local regions' neighbours", HandleShowNeighboursCommand);
+                "Shows the local region neighbours", HandleShowNeighboursCommand);
+
+            MainConsole.Instance.Commands.AddCommand("Regions", false, "show regionsinview",
+                "show regions that can be seen",
+                "Shows regions that can be seen from a region", HandleShowRegionsInViewCommand);
         }
 
         public void Close()
@@ -322,6 +326,47 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             MainConsole.Instance.Output(caps.ToString());
 
+        }
+
+        public void HandleShowRegionsInViewCommand(string module, string[] cmdparams)
+        {
+            if(!m_Enabled || m_scenes.Count == 0)
+                return;
+
+            System.Text.StringBuilder caps = new System.Text.StringBuilder();
+
+            List<Scene> scenes;
+            lock (m_scenes)
+                scenes = new List<Scene>(m_scenes);
+
+            foreach (Scene s in scenes)
+            {
+                int maxview = (int)s.MaxRegionViewDistance;
+                RegionInfo sr = s.RegionInfo;
+                caps.AppendFormat("*** Regions that can be seen from {0} ({1}) view {2}m ***\n", sr.RegionName, sr.RegionID, maxview);
+                int startX = (int)sr.WorldLocX;
+                int endX = startX + (int)sr.RegionSizeX;
+                int startY = (int)sr.WorldLocY;
+                int endY = startY + (int)sr.RegionSizeY;
+                startX -= maxview;
+                if(startX < 0 )
+                    startX = 0;
+                startY -= maxview;
+                if(startY < 0)
+                    startY = 0;
+                endX += maxview;
+                endY += maxview;
+
+                List<GridRegion> regions = GetRegionRange(sr.ScopeID, startX, endX, startY, endY);
+                foreach (GridRegion r in regions)
+                {
+                    if(r.RegionHandle == sr.RegionHandle)
+                        continue;
+                    caps.AppendFormat("    {0} @ {1}-{2}\n", r.RegionName, Util.WorldToRegionLoc((uint)r.RegionLocX), Util.WorldToRegionLoc((uint)r.RegionLocY));
+                }
+            }
+
+            MainConsole.Instance.Output(caps.ToString());
         }
     }
 }
