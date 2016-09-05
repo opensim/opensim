@@ -343,7 +343,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             {
                 int maxview = (int)s.MaxRegionViewDistance;
                 RegionInfo sr = s.RegionInfo;
-                caps.AppendFormat("*** Regions that can be seen from {0} ({1}) view {2}m ***\n", sr.RegionName, sr.RegionID, maxview);
+                caps.AppendFormat("*** Regions that can be seen from {0} ({1}) (MaxRegionViewDistance {2}m) ***\n", sr.RegionName, sr.RegionID, maxview);
                 int startX = (int)sr.WorldLocX;
                 int endX = startX + (int)sr.RegionSizeX;
                 int startY = (int)sr.WorldLocY;
