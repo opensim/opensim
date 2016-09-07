@@ -145,7 +145,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 "Shows the local region neighbours", HandleShowNeighboursCommand);
 
             MainConsole.Instance.Commands.AddCommand("Regions", false, "show regionsinview",
-                "show regions that can be seen",
+                "show regionsinview",
                 "Shows regions that can be seen from a region", HandleShowRegionsInViewCommand);
         }
 
