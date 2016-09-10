@@ -40,6 +40,7 @@ using OpenSim.Framework.Console;
 using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.World.Objects.Commands
 {
@@ -107,6 +108,15 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 + "max-agent-limit <int> - Maximum root agent limit.  agent-limit cannot exceed this."
                 + "  This is not persisted over restart - to set it every time you must add a MaxAgents entry to your regions file.",
                 HandleRegionSet);
+
+            m_console.Commands.AddCommand("Regions", false, "show neighbours",
+                "show neighbours",
+                "Shows the local region neighbours", HandleShowNeighboursCommand);
+
+            m_console.Commands.AddCommand("Regions", false, "show regionsinview",
+                "show regionsinview",
+                "Shows regions that can be seen from a region", HandleShowRegionsInViewCommand);
+
         }
 
         public void RemoveRegion(Scene scene)
@@ -308,6 +318,61 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             dispList.AddToStringBuilder(sb);
 
             MainConsole.Instance.Output(sb.ToString());
+        }
+
+        public void HandleShowNeighboursCommand(string module, string[] cmdparams)
+        {
+            if(m_scene == null)
+                return;
+
+            if (!(MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_scene))
+                return;
+
+            System.Text.StringBuilder caps = new System.Text.StringBuilder();
+
+            RegionInfo sr = m_scene.RegionInfo;
+            caps.AppendFormat("*** Neighbours of {0} ({1}) ***\n", sr.RegionName, sr.RegionID);
+            List<GridRegion> regions = m_scene.GridService.GetNeighbours(sr.ScopeID, sr.RegionID);
+                foreach (GridRegion r in regions)
+                    caps.AppendFormat("    {0} @ {1}-{2}\n", r.RegionName, Util.WorldToRegionLoc((uint)r.RegionLocX), Util.WorldToRegionLoc((uint)r.RegionLocY));
+
+            MainConsole.Instance.Output(caps.ToString());
+        }
+
+        public void HandleShowRegionsInViewCommand(string module, string[] cmdparams)
+        {
+            if(m_scene == null)
+                return;
+
+            if (!(MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_scene))
+                return;
+
+            System.Text.StringBuilder caps = new System.Text.StringBuilder();
+            int maxview = (int)m_scene.MaxRegionViewDistance;
+            RegionInfo sr = m_scene.RegionInfo;
+            caps.AppendFormat("*** Regions that can be seen from {0} ({1}) (MaxRegionViewDistance {2}m) ***\n", sr.RegionName, sr.RegionID, maxview);
+            int startX = (int)sr.WorldLocX;
+            int endX = startX + (int)sr.RegionSizeX;
+            int startY = (int)sr.WorldLocY;
+            int endY = startY + (int)sr.RegionSizeY;
+            startX -= maxview;
+            if(startX < 0 )
+                startX = 0;
+            startY -= maxview;
+            if(startY < 0)
+                startY = 0;
+            endX += maxview;
+            endY += maxview;
+
+            List<GridRegion> regions = m_scene.GridService.GetRegionRange(sr.ScopeID, startX, endX, startY, endY);
+            foreach (GridRegion r in regions)
+            {
+                if(r.RegionHandle == sr.RegionHandle)
+                    continue;
+                caps.AppendFormat("    {0} @ {1}-{2}\n", r.RegionName, Util.WorldToRegionLoc((uint)r.RegionLocX), Util.WorldToRegionLoc((uint)r.RegionLocY));
+            }
+
+            MainConsole.Instance.Output(caps.ToString());
         }
     }
 }
