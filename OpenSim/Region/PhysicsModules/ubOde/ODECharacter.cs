@@ -112,7 +112,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private bool _zeroFlag = false;
         private bool m_haveLastFallVel = false;
 
-
         private uint m_localID = 0;
         public bool m_returnCollisions = false;
         // taints and their non-tainted counterparts
@@ -149,7 +148,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public int m_eventsubscription = 0;
         private int m_cureventsubscription = 0;
-        private CollisionEventUpdate CollisionEventsThisFrame = null;
+        private CollisionEventUpdate CollisionEventsThisFrame = new CollisionEventUpdate();
         private bool SentEmptyCollisionsEvent;
 
         // unique UUID of this character object
@@ -1556,32 +1555,26 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public override float APIDDamping { set { return; } }
 
-
         public override void SubscribeEvents(int ms)
         {
             m_eventsubscription = ms;
             m_cureventsubscription = 0;
-            if (CollisionEventsThisFrame == null)
-                CollisionEventsThisFrame = new CollisionEventUpdate();
+            CollisionEventsThisFrame.Clear();
             SentEmptyCollisionsEvent = false;
         }
 
         public override void UnSubscribeEvents()
         {
-            if (CollisionEventsThisFrame != null)
-            {
-                CollisionEventsThisFrame.Clear();
-                CollisionEventsThisFrame = null;
-            }
             m_eventsubscription = 0;
             _parent_scene.RemoveCollisionEventReporting(this);
+            lock(CollisionEventsThisFrame)
+                CollisionEventsThisFrame.Clear();
         }
 
         public override void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
         {
-            if (CollisionEventsThisFrame == null)
-                CollisionEventsThisFrame = new CollisionEventUpdate();
-            CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
+            lock(CollisionEventsThisFrame)
+                CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
             _parent_scene.AddCollisionEventReporting(this);
         }
 
@@ -1590,28 +1583,28 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (m_cureventsubscription < 50000)
                 m_cureventsubscription += timestep;
 
-            if (CollisionEventsThisFrame == null)
-                return;
-
             if (m_cureventsubscription < m_eventsubscription)
                 return;
 
-            int ncolisions = CollisionEventsThisFrame.m_objCollisionList.Count;
-
-            if (!SentEmptyCollisionsEvent || ncolisions > 0)
+            lock(CollisionEventsThisFrame)
             {
-                base.SendCollisionUpdate(CollisionEventsThisFrame);
-                m_cureventsubscription = 0;
+                int ncolisions = CollisionEventsThisFrame.m_objCollisionList.Count;
 
-                if (ncolisions == 0)
+                if (!SentEmptyCollisionsEvent || ncolisions > 0)
                 {
-                    SentEmptyCollisionsEvent = true;
-//                  _parent_scene.RemoveCollisionEventReporting(this);
-                }
-                else
-                {
-                    SentEmptyCollisionsEvent = false;
-                    CollisionEventsThisFrame.Clear();
+                    base.SendCollisionUpdate(CollisionEventsThisFrame);
+                    m_cureventsubscription = 0;
+
+                    if (ncolisions == 0)
+                    {
+                        SentEmptyCollisionsEvent = true;
+    //                  _parent_scene.RemoveCollisionEventReporting(this);
+                    }
+                    else
+                    {
+                        SentEmptyCollisionsEvent = false;
+                        CollisionEventsThisFrame.Clear();
+                    }
                 }
             }           
         }
