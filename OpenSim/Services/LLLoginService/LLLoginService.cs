@@ -588,6 +588,7 @@ namespace OpenSim.Services.LLLoginService
                     List<GridRegion> defaults = m_GridService.GetDefaultRegions(scopeID);
                     if (defaults != null && defaults.Count > 0)
                     {
+                        flags |= TeleportFlags.ViaRegionID;
                         region = defaults[0];
                         where = "safe";
                     }
@@ -597,7 +598,10 @@ namespace OpenSim.Services.LLLoginService
                             account.FirstName, account.LastName);
                         region = FindAlternativeRegion(scopeID);
                         if (region != null)
+                        {
+                            flags |= TeleportFlags.ViaRegionID;
                             where = "safe";
+                        }
                     }
                 }
 
@@ -618,6 +622,7 @@ namespace OpenSim.Services.LLLoginService
                     List<GridRegion> defaults = m_GridService.GetDefaultRegions(scopeID);
                     if (defaults != null && defaults.Count > 0)
                     {
+                        flags |= TeleportFlags.ViaRegionID;
                         region = defaults[0];
                         where = "safe";
                     }
@@ -626,7 +631,10 @@ namespace OpenSim.Services.LLLoginService
                         m_log.Info("[LLOGIN SERVICE]: Last Region Not Found Attempting to find random region");
                         region = FindAlternativeRegion(scopeID);
                         if (region != null)
+                        {
+                            flags |= TeleportFlags.ViaRegionID;
                             where = "safe";
+                        }
                     }
 
                 }
