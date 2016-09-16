@@ -3329,8 +3329,6 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnObjectRequest += RequestPrim;
             client.OnObjectSelect += SelectPrim;
             client.OnObjectDeselect += DeselectPrim;
-            client.OnSpinStart += m_sceneGraph.SpinStart;
-            client.OnSpinUpdate += m_sceneGraph.SpinObject;
             client.OnDeRezObject += DeRezObjects;
 
             client.OnObjectName += m_sceneGraph.PrimName;
@@ -3346,6 +3344,9 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnGrabObject += ProcessObjectGrab;
             client.OnGrabUpdate += ProcessObjectGrabUpdate;
             client.OnDeGrabObject += ProcessObjectDeGrab;
+            client.OnSpinStart += ProcessSpinStart;
+            client.OnSpinUpdate += ProcessSpinObject;
+            client.OnSpinStop += ProcessSpinObjectStop;
             client.OnUndo += m_sceneGraph.HandleUndo;
             client.OnRedo += m_sceneGraph.HandleRedo;
             client.OnObjectDescription += m_sceneGraph.PrimDescription;
@@ -3456,8 +3457,6 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnObjectRequest -= RequestPrim;
             client.OnObjectSelect -= SelectPrim;
             client.OnObjectDeselect -= DeselectPrim;
-            client.OnSpinStart -= m_sceneGraph.SpinStart;
-            client.OnSpinUpdate -= m_sceneGraph.SpinObject;
             client.OnDeRezObject -= DeRezObjects;
             client.OnObjectName -= m_sceneGraph.PrimName;
             client.OnObjectClickAction -= m_sceneGraph.PrimClickAction;
@@ -3472,6 +3471,9 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnGrabObject -= ProcessObjectGrab;
             client.OnGrabUpdate -= ProcessObjectGrabUpdate;
             client.OnDeGrabObject -= ProcessObjectDeGrab;
+            client.OnSpinStart -= ProcessSpinStart;
+            client.OnSpinUpdate -= ProcessSpinObject;
+            client.OnSpinStop -= ProcessSpinObjectStop;
             client.OnUndo -= m_sceneGraph.HandleUndo;
             client.OnRedo -= m_sceneGraph.HandleRedo;
             client.OnObjectDescription -= m_sceneGraph.PrimDescription;

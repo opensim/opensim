@@ -413,6 +413,64 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Start spinning the given object
+        /// </summary>
+        /// <param name="objectID"></param>
+        /// <param name="rotation"></param>
+        /// <param name="remoteClient"></param>
+        public virtual void ProcessSpinStart(UUID objectID, IClientAPI remoteClient)
+        {
+            SceneObjectGroup group = GetGroupByPrim(objectID);
+            if (group != null)
+            {
+                if (Permissions.CanMoveObject(group.UUID, remoteClient.AgentId))// && PermissionsMngr.)
+                {
+                    group.SpinStart(remoteClient);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Spin the given object
+        /// </summary>
+        /// <param name="objectID"></param>
+        /// <param name="rotation"></param>
+        /// <param name="remoteClient"></param>
+        public virtual void ProcessSpinObject(UUID objectID, Quaternion rotation, IClientAPI remoteClient)
+        {
+            SceneObjectGroup group = GetGroupByPrim(objectID);
+            if (group != null)
+            {
+                if (Permissions.CanMoveObject(group.UUID, remoteClient.AgentId))// && PermissionsMngr.)
+                {
+                    group.SpinMovement(rotation, remoteClient);
+                }
+                // This is outside the above permissions condition
+                // so that if the object is locked the client moving the object
+                // get's it's position on the simulator even if it was the same as before
+                // This keeps the moving user's client in sync with the rest of the world.
+                group.SendGroupTerseUpdate();
+            }
+        }
+
+        public virtual void ProcessSpinObjectStop(UUID objectID, IClientAPI remoteClient)
+        {
+            SceneObjectGroup group = GetGroupByPrim(objectID);
+            if (group != null)
+            {
+                if (Permissions.CanMoveObject(group.UUID, remoteClient.AgentId))// && PermissionsMngr.)
+                {
+//                    group.SpinMovement(rotation, remoteClient);
+                }
+                // This is outside the above permissions condition
+                // so that if the object is locked the client moving the object
+                // get's it's position on the simulator even if it was the same as before
+                // This keeps the moving user's client in sync with the rest of the world.
+                group.SendGroupTerseUpdate();
+            }
+        }
+
         public void ProcessScriptReset(IClientAPI remoteClient, UUID objectID,
                 UUID itemID)
         {
