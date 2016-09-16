@@ -3607,7 +3607,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (m_rootPart.IsWaitingForFirstSpinUpdatePacket)
                     {
-                        // first time initialization of "old" orientation for calculation of delta rotations
+                      // first time initialization of "old" orientation for calculation of delta rotations
                         m_rootPart.SpinOldOrientation = newOrientation;
                         m_rootPart.IsWaitingForFirstSpinUpdatePacket = false;
                     }
@@ -3620,16 +3620,21 @@ namespace OpenSim.Region.Framework.Scenes
                         //m_log.Error("[SCENE OBJECT GROUP]: Incoming new orientation is " + newOrientation);
 
                         // compute difference between previous old rotation and new incoming rotation
-                        Quaternion minimalRotationFromQ1ToQ2 = Quaternion.Inverse(old) * newOrientation;
+                        Quaternion minimalRotationFromQ1ToQ2 = newOrientation * Quaternion.Inverse(old);
 
                         float rotationAngle;
-                        Vector3 rotationAxis;
-                        minimalRotationFromQ1ToQ2.GetAxisAngle(out rotationAxis, out rotationAngle);
-                        rotationAxis.Normalize();
+                        Vector3 spinforce;
+                        minimalRotationFromQ1ToQ2.GetAxisAngle(out spinforce, out rotationAngle);
+                        if(Math.Abs(rotationAngle)< 0.001)
+                            return;
+
+                        spinforce.Normalize();
 
                         //m_log.Error("SCENE OBJECT GROUP]: rotation axis is " + rotationAxis);
-                        Vector3 spinforce = new Vector3(rotationAxis.X, rotationAxis.Y, rotationAxis.Z);
-                        spinforce = (spinforce/8) * pa.Mass; // 8 is an arbitrary torque scaling factor
+                        if(rotationAngle > 0)
+                            spinforce = spinforce * pa.Mass * 0.1f; // 0.1 is an arbitrary torque scaling factor
+                        else
+                           spinforce = spinforce * pa.Mass * -0.1f; // 0.1 is an arbitrary torque scaling 
                         pa.AddAngularForce(spinforce,true);
                         m_scene.PhysicsScene.AddPhysicsActorTaint(pa);
                     }
