@@ -340,13 +340,11 @@ namespace OpenSim.Region.Framework.Scenes
             obj.ObjectGrabHandler(localID, offsetPos, remoteClient);
     
             // If the touched prim handles touches, deliver it
-            // If not, deliver to root prim
             if ((part.ScriptEvents & scriptEvents.touch_start) != 0)
                 EventManager.TriggerObjectGrab(part.LocalId, 0, part.OffsetPosition, remoteClient, surfaceArg);
 
             // Deliver to the root prim if the touched prim doesn't handle touches
-            // or if we're meant to pass on touches anyway. Don't send to root prim
-            // if prim touched is the root prim as we just did it
+            // or if we're meant to pass on touches anyway.
             if (((part.ScriptEvents & scriptEvents.touch_start) == 0) ||
                 (part.PassTouches && (part.LocalId != obj.RootPart.LocalId))) 
             {
@@ -381,12 +379,10 @@ namespace OpenSim.Region.Framework.Scenes
                 surfaceArg = surfaceArgs[0];
 
             // If the touched prim handles touches, deliver it
-            // If not, deliver to root prim
             if ((part.ScriptEvents & scriptEvents.touch) != 0)
                 EventManager.TriggerObjectGrabbing(part.LocalId, 0, part.OffsetPosition, remoteClient, surfaceArg);
             // Deliver to the root prim if the touched prim doesn't handle touches
-            // or if we're meant to pass on touches anyway. Don't send to root prim
-            // if prim touched is the root prim as we just did it
+            // or if we're meant to pass on touches anyway.
             if (((part.ScriptEvents & scriptEvents.touch) == 0) ||
                 (part.PassTouches && (part.LocalId != group.RootPart.LocalId)))
             {
@@ -400,18 +396,21 @@ namespace OpenSim.Region.Framework.Scenes
             if (part == null)
                 return;
 
-            SceneObjectGroup obj = part.ParentGroup;
+            SceneObjectGroup grp = part.ParentGroup;
 
             SurfaceTouchEventArgs surfaceArg = null;
             if (surfaceArgs != null && surfaceArgs.Count > 0)
                 surfaceArg = surfaceArgs[0];
 
             // If the touched prim handles touches, deliver it
-            // If not, deliver to root prim
             if ((part.ScriptEvents & scriptEvents.touch_end) != 0)
                 EventManager.TriggerObjectDeGrab(part.LocalId, 0, remoteClient, surfaceArg);
-            else
-                EventManager.TriggerObjectDeGrab(obj.RootPart.LocalId, part.LocalId, remoteClient, surfaceArg);
+            // if not or PassTouchs, send it also to root.
+            if (((part.ScriptEvents & scriptEvents.touch_end) == 0) ||
+                (part.PassTouches && (part.LocalId != grp.RootPart.LocalId)))
+            {
+                EventManager.TriggerObjectDeGrab(grp.RootPart.LocalId, part.LocalId, remoteClient, surfaceArg);
+            }
         }
 
         public void ProcessScriptReset(IClientAPI remoteClient, UUID objectID,
