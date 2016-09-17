@@ -89,6 +89,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="sizeZ">the Z dimension of the region being filled</param>
         /// <returns>Heightfield data</returns>
         TerrainData LoadTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ);
+        TerrainData LoadBakedTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ);
 
         // Legacy version kept for downward compabibility
         double[,] LoadTerrain(UUID regionID);
