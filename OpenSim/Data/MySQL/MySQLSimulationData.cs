@@ -639,6 +639,53 @@ namespace OpenSim.Data.MySQL
             });
         }
 
+        public void StoreBakedTerrain(TerrainData terrData, UUID regionID)
+        {
+            Util.FireAndForget(delegate(object x)
+            {
+                m_log.Info("[REGION DB]: Storing Baked terrain");
+
+                lock (m_dbLock)
+                {
+                    using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                    {
+                        dbcon.Open();
+
+                        using (MySqlCommand cmd = dbcon.CreateCommand())
+                        {
+                            cmd.CommandText = "delete from bakedterrain where RegionUUID = ?RegionUUID";
+                            cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
+
+                            using (MySqlCommand cmd2 = dbcon.CreateCommand())
+                            {
+                                try
+                                {
+                                    cmd2.CommandText = "insert into bakedterrain (RegionUUID, " +
+                                            "Revision, Heightfield) values (?RegionUUID, " +
+                                            "?Revision, ?Heightfield)";
+
+                                    int terrainDBRevision;
+                                    Array terrainDBblob;
+                                    terrData.GetDatabaseBlob(out terrainDBRevision, out terrainDBblob);
+
+                                    cmd2.Parameters.AddWithValue("RegionUUID", regionID.ToString());
+                                    cmd2.Parameters.AddWithValue("Revision", terrainDBRevision);
+                                    cmd2.Parameters.AddWithValue("Heightfield", terrainDBblob);
+
+                                    ExecuteNonQuery(cmd);
+                                    ExecuteNonQuery(cmd2);
+                                }
+                                catch (Exception e)
+                                {
+                                    m_log.ErrorFormat(e.ToString());
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         // Legacy region loading
         public virtual double[,] LoadTerrain(UUID regionID)
         {

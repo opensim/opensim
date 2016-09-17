@@ -1182,3 +1182,16 @@ BEGIN TRANSACTION;
 ALTER TABLE prims ADD "RotationAxisLocks" smallint NOT NULL DEFAULT (0);
 
 COMMIT;
+
+:VERSION 44     #---- add baked terrain store
+
+BEGIN TRANSACTION;
+
+CREATE TABLE bakedterrain
+	(
+	"RegionUUID" uuid NULL,
+	"Revision" int NULL,
+	"Heightfield" bytea NULL
+	);
+
+COMMIT;

@@ -352,3 +352,14 @@ BEGIN;
 ALTER TABLE prims ADD COLUMN `RotationAxisLocks` tinyint(4) NOT NULL default '0';
 
 COMMIT;
+
+:VERSION 34         #---- add baked terrain store
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS bakedterrain(
+       RegionUUID varchar(255),
+       Revision integer,
+       Heightfield blob);
+
+COMMIT;

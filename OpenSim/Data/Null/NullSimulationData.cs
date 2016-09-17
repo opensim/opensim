@@ -133,11 +133,19 @@ namespace OpenSim.Data.Null
         }
 
         Dictionary<UUID, TerrainData> m_terrains = new Dictionary<UUID, TerrainData>();
+        Dictionary<UUID, TerrainData> m_bakedterrains = new Dictionary<UUID, TerrainData>();
         public void StoreTerrain(TerrainData ter, UUID regionID)
         {
             if (m_terrains.ContainsKey(regionID))
                 m_terrains.Remove(regionID);
             m_terrains.Add(regionID, ter);
+        }
+
+        public void StoreBakedTerrain(TerrainData ter, UUID regionID)
+        {
+            if (m_bakedterrains.ContainsKey(regionID))
+                m_bakedterrains.Remove(regionID);
+            m_bakedterrains.Add(regionID, ter);
         }
 
         // Legacy. Just don't do this.

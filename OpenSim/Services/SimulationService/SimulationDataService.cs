@@ -104,6 +104,11 @@ namespace OpenSim.Services.SimulationService
             m_database.StoreTerrain(terrain, regionID);
         }
 
+        public void StoreBakedTerrain(TerrainData terrain, UUID regionID)
+        {
+            m_database.StoreBakedTerrain(terrain, regionID);
+        }
+
         public void StoreTerrain(double[,] terrain, UUID regionID)
         {
             m_database.StoreTerrain(terrain, regionID);

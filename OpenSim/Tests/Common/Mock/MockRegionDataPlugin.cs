@@ -74,6 +74,11 @@ namespace OpenSim.Data.Null
             m_store.StoreTerrain(terrain, regionID);
         }
 
+        public void StoreBakedTerrain(TerrainData terrain, UUID regionID)
+        {
+            m_store.StoreBakedTerrain(terrain, regionID);
+        }
+
         public double[,] LoadTerrain(UUID regionID)
         {
             return m_store.LoadTerrain(regionID);
@@ -170,6 +175,7 @@ namespace OpenSim.Data.Null
         protected Dictionary<UUID, ICollection<TaskInventoryItem>> m_primItems 
             = new Dictionary<UUID, ICollection<TaskInventoryItem>>();
         protected Dictionary<UUID, TerrainData> m_terrains = new Dictionary<UUID, TerrainData>();
+        protected Dictionary<UUID, TerrainData> m_bakedterrains = new Dictionary<UUID, TerrainData>();
         protected Dictionary<UUID, LandData> m_landData = new Dictionary<UUID, LandData>();
         
         public void Initialise(string dbfile)
@@ -317,6 +323,11 @@ namespace OpenSim.Data.Null
         public void StoreTerrain(TerrainData ter, UUID regionID)
         {
             m_terrains[regionID] = ter;
+        }
+
+        public void StoreBakedTerrain(TerrainData ter, UUID regionID)
+        {
+            m_bakedterrains[regionID] = ter;
         }
 
         public void StoreTerrain(double[,] ter, UUID regionID)

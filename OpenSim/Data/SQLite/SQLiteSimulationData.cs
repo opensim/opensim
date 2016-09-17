@@ -827,7 +827,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// Store a terrain revision in region storage
+        /// Store a terrain in region storage
         /// </summary>
         /// <param name="ter">terrain heightfield</param>
         /// <param name="regionID">region UUID</param>
@@ -851,7 +851,44 @@ namespace OpenSim.Data.SQLite
                 Array terrainDBblob;
                 terrData.GetDatabaseBlob(out terrainDBRevision, out terrainDBblob);
 
-                m_log.DebugFormat("{0} Storing terrain revision r {1}", LogHeader, terrainDBRevision);
+                m_log.DebugFormat("{0} Storing terrain format {1}", LogHeader, terrainDBRevision);
+
+                using (SqliteCommand cmd = new SqliteCommand(sql, m_conn))
+                {
+                    cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
+                    cmd.Parameters.Add(new SqliteParameter(":Revision", terrainDBRevision));
+                    cmd.Parameters.Add(new SqliteParameter(":Heightfield", terrainDBblob));
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Store baked terrain in region storage
+        /// </summary>
+        /// <param name="ter">terrain heightfield</param>
+        /// <param name="regionID">region UUID</param>
+        public void StoreBakedTerrain(TerrainData terrData, UUID regionID)
+        {
+            lock (ds)
+            {
+                using (
+                    SqliteCommand cmd = new SqliteCommand("delete from bakedterrain where RegionUUID=:RegionUUID", m_conn))
+                {
+                    cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
+                    cmd.ExecuteNonQuery();
+                }
+
+                // the following is an work around for .NET.  The perf
+                // issues associated with it aren't as bad as you think.
+                String sql = "insert into bakedterrain(RegionUUID, Revision, Heightfield)" +
+                             " values(:RegionUUID, :Revision, :Heightfield)";
+
+                int terrainDBRevision;
+                Array terrainDBblob;
+                terrData.GetDatabaseBlob(out terrainDBRevision, out terrainDBblob);
+
+                m_log.DebugFormat("{0} Storing bakedterrain format {1}", LogHeader, terrainDBRevision);
 
                 using (SqliteCommand cmd = new SqliteCommand(sql, m_conn))
                 {
@@ -1354,7 +1391,7 @@ namespace OpenSim.Data.SQLite
             createCol(land, "Name", typeof(String));
             createCol(land, "Desc", typeof(String));
             createCol(land, "OwnerUUID", typeof(String));
-            createCol(land, "IsGroupOwned", typeof(String));
+            createCol(land, "IsGroupOwned", typeof(Boolean));
             createCol(land, "Area", typeof(Int32));
             createCol(land, "AuctionID", typeof(Int32)); //Unemplemented
             createCol(land, "Category", typeof(Int32)); //Enum OpenMetaverse.Parcel.ParcelCategory
@@ -1387,9 +1424,6 @@ namespace OpenSim.Data.SQLite
             createCol(land, "MediaLoop", typeof(Boolean));
             createCol(land, "ObscureMedia", typeof(Boolean));
             createCol(land, "ObscureMusic", typeof(Boolean));
-            createCol(land, "SeeAVs", typeof(Boolean));
-            createCol(land, "AnyAVSounds", typeof(Boolean));
-            createCol(land, "GroupAVSounds", typeof(Boolean));
 
             land.PrimaryKey = new DataColumn[] { land.Columns["UUID"] };
 
@@ -1832,7 +1866,7 @@ namespace OpenSim.Data.SQLite
             newData.Name = (String)row["Name"];
             newData.Description = (String)row["Desc"];
             newData.OwnerID = (UUID)(String)row["OwnerUUID"];
-            newData.IsGroupOwned = Convert.ToBoolean(row["IsGroupOwned"]);
+            newData.IsGroupOwned = (Boolean)row["IsGroupOwned"];
             newData.Area = Convert.ToInt32(row["Area"]);
             newData.AuctionID = Convert.ToUInt32(row["AuctionID"]); //Unemplemented
             newData.Category = (ParcelCategory)Convert.ToInt32(row["Category"]);
@@ -2248,7 +2282,7 @@ namespace OpenSim.Data.SQLite
             row["Name"] = land.Name;
             row["Desc"] = land.Description;
             row["OwnerUUID"] = land.OwnerID.ToString();
-            row["IsGroupOwned"] = land.IsGroupOwned.ToString();
+            row["IsGroupOwned"] = land.IsGroupOwned;
             row["Area"] = land.Area;
             row["AuctionID"] = land.AuctionID; //Unemplemented
             row["Category"] = land.Category; //Enum OpenMetaverse.Parcel.ParcelCategory
@@ -2941,9 +2975,6 @@ namespace OpenSim.Data.SQLite
             else if (type == typeof(Byte[]))
             {
                 return DbType.Binary;
-            }
-            else if (type == typeof(Boolean)) {
-                return DbType.Boolean;
             }
             else
             {
