@@ -6108,7 +6108,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.SimWideDeletes, HandleSimWideDeletes);
             AddLocalPacketHandler(PacketType.SendPostcard, HandleSendPostcard);
             AddLocalPacketHandler(PacketType.ChangeInventoryItemFlags, HandleChangeInventoryItemFlags);
-
+            AddLocalPacketHandler(PacketType.RevokePermissions, HandleRevokePermissions);
             AddGenericPacketHandler("autopilot", HandleAutopilot);
         }
 
@@ -10997,6 +10997,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return true;
         }
 
+        
         private bool HandleInventoryDescendents(IClientAPI sender, Packet Pack)
         {
             return true;
@@ -12371,6 +12372,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return true;
         }
 
+        private bool HandleRevokePermissions(IClientAPI sender, Packet Pack)
+        {
+            RevokePermissionsPacket pkt = (RevokePermissionsPacket)Pack;
+            if (pkt.AgentData.SessionID != SessionId ||
+                    pkt .AgentData.AgentID != AgentId)
+                return true;
+
+            // don't use multidelegate "event"
+            ScenePresence sp = (ScenePresence)SceneAgent;
+            if(sp != null && !sp.IsDeleted && !sp.IsInTransit)
+            {
+                UUID objectID = pkt.Data.ObjectID;   
+                uint permissions = pkt.Data.ObjectPermissions;        
+
+                sp.HandleRevokePermissions(objectID , permissions);        
+            }
+            return true;
+        }
         private bool HandlePlacesQuery(IClientAPI sender, Packet Pack)
         {
             PlacesQueryPacket placesQueryPacket =

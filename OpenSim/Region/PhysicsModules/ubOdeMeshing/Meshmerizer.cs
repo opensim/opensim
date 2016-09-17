@@ -60,7 +60,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
 		private bool m_Enabled = false;
 		
-        public object diskLock = new object();
+        public static object diskLock = new object();
 
         public bool doMeshFileCache = true;
 
@@ -1426,13 +1426,13 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             {
                 if (File.Exists(filename))
                 {
-                    FileStream stream = null;
                     try
                     {
-                        stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
-                        BinaryFormatter bformatter = new BinaryFormatter();
-
-                        mesh = Mesh.FromStream(stream, key);
+                        using(FileStream stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        {
+//                            BinaryFormatter bformatter = new BinaryFormatter();
+                            mesh = Mesh.FromStream(stream,key);
+                        }
                         
                     }
                     catch (Exception e)
@@ -1443,13 +1443,17 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                             filename, e.Message, e.StackTrace);
                     }
 
-                    if (stream != null)
-                        stream.Close();
+                    try
+                    {
+                        if (mesh == null || !ok)
+                            File.Delete(filename);
+                        else
+                            File.SetLastAccessTimeUtc(filename, DateTime.UtcNow);
+                    }
+                    catch
+                    {
+                    }
 
-                    if (mesh == null || !ok)
-                        File.Delete(filename);
-                    else
-                        File.SetLastAccessTimeUtc(filename, DateTime.UtcNow);
                 }
             }
 
@@ -1458,7 +1462,6 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
         private void StoreToFileCache(AMeshKey key, Mesh mesh)
         {
-            Stream stream = null;
             bool ok = false;
 
             // Make sure the target cache directory exists
@@ -1476,8 +1479,8 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                         Directory.CreateDirectory(dir);
                     }
 
-                    stream = File.Open(filename, FileMode.Create);
-                    ok = mesh.ToStream(stream);
+                    using(Stream stream = File.Open(filename, FileMode.Create))
+                        ok = mesh.ToStream(stream);
                 }
                 catch (IOException e)
                 {
@@ -1487,15 +1490,17 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                     ok = false;
                 }
 
-                if (stream != null)
-                    stream.Close();
-
-                if (File.Exists(filename))
+                if (!ok && File.Exists(filename))
                 {
-                    if (ok)
-                        File.SetLastAccessTimeUtc(filename, DateTime.UtcNow);
-                    else
+                    try
+                    {
                         File.Delete(filename);
+                    }
+                    catch (IOException e)
+                    {
+                         m_log.ErrorFormat(
+                        "[MESH CACHE]: Failed to delete file {0}",filename);
+                    }
                 }
             }
         }

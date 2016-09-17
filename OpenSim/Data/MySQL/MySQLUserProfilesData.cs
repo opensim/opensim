@@ -524,8 +524,7 @@ namespace OpenSim.Data.MySQL
             query += "SELECT `notes` FROM usernotes WHERE ";
             query += "useruuid = ?Id AND ";
             query += "targetuuid = ?TargetId";
-            OSDArray data = new OSDArray();
-            
+
             try
             {
                 using (MySqlConnection dbcon = new MySqlConnection(ConnectionString))
@@ -903,8 +902,6 @@ namespace OpenSim.Data.MySQL
             query += "SELECT imviaemail,visible,email FROM ";
             query += "usersettings WHERE ";
             query += "useruuid = ?Id";
-
-            OSDArray data = new OSDArray();
 
             try
             {

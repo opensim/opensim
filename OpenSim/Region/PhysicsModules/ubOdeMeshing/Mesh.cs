@@ -588,37 +588,36 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             Mesh mesh = new Mesh();
             mesh.releaseBuildingMeshData();
 
-            BinaryReader br = new BinaryReader(st);
-
             bool ok = true;
-            try
+            using(BinaryReader br = new BinaryReader(st))
             {
-                mesh.m_vertexCount = br.ReadInt32();
-                mesh.m_indexCount = br.ReadInt32();
+                try
+                {
+                    mesh.m_vertexCount = br.ReadInt32();
+                    mesh.m_indexCount = br.ReadInt32();
 
-                int n = 3 * mesh.m_vertexCount;
-                mesh.vertices = new float[n];
-                for (int i = 0; i < n; i++)
-                    mesh.vertices[i] = br.ReadSingle();
+                    int n = 3 * mesh.m_vertexCount;
+                    mesh.vertices = new float[n];
+                    for (int i = 0; i < n; i++)
+                        mesh.vertices[i] = br.ReadSingle();
 
-                mesh.indexes = new int[mesh.m_indexCount];
-                for (int i = 0; i < mesh.m_indexCount; i++)
-                    mesh.indexes[i] = br.ReadInt32();
+                    mesh.indexes = new int[mesh.m_indexCount];
+                    for (int i = 0; i < mesh.m_indexCount; i++)
+                        mesh.indexes[i] = br.ReadInt32();
 
-                mesh.m_obb.X = br.ReadSingle();
-                mesh.m_obb.Y = br.ReadSingle();
-                mesh.m_obb.Z = br.ReadSingle();
+                    mesh.m_obb.X = br.ReadSingle();
+                    mesh.m_obb.Y = br.ReadSingle();
+                    mesh.m_obb.Z = br.ReadSingle();
 
-                mesh.m_obboffset.X = br.ReadSingle();
-                mesh.m_obboffset.Y = br.ReadSingle();
-                mesh.m_obboffset.Z = br.ReadSingle();
+                    mesh.m_obboffset.X = br.ReadSingle();
+                    mesh.m_obboffset.Y = br.ReadSingle();
+                    mesh.m_obboffset.Z = br.ReadSingle();
+                }
+                catch
+                {
+                    ok = false;
+                }
             }
-            catch
-            {
-                ok = false;
-            }
-
-            br.Close();
 
             if (ok)
             {

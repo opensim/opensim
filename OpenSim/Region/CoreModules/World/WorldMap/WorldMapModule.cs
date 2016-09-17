@@ -66,7 +66,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         private static readonly string DEFAULT_WORLD_MAP_EXPORT_PATH = "exportmap.jpg";
         private static readonly UUID STOP_UUID = UUID.Random();
-        private static readonly string m_mapLayerPath = "0001/";
 
         private OpenSim.Framework.BlockingQueue<MapRequestState> requests = new OpenSim.Framework.BlockingQueue<MapRequestState>();
         
@@ -177,6 +176,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             regionimage = regionimage.Replace("-", "");
             m_log.Info("[WORLD MAP]: JPEG Map location: " + m_scene.RegionInfo.ServerURI + "index.php?method=" + regionimage);
 
+/*
             MainServer.Instance.AddHTTPHandler(regionimage,
                 new GenericHTTPDOSProtector(OnHTTPGetMapImage, OnHTTPThrottled, new BasicDosProtectorOptions()
                 {
@@ -187,6 +187,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     RequestTimeSpan = TimeSpan.FromSeconds(10),
                     ThrottledAction = BasicDOSProtector.ThrottleAction.DoThrottledMethod
                 }).Process);
+*/
+
+            MainServer.Instance.AddHTTPHandler(regionimage, OnHTTPGetMapImage);
             MainServer.Instance.AddLLSDHandler(
                 "/MAP/MapItems/" + m_scene.RegionInfo.RegionHandle.ToString(), HandleRemoteMapItemRequest);
 
@@ -222,12 +225,12 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         public void OnRegisterCaps(UUID agentID, Caps caps)
         {
             //m_log.DebugFormat("[WORLD MAP]: OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
-            string capsBase = "/CAPS/" + caps.CapsObjectPath;
+            string capspath =  "/CAPS/" + UUID.Random();
             caps.RegisterHandler(
                 "MapLayer",
                 new RestStreamHandler(
                     "POST",
-                    capsBase + m_mapLayerPath,
+                    capspath,
                     (request, path, param, httpRequest, httpResponse)
                         => MapLayerRequest(request, path, param, agentID, caps),
                     "MapLayer",
@@ -1142,10 +1145,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         protected void MapBlockSendThread()
         {
+            List<MapBlockRequestData> thisRunData = new List<MapBlockRequestData>();
             while (true)
             {
-                List<MapBlockRequestData> thisRunData = new List<MapBlockRequestData>();
-
                 m_mapBlockRequestEvent.WaitOne();
                 lock (m_mapBlockRequestEvent)
                 {
@@ -1162,13 +1164,18 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         m_mapBlockRequestEvent.Reset();
                 }
 
-                foreach (MapBlockRequestData req in thisRunData)
+                if(thisRunData.Count > 0)
                 {
-                    // Null client stops thread
-                    if (req.client == null)
-                        return;
+                    foreach (MapBlockRequestData req in thisRunData)
+                    {
+                        // Null client stops thread
+                        if (req.client == null)
+                            return;
 
-                    GetAndSendBlocksInternal(req.client, req.minX, req.minY, req.maxX, req.maxY, req.flags);
+                        GetAndSendBlocksInternal(req.client, req.minX, req.minY, req.maxX, req.maxY, req.flags);
+                    }
+
+                    thisRunData.Clear();
                 }
 
                 Thread.Sleep(50);
@@ -1590,6 +1597,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             {
                 m_scene.AssetService.Delete(lastID.ToString());
                 m_scene.RegionInfo.RegionSettings.TerrainImageID = UUID.Zero;
+                myMapImageJPEG = new byte[0];
                 needRegionSave = true;
             }
 
@@ -1648,7 +1656,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         asset.Flags = AssetFlags.Maptile;
 
                         // Store the new one
-                        m_log.DebugFormat("[WORLD MAP]: Storing map tile {0} for {1}", asset.ID, m_scene.RegionInfo.RegionName);
+                        m_log.DebugFormat("[WORLD MAP]: Storing map image {0} for {1}", asset.ID, m_scene.RegionInfo.RegionName);
 
                         m_scene.AssetService.Store(asset);
 

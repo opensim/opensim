@@ -113,7 +113,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
             }
             catch (Exception e)
             {
-                m_log.Error("[EMAIL] DefaultEmailModule not configured: " + e.Message);
+                m_log.Error("[EMAIL]: DefaultEmailModule not configured: " + e.Message);
                 m_Enabled = false;
                 return;
             }
@@ -142,7 +142,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 }
             }
 
-            m_log.Info("[EMAIL] Activated DefaultEmailModule");
+            m_log.Info("[EMAIL]: Activated DefaultEmailModule");
         }
 
         public void RemoveRegion(Scene scene)
@@ -268,12 +268,12 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
             bool isEMailStrictMatch = EMailreStrict.IsMatch(address);
             if (!isEMailStrictMatch)
             {
-                m_log.Error("[EMAIL] REGEX Problem in EMail Address: "+address);
+                m_log.Error("[EMAIL]: REGEX Problem in EMail Address: "+address);
                 return;
             }
             if ((subject.Length + body.Length) > m_MaxEmailSize)
             {
-                m_log.Error("[EMAIL] subject + body larger than limit of " + m_MaxEmailSize + " bytes");
+                m_log.Error("[EMAIL]: subject + body larger than limit of " + m_MaxEmailSize + " bytes");
                 return;
             }
 
@@ -318,11 +318,11 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                     emailMessage.Send(smtpServer);
 
                     //Log
-                    m_log.Info("[EMAIL] EMail sent to: " + address + " from object: " + objectID.ToString() + "@" + m_HostName);
+                    m_log.Info("[EMAIL]: EMail sent to: " + address + " from object: " + objectID.ToString() + "@" + m_HostName);
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[EMAIL] DefaultEmailModule Exception: " + e.Message);
+                    m_log.Error("[EMAIL]: DefaultEmailModule Exception: " + e.Message);
                 }
             }
             else

@@ -3335,10 +3335,15 @@ namespace OpenSim.Region.Framework.Scenes
             Velocity = Vector3.Zero;
             m_AngularVelocity = Vector3.Zero;
 
+            m_requestedSitTargetID = 0;
+            part.AddSittingAvatar(this);
+
+            ParentPart = part;
+            ParentID = part.LocalId;
+
             Vector3 cameraAtOffset = part.GetCameraAtOffset();
             Vector3 cameraEyeOffset = part.GetCameraEyeOffset();
             bool forceMouselook = part.GetForceMouselook();
-
 
             if (!part.IsRoot)
             {
@@ -3365,13 +3370,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             ControllingClient.SendSitResponse(
                 part.ParentGroup.UUID, offset, Orientation, true, cameraAtOffset, cameraEyeOffset, forceMouselook);
-          
 
-            m_requestedSitTargetID = 0;
-            part.AddSittingAvatar(this);
-
-            ParentPart = part;
-            ParentID = part.LocalId;
 
             SendAvatarDataToAllAgents();
 
@@ -5560,12 +5559,39 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void HandleForceReleaseControls(IClientAPI remoteClient, UUID agentID)
         {
+            foreach (ScriptControllers c in scriptedcontrols.Values)
+            {
+                SceneObjectGroup sog = m_scene.GetSceneObjectGroup(c.objectID);
+                if(sog != null && !sog.IsDeleted && sog.RootPart.PhysActor != null)
+                    sog.RootPart.PhysActor.OnPhysicsRequestingCameraData -= physActor_OnPhysicsRequestingCameraData;
+            }
+
             IgnoredControls = ScriptControlled.CONTROL_ZERO;
             lock (scriptedcontrols)
             {
                 scriptedcontrols.Clear();
             }
             ControllingClient.SendTakeControls(int.MaxValue, false, false);
+        }
+
+        public void HandleRevokePermissions(UUID objectID, uint permissions )
+        {
+
+        // still skeleton code
+            if((permissions & (16 | 0x8000 ))  == 0) //PERMISSION_TRIGGER_ANIMATION | PERMISSION_OVERRIDE_ANIMATIONS
+                return;
+            if(objectID == m_scene.RegionInfo.RegionID) // for all objects
+            {
+            
+            }
+            else
+            {
+                SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
+                if(part != null)
+                {
+                
+                }
+            }
         }
 
         public void ClearControls()

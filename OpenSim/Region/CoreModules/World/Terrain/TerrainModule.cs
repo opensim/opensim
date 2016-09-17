@@ -1122,8 +1122,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                                 }
                                 */
 
-                                int[] xPieces = new int[toSend.Count];
-                                int[] yPieces = new int[toSend.Count];
                                 float[] patchPieces = new float[toSend.Count * 2];
                                 int pieceIndex = 0;
                                 foreach (PatchesToSend pts in toSend)
