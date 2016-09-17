@@ -201,6 +201,7 @@ namespace OpenSim.Framework
         public override bool GetDatabaseBlob(out int DBRevisionCode, out Array blob)
         {
             bool ret = false;
+/* save all as Variable2DGzip
             if (SizeX == Constants.RegionSize && SizeY == Constants.RegionSize)
             {
                 DBRevisionCode = (int)DBTerrainRevision.Legacy256;
@@ -209,12 +210,13 @@ namespace OpenSim.Framework
             }
             else
             {
+*/
                 DBRevisionCode = (int)DBTerrainRevision.Variable2DGzip;
 //                DBRevisionCode = (int)DBTerrainRevision.Variable2D;
                 blob = ToCompressedTerrainSerializationV2DGzip();
 //                blob = ToCompressedTerrainSerializationV2D();
                 ret = true;
-            }
+//            }
             return ret;
         }
 
