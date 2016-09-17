@@ -153,6 +153,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public ITerrainChannel Heightmap;
+        public ITerrainChannel Bakedmap;
 
         /// <value>
         /// Allows retrieval of land information for this scene.
