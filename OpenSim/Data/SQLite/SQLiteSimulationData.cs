@@ -1419,7 +1419,7 @@ namespace OpenSim.Data.SQLite
             createCol(land, "Name", typeof(String));
             createCol(land, "Desc", typeof(String));
             createCol(land, "OwnerUUID", typeof(String));
-            createCol(land, "IsGroupOwned", typeof(Boolean));
+            createCol(land, "IsGroupOwned", typeof(string));
             createCol(land, "Area", typeof(Int32));
             createCol(land, "AuctionID", typeof(Int32)); //Unemplemented
             createCol(land, "Category", typeof(Int32)); //Enum OpenMetaverse.Parcel.ParcelCategory
@@ -1452,6 +1452,9 @@ namespace OpenSim.Data.SQLite
             createCol(land, "MediaLoop", typeof(Boolean));
             createCol(land, "ObscureMedia", typeof(Boolean));
             createCol(land, "ObscureMusic", typeof(Boolean));
+            createCol(land, "SeeAVs", typeof(Boolean));
+            createCol(land, "AnyAVSounds", typeof(Boolean));
+            createCol(land, "GroupAVSounds", typeof(Boolean));
 
             land.PrimaryKey = new DataColumn[] { land.Columns["UUID"] };
 
@@ -1894,7 +1897,7 @@ namespace OpenSim.Data.SQLite
             newData.Name = (String)row["Name"];
             newData.Description = (String)row["Desc"];
             newData.OwnerID = (UUID)(String)row["OwnerUUID"];
-            newData.IsGroupOwned = (Boolean)row["IsGroupOwned"];
+            newData.IsGroupOwned = Convert.ToBoolean(row["IsGroupOwned"]);
             newData.Area = Convert.ToInt32(row["Area"]);
             newData.AuctionID = Convert.ToUInt32(row["AuctionID"]); //Unemplemented
             newData.Category = (ParcelCategory)Convert.ToInt32(row["Category"]);
@@ -2310,7 +2313,7 @@ namespace OpenSim.Data.SQLite
             row["Name"] = land.Name;
             row["Desc"] = land.Description;
             row["OwnerUUID"] = land.OwnerID.ToString();
-            row["IsGroupOwned"] = land.IsGroupOwned;
+            row["IsGroupOwned"] = land.IsGroupOwned.ToString();
             row["Area"] = land.Area;
             row["AuctionID"] = land.AuctionID; //Unemplemented
             row["Category"] = land.Category; //Enum OpenMetaverse.Parcel.ParcelCategory
@@ -3003,6 +3006,10 @@ namespace OpenSim.Data.SQLite
             else if (type == typeof(Byte[]))
             {
                 return DbType.Binary;
+            }
+            else if (type == typeof(Boolean))
+            {
+                return DbType.Boolean;
             }
             else
             {
