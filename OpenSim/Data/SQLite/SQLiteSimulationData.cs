@@ -950,6 +950,34 @@ namespace OpenSim.Data.SQLite
             return terrData;
         }
 
+        public TerrainData LoadBakedTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
+        {
+            TerrainData terrData = null;
+
+            lock (ds)
+            {
+                String sql = "select RegionUUID, Revision, Heightfield from backedterrain" +
+                             " where RegionUUID=:RegionUUID";
+
+                using (SqliteCommand cmd = new SqliteCommand(sql, m_conn))
+                {
+                    cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
+
+                    using (IDataReader row = cmd.ExecuteReader())
+                    {
+                        int rev = 0;
+                        if (row.Read())
+                        {
+                            rev = Convert.ToInt32(row["Revision"]);
+                            byte[] blob = (byte[])row["Heightfield"];
+                            terrData = TerrainData.CreateFromDatabaseBlobFactory(pSizeX, pSizeY, pSizeZ, rev, blob);
+                        }
+                    }
+                }
+            }
+            return terrData;
+        }
+
         public void RemoveLandObject(UUID globalID)
         {
             lock (ds)

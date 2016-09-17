@@ -124,6 +124,11 @@ namespace OpenSim.Services.SimulationService
             return m_database.LoadTerrain(regionID, pSizeX, pSizeY, pSizeZ);
         }
 
+        public TerrainData LoadBakedTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
+        {
+            return m_database.LoadBakedTerrain(regionID, pSizeX, pSizeY, pSizeZ);
+        }
+
         public void StoreLandObject(ILandObject Parcel)
         {
             m_database.StoreLandObject(Parcel);

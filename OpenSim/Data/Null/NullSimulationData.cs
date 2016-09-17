@@ -175,6 +175,15 @@ namespace OpenSim.Data.Null
             return null;
         }
 
+        public TerrainData LoadBakedTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
+        {
+            if (m_bakedterrains.ContainsKey(regionID))
+            {
+                return m_bakedterrains[regionID];
+            }
+            return null;
+        }
+
         public void RemoveLandObject(UUID globalID)
         {
         }

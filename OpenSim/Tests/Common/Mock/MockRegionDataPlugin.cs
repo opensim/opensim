@@ -89,6 +89,11 @@ namespace OpenSim.Data.Null
             return m_store.LoadTerrain(regionID, pSizeX, pSizeY, pSizeZ);
         }
 
+        public TerrainData LoadBakedTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
+        {
+            return m_store.LoadBakedTerrain(regionID, pSizeX, pSizeY, pSizeZ);
+        }
+
         public void StoreLandObject(ILandObject Parcel)
         {
             m_store.StoreLandObject(Parcel);
@@ -339,6 +344,14 @@ namespace OpenSim.Data.Null
         {
             if (m_terrains.ContainsKey(regionID))
                 return m_terrains[regionID];
+            else
+                return null;
+        }
+
+        public TerrainData LoadBakedTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
+        {
+            if (m_bakedterrains.ContainsKey(regionID))
+                return m_bakedterrains[regionID];
             else
                 return null;
         }

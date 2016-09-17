@@ -733,6 +733,41 @@ namespace OpenSim.Data.MySQL
             return terrData;
         }
 
+        public TerrainData LoadBakedTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
+        {
+            TerrainData terrData = null;
+
+            lock (m_dbLock)
+            {
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                {
+                    dbcon.Open();
+
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    {
+                        cmd.CommandText = "select RegionUUID, Revision, Heightfield " +
+                            "from bakedterrain where RegionUUID = ?RegionUUID ";
+                        cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
+
+                        using (IDataReader reader = ExecuteReader(cmd))
+                        {
+                            while (reader.Read())
+                            {
+                                int rev = Convert.ToInt32(reader["Revision"]);
+                                if ((reader["Heightfield"] != DBNull.Value))
+                                {
+                                    byte[] blob = (byte[])reader["Heightfield"];
+                                    terrData = TerrainData.CreateFromDatabaseBlobFactory(pSizeX, pSizeY, pSizeZ, rev, blob);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return terrData;
+        }
+
         public virtual void RemoveLandObject(UUID globalID)
         {
             lock (m_dbLock)

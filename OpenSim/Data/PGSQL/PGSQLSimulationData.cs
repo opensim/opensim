@@ -573,6 +573,39 @@ namespace OpenSim.Data.PGSQL
             return terrData;
         }
 
+        public TerrainData LoadBakedTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
+        {
+            TerrainData terrData = null;
+
+            string sql = @"select ""RegionUUID"", ""Revision"", ""Heightfield"" from bakedterrain 
+                            where ""RegionUUID"" = :RegionUUID; ";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
+            {
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                {
+                    // PGSqlParameter param = new PGSqlParameter();
+                    cmd.Parameters.Add(_Database.CreateParameter("RegionUUID", regionID));
+                    conn.Open();
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        int rev;
+                        if (reader.Read())
+                        {
+                            rev = Convert.ToInt32(reader["Revision"]);
+                            if ((reader["Heightfield"] != DBNull.Value))
+                            {
+                                byte[] blob = (byte[])reader["Heightfield"];
+                                terrData = TerrainData.CreateFromDatabaseBlobFactory(pSizeX, pSizeY, pSizeZ, rev, blob);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return terrData;
+        }
+
         // Legacy entry point for when terrain was always a 256x256 heightmap
         public void StoreTerrain(double[,] terrain, UUID regionID)
         {
