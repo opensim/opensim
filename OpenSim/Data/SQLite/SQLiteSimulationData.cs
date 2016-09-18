@@ -956,7 +956,7 @@ namespace OpenSim.Data.SQLite
 
             lock (ds)
             {
-                String sql = "select RegionUUID, Revision, Heightfield from backedterrain" +
+                String sql = "select RegionUUID, Revision, Heightfield from bakedterrain" +
                              " where RegionUUID=:RegionUUID";
 
                 using (SqliteCommand cmd = new SqliteCommand(sql, m_conn))
