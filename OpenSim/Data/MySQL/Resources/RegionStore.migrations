@@ -379,3 +379,14 @@ ALTER TABLE `prims` ADD COLUMN `RotationAxisLocks` tinyint(4) NOT NULL default '
 
 COMMIT;
 
+:VERSION 54         #----- add baked terrain store
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS `bakedterrain` (
+  `RegionUUID` varchar(255) DEFAULT NULL,
+  `Revision` int(11) DEFAULT NULL,
+  `Heightfield` longblob
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+COMMIT;

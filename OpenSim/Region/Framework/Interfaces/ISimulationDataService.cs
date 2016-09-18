@@ -64,11 +64,18 @@ namespace OpenSim.Region.Framework.Interfaces
         List<SceneObjectGroup> LoadObjects(UUID regionUUID);
 
         /// <summary>
-        /// Store a terrain revision in region storage
+        /// Store terrain in region storage
         /// </summary>
         /// <param name="ter">HeightField data</param>
         /// <param name="regionID">region UUID</param>
         void StoreTerrain(TerrainData terrain, UUID regionID);
+
+        /// <summary>
+        /// Store baked terrain in region storage
+        /// </summary>
+        /// <param name="ter">HeightField data</param>
+        /// <param name="regionID">region UUID</param>
+        void StoreBakedTerrain(TerrainData terrain, UUID regionID);
 
         // Legacy version kept for downward compabibility
         void StoreTerrain(double[,] terrain, UUID regionID);
@@ -82,6 +89,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="sizeZ">the Z dimension of the region being filled</param>
         /// <returns>Heightfield data</returns>
         TerrainData LoadTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ);
+        TerrainData LoadBakedTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ);
 
         // Legacy version kept for downward compabibility
         double[,] LoadTerrain(UUID regionID);

@@ -231,20 +231,27 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             // Install terrain module in the simulator
             lock(m_scene)
             {
+                if(m_scene.Bakedmap != null)
+                {
+                    m_baked = m_scene.Bakedmap;
+                }
                 if (m_scene.Heightmap == null)
                 {
-                    m_channel = new TerrainChannel(m_InitialTerrain, (int)m_scene.RegionInfo.RegionSizeX,
-                                                                     (int)m_scene.RegionInfo.RegionSizeY,
-                                                                     (int)m_scene.RegionInfo.RegionSizeZ);
+                    if(m_baked != null)
+                        m_channel = m_baked.MakeCopy();
+                    else
+                        m_channel = new TerrainChannel(m_InitialTerrain, 
+                                                (int)m_scene.RegionInfo.RegionSizeX,
+                                                (int)m_scene.RegionInfo.RegionSizeY,
+                                                (int)m_scene.RegionInfo.RegionSizeZ);
                     m_scene.Heightmap = m_channel;
-
-                    UpdateBakedMap();
                 }
                 else
                 {
                     m_channel = m_scene.Heightmap;
-                    UpdateBakedMap();
                 }
+                if(m_baked == null)
+                    UpdateBakedMap();
 
                 m_scene.RegisterModuleInterface<ITerrainModule>(this);
                 m_scene.EventManager.OnNewClient += EventManager_OnNewClient;
@@ -724,6 +731,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             m_baked = m_channel.MakeCopy();
             m_painteffects[StandardTerrainEffects.Revert] = new RevertSphere(m_baked);
             m_floodeffects[StandardTerrainEffects.Revert] = new RevertArea(m_baked);
+            m_scene.Bakedmap = m_baked;
+            m_scene.SaveBakedTerrain();
         }
 
         /// <summary>

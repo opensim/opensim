@@ -573,6 +573,39 @@ namespace OpenSim.Data.PGSQL
             return terrData;
         }
 
+        public TerrainData LoadBakedTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
+        {
+            TerrainData terrData = null;
+
+            string sql = @"select ""RegionUUID"", ""Revision"", ""Heightfield"" from bakedterrain 
+                            where ""RegionUUID"" = :RegionUUID; ";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
+            {
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                {
+                    // PGSqlParameter param = new PGSqlParameter();
+                    cmd.Parameters.Add(_Database.CreateParameter("RegionUUID", regionID));
+                    conn.Open();
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        int rev;
+                        if (reader.Read())
+                        {
+                            rev = Convert.ToInt32(reader["Revision"]);
+                            if ((reader["Heightfield"] != DBNull.Value))
+                            {
+                                byte[] blob = (byte[])reader["Heightfield"];
+                                terrData = TerrainData.CreateFromDatabaseBlobFactory(pSizeX, pSizeY, pSizeZ, rev, blob);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return terrData;
+        }
+
         // Legacy entry point for when terrain was always a 256x256 heightmap
         public void StoreTerrain(double[,] terrain, UUID regionID)
         {
@@ -621,6 +654,49 @@ namespace OpenSim.Data.PGSQL
                 }
             }
 
+        }
+
+        /// <summary>
+        /// Stores the baked terrain map to DB.
+        /// </summary>
+        /// <param name="terrain">terrain map data.</param>
+        /// <param name="regionID">regionID.</param>
+        public void StoreBakedTerrain(TerrainData terrData, UUID regionID)
+        {
+            //Delete old terrain map
+            string sql = @"delete from bakedterrain where ""RegionUUID""=:RegionUUID";
+            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
+            {
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                {
+                    cmd.Parameters.Add(_Database.CreateParameter("RegionUUID", regionID));
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+
+                    _Log.InfoFormat("{0} Deleted bakedterrain id = {1}", LogHeader, regionID);
+                }
+            }
+
+            int terrainDBRevision;
+            Array terrainDBblob;
+            terrData.GetDatabaseBlob(out terrainDBRevision, out terrainDBblob);
+
+            sql = @"insert into bakedterrain(""RegionUUID"", ""Revision"", ""Heightfield"") values(:RegionUUID, :Revision, :Heightfield)";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
+            {
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                {
+                    cmd.Parameters.Add(_Database.CreateParameter("RegionUUID", regionID));
+                    cmd.Parameters.Add(_Database.CreateParameter("Revision", terrainDBRevision));
+                    cmd.Parameters.Add(_Database.CreateParameter("Heightfield", terrainDBblob));
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+
+                    _Log.InfoFormat("{0} Stored bakedterrain id = {1}, terrainSize = <{2},{3}>",
+                                    LogHeader, regionID, terrData.SizeX, terrData.SizeY);
+                }
+            }
         }
 
         /// <summary>

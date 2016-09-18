@@ -827,7 +827,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// Store a terrain revision in region storage
+        /// Store a terrain in region storage
         /// </summary>
         /// <param name="ter">terrain heightfield</param>
         /// <param name="regionID">region UUID</param>
@@ -851,7 +851,44 @@ namespace OpenSim.Data.SQLite
                 Array terrainDBblob;
                 terrData.GetDatabaseBlob(out terrainDBRevision, out terrainDBblob);
 
-                m_log.DebugFormat("{0} Storing terrain revision r {1}", LogHeader, terrainDBRevision);
+                m_log.DebugFormat("{0} Storing terrain format {1}", LogHeader, terrainDBRevision);
+
+                using (SqliteCommand cmd = new SqliteCommand(sql, m_conn))
+                {
+                    cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
+                    cmd.Parameters.Add(new SqliteParameter(":Revision", terrainDBRevision));
+                    cmd.Parameters.Add(new SqliteParameter(":Heightfield", terrainDBblob));
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Store baked terrain in region storage
+        /// </summary>
+        /// <param name="ter">terrain heightfield</param>
+        /// <param name="regionID">region UUID</param>
+        public void StoreBakedTerrain(TerrainData terrData, UUID regionID)
+        {
+            lock (ds)
+            {
+                using (
+                    SqliteCommand cmd = new SqliteCommand("delete from bakedterrain where RegionUUID=:RegionUUID", m_conn))
+                {
+                    cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
+                    cmd.ExecuteNonQuery();
+                }
+
+                // the following is an work around for .NET.  The perf
+                // issues associated with it aren't as bad as you think.
+                String sql = "insert into bakedterrain(RegionUUID, Revision, Heightfield)" +
+                             " values(:RegionUUID, :Revision, :Heightfield)";
+
+                int terrainDBRevision;
+                Array terrainDBblob;
+                terrData.GetDatabaseBlob(out terrainDBRevision, out terrainDBblob);
+
+                m_log.DebugFormat("{0} Storing bakedterrain format {1}", LogHeader, terrainDBRevision);
 
                 using (SqliteCommand cmd = new SqliteCommand(sql, m_conn))
                 {
@@ -907,6 +944,34 @@ namespace OpenSim.Data.SQLite
                         }
 
                         m_log.Debug("[SQLITE REGION DB]: Loaded terrain revision r" + rev.ToString());
+                    }
+                }
+            }
+            return terrData;
+        }
+
+        public TerrainData LoadBakedTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
+        {
+            TerrainData terrData = null;
+
+            lock (ds)
+            {
+                String sql = "select RegionUUID, Revision, Heightfield from bakedterrain" +
+                             " where RegionUUID=:RegionUUID";
+
+                using (SqliteCommand cmd = new SqliteCommand(sql, m_conn))
+                {
+                    cmd.Parameters.Add(new SqliteParameter(":RegionUUID", regionID.ToString()));
+
+                    using (IDataReader row = cmd.ExecuteReader())
+                    {
+                        int rev = 0;
+                        if (row.Read())
+                        {
+                            rev = Convert.ToInt32(row["Revision"]);
+                            byte[] blob = (byte[])row["Heightfield"];
+                            terrData = TerrainData.CreateFromDatabaseBlobFactory(pSizeX, pSizeY, pSizeZ, rev, blob);
+                        }
                     }
                 }
             }
@@ -1354,7 +1419,7 @@ namespace OpenSim.Data.SQLite
             createCol(land, "Name", typeof(String));
             createCol(land, "Desc", typeof(String));
             createCol(land, "OwnerUUID", typeof(String));
-            createCol(land, "IsGroupOwned", typeof(String));
+            createCol(land, "IsGroupOwned", typeof(string));
             createCol(land, "Area", typeof(Int32));
             createCol(land, "AuctionID", typeof(Int32)); //Unemplemented
             createCol(land, "Category", typeof(Int32)); //Enum OpenMetaverse.Parcel.ParcelCategory
@@ -2942,7 +3007,8 @@ namespace OpenSim.Data.SQLite
             {
                 return DbType.Binary;
             }
-            else if (type == typeof(Boolean)) {
+            else if (type == typeof(Boolean))
+            {
                 return DbType.Boolean;
             }
             else

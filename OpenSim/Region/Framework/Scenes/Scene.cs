@@ -2172,7 +2172,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SaveTerrain()
         {
-            SimulationDataService.StoreTerrain(Heightmap.GetDoubles(), RegionInfo.RegionID);
+            SimulationDataService.StoreTerrain(Heightmap.GetTerrainData(), RegionInfo.RegionID);
+        }
+
+        /// <summary>
+        /// Store the terrain in the persistant data store
+        /// </summary>
+        public void SaveBakedTerrain()
+        {
+            if(Bakedmap != null)
+                SimulationDataService.StoreBakedTerrain(Bakedmap.GetTerrainData(), RegionInfo.RegionID);
         }
 
         public void StoreWindlightProfile(RegionLightShareData wl)
@@ -2195,20 +2204,44 @@ namespace OpenSim.Region.Framework.Scenes
         {
             try
             {
+                Bakedmap = null;
+                TerrainData map = SimulationDataService.LoadBakedTerrain(RegionInfo.RegionID, (int)RegionInfo.RegionSizeX, (int)RegionInfo.RegionSizeY, (int)RegionInfo.RegionSizeZ);
+                if (map != null)
+                {
+                    Bakedmap = new TerrainChannel(map);
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat(
+                    "[TERRAIN]: Scene.cs: LoadWorldMap() baked terrain - Failed with exception {0}{1}", e.Message, e.StackTrace);
+            }
+
+            try
+            {
                 TerrainData map = SimulationDataService.LoadTerrain(RegionInfo.RegionID, (int)RegionInfo.RegionSizeX, (int)RegionInfo.RegionSizeY, (int)RegionInfo.RegionSizeZ);
                 if (map == null)
                 {
-                    // This should be in the Terrain module, but it isn't because
-                    // the heightmap is needed _way_ before the modules are initialized...
-                    IConfig terrainConfig = m_config.Configs["Terrain"];
-                    String m_InitialTerrain = "pinhead-island";
-                    if (terrainConfig != null)
-                        m_InitialTerrain = terrainConfig.GetString("InitialTerrain", m_InitialTerrain);
+                    if(Bakedmap != null)
+                    {
+                        m_log.Warn("[TERRAIN]: terrain not found. Used stored baked terrain.");     
+                        Heightmap = Bakedmap.MakeCopy();
+                        SimulationDataService.StoreTerrain(Heightmap.GetTerrainData(), RegionInfo.RegionID);
+                    }
+                    else
+                    {
+                        // This should be in the Terrain module, but it isn't because
+                        // the heightmap is needed _way_ before the modules are initialized...
+                        IConfig terrainConfig = m_config.Configs["Terrain"];
+                        String m_InitialTerrain = "pinhead-island";
+                        if (terrainConfig != null)
+                            m_InitialTerrain = terrainConfig.GetString("InitialTerrain", m_InitialTerrain);
 
-                    m_log.InfoFormat("[TERRAIN]: No default terrain. Generating a new terrain {0}.", m_InitialTerrain);
-                    Heightmap = new TerrainChannel(m_InitialTerrain, (int)RegionInfo.RegionSizeX, (int)RegionInfo.RegionSizeY, (int)RegionInfo.RegionSizeZ);
+                        m_log.InfoFormat("[TERRAIN]: No default terrain. Generating a new terrain {0}.", m_InitialTerrain);
+                        Heightmap = new TerrainChannel(m_InitialTerrain, (int)RegionInfo.RegionSizeX, (int)RegionInfo.RegionSizeY, (int)RegionInfo.RegionSizeZ);
 
-                    SimulationDataService.StoreTerrain(Heightmap.GetDoubles(), RegionInfo.RegionID);
+                        SimulationDataService.StoreTerrain(Heightmap.GetTerrainData(), RegionInfo.RegionID);
+                    }
                 }
                 else
                 {
@@ -2221,19 +2254,24 @@ namespace OpenSim.Region.Framework.Scenes
                     "[TERRAIN]: Scene.cs: LoadWorldMap() - Regenerating as failed with exception {0}{1}",
                     e.Message, e.StackTrace);
 
-                // Non standard region size.    If there's an old terrain in the database, it might read past the buffer
 #pragma warning disable 0162
                 if ((int)Constants.RegionSize != 256)
                 {
                     Heightmap = new TerrainChannel();
 
-                    SimulationDataService.StoreTerrain(Heightmap.GetDoubles(), RegionInfo.RegionID);
+                    SimulationDataService.StoreTerrain(Heightmap.GetTerrainData(), RegionInfo.RegionID);
                 }
             }
             catch (Exception e)
             {
                 m_log.WarnFormat(
                     "[TERRAIN]: Scene.cs: LoadWorldMap() - Failed with exception {0}{1}", e.Message, e.StackTrace);
+            }
+
+            if(Bakedmap == null && Heightmap != null)
+            {
+                Bakedmap = Heightmap.MakeCopy();
+                SimulationDataService.StoreBakedTerrain(Bakedmap.GetTerrainData(), RegionInfo.RegionID);
             }
         }
 
