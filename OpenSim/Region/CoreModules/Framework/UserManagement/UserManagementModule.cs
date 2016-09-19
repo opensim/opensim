@@ -701,6 +701,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                         last = parts[1];
                     }
                     uui = userID + ";" + homeURL + ";" + first + " " + last;
+                    return result;
                 }
             }
 
