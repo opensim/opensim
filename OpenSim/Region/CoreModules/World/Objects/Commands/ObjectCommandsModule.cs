@@ -768,7 +768,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                     else
                         so = m_scene.GetSceneObjectGroup(localId);
 
-                    if (!so.IsAttachment)
+                    if (so!= null && !so.IsAttachment)
                        deletes.Add(so);
 
         //                if (deletes.Count == 0)
