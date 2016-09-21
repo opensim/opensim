@@ -374,9 +374,11 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             if (channel == DEBUG_CHANNEL)
                 return;
 
-            // Is id an avatar?
-            ScenePresence sp = m_scene.GetScenePresence(target);
+            if(target == UUID.Zero)
+                return;
 
+            // Is target an avatar?
+            ScenePresence sp = m_scene.GetScenePresence(target);
             if (sp != null)
             {
                  // Send message to avatar
@@ -407,13 +409,13 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 // Need to check each attachment
                 foreach (ListenerInfo li in m_listenerManager.GetListeners(UUID.Zero, channel, name, id, msg))
                 {
-                    if (li.GetHostID().Equals(id))
+                    UUID liHostID = li.GetHostID();
+                    if (liHostID.Equals(id))
                         continue;
-
-                    if (m_scene.GetSceneObjectPart(li.GetHostID()) == null)
+                    if (m_scene.GetSceneObjectPart(liHostID) == null)
                         continue;
-
-                    if (targets.Contains(li.GetHostID()))
+   
+                    if (targets.Contains(liHostID))
                         QueueMessage(new ListenerInfo(li, name, id, msg));
                 }
 
@@ -426,16 +428,15 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
             foreach (ListenerInfo li in m_listenerManager.GetListeners(UUID.Zero, channel, name, id, msg))
             {
+                UUID liHostID = li.GetHostID();
                 // Dont process if this message is from yourself!
-                if (li.GetHostID().Equals(id))
+                if (liHostID.Equals(id))
                     continue;
 
-                SceneObjectPart sPart = m_scene.GetSceneObjectPart(
-                        li.GetHostID());
-                if (sPart == null)
+                if (m_scene.GetSceneObjectPart(liHostID) == null)
                     continue;
 
-                if (li.GetHostID().Equals(target))
+                if (liHostID.Equals(target))
                 {
                     QueueMessage(new ListenerInfo(li, name, id, msg));
                     break;
