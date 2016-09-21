@@ -278,10 +278,12 @@ namespace OpenSim.Services.Connectors
 
         public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
+            GridRegion rinfo = null;
             ulong regionHandle = Util.UIntsToLong((uint)x, (uint)y);
 
-            if (m_regionCache.Contains(regionHandle))
-                return (GridRegion)m_regionCache[regionHandle];
+            // this cache includes NULL regions
+            if (m_regionCache.TryGetValue(regionHandle, out rinfo))
+                return rinfo;
 
             Dictionary<string, object> sendData = new Dictionary<string, object>();
 
@@ -304,7 +306,6 @@ namespace OpenSim.Services.Connectors
                 return null;
             }
 
-            GridRegion rinfo = null;
             if (reply != string.Empty)
             {
                 Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);

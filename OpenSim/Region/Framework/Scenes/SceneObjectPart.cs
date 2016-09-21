@@ -537,39 +537,29 @@ namespace OpenSim.Region.Framework.Scenes
             }
             set
             {
+                CreatorData = string.Empty;
                 if ((value == null) || (value != null && value == string.Empty))
-                {
-                    CreatorData = string.Empty;
                     return;
-                }
 
-                if (!value.Contains(";")) // plain UUID
+                // value is uuid  or uuid;homeuri;firstname lastname
+                string[] parts = value.Split(';');
+                if (parts.Length > 0)
                 {
+
                     UUID uuid = UUID.Zero;
-                    UUID.TryParse(value, out uuid);
+                    UUID.TryParse(parts[0], out uuid);
                     CreatorID = uuid;
-                }
-                else // <uuid>[;<endpoint>[;name]]
-                {
-                    string name = "Unknown User";
-                    string[] parts = value.Split(';');
-                    if (parts.Length >= 1)
-                    {
-                        UUID uuid = UUID.Zero;
-                        UUID.TryParse(parts[0], out uuid);
-                        CreatorID = uuid;
-                    }
-                    if (parts.Length >= 2)
+
+                    if (parts.Length > 1)
                     {
                         CreatorData = parts[1];
                         if (!CreatorData.EndsWith("/"))
                             CreatorData += "/";
+                        if (parts.Length > 2)
+                            CreatorData += ';' + parts[2];
+                        else
+                            CreatorData += ";Unknown User";
                     }
-                    if (parts.Length >= 3)
-                        name = parts[2];
-
-                    CreatorData += ';' + name;
-                    
                 }
             }
         }
@@ -4652,6 +4642,12 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                     {
 
                         DoPhysicsPropertyUpdate(UsePhysics, false); // Update physical status.
+
+                        if(UsePhysics && !SetPhantom &&  m_localId == ParentGroup.RootPart.LocalId &&
+                            m_vehicleParams != null && m_vehicleParams.CameraDecoupled)
+                        AddFlag(PrimFlags.CameraDecoupled);
+                        else
+                            RemFlag(PrimFlags.CameraDecoupled);
 
                         if (pa.Building != building)
                             pa.Building = building;
