@@ -2664,13 +2664,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private LSL_Key NpcCreate(
             string firstname, string lastname, LSL_Vector position, string notecard, bool owned, bool senseAsAgent, bool hostGroupID)
         {
-
             if (!World.Permissions.CanRezObject(1, m_host.OwnerID, new Vector3((float)position.x, (float)position.y, (float)position.z)))
+            {
+                OSSLError("no permission to rez NPC at requested location");
                 return new LSL_Key(UUID.Zero.ToString());
+            }
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if(module == null)
-                new LSL_Key(UUID.Zero.ToString());
+            {
+                OSSLError("NPC module not enabled");
+                return new LSL_Key(UUID.Zero.ToString());
+            }
 
             string groupTitle = String.Empty;
             UUID groupID = UUID.Zero;
