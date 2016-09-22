@@ -403,10 +403,13 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 foreach (SceneObjectGroup sog in attachments)
                 {
                     if (!sog.IsDeleted)
-                        targets.Add(sog.UUID);
+                    {
+                        SceneObjectPart[] parts = sog.Parts;
+                        foreach(SceneObjectPart p in parts)
+                            targets.Add(p.UUID);
+                    }
                 }
 
-                // Need to check each attachment
                 foreach (ListenerInfo li in m_listenerManager.GetListeners(UUID.Zero, channel, name, id, msg))
                 {
                     UUID liHostID = li.GetHostID();
