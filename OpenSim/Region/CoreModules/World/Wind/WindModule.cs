@@ -154,7 +154,7 @@ namespace OpenSim.Region.CoreModules
 
             // Register event handlers for when Avatars enter the region, and frame ticks
             m_scene.EventManager.OnFrame += WindUpdate;
-            m_scene.EventManager.OnMakeRootAgent += OnAgentEnteredRegion;
+//            m_scene.EventManager.OnMakeRootAgent += OnAgentEnteredRegion;
 
             // Register the wind module 
             m_scene.RegisterModuleInterface<IWindModule>(this);
@@ -184,7 +184,7 @@ namespace OpenSim.Region.CoreModules
 
             //  Remove our hooks
             m_scene.EventManager.OnFrame -= WindUpdate;
-            m_scene.EventManager.OnMakeRootAgent -= OnAgentEnteredRegion;
+//            m_scene.EventManager.OnMakeRootAgent -= OnAgentEnteredRegion;
 
         }
 
@@ -425,7 +425,7 @@ namespace OpenSim.Region.CoreModules
 
             SendWindAllClients();
         }
-
+/*
         public void OnAgentEnteredRegion(ScenePresence avatar)
         {
             if (m_ready)
@@ -444,7 +444,7 @@ namespace OpenSim.Region.CoreModules
                 avatar.ControllingClient.SendWindData(windSpeeds);
             }
         }
-
+*/
         private void SendWindAllClients()
         {
             if (m_ready)
