@@ -659,9 +659,9 @@ namespace OpenSim.Tests.Common
         {
         }
 
-        public virtual void SendWindData(Vector2[] windSpeeds) { }
+        public virtual void SendWindData(int version, Vector2[] windSpeeds) { }
 
-        public virtual void SendCloudData(float[] cloudCover) { }
+        public virtual void SendCloudData(int version, float[] cloudCover) { }
 
         public virtual void MoveAgentIntoRegion(RegionInfo regInfo, Vector3 pos, Vector3 look)
         {

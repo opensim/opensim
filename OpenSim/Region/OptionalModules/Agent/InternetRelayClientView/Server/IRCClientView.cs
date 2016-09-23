@@ -1023,12 +1023,12 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
-        public void SendWindData(Vector2[] windSpeeds)
+        public void SendWindData(int version, Vector2[] windSpeeds)
         {
             
         }
 
-        public void SendCloudData(float[] cloudCover)
+        public void SendCloudData(int version, float[] cloudCover)
         {
             
         }

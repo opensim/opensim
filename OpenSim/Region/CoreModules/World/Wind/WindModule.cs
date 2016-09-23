@@ -430,7 +430,7 @@ namespace OpenSim.Region.CoreModules
 
                 m_scene.ForEachRootClient(delegate(IClientAPI client)
                 {
-                    client.SendWindData(windSpeeds);
+                    client.SendWindData(0, windSpeeds);
                 });
                 
                 }

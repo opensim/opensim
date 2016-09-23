@@ -203,7 +203,7 @@ namespace OpenSim.Region.CoreModules.World
         {
             if (m_ready)
             {
-                client.SendCloudData(cloudCover);
+                client.SendCloudData(0, cloudCover);
             }
         }
 

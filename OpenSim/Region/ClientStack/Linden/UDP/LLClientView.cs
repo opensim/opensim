@@ -1379,16 +1379,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         ///  Send the wind matrix to the client
         /// </summary>
         /// <param name="windSpeeds">16x16 array of wind speeds</param>
+/*
         public virtual void SendWindData(Vector2[] windSpeeds)
         {
             Util.FireAndForget(DoSendWindData, windSpeeds, "LLClientView.SendWindData");
+                DoSendWindData(windSpeeds);
         }
-
+*/
         /// <summary>
         ///  Send the cloud matrix to the client
         /// </summary>
         /// <param name="windSpeeds">16x16 array of cloud densities</param>
-        public virtual void SendCloudData(float[] cloudDensity)
+        public virtual void SendCloudData(int version, float[] cloudDensity)
         {
             Util.FireAndForget(DoSendCloudData, cloudDensity, "LLClientView.SendCloudData");
         }
@@ -1397,9 +1399,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Send wind layer information to the client.
         /// </summary>
         /// <param name="o"></param>
-        private void DoSendWindData(object o)
+//        private void DoSendWindData(object o)
+        public virtual void SendWindData(int version, Vector2[] windSpeeds)
         {
-            Vector2[] windSpeeds = (Vector2[])o;
+//            Vector2[] windSpeeds = (Vector2[])o;
             TerrainPatch[] patches = new TerrainPatch[2];
             patches[0] = new TerrainPatch { Data = new float[16 * 16] };
             patches[1] = new TerrainPatch { Data = new float[16 * 16] };
