@@ -1375,44 +1375,35 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+
+        // wind caching
+        private static Dictionary<ulong,int> lastWindVersion = new Dictionary<ulong,int>();
+        private static Dictionary<ulong,List<LayerDataPacket>> lastWindPackets =
+                 new Dictionary<ulong,List<LayerDataPacket>>();
+
+
         /// <summary>
         ///  Send the wind matrix to the client
         /// </summary>
         /// <param name="windSpeeds">16x16 array of wind speeds</param>
-/*
-        public virtual void SendWindData(Vector2[] windSpeeds)
-        {
-            Util.FireAndForget(DoSendWindData, windSpeeds, "LLClientView.SendWindData");
-                DoSendWindData(windSpeeds);
-        }
-*/
-        /// <summary>
-        ///  Send the cloud matrix to the client
-        /// </summary>
-        /// <param name="windSpeeds">16x16 array of cloud densities</param>
-/*
-        public virtual void SendCloudData(int version, float[] cloudDensity)
-        {
-            Util.FireAndForget(DoSendCloudData, cloudDensity, "LLClientView.SendCloudData");
-        }
-*/
-        // wind caching
-        private static int lastWindVersion = 0;
-        private static List<LayerDataPacket> lastWindPackets = new List<LayerDataPacket>();
-
-
-        /// <summary>
-        /// Send wind layer information to the client.
-        /// </summary>
-        /// <param name="o"></param>
-//        private void DoSendWindData(object o)
         public virtual void SendWindData(int version, Vector2[] windSpeeds)
         {
 //            Vector2[] windSpeeds = (Vector2[])o;
           
+            ulong handle = this.Scene.RegionInfo.RegionHandle;
             bool isNewData;
             lock(lastWindPackets)
-                isNewData = lastWindVersion != version;
+            {
+                if(!lastWindVersion.ContainsKey(handle) ||
+                    !lastWindPackets.ContainsKey(handle))
+                {
+                    lastWindVersion[handle] = 0;
+                    lastWindPackets[handle] = new List<LayerDataPacket>();
+                    isNewData = true;
+                }
+                else
+                    isNewData = lastWindVersion[handle] != version;
+            }
 
             if(isNewData)
             {
@@ -1435,32 +1426,42 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 layerpack.Header.Zerocoded = true;
                 lock(lastWindPackets)
                 {
-                    lastWindPackets.Clear();
-                    lastWindPackets.Add(layerpack);
-                    lastWindVersion = version;
+                    lastWindPackets[handle].Clear();
+                    lastWindPackets[handle].Add(layerpack);
+                    lastWindVersion[handle] = version;
                 }
             }
 
             lock(lastWindPackets)
-                foreach(LayerDataPacket pkt in lastWindPackets)
+                foreach(LayerDataPacket pkt in lastWindPackets[handle])
                     OutPacket(pkt, ThrottleOutPacketType.Wind);
         }
 
         // cloud caching
-        private static int lastCloudVersion = 0;
-        private static List<LayerDataPacket> lastCloudPackets = new List<LayerDataPacket>();
+        private static Dictionary<ulong,int> lastCloudVersion = new Dictionary<ulong,int>();
+        private static Dictionary<ulong,List<LayerDataPacket>> lastCloudPackets =
+                 new Dictionary<ulong,List<LayerDataPacket>>();
 
         /// <summary>
-        /// Send cloud layer information to the client.
+        ///  Send the cloud matrix to the client
         /// </summary>
-        /// <param name="o"></param>
-//        private void DoSendCloudData(object o)
+        /// <param name="windSpeeds">16x16 array of cloud densities</param>
         public virtual void SendCloudData(int version, float[] cloudDensity)
         {
-//            float[] cloudDensity = (float[])o;
+            ulong handle = this.Scene.RegionInfo.RegionHandle;
             bool isNewData;
-            lock(lastCloudPackets)
-                isNewData = lastCloudVersion != version;
+            lock(lastWindPackets)
+            {
+                if(!lastCloudVersion.ContainsKey(handle) ||
+                    !lastCloudPackets.ContainsKey(handle))
+                {
+                    lastCloudVersion[handle] = 0;
+                    lastCloudPackets[handle] = new List<LayerDataPacket>();
+                    isNewData = true;
+                }
+                else
+                    isNewData = lastCloudVersion[handle] != version;
+            }
 
             if(isNewData)
             {
@@ -1484,14 +1485,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 layerpack.Header.Zerocoded = true;
                 lock(lastCloudPackets)
                 {
-                    lastCloudPackets.Clear();
-                    lastCloudPackets.Add(layerpack);
-                    lastCloudVersion = version;
+                    lastCloudPackets[handle].Clear();
+                    lastCloudPackets[handle].Add(layerpack);
+                    lastCloudVersion[handle] = version;
                 }
             }
 
             lock(lastCloudPackets)
-                foreach(LayerDataPacket pkt in lastCloudPackets)
+                foreach(LayerDataPacket pkt in lastCloudPackets[handle])
                     OutPacket(pkt, ThrottleOutPacketType.Cloud);
         }
 

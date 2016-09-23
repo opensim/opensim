@@ -204,10 +204,9 @@ namespace OpenSim.Region.CoreModules.World
   
         private void CloudUpdate()
         {
-            if ((!m_ready || m_cloudDensity == 0 || (m_frame++ % m_frameUpdateRate) != 0))
-            {
+            if ((!m_ready ||  m_busy || m_cloudDensity == 0 ||
+                    (m_frame++ % m_frameUpdateRate) != 0))
                 return;
-            }
 
             if(Monitor.TryEnter(cloudlock))
             {
