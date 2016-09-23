@@ -44,7 +44,7 @@ namespace OpenSim.Region.CoreModules.World
 //            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private uint m_frame = 0;
         private int m_frameUpdateRate = 1000;
-        private Random m_rndnums = new Random(Environment.TickCount);
+        private Random m_rndnums;
         private Scene m_scene = null;
         private bool m_ready = false;
         private bool m_enabled = false;
@@ -76,6 +76,10 @@ namespace OpenSim.Region.CoreModules.World
             m_scene = scene;
 
             scene.RegisterModuleInterface<ICloudModule>(this);
+            int seed = Environment.TickCount;
+            seed += (int)(scene.RegionInfo.RegionLocX << 16);
+            seed += (int)(scene.RegionInfo.RegionLocY);
+            m_rndnums = new Random(seed);
 
             GenerateCloudCover();
             m_dataVersion = (int)m_scene.AllocateLocalId();
