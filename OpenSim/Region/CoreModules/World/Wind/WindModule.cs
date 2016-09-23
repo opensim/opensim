@@ -51,6 +51,7 @@ namespace OpenSim.Region.CoreModules
         //private Random m_rndnums = new Random(Environment.TickCount);
         private Scene m_scene = null;
         private bool m_ready = false;
+        private bool m_inUpdate = false;
 
         private bool m_enabled = false;
         private IConfig m_windConfig;
@@ -160,7 +161,7 @@ namespace OpenSim.Region.CoreModules
             m_scene.RegisterModuleInterface<IWindModule>(this);
 
             // Generate initial wind values
-            GenWindPos();
+            GenWind();
 
             // Mark Module Ready for duty
             m_ready = true;
@@ -416,67 +417,63 @@ namespace OpenSim.Region.CoreModules
         /// </summary>
         public void WindUpdate()
         {
-            if (((m_frame++ % m_frameUpdateRate) != 0) || !m_ready)
-            {
+            if ((!m_ready || m_inUpdate || (m_frame++ % m_frameUpdateRate) != 0))
                 return;
-            }
 
-            GenWindPos();
+            m_inUpdate = true;
+            Util.FireAndForget(delegate
+            {
+                try
+                {
+                if(GenWind())
+                    windSpeeds = m_activeWindPlugin.WindLLClientArray();
 
-            SendWindAllClients();
+                m_scene.ForEachRootClient(delegate(IClientAPI client)
+                {
+                    client.SendWindData(windSpeeds);
+                });
+                
+                }
+                finally
+                {
+                    m_inUpdate = false;
+                }
+            },
+            null, "WindModuleUpdate");
         }
 /*
-        public void OnAgentEnteredRegion(ScenePresence avatar)
-        {
-            if (m_ready)
-            {
-                if (m_activeWindPlugin != null)
-                {
-                    // Ask wind plugin to generate a LL wind array to be cached locally
-                    // Try not to update this too often, as it may involve array copies
-                    if (m_frame >= (m_frameLastUpdateClientArray + m_frameUpdateRate))
-                    {
-                        windSpeeds = m_activeWindPlugin.WindLLClientArray();
-                        m_frameLastUpdateClientArray = m_frame;
-                    }
-                }
-
-                avatar.ControllingClient.SendWindData(windSpeeds);
-            }
-        }
-*/
         private void SendWindAllClients()
         {
-            if (m_ready)
-            {
-                if (m_scene.GetRootAgentCount() > 0)
-                {
-                    // Ask wind plugin to generate a LL wind array to be cached locally
-                    // Try not to update this too often, as it may involve array copies
-                    if (m_frame >= (m_frameLastUpdateClientArray + m_frameUpdateRate))
-                    {
-                        windSpeeds = m_activeWindPlugin.WindLLClientArray();
-                        m_frameLastUpdateClientArray = m_frame;
-                    }
+            if (!m_ready || m_scene.GetRootAgentCount() == 0)
+                return;
 
-                    m_scene.ForEachRootClient(delegate(IClientAPI client)
-                    {
-                        client.SendWindData(windSpeeds);
-                    });
-                }
+            // Ask wind plugin to generate a LL wind array to be cached locally
+            // Try not to update this too often, as it may involve array copies
+            if (m_frame >= (m_frameLastUpdateClientArray + m_frameUpdateRate))
+            {
+                windSpeeds = m_activeWindPlugin.WindLLClientArray();
+                m_frameLastUpdateClientArray = m_frame;
             }
+
+            m_scene.ForEachRootClient(delegate(IClientAPI client)
+            {
+                client.SendWindData(windSpeeds);
+            });
         }
+*/
         /// <summary>
-        /// Calculate the sun's orbital position and its velocity.
+        /// Calculate new wind 
+        /// returns false if no change
         /// </summary>
 
-        private void GenWindPos()
+        private bool GenWind()
         {
             if (m_activeWindPlugin != null)
             {
                 // Tell Wind Plugin to update it's wind data
-                m_activeWindPlugin.WindUpdate(m_frame);
+                return m_activeWindPlugin.WindUpdate(m_frame);
             }
+            return false;
         }
     }
 }

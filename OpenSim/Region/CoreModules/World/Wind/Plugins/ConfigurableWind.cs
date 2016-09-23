@@ -103,7 +103,7 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
             }
         }
 
-        public void WindUpdate(uint frame)
+        public bool WindUpdate(uint frame)
         {
             double avgAng = m_avgDirection * (Math.PI/180.0f);
             double varDir = m_varDirection * (Math.PI/180.0f);
@@ -125,10 +125,8 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
             offset = Math.Sin(theta) * Math.Sin(theta*4) + (Math.Sin(theta*13) / 3);
             double windSpeed = m_avgStrength + (m_varStrength * offset);
 
-            if (windSpeed<0) 
-                windSpeed=0;
-
-
+            if (windSpeed < 0) 
+                windSpeed = -windSpeed;
 
             m_curPredominateWind.X = (float)Math.Cos(windDir);
             m_curPredominateWind.Y = (float)Math.Sin(windDir);
@@ -144,6 +142,7 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
                     m_windSpeeds[y * 16 + x] = m_curPredominateWind;
                 }
             }
+            return true;
         }
 
         public Vector3 WindSpeed(float fX, float fY, float fZ)
