@@ -63,7 +63,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             sr.Close();
             body = body.Trim();
 
-            m_log.DebugFormat("[XESTATE HANDLER]: query String: {0}", body);
+            // m_log.DebugFormat("[XESTATE HANDLER]: query String: {0}", body);
 
             try
             {
