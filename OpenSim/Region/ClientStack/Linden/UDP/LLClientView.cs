@@ -1395,6 +1395,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Util.FireAndForget(DoSendCloudData, cloudDensity, "LLClientView.SendCloudData");
         }
 
+        // wind caching
+        private static int lastWindVersion = 0;
+        private static List<LayerDataPacket> lastWindPackets = new List<LayerDataPacket>();
+
+
         /// <summary>
         /// Send wind layer information to the client.
         /// </summary>
@@ -1403,22 +1408,41 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public virtual void SendWindData(int version, Vector2[] windSpeeds)
         {
 //            Vector2[] windSpeeds = (Vector2[])o;
-            TerrainPatch[] patches = new TerrainPatch[2];
-            patches[0] = new TerrainPatch { Data = new float[16 * 16] };
-            patches[1] = new TerrainPatch { Data = new float[16 * 16] };
+          
+            bool isNewData;
+            lock(lastWindPackets)
+                isNewData = lastWindVersion != version;
 
-            for (int x = 0; x < 16 * 16; x++)
+            if(isNewData)
             {
-                patches[0].Data[x] = windSpeeds[x].X;
-                patches[1].Data[x] = windSpeeds[x].Y;
+                TerrainPatch[] patches = new TerrainPatch[2];
+                patches[0] = new TerrainPatch { Data = new float[16 * 16] };
+                patches[1] = new TerrainPatch { Data = new float[16 * 16] };
+
+                for (int x = 0; x < 16 * 16; x++)
+                {
+                    patches[0].Data[x] = windSpeeds[x].X;
+                    patches[1].Data[x] = windSpeeds[x].Y;
+                }
+
+                // neither we or viewers have extended wind
+                byte layerType = (byte)TerrainPatch.LayerType.Wind;
+
+                LayerDataPacket layerpack =
+                     OpenSimTerrainCompressor.CreateLayerDataPacketStandardSize(
+                        patches, layerType);
+                layerpack.Header.Zerocoded = true;
+                lock(lastWindPackets)
+                {
+                    lastWindPackets.Clear();
+                    lastWindPackets.Add(layerpack);
+                    lastWindVersion = version;
+                }
             }
 
-            // neither we or viewers have extended wind
-            byte layerType = (byte)TerrainPatch.LayerType.Wind;
-
-            LayerDataPacket layerpack = OpenSimTerrainCompressor.CreateLayerDataPacketStandardSize(patches, layerType);
-            layerpack.Header.Zerocoded = true;
-            OutPacket(layerpack, ThrottleOutPacketType.Wind);
+            lock(lastWindPackets)
+                foreach(LayerDataPacket pkt in lastWindPackets)
+                    OutPacket(pkt, ThrottleOutPacketType.Wind);
         }
 
         /// <summary>

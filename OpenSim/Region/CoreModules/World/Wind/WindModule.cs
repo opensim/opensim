@@ -46,7 +46,8 @@ namespace OpenSim.Region.CoreModules
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private uint m_frame = 0;
-        private uint m_frameLastUpdateClientArray = 0;
+        private int m_dataVersion = 0;
+        private int m_regionID = 0;
         private int m_frameUpdateRate = 150;
         //private Random m_rndnums = new Random(Environment.TickCount);
         private Scene m_scene = null;
@@ -97,7 +98,6 @@ namespace OpenSim.Region.CoreModules
 
             m_scene = scene;
             m_frame = 0;
-
             // Register all the Wind Model Plug-ins
             foreach (IWindModelPlugin windPlugin in AddinManager.GetExtensionObjects("/OpenSim/WindModule", false))
             {
@@ -118,7 +118,6 @@ namespace OpenSim.Region.CoreModules
                     m_activeWindPlugin.WindConfig(m_scene, m_windConfig);
                 }
             }
-
 
             // if the plug-in wasn't found, default to no wind.
             if (m_activeWindPlugin == null)
@@ -155,14 +154,14 @@ namespace OpenSim.Region.CoreModules
 
             // Register event handlers for when Avatars enter the region, and frame ticks
             m_scene.EventManager.OnFrame += WindUpdate;
-//            m_scene.EventManager.OnMakeRootAgent += OnAgentEnteredRegion;
 
             // Register the wind module 
             m_scene.RegisterModuleInterface<IWindModule>(this);
 
             // Generate initial wind values
             GenWind();
-
+            // hopefully this will not be the same for all regions on same instance
+            m_dataVersion = (int)m_scene.AllocateLocalId();
             // Mark Module Ready for duty
             m_ready = true;
         }
@@ -425,13 +424,11 @@ namespace OpenSim.Region.CoreModules
             {
                 try
                 {
-                if(GenWind())
-                    windSpeeds = m_activeWindPlugin.WindLLClientArray();
-
-                m_scene.ForEachRootClient(delegate(IClientAPI client)
-                {
-                    client.SendWindData(0, windSpeeds);
-                });
+                    GenWind();
+                    m_scene.ForEachRootClient(delegate(IClientAPI client)
+                    {
+                        client.SendWindData(m_dataVersion, windSpeeds);
+                    });
                 
                 }
                 finally
@@ -441,26 +438,7 @@ namespace OpenSim.Region.CoreModules
             },
             null, "WindModuleUpdate");
         }
-/*
-        private void SendWindAllClients()
-        {
-            if (!m_ready || m_scene.GetRootAgentCount() == 0)
-                return;
 
-            // Ask wind plugin to generate a LL wind array to be cached locally
-            // Try not to update this too often, as it may involve array copies
-            if (m_frame >= (m_frameLastUpdateClientArray + m_frameUpdateRate))
-            {
-                windSpeeds = m_activeWindPlugin.WindLLClientArray();
-                m_frameLastUpdateClientArray = m_frame;
-            }
-
-            m_scene.ForEachRootClient(delegate(IClientAPI client)
-            {
-                client.SendWindData(windSpeeds);
-            });
-        }
-*/
         /// <summary>
         /// Calculate new wind 
         /// returns false if no change
@@ -468,10 +446,11 @@ namespace OpenSim.Region.CoreModules
 
         private bool GenWind()
         {
-            if (m_activeWindPlugin != null)
+            if (m_activeWindPlugin != null && m_activeWindPlugin.WindUpdate(m_frame))
             {
-                // Tell Wind Plugin to update it's wind data
-                return m_activeWindPlugin.WindUpdate(m_frame);
+                windSpeeds = m_activeWindPlugin.WindLLClientArray();
+                m_dataVersion++;
+                return true;
             }
             return false;
         }
