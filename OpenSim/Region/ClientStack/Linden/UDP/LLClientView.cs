@@ -1390,11 +1390,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         ///  Send the cloud matrix to the client
         /// </summary>
         /// <param name="windSpeeds">16x16 array of cloud densities</param>
+/*
         public virtual void SendCloudData(int version, float[] cloudDensity)
         {
             Util.FireAndForget(DoSendCloudData, cloudDensity, "LLClientView.SendCloudData");
         }
-
+*/
         // wind caching
         private static int lastWindVersion = 0;
         private static List<LayerDataPacket> lastWindPackets = new List<LayerDataPacket>();
@@ -1445,30 +1446,53 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     OutPacket(pkt, ThrottleOutPacketType.Wind);
         }
 
+        // cloud caching
+        private static int lastCloudVersion = 0;
+        private static List<LayerDataPacket> lastCloudPackets = new List<LayerDataPacket>();
+
         /// <summary>
         /// Send cloud layer information to the client.
         /// </summary>
         /// <param name="o"></param>
-        private void DoSendCloudData(object o)
+//        private void DoSendCloudData(object o)
+        public virtual void SendCloudData(int version, float[] cloudDensity)
         {
-            float[] cloudCover = (float[])o;
-            TerrainPatch[] patches = new TerrainPatch[1];
-            patches[0] = new TerrainPatch();
-            patches[0].Data = new float[16 * 16];
+//            float[] cloudDensity = (float[])o;
+            bool isNewData;
+            lock(lastCloudPackets)
+                isNewData = lastCloudVersion != version;
 
-            for (int y = 0; y < 16; y++)
+            if(isNewData)
             {
-                for (int x = 0; x < 16; x++)
+                TerrainPatch[] patches = new TerrainPatch[1];
+                patches[0] = new TerrainPatch();
+                patches[0].Data = new float[16 * 16];
+
+                for (int y = 0; y < 16; y++)
                 {
-                    patches[0].Data[y * 16 + x] = cloudCover[y * 16 + x];
+                    for (int x = 0; x < 16; x++)
+                    {
+                        patches[0].Data[y * 16 + x] = cloudDensity[y * 16 + x];
+                    }
+                }
+                // neither we or viewers have extended clouds
+                byte layerType = (byte)TerrainPatch.LayerType.Cloud;
+
+                LayerDataPacket layerpack =
+                    OpenSimTerrainCompressor.CreateLayerDataPacketStandardSize(
+                        patches, layerType);
+                layerpack.Header.Zerocoded = true;
+                lock(lastCloudPackets)
+                {
+                    lastCloudPackets.Clear();
+                    lastCloudPackets.Add(layerpack);
+                    lastCloudVersion = version;
                 }
             }
-            // neither we or viewers have extended clouds
-            byte layerType = (byte)TerrainPatch.LayerType.Cloud;
 
-            LayerDataPacket layerpack = OpenSimTerrainCompressor.CreateLayerDataPacketStandardSize(patches, layerType);
-            layerpack.Header.Zerocoded = true;
-            OutPacket(layerpack, ThrottleOutPacketType.Cloud);
+            lock(lastCloudPackets)
+                foreach(LayerDataPacket pkt in lastCloudPackets)
+                    OutPacket(pkt, ThrottleOutPacketType.Cloud);
         }
 
         /// <summary>

@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
@@ -49,6 +50,10 @@ namespace OpenSim.Region.CoreModules.World
         private bool m_enabled = false;
         private float m_cloudDensity = 1.0F;
         private float[] cloudCover = new float[16 * 16];
+        private int m_dataVersion;
+        private bool m_busy;
+        private object cloudlock = new object();
+
 
         public void Initialise(IConfigSource config)
         {
@@ -70,11 +75,13 @@ namespace OpenSim.Region.CoreModules.World
 
             m_scene = scene;
 
-            scene.EventManager.OnNewClient += CloudsToClient;
             scene.RegisterModuleInterface<ICloudModule>(this);
-            scene.EventManager.OnFrame += CloudUpdate;
 
             GenerateCloudCover();
+            m_dataVersion = (int)m_scene.AllocateLocalId();
+
+            scene.EventManager.OnNewClient += CloudsToClient;
+            scene.EventManager.OnFrame += CloudUpdate;
 
             m_ready = true;
         }
@@ -89,7 +96,6 @@ namespace OpenSim.Region.CoreModules.World
             m_scene.EventManager.OnNewClient -= CloudsToClient;
             m_scene.EventManager.OnFrame -= CloudUpdate;
             m_scene.UnregisterModuleInterface<ICloudModule>(this);
-
             m_scene = null;
         }
 
@@ -127,7 +133,8 @@ namespace OpenSim.Region.CoreModules.World
 
             if (cloudCover != null)
             {
-                cover = cloudCover[y * 16 + x];
+                lock(cloudlock)
+                    cover = cloudCover[y * 16 + x];
             }
 
             return cover;
@@ -188,22 +195,48 @@ namespace OpenSim.Region.CoreModules.World
                 }
             }
             Array.Copy(newCover, cloudCover, 16 * 16);
+            m_dataVersion++;
         }
   
-       private void CloudUpdate()
-       {
-           if (((m_frame++ % m_frameUpdateRate) != 0) || !m_ready || (m_cloudDensity == 0))
-           {
-               return;
-           }
-           UpdateCloudCover();
+        private void CloudUpdate()
+        {
+            if ((!m_ready || m_cloudDensity == 0 || (m_frame++ % m_frameUpdateRate) != 0))
+            {
+                return;
+            }
+
+            if(Monitor.TryEnter(cloudlock))
+            {
+                m_busy = true;
+                Util.FireAndForget(delegate
+                    {
+                        try
+                        {
+                            lock(cloudlock)
+                            {
+                                UpdateCloudCover();
+                                m_scene.ForEachClient(delegate(IClientAPI client)
+                                {
+                                    client.SendCloudData(m_dataVersion, cloudCover);
+                                });
+                            }
+                        }
+                        finally
+                        {
+                            m_busy = false;
+                        }
+                    },
+                    null, "CloudModuleUpdate");
+                Monitor.Exit(cloudlock);
+            }
         }
 
         public void CloudsToClient(IClientAPI client)
         {
             if (m_ready)
             {
-                client.SendCloudData(0, cloudCover);
+                lock(cloudlock)
+                       client.SendCloudData(m_dataVersion, cloudCover);
             }
         }
 

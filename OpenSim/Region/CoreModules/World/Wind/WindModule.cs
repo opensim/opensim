@@ -425,7 +425,7 @@ namespace OpenSim.Region.CoreModules
                 try
                 {
                     GenWind();
-                    m_scene.ForEachRootClient(delegate(IClientAPI client)
+                    m_scene.ForEachClient(delegate(IClientAPI client)
                     {
                         client.SendWindData(m_dataVersion, windSpeeds);
                     });
