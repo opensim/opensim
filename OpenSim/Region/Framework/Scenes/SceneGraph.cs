@@ -1865,7 +1865,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                         // this is here so physics gets updated!
                         // Don't remove!  Bad juju!  Stay away! or fix physics!
-                        child.AbsolutePosition = child.AbsolutePosition;
+                        // already done in LinkToGroup
+//                        child.AbsolutePosition = child.AbsolutePosition;
                     }
                 }
 
