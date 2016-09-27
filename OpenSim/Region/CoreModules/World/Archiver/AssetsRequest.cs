@@ -285,10 +285,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     if (m_foundAssetUuids.Count + m_notFoundAssetUuids.Count >= m_repliesRequired)
                     {
                         m_requestState = RequestState.Completed;
-                        
-                        m_log.DebugFormat(
-                            "[ARCHIVER]: Successfully added {0} assets ({1} assets not found but these may be expected invalid references)",
+                        if(m_notFoundAssetUuids.Count == 0)
+                            m_log.DebugFormat(
+                                    "[ARCHIVER]: Successfully added {0} assets",
+                                    m_foundAssetUuids.Count);
+                        else
+                            m_log.DebugFormat(
+                                    "[ARCHIVER]: Successfully added {0} assets ({1} assets not found but these may be expected invalid references)",
                             m_foundAssetUuids.Count, m_notFoundAssetUuids.Count);
+
                         
                         // We want to stop using the asset cache thread asap 
                         // as we now need to do the work of producing the rest of the archive
