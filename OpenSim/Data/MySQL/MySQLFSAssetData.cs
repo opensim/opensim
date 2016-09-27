@@ -221,8 +221,8 @@ namespace OpenSim.Data.MySQL
                     cmd.Parameters.AddWithValue("?id", meta.ID);
                     cmd.Parameters.AddWithValue("?name", meta.Name);
                     cmd.Parameters.AddWithValue("?description", meta.Description);
-                    cmd.Parameters.AddWithValue("?type", meta.Type.ToString());
-//                    cmd.Parameters.AddWithValue("?type", meta.Type);
+//                    cmd.Parameters.AddWithValue("?type", meta.Type.ToString());
+                    cmd.Parameters.AddWithValue("?type", meta.Type);
                     cmd.Parameters.AddWithValue("?hash", hash);
                     cmd.Parameters.AddWithValue("?asset_flags", meta.Flags);
 
