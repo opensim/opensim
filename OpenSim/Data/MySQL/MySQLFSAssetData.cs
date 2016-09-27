@@ -222,6 +222,7 @@ namespace OpenSim.Data.MySQL
                     cmd.Parameters.AddWithValue("?name", meta.Name);
                     cmd.Parameters.AddWithValue("?description", meta.Description);
                     cmd.Parameters.AddWithValue("?type", meta.Type.ToString());
+//                    cmd.Parameters.AddWithValue("?type", meta.Type);
                     cmd.Parameters.AddWithValue("?hash", hash);
                     cmd.Parameters.AddWithValue("?asset_flags", meta.Flags);
 
@@ -239,7 +240,12 @@ namespace OpenSim.Data.MySQL
                     //ExecuteNonQuery(cmd);
 
                 }
-                return false;
+
+//                return false;
+                // if the asset already exits
+                // assume it was already correctly stored
+                // or regions will keep retry.
+                return true;
             }
             catch(Exception e)
             {
