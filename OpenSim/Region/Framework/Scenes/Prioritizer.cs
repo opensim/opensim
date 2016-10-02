@@ -286,9 +286,10 @@ namespace OpenSim.Region.Framework.Scenes
         {
             // And convert the distance to a priority queue, this computation gives queues
             // at 10, 20, 40, 80, 160, 320, 640, and 1280m
-            uint minpqueue = PriorityQueue.NumberOfImmediateQueues;
+//            uint minpqueue = PriorityQueue.NumberOfImmediateQueues;
             uint maxqueue = PriorityQueue.NumberOfQueues - PriorityQueue.NumberOfImmediateQueues -1;
-            uint pqueue = minpqueue;
+//            uint pqueue = minpqueue;
+            uint pqueue = PriorityQueue.NumberOfImmediateQueues;
             float distance;
                 
             Vector3 presencePos = presence.AbsolutePosition;
@@ -308,10 +309,10 @@ namespace OpenSim.Region.Framework.Scenes
                 distance *= group.getAreaFactor();
                 if(group.IsAttachment)
                     distance *= 0.5f;
-                else if(group.GetSittingAvatarsCount() > 0)
-                    distance *= 0.5f;
                 else if(group.UsesPhysics)
                     distance *= 0.6f;
+                else if(group.GetSittingAvatarsCount() > 0)
+                    distance *= 0.5f;
             }
 
             if (distance > 10f)
