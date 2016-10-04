@@ -625,7 +625,7 @@ public abstract class BSPhysObject : PhysicsActor
                 {
                     CurrentCollisionFlags = PhysScene.PE.AddToCollisionFlags(PhysBody, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
                     DetailLog("{0},{1}.SubscribeEvents,setting collision. ms={2}, collisionFlags={3:x}",
-                            LocalID, TypeName, ms, CurrentCollisionFlags);
+                            LocalID, TypeName, SubscribedEventsMs, CurrentCollisionFlags);
                 }
             });
         }

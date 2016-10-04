@@ -350,7 +350,6 @@ public sealed class BSCharacter : BSPhysObject
         }
     }
 
-
     // Check that the current position is sane and, if not, modify the position to make it so.
     // Check for being below terrain or on water.
     // Returns 'true' of the position was made sane by some action.
@@ -501,6 +500,17 @@ public sealed class BSCharacter : BSPhysObject
             PhysScene.PE.Activate(PhysBody, true);
         }
     }
+
+    // SetMomentum just sets the velocity without a target. We need to stop the movement actor if a character.
+    public override void SetMomentum(OMV.Vector3 momentum)
+    {
+        if (m_moveActor != null)
+        {
+            m_moveActor.SetVelocityAndTarget(OMV.Vector3.Zero, OMV.Vector3.Zero, false /* inTaintTime */);
+        }
+        base.SetMomentum(momentum);
+    }
+
 
     public override OMV.Vector3 Torque {
         get { return RawTorque; }
