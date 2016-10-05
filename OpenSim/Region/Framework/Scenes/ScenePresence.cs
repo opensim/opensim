@@ -281,7 +281,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool m_followCamAuto = false;
 
-        private Vector3? m_forceToApply;
+//        private object m_forceToApplyLock = new object();
+//        private bool m_forceToApplyValid;
+//        private Vector3 m_forceToApply;
         private int m_userFlags;
         public int UserFlags
         {
@@ -582,11 +584,11 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-            return m_drawDistance;
+                return m_drawDistance;
             }
             set
             {
-            m_drawDistance = Util.Clamp(value, 32f, m_scene.MaxDrawDistance);
+                m_drawDistance = Util.Clamp(value, 32f, m_scene.MaxDrawDistance);
             }
         }
 
@@ -594,7 +596,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-            return Util.Clamp(m_drawDistance, 32f, m_scene.MaxRegionViewDistance);
+                return Util.Clamp(m_drawDistance, 32f, m_scene.MaxRegionViewDistance);
             }
          }
 
@@ -2120,6 +2122,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (haveAnims)
                         SendAnimPackToAgent(this, animIDs, animseqs, animsobjs);
 
+
                     // we should be able to receive updates, etc
                     // so release them
                     m_inTransit = false;
@@ -2238,6 +2241,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
             finally
             {
+                haveGroupInformation = false;
+                gotCrossUpdate = false;
+                crossingFlags = 0;
                 m_inTransit = false;
             }
             // if hide force a check
@@ -2247,9 +2253,6 @@ namespace OpenSim.Region.Framework.Scenes
  //               m_currentParcelHide = newhide;
  //           }
 
-            haveGroupInformation = false;
-            gotCrossUpdate = false;
-            crossingFlags = 0;
 
             m_scene.EventManager.OnRegionHeartbeatEnd += RegionHeartbeatEnd;
 
@@ -3006,7 +3009,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             MovingToTarget = false;
 //            MoveToPositionTarget = Vector3.Zero;
-            m_forceToApply = null; // cancel possible last action
+//            lock(m_forceToApplyLock)
+//               m_forceToApplyValid = false; // cancel possible last action
 
             // We need to reset the control flag as the ScenePresenceAnimator uses this to determine the correct
             // resting animation (e.g. hover or stand).  NPCs don't have a client that will quickly reset this flag.
@@ -3638,8 +3642,14 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             //            m_log.DebugFormat("[SCENE PRESENCE]: Setting force to apply to {0} for {1}", direc, Name);
-
-            m_forceToApply = direc;
+/*
+            lock(m_forceToApplyLock)
+            {
+                m_forceToApply = direc;
+                m_forceToApplyValid = true;
+            }
+*/
+            Velocity = direc;
             Animator.UpdateMovementAnimations();
         }
 
@@ -4734,17 +4744,21 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void UpdateMovement()
         {
+/*
             if (IsInTransit)
                 return;
-            if (m_forceToApply.HasValue)
+
+            lock(m_forceToApplyLock)
             {
-                Vector3 force = m_forceToApply.Value;
+                if (m_forceToApplyValid)
+                {
+                    Velocity = m_forceToApply;
 
-                Velocity = force;
-
-                m_forceToApply = null;
-                TriggerScenePresenceUpdated();
+                    m_forceToApplyValid = false;
+                    TriggerScenePresenceUpdated();
+                }
             }
+*/
         }
 
         /// <summary>
@@ -4766,6 +4780,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (Appearance.AvatarHeight == 0)
 //                Appearance.SetHeight();
                 Appearance.SetSize(new Vector3(0.45f,0.6f,1.9f));
+
+//            lock(m_forceToApplyLock)
+//                m_forceToApplyValid = false;
 
             PhysicsScene scene = m_scene.PhysicsScene;
             Vector3 pVec = AbsolutePosition;                  

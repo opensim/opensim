@@ -909,7 +909,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void MoveAgentIntoRegion(RegionInfo regInfo, Vector3 pos, Vector3 look)
         {
             m_thisAgentUpdateArgs.CameraAtAxis.X = float.MinValue;
-            m_thisAgentUpdateArgs.ControlFlags = uint.MaxValue;
+//            m_thisAgentUpdateArgs.ControlFlags = uint.MaxValue;
+            m_thisAgentUpdateArgs.ControlFlags = 0;
 
             AgentMovementCompletePacket mov = (AgentMovementCompletePacket)PacketPool.Instance.GetPacket(PacketType.AgentMovementComplete);
             mov.SimData.ChannelVersion = m_channelVersion;
@@ -6196,27 +6197,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name='x'></param>
         private bool CheckAgentMovementUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
         {
-            float qdelta1 = Math.Abs(Quaternion.Dot(x.BodyRotation, m_thisAgentUpdateArgs.BodyRotation));
-            //qdelta2 = Math.Abs(Quaternion.Dot(x.HeadRotation, m_thisAgentUpdateArgs.HeadRotation));
-
-            bool movementSignificant =
+            if(
                 (x.ControlFlags != m_thisAgentUpdateArgs.ControlFlags)   // significant if control flags changed
-                || (x.ControlFlags != (byte)AgentManager.ControlFlags.NONE) // significant if user supplying any movement update commands
+                || ((x.ControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0 && 
+                    (x.ControlFlags & 0x3f8dfff) != 0) // we need to rotate the av on fly
                 || (x.Flags != m_thisAgentUpdateArgs.Flags)                 // significant if Flags changed
                 || (x.State != m_thisAgentUpdateArgs.State)                 // significant if Stats changed
-                || (qdelta1 < QDELTABody)                                   // significant if body rotation above(below cos) threshold
-                // Ignoring head rotation altogether, because it's not being used for anything interesting up the stack
-                // || (qdelta2 < QDELTAHead)                                // significant if head rotation above(below cos) threshold
                 || (Math.Abs(x.Far - m_thisAgentUpdateArgs.Far) >= 32)      // significant if far distance changed
-            ;
-            //if (movementSignificant)
-            //{
-                //m_log.DebugFormat("[LLCLIENTVIEW]: Bod {0} {1}",
-                //    qdelta1, qdelta2);
-                //m_log.DebugFormat("[LLCLIENTVIEW]: St {0} {1} {2} {3}",
-                //    x.ControlFlags, x.Flags, x.Far, x.State);
-            //}
-            return movementSignificant;
+                )
+                return true;
+
+           float qdelta1 = Math.Abs(Quaternion.Dot(x.BodyRotation, m_thisAgentUpdateArgs.BodyRotation));
+           //qdelta2 = Math.Abs(Quaternion.Dot(x.HeadRotation, m_thisAgentUpdateArgs.HeadRotation));
+
+           if(
+                qdelta1 < QDELTABody // significant if body rotation above(below cos) threshold
+                // Ignoring head rotation altogether, because it's not being used for anything interesting up the stack
+                // || qdelta2 < QDELTAHead // significant if head rotation above(below cos) threshold            
+                )
+                return true;
+
+            return false;
         }
 
         /// <summary>
@@ -6227,33 +6228,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name='x'></param>
         private bool CheckAgentCameraUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
         {
-            float vdelta1 = Vector3.Distance(x.CameraAtAxis, m_thisAgentUpdateArgs.CameraAtAxis);
-            float vdelta2 = Vector3.Distance(x.CameraCenter, m_thisAgentUpdateArgs.CameraCenter);
-            float vdelta3 = Vector3.Distance(x.CameraLeftAxis, m_thisAgentUpdateArgs.CameraLeftAxis);
-            float vdelta4 = Vector3.Distance(x.CameraUpAxis, m_thisAgentUpdateArgs.CameraUpAxis);
+            float vdelta = Vector3.Distance(x.CameraAtAxis, m_thisAgentUpdateArgs.CameraAtAxis);
+            if((vdelta > VDELTA))
+                return true;
 
-            bool cameraSignificant =
-                (vdelta1 > VDELTA) ||
-                (vdelta2 > VDELTA) ||
-                (vdelta3 > VDELTA) ||
-                (vdelta4 > VDELTA)
-            ;
+            vdelta = Vector3.Distance(x.CameraCenter, m_thisAgentUpdateArgs.CameraCenter);
+            if((vdelta > VDELTA))
+                return true;
 
-            //if (cameraSignificant)
-            //{
-                //m_log.DebugFormat("[LLCLIENTVIEW]: Cam1 {0} {1}",
-                //    x.CameraAtAxis, x.CameraCenter);
-                //m_log.DebugFormat("[LLCLIENTVIEW]: Cam2 {0} {1}",
-                //    x.CameraLeftAxis, x.CameraUpAxis);
-            //}
+            vdelta = Vector3.Distance(x.CameraLeftAxis, m_thisAgentUpdateArgs.CameraLeftAxis);
+            if((vdelta > VDELTA))
+                return true;
 
-            return cameraSignificant;
+            vdelta = Vector3.Distance(x.CameraUpAxis, m_thisAgentUpdateArgs.CameraUpAxis);
+            if((vdelta > VDELTA))
+                return true;
+
+            return false;
         }
 
         private bool HandleAgentUpdate(IClientAPI sender, Packet packet)
         {
-            // We got here, which means that something in agent update was significant
-
             AgentUpdatePacket agentUpdate = (AgentUpdatePacket)packet;
             AgentUpdatePacket.AgentDataBlock x = agentUpdate.AgentData;
 
@@ -6264,10 +6259,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             TotalAgentUpdates++;
+            // dont let ignored updates pollute this throttles
+            if(SceneAgent == null || SceneAgent.IsChildAgent || SceneAgent.IsInTransit)
+            {
+                // throttle reset is done at MoveAgentIntoRegion()
+                // called by scenepresence on completemovement
+                PacketPool.Instance.ReturnPacket(packet);
+                return true;
+            }
 
             bool movement = CheckAgentMovementUpdateSignificance(x);
             bool camera = CheckAgentCameraUpdateSignificance(x);
-
+    
             // Was there a significant movement/state change?
             if (movement)
             {
@@ -6276,7 +6279,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_thisAgentUpdateArgs.Far = x.Far;
                 m_thisAgentUpdateArgs.Flags = x.Flags;
                 m_thisAgentUpdateArgs.HeadRotation = x.HeadRotation;
-//                m_thisAgentUpdateArgs.SessionID = x.SessionID;
                 m_thisAgentUpdateArgs.State = x.State;
 
                 UpdateAgent handlerAgentUpdate = OnAgentUpdate;
@@ -6287,9 +6289,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 if (handlerAgentUpdate != null)
                     OnAgentUpdate(this, m_thisAgentUpdateArgs);
-
-                handlerAgentUpdate = null;
-                handlerPreAgentUpdate = null;
+ 
             }
 
             // Was there a significant camera(s) change?
@@ -6305,7 +6305,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (handlerAgentCameraUpdate != null)
                     handlerAgentCameraUpdate(this, m_thisAgentUpdateArgs);
 
-                handlerAgentCameraUpdate = null;
             }
 
             PacketPool.Instance.ReturnPacket(packet);

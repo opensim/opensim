@@ -55,6 +55,9 @@ namespace OpenSim.Framework
         /// </summary>
         bool IsChildAgent { get; }
 
+        bool IsInTransit { get; }
+        bool isNPC { get;}
+
         bool Invulnerable { get; set; }
         /// <summary>
         /// Avatar appearance data.
