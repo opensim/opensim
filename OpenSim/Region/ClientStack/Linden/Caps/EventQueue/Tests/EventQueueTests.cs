@@ -65,7 +65,7 @@ namespace OpenSim.Region.ClientStack.Linden.Tests
             // variables and the VM is not restarted between tests.
             MainServer.RemoveHttpServer(port);
 
-            BaseHttpServer server = new BaseHttpServer(port, false, sslPort, "");
+            BaseHttpServer server = new BaseHttpServer(port, false, sslPort, "","","");
             MainServer.AddHttpServer(server);
             MainServer.Instance = server;
 

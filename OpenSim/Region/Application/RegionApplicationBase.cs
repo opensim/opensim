@@ -50,6 +50,7 @@ namespace OpenSim
         protected Dictionary<EndPoint, uint> m_clientCircuits = new Dictionary<EndPoint, uint>();
         protected NetworkServersInfo m_networkServersInfo;
         protected uint m_httpServerPort;
+        protected bool m_httpServerSSL;
         protected ISimulationDataService m_simulationDataService;
         protected IEstateDataService m_estateDataService;
 
@@ -70,15 +71,18 @@ namespace OpenSim
 
             m_httpServer 
                 = new BaseHttpServer(
-                    m_httpServerPort, m_networkServersInfo.HttpUsesSSL, m_networkServersInfo.httpSSLPort, 
-                    m_networkServersInfo.HttpSSLCN);
-            
+                    m_httpServerPort, m_networkServersInfo.HttpUsesSSL,
+                        m_networkServersInfo.httpSSLPort, m_networkServersInfo.HttpSSLCN,
+                        m_networkServersInfo.HttpSSLCertPath, m_networkServersInfo.HttpSSLCNCertPass);
+
+/* why this? we only run one            
             if (m_networkServersInfo.HttpUsesSSL && (m_networkServersInfo.HttpListenerPort == m_networkServersInfo.httpSSLPort))
             {
                 m_log.Error("[REGION SERVER]: HTTP Server config failed.   HTTP Server and HTTPS server must be on different ports");
             }
-
-            m_log.InfoFormat("[REGION SERVER]: Starting HTTP server on port {0}", m_httpServerPort);
+*/
+            m_log.InfoFormat("[REGION SERVER]: Starting HTTP{0} server on port {1}",
+                    m_networkServersInfo.HttpUsesSSL ? "S" : "", m_httpServerPort);
             m_httpServer.Start();
 
             MainServer.AddHttpServer(m_httpServer);

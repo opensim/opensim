@@ -153,11 +153,19 @@ namespace OpenSim.Framework.Servers.HttpServer
             m_ssl = ssl;
         }
 
-        public BaseHttpServer(uint port, bool ssl, uint sslport, string CN) : this (port, ssl)
+        public BaseHttpServer(uint port, bool ssl, uint sslport, string CN, string CPath, string CPass) : this (port, ssl)
         {
             if (m_ssl)
             {
+                if(string.IsNullOrEmpty(CPass))
+                    throw new Exception("invalid main http server cert path");
+
                 m_sslport = sslport;
+                m_cert = new X509Certificate2(CPath, CPass);
+                m_SSLCommonName = m_cert.GetNameInfo(X509NameType.SimpleName,false);
+                if(CN != m_SSLCommonName)
+                    throw new Exception("main http server CN does not match cert CN");
+
             }
         }
 

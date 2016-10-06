@@ -351,7 +351,18 @@ namespace OpenSim
             if (startupConfig == null || startupConfig.GetBoolean("JobEngineEnabled", true))
                 WorkManager.JobEngine.Start();
 
-            m_httpServerPort = m_networkServersInfo.HttpListenerPort;
+           
+            if(m_networkServersInfo.HttpUsesSSL)
+            {
+                m_httpServerSSL = true;
+                m_httpServerPort = m_networkServersInfo.httpSSLPort;
+            }
+            else
+            {
+                m_httpServerSSL = false;
+                m_httpServerPort = m_networkServersInfo.HttpListenerPort;
+            }
+
             SceneManager.OnRestartSim += HandleRestartRegion;
 
             // Only enable the watchdogs when all regions are ready.  Otherwise we get false positives when cpu is
@@ -404,7 +415,18 @@ namespace OpenSim
 
             // set initial ServerURI
             regionInfo.HttpPort = m_httpServerPort;
-            regionInfo.ServerURI = "http://" + regionInfo.ExternalHostName + ":" + regionInfo.HttpPort.ToString() + "/";
+            if(m_httpServerSSL)
+            {
+                if(m_networkServersInfo.HttpSSLCN != regionInfo.ExternalHostName)
+                    throw new Exception("main http cert CN doesn't match region External IP");
+
+                regionInfo.ServerURI = "https://" + regionInfo.ExternalHostName +
+                         ":" + regionInfo.HttpPort.ToString() + "/";
+            }
+            else
+                regionInfo.ServerURI = "http://" + regionInfo.ExternalHostName +
+                         ":" + regionInfo.HttpPort.ToString() + "/";
+
             
             regionInfo.osSecret = m_osSecret;
             
