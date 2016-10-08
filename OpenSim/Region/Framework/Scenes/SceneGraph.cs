@@ -1865,7 +1865,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                         // this is here so physics gets updated!
                         // Don't remove!  Bad juju!  Stay away! or fix physics!
-                        child.AbsolutePosition = child.AbsolutePosition;
+                        // already done in LinkToGroup
+//                        child.AbsolutePosition = child.AbsolutePosition;
                     }
                 }
 
@@ -1912,31 +1913,36 @@ namespace OpenSim.Region.Framework.Scenes
                 //
                 foreach (SceneObjectPart part in prims)
                 {
-                    if (part != null)
-                    {
-                        if (part.KeyframeMotion != null)
-                        {
-                            part.KeyframeMotion.Stop();
-                            part.KeyframeMotion = null;
-                        }
-                        if (part.ParentGroup.PrimCount != 1) // Skip single
-                        {
-                            if (part.LinkNum < 2) // Root
-                            {
-                                rootParts.Add(part);
-                            }
-                            else
-                            {
-                                part.LastOwnerID = part.ParentGroup.RootPart.LastOwnerID;
-                                childParts.Add(part);
-                            }
+                    if(part == null)
+                        continue;
+                    SceneObjectGroup parentSOG = part.ParentGroup;
+                    if(parentSOG == null ||
+                        parentSOG.IsDeleted ||
+                        parentSOG.inTransit ||
+                        parentSOG.PrimCount == 1)
+                        continue;
 
-                            SceneObjectGroup group = part.ParentGroup;
-                            if (!affectedGroups.Contains(group))
-                            {
-                                affectedGroups.Add(group);
-                            }
-                        }
+                    if (!affectedGroups.Contains(parentSOG))
+                    {
+                        affectedGroups.Add(parentSOG);
+                        if(parentSOG.RootPart.PhysActor != null)
+                            parentSOG.RootPart.PhysActor.Building = true;
+                    }
+
+                    if (part.KeyframeMotion != null)
+                    {
+                        part.KeyframeMotion.Stop();
+                        part.KeyframeMotion = null;
+                    }
+
+                    if (part.LinkNum < 2) // Root
+                    {
+                        rootParts.Add(part);
+                    }
+                    else
+                    {
+                        part.LastOwnerID = part.ParentGroup.RootPart.LastOwnerID;
+                        childParts.Add(part);
                     }
                 }
 
@@ -1945,8 +1951,8 @@ namespace OpenSim.Region.Framework.Scenes
                     foreach (SceneObjectPart child in childParts)
                     {
                         // Unlink all child parts from their groups
-                        //
                         child.ParentGroup.DelinkFromGroup(child, true);
+                        //child.ParentGroup is now other
                         child.ParentGroup.HasGroupChanged = true;
                         child.ParentGroup.ScheduleGroupForFullUpdate();
                     }
@@ -1959,74 +1965,51 @@ namespace OpenSim.Region.Framework.Scenes
                     // However, editing linked parts and unlinking may be different
                     //
                     SceneObjectGroup group = root.ParentGroup;
-                    
+                   
                     List<SceneObjectPart> newSet = new List<SceneObjectPart>(group.Parts);
-                    int numChildren = newSet.Count;
 
-                    if (numChildren == 1)
+                    newSet.Remove(root);
+                    int numChildren = newSet.Count;
+                    if(numChildren == 0)
                         break;
 
-                    // If there are prims left in a link set, but the root is
-                    // slated for unlink, we need to do this
-                    // Unlink the remaining set
-                    //
-                    bool sendEventsToRemainder = false;
-                    if (numChildren == 2) // only one child prim no re-link needed
-                        sendEventsToRemainder = true;
-
                     foreach (SceneObjectPart p in newSet)
-                    {
-                        if (p != group.RootPart)
-                        {
-                            group.DelinkFromGroup(p, sendEventsToRemainder);
-                            if (sendEventsToRemainder) // finish single child prim now
-                            {                              
-                                p.ParentGroup.HasGroupChanged = true;
-                                p.ParentGroup.ScheduleGroupForFullUpdate();
-                            }
-                        }
-                    }
+                        group.DelinkFromGroup(p, false);
 
+                    SceneObjectPart newRoot = newSet[0];
+                    
                     // If there is more than one prim remaining, we
                     // need to re-link
                     //
-                    if (numChildren > 2)
+                    if (numChildren > 1)
                     {
-                        // Remove old root
-                        //
-                        if (newSet.Contains(root))
-                            newSet.Remove(root);
-
-                        // Preserve link ordering
-                        //
-                        newSet.Sort(delegate (SceneObjectPart a, SceneObjectPart b)
-                        {
-                            return a.LinkNum.CompareTo(b.LinkNum);
-                        });
-
                         // Determine new root
                         //
-                        SceneObjectPart newRoot = newSet[0];
                         newSet.RemoveAt(0);
-
-                            foreach (SceneObjectPart newChild in newSet)
-                                newChild.ClearUpdateSchedule();
+                        foreach (SceneObjectPart newChild in newSet)
+                            newChild.ClearUpdateSchedule();
 
                         LinkObjects(newRoot, newSet);
-//                        if (!affectedGroups.Contains(newRoot.ParentGroup))
-//                            affectedGroups.Add(newRoot.ParentGroup);
+                    }
+                    else
+                    {
+                        newRoot.TriggerScriptChangedEvent(Changed.LINK);
+                        newRoot.ParentGroup.HasGroupChanged = true;
+                        newRoot.ParentGroup.ScheduleGroupForFullUpdate();                   
                     }
                 }
 
-                // Finally, trigger events in the roots
+                // trigger events in the roots
                 //
                 foreach (SceneObjectGroup g in affectedGroups)
                 {
+                    if(g.RootPart.PhysActor != null)
+                        g.RootPart.PhysActor.Building = false;
+                    g.AdjustChildPrimPermissions(false);
                     // Child prims that have been unlinked and deleted will
                     // return unless the root is deleted. This will remove them
                     // from the database. They will be rewritten immediately,
                     // minus the rows for the unlinked child prims.
-                    g.AdjustChildPrimPermissions(false);
                     m_parentScene.SimulationDataService.RemoveObject(g.UUID, m_parentScene.RegionInfo.RegionID);
                     g.TriggerScriptChangedEvent(Changed.LINK);
                     g.HasGroupChanged = true; // Persist

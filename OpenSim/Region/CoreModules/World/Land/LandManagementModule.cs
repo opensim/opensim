@@ -212,7 +212,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnParcelReclaim += ClientOnParcelReclaim;
             client.OnParcelInfoRequest += ClientOnParcelInfoRequest;
             client.OnParcelDeedToGroup += ClientOnParcelDeedToGroup;
-            client.OnPreAgentUpdate += ClientOnPreAgentUpdate;
             client.OnParcelEjectUser += ClientOnParcelEjectUser;
             client.OnParcelFreezeUser += ClientOnParcelFreezeUser;
             client.OnSetStartLocationRequest += ClientOnSetHome;
@@ -221,10 +220,6 @@ namespace OpenSim.Region.CoreModules.World.Land
         public void EventMakeChildAgent(ScenePresence avatar)
         {
             avatar.currentParcelUUID = UUID.Zero;
-        }
-
-        void ClientOnPreAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
-        {
         }
 
         public void Close()

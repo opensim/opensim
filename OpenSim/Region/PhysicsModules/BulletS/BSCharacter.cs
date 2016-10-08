@@ -52,7 +52,6 @@ public sealed class BSCharacter : BSPhysObject
     private bool _setAlwaysRun;
     private bool _throttleUpdates;
     private bool _floatOnWater;
-    private OMV.Vector3 _rotationalVelocity;
     private bool _kinematic;
     private float _buoyancy;
 
@@ -291,7 +290,7 @@ public sealed class BSCharacter : BSPhysObject
     {
         RawVelocity = OMV.Vector3.Zero;
         _acceleration = OMV.Vector3.Zero;
-        _rotationalVelocity = OMV.Vector3.Zero;
+        RawRotationalVelocity = OMV.Vector3.Zero;
 
         // Zero some other properties directly into the physics engine
         PhysScene.TaintedObject(inTaintTime, LocalID, "BSCharacter.ZeroMotion", delegate()
@@ -303,7 +302,7 @@ public sealed class BSCharacter : BSPhysObject
 
     public override void ZeroAngularMotion(bool inTaintTime)
     {
-        _rotationalVelocity = OMV.Vector3.Zero;
+        RawRotationalVelocity = OMV.Vector3.Zero;
 
         PhysScene.TaintedObject(inTaintTime, LocalID, "BSCharacter.ZeroMotion", delegate()
         {
@@ -350,7 +349,6 @@ public sealed class BSCharacter : BSPhysObject
             }
         }
     }
-
 
     // Check that the current position is sane and, if not, modify the position to make it so.
     // Check for being below terrain or on water.
@@ -503,6 +501,17 @@ public sealed class BSCharacter : BSPhysObject
         }
     }
 
+    // SetMomentum just sets the velocity without a target. We need to stop the movement actor if a character.
+    public override void SetMomentum(OMV.Vector3 momentum)
+    {
+        if (m_moveActor != null)
+        {
+            m_moveActor.SetVelocityAndTarget(OMV.Vector3.Zero, OMV.Vector3.Zero, false /* inTaintTime */);
+        }
+        base.SetMomentum(momentum);
+    }
+
+
     public override OMV.Vector3 Torque {
         get { return RawTorque; }
         set { RawTorque = value;
@@ -618,14 +627,6 @@ public sealed class BSCharacter : BSPhysObject
             });
         }
     }
-    public override OMV.Vector3 RotationalVelocity {
-        get { return _rotationalVelocity; }
-        set { _rotationalVelocity = value; }
-    }
-    public override OMV.Vector3 ForceRotationalVelocity {
-        get { return _rotationalVelocity; }
-        set { _rotationalVelocity = value; }
-    }
     public override bool Kinematic {
         get { return _kinematic; }
         set { _kinematic = value; }
@@ -715,8 +716,6 @@ public sealed class BSCharacter : BSPhysObject
     }
 
     public override void AddAngularForce(bool inTaintTime, OMV.Vector3 force) {
-    }
-    public override void SetMomentum(OMV.Vector3 momentum) {
     }
 
     // The avatar's physical shape (whether capsule or cube) is unit sized. BulletSim sets
@@ -841,7 +840,7 @@ public sealed class BSCharacter : BSPhysObject
             RawVelocity = entprop.Velocity;
 
         _acceleration = entprop.Acceleration;
-        _rotationalVelocity = entprop.RotationalVelocity;
+        RawRotationalVelocity = entprop.RotationalVelocity;
 
         // Do some sanity checking for the avatar. Make sure it's above ground and inbounds.
         if (PositionSanityCheck(true))
@@ -861,7 +860,7 @@ public sealed class BSCharacter : BSPhysObject
         // PhysScene.PostUpdate(this);
 
         DetailLog("{0},BSCharacter.UpdateProperties,call,pos={1},orient={2},vel={3},accel={4},rotVel={5}",
-                LocalID, RawPosition, RawOrientation, RawVelocity, _acceleration, _rotationalVelocity);
+                LocalID, RawPosition, RawOrientation, RawVelocity, _acceleration, RawRotationalVelocity);
     }
 }
 }

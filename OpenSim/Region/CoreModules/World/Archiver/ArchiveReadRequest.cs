@@ -227,8 +227,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 if (boOption != m_boundingOrigin)
                 {
                     m_boundingOrigin = boOption;
-                    m_boundingBox = true;
                 }
+                m_boundingBox = true;
             }
 
             if (options.ContainsKey("bounding-size"))
@@ -936,14 +936,24 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             if (m_assetService.GetMetadata(uuid) != null)
             {
+                sbyte asype = ArchiveConstants.EXTENSION_TO_ASSET_TYPE[extension];
+                if(asype == -2)
+                {
+                
+                }
+
                 // m_log.DebugFormat("[ARCHIVER]: found existing asset {0}",uuid);
                 return true;
             }
-
+            
             if (ArchiveConstants.EXTENSION_TO_ASSET_TYPE.ContainsKey(extension))
             {
                 sbyte assetType = ArchiveConstants.EXTENSION_TO_ASSET_TYPE[extension];
 
+                if(assetType == -2)
+                {
+                
+                }
                 if (assetType == (sbyte)AssetType.Unknown)
                 {
                     m_log.WarnFormat("[ARCHIVER]: Importing {0} byte asset {1} with unknown type", data.Length, uuid);

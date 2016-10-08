@@ -53,7 +53,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Update wind.
         /// </summary>
-        void WindUpdate(uint frame);
+        bool WindUpdate(uint frame);
 
         /// <summary>
         /// Returns the wind vector at the given local region coordinates.

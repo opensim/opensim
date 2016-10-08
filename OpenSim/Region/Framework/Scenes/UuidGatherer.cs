@@ -178,8 +178,10 @@ namespace OpenSim.Region.Framework.Scenes
                     if (part.Shape.ProjectionTextureUUID != UUID.Zero)
                         GatheredUuids[part.Shape.ProjectionTextureUUID] = (sbyte)AssetType.Texture;
 
-                    if (part.CollisionSound != UUID.Zero)
-                        GatheredUuids[part.CollisionSound] = (sbyte)AssetType.Sound;
+                    UUID collisionSound = part.CollisionSound;
+                    if ( collisionSound != UUID.Zero &&
+                                collisionSound != part.invalidCollisionSoundUUID)
+                        GatheredUuids[collisionSound] = (sbyte)AssetType.Sound;
 
                     if (part.ParticleSystem.Length > 0)
                     {

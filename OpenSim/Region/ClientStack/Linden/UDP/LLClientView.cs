@@ -909,7 +909,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void MoveAgentIntoRegion(RegionInfo regInfo, Vector3 pos, Vector3 look)
         {
             m_thisAgentUpdateArgs.CameraAtAxis.X = float.MinValue;
-            m_thisAgentUpdateArgs.ControlFlags = uint.MaxValue;
+//            m_thisAgentUpdateArgs.ControlFlags = uint.MaxValue;
+            m_thisAgentUpdateArgs.ControlFlags = 0;
 
             AgentMovementCompletePacket mov = (AgentMovementCompletePacket)PacketPool.Instance.GetPacket(PacketType.AgentMovementComplete);
             mov.SimData.ChannelVersion = m_channelVersion;
@@ -1375,73 +1376,125 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+
+        // wind caching
+        private static Dictionary<ulong,int> lastWindVersion = new Dictionary<ulong,int>();
+        private static Dictionary<ulong,List<LayerDataPacket>> lastWindPackets =
+                 new Dictionary<ulong,List<LayerDataPacket>>();
+
+
         /// <summary>
         ///  Send the wind matrix to the client
         /// </summary>
         /// <param name="windSpeeds">16x16 array of wind speeds</param>
-        public virtual void SendWindData(Vector2[] windSpeeds)
+        public virtual void SendWindData(int version, Vector2[] windSpeeds)
         {
-            Util.FireAndForget(DoSendWindData, windSpeeds, "LLClientView.SendWindData");
+//            Vector2[] windSpeeds = (Vector2[])o;
+          
+            ulong handle = this.Scene.RegionInfo.RegionHandle;
+            bool isNewData;
+            lock(lastWindPackets)
+            {
+                if(!lastWindVersion.ContainsKey(handle) ||
+                    !lastWindPackets.ContainsKey(handle))
+                {
+                    lastWindVersion[handle] = 0;
+                    lastWindPackets[handle] = new List<LayerDataPacket>();
+                    isNewData = true;
+                }
+                else
+                    isNewData = lastWindVersion[handle] != version;
+            }
+
+            if(isNewData)
+            {
+                TerrainPatch[] patches = new TerrainPatch[2];
+                patches[0] = new TerrainPatch { Data = new float[16 * 16] };
+                patches[1] = new TerrainPatch { Data = new float[16 * 16] };
+
+                for (int x = 0; x < 16 * 16; x++)
+                {
+                    patches[0].Data[x] = windSpeeds[x].X;
+                    patches[1].Data[x] = windSpeeds[x].Y;
+                }
+
+                // neither we or viewers have extended wind
+                byte layerType = (byte)TerrainPatch.LayerType.Wind;
+
+                LayerDataPacket layerpack =
+                     OpenSimTerrainCompressor.CreateLayerDataPacketStandardSize(
+                        patches, layerType);
+                layerpack.Header.Zerocoded = true;
+                lock(lastWindPackets)
+                {
+                    lastWindPackets[handle].Clear();
+                    lastWindPackets[handle].Add(layerpack);
+                    lastWindVersion[handle] = version;
+                }
+            }
+
+            lock(lastWindPackets)
+                foreach(LayerDataPacket pkt in lastWindPackets[handle])
+                    OutPacket(pkt, ThrottleOutPacketType.Wind);
         }
+
+        // cloud caching
+        private static Dictionary<ulong,int> lastCloudVersion = new Dictionary<ulong,int>();
+        private static Dictionary<ulong,List<LayerDataPacket>> lastCloudPackets =
+                 new Dictionary<ulong,List<LayerDataPacket>>();
 
         /// <summary>
         ///  Send the cloud matrix to the client
         /// </summary>
         /// <param name="windSpeeds">16x16 array of cloud densities</param>
-        public virtual void SendCloudData(float[] cloudDensity)
+        public virtual void SendCloudData(int version, float[] cloudDensity)
         {
-            Util.FireAndForget(DoSendCloudData, cloudDensity, "LLClientView.SendCloudData");
-        }
-
-        /// <summary>
-        /// Send wind layer information to the client.
-        /// </summary>
-        /// <param name="o"></param>
-        private void DoSendWindData(object o)
-        {
-            Vector2[] windSpeeds = (Vector2[])o;
-            TerrainPatch[] patches = new TerrainPatch[2];
-            patches[0] = new TerrainPatch { Data = new float[16 * 16] };
-            patches[1] = new TerrainPatch { Data = new float[16 * 16] };
-
-            for (int x = 0; x < 16 * 16; x++)
+            ulong handle = this.Scene.RegionInfo.RegionHandle;
+            bool isNewData;
+            lock(lastWindPackets)
             {
-                patches[0].Data[x] = windSpeeds[x].X;
-                patches[1].Data[x] = windSpeeds[x].Y;
+                if(!lastCloudVersion.ContainsKey(handle) ||
+                    !lastCloudPackets.ContainsKey(handle))
+                {
+                    lastCloudVersion[handle] = 0;
+                    lastCloudPackets[handle] = new List<LayerDataPacket>();
+                    isNewData = true;
+                }
+                else
+                    isNewData = lastCloudVersion[handle] != version;
             }
 
-            // neither we or viewers have extended wind
-            byte layerType = (byte)TerrainPatch.LayerType.Wind;
-
-            LayerDataPacket layerpack = OpenSimTerrainCompressor.CreateLayerDataPacketStandardSize(patches, layerType);
-            layerpack.Header.Zerocoded = true;
-            OutPacket(layerpack, ThrottleOutPacketType.Wind);
-        }
-
-        /// <summary>
-        /// Send cloud layer information to the client.
-        /// </summary>
-        /// <param name="o"></param>
-        private void DoSendCloudData(object o)
-        {
-            float[] cloudCover = (float[])o;
-            TerrainPatch[] patches = new TerrainPatch[1];
-            patches[0] = new TerrainPatch();
-            patches[0].Data = new float[16 * 16];
-
-            for (int y = 0; y < 16; y++)
+            if(isNewData)
             {
-                for (int x = 0; x < 16; x++)
+                TerrainPatch[] patches = new TerrainPatch[1];
+                patches[0] = new TerrainPatch();
+                patches[0].Data = new float[16 * 16];
+
+                for (int y = 0; y < 16; y++)
                 {
-                    patches[0].Data[y * 16 + x] = cloudCover[y * 16 + x];
+                    for (int x = 0; x < 16; x++)
+                    {
+                        patches[0].Data[y * 16 + x] = cloudDensity[y * 16 + x];
+                    }
+                }
+                // neither we or viewers have extended clouds
+                byte layerType = (byte)TerrainPatch.LayerType.Cloud;
+
+                LayerDataPacket layerpack =
+                    OpenSimTerrainCompressor.CreateLayerDataPacketStandardSize(
+                        patches, layerType);
+                layerpack.Header.Zerocoded = true;
+                lock(lastCloudPackets)
+                {
+                    lastCloudPackets[handle].Clear();
+                    lastCloudPackets[handle].Add(layerpack);
+                    lastCloudVersion[handle] = version;
                 }
             }
-            // neither we or viewers have extended clouds
-            byte layerType = (byte)TerrainPatch.LayerType.Cloud;
 
-            LayerDataPacket layerpack = OpenSimTerrainCompressor.CreateLayerDataPacketStandardSize(patches, layerType);
-            layerpack.Header.Zerocoded = true;
-            OutPacket(layerpack, ThrottleOutPacketType.Cloud);
+            lock(lastCloudPackets)
+                foreach(LayerDataPacket pkt in lastCloudPackets[handle])
+                    OutPacket(pkt, ThrottleOutPacketType.Cloud);
         }
 
         /// <summary>
@@ -6144,27 +6197,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name='x'></param>
         private bool CheckAgentMovementUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
         {
-            float qdelta1 = Math.Abs(Quaternion.Dot(x.BodyRotation, m_thisAgentUpdateArgs.BodyRotation));
-            //qdelta2 = Math.Abs(Quaternion.Dot(x.HeadRotation, m_thisAgentUpdateArgs.HeadRotation));
-
-            bool movementSignificant =
+            if(
                 (x.ControlFlags != m_thisAgentUpdateArgs.ControlFlags)   // significant if control flags changed
-                || (x.ControlFlags != (byte)AgentManager.ControlFlags.NONE) // significant if user supplying any movement update commands
+                || ((x.ControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0 && 
+                    (x.ControlFlags & 0x3f8dfff) != 0) // we need to rotate the av on fly
                 || (x.Flags != m_thisAgentUpdateArgs.Flags)                 // significant if Flags changed
                 || (x.State != m_thisAgentUpdateArgs.State)                 // significant if Stats changed
-                || (qdelta1 < QDELTABody)                                   // significant if body rotation above(below cos) threshold
-                // Ignoring head rotation altogether, because it's not being used for anything interesting up the stack
-                // || (qdelta2 < QDELTAHead)                                // significant if head rotation above(below cos) threshold
                 || (Math.Abs(x.Far - m_thisAgentUpdateArgs.Far) >= 32)      // significant if far distance changed
-            ;
-            //if (movementSignificant)
-            //{
-                //m_log.DebugFormat("[LLCLIENTVIEW]: Bod {0} {1}",
-                //    qdelta1, qdelta2);
-                //m_log.DebugFormat("[LLCLIENTVIEW]: St {0} {1} {2} {3}",
-                //    x.ControlFlags, x.Flags, x.Far, x.State);
-            //}
-            return movementSignificant;
+                )
+                return true;
+
+           float qdelta1 = Math.Abs(Quaternion.Dot(x.BodyRotation, m_thisAgentUpdateArgs.BodyRotation));
+           //qdelta2 = Math.Abs(Quaternion.Dot(x.HeadRotation, m_thisAgentUpdateArgs.HeadRotation));
+
+           if(
+                qdelta1 < QDELTABody // significant if body rotation above(below cos) threshold
+                // Ignoring head rotation altogether, because it's not being used for anything interesting up the stack
+                // || qdelta2 < QDELTAHead // significant if head rotation above(below cos) threshold            
+                )
+                return true;
+
+            return false;
         }
 
         /// <summary>
@@ -6175,33 +6228,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name='x'></param>
         private bool CheckAgentCameraUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
         {
-            float vdelta1 = Vector3.Distance(x.CameraAtAxis, m_thisAgentUpdateArgs.CameraAtAxis);
-            float vdelta2 = Vector3.Distance(x.CameraCenter, m_thisAgentUpdateArgs.CameraCenter);
-            float vdelta3 = Vector3.Distance(x.CameraLeftAxis, m_thisAgentUpdateArgs.CameraLeftAxis);
-            float vdelta4 = Vector3.Distance(x.CameraUpAxis, m_thisAgentUpdateArgs.CameraUpAxis);
+            float vdelta = Vector3.Distance(x.CameraAtAxis, m_thisAgentUpdateArgs.CameraAtAxis);
+            if((vdelta > VDELTA))
+                return true;
 
-            bool cameraSignificant =
-                (vdelta1 > VDELTA) ||
-                (vdelta2 > VDELTA) ||
-                (vdelta3 > VDELTA) ||
-                (vdelta4 > VDELTA)
-            ;
+            vdelta = Vector3.Distance(x.CameraCenter, m_thisAgentUpdateArgs.CameraCenter);
+            if((vdelta > VDELTA))
+                return true;
 
-            //if (cameraSignificant)
-            //{
-                //m_log.DebugFormat("[LLCLIENTVIEW]: Cam1 {0} {1}",
-                //    x.CameraAtAxis, x.CameraCenter);
-                //m_log.DebugFormat("[LLCLIENTVIEW]: Cam2 {0} {1}",
-                //    x.CameraLeftAxis, x.CameraUpAxis);
-            //}
+            vdelta = Vector3.Distance(x.CameraLeftAxis, m_thisAgentUpdateArgs.CameraLeftAxis);
+            if((vdelta > VDELTA))
+                return true;
 
-            return cameraSignificant;
+            vdelta = Vector3.Distance(x.CameraUpAxis, m_thisAgentUpdateArgs.CameraUpAxis);
+            if((vdelta > VDELTA))
+                return true;
+
+            return false;
         }
 
         private bool HandleAgentUpdate(IClientAPI sender, Packet packet)
         {
-            // We got here, which means that something in agent update was significant
-
             AgentUpdatePacket agentUpdate = (AgentUpdatePacket)packet;
             AgentUpdatePacket.AgentDataBlock x = agentUpdate.AgentData;
 
@@ -6212,10 +6259,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             TotalAgentUpdates++;
+            // dont let ignored updates pollute this throttles
+            if(SceneAgent == null || SceneAgent.IsChildAgent || SceneAgent.IsInTransit)
+            {
+                // throttle reset is done at MoveAgentIntoRegion()
+                // called by scenepresence on completemovement
+                PacketPool.Instance.ReturnPacket(packet);
+                return true;
+            }
 
             bool movement = CheckAgentMovementUpdateSignificance(x);
             bool camera = CheckAgentCameraUpdateSignificance(x);
-
+    
             // Was there a significant movement/state change?
             if (movement)
             {
@@ -6224,7 +6279,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_thisAgentUpdateArgs.Far = x.Far;
                 m_thisAgentUpdateArgs.Flags = x.Flags;
                 m_thisAgentUpdateArgs.HeadRotation = x.HeadRotation;
-//                m_thisAgentUpdateArgs.SessionID = x.SessionID;
                 m_thisAgentUpdateArgs.State = x.State;
 
                 UpdateAgent handlerAgentUpdate = OnAgentUpdate;
@@ -6235,9 +6289,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 if (handlerAgentUpdate != null)
                     OnAgentUpdate(this, m_thisAgentUpdateArgs);
-
-                handlerAgentUpdate = null;
-                handlerPreAgentUpdate = null;
+ 
             }
 
             // Was there a significant camera(s) change?
@@ -6253,7 +6305,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (handlerAgentCameraUpdate != null)
                     handlerAgentCameraUpdate(this, m_thisAgentUpdateArgs);
 
-                handlerAgentCameraUpdate = null;
             }
 
             PacketPool.Instance.ReturnPacket(packet);

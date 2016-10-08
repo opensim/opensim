@@ -1360,7 +1360,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public void sendRegionInfoPacketToAll()
         {
-            Scene.ForEachRootClient(delegate(IClientAPI client)
+//            Scene.ForEachRootClient(delegate(IClientAPI client)
+            Scene.ForEachClient(delegate(IClientAPI client)
             {
                 HandleRegionInfoRequest(client);
             });

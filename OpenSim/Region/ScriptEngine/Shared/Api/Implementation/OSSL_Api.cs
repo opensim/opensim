@@ -2664,13 +2664,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private LSL_Key NpcCreate(
             string firstname, string lastname, LSL_Vector position, string notecard, bool owned, bool senseAsAgent, bool hostGroupID)
         {
-
             if (!World.Permissions.CanRezObject(1, m_host.OwnerID, new Vector3((float)position.x, (float)position.y, (float)position.z)))
+            {
+                OSSLError("no permission to rez NPC at requested location");
                 return new LSL_Key(UUID.Zero.ToString());
+            }
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if(module == null)
-                new LSL_Key(UUID.Zero.ToString());
+            {
+                OSSLError("NPC module not enabled");
+                return new LSL_Key(UUID.Zero.ToString());
+            }
 
             string groupTitle = String.Empty;
             UUID groupID = UUID.Zero;
@@ -3878,11 +3883,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             UUID targetUUID;
+            if(!UUID.TryParse(avatar.ToString(), out targetUUID))
+                return;
+            
+            if(targetUUID == UUID.Zero)
+                return;
+            
             ScenePresence target;
+            if(!World.TryGetScenePresence(targetUUID, out target))
+               return;
 
-            if (attachmentPoints.Length >= 1 && UUID.TryParse(avatar.ToString(), out targetUUID) && World.TryGetScenePresence(targetUUID, out target))
+            if(target.IsDeleted || target.IsInTransit)
+               return;
+
+            List<int> aps = new List<int>();
+            if(attachmentPoints.Length != 0)
             {
-                List<int> aps = new List<int>();
                 foreach (object point in attachmentPoints.Data)
                 {
                     int ipoint;
@@ -3891,115 +3907,76 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         aps.Add(ipoint);
                     }
                 }
-
-                List<SceneObjectGroup> attachments = new List<SceneObjectGroup>();
-
-                bool msgAll = aps.Contains(ScriptBaseClass.OS_ATTACH_MSG_ALL);
-                bool invertPoints = (options & ScriptBaseClass.OS_ATTACH_MSG_INVERT_POINTS) != 0;
-
-                if (msgAll && invertPoints)
-                {
+                // parsing failed
+                if(aps.Count != attachmentPoints.Length)
                     return;
-                }
-                else if (msgAll || invertPoints)
-                {
-                    attachments = target.GetAttachments();
-                }
-                else
-                {
-                    foreach (int point in aps)
-                    {
-                        if (point > 0)
-                        {
-                            attachments.AddRange(target.GetAttachments((uint)point));
-                        }
-                    }
-                }
+            }
 
-                // if we have no attachments at this point, exit now
-                if (attachments.Count == 0)
-                {
+            List<SceneObjectGroup> attachments = new List<SceneObjectGroup>();
+
+            bool msgAll;
+            bool invertPoints = (options & ScriptBaseClass.OS_ATTACH_MSG_INVERT_POINTS) != 0;
+
+            if(aps.Count == 0)
+            {
+                if(!invertPoints)
                     return;
-                }
+                msgAll = true;
+                invertPoints = false;
+            }
+            else
+                msgAll = aps.Contains(ScriptBaseClass.OS_ATTACH_MSG_ALL);
 
-                List<SceneObjectGroup> ignoreThese = new List<SceneObjectGroup>();
+            if (msgAll && invertPoints)
+                return;
 
-                if (invertPoints)
+            if (msgAll || invertPoints)
+            {
+                attachments = target.GetAttachments();
+            }
+            else
+            {
+                foreach (int point in aps)
                 {
-                    foreach (SceneObjectGroup attachment in attachments)
+                    if (point > 0)
                     {
-                        if (aps.Contains((int)attachment.AttachmentPoint))
-                        {
-                            ignoreThese.Add(attachment);
-                        }
+                        attachments.AddRange(target.GetAttachments((uint)point));
                     }
                 }
+            }
 
-                foreach (SceneObjectGroup attachment in ignoreThese)
-                {
-                    attachments.Remove(attachment);
-                }
-                ignoreThese.Clear();
+            // if we have no attachments at this point, exit now
+            if (attachments.Count == 0)
+            {
+                return;
+            }
 
-                // if inverting removed all attachments to check, exit now
-                if (attachments.Count < 1)
-                {
-                    return;
-                }
+            bool optionObjCreator = (options & 
+                        ScriptBaseClass.OS_ATTACH_MSG_OBJECT_CREATOR) != 0;
+            bool optionScriptCreator = (options &
+                        ScriptBaseClass.OS_ATTACH_MSG_SCRIPT_CREATOR) != 0;
 
-                if ((options & ScriptBaseClass.OS_ATTACH_MSG_OBJECT_CREATOR) != 0)
-                {
-                    foreach (SceneObjectGroup attachment in attachments)
-                    {
-                        if (attachment.RootPart.CreatorID != m_host.CreatorID)
-                        {
-                            ignoreThese.Add(attachment);
-                        }
-                    }
+            UUID hostCreatorID = m_host.CreatorID;
+            UUID itemCreatorID = m_item.CreatorID;
 
-                    foreach (SceneObjectGroup attachment in ignoreThese)
-                    {
-                        attachments.Remove(attachment);
-                    }
-                    ignoreThese.Clear();
+            foreach (SceneObjectGroup sog in attachments)
+            {
+                if(sog.IsDeleted || sog.inTransit)
+                    continue;
 
-                    // if filtering by same object creator removed all
-                    //  attachments to check, exit now
-                    if (attachments.Count == 0)
-                    {
-                        return;
-                    }
-                }
+                if (invertPoints && aps.Contains((int)sog.AttachmentPoint))
+                    continue;
 
-                if ((options & ScriptBaseClass.OS_ATTACH_MSG_SCRIPT_CREATOR) != 0)
-                {
-                    foreach (SceneObjectGroup attachment in attachments)
-                    {
-                        if (attachment.RootPart.CreatorID != m_item.CreatorID)
-                        {
-                            ignoreThese.Add(attachment);
-                        }
-                    }
+                UUID CreatorID = sog.RootPart.CreatorID;
+                if (optionObjCreator && CreatorID != hostCreatorID)
+                    continue;
 
-                    foreach (SceneObjectGroup attachment in ignoreThese)
-                    {
-                        attachments.Remove(attachment);
-                    }
-                    ignoreThese.Clear();
+                if (optionScriptCreator && CreatorID != itemCreatorID)
+                    continue;
 
-                    // if filtering by object creator must match originating
-                    //  script creator removed all attachments to check,
-                    //  exit now
-                    if (attachments.Count == 0)
-                    {
-                        return;
-                    }
-                }
-
-                foreach (SceneObjectGroup attachment in attachments)
-                {
-                    MessageObject(attachment.RootPart.UUID, message);
-                }
+                SceneObjectPart[] parts = sog.Parts;
+                foreach(SceneObjectPart p in parts)
+                    MessageObject(p.UUID, message);
             }
         }
 

@@ -239,6 +239,8 @@ public abstract class BSPhysObject : PhysicsActor
     public virtual OMV.Vector3 RawVelocity { get; set; }
     public abstract OMV.Vector3 ForceVelocity { get; set; }
 
+    public OMV.Vector3 RawRotationalVelocity { get; set; }
+
     // RawForce is a constant force applied to object (see Force { set; } )
     public OMV.Vector3 RawForce { get; set; }
     public OMV.Vector3 RawTorque { get; set; }
@@ -250,7 +252,48 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract void AddAngularForce(bool inTaintTime, OMV.Vector3 force);
     public abstract void AddForce(bool inTaintTime, OMV.Vector3 force);
 
-    public abstract OMV.Vector3 ForceRotationalVelocity { get; set; }
+    // PhysicsActor.SetMomentum
+    // All the physics engined use this as a way of forcing the velocity to something.
+    public override void SetMomentum(OMV.Vector3 momentum)
+    {
+        // This doesn't just set Velocity=momentum because velocity is ramped up to (see MoveActor)
+        RawVelocity = momentum;
+        PhysScene.TaintedObject(LocalID, TypeName + ".SetMomentum", delegate()
+        {
+            // DetailLog("{0},BSPrim.SetMomentum,taint,vel={1}", LocalID, RawVelocity);
+            ForceVelocity = RawVelocity;
+        });
+    }
+
+    public override OMV.Vector3 RotationalVelocity {
+        get {
+            return RawRotationalVelocity;
+        }
+        set {
+            RawRotationalVelocity = value;
+            Util.ClampV(RawRotationalVelocity, BSParam.MaxAngularVelocity);
+            // m_log.DebugFormat("{0}: RotationalVelocity={1}", LogHeader, _rotationalVelocity);
+            PhysScene.TaintedObject(LocalID, TypeName + ".setRotationalVelocity", delegate()
+            {
+                ForceRotationalVelocity = RawRotationalVelocity;
+            });
+        }
+    }
+    public OMV.Vector3 ForceRotationalVelocity {
+        get {
+            return RawRotationalVelocity;
+        }
+        set {
+            RawRotationalVelocity = Util.ClampV(value, BSParam.MaxAngularVelocity);
+            if (PhysBody.HasPhysicalBody)
+            {
+                DetailLog("{0},{1}.ForceRotationalVel,taint,rotvel={2}", LocalID, TypeName, RawRotationalVelocity);
+                PhysScene.PE.SetAngularVelocity(PhysBody, RawRotationalVelocity);
+                // PhysicsScene.PE.SetInterpolationAngularVelocity(PhysBody, _rotationalVelocity);
+                ActivateIfPhysical(false);
+            }
+        }
+    }
 
     public abstract float ForceBuoyancy { get; set; }
 
@@ -582,7 +625,7 @@ public abstract class BSPhysObject : PhysicsActor
                 {
                     CurrentCollisionFlags = PhysScene.PE.AddToCollisionFlags(PhysBody, CollisionFlags.BS_SUBSCRIBE_COLLISION_EVENTS);
                     DetailLog("{0},{1}.SubscribeEvents,setting collision. ms={2}, collisionFlags={3:x}",
-                            LocalID, TypeName, ms, CurrentCollisionFlags);
+                            LocalID, TypeName, SubscribedEventsMs, CurrentCollisionFlags);
                 }
             });
         }
