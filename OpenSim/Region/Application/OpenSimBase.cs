@@ -417,7 +417,7 @@ namespace OpenSim
             regionInfo.HttpPort = m_httpServerPort;
             if(m_httpServerSSL)
             {
-                if(m_networkServersInfo.HttpSSLCN != regionInfo.ExternalHostName)
+                if(!m_httpServer.CheckSSLCertHost(regionInfo.ExternalHostName))
                     throw new Exception("main http cert CN doesn't match region External IP");
 
                 regionInfo.ServerURI = "https://" + regionInfo.ExternalHostName +

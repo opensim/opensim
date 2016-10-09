@@ -43,10 +43,11 @@ using log4net;
 using Nwc.XmlRpc;
 using OpenMetaverse.StructuredData;
 using CoolHTTPListener = HttpServer.HttpListener;
-using HttpListener=System.Net.HttpListener;
-using LogPrio=HttpServer.LogPrio;
+using HttpListener = System.Net.HttpListener;
+using LogPrio = HttpServer.LogPrio;
 using OpenSim.Framework.Monitoring;
 using System.IO.Compression;
+using System.Security.Cryptography;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
@@ -112,6 +113,9 @@ namespace OpenSim.Framework.Servers.HttpServer
         private X509Certificate2 m_cert;
         protected bool m_firstcaps = true;
         protected string m_SSLCommonName = "";
+        protected List<string> m_certNames = new List<string>();
+        protected List<string> m_certIPs = new List<string>();
+        protected string m_certCN= "";
 
         protected IPAddress m_listenIPAddress = IPAddress.Any;
 
@@ -153,30 +157,150 @@ namespace OpenSim.Framework.Servers.HttpServer
             m_ssl = ssl;
         }
 
-        public BaseHttpServer(uint port, bool ssl, uint sslport, string CN, string CPath, string CPass) : this (port, ssl)
+        private void load_cert(string CPath, string CPass)
         {
-            if (m_ssl)
+            try
             {
-                if(string.IsNullOrEmpty(CPass))
+                 m_cert = new X509Certificate2(CPath, CPass);
+                X509Extension ext = m_cert.Extensions["2.5.29.17"];
+                if(ext != null)
+                {
+                    AsnEncodedData asndata = new AsnEncodedData(ext.Oid, ext.RawData);
+                    string datastr = asndata.Format(true);
+                    string[] lines = datastr.Split(new char[] {'\n','\r'});
+                    foreach(string s in lines)
+                    {
+                        if(String.IsNullOrEmpty(s))
+                            continue;
+                        string[] parts = s.Split(new char[] {'='});
+                        if(String.IsNullOrEmpty(parts[0]))
+                            continue;
+                        string entryName = parts[0].Replace(" ","");
+                        if(entryName == "DNSName")
+                            m_certNames.Add(parts[1]);
+                        else if(entryName == "IPAddress")
+                            m_certIPs.Add(parts[1]);
+                    }
+                }
+                m_certCN = m_cert.GetNameInfo(X509NameType.SimpleName, false);
+            }
+            catch
+            {
+                throw new Exception("SSL cert load error");
+            }
+        }
+
+        public BaseHttpServer(uint port, bool ssl, uint sslport, string CN, string CPath, string CPass)
+        {
+            m_port = port;
+            if (ssl)
+            {
+                if(string.IsNullOrEmpty(CPath))
                     throw new Exception("invalid main http server cert path");
 
+                if(Uri.CheckHostName(CN) == UriHostNameType.Unknown)
+                    throw new Exception("invalid main http server CN (ExternalHostName)");
+
+                m_certNames.Clear();
+                m_certIPs.Clear();
+                m_certCN= "";
+
+                m_ssl = true;
                 m_sslport = sslport;
-                m_cert = new X509Certificate2(CPath, CPass);
-                m_SSLCommonName = m_cert.GetNameInfo(X509NameType.SimpleName,false);
-                if(CN != m_SSLCommonName)
-                    throw new Exception("main http server CN does not match cert CN");
+                load_cert(CPath, CPass);
+                
+                if(!CheckSSLCertHost(CN))
+                    throw new Exception("invalid main http server CN (ExternalHostName)");
+
+                m_SSLCommonName = CN;
+
+                if(m_cert.Issuer == m_cert.Subject )
+                    m_log.Warn("Self signed certificate. Clients need to allow this (some viewers debug option NoVerifySSLcert must be set to true");
+
 
             }
+            else
+                m_ssl = false;
         }
 
         public BaseHttpServer(uint port, bool ssl, string CPath, string CPass) : this (port, ssl)
         {
             if (m_ssl)
             {
-                m_cert = new X509Certificate2(CPath, CPass);
+                load_cert(CPath, CPass);
+                if(m_cert.Issuer == m_cert.Subject )
+                    m_log.Warn("Self signed certificate. Http clients need to allow this");
             }
         }
 
+		static bool MatchDNS (string hostname, string dns) 
+ 		{ 
+ 			int indx = dns.IndexOf ('*'); 
+ 			if (indx == -1)
+ 				return (String.Compare(hostname, dns, true, CultureInfo.InvariantCulture) == 0); 
+ 
+            int dnslen = dns.Length;
+            dnslen--;
+            if(indx == dnslen)
+                return true; // just * ?
+
+            if(indx > dnslen - 2)
+                return false; // 2 short ?
+
+       		if (dns[indx + 1] != '.') 
+ 		    	return false; 
+  
+ 			int indx2 = dns.IndexOf ('*', indx + 1); 
+ 			if (indx2 != -1) 
+ 				return false; // there can only be one;
+ 
+ 			string end = dns.Substring(indx + 1); 
+            int hostlen = hostname.Length;
+            int endlen = end.Length;
+ 			int length = hostlen - endlen; 
+ 			if (length <= 0) 
+ 				return false; 
+
+ 			if (String.Compare(hostname, length, end, 0, endlen, true, CultureInfo.InvariantCulture) != 0) 
+ 				return false; 
+ 
+ 			if (indx == 0)
+            { 
+ 				indx2 = hostname.IndexOf ('.'); 
+ 				return ((indx2 == -1) || (indx2 >= length)); 
+ 			} 
+  
+ 			string start = dns.Substring (0, indx); 
+ 			return (String.Compare (hostname, 0, start, 0, start.Length, true, CultureInfo.InvariantCulture) == 0); 
+ 		} 
+
+        public bool CheckSSLCertHost(string hostname)
+        {
+            UriHostNameType htype = Uri.CheckHostName(hostname);
+
+            if(htype == UriHostNameType.Unknown || htype == UriHostNameType.Basic)
+                return false;
+            if(htype == UriHostNameType.Dns)
+            {
+                foreach(string name in m_certNames)
+                {
+                    if(MatchDNS(hostname, name))
+                        return true;
+                }
+                if(MatchDNS(hostname, m_certCN))
+                    return true;
+            }
+            else
+            {
+                foreach(string ip in m_certIPs)
+                {
+                    if (String.Compare(hostname, ip, true, CultureInfo.InvariantCulture) != 0)
+                        return true;
+                }               
+            }
+
+            return false;
+        }
         /// <summary>
         /// Add a stream handler to the http server.  If the handler already exists, then nothing happens.
         /// </summary>
