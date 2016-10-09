@@ -111,7 +111,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         protected uint m_sslport;
         protected bool m_ssl;
         private X509Certificate2 m_cert;
-        protected bool m_firstcaps = true;
         protected string m_SSLCommonName = "";
         protected List<string> m_certNames = new List<string>();
         protected List<string> m_certIPs = new List<string>();
@@ -150,11 +149,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         public BaseHttpServer(uint port)
         {
             m_port = port;
-        }
-
-        public BaseHttpServer(uint port, bool ssl) : this (port)
-        {
-            m_ssl = ssl;
         }
 
         private void load_cert(string CPath, string CPass)
@@ -216,21 +210,24 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                 if(m_cert.Issuer == m_cert.Subject )
                     m_log.Warn("Self signed certificate. Clients need to allow this (some viewers debug option NoVerifySSLcert must be set to true");
-
-
             }
             else
                 m_ssl = false;
         }
 
-        public BaseHttpServer(uint port, bool ssl, string CPath, string CPass) : this (port, ssl)
+        public BaseHttpServer(uint port, bool ssl, string CPath, string CPass)
         {
-            if (m_ssl)
+            m_port = port;
+            if (ssl)
             {
                 load_cert(CPath, CPass);
                 if(m_cert.Issuer == m_cert.Subject )
                     m_log.Warn("Self signed certificate. Http clients need to allow this");
+                m_ssl = true;
+                m_sslport = port;
             }
+            else
+                m_ssl = false;
         }
 
 		static bool MatchDNS (string hostname, string dns) 
@@ -2038,7 +2035,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void Start()
         {
-            Start(true);
+            Start(true,true);
         }
 
         /// <summary>
@@ -2048,7 +2045,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// If true then poll responses are performed asynchronsly.
         /// Option exists to allow regression tests to perform processing synchronously.
         /// </param>
-        public void Start(bool performPollResponsesAsync)
+        public void Start(bool performPollResponsesAsync, bool runPool)
         {
             m_log.InfoFormat(
                 "[BASE HTTP SERVER]: Starting {0} server on port {1}", UseSSL ? "HTTPS" : "HTTP", Port);
@@ -2086,9 +2083,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                 m_httpListener2.Start(64);
 
                 // Long Poll Service Manager with 3 worker threads a 25 second timeout for no events
-
-                PollServiceRequestManager = new PollServiceRequestManager(this, performPollResponsesAsync, 2, 25000);
-                PollServiceRequestManager.Start();
+                if(runPool)
+                {
+                    PollServiceRequestManager = new PollServiceRequestManager(this, performPollResponsesAsync, 2, 25000);
+                    PollServiceRequestManager.Start();
+                }
 
                 HTTPDRunning = true;
 

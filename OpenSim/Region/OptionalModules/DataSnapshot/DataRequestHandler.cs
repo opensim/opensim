@@ -52,12 +52,12 @@ namespace OpenSim.Region.DataSnapshot
             m_externalData = externalData;
 
             //Register HTTP handler
-            if (MainServer.Instance.AddHTTPHandler("collector", OnGetSnapshot))
+            if (MainServer.ÚnSecureInstance.AddHTTPHandler("collector", OnGetSnapshot))
             {
                 m_log.Info("[DATASNAPSHOT]: Set up snapshot service");
             }
             // Register validation callback handler
-            MainServer.Instance.AddHTTPHandler("validate", OnValidate);
+            MainServer.ÚnSecureInstance.AddHTTPHandler("validate", OnValidate);
 
         }
 
