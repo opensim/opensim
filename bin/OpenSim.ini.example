@@ -46,21 +46,27 @@
 
 
 [Const]
-    ; For a grid these will usually be the externally accessible IP/DNS
-    ; name and use default public port 8002 and default private port 8003
-    ; For a standalone this will usually be the externally accessible IP/DNS
-    ; name and use default public port 9000. The private port is not used
-    ; in the configuration for a standalone.
+	; this section defines constants for grid services
+	; to simplify other configuration files default settings
 
-    ;# {BaseURL} {} {BaseURL} {"http://example.com" "http://127.0.0.1"} "http://127.0.0.1"
+	; BaseURL
+    ; should be the externally accessible IP/DNS name of grid or standalone
+    ; http://externalHostName or https://externalHostName if using ssl 
+	; examples: http://mymachine.example.com, https://mymachine.example.com, https://127.0.0.1
+	; default: http://127.0.0.1
+    ;# {BaseURL} {} {BaseURL} {"http://example.com" "http://127.0.0.1"} ""
     BaseURL = http://127.0.0.1
     
-    ;# {PublicPort} {} {PublicPort} {8002 9000} "8002"
+	; default public port
+	; usually 8002 for grids.
+	; on standalones it needs to match http_listener_port or http_listener_sslport if using ssl
+	; in [Network] section below (defaults 9000 or 9001 if using ssl)
+    ;# {PublicPort} {} {PublicPort} {8002 9000 9001} "8002"
     PublicPort = "8002"
 
+	;grid default private port 8003, not used in standalone
     ;# {PrivatePort} {} {PrivatePort} {8003} "8003"
     PrivatePort = "8003"
-
 
 [Startup]
     ;# {ConsolePrompt} {} {ConsolePrompt} {} "Region (\R) "
@@ -437,7 +443,6 @@
     ;; Password for the default estate owner
     ; DefaultEstateOwnerPassword = password
 
-
 [SMTP]
     ;; The SMTP server enabled the email module to send email to external
     ;; destinations.
@@ -470,7 +475,6 @@
     ;# {SMTP_SERVER_PASSWORD} {[Startup]emailmodule:DefaultEmailModule enabled:true} {SMTP server password} {}
     ; SMTP_SERVER_PASSWORD = ""
 
-
 [Network]
     ;# {ConsoleUser} {} {User name for console account} {}
     ;; Configure the remote console user here. This will not actually be used
@@ -487,10 +491,39 @@
     ;; the region ports use UDP.
     ; http_listener_port = 9000
 
+	; optional main server secure http (ssl)
+	; to use ssl you need a ssl certificate in PKCS12 format that validates the ExternalHostnames 
+	; or their domains
+	; some viewers by default only accept certificates signed by a oficial CA
+	; to use others like self signed certificates with those viewers,
+	; their debug option NoVerifySSLCert needs to be set true, You need to inform users about this
+	; the main unsecure port will still open for some services. this may change in future.
+	
+	; set http_listener_ssl to enable main server ssl. it will replace unsecure port on most functions
+	;# {http_listener_ssl}{} {enable main server ssl port)} {} false
+    ;http_listener_ssl = false
+	
+	; Set port for main SSL connections
+	;# {http_listener_sslport}{} {main server ssl port)} {} 9001
+    ;http_listener_sslport = 9001 ;
+	
+	; currently if using ssl, regions ExternalHostName must the the same and equal to http_listener_cn
+	; this may be removed in future
+	;# {http_listener_cn}{} {main server ssl externalHostName)} {} ""
+    ;http_listener_cn = "myRegionsExternalHostName"
+
+	; the path for the certificate path
+	;# {http_listener_cert_path}{} {main server ssl certificate file path)} {} ""
+    ;http_listener_cert_path = "mycert.p12"
+	
+	;# {http_listener_cert_pass}{} {main server ssl certificate password)} {} ""
+	;http_listener_cert_pass = "mycertpass" ; the cert passwork
+	
     ; By default, OpenSimulator does not allow scripts to make HTTP calls to addresses on the simulator's LAN.
     ; See the OutboundDisallowForUserScripts parameter in OpenSimDefaults.ini for more information on this filter.
     ; If you need to allow scripts to make some LAN calls use the OutboundDisallowForUserScriptsExcept parameter below.
     ; We recommend that you do not override OutboundDisallowForUserScripts directly unless you are very sure about what you're doing.
+	; this HTTP calls can also use ssl see opensimDefaults.ini
     ;
     ; You can whitelist individual endpoints by IP or FQDN, e.g.
     ;
