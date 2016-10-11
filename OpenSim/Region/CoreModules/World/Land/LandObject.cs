@@ -341,10 +341,16 @@ namespace OpenSim.Region.CoreModules.World.Land
             else
             {
                 // Normal Calculations
-                int parcelMax = (int)( (long)LandData.Area
-                              * (long)m_scene.RegionInfo.ObjectCapacity
-                              * (long)m_scene.RegionInfo.RegionSettings.ObjectBonus
-                              / (long)(m_scene.RegionInfo.RegionSizeX * m_scene.RegionInfo.RegionSizeY) );
+                int parcelMax = (int)(
+                                (double)LandData.Area
+                              * (double)m_scene.RegionInfo.ObjectCapacity
+                              * (double)m_scene.RegionInfo.RegionSettings.ObjectBonus
+                              / (double)(m_scene.RegionInfo.RegionSizeX * m_scene.RegionInfo.RegionSizeY)
+                              + 0.5 );
+
+                if(parcelMax > m_scene.RegionInfo.ObjectCapacity)
+                    parcelMax = m_scene.RegionInfo.ObjectCapacity;
+
                 //m_log.DebugFormat("Area: {0}, Capacity {1}, Bonus {2}, Parcel {3}", LandData.Area, m_scene.RegionInfo.ObjectCapacity, m_scene.RegionInfo.RegionSettings.ObjectBonus, parcelMax);
                 return parcelMax;
             }
@@ -359,9 +365,14 @@ namespace OpenSim.Region.CoreModules.World.Land
             else
             {
                 //Normal Calculations
-                int simMax = (int)(   (long)LandData.SimwideArea
-                                    * (long)m_scene.RegionInfo.ObjectCapacity
-                                    / (long)(m_scene.RegionInfo.RegionSizeX * m_scene.RegionInfo.RegionSizeY) );
+                int simMax = (int)(   (double)LandData.SimwideArea
+                                    * (double)m_scene.RegionInfo.ObjectCapacity
+                                    * (double)m_scene.RegionInfo.RegionSettings.ObjectBonus
+                                    / (long)(m_scene.RegionInfo.RegionSizeX * m_scene.RegionInfo.RegionSizeY)
+                                    +0.5 );
+
+                if(simMax > m_scene.RegionInfo.ObjectCapacity)
+                    simMax = m_scene.RegionInfo.ObjectCapacity;
                  //m_log.DebugFormat("Simwide Area: {0}, Capacity {1}, SimMax {2}, SimWidePrims {3}", 
                  //    LandData.SimwideArea, m_scene.RegionInfo.ObjectCapacity, simMax, LandData.SimwidePrims);
                 return simMax;
