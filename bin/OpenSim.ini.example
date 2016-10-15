@@ -903,8 +903,10 @@
     ;;
     ;; However, setting this to false will also prevent script DLLs from being unloaded from memory if the script is deleted.
     ;; This may cause an OutOfMemory problem over time when avatars with scripted attachments move in and out of the region.
-    ;; Some Windows users have also reported script loading problems when AppDomainLoading = false
-    ; AppDomainLoading = true
+    ;; at this time some mono versions seem to have problems with the true option
+    ;; so default is now false until a fix is found, to simply life of less technical skilled users.
+    ;; this should only be a issue if regions stay alive for a long time with lots of scripts added or edited.
+    ; AppDomainLoading = false
 
     ;; Controls whether scripts are stopped by aborting their threads externally (abort) or by co-operative checks from the compiled script (co-op) 
     ;; co-op will be more stable but this option is currently experimental.
