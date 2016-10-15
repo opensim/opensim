@@ -6201,7 +6201,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 (x.ControlFlags != m_thisAgentUpdateArgs.ControlFlags)   // significant if control flags changed
 //                || ((x.ControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0 && 
 //                    (x.ControlFlags & 0x3f8dfff) != 0) // we need to rotate the av on fly
-                || (x.ControlFlags & 0x3f8dfff) != 0 // actually all movement controls need to pass
+                || x.ControlFlags != (byte)AgentManager.ControlFlags.NONE// actually all movement controls need to pass
                 || (x.Flags != m_thisAgentUpdateArgs.Flags)                 // significant if Flags changed
                 || (x.State != m_thisAgentUpdateArgs.State)                 // significant if Stats changed
                 || (Math.Abs(x.Far - m_thisAgentUpdateArgs.Far) >= 32)      // significant if far distance changed
