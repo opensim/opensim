@@ -894,7 +894,7 @@
     ;; The trade-off may be increased memory usage by the script engine.
     ; ThreadStackSize = 262144
 
-    ;; Set this to true (the default) to load each script into a separate
+    ;; Set this to true to load each script into a separate
     ;; AppDomain. 
     ;;
     ;; Setting this to false will load all script assemblies into the
