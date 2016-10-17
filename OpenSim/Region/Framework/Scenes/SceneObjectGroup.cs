@@ -3869,21 +3869,25 @@ namespace OpenSim.Region.Framework.Scenes
                     for (int i = 0; i < parts.Length; i++)
                     {
                         SceneObjectPart part = parts[i];
-                        if (part.Scale.X > m_scene.m_maxPhys ||
-                            part.Scale.Y > m_scene.m_maxPhys ||
-                            part.Scale.Z > m_scene.m_maxPhys )
-                        {
-                            UsePhysics = false; // Reset physics
-                            break;
-                        }
 
-                        if (checkShape && part.PhysicsShapeType != (byte)PhysicsShapeType.None)
+                        if(part.PhysicsShapeType == (byte)PhysicsShapeType.None)
+                            continue; // assuming root type was checked elsewhere
+
+                        if (checkShape)
                         {
                             if (--maxprims < 0)
                             {
                                 UsePhysics = false;
                                 break;
                             }
+                        }
+
+                        if (part.Scale.X > m_scene.m_maxPhys ||
+                            part.Scale.Y > m_scene.m_maxPhys ||
+                            part.Scale.Z > m_scene.m_maxPhys )
+                        {
+                            UsePhysics = false; // Reset physics
+                            break;
                         }
                     }
                 }
