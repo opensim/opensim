@@ -6173,8 +6173,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         // Threshold for body rotation to be a significant agent update
         // use the abs of cos
-        private const float QDELTABody = 1.0f - 0.0001f;
-        private const float QDELTAHead = 1.0f - 0.0001f;
+        private const float QDELTABody = 1.0f - 0.00005f;
+        private const float QDELTAHead = 1.0f - 0.00005f;
         // Threshold for camera rotation to be a significant agent update
         private const float VDELTA = 0.01f;
 
@@ -6199,8 +6199,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if(
                 (x.ControlFlags != m_thisAgentUpdateArgs.ControlFlags)   // significant if control flags changed
-                || ((x.ControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0 && 
-                    (x.ControlFlags & 0x3f8dfff) != 0) // we need to rotate the av on fly
+//                || ((x.ControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0 && 
+//                    (x.ControlFlags & 0x3f8dfff) != 0) // we need to rotate the av on fly
+                || x.ControlFlags != (byte)AgentManager.ControlFlags.NONE// actually all movement controls need to pass
                 || (x.Flags != m_thisAgentUpdateArgs.Flags)                 // significant if Flags changed
                 || (x.State != m_thisAgentUpdateArgs.State)                 // significant if Stats changed
                 || (Math.Abs(x.Far - m_thisAgentUpdateArgs.Far) >= 32)      // significant if far distance changed
