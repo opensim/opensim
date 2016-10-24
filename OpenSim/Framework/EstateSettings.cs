@@ -305,11 +305,17 @@ namespace OpenSim.Framework
                 OnSave(this);
         }
 
+        public int EstateUsersCount()
+        {
+            return l_EstateAccess.Count;
+        }
+
         public void AddEstateUser(UUID avatarID)
         {
             if (avatarID == UUID.Zero)
                 return;
-            if (!l_EstateAccess.Contains(avatarID))
+            if (!l_EstateAccess.Contains(avatarID) &&
+                    (l_EstateAccess.Count < (int)Constants.EstateAccessLimits.AllowedAccess))
                 l_EstateAccess.Add(avatarID);
         }
 
@@ -319,11 +325,17 @@ namespace OpenSim.Framework
                 l_EstateAccess.Remove(avatarID);
         }
 
+        public int EstateGroupsCount()
+        {
+            return l_EstateGroups.Count;
+        }
+
         public void AddEstateGroup(UUID avatarID)
         {
             if (avatarID == UUID.Zero)
                 return;
-            if (!l_EstateGroups.Contains(avatarID))
+            if (!l_EstateGroups.Contains(avatarID) &&
+                    (l_EstateGroups.Count < (int)Constants.EstateAccessLimits.AllowedGroups))
                 l_EstateGroups.Add(avatarID);
         }
 
@@ -333,11 +345,17 @@ namespace OpenSim.Framework
                 l_EstateGroups.Remove(avatarID);
         }
 
+        public int EstateManagersCount()
+        {
+            return l_EstateManagers.Count;
+        }
+
         public void AddEstateManager(UUID avatarID)
         {
             if (avatarID == UUID.Zero)
                 return;
-            if (!l_EstateManagers.Contains(avatarID))
+            if (!l_EstateManagers.Contains(avatarID) &&
+                (l_EstateManagers.Count < (int)Constants.EstateAccessLimits.EstateManagers))
                 l_EstateManagers.Add(avatarID);
         }
 
@@ -403,11 +421,17 @@ namespace OpenSim.Framework
             return false;
         }
 
+        public int EstateBansCount()
+        {
+            return l_EstateBans.Count;
+        }
+
         public void AddBan(EstateBan ban)
         {
             if (ban == null)
                 return;
-            if (!IsBanned(ban.BannedUserID, 32)) //Ignore age-based bans
+            if (!IsBanned(ban.BannedUserID, 32) && 
+                (l_EstateBans.Count < (int)Constants.EstateAccessLimits.EstateBans)) //Ignore age-based bans
                 l_EstateBans.Add(ban);
         }
 

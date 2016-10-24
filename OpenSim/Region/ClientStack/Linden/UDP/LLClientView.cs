@@ -5072,52 +5072,74 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         public void SendEstateList(UUID invoice, int code, UUID[] Data, uint estateID)
-
         {
-            EstateOwnerMessagePacket packet = new EstateOwnerMessagePacket();
-            packet.AgentData.TransactionID = UUID.Random();
-            packet.AgentData.AgentID = AgentId;
-            packet.AgentData.SessionID = SessionId;
-            packet.MethodData.Invoice = invoice;
-            packet.MethodData.Method = Utils.StringToBytes("setaccess");
+            int TotalnumberIDs = Data.Length;
+            int numberIDs;
+            int IDIndex = 0;
 
-            EstateOwnerMessagePacket.ParamListBlock[] returnblock = new EstateOwnerMessagePacket.ParamListBlock[6 + Data.Length];
-
-            for (int i = 0; i < (6 + Data.Length); i++)
+            do
             {
-                returnblock[i] = new EstateOwnerMessagePacket.ParamListBlock();
-            }
-            int j = 0;
+                if(TotalnumberIDs > 63)
+                    numberIDs = 63;
+                else
+                    numberIDs = TotalnumberIDs;
 
-            returnblock[j].Parameter = Utils.StringToBytes(estateID.ToString()); j++;
-            returnblock[j].Parameter = Utils.StringToBytes(code.ToString()); j++;
-            returnblock[j].Parameter = Utils.StringToBytes("0"); j++;
-            returnblock[j].Parameter = Utils.StringToBytes("0"); j++;
-            returnblock[j].Parameter = Utils.StringToBytes("0"); j++;
-            returnblock[j].Parameter = Utils.StringToBytes("0"); j++;
+                TotalnumberIDs -= numberIDs;
 
-            j = 2; // Agents
-            if ((code & 2) != 0)
-                j = 3; // Groups
-            if ((code & 8) != 0)
-                j = 5; // Managers
+                EstateOwnerMessagePacket packet = new EstateOwnerMessagePacket();
+                packet.AgentData.TransactionID = UUID.Random();
+                packet.AgentData.AgentID = AgentId;
+                packet.AgentData.SessionID = SessionId;
+                packet.MethodData.Invoice = invoice;
+                packet.MethodData.Method = Utils.StringToBytes("setaccess");
 
-            returnblock[j].Parameter = Utils.StringToBytes(Data.Length.ToString());
-            j = 6;
+                EstateOwnerMessagePacket.ParamListBlock[] returnblock = new EstateOwnerMessagePacket.ParamListBlock[6 + numberIDs];
 
-            for (int i = 0; i < Data.Length; i++)
-            {
-                returnblock[j].Parameter = Data[i].GetBytes(); j++;
-            }
-            packet.ParamList = returnblock;
-            packet.Header.Reliable = true;
-            OutPacket(packet, ThrottleOutPacketType.Task);
+                for (int i = 0; i < (6 + numberIDs); i++)
+                {
+                    returnblock[i] = new EstateOwnerMessagePacket.ParamListBlock();
+                }
+
+                returnblock[0].Parameter = Utils.StringToBytes(estateID.ToString());
+                returnblock[1].Parameter = Utils.StringToBytes(code.ToString());
+
+                if((code & 1) != 0) // allowagents
+                    returnblock[2].Parameter = Utils.StringToBytes(numberIDs.ToString());
+                else
+                    returnblock[2].Parameter = Utils.StringToBytes("0");
+
+                if((code & 2) != 0) // groups
+                    returnblock[3].Parameter = Utils.StringToBytes(numberIDs.ToString());
+                else
+                    returnblock[3].Parameter = Utils.StringToBytes("0");
+
+                if((code & 4) != 0) // bans
+                    returnblock[4].Parameter = Utils.StringToBytes(numberIDs.ToString());
+                else
+                    returnblock[4].Parameter = Utils.StringToBytes("0");
+
+                if((code & 8) != 0) // managers
+                    returnblock[5].Parameter = Utils.StringToBytes(numberIDs.ToString());
+                else
+                    returnblock[5].Parameter = Utils.StringToBytes("0");
+
+                int j = 6;
+
+                for (int i = 0; i < numberIDs; i++)
+                {
+                    returnblock[j].Parameter = Data[IDIndex].GetBytes();
+                    j++;
+                    IDIndex++;
+                }
+                packet.ParamList = returnblock;
+                packet.Header.Reliable = true;
+                OutPacket(packet, ThrottleOutPacketType.Task);
+            } while (TotalnumberIDs > 0);
         }
 
         public void SendBannedUserList(UUID invoice, EstateBan[] bl, uint estateID)
         {
             List<UUID> BannedUsers = new List<UUID>();
-
             for (int i = 0; i < bl.Length; i++)
             {
                 if (bl[i] == null)
@@ -5125,44 +5147,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (bl[i].BannedUserID == UUID.Zero)
                     continue;
                 BannedUsers.Add(bl[i].BannedUserID);
-
-                if (BannedUsers.Count >= 50 || (i == (bl.Length - 1) && BannedUsers.Count > 0))
-                {
-                    EstateOwnerMessagePacket packet = new EstateOwnerMessagePacket();
-                    packet.AgentData.TransactionID = UUID.Random();
-                    packet.AgentData.AgentID = AgentId;
-                    packet.AgentData.SessionID = SessionId;
-                    packet.MethodData.Invoice = invoice;
-                    packet.MethodData.Method = Utils.StringToBytes("setaccess");
-
-                    EstateOwnerMessagePacket.ParamListBlock[] returnblock = new EstateOwnerMessagePacket.ParamListBlock[6 + BannedUsers.Count];
-
-                    int j;
-                    for (j = 0; j < (6 + BannedUsers.Count); j++)
-                    {
-                        returnblock[j] = new EstateOwnerMessagePacket.ParamListBlock();
-                    }
-                    j = 0; 
-
-                    returnblock[j].Parameter = Utils.StringToBytes(estateID.ToString()); j++;
-                    returnblock[j].Parameter = Utils.StringToBytes(((int)Constants.EstateAccessCodex.EstateBans).ToString()); j++;
-                    returnblock[j].Parameter = Utils.StringToBytes("0"); j++;
-                    returnblock[j].Parameter = Utils.StringToBytes("0"); j++;
-                    returnblock[j].Parameter = Utils.StringToBytes(BannedUsers.Count.ToString()); j++;
-                    returnblock[j].Parameter = Utils.StringToBytes("0"); j++;
-
-                    foreach (UUID banned in BannedUsers)
-                    {
-                        returnblock[j].Parameter = banned.GetBytes(); j++;
-                    }
-                    packet.ParamList = returnblock;
-                    packet.Header.Reliable = true;
-                    OutPacket(packet, ThrottleOutPacketType.Task);
-
-                    BannedUsers.Clear();
-                }
             }
-
+            SendEstateList(invoice, 4, BannedUsers.ToArray(), estateID);
         }
 
         public void SendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args)
@@ -10240,6 +10226,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
                     {
                         int estateAccessType = Convert.ToInt16(Utils.BytesToString(messagePacket.ParamList[1].Parameter));
+                        
                         OnUpdateEstateAccessDeltaRequest(this, messagePacket.MethodData.Invoice, estateAccessType, new UUID(Utils.BytesToString(messagePacket.ParamList[2].Parameter)));
 
                     }
