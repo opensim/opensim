@@ -100,11 +100,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected IScriptEngine m_ScriptEngine;
         protected SceneObjectPart m_host;
-
-        /// <summary>
-        /// Used for script sleeps when we are using co-operative script termination.
-        /// </summary>
-        /// <remarks>null if co-operative script termination is not active</remarks>
+  
         /// <summary>
         /// The item that hosts this script
         /// </summary>
@@ -1641,12 +1637,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     foreach (SceneObjectPart part in group.Parts)
                     {
+                        if (part.PhysicsShapeType == (byte)PhysicsShapeType.None)
+                            continue;
+
                         if (part.Scale.X > World.m_maxPhys || part.Scale.Y > World.m_maxPhys || part.Scale.Z > World.m_maxPhys)
                         {
                             allow = false;
                             break;
                         }
-                        if (checkShape && part.PhysicsShapeType != (byte)PhysicsShapeType.None)
+                        if (checkShape)
                         {
                             if (--maxprims < 0)
                             {
