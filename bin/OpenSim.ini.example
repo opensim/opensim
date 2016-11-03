@@ -927,7 +927,7 @@
 
     ;# {CompactMemOnLoad} {} {compacts memory on each script load at startup?} {true false} false
     ;; forces calls to memory garbage collector before loading each script DLL during region startup.
-    ;; Peek memory usage is reduced and region starts with a more compacted memory allocation.
+    ;; Peak memory usage is reduced and region starts with a more compacted memory allocation.
     ;; But this costs a lot of time, so region load will take a lot longer.
     ;; it is more usefull if there are no previously compiled scripts DLLs (as with DeleteScriptsOnStartup = true)
     ;CompactMemOnLoad = false
