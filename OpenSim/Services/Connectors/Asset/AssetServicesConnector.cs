@@ -347,51 +347,34 @@ namespace OpenSim.Services.Connectors
                 string uri = r.uri;
                 string id = r.id;
 
-                bool success = false;
                 try
                 {
                     AssetBase a = SynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", uri, 0, 30000, m_Auth);
-                    if (a != null)
+
+                    if (a != null && m_Cache != null)
+                        m_Cache.Cache(a);
+
+                    List<AssetRetrievedEx> handlers;
+                    lock (m_AssetHandlers)
                     {
-                        if (m_Cache != null)
-                            m_Cache.Cache(a);
+                        handlers = m_AssetHandlers[id];
+                        m_AssetHandlers.Remove(id);
+                    }
 
-                        List<AssetRetrievedEx> handlers;
-                        lock (m_AssetHandlers)
+                    if(handlers != null)
+                    {
+                        Util.FireAndForget(x =>
                         {
-                            handlers = m_AssetHandlers[id];
-                            m_AssetHandlers.Remove(id);
-                        }
-
-                        if(handlers != null)
-                        {
-                            Util.FireAndForget(x =>
+                            foreach (AssetRetrievedEx h in handlers)
                             {
-                                foreach (AssetRetrievedEx h in handlers)
-                                {
-                                    try { h.Invoke(a); }
-                                    catch { }
-                                }
-                                handlers.Clear();
-                            });
-                        }
-                        success = true;
-                    }
-                }
-                finally
-                {
-                    if (!success)
-                    {
-                        List<AssetRetrievedEx> handlers;
-                        lock (m_AssetHandlers)
-                        {
-                            handlers = m_AssetHandlers[id];
-                            m_AssetHandlers.Remove(id);
-                        }
-                        if (handlers != null)
+                                try { h.Invoke(a); }
+                                catch { }
+                            }
                             handlers.Clear();
+                        });
                     }
                 }
+                catch { }
             }
         }
 
