@@ -110,6 +110,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private int m_ScriptFailCount; // Number of script fails since compile queue was last empty
         private string m_ScriptErrorMessage;
         private bool m_AppDomainLoading;
+        private bool m_CompactMemOnLoad;
         private Dictionary<UUID,ArrayList> m_ScriptErrors =
                 new Dictionary<UUID,ArrayList>();
 
@@ -301,8 +302,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_MaxScriptQueue = m_ScriptConfig.GetInt("MaxScriptEventQueue",300);
             m_StackSize = m_ScriptConfig.GetInt("ThreadStackSize", 262144);
             m_SleepTime = m_ScriptConfig.GetInt("MaintenanceInterval", 10) * 1000;
-            m_AppDomainLoading = m_ScriptConfig.GetBoolean("AppDomainLoading", true);
-
+            m_AppDomainLoading = m_ScriptConfig.GetBoolean("AppDomainLoading", false);
+            m_CompactMemOnLoad = m_ScriptConfig.GetBoolean("CompactMemOnLoad", false);
             m_EventLimit = m_ScriptConfig.GetInt("EventLimit", 30);
             m_KillTimedOutScripts = m_ScriptConfig.GetBoolean("KillTimedOutScripts", false);
             m_SaveTime = m_ScriptConfig.GetInt("SaveInterval", 120) * 1000;
@@ -1278,10 +1279,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 }
             }
 
-            // do not load a assembly on top of a lot of to release memory
-            // also yield a bit
-            // only if logins disable since causes a lot of rubber banding
-            if(!m_Scene.LoginsEnabled)
+            // optionaly do not load a assembly on top of a lot of to release memory
+            // only if logins disable since causes a lot of rubber banding            
+            if(m_CompactMemOnLoad && !m_Scene.LoginsEnabled)
                 GC.Collect(2);
 
             ScriptInstance instance = null;

@@ -1222,7 +1222,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public UpdateRequired UpdateFlag { get; set; }
-        public bool UpdatePhysRequired { get; set; }
         
         /// <summary>
         /// Used for media on a prim.
@@ -1637,7 +1636,6 @@ namespace OpenSim.Region.Framework.Scenes
                         if(ParentGroup != null)
                             ParentGroup.HasGroupChanged = true;
                         ScheduleFullUpdateIfNone();
-                        UpdatePhysRequired = true;
                     }
                 }
             }
@@ -1729,7 +1727,7 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 byte oldv = m_physicsShapeType;
-
+ 
                 if (value >= 0 && value <= (byte)PhysShapeType.convex)
                 {
                     if (value == (byte)PhysShapeType.none && ParentGroup != null && ParentGroup.RootPart == this)
@@ -1748,28 +1746,21 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             ParentGroup.Scene.RemovePhysicalPrim(1);
                             RemoveFromPhysics();
-                            Stop();
+//                            Stop();
                         }
                     }
                     else if (PhysActor == null)
                     {
-                        ApplyPhysics((uint)Flags, VolumeDetectActive, false);
-                        UpdatePhysicsSubscribedEvents();
+                        if(oldv == (byte)PhysShapeType.none)
+                        {
+                            ApplyPhysics((uint)Flags, VolumeDetectActive, false);
+                            UpdatePhysicsSubscribedEvents();
+                        }
                     }
                     else
-                    {
                         PhysActor.PhysicsShapeType = m_physicsShapeType;
-//                        if (Shape.SculptEntry)
-//                            CheckSculptAndLoad();
-                    }
 
-                    if (ParentGroup != null)
-                        ParentGroup.HasGroupChanged = true;
-                }
-
-                if (m_physicsShapeType != value)
-                {
-                    UpdatePhysRequired = true;
+                    ParentGroup.HasGroupChanged = true;
                 }
             }
         }
@@ -1782,17 +1773,16 @@ namespace OpenSim.Region.Framework.Scenes
                 if (value >=1 && value <= 22587.0)
                 {
                     m_density = value;
-                    UpdatePhysRequired = true;
+
+                    ScheduleFullUpdateIfNone();
+
+                    if (ParentGroup != null)
+                        ParentGroup.HasGroupChanged = true;
+
+                    PhysicsActor pa = PhysActor;
+                    if (pa != null)
+                        pa.Density = m_density;
                 }
-
-                ScheduleFullUpdateIfNone();
-
-                if (ParentGroup != null)
-                    ParentGroup.HasGroupChanged = true;
-
-                PhysicsActor pa = PhysActor;
-                if (pa != null)
-                    pa.Density = Density;
             }
         }
 
@@ -1804,17 +1794,16 @@ namespace OpenSim.Region.Framework.Scenes
                 if( value >= -1 && value <=28.0f)
                 {
                     m_gravitymod = value;
-                    UpdatePhysRequired = true;
+
+                    ScheduleFullUpdateIfNone();
+
+                    if (ParentGroup != null)
+                        ParentGroup.HasGroupChanged = true;
+
+                    PhysicsActor pa = PhysActor;
+                    if (pa != null)
+                        pa.GravModifier = m_gravitymod;
                 }
-
-                ScheduleFullUpdateIfNone();
-
-                if (ParentGroup != null)
-                    ParentGroup.HasGroupChanged = true;
-
-                PhysicsActor pa = PhysActor;
-                if (pa != null)
-                    pa.GravModifier = GravityModifier;
             }
         }
 
@@ -1826,17 +1815,16 @@ namespace OpenSim.Region.Framework.Scenes
                 if (value >= 0 && value <= 255.0f)
                 {
                     m_friction = value;
-                    UpdatePhysRequired = true;
+
+                    ScheduleFullUpdateIfNone();
+
+                    if (ParentGroup != null)
+                        ParentGroup.HasGroupChanged = true;
+
+                    PhysicsActor pa = PhysActor;
+                    if (pa != null)
+                        pa.Friction = m_friction;
                 }
-
-                ScheduleFullUpdateIfNone();
-
-                if (ParentGroup != null)
-                    ParentGroup.HasGroupChanged = true;
-
-                PhysicsActor pa = PhysActor;
-                if (pa != null)
-                    pa.Friction = Friction;
             }
         }
 
@@ -1848,17 +1836,16 @@ namespace OpenSim.Region.Framework.Scenes
                 if (value >= 0 && value <= 1.0f)
                 {
                     m_bounce = value;
-                    UpdatePhysRequired = true;
+
+                    ScheduleFullUpdateIfNone();
+
+                    if (ParentGroup != null)
+                        ParentGroup.HasGroupChanged = true;
+
+                    PhysicsActor pa = PhysActor;
+                    if (pa != null)
+                        pa.Restitution = m_bounce;
                 }
-
-                ScheduleFullUpdateIfNone();
-
-                if (ParentGroup != null)
-                    ParentGroup.HasGroupChanged = true;
-
-                PhysicsActor pa = PhysActor;
-                if (pa != null)
-                    pa.Restitution = Restitution;
             }
         }
 
@@ -4541,24 +4528,24 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             }
         }
 
-
         public void UpdateExtraPhysics(ExtraPhysicsData physdata)
         {
             if (physdata.PhysShapeType == PhysShapeType.invalid || ParentGroup == null)
                 return;
 
-            if (PhysicsShapeType != (byte)physdata.PhysShapeType)
-            {
-                PhysicsShapeType = (byte)physdata.PhysShapeType;
-
-            }
+            byte newtype = (byte)physdata.PhysShapeType;
+            if (PhysicsShapeType != newtype)
+                PhysicsShapeType = newtype;
 
             if(Density != physdata.Density)
                 Density = physdata.Density;
+
             if(GravityModifier != physdata.GravitationModifier)
                 GravityModifier = physdata.GravitationModifier;
+
             if(Friction != physdata.Friction)
                 Friction = physdata.Friction;
+
             if(Restitution != physdata.Bounce)
                 Restitution = physdata.Bounce;
         }

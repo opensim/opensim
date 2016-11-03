@@ -443,6 +443,11 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
                     if (physicsParms != null)
                         usemesh = true;
+                    else
+                    {
+                        m_log.WarnFormat("[MESH]: Data for PRIM shape type not found for prim {0}",primName);
+                        return false;                    
+                    }                  
                 }
                 
                 if(!usemesh && (map.ContainsKey("physics_convex")))
@@ -451,7 +456,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
                 if (physicsParms == null)
                 {
-                    m_log.WarnFormat("[MESH]: unknown mesh type for {0}",primName);
+                    m_log.WarnFormat("[MESH]: unknown mesh type for prim {0}",primName);
                     return false;
                 }
 

@@ -1660,7 +1660,7 @@ namespace OpenSim.Region.Framework.Scenes
                         if (part != null)
                         {
                             part.UpdateExtraPhysics(PhysData);
-                            if (part.UpdatePhysRequired && remoteClient != null)
+                            if (remoteClient != null)
                                 remoteClient.SendPartPhysicsProprieties(part);
                         }
                     }
