@@ -7026,24 +7026,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            LSL_List AttachmentsList = new LSL_List();
-
             ScenePresence av = World.GetScenePresence((UUID)id);
 
-            string NOT_FOUND = "NOT_FOUND";
-            string NOT_ON_REGION = "NOT ON REGION";
+            if (av == null || av.IsDeleted)
+                return new LSL_List("NOT_FOUND");
 
-            if (av == null)
-                return new LSL_List(NOT_FOUND);
-            if (av.IsChildAgent)
-                return new LSL_List(NOT_ON_REGION);
+            if (av.IsChildAgent || av.IsInTransit)
+                return new LSL_List("NOT_ON_REGION");
 
-            List<SceneObjectGroup> AttachmentsKeys;
+            LSL_List AttachmentsList = new LSL_List();
+            List<SceneObjectGroup> Attachments;
 
-            AttachmentsKeys = av.GetAttachments();
+            Attachments = av.GetAttachments();
 
-            foreach (SceneObjectGroup AttachmentKey in AttachmentsKeys)
-                AttachmentsList.Add(new LSL_Key(AttachmentKey.FromItemID.ToString()));
+            foreach (SceneObjectGroup Attachment in Attachments)
+            {
+                if(Attachment.HasPrivateAttachmentPoint)
+                    continue;
+                AttachmentsList.Add(new LSL_Key(Attachment.UUID.ToString()));
+            }
 
             return AttachmentsList;
         }
