@@ -426,6 +426,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetAttached();
         }
 
+        public LSL_List llGetAttachedList(string id)
+        {
+            return m_LSL_Functions.llGetAttachedList(id);
+        }
+
         public LSL_List llGetBoundingBox(string obj)
         {
             return m_LSL_Functions.llGetBoundingBox(obj);
