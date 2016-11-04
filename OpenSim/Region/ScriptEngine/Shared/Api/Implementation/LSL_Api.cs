@@ -7022,6 +7022,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return m_host.ParentGroup.AttachmentPoint;
         }
 
+        public LSL_List llGetAttachedList(string id)
+        {
+            m_host.AddScriptLPS(1);
+
+            ScenePresence av = World.GetScenePresence((UUID)id);
+
+            if (av == null || av.IsDeleted)
+                return new LSL_List("NOT_FOUND");
+
+            if (av.IsChildAgent || av.IsInTransit)
+                return new LSL_List("NOT_ON_REGION");
+
+            LSL_List AttachmentsList = new LSL_List();
+            List<SceneObjectGroup> Attachments;
+
+            Attachments = av.GetAttachments();
+
+            foreach (SceneObjectGroup Attachment in Attachments)
+            {
+                if(Attachment.HasPrivateAttachmentPoint)
+                    continue;
+                AttachmentsList.Add(new LSL_Key(Attachment.UUID.ToString()));
+            }
+
+            return AttachmentsList;
+        }
+
         public virtual LSL_Integer llGetFreeMemory()
         {
             m_host.AddScriptLPS(1);
