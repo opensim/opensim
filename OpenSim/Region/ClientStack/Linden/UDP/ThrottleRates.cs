@@ -105,7 +105,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 AdaptiveThrottlesEnabled = false;
                 MinimumAdaptiveThrottleRate = throttleConfig.GetInt("adaptive_throttle_min_bps", 32000);
 
-                // http textures do use udp bandwith setting
+                // http textures do use udp bandwidth setting
 //                CannibalizeTextureRate = (double)throttleConfig.GetFloat("CannibalizeTextureRate", 0.0f);
 //                CannibalizeTextureRate = Util.Clamp<double>(CannibalizeTextureRate,0.0, 0.9);
                 CannibalizeTextureRate = 0f;
