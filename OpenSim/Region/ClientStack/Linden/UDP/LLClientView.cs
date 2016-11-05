@@ -4632,28 +4632,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         void HandleQueueEmpty(ThrottleOutPacketTypeFlags categories)
         {
-//            if (!m_udpServer.IsRunningOutbound)
-//                return;
-
             if ((categories & ThrottleOutPacketTypeFlags.Task) != 0)
             {
-//                if (!m_udpServer.IsRunningOutbound)
-//                    return;
-/*
-                if (m_maxUpdates == 0 || m_LastQueueFill == 0)
-                {
-                    m_maxUpdates = m_udpServer.PrimUpdatesPerCallback;
-                }
-                else
-                {
-                    if (Util.EnvironmentTickCountSubtract(m_LastQueueFill) < 200)
-                        m_maxUpdates += 5;
-                    else
-                        m_maxUpdates = m_maxUpdates >> 1;
-                }
-                m_maxUpdates = Util.Clamp<Int32>(m_maxUpdates,10,500);
-                m_LastQueueFill = Util.EnvironmentTickCount();
-*/
                 int maxUpdateBytes = m_udpClient.GetCatBytesCanSend(ThrottleOutPacketType.Task, 30);   
                        
                 if (m_entityUpdates.Count > 0)
@@ -4669,23 +4649,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         internal bool HandleHasUpdates(ThrottleOutPacketTypeFlags categories)
         {
-            bool hasUpdates = false;
-
             if ((categories & ThrottleOutPacketTypeFlags.Task) != 0)
             {
                 if (m_entityUpdates.Count > 0)
-                    hasUpdates = true;
-                else if (m_entityProps.Count > 0)
-                    hasUpdates = true;                   
+                    return true;
+                if (m_entityProps.Count > 0)
+                    return true;                   
             }
 
             if ((categories & ThrottleOutPacketTypeFlags.Texture) != 0)
             {
                 if (ImageManager.HasUpdates())
-                    hasUpdates = true;
+                    return true;
             }
 
-            return hasUpdates;
+            return false;
         }
 
         public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, UUID AssetFullID)

@@ -120,12 +120,15 @@ namespace OpenSim.Region.DataSnapshot.Providers
 
         public XmlNode RequestSnapshotData(XmlDocument nodeFactory)
         {
+            XmlNode parent = nodeFactory.CreateNode(XmlNodeType.Element, "parceldata", "");
             ILandChannel landChannel = m_scene.LandChannel;
+            if(landChannel == null)
+                return parent;
+
             List<ILandObject> parcels = landChannel.AllParcels();
 
             IDwellModule dwellModule = m_scene.RequestModuleInterface<IDwellModule>();
 
-            XmlNode parent = nodeFactory.CreateNode(XmlNodeType.Element, "parceldata", "");
             if (parcels != null)
             {
 

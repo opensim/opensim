@@ -166,7 +166,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Total number of sent packets that we have reported to the OnPacketStats event(s)</summary>
         private int m_packetsSentReported;
         /// <summary>Holds the Environment.TickCount value of when the next OnQueueEmpty can be fired</summary>
-        private int m_nextOnQueueEmpty = 1;
+        private double m_nextOnQueueEmpty = 0;
 
         /// <summary>Throttle bucket for this agent's connection</summary>
         private readonly AdaptiveTokenBucket m_throttleClient;
@@ -771,7 +771,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             RTO = Math.Min(RTO * 2, m_maxRTO);
         }
 
-        const int MIN_CALLBACK_MS = 20;
+        const double MIN_CALLBACK_MS = 20.0;
+        private bool m_isQueueEmptyRunning;
 
         /// <summary>
         /// Does an early check to see if this queue empty callback is already
@@ -782,35 +783,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if (!m_isQueueEmptyRunning)
             {
-                int start = Environment.TickCount & Int32.MaxValue;
+                if (!HasUpdates(categories))
+                    return;
 
+                double start = Util.GetTimeStampMS();
                 if (start < m_nextOnQueueEmpty)
                     return;
             
                 m_isQueueEmptyRunning = true;
-
                 m_nextOnQueueEmpty = start + MIN_CALLBACK_MS;
-                if (m_nextOnQueueEmpty == 0)
-                    m_nextOnQueueEmpty = 1;
 
-                if (HasUpdates(categories))
-                {
-                    if (!m_udpServer.OqrEngine.IsRunning)
-                    {
-                        // Asynchronously run the callback
-                        Util.FireAndForget(FireQueueEmpty, categories, "LLUDPClient.BeginFireQueueEmpty");
-                    }
-                    else
-                    {
-                        m_udpServer.OqrEngine.QueueJob(AgentID.ToString(), () => FireQueueEmpty(categories));
-                    }
-                }
+                // Asynchronously run the callback
+                if (m_udpServer.OqrEngine.IsRunning)
+                    m_udpServer.OqrEngine.QueueJob(AgentID.ToString(), () => FireQueueEmpty(categories));
                 else
-                    m_isQueueEmptyRunning = false;
+                    Util.FireAndForget(FireQueueEmpty, categories, "LLUDPClient.BeginFireQueueEmpty");
             }
         }
 
-        private bool m_isQueueEmptyRunning;
        
 
         /// <summary>
