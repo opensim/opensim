@@ -662,15 +662,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             List<SceneObjectPart> ret = new List<SceneObjectPart>();
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return ret;
-            ret.Add(part);
 
             switch (linkType)
             {
             case ScriptBaseClass.LINK_SET:
                 return new List<SceneObjectPart>(part.ParentGroup.Parts);
 
-            case ScriptBaseClass.LINK_ROOT:
-                ret = new List<SceneObjectPart>();
+            case ScriptBaseClass.LINK_ROOT:               
                 ret.Add(part.ParentGroup.RootPart);
                 return ret;
 
@@ -690,16 +688,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return ret;
 
             case ScriptBaseClass.LINK_THIS:
+                ret.Add(part);
                 return ret;
 
             default:
                 if (linkType < 0)
-                    return new List<SceneObjectPart>();
+                    return ret;
 
                 SceneObjectPart target = part.ParentGroup.GetLinkNumPart(linkType);
                 if (target == null)
-                    return new List<SceneObjectPart>();
-                ret = new List<SceneObjectPart>();
+                    return ret;
                 ret.Add(target);
                 return ret;
             }
@@ -11182,7 +11180,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Float(spin));
                         res.Add(new LSL_Float(gain));
                         break;
-                                            
+
+                    case (int)ScriptBaseClass.PRIM_SIT_TARGET:
+                        if(part.IsSitTargetSet)
+                        {
+                            res.Add(new LSL_Integer(1));
+                            res.Add(new LSL_Vector(part.SitTargetPosition));
+                            res.Add(new LSL_Rotation(part.SitTargetOrientation));
+                        }
+                        else
+                        {
+                            res.Add(new LSL_Integer(0));
+                            res.Add(new LSL_Vector(Vector3.Zero));
+                            res.Add(new LSL_Rotation(Quaternion.Identity));
+                        }
+                        break;
+
                     case (int)ScriptBaseClass.PRIM_LINK_TARGET:
 
                         // TODO: Should be issuing a runtime script warning in this case.

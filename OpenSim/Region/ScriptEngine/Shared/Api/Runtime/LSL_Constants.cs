@@ -339,7 +339,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
         // LINK flags
         public const int LINK_SET = -1;
-        public const int LINK_TRUEROOT = 0; // possible this should had been ROOT all the time
         public const int LINK_ROOT = 1;
         public const int LINK_ALL_OTHERS = -2;
         public const int LINK_ALL_CHILDREN = -3;
@@ -418,7 +417,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_DESC = 28;
         public const int PRIM_ROT_LOCAL = 29;
         public const int PRIM_PHYSICS_SHAPE_TYPE = 30;
-        public const int PRIM_PHYSICS_MATERIAL = 31; // aparently not SL
+        public const int PRIM_PHYSICS_MATERIAL = 31; // apparently not on SL wiki
         public const int PRIM_OMEGA = 32;
         public const int PRIM_POS_LOCAL = 33;
         public const int PRIM_LINK_TARGET = 34;
@@ -426,9 +425,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_SPECULAR = 36;
         public const int PRIM_NORMAL = 37;
         public const int PRIM_ALPHA_MODE = 38;
-        public const int PRIM_ALLOW_UNSIT = 39; // experiences related. Unsuport
-        public const int PRIM_SCRIPTED_SIT_ONLY = 40; // experiences related. Unsuport
-        public const int PRIM_SIT_TARGET = 40;
+        public const int PRIM_ALLOW_UNSIT = 39; // experiences related. unsupported
+        public const int PRIM_SCRIPTED_SIT_ONLY = 40; // experiences related. unsupported
+        public const int PRIM_SIT_TARGET = 41;
 
 
         // parameters
