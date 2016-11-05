@@ -704,12 +704,16 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 if (Data[itemIndex] is LSL_Types.Quaternion)
                 {
-                    return (LSL_Types.Quaternion)Data[itemIndex];
+                    LSL_Types.Quaternion q = (LSL_Types.Quaternion)Data[itemIndex];
+                    q.Normalize();
+                    return q;
                 }
                 else if(Data[itemIndex] is OpenMetaverse.Quaternion)
                 {
-                    return new LSL_Types.Quaternion(
+                    LSL_Types.Quaternion q = new LSL_Types.Quaternion(
                             (OpenMetaverse.Quaternion)Data[itemIndex]);
+                    q.Normalize();
+                    return q;
                 }
                 else
                 {
