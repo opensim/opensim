@@ -144,14 +144,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 
         private void GetAttachmentsReport(ScenePresence sp, StringBuilder sb)
         {
-            sb.AppendFormat("Attachments for {0}\n", sp.Name);
+            sb.AppendFormat("Attachments for {0}\n\n", sp.Name);
 
-            ConsoleDisplayTable ct = new ConsoleDisplayTable() { Indent = 2 };
-            ct.Columns.Add(new ConsoleDisplayTableColumn("Attachment Name", 50));
-            ct.Columns.Add(new ConsoleDisplayTableColumn("Local ID", 10));
-            ct.Columns.Add(new ConsoleDisplayTableColumn("Item ID", 36));
-            ct.Columns.Add(new ConsoleDisplayTableColumn("Attach Point", 14));
-            ct.Columns.Add(new ConsoleDisplayTableColumn("Position", 15));
+            ConsoleDisplayList ct = new ConsoleDisplayList();
 
 //            sb.AppendFormat(
 //                "  {0,-36}  {1,-10}  {2,-36}  {3,-14}  {4,-15}\n",
@@ -177,17 +172,17 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 //                        attachmentObject.Name, attachmentObject.LocalId, attachmentObject.FromItemID,
 //                        (AttachmentPoint)attachmentObject.AttachmentPoint, attachmentObject.RootPart.AttachedPos);
 
-                    ct.AddRow(
-                        attachmentObject.Name,
-                        attachmentObject.LocalId,
-                        attachmentObject.FromItemID,
-                        ((AttachmentPoint)attachmentObject.AttachmentPoint),
-                        attachmentObject.RootPart.AttachedPos);
+                ct.Indent = 2;
+                ct.AddRow("Attachment Name", attachmentObject.Name);
+                ct.AddRow("Local ID", attachmentObject.LocalId);
+                ct.AddRow("Item ID", attachmentObject.UUID);
+                ct.AddRow("From Item ID", attachmentObject.FromItemID);
+                ct.AddRow("Attach Point", ((AttachmentPoint)attachmentObject.AttachmentPoint));
+                ct.AddRow("Position", attachmentObject.RootPart.AttachedPos + "\n\n");
 //                }
             }
 
             ct.AddToStringBuilder(sb);
-            sb.Append("\n");
         }
     }
 }
