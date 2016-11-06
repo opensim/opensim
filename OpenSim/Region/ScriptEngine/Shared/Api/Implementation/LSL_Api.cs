@@ -14519,7 +14519,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Vector3 rayEnd = end;
             Vector3 dir = rayEnd - rayStart;
 
-            float dist = Vector3.Mag(dir);
+            float dist = dir.Length();
 
             int count = 1;
             bool detectPhantom = false;
@@ -14581,14 +14581,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 object physresults;
                 physresults = World.RayCastFiltered(rayStart, direction, dist, physcount, rayfilter);
 
-/*
                 if (physresults == null)
                 {
-                    list.Add(new LSL_Integer(-3)); // timeout error
-                    return list;
+//                    list.Add(new LSL_Integer(-3)); // timeout error
+//                    return list;
+                    results = new List<ContactResult>();
                 }
-*/
-                results = (List<ContactResult>)physresults;
+                else
+                    results = (List<ContactResult>)physresults;
 
                 // for now physics doesn't detect sitted avatars so do it outside physics
                 if (checkAgents)
@@ -14608,6 +14608,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     ContactResult[] objectHits = ObjectIntersection(rayStart, rayEnd, false, false, true);
                     foreach (ContactResult r in objectHits)
                         results.Add(r);
+                }
+                // Double check this because of current ODE distance problems
+                if (checkTerrain && dist > 60)
+                {
+                    bool skipGroundCheck = false;
+
+                    foreach (ContactResult c in results)
+                    {
+                        if (c.ConsumerID == 0) // Physics gave us a ground collision
+                            skipGroundCheck = true;
+                    }
+
+                    if (!skipGroundCheck)
+                    {
+                        float tmp = dir.X * dir.X + dir.Y * dir.Y;
+                        if(tmp > 2500)
+                        {
+                            ContactResult? groundContact = GroundIntersection(rayStart, rayEnd);
+                            if (groundContact != null)
+                                results.Add((ContactResult)groundContact);
+                        }
+                    }
                 }
             }
             else
@@ -14629,20 +14651,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         results.Add(objectHits[iter]);
                     }
                 }
-            }
 
-            // Double check this
-            if (checkTerrain)
-            {
-                bool skipGroundCheck = false;
-
-                foreach (ContactResult c in results)
-                {
-                    if (c.ConsumerID == 0) // Physics gave us a ground collision
-                        skipGroundCheck = true;
-                }
-
-                if (!skipGroundCheck)
+                if (checkTerrain)
                 {
                     ContactResult? groundContact = GroundIntersection(rayStart, rayEnd);
                     if (groundContact != null)
