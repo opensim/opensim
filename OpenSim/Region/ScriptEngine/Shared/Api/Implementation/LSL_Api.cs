@@ -14216,18 +14216,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return false;
         }
 
-        private ContactResult[] AvatarIntersection(Vector3 rayStart, Vector3 rayEnd)
+        private ContactResult[] AvatarIntersection(Vector3 rayStart, Vector3 rayEnd, bool skipPhys)
         {
             List<ContactResult> contacts = new List<ContactResult>();
 
             Vector3 ab = rayEnd - rayStart;
+            float ablen = ab.Length();
 
             World.ForEachScenePresence(delegate(ScenePresence sp)
             {
-                Vector3 ac = sp.AbsolutePosition - rayStart;
-//                Vector3 bc = sp.AbsolutePosition - rayEnd;
+                if(skipPhys && sp.PhysicsActor != null)
+                    return;
 
-                double d = Math.Abs(Vector3.Mag(Vector3.Cross(ab, ac)) / Vector3.Distance(rayStart, rayEnd));
+                Vector3 ac = sp.AbsolutePosition - rayStart;
+
+                double d = Math.Abs(Vector3.Mag(Vector3.Cross(ab, ac)) / ablen);
 
                 if (d > 1.5)
                     return;
@@ -14553,8 +14556,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 RayFilterFlags rayfilter = RayFilterFlags.BackFaceCull;
                 if (checkTerrain)
                     rayfilter |= RayFilterFlags.land;
-//                if (checkAgents)
-//                    rayfilter |= RayFilterFlags.agent;
+                if (checkAgents)
+                    rayfilter |= RayFilterFlags.agent;
                 if (checkPhysical)
                     rayfilter |= RayFilterFlags.physical;
                 if (checkNonPhysical)
@@ -14578,18 +14581,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 object physresults;
                 physresults = World.RayCastFiltered(rayStart, direction, dist, physcount, rayfilter);
 
+/*
                 if (physresults == null)
                 {
                     list.Add(new LSL_Integer(-3)); // timeout error
                     return list;
                 }
-
+*/
                 results = (List<ContactResult>)physresults;
 
                 // for now physics doesn't detect sitted avatars so do it outside physics
                 if (checkAgents)
                 {
-                    ContactResult[] agentHits = AvatarIntersection(rayStart, rayEnd);
+                    ContactResult[] agentHits = AvatarIntersection(rayStart, rayEnd, true);
                     foreach (ContactResult r in agentHits)
                         results.Add(r);
                 }
@@ -14610,7 +14614,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (checkAgents)
                 {
-                    ContactResult[] agentHits = AvatarIntersection(rayStart, rayEnd);
+                    ContactResult[] agentHits = AvatarIntersection(rayStart, rayEnd, false);
                     foreach (ContactResult r in agentHits)
                         results.Add(r);
                 }
