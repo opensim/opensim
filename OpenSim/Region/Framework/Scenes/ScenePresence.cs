@@ -781,6 +781,34 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        // requested Velocity for physics engines avatar motors
+        // only makes sense if there is a physical rep
+        public Vector3 TargetVelocity
+        {
+            get
+            {
+                if (PhysicsActor != null)
+                    return PhysicsActor.TargetVelocity;
+                else
+                    return Vector3.Zero;
+            }
+
+            set
+            {
+                if (PhysicsActor != null)
+                {
+                    try
+                    {
+                        PhysicsActor.TargetVelocity = value;
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Error("[SCENE PRESENCE]: TARGETVELOCITY " + e.Message);
+                    }
+                }
+            }
+        }
+
         private Quaternion m_bodyRot = Quaternion.Identity;
 
         /// <summary>
@@ -3649,7 +3677,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_forceToApplyValid = true;
             }
 */
-            Velocity = direc;
+            TargetVelocity = direc;
             Animator.UpdateMovementAnimations();
         }
 
