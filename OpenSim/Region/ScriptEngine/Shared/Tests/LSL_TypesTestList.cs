@@ -270,6 +270,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TestHelpers.InMethod();
 
             LSL_Types.Quaternion testValue = new LSL_Types.Quaternion(12.64, 59.43723, 765.3421, 4.00987);
+            // make that nonsense a quaternion
+            testValue.Normalize();
             LSL_Types.list testList = new LSL_Types.list(testValue);
 
             Assert.AreEqual(testValue, testList.GetQuaternionItem(0));

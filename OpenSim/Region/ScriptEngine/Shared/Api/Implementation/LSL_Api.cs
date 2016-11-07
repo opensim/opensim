@@ -113,7 +113,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected float m_MinTimerInterval = 0.5f;
         protected float m_recoilScaleFactor = 0.0f;
 
-        protected DateTime m_timer = DateTime.Now;
+        protected double m_timer = Util.GetTimeStampMS();
         protected bool m_waitingForScriptAnswer = false;
         protected bool m_automaticLinkPermission = false;
         protected IMessageTransferModule m_TransferModule = null;
@@ -662,15 +662,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             List<SceneObjectPart> ret = new List<SceneObjectPart>();
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return ret;
-            ret.Add(part);
 
             switch (linkType)
             {
             case ScriptBaseClass.LINK_SET:
                 return new List<SceneObjectPart>(part.ParentGroup.Parts);
 
-            case ScriptBaseClass.LINK_ROOT:
-                ret = new List<SceneObjectPart>();
+            case ScriptBaseClass.LINK_ROOT:               
                 ret.Add(part.ParentGroup.RootPart);
                 return ret;
 
@@ -690,16 +688,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return ret;
 
             case ScriptBaseClass.LINK_THIS:
+                ret.Add(part);
                 return ret;
 
             default:
                 if (linkType < 0)
-                    return new List<SceneObjectPart>();
+                    return ret;
 
                 SceneObjectPart target = part.ParentGroup.GetLinkNumPart(linkType);
                 if (target == null)
-                    return new List<SceneObjectPart>();
-                ret = new List<SceneObjectPart>();
+                    return ret;
                 ret.Add(target);
                 return ret;
             }
@@ -3050,22 +3048,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Float llGetTime()
         {
             m_host.AddScriptLPS(1);
-            TimeSpan ScriptTime = DateTime.Now - m_timer;
-            return (double)(ScriptTime.TotalMilliseconds / 1000);
+            double ScriptTime = Util.GetTimeStampMS() - m_timer;
+            return (ScriptTime / 1000.0);
         }
 
         public void llResetTime()
         {
             m_host.AddScriptLPS(1);
-            m_timer = DateTime.Now;
+            m_timer = Util.GetTimeStampMS();
         }
 
         public LSL_Float llGetAndResetTime()
         {
             m_host.AddScriptLPS(1);
-            TimeSpan ScriptTime = DateTime.Now - m_timer;
-            m_timer = DateTime.Now;
-            return (double)(ScriptTime.TotalMilliseconds / 1000);
+            double now = Util.GetTimeStampMS();
+            double ScriptTime = now - m_timer;
+            m_timer = now;
+            return (ScriptTime / 1000.0);
         }
 
         public void llSound(string sound, double volume, int queue, int loop)
@@ -10086,6 +10085,53 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             part.UpdateSlice((float)slice.x, (float)slice.y);
                             break;
 
+                        case ScriptBaseClass.PRIM_SIT_TARGET:
+                            if (remain < 3)
+                                return new LSL_List();
+
+                            int active;
+                            try
+                            {
+                                active = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SIT_TARGET: arg #{1} - parameter 1 must be integer", rulesParsed, idx - idxStart - 1));
+                               return new LSL_List();
+                            }
+                            LSL_Vector offset;
+                            try
+                            {
+                                offset = rules.GetVector3Item(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SIT_TARGET: arg #{1} - parameter 2 must be vector", rulesParsed, idx - idxStart - 1));
+                                return new LSL_List();
+                            }
+                            LSL_Rotation sitrot;
+                            try
+                            {
+                                sitrot = rules.GetQuaternionItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SIT_TARGET: arg #{1} - parameter 3 must be rotation", rulesParsed, idx - idxStart - 1));
+                               return new LSL_List();
+                            }
+
+                            // not SL compatible since we don't have a independent flag to control active target but use the values of offset and rotation
+                            if(active == 1)
+                            {
+                                if(offset.x == 0 && offset.y == 0 && offset.z == 0 && sitrot.s == 1.0)
+                                    offset.z = 1e-5f; // hack
+                                SitTarget(part,offset,sitrot);
+                            }
+                            else if(active == 0)
+                                SitTarget(part, Vector3.Zero , Quaternion.Identity);
+
+                            break;
+
                         case ScriptBaseClass.PRIM_LINK_TARGET:
                             if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
                                 return new LSL_List();
@@ -11182,7 +11228,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Float(spin));
                         res.Add(new LSL_Float(gain));
                         break;
-                                            
+
+                    case (int)ScriptBaseClass.PRIM_SIT_TARGET:
+                        if(part.IsSitTargetSet)
+                        {
+                            res.Add(new LSL_Integer(1));
+                            res.Add(new LSL_Vector(part.SitTargetPosition));
+                            res.Add(new LSL_Rotation(part.SitTargetOrientation));
+                        }
+                        else
+                        {
+                            res.Add(new LSL_Integer(0));
+                            res.Add(new LSL_Vector(Vector3.Zero));
+                            res.Add(new LSL_Rotation(Quaternion.Identity));
+                        }
+                        break;
+
                     case (int)ScriptBaseClass.PRIM_LINK_TARGET:
 
                         // TODO: Should be issuing a runtime script warning in this case.
@@ -14155,18 +14216,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return false;
         }
 
-        private ContactResult[] AvatarIntersection(Vector3 rayStart, Vector3 rayEnd)
+        private ContactResult[] AvatarIntersection(Vector3 rayStart, Vector3 rayEnd, bool skipPhys)
         {
             List<ContactResult> contacts = new List<ContactResult>();
 
             Vector3 ab = rayEnd - rayStart;
+            float ablen = ab.Length();
 
             World.ForEachScenePresence(delegate(ScenePresence sp)
             {
-                Vector3 ac = sp.AbsolutePosition - rayStart;
-//                Vector3 bc = sp.AbsolutePosition - rayEnd;
+                if(skipPhys && sp.PhysicsActor != null)
+                    return;
 
-                double d = Math.Abs(Vector3.Mag(Vector3.Cross(ab, ac)) / Vector3.Distance(rayStart, rayEnd));
+                Vector3 ac = sp.AbsolutePosition - rayStart;
+
+                double d = Math.Abs(Vector3.Mag(Vector3.Cross(ab, ac)) / ablen);
 
                 if (d > 1.5)
                     return;
@@ -14455,7 +14519,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Vector3 rayEnd = end;
             Vector3 dir = rayEnd - rayStart;
 
-            float dist = Vector3.Mag(dir);
+            float dist = dir.Length();
 
             int count = 1;
             bool detectPhantom = false;
@@ -14484,7 +14548,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             bool checkNonPhysical = !((rejectTypes & ScriptBaseClass.RC_REJECT_NONPHYSICAL) == ScriptBaseClass.RC_REJECT_NONPHYSICAL);
             bool checkPhysical = !((rejectTypes & ScriptBaseClass.RC_REJECT_PHYSICAL) == ScriptBaseClass.RC_REJECT_PHYSICAL);
 
-
             if (World.SupportsRayCastFiltered())
             {
                 if (dist == 0)
@@ -14493,8 +14556,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 RayFilterFlags rayfilter = RayFilterFlags.BackFaceCull;
                 if (checkTerrain)
                     rayfilter |= RayFilterFlags.land;
-//                if (checkAgents)
-//                    rayfilter |= RayFilterFlags.agent;
+                if (checkAgents)
+                    rayfilter |= RayFilterFlags.agent;
                 if (checkPhysical)
                     rayfilter |= RayFilterFlags.physical;
                 if (checkNonPhysical)
@@ -14520,16 +14583,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (physresults == null)
                 {
-                    list.Add(new LSL_Integer(-3)); // timeout error
-                    return list;
+//                    list.Add(new LSL_Integer(-3)); // timeout error
+//                    return list;
+                    results = new List<ContactResult>();
                 }
-
-                results = (List<ContactResult>)physresults;
+                else
+                    results = (List<ContactResult>)physresults;
 
                 // for now physics doesn't detect sitted avatars so do it outside physics
                 if (checkAgents)
                 {
-                    ContactResult[] agentHits = AvatarIntersection(rayStart, rayEnd);
+                    ContactResult[] agentHits = AvatarIntersection(rayStart, rayEnd, true);
                     foreach (ContactResult r in agentHits)
                         results.Add(r);
                 }
@@ -14545,12 +14609,34 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     foreach (ContactResult r in objectHits)
                         results.Add(r);
                 }
+                // Double check this because of current ODE distance problems
+                if (checkTerrain && dist > 60)
+                {
+                    bool skipGroundCheck = false;
+
+                    foreach (ContactResult c in results)
+                    {
+                        if (c.ConsumerID == 0) // Physics gave us a ground collision
+                            skipGroundCheck = true;
+                    }
+
+                    if (!skipGroundCheck)
+                    {
+                        float tmp = dir.X * dir.X + dir.Y * dir.Y;
+                        if(tmp > 2500)
+                        {
+                            ContactResult? groundContact = GroundIntersection(rayStart, rayEnd);
+                            if (groundContact != null)
+                                results.Add((ContactResult)groundContact);
+                        }
+                    }
+                }
             }
             else
             {
                 if (checkAgents)
                 {
-                    ContactResult[] agentHits = AvatarIntersection(rayStart, rayEnd);
+                    ContactResult[] agentHits = AvatarIntersection(rayStart, rayEnd, false);
                     foreach (ContactResult r in agentHits)
                         results.Add(r);
                 }
@@ -14565,20 +14651,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         results.Add(objectHits[iter]);
                     }
                 }
-            }
 
-            // Double check this
-            if (checkTerrain)
-            {
-                bool skipGroundCheck = false;
-
-                foreach (ContactResult c in results)
-                {
-                    if (c.ConsumerID == 0) // Physics gave us a ground collision
-                        skipGroundCheck = true;
-                }
-
-                if (!skipGroundCheck)
+                if (checkTerrain)
                 {
                     ContactResult? groundContact = GroundIntersection(rayStart, rayEnd);
                     if (groundContact != null)
@@ -14590,7 +14664,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 return a.Depth.CompareTo(b.Depth);
             });
-            
+           
             int values = 0;
             SceneObjectGroup thisgrp = m_host.ParentGroup;
 
@@ -14644,7 +14718,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             list.Add(new LSL_Integer(values));
-
             return list;
         }
         
@@ -15919,6 +15992,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case (int)ScriptBaseClass.PRIM_TEXT:
                         case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
                         case (int)ScriptBaseClass.PRIM_OMEGA:
+                        case (int)ScriptBaseClass.PRIM_SIT_TARGET:
                             if (remain < 3)
                                 return new LSL_List();
                             idx += 3;

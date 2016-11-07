@@ -365,8 +365,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         protected object ConvertFromLSL(object lslparm, Type type, string fname)
         {
+            
+            if(lslparm.GetType() == type)
+                return lslparm;
+
             // ---------- String ----------
-            if (lslparm is LSL_String)
+            else if (lslparm is LSL_String)
             {
                 if (type == typeof(string))
                     return (string)(LSL_String)lslparm;

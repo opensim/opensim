@@ -254,6 +254,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int ATTACH_HUD_BOTTOM_RIGHT = 38;
         public const int ATTACH_NECK = 39;
         public const int ATTACH_AVATAR_CENTER = 40;
+        public const int ATTACH_LHAND_RING1 = 41;
+        public const int ATTACH_RHAND_RING1 = 42;
+        public const int ATTACH_TAIL_BASE = 43;
+        public const int ATTACH_TAIL_TIP = 44;
+        public const int ATTACH_LWING = 45;
+        public const int ATTACH_RWING = 46;
+        public const int ATTACH_FACE_JAW = 47;
+        public const int ATTACH_FACE_LEAR = 48;
+        public const int ATTACH_FACE_REAR = 49;
+        public const int ATTACH_FACE_LEYE = 50;
+        public const int ATTACH_FACE_REYE = 51;
+        public const int ATTACH_FACE_TONGUE = 52;
+        public const int ATTACH_GROIN = 53;
+        public const int ATTACH_HIND_LFOOT = 54;
+        public const int ATTACH_HIND_RFOOT = 55;
 
         #region osMessageAttachments constants
 
@@ -336,11 +351,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int ROTATE = 32;
         public const int SCALE = 64;
         public const int ALL_SIDES = -1;
+
+        // LINK flags
         public const int LINK_SET = -1;
         public const int LINK_ROOT = 1;
         public const int LINK_ALL_OTHERS = -2;
         public const int LINK_ALL_CHILDREN = -3;
         public const int LINK_THIS = -4;
+
         public const int CHANGED_INVENTORY = 1;
         public const int CHANGED_COLOR = 2;
         public const int CHANGED_SHAPE = 4;
@@ -356,6 +374,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int CHANGED_MEDIA = 2048;
         public const int CHANGED_ANIMATION = 16384;
         public const int CHANGED_POSITION = 32768;
+
         public const int TYPE_INVALID = 0;
         public const int TYPE_INTEGER = 1;
         public const int TYPE_FLOAT = 2;
@@ -389,6 +408,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int CONTENT_TYPE_FORM = 7; //application/x-www-form-urlencoded
         public const int CONTENT_TYPE_RSS = 8; //application/rss+xml
 
+        //parameters comand flags
         public const int PRIM_MATERIAL = 2;
         public const int PRIM_PHYSICS = 3;
         public const int PRIM_TEMP_ON_REZ = 4;
@@ -397,19 +417,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_SIZE = 7;
         public const int PRIM_ROTATION = 8;
         public const int PRIM_TYPE = 9;
+        // gap 10-16
         public const int PRIM_TEXTURE = 17;
         public const int PRIM_COLOR = 18;
         public const int PRIM_BUMP_SHINY = 19;
         public const int PRIM_FULLBRIGHT = 20;
         public const int PRIM_FLEXIBLE = 21;
         public const int PRIM_TEXGEN = 22;
-        public const int PRIM_CAST_SHADOWS = 24; // Not implemented, here for completeness sake
         public const int PRIM_POINT_LIGHT = 23; // Huh?
+        public const int PRIM_CAST_SHADOWS = 24; // Not implemented, here for completeness sake
         public const int PRIM_GLOW = 25;
         public const int PRIM_TEXT = 26;
         public const int PRIM_NAME = 27;
         public const int PRIM_DESC = 28;
         public const int PRIM_ROT_LOCAL = 29;
+        public const int PRIM_PHYSICS_SHAPE_TYPE = 30;
+        public const int PRIM_PHYSICS_MATERIAL = 31; // apparently not on SL wiki
         public const int PRIM_OMEGA = 32;
         public const int PRIM_POS_LOCAL = 33;
         public const int PRIM_LINK_TARGET = 34;
@@ -417,6 +440,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_SPECULAR = 36;
         public const int PRIM_NORMAL = 37;
         public const int PRIM_ALPHA_MODE = 38;
+        public const int PRIM_ALLOW_UNSIT = 39; // experiences related. unsupported
+        public const int PRIM_SCRIPTED_SIT_ONLY = 40; // experiences related. unsupported
+        public const int PRIM_SIT_TARGET = 41;
+
+
+        // parameters
         public const int PRIM_TEXGEN_DEFAULT = 0;
         public const int PRIM_TEXGEN_PLANAR = 1;
 
@@ -472,6 +501,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_SCULPT_TYPE_CYLINDER = 4;
         public const int PRIM_SCULPT_FLAG_INVERT = 64;
         public const int PRIM_SCULPT_FLAG_MIRROR = 128;
+
+        public const int PRIM_PHYSICS_SHAPE_PRIM = 0;
+        public const int PRIM_PHYSICS_SHAPE_NONE = 1;
+        public const int PRIM_PHYSICS_SHAPE_CONVEX = 2;
 
         public const int PROFILE_NONE = 0;
         public const int PROFILE_SCRIPT_MEMORY = 1;
@@ -701,12 +734,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_MEDIA_PERM_GROUP = 2;
         public const int PRIM_MEDIA_PERM_ANYONE = 4;
 
-        public const int PRIM_PHYSICS_SHAPE_TYPE = 30;
-        public const int PRIM_PHYSICS_SHAPE_PRIM = 0;
-        public const int PRIM_PHYSICS_SHAPE_CONVEX = 2;
-        public const int PRIM_PHYSICS_SHAPE_NONE = 1;
-
-        public const int PRIM_PHYSICS_MATERIAL = 31;
         public const int DENSITY = 1;
         public const int FRICTION = 2;
         public const int RESTITUTION = 4;

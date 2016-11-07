@@ -100,11 +100,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 BrustTime = (float)throttleConfig.GetInt("client_throttle_burtsTimeMS", 10);
                 BrustTime *= 1e-3f;
 
-                AdaptiveThrottlesEnabled = throttleConfig.GetBoolean("enable_adaptive_throttles", false);
+                // Adaptive is broken
+//                AdaptiveThrottlesEnabled = throttleConfig.GetBoolean("enable_adaptive_throttles", false);
+                AdaptiveThrottlesEnabled = false;
                 MinimumAdaptiveThrottleRate = throttleConfig.GetInt("adaptive_throttle_min_bps", 32000);
 
-                CannibalizeTextureRate = (double)throttleConfig.GetFloat("CannibalizeTextureRate", 0.0f);
-                CannibalizeTextureRate = Util.Clamp<double>(CannibalizeTextureRate,0.0, 0.9);
+                // http textures do use udp bandwidth setting
+//                CannibalizeTextureRate = (double)throttleConfig.GetFloat("CannibalizeTextureRate", 0.0f);
+//                CannibalizeTextureRate = Util.Clamp<double>(CannibalizeTextureRate,0.0, 0.9);
+                CannibalizeTextureRate = 0f;
+    
             }
             catch (Exception) { }
         }
