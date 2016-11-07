@@ -112,6 +112,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         OriOffset,          // not in use
         // arg Vector3 new position in local coords. Changes prim position in object
         Velocity,
+        TargetVelocity,
         AngVelocity,
         Acceleration,
         Force,

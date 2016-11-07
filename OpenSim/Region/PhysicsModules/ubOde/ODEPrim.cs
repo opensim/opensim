@@ -3805,6 +3805,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     changevelocity((Vector3)arg);
                     break;
 
+                case changes.TargetVelocity:
+                    break;
+
 //                case changes.Acceleration:
 //                    changeacceleration((Vector3)arg);
 //                    break;
@@ -3932,8 +3935,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 case changes.Null:
                     donullchange();
                     break;
-
-
 
                 default:
                     donullchange();
