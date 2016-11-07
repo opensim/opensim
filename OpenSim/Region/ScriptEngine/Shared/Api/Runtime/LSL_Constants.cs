@@ -254,6 +254,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int ATTACH_HUD_BOTTOM_RIGHT = 38;
         public const int ATTACH_NECK = 39;
         public const int ATTACH_AVATAR_CENTER = 40;
+        public const int ATTACH_LHAND_RING1 = 41;
+        public const int ATTACH_RHAND_RING1 = 42;
+        public const int ATTACH_TAIL_BASE = 43;
+        public const int ATTACH_TAIL_TIP = 44;
+        public const int ATTACH_LWING = 45;
+        public const int ATTACH_RWING = 46;
+        public const int ATTACH_FACE_JAW = 47;
+        public const int ATTACH_FACE_LEAR = 48;
+        public const int ATTACH_FACE_REAR = 49;
+        public const int ATTACH_FACE_LEYE = 50;
+        public const int ATTACH_FACE_REYE = 51;
+        public const int ATTACH_FACE_TONGUE = 52;
+        public const int ATTACH_GROIN = 53;
+        public const int ATTACH_HIND_LFOOT = 54;
+        public const int ATTACH_HIND_RFOOT = 55;
 
         #region osMessageAttachments constants
 
