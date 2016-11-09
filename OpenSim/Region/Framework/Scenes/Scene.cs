@@ -67,8 +67,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Fields
 
-        public bool EmergencyMonitoring = false;
-
         /// <summary>
         /// Show debug information about animations.
         /// </summary>
@@ -4606,7 +4604,8 @@ Label_GroupsDone:
             }
 
             // TODO: This check should probably be in QueryAccess().
-            ILandObject nearestParcel = GetNearestAllowedParcel(cAgentData.AgentID, RegionInfo.RegionSizeX / 2, RegionInfo.RegionSizeY / 2);
+            ILandObject nearestParcel = GetNearestAllowedParcel(cAgentData.AgentID, 
+                (float)RegionInfo.RegionSizeX * 0.5f, (float)RegionInfo.RegionSizeY  * 0.5f);
             if (nearestParcel == null)
             {
                 m_log.InfoFormat(
