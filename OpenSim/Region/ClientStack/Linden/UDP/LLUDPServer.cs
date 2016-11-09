@@ -444,10 +444,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 int now = start;
                 while (now == start)
                     now = Environment.TickCount;
-                TickCountResolution += (float)(now - start) * 0.1f;
+                TickCountResolution += (float)(now - start);
             }
-            TickCountResolution = (float)Math.Ceiling(TickCountResolution);
-            m_log.Info("[LLUDPSERVER]: Average Environment.TickCount resolution: " + TickCountResolution + "ms");
+            m_log.Info("[LLUDPSERVER]: Average Environment.TickCount resolution: " + TickCountResolution * 0.1f + "ms");
+
+            TickCountResolution = 0f;
+            for (int i = 0; i < 100; i++)
+            {
+                double start = Util.GetTimeStampMS();
+                double now = start;
+                while (now == start)
+                    now = Util.GetTimeStampMS();
+                TickCountResolution += (float)((now - start));
+            }
+
+            TickCountResolution = (float)Math.Round(TickCountResolution * 0.01f,6,MidpointRounding.AwayFromZero);
+            m_log.Info("[LLUDPSERVER]: Average Util.GetTimeStampMS resolution: " + TickCountResolution + "ms");
 
             #endregion Environment.TickCount Measurement
 
