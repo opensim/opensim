@@ -323,7 +323,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected int m_elapsedMSSinceLastStatReport = 0;
 
         /// <summary>Environment.TickCount of the last time the outgoing packet handler executed</summary>
-        protected int m_tickLastOutgoingPacketHandler;
+        protected double m_tickLastOutgoingPacketHandler;
 
         /// <summary>Keeps track of the number of elapsed milliseconds since the last time the outgoing packet handler looped</summary>
         protected int m_elapsedMSOutgoingPacketHandler;
@@ -356,19 +356,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-
-
         protected ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>> m_pendingCache = new ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>>();
-
-        /// <summary>
-        /// Event used to signal when queued packets are available for sending.
-        /// </summary>
-        /// <remarks>
-        /// This allows the outbound loop to only operate when there is data to send rather than continuously polling.
-        /// Some data is sent immediately and not queued.  That data would not trigger this event.
-        /// WRONG use. May be usefull in future revision
-        /// </remarks>
-//        protected AutoResetEvent m_dataPresentEvent = new AutoResetEvent(false);
 
         protected Pool<IncomingPacket> m_incomingPacketPool;
 
@@ -466,8 +454,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_circuitManager = circuitManager;
             int sceneThrottleBps = 0;
             bool usePools = false;
-
-           
 
             IConfig config = configSource.Configs["ClientStack.LindenUDP"];
             if (config != null)
@@ -927,10 +913,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             PacketPool.Instance.ReturnPacket(packet);
-
-            /// WRONG use. May be usefull in future revision
-//            if (packetQueued)
-//                m_dataPresentEvent.Set();
         }
 
         /// <summary>
@@ -2079,13 +2061,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_sendPing = false;
 
                     // Update elapsed time
-                    int thisTick = Environment.TickCount & Int32.MaxValue;
-                    if (m_tickLastOutgoingPacketHandler > thisTick)
-                        m_elapsedMSOutgoingPacketHandler += ((Int32.MaxValue - m_tickLastOutgoingPacketHandler) + thisTick);
-                    else
-                        m_elapsedMSOutgoingPacketHandler += (thisTick - m_tickLastOutgoingPacketHandler);
-
+                    double thisTick = Util.GetTimeStampMS();
+                    int deltaMS =  (int)(thisTick - m_tickLastOutgoingPacketHandler);
                     m_tickLastOutgoingPacketHandler = thisTick;
+
+                    // update some 1ms resolution chained timers
+                    
+                    m_elapsedMSOutgoingPacketHandler += deltaMS;
 
                     // Check for pending outgoing resends every 100ms
                     if (m_elapsedMSOutgoingPacketHandler >= 100)
@@ -2109,14 +2091,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         m_sendPing = true;
                         m_elapsed500MSOutgoingPacketHandler = 0;
                     }
-
                     #endregion Update Timers
-
-                    // Use this for emergency monitoring -- bug hunting
-                    //if (m_scene.EmergencyMonitoring)
-                    //    clientPacketHandler = MonitoredClientOutgoingPacketHandler;
-                    //else
-                    //    clientPacketHandler = ClientOutgoingPacketHandler;
 
                     // Handle outgoing packets, resends, acknowledgements, and pings for each
                     // client. m_packetSent will be set to true if a packet is sent
@@ -2129,7 +2104,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     if(Scene.GetNumberOfClients() == 0)
                     {
-                        Thread.Sleep(250); // be friendly to PIs, but how long ??
+                        Thread.Sleep(100);
                     }
                     else if (!m_packetSent)
 //                        Thread.Sleep((int)TickCountResolution);  outch this is bad on linux
@@ -2203,99 +2178,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Number of inbound packets processed since startup.
         /// </summary>
         public long IncomingPacketsProcessed { get; protected set; }
-
-        protected void MonitoredClientOutgoingPacketHandler(IClientAPI client)
-        {
-            nticks++;
-            watch1.Start();
-            m_currentOutgoingClient = client;
-
-            try
-            {
-                if (client is LLClientView)
-                {
-                    LLClientView llClient = (LLClientView)client;
-                    LLUDPClient udpClient = llClient.UDPClient;
-
-                    if (udpClient.IsConnected)
-                    {
-                        if (m_resendUnacked)
-                        {
-                            nticksUnack++;
-                            watch2.Start();
-
-                            HandleUnacked(llClient);
-
-                            watch2.Stop();
-                            avgResendUnackedTicks = (nticksUnack - 1)/(float)nticksUnack * avgResendUnackedTicks + (watch2.ElapsedTicks / (float)nticksUnack);
-                            watch2.Reset();
-                        }
-
-                        if (m_sendAcks)
-                        {
-                            nticksAck++;
-                            watch2.Start();
-                            
-                            SendAcks(udpClient);
-
-                            watch2.Stop();
-                            avgSendAcksTicks = (nticksAck - 1) / (float)nticksAck * avgSendAcksTicks + (watch2.ElapsedTicks / (float)nticksAck);
-                            watch2.Reset();
-                        }
-
-                        if (m_sendPing)
-                        {
-                            nticksPing++;
-                            watch2.Start();
-                            
-                            SendPing(udpClient);
-
-                            watch2.Stop();
-                            avgSendPingTicks = (nticksPing - 1) / (float)nticksPing * avgSendPingTicks + (watch2.ElapsedTicks / (float)nticksPing);
-                            watch2.Reset();
-                        }
-
-                        watch2.Start();
-                        // Dequeue any outgoing packets that are within the throttle limits
-                        if (udpClient.DequeueOutgoing())
-                        {
-                            m_packetSent = true;
-                            npacksSent++;
-                        }
-                        else
-                        {
-                            npackNotSent++;
-                        }
-
-                        watch2.Stop();
-                        avgDequeueTicks = (nticks - 1) / (float)nticks * avgDequeueTicks + (watch2.ElapsedTicks / (float)nticks);
-                        watch2.Reset();
-
-                    }
-                    else
-                    {
-                        m_log.WarnFormat("[LLUDPSERVER]: Client is not connected");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                m_log.Error("[LLUDPSERVER]: OutgoingPacketHandler iteration for " + client.Name +
-                    " threw an exception: " + ex.Message, ex);
-            }
-            watch1.Stop();
-            avgProcessingTicks = (nticks - 1) / (float)nticks * avgProcessingTicks + (watch1.ElapsedTicks / (float)nticks);
-            watch1.Reset();
-
-            // reuse this -- it's every ~100ms
-            if (Scene.EmergencyMonitoring && nticks % 100 == 0)
-            {
-                m_log.InfoFormat("[LLUDPSERVER]: avg processing ticks: {0} avg unacked: {1} avg acks: {2} avg ping: {3} avg dequeue: {4} (TickCountRes: {5} sent: {6} notsent: {7})", 
-                    avgProcessingTicks, avgResendUnackedTicks, avgSendAcksTicks, avgSendPingTicks, avgDequeueTicks, TickCountResolution, npacksSent, npackNotSent);
-                npackNotSent = npacksSent = 0;
-            }
-
-        }
 
         #endregion 
 

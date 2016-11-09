@@ -126,13 +126,6 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                 (mod, cmd) => MainConsole.Instance.Output(GetThrottlesReport(cmd)));
 
             scene.AddCommand(
-                "Comms", this, "emergency-monitoring",
-                "emergency-monitoring",
-                "Go on/off emergency monitoring mode",
-                "Go on/off emergency monitoring mode",
-                HandleEmergencyMonitoring);
-
-            scene.AddCommand(
                 "Comms", this, "show client stats",
                 "show client stats [first_name last_name]",
                 "Show client request stats",
@@ -195,24 +188,6 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
             }
 
             return report.ToString();
-        }
-
-        protected void HandleEmergencyMonitoring(string module, string[] cmd)
-        {
-            bool mode = true;
-            if (cmd.Length == 1 || (cmd.Length > 1 && cmd[1] == "on"))
-            {
-                mode = true;
-                MainConsole.Instance.Output("Emergency Monitoring ON");
-            }
-            else
-            {
-                mode = false;
-                MainConsole.Instance.Output("Emergency Monitoring OFF");
-            }
-
-            foreach (Scene s in m_scenes.Values)
-                s.EmergencyMonitoring = mode;
         }
 
         protected string GetColumnEntry(string entry, int maxLength, int columnPadding)
