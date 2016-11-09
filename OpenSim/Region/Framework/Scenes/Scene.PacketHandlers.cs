@@ -614,7 +614,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.Error(
                     string.Format(
-                        "[AGENT INVENTORY]: Error in SendInventoryAsync() for {0} with folder ID {1}.  Exception  ", e));
+                        "[AGENT INVENTORY]: Error in SendInventoryAsync() for {0} with folder ID {1}.  Exception  ", e, folderID));
             }
             Thread.Sleep(20);
         }

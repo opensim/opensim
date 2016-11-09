@@ -174,7 +174,9 @@ namespace OpenSim.Data.PGSQL
             {
                 using (NpgsqlCommand cmd = new NpgsqlCommand())
                 {
-                    cmd.CommandText = String.Format(@"select * from inventoryitems where ""avatarID"" = :uuid and ""assetType"" = :type and ""flags"" = 1", m_Realm);
+//                    cmd.CommandText = String.Format(@"select * from inventoryitems where ""avatarID"" = :uuid and ""assetType"" = :type and ""flags"" = 1", m_Realm);
+
+                    cmd.CommandText = String.Format(@"select * from inventoryitems where ""avatarID"" = :uuid and ""assetType"" = :type and ""flags"" = 1");
 
                     UUID princID = UUID.Zero;
                     UUID.TryParse(principalID, out princID);
@@ -194,11 +196,18 @@ namespace OpenSim.Data.PGSQL
             {
                 using (NpgsqlCommand cmd = new NpgsqlCommand())
                 {
+/*
                     cmd.CommandText = String.Format(@"select bit_or(""inventoryCurrentPermissions"") as ""inventoryCurrentPermissions"" 
                                  from inventoryitems 
                                  where ""avatarID"" = :PrincipalID 
                                    and ""assetID"" = :AssetID 
                                  group by ""assetID"" ", m_Realm);
+*/
+                    cmd.CommandText = String.Format(@"select bit_or(""inventoryCurrentPermissions"") as ""inventoryCurrentPermissions"" 
+                                 from inventoryitems 
+                                 where ""avatarID"" = :PrincipalID 
+                                   and ""assetID"" = :AssetID 
+                                 group by ""assetID"" ");
 
                     cmd.Parameters.Add(m_database.CreateParameter("PrincipalID", principalID));
                     cmd.Parameters.Add(m_database.CreateParameter("AssetID", assetID));
