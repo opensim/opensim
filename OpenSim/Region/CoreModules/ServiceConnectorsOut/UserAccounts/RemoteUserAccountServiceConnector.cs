@@ -144,10 +144,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                 return account;
 
             account = base.GetUserAccount(scopeID, userID);
-            lock(m_Cache)
-                if(account != null)
+            if(account != null)
+            {
+                lock(m_Cache)
                     m_Cache.Cache(userID, account);
-
+            }
             return account;
         }
 
@@ -162,9 +163,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 
             account = base.GetUserAccount(scopeID, firstName, lastName);
             if (account != null)
+            {
                 lock(m_Cache)
                     m_Cache.Cache(account.PrincipalID, account);
-
+            }
             return account;
         }
 
@@ -195,16 +197,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                 List<UserAccount> ext = base.GetUserAccounts(scopeID, missing);
                 if(ext != null && ext.Count >0 )
                 {
-                    accs.AddRange(ext);
                     foreach(UserAccount acc in ext)
                     {
                         if(acc != null)
+                        {
+                            accs.Add(acc);
                             lock(m_Cache)
                                 m_Cache.Cache(acc.PrincipalID, acc);
+                        }
                     }
                 }
             }
-
             return accs;
         }
 
