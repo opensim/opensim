@@ -37,7 +37,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
     public class UserAccountCache : IUserAccountCacheModule
     {
         private const double CACHE_EXPIRATION_SECONDS = 120000.0; // 33 hours!
-        private const double CACHENULL_EXPIRATION_SECONDS = 600; // 5minutes
+        private const double CACHENULL_EXPIRATION_SECONDS = 600; // 10minutes
 
 //        private static readonly ILog m_log =
 //                LogManager.GetLogger(

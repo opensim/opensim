@@ -211,9 +211,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
             List<UserAccount> ext = UserAccountService.GetUserAccounts(scopeID, missing);
             if(ext != null && ext.Count > 0)
             {
-                ret.AddRange(ext);
                 foreach(UserAccount acc in ext)
-                    m_Cache.Cache(acc.PrincipalID, acc);
+                {
+                    if(acc != null)
+                    {
+                        ret.Add(acc);
+                        m_Cache.Cache(acc.PrincipalID, acc);
+                    }
+                }
             }
             return ret;
         }

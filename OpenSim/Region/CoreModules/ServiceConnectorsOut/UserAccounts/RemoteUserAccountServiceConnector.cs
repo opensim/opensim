@@ -190,8 +190,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                 {
                     foreach(UserAccount acc in ext)
                     {
-                        accs.Add(acc);
-                        m_Cache.Cache(acc.PrincipalID, acc);
+                        if(acc != null)
+                        {
+                            accs.Add(acc);
+                            m_Cache.Cache(acc.PrincipalID, acc);
+                        }
                     }
                 }
             }
