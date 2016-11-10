@@ -2856,6 +2856,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendSelectedPartsProprieties(List<ISceneEntity> parts)
         {
+/* not in use
             // udp part           
             ObjectPropertiesPacket packet = 
                 (ObjectPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ObjectProperties);
@@ -2893,6 +2894,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             llsdBody.Add("ObjectData", array);
 
             eq.Enqueue(BuildEvent("ObjectPhysicsProperties", llsdBody),AgentId);
+*/
         }
 
 
@@ -4839,7 +4841,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>> propertyUpdates =
                 new OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>>();
-            
+           
+            List<SceneObjectPart> needPhysics = new List<SceneObjectPart>();
+             
             EntityUpdate iupdate;
             Int32 timeinqueue; // this is just debugging code & can be dropped later
 
@@ -4867,6 +4871,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (update.Entity is SceneObjectPart)
                     {
                         SceneObjectPart sop = (SceneObjectPart)update.Entity;
+                        needPhysics.Add(sop);
                         ObjectPropertiesPacket.ObjectDataBlock objPropDB = CreateObjectPropertiesBlock(sop);
                         objectPropertiesBlocks.Value.Add(objPropDB);
                         propertyUpdates.Value.Add(update);
@@ -4932,7 +4937,31 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // fpcnt++;
                     // fbcnt++;
                 }
-                
+            }
+
+            if(needPhysics.Count > 0)
+            {
+                IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
+                if(eq != null)
+                {
+                    OSDArray array = new OSDArray();
+                    foreach(SceneObjectPart sop in needPhysics)
+                    {
+                        OSDMap physinfo = new OSDMap(6);
+                        physinfo["LocalID"] = sop.LocalId;
+                        physinfo["Density"] = sop.Density;
+                        physinfo["Friction"] = sop.Friction;
+                        physinfo["GravityMultiplier"] = sop.GravityModifier;
+                        physinfo["Restitution"] = sop.Restitution;
+                        physinfo["PhysicsShapeType"] = (int)sop.PhysicsShapeType;
+                        array.Add(physinfo);
+                    }
+
+                    OSDMap llsdBody = new OSDMap(1);
+                    llsdBody.Add("ObjectData", array);
+
+                    eq.Enqueue(BuildEvent("ObjectPhysicsProperties", llsdBody),AgentId);
+                 }
             }
             
             // m_log.WarnFormat("[PACKETCOUNTS] queued {0} property packets with {1} blocks",ppcnt,pbcnt);
