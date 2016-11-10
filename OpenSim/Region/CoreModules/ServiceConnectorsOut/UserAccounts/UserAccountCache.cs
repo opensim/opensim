@@ -37,6 +37,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
     public class UserAccountCache : IUserAccountCacheModule
     {
         private const double CACHE_EXPIRATION_SECONDS = 120000.0; // 33 hours!
+        private const double CACHENULL_EXPIRATION_SECONDS = 600; // 5minutes
 
 //        private static readonly ILog m_log =
 //                LogManager.GetLogger(
@@ -57,9 +58,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
             // Cache even null accounts
             lock(accessLock)
             {
-                m_UUIDCache.AddOrUpdate(userID, account, CACHE_EXPIRATION_SECONDS);
-                if (account != null)
+                if (account == null)
+                    m_UUIDCache.AddOrUpdate(userID, null, CACHENULL_EXPIRATION_SECONDS);
+                else
+                {
+                    m_UUIDCache.AddOrUpdate(userID, account, CACHE_EXPIRATION_SECONDS);
                     m_NameCache.AddOrUpdate(account.Name, account.PrincipalID, CACHE_EXPIRATION_SECONDS);
+                }
 
             //m_log.DebugFormat("[USER CACHE]: cached user {0}", userID);
             }

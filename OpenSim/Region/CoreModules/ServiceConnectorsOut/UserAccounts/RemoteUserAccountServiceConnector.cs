@@ -142,8 +142,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                 return account;
 
             account = base.GetUserAccount(scopeID, userID);
-            if(account != null)
-                m_Cache.Cache(userID, account);
+            m_Cache.Cache(userID, account);
 
             return account;
         }
@@ -191,11 +190,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                 {
                     foreach(UserAccount acc in ext)
                     {
-                        if(acc != null)
-                        {
-                            accs.Add(acc);
-                            m_Cache.Cache(acc.PrincipalID, acc);
-                        }
+                        accs.Add(acc);
+                        m_Cache.Cache(acc.PrincipalID, acc);
                     }
                 }
             }
