@@ -696,12 +696,6 @@
     ;; then you might want to try setting this to false.
     ; mesh_sculpted_prim = true
 
-    ;# {use_NINJA_physics_joints} {[Startup]physics:OpenDynamicsEngine} {Use jointed (NINJA) physics?} {true false} false
-    ;; If you would like physics joints to be enabled through a special naming
-    ;; convention in the client, set this to true.
-    ;; (see NINJA Physics, http://opensimulator.org/wiki/NINJA_Physics)
-    ; use_NINJA_physics_joints = false
-
 [RemoteAdmin]
     ;; This is the remote admin module, which uses XMLRPC requests to
     ;; manage regions from a web interface.
@@ -1138,15 +1132,19 @@
 	
 	;; several options to control NPCs creation
 	
+    ;# {AllowNotOwned} {} {allow NPCs to be created not Owned} {true false} false
 	;; allow NPCs to be created not Owned {true false} default: true
     ; AllowNotOwned = false
 	
+    ;# {AllowSenseAsAvatar} {} {allow NPCs to set to be sensed as Avatars} {true false} false
 	;; allow NPCs to set to be sensed as Avatars {true false} default: true
     ; AllowSenseAsAvatar = false
 	
+    ;# {AllowCloneOtherAvatars} {} {allow NPCs to created cloning any avatar in region} {true false} false
 	;; allow NPCs to created cloning any avatar in region {true false} default: true
     ; AllowCloneOtherAvatars = false
 	
+    ;# {NoNPCGroup} {} {if true NPCs will have no group title, if false display "- NPC -"} {true false} false
 	;; if true NPCs will have no group title, if false display "- NPC -" for easy identification {true false} default: true
     ; NoNPCGroup = false 
 
