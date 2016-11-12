@@ -1132,21 +1132,21 @@
 	
 	;; several options to control NPCs creation
 	
-    ;# {AllowNotOwned} {} {allow NPCs to be created not Owned} {true false} false
+    ;# {AllowNotOwned} {} {allow NPCs to be created not Owned} {true false} true
 	;; allow NPCs to be created not Owned {true false} default: true
-    ; AllowNotOwned = false
+    ; AllowNotOwned = true
 	
-    ;# {AllowSenseAsAvatar} {} {allow NPCs to set to be sensed as Avatars} {true false} false
+    ;# {AllowSenseAsAvatar} {} {allow NPCs to set to be sensed as Avatars} {true false} true
 	;; allow NPCs to set to be sensed as Avatars {true false} default: true
-    ; AllowSenseAsAvatar = false
+    ; AllowSenseAsAvatar = true
 	
-    ;# {AllowCloneOtherAvatars} {} {allow NPCs to created cloning any avatar in region} {true false} false
+    ;# {AllowCloneOtherAvatars} {} {allow NPCs to created cloning any avatar in region} {true false} true
 	;; allow NPCs to created cloning any avatar in region {true false} default: true
-    ; AllowCloneOtherAvatars = false
+    ; AllowCloneOtherAvatars = true
 	
-    ;# {NoNPCGroup} {} {if true NPCs will have no group title, if false display "- NPC -"} {true false} false
+    ;# {NoNPCGroup} {} {if true NPCs will have no group title, if false display "- NPC -"} {true false} true
 	;; if true NPCs will have no group title, if false display "- NPC -" for easy identification {true false} default: true
-    ; NoNPCGroup = false 
+    ; NoNPCGroup = true 
 
 
 [Terrain]
