@@ -1157,6 +1157,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             m_building = true; // control must set this to false when done
 
+            AddChange(changes.Add, null);
+
             // get basic mass parameters
             ODEPhysRepData repData = _parent_scene.m_meshWorker.NewActorPhysRep(this, _pbs, _size, m_shapetype);
 
@@ -1165,8 +1167,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_OBBOffset = repData.OBBOffset;
 
             UpdatePrimBodyData();
-
-            AddChange(changes.Add, null);
         }
 
         private void resetCollisionAccounting()
