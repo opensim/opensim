@@ -230,15 +230,22 @@ public abstract class BSPhysObject : PhysicsActor
     // Update the physical location and motion of the object. Called with data from Bullet.
     public abstract void UpdateProperties(EntityProperties entprop);
 
+    // The position value as known by BulletSim. Does not effect the physics engine.
     public virtual OMV.Vector3 RawPosition { get; set; }
+    // Set position in BulletSim and the physics engined to a value immediately. Must be called at taint time.
     public abstract OMV.Vector3 ForcePosition { get; set; }
 
+    // The orientation value as known by BulletSim. Does not effect the physics engine.
     public virtual OMV.Quaternion RawOrientation { get; set; }
+    // Set orientation in BulletSim and the physics engine to a value immediately. Must be called at taint time.
     public abstract OMV.Quaternion ForceOrientation { get; set; }
 
+    // The velocity value as known by BulletSim. Does not effect the physics engine.
     public virtual OMV.Vector3 RawVelocity { get; set; }
+    // Set velocity in BulletSim and the physics engined to a value immediately. Must be called at taint time.
     public abstract OMV.Vector3 ForceVelocity { get; set; }
 
+    // The rotational velocity value as known by BulletSim. Does not effect the physics engine.
     public OMV.Vector3 RawRotationalVelocity { get; set; }
 
     // RawForce is a constant force applied to object (see Force { set; } )
@@ -252,17 +259,28 @@ public abstract class BSPhysObject : PhysicsActor
     public abstract void AddAngularForce(bool inTaintTime, OMV.Vector3 force);
     public abstract void AddForce(bool inTaintTime, OMV.Vector3 force);
 
+    // PhysicsActor.Velocity
+    public override OMV.Vector3 Velocity
+    {
+        get { return RawVelocity;  }
+        set
+        {
+            // This sets the velocity now. BSCharacter will override to clear target velocity
+            //    before calling this.
+            RawVelocity = value;
+            PhysScene.TaintedObject(LocalID, TypeName + ".SetVelocity", delegate () {
+                // DetailLog("{0},BSPhysObject.Velocity.set,vel={1}", LocalID, RawVelocity);
+                ForceVelocity = RawVelocity;
+            });
+        }
+    }
+
     // PhysicsActor.SetMomentum
-    // All the physics engined use this as a way of forcing the velocity to something.
+    // All the physics engines use this as a way of forcing the velocity to something.
+    // BSCharacter overrides this so it can set the target velocity to zero before calling this.
     public override void SetMomentum(OMV.Vector3 momentum)
     {
-        // This doesn't just set Velocity=momentum because velocity is ramped up to (see MoveActor)
-        RawVelocity = momentum;
-        PhysScene.TaintedObject(LocalID, TypeName + ".SetMomentum", delegate()
-        {
-            // DetailLog("{0},BSPrim.SetMomentum,taint,vel={1}", LocalID, RawVelocity);
-            ForceVelocity = RawVelocity;
-        });
+        this.Velocity = momentum;
     }
 
     public override OMV.Vector3 RotationalVelocity {
