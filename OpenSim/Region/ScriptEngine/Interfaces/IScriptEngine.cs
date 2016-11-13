@@ -68,7 +68,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         void SetMinEventDelay(UUID itemID, double delay);
         int GetStartParameter(UUID itemID);
 
-        void SetScriptState(UUID itemID, bool state);
+        void SetScriptState(UUID itemID, bool state, bool self);
         bool GetScriptState(UUID itemID);
         void SetState(UUID itemID, string newState);
         void ApiResetScript(UUID itemID);

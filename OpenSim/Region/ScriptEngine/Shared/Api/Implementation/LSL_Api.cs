@@ -521,7 +521,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if ((item = GetScriptByName(name)) != UUID.Zero)
             {
-                m_ScriptEngine.SetScriptState(item, run == 0 ? false : true);
+                m_ScriptEngine.SetScriptState(item, run == 0 ? false : true, item == m_item.ItemID);
             }
             else
             {

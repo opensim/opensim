@@ -1854,15 +1854,23 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return instance;
         }
 
-        public void SetScriptState(UUID itemID, bool running)
+        public void SetScriptState(UUID itemID, bool running, bool self)
         {
             IScriptInstance instance = GetInstance(itemID);
             if (instance != null)
             {
                 if (running)
-                    instance.Start();
+                        instance.Start();
                 else
-                    instance.Stop(100);
+                {
+                    if(self)
+                    {
+                        instance.Running = false;
+                        throw new EventAbortException();
+                    }
+                    else
+                        instance.Stop(100);
+                }
             }
         }
 
