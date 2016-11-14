@@ -920,7 +920,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 return false;
             }
 
-            string rawConsoleEndVector = rawComponents.Skip(2).Take(1).Single();
+            string rawConsoleEndVector = rawComponents.Skip(1).Take(1).Single();
 
             if (!ConsoleUtil.TryParseConsoleMaxVector(rawConsoleEndVector, out endVector))
             {
