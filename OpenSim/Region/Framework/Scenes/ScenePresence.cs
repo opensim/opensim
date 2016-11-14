@@ -2313,25 +2313,23 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 Vector3 posAdjusted = AbsolutePosition;
 //                    posAdjusted.Z += 0.5f * Appearance.AvatarSize.Z - 0.5f;
+                // not good for tiny or huge avatars
                 posAdjusted.Z += 1.0f; // viewer current camera focus point
                 Vector3 tocam = CameraPosition - posAdjusted;
-                tocam.X = (float)Math.Round(tocam.X, 1);
-                tocam.Y = (float)Math.Round(tocam.Y, 1);
-                tocam.Z = (float)Math.Round(tocam.Z, 1);
 
-                float distTocamlen = tocam.Length();
-                if (distTocamlen > 0.3f)
+                float distTocamlen = tocam.LengthSquared();
+                if (distTocamlen > 0.08f && distTocamlen < 400)
                 {
+                    distTocamlen = (float)Math.Sqrt(distTocamlen);
                     tocam *= (1.0f / distTocamlen);
-                    posAdjusted.X = (float)Math.Round(posAdjusted.X, 1);
-                    posAdjusted.Y = (float)Math.Round(posAdjusted.Y, 1);
-                    posAdjusted.Z = (float)Math.Round(posAdjusted.Z, 1);
 
                     m_doingCamRayCast = true;
                     m_scene.PhysicsScene.RaycastWorld(posAdjusted, tocam, distTocamlen + 1.0f, RayCastCameraCallback);
+                    return;
                 }
             }
-            else if (CameraConstraintActive)
+
+            if (CameraConstraintActive)
             {
                 Vector4 plane = new Vector4(0.9f, 0.0f, 0.361f, -10000f); // not right...
                 UpdateCameraCollisionPlane(plane);
@@ -2350,17 +2348,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void RayCastCameraCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance, Vector3 pNormal)
         {
-            const float POSITION_TOLERANCE = 0.02f;
-            const float ROTATION_TOLERANCE = 0.02f;
+//            const float POSITION_TOLERANCE = 0.02f;
+//            const float ROTATION_TOLERANCE = 0.02f;
 
-            m_doingCamRayCast = false;
             if (hitYN && localid != LocalId)
             {
-                SceneObjectGroup group = m_scene.GetGroupByPrim(localid);
-                bool IsPrim = group != null;
-                if (IsPrim)
+                if (localid != 0)
                 {
-                    SceneObjectPart part = group.GetPart(localid);
+                    SceneObjectPart part = m_scene.GetSceneObjectPart(localid);
                     if (part != null && !part.VolumeDetectActive)
                     {
                         CameraConstraintActive = true;
@@ -2393,13 +2388,16 @@ namespace OpenSim.Region.Framework.Scenes
                     UpdateCameraCollisionPlane(plane);
                 }
             }
-            else if (!m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
-                     !Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE))
+//            else if (!m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
+//                     !Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE))
+            else if(CameraConstraintActive)
             {
                 Vector4 plane = new Vector4(0.9f, 0.0f, 0.361f, -9000f); // not right...
                 UpdateCameraCollisionPlane(plane);
                 CameraConstraintActive = false;
             }
+
+            m_doingCamRayCast = false;
         }
 
         /// <summary>
@@ -2767,7 +2765,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Use these three vectors to figure out what the agent is looking at
             // Convert it to a Matrix and/or Quaternion
 
-            // this my need lock
+            // this may need lock
             CameraAtAxis = agentData.CameraAtAxis;
             CameraLeftAxis = agentData.CameraLeftAxis;
             CameraUpAxis = agentData.CameraUpAxis;
@@ -2781,11 +2779,24 @@ namespace OpenSim.Region.Framework.Scenes
             
             DrawDistance = agentData.Far;
 
-            // Check if Client has camera in 'follow cam' or 'build' mode.
-            Vector3 camdif = (Vector3.One * Rotation - Vector3.One * CameraRotation);
 
-            m_followCamAuto = ((CameraUpAxis.Z > 0.959f && CameraUpAxis.Z < 0.98f)
-               && (Math.Abs(camdif.X) < 0.4f && Math.Abs(camdif.Y) < 0.4f)) ? true : false;
+            // Check if Client has camera in 'follow cam' or 'build' mode.
+//            Vector3 camdif = (Vector3.One * Rotation - Vector3.One * CameraRotation);
+            m_followCamAuto = false;
+            if(!m_mouseLook)
+            {
+                if((CameraUpAxis.Z > 0.959f && CameraUpAxis.Z < 0.98f))
+                {
+                    Vector3 camdif = new Vector3(1f, 0f, 0f) * Rotation;
+                    float ftmp = camdif.X - CameraAtAxis.X;
+                    if(Math.Abs(ftmp) < 0.1f)
+                    {
+                        ftmp = camdif.Y - CameraAtAxis.Y;
+                        if(Math.Abs(ftmp) < 0.1f)
+                            m_followCamAuto = true;
+                    }
+                }
+            }
 
             if(agentData.NeedsCameraCollision)
                 checkCameraCollision();
