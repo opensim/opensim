@@ -6263,7 +6263,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             bool movement = CheckAgentMovementUpdateSignificance(x);
             bool camera = CheckAgentCameraUpdateSignificance(x);
-    
+
             // Was there a significant movement/state change?
             if (movement)
             {
@@ -6274,6 +6274,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_thisAgentUpdateArgs.HeadRotation = x.HeadRotation;
                 m_thisAgentUpdateArgs.State = x.State;
 
+                m_thisAgentUpdateArgs.NeedsCameraCollision = !camera;
+
                 UpdateAgent handlerAgentUpdate = OnAgentUpdate;
                 UpdateAgent handlerPreAgentUpdate = OnPreAgentUpdate;
 
@@ -6282,7 +6284,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 if (handlerAgentUpdate != null)
                     OnAgentUpdate(this, m_thisAgentUpdateArgs);
- 
+
             }
 
             // Was there a significant camera(s) change?
@@ -6292,6 +6294,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_thisAgentUpdateArgs.CameraCenter = x.CameraCenter;
                 m_thisAgentUpdateArgs.CameraLeftAxis = x.CameraLeftAxis;
                 m_thisAgentUpdateArgs.CameraUpAxis = x.CameraUpAxis;
+
+                m_thisAgentUpdateArgs.NeedsCameraCollision = true;
 
                 UpdateAgent handlerAgentCameraUpdate = OnAgentCameraUpdate;
 

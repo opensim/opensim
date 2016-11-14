@@ -2297,6 +2297,48 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="distance"></param>
         /// 
 
+        private void checkCameraCollision()
+        {
+            if(!m_scene.PhysicsScene.SupportsRayCast())
+                return;
+
+            ++m_movementUpdateCount;
+            if (m_movementUpdateCount < 1)
+                m_movementUpdateCount = 1;
+
+            if (m_doingCamRayCast || m_movementUpdateCount % NumMovementsBetweenRayCast != 0)
+                return;
+
+            if (m_followCamAuto && !m_mouseLook)
+            {
+                Vector3 posAdjusted = AbsolutePosition;
+//                    posAdjusted.Z += 0.5f * Appearance.AvatarSize.Z - 0.5f;
+                posAdjusted.Z += 1.0f; // viewer current camera focus point
+                Vector3 tocam = CameraPosition - posAdjusted;
+                tocam.X = (float)Math.Round(tocam.X, 1);
+                tocam.Y = (float)Math.Round(tocam.Y, 1);
+                tocam.Z = (float)Math.Round(tocam.Z, 1);
+
+                float distTocamlen = tocam.Length();
+                if (distTocamlen > 0.3f)
+                {
+                    tocam *= (1.0f / distTocamlen);
+                    posAdjusted.X = (float)Math.Round(posAdjusted.X, 1);
+                    posAdjusted.Y = (float)Math.Round(posAdjusted.Y, 1);
+                    posAdjusted.Z = (float)Math.Round(posAdjusted.Z, 1);
+
+                    m_doingCamRayCast = true;
+                    m_scene.PhysicsScene.RaycastWorld(posAdjusted, tocam, distTocamlen + 1.0f, RayCastCameraCallback);
+                }
+            }
+            else if (CameraConstraintActive)
+            {
+                Vector4 plane = new Vector4(0.9f, 0.0f, 0.361f, -10000f); // not right...
+                UpdateCameraCollisionPlane(plane);
+                CameraConstraintActive = false;
+            }
+        }
+
         private void UpdateCameraCollisionPlane(Vector4 plane)
         {
             if (m_lastCameraCollisionPlane != plane)
@@ -2442,38 +2484,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Raycast from the avatar's head to the camera to see if there's anything blocking the view
             // this exclude checks may not be complete
-
-            if (m_movementUpdateCount % NumMovementsBetweenRayCast == 0 && m_scene.PhysicsScene.SupportsRayCast())
-            {
-                if (!m_doingCamRayCast && !m_mouseLook && ParentID == 0)
-                {
-                    Vector3 posAdjusted = AbsolutePosition;
-//                    posAdjusted.Z += 0.5f * Appearance.AvatarSize.Z - 0.5f;
-                    posAdjusted.Z += 1.0f; // viewer current camera focus point
-                    Vector3 tocam = CameraPosition - posAdjusted;
-                    tocam.X = (float)Math.Round(tocam.X, 1);
-                    tocam.Y = (float)Math.Round(tocam.Y, 1);
-                    tocam.Z = (float)Math.Round(tocam.Z, 1);
-
-                    float distTocamlen = tocam.Length();
-                    if (distTocamlen > 0.3f)
-                    {
-                        tocam *= (1.0f / distTocamlen);
-                        posAdjusted.X = (float)Math.Round(posAdjusted.X, 1);
-                        posAdjusted.Y = (float)Math.Round(posAdjusted.Y, 1);
-                        posAdjusted.Z = (float)Math.Round(posAdjusted.Z, 1);
-
-                        m_doingCamRayCast = true;
-                        m_scene.PhysicsScene.RaycastWorld(posAdjusted, tocam, distTocamlen + 1.0f, RayCastCameraCallback);
-                    }
-                }
-                else if (CameraConstraintActive && (m_mouseLook || ParentID != 0))
-                {
-                    Vector4 plane = new Vector4(0.9f, 0.0f, 0.361f, -10000f); // not right...
-                    UpdateCameraCollisionPlane(plane);
-                    CameraConstraintActive = false;
-                }
-            }
+            if(agentData.NeedsCameraCollision  && ParentID == 0) // condition parentID may be wrong
+                checkCameraCollision();
 
             uint flagsForScripts = (uint)flags;
             flags = RemoveIgnoredControls(flags, IgnoredControls);
@@ -2742,14 +2754,10 @@ namespace OpenSim.Region.Framework.Scenes
             //    Scene.RegionInfo.RegionName, remoteClient.Name, (AgentManager.ControlFlags)agentData.ControlFlags);
 
             if (IsChildAgent)
-            {
-                //    // m_log.Debug("DEBUG: HandleAgentUpdate: child agent");
                 return;
-            }
 
-            ++m_movementUpdateCount;
-            if (m_movementUpdateCount < 1)
-                m_movementUpdateCount = 1;
+            if(IsInTransit)
+                return;
 
 //            AgentManager.ControlFlags flags = (AgentManager.ControlFlags)agentData.ControlFlags;
 
@@ -2779,17 +2787,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_followCamAuto = ((CameraUpAxis.Z > 0.959f && CameraUpAxis.Z < 0.98f)
                && (Math.Abs(camdif.X) < 0.4f && Math.Abs(camdif.Y) < 0.4f)) ? true : false;
 
-
-            //m_log.DebugFormat("[FollowCam]: {0}", m_followCamAuto);
-            // Raycast from the avatar's head to the camera to see if there's anything blocking the view
-            if ((m_movementUpdateCount % NumMovementsBetweenRayCast) == 0 && m_scene.PhysicsScene.SupportsRayCast())
-            {
-                if (m_followCamAuto)
-                {
-                    Vector3 posAdjusted = m_pos + HEAD_ADJUSTMENT;
-                    m_scene.PhysicsScene.RaycastWorld(m_pos, Vector3.Normalize(CameraPosition - posAdjusted), Vector3.Distance(CameraPosition, posAdjusted) + 0.3f, RayCastCameraCallback);
-                }
-            }
+            if(agentData.NeedsCameraCollision)
+                checkCameraCollision();
 
             TriggerScenePresenceUpdated();
         }
