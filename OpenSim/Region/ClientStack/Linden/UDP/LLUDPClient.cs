@@ -161,6 +161,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Total byte count of unacked packets sent to this client</summary>
         public int UnackedBytes;
 
+        private int m_packetsUnAckReported;
         /// <summary>Total number of received packets that we have reported to the OnPacketStats event(s)</summary>
         private int m_packetsReceivedReported;
         /// <summary>Total number of sent packets that we have reported to the OnPacketStats event(s)</summary>
@@ -389,11 +390,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 int newPacketsReceived = PacketsReceived - m_packetsReceivedReported;
                 int newPacketsSent = PacketsSent - m_packetsSentReported;
-
+                int newPacketUnAck = UnackedBytes - m_packetsUnAckReported;
                 callback(newPacketsReceived, newPacketsSent, UnackedBytes);
 
                 m_packetsReceivedReported += newPacketsReceived;
                 m_packetsSentReported += newPacketsSent;
+                m_packetsUnAckReported += newPacketUnAck;
             }
         }
 
