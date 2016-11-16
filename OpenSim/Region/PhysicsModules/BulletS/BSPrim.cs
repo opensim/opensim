@@ -787,17 +787,6 @@ public class BSPrim : BSPhysObject
             }
         }
     }
-    public override OMV.Vector3 Velocity {
-        get { return RawVelocity; }
-        set {
-            RawVelocity = value;
-            PhysScene.TaintedObject(LocalID, "BSPrim.setVelocity", delegate()
-            {
-                // DetailLog("{0},BSPrim.SetVelocity,taint,vel={1}", LocalID, RawVelocity);
-                ForceVelocity = RawVelocity;
-            });
-        }
-    }
     public override OMV.Vector3 ForceVelocity {
         get { return RawVelocity; }
         set {

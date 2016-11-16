@@ -221,7 +221,7 @@ namespace OpenSim.Tests.Common
             throw new System.NotImplementedException ();
         }
 
-        public void SetScriptState(UUID itemID, bool state)
+        public void SetScriptState(UUID itemID, bool state, bool self)
         {
             throw new System.NotImplementedException ();
         }

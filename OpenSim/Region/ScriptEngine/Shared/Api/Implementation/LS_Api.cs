@@ -295,7 +295,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            iQ = rules.GetQuaternionItem(idx);
+                            iQ = rules.GetVector4Item(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -319,7 +319,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            iQ = rules.GetQuaternionItem(idx);
+                            iQ = rules.GetVector4Item(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -342,7 +342,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            iQ = rules.GetQuaternionItem(idx);
+                            iQ = rules.GetVector4Item(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -532,7 +532,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         idx++;
                         try
                         {
-                            iQ = rules.GetQuaternionItem(idx);
+                            iQ = rules.GetVector4Item(idx);
                         }
                         catch (InvalidCastException)
                         {
@@ -654,7 +654,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
                     case (int)ScriptBaseClass.WL_SUN_MOON_COLOR:
                         idx++;
-                        iQ = rules.GetQuaternionItem(idx);
+                        iQ = rules.GetVector4Item(idx);
                         try
                         {
                             wl.sunMoonColor = new Vector4((float)iQ.x, (float)iQ.y, (float)iQ.z, (float)iQ.s);

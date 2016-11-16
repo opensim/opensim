@@ -287,7 +287,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch (Exception e)
             {
-                m_log.Error(string.Format("[SCENE]: SceneBase.cs: Close() - Failed with exception ", e));
+                m_log.Error(string.Format("[SCENE]: SceneBase.cs: Close() - Failed with exception {0}", e));
             }
         }
 

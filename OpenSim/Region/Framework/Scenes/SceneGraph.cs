@@ -246,11 +246,11 @@ namespace OpenSim.Region.Framework.Scenes
             // try to work around that scale down X and Y acording to region size, so reducing the resolution
             // 
             // viewers need to scale up
-            float scaleX = m_parentScene.RegionInfo.RegionSizeX / Constants.RegionSize;
+            float scaleX = (float)m_parentScene.RegionInfo.RegionSizeX / (float)Constants.RegionSize;
             if (scaleX == 0)
                 scaleX = 1.0f;
             scaleX = 1.0f / scaleX;
-            float scaleY = m_parentScene.RegionInfo.RegionSizeY / Constants.RegionSize;
+            float scaleY = (float)m_parentScene.RegionInfo.RegionSizeY / (float)Constants.RegionSize;
             if (scaleY == 0)
                     scaleY = 1.0f;
             scaleY = 1.0f / scaleY;

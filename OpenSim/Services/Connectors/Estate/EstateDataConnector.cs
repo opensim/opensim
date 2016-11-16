@@ -323,7 +323,7 @@ namespace OpenSim.Services.Connectors
                     }
                     else
                         m_log.Error(string.Format(
-                            "[ESTATE CONNECTOR]: WebException for {0} {1} {2} ",
+                            "[ESTATE CONNECTOR]: WebException for {0} {1} {2} {3}",
                             verb, uri, formdata, e));
                 }
             }

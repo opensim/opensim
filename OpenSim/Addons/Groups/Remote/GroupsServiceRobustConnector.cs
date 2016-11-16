@@ -286,7 +286,7 @@ namespace OpenSim.Groups
                 string requestingAgentID = request["RequestingAgentID"].ToString();
 
                 if (!m_GroupsService.RemoveAgentFromGroup(requestingAgentID, agentID, groupID))
-                    NullResult(result, string.Format("Insufficient permissions.", agentID));
+                    NullResult(result, string.Format("Insufficient permissions. {0}", agentID));
                 else
                     result["RESULT"] = "true";
             }

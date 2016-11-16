@@ -521,7 +521,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if ((item = GetScriptByName(name)) != UUID.Zero)
             {
-                m_ScriptEngine.SetScriptState(item, run == 0 ? false : true);
+                m_ScriptEngine.SetScriptState(item, run == 0 ? false : true, item == m_item.ItemID);
             }
             else
             {
@@ -14358,6 +14358,91 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return contacts.ToArray();
         }
 
+        private ContactResult? GroundIntersection2(Vector3 rayStart, Vector3 rayEnd)
+        {
+            // get work copies
+            float sx = rayStart.X;
+            float ex = rayEnd.X;  
+            float sy = rayStart.Y;
+            float ey = rayEnd.Y;
+
+            float dx = ex - sx;
+            float dy = ey - sy;
+
+            // region size info
+            float rsx =  World.RegionInfo.RegionSizeX;
+ 
+            float tmp;
+
+            // region bounds
+            if(sx < 0)
+            {
+                if(ex < 0) // totally outside
+                    return null;
+                if(dx <= 0) // out and going away
+                    return null;
+                else if(ex >= rsx)
+                    ex = rsx - 0.001f;
+                tmp = -sx / dx;
+                sy += dy * dx;
+                sx = 0;
+            }
+            else if(sx >= rsx) 
+            {
+                if(ex >= rsx)  // totally outside
+                    return null;
+                if(dx >= 0) // out and going away
+                    return null;
+                else if(ex < 0)
+                    ex = 0;
+                tmp = (rsx - sx) / dx;
+                sy += dy * dx;
+                sx = rsx - 0.001f;
+            }
+
+            float rsy =  World.RegionInfo.RegionSizeY;
+            if(sy < 0)
+            {
+                if(dy <= 0) // out and going away
+                    return null;
+                else if(ey >= rsy)
+                    ey = rsy - 0.001f;
+                tmp = -sy / dy;
+                sx += dy * dx;
+                sy = 0;
+            }
+            else if(sy >= rsy) 
+            {
+                if(dy >= 0) // out and going away
+                    return null;
+                else if(ey < 0)
+                    ey = 0;
+                tmp = (rsy - sy) / dy;
+                sx += dy * dx;
+                sy = rsy - 0.001f;
+            }
+
+            if(sx < 0 || sx >= rsx)
+                return null;
+
+            float sz = rayStart.Z;
+            float ez = rayEnd.Z;
+            float dz = ez - sz;
+
+            float dist = dx * dx + dy * dy + dz * dz;
+            if(dist < 0.001)
+                return null;
+            dist = (float)Math.Sqrt(dist);
+            tmp = 1.0f / dist;
+            Vector3 rayn = new Vector3(dx * tmp, dy * tmp, dz * tmp);
+
+            ContactResult? result = null;
+
+
+
+            return result;
+        }
+
         private ContactResult? GroundIntersection(Vector3 rayStart, Vector3 rayEnd)
         {
             double[,] heightfield = World.Heightmap.GetDoubles();
@@ -16024,8 +16109,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             catch (InvalidCastException e)
             {
                 Error(originFunc,string.Format(
-                        " error running rule #{1}: arg #{2} ",
-                         rulesParsed, idx - idxStart) + e.Message);
+                        " error running rule #{0}: arg #{1} {2}",
+                         rulesParsed, idx - idxStart, e.Message));
             }
             finally
             {

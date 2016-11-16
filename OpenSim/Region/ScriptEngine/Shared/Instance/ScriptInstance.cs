@@ -924,26 +924,53 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         {
                             try
                             {
-                                // DISPLAY ERROR INWORLD
-                                string text = FormatException(e);
 
-                                if (text.Length > 1000)
-                                    text = text.Substring(0, 1000);
-                                Engine.World.SimChat(Utils.StringToBytes(text),
-                                                       ChatTypeEnum.DebugChannel, 2147483647,
-                                                       Part.AbsolutePosition,
-                                                       Part.Name, Part.UUID, false);
+                                if(e.InnerException != null && e.InnerException is ScriptException)
+                                {
+                                    string text = e.InnerException.Message + 
+                                                "(script: " + ScriptName +
+                                                " event: " + data.EventName +
+                                                " at " + Part.AbsolutePosition + ")";
+                                    if (text.Length > 1000)
+                                        text = text.Substring(0, 1000);
+                                    Engine.World.SimChat(Utils.StringToBytes(text),
+                                                           ChatTypeEnum.DebugChannel, 2147483647,
+                                                           Part.AbsolutePosition,
+                                                           Part.Name, Part.UUID, false);
+                                    m_log.Debug(string.Format(
+                                        "[SCRIPT INSTANCE]: {0} (at event {1}, part {2} {3} at {4} in {5}",
+                                        e.InnerException.Message,
+                                        data.EventName,
+                                        PrimName,
+                                        Part.UUID,
+                                        Part.AbsolutePosition,
+                                        Part.ParentGroup.Scene.Name));
+        
+                                }    
+                                else
+                                {  
+
+                                    // DISPLAY ERROR INWORLD
+                                    string text = FormatException(e);
+
+                                    if (text.Length > 1000)
+                                        text = text.Substring(0, 1000);
+                                    Engine.World.SimChat(Utils.StringToBytes(text),
+                                                           ChatTypeEnum.DebugChannel, 2147483647,
+                                                           Part.AbsolutePosition,
+                                                           Part.Name, Part.UUID, false);
 
 
-                                m_log.Debug(string.Format(
-                                    "[SCRIPT INSTANCE]: Runtime error in script {0} (event {1}), part {2} {3} at {4} in {5} ",
-                                    ScriptName,
-                                    data.EventName,
-                                    PrimName,
-                                    Part.UUID,
-                                    Part.AbsolutePosition,
-                                    Part.ParentGroup.Scene.Name),
-                                    e);
+                                    m_log.Debug(string.Format(
+                                        "[SCRIPT INSTANCE]: Runtime error in script {0} (event {1}), part {2} {3} at {4} in {5} ",
+                                        ScriptName,
+                                        data.EventName,
+                                        PrimName,
+                                        Part.UUID,
+                                        Part.AbsolutePosition,
+                                        Part.ParentGroup.Scene.Name),
+                                        e);
+                                }
                             }
                             catch (Exception)
                             {

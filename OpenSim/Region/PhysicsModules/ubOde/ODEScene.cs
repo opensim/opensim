@@ -112,6 +112,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         OriOffset,          // not in use
         // arg Vector3 new position in local coords. Changes prim position in object
         Velocity,
+        TargetVelocity,
         AngVelocity,
         Acceleration,
         Force,
@@ -1220,8 +1221,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// <param name="obj"></param>
         public void RemoveCollisionEventReporting(PhysicsActor obj)
         {
-            if (_collisionEventPrim.Contains(obj) && !_collisionEventPrimRemove.Contains(obj))
-                _collisionEventPrimRemove.Add(obj);
+            lock(_collisionEventPrimRemove)
+            {
+               if (_collisionEventPrim.Contains(obj) && !_collisionEventPrimRemove.Contains(obj))
+                    _collisionEventPrimRemove.Add(obj);
+            }
         }
 
         public override float TimeDilation
@@ -1758,10 +1762,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             prm.SleeperAddCollisionEvents();
                         sleepers.Clear();
 
-                        foreach (PhysicsActor obj in _collisionEventPrimRemove)
-                            _collisionEventPrim.Remove(obj);
+                        lock(_collisionEventPrimRemove)
+                        {
+                            foreach (PhysicsActor obj in _collisionEventPrimRemove)
+                                _collisionEventPrim.Remove(obj);
 
-                        _collisionEventPrimRemove.Clear();
+                            _collisionEventPrimRemove.Clear();
+                        }
 
                         // do a ode simulation step
                         d.WorldQuickStep(world, ODE_STEPSIZE);

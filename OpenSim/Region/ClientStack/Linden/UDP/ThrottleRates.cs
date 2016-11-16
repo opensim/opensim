@@ -92,8 +92,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 Asset = throttleConfig.GetInt("asset_default", 10500);
 
                 Total = Resend + Land + Wind + Cloud + Task + Texture + Asset;
-                // 3000000 bps default max
-                ClientMaxRate = throttleConfig.GetInt("client_throttle_max_bps", 375000);
+                // 5120000 bps default max
+                ClientMaxRate = throttleConfig.GetInt("client_throttle_max_bps", 640000);
                 if (ClientMaxRate > 1000000)
                     ClientMaxRate = 1000000; // no more than 8Mbps
 

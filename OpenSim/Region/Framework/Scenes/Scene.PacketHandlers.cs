@@ -166,8 +166,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         public void SelectPrim(List<uint> primIDs, IClientAPI remoteClient)
         {
-            List<ISceneEntity> needUpdates = new List<ISceneEntity>();
-
             foreach(uint primLocalID in primIDs)
             {
                 SceneObjectPart part = GetSceneObjectPart(primLocalID);
@@ -178,8 +176,6 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectGroup sog = part.ParentGroup;
                 if (sog == null)
                     continue;
-
-                needUpdates.Add((ISceneEntity)part);
 
                 // waste of time because properties do not send prim flags as they should
                 // if a friend got or lost edit rights after login, a full update is needed
@@ -193,10 +189,9 @@ namespace OpenSim.Region.Framework.Scenes
                     part.IsSelected = true;
                     EventManager.TriggerParcelPrimCountTainted();
                 }
-            }
 
-            if(needUpdates.Count > 0)
-                remoteClient.SendSelectedPartsProprieties(needUpdates);
+                part.SendPropertiesToClient(remoteClient);
+            }
         }
 
         /// <summary>
@@ -248,38 +243,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart part = GetSceneObjectPart(primLocalID);
             if (part == null)
                 return;
- /*           
-            // A deselect packet contains all the local prims being deselected.  However, since selection is still
-            // group based we only want the root prim to trigger a full update - otherwise on objects with many prims
-            // we end up sending many duplicate ObjectUpdates
-            if (part.ParentGroup.RootPart.LocalId != part.LocalId)
-                return;
-
-            // This is wrong, wrong, wrong. Selection should not be
-            // handled by group, but by prim. Legacy cruft.
-            // TODO: Make selection flagging per prim!
-            //
-            if (Permissions.CanEditObject(part.ParentGroup.UUID, remoteClient.AgentId)
-                || Permissions.CanMoveObject(part.ParentGroup.UUID, remoteClient.AgentId))
-                part.ParentGroup.IsSelected = false;
-            
-            part.ParentGroup.ScheduleGroupForFullUpdate();
-
-            // If it's not an attachment, and we are allowed to move it,
-            // then we might have done so. If we moved across a parcel
-            // boundary, we will need to recount prims on the parcels.
-            // For attachments, that makes no sense.
-            //
-            if (!part.ParentGroup.IsAttachment)
-            {
-                if (Permissions.CanEditObject(
-                        part.UUID, remoteClient.AgentId) 
-                        || Permissions.CanMoveObject(
-                        part.UUID, remoteClient.AgentId))
-                    EventManager.TriggerParcelPrimCountTainted();
-            }
-  */
-
+ 
             bool oldgprSelect = part.ParentGroup.IsSelected;
 
             // This is wrong, wrong, wrong. Selection should not be
@@ -614,7 +578,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.Error(
                     string.Format(
-                        "[AGENT INVENTORY]: Error in SendInventoryAsync() for {0} with folder ID {1}.  Exception  ", e));
+                        "[AGENT INVENTORY]: Error in SendInventoryAsync() for {0} with folder ID {1}.  Exception  ", e, folderID));
             }
             Thread.Sleep(20);
         }

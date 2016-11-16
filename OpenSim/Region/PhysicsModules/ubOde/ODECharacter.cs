@@ -632,6 +632,25 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
         }
 
+        public override Vector3 TargetVelocity
+        {
+            get
+            {
+                return m_targetVelocity; 
+            }
+            set
+            {
+                if (value.IsFinite())
+                {
+                    AddChange(changes.TargetVelocity, value);
+                }
+                else
+                {
+                    m_log.Warn("[PHYSICS]: Got a NaN velocity from Scene in a Character");
+                }
+            }
+        }
+
         public override Vector3 Torque
         {
             get { return Vector3.Zero; }
@@ -689,7 +708,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
                 else
                 {
-                    AddChange(changes.Velocity, force);
+                    AddChange(changes.TargetVelocity, force);
                 }
             }
             else
@@ -1671,16 +1690,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     AvatarGeomAndBodyDestroy();
 
-
                     float oldsz = m_size.Z;
                     m_size = pSize;
-
 
                     AvatarGeomAndBodyCreation(_position.X, _position.Y,
                                       _position.Z + (m_size.Z - oldsz) * 0.5f);
 
-                    Velocity = Vector3.Zero;
-                    
+//                    Velocity = Vector3.Zero;
+                    m_targetVelocity = Vector3.Zero;                  
 
                     _parent_scene.actor_name_map[collider] = (PhysicsActor)this;
                     _parent_scene.actor_name_map[capsule] = (PhysicsActor)this;
@@ -1738,6 +1755,15 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         }
 
         private void changeVelocity(Vector3 newVel)
+        {
+            _velocity = newVel;
+            setFreeMove();
+
+            if (Body != IntPtr.Zero)
+                d.BodySetLinearVel(Body, newVel.X, newVel.Y, newVel.Z);
+        }
+
+        private void changeTargetVelocity(Vector3 newVel)
         {
             m_pidControllerActive = true;
             m_freemove = false;
@@ -1879,6 +1905,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 case changes.Velocity:
                     changeVelocity((Vector3)arg);
+                    break;
+
+                case changes.TargetVelocity:
+                    changeTargetVelocity((Vector3)arg);
                     break;
 
                 //                case changes.Acceleration:

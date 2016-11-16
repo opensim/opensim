@@ -120,14 +120,13 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public virtual void RegisterCaps(UUID agentID, Caps caps)
         {
-            UUID capID = UUID.Random();
-
             if (m_URL == "localhost")
             {
-                m_log.DebugFormat("[GET_DISPLAY_NAMES]: /CAPS/agents/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
+                string capUrl = "/CAPS/" + UUID.Random() + "/";
+//                m_log.DebugFormat("[GET_DISPLAY_NAMES]: {0} in region {1}", capUrl, m_scene.RegionInfo.RegionName);
                 caps.RegisterHandler(
                     "GetDisplayNames",
-                    new GetDisplayNamesHandler("/CAPS/agents" + capID + "/", m_UserManager, "GetDisplayNames", agentID.ToString()));
+                    new GetDisplayNamesHandler(capUrl, m_UserManager, "GetDisplayNames", agentID.ToString()));
             }
             else
             {

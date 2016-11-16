@@ -108,10 +108,6 @@ public class BSActorAvatarMove : BSActor
         {
             if (m_velocityMotor != null)
             {
-//                    if (targ == OMV.Vector3.Zero)
-//                        Util.PrintCallStack();
-//
-//                    Console.WriteLine("SetVelocityAndTarget, {0} {1}", vel, targ);
                 m_velocityMotor.Reset();
                 m_velocityMotor.SetTarget(targ);
                 m_velocityMotor.SetCurrent(vel);
@@ -128,7 +124,7 @@ public class BSActorAvatarMove : BSActor
         m_waitingForLowVelocityForStationary = true;
     }
 
-    // If a movement motor has not been created, create one and start the hovering.
+    // If a movement motor has not been created, create one and start the movement
     private void ActivateAvatarMove()
     {
         if (m_velocityMotor == null)
@@ -161,7 +157,7 @@ public class BSActorAvatarMove : BSActor
         }
     }
 
-    // Called just before the simulation step. Update the vertical position for hoverness.
+    // Called just before the simulation step.
     private void Mover(float timeStep)
     {
         // Don't do movement while the object is selected.

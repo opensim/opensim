@@ -62,8 +62,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         protected const float m_minimumDripRate = 1500;
         
-        /// <summary>Time of the last drip, in system ticks</summary>
-        protected Int32 m_lastDrip;
+        /// <summary>Time of the last drip</summary>
+        protected double m_lastDrip;
 
         /// <summary>
         /// The number of bytes that can be sent at this moment. This is the
@@ -166,10 +166,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         protected float m_totalDripRequest;
         public float TotalDripRequest 
-            {
-                get { return m_totalDripRequest; }
-                set { m_totalDripRequest = value; }
-            }
+        {
+            get { return m_totalDripRequest; }
+            set { m_totalDripRequest = value; }
+        }
         
 #endregion Properties
 
@@ -193,9 +193,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Parent = parent;
             RequestedDripRate = dripRate;
             RequestedBurst = MaxBurst;
-            // TotalDripRequest = dripRate; // this will be overwritten when a child node registers
-            // MaxBurst = (Int64)((double)dripRate * m_quantumsPerBurst);
-            m_lastDrip = Util.EnvironmentTickCount() + 100000;
+            m_lastDrip = Util.GetTimeStampMS() + 50.0;
         }
 
 #endregion Constructor
@@ -210,7 +208,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected float DripRateModifier()
         {
             float driprate = DripRate;
-            return driprate >= TotalDripRequest ? 1.0f : driprate / TotalDripRequest;
+            return driprate >= TotalDripRequest ? 1.0f : (driprate / TotalDripRequest);
         }
 
         /// <summary>
@@ -313,14 +311,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
             }
             
-            Int32 now = Util.EnvironmentTickCount();
-            Int32 deltaMS = now - m_lastDrip;
+            double now = Util.GetTimeStampMS();
+            double deltaMS = now - m_lastDrip;
             m_lastDrip = now;
 
             if (deltaMS <= 0)
                 return;
 
-            m_tokenCount += deltaMS * DripRate * m_timeScale;
+            m_tokenCount += (float)deltaMS * DripRate * m_timeScale;
 
             float burst = Burst;
             if (m_tokenCount > burst)

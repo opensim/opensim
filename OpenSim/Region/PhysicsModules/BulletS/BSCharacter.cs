@@ -449,6 +449,7 @@ public sealed class BSCharacter : BSPhysObject
     public override OMV.Vector3 GeometricCenter { get { return OMV.Vector3.Zero; } }
     public override OMV.Vector3 CenterOfMass { get { return OMV.Vector3.Zero; } }
 
+    // PhysicsActor.TargetVelocity
     // Sets the target in the motor. This starts the changing of the avatar's velocity.
     public override OMV.Vector3 TargetVelocity
     {
@@ -459,7 +460,7 @@ public sealed class BSCharacter : BSPhysObject
         set
         {
             DetailLog("{0},BSCharacter.setTargetVelocity,call,vel={1}", LocalID, value);
-            m_targetVelocity = value;
+            base.m_targetVelocity = value;
             OMV.Vector3 targetVel = value;
             if (_setAlwaysRun && !_flying)
                 targetVel *= new OMV.Vector3(BSParam.AvatarAlwaysRunFactor, BSParam.AvatarAlwaysRunFactor, 1f);
@@ -472,32 +473,12 @@ public sealed class BSCharacter : BSPhysObject
     public override OMV.Vector3 Velocity {
         get { return RawVelocity; }
         set {
-            RawVelocity = value;
-            OMV.Vector3 vel = RawVelocity;
-
-            DetailLog("{0}: set Velocity = {1}", LocalID, value);
-
-            PhysScene.TaintedObject(LocalID, "BSCharacter.setVelocity", delegate()
+            if (m_moveActor != null)
             {
-                if (m_moveActor != null)
-                    m_moveActor.SetVelocityAndTarget(vel, vel, true /* inTaintTime */);
-
-                DetailLog("{0},BSCharacter.setVelocity,taint,vel={1}", LocalID, vel);
-                ForceVelocity = vel;
-            });
-        }
-    }
-
-    public override OMV.Vector3 ForceVelocity {
-        get { return RawVelocity; }
-        set {
-            PhysScene.AssertInTaintTime("BSCharacter.ForceVelocity");
-//                Util.PrintCallStack();
-            DetailLog("{0}: set ForceVelocity = {1}", LocalID, value);
-
-            RawVelocity = value;
-            PhysScene.PE.SetLinearVelocity(PhysBody, RawVelocity);
-            PhysScene.PE.Activate(PhysBody, true);
+                // m_moveActor.SetVelocityAndTarget(OMV.Vector3.Zero, OMV.Vector3.Zero, false /* inTaintTime */);
+                m_moveActor.SetVelocityAndTarget(RawVelocity, RawVelocity, false /* inTaintTime */);
+            }
+            base.Velocity = value;
         }
     }
 
@@ -506,11 +487,23 @@ public sealed class BSCharacter : BSPhysObject
     {
         if (m_moveActor != null)
         {
-            m_moveActor.SetVelocityAndTarget(OMV.Vector3.Zero, OMV.Vector3.Zero, false /* inTaintTime */);
+            // m_moveActor.SetVelocityAndTarget(OMV.Vector3.Zero, OMV.Vector3.Zero, false /* inTaintTime */);
+            m_moveActor.SetVelocityAndTarget(RawVelocity, RawVelocity, false /* inTaintTime */);
         }
         base.SetMomentum(momentum);
     }
 
+    public override OMV.Vector3 ForceVelocity {
+        get { return RawVelocity; }
+        set {
+            PhysScene.AssertInTaintTime("BSCharacter.ForceVelocity");
+            DetailLog("{0}: BSCharacter.ForceVelocity.set = {1}", LocalID, value);
+
+            RawVelocity = Util.ClampV(value, BSParam.MaxLinearVelocity);
+            PhysScene.PE.SetLinearVelocity(PhysBody, RawVelocity);
+            PhysScene.PE.Activate(PhysBody, true);
+        }
+    }
 
     public override OMV.Vector3 Torque {
         get { return RawTorque; }
