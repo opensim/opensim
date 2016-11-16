@@ -6251,15 +6251,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return false;
             }
 
+            uint seq = packet.Header.Sequence;
+
             TotalAgentUpdates++;
             // dont let ignored updates pollute this throttles
-            if(SceneAgent == null || SceneAgent.IsChildAgent || SceneAgent.IsInTransit)
+            if(SceneAgent == null || SceneAgent.IsChildAgent || 
+                    SceneAgent.IsInTransit || seq <= m_thisAgentUpdateArgs.lastpacketSequence )
             {
                 // throttle reset is done at MoveAgentIntoRegion()
                 // called by scenepresence on completemovement
                 PacketPool.Instance.ReturnPacket(packet);
                 return true;
             }
+
+            m_thisAgentUpdateArgs.lastpacketSequence = seq;
 
             bool movement = CheckAgentMovementUpdateSignificance(x);
             bool camera = CheckAgentCameraUpdateSignificance(x);
