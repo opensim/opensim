@@ -64,6 +64,13 @@ namespace OpenSim.Framework
         /// </value>
         private volatile System.Threading.ReaderWriterLockSlim m_itemLock = new System.Threading.ReaderWriterLockSlim();
 
+
+        ~TaskInventoryDictionary()
+        {
+            m_itemLock.Dispose();
+            m_itemLock = null;
+        }
+
         /// <summary>
         /// Are we readlocked by the calling thread?
         /// </summary>
