@@ -74,6 +74,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Holds information about pending removals</summary>
         private LocklessQueue<uint> m_pendingRemoves = new LocklessQueue<uint>();
 
+
+        public void Clear()
+        {
+            m_packets.Clear();
+            m_pendingAdds = null;
+            m_pendingAcknowledgements = null;
+            m_pendingRemoves = null;           
+        }
+
         /// <summary>
         /// Add an unacked packet to the collection
         /// </summary>

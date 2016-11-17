@@ -1104,7 +1104,7 @@ namespace OpenSim.Region.Framework.Scenes
  
             AdjustKnownSeeds();
 
-            RegisterToEvents();
+            RegisterToClientEvents();
             SetDirectionVectors();
 
             Appearance = appearance;
@@ -1171,7 +1171,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void RegisterToEvents()
+        public void RegisterToClientEvents()
         {
             ControllingClient.OnCompleteMovementToRegion += CompleteMovement;
             ControllingClient.OnAgentUpdate += HandleAgentUpdate;
@@ -1188,6 +1188,22 @@ namespace OpenSim.Region.Framework.Scenes
 
             // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             // ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
+        }
+        
+        public void RemoveClientEvents()
+        {
+            ControllingClient.OnCompleteMovementToRegion -= CompleteMovement;
+            ControllingClient.OnAgentUpdate -= HandleAgentUpdate;
+            ControllingClient.OnAgentCameraUpdate -= HandleAgentCamerasUpdate;
+            ControllingClient.OnAgentRequestSit -= HandleAgentRequestSit;
+            ControllingClient.OnAgentSit -= HandleAgentSit;
+            ControllingClient.OnSetAlwaysRun -= HandleSetAlwaysRun;
+            ControllingClient.OnStartAnim -= HandleStartAnim;
+            ControllingClient.OnStopAnim -= HandleStopAnim;
+            ControllingClient.OnChangeAnim -= avnHandleChangeAnim;
+            ControllingClient.OnForceReleaseControls -= HandleForceReleaseControls;
+            ControllingClient.OnAutoPilotGo -= MoveToTarget;
+            ControllingClient.OnUpdateThrottles -= RaiseUpdateThrottles;
         }
 
         private void SetDirectionVectors()
@@ -5016,12 +5032,16 @@ namespace OpenSim.Region.Framework.Scenes
             RemoveFromPhysicalScene();
           
             m_scene.EventManager.OnRegionHeartbeatEnd -= RegionHeartbeatEnd;
+            RemoveClientEvents();
 
 //            if (Animator != null)
 //                Animator.Close();
             Animator = null;
 
+            scriptedcontrols.Clear();
+            ControllingClient = null;
             LifecycleState = ScenePresenceState.Removed;
+            IsDeleted = true;
         }
 
         public void AddAttachment(SceneObjectGroup gobj)
