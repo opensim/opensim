@@ -579,13 +579,13 @@ namespace OpenSim.Server.Handlers.Grid
             if (request.ContainsKey("SCOPEID"))
                 UUID.TryParse(request["SCOPEID"].ToString(), out scopeID);
             else
-                m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to get neighbours");
+                m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to get RegionFlags");
 
             UUID regionID = UUID.Zero;
             if (request.ContainsKey("REGIONID"))
                 UUID.TryParse(request["REGIONID"].ToString(), out regionID);
             else
-                m_log.WarnFormat("[GRID HANDLER]: no regionID in request to get neighbours");
+                m_log.WarnFormat("[GRID HANDLER]: no regionID in request to get RegionFlags");
 
             int flags = m_GridService.GetRegionFlags(scopeID, regionID);
            // m_log.DebugFormat("[GRID HANDLER]: flags for region {0}: {1}", regionID, flags);
