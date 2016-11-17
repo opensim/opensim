@@ -182,7 +182,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         /// <returns></returns>
         private static Mesh CreateSimpleBoxMesh(float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
         {
-            Mesh box = new Mesh();
+            Mesh box = new Mesh(true);
             List<Vertex> vertices = new List<Vertex>();
             // bottom
 
@@ -357,7 +357,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             int numCoords = coords.Count;
             int numFaces = faces.Count;
 
-            Mesh mesh = new Mesh();
+            Mesh mesh = new Mesh(true);
             // Add the corresponding triangles to the mesh
             for (int i = 0; i < numFaces; i++)
             {

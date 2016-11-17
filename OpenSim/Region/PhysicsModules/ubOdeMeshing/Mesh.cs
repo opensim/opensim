@@ -39,6 +39,24 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 {
     public class MeshBuildingData
     {
+        private class vertexcomp : IEqualityComparer<Vertex>
+        {
+            public bool Equals(Vertex v1, Vertex v2)
+            {
+                if (v1.X == v2.X && v1.Y == v2.Y && v1.Z == v2.Z)
+                    return true;
+                else
+                    return false;
+            }
+            public int GetHashCode(Vertex v)
+            {
+                int a = v.X.GetHashCode();
+                int b = v.Y.GetHashCode();
+                int c = v.Z.GetHashCode();
+                return (a << 16) ^ (b << 8) ^ c;
+            }
+        }
+
         public Dictionary<Vertex, int> m_vertices;
         public List<Triangle> m_triangles;
         public float m_obbXmin;
@@ -49,6 +67,21 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         public float m_obbZmax;
         public Vector3 m_centroid;
         public int m_centroidDiv;
+
+        public  MeshBuildingData()
+        {
+            vertexcomp vcomp = new vertexcomp();
+            m_vertices = new Dictionary<Vertex, int>(vcomp);
+            m_triangles = new List<Triangle>();
+            m_centroid = Vector3.Zero;
+            m_centroidDiv = 0;
+            m_obbXmin = float.MaxValue;
+            m_obbXmax = float.MinValue;
+            m_obbYmin = float.MaxValue;
+            m_obbYmax = float.MinValue;
+            m_obbZmin = float.MaxValue;
+            m_obbZmax = float.MinValue;
+        }
     }
 
     [Serializable()]
@@ -76,50 +109,20 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         public int RefCount { get; set; }
         public AMeshKey Key { get; set; }
 
-        private class vertexcomp : IEqualityComparer<Vertex>
+        public Mesh(bool forbuild)
         {
-            public bool Equals(Vertex v1, Vertex v2)
-            {
-                if (v1.X == v2.X && v1.Y == v2.Y && v1.Z == v2.Z)
-                    return true;
-                else
-                    return false;
-            }
-            public int GetHashCode(Vertex v)
-            {
-                int a = v.X.GetHashCode();
-                int b = v.Y.GetHashCode();
-                int c = v.Z.GetHashCode();
-                return (a << 16) ^ (b << 8) ^ c;
-            }
-        }
-
-        public Mesh()
-        {
-            vertexcomp vcomp = new vertexcomp();
-
-            m_bdata = new MeshBuildingData();
-            m_bdata.m_vertices = new Dictionary<Vertex, int>(vcomp);
-            m_bdata.m_triangles = new List<Triangle>();
-            m_bdata.m_centroid = Vector3.Zero;
-            m_bdata.m_centroidDiv = 0;
-            m_bdata.m_obbXmin = float.MaxValue;
-            m_bdata.m_obbXmax = float.MinValue;
-            m_bdata.m_obbYmin = float.MaxValue;
-            m_bdata.m_obbYmax = float.MinValue;
-            m_bdata.m_obbZmin = float.MaxValue;
-            m_bdata.m_obbZmax = float.MinValue;
+            if(forbuild)
+                m_bdata = new MeshBuildingData();
             m_obb = new Vector3(0.5f, 0.5f, 0.5f);
             m_obboffset = Vector3.Zero;
         }
-
 
         public Mesh Scale(Vector3 scale)
         {
             if (m_verticesPtr == null || m_indicesPtr == null)
                 return null;
 
-            Mesh result = new Mesh();
+            Mesh result = new Mesh(false);
 
             float x = scale.X;
             float y = scale.Y;
@@ -167,7 +170,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
         public Mesh Clone()
         {
-            Mesh result = new Mesh();
+            Mesh result = new Mesh(false);
 
             if (m_bdata != null)
             {
@@ -514,8 +517,6 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             if (m_indicesPtr == IntPtr.Zero)
                 indexes = getIndexListAsInt();
 
-            pinMemory();
-
             float x, y, z;
 
             if (m_bdata.m_centroidDiv > 0)
@@ -543,41 +544,40 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             m_obb = new Vector3(x, y, z);
 
             releaseBuildingMeshData();
+            pinMemory();
         }
+
         public bool ToStream(Stream st)
         {
             if (m_indicesPtr == IntPtr.Zero || m_verticesPtr == IntPtr.Zero)
                 return false;
 
-            BinaryWriter bw = new BinaryWriter(st);
             bool ok = true;
 
             try
             {
+                using(BinaryWriter bw = new BinaryWriter(st))
+                {
+                    bw.Write(m_vertexCount);
+                    bw.Write(m_indexCount);
 
-                bw.Write(m_vertexCount);
-                bw.Write(m_indexCount);
-
-                for (int i = 0; i < 3 * m_vertexCount; i++)
-                    bw.Write(vertices[i]);
-                for (int i = 0; i < m_indexCount; i++)
-                    bw.Write(indexes[i]);
-                bw.Write(m_obb.X);
-                bw.Write(m_obb.Y);
-                bw.Write(m_obb.Z);
-                bw.Write(m_obboffset.X);
-                bw.Write(m_obboffset.Y);
-                bw.Write(m_obboffset.Z);
+                    for (int i = 0; i < 3 * m_vertexCount; i++)
+                        bw.Write(vertices[i]);
+                    for (int i = 0; i < m_indexCount; i++)
+                        bw.Write(indexes[i]);
+                    bw.Write(m_obb.X);
+                    bw.Write(m_obb.Y);
+                    bw.Write(m_obb.Z);
+                    bw.Write(m_obboffset.X);
+                    bw.Write(m_obboffset.Y);
+                    bw.Write(m_obboffset.Z);
+                    bw.Flush();
+                    bw.Close();
+               }
             }
             catch
             {
                 ok = false;
-            }
-
-            if (bw != null)
-            {
-                bw.Flush();
-                bw.Close();
             }
 
             return ok;
@@ -585,13 +585,12 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
         public static Mesh FromStream(Stream st, AMeshKey key)
         {
-            Mesh mesh = new Mesh();
-            mesh.releaseBuildingMeshData();
+            Mesh mesh = new Mesh(false);
 
             bool ok = true;
-            using(BinaryReader br = new BinaryReader(st))
+            try
             {
-                try
+                using(BinaryReader br = new BinaryReader(st))
                 {
                     mesh.m_vertexCount = br.ReadInt32();
                     mesh.m_indexCount = br.ReadInt32();
@@ -613,10 +612,10 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                     mesh.m_obboffset.Y = br.ReadSingle();
                     mesh.m_obboffset.Z = br.ReadSingle();
                 }
-                catch
-                {
-                    ok = false;
-                }
+            }
+            catch
+            {
+                ok = false;
             }
 
             if (ok)
