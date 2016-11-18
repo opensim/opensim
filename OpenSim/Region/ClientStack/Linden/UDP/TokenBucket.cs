@@ -193,7 +193,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Parent = parent;
             RequestedDripRate = dripRate;
             RequestedBurst = MaxBurst;
-            m_lastDrip = Util.GetTimeStampMS() + 50.0;
+            m_lastDrip = Util.GetTimeStampMS() + 100000.0; // skip first drip
         }
 
 #endregion Constructor
