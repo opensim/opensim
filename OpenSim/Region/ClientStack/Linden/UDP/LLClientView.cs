@@ -4371,6 +4371,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     
             ushort timeDilation;
 
+            if(m_scene == null)
+                return;
+
             timeDilation = Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);
 
             if (terseAgentUpdateBlocks.Count > 0)
@@ -4632,6 +4635,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         void HandleQueueEmpty(ThrottleOutPacketTypeFlags categories)
         {
+            if(m_scene == null)
+                return;
+
             if ((categories & ThrottleOutPacketTypeFlags.Task) != 0)
             {
                 int maxUpdateBytes = m_udpClient.GetCatBytesCanSend(ThrottleOutPacketType.Task, 30);   
