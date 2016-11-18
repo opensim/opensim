@@ -4141,7 +4141,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     IUserAccountCacheModule cache = RequestModuleInterface<IUserAccountCacheModule>();
                     if (cache != null)
-                        cache.Remove(acd.firstname + " " + acd.lastname);
+//                        cache.Remove(acd.firstname + " " + acd.lastname);
+                        cache.Remove(acd.AgentID);
 
                     // Remove any preexisting circuit - we don't want duplicates
                     // This is a stab at preventing avatar "ghosting"
