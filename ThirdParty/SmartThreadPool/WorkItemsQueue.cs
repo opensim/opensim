@@ -625,6 +625,7 @@ namespace Amib.Threading.Internal
             if (!_isDisposed)
             {
                 Cleanup();
+		        _headWaiterEntry.Close();
             }
             _isDisposed = true;
         }

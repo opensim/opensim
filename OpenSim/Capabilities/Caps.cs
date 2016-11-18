@@ -141,6 +141,11 @@ namespace OpenSim.Framework.Capabilities
             m_capsActive.Reset();
         }
 
+        ~Caps()
+        {
+            m_capsActive.Dispose();
+        }
+
         /// <summary>
         /// Register a handler.  This allows modules to register handlers.
         /// </summary>
