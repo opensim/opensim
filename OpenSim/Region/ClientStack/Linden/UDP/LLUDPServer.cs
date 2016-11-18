@@ -323,7 +323,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected int m_elapsedMSSinceLastStatReport = 0;
 
         /// <summary>Environment.TickCount of the last time the outgoing packet handler executed</summary>
-        protected double m_tickLastOutgoingPacketHandler;
+        protected int m_tickLastOutgoingPacketHandler;
 
         /// <summary>Keeps track of the number of elapsed milliseconds since the last time the outgoing packet handler looped</summary>
         protected int m_elapsedMSOutgoingPacketHandler;
@@ -2073,13 +2073,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_sendPing = false;
 
                     // Update elapsed time
-                    double thisTick = Util.GetTimeStampMS();
-                    int deltaMS =  (int)(thisTick - m_tickLastOutgoingPacketHandler);
+                    int thisTick = Environment.TickCount & Int32.MaxValue;
+                    if (m_tickLastOutgoingPacketHandler > thisTick)
+                        m_elapsedMSOutgoingPacketHandler += ((Int32.MaxValue - m_tickLastOutgoingPacketHandler) + thisTick);
+                    else
+                        m_elapsedMSOutgoingPacketHandler += (thisTick - m_tickLastOutgoingPacketHandler);
+
                     m_tickLastOutgoingPacketHandler = thisTick;
 
                     // update some 1ms resolution chained timers
-                    
-                    m_elapsedMSOutgoingPacketHandler += deltaMS;
 
                     // Check for pending outgoing resends every 100ms
                     if (m_elapsedMSOutgoingPacketHandler >= 100)
