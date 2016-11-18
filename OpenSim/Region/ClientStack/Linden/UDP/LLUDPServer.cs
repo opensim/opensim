@@ -323,10 +323,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected int m_elapsedMSSinceLastStatReport = 0;
 
         /// <summary>Environment.TickCount of the last time the outgoing packet handler executed</summary>
-        protected int m_tickLastOutgoingPacketHandler;
+        protected double m_tickLastOutgoingPacketHandler;
 
         /// <summary>Keeps track of the number of elapsed milliseconds since the last time the outgoing packet handler looped</summary>
-        protected int m_elapsedMSOutgoingPacketHandler;
+        protected double m_elapsedMSOutgoingPacketHandler;
 
         /// <summary>Keeps track of the number of 100 millisecond periods elapsed in the outgoing packet handler executed</summary>
         protected int m_elapsed100MSOutgoingPacketHandler;
@@ -2073,21 +2073,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_sendPing = false;
 
                     // Update elapsed time
-                    int thisTick = Environment.TickCount & Int32.MaxValue;
-                    if (m_tickLastOutgoingPacketHandler > thisTick)
-                        m_elapsedMSOutgoingPacketHandler += ((Int32.MaxValue - m_tickLastOutgoingPacketHandler) + thisTick);
-                    else
-                        m_elapsedMSOutgoingPacketHandler += (thisTick - m_tickLastOutgoingPacketHandler);
-
-                    m_tickLastOutgoingPacketHandler = thisTick;
+                    double thisTick = Util.GetTimeStampMS();
 
                     // update some 1ms resolution chained timers
+                    m_elapsedMSOutgoingPacketHandler +=  thisTick - m_tickLastOutgoingPacketHandler;
+                    m_tickLastOutgoingPacketHandler = thisTick;
 
                     // Check for pending outgoing resends every 100ms
-                    if (m_elapsedMSOutgoingPacketHandler >= 100)
+                    if (m_elapsedMSOutgoingPacketHandler >= 100.0)
                     {
                         m_resendUnacked = true;
-                        m_elapsedMSOutgoingPacketHandler = 0;
+                        m_elapsedMSOutgoingPacketHandler = 0.0;
                         m_elapsed100MSOutgoingPacketHandler += 1;
                     }
 
