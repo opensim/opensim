@@ -620,7 +620,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_entityProps  = null;
             m_killRecord.Clear();
             GroupsInView.Clear();
-            m_scene = null;
+//            m_scene = null; can't do this unless checks are added everywhere due to workitems already in pools
+
             //m_log.InfoFormat("[CLIENTVIEW] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
             //GC.Collect();
             //m_log.InfoFormat("[CLIENTVIEW] Memory post GC {0}", System.GC.GetTotalMemory(true));
@@ -4371,7 +4372,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     
             ushort timeDilation;
 
-            if(m_scene == null)
+            if(!IsActive)
                 return;
 
             timeDilation = Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);
@@ -12945,6 +12946,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// provide your own method.</param>
         protected void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType, bool doAutomaticSplitting, UnackedPacketMethod method)
         {
+            if(!IsActive)
+                return;
+
             if (m_outPacketsToDrop != null)
                 if (m_outPacketsToDrop.Contains(packet.Type.ToString()))
                     return;

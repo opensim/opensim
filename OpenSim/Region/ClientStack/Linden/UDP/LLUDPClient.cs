@@ -299,10 +299,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnQueueEmpty = null;
             PendingAcks.Clear();
             NeedAcks.Clear();
-            NeedAcks = null;
-            PendingAcks = null;
             m_nextPackets = null;
-            m_packetOutboxes = null;
          }
 
         /// <summary>
