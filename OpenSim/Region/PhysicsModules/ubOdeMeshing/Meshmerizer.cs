@@ -182,7 +182,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         /// <returns></returns>
         private static Mesh CreateSimpleBoxMesh(float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
         {
-            Mesh box = new Mesh();
+            Mesh box = new Mesh(true);
             List<Vertex> vertices = new List<Vertex>();
             // bottom
 
@@ -357,7 +357,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             int numCoords = coords.Count;
             int numFaces = faces.Count;
 
-            Mesh mesh = new Mesh();
+            Mesh mesh = new Mesh(true);
             // Add the corresponding triangles to the mesh
             for (int i = 0; i < numFaces; i++)
             {
@@ -1483,6 +1483,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
             lock (diskLock)
             {
+                Stream stream = null;
                 try
                 {
                     if (!Directory.Exists(dir))
@@ -1490,8 +1491,8 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                         Directory.CreateDirectory(dir);
                     }
 
-                    using(Stream stream = File.Open(filename, FileMode.Create))
-                        ok = mesh.ToStream(stream);
+                    stream = File.Open(filename, FileMode.Create);
+                    ok = mesh.ToStream(stream);
                 }
                 catch (IOException e)
                 {
@@ -1499,6 +1500,11 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                         "[MESH CACHE]: Failed to write file {0}.  Exception {1} {2}.",
                         filename, e.Message, e.StackTrace);
                     ok = false;
+                }
+                finally
+                {
+                    if(stream != null)
+                        stream.Dispose();
                 }
 
                 if (!ok && File.Exists(filename))

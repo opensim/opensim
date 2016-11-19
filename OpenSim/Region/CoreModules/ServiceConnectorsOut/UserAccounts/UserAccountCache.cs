@@ -36,6 +36,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 {
     public class UserAccountCache : IUserAccountCacheModule
     {
+        private const double CACHE_ALIEN_EXPIRATION_SECONDS = 172800; // 48 hours
         private const double CACHE_EXPIRATION_SECONDS = 3600.0; // 1 hour!
         private const double CACHE_NULL_EXPIRATION_SECONDS = 600; // 10minutes
 
@@ -60,21 +61,20 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
             {
                 if (account == null)
                     m_UUIDCache.AddOrUpdate(userID, null, CACHE_NULL_EXPIRATION_SECONDS);
-                else
+                else if(account.LocalToGrid)
                 {
                     m_UUIDCache.AddOrUpdate(userID, account, CACHE_EXPIRATION_SECONDS);
                     m_NameCache.AddOrUpdate(account.Name, account.PrincipalID, CACHE_EXPIRATION_SECONDS);
                 }
-
+                else
+                {
+                    m_UUIDCache.AddOrUpdate(userID, account, CACHE_ALIEN_EXPIRATION_SECONDS);
+                    m_NameCache.AddOrUpdate(account.Name, account.PrincipalID, CACHE_ALIEN_EXPIRATION_SECONDS);
+                }               
             //m_log.DebugFormat("[USER CACHE]: cached user {0}", userID);
             }
         }
 
-        public void Invalidate(UUID userID)
-        {
-            lock(accessLock)
-                m_UUIDCache.Remove(userID);
-        }
 
         public UserAccount Get(UUID userID, out bool inCache)
         {
@@ -112,6 +112,25 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                 }
             }
             return null;
+        }
+
+        public void Invalidate(UUID userID)
+        {
+                m_UUIDCache.Remove(userID);
+        }
+
+        public void Remove(UUID id)
+        {
+            lock(accessLock)
+            {
+                if (!m_UUIDCache.Contains(id))
+                    return;
+
+                UserAccount account = null;
+                if (m_UUIDCache.TryGetValue(id, out account) && account != null)
+                    m_NameCache.Remove(account.Name);
+                m_UUIDCache.Remove(id);
+            }
         }
 
         public void Remove(string name)

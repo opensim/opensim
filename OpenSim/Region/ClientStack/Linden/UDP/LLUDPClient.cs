@@ -120,13 +120,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Circuit code that this client is connected on</summary>
         public readonly uint CircuitCode;
         /// <summary>Sequence numbers of packets we've received (for duplicate checking)</summary>
-        public readonly IncomingPacketHistoryCollection PacketArchive = new IncomingPacketHistoryCollection(200);
+        public IncomingPacketHistoryCollection PacketArchive = new IncomingPacketHistoryCollection(200);
 
         /// <summary>Packets we have sent that need to be ACKed by the client</summary>
-        public readonly UnackedPacketCollection NeedAcks = new UnackedPacketCollection();
+        public UnackedPacketCollection NeedAcks = new UnackedPacketCollection();
 
         /// <summary>ACKs that are queued up, waiting to be sent to the client</summary>
-        public readonly DoubleLocklessQueue<uint> PendingAcks = new DoubleLocklessQueue<uint>();
+        public DoubleLocklessQueue<uint> PendingAcks = new DoubleLocklessQueue<uint>();
 
         /// <summary>Current packet sequence number</summary>
         public int CurrentSequence;
@@ -170,7 +170,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private double m_nextOnQueueEmpty = 0;
 
         /// <summary>Throttle bucket for this agent's connection</summary>
-        private readonly AdaptiveTokenBucket m_throttleClient;
+        private AdaptiveTokenBucket m_throttleClient;
         public AdaptiveTokenBucket FlowThrottle
         {
             get { return m_throttleClient; }
@@ -179,10 +179,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Throttle buckets for each packet category</summary>
         private readonly TokenBucket[] m_throttleCategories;
         /// <summary>Outgoing queues for throttled packets</summary>
-        private readonly DoubleLocklessQueue<OutgoingPacket>[] m_packetOutboxes = new DoubleLocklessQueue<OutgoingPacket>[THROTTLE_CATEGORY_COUNT];
+        private DoubleLocklessQueue<OutgoingPacket>[] m_packetOutboxes = new DoubleLocklessQueue<OutgoingPacket>[THROTTLE_CATEGORY_COUNT];
         /// <summary>A container that can hold one packet for each outbox, used to store
         /// dequeued packets that are being held for throttling</summary>
-        private readonly OutgoingPacket[] m_nextPackets = new OutgoingPacket[THROTTLE_CATEGORY_COUNT];
+        private OutgoingPacket[] m_nextPackets = new OutgoingPacket[THROTTLE_CATEGORY_COUNT];
         /// <summary>A reference to the LLUDPServer that is managing this client</summary>
         private readonly LLUDPServer m_udpServer;
 
@@ -288,14 +288,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             for (int i = 0; i < THROTTLE_CATEGORY_COUNT; i++)
             {
                 m_packetOutboxes[i].Clear();
+                m_throttleCategories[i] = null;
                 m_nextPackets[i] = null;
             }
 
             // pull the throttle out of the scene throttle
             m_throttleClient.Parent.UnregisterRequest(m_throttleClient);
+            m_throttleClient = null;
             OnPacketStats = null;
             OnQueueEmpty = null;
-        }
+            PendingAcks.Clear();
+            NeedAcks.Clear();
+            NeedAcks = null;
+            PendingAcks = null;
+            m_nextPackets = null;
+            m_packetOutboxes = null;
+         }
 
         /// <summary>
         /// Gets information about this client connection

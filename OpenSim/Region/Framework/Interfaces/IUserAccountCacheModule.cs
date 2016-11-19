@@ -26,8 +26,10 @@
  */
 
 using OpenSim.Region.Framework.Scenes;
+using OpenMetaverse;
 
 public interface IUserAccountCacheModule
 {
     void Remove(string name);
+    void Remove(UUID id);
 }

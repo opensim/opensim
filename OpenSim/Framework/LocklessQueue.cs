@@ -93,7 +93,10 @@ namespace OpenSim.Framework
                     if (oldHead == oldTail)
                     {
                         if (oldHeadNext == null)
+                        {
+                            count = 0;
                             return false;
+                        }
 
                         CAS(ref tail, oldTail, oldHeadNext);
                     }
@@ -118,8 +121,7 @@ namespace OpenSim.Framework
         {
             // ugly
             T item;
-            while(count > 0)
-                Dequeue(out item);
+            while(Dequeue(out item));
             Init();
         }
 

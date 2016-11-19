@@ -55,6 +55,11 @@ namespace OpenSim.Framework
             Dictionary2 = new Dictionary<TKey2, TValue>(capacity);
         }
 
+        ~DoubleDictionaryThreadAbortSafe()
+        {
+            rwLock.Dispose();
+        }
+
         public void Add(TKey1 key1, TKey2 key2, TValue value)
         {
             bool gotLock = false;

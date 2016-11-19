@@ -1062,11 +1062,10 @@ namespace OpenSim.Framework
                     if (WebUtil.DebugLevel >= 5)
                         WebUtil.LogOutgoingDetail("SEND", reqnum, System.Text.Encoding.UTF8.GetString(data));
 
-                    Stream requestStream = null;
                     try
                     {
-                        requestStream = request.GetRequestStream();
-                        requestStream.Write(data, 0, length);
+                        using(Stream requestStream = request.GetRequestStream())
+                            requestStream.Write(data,0,length);
                     }
                     catch (Exception e)
                     {
@@ -1076,9 +1075,6 @@ namespace OpenSim.Framework
                     }
                     finally
                     {
-                        if (requestStream != null)
-                            requestStream.Dispose();
-
                         // capture how much time was spent writing
                         tickdata = Util.EnvironmentTickCountSubtract(tickstart);
                     }

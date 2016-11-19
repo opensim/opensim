@@ -347,12 +347,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private const uint MaxTransferBytesPerPacket = 600;
 
         /// <value>
-        /// List used in construction of data blocks for an object update packet.  This is to stop us having to
-        /// continually recreate it.
-        /// </value>
-        protected List<ObjectUpdatePacket.ObjectDataBlock> m_fullUpdateDataBlocksBuilder;
-
-        /// <value>
         /// Maintain a record of all the objects killed.  This allows us to stop an update being sent from the
         /// thread servicing the m_primFullUpdates queue after a kill.  If this happens the object persists as an
         /// ownerless phantom.
@@ -511,7 +505,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_scene = scene;
             m_entityUpdates = new PriorityQueue(m_scene.Entities.Count);
             m_entityProps = new PriorityQueue(m_scene.Entities.Count);
-            m_fullUpdateDataBlocksBuilder = new List<ObjectUpdatePacket.ObjectDataBlock>();
             m_killRecord = new List<uint>();
 //            m_attachmentsSent = new HashSet<uint>();
 
@@ -594,12 +587,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OutPacket(disable, ThrottleOutPacketType.Unknown);
             }
 
-            // Shutdown the image manager
-            ImageManager.Close();
 
             // Fire the callback for this connection closing
             if (OnConnectionClosed != null)
                 OnConnectionClosed(this);
+
 
             // Flush all of the packets out of the UDP server for this client
             if (m_udpServer != null)
@@ -615,8 +607,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Disable UDP handling for this client
             m_udpClient.Shutdown();
-            
-            
+
+            m_udpClient.OnQueueEmpty -= HandleQueueEmpty;
+            m_udpClient.HasUpdates -= HandleHasUpdates;
+            m_udpClient.OnPacketStats -= PopulateStats;
+
+            // Shutdown the image manager
+            ImageManager.Close();
+            ImageManager = null;
+
+            m_entityUpdates = null;
+            m_entityProps  = null;
+            m_killRecord.Clear();
+            GroupsInView.Clear();
+            m_scene = null;
             //m_log.InfoFormat("[CLIENTVIEW] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
             //GC.Collect();
             //m_log.InfoFormat("[CLIENTVIEW] Memory post GC {0}", System.GC.GetTotalMemory(true));
@@ -814,7 +818,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void ProcessSpecificPacketAsync(object state)
         {
             AsyncPacketProcess packetObject = (AsyncPacketProcess)state;
-
+            
             try
             {
                 packetObject.result = packetObject.Method(packetObject.ClientView, packetObject.Pack);
@@ -4095,18 +4099,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 ResendPrimUpdate(update);
         }
 
+        private List<ObjectUpdatePacket.ObjectDataBlock> objectUpdateBlocks = new List<ObjectUpdatePacket.ObjectDataBlock>();
+        private List<ObjectUpdateCompressedPacket.ObjectDataBlock> compressedUpdateBlocks = new List<ObjectUpdateCompressedPacket.ObjectDataBlock>();
+        private List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> terseUpdateBlocks = new List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
+        private List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> terseAgentUpdateBlocks = new List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
+
         private void ProcessEntityUpdates(int maxUpdatesBytes)
         {
-            OpenSim.Framework.Lazy<List<ObjectUpdatePacket.ObjectDataBlock>> objectUpdateBlocks = new OpenSim.Framework.Lazy<List<ObjectUpdatePacket.ObjectDataBlock>>();
-            OpenSim.Framework.Lazy<List<ObjectUpdateCompressedPacket.ObjectDataBlock>> compressedUpdateBlocks = new OpenSim.Framework.Lazy<List<ObjectUpdateCompressedPacket.ObjectDataBlock>>();
-            OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>> terseUpdateBlocks = new OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>>();
-            OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>> terseAgentUpdateBlocks = new OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>>();
-
             OpenSim.Framework.Lazy<List<EntityUpdate>> objectUpdates = new OpenSim.Framework.Lazy<List<EntityUpdate>>();
             OpenSim.Framework.Lazy<List<EntityUpdate>> compressedUpdates = new OpenSim.Framework.Lazy<List<EntityUpdate>>();
             OpenSim.Framework.Lazy<List<EntityUpdate>> terseUpdates = new OpenSim.Framework.Lazy<List<EntityUpdate>>();
             OpenSim.Framework.Lazy<List<EntityUpdate>> terseAgentUpdates = new OpenSim.Framework.Lazy<List<EntityUpdate>>();
-
 
             // Check to see if this is a flush
             if (maxUpdatesBytes <= 0)
@@ -4328,7 +4331,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         ablock = CreateAvatarUpdateBlock((ScenePresence)update.Entity);
                     else
                         ablock = CreatePrimUpdateBlock((SceneObjectPart)update.Entity, this.m_agentId);
-                    objectUpdateBlocks.Value.Add(ablock);
+                    objectUpdateBlocks.Add(ablock);
                     objectUpdates.Value.Add(update);
                     maxUpdatesBytes -= ablock.Length;
 
@@ -4337,7 +4340,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     ObjectUpdateCompressedPacket.ObjectDataBlock ablock =
                             CreateCompressedUpdateBlock((SceneObjectPart)update.Entity, updateFlags);
-                    compressedUpdateBlocks.Value.Add(ablock);
+                    compressedUpdateBlocks.Add(ablock);
                     compressedUpdates.Value.Add(update);
                     maxUpdatesBytes -= ablock.Length;
                 }
@@ -4348,14 +4351,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         // ALL presence updates go into a special list
                         ablock = CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures));
-                        terseAgentUpdateBlocks.Value.Add(ablock);
+                        terseAgentUpdateBlocks.Add(ablock);
                         terseAgentUpdates.Value.Add(update);
                     }
                     else
                     {
                         // Everything else goes here
                         ablock = CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures));
-                        terseUpdateBlocks.Value.Add(ablock);
+                        terseUpdateBlocks.Add(ablock);
                         terseUpdates.Value.Add(update);
                     }
                     maxUpdatesBytes -= ablock.Length;
@@ -4366,74 +4369,72 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #region Packet Sending
     
-//            const float TIME_DILATION = 1.0f;
             ushort timeDilation;
-//            if(updatesThisCall > 0)
-//                timeDilation = Utils.FloatToUInt16(avgTimeDilation/updatesThisCall, 0.0f, 1.0f);
-//            else
-//                timeDilation = ushort.MaxValue; // 1.0;
+
+            if(m_scene == null)
+                return;
 
             timeDilation = Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);
 
-            if (terseAgentUpdateBlocks.IsValueCreated)
+            if (terseAgentUpdateBlocks.Count > 0)
             {
-                List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> blocks = terseAgentUpdateBlocks.Value;
-
                 ImprovedTerseObjectUpdatePacket packet
                     = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
                 packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
                 packet.RegionData.TimeDilation = timeDilation;
-                packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[blocks.Count];
+                packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[terseAgentUpdateBlocks.Count];
 
-                for (int i = 0; i < blocks.Count; i++)
-                    packet.ObjectData[i] = blocks[i];
+                for (int i = 0; i < terseAgentUpdateBlocks.Count; i++)
+                    packet.ObjectData[i] = terseAgentUpdateBlocks[i];
+
+                terseAgentUpdateBlocks.Clear();
 
                 OutPacket(packet, ThrottleOutPacketType.Unknown, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(terseAgentUpdates.Value, oPacket); });
             }
 
-            if (objectUpdateBlocks.IsValueCreated)
+            if (objectUpdateBlocks.Count > 0)
             {
-                List<ObjectUpdatePacket.ObjectDataBlock> blocks = objectUpdateBlocks.Value;
-    
                 ObjectUpdatePacket packet = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
                 packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
                 packet.RegionData.TimeDilation = timeDilation;
-                packet.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[blocks.Count];
+                packet.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[objectUpdateBlocks.Count];
     
-                for (int i = 0; i < blocks.Count; i++)
-                    packet.ObjectData[i] = blocks[i];
+                for (int i = 0; i < objectUpdateBlocks.Count; i++)
+                    packet.ObjectData[i] = objectUpdateBlocks[i];
+
+                objectUpdateBlocks.Clear();
 
                 OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(objectUpdates.Value, oPacket); });
             }
     
-            if (compressedUpdateBlocks.IsValueCreated)
+            if (compressedUpdateBlocks.Count > 0)
             {
-                List<ObjectUpdateCompressedPacket.ObjectDataBlock> blocks = compressedUpdateBlocks.Value;
-    
                 ObjectUpdateCompressedPacket packet = (ObjectUpdateCompressedPacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdateCompressed);
                 packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
                 packet.RegionData.TimeDilation = timeDilation;
-                packet.ObjectData = new ObjectUpdateCompressedPacket.ObjectDataBlock[blocks.Count];
+                packet.ObjectData = new ObjectUpdateCompressedPacket.ObjectDataBlock[compressedUpdateBlocks.Count];
 
-                for (int i = 0; i < blocks.Count; i++)
-                    packet.ObjectData[i] = blocks[i];
+                for (int i = 0; i < compressedUpdateBlocks.Count; i++)
+                    packet.ObjectData[i] = compressedUpdateBlocks[i];
+
+                compressedUpdateBlocks.Clear();
 
                 OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(compressedUpdates.Value, oPacket); });
             }
     
-            if (terseUpdateBlocks.IsValueCreated)
+            if (terseUpdateBlocks.Count > 0)
             {
-                List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> blocks = terseUpdateBlocks.Value;
-    
                 ImprovedTerseObjectUpdatePacket packet
                     = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(
                         PacketType.ImprovedTerseObjectUpdate);
                 packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
                 packet.RegionData.TimeDilation = timeDilation;
-                packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[blocks.Count];
+                packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[terseUpdateBlocks.Count];
     
-                for (int i = 0; i < blocks.Count; i++)
-                    packet.ObjectData[i] = blocks[i];
+                for (int i = 0; i < terseUpdateBlocks.Count; i++)
+                    packet.ObjectData[i] = terseUpdateBlocks[i];
+
+                terseUpdateBlocks.Clear();
 
                 OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(terseUpdates.Value, oPacket); });
             }
@@ -4634,6 +4635,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         void HandleQueueEmpty(ThrottleOutPacketTypeFlags categories)
         {
+            if(m_scene == null)
+                return;
+
             if ((categories & ThrottleOutPacketTypeFlags.Task) != 0)
             {
                 int maxUpdateBytes = m_udpClient.GetCatBytesCanSend(ThrottleOutPacketType.Task, 30);   
@@ -4828,21 +4832,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_entityProps.Enqueue(priority, new ObjectPropertyUpdate(entity,0,false,true));
         }
 
+       List<ObjectPropertiesFamilyPacket.ObjectDataBlock> objectFamilyBlocks = new
+                List<ObjectPropertiesFamilyPacket.ObjectDataBlock>();
+       List<ObjectPropertiesPacket.ObjectDataBlock> objectPropertiesBlocks =
+                new List<ObjectPropertiesPacket.ObjectDataBlock>();
+       List<SceneObjectPart> needPhysics = new List<SceneObjectPart>();
+
         private void ProcessEntityPropertyRequests(int maxUpdateBytes)
         {
-            OpenSim.Framework.Lazy<List<ObjectPropertiesFamilyPacket.ObjectDataBlock>> objectFamilyBlocks =
-                new OpenSim.Framework.Lazy<List<ObjectPropertiesFamilyPacket.ObjectDataBlock>>();
+//            OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>> familyUpdates =
+//                new OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>>();
 
-            OpenSim.Framework.Lazy<List<ObjectPropertiesPacket.ObjectDataBlock>> objectPropertiesBlocks =
-                new OpenSim.Framework.Lazy<List<ObjectPropertiesPacket.ObjectDataBlock>>();
-
-            OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>> familyUpdates =
-                new OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>>();
-
-            OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>> propertyUpdates =
-                new OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>>();
+//            OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>> propertyUpdates =
+//                new OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>>();
            
-            List<SceneObjectPart> needPhysics = new List<SceneObjectPart>();
              
             EntityUpdate iupdate;
             Int32 timeinqueue; // this is just debugging code & can be dropped later
@@ -4860,8 +4863,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         SceneObjectPart sop = (SceneObjectPart)update.Entity;
                         ObjectPropertiesFamilyPacket.ObjectDataBlock objPropDB = CreateObjectPropertiesFamilyBlock(sop,update.Flags);
-                        objectFamilyBlocks.Value.Add(objPropDB);
-                        familyUpdates.Value.Add(update);
+                        objectFamilyBlocks.Add(objPropDB);
+//                        familyUpdates.Value.Add(update);
                         maxUpdateBytes -= objPropDB.Length;
                     }
                 }
@@ -4873,23 +4876,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         SceneObjectPart sop = (SceneObjectPart)update.Entity;
                         needPhysics.Add(sop);
                         ObjectPropertiesPacket.ObjectDataBlock objPropDB = CreateObjectPropertiesBlock(sop);
-                        objectPropertiesBlocks.Value.Add(objPropDB);
-                        propertyUpdates.Value.Add(update);
+                        objectPropertiesBlocks.Add(objPropDB);
+//                        propertyUpdates.Value.Add(update);
                         maxUpdateBytes -= objPropDB.Length;
                     }
                 }
             }
            
-            if (objectPropertiesBlocks.IsValueCreated)
+            if (objectPropertiesBlocks.Count > 0)
             {
-                List<ObjectPropertiesPacket.ObjectDataBlock> blocks = objectPropertiesBlocks.Value;
-                List<ObjectPropertyUpdate> updates = propertyUpdates.Value;
-
                 ObjectPropertiesPacket packet = (ObjectPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ObjectProperties);
-                packet.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[blocks.Count];
-                for (int i = 0; i < blocks.Count; i++)
-                    packet.ObjectData[i] = blocks[i];
+                packet.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[objectPropertiesBlocks.Count];
+                for (int i = 0; i < objectPropertiesBlocks.Count; i++)
+                    packet.ObjectData[i] = objectPropertiesBlocks[i];
 
+         
+                objectPropertiesBlocks.Clear();
                 packet.Header.Zerocoded = true;
 
                 // Pass in the delegate so that if this packet needs to be resent, we send the current properties
@@ -4898,7 +4900,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //OutPacket(packet, ThrottleOutPacketType.Task, true,
                 //          delegate(OutgoingPacket oPacket)
                 //          {
-                //              ResendPropertyUpdates(updates, oPacket);
+                //              ResendPropertyUpdates(propertyUpdates.Value, oPacket);
                 //          });
                 OutPacket(packet, ThrottleOutPacketType.Task, true);
 
@@ -4909,23 +4911,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Int32 fpcnt = 0;
             // Int32 fbcnt = 0;
             
-            if (objectFamilyBlocks.IsValueCreated)
-            {
-                List<ObjectPropertiesFamilyPacket.ObjectDataBlock> blocks = objectFamilyBlocks.Value;
-                
+            if (objectFamilyBlocks.Count > 0)
+            {               
                 // one packet per object block... uggh...
-                for (int i = 0; i < blocks.Count; i++)
+                for (int i = 0; i < objectFamilyBlocks.Count; i++)
                 {
                     ObjectPropertiesFamilyPacket packet =
                         (ObjectPropertiesFamilyPacket)PacketPool.Instance.GetPacket(PacketType.ObjectPropertiesFamily);
 
-                    packet.ObjectData = blocks[i];
+                    packet.ObjectData = objectFamilyBlocks[i];
                     packet.Header.Zerocoded = true;
 
                     // Pass in the delegate so that if this packet needs to be resent, we send the current properties
                     // of the object rather than the properties when the packet was created
-                    List<ObjectPropertyUpdate> updates = new List<ObjectPropertyUpdate>();
-                    updates.Add(familyUpdates.Value[i]);
+//                    List<ObjectPropertyUpdate> updates = new List<ObjectPropertyUpdate>();
+//                    updates.Add(familyUpdates.Value[i]);
                     // HACK : Remove intelligent resending until it's fixed in core
                     //OutPacket(packet, ThrottleOutPacketType.Task, true,
                     //          delegate(OutgoingPacket oPacket)
@@ -4937,6 +4937,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // fpcnt++;
                     // fbcnt++;
                 }
+                objectFamilyBlocks.Clear();
             }
 
             if(needPhysics.Count > 0)
@@ -4962,6 +4963,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     eq.Enqueue(BuildEvent("ObjectPhysicsProperties", llsdBody),AgentId);
                  }
+                 needPhysics.Clear();
             }
             
             // m_log.WarnFormat("[PACKETCOUNTS] queued {0} property packets with {1} blocks",ppcnt,pbcnt);
@@ -6251,15 +6253,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return false;
             }
 
+            uint seq = packet.Header.Sequence;
+
             TotalAgentUpdates++;
             // dont let ignored updates pollute this throttles
-            if(SceneAgent == null || SceneAgent.IsChildAgent || SceneAgent.IsInTransit)
+            if(SceneAgent == null || SceneAgent.IsChildAgent || 
+                    SceneAgent.IsInTransit || seq <= m_thisAgentUpdateArgs.lastpacketSequence )
             {
                 // throttle reset is done at MoveAgentIntoRegion()
                 // called by scenepresence on completemovement
                 PacketPool.Instance.ReturnPacket(packet);
                 return true;
             }
+
+            m_thisAgentUpdateArgs.lastpacketSequence = seq;
 
             bool movement = CheckAgentMovementUpdateSignificance(x);
             bool camera = CheckAgentCameraUpdateSignificance(x);

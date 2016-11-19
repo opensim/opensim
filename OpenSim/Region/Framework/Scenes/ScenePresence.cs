@@ -1104,7 +1104,7 @@ namespace OpenSim.Region.Framework.Scenes
  
             AdjustKnownSeeds();
 
-            RegisterToEvents();
+            RegisterToClientEvents();
             SetDirectionVectors();
 
             Appearance = appearance;
@@ -1171,7 +1171,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void RegisterToEvents()
+        public void RegisterToClientEvents()
         {
             ControllingClient.OnCompleteMovementToRegion += CompleteMovement;
             ControllingClient.OnAgentUpdate += HandleAgentUpdate;
@@ -1188,6 +1188,22 @@ namespace OpenSim.Region.Framework.Scenes
 
             // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             // ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
+        }
+        
+        public void RemoveClientEvents()
+        {
+            ControllingClient.OnCompleteMovementToRegion -= CompleteMovement;
+            ControllingClient.OnAgentUpdate -= HandleAgentUpdate;
+            ControllingClient.OnAgentCameraUpdate -= HandleAgentCamerasUpdate;
+            ControllingClient.OnAgentRequestSit -= HandleAgentRequestSit;
+            ControllingClient.OnAgentSit -= HandleAgentSit;
+            ControllingClient.OnSetAlwaysRun -= HandleSetAlwaysRun;
+            ControllingClient.OnStartAnim -= HandleStartAnim;
+            ControllingClient.OnStopAnim -= HandleStopAnim;
+            ControllingClient.OnChangeAnim -= avnHandleChangeAnim;
+            ControllingClient.OnForceReleaseControls -= HandleForceReleaseControls;
+            ControllingClient.OnAutoPilotGo -= MoveToTarget;
+            ControllingClient.OnUpdateThrottles -= RaiseUpdateThrottles;
         }
 
         private void SetDirectionVectors()
@@ -2318,7 +2334,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 tocam = CameraPosition - posAdjusted;
 
                 float distTocamlen = tocam.LengthSquared();
-                if (distTocamlen > 0.08f && distTocamlen < 400)
+                if (distTocamlen > 0.01f && distTocamlen < 400)
                 {
                     distTocamlen = (float)Math.Sqrt(distTocamlen);
                     tocam *= (1.0f / distTocamlen);
@@ -4378,15 +4394,11 @@ namespace OpenSim.Region.Framework.Scenes
             m_log.DebugFormat(
                 "[SCENE PRESENCE]: Closing child agents. Checking {0} regions in {1}",
                 knownRegions.Count, Scene.RegionInfo.RegionName);
-            //DumpKnownRegions();
 
             Util.RegionHandleToRegionLoc(newRegionHandle, out newRegionX, out newRegionY);
 
             uint x, y;
             spRegionSizeInfo regInfo;
-
-            // this should not be here
-            IEventQueue eventQueue = Scene.RequestModuleInterface<IEventQueue>();
 
             foreach (ulong handle in knownRegions)
             {
@@ -4400,16 +4412,10 @@ namespace OpenSim.Region.Framework.Scenes
                         Util.RegionHandleToRegionLoc(handle, out x, out y);
                         if (m_knownChildRegionsSizeInfo.TryGetValue(handle, out regInfo))
                         {
-
-                            //                    m_log.Debug("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs((int)(x - newRegionX)));
-                            //                    m_log.Debug("---> y: " + y + "; newy:" + newRegionY + "; Abs:" + (int)Math.Abs((int)(y - newRegionY)));
                             if (Util.IsOutsideView(RegionViewDistance, x, newRegionX, y, newRegionY,
                                 regInfo.sizeX, regInfo.sizeY, newRegionSizeX, newRegionSizeY))
                             {
                                 byebyeRegions.Add(handle);
-                                // this should not be here
-//                                if(eventQueue != null)
-///                                    eventQueue.DisableSimulator(handle,UUID);
                             }
                         }
                         else
@@ -4442,6 +4448,32 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 RemoveNeighbourRegion(handle);
                 Scene.CapsModule.DropChildSeed(UUID, handle);
+            }
+        }
+
+        public void closeAllChildAgents()
+        {
+            List<ulong> byebyeRegions = new List<ulong>();
+            List<ulong> knownRegions = KnownRegionHandles;
+            foreach (ulong handle in knownRegions)
+            {
+                if (handle != Scene.RegionInfo.RegionHandle)
+                {
+                    byebyeRegions.Add(handle);
+                    RemoveNeighbourRegion(handle);
+                    Scene.CapsModule.DropChildSeed(UUID, handle);
+                }
+            }
+
+            if (byebyeRegions.Count > 0)
+            {
+                m_log.Debug("[SCENE PRESENCE]: Closing " + byebyeRegions.Count + " child agents");
+
+                AgentCircuitData acd = Scene.AuthenticateHandler.GetAgentCircuitData(UUID);
+                string auth = string.Empty;
+                if (acd != null)
+                    auth = acd.SessionID.ToString();
+                m_scene.SceneGridService.SendCloseChildAgentConnections(ControllingClient.AgentId, auth, byebyeRegions);
             }
         }
 
@@ -5000,12 +5032,16 @@ namespace OpenSim.Region.Framework.Scenes
             RemoveFromPhysicalScene();
           
             m_scene.EventManager.OnRegionHeartbeatEnd -= RegionHeartbeatEnd;
+            RemoveClientEvents();
 
 //            if (Animator != null)
 //                Animator.Close();
             Animator = null;
 
+            scriptedcontrols.Clear();
+            ControllingClient = null;
             LifecycleState = ScenePresenceState.Removed;
+            IsDeleted = true;
         }
 
         public void AddAttachment(SceneObjectGroup gobj)
