@@ -162,10 +162,12 @@ namespace OpenSim.Services.HypergridService
                 exceptions.Add(s.Trim());
         }
 
-        public bool LinkRegion(string regionName, out UUID regionID, out ulong regionHandle, out string externalName, out string imageURL, out string reason)
+        public bool LinkRegion(string regionName, out UUID regionID, out ulong regionHandle, out string externalName, out string imageURL, out string reason, out int sizeX, out int sizeY)
         {
             regionID = UUID.Zero;
             regionHandle = 0;
+            sizeX = (int)Constants.RegionSize;
+            sizeY = (int)Constants.RegionSize;
             externalName = m_ExternalName + ((regionName != string.Empty) ? " " + regionName : "");
             imageURL = string.Empty;
             reason = string.Empty;
@@ -199,6 +201,8 @@ namespace OpenSim.Services.HypergridService
 
             regionID = region.RegionID;
             regionHandle = region.RegionHandle;
+            sizeX = region.RegionSizeX;
+            sizeY = region.RegionSizeY;
 
             string regionimage = "regionImage" + regionID.ToString();
             regionimage = regionimage.Replace("-", "");
@@ -275,6 +279,7 @@ namespace OpenSim.Services.HypergridService
 
                 if (!am.Success)
                 {
+                    reason = "Login failed: client " + curViewer + " is not allowed";
                     m_log.InfoFormat("[GATEKEEPER SERVICE]: Login failed, reason: client {0} is not allowed", curViewer);
                     return false;
                 }
@@ -287,6 +292,7 @@ namespace OpenSim.Services.HypergridService
 
                 if (dm.Success)
                 {
+                    reason = "Login failed: client " + curViewer + " is denied";
                     m_log.InfoFormat("[GATEKEEPER SERVICE]: Login failed, reason: client {0} is denied", curViewer);
                     return false;
                 }

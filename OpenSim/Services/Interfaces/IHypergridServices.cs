@@ -36,7 +36,7 @@ namespace OpenSim.Services.Interfaces
 {
     public interface IGatekeeperService
     {
-        bool LinkRegion(string regionDescriptor, out UUID regionID, out ulong regionHandle, out string externalName, out string imageURL, out string reason);
+        bool LinkRegion(string regionDescriptor, out UUID regionID, out ulong regionHandle, out string externalName, out string imageURL, out string reason, out int sizeX, out int sizeY);
         
         /// <summary>
         /// Returns the region a Hypergrid visitor should enter.
