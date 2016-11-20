@@ -12946,12 +12946,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// provide your own method.</param>
         protected void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType, bool doAutomaticSplitting, UnackedPacketMethod method)
         {
+
+/* this is causing packet loss for some reason
             if(!m_udpClient.IsConnected)
             {
                 PacketPool.Instance.ReturnPacket(packet);
                 return;
             }
-
+*/
             if (m_outPacketsToDrop != null)
             {
                 if (m_outPacketsToDrop.Contains(packet.Type.ToString()))
