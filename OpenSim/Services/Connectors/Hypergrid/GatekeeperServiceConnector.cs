@@ -73,13 +73,15 @@ namespace OpenSim.Services.Connectors.Hypergrid
             return "foreignobject/";
         }
 
-        public bool LinkRegion(GridRegion info, out UUID regionID, out ulong realHandle, out string externalName, out string imageURL, out string reason)
+        public bool LinkRegion(GridRegion info, out UUID regionID, out ulong realHandle, out string externalName, out string imageURL, out string reason, out int sizeX, out int sizeY)
         {
             regionID = UUID.Zero;
             imageURL = string.Empty;
             realHandle = 0;
             externalName = string.Empty;
             reason = string.Empty;
+            sizeX = (int)Constants.RegionSize;
+            sizeY = (int)Constants.RegionSize;
 
             Hashtable hash = new Hashtable();
             hash["region_name"] = info.RegionName;
@@ -134,8 +136,15 @@ namespace OpenSim.Services.Connectors.Hypergrid
                         externalName = (string)hash["external_name"];
                         //m_log.Debug(">> HERE, externalName: " + externalName);
                     }
+                    if (hash["size_x"] != null)
+                    {
+                        Int32.TryParse((string)hash["size_x"], out sizeX);
+                    }
+                    if (hash["size_y"] != null)
+                    {
+                        Int32.TryParse((string)hash["size_y"], out sizeY);
+                    }
                 }
-
             }
             catch (Exception e)
             {

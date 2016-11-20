@@ -785,7 +785,10 @@ namespace OpenSim.Services.LLLoginService
             ulong handle;
             string imageURL = string.Empty, reason = string.Empty;
             string message;
-            if (m_GatekeeperConnector.LinkRegion(gatekeeper, out regionID, out handle, out domainName, out imageURL, out reason))
+            int sizeX = (int)Constants.RegionSize;
+            int sizeY = (int)Constants.RegionSize;
+
+            if (m_GatekeeperConnector.LinkRegion(gatekeeper, out regionID, out handle, out domainName, out imageURL, out reason, out sizeX, out sizeY))
             {
                 string homeURI = null;
                 if (account.ServiceURLs != null && account.ServiceURLs.ContainsKey("HomeURI"))
