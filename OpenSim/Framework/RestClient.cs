@@ -430,11 +430,11 @@ namespace OpenSim.Framework
 
             using (Stream dst = _request.GetRequestStream())
             {
-                m_log.Info("[REST]: GetRequestStream is ok");
+                m_log.Debug("[REST]: GetRequestStream is ok");
 
                 byte[] buf = new byte[1024];
                 int length = src.Read(buf, 0, 1024);
-                m_log.Info("[REST]: First Read is ok");
+                m_log.Debug("[REST]: First Read is ok");
                 while (length > 0)
                 {
                     dst.Write(buf, 0, length);
