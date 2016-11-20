@@ -515,9 +515,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             GridRegion info = Scene.GridService.GetRegionByUUID(UUID.Zero, lm.RegionID);
 
             // Local region?
-            // HG link is broken for large regions
-            // so ignore its information so lms to large regions can work
-            if (info != null && info.RegionLocY != 0)
+            if (info != null)
             {
                 Scene.RequestTeleportLocation(
                     remoteClient, info.RegionHandle, lm.Position,

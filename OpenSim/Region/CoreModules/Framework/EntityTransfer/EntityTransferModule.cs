@@ -594,12 +594,22 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             uint x = 0, y = 0;
             Util.RegionHandleToWorldLoc(regionHandle, out x, out y);
 
+            GridRegion reg;
+
+            // handle legacy HG. liked regions are mapped into y = 0 and have no size information
+            // so we can only search by base handle
+            if( y == 0)
+            {
+                reg = gridService.GetRegionByPosition(scope, (int)x, (int)y);
+                return reg;
+            }
+
             // Compute the world location we're teleporting to
             double worldX = (double)x + position.X;
             double worldY = (double)y + position.Y;
 
             // Find the region that contains the position
-            GridRegion reg = GetRegionContainingWorldLocation(gridService, scope, worldX, worldY);
+            reg = GetRegionContainingWorldLocation(gridService, scope, worldX, worldY);
 
             if (reg != null)
             {
@@ -813,8 +823,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (OutSideViewRange)
             {
                 m_log.DebugFormat(
-                    "[ENTITY TRANSFER MODULE]: Determined that region {0} at {1},{2} needs new child agent for agent {3} from {4}",
-                    finalDestination.RegionName, newRegionX, newRegionY, sp.Name, Scene.Name);
+                    "[ENTITY TRANSFER MODULE]: Determined that region {0} at {1},{2} size {3},{4} needs new child agent for agent {5} from {6}",
+                    finalDestination.RegionName, newRegionX, newRegionY,newSizeX, newSizeY, sp.Name, Scene.Name);
 
                 //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Creating agent...");
                 #region IP Translation for NAT
@@ -2180,8 +2190,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         #endregion // NotFoundLocationCache class
         private NotFoundLocationCache m_notFoundLocationCache = new NotFoundLocationCache();
 
-// needed for old grid code
- 
         protected GridRegion GetRegionContainingWorldLocation(IGridService pGridService, UUID pScopeID, double px, double py)
         {
             // Since we don't know how big the regions could be, we have to search a very large area
@@ -2191,6 +2199,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
  
         // Given a world position, get the GridRegion info for
         //   the region containing that point.
+        // for compatibility with old grids it does a scan to find large regions
+        // 0.9 grids to that
+
         protected GridRegion GetRegionContainingWorldLocation(IGridService pGridService, UUID pScopeID,
                             double px, double py, uint pSizeHint)
         {
