@@ -204,6 +204,9 @@
     ;; Reduces DB calls if asset is requested often. Default value 0 will always update access time
     ;DaysBetweenAccessTimeUpdates = 30
     
+    ;; Should FSAssets print read/write stats to the robust console, default is true
+    ;ShowConsoleStats = true
+    
     ;; FSAssets Custom Database Config (Leave blank to use grids default database configuration)
     ;StorageProvider = ""
     ;ConnectionString = ""
