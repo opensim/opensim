@@ -606,11 +606,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //m_scene.CloseAllAgents(CircuitCode);
 
             // Disable UDP handling for this client
-            m_udpClient.Shutdown();
-
             m_udpClient.OnQueueEmpty -= HandleQueueEmpty;
             m_udpClient.HasUpdates -= HandleHasUpdates;
             m_udpClient.OnPacketStats -= PopulateStats;
+            m_udpClient.Shutdown();
 
             // Shutdown the image manager
             ImageManager.Close();
