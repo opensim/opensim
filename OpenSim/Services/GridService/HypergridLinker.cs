@@ -198,7 +198,7 @@ namespace OpenSim.Services.GridService
 
             mapName = mapName.Trim();
 
-            if (!mapName.StartsWith("http") && !!mapName.StartsWith("https"))
+            if (!mapName.StartsWith("http") && !mapName.StartsWith("https"))
             {
                 // Formats: grid.example.com:8002:region name
                 //          grid.example.com:region name
