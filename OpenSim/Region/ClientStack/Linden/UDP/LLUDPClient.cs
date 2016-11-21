@@ -111,6 +111,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// hooked to put more data on the empty queue</summary>
         public event QueueEmpty OnQueueEmpty;
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design","CA1009:DeclareEventHandlersCorrectly")]
         public event Func<ThrottleOutPacketTypeFlags, bool> HasUpdates;
 
         /// <summary>AgentID for this client</summary>

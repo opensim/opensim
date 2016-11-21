@@ -97,7 +97,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         protected float m_burst;
 
-        public virtual float MaxDripRate { get; set; }
+        protected float m_maxDripRate = 0;
+        public virtual float MaxDripRate
+        {
+            get { return m_maxDripRate; }
+            set { m_maxDripRate = value; }
+        }
 
         public float RequestedBurst
         {
@@ -134,7 +139,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// the system tick interval (typically around 15-22ms)</remarks>
         protected float m_dripRate;
 
-        public virtual float RequestedDripRate
+        public float RequestedDripRate
         {
             get { return (m_dripRate == 0 ? m_totalDripRequest : m_dripRate); }
             set {
@@ -146,7 +151,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-       public virtual float DripRate
+       public float DripRate
         {
             get {
                 float rate = Math.Min(RequestedDripRate,TotalDripRequest);
@@ -344,7 +349,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // greater than this.
         // </summary>
 
-        protected float m_maxDripRate = 0;
         public override float MaxDripRate
         {
             get { return (m_maxDripRate == 0 ? m_totalDripRequest : m_maxDripRate); }
@@ -359,7 +363,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // <summary>
         // Adjust drip rate in response to network conditions. 
         // </summary>
-        public virtual float AdjustedDripRate
+        public float AdjustedDripRate
         {
             get { return m_dripRate; }
             set
@@ -380,12 +384,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             m_enabled = enabled;
 
-            MaxDripRate = maxDripRate;
+            m_maxDripRate = (maxDripRate == 0 ? m_totalDripRequest : Math.Max(maxDripRate, m_minimumFlow));
 
             if (enabled)
-                AdjustedDripRate = m_maxDripRate * .5f;
+                m_dripRate = m_maxDripRate * .5f;
             else
-                AdjustedDripRate = m_maxDripRate;
+                m_dripRate = m_maxDripRate;
+            if (m_parent != null)
+                m_parent.RegisterRequest(this, m_dripRate);
         }
                 
         /// <summary>
