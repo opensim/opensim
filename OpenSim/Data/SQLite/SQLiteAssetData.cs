@@ -143,12 +143,12 @@ namespace OpenSim.Data.SQLite
             }
 
             string assetDescription = asset.Description;
-            if (asset.Description.Length > AssetBase.MAX_ASSET_DESC)
+            if(assetDescription.Length > AssetBase.MAX_LMASSET_DESC)
             {
-                assetDescription = asset.Description.Substring(0, AssetBase.MAX_ASSET_DESC);
-                m_log.WarnFormat(
-                    "[ASSET DB]: Description '{0}' for asset {1} truncated from {2} to {3} characters on add", 
-                    asset.Description, asset.ID, asset.Description.Length, assetDescription.Length);
+                if(asset.Type == (sbyte) AssetType.Landmark)
+                    assetDescription = assetDescription.Substring(0, AssetBase.MAX_LMASSET_DESC);
+                else
+                    assetDescription = assetDescription.Substring(0, AssetBase.MAX_ASSET_DESC);
             }
 
             //m_log.Info("[ASSET DB]: Creating Asset " + asset.FullID.ToString());

@@ -51,7 +51,8 @@ namespace OpenSim.Framework
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public static readonly int MAX_ASSET_NAME = 64;
-        public static readonly int MAX_ASSET_DESC = 64;
+        public static readonly int MAX_ASSET_DESC = 127;
+        public static readonly int MAX_LMASSET_DESC = 255;
 
         /// <summary>
         /// Data of the Asset
@@ -305,7 +306,18 @@ namespace OpenSim.Framework
         public string Description
         {
             get { return m_description; }
-            set { m_description = value; }
+            set
+            {
+                if(value.Length > AssetBase.MAX_LMASSET_DESC)
+                {
+                    if(m_type == (sbyte) AssetType.Landmark)
+                        m_description = value.Substring(0, AssetBase.MAX_LMASSET_DESC);
+                    else
+                        m_description = value.Substring(0, AssetBase.MAX_ASSET_DESC);
+                }
+                else
+                    m_description = value;
+            }
         }
 
         public DateTime CreationDate
