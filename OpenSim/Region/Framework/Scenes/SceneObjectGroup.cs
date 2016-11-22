@@ -153,9 +153,9 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m_scene.SceneGraph.FireChangeBackup(this);
                     }
-                    timeLastChanged = DateTime.Now.Ticks;
+                    timeLastChanged = DateTime.UtcNow.Ticks;
                     if (!m_hasGroupChanged)
-                        timeFirstChanged = DateTime.Now.Ticks;
+                        timeFirstChanged = DateTime.UtcNow.Ticks;
                     if (m_rootPart != null && m_rootPart.UUID != null && m_scene != null)
                     {
 /*
@@ -233,7 +233,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_minPersistTime = m_scene.m_dontPersistBefore;
             }
                 
-            long currentTime = DateTime.Now.Ticks;
+            long currentTime = DateTime.UtcNow.Ticks;
 
             if (timeLastChanged == 0) timeLastChanged = currentTime;
             if (timeFirstChanged == 0) timeFirstChanged = currentTime;

@@ -185,8 +185,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return
                     !(SitTargetPosition == Vector3.Zero
                       && (SitTargetOrientation == Quaternion.Identity // Valid Zero Rotation quaternion
-                       || SitTargetOrientation.X == 0f && SitTargetOrientation.Y == 0f && SitTargetOrientation.Z == 1f && SitTargetOrientation.W == 0f // W-Z Mapping was invalid at one point
-                       || SitTargetOrientation.X == 0f && SitTargetOrientation.Y == 0f && SitTargetOrientation.Z == 0f && SitTargetOrientation.W == 0f)); // Invalid Quaternion
+                       || (SitTargetOrientation.W == 0f && SitTargetOrientation.X == 0f && SitTargetOrientation.Y == 0f && SitTargetOrientation.Z == 0f ))); // Invalid Quaternion
             }
         }
 
@@ -1909,7 +1908,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ResetExpire()
         {
-            Expires = DateTime.Now + new TimeSpan(600000000);
+            Expires = DateTime.UtcNow + new TimeSpan(600000000);
         }
 
         public void AddFlag(PrimFlags flag)

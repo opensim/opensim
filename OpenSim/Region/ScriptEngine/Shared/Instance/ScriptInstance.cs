@@ -880,7 +880,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     try
                     {
                         m_CurrentEvent = data.EventName;
-                        m_EventStart = DateTime.Now;
+                        m_EventStart = DateTime.UtcNow;
                         m_InEvent = true;
 
                         try
@@ -1033,7 +1033,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             if (!m_InEvent)
                 return 0;
 
-            return (DateTime.Now - m_EventStart).Seconds;
+            return (DateTime.UtcNow - m_EventStart).Seconds;
         }
 
         public void ResetScript(int timeout)

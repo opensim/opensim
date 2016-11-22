@@ -5454,6 +5454,7 @@ Label_GroupsDone:
 
         public void CleanTempObjects()
         {
+            DateTime now =  DateTime.UtcNow;
             EntityBase[] entities = GetEntities();
             foreach (EntityBase obj in entities)
             {
@@ -5465,7 +5466,7 @@ Label_GroupsDone:
                     {
                         if ((grp.RootPart.Flags & PrimFlags.TemporaryOnRez) != 0)
                         {
-                            if (grp.GetSittingAvatarsCount() == 0 && grp.RootPart.Expires <= DateTime.Now)
+                            if (grp.GetSittingAvatarsCount() == 0 && grp.RootPart.Expires <= now)
                                 DeleteSceneObject(grp, false);
                         }
                     }
