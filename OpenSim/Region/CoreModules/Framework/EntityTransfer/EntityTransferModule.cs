@@ -600,7 +600,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             GridRegion reg;
 
-            // handle legacy HG. liked regions are mapped into y = 0 and have no size information
+            // handle legacy HG. linked regions are mapped into y = 0 and have no size information
             // so we can only search by base handle
             if( y == 0)
             {
