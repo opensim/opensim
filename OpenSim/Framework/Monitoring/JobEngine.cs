@@ -136,7 +136,8 @@ namespace OpenSim.Framework.Monitoring
                     if(m_jobQueue.Count <= 0)
                         m_cancelSource.Cancel();
 
-                    m_finishedProcessingAfterStop.WaitOne(RequestProcessTimeoutOnStop);
+                    if(m_finishedProcessingAfterStop.WaitOne(RequestProcessTimeoutOnStop))
+                        m_finishedProcessingAfterStop.Close();
                 }
                 finally
                 {
