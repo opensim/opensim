@@ -789,13 +789,13 @@ namespace OpenSim.Framework
             bool ValuesCapped = false;
 
             // Minimum Positions
-            if (DefaultLandingPoint.X < 0f)
+            if (DefaultLandingPoint.X < buffer_zone)
             {
                 DefaultLandingPoint.X = buffer_zone;
                 ValuesCapped = true;
             }
 
-            if (DefaultLandingPoint.Y < 0f)
+            if (DefaultLandingPoint.Y < buffer_zone)
             {
                 DefaultLandingPoint.Y = buffer_zone;
                 ValuesCapped = true;
