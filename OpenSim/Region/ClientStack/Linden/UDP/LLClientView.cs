@@ -9614,61 +9614,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Parcel related packets
 
-        // acumulate several HandleRegionHandleRequest consecutive overlaping requests
-        // to be done with minimal resources as possible
-        // variables temporary here while in test
-
-        Queue<UUID> RegionHandleRequests = new Queue<UUID>();
-        bool RegionHandleRequestsInService = false;
-
         private bool HandleRegionHandleRequest(IClientAPI sender, Packet Pack)
         {
-            UUID currentUUID;
-
             RegionHandleRequest handlerRegionHandleRequest = OnRegionHandleRequest;
 
-            if (handlerRegionHandleRequest == null)
-                return true;
-
-            RegionHandleRequestPacket rhrPack = (RegionHandleRequestPacket)Pack;
-
-            lock (RegionHandleRequests)
+            if (handlerRegionHandleRequest != null)
             {
-                if (RegionHandleRequestsInService)
-                {
-                    // we are already busy doing a previus request
-                    // so enqueue it
-                    RegionHandleRequests.Enqueue(rhrPack.RequestBlock.RegionID);
-                    return true;
-                }
-
-                // else do it
-                currentUUID = rhrPack.RequestBlock.RegionID;
-                RegionHandleRequestsInService = true;
+                RegionHandleRequestPacket rhrPack = (RegionHandleRequestPacket)Pack;
+                handlerRegionHandleRequest(this, rhrPack.RequestBlock.RegionID);
             }
 
-            while (true)
-            {
-                handlerRegionHandleRequest(this, currentUUID);
-
-                lock (RegionHandleRequests)
-                {
-                    // exit condition, nothing to do or closed
-                    // current code seems to assume we may loose the handler at anytime,
-                    // so keep checking it
-                    handlerRegionHandleRequest = OnRegionHandleRequest;
-
-                    if (RegionHandleRequests.Count == 0 || !IsActive || handlerRegionHandleRequest == null)
-                    {
-                        RegionHandleRequests.Clear();
-                        RegionHandleRequestsInService = false;
-                        return true;
-                    }
-                    currentUUID = RegionHandleRequests.Dequeue();
-                }
-            }
-
-            return true; // actually unreached
+            return true;
         }
 
         private bool HandleParcelInfoRequest(IClientAPI sender, Packet Pack)
