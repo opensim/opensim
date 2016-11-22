@@ -55,9 +55,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         protected List<string> FreezeCache = new List<string>();
         protected string m_adminPrefix = "";
         protected object m_syncy = new object();
-
         protected IConfig m_config;
-
         #region ISharedRegionModule Members
         public virtual void Initialise(IConfigSource config)
         {

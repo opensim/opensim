@@ -53,15 +53,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private const int DEBUG_CHANNEL = 2147483647;
+//        private const int DEBUG_CHANNEL = 2147483647; use base value
 
-        private List<IScene> m_scenes = new List<IScene>();
+        private new List<IScene> m_scenes = new List<IScene>();
         private List<IScene> m_conciergedScenes = new List<IScene>();
 
         private bool m_replacingChatModule = false;
 
-        private IConfig m_config;
-        
         private string m_whoami = "conferencier";
         private Regex m_regions = null;
         private string m_welcomes = null;
@@ -72,14 +70,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
         private string m_brokerURI = String.Empty;
         private int m_brokerUpdateTimeout = 300;
 
-        internal object m_syncy = new object();
+        internal new object m_syncy = new object();
 
-        internal bool m_enabled = false;
+        internal new bool m_enabled = false;
 
         #region ISharedRegionModule Members
         public override void Initialise(IConfigSource config)
         {
-            m_config = config.Configs["Concierge"];
+            IConfig m_config = config.Configs["Concierge"];
 
             if (null == m_config)
                 return;
@@ -88,7 +86,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
                 return;
 
             m_enabled = true;
-
 
             // check whether ChatModule has been disabled: if yes,
             // then we'll "stand in"
@@ -135,7 +132,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
                 }
             }
         }
-
 
         public override void AddRegion(Scene scene)
         {
