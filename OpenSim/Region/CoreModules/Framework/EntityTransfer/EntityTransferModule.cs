@@ -455,6 +455,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 position = emergencyPos;
             }
 
+            // Check Default Location (Also See ScenePresence.CompleteMovement)
+            if (position.X == 128f && position.Y == 128f)
+                position = sp.Scene.RegionInfo.DefaultLandingPoint;
+
             // TODO: Get proper AVG Height
             float localHalfAVHeight = 0.8f;
             if (sp.Appearance != null)

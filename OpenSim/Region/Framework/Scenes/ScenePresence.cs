@@ -2043,6 +2043,10 @@ namespace OpenSim.Region.Framework.Scenes
                         look = new Vector3(0.99f, 0.042f, 0);
                 }
 
+                // Check Default Location (Also See EntityTransferModule.TeleportAgentWithinRegion)
+                if (AbsolutePosition.X == 128f && AbsolutePosition.Y == 128f)
+                    AbsolutePosition = Scene.RegionInfo.DefaultLandingPoint;
+
                 if (!MakeRootAgent(AbsolutePosition, flying, ref look))
                 {
                     m_log.DebugFormat(
