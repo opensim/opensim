@@ -1019,7 +1019,8 @@ namespace OpenSim.Framework
         ///
         /// <exception cref="System.Net.WebException">Thrown if we encounter a network issue while posting
         /// the request.  You'll want to make sure you deal with this as they're not uncommon</exception>
-        public static string MakeRequest(string verb, string requestUrl, string obj, int timeoutsecs, IServiceAuth auth)
+        public static string MakeRequest(string verb, string requestUrl, string obj, int timeoutsecs = -1,
+                 IServiceAuth auth = null, bool keepalive = true)
         {
             int reqnum = WebUtil.RequestNumber++;
 
@@ -1034,6 +1035,8 @@ namespace OpenSim.Framework
             request.Method = verb;
             if (timeoutsecs > 0)
                 request.Timeout = timeoutsecs * 1000;
+            if(!keepalive && request is HttpWebRequest)
+                ((HttpWebRequest)request).KeepAlive = false;
 
             if (auth != null)
                 auth.AddAuthorization(request.Headers);
@@ -1123,16 +1126,6 @@ namespace OpenSim.Framework
                 WebUtil.LogResponseDetail(reqnum, respstring);
 
             return respstring;
-        }
-
-        public static string MakeRequest(string verb, string requestUrl, string obj, int timeoutsecs)
-        {
-            return MakeRequest(verb, requestUrl, obj, timeoutsecs, null);
-        }
-
-        public static string MakeRequest(string verb, string requestUrl, string obj)
-        {
-            return MakeRequest(verb, requestUrl, obj, -1);
         }
 
         public static string MakeRequest(string verb, string requestUrl, string obj, IServiceAuth auth)

@@ -158,7 +158,7 @@ namespace OpenSim.Services.Connectors.Friends
 
                 try
                 {
-                    string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString);
+                    string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString, 15, null, false);
                     if (reply != string.Empty)
                     {
                         Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);

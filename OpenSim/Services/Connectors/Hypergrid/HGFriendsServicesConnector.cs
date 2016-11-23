@@ -277,7 +277,10 @@ namespace OpenSim.Services.Connectors.Hypergrid
             {
                 reply = SynchronousRestFormsRequester.MakeRequest("POST",
                         uri,
-                        ServerUtils.BuildQueryString(sendData), 15);
+                        ServerUtils.BuildQueryString(sendData),
+                        15,
+                        null,
+                        false);
             }
             catch (Exception e)
             {
