@@ -3482,13 +3482,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (item == null)
                 {
-                    Error("llRezAtRoot", "Can't find object '" + inventory + "'");
+                    Error("llRez(AtRoot/Object)", "Can't find object '" + inventory + "'");
                     return;
                 }
 
                 if (item.InvType != (int)InventoryType.Object)
                 {
-                    Error("llRezAtRoot", "Can't create requested object; object is missing from database");
+                    Error("llRez(AtRoot/Object)", "Can't create requested object; object is missing from database");
                     return;
                 }
 
@@ -3532,7 +3532,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
                 }
 
-            }, null, "LSL_Api.llRezAtRoot");
+            }, null, "LSL_Api.doObjectRez");
 
             //ScriptSleep((int)((groupmass * velmag) / 10));
             ScriptSleep(m_sleepMsOnRezAtRoot);
