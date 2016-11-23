@@ -3126,10 +3126,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             reply.Data.ActualArea = land.Area;
             reply.Data.BillableArea = land.Area; // TODO: what is this?
 
-            // Bit 0: Mature, bit 7: on sale, other bits: no idea
-            reply.Data.Flags = (byte)(
-                (info.AccessLevel > 13 ? (1 << 0) : 0) +
-                ((land.Flags & (uint)ParcelFlags.ForSale) != 0 ? (1 << 7) : 0));
+            reply.Data.Flags = (byte)Util.ConvertAccessLevelToMaturity((byte)info.AccessLevel);
+            if((land.Flags & (uint)ParcelFlags.ForSale) != 0)
+                reply.Data.Flags |= (byte)((1 << 7));
 
             Vector3 pos = land.UserLocation;
             if (pos.Equals(Vector3.Zero))
