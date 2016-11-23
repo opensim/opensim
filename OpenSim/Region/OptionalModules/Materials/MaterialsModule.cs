@@ -532,7 +532,7 @@ namespace OpenSim.Region.OptionalModules.Materials
 
                                         lock(m_Materials)
                                         {
-                                            if(oldid != UUID.Zero)
+                                            if(oldid != UUID.Zero && m_MaterialsRefCount.ContainsKey(oldid))
                                             {
                                                 m_MaterialsRefCount[oldid]--;
                                                 if(m_MaterialsRefCount[oldid] <= 0)
