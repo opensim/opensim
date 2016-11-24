@@ -1938,8 +1938,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             taskItem.ResetIDs(m_host.UUID);
             taskItem.ParentID = m_host.UUID;
             taskItem.CreationDate = (uint)Util.UnixTimeSinceEpoch();
-            taskItem.Name = asset.Name;
-            taskItem.Description = asset.Description;
+            taskItem.Name = name;
+            taskItem.Description = description;
             taskItem.Type = (int)AssetType.Notecard;
             taskItem.InvType = (int)InventoryType.Notecard;
             taskItem.OwnerID = m_host.OwnerID;
