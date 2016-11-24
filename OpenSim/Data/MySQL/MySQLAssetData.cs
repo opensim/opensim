@@ -170,14 +170,6 @@ namespace OpenSim.Data.MySQL
                 }
 
                 string assetDescription = asset.Description;
-                if(assetDescription.Length > AssetBase.MAX_LMASSET_DESC)
-                {
-                    if(asset.Type == (sbyte) AssetType.Landmark)
-                        assetDescription = assetDescription.Substring(0, AssetBase.MAX_LMASSET_DESC);
-                    else
-                        assetDescription = assetDescription.Substring(0, AssetBase.MAX_ASSET_DESC);
-                }
-
                 if (asset.Description.Length > AssetBase.MAX_ASSET_DESC)
                 {
                     assetDescription = asset.Description.Substring(0, AssetBase.MAX_ASSET_DESC);
