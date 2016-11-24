@@ -1465,6 +1465,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llSay(channelID, text);
         }
 
+        public LSL_Integer llScaleByFactor(double scaling_factor)
+        {
+            return m_LSL_Functions.llScaleByFactor(scaling_factor);
+        }
+
         public void llScaleTexture(double u, double v, int face)
         {
             m_LSL_Functions.llScaleTexture(u, v, face);
