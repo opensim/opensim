@@ -1828,6 +1828,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return ScriptBaseClass.FALSE;
         }
 
+        public LSL_Float llGetMaxScaleFactor()
+        {
+            m_host.AddScriptLPS(1);
+            SceneObjectGroup group = m_host.ParentGroup;
+ 
+            if (group == null || group.IsDeleted || group.inTransit)
+                return 1.0f;
+
+            return (LSL_Float)group.GetMaxGroupResizeScale();
+        }
+
+        public LSL_Float llGetMinScaleFactor()
+        {
+            m_host.AddScriptLPS(1);
+            SceneObjectGroup group = m_host.ParentGroup;
+ 
+            if (group == null || group.IsDeleted || group.inTransit)
+                return 1.0f;
+
+            return (LSL_Float)group.GetMinGroupResizeScale();
+        }
+
         public void llSetScale(LSL_Vector scale)
         {
             m_host.AddScriptLPS(1);

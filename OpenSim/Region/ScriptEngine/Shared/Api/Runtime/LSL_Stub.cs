@@ -1470,6 +1470,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llScaleByFactor(scaling_factor);
         }
 
+        public LSL_Float llGetMaxScaleFactor()
+        {
+            return m_LSL_Functions.llGetMaxScaleFactor();
+        }
+
+        public LSL_Float llGetMinScaleFactor()
+        {
+            return m_LSL_Functions.llGetMinScaleFactor();
+        }
+
         public void llScaleTexture(double u, double v, int face)
         {
             m_LSL_Functions.llScaleTexture(u, v, face);

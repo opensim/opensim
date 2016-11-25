@@ -327,6 +327,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
        LSL_Integer llSameGroup(string agent);
               void llSay(int channelID, string text);
        LSL_Integer llScaleByFactor(double scaling_factor);
+        LSL_Float  llGetMaxScaleFactor();
+        LSL_Float  llGetMinScaleFactor();
               void llScaleTexture(double u, double v, int face);
        LSL_Integer llScriptDanger(LSL_Vector pos);
               void llScriptProfiler(LSL_Integer flag);
