@@ -1808,45 +1808,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             SceneObjectGroup group = m_host.ParentGroup;
 
+            if(scaling_factor < 1e-6)
+                return ScriptBaseClass.FALSE;
+            if(scaling_factor > 1e6)
+                return ScriptBaseClass.FALSE;
+
+            if (group == null || group.IsDeleted || group.inTransit)
+                return ScriptBaseClass.FALSE;
+
             if (group.RootPart.PhysActor != null && group.RootPart.PhysActor.IsPhysical)
                 return ScriptBaseClass.FALSE;
 
             if (group.RootPart.KeyframeMotion != null)
                 return ScriptBaseClass.FALSE;
 
-            List<SceneObjectPart> prims = GetLinkParts(ScriptBaseClass.LINK_SET);
-            if (prims.Count > 0)
-            {
-                foreach (SceneObjectPart prim in prims)
-                {
-                    LSL_Vector size = new LSL_Vector(prim.Scale.X, prim.Scale.Y, prim.Scale.Z);
-                    LSL_Vector new_size = new LSL_Vector(scaling_factor * size);
-
-                    new_size.x = Math.Max(World.m_minNonphys, Math.Min(World.m_maxNonphys, new_size.x));
-                    new_size.y = Math.Max(World.m_minNonphys, Math.Min(World.m_maxNonphys, new_size.y));
-                    new_size.z = Math.Max(World.m_minNonphys, Math.Min(World.m_maxNonphys, new_size.z));
-
-                    if (new_size.x != scaling_factor * size.x || new_size.y != scaling_factor * size.y || new_size.z != scaling_factor * size.z)
-                        return ScriptBaseClass.FALSE;
-
-                    LSL_Vector position = new LSL_Vector(GetPartLocalPos(prim));
-
-                    if (!prim.IsRoot)
-                    {
-                        position = GetSetPosTarget(prim, scaling_factor * position, position, true);
-                        prim.OffsetPosition = position;
-                        prim.ScheduleTerseUpdate();
-                    }
-
-                    SetScale(prim, new_size);
-                }
-
+            if(group.GroupResize(scaling_factor))
                 return ScriptBaseClass.TRUE;
-            }
             else
-            {
                 return ScriptBaseClass.FALSE;
-            }
         }
 
         public void llSetScale(LSL_Vector scale)
