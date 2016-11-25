@@ -242,22 +242,22 @@ namespace OpenSim
                                           ChangeSelectedRegion);
 
             m_console.Commands.AddCommand("Archiving", false, "save xml",
-                                          "save xml",
+                                          "save xml [<file name>]",
                                           "Save a region's data in XML format", 
                                           SaveXml);
 
             m_console.Commands.AddCommand("Archiving", false, "save xml2",
-                                          "save xml2",
+                                          "save xml2 [<file name>]",
                                           "Save a region's data in XML2 format", 
                                           SaveXml2);
 
             m_console.Commands.AddCommand("Archiving", false, "load xml",
-                                          "load xml [-newIDs [<x> <y> <z>]]",
+                                          "load xml [<file name> [-newUID [<x> <y> <z>]]]",
                                           "Load a region's data from XML format",
                                           LoadXml);
 
             m_console.Commands.AddCommand("Archiving", false, "load xml2",
-                                          "load xml2",
+                                          "load xml2 [<file name>]",
                                           "Load a region's data from XML2 format", 
                                           LoadXml2);
 
