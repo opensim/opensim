@@ -1068,7 +1068,7 @@ namespace OpenSim
         /// <param name="cmdparams"></param>
         protected void SavePrimsXml2(string module, string[] cmdparams)
         {
-            if (cmdparams.Length > 5)
+            if (cmdparams.Length > 4)
             {
                 SceneManager.SaveNamedPrimsToXml2(cmdparams[3], cmdparams[4]);
             }
@@ -1087,7 +1087,7 @@ namespace OpenSim
         {
             MainConsole.Instance.Output("PLEASE NOTE, save-xml is DEPRECATED and may be REMOVED soon.  If you are using this and there is some reason you can't use save-xml2, please file a mantis detailing the reason.");
 
-            if (cmdparams.Length > 0)
+            if (cmdparams.Length > 2)
             {
                 SceneManager.SaveCurrentSceneToXml(cmdparams[2]);
             }
