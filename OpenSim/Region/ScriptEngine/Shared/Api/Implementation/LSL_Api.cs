@@ -3096,7 +3096,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             double ScriptTime = Util.GetTimeStampMS() - m_timer;
-            return (ScriptTime / 1000.0);
+            return (float)Math.Round((ScriptTime / 1000.0), 3);
         }
 
         public void llResetTime()
@@ -3111,7 +3111,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             double now = Util.GetTimeStampMS();
             double ScriptTime = now - m_timer;
             m_timer = now;
-            return (ScriptTime / 1000.0);
+            return (float)Math.Round((ScriptTime / 1000.0), 3);
         }
 
         public void llSound(string sound, double volume, int queue, int loop)
