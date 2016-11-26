@@ -615,8 +615,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ImageManager.Close();
             ImageManager = null;
 
-            m_entityUpdates = null;
-            m_entityProps  = null;
+            m_entityUpdates = new PriorityQueue(1);
+            m_entityProps = new PriorityQueue(1);
             m_killRecord.Clear();
             GroupsInView.Clear();
 //            m_scene = null; can't do this unless checks are added everywhere due to workitems already in pools
