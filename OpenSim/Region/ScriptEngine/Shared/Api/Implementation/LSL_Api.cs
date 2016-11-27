@@ -13758,6 +13758,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             case ScriptBaseClass.OBJECT_LAST_OWNER_ID:
                                 ret.Add(new LSL_Key(ScriptBaseClass.NULL_KEY));
                                 break;
+                            case ScriptBaseClass.OBJECT_CLICK_ACTION:
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_OMEGA:
+                                ret.Add(new LSL_Vector(Vector3.Zero));
+                                break;
+                            case ScriptBaseClass.OBJECT_PRIM_COUNT:
+                                LSL_List AttachmentsPrimList = new LSL_List();
+                                List<SceneObjectGroup> Attachments;
+                                Attachments = av.GetAttachments();
+                                foreach (SceneObjectGroup Attachment in Attachments)
+                                    AttachmentsPrimList.Add(new LSL_Integer(Attachment.PrimCount));
+                                ret.Add(new LSL_Integer(AttachmentsPrimList.Sum()));
+                                break;
                             default:
                                 // Invalid or unhandled constant.
                                 ret.Add(new LSL_Integer(ScriptBaseClass.OBJECT_UNKNOWN_DETAIL));
@@ -13929,6 +13943,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 break;
                             case ScriptBaseClass.OBJECT_LAST_OWNER_ID:
                                 ret.Add(new LSL_Key(obj.ParentGroup.LastOwnerID.ToString()));
+                                break;
+                            case ScriptBaseClass.OBJECT_CLICK_ACTION:
+                                ret.Add(new LSL_Integer(obj.ClickAction));
+                                break;
+                            case ScriptBaseClass.OBJECT_OMEGA:
+                                ret.Add(new LSL_Vector(obj.AngularVelocity));
+                                break;
+                            case ScriptBaseClass.OBJECT_PRIM_COUNT:
+                                ret.Add(new LSL_Integer(obj.ParentGroup.PrimCount));
                                 break;
                             default:
                                 // Invalid or unhandled constant.
