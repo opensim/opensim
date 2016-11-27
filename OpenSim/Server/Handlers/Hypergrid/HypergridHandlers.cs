@@ -79,8 +79,8 @@ namespace OpenSim.Server.Handlers.Hypergrid
             hash["result"] = success.ToString();
             hash["uuid"] = regionID.ToString();
             hash["handle"] = regionHandle.ToString();
-            hash["size_x"] = sizeX;
-            hash["size_y"] = sizeY;
+            hash["size_x"] = sizeX.ToString();
+            hash["size_y"] = sizeY.ToString();
             hash["region_image"] = imageURL;
             hash["external_name"] = externalName;
 
