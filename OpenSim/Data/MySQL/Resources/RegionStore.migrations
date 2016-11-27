@@ -390,3 +390,66 @@ CREATE TABLE IF NOT EXISTS `bakedterrain` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 COMMIT;
+
+:VERSION 55         #----- Increase float precision for windlight needed by scripts
+
+BEGIN;
+
+ALTER TABLE `regionwindlight`
+
+MODIFY `water_fog_density_exponent` float(9,7) unsigned NOT NULL DEFAULT '4.0',
+MODIFY `underwater_fog_modifier` float(9,8) unsigned NOT NULL DEFAULT '0.25',
+MODIFY `reflection_wavelet_scale_1` float(9,7) unsigned NOT NULL DEFAULT '2.0',
+MODIFY `reflection_wavelet_scale_2` float(9,7) unsigned NOT NULL DEFAULT '2.0',
+MODIFY `reflection_wavelet_scale_3` float(9,7) unsigned NOT NULL DEFAULT '2.0',
+MODIFY `fresnel_scale` float(9,8) unsigned NOT NULL DEFAULT '0.40',
+MODIFY `fresnel_offset` float(9,8) unsigned NOT NULL DEFAULT '0.50',
+MODIFY `refract_scale_above` float(9,8) unsigned NOT NULL DEFAULT '0.03',
+MODIFY `refract_scale_below` float(9,8) unsigned NOT NULL DEFAULT '0.20',
+MODIFY `blur_multiplier` float(9,8) unsigned NOT NULL DEFAULT '0.040',
+MODIFY `big_wave_direction_x` float(9,8) NOT NULL DEFAULT '1.05',
+MODIFY `big_wave_direction_y` float(9,8) NOT NULL DEFAULT '-0.42',
+MODIFY `little_wave_direction_x` float(9,8) NOT NULL DEFAULT '1.11',
+MODIFY `little_wave_direction_y` float(9,8) NOT NULL DEFAULT '-1.16',
+MODIFY `horizon_r` float(9,8) unsigned NOT NULL DEFAULT '0.25',
+MODIFY `horizon_g` float(9,8) unsigned NOT NULL DEFAULT '0.25',
+MODIFY `horizon_b` float(9,8) unsigned NOT NULL DEFAULT '0.32',
+MODIFY `horizon_i` float(9,8) unsigned NOT NULL DEFAULT '0.32',
+MODIFY `haze_horizon` float(9,8) unsigned NOT NULL DEFAULT '0.19',
+MODIFY `blue_density_r` float(9,8) unsigned NOT NULL DEFAULT '0.12',
+MODIFY `blue_density_g` float(9,8) unsigned NOT NULL DEFAULT '0.22',
+MODIFY `blue_density_b` float(9,8) unsigned NOT NULL DEFAULT '0.38',
+MODIFY `blue_density_i` float(9,8) unsigned NOT NULL DEFAULT '0.38',
+MODIFY `haze_density` float(9,8) unsigned NOT NULL DEFAULT '0.70',
+MODIFY `density_multiplier` float(9,8) unsigned NOT NULL DEFAULT '0.18',
+MODIFY `distance_multiplier` float(9,6) unsigned NOT NULL DEFAULT '0.8',
+MODIFY `sun_moon_color_r` float(9,8) unsigned NOT NULL DEFAULT '0.24',
+MODIFY `sun_moon_color_g` float(9,8) unsigned NOT NULL DEFAULT '0.26',
+MODIFY `sun_moon_color_b` float(9,8) unsigned NOT NULL DEFAULT '0.30',
+MODIFY `sun_moon_color_i` float(9,8) unsigned NOT NULL DEFAULT '0.30',
+MODIFY `sun_moon_position` float(9,8) unsigned NOT NULL DEFAULT '0.317',
+MODIFY `ambient_r` float(9,8) unsigned NOT NULL DEFAULT '0.35',
+MODIFY `ambient_g` float(9,8) unsigned NOT NULL DEFAULT '0.35',
+MODIFY `ambient_b` float(9,8) unsigned NOT NULL DEFAULT '0.35',
+MODIFY `ambient_i` float(9,8) unsigned NOT NULL DEFAULT '0.35',
+MODIFY `east_angle` float(9,8) unsigned NOT NULL DEFAULT '0.00',
+MODIFY `sun_glow_focus` float(9,8) unsigned NOT NULL DEFAULT '0.10',
+MODIFY `sun_glow_size` float(9,8) unsigned NOT NULL DEFAULT '1.75',
+MODIFY `scene_gamma` float(9,7) unsigned NOT NULL DEFAULT '1.00',
+MODIFY `star_brightness` float(9,8) unsigned NOT NULL DEFAULT '0.00',
+MODIFY `cloud_color_r` float(9,8) unsigned NOT NULL DEFAULT '0.41',
+MODIFY `cloud_color_g` float(9,8) unsigned NOT NULL DEFAULT '0.41',
+MODIFY `cloud_color_b` float(9,8) unsigned NOT NULL DEFAULT '0.41',
+MODIFY `cloud_color_i` float(9,8) unsigned NOT NULL DEFAULT '0.41',
+MODIFY `cloud_x` float(9,8) unsigned NOT NULL DEFAULT '1.00',
+MODIFY `cloud_y` float(9,8) unsigned NOT NULL DEFAULT '0.53',
+MODIFY `cloud_density` float(9,8) unsigned NOT NULL DEFAULT '1.00',
+MODIFY `cloud_coverage` float(9,8) unsigned NOT NULL DEFAULT '0.27',
+MODIFY `cloud_scale` float(9,8) unsigned NOT NULL DEFAULT '0.42',
+MODIFY `cloud_detail_x` float(9,8) unsigned NOT NULL DEFAULT '1.00',
+MODIFY `cloud_detail_y` float(9,8) unsigned NOT NULL DEFAULT '0.53',
+MODIFY `cloud_detail_density` float(9,8) unsigned NOT NULL DEFAULT '0.12',
+MODIFY `cloud_scroll_x` float(9,7) NOT NULL DEFAULT '0.20',
+MODIFY `cloud_scroll_y` float(9,7) NOT NULL DEFAULT '0.01';
+
+COMMIT;

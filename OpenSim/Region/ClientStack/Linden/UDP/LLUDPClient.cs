@@ -288,21 +288,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             for (int i = 0; i < THROTTLE_CATEGORY_COUNT; i++)
             {
                 m_packetOutboxes[i].Clear();
-                m_throttleCategories[i] = null;
                 m_nextPackets[i] = null;
             }
 
             // pull the throttle out of the scene throttle
             m_throttleClient.Parent.UnregisterRequest(m_throttleClient);
-            m_throttleClient = null;
-            OnPacketStats = null;
-            OnQueueEmpty = null;
             PendingAcks.Clear();
             NeedAcks.Clear();
-            NeedAcks = null;
-            PendingAcks = null;
-            m_nextPackets = null;
-            m_packetOutboxes = null;
          }
 
         /// <summary>

@@ -61,7 +61,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.AgentPreferences
             get { return "RemoteAgentPreferencesServicesConnector"; }
         }
 
-        public override void Initialise(IConfigSource source)
+        public new void Initialise(IConfigSource source)
         {
             IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)

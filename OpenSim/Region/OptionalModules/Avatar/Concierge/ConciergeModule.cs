@@ -53,15 +53,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private const int DEBUG_CHANNEL = 2147483647;
+//        private const int DEBUG_CHANNEL = 2147483647; use base value
 
-        private List<IScene> m_scenes = new List<IScene>();
+        private new List<IScene> m_scenes = new List<IScene>();
         private List<IScene> m_conciergedScenes = new List<IScene>();
 
         private bool m_replacingChatModule = false;
 
-        private IConfig m_config;
-        
         private string m_whoami = "conferencier";
         private Regex m_regions = null;
         private string m_welcomes = null;
@@ -72,29 +70,28 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
         private string m_brokerURI = String.Empty;
         private int m_brokerUpdateTimeout = 300;
 
-        internal object m_syncy = new object();
+        internal new object m_syncy = new object();
 
-        internal bool m_enabled = false;
+        internal new bool m_enabled = false;
 
         #region ISharedRegionModule Members
-        public override void Initialise(IConfigSource config)
+        public override void Initialise(IConfigSource configSource)
         {
-            m_config = config.Configs["Concierge"];
+            IConfig config = configSource.Configs["Concierge"];
 
-            if (null == m_config)
+            if (config == null)
                 return;
 
-            if (!m_config.GetBoolean("enabled", false))
+            if (!config.GetBoolean("enabled", false))
                 return;
 
             m_enabled = true;
-
 
             // check whether ChatModule has been disabled: if yes,
             // then we'll "stand in"
             try
             {
-                if (config.Configs["Chat"] == null)
+                if (configSource.Configs["Chat"] == null)
                 {
                     // if Chat module has not been configured it's
                     // enabled by default, so we are not going to
@@ -103,7 +100,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
                 }
                 else 
                 {
-                    m_replacingChatModule  = !config.Configs["Chat"].GetBoolean("enabled", true);
+                    m_replacingChatModule  = !configSource.Configs["Chat"].GetBoolean("enabled", true);
                 }
             }
             catch (Exception)
@@ -114,28 +111,27 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             m_log.InfoFormat("[Concierge] {0} ChatModule", m_replacingChatModule ? "replacing" : "not replacing");
 
             // take note of concierge channel and of identity
-            m_conciergeChannel = config.Configs["Concierge"].GetInt("concierge_channel", m_conciergeChannel);
-            m_whoami = m_config.GetString("whoami", "conferencier");
-            m_welcomes = m_config.GetString("welcomes", m_welcomes);
-            m_announceEntering = m_config.GetString("announce_entering", m_announceEntering);
-            m_announceLeaving = m_config.GetString("announce_leaving", m_announceLeaving);
-            m_xmlRpcPassword = m_config.GetString("password", m_xmlRpcPassword);
-            m_brokerURI = m_config.GetString("broker", m_brokerURI);
-            m_brokerUpdateTimeout = m_config.GetInt("broker_timeout", m_brokerUpdateTimeout);
+            m_conciergeChannel = configSource.Configs["Concierge"].GetInt("concierge_channel", m_conciergeChannel);
+            m_whoami = config.GetString("whoami", "conferencier");
+            m_welcomes = config.GetString("welcomes", m_welcomes);
+            m_announceEntering = config.GetString("announce_entering", m_announceEntering);
+            m_announceLeaving = config.GetString("announce_leaving", m_announceLeaving);
+            m_xmlRpcPassword = config.GetString("password", m_xmlRpcPassword);
+            m_brokerURI = config.GetString("broker", m_brokerURI);
+            m_brokerUpdateTimeout = config.GetInt("broker_timeout", m_brokerUpdateTimeout);
             
             m_log.InfoFormat("[Concierge] reporting as \"{0}\" to our users", m_whoami);
 
             // calculate regions Regex
             if (m_regions == null)
             {
-                string regions = m_config.GetString("regions", String.Empty);
+                string regions = config.GetString("regions", String.Empty);
                 if (!String.IsNullOrEmpty(regions))
                 {
                     m_regions = new Regex(@regions, RegexOptions.Compiled | RegexOptions.IgnoreCase);
                 }
             }
         }
-
 
         public override void AddRegion(Scene scene)
         {

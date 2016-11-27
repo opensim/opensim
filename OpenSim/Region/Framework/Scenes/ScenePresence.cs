@@ -2043,6 +2043,10 @@ namespace OpenSim.Region.Framework.Scenes
                         look = new Vector3(0.99f, 0.042f, 0);
                 }
 
+                // Check Default Location (Also See EntityTransferModule.TeleportAgentWithinRegion)
+                if (AbsolutePosition.X == 128f && AbsolutePosition.Y == 128f)
+                    AbsolutePosition = Scene.RegionInfo.DefaultLandingPoint;
+
                 if (!MakeRootAgent(AbsolutePosition, flying, ref look))
                 {
                     m_log.DebugFormat(
@@ -2071,13 +2075,12 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.DebugFormat("[CompleteMovement]: Missing COF for {0} is {1}", client.AgentId, COF);
                 }
 
-                if(!gotCrossUpdate)
-                    RotateToLookAt(look);
 
                 // Tell the client that we're totally ready
                 ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
 
                 m_log.DebugFormat("[CompleteMovement] MoveAgentIntoRegion: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+
 
                 if (!string.IsNullOrEmpty(m_callbackURI))
                 {
@@ -2107,11 +2110,27 @@ namespace OpenSim.Region.Framework.Scenes
 //                    client.Name, client.AgentId, m_scene.RegionInfo.RegionName);
 //            }
 
+    
                 m_log.DebugFormat("[CompleteMovement] ReleaseAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+
+
+                if(m_teleportFlags > 0)  //sanity check
+                    gotCrossUpdate = false;
+
+                if(!gotCrossUpdate)
+                    RotateToLookAt(look);
+
 
 // start sending terrain patchs
                 if (!gotCrossUpdate && !isNPC)
                     Scene.SendLayerData(ControllingClient);
+
+                // HG delay
+                if((m_teleportFlags & TeleportFlags.ViaHGLogin) != 0)
+                {
+                    Thread.Sleep(500);
+                    m_log.DebugFormat("[CompleteMovement] HG delay: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                }
 
                 m_previusParcelHide = false;
                 m_previusParcelUUID = UUID.Zero;

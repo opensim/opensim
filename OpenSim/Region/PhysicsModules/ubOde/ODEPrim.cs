@@ -2969,6 +2969,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private void changePhysRepData(ODEPhysRepData repData)
         {
+            if(_size == repData.size &&
+                    _pbs == repData.pbs &&
+                    m_shapetype == repData.shapetype &&
+                    m_mesh == repData.mesh &&
+                    primVolume == repData.volume)
+                return;
+
             CheckDelaySelect();
 
             OdePrim parent = (OdePrim)_parent;

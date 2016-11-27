@@ -155,7 +155,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public virtual byte[] Data
+        public byte[] Data
         {
             get { return m_data; }
             set { m_data = value; }

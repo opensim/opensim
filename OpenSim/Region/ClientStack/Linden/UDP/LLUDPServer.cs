@@ -521,7 +521,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
 //            if (usePools)
 //                EnablePools();
-            DisablePools();
+            base.DisablePools();
         }
 
         public void Start()

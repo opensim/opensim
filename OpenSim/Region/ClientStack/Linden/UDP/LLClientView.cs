@@ -606,21 +606,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //m_scene.CloseAllAgents(CircuitCode);
 
             // Disable UDP handling for this client
-            m_udpClient.Shutdown();
-
             m_udpClient.OnQueueEmpty -= HandleQueueEmpty;
             m_udpClient.HasUpdates -= HandleHasUpdates;
             m_udpClient.OnPacketStats -= PopulateStats;
+            m_udpClient.Shutdown();
 
             // Shutdown the image manager
             ImageManager.Close();
             ImageManager = null;
 
-            m_entityUpdates = null;
-            m_entityProps  = null;
+            m_entityUpdates = new PriorityQueue(1);
+            m_entityProps = new PriorityQueue(1);
             m_killRecord.Clear();
             GroupsInView.Clear();
-            m_scene = null;
+//            m_scene = null; can't do this unless checks are added everywhere due to workitems already in pools
+
             //m_log.InfoFormat("[CLIENTVIEW] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
             //GC.Collect();
             //m_log.InfoFormat("[CLIENTVIEW] Memory post GC {0}", System.GC.GetTotalMemory(true));
@@ -3126,10 +3126,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             reply.Data.ActualArea = land.Area;
             reply.Data.BillableArea = land.Area; // TODO: what is this?
 
-            // Bit 0: Mature, bit 7: on sale, other bits: no idea
-            reply.Data.Flags = (byte)(
-                (info.AccessLevel > 13 ? (1 << 0) : 0) +
-                ((land.Flags & (uint)ParcelFlags.ForSale) != 0 ? (1 << 7) : 0));
+            reply.Data.Flags = (byte)Util.ConvertAccessLevelToMaturity((byte)info.AccessLevel);
+            if((land.Flags & (uint)ParcelFlags.ForSale) != 0)
+                reply.Data.Flags |= (byte)((1 << 7));
 
             Vector3 pos = land.UserLocation;
             if (pos.Equals(Vector3.Zero))
@@ -4371,7 +4370,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     
             ushort timeDilation;
 
-            if(m_scene == null)
+            if(!IsActive)
                 return;
 
             timeDilation = Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);
@@ -9614,61 +9613,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Parcel related packets
 
-        // acumulate several HandleRegionHandleRequest consecutive overlaping requests
-        // to be done with minimal resources as possible
-        // variables temporary here while in test
-
-        Queue<UUID> RegionHandleRequests = new Queue<UUID>();
-        bool RegionHandleRequestsInService = false;
-
         private bool HandleRegionHandleRequest(IClientAPI sender, Packet Pack)
         {
-            UUID currentUUID;
-
             RegionHandleRequest handlerRegionHandleRequest = OnRegionHandleRequest;
 
-            if (handlerRegionHandleRequest == null)
-                return true;
-
-            RegionHandleRequestPacket rhrPack = (RegionHandleRequestPacket)Pack;
-
-            lock (RegionHandleRequests)
+            if (handlerRegionHandleRequest != null)
             {
-                if (RegionHandleRequestsInService)
-                {
-                    // we are already busy doing a previus request
-                    // so enqueue it
-                    RegionHandleRequests.Enqueue(rhrPack.RequestBlock.RegionID);
-                    return true;
-                }
-
-                // else do it
-                currentUUID = rhrPack.RequestBlock.RegionID;
-                RegionHandleRequestsInService = true;
+                RegionHandleRequestPacket rhrPack = (RegionHandleRequestPacket)Pack;
+                handlerRegionHandleRequest(this, rhrPack.RequestBlock.RegionID);
             }
 
-            while (true)
-            {
-                handlerRegionHandleRequest(this, currentUUID);
-
-                lock (RegionHandleRequests)
-                {
-                    // exit condition, nothing to do or closed
-                    // current code seems to assume we may loose the handler at anytime,
-                    // so keep checking it
-                    handlerRegionHandleRequest = OnRegionHandleRequest;
-
-                    if (RegionHandleRequests.Count == 0 || !IsActive || handlerRegionHandleRequest == null)
-                    {
-                        RegionHandleRequests.Clear();
-                        RegionHandleRequestsInService = false;
-                        return true;
-                    }
-                    currentUUID = RegionHandleRequests.Dequeue();
-                }
-            }
-
-            return true; // actually unreached
+            return true;
         }
 
         private bool HandleParcelInfoRequest(IClientAPI sender, Packet Pack)
@@ -12945,9 +12900,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// provide your own method.</param>
         protected void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType, bool doAutomaticSplitting, UnackedPacketMethod method)
         {
+
+/* this is causing packet loss for some reason
+            if(!m_udpClient.IsConnected)
+            {
+                PacketPool.Instance.ReturnPacket(packet);
+                return;
+            }
+*/
             if (m_outPacketsToDrop != null)
+            {
                 if (m_outPacketsToDrop.Contains(packet.Type.ToString()))
+                {
+                    PacketPool.Instance.ReturnPacket(packet);
                     return;
+                }
+            }
 
             if (DebugPacketLevel > 0)
             {

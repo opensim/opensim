@@ -77,6 +77,7 @@ namespace OpenSim.Services.FSAssetService
         protected int m_missingAssetsFS = 0;
         protected string m_FSBase;
         protected bool m_useOsgridFormat = false;
+        protected bool m_showStats = true;
 
         private static bool m_Initialized;
         private bool m_MainInstance;
@@ -186,6 +187,9 @@ namespace OpenSim.Services.FSAssetService
 
             m_useOsgridFormat = assetConfig.GetBoolean("UseOsgridFormat", m_useOsgridFormat);
 
+            // Default is to show stats to retain original behaviour
+            m_showStats = assetConfig.GetBoolean("ShowConsoleStats", m_showStats);
+
             if (m_MainInstance)
             {
                 string loader = assetConfig.GetString("DefaultAssetLoader", string.Empty);
@@ -203,8 +207,12 @@ namespace OpenSim.Services.FSAssetService
             
                 m_WriterThread = new Thread(Writer);
                 m_WriterThread.Start();
-                m_StatsThread = new Thread(Stats);
-                m_StatsThread.Start();
+
+                if (m_showStats)
+                {
+                    m_StatsThread = new Thread(Stats);
+                    m_StatsThread.Start();
+                }
             }
             
             m_log.Info("[FSASSETS]: FS asset service enabled");
@@ -441,7 +449,7 @@ namespace OpenSim.Services.FSAssetService
                         Store(asset);
                     }
                 }
-                if (asset == null)
+                if (asset == null && m_showStats)
                 {
                     // m_log.InfoFormat("[FSASSETS]: Asset {0} not found", id);
                     m_missingAssets++;
@@ -469,8 +477,11 @@ namespace OpenSim.Services.FSAssetService
                         }
                     }
                     if (asset == null)
-                        m_missingAssetsFS++;
-                    // m_log.InfoFormat("[FSASSETS]: Asset {0}, hash {1} not found in FS", id, hash);
+                    {
+                        if (m_showStats)
+                            m_missingAssetsFS++;
+                        // m_log.InfoFormat("[FSASSETS]: Asset {0}, hash {1} not found in FS", id, hash);
+                    }
                     else
                     {
                         // Deal with bug introduced in Oct. 20 (1eb3e6cc43e2a7b4053bc1185c7c88e22356c5e8)
@@ -484,10 +495,13 @@ namespace OpenSim.Services.FSAssetService
                     }
                 }
 
-                lock (m_statsLock)
+                if (m_showStats)
                 {
-                    m_readTicks += Environment.TickCount - startTime;
-                    m_readCount++;
+                    lock (m_statsLock)
+                    {
+                        m_readTicks += Environment.TickCount - startTime;
+                        m_readCount++;
+                    }
                 }
 
                 // Deal with bug introduced in Oct. 20 (1eb3e6cc43e2a7b4053bc1185c7c88e22356c5e8)

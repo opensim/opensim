@@ -397,10 +397,6 @@
     ;; Allow region managers to assume god powers in regions they manage
     ; region_manager_is_god = false
 
-    ;# {parcel_owner_is_god} {} {Allow parcel owner gods} {true false} false
-    ;; Allow parcel owners to assume god powers in their parcels
-    ; parcel_owner_is_god = false
-
     ;# {simple_build_permissions} {} {Allow building in parcel by access list (no groups)} {true false} false
     ;; More control over permissions
     ;; This is definitely not SL!

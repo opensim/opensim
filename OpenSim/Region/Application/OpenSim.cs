@@ -242,22 +242,22 @@ namespace OpenSim
                                           ChangeSelectedRegion);
 
             m_console.Commands.AddCommand("Archiving", false, "save xml",
-                                          "save xml",
+                                          "save xml [<file name>]",
                                           "Save a region's data in XML format", 
                                           SaveXml);
 
             m_console.Commands.AddCommand("Archiving", false, "save xml2",
-                                          "save xml2",
+                                          "save xml2 [<file name>]",
                                           "Save a region's data in XML2 format", 
                                           SaveXml2);
 
             m_console.Commands.AddCommand("Archiving", false, "load xml",
-                                          "load xml [-newIDs [<x> <y> <z>]]",
+                                          "load xml [<file name> [-newUID [<x> <y> <z>]]]",
                                           "Load a region's data from XML format",
                                           LoadXml);
 
             m_console.Commands.AddCommand("Archiving", false, "load xml2",
-                                          "load xml2",
+                                          "load xml2 [<file name>]",
                                           "Load a region's data from XML2 format", 
                                           LoadXml2);
 
@@ -1068,7 +1068,7 @@ namespace OpenSim
         /// <param name="cmdparams"></param>
         protected void SavePrimsXml2(string module, string[] cmdparams)
         {
-            if (cmdparams.Length > 5)
+            if (cmdparams.Length > 4)
             {
                 SceneManager.SaveNamedPrimsToXml2(cmdparams[3], cmdparams[4]);
             }
@@ -1087,7 +1087,7 @@ namespace OpenSim
         {
             MainConsole.Instance.Output("PLEASE NOTE, save-xml is DEPRECATED and may be REMOVED soon.  If you are using this and there is some reason you can't use save-xml2, please file a mantis detailing the reason.");
 
-            if (cmdparams.Length > 0)
+            if (cmdparams.Length > 2)
             {
                 SceneManager.SaveCurrentSceneToXml(cmdparams[2]);
             }

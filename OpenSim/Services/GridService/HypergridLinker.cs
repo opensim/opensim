@@ -198,7 +198,7 @@ namespace OpenSim.Services.GridService
 
             mapName = mapName.Trim();
 
-            if (!mapName.StartsWith("http"))
+            if (!mapName.StartsWith("http") && !mapName.StartsWith("https"))
             {
                 // Formats: grid.example.com:8002:region name
                 //          grid.example.com:region name
@@ -231,9 +231,10 @@ namespace OpenSim.Services.GridService
                 {
                     regionName = parts[2];
                 }
-               
-                bool success = TryCreateLink(scopeID, xloc, yloc, regionName, port, host, ownerID, out regInfo, out reason);
-                if (success)
+
+                string serverURI = "http://"+ host +":"+ port.ToString() + "/";
+//                bool success = TryCreateLink(scopeID, xloc, yloc, regionName, port, host, ownerID, out regInfo, out reason);
+                if(TryCreateLink(scopeID, xloc, yloc, regionName, 0, null, serverURI, ownerID, out regInfo, out reason))
                 {
                     regInfo.RegionName = mapName;
                     return regInfo;
@@ -257,6 +258,8 @@ namespace OpenSim.Services.GridService
                 }
 
                 serverURI = parts[0];
+                if (!serverURI.EndsWith("/"))
+                    serverURI = serverURI + "/";
 
                 if (parts.Length >= 2)
                 {
@@ -365,7 +368,9 @@ namespace OpenSim.Services.GridService
             UUID regionID = UUID.Zero;
             string externalName = string.Empty;
             string imageURL = string.Empty;
-            if (!m_GatekeeperConnector.LinkRegion(regInfo, out regionID, out handle, out externalName, out imageURL, out reason))
+            int sizeX = (int)Constants.RegionSize;
+            int sizeY = (int)Constants.RegionSize;
+            if (!m_GatekeeperConnector.LinkRegion(regInfo, out regionID, out handle, out externalName, out imageURL, out reason, out sizeX, out sizeY))
                 return false;
 
             if (regionID == UUID.Zero)
@@ -397,6 +402,8 @@ namespace OpenSim.Services.GridService
 //            }
 
             regInfo.RegionID = regionID;
+            regInfo.RegionSizeX = sizeX;
+            regInfo.RegionSizeY = sizeY;
 
             if (externalName == string.Empty)
                 regInfo.RegionName = regInfo.ServerURI;

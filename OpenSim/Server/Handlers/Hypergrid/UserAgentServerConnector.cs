@@ -139,6 +139,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 hash["region_name"] = regInfo.RegionName;
                 hash["hostname"] = regInfo.ExternalHostName;
                 hash["http_port"] = regInfo.HttpPort.ToString();
+                hash["server_uri"] = regInfo.ServerURI;
                 hash["internal_port"] = regInfo.InternalEndPoint.Port.ToString();
                 hash["position"] = position.ToString();
                 hash["lookAt"] = lookAt.ToString();

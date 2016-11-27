@@ -1938,8 +1938,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             taskItem.ResetIDs(m_host.UUID);
             taskItem.ParentID = m_host.UUID;
             taskItem.CreationDate = (uint)Util.UnixTimeSinceEpoch();
-            taskItem.Name = asset.Name;
-            taskItem.Description = asset.Description;
+            taskItem.Name = name;
+            taskItem.Description = description;
             taskItem.Type = (int)AssetType.Notecard;
             taskItem.InvType = (int)InventoryType.Notecard;
             taskItem.OwnerID = m_host.OwnerID;
@@ -3354,8 +3354,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             Scene scene = m_ScriptEngine.World;
-            GridRegion region = scene.GridService.GetRegionByUUID(UUID.Zero, World.RegionInfo.RegionID);
-            return new LSL_Vector((float)region.RegionSizeX, (float)region.RegionSizeY, (float)Constants.RegionHeight);
+            RegionInfo reg =  World.RegionInfo;
+//            GridRegion region = scene.GridService.GetRegionByUUID(UUID.Zero, World.RegionInfo.RegionID);
+//            return new LSL_Vector((float)region.RegionSizeX, (float)region.RegionSizeY, (float)Constants.RegionHeight);
+            return new LSL_Vector((float)reg.RegionSizeX, (float)reg.RegionSizeY, 0.0f);
         }
 
         public int osGetSimulatorMemory()

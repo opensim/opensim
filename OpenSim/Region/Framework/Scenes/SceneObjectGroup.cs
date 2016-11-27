@@ -153,9 +153,9 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m_scene.SceneGraph.FireChangeBackup(this);
                     }
-                    timeLastChanged = DateTime.Now.Ticks;
+                    timeLastChanged = DateTime.UtcNow.Ticks;
                     if (!m_hasGroupChanged)
-                        timeFirstChanged = DateTime.Now.Ticks;
+                        timeFirstChanged = DateTime.UtcNow.Ticks;
                     if (m_rootPart != null && m_rootPart.UUID != null && m_scene != null)
                     {
 /*
@@ -233,7 +233,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_minPersistTime = m_scene.m_dontPersistBefore;
             }
                 
-            long currentTime = DateTime.Now.Ticks;
+            long currentTime = DateTime.UtcNow.Ticks;
 
             if (timeLastChanged == 0) timeLastChanged = currentTime;
             if (timeFirstChanged == 0) timeFirstChanged = currentTime;
@@ -4159,6 +4159,180 @@ namespace OpenSim.Region.Framework.Scenes
             m_rootPart.TriggerScriptChangedEvent(Changed.SCALE);
             ScheduleGroupForFullUpdate();
 
+        }
+
+        public bool GroupResize(double fscale)
+        {
+//            m_log.DebugFormat(
+//                "[SCENE OBJECT GROUP]: Group resizing {0} {1} from {2} to {3}", Name, LocalId, RootPart.Scale, fscale);
+
+            if (Scene == null || IsDeleted || inTransit || fscale < 0)
+                return false;
+
+            // ignore lsl restrictions. let them be done a LSL
+            PhysicsActor pa = m_rootPart.PhysActor;
+
+            if(RootPart.KeyframeMotion != null)
+                RootPart.KeyframeMotion.Suspend();
+
+            float minsize = Scene.m_minNonphys;
+            float maxsize = Scene.m_maxNonphys;
+
+            // assuming physics is more restrictive
+            if (pa != null && pa.IsPhysical)
+            {
+                minsize = Scene.m_minPhys;
+                maxsize = Scene.m_maxPhys;
+            }
+
+            SceneObjectPart[] parts = m_parts.GetArray();
+            float tmp;
+            // check scaling factor so parts don't violate dimensions
+            for(int i = 0; i < parts.Length; i++)
+            {
+                SceneObjectPart obPart = parts[i];
+                Vector3 oldSize = new Vector3(obPart.Scale);
+                tmp = (float)(oldSize.X * fscale);
+                if(tmp > maxsize)
+                    return false;
+                if(tmp < minsize)
+                    return false;
+
+                tmp = (float)(oldSize.Y * fscale);
+                if(tmp > maxsize)
+                    return false;
+                if(tmp < minsize)
+                    return false;
+
+                tmp = (float)(oldSize.Z * fscale);
+                if(tmp > maxsize)
+                    return false;
+                if(tmp < minsize)
+                    return false;
+            }
+
+            Vector3 newSize = RootPart.Scale;
+            newSize.X = (float)(newSize.X * fscale);
+            newSize.Y = (float)(newSize.Y * fscale);
+            newSize.Z = (float)(newSize.Z * fscale);
+
+            if(pa != null)
+                pa.Building = true;
+
+            RootPart.Scale = newSize;
+
+            Vector3 currentpos;
+            for (int i = 0; i < parts.Length; i++)
+            {
+                SceneObjectPart obPart = parts[i];
+
+                if (obPart.UUID != m_rootPart.UUID)
+                {
+                    currentpos = obPart.OffsetPosition;
+                    currentpos.X = (float)(currentpos.X * fscale);
+                    currentpos.Y = (float)(currentpos.Y * fscale);
+                    currentpos.Z = (float)(currentpos.Z * fscale);
+
+                    newSize = obPart.Scale;
+                    newSize.X = (float)(newSize.X * fscale);
+                    newSize.Y = (float)(newSize.Y * fscale);
+                    newSize.Z = (float)(newSize.Z * fscale);
+
+                    obPart.Scale = newSize;
+                    obPart.UpdateOffSet(currentpos);
+                }
+            }
+
+            if(pa != null)
+                pa.Building = false;
+
+            InvalidBoundsRadius();
+
+            HasGroupChanged = true;
+            m_rootPart.TriggerScriptChangedEvent(Changed.SCALE);
+            ScheduleGroupForFullUpdate();
+
+            if(RootPart.KeyframeMotion != null)
+                RootPart.KeyframeMotion.Resume();
+
+            return true;
+        }
+
+        public float GetMaxGroupResizeScale()
+        {
+            if (Scene == null || IsDeleted || inTransit)
+                return 1.0f;
+ 
+            float maxsize = Scene.m_maxNonphys;
+            PhysicsActor pa = m_rootPart.PhysActor;
+            // assuming physics is more restrictive
+            if (pa != null && pa.IsPhysical)
+                maxsize = Scene.m_maxPhys;
+
+            SceneObjectPart[] parts = m_parts.GetArray();
+            float larger = float.MinValue;
+            
+            for(int i = 0; i < parts.Length; i++)
+            {
+                SceneObjectPart obPart = parts[i];
+                Vector3 oldSize = new Vector3(obPart.Scale);
+                if(larger < oldSize.X)
+                   larger = oldSize.X;
+
+                if(larger < oldSize.Y)
+                   larger = oldSize.Y;
+
+                if(larger < oldSize.Z)
+                   larger = oldSize.Z;
+            }
+
+            if(larger >=  maxsize)
+                return 1.0f;
+
+            larger += 1e-3f;
+            float fscale = maxsize / larger;
+
+            return fscale;
+        }
+
+        public float GetMinGroupResizeScale()
+        {
+            if (Scene == null || IsDeleted || inTransit)
+                return 1.0f;
+ 
+            float minsize = Scene.m_minNonphys;
+            PhysicsActor pa = m_rootPart.PhysActor;
+            // assuming physics is more restrictive
+            if (pa != null && pa.IsPhysical)
+                minsize = Scene.m_minPhys;
+
+            SceneObjectPart[] parts = m_parts.GetArray();
+            float smaller = float.MaxValue;
+            
+            for(int i = 0; i < parts.Length; i++)
+            {
+                SceneObjectPart obPart = parts[i];
+                Vector3 oldSize = new Vector3(obPart.Scale);
+                if(smaller > oldSize.X)
+                   smaller = oldSize.X;
+
+                if(smaller > oldSize.Y)
+                   smaller = oldSize.Y;
+
+                if(smaller > oldSize.Z)
+                   smaller = oldSize.Z;
+            }
+
+            if(smaller <= minsize)
+                return 1.0f;
+
+            if(smaller > 2e-3f)
+                smaller -= 1e-3f;
+            float fscale = minsize / smaller;
+            if(fscale < 1e-8f)
+                fscale = 1e-8f;
+
+            return fscale;
         }
 
         #endregion

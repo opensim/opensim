@@ -176,6 +176,9 @@ namespace OpenSim.Framework
         /// </remarks>
         public uint RegionSizeZ = Constants.RegionHeight;
 
+        // If entering avatar has no specific coords, this is where they land
+        public Vector3 DefaultLandingPoint = new Vector3(128, 128, 30);
+
         private Dictionary<String, String> m_extraSettings = new Dictionary<string, string>();
 
         // Apparently, we're applying the same estatesettings regardless of whether it's local or remote.
@@ -712,6 +715,19 @@ namespace OpenSim.Framework
             m_regionType = config.GetString("RegionType", String.Empty);
             allKeys.Remove("RegionType");
 
+            // Get Default Landing Location (Defaults to 128,128)
+            string temp_location = config.GetString("DefaultLanding", "<128, 128, 30>");
+            Vector3 temp_vector;
+
+            if (Vector3.TryParse(temp_location, out temp_vector))
+                DefaultLandingPoint = temp_vector;
+            else
+                m_log.ErrorFormat("[RegionInfo]: Unable to parse DefaultLanding for '{0}'. The value given was '{1}'", RegionName, temp_location);
+
+            allKeys.Remove("DefaultLanding");
+
+            DoDefaultLandingSanityChecks();
+
             #region Prim and map stuff
 
             m_nonphysPrimMin = config.GetFloat("NonPhysicalPrimMin", 0);
@@ -762,6 +778,48 @@ namespace OpenSim.Framework
             {
                 SetExtraSetting(s, config.GetString(s));
             }
+        }
+
+        // Make sure DefaultLanding is within region borders with a buffer zone 5 meters from borders
+        private void DoDefaultLandingSanityChecks()
+        {
+            // Sanity Check Default Landing
+            float buffer_zone = 5f;
+
+            bool ValuesCapped = false;
+
+            // Minimum Positions
+            if (DefaultLandingPoint.X < buffer_zone)
+            {
+                DefaultLandingPoint.X = buffer_zone;
+                ValuesCapped = true;
+            }
+
+            if (DefaultLandingPoint.Y < buffer_zone)
+            {
+                DefaultLandingPoint.Y = buffer_zone;
+                ValuesCapped = true;
+            }
+
+            // Maximum Positions
+            if (DefaultLandingPoint.X > RegionSizeX - buffer_zone)
+            {
+                DefaultLandingPoint.X = RegionSizeX - buffer_zone;
+                ValuesCapped = true;
+            }
+
+            if (DefaultLandingPoint.Y > RegionSizeY - buffer_zone)
+            {
+                DefaultLandingPoint.Y = RegionSizeY - buffer_zone;
+                ValuesCapped = true;
+            }
+
+            // Height
+            if (DefaultLandingPoint.Z < 0f)
+                DefaultLandingPoint.Z = 0f;
+
+            if (ValuesCapped == true)
+                m_log.WarnFormat("[RegionInfo]: The default landing location for {0} has been capped to {1}", RegionName, DefaultLandingPoint);
         }
 
         // Make sure user specified region sizes are sane.

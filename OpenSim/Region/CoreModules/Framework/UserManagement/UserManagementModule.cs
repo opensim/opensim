@@ -206,7 +206,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 }
 
                 // Not found in cache, queue continuation
-                m_ServiceThrottle.Enqueue("name", uuid.ToString(),  delegate
+                m_ServiceThrottle.Enqueue("uuidname", uuid.ToString(),  delegate
                 {
                     //m_log.DebugFormat("[YYY]: Name request {0}", uuid);
 
@@ -216,9 +216,12 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     // So to avoid clients
                     // (particularly Hypergrid clients) permanently binding "Unknown User" to a given UUID, we will
                     // instead drop the request entirely.
+                    if(!client.IsActive)
+                        return;
                     if (GetUser(uuid, out user))
                     {
-                        client.SendNameReply(uuid, user.FirstName, user.LastName);
+                        if(client.IsActive)
+                            client.SendNameReply(uuid, user.FirstName, user.LastName);
                     }
 //                    else
 //                        m_log.DebugFormat(

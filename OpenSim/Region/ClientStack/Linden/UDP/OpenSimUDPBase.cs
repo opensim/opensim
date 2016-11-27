@@ -179,6 +179,11 @@ namespace OpenMetaverse
             // m_dropRandomGenerator = new Random();
         }
 
+        ~OpenSimUDPBase()
+        {
+            if(m_udpSocket !=null)
+                try { m_udpSocket.Close(); } catch { }               
+        }
         /// <summary>
         /// Start inbound UDP packet handling.
         /// </summary>
