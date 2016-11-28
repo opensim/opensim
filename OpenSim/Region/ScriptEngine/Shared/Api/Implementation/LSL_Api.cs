@@ -13772,6 +13772,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     AttachmentsPrimList.Add(new LSL_Integer(Attachment.PrimCount));
                                 ret.Add(new LSL_Integer(AttachmentsPrimList.Sum()));
                                 break;
+                            case ScriptBaseClass.OBJECT_TOTAL_INVENTORY_COUNT:
+                                LSL_List AttachmentsPrimsInventoryList = new LSL_List();
+                                foreach (SceneObjectGroup Attachment in av.GetAttachments())
+                                {
+                                    Attachment.ForEachPart(delegate(SceneObjectPart part)
+                                    {
+                                        AttachmentsPrimsInventoryList.Add(new LSL_Integer(part.Inventory.Count));
+                                    });
+                                }
+                                ret.Add(new LSL_Integer(AttachmentsPrimsInventoryList.Sum()));
+                                break;
+                            case ScriptBaseClass.OBJECT_GROUP_TAG:
+                                ret.Add(new LSL_String(av.Grouptitle));
+                                break;
                             default:
                                 // Invalid or unhandled constant.
                                 ret.Add(new LSL_Integer(ScriptBaseClass.OBJECT_UNKNOWN_DETAIL));
@@ -13952,6 +13966,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 break;
                             case ScriptBaseClass.OBJECT_PRIM_COUNT:
                                 ret.Add(new LSL_Integer(obj.ParentGroup.PrimCount));
+                                break;
+                            case ScriptBaseClass.OBJECT_TOTAL_INVENTORY_COUNT:
+                                LSL_List ObjectPrimsInventoryList = new LSL_List();
+                                obj.ParentGroup.ForEachPart(delegate(SceneObjectPart part)
+                                {
+                                    ObjectPrimsInventoryList.Add(new LSL_Integer(part.Inventory.Count));
+                                });
+                                ret.Add(ObjectPrimsInventoryList.Sum());
+                                break;
+                            case ScriptBaseClass.OBJECT_GROUP_TAG:
+                                ret.Add(new LSL_String(String.Empty));
                                 break;
                             default:
                                 // Invalid or unhandled constant.
