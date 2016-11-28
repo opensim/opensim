@@ -128,104 +128,104 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 m_Clients.Add(remoteClient.AgentId);
             }
 
-            try
-            {
-                OnMapNameRequest(remoteClient, mapName, flags);
-            }
-            finally
-            {
-                lock (m_Clients)
-                    m_Clients.Remove(remoteClient.AgentId);
-            }
+            OnMapNameRequest(remoteClient, mapName, flags);
         }
 
         private void OnMapNameRequest(IClientAPI remoteClient, string mapName, uint flags)
         {
             Util.FireAndForget(x =>
             {
-                List<MapBlockData> blocks = new List<MapBlockData>();
-                if (mapName.Length < 3 || (mapName.EndsWith("#") && mapName.Length < 4))
+                try
                 {
+                    List<MapBlockData> blocks = new List<MapBlockData>();
+                    if (mapName.Length < 3 || (mapName.EndsWith("#") && mapName.Length < 4))
+                    {
+                        // final block, closing the search result
+                        AddFinalBlock(blocks,mapName);
+
+                        // flags are agent flags sent from the viewer.
+                        // they have different values depending on different viewers, apparently
+                        remoteClient.SendMapBlock(blocks, flags);
+                        remoteClient.SendAlertMessage("Use a search string with at least 3 characters");
+                        return;
+                    }
+
+                    //m_log.DebugFormat("MAP NAME=({0})", mapName);
+
+                    // Hack to get around the fact that ll V3 now drops the port from the
+                    // map name. See https://jira.secondlife.com/browse/VWR-28570
+                    //
+                    // Caller, use this magic form instead:
+                    // secondlife://http|!!mygrid.com|8002|Region+Name/128/128
+                    // or url encode if possible.
+                    // the hacks we do with this viewer...
+                    //
+                    bool needOriginalName = false;
+                    string mapNameOrig = mapName;
+                    if (mapName.Contains("|"))
+                    {
+                        mapName = mapName.Replace('|', ':');
+                        needOriginalName = true;
+                    }
+                    if (mapName.Contains("+"))
+                    {
+                        mapName = mapName.Replace('+', ' ');
+                        needOriginalName = true;
+                    }
+                    if (mapName.Contains("!"))
+                    {
+                        mapName = mapName.Replace('!', '/');
+                        needOriginalName = true;
+                    }
+                    if (mapName.Contains("."))
+                        needOriginalName = true;
+
+                    // try to fetch from GridServer
+                    List<GridRegion> regionInfos = m_scene.GridService.GetRegionsByName(m_scene.RegionInfo.ScopeID, mapName, 20);
+        //            if (regionInfos.Count == 0)
+        //                remoteClient.SendAlertMessage("Hyperlink could not be established.");
+
+                    //m_log.DebugFormat("[MAPSEARCHMODULE]: search {0} returned {1} regions", mapName, regionInfos.Count);
+ 
+                    MapBlockData data;
+                    if (regionInfos.Count > 0)
+                    {
+                        foreach (GridRegion info in regionInfos)
+                        {
+                            data = new MapBlockData();
+                            data.Agents = 0;
+                            data.Access = info.Access;
+                            MapBlockData block = new MapBlockData();
+                            WorldMap.MapBlockFromGridRegion(block, info, flags);
+
+                            if (flags == 2 &&  regionInfos.Count == 1 && needOriginalName)
+                                    block.Name = mapNameOrig;
+                            blocks.Add(block);
+                        }
+                    }
+
                     // final block, closing the search result
-                    AddFinalBlock(blocks,mapName);
+                        AddFinalBlock(blocks,mapNameOrig);
 
                     // flags are agent flags sent from the viewer.
                     // they have different values depending on different viewers, apparently
                     remoteClient.SendMapBlock(blocks, flags);
-                    remoteClient.SendAlertMessage("Use a search string with at least 3 characters");
-                    return;
-                }
 
-                //m_log.DebugFormat("MAP NAME=({0})", mapName);
-
-                // Hack to get around the fact that ll V3 now drops the port from the
-                // map name. See https://jira.secondlife.com/browse/VWR-28570
-                //
-                // Caller, use this magic form instead:
-                // secondlife://http|!!mygrid.com|8002|Region+Name/128/128
-                // or url encode if possible.
-                // the hacks we do with this viewer...
-                //
-                bool needOriginalName = false;
-                string mapNameOrig = mapName;
-                if (mapName.Contains("|"))
-                {
-                    mapName = mapName.Replace('|', ':');
-                    needOriginalName = true;
-                }
-                if (mapName.Contains("+"))
-                {
-                    mapName = mapName.Replace('+', ' ');
-                    needOriginalName = true;
-                }
-                if (mapName.Contains("!"))
-                {
-                    mapName = mapName.Replace('!', '/');
-                    needOriginalName = true;
-                }
-                if (mapName.Contains("."))
-                    needOriginalName = true;
-
-                // try to fetch from GridServer
-                List<GridRegion> regionInfos = m_scene.GridService.GetRegionsByName(m_scene.RegionInfo.ScopeID, mapName, 20);
-    //            if (regionInfos.Count == 0)
-    //                remoteClient.SendAlertMessage("Hyperlink could not be established.");
-
-                //m_log.DebugFormat("[MAPSEARCHMODULE]: search {0} returned {1} regions", mapName, regionInfos.Count);
- 
-                MapBlockData data;
-                if (regionInfos.Count > 0)
-                {
-                    foreach (GridRegion info in regionInfos)
+                    // send extra user messages for V3
+                    // because the UI is very confusing
+                    // while we don't fix the hard-coded urls
+                    if (flags == 2) 
                     {
-                        data = new MapBlockData();
-                        data.Agents = 0;
-                        data.Access = info.Access;
-                        MapBlockData block = new MapBlockData();
-                        WorldMap.MapBlockFromGridRegion(block, info, flags);
-
-                        if (flags == 2 &&  regionInfos.Count == 1 && needOriginalName)
-                                block.Name = mapNameOrig;
-                        blocks.Add(block);
+                        if (regionInfos.Count == 0)
+                            remoteClient.SendAgentAlertMessage("No regions found with that name.", true);
+    //                    else if (regionInfos.Count == 1)
+    //                        remoteClient.SendAgentAlertMessage("Region found!", false);
                     }
                 }
-
-                // final block, closing the search result
-                AddFinalBlock(blocks,mapNameOrig);
-
-                // flags are agent flags sent from the viewer.
-                // they have different values depending on different viewers, apparently
-                remoteClient.SendMapBlock(blocks, flags);
-
-                // send extra user messages for V3
-                // because the UI is very confusing
-                // while we don't fix the hard-coded urls
-                if (flags == 2) 
+                finally
                 {
-                    if (regionInfos.Count == 0)
-                        remoteClient.SendAgentAlertMessage("No regions found with that name.", true);
-//                    else if (regionInfos.Count == 1)
-//                        remoteClient.SendAgentAlertMessage("Region found!", false);
+                    lock (m_Clients)
+                        m_Clients.Remove(remoteClient.AgentId);
                 }
             });
         }

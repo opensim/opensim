@@ -191,14 +191,14 @@ namespace OpenSim.Services.GridService
             return TryLinkRegionToCoords(scopeID, mapName, xloc, yloc, UUID.Zero, out reason);
         }
 
-        public GridRegion TryLinkRegionToCoords(UUID scopeID, string mapName, int xloc, int yloc, UUID ownerID, out string reason)
+        public bool buildHGRegionURI(string inputName, out string serverURI, out string regionName)
         {
-            reason = string.Empty;
-            GridRegion regInfo = null;
+            serverURI = string.Empty;
+            regionName = string.Empty;
 
-            mapName = mapName.Trim();
+            inputName = inputName.Trim();
 
-            if (!mapName.StartsWith("http") && !mapName.StartsWith("https"))
+            if (!inputName.StartsWith("http") && !inputName.StartsWith("https"))
             {
                 // Formats: grid.example.com:8002:region name
                 //          grid.example.com:region name
@@ -207,38 +207,59 @@ namespace OpenSim.Services.GridService
 
                 string host;
                 uint port = 80;
-                string regionName = "";
                 
-                string[] parts = mapName.Split(new char[] { ':' });
-                
-                if (parts.Length == 0)
+                string[] parts = inputName.Split(new char[] { ':' });
+                int indx;
+                if(parts.Length == 0)
+                    return false;
+                if (parts.Length == 1)
                 {
-                    reason = "Wrong format for link-region";
-                    return null;
+                    indx = inputName.IndexOf('/');
+                    if (indx < 0)
+                        serverURI = "http://"+ inputName + "/";
+                    else
+                    {
+                        serverURI = "http://"+ inputName.Substring(0,indx + 1);
+                        if(indx + 2 < inputName.Length)
+                            regionName = inputName.Substring(indx + 1);
+                    }
                 }
-                
-                host = parts[0];
-                
-                if (parts.Length >= 2)
+                else
                 {
-                    // If it's a number then assume it's a port. Otherwise, it's a region name.
-                    if (!UInt32.TryParse(parts[1], out port))
-                        regionName = parts[1];
-                }
+                    host = parts[0];
+               
+                    if (parts.Length >= 2)
+                    {
+                        indx = parts[1].IndexOf('/');
+                        if(indx < 0)
+                        {
+                            // If it's a number then assume it's a port. Otherwise, it's a region name.
+                            if (!UInt32.TryParse(parts[1], out port))
+                            {
+                                port = 80;
+                                regionName = parts[1];
+                            }
+                        }
+                        else
+                        {
+                            string portstr = parts[1].Substring(0, indx);
+                            if(indx + 2 < parts[1].Length)
+                                regionName = parts[1].Substring(indx + 1);
+                            if (!UInt32.TryParse(portstr, out port))
+                                port = 80;
+                        }
+                    }
+                    // always take the last one
+                    if (parts.Length >= 3)
+                    {
+                       regionName = parts[2];
+                    }
 
-                // always take the last one
-                if (parts.Length >= 3)
-                {
-                    regionName = parts[2];
-                }
-
-                string serverURI = "http://"+ host +":"+ port.ToString() + "/";
-//                bool success = TryCreateLink(scopeID, xloc, yloc, regionName, port, host, ownerID, out regInfo, out reason);
-                if(TryCreateLink(scopeID, xloc, yloc, regionName, 0, null, serverURI, ownerID, out regInfo, out reason))
-                {
-                    regInfo.RegionName = mapName;
-                    return regInfo;
-                }
+                    if(port == 80)
+                       serverURI = "http://"+ host + "/";
+                    else
+                        serverURI = "http://"+ host +":"+ port.ToString() + "/";
+                    }
             }
             else
             {
@@ -246,32 +267,61 @@ namespace OpenSim.Services.GridService
                 //          http://grid.example.com "region name"
                 //          http://grid.example.com
 
-                string serverURI;
-                string regionName = "";
-
-                string[] parts = mapName.Split(new char[] { ' ' });
+                string[] parts = inputName.Split(new char[] { ' ' });
 
                 if (parts.Length == 0)
-                {
-                    reason = "Wrong format for link-region";
-                    return null;
-                }
+                    return false;
 
                 serverURI = parts[0];
-                if (!serverURI.EndsWith("/"))
-                    serverURI = serverURI + "/";
 
-                if (parts.Length >= 2)
+                int indx = serverURI.LastIndexOf('/');
+                if(indx > 10)
                 {
-                    regionName = mapName.Substring(serverURI.Length);
-                    regionName = regionName.Trim(new char[] { '"', ' ' });
+                    if(indx + 2 < inputName.Length)
+                        regionName = inputName.Substring(indx + 1);
+                    serverURI = inputName.Substring(0, indx + 1);
                 }
+                else if (parts.Length >= 2)
+                {
+                    regionName = inputName.Substring(serverURI.Length);
+                }
+            }
 
-                if (TryCreateLink(scopeID, xloc, yloc, regionName, 0, null, serverURI, ownerID, out regInfo, out reason))
-                {
-                    regInfo.RegionName = mapName; 
-                    return regInfo;
-                }
+            // use better code for sanity check
+            Uri uri;
+            try
+            {
+                    uri = new Uri(serverURI);
+            }
+            catch
+            {
+                return false;
+            }
+
+            if(!string.IsNullOrEmpty(regionName))
+                regionName = regionName.Trim(new char[] { '"', ' ' });
+            serverURI = uri.AbsoluteUri;
+            return true;
+        }
+
+        public GridRegion TryLinkRegionToCoords(UUID scopeID, string mapName, int xloc, int yloc, UUID ownerID, out string reason)
+        {
+            reason = string.Empty;
+            GridRegion regInfo = null;
+
+            string serverURI = string.Empty;
+            string regionName = string.Empty;
+
+            if(!buildHGRegionURI(mapName, out serverURI, out regionName))
+            {
+                reason = "Wrong URI format for link-region";
+                return null;
+            }
+
+            if (TryCreateLink(scopeID, xloc, yloc, regionName, 0, null, serverURI, ownerID, out regInfo, out reason))
+            {
+                regInfo.RegionName = serverURI + regionName;
+                return regInfo;
             }
 
             return null;
