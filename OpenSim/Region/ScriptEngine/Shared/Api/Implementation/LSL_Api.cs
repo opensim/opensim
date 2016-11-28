@@ -13765,23 +13765,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 ret.Add(new LSL_Vector(Vector3.Zero));
                                 break;
                             case ScriptBaseClass.OBJECT_PRIM_COUNT:
-                                LSL_List AttachmentsPrimList = new LSL_List();
-                                List<SceneObjectGroup> Attachments;
-                                Attachments = av.GetAttachments();
-                                foreach (SceneObjectGroup Attachment in Attachments)
-                                    AttachmentsPrimList.Add(new LSL_Integer(Attachment.PrimCount));
-                                ret.Add(new LSL_Integer(AttachmentsPrimList.Sum()));
+                                List<SceneObjectGroup> Attachments = av.GetAttachments();
+                                int count = 0;
+                                try
+                                {
+                                    foreach (SceneObjectGroup Attachment in Attachments)
+                                        count += Attachment.PrimCount;
+                                } catch { };
+                                ret.Add(new LSL_Integer(count));
                                 break;
                             case ScriptBaseClass.OBJECT_TOTAL_INVENTORY_COUNT:
-                                LSL_List AttachmentsPrimsInventoryList = new LSL_List();
-                                foreach (SceneObjectGroup Attachment in av.GetAttachments())
+                                List<SceneObjectGroup> invAttachments = av.GetAttachments();
+                                int invcount = 0;
+                                try
                                 {
-                                    Attachment.ForEachPart(delegate(SceneObjectPart part)
+                                    foreach (SceneObjectGroup Attachment in invAttachments)
                                     {
-                                        AttachmentsPrimsInventoryList.Add(new LSL_Integer(part.Inventory.Count));
-                                    });
-                                }
-                                ret.Add(new LSL_Integer(AttachmentsPrimsInventoryList.Sum()));
+                                        SceneObjectPart[] parts = Attachment.Parts;
+                                        int nparts = parts.Count();
+                                        for(int i = 0; i < nparts; i++)
+                                            invcount += parts[i].Inventory.Count;
+                                    }
+                                } catch { };
+                                ret.Add(new LSL_Integer(invcount));
                                 break;
                             case ScriptBaseClass.OBJECT_GROUP_TAG:
                                 ret.Add(new LSL_String(av.Grouptitle));
@@ -13968,12 +13974,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 ret.Add(new LSL_Integer(obj.ParentGroup.PrimCount));
                                 break;
                             case ScriptBaseClass.OBJECT_TOTAL_INVENTORY_COUNT:
-                                LSL_List ObjectPrimsInventoryList = new LSL_List();
-                                obj.ParentGroup.ForEachPart(delegate(SceneObjectPart part)
-                                {
-                                    ObjectPrimsInventoryList.Add(new LSL_Integer(part.Inventory.Count));
-                                });
-                                ret.Add(ObjectPrimsInventoryList.Sum());
+                                SceneObjectPart[] parts = obj.ParentGroup.Parts;
+                                int nparts = parts.Count();
+                                int count = 0;
+                                for(int i = 0; i < nparts; i++)
+                                    count += parts[i].Inventory.Count;
+                                ret.Add(new LSL_Integer(count));
                                 break;
                             case ScriptBaseClass.OBJECT_GROUP_TAG:
                                 ret.Add(new LSL_String(String.Empty));
