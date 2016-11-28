@@ -13758,6 +13758,40 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             case ScriptBaseClass.OBJECT_LAST_OWNER_ID:
                                 ret.Add(new LSL_Key(ScriptBaseClass.NULL_KEY));
                                 break;
+                            case ScriptBaseClass.OBJECT_CLICK_ACTION:
+                                ret.Add(new LSL_Integer(0));
+                                break;
+                            case ScriptBaseClass.OBJECT_OMEGA:
+                                ret.Add(new LSL_Vector(Vector3.Zero));
+                                break;
+                            case ScriptBaseClass.OBJECT_PRIM_COUNT:
+                                List<SceneObjectGroup> Attachments = av.GetAttachments();
+                                int count = 0;
+                                try
+                                {
+                                    foreach (SceneObjectGroup Attachment in Attachments)
+                                        count += Attachment.PrimCount;
+                                } catch { };
+                                ret.Add(new LSL_Integer(count));
+                                break;
+                            case ScriptBaseClass.OBJECT_TOTAL_INVENTORY_COUNT:
+                                List<SceneObjectGroup> invAttachments = av.GetAttachments();
+                                int invcount = 0;
+                                try
+                                {
+                                    foreach (SceneObjectGroup Attachment in invAttachments)
+                                    {
+                                        SceneObjectPart[] parts = Attachment.Parts;
+                                        int nparts = parts.Count();
+                                        for(int i = 0; i < nparts; i++)
+                                            invcount += parts[i].Inventory.Count;
+                                    }
+                                } catch { };
+                                ret.Add(new LSL_Integer(invcount));
+                                break;
+                            case ScriptBaseClass.OBJECT_GROUP_TAG:
+                                ret.Add(new LSL_String(av.Grouptitle));
+                                break;
                             default:
                                 // Invalid or unhandled constant.
                                 ret.Add(new LSL_Integer(ScriptBaseClass.OBJECT_UNKNOWN_DETAIL));
@@ -13929,6 +13963,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 break;
                             case ScriptBaseClass.OBJECT_LAST_OWNER_ID:
                                 ret.Add(new LSL_Key(obj.ParentGroup.LastOwnerID.ToString()));
+                                break;
+                            case ScriptBaseClass.OBJECT_CLICK_ACTION:
+                                ret.Add(new LSL_Integer(obj.ClickAction));
+                                break;
+                            case ScriptBaseClass.OBJECT_OMEGA:
+                                ret.Add(new LSL_Vector(obj.AngularVelocity));
+                                break;
+                            case ScriptBaseClass.OBJECT_PRIM_COUNT:
+                                ret.Add(new LSL_Integer(obj.ParentGroup.PrimCount));
+                                break;
+                            case ScriptBaseClass.OBJECT_TOTAL_INVENTORY_COUNT:
+                                SceneObjectPart[] parts = obj.ParentGroup.Parts;
+                                int nparts = parts.Count();
+                                int count = 0;
+                                for(int i = 0; i < nparts; i++)
+                                    count += parts[i].Inventory.Count;
+                                ret.Add(new LSL_Integer(count));
+                                break;
+                            case ScriptBaseClass.OBJECT_GROUP_TAG:
+                                ret.Add(new LSL_String(String.Empty));
                                 break;
                             default:
                                 // Invalid or unhandled constant.

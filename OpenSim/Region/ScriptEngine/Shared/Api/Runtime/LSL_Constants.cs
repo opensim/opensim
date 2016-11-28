@@ -636,6 +636,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int OBJECT_HOVER_HEIGHT = 25;
         public const int OBJECT_BODY_SHAPE_TYPE = 26;
         public const int OBJECT_LAST_OWNER_ID = 27;
+        public const int OBJECT_CLICK_ACTION = 28;
+        public const int OBJECT_OMEGA = 29;
+        public const int OBJECT_PRIM_COUNT = 30;
+        public const int OBJECT_TOTAL_INVENTORY_COUNT = 31;
+        public const int OBJECT_GROUP_TAG = 33;
 
         // Pathfinding types
         public const int OPT_OTHER = -1;
