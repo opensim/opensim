@@ -641,6 +641,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int OBJECT_PRIM_COUNT = 30;
         public const int OBJECT_TOTAL_INVENTORY_COUNT = 31;
         public const int OBJECT_GROUP_TAG = 33;
+        public const int OBJECT_TEMP_ATTACHED = 34;
 
         // Pathfinding types
         public const int OPT_OTHER = -1;
