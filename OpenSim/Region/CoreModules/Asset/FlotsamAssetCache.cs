@@ -224,7 +224,7 @@ namespace OpenSim.Region.CoreModules.Asset
                 m_Scenes.Remove(scene);
                 lock(timerLock)
                 {
-                    if(m_Scenes.Count <= 0)
+                    if(m_Running && m_Scenes.Count <= 0)
                     {
                         m_Running = false;
                         m_CacheCleanTimer.Stop();
@@ -250,8 +250,8 @@ namespace OpenSim.Region.CoreModules.Asset
                             m_CacheCleanTimer.AutoReset = false;
                             m_CacheCleanTimer.Elapsed += CleanupExpiredFiles;                       
                             m_CacheCleanTimer.Start();
+                            m_Running = true;
                         }
-                        m_Running = true;
                     }
                  }
             }
@@ -834,6 +834,7 @@ namespace OpenSim.Region.CoreModules.Asset
                             if (File.Exists(filename))
                             {
                                 UpdateFileLastAccessTime(filename);
+                                assetsFound[assetID] = true;
                             }
                             else if (storeUncached)
                             {
@@ -1034,6 +1035,7 @@ namespace OpenSim.Region.CoreModules.Asset
                                 }
                             }
                             int assetReferenceTotal = TouchAllSceneAssets(true);
+                            GC.Collect();
                             lock(timerLock)
                             {
                                 if(wasRunning)
