@@ -36,7 +36,7 @@
 
     ; How often {in hours} should the disk be checked for expired filed
     ; Specify 0 to disable expiration checking
-    FileCleanupTimer = 1.0  ;every hour
+    FileCleanupTimer = 0  ;every hour
 
     ; If WAIT_ON_INPROGRESS_REQUESTS has been defined then this specifies how
     ; long (in miliseconds) to block a request thread while trying to complete
