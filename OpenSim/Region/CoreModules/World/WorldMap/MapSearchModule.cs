@@ -188,7 +188,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     //m_log.DebugFormat("[MAPSEARCHMODULE]: search {0} returned {1} regions", mapName, regionInfos.Count);
  
                     MapBlockData data;
-                    if (regionInfos.Count > 0)
+                    if (regionInfos != null && regionInfos.Count > 0)
                     {
                         foreach (GridRegion info in regionInfos)
                         {
@@ -205,7 +205,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     }
 
                     // final block, closing the search result
-                        AddFinalBlock(blocks,mapNameOrig);
+                    AddFinalBlock(blocks,mapNameOrig);
 
                     // flags are agent flags sent from the viewer.
                     // they have different values depending on different viewers, apparently
