@@ -619,11 +619,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_entityProps = new PriorityQueue(1);
             m_killRecord.Clear();
             GroupsInView.Clear();
-//            m_scene = null; can't do this unless checks are added everywhere due to workitems already in pools
 
-            //m_log.InfoFormat("[CLIENTVIEW] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
-            //GC.Collect();
-            //m_log.InfoFormat("[CLIENTVIEW] Memory post GC {0}", System.GC.GetTotalMemory(true));
+            if(m_scene.GetNumberOfClients() == 0)
+                GC.Collect();          
         }
 
         public void Kick(string message)
