@@ -2996,7 +2996,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
             }
 
-            int WearableOut = 0;
             bool isWearable = false;
 
             isWearable = ((AssetType) req.AssetInf.Type ==
@@ -8563,7 +8562,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // surrounding scene
                 if ((ImageType)block.Type == ImageType.Baked)
                     args.Priority *= 2.0f;
-                int wearableout = 0;
 
                 ImageManager.EnqueueReq(args);
             }
