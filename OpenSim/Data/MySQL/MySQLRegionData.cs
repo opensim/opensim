@@ -204,7 +204,7 @@ namespace OpenSim.Data.MySQL
             foreach (RegionData r in dbret)
             {
                 if (r.posX + r.sizeX > startX && r.posX <= endX
-                    && r.posY + r.sizeX > startY && r.posY <= endY)
+                    && r.posY + r.sizeY > startY && r.posY <= endY)
                     ret.Add(r);
             }
             return ret;
