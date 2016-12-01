@@ -207,8 +207,8 @@ namespace OpenSim.Services.GridService
             List<RegionData> rdatas = m_Database.Get(
                         regionInfos.RegionLocX,
                         regionInfos.RegionLocY,
-                        regionInfos.RegionLocX + regionInfos.RegionSizeX,
-                        regionInfos.RegionLocY + regionInfos.RegionSizeY,
+                        regionInfos.RegionLocX + regionInfos.RegionSizeX - 1,
+                        regionInfos.RegionLocY + regionInfos.RegionSizeY - 1 ,
                         scopeID);
 
             RegionData region = null;
