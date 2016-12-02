@@ -13792,6 +13792,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             case ScriptBaseClass.OBJECT_GROUP_TAG:
                                 ret.Add(new LSL_String(av.Grouptitle));
                                 break;
+                            case ScriptBaseClass.OBJECT_TEMP_ATTACHED:
+                                ret.Add(new LSL_Integer(0));
+                                break;
                             default:
                                 // Invalid or unhandled constant.
                                 ret.Add(new LSL_Integer(ScriptBaseClass.OBJECT_UNKNOWN_DETAIL));
@@ -13983,6 +13986,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 break;
                             case ScriptBaseClass.OBJECT_GROUP_TAG:
                                 ret.Add(new LSL_String(String.Empty));
+                                break;
+                            case ScriptBaseClass.OBJECT_TEMP_ATTACHED:
+                                if (obj.ParentGroup.AttachmentPoint != 0 && obj.ParentGroup.FromItemID == UUID.Zero)
+                                {
+                                    ret.Add(new LSL_Integer(1));
+                                }
+                                else
+                                {
+                                    ret.Add(new LSL_Integer(0));
+                                }
                                 break;
                             default:
                                 // Invalid or unhandled constant.

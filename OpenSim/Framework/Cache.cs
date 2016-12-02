@@ -89,14 +89,14 @@ namespace OpenSim.Framework
         public CacheItemBase(string index)
         {
             uuid = index;
-            entered = DateTime.Now;
+            entered = DateTime.UtcNow;
             lastUsed = entered;
         }
 
         public CacheItemBase(string index, DateTime ttl)
         {
             uuid = index;
-            entered = DateTime.Now;
+            entered = DateTime.UtcNow;
             lastUsed = entered;
             expires = ttl;
         }
@@ -215,6 +215,8 @@ namespace OpenSim.Framework
         private CacheFlags m_Flags = 0;
         private int m_Size = 1024;
         private TimeSpan m_DefaultTTL = new TimeSpan(0);
+        private DateTime m_nextExpire;
+        private TimeSpan m_expiresTime = new TimeSpan(0,0,30);
         public ExpireDelegate OnExpire;
 
         // Comparison interfaces
@@ -233,6 +235,21 @@ namespace OpenSim.Framework
                 return(a.lastUsed.CompareTo(b.lastUsed));
             }
         }
+        // same as above, reverse order
+        private class SortLRUrev : IComparer<CacheItemBase>
+        {
+            public int Compare(CacheItemBase a, CacheItemBase b)
+            {
+                if (a == null && b == null)
+                    return 0;
+                if (a == null)
+                    return -1;
+                if (b == null)
+                    return 1;
+
+                return(b.lastUsed.CompareTo(a.lastUsed));
+            }
+        }
 
         // Convenience constructors
         //
@@ -241,6 +258,8 @@ namespace OpenSim.Framework
             m_Strategy = CacheStrategy.Balanced;
             m_Medium = CacheMedium.Memory;
             m_Flags = 0;
+            m_nextExpire = DateTime.UtcNow + m_expiresTime;
+            m_Strategy = CacheStrategy.Aggressive;
         }
 
         public Cache(CacheMedium medium) :
@@ -295,19 +314,23 @@ namespace OpenSim.Framework
         {
             lock (m_Index)
             {
-                if (Count <= Size)
-                    return;
+                int target = newSize;
+                if(m_Strategy == CacheStrategy.Aggressive)
+                    target = (int)(newSize * 0.9);
 
-                m_Index.Sort(new SortLRU());
-                m_Index.Reverse();
+                if(Count > target)
+                {
+                    m_Index.Sort(new SortLRUrev());
 
-                m_Index.RemoveRange(newSize, Count - newSize);
+                    m_Index.RemoveRange(newSize, Count - target);
+
+                    m_Lookup.Clear();
+
+                    foreach (CacheItemBase item in m_Index)
+                        m_Lookup[item.uuid] = item;
+                }
                 m_Size = newSize;
 
-                m_Lookup.Clear();
-
-                foreach (CacheItemBase item in m_Index)
-                    m_Lookup[item.uuid] = item;
             }
         }
 
@@ -335,7 +358,7 @@ namespace OpenSim.Framework
                 }
     
                 item.hits++;
-                item.lastUsed = DateTime.Now;
+                item.lastUsed = DateTime.UtcNow;
     
                 Expire(true);
             }
@@ -361,30 +384,26 @@ namespace OpenSim.Framework
         //
         public virtual Object Get(string index, FetchDelegate fetch)
         {
-            Object item = Get(index);
+            CacheItemBase item = GetItem(index);
             if (item != null)
-                return item;
+                return item.Retrieve();
 
             Object data = fetch(index);
-            if (data == null)
-            {
-                if ((m_Flags & CacheFlags.CacheMissing) != 0)
-                {
-                    lock (m_Index)
-                    {
-                        CacheItemBase missing = new CacheItemBase(index);
-                        if (!m_Index.Contains(missing))
-                        {
-                            m_Index.Add(missing);
-                            m_Lookup[index] = missing;
-                        }
-                    }
-                }
+
+            if (data == null && (m_Flags & CacheFlags.CacheMissing) == 0)
                 return null;
+
+            lock (m_Index)
+            {
+               CacheItemBase missing = new CacheItemBase(index);
+               if (!m_Index.Contains(missing))
+               {
+                   m_Index.Add(missing);
+                   m_Lookup[index] = missing;
+               }
             }
 
             Store(index, data);
-
             return data;
         }
 
@@ -442,9 +461,9 @@ namespace OpenSim.Framework
                         item = GetItem(index);
 
                         item.hits++;
-                        item.lastUsed = DateTime.Now;
+                        item.lastUsed = DateTime.UtcNow;
                         if (m_DefaultTTL.Ticks != 0)
-                            item.expires = DateTime.Now + m_DefaultTTL;
+                            item.expires = DateTime.UtcNow + m_DefaultTTL;
 
                         item.Store(data);
                     }
@@ -455,7 +474,7 @@ namespace OpenSim.Framework
                         parameters);
 
                 if (m_DefaultTTL.Ticks != 0)
-                    item.expires = DateTime.Now + m_DefaultTTL;
+                    item.expires = DateTime.UtcNow + m_DefaultTTL;
 
                 m_Index.Add(item);
                 m_Lookup[index] = item;
@@ -476,10 +495,14 @@ namespace OpenSim.Framework
             if (getting && (m_Strategy == CacheStrategy.Aggressive))
                 return;
 
+            DateTime now = DateTime.UtcNow;
+            if(now < m_nextExpire)
+                return;
+
+            m_nextExpire = now + m_expiresTime;
+
             if (m_DefaultTTL.Ticks != 0)
             {
-                DateTime now= DateTime.Now;
-
                 foreach (CacheItemBase item in new List<CacheItemBase>(m_Index))
                 {
                     if (item.expires.Ticks == 0 ||
@@ -494,15 +517,13 @@ namespace OpenSim.Framework
             switch (m_Strategy)
             {
                 case CacheStrategy.Aggressive:
-                    if (Count < Size)
-                        return;
-
-                    m_Index.Sort(new SortLRU());
-                    m_Index.Reverse();
-
                     int target = (int)((float)Size * 0.9);
-                    if (target == Count) // Cover ridiculous cache sizes
+                    if (Count < target) // Cover ridiculous cache sizes
                         return;
+
+                    target = (int)((float)Size * 0.8);
+
+                    m_Index.Sort(new SortLRUrev());
 
                     ExpireDelegate doExpire = OnExpire;
 
