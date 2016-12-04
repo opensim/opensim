@@ -201,6 +201,8 @@ namespace OpenSim.Region.ClientStack.Linden
             m_assetService = m_Scene.AssetService;
             m_regionName = m_Scene.RegionInfo.RegionName;
             m_UserManager = m_Scene.RequestModuleInterface<IUserManagement>();
+            if (m_UserManager == null)
+                m_log.Error("[CAPS]: GetDisplayNames disabled because user management component not found");
 
             RegisterHandlers();
 
@@ -324,9 +326,12 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             try
             {
-                IRequestHandler GetDisplayNamesHandler = new RestStreamHandler(
+                if (m_UserManager != null)
+                {
+                    IRequestHandler GetDisplayNamesHandler = new RestStreamHandler(
                         "GET",  GetNewCapPath(), GetDisplayNames, "GetDisplayNames", null);
-                m_HostCapsObj.RegisterHandler("GetDisplayNames", GetDisplayNamesHandler);
+                    m_HostCapsObj.RegisterHandler("GetDisplayNames", GetDisplayNamesHandler);
+                }
             }
             catch (Exception e)
             {
@@ -1818,22 +1823,23 @@ namespace OpenSim.Region.ClientStack.Linden
                 string param, IOSHttpRequest httpRequest,
                 IOSHttpResponse httpResponse)
         {
-            httpResponse.StatusCode = (int)System.Net.HttpStatusCode.NoContent;
+            httpResponse.StatusCode = (int)System.Net.HttpStatusCode.Gone;
             httpResponse.ContentType = "text/plain";
 
             ScenePresence sp = m_Scene.GetScenePresence(m_AgentID);
             if(sp == null || sp.IsDeleted)
                 return "";
 
+            if(sp.IsInTransit)
+            {
+                httpResponse.StatusCode = (int)System.Net.HttpStatusCode.ServiceUnavailable;
+                httpResponse.AddHeader("Retry-After","30");
+                return "";
+            }
+
             NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
             string[] ids = query.GetValues("ids");
 
-            if (m_UserManager == null)
-            {
-                m_log.Error("[GET_DISPLAY_NAMES]: Cannot fetch display names without a user management component");
-                httpResponse.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
-                return "";
-            }
 
             Dictionary<UUID,string> names = m_UserManager.GetUsersNames(ids);
 
