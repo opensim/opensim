@@ -6303,6 +6303,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 IUrlModule UrlModule = World.RequestModuleInterface<IUrlModule>();
                 return UrlModule.ExternalHostNameForLSL;
             }
+            else if (name == "region_max_prims")
+            {
+                return World.RegionInfo.ObjectCapacity.ToString();
+            }
             else
             {
                 return "";
