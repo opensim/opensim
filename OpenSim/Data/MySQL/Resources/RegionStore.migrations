@@ -453,3 +453,11 @@ MODIFY `cloud_scroll_x` float(9,7) NOT NULL DEFAULT '0.20',
 MODIFY `cloud_scroll_y` float(9,7) NOT NULL DEFAULT '0.01';
 
 COMMIT;
+
+:VERSION 56         #----- Add RezzerID field in table prims
+
+BEGIN;
+
+ALTER TABLE `prims` ADD COLUMN `RezzerID` char(36) DEFAULT NULL;
+
+COMMIT;

@@ -1942,6 +1942,7 @@ namespace OpenSim.Region.Framework.Scenes
                     else
                     {
                         part.LastOwnerID = part.ParentGroup.RootPart.LastOwnerID;
+                        part.RezzerID = part.ParentGroup.RootPart.RezzerID;
                         childParts.Add(part);
                     }
                 }

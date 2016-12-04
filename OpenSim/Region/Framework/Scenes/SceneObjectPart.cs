@@ -460,7 +460,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_name = "Object";
 
             CreationDate = (int)Utils.DateTimeToUnixTime(Rezzed);
-            LastOwnerID = CreatorID = OwnerID = ownerID;
+            RezzerID = LastOwnerID = CreatorID = OwnerID = ownerID;
             UUID = UUID.Random();
             Shape = shape;
             OwnershipCost = 0;
@@ -484,6 +484,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region XML Schema
 
+        private UUID _rezzerID;
         private UUID _lastOwnerID;
         private UUID _ownerID;
         private UUID _groupID;
@@ -1385,6 +1386,12 @@ namespace OpenSim.Region.Framework.Scenes
             set { _lastOwnerID = value; }
         }
 
+        public UUID RezzerID
+        {
+            get { return _rezzerID; }
+            set { _rezzerID = value; }
+        }
+
         public uint BaseMask
         {
             get { return _baseMask; }
@@ -2222,6 +2229,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // This may be wrong...    it might have to be applied in SceneObjectGroup to the object that's being duplicated.
             dupe.LastOwnerID = OwnerID;
+            dupe.RezzerID = RezzerID;
 
             byte[] extraP = new byte[Shape.ExtraParams.Length];
             Array.Copy(Shape.ExtraParams, extraP, extraP.Length);

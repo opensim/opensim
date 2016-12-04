@@ -4030,8 +4030,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.None, "osGetRezzingObject");
             m_host.AddScriptLPS(1);
-
-            return new LSL_Key(m_host.ParentGroup.FromPartID.ToString());
+            UUID rezID = m_host.ParentGroup.RezzerID;
+            if(rezID == UUID.Zero || m_host.ParentGroup.Scene.GetScenePresence(rezID) != null)
+                return new LSL_Key(UUID.Zero.ToString());
+            return new LSL_Key(rezID.ToString());
         }
 
         /// <summary>

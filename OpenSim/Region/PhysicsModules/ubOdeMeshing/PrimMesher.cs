@@ -718,8 +718,8 @@ namespace PrimMesher
                             }
 
                             newFace.v1 = 0;
-                            newFace.v2 = numTotalVerts - numHollowVerts;
-                            newFace.v3 = numTotalVerts - 1;
+                            newFace.v2 = numTotalVerts - 1;
+                            newFace.v3 = numTotalVerts - numHollowVerts;
                             faces.Add(newFace);
                         }
                     }
