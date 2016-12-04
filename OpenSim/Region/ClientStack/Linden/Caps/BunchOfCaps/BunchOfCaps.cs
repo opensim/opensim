@@ -1046,6 +1046,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         prim.OwnerID = owner_id;
                         prim.GroupID = UUID.Zero;
                         prim.LastOwnerID = creatorID;
+                        prim.RezzerID = creatorID;
                         prim.CreationDate = Util.UnixTimeSinceEpoch();
                         
                         if (grp == null)
@@ -1093,6 +1094,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         {
                             grp = new SceneObjectGroup(prim);
                             grp.LastOwnerID = creatorID;
+                            grp.RezzerID = creatorID;
                         }
                         else
                             grp.AddPart(prim);

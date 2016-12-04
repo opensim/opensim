@@ -1216,6 +1216,7 @@ namespace OpenSim.Data.SQLite
             createCol(prims, "OwnerID", typeof(String));
             createCol(prims, "GroupID", typeof(String));
             createCol(prims, "LastOwnerID", typeof(String));
+            createCol(prims, "RezzerID", typeof(String));
             createCol(prims, "OwnerMask", typeof(Int32));
             createCol(prims, "NextOwnerMask", typeof(Int32));
             createCol(prims, "GroupMask", typeof(Int32));
@@ -1679,6 +1680,7 @@ namespace OpenSim.Data.SQLite
             prim.OwnerID = new UUID((String)row["OwnerID"]);
             prim.GroupID = new UUID((String)row["GroupID"]);
             prim.LastOwnerID = new UUID((String)row["LastOwnerID"]);
+            prim.RezzerID = row["RezzerID"] == DBNull.Value ? UUID.Zero : new UUID((String)row["RezzerID"]);
             prim.OwnerMask = Convert.ToUInt32(row["OwnerMask"]);
             prim.NextOwnerMask = Convert.ToUInt32(row["NextOwnerMask"]);
             prim.GroupMask = Convert.ToUInt32(row["GroupMask"]);
@@ -2125,6 +2127,7 @@ namespace OpenSim.Data.SQLite
             row["OwnerID"] = prim.OwnerID.ToString();
             row["GroupID"] = prim.GroupID.ToString();
             row["LastOwnerID"] = prim.LastOwnerID.ToString();
+            row["RezzerID"] = prim.RezzerID.ToString();
             row["OwnerMask"] = prim.OwnerMask;
             row["NextOwnerMask"] = prim.NextOwnerMask;
             row["GroupMask"] = prim.GroupMask;

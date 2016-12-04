@@ -284,6 +284,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 prim.OwnerID = AgentId;
                 prim.GroupID = obj.GroupID;
                 prim.LastOwnerID = prim.OwnerID;
+                prim.RezzerID = AgentId;
                 prim.CreationDate = Util.UnixTimeSinceEpoch();
                 prim.Name = obj.Name;
                 prim.Description = "";

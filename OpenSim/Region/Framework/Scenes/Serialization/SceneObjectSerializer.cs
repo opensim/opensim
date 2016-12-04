@@ -428,6 +428,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("GroupID", ProcessGroupID);
             m_SOPXmlProcessors.Add("OwnerID", ProcessOwnerID);
             m_SOPXmlProcessors.Add("LastOwnerID", ProcessLastOwnerID);
+            m_SOPXmlProcessors.Add("RezzerID", ProcessRezzerID);
             m_SOPXmlProcessors.Add("BaseMask", ProcessBaseMask);
             m_SOPXmlProcessors.Add("OwnerMask", ProcessOwnerMask);
             m_SOPXmlProcessors.Add("GroupMask", ProcessGroupMask);
@@ -862,6 +863,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static void ProcessLastOwnerID(SceneObjectPart obj, XmlReader reader)
         {
             obj.LastOwnerID = Util.ReadUUID(reader, "LastOwnerID");
+        }
+
+        private static void ProcessRezzerID(SceneObjectPart obj, XmlReader reader)
+        {
+            obj.RezzerID = Util.ReadUUID(reader, "RezzerID");
         }
 
         private static void ProcessBaseMask(SceneObjectPart obj, XmlReader reader)
@@ -1451,6 +1457,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             UUID lastOwnerID = options.ContainsKey("wipe-owners") ? UUID.Zero : sop.LastOwnerID;
             WriteUUID(writer, "LastOwnerID", lastOwnerID, options);
+
+            UUID rezzerID = options.ContainsKey("wipe-owners") ? UUID.Zero : sop.RezzerID;
+            WriteUUID(writer, "RezzerID", rezzerID, options);
 
             writer.WriteElementString("BaseMask", sop.BaseMask.ToString());
             writer.WriteElementString("OwnerMask", sop.OwnerMask.ToString());

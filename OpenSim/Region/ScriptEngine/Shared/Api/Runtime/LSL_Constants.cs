@@ -640,6 +640,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int OBJECT_OMEGA = 29;
         public const int OBJECT_PRIM_COUNT = 30;
         public const int OBJECT_TOTAL_INVENTORY_COUNT = 31;
+        public const int OBJECT_REZZER_KEY = 32;
         public const int OBJECT_GROUP_TAG = 33;
         public const int OBJECT_TEMP_ATTACHED = 34;
 

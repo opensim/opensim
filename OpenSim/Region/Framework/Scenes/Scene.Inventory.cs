@@ -2625,6 +2625,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 group.FromPartID = sourcePart.UUID;
+                group.RezzerID = group.FromPartID;
+
                 if( i == 0)
                     AddNewSceneObject(group, true, curpos, rot, vel);
                 else

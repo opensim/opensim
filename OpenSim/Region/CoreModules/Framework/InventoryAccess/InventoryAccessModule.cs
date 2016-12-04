@@ -981,6 +981,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         // Make the rezzer the owner, as this is not necessarily set correctly in the serialized asset.
                         part.LastOwnerID = part.OwnerID;
                         part.OwnerID = remoteClient.AgentId;
+                        part.RezzerID = remoteClient.AgentId;
                     }
                 }
 
@@ -1150,6 +1151,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                             part.LastOwnerID = part.OwnerID;
                             part.OwnerID = item.Owner;
+                            part.RezzerID = item.Owner;
                             part.Inventory.ChangeInventoryOwner(item.Owner);
                         }
     

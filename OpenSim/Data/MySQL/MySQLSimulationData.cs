@@ -167,7 +167,7 @@ namespace OpenSim.Data.MySQL
                                     "SitTargetOrientY, SitTargetOrientZ, " +
                                     "RegionUUID, CreatorID, " +
                                     "OwnerID, GroupID, " +
-                                    "LastOwnerID, SceneGroupID, " +
+                                    "LastOwnerID, RezzerID, SceneGroupID, " +
                                     "PayPrice, PayButton1, " +
                                     "PayButton2, PayButton3, " +
                                     "PayButton4, LoopedSound, " +
@@ -207,7 +207,7 @@ namespace OpenSim.Data.MySQL
                                     "?SitTargetOrientW, ?SitTargetOrientX, " +
                                     "?SitTargetOrientY, ?SitTargetOrientZ, " +
                                     "?RegionUUID, ?CreatorID, ?OwnerID, " +
-                                    "?GroupID, ?LastOwnerID, ?SceneGroupID, " +
+                                    "?GroupID, ?LastOwnerID, ?RezzerID, ?SceneGroupID, " +
                                     "?PayPrice, ?PayButton1, ?PayButton2, " +
                                     "?PayButton3, ?PayButton4, ?LoopedSound, " +
                                     "?LoopedSoundGain, ?TextureAnimation, " +
@@ -1279,6 +1279,10 @@ namespace OpenSim.Data.MySQL
             prim.OwnerID = DBGuid.FromDB(row["OwnerID"]);
             prim.GroupID = DBGuid.FromDB(row["GroupID"]);
             prim.LastOwnerID = DBGuid.FromDB(row["LastOwnerID"]);
+            if (row["RezzerID"] != DBNull.Value)
+                prim.RezzerID = DBGuid.FromDB(row["RezzerID"]);
+            else
+                prim.RezzerID = UUID.Zero;
 
             // explicit conversion of integers is required, which sort
             // of sucks.  No idea if there is a shortcut here or not.
@@ -1682,6 +1686,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("OwnerID", prim.OwnerID.ToString());
             cmd.Parameters.AddWithValue("GroupID", prim.GroupID.ToString());
             cmd.Parameters.AddWithValue("LastOwnerID", prim.LastOwnerID.ToString());
+            cmd.Parameters.AddWithValue("RezzerID", prim.RezzerID.ToString());
             cmd.Parameters.AddWithValue("OwnerMask", prim.OwnerMask);
             cmd.Parameters.AddWithValue("NextOwnerMask", prim.NextOwnerMask);
             cmd.Parameters.AddWithValue("GroupMask", prim.GroupMask);

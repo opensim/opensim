@@ -886,6 +886,12 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_rootPart.LastOwnerID = value; }
         }
 
+        public UUID RezzerID
+        {
+            get { return m_rootPart.RezzerID; }
+            set { m_rootPart.RezzerID = value; }
+        }
+
         public UUID OwnerID
         {
             get { return m_rootPart.OwnerID; }

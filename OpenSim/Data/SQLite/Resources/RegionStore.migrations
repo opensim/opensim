@@ -363,3 +363,11 @@ CREATE TABLE IF NOT EXISTS bakedterrain(
        Heightfield blob);
 
 COMMIT;
+
+:VERSION 35         #----- Add RezzerID field in table prims
+
+BEGIN;
+
+ALTER TABLE `prims` ADD COLUMN `RezzerID` char(36) DEFAULT NULL;
+
+COMMIT;

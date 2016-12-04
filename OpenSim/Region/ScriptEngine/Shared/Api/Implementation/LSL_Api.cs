@@ -13793,6 +13793,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 } catch { };
                                 ret.Add(new LSL_Integer(invcount));
                                 break;
+                            case ScriptBaseClass.OBJECT_REZZER_KEY:
+                                ret.Add(new LSL_Key(id));
+                                break;
                             case ScriptBaseClass.OBJECT_GROUP_TAG:
                                 ret.Add(new LSL_String(av.Grouptitle));
                                 break;
@@ -13987,6 +13990,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 for(int i = 0; i < nparts; i++)
                                     count += parts[i].Inventory.Count;
                                 ret.Add(new LSL_Integer(count));
+                                break;
+                            case ScriptBaseClass.OBJECT_REZZER_KEY:
+                                ret.Add(new LSL_Key(obj.ParentGroup.RezzerID.ToString()));
                                 break;
                             case ScriptBaseClass.OBJECT_GROUP_TAG:
                                 ret.Add(new LSL_String(String.Empty));
