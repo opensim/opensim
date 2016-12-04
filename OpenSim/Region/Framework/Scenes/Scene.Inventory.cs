@@ -2624,8 +2624,7 @@ namespace OpenSim.Region.Framework.Scenes
                     group.RootPart.Shape.LastAttachPoint = (byte)group.AttachmentPoint;
                 }
 
-                group.FromPartID = sourcePart.UUID;
-                group.RezzerID = group.FromPartID;
+                group.RezzerID = sourcePart.UUID;
 
                 if( i == 0)
                     AddNewSceneObject(group, true, curpos, rot, vel);

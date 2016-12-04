@@ -783,7 +783,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                     group.RootPart.Shape.LastAttachPoint = (byte)group.AttachmentPoint;
                 }
 
-                group.FromPartID = host.RootPart.UUID;
+                group.RezzerID = host.RootPart.UUID;
                 m_scene.AddNewSceneObject(group, true, curpos, rot, vel);
 
                 UUID storeID = group.UUID;
