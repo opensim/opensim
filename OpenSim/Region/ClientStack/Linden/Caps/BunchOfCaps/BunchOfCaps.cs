@@ -29,9 +29,11 @@ using System;
 using System.Timers;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Web;
 
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
@@ -125,6 +127,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private bool m_AllowCapHomeLocation = true;
         private bool m_AllowCapGroupMemberData = true;
+        private  IUserManagement m_UserManager;
+
 
         private enum FileAgentInventoryState : int
         {
@@ -196,6 +200,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             m_assetService = m_Scene.AssetService;
             m_regionName = m_Scene.RegionInfo.RegionName;
+            m_UserManager = m_Scene.RequestModuleInterface<IUserManagement>();
 
             RegisterHandlers();
 
@@ -229,6 +234,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             RegisterRegionServiceHandlers();
             RegisterInventoryServiceHandlers();
+            RegisterOtherHandlers();
         }
 
         public void RegisterRegionServiceHandlers()
@@ -314,6 +320,19 @@ namespace OpenSim.Region.ClientStack.Linden
             }
         }
 
+        public void RegisterOtherHandlers()
+        {
+            try
+            {
+                IRequestHandler GetDisplayNamesHandler = new RestStreamHandler(
+                        "GET",  GetNewCapPath(), GetDisplayNames, "GetDisplayNames", null);
+                m_HostCapsObj.RegisterHandler("GetDisplayNames", GetDisplayNamesHandler);
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[CAPS]: " + e.ToString());
+            }
+        }
         /// <summary>
         /// Construct a client response detailing all the capabilities this server can provide.
         /// </summary>
@@ -1793,6 +1812,71 @@ namespace OpenSim.Region.ClientStack.Linden
 
             response = OSDParser.SerializeLLSDXmlString(resp);
             return response;
+        }
+
+        public string GetDisplayNames(string request, string path,
+                string param, IOSHttpRequest httpRequest,
+                IOSHttpResponse httpResponse)
+        {
+            httpResponse.StatusCode = (int)System.Net.HttpStatusCode.NoContent;
+            httpResponse.ContentType = "text/plain";
+
+            ScenePresence sp = m_Scene.GetScenePresence(m_AgentID);
+            if(sp == null || sp.IsDeleted)
+                return "";
+
+            NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
+            string[] ids = query.GetValues("ids");
+
+            if (m_UserManager == null)
+            {
+                m_log.Error("[GET_DISPLAY_NAMES]: Cannot fetch display names without a user management component");
+                httpResponse.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+                return "";
+            }
+
+            Dictionary<UUID,string> names = m_UserManager.GetUsersNames(ids);
+
+            OSDMap osdReply = new OSDMap();
+            OSDArray agents = new OSDArray();
+
+            osdReply["agents"] = agents;
+            foreach (KeyValuePair<UUID,string> kvp in names)
+            {
+                if (string.IsNullOrEmpty(kvp.Value))
+                    continue;
+                if(kvp.Key == UUID.Zero)
+                    continue;
+
+                string[] parts = kvp.Value.Split(new char[] {' '});
+                OSDMap osdname = new OSDMap();
+                if(parts[0] == "Unknown")
+                {
+                    osdname["display_name_next_update"] = OSD.FromDate(DateTime.UtcNow.AddHours(1));        
+                    osdname["display_name_expires"] = OSD.FromDate(DateTime.UtcNow.AddHours(2));
+                }
+                else
+                {
+                    osdname["display_name_next_update"] = OSD.FromDate(DateTime.UtcNow.AddDays(8));        
+                    osdname["display_name_expires"] = OSD.FromDate(DateTime.UtcNow.AddMonths(1));
+                }
+                osdname["display_name"] = OSD.FromString(kvp.Value);
+                osdname["legacy_first_name"] = parts[0];
+                osdname["legacy_last_name"] = parts[1];
+                osdname["username"] = OSD.FromString(kvp.Value);
+                osdname["id"] = OSD.FromUUID(kvp.Key);
+                osdname["is_display_name_default"] = OSD.FromBoolean(true);
+
+                agents.Add(osdname);
+            }
+
+            // Full content request
+            httpResponse.StatusCode = (int)System.Net.HttpStatusCode.OK;
+            //httpResponse.ContentLength = ??;
+            httpResponse.ContentType = "application/llsd+xml";
+
+            string reply = OSDParser.SerializeLLSDXmlString(osdReply);
+            return reply;
         }
     }
 
