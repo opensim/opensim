@@ -136,7 +136,7 @@ namespace OpenSim.Framework.Capabilities
             }
 
             m_agentID = agent;
-            m_capsHandlers = new CapsHandlers(httpServer, httpListen, httpPort, (httpServer == null) ? false : httpServer.UseSSL);
+            m_capsHandlers = new CapsHandlers(httpServer, httpListen, httpPort);
             m_regionName = regionName;
             m_capsActive.Reset();
         }
