@@ -58,7 +58,7 @@ namespace OpenSim.Framework.Capabilities
             m_httpListener = httpListener;
             m_httpListenerHostName = httpListenerHostname;
             m_httpListenerPort = httpListenerPort;
-            if (httpListener.UseSSL)
+            if (httpListener != null && httpListener.UseSSL)
                 m_useSSL = true;
             else
                 m_useSSL = false;
