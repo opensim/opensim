@@ -863,7 +863,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             if (p != null && p.isNPC)
             {
                 remoteClient.SendAgentAlertMessage(
-                        "Notes for NPCs not avaiable", false);
+                        "Notes for NPCs not available", false);
                 return;
             }
 
@@ -1009,7 +1009,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
             if (p != null && p.isNPC)
             {
-                remoteClient.SendAvatarProperties(avatarID, "im a happy NPC", "5/25/1977" ,
+                remoteClient.SendAvatarProperties(avatarID, ((INPC)(p.ControllingClient)).profileAbout, "5/25/1977",
                       Utils.StringToBytes("NPC"), "NPCs have no life", 0,
                       UUID.Zero, UUID.Zero, "", UUID.Zero);
                 remoteClient.SendAvatarInterestsReply(avatarID, 0, "",

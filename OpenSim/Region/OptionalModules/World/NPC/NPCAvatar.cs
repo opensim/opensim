@@ -69,7 +69,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         private readonly Scene m_scene;
         private readonly UUID m_ownerID;
         private UUID m_hostGroupID;
-
+        private string m_profileAbout = "";
         public List<uint> SelectedObjects {get; private set;}
 
         public NPCAvatar(
@@ -98,6 +98,17 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             m_hostGroupID = UUID.Zero;
         }
 
+        public string profileAbout
+        {
+            get { return m_profileAbout; }
+            set
+            {
+                if(value.Length > 255)
+                    m_profileAbout = value.Substring(0,255);
+                else
+                    m_profileAbout = value;
+            }
+        }
         public IScene Scene
         {
             get { return m_scene; }

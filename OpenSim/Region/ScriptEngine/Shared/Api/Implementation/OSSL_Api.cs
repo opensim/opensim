@@ -2999,6 +2999,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        public void osNpcSetProfileAbout(LSL_Key npc, string about)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
+            m_host.AddScriptLPS(1);
+
+            INPCModule module = World.RequestModuleInterface<INPCModule>();
+            if (module != null)
+            {
+                UUID npcId = new UUID(npc.m_string);
+
+                if (!module.CheckPermissions(npcId, m_host.OwnerID))
+                    return;
+
+                ScenePresence sp = World.GetScenePresence(npcId);
+                if (sp != null)
+                    ((INPC)(sp.ControllingClient)).profileAbout = about;
+            }
+        }
+
         public void osNpcSay(LSL_Key npc, string message)
         {
             osNpcSay(npc, 0, message);
