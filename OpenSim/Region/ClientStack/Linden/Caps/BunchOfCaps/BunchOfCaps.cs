@@ -1675,7 +1675,7 @@ namespace OpenSim.Region.ClientStack.Linden
             if(fail)
             {
                 if(client != null)
-                    client.SendAlertMessage(message, "HomePositionSet");
+                    client.SendAlertMessage(message);
                 response = OSDParser.SerializeLLSDXmlString(resp);
                 return response;
             }
