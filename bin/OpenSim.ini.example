@@ -297,18 +297,16 @@
 
     
     ;; SSL certificate validation options
-    ;; used also on contacting other peers that require SSL and we don't
-    ;; you should set this to false forcing all peers (like regions) to have valid certificates
-    ;; but you can allow selfsigned certificates or no official CA with next option true
+    ;; you can allow selfsigned certificates or no official CA with next option set to true
     ;# {NoVerifyCertChain} {} {do not verify SSL Cert Chain} {true false} true
     ; NoVerifyCertChain = true
 
     ;; you can also bypass the hostname or domain verification
     ;# {NoVerifyCertHostname} {} {do not verify SSL Cert name versus peer name} {true false} true
     ; NoVerifyCertHostname = true
-    ;; having both options true does provide encriptation, but low security
-    ;; possible enought for small grids, specially it not comercial       
-
+    ;; having both options true does provide encryption but with low security
+    ;; set both true if you don't care to use SSL, they are needed to contact regions or grids that do use it.
+    
 [AccessControl]
     ;# {AllowedClients} {} {Bar (|) separated list of allowed clients} {}
     ;; Bar (|) separated list of viewers which may gain access to the regions.
