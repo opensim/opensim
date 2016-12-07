@@ -79,7 +79,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="uuid"></param>
         /// <param name="firstName"></param>
         /// <param name="lastName"></param>
-        void AddUser(UUID uuid, string firstName, string lastName);
+        void AddUser(UUID uuid, string first, string last, bool isNPC = false);
 
         /// <summary>
         /// Add a user.

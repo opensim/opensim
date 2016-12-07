@@ -805,7 +805,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             return !userdata.IsUnknownUser;
         }
 
-        public virtual void AddUser(UUID uuid, string first, string last)
+        public virtual void AddUser(UUID uuid, string first, string last, bool isNPC = false)
         {
             lock(m_UserCache)
             {
@@ -816,7 +816,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     user.FirstName = first;
                     user.LastName = last;
                     user.IsUnknownUser = false;
-                    user.HasGridUserTried = false;
+                    user.HasGridUserTried = isNPC;
                     m_UserCache.Add(uuid, user);
                 }
             }
