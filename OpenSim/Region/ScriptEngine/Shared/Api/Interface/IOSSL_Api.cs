@@ -343,6 +343,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         rotation    osNpcGetRot(key npc);
         void        osNpcSetRot(LSL_Key npc, rotation rot);
         void        osNpcStopMoveToTarget(LSL_Key npc);
+        void        osNpcSetProfileAbout(LSL_Key npc, string about);
         void        osNpcSay(key npc, string message);
         void        osNpcSay(key npc, int channel, string message);
         void        osNpcShout(key npc, int channel, string message);

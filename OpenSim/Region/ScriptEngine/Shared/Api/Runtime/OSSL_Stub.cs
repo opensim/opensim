@@ -637,6 +637,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osNpcStopMoveToTarget(npc);
         }
 
+        public void osNpcSetProfileAbout(LSL_Key npc, string about)
+        {
+            m_OSSL_Functions.osNpcSetProfileAbout(npc, about);
+        }
+
         public void osNpcSay(key npc, string message)
         {
             m_OSSL_Functions.osNpcSay(npc, message);

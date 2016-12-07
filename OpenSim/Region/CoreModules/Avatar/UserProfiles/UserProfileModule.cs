@@ -320,13 +320,12 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             UUID targetID;
             UUID.TryParse(args[0], out targetID);
 
-            // Can't handle NPC yet...
-            ScenePresence p = FindPresence(targetID);
 
-            if (null != p)
+            ScenePresence p = FindPresence(targetID);
+            if (p != null && p.isNPC)
             {
-                if (p.PresenceType == PresenceType.Npc)
-                    return;
+                remoteClient.SendAvatarClassifiedReply(new UUID(args[0]), new Dictionary<UUID, string>());
+                return;
             }
 
             string serverURI = string.Empty;
@@ -575,10 +574,10 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             // Can't handle NPC yet...
             ScenePresence p = FindPresence(targetId);
 
-            if (null != p)
+            if (p != null && p.isNPC)
             {
-                if (p.PresenceType == PresenceType.Npc)
-                    return;
+                remoteClient.SendAvatarPicksReply(new UUID(args[0]), new Dictionary<UUID, string>());
+                return;
             }
 
             string serverURI = string.Empty;
@@ -860,6 +859,14 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// </param>
         public void NotesUpdate(IClientAPI remoteClient, UUID queryTargetID, string queryNotes)
         {
+            ScenePresence p = FindPresence(queryTargetID);
+            if (p != null && p.isNPC)
+            {
+                remoteClient.SendAgentAlertMessage(
+                        "Notes for NPCs not available", false);
+                return;
+            }
+
             UserProfileNotes note = new UserProfileNotes();
 
             note.UserId = remoteClient.AgentId;
@@ -1000,10 +1007,14 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             // Can't handle NPC yet...
             ScenePresence p = FindPresence(avatarID);
 
-            if (null != p)
+            if (p != null && p.isNPC)
             {
-                if (p.PresenceType == PresenceType.Npc)
-                    return;
+                remoteClient.SendAvatarProperties(avatarID, ((INPC)(p.ControllingClient)).profileAbout, "5/25/1977",
+                      Utils.StringToBytes("Non Player Character (NPC)"), "NPCs have no life", 16,
+                      UUID.Zero, UUID.Zero, "", UUID.Zero);
+                remoteClient.SendAvatarInterestsReply(avatarID, 0, "",
+                          0, "Getting into trouble", "Droidspeak");
+                return;
             }
 
             string serverURI = string.Empty;

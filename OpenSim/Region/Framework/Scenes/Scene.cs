@@ -3226,7 +3226,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (sp != null && sp.PresenceType == PresenceType.Npc)
                 {
-                    UserManagementModule.AddUser(aCircuit.AgentID, first, last);
+                    UserManagementModule.AddUser(aCircuit.AgentID, first, last, true);
                 }
                 else
                 {
