@@ -776,6 +776,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             else if (sp.Flying)
                 teleportFlags |= (uint)TeleportFlags.IsFlying;
 
+            sp.IsInTransit = true;
+
             if (DisableInterRegionTeleportCancellation)
                 teleportFlags |= (uint)TeleportFlags.DisableCancel;
 
@@ -878,7 +880,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     sp.Name, sp.Scene.RegionInfo.RegionName, finalDestination.RegionName, reason);
 
                 sp.ControllingClient.SendTeleportFailed(reason);
-
+                sp.IsInTransit = false;
                 return;
             }
 
@@ -889,7 +891,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Cancelled teleport of {0} to {1} from {2} after CreateAgent on client request",
                     sp.Name, finalDestination.RegionName, sp.Scene.Name);
-
+                sp.IsInTransit = false;
                 return;
             }
             else if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Aborting)
@@ -899,7 +901,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Aborted teleport of {0} to {1} from {2} after CreateAgent due to previous client close.",
                     sp.Name, finalDestination.RegionName, sp.Scene.Name);
-
+                sp.IsInTransit = false;
                 return;
             }
 
@@ -960,7 +962,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Aborted teleport of {0} to {1} from {2} before UpdateAgent",
                     sp.Name, finalDestination.RegionName, sp.Scene.Name);
-
+                sp.IsInTransit = false;
                 return;
             }
 
@@ -977,7 +979,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     m_log.DebugFormat(
                         "[ENTITY TRANSFER MODULE]: Aborted teleport of {0} to {1} from {2} after UpdateAgent due to previous client close.",
                         sp.Name, finalDestination.RegionName, sp.Scene.Name);
-
+                    sp.IsInTransit = false;
                     return;
                 }
 
@@ -986,6 +988,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     sp.Name, finalDestination.RegionName, sp.Scene.Name);
 
                 Fail(sp, finalDestination, logout, currentAgentCircuit.SessionID.ToString(), "Connection between viewer and destination region could not be established.");
+                sp.IsInTransit = false;
                 return;
             }
 
@@ -998,7 +1001,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     sp.Name, finalDestination.RegionName, sp.Scene.Name);
 
                 CleanupFailedInterRegionTeleport(sp, currentAgentCircuit.SessionID.ToString(), finalDestination);
-
+                sp.IsInTransit = false;
                 return;
             }
 
@@ -1035,7 +1038,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     m_log.DebugFormat(
                         "[ENTITY TRANSFER MODULE]: Aborted teleport of {0} to {1} from {2} after WaitForAgentArrivedAtDestination due to previous client close.",
                         sp.Name, finalDestination.RegionName, sp.Scene.Name);
-
+                    sp.IsInTransit = false;
                     return;
                 }
 
@@ -1044,7 +1047,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     sp.Name, finalDestination.RegionName, sp.Scene.RegionInfo.RegionName);
 
                 Fail(sp, finalDestination, logout, currentAgentCircuit.SessionID.ToString(), "Destination region did not signal teleport completion.");
-
+                sp.IsInTransit = false;
                 return;
             }
 
@@ -1093,6 +1096,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 Thread.Sleep(500);
                 sp.Scene.CloseAgent(sp.UUID, false);
             }
+            sp.IsInTransit = false;
         }
 
         private void TransferAgent_V2(ScenePresence sp, AgentCircuitData agentCircuit, GridRegion reg, GridRegion finalDestination,
@@ -1115,7 +1119,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     sp.Name, sp.Scene.RegionInfo.RegionName, finalDestination.RegionName, reason);
 
                 sp.ControllingClient.SendTeleportFailed(reason);
-
+                sp.IsInTransit = false;
                 return;
             }
 
@@ -1127,6 +1131,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     "[ENTITY TRANSFER MODULE]: Cancelled teleport of {0} to {1} from {2} after CreateAgent on client request",
                     sp.Name, finalDestination.RegionName, sp.Scene.Name);
 
+                sp.IsInTransit = false;
                 return;
             }
             else if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Aborting)
@@ -1137,6 +1142,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     "[ENTITY TRANSFER MODULE]: Aborted teleport of {0} to {1} from {2} after CreateAgent due to previous client close.",
                     sp.Name, finalDestination.RegionName, sp.Scene.Name);
 
+                sp.IsInTransit = false;
                 return;
             }
 
@@ -1189,7 +1195,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     m_log.DebugFormat(
                         "[ENTITY TRANSFER MODULE]: Aborted teleport of {0} to {1} from {2} after UpdateAgent due to previous client close.",
                         sp.Name, finalDestination.RegionName, sp.Scene.Name);
-
+                    sp.IsInTransit = false;
                     return;
                 }
 
@@ -1198,6 +1204,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     sp.Name, finalDestination.RegionName, sp.Scene.Name);
 
                 Fail(sp, finalDestination, logout, currentAgentCircuit.SessionID.ToString(), "Connection between viewer and destination region could not be established.");
+                sp.IsInTransit = false;
                 return;
             }
             
@@ -1255,6 +1262,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 sp.Reset();
             }
  */
+            sp.IsInTransit = false;
         }
 
         /// <summary>
