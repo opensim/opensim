@@ -71,6 +71,7 @@
     ConsoleHistoryFileLines = 100
 
     ; peers SSL certificate validation options (if using ssl)
+    ; used also on contacting other peers that require SSL and we don't
     ; you should set this to false forcing all peers (like regions) to have valid certificates
     ; but you can allow selfsigned certificates or no official CA with next option true
     NoVerifyCertChain = true

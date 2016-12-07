@@ -61,6 +61,16 @@
 
     ; How many lines of command history should we keep? (default is 100)
     ConsoleHistoryFileLines = 100
+    
+    ; peers SSL certificate validation options
+    ; used also on contacting other peers that require SSL and we don't
+    ; you should set this to false forcing all peers (like regions) to have valid certificates
+    ; but you can allow selfsigned certificates or no official CA with next option true
+    NoVerifyCertChain = true
+    ; you can also bypass the hostname or domain verification
+    NoVerifyCertHostname = true
+    ; having both options true does provide encriptation, but low security
+    ; possible enought for small grids, specially it not comercial
   
 [ServiceList]
     AssetServiceConnector = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:AssetServiceConnector"

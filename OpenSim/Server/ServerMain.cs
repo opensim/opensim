@@ -79,6 +79,7 @@ namespace OpenSim.Server
             // Make sure we don't get outbound connections queueing
             ServicePointManager.DefaultConnectionLimit = 50;
             ServicePointManager.UseNagleAlgorithm = false;
+            ServicePointManager.ServerCertificateValidationCallback = ValidateServerCertificate;
 
             m_Server = new HttpServerBase("R.O.B.U.S.T.", args);
             
@@ -94,7 +95,6 @@ namespace OpenSim.Server
             m_NoVerifyCertChain = serverConfig.GetBoolean("NoVerifyCertChain", m_NoVerifyCertChain);
             m_NoVerifyCertHostname = serverConfig.GetBoolean("NoVerifyCertHostname", m_NoVerifyCertHostname);
 
-            ServicePointManager.ServerCertificateValidationCallback = ValidateServerCertificate;
 
             string connList = serverConfig.GetString("ServiceConnectors", String.Empty);
             

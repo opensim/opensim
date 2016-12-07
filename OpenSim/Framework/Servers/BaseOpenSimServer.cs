@@ -33,6 +33,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Timers;
+using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using log4net;
 using log4net.Appender;
 using log4net.Core;
@@ -85,7 +88,27 @@ namespace OpenSim.Framework.Servers
             // Random uuid for private data
             m_osSecret = UUID.Random().ToString();
         }
-        
+   
+        private static bool m_NoVerifyCertChain = false;
+        private static bool m_NoVerifyCertHostname = false;
+
+        public static bool ValidateServerCertificate(
+            object sender,
+            X509Certificate certificate,
+            X509Chain chain,
+            SslPolicyErrors sslPolicyErrors)
+        {
+            if (m_NoVerifyCertChain)
+                sslPolicyErrors &= ~SslPolicyErrors.RemoteCertificateChainErrors;
+ 
+            if (m_NoVerifyCertHostname)
+                sslPolicyErrors &= ~SslPolicyErrors.RemoteCertificateNameMismatch;
+
+            if (sslPolicyErrors == SslPolicyErrors.None)
+                return true;
+
+            return false;
+        }             
         /// <summary>
         /// Must be overriden by child classes for their own server specific startup behaviour.
         /// </summary>
@@ -96,6 +119,11 @@ namespace OpenSim.Framework.Servers
             RegisterCommonComponents(Config);
 
             IConfig startupConfig = Config.Configs["Startup"];
+
+            m_NoVerifyCertChain = startupConfig.GetBoolean("NoVerifyCertChain", m_NoVerifyCertChain);
+            m_NoVerifyCertHostname = startupConfig.GetBoolean("NoVerifyCertHostname", m_NoVerifyCertHostname);
+            ServicePointManager.ServerCertificateValidationCallback = ValidateServerCertificate;
+
             int logShowStatsSeconds = startupConfig.GetInt("LogShowStatsSeconds", m_periodDiagnosticTimerMS / 1000);
             m_periodDiagnosticTimerMS = logShowStatsSeconds * 1000;
             m_periodicDiagnosticsTimer.Elapsed += new ElapsedEventHandler(LogDiagnostics);
