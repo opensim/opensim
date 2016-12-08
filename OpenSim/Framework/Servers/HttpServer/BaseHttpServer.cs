@@ -108,7 +108,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             new Dictionary<string, WebSocketRequestDelegate>(); 
 
         protected uint m_port;
-        protected uint m_sslport;
         protected bool m_ssl;
         private X509Certificate2 m_cert;
         protected string m_SSLCommonName = "";
@@ -120,9 +119,14 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public PollServiceRequestManager PollServiceRequestManager { get; private set; }
 
+        public string Protocol
+        {
+            get { return m_ssl ? "https://" : "http://"; }
+        }
+
         public uint SSLPort
         {
-            get { return m_sslport; }
+            get { return m_port; }
         }
 
         public string SSLCommonName
@@ -184,7 +188,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
-        public BaseHttpServer(uint port, bool ssl, uint sslport, string CN, string CPath, string CPass)
+        public BaseHttpServer(uint port, bool ssl, string CN, string CPath, string CPass)
         {
             m_port = port;
             if (ssl)
@@ -200,7 +204,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                 m_certCN= "";
 
                 m_ssl = true;
-                m_sslport = sslport;
                 load_cert(CPath, CPass);
                 
                 if(!CheckSSLCertHost(CN))
@@ -224,7 +227,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                 if(m_cert.Issuer == m_cert.Subject )
                     m_log.Warn("Self signed certificate. Http clients need to allow this");
                 m_ssl = true;
-                m_sslport = port;
             }
             else
                 m_ssl = false;
@@ -2101,7 +2103,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             catch (Exception e)
             {
                 m_log.Error("[BASE HTTP SERVER]: Error - " + e.Message);
-                m_log.Error("[BASE HTTP SERVER]: Tip: Do you have permission to listen on port " + m_port + ", " + m_sslport + "?");
+                m_log.Error("[BASE HTTP SERVER]: Tip: Do you have permission to listen on port " + m_port + "?");
 
                 // We want this exception to halt the entire server since in current configurations we aren't too
                 // useful without inbound HTTP.

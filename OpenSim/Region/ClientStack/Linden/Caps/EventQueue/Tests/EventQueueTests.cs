@@ -59,13 +59,12 @@ namespace OpenSim.Region.ClientStack.Linden.Tests
             base.SetUp();
 
             uint port = 9999;
-            uint sslPort = 9998;
 
             // This is an unfortunate bit of clean up we have to do because MainServer manages things through static
             // variables and the VM is not restarted between tests.
             MainServer.RemoveHttpServer(port);
 
-            BaseHttpServer server = new BaseHttpServer(port, false, sslPort, "","","");
+            BaseHttpServer server = new BaseHttpServer(port, false, "","","");
             MainServer.AddHttpServer(server);
             MainServer.Instance = server;
 

@@ -70,7 +70,7 @@ namespace OpenSim
             Initialize();
 
             uint mainport = m_networkServersInfo.HttpListenerPort;
-            uint mainSSLport =m_networkServersInfo.httpSSLPort;
+            uint mainSSLport = m_networkServersInfo.httpSSLPort;
 
             if (m_networkServersInfo.HttpUsesSSL && (mainport == mainSSLport))
             {
@@ -81,11 +81,10 @@ namespace OpenSim
             {
                 m_httpServer = new BaseHttpServer(
                         mainSSLport, m_networkServersInfo.HttpUsesSSL,
-                        mainSSLport, m_networkServersInfo.HttpSSLCN,
+                        m_networkServersInfo.HttpSSLCN,
                         m_networkServersInfo.HttpSSLCertPath, m_networkServersInfo.HttpSSLCNCertPass);
                 m_httpServer.Start(true,true);
                 MainServer.AddHttpServer(m_httpServer);
-
             }
 
             // unsecure main server
