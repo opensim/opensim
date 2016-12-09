@@ -77,6 +77,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             if (parameters == null)
                 throw new ArgumentNullException("parameters");
 
+            if(string.IsNullOrWhiteSpace(uri))
+                return false;
+
             OSDMap request = new OSDMap();
             request.Add("jsonrpc", OSD.FromString("2.0"));
             request.Add("id", OSD.FromString(jsonId));
