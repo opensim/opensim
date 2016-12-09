@@ -125,6 +125,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 hash["hostname"] = regInfo.ExternalHostName;
                 hash["http_port"] = regInfo.HttpPort.ToString();
                 hash["internal_port"] = regInfo.InternalEndPoint.Port.ToString();
+                hash["server_uri"] = regInfo.ServerURI;
             }
 
             if (message != null)
