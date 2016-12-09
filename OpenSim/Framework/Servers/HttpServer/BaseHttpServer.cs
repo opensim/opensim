@@ -1231,6 +1231,17 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                         if (gridproxy)
                             xmlRprcRequest.Params.Add("gridproxy");  // Param[4]
+
+                        // reserve this for
+                        // ... by Fumi.Iseki for DTLNSLMoneyServer
+                        // BUT make its presence possible to detect/parse
+                        string rcn = request.IHttpClientContext.SSLCommonName;
+                        if(!string.IsNullOrWhiteSpace(rcn))
+                        {
+                            rcn = "SSLCN:" + rcn;
+                            xmlRprcRequest.Params.Add(rcn); // Param[4] or Param[5]
+                        }
+                
                         try
                         {
                             xmlRpcResponse = method(xmlRprcRequest, request.RemoteIPEndPoint);
