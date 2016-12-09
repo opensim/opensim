@@ -32,6 +32,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Reflection;
 using System.Globalization;
@@ -114,6 +115,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         protected List<string> m_certNames = new List<string>();
         protected List<string> m_certIPs = new List<string>();
         protected string m_certCN= "";
+        protected RemoteCertificateValidationCallback m_certificateValidationCallback = null;
 
         protected IPAddress m_listenIPAddress = IPAddress.Any;
 
@@ -2076,6 +2078,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                     //m_httpListener.Prefixes.Add("https://+:" + (m_sslport) + "/");
                     //m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
                     m_httpListener2 = CoolHTTPListener.Create(IPAddress.Any, (int)m_port, m_cert);
+                    if(m_certificateValidationCallback != null)
+                        m_httpListener2.CertificateValidationCallback = m_certificateValidationCallback;
                     m_httpListener2.ExceptionThrown += httpServerException;
                     m_httpListener2.LogWriter = httpserverlog;
                 }
