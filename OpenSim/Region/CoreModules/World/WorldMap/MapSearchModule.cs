@@ -216,7 +216,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     // while we don't fix the hard-coded urls
                     if (flags == 2) 
                     {
-                        if (regionInfos.Count == 0)
+                        if (regionInfos == null || regionInfos.Count == 0)
                             remoteClient.SendAgentAlertMessage("No regions found with that name.", true);
     //                    else if (regionInfos.Count == 1)
     //                        remoteClient.SendAgentAlertMessage("Region found!", false);
