@@ -456,7 +456,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
 
             // Check Default Location (Also See ScenePresence.CompleteMovement)
-            if (position.X == 128f && position.Y == 128f)
+            if (position.X == 128f && position.Y == 128f && position.Z == 22.5f)
                 position = sp.Scene.RegionInfo.DefaultLandingPoint;
 
             // TODO: Get proper AVG Height
