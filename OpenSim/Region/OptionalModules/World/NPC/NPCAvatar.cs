@@ -70,6 +70,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         private readonly UUID m_ownerID;
         private UUID m_hostGroupID;
         private string m_profileAbout = "";
+        private string m_born;
         public List<uint> SelectedObjects {get; private set;}
 
         public NPCAvatar(
@@ -609,6 +610,12 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
             get { return 0; }
             set { }
+        }
+
+        public string Born
+        {
+            get { return m_born; }
+            set { m_born = value; }
         }
 
         public bool IsGroupMember(UUID groupID)
