@@ -708,7 +708,11 @@ namespace OpenSim.Framework
             }
             else
             {
-                m_externalHostName = externalName;
+                IPAddress[] addrs = Dns.GetHostAddresses(externalName);
+                if (addrs.Length != 1) // If it is ambiguous or not resolveable, use it literally
+                    m_externalHostName = externalName;
+                else
+                    m_externalHostName = addrs[0].ToString();
             }
 
             // RegionType
