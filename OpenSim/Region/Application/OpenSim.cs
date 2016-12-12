@@ -131,7 +131,6 @@ namespace OpenSim
 
         private Thread signal_thread = new Thread (delegate ()
         {
-            System.Console.WriteLine("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
             while (true)
             {
                 // Wait for a signal to be delivered
@@ -153,13 +152,21 @@ namespace OpenSim
 
             if(!Util.IsWindows())
             {
-                // linux mac os specifics
-                signals = new Mono.Unix.UnixSignal[]
+                try
                 {
-//              new Mono.Unix.UnixSignal(Mono.Unix.Native.Signum.SIGINT),
-                new Mono.Unix.UnixSignal(Mono.Unix.Native.Signum.SIGTERM)
-                };
-                signal_thread.Start();
+                    // linux mac os specifics
+                    signals = new Mono.Unix.UnixSignal[]
+                    {
+                        new Mono.Unix.UnixSignal(Mono.Unix.Native.Signum.SIGTERM)
+                    };
+                    signal_thread.Start();
+                }
+                catch (Exception e)
+                {
+                    m_log.Info("Could not set up UNIX signal handlers. SIGTERM will not");
+                    m_log.InfoFormat("shut down gracefully: {0}", e.Message);
+                    m_log.Debug("Exception was: ", e);
+                }
             }
             //m_log.InfoFormat("[OPENSIM MAIN]: GC Is Server GC: {0}", GCSettings.IsServerGC.ToString());
             // http://msdn.microsoft.com/en-us/library/bb384202.aspx
