@@ -2704,7 +2704,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(packet, ThrottleOutPacketType.Task);
         }
 
-        public void SendAvatarProperties(UUID avatarID, string aboutText, string bornOn, Byte[] charterMember,
+        public void SendAvatarProperties(UUID avatarID, string aboutText, string bornOn, Byte[] membershipType,
                                          string flAbout, uint flags, UUID flImageID, UUID imageID, string profileURL,
                                          UUID partnerID)
         {
@@ -2716,7 +2716,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             else
                 avatarReply.PropertiesData.AboutText = Utils.EmptyBytes;
             avatarReply.PropertiesData.BornOn = Util.StringToBytes256(bornOn);
-            avatarReply.PropertiesData.CharterMember = charterMember;
+            avatarReply.PropertiesData.CharterMember = membershipType;
             if (flAbout != null)
                 avatarReply.PropertiesData.FLAboutText = Util.StringToBytes256(flAbout);
             else

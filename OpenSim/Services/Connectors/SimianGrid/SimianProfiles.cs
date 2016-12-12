@@ -308,11 +308,11 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     about = new OSDMap(0);
 
                 // Check if this user is a grid operator
-                byte[] charterMember;
+                byte[] membershipType;
                 if (user["AccessLevel"].AsInteger() >= 200)
-                    charterMember = Utils.StringToBytes("Operator");
+                    membershipType = Utils.StringToBytes("Operator");
                 else
-                    charterMember = Utils.EmptyBytes;
+                    membershipType = Utils.EmptyBytes;
 
                 // Check if the user is online
                 if (client.Scene is Scene)
@@ -327,7 +327,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     flags |= ProfileFlags.Identified;
 
                 client.SendAvatarProperties(avatarID, about["About"].AsString(), user["CreationDate"].AsDate().ToString("M/d/yyyy",
-                    System.Globalization.CultureInfo.InvariantCulture), charterMember, about["FLAbout"].AsString(), (uint)flags,
+                    System.Globalization.CultureInfo.InvariantCulture), membershipType, about["FLAbout"].AsString(), (uint)flags,
                     about["FLImage"].AsUUID(), about["Image"].AsUUID(), about["URL"].AsString(), user["Partner"].AsUUID());
 
                 OSDMap interests = null;
