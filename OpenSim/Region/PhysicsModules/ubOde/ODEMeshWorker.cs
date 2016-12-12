@@ -433,7 +433,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 convex = true;
                 // sculpts pseudo convex
-                if (pbs.SculptType != (byte)SculptType.Mesh)
+                if (pbs.SculptEntry && pbs.SculptType != (byte)SculptType.Mesh)
                     clod = (int)LevelOfDetail.Low;
             }
 
