@@ -147,6 +147,7 @@ namespace OpenSim.Framework
         public string RemotingAddress;
         public UUID ScopeID = UUID.Zero;
         private UUID m_maptileStaticUUID = UUID.Zero;
+        private bool m_resolveAddress = false;
 
         public uint WorldLocX = 0;
         public uint WorldLocY = 0;
@@ -686,6 +687,20 @@ namespace OpenSim.Framework
                 config.Set("AllowAlternatePorts", m_allow_alternate_ports.ToString());
             }
 
+            // ResolveAddress
+            //
+            allKeys.Remove("ResolveAddress");
+            if (config.Contains("ResolveAddress"))
+            {
+                m_resolveAddress = config.GetBoolean("ResolveAddress", false);
+            }
+            else
+            {
+                m_resolveAddress = Convert.ToBoolean(MainConsole.Instance.CmdPrompt("Resolve hostname to IP on start (for running inside Docker)", "False"));
+
+                config.Set("ResolveAddress", m_resolveAddress.ToString());
+            }
+
             // ExternalHostName
             //
             allKeys.Remove("ExternalHostName");
@@ -705,6 +720,10 @@ namespace OpenSim.Framework
                 m_log.InfoFormat(
                     "[REGIONINFO]: Resolving SYSTEMIP to {0} for external hostname of region {1}",
                     m_externalHostName, name);
+            }
+            else if (!m_resolveAddress)
+            {
+                m_externalHostName = externalName;
             }
             else
             {
