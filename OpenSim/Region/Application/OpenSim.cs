@@ -126,11 +126,8 @@ namespace OpenSim
             m_log.Info("[OPENSIM MAIN]: Using async_call_method " + Util.FireAndForgetMethod);
         }
 
-        private static Mono.Unix.UnixSignal[] signals = new Mono.Unix.UnixSignal[]
-        {
-//            new Mono.Unix.UnixSignal(Mono.Unix.Native.Signum.SIGINT),
-            new Mono.Unix.UnixSignal(Mono.Unix.Native.Signum.SIGTERM)
-        };
+        private static Mono.Unix.UnixSignal[] signals;
+
 
         private Thread signal_thread = new Thread (delegate ()
         {
@@ -154,7 +151,16 @@ namespace OpenSim
             m_log.Info("========================= STARTING OPENSIM =========================");
             m_log.Info("====================================================================");
 
-            signal_thread.Start();
+            if(!Util.IsWindows())
+            {
+                // linux mac os specifics
+                signals = new Mono.Unix.UnixSignal[]
+                {
+//              new Mono.Unix.UnixSignal(Mono.Unix.Native.Signum.SIGINT),
+                new Mono.Unix.UnixSignal(Mono.Unix.Native.Signum.SIGTERM)
+                };
+                signal_thread.Start();
+            }
             //m_log.InfoFormat("[OPENSIM MAIN]: GC Is Server GC: {0}", GCSettings.IsServerGC.ToString());
             // http://msdn.microsoft.com/en-us/library/bb384202.aspx
             //GCSettings.LatencyMode = GCLatencyMode.Batch;
