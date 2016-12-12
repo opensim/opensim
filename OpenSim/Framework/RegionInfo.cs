@@ -545,7 +545,7 @@ namespace OpenSim.Framework
 
         private void ReadNiniConfig(IConfigSource source, string name)
         {
-//            bool creatingNew = false;
+            bool creatingNew = false;
 
             if (source.Configs.Count == 0)
             {
@@ -569,7 +569,7 @@ namespace OpenSim.Framework
 
                 source.AddConfig(name);
 
-//                creatingNew = true;
+                creatingNew = true;
             }
 
             if (name == String.Empty)
@@ -696,7 +696,8 @@ namespace OpenSim.Framework
             }
             else
             {
-                m_resolveAddress = Convert.ToBoolean(MainConsole.Instance.CmdPrompt("Resolve hostname to IP on start (for running inside Docker)", "False"));
+                if (creatingNew)
+                    m_resolveAddress = Convert.ToBoolean(MainConsole.Instance.CmdPrompt("Resolve hostname to IP on start (for running inside Docker)", "False"));
 
                 config.Set("ResolveAddress", m_resolveAddress.ToString());
             }
