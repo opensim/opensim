@@ -217,10 +217,6 @@ namespace OpenMetaverse
                     SocketType.Dgram,
                     ProtocolType.Udp);
 
-                // OpenSim may need this but in AVN, this messes up automated
-                // sim restarts badly
-                //m_udpSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, false);
-
                 try
                 {
                     if (m_udpSocket.Ttl < 128)
@@ -248,7 +244,13 @@ namespace OpenMetaverse
                 // we never want two regions to listen on the same port as they cannot demultiplex each other's messages,
                 // leading to a confusing bug.
                 // By default, Windows does not allow two sockets to bind to the same port.
-                m_udpSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, false);
+				//
+				// Unfortunately, this also causes a crashed sim to leave the socket in a state
+				// where it appears to be in use but is really just hung from the old process
+				// crashing rather than closing it. While this protects agains misconfiguration,
+				// allowing crashed sims to be started up again right away, rather than having to
+				// wait 2 minutes for the socket to clear is more valuable. Commented 12/13/2016
+                // m_udpSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, false);
 
                 if (recvBufferSize != 0)
                     m_udpSocket.ReceiveBufferSize = recvBufferSize;
