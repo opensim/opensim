@@ -107,6 +107,11 @@ namespace OpenMetaverse
         /// </summary>
         public float AverageReceiveTicksForLastSamplePeriod { get; private set; }
 
+		public int Port
+		{
+			get { return m_udpPort; }
+		}
+
         #region PacketDropDebugging
         /// <summary>
         /// For debugging purposes only... random number generator for dropping
@@ -256,6 +261,9 @@ namespace OpenMetaverse
                     m_udpSocket.ReceiveBufferSize = recvBufferSize;
 
                 m_udpSocket.Bind(ipep);
+
+				if (m_udpPort == 0)
+					m_udpPort = ((IPEndPoint)m_udpSocket.LocalEndPoint).Port;
 
                 IsRunningInbound = true;
 
