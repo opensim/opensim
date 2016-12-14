@@ -255,11 +255,8 @@ namespace OpenSim.Services.GridService
                        regionName = parts[2];
                     }
 
-                    if(port == 80)
-                       serverURI = "http://"+ host + "/";
-                    else
-                        serverURI = "http://"+ host +":"+ port.ToString() + "/";
-                    }
+                    serverURI = "http://"+ host +":"+ port.ToString() + "/";
+                }
             }
             else
             {
@@ -301,6 +298,10 @@ namespace OpenSim.Services.GridService
             if(!string.IsNullOrEmpty(regionName))
                 regionName = regionName.Trim(new char[] { '"', ' ' });
             serverURI = uri.AbsoluteUri;
+            if(uri.Port == 80)
+                serverURI = serverURI.Trim(new char[] { '/', ' ' }) +":80/";
+            else if(uri.Port == 443)
+                serverURI = serverURI.Trim(new char[] { '/', ' ' }) +":443/";
             return true;
         }
 

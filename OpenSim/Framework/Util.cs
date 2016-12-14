@@ -1685,6 +1685,8 @@ namespace OpenSim.Framework
 
             // hide the password in the connection string
             passPosition = connectionString.IndexOf("password", StringComparison.OrdinalIgnoreCase);
+            if (passPosition == -1)
+                return connectionString;
             passPosition = connectionString.IndexOf("=", passPosition);
             if (passPosition < connectionString.Length)
                 passPosition += 1;

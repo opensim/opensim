@@ -349,7 +349,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             }
             else
             {
-                if (!GenerateCoordsAndFacesFromPrimShapeData(primName, primShape, lod, out coords, out faces))
+                if (!GenerateCoordsAndFacesFromPrimShapeData(primName, primShape, lod, convex, out coords, out faces))
                     return null;
             }
 
@@ -942,7 +942,8 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         /// <param name="faces">Faces are added to this list by the method.</param>
         /// <returns>true if coords and faces were successfully generated, false if not</returns>
         private bool GenerateCoordsAndFacesFromPrimShapeData(
-            string primName, PrimitiveBaseShape primShape, float lod, out List<Coord> coords, out List<Face> faces)
+                string primName, PrimitiveBaseShape primShape, float lod, bool convex,
+                out List<Coord> coords, out List<Face> faces)
         {
             PrimMesh primMesh;
             coords = new List<Coord>();
@@ -970,7 +971,9 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                 profileBegin = profileEnd - 0.02f;
 
             float profileHollow = (float)primShape.ProfileHollow * 2.0e-5f;
-            if (profileHollow > 0.95f)
+            if(convex)
+                profileHollow = 0.0f;
+            else if (profileHollow > 0.95f)
                 profileHollow = 0.95f;
           
             int sides = 4;

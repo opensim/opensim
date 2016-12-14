@@ -1009,9 +1009,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
             if (p != null && p.isNPC)
             {
-                remoteClient.SendAvatarProperties(avatarID, ((INPC)(p.ControllingClient)).profileAbout, "5/25/1977",
+                remoteClient.SendAvatarProperties(avatarID, ((INPC)(p.ControllingClient)).profileAbout, ((INPC)(p.ControllingClient)).Born,
                       Utils.StringToBytes("Non Player Character (NPC)"), "NPCs have no life", 16,
-                      UUID.Zero, UUID.Zero, "", UUID.Zero);
+                      UUID.Zero, ((INPC)(p.ControllingClient)).profileImage, "", UUID.Zero);
                 remoteClient.SendAvatarInterestsReply(avatarID, 0, "",
                           0, "Getting into trouble", "Droidspeak");
                 return;
@@ -1032,7 +1032,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 userInfo = new Dictionary<string, object>();
             }
 
-            Byte[] charterMember = new Byte[1];
+            Byte[] membershipType = new Byte[1];
             string born = String.Empty;
             uint flags = 0x00;
 
@@ -1040,11 +1040,11 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             {
                 if (account.UserTitle == "")
                 {
-                    charterMember[0] = (Byte)((account.UserFlags & 0xf00) >> 8);
+                    membershipType[0] = (Byte)((account.UserFlags & 0xf00) >> 8);
                 }
                 else
                 {
-                    charterMember = Utils.StringToBytes(account.UserTitle);
+                    membershipType = Utils.StringToBytes(account.UserTitle);
                 }
 
                 born = Util.ToDateTime(account.Created).ToString(
@@ -1057,11 +1057,11 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 {
                     if ((string)userInfo["user_title"] == "")
                     {
-                        charterMember[0] = (Byte)(((Byte)userInfo["user_flags"] & 0xf00) >> 8);
+                        membershipType[0] = (Byte)(((Byte)userInfo["user_flags"] & 0xf00) >> 8);
                     }
                     else
                     {
-                        charterMember = Utils.StringToBytes((string)userInfo["user_title"]);
+                        membershipType = Utils.StringToBytes((string)userInfo["user_title"]);
                     }
 
                     int val_born = (int)userInfo["user_created"];
@@ -1085,7 +1085,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 return;
             }
 
-            remoteClient.SendAvatarProperties(props.UserId, props.AboutText, born, charterMember , props.FirstLifeText, flags,
+            remoteClient.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType , props.FirstLifeText, flags,
                                               props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
 
 

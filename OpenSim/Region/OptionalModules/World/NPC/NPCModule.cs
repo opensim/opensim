@@ -168,6 +168,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 AvatarAppearance appearance)
         {
             NPCAvatar npcAvatar = null;
+            string born = DateTime.UtcNow.ToString();
 
             try
             {
@@ -222,6 +223,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     ScenePresence sp;
                     if (scene.TryGetScenePresence(npcAvatar.AgentId, out sp))
                     {
+                        npcAvatar.Born = born;
                         npcAvatar.ActiveGroupId = groupID;
                         sp.CompleteMovement(npcAvatar, false);
                         sp.Grouptitle = groupTitle;

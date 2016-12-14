@@ -81,7 +81,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             uint port = (uint)scene.RegionInfo.InternalEndPoint.Port;
 
             IPAddress listenIP = scene.RegionInfo.InternalEndPoint.Address;
-            Initialise(listenIP, ref port, scene.RegionInfo.ProxyOffset, scene.RegionInfo.m_allow_alternate_ports, m_Config, scene.AuthenticateHandler);
+            Initialise(listenIP, ref port, scene.RegionInfo.ProxyOffset, m_Config, scene.AuthenticateHandler);
             scene.RegionInfo.InternalEndPoint.Port = (int)port;
 
             AddScene(scene);
@@ -98,9 +98,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
         #endregion
 
-        public virtual void Initialise(IPAddress listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, IConfigSource configSource, AgentCircuitManager circuitManager)
+        public virtual void Initialise(IPAddress listenIP, ref uint port, int proxyPortOffsetParm, IConfigSource configSource, AgentCircuitManager circuitManager)
         {
-            m_udpServer = new LLUDPServer(listenIP, ref port, proxyPortOffsetParm, allow_alternate_port, configSource, circuitManager);
+            m_udpServer = new LLUDPServer(listenIP, ref port, proxyPortOffsetParm, configSource, circuitManager);
         }
 
         public virtual void AddScene(IScene scene)
@@ -430,11 +430,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public JobEngine OqrEngine { get; protected set; }
 
         public LLUDPServer(
-            IPAddress listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port,
+            IPAddress listenIP, ref uint port, int proxyPortOffsetParm,
             IConfigSource configSource, AgentCircuitManager circuitManager)
             : base(listenIP, (int)port)
         {
             #region Environment.TickCount Measurement
+
+			// Update the port with the one we actually got
+			port = (uint)Port;
 
             // Measure the resolution of Environment.TickCount
             TickCountResolution = 0f;

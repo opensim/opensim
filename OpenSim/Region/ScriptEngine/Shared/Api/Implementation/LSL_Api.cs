@@ -6307,6 +6307,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 return World.RegionInfo.ObjectCapacity.ToString();
             }
+            else if (name == "region_object_bonus")
+            {
+                return World.RegionInfo.RegionSettings.ObjectBonus.ToString();
+            }
             else
             {
                 return "";

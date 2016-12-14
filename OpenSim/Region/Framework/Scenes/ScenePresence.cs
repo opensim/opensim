@@ -2044,7 +2044,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 // Check Default Location (Also See EntityTransferModule.TeleportAgentWithinRegion)
-                if (AbsolutePosition.X == 128f && AbsolutePosition.Y == 128f)
+                if (AbsolutePosition.X == 128f && AbsolutePosition.Y == 128f && AbsolutePosition.Z == 22.5f)
                     AbsolutePosition = Scene.RegionInfo.DefaultLandingPoint;
 
                 if (!MakeRootAgent(AbsolutePosition, flying, ref look))
@@ -2125,11 +2125,12 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!gotCrossUpdate && !isNPC)
                     Scene.SendLayerData(ControllingClient);
 
-                // HG delay
-                if((m_teleportFlags & TeleportFlags.ViaHGLogin) != 0)
+                // HG
+                bool isHGTP = (m_teleportFlags & TeleportFlags.ViaHGLogin) != 0;
+                if(isHGTP)
                 {
-                    Thread.Sleep(500);
-                    m_log.DebugFormat("[CompleteMovement] HG delay: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+//                    ControllingClient.SendNameReply(m_uuid, Firstname, Lastname);
+                    m_log.DebugFormat("[CompleteMovement] HG");
                 }
 
                 m_previusParcelHide = false;
@@ -2151,7 +2152,7 @@ namespace OpenSim.Region.Framework.Scenes
                         cachedbaked = true;
                     else
                     {
-                        if (m_scene.AvatarFactory != null)
+                        if (m_scene.AvatarFactory != null && !isHGTP)
                             cachedbaked = m_scene.AvatarFactory.ValidateBakedTextureCache(this);
 
                         // not sure we need this

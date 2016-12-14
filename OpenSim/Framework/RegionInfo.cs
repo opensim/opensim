@@ -138,8 +138,6 @@ namespace OpenSim.Framework
         protected uint m_httpPort;
         protected string m_serverURI;
         protected string m_regionName = String.Empty;
-        protected bool Allow_Alternate_Ports;
-        public bool m_allow_alternate_ports;
         protected string m_externalHostName;
         protected IPEndPoint m_internalEndPoint;
         protected uint m_remotingPort;
@@ -147,6 +145,7 @@ namespace OpenSim.Framework
         public string RemotingAddress;
         public UUID ScopeID = UUID.Zero;
         private UUID m_maptileStaticUUID = UUID.Zero;
+        private bool m_resolveAddress = false;
 
         public uint WorldLocX = 0;
         public uint WorldLocY = 0;
@@ -544,7 +543,7 @@ namespace OpenSim.Framework
 
         private void ReadNiniConfig(IConfigSource source, string name)
         {
-//            bool creatingNew = false;
+            bool creatingNew = false;
 
             if (source.Configs.Count == 0)
             {
@@ -568,7 +567,7 @@ namespace OpenSim.Framework
 
                 source.AddConfig(name);
 
-//                creatingNew = true;
+                creatingNew = true;
             }
 
             if (name == String.Empty)
@@ -672,18 +671,19 @@ namespace OpenSim.Framework
             }
             m_internalEndPoint = new IPEndPoint(address, port);
 
-            // AllowAlternatePorts
+            // ResolveAddress
             //
-            allKeys.Remove("AllowAlternatePorts");
-            if (config.Contains("AllowAlternatePorts"))
+            allKeys.Remove("ResolveAddress");
+            if (config.Contains("ResolveAddress"))
             {
-                m_allow_alternate_ports = config.GetBoolean("AllowAlternatePorts", true);
+                m_resolveAddress = config.GetBoolean("ResolveAddress", false);
             }
             else
             {
-                m_allow_alternate_ports = Convert.ToBoolean(MainConsole.Instance.CmdPrompt("Allow alternate ports", "False"));
+                if (creatingNew)
+                    m_resolveAddress = Convert.ToBoolean(MainConsole.Instance.CmdPrompt("Resolve hostname to IP on start (for running inside Docker)", "False"));
 
-                config.Set("AllowAlternatePorts", m_allow_alternate_ports.ToString());
+                config.Set("ResolveAddress", m_resolveAddress.ToString());
             }
 
             // ExternalHostName
@@ -706,9 +706,17 @@ namespace OpenSim.Framework
                     "[REGIONINFO]: Resolving SYSTEMIP to {0} for external hostname of region {1}",
                     m_externalHostName, name);
             }
-            else
+            else if (!m_resolveAddress)
             {
                 m_externalHostName = externalName;
+            }
+            else
+            {
+                IPAddress[] addrs = Dns.GetHostAddresses(externalName);
+                if (addrs.Length != 1) // If it is ambiguous or not resolveable, use it literally
+                    m_externalHostName = externalName;
+                else
+                    m_externalHostName = addrs[0].ToString();
             }
 
             // RegionType
@@ -901,8 +909,6 @@ namespace OpenSim.Framework
             config.Set("InternalAddress", m_internalEndPoint.Address.ToString());
             config.Set("InternalPort", m_internalEndPoint.Port);
 
-            config.Set("AllowAlternatePorts", m_allow_alternate_ports.ToString());
-
             config.Set("ExternalHostName", m_externalHostName);
 
             if (m_nonphysPrimMin > 0)
@@ -995,10 +1001,6 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("internal_ip_port", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                                                 "Internal IP Port for incoming UDP client connections",
                                                 m_internalEndPoint.Port.ToString(), true);
-            configMember.addConfigurationOption("allow_alternate_ports",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
-                                                "Allow sim to find alternate UDP ports when ports are in use?",
-                                                m_allow_alternate_ports.ToString(), true);
             configMember.addConfigurationOption("external_host_name",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "External Host Name", m_externalHostName, true);
@@ -1068,9 +1070,6 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("internal_ip_port", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                                                 "Internal IP Port for incoming UDP client connections",
                                                 ConfigSettings.DefaultRegionHttpPort.ToString(), false);
-            configMember.addConfigurationOption("allow_alternate_ports", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
-                                                "Allow sim to find alternate UDP ports when ports are in use?",
-                                                "false", true);
             configMember.addConfigurationOption("external_host_name",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "External Host Name", "127.0.0.1", false);
@@ -1140,9 +1139,6 @@ namespace OpenSim.Framework
                     break;
                 case "internal_ip_port":
                     m_internalEndPoint.Port = (int) configuration_result;
-                    break;
-                case "allow_alternate_ports":
-                    m_allow_alternate_ports = (bool) configuration_result;
                     break;
                 case "external_host_name":
                     if ((string) configuration_result != "SYSTEMIP")
@@ -1220,7 +1216,6 @@ namespace OpenSim.Framework
             if ((RemotingAddress != null) && !RemotingAddress.Equals(""))
                 args["remoting_address"] = OSD.FromString(RemotingAddress);
             args["remoting_port"] = OSD.FromString(RemotingPort.ToString());
-            args["allow_alt_ports"] = OSD.FromBoolean(m_allow_alternate_ports);
             if ((proxyUrl != null) && !proxyUrl.Equals(""))
                 args["proxy_url"] = OSD.FromString(proxyUrl);
             if (RegionType != String.Empty)
@@ -1275,8 +1270,6 @@ namespace OpenSim.Framework
                 RemotingAddress = args["remoting_address"].AsString();
             if (args["remoting_port"] != null)
                 UInt32.TryParse(args["remoting_port"].AsString(), out m_remotingPort);
-            if (args["allow_alt_ports"] != null)
-                m_allow_alternate_ports = args["allow_alt_ports"].AsBoolean();
             if (args["proxy_url"] != null)
                 proxyUrl = args["proxy_url"].AsString();
             if (args["region_type"] != null)
@@ -1314,7 +1307,8 @@ namespace OpenSim.Framework
             kvp["http_port"] = HttpPort.ToString();
             kvp["internal_ip_address"] = InternalEndPoint.Address.ToString();
             kvp["internal_port"] = InternalEndPoint.Port.ToString();
-            kvp["alternate_ports"] = m_allow_alternate_ports.ToString();
+			// TODO: Remove in next major version
+			kvp["alternate_ports"] = "False";
             kvp["server_uri"] = ServerURI;
 
             return kvp;

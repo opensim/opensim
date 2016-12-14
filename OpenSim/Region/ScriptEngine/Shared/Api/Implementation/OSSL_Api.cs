@@ -3001,7 +3001,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osNpcSetProfileAbout(LSL_Key npc, string about)
         {
-            CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
+            CheckThreatLevel(ThreatLevel.Low, "osNpcSetProfileAbout");
             m_host.AddScriptLPS(1);
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
@@ -3015,6 +3015,35 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ScenePresence sp = World.GetScenePresence(npcId);
                 if (sp != null)
                     ((INPC)(sp.ControllingClient)).profileAbout = about;
+            }
+        }
+
+        public void osNpcSetProfileImage(LSL_Key npc, string image)
+        {
+            CheckThreatLevel(ThreatLevel.Low, "osNpcSetProfileImage");
+            m_host.AddScriptLPS(1);
+
+            INPCModule module = World.RequestModuleInterface<INPCModule>();
+            if (module != null)
+            {
+                UUID npcId = new UUID(npc.m_string);
+
+                if (!module.CheckPermissions(npcId, m_host.OwnerID))
+                    return;
+
+                UUID ImageID = new UUID();
+
+                ImageID = ScriptUtils.GetAssetIdFromItemName(m_host, image, (int)AssetType.Texture);
+
+                if (ImageID == null || ImageID == UUID.Zero)
+                {
+                    if (!UUID.TryParse(image, out ImageID))
+                        return;
+                }
+
+                ScenePresence sp = World.GetScenePresence(npcId);
+                if (sp != null)
+                    ((INPC)(sp.ControllingClient)).profileImage = ImageID;
             }
         }
 

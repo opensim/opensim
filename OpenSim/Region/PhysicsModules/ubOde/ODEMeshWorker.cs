@@ -239,7 +239,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             if (m_scene.haveActor(repData.actor))
             {
-                if (needsMeshing(repData.pbs)) // no need for pbs now?
+                if (needsMeshing(repData)) // no need for pbs now?
                 {
                     repData.comand = meshWorkerCmnds.changefull;
                     createqueue.Enqueue(repData);
@@ -284,8 +284,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// </summary>
         /// <param name="pbs"></param>
         /// <returns></returns>
-        public bool needsMeshing(PrimitiveBaseShape pbs)
+        public bool needsMeshing(ODEPhysRepData repData)
         {
+            PrimitiveBaseShape pbs = repData.pbs;
             // check sculpts or meshs 
             if (pbs.SculptEntry)
             {
@@ -301,6 +302,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (forceSimplePrimMeshing)
                 return true;
 
+            // convex shapes have no holes
+            ushort profilehollow = pbs.ProfileHollow;
+            if(repData.shapetype == 2)
+                profilehollow = 0;
+
             // if it's a standard box or sphere with no cuts, hollows, twist or top shear, return false since ODE can use an internal representation for the prim
 
             if ((pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight)
@@ -309,7 +315,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
 
                 if (pbs.ProfileBegin == 0 && pbs.ProfileEnd == 0
-                    && pbs.ProfileHollow == 0
+                    && profilehollow == 0
                     && pbs.PathTwist == 0 && pbs.PathTwistBegin == 0
                     && pbs.PathBegin == 0 && pbs.PathEnd == 0
                     && pbs.PathTaperX == 0 && pbs.PathTaperY == 0
@@ -326,7 +332,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             int iPropertiesNotSupportedDefault = 0;
 
-            if (pbs.ProfileHollow != 0)
+            if (profilehollow != 0)
                 iPropertiesNotSupportedDefault++;
 
             if ((pbs.PathBegin != 0) || pbs.PathEnd != 0)
@@ -407,7 +413,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             PhysicsActor actor = repData.actor;
             PrimitiveBaseShape pbs = repData.pbs;
 
-            if (!needsMeshing(pbs))
+            if (!needsMeshing(repData))
             {
                 repData.meshState = MeshState.noNeed;
                 repData.hasOBB = false;
@@ -417,17 +423,17 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             IMesh mesh = null;
 
             Vector3 size = repData.size;
-            byte shapetype = repData.shapetype;
-
-            bool convex;
 
             int clod = (int)LevelOfDetail.High;
+            bool convex;
+            byte shapetype = repData.shapetype;
             if (shapetype == 0)
                 convex = false;
             else
             {
                 convex = true;
-                if (pbs.SculptType != (byte)SculptType.Mesh)
+                // sculpts pseudo convex
+                if (pbs.SculptEntry && pbs.SculptType != (byte)SculptType.Mesh)
                     clod = (int)LevelOfDetail.Low;
             }
 
@@ -483,7 +489,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             repData.mesh = null;
             repData.hasOBB = false;
 
-            if (!needsMeshing(pbs))
+            if (!needsMeshing(repData))
             {
                 repData.meshState = MeshState.noNeed;
                 return;

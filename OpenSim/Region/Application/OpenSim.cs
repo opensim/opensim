@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -74,7 +75,7 @@ namespace OpenSim
 
         private string m_timedScript = "disabled";
         private int m_timeInterval = 1200;
-        private Timer m_scriptTimer;
+        private System.Timers.Timer m_scriptTimer;
 
         public OpenSim(IConfigSource configSource) : base(configSource)
         {
@@ -125,6 +126,21 @@ namespace OpenSim
             m_log.Info("[OPENSIM MAIN]: Using async_call_method " + Util.FireAndForgetMethod);
         }
 
+        private static Mono.Unix.UnixSignal[] signals;
+
+
+        private Thread signal_thread = new Thread (delegate ()
+        {
+            while (true)
+            {
+                // Wait for a signal to be delivered
+                int index = Mono.Unix.UnixSignal.WaitAny (signals, -1);
+         
+                //Mono.Unix.Native.Signum signal = signals [index].Signum;
+                MainConsole.Instance.RunCommand("shutdown");
+            }
+        });
+
         /// <summary>
         /// Performs initialisation of the scene, such as loading configuration from disk.
         /// </summary>
@@ -134,6 +150,24 @@ namespace OpenSim
             m_log.Info("========================= STARTING OPENSIM =========================");
             m_log.Info("====================================================================");
 
+            if(!Util.IsWindows())
+            {
+                try
+                {
+                    // linux mac os specifics
+                    signals = new Mono.Unix.UnixSignal[]
+                    {
+                        new Mono.Unix.UnixSignal(Mono.Unix.Native.Signum.SIGTERM)
+                    };
+                    signal_thread.Start();
+                }
+                catch (Exception e)
+                {
+                    m_log.Info("Could not set up UNIX signal handlers. SIGTERM will not");
+                    m_log.InfoFormat("shut down gracefully: {0}", e.Message);
+                    m_log.Debug("Exception was: ", e);
+                }
+            }
             //m_log.InfoFormat("[OPENSIM MAIN]: GC Is Server GC: {0}", GCSettings.IsServerGC.ToString());
             // http://msdn.microsoft.com/en-us/library/bb384202.aspx
             //GCSettings.LatencyMode = GCLatencyMode.Batch;
@@ -217,7 +251,7 @@ namespace OpenSim
             // Start timer script (run a script every xx seconds)
             if (m_timedScript != "disabled")
             {
-                m_scriptTimer = new Timer();
+                m_scriptTimer = new System.Timers.Timer();
                 m_scriptTimer.Enabled = true;
                 m_scriptTimer.Interval = m_timeInterval*1000;
                 m_scriptTimer.Elapsed += RunAutoTimerScript;

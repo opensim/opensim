@@ -70,6 +70,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         private readonly UUID m_ownerID;
         private UUID m_hostGroupID;
         private string m_profileAbout = "";
+        private UUID m_profileImage = UUID.Zero;
+        private string m_born;
         public List<uint> SelectedObjects {get; private set;}
 
         public NPCAvatar(
@@ -109,6 +111,13 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     m_profileAbout = value;
             }
         }
+
+        public UUID profileImage
+        {
+            get { return m_profileImage; }
+            set { m_profileImage = value; }
+        }
+
         public IScene Scene
         {
             get { return m_scene; }
@@ -611,6 +620,12 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             set { }
         }
 
+        public string Born
+        {
+            get { return m_born; }
+            set { m_born = value; }
+        }
+
         public bool IsGroupMember(UUID groupID)
         {
             return (m_hostGroupID == groupID);
@@ -974,7 +989,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
-        public void SendAvatarProperties(UUID avatarID, string aboutText, string bornOn, Byte[] charterMember,
+        public void SendAvatarProperties(UUID avatarID, string aboutText, string bornOn, Byte[] membershipType,
                                          string flAbout, uint flags, UUID flImageID, UUID imageID, string profileURL,
                                          UUID partnerID)
         {
