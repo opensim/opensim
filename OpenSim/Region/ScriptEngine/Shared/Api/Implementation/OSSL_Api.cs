@@ -3020,7 +3020,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osNpcSetProfileImage(LSL_Key npc, string image)
         {
-            CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
+            CheckThreatLevel(ThreatLevel.Low, "osNpcSetProfileImage");
             m_host.AddScriptLPS(1);
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
