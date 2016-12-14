@@ -1897,7 +1897,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // harakiri check
             if(objUUID == UUID.Zero)
-                throw new SelfDeleteException();
+            {
+                if (!m_host.ParentGroup.IsAttachment)
+                    throw new SelfDeleteException();
+                return;
+            }
 
             SceneObjectGroup sceneOG = World.GetSceneObjectGroup(objUUID);
 
