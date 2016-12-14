@@ -1882,33 +1882,41 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osDie(LSL_Key objectUUID)
         {
-            CheckThreatLevel(ThreatLevel.VeryHigh, "osDie");
+//            CheckThreatLevel(ThreatLevel.VeryHigh, "osDie");
+            // if this is restricted to objects rezzed by this host level can be reduced
+          
+            CheckThreatLevel(ThreatLevel.Low, "osDie");
             m_host.AddScriptLPS(1);
 
             UUID objUUID;
-            if (!UUID.TryParse(objectUUID, out objUUID)) // prior to patching, a thrown exception regarding invalid GUID format would be shouted instead.
+            if (!UUID.TryParse(objectUUID, out objUUID))
             {
                 OSSLShoutError("osDie() cannot delete objects with invalid UUIDs");
                 return;
             }
 
-            DeleteObject(objUUID);
-        }
+            // harakiri check
+            if(objUUID == UUID.Zero)
+                throw new SelfDeleteException();
 
-        private void DeleteObject(UUID objUUID)
-        {
             SceneObjectGroup sceneOG = World.GetSceneObjectGroup(objUUID);
 
-            if (sceneOG == null) // prior to patching, PostObjectEvent() would cause a throw exception to be shouted instead.
-            {
-                OSSLShoutError("osDie() cannot delete " + objUUID.ToString() + ", object was not found in scene.");
+            if (sceneOG == null || sceneOG.IsDeleted)
                 return;
-            }
+
+            if(sceneOG.IsAttachment)
+                return;
 
             if (sceneOG.OwnerID != m_host.OwnerID)
                 return;
+            
+            // harakiri check
+            if(sceneOG.UUID == m_host.ParentGroup.UUID)
+                throw new SelfDeleteException();
 
-            World.DeleteSceneObject(sceneOG, false);
+            // restrict to objects rezzed by host
+            if(sceneOG.RezzerID == m_host.ParentGroup.UUID)
+                World.DeleteSceneObject(sceneOG, false);
         }
 
         /// <summary>
