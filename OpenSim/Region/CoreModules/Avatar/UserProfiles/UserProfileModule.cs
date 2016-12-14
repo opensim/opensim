@@ -1011,7 +1011,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             {
                 remoteClient.SendAvatarProperties(avatarID, ((INPC)(p.ControllingClient)).profileAbout, ((INPC)(p.ControllingClient)).Born,
                       Utils.StringToBytes("Non Player Character (NPC)"), "NPCs have no life", 16,
-                      UUID.Zero, UUID.Zero, "", UUID.Zero);
+                      UUID.Zero, ((INPC)(p.ControllingClient)).profileImage, "", UUID.Zero);
                 remoteClient.SendAvatarInterestsReply(avatarID, 0, "",
                           0, "Getting into trouble", "Droidspeak");
                 return;

@@ -70,6 +70,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         private readonly UUID m_ownerID;
         private UUID m_hostGroupID;
         private string m_profileAbout = "";
+        private UUID m_profileImage = UUID.Zero;
         private string m_born;
         public List<uint> SelectedObjects {get; private set;}
 
@@ -110,6 +111,13 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     m_profileAbout = value;
             }
         }
+
+        public UUID profileImage
+        {
+            get { return m_profileImage; }
+            set { m_profileImage = value; }
+        }
+
         public IScene Scene
         {
             get { return m_scene; }

@@ -3018,6 +3018,35 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        public void osNpcSetProfileImage(LSL_Key npc, string image)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
+            m_host.AddScriptLPS(1);
+
+            INPCModule module = World.RequestModuleInterface<INPCModule>();
+            if (module != null)
+            {
+                UUID npcId = new UUID(npc.m_string);
+
+                if (!module.CheckPermissions(npcId, m_host.OwnerID))
+                    return;
+
+                UUID ImageID = new UUID();
+
+                ImageID = ScriptUtils.GetAssetIdFromItemName(m_host, image, (int)AssetType.Texture);
+
+                if (ImageID == null || ImageID == UUID.Zero)
+                {
+                    if (!UUID.TryParse(image, out ImageID))
+                        return;
+                }
+
+                ScenePresence sp = World.GetScenePresence(npcId);
+                if (sp != null)
+                    ((INPC)(sp.ControllingClient)).profileImage = ImageID;
+            }
+        }
+
         public void osNpcSay(LSL_Key npc, string message)
         {
             osNpcSay(npc, 0, message);

@@ -59,6 +59,7 @@ namespace OpenSim.Region.Framework.Interfaces
         UUID ActiveGroupId { get; set; }
         UUID Owner { get; }
         string profileAbout { get; set; }
+        UUID profileImage { get; set; }
         string Born { get; set; }
     }
 
