@@ -72,8 +72,6 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public const int LandUnit = 4;
 
-        private static readonly string remoteParcelRequestPath = "0009/";
-
         private LandChannel landChannel;
         private Scene m_scene;
 
@@ -1682,12 +1680,13 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private void EventManagerOnRegisterCaps(UUID agentID, Caps caps)
         {
+            //string capsBase = "/CAPS/" + UUID.Random();
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
             caps.RegisterHandler(
                 "RemoteParcelRequest",
                 new RestStreamHandler(
                     "POST",
-                    capsBase + remoteParcelRequestPath,
+                    capsBase,
                     (request, path, param, httpRequest, httpResponse)
                         => RemoteParcelRequest(request, path, param, agentID, caps),
                     "RemoteParcelRequest",
@@ -1807,24 +1806,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     ArrayList list = (ArrayList)hash["location"];
                     uint x = (uint)(double)list[0];
                     uint y = (uint)(double)list[1];
-                    if(hash.ContainsKey("region_id"))
-                    {
-                        UUID regionID = (UUID)hash["region_id"];
-                        if (regionID == m_scene.RegionInfo.RegionID)
-                        {
-                        // a parcel request for a local parcel => no need to query the grid
-                            parcelID = Util.BuildFakeParcelID(m_scene.RegionInfo.RegionHandle, x, y);
-                        }
-                        else
-                        {
-                            // a parcel request for a parcel in another region. Ask the grid about the region
-                            GridRegion info = m_scene.GridService.GetRegionByUUID(scope, regionID);
-                            if (info != null)
-                                parcelID = Util.BuildFakeParcelID(info.RegionHandle, x, y);
-                        }
-                    }
-
-                    else if (hash.ContainsKey("region_handle"))
+                    if (hash.ContainsKey("region_handle"))
                     {
                         // if you do a "About Landmark" on a landmark a second time, the viewer sends the
                         // region_handle it got earlier via RegionHandleRequest
@@ -1847,6 +1829,24 @@ namespace OpenSim.Region.CoreModules.World.Land
                             }
                         }
                     }
+                    else if(hash.ContainsKey("region_id"))
+                    {
+                        UUID regionID = (UUID)hash["region_id"];
+                        if (regionID == m_scene.RegionInfo.RegionID)
+                        {
+                        // a parcel request for a local parcel => no need to query the grid
+                            parcelID = Util.BuildFakeParcelID(m_scene.RegionInfo.RegionHandle, x, y);
+                        }
+                        else
+                        {
+                            // a parcel request for a parcel in another region. Ask the grid about the region
+                            GridRegion info = m_scene.GridService.GetRegionByUUID(scope, regionID);
+                            if (info != null)
+                                parcelID = Util.BuildFakeParcelID(info.RegionHandle, x, y);
+                        }
+                    }
+
+
                 }
             }
             catch (LLSD.LLSDParseException e)
