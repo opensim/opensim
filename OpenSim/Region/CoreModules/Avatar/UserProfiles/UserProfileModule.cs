@@ -1010,7 +1010,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             if (p != null && p.isNPC)
             {
                 remoteClient.SendAvatarProperties(avatarID, ((INPC)(p.ControllingClient)).profileAbout, ((INPC)(p.ControllingClient)).Born,
-                      Utils.StringToBytes("Non Player Character (NPC)"), "NPCs have no life", 16,
+                      Utils.StringToBytes("Non Player Character (NPC)"), "NPCs have no life", 0x10,
                       UUID.Zero, ((INPC)(p.ControllingClient)).profileImage, "", UUID.Zero);
                 remoteClient.SendAvatarInterestsReply(avatarID, 0, "",
                           0, "Getting into trouble", "Droidspeak");
@@ -1084,6 +1084,10 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 //                m_log.DebugFormat("Error getting profile for {0}: {1}", avatarID, result);
                 return;
             }
+
+            // if on same region force online
+            if(p != null && !p.IsDeleted)
+                flags |= 0x10;
 
             remoteClient.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType , props.FirstLifeText, flags,
                                               props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
