@@ -3001,7 +3001,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osNpcSetProfileAbout(LSL_Key npc, string about)
         {
-            CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
+            CheckThreatLevel(ThreatLevel.High, "osNpcSetProfileAbout");
             m_host.AddScriptLPS(1);
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
