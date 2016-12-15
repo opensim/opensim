@@ -69,6 +69,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         Dictionary<UUID, int> m_classifiedInterest = new Dictionary<UUID, int>();
 
         private JsonRpcRequestManager rpc = new JsonRpcRequestManager();
+        private bool m_allowUserProfileWebURLs = true;
 
         public Scene Scene
         {
@@ -159,7 +160,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 Enabled = false;
                 return;
             }
-                
+            
+            m_allowUserProfileWebURLs =  profileConfig.GetBoolean("AllowUserProfileWebURLs", m_allowUserProfileWebURLs);
             m_log.Debug("[PROFILES]: Full Profiles Enabled");
             ReplaceableInterface = null;
             Enabled = true;
@@ -1089,6 +1091,10 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             if(p != null && !p.IsDeleted)
                 flags |= 0x10;
 
+            
+            if(!m_allowUserProfileWebURLs)
+                props.WebUrl ="";
+
             remoteClient.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType , props.FirstLifeText, flags,
                                               props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
 
@@ -1118,6 +1124,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 prop.AboutText = newProfile.AboutText;
                 prop.FirstLifeImageId = newProfile.FirstLifeImage;
                 prop.FirstLifeText = newProfile.FirstLifeAboutText;
+
+                if(!m_allowUserProfileWebURLs)
+                    prop.WebUrl ="";
 
                 string serverURI = string.Empty;
                 GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
