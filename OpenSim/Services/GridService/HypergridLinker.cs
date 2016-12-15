@@ -137,6 +137,12 @@ namespace OpenSim.Services.GridService
                 m_log.WarnFormat("[HYPERGRID LINKER]: Malformed URL in [GridService], variable Gatekeeper = {0}", m_ThisGatekeeper);
             }
 
+            m_ThisGatekeeper = m_ThisGatekeeperURI.AbsoluteUri;
+            if(m_ThisGatekeeperURI.Port == 80)
+                m_ThisGatekeeper = m_ThisGatekeeper.Trim(new char[] { '/', ' ' }) +":80/";
+            else if(m_ThisGatekeeperURI.Port == 443)
+                m_ThisGatekeeper = m_ThisGatekeeper.Trim(new char[] { '/', ' ' }) +":443/";
+
             m_GatekeeperConnector = new GatekeeperServiceConnector(m_AssetService);
 
             m_log.Debug("[HYPERGRID LINKER]: Loaded all services...");
@@ -302,6 +308,10 @@ namespace OpenSim.Services.GridService
                 serverURI = serverURI.Trim(new char[] { '/', ' ' }) +":80/";
             else if(uri.Port == 443)
                 serverURI = serverURI.Trim(new char[] { '/', ' ' }) +":443/";
+            
+            if(serverURI == m_ThisGatekeeper)
+                serverURI = ""; // local grid, look for region name only
+
             return true;
         }
 
