@@ -1160,7 +1160,7 @@
   ;; ProfileServiceURL = ${Const|BaseURL}:${Const|PublicPort}
   
   ;# {AllowUserProfileWebURLs} {} {allow user profiles web urls} {true false} true
-  ;; set this to false to prevent your users to be sent to unkown
+  ;; set this to false to prevent your users to be sent to unknown
   ;; web sites by other users on their profiles
   ; AllowUserProfileWebURLs = true
 
