@@ -643,6 +643,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int OBJECT_REZZER_KEY = 32;
         public const int OBJECT_GROUP_TAG = 33;
         public const int OBJECT_TEMP_ATTACHED = 34;
+        public const int OBJECT_ATTACHED_SLOTS_AVAILABLE = 35;
 
         // Pathfinding types
         public const int OPT_OTHER = -1;
