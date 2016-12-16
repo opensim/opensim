@@ -505,11 +505,16 @@ namespace OpenSim.Services.GridService
             {
                 string regionURI = "";
                 string regionName = "";
-                if(!m_HypergridLinker.buildHGRegionURI(name, out regionURI, out regionName))
+                if(!Util.buildHGRegionURI(name, out regionURI, out regionName))
                     return null;
             
-                bool localGrid = string.IsNullOrWhiteSpace(regionURI);
-                string mapname = regionURI + regionName;
+                string mapname;
+                bool localGrid = m_HypergridLinker.IsLocalGrid(regionURI);
+                if(localGrid)
+                    mapname = regionName;
+                else
+                    mapname = regionURI + regionName;
+
                 bool haveMatch = false;
 
                 if (rdatas != null && (rdatas.Count > 0))
@@ -555,7 +560,7 @@ namespace OpenSim.Services.GridService
                     if(haveMatch)
                         return rinfos;
                 }
-                if(!localGrid)
+                if(!localGrid && !string.IsNullOrWhiteSpace(regionURI))
                 {
                     string HGname = regionURI +" "+ regionName; // include space for compatibility
                     GridRegion r = m_HypergridLinker.LinkRegion(scopeID, HGname);
@@ -592,15 +597,21 @@ namespace OpenSim.Services.GridService
             {
                 string regionURI = "";
                 string regionName = "";
-                if(!m_HypergridLinker.buildHGRegionURI(name, out regionURI, out regionName))
+                if(!Util.buildHGRegionURI(name, out regionURI, out regionName))
                     return null;
             
-                string mapname = regionURI + regionName;
+                string mapname;
+                bool localGrid = m_HypergridLinker.IsLocalGrid(regionURI);
+                if(localGrid)
+                    mapname = regionName;
+                else
+                    mapname = regionURI + regionName;
+
                 List<RegionData> rdatas = m_Database.Get(Util.EscapeForLike(mapname), scopeID);
                 if ((rdatas != null) && (rdatas.Count > 0))
                     return RegionData2RegionInfo(rdatas[0]); // get the first
 
-                if(!string.IsNullOrWhiteSpace(regionURI))
+                if(!localGrid && !string.IsNullOrWhiteSpace(regionURI))
                 {
                     string HGname = regionURI +" "+ regionName;
                     return m_HypergridLinker.LinkRegion(scopeID, HGname);

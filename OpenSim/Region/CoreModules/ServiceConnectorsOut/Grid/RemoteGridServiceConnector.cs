@@ -227,11 +227,20 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return rinfo;
         }
 
-        public GridRegion GetRegionByName(UUID scopeID, string regionName)
+        public GridRegion GetRegionByName(UUID scopeID, string name)
         {
-            GridRegion rinfo = m_LocalGridService.GetRegionByName(scopeID, regionName);
+            GridRegion rinfo = m_LocalGridService.GetRegionByName(scopeID, name);
             if (rinfo != null)
                 return rinfo;
+
+            // HG urls should not get here, strip them
+            string regionName = name;
+            if(name.Contains("."))
+            {
+                string regionURI = "";
+                if(!Util.buildHGRegionURI(name, out regionURI, out regionName))
+                    return rinfo;
+            }
                 
             rinfo = m_RemoteGridService.GetRegionByName(scopeID, regionName);
             m_RegionInfoCache.Cache(scopeID, rinfo);
@@ -242,7 +251,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         {
             List<GridRegion> rinfo = m_LocalGridService.GetRegionsByName(scopeID, name, maxNumber);
             //m_log.DebugFormat("[REMOTE GRID CONNECTOR]: Local GetRegionsByName {0} found {1} regions", name, rinfo.Count);
-            List<GridRegion> grinfo = m_RemoteGridService.GetRegionsByName(scopeID, name, maxNumber);
+
+            // HG urls should not get here, strip them
+            // side effect is that local regions with same name as HG may also be found
+            // this mb good or bad
+            string regionName = name;
+            if(name.Contains("."))
+            {
+                string regionURI = "";
+                if(!Util.buildHGRegionURI(name, out regionURI, out regionName))
+                    return rinfo;
+            }
+
+            List<GridRegion> grinfo = m_RemoteGridService.GetRegionsByName(scopeID, regionName, maxNumber);
 
             if (grinfo != null)
             {
