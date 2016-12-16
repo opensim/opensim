@@ -414,6 +414,26 @@ namespace OpenSim.Framework
             return regionCoord << 8;
         }
 
+        public static bool checkServiceURI(string uristr, out string serviceURI)
+        {
+            serviceURI = string.Empty;
+            try
+            {
+                Uri  uri = new Uri(uristr);
+                serviceURI = uri.AbsoluteUri;
+                if(uri.Port == 80)
+                    serviceURI = serviceURI.Trim(new char[] { '/', ' ' }) +":80/";
+                else if(uri.Port == 443)
+                    serviceURI = serviceURI.Trim(new char[] { '/', ' ' }) +":443/";
+                return true;
+            }
+            catch
+            {
+                serviceURI = string.Empty;
+            }
+            return false;
+        }
+
         public static bool buildHGRegionURI(string inputName, out string serverURI, out string regionName)
         {
             serverURI = string.Empty;
