@@ -57,9 +57,6 @@ namespace OpenSim.Services.GridService
         protected bool m_AllowDuplicateNames = false;
         protected bool m_AllowHypergridMapSearch = false;
 
-
-        protected bool m_SuppressVarregionOverlapCheckOnRegistration = false;
-
         private static Dictionary<string,object> m_ExtraFeatures = new Dictionary<string, object>();
 
         public GridService(IConfigSource config)
@@ -85,8 +82,6 @@ namespace OpenSim.Services.GridService
                 }
                 m_AllowDuplicateNames = gridConfig.GetBoolean("AllowDuplicateNames", m_AllowDuplicateNames);
                 m_AllowHypergridMapSearch = gridConfig.GetBoolean("AllowHypergridMapSearch", m_AllowHypergridMapSearch);
-
-                m_SuppressVarregionOverlapCheckOnRegistration = gridConfig.GetBoolean("SuppressVarregionOverlapCheckOnRegistration", m_SuppressVarregionOverlapCheckOnRegistration);
 
                 // This service is also used locally by a simulator running in grid mode.  This switches prevents
                 // inappropriate console commands from being registered
