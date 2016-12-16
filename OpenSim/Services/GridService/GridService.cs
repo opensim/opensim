@@ -197,6 +197,9 @@ namespace OpenSim.Services.GridService
             if (regionInfos.RegionID == UUID.Zero)
                 return "Invalid RegionID - cannot be zero UUID";
 
+            if (regionInfos.RegionLocY <= Constants.MaximumRegionSize)
+                return "Region location reserved for HG links coord Y must be higher than " + (Constants.MaximumRegionSize/256).ToString();
+
             String reason = "Region overlaps another region";           
 
             List<RegionData> rdatas = m_Database.Get(
@@ -290,7 +293,7 @@ namespace OpenSim.Services.GridService
 
                 // Region reregistering in other coordinates. Delete the old entry
                 m_log.DebugFormat("[GRID SERVICE]: Region {0} ({1}) was previously registered at {2}-{3}. Deleting old entry.",
-                    regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY);
+                    regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionCoordX, regionInfos.RegionCoordY);
 
                 try
                 {
