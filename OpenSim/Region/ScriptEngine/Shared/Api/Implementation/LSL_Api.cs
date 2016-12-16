@@ -15010,7 +15010,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             int rejectTypes = 0;
             int dataFlags = 0;
             int maxHits = 1;
-            bool detectPhantom = false;
+            bool notdetectPhantom = true;
             for (int i = 0; i < options.Length; i += 2)
             {
                 if (options.GetLSLIntegerItem(i) == ScriptBaseClass.RC_REJECT_TYPES)
@@ -15020,7 +15020,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 else if (options.GetLSLIntegerItem(i) == ScriptBaseClass.RC_MAX_HITS)
                     maxHits = options.GetLSLIntegerItem(i + 1);
                 else if (options.GetLSLIntegerItem(i) == ScriptBaseClass.RC_DETECT_PHANTOM)
-                    detectPhantom = (options.GetLSLIntegerItem(i + 1) != 0);
+                    notdetectPhantom = (options.GetLSLIntegerItem(i + 1) == 0);
             }
             if (maxHits > m_maxHitsInCastRay)
                 maxHits = m_maxHitsInCastRay;
@@ -15050,157 +15050,159 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             World.ForEachSOG(
                 delegate(SceneObjectGroup group)
                 {
+                    if(group.IsDeleted || group.RootPart == null)
+                        return;
                     // Check group filters unless part filters are configured
-                    bool isPhysical = (group.RootPart != null && group.RootPart.PhysActor != null && group.RootPart.PhysActor.IsPhysical);
+                    bool isPhysical = (group.RootPart.PhysActor != null && group.RootPart.PhysActor.IsPhysical);
                     bool isNonphysical = !isPhysical;
                     bool isPhantom = group.IsPhantom || group.IsVolumeDetect;
                     bool isAttachment = group.IsAttachment;
-                    bool doGroup = true;
                     if (isPhysical && rejectPhysical)
-                        doGroup = false;
+                        return;
                     if (isNonphysical && rejectNonphysical)
-                        doGroup = false;
-                    if (isPhantom && detectPhantom)
-                        doGroup = true;
+                        return;
+                    if (isPhantom && notdetectPhantom)
+                        return;
                     if (m_filterPartsInCastRay)
-                        doGroup = true;
+                        return;
                     if (isAttachment && !m_doAttachmentsInCastRay)
-                        doGroup = false;
+                        return;
+
                     // Parse object/group if passed filters
-                    if (doGroup)
+                    // Iterate over all prims/parts in object/group
+                    foreach(SceneObjectPart part in group.Parts)
                     {
-                        // Iterate over all prims/parts in object/group
-                        foreach(SceneObjectPart part in group.Parts)
+                        // Check part filters if configured
+                        if (m_filterPartsInCastRay)
                         {
-                            // Check part filters if configured
-                            if (m_filterPartsInCastRay)
+                            // ignore PhysicsShapeType.None as physics engines do
+                            // or we will get into trouble in future
+                            if(part.PhysicsShapeType == (byte)PhysicsShapeType.None)
+                                continue;
+                            isPhysical = (part.PhysActor != null && part.PhysActor.IsPhysical);
+                            isNonphysical = !isPhysical;
+                            isPhantom = ((part.Flags & PrimFlags.Phantom) != 0) ||
+                                                (part.VolumeDetectActive);
+                                                
+                            if (isPhysical && rejectPhysical)
+                                continue;
+                            if (isNonphysical && rejectNonphysical)
+                                continue;
+                            if (isPhantom && notdetectPhantom)
+                                continue;
+                        }
+
+                        // Parse prim/part and project ray if passed filters
+                        Vector3 scalePart = part.Scale;
+                        Vector3 posPart = part.GetWorldPosition();
+                        Quaternion rotPart = part.GetWorldRotation();
+                        Quaternion rotPartInv = Quaternion.Inverse(rotPart);
+                        Vector3 pos1RayProj = ((pos1Ray - posPart) * rotPartInv) / scalePart;
+                        Vector3 pos2RayProj = ((pos2Ray - posPart) * rotPartInv) / scalePart;
+
+                        // Filter parts by shape bounding boxes
+                        Vector3 shapeBoxMax = new Vector3(0.5f, 0.5f, 0.5f);
+                        if (!part.Shape.SculptEntry)
+                            shapeBoxMax = shapeBoxMax * (new Vector3(m_primSafetyCoeffX, m_primSafetyCoeffY, m_primSafetyCoeffZ));
+                        shapeBoxMax = shapeBoxMax + (new Vector3(tol, tol, tol));
+                        if (RayIntersectsShapeBox(pos1RayProj, pos2RayProj, shapeBoxMax))
+                        {
+                            // Prepare data needed to check for ray hits
+                            RayTrans rayTrans = new RayTrans();
+                            rayTrans.PartId = part.UUID;
+                            rayTrans.GroupId = part.ParentGroup.UUID;
+                            rayTrans.Link = group.PrimCount > 1 ? part.LinkNum : 0;
+                            rayTrans.ScalePart = scalePart;
+                            rayTrans.PositionPart = posPart;
+                            rayTrans.RotationPart = rotPart;
+                            rayTrans.ShapeNeedsEnds = true;
+                            rayTrans.Position1Ray = pos1Ray;
+                            rayTrans.Position1RayProj = pos1RayProj;
+                            rayTrans.VectorRayProj = pos2RayProj - pos1RayProj;
+
+                            // Get detail level depending on type
+                            int lod = 0;
+                            // Mesh detail level
+                            if (part.Shape.SculptEntry && part.Shape.SculptType == (byte)SculptType.Mesh)
+                                lod = (int)m_meshLodInCastRay;
+                            // Sculpt detail level
+                            else if (part.Shape.SculptEntry && part.Shape.SculptType == (byte)SculptType.Mesh)
+                                lod = (int)m_sculptLodInCastRay;
+                            // Shape detail level
+                            else if (!part.Shape.SculptEntry)
+                                lod = (int)m_primLodInCastRay;
+
+                            // Try to get cached mesh if configured
+                            ulong meshKey = 0;
+                            FacetedMesh mesh = null;
+                            if (m_useMeshCacheInCastRay)
                             {
-                                isPhysical = (part.PhysActor != null && part.PhysActor.IsPhysical);
-                                isNonphysical = !isPhysical;
-                                isPhantom = ((part.Flags & PrimFlags.Phantom) != 0) || (part.VolumeDetectActive);
-                                bool doPart = true;
-                                if (isPhysical && rejectPhysical)
-                                    doPart = false;
-                                if (isNonphysical && rejectNonphysical)
-                                    doPart = false;
-                                if (isPhantom && detectPhantom)
-                                    doPart = true;
-                                if (!doPart)
-                                    continue;
+                                meshKey = part.Shape.GetMeshKey(Vector3.One, (float)(4 << lod));
+                                lock (m_cachedMeshes)
+                                {
+                                    m_cachedMeshes.TryGetValue(meshKey, out mesh);
+                                }
                             }
 
-                            // Parse prim/part and project ray if passed filters
-                            Vector3 scalePart = part.Scale;
-                            Vector3 posPart = part.GetWorldPosition();
-                            Quaternion rotPart = part.GetWorldRotation();
-                            Quaternion rotPartInv = Quaternion.Inverse(rotPart);
-                            Vector3 pos1RayProj = ((pos1Ray - posPart) * rotPartInv) / scalePart;
-                            Vector3 pos2RayProj = ((pos2Ray - posPart) * rotPartInv) / scalePart;
-
-                            // Filter parts by shape bounding boxes
-                            Vector3 shapeBoxMax = new Vector3(0.5f, 0.5f, 0.5f);
-                            if (!part.Shape.SculptEntry)
-                                shapeBoxMax = shapeBoxMax * (new Vector3(m_primSafetyCoeffX, m_primSafetyCoeffY, m_primSafetyCoeffZ));
-                            shapeBoxMax = shapeBoxMax + (new Vector3(tol, tol, tol));
-                            if (RayIntersectsShapeBox(pos1RayProj, pos2RayProj, shapeBoxMax))
+                            // Create mesh if no cached mesh
+                            if (mesh == null)
                             {
-                                // Prepare data needed to check for ray hits
-                                RayTrans rayTrans = new RayTrans();
-                                rayTrans.PartId = part.UUID;
-                                rayTrans.GroupId = part.ParentGroup.UUID;
-                                rayTrans.Link = group.PrimCount > 1 ? part.LinkNum : 0;
-                                rayTrans.ScalePart = scalePart;
-                                rayTrans.PositionPart = posPart;
-                                rayTrans.RotationPart = rotPart;
-                                rayTrans.ShapeNeedsEnds = true;
-                                rayTrans.Position1Ray = pos1Ray;
-                                rayTrans.Position1RayProj = pos1RayProj;
-                                rayTrans.VectorRayProj = pos2RayProj - pos1RayProj;
+                                // Make an OMV prim to be able to mesh part
+                                Primitive omvPrim = part.Shape.ToOmvPrimitive(posPart, rotPart);
+                                byte[] sculptAsset = null;
+                                if (omvPrim.Sculpt != null)
+                                    sculptAsset = World.AssetService.GetData(omvPrim.Sculpt.SculptTexture.ToString());
 
-                                // Get detail level depending on type
-                                int lod = 0;
-                                // Mesh detail level
-                                if (part.Shape.SculptEntry && part.Shape.SculptType == (byte)SculptType.Mesh)
-                                    lod = (int)m_meshLodInCastRay;
-                                // Sculpt detail level
-                                else if (part.Shape.SculptEntry && part.Shape.SculptType == (byte)SculptType.Mesh)
-                                    lod = (int)m_sculptLodInCastRay;
-                                // Shape detail level
-                                else if (!part.Shape.SculptEntry)
-                                    lod = (int)m_primLodInCastRay;
-
-                                // Try to get cached mesh if configured
-                                ulong meshKey = 0;
-                                FacetedMesh mesh = null;
-                                if (m_useMeshCacheInCastRay)
+                                // When part is mesh, get mesh
+                                if (omvPrim.Sculpt != null && omvPrim.Sculpt.Type == SculptType.Mesh && sculptAsset != null)
                                 {
-                                    meshKey = part.Shape.GetMeshKey(Vector3.One, (float)(4 << lod));
-                                    lock (m_cachedMeshes)
-                                    {
-                                        m_cachedMeshes.TryGetValue(meshKey, out mesh);
-                                    }
+                                    AssetMesh meshAsset = new AssetMesh(omvPrim.Sculpt.SculptTexture, sculptAsset);
+                                    FacetedMesh.TryDecodeFromAsset(omvPrim, meshAsset, m_meshLodInCastRay, out mesh);
+                                    meshAsset = null;
                                 }
 
-                                // Create mesh if no cached mesh
-                                if (mesh == null)
+                                // When part is sculpt, create mesh
+                                // Quirk: Generated sculpt mesh is about 2.8% smaller in X and Y than visual sculpt.
+                                else if (omvPrim.Sculpt != null && omvPrim.Sculpt.Type != SculptType.Mesh && sculptAsset != null)
                                 {
-                                    // Make an OMV prim to be able to mesh part
-                                    Primitive omvPrim = part.Shape.ToOmvPrimitive(posPart, rotPart);
-                                    byte[] sculptAsset = null;
-                                    if (omvPrim.Sculpt != null)
-                                        sculptAsset = World.AssetService.GetData(omvPrim.Sculpt.SculptTexture.ToString());
-
-                                    // When part is mesh, get mesh
-                                    if (omvPrim.Sculpt != null && omvPrim.Sculpt.Type == SculptType.Mesh && sculptAsset != null)
+                                    IJ2KDecoder imgDecoder = World.RequestModuleInterface<IJ2KDecoder>();
+                                    if (imgDecoder != null)
                                     {
-                                        AssetMesh meshAsset = new AssetMesh(omvPrim.Sculpt.SculptTexture, sculptAsset);
-                                        FacetedMesh.TryDecodeFromAsset(omvPrim, meshAsset, m_meshLodInCastRay, out mesh);
-                                        meshAsset = null;
-                                    }
-
-                                    // When part is sculpt, create mesh
-                                    // Quirk: Generated sculpt mesh is about 2.8% smaller in X and Y than visual sculpt.
-                                    else if (omvPrim.Sculpt != null && omvPrim.Sculpt.Type != SculptType.Mesh && sculptAsset != null)
-                                    {
-                                        IJ2KDecoder imgDecoder = World.RequestModuleInterface<IJ2KDecoder>();
-                                        if (imgDecoder != null)
+                                        Image sculpt = imgDecoder.DecodeToImage(sculptAsset);
+                                        if (sculpt != null)
                                         {
-                                            Image sculpt = imgDecoder.DecodeToImage(sculptAsset);
-                                            if (sculpt != null)
-                                            {
-                                                mesh = primMesher.GenerateFacetedSculptMesh(omvPrim, (Bitmap)sculpt, m_sculptLodInCastRay);
-                                                sculpt.Dispose();
-                                            }
-                                        }
-                                   }
-
-                                    // When part is shape, create mesh
-                                    else if (omvPrim.Sculpt == null)
-                                    {
-                                        if (
-                                            omvPrim.PrimData.PathBegin == 0.0 && omvPrim.PrimData.PathEnd == 1.0 &&
-                                            omvPrim.PrimData.PathTaperX == 0.0 && omvPrim.PrimData.PathTaperY == 0.0 &&
-                                            omvPrim.PrimData.PathSkew == 0.0 &&
-                                            omvPrim.PrimData.PathTwist - omvPrim.PrimData.PathTwistBegin == 0.0
-                                        )
-                                            rayTrans.ShapeNeedsEnds = false;
-                                        mesh = primMesher.GenerateFacetedMesh(omvPrim, m_primLodInCastRay);
-                                    }
-
-                                    // Cache mesh if configured
-                                    if (m_useMeshCacheInCastRay && mesh != null)
-                                    {
-                                        lock(m_cachedMeshes)
-                                        {
-                                            if (!m_cachedMeshes.ContainsKey(meshKey))
-                                                m_cachedMeshes.Add(meshKey, mesh);
+                                            mesh = primMesher.GenerateFacetedSculptMesh(omvPrim, (Bitmap)sculpt, m_sculptLodInCastRay);
+                                            sculpt.Dispose();
                                         }
                                     }
                                 }
-                                // Check mesh for ray hits
-                                AddRayInFacetedMesh(mesh, rayTrans, ref rayHits);
-                                mesh = null;
+
+                                // When part is shape, create mesh
+                                else if (omvPrim.Sculpt == null)
+                                {
+                                    if (
+                                        omvPrim.PrimData.PathBegin == 0.0 && omvPrim.PrimData.PathEnd == 1.0 &&
+                                        omvPrim.PrimData.PathTaperX == 0.0 && omvPrim.PrimData.PathTaperY == 0.0 &&
+                                        omvPrim.PrimData.PathSkew == 0.0 &&
+                                        omvPrim.PrimData.PathTwist - omvPrim.PrimData.PathTwistBegin == 0.0
+                                    )
+                                        rayTrans.ShapeNeedsEnds = false;
+                                    mesh = primMesher.GenerateFacetedMesh(omvPrim, m_primLodInCastRay);
+                                }
+
+                                // Cache mesh if configured
+                                if (m_useMeshCacheInCastRay && mesh != null)
+                                {
+                                    lock(m_cachedMeshes)
+                                    {
+                                        if (!m_cachedMeshes.ContainsKey(meshKey))
+                                            m_cachedMeshes.Add(meshKey, mesh);
+                                    }
+                                }
                             }
+                            // Check mesh for ray hits
+                            AddRayInFacetedMesh(mesh, rayTrans, ref rayHits);
+                            mesh = null;
                         }
                     }
                 }
