@@ -619,6 +619,10 @@
     ;; supported by viewers.
     ;DestinationGuideURI = "http://127.0.0.1:9000/guide"
 
+    ;# {ExportSupported} {} {Enable export control flag} {true false} false
+    ;; set to true to allow the export control flag of items
+    ; ExportSupported = false
+
 
 [Chat]
     ;# {whisper_distance} {} {Distance at which a whisper is heard, in meters?} {} 10

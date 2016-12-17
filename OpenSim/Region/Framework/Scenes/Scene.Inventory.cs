@@ -431,9 +431,11 @@ namespace OpenSim.Region.Framework.Scenes
                     bool denyExportChange = false;
 
 //                    m_log.DebugFormat("[XXX]: B: {0} O: {1} E: {2}", itemUpd.BasePermissions, itemUpd.CurrentPermissions, itemUpd.EveryOnePermissions);
-
+                    const uint permALLandExport = (uint)(PermissionMask.All | PermissionMask.Export);
                     // If the user is not the creator or doesn't have "E" in both "B" and "O", deny setting export
-                    if ((item.BasePermissions & (uint)(PermissionMask.All | PermissionMask.Export)) != (uint)(PermissionMask.All | PermissionMask.Export) || (item.CurrentPermissions & (uint)PermissionMask.Export) == 0 || item.CreatorIdAsUuid != item.Owner)
+                    if (item.CreatorIdAsUuid != item.Owner &&
+                            ((item.BasePermissions & permALLandExport) != permALLandExport ||
+                                (item.CurrentPermissions & (uint)PermissionMask.Export) == 0))                       
                         denyExportChange = true;
 
 //                    m_log.DebugFormat("[XXX]: Deny Export Update {0}", denyExportChange);
