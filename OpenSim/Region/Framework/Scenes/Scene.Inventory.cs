@@ -433,7 +433,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                    m_log.DebugFormat("[XXX]: B: {0} O: {1} E: {2}", itemUpd.BasePermissions, itemUpd.CurrentPermissions, itemUpd.EveryOnePermissions);
                     const uint permALLandExport = (uint)(PermissionMask.All | PermissionMask.Export);
                     // If the user is not the creator or doesn't have "E" in both "B" and "O", deny setting export
-                    if (item.CreatorIdAsUuid != item.Owner ||
+                    if (item.CreatorIdAsUuid != item.Owner &&
                             ((item.BasePermissions & permALLandExport) != permALLandExport ||
                                 (item.CurrentPermissions & (uint)PermissionMask.Export) == 0))                       
                         denyExportChange = true;
@@ -451,12 +451,10 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             itemUpd.NextPermissions = (uint)(PermissionMask.All);
                             itemUpd.EveryOnePermissions |= (uint)PermissionMask.Export;
-                            sendUpdate = true;
                         }
                         else
                         {
                             itemUpd.EveryOnePermissions &= ~(uint)PermissionMask.Export;
-                            sendUpdate = true;
                         }
                     }
                     else
@@ -466,7 +464,6 @@ namespace OpenSim.Region.Framework.Scenes
                         {
 //                            m_log.DebugFormat("[XXX]: Force full perm");
                             itemUpd.NextPermissions = (uint)(PermissionMask.All);
-                            sendUpdate = true;
                         }
                     }
 

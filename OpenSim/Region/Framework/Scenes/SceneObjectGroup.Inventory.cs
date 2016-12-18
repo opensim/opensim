@@ -258,8 +258,7 @@ namespace OpenSim.Region.Framework.Scenes
             uint perms=(uint)(PermissionMask.Modify |
                               PermissionMask.Copy |
                               PermissionMask.Move |
-                              PermissionMask.Transfer |
-                              PermissionMask.Export ) | 7;
+                              PermissionMask.Transfer) | 7;
 
             uint ownerMask = 0x7fffffff;
 
@@ -282,8 +281,6 @@ namespace OpenSim.Region.Framework.Scenes
                 perms &= ~(uint)PermissionMask.Copy;
             if ((ownerMask & (uint)PermissionMask.Transfer) == 0)
                 perms &= ~(uint)PermissionMask.Transfer;
-            if ((ownerMask & (uint)PermissionMask.Export) == 0)
-                perms &= ~(uint)PermissionMask.Export;
 
             // If root prim permissions are applied here, this would screw
             // with in-inventory manipulation of the next owner perms
