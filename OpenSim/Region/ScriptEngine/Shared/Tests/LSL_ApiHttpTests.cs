@@ -87,7 +87,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             uint port = 9999;
             MainServer.RemoveHttpServer(port);
 
-            BaseHttpServer server = new BaseHttpServer(port, false, 0, "", "", "");
+            BaseHttpServer server = new BaseHttpServer(port, false, "", "", "");
             MainServer.AddHttpServer(server);
             MainServer.Instance = server;
 
