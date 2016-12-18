@@ -994,7 +994,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
                         pbs.TextureEntry = textureEntry.GetBytes();
 
-                        bool hasmesh = false;
                         if (inner_instance_list.ContainsKey("mesh")) // seems to happen always but ...
                         {
                             int meshindx = inner_instance_list["mesh"].AsInteger();
@@ -1004,8 +1003,32 @@ namespace OpenSim.Region.ClientStack.Linden
                                 pbs.SculptType = (byte)SculptType.Mesh;
                                 pbs.SculptTexture = meshAssets[meshindx]; // actual asset UUID after meshs suport introduction
                                 // data will be requested from asset on rez (i hope)
-                                hasmesh = true;
                             }
+                        }
+
+                        // faces number to pbs shape
+                        switch(face_list.Count)
+                        {
+                            case 1:
+                            case 2:
+                                pbs.ProfileCurve = (byte)ProfileCurve.Circle;
+                                pbs.PathCurve = (byte)PathCurve.Circle;
+                                break;
+
+                            case 3:
+                            case 4:
+                                pbs.ProfileCurve = (byte)ProfileCurve.Circle;
+                                pbs.PathCurve = (byte)PathCurve.Line;
+                                break;
+                            case 5:
+                                pbs.ProfileCurve = (byte)ProfileCurve.EqualTriangle;
+                                pbs.PathCurve = (byte)PathCurve.Line;
+                                break;
+
+                            default:
+                                pbs.ProfileCurve = (byte)ProfileCurve.Square;
+                                pbs.PathCurve = (byte)PathCurve.Line;
+                                break;
                         }
 
                         Vector3 position = inner_instance_list["position"].AsVector3();
@@ -1017,23 +1040,6 @@ namespace OpenSim.Region.ClientStack.Linden
                         byte physicsShapeType = (byte)PhysShapeType.convex; // default is simple convex
 //                        int material = inner_instance_list["material"].AsInteger();
                         byte material = (byte)Material.Wood;
-
-// no longer used - begin ------------------------
-//                    int mesh = inner_instance_list["mesh"].AsInteger();
-
-//                    OSDMap permissions = (OSDMap)inner_instance_list["permissions"];
-//                    int base_mask = permissions["base_mask"].AsInteger();
-//                    int everyone_mask = permissions["everyone_mask"].AsInteger();
-//                    UUID creator_id = permissions["creator_id"].AsUUID();
-//                    UUID group_id = permissions["group_id"].AsUUID();
-//                    int group_mask = permissions["group_mask"].AsInteger();
-//                    bool is_owner_group = permissions["is_owner_group"].AsBoolean();
-//                    UUID last_owner_id = permissions["last_owner_id"].AsUUID();
-//                    int next_owner_mask = permissions["next_owner_mask"].AsInteger();
-//                    UUID owner_id = permissions["owner_id"].AsUUID();
-//                    int owner_mask = permissions["owner_mask"].AsInteger();
-// no longer used - end ------------------------
-                       
 
                         SceneObjectPart prim
                             = new SceneObjectPart(owner_id, pbs, position, Quaternion.Identity, Vector3.Zero);

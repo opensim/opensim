@@ -414,6 +414,140 @@ namespace OpenSim.Framework
             return regionCoord << 8;
         }
 
+        public static bool checkServiceURI(string uristr, out string serviceURI)
+        {
+            serviceURI = string.Empty;
+            try
+            {
+                Uri  uri = new Uri(uristr);
+                serviceURI = uri.AbsoluteUri;
+                if(uri.Port == 80)
+                    serviceURI = serviceURI.Trim(new char[] { '/', ' ' }) +":80/";
+                else if(uri.Port == 443)
+                    serviceURI = serviceURI.Trim(new char[] { '/', ' ' }) +":443/";
+                return true;
+            }
+            catch
+            {
+                serviceURI = string.Empty;
+            }
+            return false;
+        }
+
+        public static bool buildHGRegionURI(string inputName, out string serverURI, out string regionName)
+        {
+            serverURI = string.Empty;
+            regionName = string.Empty;
+
+            inputName = inputName.Trim();
+
+            if (!inputName.StartsWith("http") && !inputName.StartsWith("https"))
+            {
+                // Formats: grid.example.com:8002:region name
+                //          grid.example.com:region name
+                //          grid.example.com:8002
+                //          grid.example.com
+
+                string host;
+                uint port = 80;
+                
+                string[] parts = inputName.Split(new char[] { ':' });
+                int indx;
+                if(parts.Length == 0)
+                    return false;
+                if (parts.Length == 1)
+                {
+                    indx = inputName.IndexOf('/');
+                    if (indx < 0)
+                        serverURI = "http://"+ inputName + "/";
+                    else
+                    {
+                        serverURI = "http://"+ inputName.Substring(0,indx + 1);
+                        if(indx + 2 < inputName.Length)
+                            regionName = inputName.Substring(indx + 1);
+                    }
+                }
+                else
+                {
+                    host = parts[0];
+               
+                    if (parts.Length >= 2)
+                    {
+                        indx = parts[1].IndexOf('/');
+                        if(indx < 0)
+                        {
+                            // If it's a number then assume it's a port. Otherwise, it's a region name.
+                            if (!UInt32.TryParse(parts[1], out port))
+                            {
+                                port = 80;
+                                regionName = parts[1];
+                            }
+                        }
+                        else
+                        {
+                            string portstr = parts[1].Substring(0, indx);
+                            if(indx + 2 < parts[1].Length)
+                                regionName = parts[1].Substring(indx + 1);
+                            if (!UInt32.TryParse(portstr, out port))
+                                port = 80;
+                        }
+                    }
+                    // always take the last one
+                    if (parts.Length >= 3)
+                    {
+                       regionName = parts[2];
+                    }
+
+                    serverURI = "http://"+ host +":"+ port.ToString() + "/";
+                }
+            }
+            else
+            {
+                // Formats: http://grid.example.com region name
+                //          http://grid.example.com "region name"
+                //          http://grid.example.com
+
+                string[] parts = inputName.Split(new char[] { ' ' });
+
+                if (parts.Length == 0)
+                    return false;
+
+                serverURI = parts[0];
+
+                int indx = serverURI.LastIndexOf('/');
+                if(indx > 10)
+                {
+                    if(indx + 2 < inputName.Length)
+                        regionName = inputName.Substring(indx + 1);
+                    serverURI = inputName.Substring(0, indx + 1);
+                }
+                else if (parts.Length >= 2)
+                {
+                    regionName = inputName.Substring(serverURI.Length);
+                }
+            }
+
+            // use better code for sanity check
+            Uri uri;
+            try
+            {
+                    uri = new Uri(serverURI);
+            }
+            catch
+            {
+                return false;
+            }
+
+            if(!string.IsNullOrEmpty(regionName))
+                regionName = regionName.Trim(new char[] { '"', ' ' });
+            serverURI = uri.AbsoluteUri;
+            if(uri.Port == 80)
+                serverURI = serverURI.Trim(new char[] { '/', ' ' }) +":80/";
+            else if(uri.Port == 443)
+                serverURI = serverURI.Trim(new char[] { '/', ' ' }) +":443/";
+            return true;
+        }
+
         public static T Clamp<T>(T x, T min, T max)
             where T : IComparable<T>
         {

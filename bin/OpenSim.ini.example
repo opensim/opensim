@@ -1202,6 +1202,11 @@
   ;; Set the value of the url to your UserProfilesService
   ;; If un-set / "" the module is disabled
   ;; ProfileServiceURL = ${Const|BaseURL}:${Const|PublicPort}
+  
+  ;# {AllowUserProfileWebURLs} {} {allow user profiles web urls} {true false} true
+  ;; set this to false to prevent your users to be sent to unknown
+  ;; web sites by other users on their profiles
+  ; AllowUserProfileWebURLs = true
 
 [XBakes]
   ;# {URL} {} {Set URL for Baked texture service} {}

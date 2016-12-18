@@ -57,9 +57,6 @@ namespace OpenSim.Services.GridService
         protected bool m_AllowDuplicateNames = false;
         protected bool m_AllowHypergridMapSearch = false;
 
-
-        protected bool m_SuppressVarregionOverlapCheckOnRegistration = false;
-
         private static Dictionary<string,object> m_ExtraFeatures = new Dictionary<string, object>();
 
         public GridService(IConfigSource config)
@@ -85,8 +82,6 @@ namespace OpenSim.Services.GridService
                 }
                 m_AllowDuplicateNames = gridConfig.GetBoolean("AllowDuplicateNames", m_AllowDuplicateNames);
                 m_AllowHypergridMapSearch = gridConfig.GetBoolean("AllowHypergridMapSearch", m_AllowHypergridMapSearch);
-
-                m_SuppressVarregionOverlapCheckOnRegistration = gridConfig.GetBoolean("SuppressVarregionOverlapCheckOnRegistration", m_SuppressVarregionOverlapCheckOnRegistration);
 
                 // This service is also used locally by a simulator running in grid mode.  This switches prevents
                 // inappropriate console commands from being registered
@@ -202,6 +197,9 @@ namespace OpenSim.Services.GridService
             if (regionInfos.RegionID == UUID.Zero)
                 return "Invalid RegionID - cannot be zero UUID";
 
+            if (regionInfos.RegionLocY <= Constants.MaximumRegionSize)
+                return "Region location reserved for HG links coord Y must be higher than " + (Constants.MaximumRegionSize/256).ToString();
+
             String reason = "Region overlaps another region";           
 
             List<RegionData> rdatas = m_Database.Get(
@@ -295,7 +293,7 @@ namespace OpenSim.Services.GridService
 
                 // Region reregistering in other coordinates. Delete the old entry
                 m_log.DebugFormat("[GRID SERVICE]: Region {0} ({1}) was previously registered at {2}-{3}. Deleting old entry.",
-                    regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY);
+                    regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionCoordX, regionInfos.RegionCoordY);
 
                 try
                 {
@@ -505,10 +503,16 @@ namespace OpenSim.Services.GridService
             {
                 string regionURI = "";
                 string regionName = "";
-                if(!m_HypergridLinker.buildHGRegionURI(name, out regionURI, out regionName))
+                if(!Util.buildHGRegionURI(name, out regionURI, out regionName))
                     return null;
             
-                string mapname = regionURI + regionName;
+                string mapname;
+                bool localGrid = m_HypergridLinker.IsLocalGrid(regionURI);
+                if(localGrid)
+                    mapname = regionName;
+                else
+                    mapname = regionURI + regionName;
+
                 bool haveMatch = false;
 
                 if (rdatas != null && (rdatas.Count > 0))
@@ -531,7 +535,7 @@ namespace OpenSim.Services.GridService
                     if(haveMatch)
                         return rinfos;
                 }
-
+                
                 rdatas = m_Database.Get(Util.EscapeForLike(mapname)+ "%", scopeID);
                 if (rdatas != null && (rdatas.Count > 0))
                 {
@@ -554,14 +558,16 @@ namespace OpenSim.Services.GridService
                     if(haveMatch)
                         return rinfos;
                 }
-
-                string HGname = regionURI +" "+ regionName;
-                GridRegion r = m_HypergridLinker.LinkRegion(scopeID, HGname);
-                if (r != null)
+                if(!localGrid && !string.IsNullOrWhiteSpace(regionURI))
                 {
-                    if( count == maxNumber)
-                        rinfos.RemoveAt(count - 1);
-                    rinfos.Add(r);
+                    string HGname = regionURI +" "+ regionName; // include space for compatibility
+                    GridRegion r = m_HypergridLinker.LinkRegion(scopeID, HGname);
+                    if (r != null)
+                    {
+                        if( count == maxNumber)
+                            rinfos.RemoveAt(count - 1);
+                        rinfos.Add(r);
+                    }
                 }
             }
             else if (rdatas != null && (rdatas.Count > 0))
@@ -589,19 +595,27 @@ namespace OpenSim.Services.GridService
             {
                 string regionURI = "";
                 string regionName = "";
-                if(!m_HypergridLinker.buildHGRegionURI(name, out regionURI, out regionName))
+                if(!Util.buildHGRegionURI(name, out regionURI, out regionName))
                     return null;
             
-                string mapname = regionURI + regionName;
+                string mapname;
+                bool localGrid = m_HypergridLinker.IsLocalGrid(regionURI);
+                if(localGrid)
+                    mapname = regionName;
+                else
+                    mapname = regionURI + regionName;
+
                 List<RegionData> rdatas = m_Database.Get(Util.EscapeForLike(mapname), scopeID);
                 if ((rdatas != null) && (rdatas.Count > 0))
                     return RegionData2RegionInfo(rdatas[0]); // get the first
 
-                string HGname = regionURI +" "+ regionName;
-                return m_HypergridLinker.LinkRegion(scopeID, HGname);
+                if(!localGrid && !string.IsNullOrWhiteSpace(regionURI))
+                {
+                    string HGname = regionURI +" "+ regionName;
+                    return m_HypergridLinker.LinkRegion(scopeID, HGname);
+                }
             }
-            else
-                return null;
+            return null;
         }
 
         public List<GridRegion> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax)

@@ -131,7 +131,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Land
 
             uint rx = 0, ry = 0;
             Util.RegionHandleToWorldLoc(regionHandle, out rx, out ry);
-
+            rx += x;
+            ry += y;
             foreach (Scene s in m_Scenes)
             {
                 uint t = s.RegionInfo.WorldLocX;
@@ -147,6 +148,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Land
                 if( ry  < t)
                 {
 //                    m_log.Debug("[LAND IN CONNECTOR]: Found region to GetLandData from");
+                    x = rx - s.RegionInfo.WorldLocX;
+                    y = ry - s.RegionInfo.WorldLocY;
                     regionAccess = s.RegionInfo.AccessLevel;
                     return s.GetLandData(x, y);
                 }

@@ -317,6 +317,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osForceBreakAllLinks();
 
         /// <summary>
+        /// Similar to llDie but given an object UUID
+        /// </summary>
+        /// <param name="objectUUID"></param>
+
+        void osDie(LSL_Key objectUUID);
+
+        /// <summary>
         /// Check if the given key is an npc
         /// </summary>
         /// <param name="npc"></param>
