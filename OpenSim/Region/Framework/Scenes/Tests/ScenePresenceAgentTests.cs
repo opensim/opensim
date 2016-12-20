@@ -271,7 +271,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             IConfigSource configSource = new IniConfigSource();
             IConfig config = configSource.AddConfig("Startup");
             config.Set("serverside_object_permissions", true);
-            config.Set("EventQueue", true);
 
             EntityTransferModule etm = new EntityTransferModule();
 
