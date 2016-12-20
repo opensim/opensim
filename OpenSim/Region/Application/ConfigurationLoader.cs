@@ -348,7 +348,6 @@ namespace OpenSim
                 config.Set("meshing", "Meshmerizer");
                 config.Set("physical_prim", true);
                 config.Set("serverside_object_permissions", true);
-                config.Set("storage_prim_inventories", true);
                 config.Set("startup_console_commands_file", String.Empty);
                 config.Set("shutdown_console_commands_file", String.Empty);
                 config.Set("DefaultScriptEngine", "XEngine");
