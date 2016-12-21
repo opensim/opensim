@@ -233,7 +233,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected int m_maxHitsPerPrimInCastRay = 16;
         protected int m_maxHitsPerObjectInCastRay = 16;
         protected bool m_detectExitsInCastRay = false;
-        protected bool m_filterPartsInCastRay = false;
         protected bool m_doAttachmentsInCastRay = false;
         protected int m_msThrottleInCastRay = 200;
         protected int m_msPerRegionInCastRay = 40;
@@ -391,7 +390,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     m_maxHitsPerPrimInCastRay = lslConfig.GetInt("MaxHitsPerPrimInLlCastRay", m_maxHitsPerPrimInCastRay);
                     m_maxHitsPerObjectInCastRay = lslConfig.GetInt("MaxHitsPerObjectInLlCastRay", m_maxHitsPerObjectInCastRay);
                     m_detectExitsInCastRay = lslConfig.GetBoolean("DetectExitHitsInLlCastRay", m_detectExitsInCastRay);
-                    m_filterPartsInCastRay = lslConfig.GetBoolean("FilterPartsInLlCastRay", m_filterPartsInCastRay);
                     m_doAttachmentsInCastRay = lslConfig.GetBoolean("DoAttachmentsInLlCastRay", m_doAttachmentsInCastRay);
                     m_msThrottleInCastRay = lslConfig.GetInt("ThrottleTimeInMsInLlCastRay", m_msThrottleInCastRay);
                     m_msPerRegionInCastRay = lslConfig.GetInt("AvailableTimeInMsPerRegionInLlCastRay", m_msPerRegionInCastRay);
@@ -15063,8 +15061,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         return;
                     if (isPhantom && notdetectPhantom)
                         return;
-                    if (m_filterPartsInCastRay)
-                        return;
                     if (isAttachment && !m_doAttachmentsInCastRay)
                         return;
 
@@ -15072,25 +15068,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // Iterate over all prims/parts in object/group
                     foreach(SceneObjectPart part in group.Parts)
                     {
-                        // Check part filters if configured
-                        if (m_filterPartsInCastRay)
-                        {
-                            // ignore PhysicsShapeType.None as physics engines do
-                            // or we will get into trouble in future
-                            if(part.PhysicsShapeType == (byte)PhysicsShapeType.None)
-                                continue;
-                            isPhysical = (part.PhysActor != null && part.PhysActor.IsPhysical);
-                            isNonphysical = !isPhysical;
-                            isPhantom = ((part.Flags & PrimFlags.Phantom) != 0) ||
-                                                (part.VolumeDetectActive);
+                        // ignore PhysicsShapeType.None as physics engines do
+                        // or we will get into trouble in future
+                        if(part.PhysicsShapeType == (byte)PhysicsShapeType.None)
+                            continue;
+                        isPhysical = (part.PhysActor != null && part.PhysActor.IsPhysical);
+                        isNonphysical = !isPhysical;
+                        isPhantom = ((part.Flags & PrimFlags.Phantom) != 0) ||
+                                            (part.VolumeDetectActive);
                                                 
-                            if (isPhysical && rejectPhysical)
-                                continue;
-                            if (isNonphysical && rejectNonphysical)
-                                continue;
-                            if (isPhantom && notdetectPhantom)
-                                continue;
-                        }
+                        if (isPhysical && rejectPhysical)
+                            continue;
+                        if (isNonphysical && rejectNonphysical)
+                            continue;
+                        if (isPhantom && notdetectPhantom)
+                            continue;
 
                         // Parse prim/part and project ray if passed filters
                         Vector3 scalePart = part.Scale;
