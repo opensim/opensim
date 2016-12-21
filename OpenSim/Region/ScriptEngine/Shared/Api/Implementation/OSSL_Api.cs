@@ -418,7 +418,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     //Only gods may use the function
                     if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("GRID_GOD"))
                     {
-                        if (World.Permissions.IsAdministrator(ownerID))
+                        if (World.Permissions.IsGridGod(ownerID))
                         {
                             return String.Empty;
                         }
