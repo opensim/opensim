@@ -57,6 +57,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "UserProfilesModule")]
     public class UserProfileModule : IProfileModule, INonSharedRegionModule
     {
+        const double PROFILECACHEEXPIRE = 300;
         /// <summary>
         /// Logging
         /// </summary>
@@ -67,6 +68,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         // count. The entries are removed when the interest count reaches 0.
         Dictionary<UUID, UUID> m_classifiedCache = new Dictionary<UUID, UUID>();
         Dictionary<UUID, int> m_classifiedInterest = new Dictionary<UUID, int>();
+        ExpiringCache<UUID, UserProfileCacheEntry> m_profilesCache = new ExpiringCache<UUID, UserProfileCacheEntry>();
+        IImprovedAssetCache m_assetCache;
 
         private JsonRpcRequestManager rpc = new JsonRpcRequestManager();
         private bool m_allowUserProfileWebURLs = true;
@@ -128,7 +131,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             get; private set;
         }
 
-
         #region IRegionModuleBase implementation
         /// <summary>
         ///  This is called to initialize the region module. For shared modules, this is called exactly once, after
@@ -185,20 +187,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             Scene = scene;
             Scene.RegisterModuleInterface<IProfileModule>(this);
             Scene.EventManager.OnNewClient += OnNewClient;
-            Scene.EventManager.OnMakeRootAgent += HandleOnMakeRootAgent;
+            Scene.EventManager.OnClientClosed += OnClientClosed;
 
             UserManagementModule = Scene.RequestModuleInterface<IUserManagement>();
-        }
-
-        void HandleOnMakeRootAgent (ScenePresence obj)
-        {
-            if(obj.PresenceType == PresenceType.Npc)
-                return;
-
-            Util.FireAndForget(delegate
-            {
-                GetImageAssets(((IScenePresence)obj).UUID);
-            }, null, "UserProfileModule.GetImageAssets");
         }
 
         /// <summary>
@@ -211,6 +202,10 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         {
             if(!Enabled)
                 return;
+
+            m_profilesCache.Clear();
+            m_classifiedCache.Clear();
+            m_classifiedInterest.Clear();
         }
 
         /// <summary>
@@ -226,6 +221,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         {
             if(!Enabled)
                 return;
+            m_assetCache = Scene.RequestModuleInterface<IImprovedAssetCache>();
         }
 
         /// <summary>
@@ -297,6 +293,40 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             client.OnUserInfoRequest += UserPreferencesRequest;
             client.OnUpdateUserInfo += UpdateUserPreferences;
         }
+
+        void OnClientClosed(UUID AgentId, Scene scene)
+        {
+            ScenePresence sp = scene.GetScenePresence(AgentId);
+            IClientAPI client = sp.ControllingClient;
+            if (client == null)
+                return;
+
+            //Profile
+            client.OnRequestAvatarProperties -= RequestAvatarProperties;
+            client.OnUpdateAvatarProperties  -= AvatarPropertiesUpdate;
+            client.OnAvatarInterestUpdate    -= AvatarInterestsUpdate;
+
+            // Classifieds
+//            client.r GenericPacketHandler("avatarclassifiedsrequest", ClassifiedsRequest);
+            client.OnClassifiedInfoUpdate    -= ClassifiedInfoUpdate;
+            client.OnClassifiedInfoRequest   -= ClassifiedInfoRequest;
+            client.OnClassifiedDelete        -= ClassifiedDelete;
+
+            // Picks
+//            client.AddGenericPacketHandler("avatarpicksrequest", PicksRequest);
+//            client.AddGenericPacketHandler("pickinforequest", PickInfoRequest);
+            client.OnPickInfoUpdate -= PickInfoUpdate;
+            client.OnPickDelete     -= PickDelete;
+
+            // Notes
+//            client.AddGenericPacketHandler("avatarnotesrequest", NotesRequest);
+            client.OnAvatarNotesUpdate -= NotesUpdate;
+
+            // Preferences
+            client.OnUserInfoRequest -= UserPreferencesRequest;
+            client.OnUpdateUserInfo  -= UpdateUserPreferences;
+        }
+
         #endregion Region Event Handlers
 
         #region Classified
@@ -330,6 +360,34 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             {
                 remoteClient.SendAvatarClassifiedReply(targetID, classifieds);
                 return;
+            }
+
+            UserProfileCacheEntry uce = null;
+            lock(m_profilesCache)
+            {
+                if(m_profilesCache.TryGetValue(targetID, out uce) && uce != null)
+                {
+                    if(uce.classifiedsLists != null)
+                    {
+                        foreach(KeyValuePair<UUID,string> kvp in uce.classifiedsLists)
+                        {
+                            UUID kvpkey = kvp.Key;
+                            classifieds[kvpkey] = kvp.Value;
+                            lock (m_classifiedCache)
+                            {
+                                if (!m_classifiedCache.ContainsKey(kvpkey))
+                                {
+                                m_classifiedCache.Add(kvpkey,targetID);
+                                m_classifiedInterest.Add(kvpkey, 0);
+                                }
+
+                            m_classifiedInterest[kvpkey]++;
+                            }
+                        }
+                        remoteClient.SendAvatarClassifiedReply(targetID, uce.classifiedsLists);
+                        return;
+                    }
+                }
             }
 
             string serverURI = string.Empty;
@@ -380,6 +438,13 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 }
             }
 
+            if(uce == null)
+                uce = new UserProfileCacheEntry();
+            uce.classifiedsLists = classifieds;
+
+            lock(m_profilesCache)
+                m_profilesCache.AddOrUpdate(targetID, uce, PROFILECACHEEXPIRE);
+
             remoteClient.SendAvatarClassifiedReply(targetID, classifieds);
         }
 
@@ -404,9 +469,29 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                     }
                 }
             }
-            
+
+            UserProfileCacheEntry uce = null;
+            lock(m_profilesCache)
+            {
+                if(m_profilesCache.TryGetValue(target, out uce) && uce != null)
+                {
+                    if(uce.classifieds != null && uce.classifieds.ContainsKey(queryClassifiedID))
+                    {
+                        ad = uce.classifieds[queryClassifiedID];
+                        Vector3 gPos = new Vector3();
+                        Vector3.TryParse(ad.GlobalPos, out gPos);
+
+                        remoteClient.SendClassifiedInfoReply(ad.ClassifiedId, ad.CreatorId, (uint)ad.CreationDate,
+                                (uint)ad.ExpirationDate, (uint)ad.Category, ad.Name, ad.Description,
+                                ad.ParcelId, (uint)ad.ParentEstate, ad.SnapshotId, ad.SimName,
+                                gPos, ad.ParcelName, ad.Flags, ad.Price);
+                        return;
+                    }
+                }
+            }
+
             string serverURI = string.Empty;
-            GetUserProfileServerURI(target, out serverURI);
+            bool foreign = GetUserProfileServerURI(target, out serverURI);
             if(string.IsNullOrWhiteSpace(serverURI))
             {
                 return;
@@ -423,6 +508,18 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
             if(ad.CreatorId == UUID.Zero)
                 return;
+
+            if(foreign)
+                cacheForeignImage(target, ad.SnapshotId);
+
+           if(uce == null)
+                uce = new UserProfileCacheEntry();
+            if(uce.classifieds == null)
+                uce.classifieds = new Dictionary<UUID, UserClassifiedAdd>();
+            uce.classifieds[ad.ClassifiedId] = ad;
+
+            lock(m_profilesCache)
+                m_profilesCache.AddOrUpdate(ad.ClassifiedId, uce, PROFILECACHEEXPIRE);
 
             Vector3 globalPos = new Vector3();
             Vector3.TryParse(ad.GlobalPos, out globalPos);
@@ -473,6 +570,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                                          uint queryParentEstate, UUID querySnapshotID, Vector3 queryGlobalPos, byte queryclassifiedFlags,
                                          int queryclassifiedPrice, IClientAPI remoteClient)
         {
+
             Scene s = (Scene)remoteClient.Scene;
             Vector3 pos = remoteClient.SceneAgent.AbsolutePosition;
             ILandObject land = s.LandChannel.GetLandObject(pos.X, pos.Y);
@@ -484,6 +582,17 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             if(string.IsNullOrWhiteSpace(serverURI))
             {
                 return;
+            }
+
+            // just flush cache for now
+            UserProfileCacheEntry uce = null;
+            lock(m_profilesCache)
+            {
+                if(m_profilesCache.TryGetValue(remoteClient.AgentId, out uce) && uce != null)
+                {
+                    uce.classifieds = null;
+                    uce.classifiedsLists = null;
+                }
             }
 
             OSDMap parameters = new OSDMap {{"creatorId", OSD.FromUUID(creatorId)}};
@@ -549,6 +658,17 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// </param>
         public void ClassifiedDelete(UUID queryClassifiedID, IClientAPI remoteClient)
         {
+            // just flush cache for now
+            UserProfileCacheEntry uce = null;
+            lock(m_profilesCache)
+            {
+                if(m_profilesCache.TryGetValue(remoteClient.AgentId, out uce) && uce != null)
+                {
+                    uce.classifieds = null;
+                    uce.classifiedsLists = null;
+                }
+            }
+
             string serverURI = string.Empty;
             GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
             if(string.IsNullOrWhiteSpace(serverURI))
@@ -605,6 +725,19 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 return;
             }
 
+            UserProfileCacheEntry uce = null;
+            lock(m_profilesCache)
+            {
+                if(m_profilesCache.TryGetValue(targetId, out uce) && uce != null)
+                {
+                    if(uce != null && uce.picksList != null)
+                    {
+                        remoteClient.SendAvatarPicksReply(targetId, uce.picksList);
+                        return;
+                    }
+                }
+            }
+
             string serverURI = string.Empty;
             GetUserProfileServerURI(targetId, out serverURI);
             if(string.IsNullOrWhiteSpace(serverURI))
@@ -637,6 +770,14 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 string name = m["name"].AsString();
                 picks[cid] = name;
             }
+
+            if (uce == null)
+                uce = new UserProfileCacheEntry();
+            uce.picksList = picks;
+
+            lock(m_profilesCache)
+                m_profilesCache.AddOrUpdate(targetId, uce, PROFILECACHEEXPIRE);
+
             remoteClient.SendAvatarPicksReply(targetId, picks);
         }
 
@@ -667,8 +808,27 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             if(!UUID.TryParse (args [1], out pick.PickId))
                 return;
 
+            IClientAPI remoteClient = (IClientAPI)sender;
+            UserProfileCacheEntry uce = null;
+            lock(m_profilesCache)
+            {
+                if(m_profilesCache.TryGetValue(targetID, out uce) && uce != null)
+                {
+                    if(uce != null && uce.picks != null && uce.picks.ContainsKey(pick.PickId))
+                    {
+                        pick = uce.picks[pick.PickId];
+                        Vector3 gPos = new Vector3(Vector3.Zero);
+                        Vector3.TryParse(pick.GlobalPos, out gPos);
+                        remoteClient.SendPickInfoReply(pick.PickId,pick.CreatorId,pick.TopPick,pick.ParcelId,pick.Name,
+                                           pick.Desc,pick.SnapshotId,pick.ParcelName,pick.OriginalName,pick.SimName,
+                                           gPos,pick.SortOrder,pick.Enabled);
+                        return;
+                    }
+                }
+            }
+
             string serverURI = string.Empty;
-            GetUserProfileServerURI (targetID, out serverURI);
+            bool foreign =  GetUserProfileServerURI (targetID, out serverURI);
             if(string.IsNullOrWhiteSpace(serverURI))
             {
                 return;
@@ -676,8 +836,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
             string theirGatekeeperURI;
             GetUserGatekeeperURI(targetID, out theirGatekeeperURI);
-
-            IClientAPI remoteClient = (IClientAPI)sender;
                 
             object Pick = (object)pick;
             if (!rpc.JsonRpcRequest (ref Pick, "pickinforequest", serverURI, UUID.Random ().ToString ())) {
@@ -686,6 +844,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 return;
             }
             pick = (UserProfilePick)Pick;
+            if(foreign)
+                cacheForeignImage(targetID, pick.SnapshotId);
             
             Vector3 globalPos = new Vector3(Vector3.Zero);
             Vector3.TryParse(pick.GlobalPos, out globalPos);
@@ -715,6 +875,16 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             }
 
             m_log.DebugFormat("[PROFILES]: PickInfoRequest: {0} : {1}", pick.Name.ToString(), pick.SnapshotId.ToString());
+
+            pick.GlobalPos = globalPos.ToString();
+            if (uce == null)
+                uce = new UserProfileCacheEntry();
+            if(uce.picks == null)
+                uce.picks = new Dictionary<UUID, UserProfilePick>();
+            uce.picks[pick.PickId] = pick;
+
+            lock(m_profilesCache)
+                m_profilesCache.AddOrUpdate(targetID, uce, PROFILECACHEEXPIRE);
 
             // Pull the rabbit out of the hat
             remoteClient.SendPickInfoReply(pick.PickId,pick.CreatorId,pick.TopPick,pick.ParcelId,pick.Name,
@@ -757,6 +927,17 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             //TODO: See how this works with NPC, May need to test
             m_log.DebugFormat("[PROFILES]: Start PickInfoUpdate Name: {0} PickId: {1} SnapshotId: {2}", name, pickID.ToString(), snapshotID.ToString());
 
+            // flush cache for now
+            UserProfileCacheEntry uce = null;
+            lock(m_profilesCache)
+            {
+                if(m_profilesCache.TryGetValue(remoteClient.AgentId, out uce) && uce != null)
+                {
+                    uce.picks = null;
+                    uce.picksList = null;
+                }
+            }
+
             UserProfilePick pick = new UserProfilePick();
             string serverURI = string.Empty;
             GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
@@ -790,7 +971,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                     "[PROFILES]: PickInfoUpdate found no parcel info at {0},{1} in {2}", 
                     avaPos.X, avaPos.Y, p.Scene.Name);
             }
-
 
             pick.PickId = pickID;
             pick.CreatorId = creatorID;
@@ -828,6 +1008,17 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// </param>
         public void PickDelete(IClientAPI remoteClient, UUID queryPickID)
         {
+            // flush cache for now
+            UserProfileCacheEntry uce = null;
+            lock(m_profilesCache)
+            {
+                if(m_profilesCache.TryGetValue(remoteClient.AgentId, out uce) && uce != null)
+                {
+                    uce.picks = null;
+                    uce.picksList = null;
+                }
+            }
+
             string serverURI = string.Empty;
             GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
             if(string.IsNullOrWhiteSpace(serverURI))
@@ -1025,6 +1216,16 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// </param>
         public void AvatarInterestsUpdate(IClientAPI remoteClient, uint wantmask, string wanttext, uint skillsmask, string skillstext, string languages)
         {
+            // flush cache for now
+            UserProfileCacheEntry uce = null;
+            lock(m_profilesCache)
+            {
+                if(m_profilesCache.TryGetValue(remoteClient.AgentId, out uce) && uce != null)
+                {
+                    uce.props = null;
+                }
+            }
+
             UserProfileProperties prop = new UserProfileProperties();
 
             prop.UserId = remoteClient.AgentId;
@@ -1066,6 +1267,27 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 remoteClient.SendAvatarInterestsReply(avatarID, 0, "",
                           0, "Getting into trouble", "Droidspeak");
                 return;
+            }
+            UserProfileProperties props;
+            UserProfileCacheEntry uce = null;
+            lock(m_profilesCache)
+            {
+                if(m_profilesCache.TryGetValue(avatarID, out uce) && uce != null)
+                {
+                    if(uce.props != null)
+                    {
+                        props = uce.props;
+                        remoteClient.SendAvatarProperties(props.UserId, props.AboutText,
+                             uce.born, uce.membershipType , props.FirstLifeText, uce.flags,
+                            props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
+
+
+                        remoteClient.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask,
+                            props.WantToText, (uint)props.SkillsMask,
+                            props.SkillsText, props.Language);
+                    return;
+                    }
+                }
             }
 
             string serverURI = string.Empty;
@@ -1118,13 +1340,13 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 }
             }
 
-            UserProfileProperties props = new UserProfileProperties();
+            props = new UserProfileProperties();
             props.UserId = avatarID;
 
             string result = string.Empty;
-            if(!GetProfileData(ref props, foreign, out result))
+            if(!GetProfileData(ref props, foreign, serverURI, out result))
             {
-                props.AboutText ="Profile not avaible at this time. User may still be unknown to this grid";
+                props.AboutText ="Profile not available at this time. User may still be unknown to this grid";
             }
 
             // if on same region force online
@@ -1134,9 +1356,18 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             if(!m_allowUserProfileWebURLs)
                 props.WebUrl ="";
 
+            if(uce == null)
+                uce = new UserProfileCacheEntry();
+            uce.props = props;
+            uce.born = born;
+            uce.membershipType = membershipType;
+            uce.flags = flags;
+
+            lock(m_profilesCache)
+                m_profilesCache.AddOrUpdate(props.UserId, uce, PROFILECACHEEXPIRE);
+
             remoteClient.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType , props.FirstLifeText, flags,
                                               props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
-
 
             remoteClient.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask, props.WantToText, (uint)props.SkillsMask,
                                                   props.SkillsText, props.Language);
@@ -1155,6 +1386,16 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         {
             if (remoteClient.AgentId == newProfile.ID)
             {
+                // flush cache for now
+                UserProfileCacheEntry uce = null;
+                lock(m_profilesCache)
+                {
+                    if(m_profilesCache.TryGetValue(remoteClient.AgentId, out uce) && uce != null)
+                    {
+                        uce.props = null;
+                    }
+                }
+
                 UserProfileProperties prop = new UserProfileProperties();
 
                 prop.UserId = remoteClient.AgentId;
@@ -1189,24 +1430,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// <returns>
         /// The profile data.
         /// </returns>
-        bool GetProfileData(ref UserProfileProperties properties, bool foreign, out string message)
+        bool GetProfileData(ref UserProfileProperties properties, bool foreign, string serverURI, out string message)
         {
-            // Can't handle NPC yet...
-            ScenePresence p = FindPresence(properties.UserId);
-
-            if (null != p)
-            {
-                if (p.PresenceType == PresenceType.Npc)
-                {
-                    message = "Id points to NPC";
-                    return false;
-                }
-            }
-
-            string serverURI = string.Empty;
-            GetUserProfileServerURI(properties.UserId, out serverURI);
-            // This is checking a friend on the home grid
-            // Not HG friend
             if (String.IsNullOrEmpty(serverURI))
             {
                 message = "User profile service unknown at this time";
@@ -1247,10 +1472,14 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
                     return false;
                 }
-                // else, continue below
             }
-            
+                      
             properties = (UserProfileProperties)Prop;
+            if(foreign)
+            {
+                cacheForeignImage(properties.UserId, properties.ImageId);
+                cacheForeignImage(properties.UserId, properties.FirstLifeImageId);
+            }
 
             message = "Success";
             return true;
@@ -1258,49 +1487,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         #endregion Avatar Properties
 
         #region Utils
-        bool GetImageAssets(UUID avatarId)
-        {
-            string profileServerURI = string.Empty;
-            string assetServerURI = string.Empty;
-
-            bool foreign = GetUserProfileServerURI(avatarId, out profileServerURI);
-
-            if(!foreign)
-                return true;
-
-            assetServerURI = UserManagementModule.GetUserServerURL(avatarId, "AssetServerURI");
-
-            if(string.IsNullOrEmpty(profileServerURI) || string.IsNullOrEmpty(assetServerURI))
-                return false;
-
-            OSDMap parameters= new OSDMap();
-            parameters.Add("avatarId", OSD.FromUUID(avatarId));
-            OSD Params = (OSD)parameters;
-            if(!rpc.JsonRpcRequest(ref Params, "image_assets_request", profileServerURI, UUID.Random().ToString()))
-            {
-                return false;
-            }
-            
-            parameters = (OSDMap)Params;
-
-            if (parameters.ContainsKey("result"))
-            {
-                OSDArray list = (OSDArray)parameters["result"];
-
-                foreach (OSD asset in list)
-                {
-                    OSDString assetId = (OSDString)asset;
-
-                    Scene.AssetService.Get(string.Format("{0}/{1}", assetServerURI, assetId.AsString()));
-                }
-                return true;
-            }
-            else
-            {
-                m_log.ErrorFormat("[PROFILES]: Problematic response for image_assets_request from {0}", profileServerURI);
-                return false;
-            }
-        }
 
         /// <summary>
         /// Gets the user account data.
@@ -1451,6 +1637,27 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             }
         }
 
+        void cacheForeignImage(UUID agent, UUID imageID)
+        {
+            if(imageID == null || imageID == UUID.Zero)
+                return;
+
+            string assetServerURI = UserManagementModule.GetUserServerURL(agent, "AssetServerURI");
+            if(string.IsNullOrWhiteSpace(assetServerURI))
+                return;
+
+            string imageIDstr = imageID.ToString();
+
+            
+            if(m_assetCache != null && m_assetCache.Check(imageIDstr))
+                return;
+
+            if(Scene.AssetService.Get(imageIDstr) != null)
+                return;
+                    
+            Scene.AssetService.Get(string.Format("{0}/{1}", assetServerURI, imageIDstr));
+        }
+
         /// <summary>
         /// Finds the presence.
         /// </summary>
@@ -1519,9 +1726,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             webRequest.ContentType = "application/json-rpc";
             webRequest.Method = "POST";
 
-            Stream dataStream = webRequest.GetRequestStream();
-            dataStream.Write(content, 0, content.Length);
-            dataStream.Close();
+            using(Stream dataStream = webRequest.GetRequestStream())
+                dataStream.Write(content,0,content.Length);
 
             WebResponse webResponse = null;
             try
@@ -1601,9 +1807,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             webRequest.ContentType = "application/json-rpc";
             webRequest.Method = "POST";
 
-            Stream dataStream = webRequest.GetRequestStream();
-            dataStream.Write(content, 0, content.Length);
-            dataStream.Close();
+            using(Stream dataStream = webRequest.GetRequestStream())
+                dataStream.Write(content,0,content.Length);
 
             WebResponse webResponse = null;
             try
