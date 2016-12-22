@@ -27,6 +27,8 @@
 
 using System;
 using OpenMetaverse;
+using System.Collections.Generic;
+
 
 namespace OpenSim.Framework
 {
@@ -121,6 +123,18 @@ namespace OpenSim.Framework
         public string DataKey = string.Empty;
         public string UserId = UUID.Zero.ToString();
         public string DataVal = string.Empty;
+    }
+
+    public class UserProfileCacheEntry
+    {
+        public Dictionary<UUID, string> picksList;
+        public Dictionary<UUID, UserProfilePick> picks;
+        public Dictionary<UUID, string> classifiedsLists;
+        public Dictionary<UUID, UserClassifiedAdd> classifieds;
+        public UserProfileProperties props;
+        public string born;
+        public byte[] membershipType;
+        public uint flags;
     }
 }
 
