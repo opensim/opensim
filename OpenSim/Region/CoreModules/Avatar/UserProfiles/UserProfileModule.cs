@@ -570,29 +570,29 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                                          uint queryParentEstate, UUID querySnapshotID, Vector3 queryGlobalPos, byte queryclassifiedFlags,
                                          int queryclassifiedPrice, IClientAPI remoteClient)
         {
-
             Scene s = (Scene)remoteClient.Scene;
             Vector3 pos = remoteClient.SceneAgent.AbsolutePosition;
             ILandObject land = s.LandChannel.GetLandObject(pos.X, pos.Y);
             UUID creatorId = remoteClient.AgentId;
             ScenePresence p = FindPresence(creatorId);
 
+            UserProfileCacheEntry uce = null;
+            lock(m_profilesCache)
+                m_profilesCache.TryGetValue(remoteClient.AgentId, out uce);
+
             string serverURI = string.Empty;
-            GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
+            bool foreign = GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
             if(string.IsNullOrWhiteSpace(serverURI))
             {
                 return;
             }
 
-            // just flush cache for now
-            UserProfileCacheEntry uce = null;
-            lock(m_profilesCache)
+            if(foreign)
             {
-                if(m_profilesCache.TryGetValue(remoteClient.AgentId, out uce) && uce != null)
-                {
-                    uce.classifieds = null;
-                    uce.classifiedsLists = null;
-                }
+                remoteClient.SendAgentAlertMessage("Please change classifieds on your home grid", true);
+                if(uce != null && uce.classifiedsLists != null)
+                     remoteClient.SendAvatarClassifiedReply(remoteClient.AgentId, uce.classifiedsLists);
+                return;
             }
 
             OSDMap parameters = new OSDMap {{"creatorId", OSD.FromUUID(creatorId)}};
@@ -607,17 +607,20 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             bool exists = list.Cast<OSDMap>().Where(map => map.ContainsKey("classifieduuid"))
               .Any(map => map["classifieduuid"].AsUUID().Equals(queryclassifiedID));
 
+            IMoneyModule money = null;
             if (!exists)
             {
-                IMoneyModule money = s.RequestModuleInterface<IMoneyModule>();
+                money = s.RequestModuleInterface<IMoneyModule>();
                 if (money != null)
                 {
                     if (!money.AmountCovered(remoteClient.AgentId, queryclassifiedPrice))
                     {
                         remoteClient.SendAgentAlertMessage("You do not have enough money to create this classified.", false);
+                        if(uce != null && uce.classifiedsLists != null)
+                            remoteClient.SendAvatarClassifiedReply(remoteClient.AgentId, uce.classifiedsLists);
                         return;
                     }
-                    money.ApplyCharge(remoteClient.AgentId, queryclassifiedPrice, MoneyTransactionType.ClassifiedCharge);
+//                    money.ApplyCharge(remoteClient.AgentId, queryclassifiedPrice, MoneyTransactionType.ClassifiedCharge);
                 }
             }
 
@@ -644,7 +647,25 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             if(!rpc.JsonRpcRequest(ref Ad, "classified_update", serverURI, UUID.Random().ToString()))
             {
                 remoteClient.SendAgentAlertMessage("Error updating classified", false);
+                if(uce != null && uce.classifiedsLists != null)
+                    remoteClient.SendAvatarClassifiedReply(remoteClient.AgentId, uce.classifiedsLists);
+                return;
             }
+
+            // only charge if it worked
+            if (money != null)
+                money.ApplyCharge(remoteClient.AgentId, queryclassifiedPrice, MoneyTransactionType.ClassifiedCharge);
+
+            // just flush cache for now
+            lock(m_profilesCache)
+            {
+                if(uce != null)
+                {
+                    uce.classifieds = null;
+                    uce.classifiedsLists = null;
+                }
+            }
+
         }
 
         /// <summary>
@@ -670,10 +691,15 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             }
 
             string serverURI = string.Empty;
-            GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
+            bool foreign = GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
             if(string.IsNullOrWhiteSpace(serverURI))
                 return;
 
+            if(foreign)
+            {
+                remoteClient.SendAgentAlertMessage("Please change classifieds on your home grid", true);
+                return;
+            }
             UUID classifiedId;
             if(!UUID.TryParse(queryClassifiedID.ToString(), out classifiedId))
                 return;
