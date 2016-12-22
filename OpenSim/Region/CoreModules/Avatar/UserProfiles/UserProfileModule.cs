@@ -927,17 +927,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             //TODO: See how this works with NPC, May need to test
             m_log.DebugFormat("[PROFILES]: Start PickInfoUpdate Name: {0} PickId: {1} SnapshotId: {2}", name, pickID.ToString(), snapshotID.ToString());
 
-            // flush cache for now
-            UserProfileCacheEntry uce = null;
-            lock(m_profilesCache)
-            {
-                if(m_profilesCache.TryGetValue(remoteClient.AgentId, out uce) && uce != null)
-                {
-                    uce.picks = null;
-                    uce.picksList = null;
-                }
-            }
-
             UserProfilePick pick = new UserProfilePick();
             string serverURI = string.Empty;
             GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
@@ -955,15 +944,19 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                                             avaPos.Z);
 
             string  landParcelName  = "My Parcel";
-            UUID    landParcelID    = p.currentParcelUUID;
+//            UUID    landParcelID    = p.currentParcelUUID;
 
+            // to locate parcels we use a fake id that encodes the region handle
+            // since we do not have a global locator
+            // this fails on HG
+            UUID  landParcelID = Util.BuildFakeParcelID(remoteClient.Scene.RegionInfo.RegionHandle, (uint)avaPos.X, (uint)avaPos.Y);
             ILandObject land = p.Scene.LandChannel.GetLandObject(avaPos.X, avaPos.Y);
 
             if (land != null)
             {
                 // If land found, use parcel uuid from here because the value from SP will be blank if the avatar hasnt moved
                 landParcelName  = land.LandData.Name;
-                landParcelID    = land.LandData.GlobalID;
+//                landParcelID    = land.LandData.GlobalID;
             }
             else
             {
@@ -994,6 +987,24 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 return;
             }
 
+            UserProfileCacheEntry uce = null;
+            lock(m_profilesCache)
+            {
+                if(!m_profilesCache.TryGetValue(remoteClient.AgentId, out uce) || uce == null)
+                    uce = new UserProfileCacheEntry();
+                if(uce.picks == null)
+                    uce.picks = new Dictionary<UUID, UserProfilePick>();
+                if(uce.picksList == null)
+                    uce.picksList = new Dictionary<UUID, string>();
+                uce.picks[pick.PickId] = pick;
+                uce.picksList[pick.PickId] = pick.Name;
+                m_profilesCache.AddOrUpdate(remoteClient.AgentId, uce, PROFILECACHEEXPIRE);
+            }
+            remoteClient.SendAvatarPicksReply(remoteClient.AgentId, uce.picksList);
+            remoteClient.SendPickInfoReply(pick.PickId,pick.CreatorId,pick.TopPick,pick.ParcelId,pick.Name,
+                                           pick.Desc,pick.SnapshotId,pick.ParcelName,pick.OriginalName,pick.SimName,
+                                           posGlobal,pick.SortOrder,pick.Enabled);
+
             m_log.DebugFormat("[PROFILES]: Finish PickInfoUpdate {0} {1}", pick.Name, pick.PickId.ToString());
         }
 
@@ -1008,17 +1019,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// </param>
         public void PickDelete(IClientAPI remoteClient, UUID queryPickID)
         {
-            // flush cache for now
-            UserProfileCacheEntry uce = null;
-            lock(m_profilesCache)
-            {
-                if(m_profilesCache.TryGetValue(remoteClient.AgentId, out uce) && uce != null)
-                {
-                    uce.picks = null;
-                    uce.picksList = null;
-                }
-            }
-
             string serverURI = string.Empty;
             GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
             if(string.IsNullOrWhiteSpace(serverURI))
@@ -1035,6 +1035,23 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                         "Error picks delete", false);
                 return;
             }
+
+            UserProfileCacheEntry uce = null;
+            lock(m_profilesCache)
+            {
+                if(m_profilesCache.TryGetValue(remoteClient.AgentId, out uce) && uce != null)
+                {
+                if(uce.picks != null && uce.picks.ContainsKey(queryPickID))
+                    uce.picks.Remove(queryPickID);
+                if(uce.picksList != null && uce.picksList.ContainsKey(queryPickID))
+                    uce.picksList.Remove(queryPickID);
+                m_profilesCache.AddOrUpdate(remoteClient.AgentId, uce, PROFILECACHEEXPIRE);
+                }
+            }
+            if(uce != null && uce.picksList != null)
+                remoteClient.SendAvatarPicksReply(remoteClient.AgentId, uce.picksList);
+            else
+                remoteClient.SendAvatarPicksReply(remoteClient.AgentId, new Dictionary<UUID, string>());
         }
         #endregion Picks
 
