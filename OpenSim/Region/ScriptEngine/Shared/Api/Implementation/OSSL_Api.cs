@@ -310,7 +310,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         foreach (string id in ids)
                         {
                             string current = id.Trim();
-                            if (current.ToUpper() == "PARCEL_GROUP_MEMBER" || current.ToUpper() == "PARCEL_OWNER" || current.ToUpper() == "ESTATE_MANAGER" || current.ToUpper() == "ESTATE_OWNER")
+                            if (current.ToUpper() == "PARCEL_GROUP_MEMBER" || current.ToUpper() == "PARCEL_OWNER" || current.ToUpper() == "ESTATE_MANAGER" || current.ToUpper() == "ESTATE_OWNER" || current.ToUpper() == "GRID_GOD")
                             {
                                 if (!perms.AllowedOwnerClasses.Contains(current))
                                     perms.AllowedOwnerClasses.Add(current.ToUpper());
@@ -410,6 +410,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("ESTATE_OWNER"))
                     {
                         if (World.RegionInfo.EstateSettings.EstateOwner == ownerID)
+                        {
+                            return String.Empty;
+                        }
+                    }
+
+                    //Only gods may use the function
+                    if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("GRID_GOD"))
+                    {
+                        if (World.Permissions.IsGridGod(ownerID))
                         {
                             return String.Empty;
                         }

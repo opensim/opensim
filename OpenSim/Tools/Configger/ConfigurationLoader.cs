@@ -264,18 +264,14 @@ namespace OpenSim.Tools.Configger
                 config.Set("region_info_source", "filesystem");
                 config.Set("allow_regionless", false);
 
-                config.Set("gridmode", false);
                 config.Set("physics", "OpenDynamicsEngine");
                 config.Set("meshing", "Meshmerizer");
                 config.Set("physical_prim", true);
                 config.Set("serverside_object_permissions", true);
-                config.Set("storage_prim_inventories", true);
                 config.Set("startup_console_commands_file", String.Empty);
                 config.Set("shutdown_console_commands_file", String.Empty);
                 config.Set("DefaultScriptEngine", "XEngine");
                 config.Set("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
-                // life doesn't really work without this
-                config.Set("EventQueue", true);
             }
 
             return defaultConfig;

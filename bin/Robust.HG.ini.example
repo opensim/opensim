@@ -58,7 +58,7 @@
     ; Modular configurations
     ; Set path to directory for modular ini files...
     ; The Robust.exe process must have R/W access to the location 
-    ConfigDirectory = "."
+    ConfigDirectory = "robust-include"
 
     ; Console commands can be saved to a file, so the command history persists after a restart. (default is true)
     ConsoleHistoryFileEnabled = true
@@ -102,7 +102,13 @@
     ;; Uncomment this if you want Groups V2 to work
     ; GroupsServiceConnector = "${Const|PrivatePort}/OpenSim.Addons.Groups.dll:GroupsServiceRobustConnector"
     ;; Uncomment to provide bakes caching
-    ;BakedTextureService = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:XBakesConnector"
+    ; BakedTextureService = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:XBakesConnector"
+
+    ;; Uncomment for UserProfiles see [UserProfilesService] to configure...
+    ; UserProfilesServiceConnector = "${Const|PublicPort}/OpenSim.Server.Handlers.dll:UserProfilesConnector"
+
+    ;; Uncomment if you want to have centralized estate data
+    ; EstateDataService = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:EstateDataRobustConnector"
 
     ;; Additions for Hypergrid
 
@@ -115,12 +121,6 @@
     HGAssetServiceConnector = "HGAssetService@${Const|PublicPort}/OpenSim.Server.Handlers.dll:AssetServiceConnector"
     ;; Uncomment this if you want Groups V2, HG to work
     ; HGGroupsServiceConnector = "${Const|PublicPort}/OpenSim.Addons.Groups.dll:HGGroupsServiceRobustConnector"
-
-    ;; Uncomment for UserProfiles see [UserProfilesService] to configure...
-    ; UserProfilesServiceConnector = "${Const|PublicPort}/OpenSim.Server.Handlers.dll:UserProfilesConnector"
-
-    ;; Uncomment if you want to have centralized estate data
-    ; EstateDataService = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:EstateDataRobustConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance, if none is specified above
@@ -264,6 +264,18 @@
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "./assets/AssetSets.xml"
 
+    ; Allow maptile assets to remotely deleted by remote calls to the asset service.
+    ; There is no harm in having this as false - it just means that historical maptile assets are not deleted.
+    ; This only applies to maptiles served via the version 1 viewer mechanisms
+    ; Default is false
+    AllowRemoteDelete = false
+
+    ; Allow all assets to be remotely deleted.
+    ; Only set this to true if you are operating a grid where you control all calls to the asset service
+    ; (where a necessary condition is that you control all simulators) and you need this for admin purposes.
+    ; If set to true, AllowRemoteDelete = true is required as well.
+    ; Default is false.
+    AllowRemoteDeleteAllTypes = false
 
 ; * This configuration loads the inventory server modules. It duplicates
 ; * the function of the legacy inventory server
@@ -315,6 +327,7 @@
     ;;  
     ;; Persistent       When the simulator is shutdown, the region is signalled as offline but left registered on the grid.
     ;;
+    ;; Example specification:
     ; Region_Welcome_Area = "DefaultRegion, FallbackRegion"
     ; (replace spaces with underscore)
 
@@ -439,6 +452,9 @@
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.PresenceService.dll:PresenceService"
 
+    ; Set this to true to allow the use of advanced web services and multiple
+    ; bots using one account
+    AllowDuplicatePresences = false;
 
 [AvatarService]
     ; for the server connector
@@ -470,14 +486,21 @@
     GridService = "OpenSim.Services.GridService.dll:GridService"
     SimulationService ="OpenSim.Services.Connectors.dll:SimulationServiceConnector"
     LibraryService = "OpenSim.Services.InventoryService.dll:LibraryService"
-    UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
     FriendsService = "OpenSim.Services.FriendsService.dll:FriendsService"
+    ; The minimum user level required for a user to be able to login.  0 by default
+    ; If you disable a particular user's account then you can set their login level below this number.
+    ; You can also change this level from the console though these changes will not be persisted.
+    ; MinLoginLevel = 0
+
+    ;; for hypergrid
+    UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
 
     ; This inventory service will be used to initialize the user's inventory
     HGInventoryServicePlugin = "OpenSim.Services.HypergridService.dll:HGSuitcaseInventoryService"
     HGInventoryServiceConstructorArg = "HGInventoryService"
+    ;; end hypergrid
 
-    ;; Ask co-operative viewers to use a different currency name
+    ; Ask co-operative viewers to use a different currency name
     ;Currency = ""
 
     ;; Set minimum fee to publish classified
@@ -524,6 +547,24 @@
     ;;   "America/Los_Angeles;Pacific Standard Time" use these timezone names to look up Daylight savings.
     ;;      'America/Los_Angeles' is used on Linux/Mac systems whilst 'Pacific Standard Time' is used on Windows
     DSTZone = "America/Los_Angeles;Pacific Standard Time"
+
+    ;Basic Login Service Dos Protection Tweaks
+    ;;
+    ;; Some Grids/Users use a transparent proxy that makes use of the X-Forwarded-For HTTP Header, If you do, set this to true
+    ;; If you set this to true and you don't have a transparent proxy, it may allow attackers to put random things in the X-Forwarded-For header to
+    ;;     get around this basic DOS protection.
+    ;DOSAllowXForwardedForHeader = false
+    ;;
+    ;; The protector adds up requests during this rolling period of time, default 10 seconds
+    ;DOSRequestTimeFrameMS = 10000
+    ;;
+    ;; The amount of requests in the above timeframe from the same endpoint that triggers protection
+    ;DOSMaxRequestsInTimeFrame = 5
+    ;;
+    ;; The amount of time that a specific endpoint is blocked.    Default 2 minutes.
+    ;DOSForgiveClientAfterMS = 120000
+    ;; 
+    ;; To turn off basic dos protection, set the DOSMaxRequestsInTimeFrame to 0.
 
 
 [MapImageService]
@@ -757,6 +798,7 @@
     ;; What is the HomeURI of users associated with this grid?
     ;; Can overwrite the default in [Hypergrid], but probably shouldn't
     ; HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
+    ;; end hypergrid
 
     ;; Sets the maximum number of groups an agent may join
     ; MaxAgentGroups = 42

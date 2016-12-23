@@ -50,7 +50,7 @@
     ; Modular configurations
     ; Set path to directory for modular ini files...
     ; The Robust.exe process must have R/W access to the location 
-    ConfigDirectory = "."
+    ConfigDirectory = "robust-include"
     
     ; Console commands can be saved to a file, so the command history persists after a restart. (default is true)
     ConsoleHistoryFileEnabled = true
@@ -89,11 +89,11 @@
     MapAddServiceConnector = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:MapAddServiceConnector"
     MapGetServiceConnector = "${Const|PublicPort}/OpenSim.Server.Handlers.dll:MapGetServiceConnector"
     ;; Uncomment this if you want offline IM to work
-    ;OfflineIMServiceConnector = "${Const|PrivatePort}/OpenSim.Addons.OfflineIM.dll:OfflineIMServiceRobustConnector"
+    ; OfflineIMServiceConnector = "${Const|PrivatePort}/OpenSim.Addons.OfflineIM.dll:OfflineIMServiceRobustConnector"
     ;; Uncomment this if you want Groups V2 to work
-    ;GroupsServiceConnector = "${Const|PrivatePort}/OpenSim.Addons.Groups.dll:GroupsServiceRobustConnector"
+    ; GroupsServiceConnector = "${Const|PrivatePort}/OpenSim.Addons.Groups.dll:GroupsServiceRobustConnector"
     ;; Uncomment to provide bakes caching
-    ;BakedTextureService = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:XBakesConnector"
+    ; BakedTextureService = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:XBakesConnector"
 
     ;; Uncomment for UserProfiles see [UserProfilesService] to configure...
     ; UserProfilesServiceConnector = "${Const|PublicPort}/OpenSim.Server.Handlers.dll:UserProfilesConnector"
@@ -222,7 +222,7 @@
     
     ;; The following are common to both the default asset service and FSAsset service
     
-    ;; Default loader for loading default assets from XML on first run
+    ;; Common asset service options
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "./assets/AssetSets.xml"
 
@@ -332,6 +332,7 @@
 [AuthenticationService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
+    ; Realm = "useraccounts"
 
     ;; Allow the service to process HTTP getauthinfo calls.
     ;; Default is false.
@@ -352,8 +353,8 @@
     UserAccountServiceModule = "OpenSim.Services.UserAccountService.dll:UserAccountService"
 
 
-; * This is the new style authentication service. Currently, only MySQL
-; * is implemented. "Realm" is the table that is used for user lookup.
+; * This is the new style user service.
+; * "Realm" is the table that is used for user lookup.
 ; * It defaults to "useraccounts", which uses the new style.
 ; * Realm = "users" will use the legacy tables as an authentication source
 ; *
@@ -464,15 +465,6 @@
     ; HasProxy = false
 
     ;# {DSTZone} {} {Override Daylight Saving Time rules} {* none local} "America/Los_Angeles;Pacific Standard Time"
-    ;; Viewers do not listen to timezone sent by the server. They use Pacific Standard Time instead,
-    ;; but rely on the server to calculate Daylight Saving Time. Sending another DST than US Pacific
-    ;; would result in time inconsistencies between grids (during summer and around DST transition period)
-    ;;   default    let OpenSim calculate US Pacific DST
-    ;;   "none"     disable DST (equivallent to "local" with system set to GMT)
-    ;;   "local"    force legacy behaviour (using local system time to calculate DST)
-    ; DSTZone = "America/Los_Angeles;Pacific Standard Time"
-
-    ;# {DSTZone} {} {Override Daylight Saving Time rules} {* none local} "America/Los_Angeles;Pacific Standard Time"
     ;; Viewers do not receive timezone information from the server - almost all (?) default to Pacific Standard Time
     ;; However, they do rely on the server to tell them whether it's Daylight Saving Time or not.
     ;; Hence, calculating DST based on a different timezone can result in a misleading viewer display and inconsistencies between grids.
@@ -517,16 +509,6 @@
     ; HasProxy = false
 
 
-[Messaging]
-    ; OfflineIM
-    OfflineIMService = "OpenSim.Addons.OfflineIM.dll:OfflineIMService"
-
-
-[Groups]
-    ;; Sets the maximum number of groups an agent may join
-    ; MaxAgentGroups = 42
-
-
 [GridInfoService]
     ; These settings are used to return information on a get_grid_info call.
     ; Client launcher scripts and third-party clients make use of this to
@@ -565,6 +547,16 @@
 
     ; password help: optional: page providing password assistance for users of your grid
     ;password = ${Const|BaseURL}/password
+
+
+[Messaging]
+    ; OfflineIM
+    OfflineIMService = "OpenSim.Addons.OfflineIM.dll:OfflineIMService"
+
+
+[Groups]
+    ;; Sets the maximum number of groups an agent may join
+    ; MaxAgentGroups = 42
 
 
 [UserProfilesService]
