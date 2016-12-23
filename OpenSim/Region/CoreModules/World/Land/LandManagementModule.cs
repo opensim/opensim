@@ -1880,8 +1880,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                         UUID.TryParse(id, out parcel);
                         // assume we've got the parcelID we just computed in RemoteParcelRequest
                         ExtendedLandData extLandData = new ExtendedLandData();
-                        Util.ParseFakeParcelID(parcel, out extLandData.RegionHandle,
-                                               out extLandData.X, out extLandData.Y);
+                        if(!Util.ParseFakeParcelID(parcel, out extLandData.RegionHandle,
+                                               out extLandData.X, out extLandData.Y))
+                            return null;
                         m_log.DebugFormat("[LAND MANAGEMENT MODULE]: Got parcelinfo request for regionHandle {0}, x/y {1}/{2}",
                                           extLandData.RegionHandle, extLandData.X, extLandData.Y);
 
