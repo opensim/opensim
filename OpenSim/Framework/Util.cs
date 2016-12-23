@@ -1725,12 +1725,16 @@ namespace OpenSim.Framework
             return new UUID(bytes, 0);
         }
 
-        public static void ParseFakeParcelID(UUID parcelID, out ulong regionHandle, out uint x, out uint y)
+        public static bool ParseFakeParcelID(UUID parcelID, out ulong regionHandle, out uint x, out uint y)
         {
             byte[] bytes = parcelID.GetBytes();
             regionHandle = Utils.BytesToUInt64(bytes);
             x = Utils.BytesToUInt(bytes, 8) & 0xffff;
             y = Utils.BytesToUInt(bytes, 12) & 0xffff;
+            // validation may fail, just reducing the odds of using a real UUID as encoded parcel  
+            return  ( bytes[0] == 0 && bytes[4] == 0 && // handler x,y multiples of 256
+                         bytes[9] < 64 && bytes[13] < 64 && // positions < 16km
+                         bytes[14] == 0 && bytes[15] == 0);          
         }
 
         public static void ParseFakeParcelID(UUID parcelID, out ulong regionHandle, out uint x, out uint y, out uint z)
