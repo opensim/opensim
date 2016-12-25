@@ -897,20 +897,36 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 else
                 {
                     // we have a proxy on map 
-                    // this is a fail on large regions                  
-                    uint gtmp = (uint)globalPos.X >> 8;
-                    globalPos.X -= (gtmp << 8);
-                    globalPos.X += target.RegionLocX;
+                    ulong oriHandle;
+                    uint oriX;
+                    uint oriY;
+                    if(Util.ParseFakeParcelID(pick.ParcelId, out oriHandle, out oriX, out oriY))
+                    {
+                        pick.ParcelId = Util.BuildFakeParcelID(target.RegionHandle, oriX, oriY);
+                        globalPos.X = target.RegionLocX + oriX;
+                        globalPos.Y = target.RegionLocY + oriY;
+                        pick.GlobalPos = globalPos.ToString();
+                    }
+                    else
+                    {
+                        // this is a fail on large regions                  
+                        uint gtmp = (uint)globalPos.X >> 8;
+                        globalPos.X -= (gtmp << 8);
 
-                    gtmp = (uint)globalPos.Y >> 8;
-                    globalPos.Y -= (gtmp << 8);
-                    globalPos.Y += target.RegionLocY;
+                        gtmp = (uint)globalPos.Y >> 8;
+                        globalPos.Y -= (gtmp << 8);
+
+                        pick.ParcelId = Util.BuildFakeParcelID(target.RegionHandle, (uint)globalPos.X, (uint)globalPos.Y);
+
+                        globalPos.X += target.RegionLocX;
+                        globalPos.Y += target.RegionLocY;
+                        pick.GlobalPos = globalPos.ToString();
+                    }
                 }
             }
 
             m_log.DebugFormat("[PROFILES]: PickInfoRequest: {0} : {1}", pick.Name.ToString(), pick.SnapshotId.ToString());
 
-            pick.GlobalPos = globalPos.ToString();
             lock(m_profilesCache)
             {
                 if(!m_profilesCache.TryGetValue(targetID, out uce) || uce == null)
@@ -1331,16 +1347,35 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                     if(uce.props != null)
                     {
                         props = uce.props;
-                        remoteClient.SendAvatarProperties(props.UserId, props.AboutText,
-                             uce.born, uce.membershipType , props.FirstLifeText, uce.flags,
-                            props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
+                        uint cflags = uce.flags;
+                        // if on same region force online
+                        if(p != null && !p.IsDeleted)
+                            cflags |= 0x10;
 
+                        remoteClient.SendAvatarProperties(props.UserId, props.AboutText,
+                            uce.born, uce.membershipType , props.FirstLifeText, cflags,
+                            props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
 
                         remoteClient.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask,
                             props.WantToText, (uint)props.SkillsMask,
                             props.SkillsText, props.Language);
-                    return;
+                        return;
                     }
+                    else
+                    {
+                        if(uce.ClientsWaitingProps == null)
+                            uce.ClientsWaitingProps = new HashSet<IClientAPI>();
+                        else if(uce.ClientsWaitingProps.Contains(remoteClient))
+                            return;
+                        uce.ClientsWaitingProps.Add(remoteClient);
+                    }
+                }
+                else
+                {
+                    uce = new UserProfileCacheEntry();
+                    uce.ClientsWaitingProps = new HashSet<IClientAPI>();
+                    uce.ClientsWaitingProps.Add(remoteClient);
+                    m_profilesCache.AddOrUpdate(avatarID, uce, PROFILECACHEEXPIRE);
                 }
             }
 
@@ -1402,14 +1437,11 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             {
                 props.AboutText ="Profile not available at this time. User may still be unknown to this grid";
             }
-
-            // if on same region force online
-            if(p != null && !p.IsDeleted)
-                flags |= 0x10;
             
             if(!m_allowUserProfileWebURLs)
                 props.WebUrl ="";
 
+            HashSet<IClientAPI> clients;
             lock(m_profilesCache)
             {
                 if(!m_profilesCache.TryGetValue(props.UserId, out uce) || uce == null)
@@ -1418,15 +1450,39 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 uce.born = born;
                 uce.membershipType = membershipType;
                 uce.flags = flags;
-
+                clients = uce.ClientsWaitingProps;
+                uce.ClientsWaitingProps = null;
                 m_profilesCache.AddOrUpdate(props.UserId, uce, PROFILECACHEEXPIRE);
             }
 
-            remoteClient.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType , props.FirstLifeText, flags,
+            // if on same region force online
+            if(p != null && !p.IsDeleted)
+                flags |= 0x10;
+
+            if(clients == null)
+            {
+                remoteClient.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType , props.FirstLifeText, flags,
                                               props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
 
-            remoteClient.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask, props.WantToText, (uint)props.SkillsMask,
-                                                  props.SkillsText, props.Language);
+                remoteClient.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask, props.WantToText,
+                                             (uint)props.SkillsMask, props.SkillsText, props.Language);
+            }
+            else
+            {
+                if(!clients.Contains(remoteClient))
+                    clients.Add(remoteClient);
+                foreach(IClientAPI cli in clients)
+                {
+                    if(!cli.IsActive)
+                        continue;
+                    cli.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType , props.FirstLifeText, flags,
+                                              props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
+
+                    cli.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask, props.WantToText,
+                                             (uint)props.SkillsMask, props.SkillsText, props.Language);
+
+                }
+            }
         }
 
         /// <summary>

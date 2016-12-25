@@ -135,6 +135,7 @@ namespace OpenSim.Framework
         public string born;
         public byte[] membershipType;
         public uint flags;
+        public HashSet<IClientAPI> ClientsWaitingProps;
     }
 }
 
