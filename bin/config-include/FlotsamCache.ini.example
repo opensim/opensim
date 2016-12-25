@@ -20,15 +20,20 @@
     HitRateDisplay = 100
 
     ; Set to false for no memory cache
-    MemoryCacheEnabled = false
+    ; assets can be requested several times in short periods
+    ; so even a small memory cache is usefull
+    MemoryCacheEnabled = true
 
     ; Set to false for no file cache
     FileCacheEnabled = true
 
     ; How long {in hours} to keep assets cached in memory, .5 == 30 minutes
-    ; Optimization: for VPS or limited memory system installs set Timeout to .016 (1 minute)
-    ; increases performance without large memory impact
-    MemoryCacheTimeout = 2
+    ; even a few minutes may mean many assets loaded to memory, if not all.
+    ; this is good if memory is not a problem.
+    ; if memory is a problem then a few seconds may actually save same.
+    ; reducing duplications.
+    ; see hit rates with console comand: fcache status
+    MemoryCacheTimeout = .001 // 3.6s ie around 4s (1s resolution)
 
     ; How long {in hours} to keep assets cached on disk, .5 == 30 minutes
     ; Specify 0 if you do not want your disk cache to expire
