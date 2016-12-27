@@ -76,7 +76,6 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             public Hashtable response;
             public int bytes;
-            public int lod;
         }
 
 
@@ -330,9 +329,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         response["str_response_string"] = "Script timeout";
                         response["content_type"] = "text/plain";
                         response["keepalive"] = false;
-                        response["reusecontext"] = false;
-
-                        responses[requestID] = new aPollResponse() { bytes = 0, response = response, lod = 0 };
+                        responses[requestID] = new aPollResponse() { bytes = 0, response = response};
 
                         return;
                     }
@@ -354,7 +351,6 @@ namespace OpenSim.Region.ClientStack.Linden
                     responses[requestID] = new aPollResponse()
                     {
                         bytes = (int)response["int_bytes"],
-                        lod = (int)response["int_lod"],
                         response = response
                     };
 
@@ -423,7 +419,6 @@ namespace OpenSim.Region.ClientStack.Linden
             private volatile int lastTimeElapsed = 0;
             private volatile int BytesSent = 0;
             private int CapSetThrottle = 0;
-            private float CapThrottleDistributon = 0.30f;
             private readonly Scene m_scene;
             private ThrottleOutPacketType Throttle;
             private readonly UUID User;
