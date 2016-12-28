@@ -80,6 +80,7 @@ namespace OpenSim.Capabilities.Handlers
             {
                 m_log.Error("[GETTEXTURE]: Cannot fetch texture " + textureStr + " without an asset service");
                 httpResponse.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
+                return null;
             }
  
             UUID textureID;
@@ -150,6 +151,7 @@ namespace OpenSim.Capabilities.Handlers
                         return true;
                     }
                     WriteTextureData(httpRequest, httpResponse, texture, format);
+                    return true;
                 }
                 else
                 {

@@ -2821,7 +2821,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_followCamAuto = false;
             if(!m_mouseLook)
             {
-                if((CameraUpAxis.Z > 0.959f && CameraUpAxis.Z < 0.98f))
+                if((CameraUpAxis.Z > 0.959f && CameraUpAxis.Z < 0.99f))
                 {
                     Vector3 camdif = new Vector3(1f, 0f, 0f) * Rotation;
                     float ftmp = camdif.X - CameraAtAxis.X;
