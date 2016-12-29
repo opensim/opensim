@@ -580,6 +580,9 @@ namespace OpenSim.Region.CoreModules.Asset
 
                 if (m_MemoryCacheEnabled)
                     m_MemoryCache.Remove(id);
+
+                lock(weakAssetReferencesLock)
+                    weakAssetReferences.Remove(id);
             }
             catch (Exception e)
             {
