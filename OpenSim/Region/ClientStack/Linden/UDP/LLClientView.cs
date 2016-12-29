@@ -621,7 +621,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             GroupsInView.Clear();
 
             if(m_scene.GetNumberOfClients() == 0)
-                GC.Collect();          
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+            }
         }
 
         public void Kick(string message)
