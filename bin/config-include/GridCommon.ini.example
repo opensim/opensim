@@ -85,6 +85,7 @@
     ; Change this to your grid-wide inventory server
     ;
     InventoryServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+    ;MaxRetries = 0
 
 [GridInfo]
     ;
