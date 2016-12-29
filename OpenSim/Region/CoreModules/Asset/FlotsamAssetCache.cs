@@ -110,6 +110,7 @@ namespace OpenSim.Region.CoreModules.Asset
         
         private Dictionary<string,WeakReference> weakAssetReferences = new Dictionary<string, WeakReference>();
         private object weakAssetReferencesLock = new object();
+        private bool m_updateFileTimeOnCacheHit = false;
 
         public FlotsamAssetCache()
         {
@@ -156,6 +157,8 @@ namespace OpenSim.Region.CoreModules.Asset
                         m_MemoryCacheEnabled = assetConfig.GetBoolean("MemoryCacheEnabled", m_MemoryCacheEnabled);
                         m_MemoryExpiration = assetConfig.GetDouble("MemoryCacheTimeout", m_MemoryExpiration);
                         m_MemoryExpiration *= 3600.0; // config in hours to seconds
+
+                        m_updateFileTimeOnCacheHit = assetConfig.GetBoolean("UpdateFileTimeOnCacheHit", m_updateFileTimeOnCacheHit);
     
     #if WAIT_ON_INPROGRESS_REQUESTS
                         m_WaitOnInprogressTimeout = assetConfig.GetInt("WaitOnInprogressTimeout", 3000);
@@ -513,12 +516,24 @@ namespace OpenSim.Region.CoreModules.Asset
 
             AssetBase asset = null;
             asset = GetFromWeakReference(id);
+            if (asset != null && m_updateFileTimeOnCacheHit)
+            {
+                string filename = GetFileName(id);
+                UpdateFileLastAccessTime(filename);
+            }
 
             if (m_MemoryCacheEnabled && asset == null)
             {
                 asset = GetFromMemoryCache(id);
                 if(asset != null)
+                {
                     UpdateWeakReference(id,asset);
+                    if (m_updateFileTimeOnCacheHit)
+                    {
+                        string filename = GetFileName(id);
+                        UpdateFileLastAccessTime(filename);
+                    }
+                }
             }
 
             if (asset == null && m_FileCacheEnabled)
