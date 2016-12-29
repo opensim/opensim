@@ -78,6 +78,7 @@ namespace OpenSim.Region.CoreModules.Asset
         private static ulong m_RequestsForInprogress;
         private static ulong m_DiskHits;
         private static ulong m_MemoryHits;
+        private static ulong m_weakRefHits;
 
 #if WAIT_ON_INPROGRESS_REQUESTS
         private Dictionary<string, ManualResetEvent> m_CurrentlyWriting = new Dictionary<string, ManualResetEvent>();
@@ -92,7 +93,7 @@ namespace OpenSim.Region.CoreModules.Asset
         private bool m_MemoryCacheEnabled = false;
 
         // Expiration is expressed in hours.
-        private double m_MemoryExpiration = 0.001;
+        private double m_MemoryExpiration = 0.016;
         private const double m_DefaultFileExpiration = 48;
         private TimeSpan m_FileExpiration = TimeSpan.FromHours(m_DefaultFileExpiration);
         private TimeSpan m_FileExpirationCleanupTimer = TimeSpan.FromHours(1.0);
@@ -107,6 +108,9 @@ namespace OpenSim.Region.CoreModules.Asset
         private List<Scene> m_Scenes = new List<Scene>();
         private object timerLock = new object();
         
+        private Dictionary<string,WeakReference> weakAssetReferences = new Dictionary<string, WeakReference>();
+        private object weakAssetReferencesLock = new object();
+
         public FlotsamAssetCache()
         {
             m_InvalidChars.AddRange(Path.GetInvalidPathChars());
@@ -255,12 +259,23 @@ namespace OpenSim.Region.CoreModules.Asset
                         }
                     }
                  }
+                if (m_MemoryCacheEnabled)
+                    m_MemoryCache = new ExpiringCache<string, AssetBase>();
+            
+                lock(weakAssetReferencesLock)
+                    weakAssetReferences = new Dictionary<string, WeakReference>();
             }
         }
 
         ////////////////////////////////////////////////////////////
         // IImprovedAssetCache
         //
+        private void UpdateWeakReference(string key, AssetBase asset)
+        {
+            WeakReference aref = new WeakReference(asset);
+            lock(weakAssetReferencesLock)
+                weakAssetReferences[key] = aref;
+        }
 
         private void UpdateMemoryCache(string key, AssetBase asset)
         {
@@ -327,6 +342,7 @@ namespace OpenSim.Region.CoreModules.Asset
             if (asset != null)
             {
                 //m_log.DebugFormat("[FLOTSAM ASSET CACHE]: Caching asset with id {0}", asset.ID);
+                UpdateWeakReference(asset.ID, asset);
 
                 if (m_MemoryCacheEnabled)
                     UpdateMemoryCache(asset.ID, asset);
@@ -352,6 +368,25 @@ namespace OpenSim.Region.CoreModules.Asset
             {
                 return false;
             }
+        }
+
+        private AssetBase GetFromWeakReference(string id)
+        {
+            AssetBase asset = null;
+            WeakReference aref;
+
+            lock(weakAssetReferencesLock)
+            {
+                if (weakAssetReferences.TryGetValue(id, out aref))
+                {
+                    asset = aref.Target as AssetBase;
+                    if(asset == null)
+                        weakAssetReferences.Remove(id);
+                    else
+                        m_weakRefHits++;
+                }
+            }
+            return asset;
         }
 
         /// <summary>
@@ -477,12 +512,21 @@ namespace OpenSim.Region.CoreModules.Asset
             m_Requests++;
 
             AssetBase asset = null;
+            asset = GetFromWeakReference(id);
 
-            if (m_MemoryCacheEnabled)
+            if (m_MemoryCacheEnabled && asset == null)
+            {
                 asset = GetFromMemoryCache(id);
+                if(asset != null)
+                    UpdateWeakReference(id,asset);
+            }
 
             if (asset == null && m_FileCacheEnabled)
+            {
                 asset = GetFromFileCache(id);
+                if(asset != null)
+                    UpdateWeakReference(id,asset);
+            }
 
             if (m_MemoryCacheEnabled && asset != null)
                 UpdateMemoryCache(id, asset);
@@ -492,6 +536,12 @@ namespace OpenSim.Region.CoreModules.Asset
                 m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Cache Get :: {0} :: {1}", id, asset == null ? "Miss" : "Hit");
 
                 GenerateCacheHitReport().ForEach(l => m_log.InfoFormat("[FLOTSAM ASSET CACHE]: {0}", l));
+            }
+
+            if(asset == null)
+            {
+
+
             }
 
             return asset;
@@ -553,7 +603,10 @@ namespace OpenSim.Region.CoreModules.Asset
             }
 
             if (m_MemoryCacheEnabled)
-                m_MemoryCache.Clear();
+                m_MemoryCache = new ExpiringCache<string, AssetBase>();
+            
+            lock(weakAssetReferencesLock)
+                weakAssetReferences = new Dictionary<string, WeakReference>();
         }
 
         private void CleanupExpiredFiles(object source, ElapsedEventArgs e)
@@ -911,28 +964,34 @@ namespace OpenSim.Region.CoreModules.Asset
             List<string> outputLines = new List<string>();
 
             double invReq = 100.0 / m_Requests;
+
+            double weakHitRate = m_weakRefHits * invReq;
+            int weakEntries = weakAssetReferences.Count;
             
             double fileHitRate = m_DiskHits * invReq;
+            double TotalHitRate = weakHitRate + fileHitRate;
+
             outputLines.Add(
-                string.Format("File Hit Rate: {0}% for {1} requests", fileHitRate.ToString("0.00"), m_Requests));
+                string.Format("Total requests: {0}", m_Requests));
+            outputLines.Add(
+                string.Format("unCollected Hit Rate: {0}% ({1} entries)", weakHitRate.ToString("0.00"),weakEntries));
+            outputLines.Add(
+                string.Format("File Hit Rate: {0}%", fileHitRate.ToString("0.00")));
 
             if (m_MemoryCacheEnabled)
             {
                 double HitRate = m_MemoryHits * invReq;
-
                 outputLines.Add(
-                    string.Format("Memory Hit Rate: {0}% for {1} requests", HitRate.ToString("0.00"), m_Requests));
+                    string.Format("Memory Hit Rate: {0}%", HitRate.ToString("0.00")));
 
-                HitRate += fileHitRate;
-
-                outputLines.Add(
-                    string.Format("Total Hit Rate: {0}% for {1} requests", HitRate.ToString("0.00"), m_Requests));
+                TotalHitRate += HitRate;
             }
+            outputLines.Add(
+                string.Format("Total Hit Rate: {0}%", TotalHitRate.ToString("0.00")));
 
             outputLines.Add(
                 string.Format(
-                    "Unnecessary requests due to requests for assets that are currently downloading: {0}", 
-                    m_RequestsForInprogress));
+                    "Requests overlap during file writing: {0}", m_RequestsForInprogress));
 
             return outputLines;
         }

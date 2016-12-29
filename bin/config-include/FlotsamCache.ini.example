@@ -22,7 +22,7 @@
     ; Set to false for no memory cache
     ; assets can be requested several times in short periods
     ; so even a small memory cache is useful
-    MemoryCacheEnabled = true
+    MemoryCacheEnabled = false
 
     ; Set to false for no file cache
     FileCacheEnabled = true
@@ -32,7 +32,7 @@
     ; this is good if memory is not a problem.
     ; if memory is a problem then a few seconds may actually save same.
     ; see hit rates with console comand: fcache status
-    MemoryCacheTimeout = .001 ; 3.6s ie around 4s (1s resolution)
+    MemoryCacheTimeout = .016 // one minute
 
     ; How long {in hours} to keep assets cached on disk, .5 == 30 minutes
     ; Specify 0 if you do not want your disk cache to expire
