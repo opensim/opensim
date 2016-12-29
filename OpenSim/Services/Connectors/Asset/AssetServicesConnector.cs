@@ -260,8 +260,13 @@ namespace OpenSim.Services.Connectors
                 asset = SynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", uri, 0, m_Auth);
 
  
-                if (asset != null && m_Cache != null)
-                   m_Cache.Cache(asset);
+                if (m_Cache != null)
+                {
+                    if (asset != null)
+                        m_Cache.Cache(asset);
+                    else
+                        m_Cache.CacheNegative(id);
+                }
             }
             return asset;
         }

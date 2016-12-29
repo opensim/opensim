@@ -221,6 +221,11 @@ namespace OpenSim.Region.CoreModules.Asset
 
         }
 
+        public void CacheNegative(string id)
+        {
+            // We don't do negative caching
+        }
+
         /// <summary>
         /// Clear asset cache.
         /// </summary>

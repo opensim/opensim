@@ -124,6 +124,11 @@ namespace OpenSim.Region.CoreModules.Asset
                 m_Cache.Store(asset.ID, asset);
         }
 
+        public void CacheNegative(string id)
+        {
+            // We don't do negative caching
+        }
+
         public AssetBase Get(string id)
         {
             return (AssetBase)m_Cache.Get(id);

@@ -38,6 +38,12 @@ namespace OpenSim.Framework
         void Cache(AssetBase asset);
 
         /// <summary>
+        /// Cache that the specified asset wasn't found.
+        /// </summary>
+        /// <param name='id'></param>
+        /// <summary>
+        void CacheNegative(string id);
+
         /// Get an asset by its id.
         /// </summary>
         /// <param name='id'></param>

@@ -92,9 +92,15 @@ namespace OpenSim.Region.CoreModules.Asset
         private ExpiringCache<string, AssetBase> m_MemoryCache;
         private bool m_MemoryCacheEnabled = false;
 
+        private ExpiringCache<string, object> m_negativeCache;
+        private bool m_negativeCacheEnabled = true;
+        private bool m_negativeCacheSliding = false;
+
         // Expiration is expressed in hours.
         private double m_MemoryExpiration = 0.016;
         private const double m_DefaultFileExpiration = 48;
+        // Negative cache is in seconds
+        private int m_negativeExpiration = 120;
         private TimeSpan m_FileExpiration = TimeSpan.FromHours(m_DefaultFileExpiration);
         private TimeSpan m_FileExpirationCleanupTimer = TimeSpan.FromHours(1.0);
 
@@ -139,6 +145,7 @@ namespace OpenSim.Region.CoreModules.Asset
                 if (name == Name)
                 {
                     m_MemoryCache = new ExpiringCache<string, AssetBase>();
+                    m_negativeCache = new ExpiringCache<string, object>();
                     m_Enabled = true;
 
                     m_log.InfoFormat("[FLOTSAM ASSET CACHE]: {0} enabled", this.Name);
@@ -158,6 +165,9 @@ namespace OpenSim.Region.CoreModules.Asset
                         m_MemoryExpiration = assetConfig.GetDouble("MemoryCacheTimeout", m_MemoryExpiration);
                         m_MemoryExpiration *= 3600.0; // config in hours to seconds
 
+                        m_negativeCacheEnabled = assetConfig.GetBoolean("NegativeCacheEnabled", m_negativeCacheEnabled);
+                        m_negativeExpiration = assetConfig.GetInt("NegativeCacheTimeout", m_negativeExpiration);
+                        m_negativeCacheSliding = assetConfig.GetBoolean("NegativeCacheSliding", m_negativeCacheSliding);
                         m_updateFileTimeOnCacheHit = assetConfig.GetBoolean("UpdateFileTimeOnCacheHit", m_updateFileTimeOnCacheHit);
     
     #if WAIT_ON_INPROGRESS_REQUESTS
@@ -355,6 +365,17 @@ namespace OpenSim.Region.CoreModules.Asset
             }
         }
 
+        public void CacheNegative(string id)
+        {
+            if (m_negativeCacheEnabled)
+            {
+                if (m_negativeCacheSliding)
+                    m_negativeCache.AddOrUpdate(id, null, TimeSpan.FromSeconds(m_negativeExpiration));
+                else
+                    m_negativeCache.AddOrUpdate(id, null, m_negativeExpiration);
+            }
+        }
+
         /// <summary>
         /// Updates the cached file with the current time.
         /// </summary>
@@ -514,6 +535,10 @@ namespace OpenSim.Region.CoreModules.Asset
         {
             m_Requests++;
 
+            object dummy;
+            if (m_negativeCache.TryGetValue(id, out dummy))
+                return null;
+
             AssetBase asset = null;
             asset = GetFromWeakReference(id);
             if (asset != null && m_updateFileTimeOnCacheHit)
@@ -622,6 +647,8 @@ namespace OpenSim.Region.CoreModules.Asset
 
             if (m_MemoryCacheEnabled)
                 m_MemoryCache = new ExpiringCache<string, AssetBase>();
+            if (m_negativeCacheEnabled)
+                m_negativeCache = new ExpiringCache<string, object>();
             
             lock(weakAssetReferencesLock)
                 weakAssetReferences = new Dictionary<string, WeakReference>();
