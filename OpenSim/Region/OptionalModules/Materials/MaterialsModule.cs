@@ -63,7 +63,7 @@ namespace OpenSim.Region.OptionalModules.Materials
         
         public Type ReplaceableInterface { get { return null; } }
 
-        IImprovedAssetCache m_cache;
+        IAssetCache m_cache;
         private Scene m_scene = null;
         private bool m_enabled = false;
         private int m_maxMaterialsPerTransaction = 50;
@@ -207,7 +207,7 @@ namespace OpenSim.Region.OptionalModules.Materials
         {
             if (!m_enabled) return;
 
-            m_cache = scene.RequestModuleInterface<IImprovedAssetCache>();
+            m_cache = scene.RequestModuleInterface<IAssetCache>();
             ISimulatorFeaturesModule featuresModule = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
             if (featuresModule != null)
                 featuresModule.OnSimulatorFeaturesRequest += OnSimulatorFeaturesRequest;

@@ -48,7 +48,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Enabled = false;
-        private IImprovedAssetCache m_Cache;
+        private IAssetCache m_Cache;
 
         public Type ReplaceableInterface 
         {
@@ -111,7 +111,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             if (m_Cache == null)
             {
-                m_Cache = scene.RequestModuleInterface<IImprovedAssetCache>();
+                m_Cache = scene.RequestModuleInterface<IAssetCache>();
 
                 // Since we are a shared module and scene data is not
                 // available for every method, the cache must be shared, too

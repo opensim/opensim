@@ -91,7 +91,7 @@ namespace OpenSim.Region.CoreModules.Asset
     /// </code>
     /// </example>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "CenomeMemoryAssetCache")]
-    public class CenomeMemoryAssetCache : IImprovedAssetCache, ISharedRegionModule
+    public class CenomeMemoryAssetCache : IAssetCache, ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
@@ -192,7 +192,7 @@ namespace OpenSim.Region.CoreModules.Asset
                 expirationTime);
         }
 
-        #region IImprovedAssetCache Members
+        #region IAssetCache Members
 
         public bool Check(string id)
         {
@@ -308,7 +308,7 @@ namespace OpenSim.Region.CoreModules.Asset
         public void AddRegion(Scene scene)
         {
             if (m_enabled)
-                scene.RegisterModuleInterface<IImprovedAssetCache>(this);
+                scene.RegisterModuleInterface<IAssetCache>(this);
         }
 
         /// <summary>

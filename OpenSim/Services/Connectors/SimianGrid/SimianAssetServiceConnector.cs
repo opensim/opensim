@@ -55,7 +55,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         private static string ZeroID = UUID.Zero.ToString();
 
         private string m_serverUrl = String.Empty;
-        private IImprovedAssetCache m_cache;
+        private IAssetCache m_cache;
         private bool m_Enabled = false;
 
         #region ISharedRegionModule
@@ -65,7 +65,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         {
             if (m_cache == null)
             {
-                IImprovedAssetCache cache = scene.RequestModuleInterface<IImprovedAssetCache>();
+                IAssetCache cache = scene.RequestModuleInterface<IAssetCache>();
                 if (cache is ISharedRegionModule)
                     m_cache = cache;
             }

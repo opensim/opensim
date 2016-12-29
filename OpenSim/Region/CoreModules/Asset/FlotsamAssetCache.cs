@@ -55,7 +55,7 @@ using OpenSim.Services.Interfaces;
 namespace OpenSim.Region.CoreModules.Asset
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "FlotsamAssetCache")]
-    public class FlotsamAssetCache : ISharedRegionModule, IImprovedAssetCache, IAssetService
+    public class FlotsamAssetCache : ISharedRegionModule, IAssetCache, IAssetService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -219,7 +219,7 @@ namespace OpenSim.Region.CoreModules.Asset
         {
             if (m_Enabled)
             {
-                scene.RegisterModuleInterface<IImprovedAssetCache>(this);
+                scene.RegisterModuleInterface<IAssetCache>(this);
                 m_Scenes.Add(scene);
             }
         }
@@ -228,7 +228,7 @@ namespace OpenSim.Region.CoreModules.Asset
         {
             if (m_Enabled)
             {
-                scene.UnregisterModuleInterface<IImprovedAssetCache>(this);
+                scene.UnregisterModuleInterface<IAssetCache>(this);
                 m_Scenes.Remove(scene);
                 lock(timerLock)
                 {
@@ -271,7 +271,7 @@ namespace OpenSim.Region.CoreModules.Asset
         }
 
         ////////////////////////////////////////////////////////////
-        // IImprovedAssetCache
+        // IAssetCache
         //
         private void UpdateWeakReference(string key, AssetBase asset)
         {

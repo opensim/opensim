@@ -29,7 +29,7 @@ using OpenSim.Framework;
 
 namespace OpenSim.Framework
 {
-    public interface IImprovedAssetCache
+    public interface IAssetCache
     {
         /// <summary>
         /// Cache the specified asset.
