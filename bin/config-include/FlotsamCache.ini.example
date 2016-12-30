@@ -53,7 +53,7 @@
     ;     to all cluster members when it is first attempted to fetch it.
     ;     This may theoretically occur with networked vendor systems and
     ;     would lead to an asset not found message. However, after the
-    ;     expiration time has elapsed, the asset will the be fetchable.
+    ;     expiration time has elapsed, the asset will then be fetchable.
     ;
     ; The defaults below are suitable for all small to medium installations
     ; including grids.
@@ -69,13 +69,13 @@
     ; this is good if memory is not a problem.
     ; if memory is a problem then a few seconds may actually save same.
     ; see hit rates with console comand: fcache status
-    MemoryCacheTimeout = .016 // one minute
+    MemoryCacheTimeout = .016 ; one minute
 
     ; How long {in hours} to keep assets cached on disk, .5 == 30 minutes
     ; Specify 0 if you do not want your disk cache to expire
     FileCacheTimeout = 48
 
-    ; How often {in hours} should the disk be checked for expired filed
+    ; How often {in hours} should the disk be checked for expired files
     ; Specify 0 to disable expiration checking
     FileCleanupTimer = 0.0  ; disabled
 
