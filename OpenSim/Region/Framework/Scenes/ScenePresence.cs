@@ -3674,12 +3674,18 @@ namespace OpenSim.Region.Framework.Scenes
             //                vec, Rotation, thisAddSpeedModifier, Name);
 
             // rotate from avatar coord space to world
-            // for now all controls assume this is only a rotation around Z
-            // if not all checks below need to be done before this rotation
-            Vector3 direc = vec * Rotation;
+            Quaternion rot = Rotation;
+            if (!Flying && PresenceType != PresenceType.Npc)
+            {
+                // force rotation to be around Z only, if not flying
+                // needed for mouselook
+                rot.X = 0;
+                rot.Y = 0;
+            }
+
+            Vector3 direc = vec * rot;
             direc.Normalize();
 
-            // mouse look situation ?
             if ((vec.Z == 0f) && !Flying)
                 direc.Z = 0f; // Prevent camera WASD up.
 
