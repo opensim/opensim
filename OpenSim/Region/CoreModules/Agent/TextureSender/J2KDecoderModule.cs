@@ -57,13 +57,13 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         /// <summary>List of client methods to notify of results of decode</summary>
         private readonly Dictionary<UUID, List<DecodedCallback>> m_notifyList = new Dictionary<UUID, List<DecodedCallback>>();
         /// <summary>Cache that will store decoded JPEG2000 layer boundary data</summary>
-        private IImprovedAssetCache m_cache;
-        private IImprovedAssetCache Cache
+        private IAssetCache m_cache;
+        private IAssetCache Cache
         {
             get
             {
                 if (m_cache == null)
-                    m_cache = m_scene.RequestModuleInterface<IImprovedAssetCache>();
+                    m_cache = m_scene.RequestModuleInterface<IAssetCache>();
 
                 return m_cache;
             }

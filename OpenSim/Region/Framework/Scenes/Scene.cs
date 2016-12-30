@@ -1582,6 +1582,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
             // tell physics to finish building actor
             m_sceneGraph.ProcessPhysicsPreSimulation();
 
@@ -1856,13 +1858,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (!LoginsEnabled && Frame == 20)
                     {
-                        // m_log.DebugFormat("{0} {1} {2}", LoginsDisabled, m_sceneGraph.GetActiveScriptsCount(), LoginLock);
-
-                        // In 99.9% of cases it is a bad idea to manually force garbage collection. However,
-                        // this is a rare case where we know we have just went through a long cycle of heap
-                        // allocations, and there is no more work to be done until someone logs in
                         GC.Collect();
-
+                        GC.WaitForPendingFinalizers();
+                        GC.Collect();
                         if (!LoginLock)
                         {
                             if (!StartDisabled)
@@ -1887,6 +1885,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 // LoginLock can currently only be set by a region module implementation.
                                 // If somehow this hasn't been done then the quickest way to bugfix is to see the
                                 // NullReferenceException
+
                                 IRegionReadyModule rrm = RequestModuleInterface<IRegionReadyModule>();
                                 rrm.TriggerRegionReady(this);
                             }

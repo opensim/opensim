@@ -69,7 +69,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         Dictionary<UUID, UUID> m_classifiedCache = new Dictionary<UUID, UUID>();
         Dictionary<UUID, int> m_classifiedInterest = new Dictionary<UUID, int>();
         ExpiringCache<UUID, UserProfileCacheEntry> m_profilesCache = new ExpiringCache<UUID, UserProfileCacheEntry>();
-        IImprovedAssetCache m_assetCache;
+        IAssetCache m_assetCache;
 
         private JsonRpcRequestManager rpc = new JsonRpcRequestManager();
         private bool m_allowUserProfileWebURLs = true;
@@ -221,7 +221,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         {
             if(!Enabled)
                 return;
-            m_assetCache = Scene.RequestModuleInterface<IImprovedAssetCache>();
+            m_assetCache = Scene.RequestModuleInterface<IAssetCache>();
         }
 
         /// <summary>

@@ -44,7 +44,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IImprovedAssetCache m_Cache = null;
+        private IAssetCache m_Cache = null;
 
         private IAssetService m_AssetService;
 
@@ -128,7 +128,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             if (m_Cache == null)
             {
-                m_Cache = scene.RequestModuleInterface<IImprovedAssetCache>();
+                m_Cache = scene.RequestModuleInterface<IAssetCache>();
 
                 if (!(m_Cache is ISharedRegionModule))
                     m_Cache = null;

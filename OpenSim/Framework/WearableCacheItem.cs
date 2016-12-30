@@ -50,7 +50,7 @@ namespace OpenSim.Framework
             return retitems;          
         }
 
-        public static WearableCacheItem[] FromOSD(OSD pInput, IImprovedAssetCache dataCache)
+        public static WearableCacheItem[] FromOSD(OSD pInput, IAssetCache dataCache)
         {
             List<WearableCacheItem> ret = new List<WearableCacheItem>();
             if (pInput.Type == OSDType.Array)
@@ -100,7 +100,7 @@ namespace OpenSim.Framework
 
         }
 
-        public static OSD ToOSD(WearableCacheItem[] pcacheItems, IImprovedAssetCache dataCache)
+        public static OSD ToOSD(WearableCacheItem[] pcacheItems, IAssetCache dataCache)
         {
             OSDArray arr = new OSDArray();
             foreach (WearableCacheItem item in pcacheItems)

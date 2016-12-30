@@ -29,7 +29,7 @@ using OpenSim.Framework;
 
 namespace OpenSim.Framework
 {
-    public interface IImprovedAssetCache
+    public interface IAssetCache
     {
         /// <summary>
         /// Cache the specified asset.
@@ -38,6 +38,12 @@ namespace OpenSim.Framework
         void Cache(AssetBase asset);
 
         /// <summary>
+        /// Cache that the specified asset wasn't found.
+        /// </summary>
+        /// <param name='id'></param>
+        /// <summary>
+        void CacheNegative(string id);
+
         /// Get an asset by its id.
         /// </summary>
         /// <param name='id'></param>

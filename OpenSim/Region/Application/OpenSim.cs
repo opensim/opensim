@@ -206,6 +206,7 @@ namespace OpenSim
             MainServer.Instance.AddStreamHandler(new OpenSim.XSimStatusHandler(this));
             if (userStatsURI != String.Empty)
                 MainServer.Instance.AddStreamHandler(new OpenSim.UXSimStatusHandler(this));
+            MainServer.Instance.AddStreamHandler(new OpenSim.SimRobotsHandler());
 
             if (managedStatsURI != String.Empty)
             {

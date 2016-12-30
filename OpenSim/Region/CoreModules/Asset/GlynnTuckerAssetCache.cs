@@ -41,7 +41,7 @@ using OpenSim.Services.Interfaces;
 namespace OpenSim.Region.CoreModules.Asset
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "GlynnTuckerAssetCache")]
-    public class GlynnTuckerAssetCache : ISharedRegionModule, IImprovedAssetCache
+    public class GlynnTuckerAssetCache : ISharedRegionModule, IAssetCache
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -100,7 +100,7 @@ namespace OpenSim.Region.CoreModules.Asset
         public void AddRegion(Scene scene)
         {
             if (m_Enabled)
-                scene.RegisterModuleInterface<IImprovedAssetCache>(this);
+                scene.RegisterModuleInterface<IAssetCache>(this);
         }
 
         public void RemoveRegion(Scene scene)
@@ -112,7 +112,7 @@ namespace OpenSim.Region.CoreModules.Asset
         }
 
         ////////////////////////////////////////////////////////////
-        // IImprovedAssetCache
+        // IAssetCache
         //
 
         public bool Check(string id)
@@ -124,6 +124,11 @@ namespace OpenSim.Region.CoreModules.Asset
         {
             if (asset != null)
                 m_Cache.AddOrUpdate(asset.ID, asset);
+        }
+
+        public void CacheNegative(string id)
+        {
+            // We don't do negative caching
         }
 
         public AssetBase Get(string id)

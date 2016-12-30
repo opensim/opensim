@@ -54,6 +54,8 @@ namespace OpenSim.Services.Connectors
 
         private string m_ServerURI = String.Empty;
 
+        private int m_maxRetries = 0;
+
         /// <summary>
         /// Timeout for remote requests.
         /// </summary>
@@ -100,6 +102,7 @@ namespace OpenSim.Services.Connectors
             m_ServerURI = serviceURI;
 
             m_requestTimeoutSecs = config.GetInt("RemoteRequestTimeout", m_requestTimeoutSecs);
+            m_maxRetries = config.GetInt("MaxRetries", m_maxRetries);
 
             StatsManager.RegisterStat(
                 new Stat(
@@ -700,10 +703,20 @@ namespace OpenSim.Services.Connectors
 
             RequestsMade++;
 
-            string reply 
-                = SynchronousRestFormsRequester.MakeRequest(
+            string reply = String.Empty;
+            int retries = 0;
+
+            do
+            {
+                reply = SynchronousRestFormsRequester.MakeRequest(
                     "POST", m_ServerURI + "/xinventory",
                      ServerUtils.BuildQueryString(sendData), m_requestTimeoutSecs, m_Auth);
+                
+                if (reply != String.Empty)
+                    break;
+
+                retries++;
+            } while (retries <= m_maxRetries);
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(
                     reply);

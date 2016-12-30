@@ -49,7 +49,7 @@ namespace OpenSim.Services.Connectors
         const int MAXSENDRETRIESLEN = 30;
 
         private string m_ServerURI = String.Empty;
-        private IImprovedAssetCache m_Cache = null;
+        private IAssetCache m_Cache = null;
         private int m_retryCounter;
         private bool m_inRetries;
         private List<AssetBase>[] m_sendRetries = new  List<AssetBase>[MAXSENDRETRIESLEN];
@@ -233,7 +233,7 @@ namespace OpenSim.Services.Connectors
             }
         }
 
-        protected void SetCache(IImprovedAssetCache cache)
+        protected void SetCache(IAssetCache cache)
         {
             m_Cache = cache;
         }
@@ -260,8 +260,13 @@ namespace OpenSim.Services.Connectors
                 asset = SynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", uri, 0, m_Auth);
 
  
-                if (asset != null && m_Cache != null)
-                   m_Cache.Cache(asset);
+                if (m_Cache != null)
+                {
+                    if (asset != null)
+                        m_Cache.Cache(asset);
+                    else
+                        m_Cache.CacheNegative(id);
+                }
             }
             return asset;
         }

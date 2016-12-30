@@ -214,6 +214,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             m_scene.EventManager.OnEmptyScriptCompileQueue -= OnEmptyScriptCompileQueue;
             m_scene.LoginLock = false;
 
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+
             if (!m_scene.StartDisabled)
             {
                 m_scene.LoginsEnabled = true;

@@ -898,6 +898,26 @@ namespace OpenSim
             }
         }
 
+        /// <summary>
+        /// handler to supply serving http://domainname:port/robots.txt
+        /// </summary>
+        public class SimRobotsHandler : BaseStreamHandler
+        {
+            public SimRobotsHandler() : base("GET", "/robots.txt", "SimRobots.txt", "Simulator Robots.txt") {}
+
+            protected override byte[] ProcessRequest(string path, Stream request,
+                                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+            {
+                string robots = "# go away\nUser-agent: *\nDisallow: /\n";
+                return Util.UTF8.GetBytes(robots);
+            }
+
+            public override string ContentType
+            {
+                get { return "text/plain"; }
+            }
+        }
+
         #endregion
 
         /// <summary>

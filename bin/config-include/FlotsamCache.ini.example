@@ -22,7 +22,44 @@
     ; Set to false for no memory cache
     ; assets can be requested several times in short periods
     ; so even a small memory cache is useful
-    MemoryCacheEnabled = true
+    MemoryCacheEnabled = false
+
+    ; If a memory cache hit happens, or the asset is still in memory
+    ; due to other causes, update the timestamp on the disk file anyway.
+    ; Don't turn this on unless you share your asset cache between simulators
+    ; AND use an external process, e.g. cron job, to clean it up.
+    UpdateFileTimeOnCacheHit = false
+
+    ; Enabling this will cache negative fetches. If an asset is negative-cached
+    ; it will not be re-requested from the asset server again for a while.
+    ; Generally, this is a good thing.
+    ;
+    ; Regular expiration settings (non-sliding) mean that the asset will be
+    ; retried after the time has expired. Sliding expiration means that
+    ; the time the negative cache will keep the asset is refreshed each
+    ; time a fetch is attempted. Use sliding expiration if you have rogue
+    ; scripts hammering the asset server with requests for nonexistent
+    ; assets.
+    ;
+    ; There are two cases where negative caching may cause issues:
+    ;
+    ; 1 - If an invalid asset is repeatedly requested by a script and that asset is
+    ;     subsequently created, it will not be seen until fcache clear
+    ;     is used. This is a very theoretical scenario since UUID collisions
+    ;     are deemed to be not occuring in practice.
+    ;     This can only become an issue with sliding expiration time.
+    ;
+    ; 2 - If the asset service is clustered, an asset may not have propagated
+    ;     to all cluster members when it is first attempted to fetch it.
+    ;     This may theoretically occur with networked vendor systems and
+    ;     would lead to an asset not found message. However, after the
+    ;     expiration time has elapsed, the asset will the be fetchable.
+    ;
+    ; The defaults below are suitable for all small to medium installations
+    ; including grids.
+    NegativeCacheEnabled = true
+    NegativeCacheTimeout = 120
+    NegativeCacheSliding = false
 
     ; Set to false for no file cache
     FileCacheEnabled = true
@@ -32,7 +69,7 @@
     ; this is good if memory is not a problem.
     ; if memory is a problem then a few seconds may actually save same.
     ; see hit rates with console comand: fcache status
-    MemoryCacheTimeout = .001 ; 3.6s ie around 4s (1s resolution)
+    MemoryCacheTimeout = .016 // one minute
 
     ; How long {in hours} to keep assets cached on disk, .5 == 30 minutes
     ; Specify 0 if you do not want your disk cache to expire

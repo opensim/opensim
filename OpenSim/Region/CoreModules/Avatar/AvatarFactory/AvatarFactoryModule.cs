@@ -288,7 +288,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             if (bakedTextures.Count == 0)
                 return false;
 
-            IImprovedAssetCache cache = sp.Scene.RequestModuleInterface<IImprovedAssetCache>();
+            IAssetCache cache = sp.Scene.RequestModuleInterface<IAssetCache>();
             if(cache == null)
                 return true; // no baked local caching so nothing to do
 
@@ -705,7 +705,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 return 0;
 
             int texturesRebaked = 0;
-//            IImprovedAssetCache cache = m_scene.RequestModuleInterface<IImprovedAssetCache>();
+//            IAssetCache cache = m_scene.RequestModuleInterface<IAssetCache>();
 
             for (int i = 0; i < AvatarAppearance.BAKE_INDICES.Length; i++)
             {
