@@ -1066,8 +1066,8 @@ namespace OpenSim.Services.LLLoginService
                     }
                     break;
 
-                case "reset":                    
-                    m_MinLoginLevel = 0;
+                case "reset":
+                    m_MinLoginLevel = m_LoginServerConfig.GetInt("MinLoginLevel", 0);
                     MainConsole.Instance.OutputFormat("Reset min login level to {0}", m_MinLoginLevel);
                     break;
 
