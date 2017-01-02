@@ -488,8 +488,9 @@
     UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
 
     ; This inventory service will be used to initialize the user's inventory
-    HGInventoryServicePlugin = "OpenSim.Services.HypergridService.dll:HGSuitcaseInventoryService"
-    HGInventoryServiceConstructorArg = "HGInventoryService"
+    HGInventoryServicePlugin = "HGInventoryService@OpenSim.Services.HypergridService.dll:HGSuitcaseInventoryService"
+    ; NOTE: HGInventoryServiceConstructorArg is deprecated. For now it will work, but see above
+	;       for the correct method if passing additional arguments.
     ;; end hypergrid
 
     ; Ask co-operative viewers to use a different currency name
