@@ -180,9 +180,14 @@ namespace OpenSim.Services.LLLoginService
             string hgInvServicePlugin = m_LoginServerConfig.GetString("HGInventoryServicePlugin", String.Empty);
             if (hgInvServicePlugin != string.Empty)
             {
+				// TODO: Remove HGInventoryServiceConstructorArg after 0.9 release
                 string hgInvServiceArg = m_LoginServerConfig.GetString("HGInventoryServiceConstructorArg", String.Empty);
-                Object[] args2 = new Object[] { config, hgInvServiceArg };
-                m_HGInventoryService = ServerUtils.LoadPlugin<IInventoryService>(hgInvServicePlugin, args2);
+				if (hgInvServiceArg != String.Empty)
+				{
+					m_log.Warn("[LLOGIN SERVICE]: You are using HGInventoryServiceConstructorArg, which is deprecated. See example file for correct syntax.");
+					hgInvServicePlugin = hgInvServiceArg + "@" + hgInvServicePlugin;
+				}
+                m_HGInventoryService = ServerUtils.LoadPlugin<IInventoryService>(hgInvServicePlugin, args);
             }
 
             //
