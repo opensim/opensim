@@ -98,7 +98,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
                         if (m_AllowCreateUser)
                             return CreateUser(request);
                         else
-                            break;
+                            return FailureResult();
                     case "getaccount":
                         return GetAccount(request);
                     case "getaccounts":
@@ -109,7 +109,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
                         if (m_AllowSetAccount)
                             return StoreAccount(request);
                         else
-                            break;
+                            return FailureResult();
                 }
 
                 m_log.DebugFormat("[USER SERVICE HANDLER]: unknown method request: {0}", method);
