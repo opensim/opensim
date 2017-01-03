@@ -301,8 +301,12 @@ namespace OpenSim.Services.HypergridService
 
             // Everything is ok
 
-            // Update the perceived IP Address of our grid 
-            m_log.DebugFormat("[USER AGENT SERVICE]: Gatekeeper sees me as {0}", myExternalIP);
+			if (!fromLogin)
+			{
+				// Update the perceived IP Address of our grid 
+				m_log.DebugFormat("[USER AGENT SERVICE]: Gatekeeper sees me as {0}", myExternalIP);
+			}
+
             travel.MyIpAddress = myExternalIP;
 
             StoreTravelInfo(travel);
