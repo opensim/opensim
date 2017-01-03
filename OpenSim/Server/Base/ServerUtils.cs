@@ -242,6 +242,18 @@ namespace OpenSim.Server.Base
                     className = parts[2];
             }
 
+			// Handle extra string arguments in a more generic way
+			if (dllName.Contains("@"))
+			{
+				string[] dllNameParts = dllName.Split(new char[] {'@'});
+				dllName = dllNameParts[dllNameParts.Length - 1];
+				List<Object> argList = new List<Object>(args);
+				for (int i = 0 ; i < dllNameParts.Length - 1 ; ++i)
+					argList.Add(dllNameParts[i]);
+
+				args = argList.ToArray();
+			}
+
             return LoadPlugin<T>(dllName, className, args);
         }
 

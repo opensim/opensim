@@ -2267,8 +2267,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
 
-                GC.Collect(1);
-
                 TerrainHeightFieldHeightsHandler = GCHandle.Alloc(_heightmap, GCHandleType.Pinned);
 
                 d.GeomHeightfieldDataBuildSingle(HeightmapData, TerrainHeightFieldHeightsHandler.AddrOfPinnedObject(), 0,

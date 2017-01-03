@@ -668,6 +668,9 @@ namespace OpenSim.Services.FSAssetService
 
             if (!m_DataConnector.Store(asset.Metadata, hash))
             {
+                if (asset.Metadata.Type == -2)
+                    return asset.ID;
+
                 return UUID.Zero.ToString();
             }
             else
