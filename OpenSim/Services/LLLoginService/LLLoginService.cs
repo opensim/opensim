@@ -82,7 +82,7 @@ namespace OpenSim.Services.LLLoginService
         protected string m_SearchURL;
         protected string m_Currency;
         protected string m_ClassifiedFee;
-        protected int m_MaxAgentGroups;
+        protected int m_MaxAgentGroups = 42;
         protected string m_DestinationGuide;
         protected string m_AvatarPicker;
         protected string m_AllowedClients;
