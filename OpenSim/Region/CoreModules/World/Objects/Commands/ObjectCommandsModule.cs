@@ -152,6 +152,15 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             m_console.Commands.AddCommand(
                 "Objects",
                 false,
+                "show object owner",
+                "show object owner [--full] <OwnerID>",
+                "Show details of scene objects with given owner.",
+                "The --full option will print out information on all the parts of the object.\n",
+                HandleShowObjectByOwnerID);
+
+            m_console.Commands.AddCommand(
+                "Objects",
+                false,
                 "show object pos",
                 "show object pos [--full] <start-coord> to <end-coord>",
                 "Show details of scene objects within the given area.",
@@ -321,6 +330,32 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             {
                 searchPredicate = so => so.Name == name;
             }
+
+            OutputSogsToConsole(searchPredicate, showFull);
+        }
+
+        private void HandleShowObjectByOwnerID(string module, string[] cmdparams)
+        {
+            if (!(m_console.ConsoleScene == null || m_console.ConsoleScene == m_scene))
+                return;
+
+            bool showFull = false;
+            OptionSet options = new OptionSet().Add("full", v => showFull = v != null);
+
+            List<string> mainParams = options.Parse(cmdparams);
+
+            if (mainParams.Count < 4)
+            {
+                m_console.OutputFormat("Usage: show object owner <OwnerID>");
+                return;
+            }
+
+            UUID ownerID;
+            if (!ConsoleUtil.TryParseConsoleUuid(m_console, mainParams[3], out ownerID))
+                return;
+
+            Predicate<SceneObjectGroup> searchPredicate
+                = so => so.OwnerID == ownerID && !so.IsAttachment;
 
             OutputSogsToConsole(searchPredicate, showFull);
         }
