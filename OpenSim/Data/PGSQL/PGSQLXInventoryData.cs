@@ -205,7 +205,7 @@ namespace OpenSim.Data.PGSQL
 */
                     cmd.CommandText = String.Format(@"select bit_or(""inventoryCurrentPermissions"") as ""inventoryCurrentPermissions"" 
                                  from inventoryitems 
-                                 where ""avatarID"" = :PrincipalID 
+                                 where ""avatarID""::uuid = :PrincipalID
                                    and ""assetID"" = :AssetID 
                                  group by ""assetID"" ");
 
