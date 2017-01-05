@@ -496,7 +496,7 @@ namespace OpenSim.Groups
             if (!unlimited && limited)
             {
                 // check whether person's has this role
-                RoleMembershipData rolemembership = m_Database.RetrieveRoleMember(GroupID, RoleID, AgentID);
+                RoleMembershipData rolemembership = m_Database.RetrieveRoleMember(GroupID, RoleID, RequestingAgentID);
                 if (rolemembership == null)
                 {
                     m_log.DebugFormat("[Groups]: ({0}) Attempt at assigning {1} to role {2} denied because of limited permission", RequestingAgentID, AgentID, RoleID);
@@ -516,11 +516,24 @@ namespace OpenSim.Groups
                 return false;
 
             // check permissions
+            bool limited = HasPower(RequestingAgentID, GroupID, GroupPowers.AssignMemberLimited);
             bool unlimited = HasPower(RequestingAgentID, GroupID, GroupPowers.AssignMember) || IsOwner(RequestingAgentID, GroupID);
-            if (!unlimited)
+            if (!limited && !unlimited)
             {
                 m_log.DebugFormat("[Groups]: ({0}) Attempt at removing {1} from role {2} denied because of lack of permission", RequestingAgentID, AgentID, RoleID);
                 return false;
+            }
+
+            // AssignMemberLimited means that the person can assign another person to the same roles that she has in the group
+            if (!unlimited && limited)
+            {
+                // check whether person's has this role
+                RoleMembershipData rolemembership = m_Database.RetrieveRoleMember(GroupID, RoleID, RequestingAgentID);
+                if (rolemembership == null)
+                {
+                    m_log.DebugFormat("[Groups]: ({0}) Attempt at removing {1} from role {2} denied because of limited permission", RequestingAgentID, AgentID, RoleID);
+                    return false;
+                }
             }
 
             RoleMembershipData rolemember = m_Database.RetrieveRoleMember(GroupID, RoleID, AgentID);
@@ -812,7 +825,7 @@ namespace OpenSim.Groups
             if (RoleID != UUID.Zero)
                 _AddAgentToGroupRole(RequestingAgentID, AgentID, GroupID, RoleID);
 
-            // Make thit this active group
+            // Make this the active group
             PrincipalData pdata = new PrincipalData();
             pdata.PrincipalID = AgentID;
             pdata.ActiveGroupID = GroupID;

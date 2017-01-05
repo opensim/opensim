@@ -11,6 +11,6 @@ CREATE TABLE IF NOT EXISTS `im_offline` (
   PRIMARY KEY (`ID`),
   KEY `PrincipalID` (`PrincipalID`),
   KEY `FromID` (`FromID`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 COMMIT;

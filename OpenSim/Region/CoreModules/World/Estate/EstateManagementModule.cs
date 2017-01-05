@@ -71,6 +71,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
         public event ChangeDelegate OnRegionInfoChange;
         public event ChangeDelegate OnEstateInfoChange;
         public event MessageDelegate OnEstateMessage;
+        public event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
+        public event EstateTeleportAllUsersHomeRequest OnEstateTeleportAllUsersHomeRequest;
 
         private int m_delayCount = 0;
 
@@ -1193,13 +1195,20 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void handleEstateTeleportOneUserHomeRequest(IClientAPI remover_client, UUID invoice, UUID senderID, UUID prey)
         {
+             EstateTeleportOneUserHomeRequest evOverride = OnEstateTeleportOneUserHomeRequest;
+             if(evOverride != null)
+             {
+                evOverride(remover_client, invoice, senderID, prey);
+                return;
+             }
+
             if (!Scene.Permissions.CanIssueEstateCommand(remover_client.AgentId, false))
                 return;
 
             if (prey != UUID.Zero)
             {
                 ScenePresence s = Scene.GetScenePresence(prey);
-                if (s != null)
+                if (s != null && !s.IsDeleted && !s.IsInTransit)
                 {
                     if (!Scene.TeleportClientHome(prey, s.ControllingClient))
                     {
@@ -1212,6 +1221,13 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void handleEstateTeleportAllUsersHomeRequest(IClientAPI remover_client, UUID invoice, UUID senderID)
         {
+             EstateTeleportAllUsersHomeRequest evOverride = OnEstateTeleportAllUsersHomeRequest;
+             if(evOverride != null)
+             {
+                evOverride(remover_client, invoice, senderID);
+                return;
+             }
+
             if (!Scene.Permissions.CanIssueEstateCommand(remover_client.AgentId, false))
                 return;
 

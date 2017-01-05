@@ -48,11 +48,13 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         protected XEstateModule m_EstateModule;
         protected Object m_RequestLock = new Object();
+        private string token;
 
-        public EstateRequestHandler(XEstateModule fmodule)
+        public EstateRequestHandler(XEstateModule fmodule, string _token)
                 : base("POST", "/estate")
         {
             m_EstateModule = fmodule;
+            token = _token;
         }
 
         protected override byte[] ProcessRequest(string path, Stream requestData,
@@ -73,6 +75,15 @@ namespace OpenSim.Region.CoreModules.World.Estate
                             ServerUtils.ParseQueryString(body);
 
                     if (!request.ContainsKey("METHOD"))
+                        return FailureResult();
+
+                    if (!request.ContainsKey("TOKEN"))
+                        return FailureResult();
+
+                    string reqToken = request["TOKEN"].ToString();
+                    request.Remove("TOKEN");
+
+                    if(token != reqToken)
                         return FailureResult();
 
                     string method = request["METHOD"].ToString();
