@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS `prims` (
   PRIMARY KEY (`UUID`),
   KEY `prims_regionuuid` (`RegionUUID`),
   KEY `prims_scenegroupid` (`SceneGroupID`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS `primshapes` (
   `Shape` int(11) DEFAULT NULL,
@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS `primshapes` (
   `Media` text,
   `LastAttachPoint` int(4) NOT NULL DEFAULT '0',
   PRIMARY KEY (`UUID`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS `primitems` (
   `invType` int(11) DEFAULT NULL,
@@ -154,13 +154,13 @@ CREATE TABLE IF NOT EXISTS `primitems` (
   `lastOwnerID` char(36) DEFAULT NULL,
   PRIMARY KEY (`itemID`),
   KEY `primitems_primid` (`primID`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS `terrain` (
   `RegionUUID` varchar(255) DEFAULT NULL,
   `Revision` int(11) DEFAULT NULL,
   `Heightfield` longblob
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS `land` (
   `UUID` varchar(255) NOT NULL,
@@ -204,21 +204,21 @@ CREATE TABLE IF NOT EXISTS `land` (
   `ObscureMusic` tinyint(1) NOT NULL DEFAULT '0',
   `ObscureMedia` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`UUID`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `landaccesslist` (
   `LandUUID` varchar(255) DEFAULT NULL,
   `AccessUUID` varchar(255) DEFAULT NULL,
   `Flags` int(11) DEFAULT NULL,
   `Expires` int(11) NOT NULL DEFAULT '0'
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS `regionban` (
   `regionUUID` varchar(36) NOT NULL,
   `bannedUUID` varchar(36) NOT NULL,
   `bannedIp` varchar(16) NOT NULL,
   `bannedIpHostMask` varchar(16) NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `regionsettings` (
   `regionUUID` char(36) NOT NULL,
@@ -265,7 +265,7 @@ CREATE TABLE IF NOT EXISTS `regionsettings` (
   `parcel_tile_ID` char(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000',
   `covenant_datetime` int(10) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`regionUUID`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `regionwindlight` (
   `region_id` varchar(36) NOT NULL DEFAULT '000000-0000-0000-0000-000000000000',
