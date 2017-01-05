@@ -145,7 +145,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
                 return;
 
 //            m_log.Debug("[GROUPS]: Shutting down group module.");
-            
+
             lock (m_ClientMap)
             {
                 m_ClientMap.Clear();

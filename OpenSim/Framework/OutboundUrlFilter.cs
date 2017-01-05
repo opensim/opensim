@@ -49,8 +49,8 @@ namespace OpenSim.Framework
         private List<IPEndPoint> m_blacklistExceptionEndPoints;
 
         public OutboundUrlFilter(
-            string name, 
-            List<IPNetwork> blacklistNetworks, List<IPEndPoint> blacklistEndPoints, 
+            string name,
+            List<IPNetwork> blacklistNetworks, List<IPEndPoint> blacklistEndPoints,
             List<IPNetwork> blacklistExceptionNetworks, List<IPEndPoint> blacklistExceptionEndPoints)
         {
             Name = name;
@@ -79,7 +79,7 @@ namespace OpenSim.Framework
             if (networkConfig != null)
             {
                 configBlacklist = networkConfig.GetString("OutboundDisallowForUserScripts", configBlacklist);
-                configBlacklistExceptions 
+                configBlacklistExceptions
                     = networkConfig.GetString("OutboundDisallowForUserScriptsExcept", configBlacklistExceptions);
             }
 
@@ -98,7 +98,7 @@ namespace OpenSim.Framework
             string fullConfigEntry, string filterName, out List<IPNetwork> networks, out List<IPEndPoint> endPoints)
         {
             // Parse blacklist
-            string[] configBlacklistEntries 
+            string[] configBlacklistEntries
                 = fullConfigEntry.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
 
             configBlacklistEntries = configBlacklistEntries.Select(e => e.Trim()).ToArray();
@@ -129,7 +129,7 @@ namespace OpenSim.Framework
                     if (!Uri.TryCreate("http://" + configEntry, UriKind.Absolute, out configEntryUri))
                     {
                         m_log.ErrorFormat(
-                            "[OUTBOUND URL FILTER]: EndPoint entry [{0}] is invalid endpoint for {1}", 
+                            "[OUTBOUND URL FILTER]: EndPoint entry [{0}] is invalid endpoint for {1}",
                             configEntry, filterName);
 
                         continue;
@@ -184,14 +184,14 @@ namespace OpenSim.Framework
             foreach (IPEndPoint ep in endPoints)
             {
 //                m_log.DebugFormat(
-//                    "[OUTBOUND URL FILTER]: Checking [{0}:{1}] against endpoint [{2}]", 
+//                    "[OUTBOUND URL FILTER]: Checking [{0}:{1}] against endpoint [{2}]",
 //                    addr, port, ep);
 
                 if (addr.Equals(ep.Address) && port == ep.Port)
                 {
 //                    m_log.DebugFormat(
 //                        "[OUTBOUND URL FILTER]: Found [{0}:{1}] in endpoint [{2}]", addr, port, ep);
-                                        
+
                     return true;
                 }
             }
@@ -228,7 +228,7 @@ namespace OpenSim.Framework
 //                        m_log.DebugFormat("[OUTBOUND URL FILTER]: Found [{0}] in blacklist for {1}", url, Name);
 
                         // Check blacklist exceptions
-                        allowed 
+                        allowed
                             = OutboundUrlFilter.IsInNetwork(
                                 addr, url.Port, m_blacklistExceptionNetworks, m_blacklistExceptionEndPoints, Name);
 

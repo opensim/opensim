@@ -54,43 +54,43 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
         private List<Scene> m_scenes = new List<Scene>();
 
 //        private IAvatarFactoryModule m_avatarFactory;
-        
-        public string Name { get { return "Appearance Information Module"; } }        
-        
+
+        public string Name { get { return "Appearance Information Module"; } }
+
         public Type ReplaceableInterface { get { return null; } }
-        
+
         public void Initialise(IConfigSource source)
         {
 //            m_log.DebugFormat("[APPEARANCE INFO MODULE]: INITIALIZED MODULE");
         }
-        
+
         public void PostInitialise()
         {
 //            m_log.DebugFormat("[APPEARANCE INFO MODULE]: POST INITIALIZED MODULE");
         }
-        
+
         public void Close()
         {
 //            m_log.DebugFormat("[APPEARANCE INFO MODULE]: CLOSED MODULE");
         }
-        
+
         public void AddRegion(Scene scene)
         {
-//            m_log.DebugFormat("[APPEARANCE INFO MODULE]: REGION {0} ADDED", scene.RegionInfo.RegionName);                                     
+//            m_log.DebugFormat("[APPEARANCE INFO MODULE]: REGION {0} ADDED", scene.RegionInfo.RegionName);
         }
-        
+
         public void RemoveRegion(Scene scene)
         {
 //            m_log.DebugFormat("[APPEARANCE INFO MODULE]: REGION {0} REMOVED", scene.RegionInfo.RegionName);
-            
+
             lock (m_scenes)
                 m_scenes.Remove(scene);
-        }        
-        
+        }
+
         public void RegionLoaded(Scene scene)
         {
 //            m_log.DebugFormat("[APPEARANCE INFO MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
-            
+
             lock (m_scenes)
                 m_scenes.Add(scene);
 
@@ -99,7 +99,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                 "show appearance [<first-name> <last-name>]",
                 "Synonym for 'appearance show'",
                 HandleShowAppearanceCommand);
-            
+
             scene.AddCommand(
                 "Users", this, "appearance show",
                 "appearance show [<first-name> <last-name>]",
@@ -222,7 +222,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
             }
 
             lock (m_scenes)
-            {   
+            {
                 foreach (Scene scene in m_scenes)
                 {
                     if (targetNameSupplied)
@@ -344,7 +344,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
 
             if (targetNameSupplied)
             {
-                lock (m_scenes)   
+                lock (m_scenes)
                 {
                     foreach (Scene scene in m_scenes)
                     {
@@ -360,12 +360,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                 cdt.AddColumn("Name", ConsoleDisplayUtil.UserNameSize);
                 cdt.AddColumn("Wearables", 2);
 
-                lock (m_scenes)   
+                lock (m_scenes)
                 {
                     foreach (Scene scene in m_scenes)
                     {
                         scene.ForEachRootScenePresence(
-                            sp => 
+                            sp =>
                             {
                                 int count = 0;
 
@@ -428,7 +428,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
 
                                     uuidGatherer.AddForInspection(wi.AssetID);
                                     uuidGatherer.GatherAll();
-                                    string[] assetStrings 
+                                    string[] assetStrings
                                         = Array.ConvertAll<UUID, string>(uuidGatherer.GatheredUuids.Keys.ToArray(), u => u.ToString());
 
                                     bool[] existChecks = scene.AssetService.AssetsExist(assetStrings);
@@ -438,10 +438,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                                     cdt.AddColumn("Type", 10);
                                     cdt.AddColumn("UUID", ConsoleDisplayUtil.UuidSize);
                                     cdt.AddColumn("Found", 5);
-                                            
+
                                     for (int k = 0; k < existChecks.Length; k++)
                                         cdt.AddRow(
-                                            (AssetType)uuidGatherer.GatheredUuids[new UUID(assetStrings[k])], 
+                                            (AssetType)uuidGatherer.GatheredUuids[new UUID(assetStrings[k])],
                                             assetStrings[k], existChecks[k] ? "yes" : "no");
 
                                     sb.Append(cdt.ToString());

@@ -33,7 +33,7 @@
  * ODEDynamics.cs contains methods dealing with Prim Physical motion
  * (dynamics) and the associated settings. Old Linear and angular
  * motors for dynamic motion have been replace with  MoveLinear()
- * and MoveAngular(); 'Physical' is used only to switch ODE dynamic 
+ * and MoveAngular(); 'Physical' is used only to switch ODE dynamic
  * simualtion on/off; VEHICAL_TYPE_NONE/VEHICAL_TYPE_<other> is to
  * switch between 'VEHICLE' parameter use and general dynamics
  * settings use.
@@ -133,7 +133,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
         private float m_targetHoverHeight;
         private float m_groundHeight;
         private float m_waterHeight;
-        private float m_buoyancy;                //KF: m_buoyancy should be set by llSetBuoyancy() for non-vehicle. 
+        private float m_buoyancy;                //KF: m_buoyancy should be set by llSetBuoyancy() for non-vehicle.
 
         // private float m_tensor = 5f;
         private int body_autodisable_frames = 20;
@@ -170,7 +170,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
         private PrimitiveBaseShape _pbs;
         private OdeScene _parent_scene;
-        
+
         /// <summary>
         /// The physics space which contains prim geometries
         /// </summary>
@@ -443,7 +443,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                 d.BodySetAutoDisableFlag(Body, true);
                 d.BodySetAutoDisableSteps(Body, body_autodisable_frames);
-                
+
                 // disconnect from world gravity so we can apply buoyancy
                 d.BodySetGravityMode (Body, false);
 
@@ -474,8 +474,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             float returnMass = 0;
             float hollowAmount = (float)_pbs.ProfileHollow * 2.0e-5f;
-            float hollowVolume = hollowAmount * hollowAmount; 
-            
+            float hollowVolume = hollowAmount * hollowAmount;
+
             switch (_pbs.ProfileShape)
             {
                 case ProfileShape.Square:
@@ -511,16 +511,16 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                     else if (_pbs.PathCurve == (byte)Extrusion.Curve1)
                         {
-                        //a tube 
+                        //a tube
 
                         volume *= 0.78539816339e-2f * (float)(200 - _pbs.PathScaleX);
                         tmp= 1.0f -2.0e-2f * (float)(200 - _pbs.PathScaleY);
                         volume -= volume*tmp*tmp;
-                        
+
                         if (hollowAmount > 0.0)
                             {
                             hollowVolume *= hollowAmount;
-                            
+
                             switch (_pbs.HollowShape)
                                 {
                                 case HollowShape.Square:
@@ -579,7 +579,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                         volume *= 0.61685027506808491367715568749226e-2f * (float)(200 - _pbs.PathScaleX);
                         tmp = 1.0f - .02f * (float)(200 - _pbs.PathScaleY);
                         volume *= (1.0f - tmp * tmp);
-                        
+
                         if (hollowAmount > 0.0)
                             {
 
@@ -845,7 +845,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 else
                 {
                     _parent_scene.DeactivatePrim(this);
-                    
+
                     m_collisionCategories &= ~CollisionCategories.Body;
                     m_collisionFlags &= ~(CollisionCategories.Wind | CollisionCategories.Land);
 
@@ -916,7 +916,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 else
                 {
                     _triMeshData = d.GeomTriMeshDataCreate();
-    
+
                     d.GeomTriMeshDataBuildSimple(_triMeshData, vertices, vertexStride, vertexCount, indices, indexCount, triStride);
                     d.GeomTriMeshDataPreprocess(_triMeshData);
                     m_MeshToTriMeshMap[mesh] = _triMeshData;
@@ -974,7 +974,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                     rotate();
                 }
             }
-        
+
             if (m_taintPhysics != IsPhysical && !(m_taintparent != _parent))
                 changePhysicsStatus();
 
@@ -1074,7 +1074,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
             else if (_parent != null && m_taintparent == null)
             {
 //Console.WriteLine("  changelink B");
-            
+
                 if (_parent is OdePrim)
                 {
                     OdePrim obj = (OdePrim)_parent;
@@ -1082,16 +1082,16 @@ Console.WriteLine("ZProcessTaints for " + Name);
                     childPrim = false;
                     //_parent = null;
                 }
-                
+
                 /*
                     if (Body != (IntPtr)0 && _linkJointGroup != (IntPtr)0)
                     d.JointGroupDestroy(_linkJointGroup);
-                        
+
                     _linkJointGroup = (IntPtr)0;
                     m_linkJoint = (IntPtr)0;
                 */
             }
- 
+
             _parent = m_taintparent;
             m_taintPhysics = IsPhysical;
         }
@@ -1345,7 +1345,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                 // in between the disabling and the collision properties setting
                 // which would wake the physical body up from a soft disabling and potentially cause it to fall
                 // through the ground.
-                
+
                 // NOTE FOR JOINTS: this doesn't always work for jointed assemblies because if you select
                 // just one part of the assembly, the rest of the assembly is non-selected and still simulating,
                 // so that causes the selected part to wake up and continue moving.
@@ -1359,7 +1359,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                 // e.g. we select 100 prims that are connected by joints. non-atomically, the first 50 are
                 // selected and disabled. then, due to a thread switch, the selection processing is
                 // interrupted and the physics engine continues to simulate, so the last 50 items, whose
-                // selection was not yet processed, continues to simulate. this wakes up ALL of the 
+                // selection was not yet processed, continues to simulate. this wakes up ALL of the
                 // first 50 again. then the last 50 are disabled. then the first 50, which were just woken
                 // up, start simulating again, which in turn wakes up the last 50.
 
@@ -1565,7 +1565,7 @@ Console.WriteLine("CreateGeom:");
         private void changeadd()
         {
 //            m_log.DebugFormat("[ODE PRIM]: Adding prim {0}", Name);
-            
+
             int[] iprimspaceArrItem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
             IntPtr targetspace = _parent_scene.calculateSpaceForGeom(_position);
 
@@ -1711,10 +1711,10 @@ Console.WriteLine(" JointCreateFixed");
 //                    fz = 0f;
                     //m_log.Info(m_collisionFlags.ToString());
 
-                    
+
                     //KF: m_buoyancy should be set by llSetBuoyancy() for non-vehicle.
                     // would come from SceneObjectPart.cs, public void SetBuoyancy(float fvalue) , PhysActor.Buoyancy = fvalue; ??
-                    // m_buoyancy: (unlimited value) <0=Falls fast; 0=1g; 1=0g; >1 = floats up 
+                    // m_buoyancy: (unlimited value) <0=Falls fast; 0=1g; 1=0g; >1 = floats up
                     // gravityz multiplier = 1 - m_buoyancy
                     fz = _parent_scene.gravityz * (1.0f - m_buoyancy) * m_mass;
 
@@ -1729,7 +1729,7 @@ Console.WriteLine(" JointCreateFixed");
                         fz = 0f;
 
                         //  no lock; for now it's only called from within Simulate()
-    
+
                         // If the PID Controller isn't active then we set our force
                         // calculating base velocity to the current position
 
@@ -1738,7 +1738,7 @@ Console.WriteLine(" JointCreateFixed");
                             //PID_G = PID_G / m_PIDTau;
                             m_PIDTau = 1;
                         }
-    
+
                         if ((PID_G - m_PIDTau) <= 0)
                         {
                             PID_G = m_PIDTau + 1;
@@ -1761,7 +1761,7 @@ Console.WriteLine(" JointCreateFixed");
                         if (_target_velocity.ApproxEquals(Vector3.Zero,0.1f))
                         {
                             //  keep track of where we stopped.  No more slippin' & slidin'
-    
+
                             // We only want to deactivate the PID Controller if we think we want to have our surrogate
                             // react to the physics scene by moving it's position.
                             // Avatar to Avatar collisions
@@ -1782,7 +1782,7 @@ Console.WriteLine(" JointCreateFixed");
                             // We're flying and colliding with something
                             fx = ((_target_velocity.X) - vel.X) * (PID_D);
                             fy = ((_target_velocity.Y) - vel.Y) * (PID_D);
-    
+
                             // vec.Z = (_target_velocity.Z - vel.Z) * PID_D + (_zeroPosition.Z - pos.Z) * PID_P;
 
                             fz = fz + ((_target_velocity.Z - vel.Z) * (PID_D) * m_mass);
@@ -1793,7 +1793,7 @@ Console.WriteLine(" JointCreateFixed");
                     if (m_useHoverPID && !PIDActive)
                     {
 //Console.WriteLine("Hover " +  Name);
-                    
+
                         // If we're using the PID controller, then we have no gravity
                         fz = (-1 * _parent_scene.gravityz) * m_mass;
 
@@ -1850,7 +1850,7 @@ Console.WriteLine(" JointCreateFixed");
                         if (_target_velocity.ApproxEquals(Vector3.Zero, 0.1f))
                         {
                             //  keep track of where we stopped.  No more slippin' & slidin'
-    
+
                             // We only want to deactivate the PID Controller if we think we want to have our surrogate
                             // react to the physics scene by moving it's position.
                             // Avatar to Avatar collisions
@@ -1888,7 +1888,7 @@ Console.WriteLine(" JointCreateFixed");
                         {
                             // A physical body at rest on a surface will auto-disable after a while,
                             // this appears to re-enable it incase the surface it is upon vanishes,
-                            // and the body should fall again. 
+                            // and the body should fall again.
                             d.BodySetLinearVel(Body, 0f, 0f, 0f);
                             d.BodySetForce(Body, 0, 0, 0);
                             enableBodySoft();
@@ -1897,7 +1897,7 @@ Console.WriteLine(" JointCreateFixed");
                         // 35x10 = 350n times the mass per second applied maximum.
                         float nmax = 35f * m_mass;
                         float nmin = -35f * m_mass;
-                    
+
                         if (fx > nmax)
                             fx = nmax;
                         if (fx < nmin)
@@ -1916,7 +1916,7 @@ Console.WriteLine(" JointCreateFixed");
               //  _zeroPosition = d.BodyGetPosition(Body);
                 return;
 //Console.WriteLine("Nothing " +  Name);
-               
+
             }
         }
 
@@ -1942,7 +1942,7 @@ Console.WriteLine(" JointCreateFixed");
                 // daughter prim, do Geom set
                 d.GeomSetQuaternion(prim_geom, ref myrot);
             }
-            
+
             resetCollisionAccounting();
             m_taintrot = _orientation;
         }
@@ -2080,7 +2080,7 @@ Console.WriteLine(" JointCreateFixed");
                     else
                         m_assetFailed = false;
                 }
-                    
+
             }
 
             CreateGeom(m_targetSpace, mesh);
@@ -2312,7 +2312,7 @@ Console.WriteLine(" JointCreateFixed");
                         }
                         d.BodyEnable(Body);
                         d.BodyAddTorque(Body, iforce.X, iforce.Y, iforce.Z);
-                        
+
                     }
                     m_angularforcelist.Clear();
                 }
@@ -2342,7 +2342,7 @@ Console.WriteLine(" JointCreateFixed");
                         d.BodySetLinearVel(Body, m_taintVelocity.X, m_taintVelocity.Y, m_taintVelocity.Z);
                     }
                 }
-                
+
                 //resetCollisionAccounting();
             }
 
@@ -2686,7 +2686,7 @@ Console.WriteLine(" JointCreateFixed");
 
             if(m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE)
                 m_vehicle.Stop(); // this also updates vehicle last position from the body position
-            
+
             enableBodySoft();
 
             outofBounds = false;
@@ -2899,12 +2899,12 @@ Console.WriteLine(" JointCreateFixed");
                         _acceleration = ((_velocity - m_lastVelocity) / 0.1f);
                         _acceleration = new Vector3(_velocity.X - m_lastVelocity.X / 0.1f, _velocity.Y - m_lastVelocity.Y / 0.1f, _velocity.Z - m_lastVelocity.Z / 0.1f);
                         //m_log.Info("[PHYSICS]: V1: " + _velocity + " V2: " + m_lastVelocity + " Acceleration: " + _acceleration.ToString());
-                       
-                        // Note here that linearvelocity is affecting angular velocity...  so I'm guessing this is a vehicle specific thing... 
-                        // it does make sense to do this for tiny little instabilities with physical prim, however 0.5m/frame is fairly large. 
+
+                        // Note here that linearvelocity is affecting angular velocity...  so I'm guessing this is a vehicle specific thing...
+                        // it does make sense to do this for tiny little instabilities with physical prim, however 0.5m/frame is fairly large.
                         // reducing this to 0.02m/frame seems to help the angular rubberbanding quite a bit, however, to make sure it doesn't affect elevators and vehicles
                         // adding these logical exclusion situations to maintain this where I think it was intended to be.
-                        if (m_throttleUpdates || PIDActive || (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE) || (Amotor != IntPtr.Zero)) 
+                        if (m_throttleUpdates || PIDActive || (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE) || (Amotor != IntPtr.Zero))
                         {
                             m_minvelocity = 0.5f;
                         }
@@ -2973,8 +2973,8 @@ Console.WriteLine(" JointCreateFixed");
         {
         }
 
-        public override Vector3 PIDTarget 
-        { 
+        public override Vector3 PIDTarget
+        {
             set
             {
                 if (value.IsFinite())
@@ -2983,7 +2983,7 @@ Console.WriteLine(" JointCreateFixed");
                 }
                 else
                     m_log.WarnFormat("[PHYSICS]: Got NaN PIDTarget from Scene on Object {0}", Name);
-            } 
+            }
         }
 
         public override bool PIDActive { get; set; }
@@ -2993,7 +2993,7 @@ Console.WriteLine(" JointCreateFixed");
         public override bool PIDHoverActive { get { return m_useHoverPID;} set { m_useHoverPID = value; } }
         public override PIDHoverType PIDHoverType { set { m_PIDHoverType = value; } }
         public override float PIDHoverTau { set { m_PIDHoverTau = value; } }
-        
+
         public override Quaternion APIDTarget{ set { return; } }
 
         public override bool APIDActive{ set { return; } }
@@ -3189,7 +3189,7 @@ Console.WriteLine(" JointCreateFixed");
 //                m_assetFailed = false;
 
 //                m_log.DebugFormat(
-//                    "[ODE PRIM]: Received mesh/sculpt data asset {0} with {1} bytes for {2} at {3} in {4}", 
+//                    "[ODE PRIM]: Received mesh/sculpt data asset {0} with {1} bytes for {2} at {3} in {4}",
 //                    _pbs.SculptTexture, _pbs.SculptData.Length, Name, _position, _parent_scene.Name);
 
                 m_taintshape = true;
@@ -3201,6 +3201,6 @@ Console.WriteLine(" JointCreateFixed");
                     "[ODE PRIM]: Could not get mesh/sculpt asset {0} for {1} at {2} in {3}",
                     _pbs.SculptTexture, Name, _position, _parent_scene.PhysicsSceneName);
             }
-        }          
+        }
     }
 }

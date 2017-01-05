@@ -53,7 +53,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
 
         private bool m_Enabled = false;
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }
@@ -66,7 +66,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
         public void Initialise(IConfigSource source)
         {
             m_log.Info("[AUTHORIZATION CONNECTOR]: Initialise");
-            
+
             IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
             {

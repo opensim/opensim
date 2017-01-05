@@ -135,7 +135,7 @@ namespace OpenSim.Region.CoreModules.Framework.Search
 
         #endregion ISharedRegionModule
 
- 
+
         #region Event Handlers
 
         void EventManager_OnMakeRootAgent(ScenePresence sp)

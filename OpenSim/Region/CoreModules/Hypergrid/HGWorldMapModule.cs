@@ -46,7 +46,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
     public class HGWorldMapModule : WorldMapModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         // Remember the map area that each client has been exposed to in this region
         private Dictionary<UUID, List<MapBlockData>> m_SeenMapBlocks = new Dictionary<UUID, List<MapBlockData>>();
 

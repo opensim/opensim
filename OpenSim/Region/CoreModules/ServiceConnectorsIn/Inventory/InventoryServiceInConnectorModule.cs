@@ -45,7 +45,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Inventory
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static bool m_Enabled = false;
-        
+
         private IConfigSource m_Config;
         bool m_Registered = false;
 
@@ -73,7 +73,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Inventory
         {
         }
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }

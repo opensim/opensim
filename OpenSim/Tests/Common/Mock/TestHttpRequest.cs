@@ -37,85 +37,85 @@ namespace OpenSim.Tests.Common
     public class TestHttpRequest: IHttpRequest
     {
         private string _uriPath;
-        public bool BodyIsComplete 
-        { 
-            get { return true; } 
+        public bool BodyIsComplete
+        {
+            get { return true; }
         }
-        public string[] AcceptTypes 
-        { 
+        public string[] AcceptTypes
+        {
             get {return _acceptTypes; }
         }
         private string[] _acceptTypes;
-        public Stream Body 
-        { 
-            get { return _body; } 
-            set { _body = value;} 
+        public Stream Body
+        {
+            get { return _body; }
+            set { _body = value;}
         }
         private Stream _body;
-        public ConnectionType Connection 
-        { 
+        public ConnectionType Connection
+        {
             get { return _connection; }
             set { _connection = value; }
         }
         private ConnectionType _connection;
-        public int ContentLength 
-        { 
+        public int ContentLength
+        {
             get { return _contentLength; }
             set { _contentLength = value; }
         }
         private int _contentLength;
-        public NameValueCollection Headers 
-        { 
+        public NameValueCollection Headers
+        {
             get { return _headers; }
         }
         private NameValueCollection _headers = new NameValueCollection();
 
         public string HttpVersion { get; set; }
 
-        public string Method 
-        { 
+        public string Method
+        {
             get { return _method; }
             set { _method = value; }
         }
         private string _method = null;
-        public HttpInput QueryString 
-        { 
+        public HttpInput QueryString
+        {
             get { return _queryString;  }
         }
         private HttpInput _queryString = null;
-        public Uri Uri 
-        { 
+        public Uri Uri
+        {
             get { return _uri; }
-            set { _uri = value; } 
+            set { _uri = value; }
         }
         private Uri _uri = null;
-        public string[] UriParts 
-        { 
+        public string[] UriParts
+        {
             get { return _uri.Segments; }
         }
-        public HttpParam Param 
-        { 
-            get { return null; } 
+        public HttpParam Param
+        {
+            get { return null; }
         }
-        public HttpForm Form 
-        { 
-            get { return null; } 
+        public HttpForm Form
+        {
+            get { return null; }
         }
-        public bool IsAjax 
-        { 
-            get { return false; } 
+        public bool IsAjax
+        {
+            get { return false; }
         }
-        public RequestCookies Cookies 
-        { 
-            get { return null; } 
+        public RequestCookies Cookies
+        {
+            get { return null; }
         }
 
-        public TestHttpRequest() 
+        public TestHttpRequest()
         {
             HttpVersion = "HTTP/1.1";
         }
 
-        public TestHttpRequest(string contentEncoding, string contentType, string userAgent, 
+        public TestHttpRequest(string contentEncoding, string contentType, string userAgent,
                                string remoteAddr, string remotePort, string[] acceptTypes,
                                ConnectionType connectionType, int contentLength, Uri uri) : base()
         {
@@ -137,7 +137,7 @@ namespace OpenSim.Tests.Common
         {
             _headers.Add(name, value);
         }
-        public int AddToBody(byte[] bytes, int offset, int length) 
+        public int AddToBody(byte[] bytes, int offset, int length)
         {
             return 0;
         }
@@ -168,7 +168,7 @@ namespace OpenSim.Tests.Common
             set
             {
                 _uriPath = value;
-               
+
             }
         }
     }

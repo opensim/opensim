@@ -172,7 +172,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
         public string Name { get { return "Inventory Archiver Module"; } }
 
-        #endregion 
+        #endregion
 
         /// <summary>
         /// Trigger the inventory archive saved event.

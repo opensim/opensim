@@ -40,7 +40,7 @@ namespace OpenSim.Region.CoreModules.World
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "CloudModule")]
     public class CloudModule : ICloudModule, INonSharedRegionModule
     {
-//        private static readonly log4net.ILog m_log 
+//        private static readonly log4net.ILog m_log
 //            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private uint m_frame = 0;
         private int m_frameUpdateRate = 1000;
@@ -163,7 +163,7 @@ namespace OpenSim.Region.CoreModules.World
                     columnRight = 0;
                     columnLeft = x - 1;
                 }
-                else 
+                else
                 {
                     columnRight = x + 1;
                     columnLeft = x - 1;
@@ -185,14 +185,14 @@ namespace OpenSim.Region.CoreModules.World
                         rowAbove = y + 1;
                         rowBelow = y - 1;
                     }
-                    float neighborAverage = (cloudCover[rowBelow * 16 + columnLeft] + 
-                                             cloudCover[y * 16 + columnLeft] + 
-                                             cloudCover[rowAbove * 16 + columnLeft] + 
-                                             cloudCover[rowBelow * 16 + x] + 
-                                             cloudCover[rowAbove * 16 + x] + 
-                                             cloudCover[rowBelow * 16 + columnRight] + 
-                                             cloudCover[y * 16 + columnRight] + 
-                                             cloudCover[rowAbove * 16 + columnRight] + 
+                    float neighborAverage = (cloudCover[rowBelow * 16 + columnLeft] +
+                                             cloudCover[y * 16 + columnLeft] +
+                                             cloudCover[rowAbove * 16 + columnLeft] +
+                                             cloudCover[rowBelow * 16 + x] +
+                                             cloudCover[rowAbove * 16 + x] +
+                                             cloudCover[rowBelow * 16 + columnRight] +
+                                             cloudCover[y * 16 + columnRight] +
+                                             cloudCover[rowAbove * 16 + columnRight] +
                                              cloudCover[y * 16 + x]) / 9;
                     newCover[y * 16 + x] = ((neighborAverage / m_cloudDensity) + 0.175f) % 1.0f;
                     newCover[y * 16 + x] *= m_cloudDensity;
@@ -201,7 +201,7 @@ namespace OpenSim.Region.CoreModules.World
             Array.Copy(newCover, cloudCover, 16 * 16);
             m_dataVersion++;
         }
-  
+
         private void CloudUpdate()
         {
             if ((!m_ready ||  m_busy || m_cloudDensity == 0 ||
@@ -243,7 +243,7 @@ namespace OpenSim.Region.CoreModules.World
             }
         }
 
-       
+
         /// <summary>
         /// Calculate the cloud cover over the region.
         /// </summary>

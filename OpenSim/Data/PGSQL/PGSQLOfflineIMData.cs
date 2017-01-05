@@ -47,7 +47,7 @@ namespace OpenSim.Data.PGSQL
             using (NpgsqlCommand cmd = new NpgsqlCommand())
             {
                 cmd.CommandText = String.Format("delete from {0} where \"TMStamp\" < CURRENT_DATE - INTERVAL '2 week'", m_Realm);
-         
+
                 ExecuteNonQuery(cmd);
             }
 

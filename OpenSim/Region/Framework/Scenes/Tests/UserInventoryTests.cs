@@ -113,7 +113,7 @@ namespace OpenSim.Region.Framework.Tests
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
-            
+
             Scene scene = new SceneHelpers().SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene, TestHelpers.ParseTail(1001));
             UserAccount user2 = UserAccountHelpers.CreateUserWithInventory(scene, TestHelpers.ParseTail(1002));

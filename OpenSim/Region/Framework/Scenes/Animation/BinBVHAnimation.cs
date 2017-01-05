@@ -33,8 +33,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 {
     /// <summary>
     /// Written to decode and encode a binary animation asset.
-    /// The SecondLife Client reads in a BVH file and converts 
-    /// it to the format described here.  This isn't 
+    /// The SecondLife Client reads in a BVH file and converts
+    /// it to the format described here.  This isn't
     /// </summary>
     public class BinBVHAnimation
     {
@@ -109,7 +109,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// Contains an array of joints
         /// </summary>
         public binBVHJoint[] Joints;
-        
+
 
         public byte[] ToBytes()
         {
@@ -136,14 +136,14 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     Joints[i].WriteBytesToStream(iostream, InPoint, OutPoint);
                 }
                 iostream.Write(BinBVHUtil.ES(Utils.IntToBytes(0)));
-            
+
                 using (MemoryStream ms2 = (MemoryStream)iostream.BaseStream)
                     outputbytes = ms2.ToArray();
             }
 
             return outputbytes;
         }
-        
+
         public BinBVHAnimation()
         {
             rotationkeys = 0;
@@ -160,7 +160,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             EaseOutTime = 0;
             HandPose = 1;
             m_jointCount = 0;
-            
+
             Joints = new binBVHJoint[1];
             Joints[0] = new binBVHJoint();
             Joints[0].Name = "mPelvis";
@@ -180,7 +180,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             Joints[0].positionkeys[0].key_element.X = ((float)rnd.NextDouble() * 2 - 1);
             Joints[0].positionkeys[0].key_element.Y = ((float)rnd.NextDouble() * 2 - 1);
             Joints[0].positionkeys[0].key_element.Z = ((float)rnd.NextDouble() * 2 - 1);
-            
+
 
         }
 
@@ -235,7 +235,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             }
         }
 
-        
+
         /// <summary>
         /// Variable length strings seem to be null terminated in the animation asset..    but..
         /// use with caution, home grown.
@@ -294,7 +294,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// <returns>The Joint data serialized into the binBVHJoint structure</returns>
         private binBVHJoint readJoint(byte[] data, ref int i)
         {
-           
+
             binBVHJointKey[] positions;
             binBVHJointKey[] rotations;
 
@@ -312,14 +312,14 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
             pJoint.Name = ReadBytesUntilNull(data, ref i); // Joint name
 
-            /* 
+            /*
                  2 <- Priority Revisited
                  0
                  0
                  0
             */
 
-            /* 
+            /*
                 5 <-- 5 keyframes
                 0
                 0
@@ -327,7 +327,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 ... 5 Keyframe data blocks
             */
 
-            /* 
+            /*
                 2 <-- 2 keyframes
                 0
                 0
@@ -428,8 +428,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             }
             return m_keys;
         }
-    
-       
+
+
 
     }
     /// <summary>
@@ -443,7 +443,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         public string Name;
 
         /// <summary>
-        /// Joint Animation Override?   Was the same as the Priority in testing.. 
+        /// Joint Animation Override?   Was the same as the Priority in testing..
         /// </summary>
         public int Priority;
 
@@ -523,7 +523,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
     public static class BinBVHUtil
     {
         public const float ONE_OVER_U16_MAX = 1.0f / UInt16.MaxValue;
-       
+
         public static UInt16 FloatToUInt16(float val, float lower, float upper)
         {
             UInt16 uival = 0;
@@ -536,7 +536,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             {
                 upper -= lower;
                 val = val - lower;
-                
+
                 // start with 500 upper and 200 lower..    subtract 200 from the upper and the value
             }
             else //if (lower < 0 && upper > 0)
@@ -558,8 +558,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
             return uival;
         }
-        
-        
+
+
         /// <summary>
         /// Endian Swap
         /// Swaps endianness if necessary
@@ -590,7 +590,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 output[i] = Convert.ToByte(chr[i]);
 
             }
-            
+
             output[i] = Convert.ToByte('\0');
             return output;
         }

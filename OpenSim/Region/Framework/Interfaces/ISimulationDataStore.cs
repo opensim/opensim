@@ -45,7 +45,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Dispose the database
         /// </summary>
         void Dispose();
-        
+
         /// <summary>
         /// Stores all object's details apart from inventory
         /// </summary>
@@ -91,7 +91,7 @@ namespace OpenSim.Region.Framework.Interfaces
 
         // Legacy version kept for downward compabibility
         void StoreTerrain(double[,] terrain, UUID regionID);
-        
+
         /// <summary>
         /// Load terrain from region storage
         /// </summary>
@@ -107,7 +107,7 @@ namespace OpenSim.Region.Framework.Interfaces
         double[,] LoadTerrain(UUID regionID);
 
         void StoreLandObject(ILandObject Parcel);
-        
+
         /// <summary>
         /// <list type="bullet">
         /// <item>delete from land where UUID=globalID</item>
@@ -116,7 +116,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         /// <param name="globalID"></param>
         void RemoveLandObject(UUID globalID);
-        
+
         List<LandData> LoadLandObjects(UUID regionUUID);
 
         void StoreRegionSettings(RegionSettings rs);

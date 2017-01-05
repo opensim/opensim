@@ -410,7 +410,7 @@ namespace OpenSim.Data.MySQL
             using (MySqlCommand cmd = new MySqlCommand(command))
             {
                 cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
-    
+
                 return RunCommand(cmd);
             }
         }

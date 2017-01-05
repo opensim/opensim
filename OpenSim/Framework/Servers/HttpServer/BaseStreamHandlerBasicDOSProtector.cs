@@ -37,7 +37,7 @@ namespace OpenSim.Framework.Servers.HttpServer
     /// </remarks>
     public abstract class BaseStreamHandlerBasicDOSProtector : BaseRequestHandler, IStreamedRequestHandler
     {
-       
+
         private readonly BasicDosProtectorOptions _options;
         private readonly BasicDOSProtector _dosProtector;
 
@@ -63,7 +63,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 result = ThrottledRequest(path, request, httpRequest, httpResponse);
             if (_options.MaxConcurrentSessions > 0)
                 _dosProtector.ProcessEnd(clientstring, endpoint);
-            
+
             RequestsHandled++;
 
             return result;
@@ -81,7 +81,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             return new byte[0];
         }
 
-        
+
         private string GetRemoteAddr(IOSHttpRequest httpRequest)
         {
             string remoteaddr = string.Empty;
@@ -101,7 +101,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 clientstring = GetRemoteAddr(httpRequest);
 
             return clientstring;
-           
+
         }
     }
 }

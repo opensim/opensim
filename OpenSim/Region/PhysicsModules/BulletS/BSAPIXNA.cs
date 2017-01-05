@@ -815,161 +815,161 @@ private sealed class BulletConstraintXNA : BulletConstraint
     public override bool SliderSetLimits(BulletConstraint pConstraint, int lowerUpper, int linAng, float val)
     {
         SliderConstraint constraint = (pConstraint as BulletConstraintXNA).constrain as SliderConstraint;
-		switch (lowerUpper)
-		{
-			case SLIDER_LOWER_LIMIT:
-				switch (linAng)
-				{
-					case SLIDER_LINEAR:
-						constraint.SetLowerLinLimit(val);
-						break;
-					case SLIDER_ANGULAR:
-						constraint.SetLowerAngLimit(val);
-						break;
-				}
-				break;
-			case SLIDER_UPPER_LIMIT:
-				switch (linAng)
-				{
-					case SLIDER_LINEAR:
-						constraint.SetUpperLinLimit(val);
-						break;
-					case SLIDER_ANGULAR:
-						constraint.SetUpperAngLimit(val);
-						break;
-				}
-				break;
-		}
+        switch (lowerUpper)
+        {
+            case SLIDER_LOWER_LIMIT:
+                switch (linAng)
+                {
+                    case SLIDER_LINEAR:
+                        constraint.SetLowerLinLimit(val);
+                        break;
+                    case SLIDER_ANGULAR:
+                        constraint.SetLowerAngLimit(val);
+                        break;
+                }
+                break;
+            case SLIDER_UPPER_LIMIT:
+                switch (linAng)
+                {
+                    case SLIDER_LINEAR:
+                        constraint.SetUpperLinLimit(val);
+                        break;
+                    case SLIDER_ANGULAR:
+                        constraint.SetUpperAngLimit(val);
+                        break;
+                }
+                break;
+        }
         return true;
     }
     public override bool SliderSet(BulletConstraint pConstraint, int softRestDamp, int dirLimOrtho, int linAng, float val)
     {
         SliderConstraint constraint = (pConstraint as BulletConstraintXNA).constrain as SliderConstraint;
-		switch (softRestDamp)
-		{
-			case SLIDER_SET_SOFTNESS:
-				switch (dirLimOrtho)
-				{
-					case SLIDER_SET_DIRECTION:
-						switch (linAng)
-						{
-							case SLIDER_LINEAR: constraint.SetSoftnessDirLin(val); break;
-							case SLIDER_ANGULAR: constraint.SetSoftnessDirAng(val); break;
-						}
-						break;
-					case SLIDER_SET_LIMIT:
-						switch (linAng)
-						{
-							case SLIDER_LINEAR: constraint.SetSoftnessLimLin(val); break;
-							case SLIDER_ANGULAR: constraint.SetSoftnessLimAng(val); break;
-						}
-						break;
-					case SLIDER_SET_ORTHO:
-						switch (linAng)
-						{
-							case SLIDER_LINEAR: constraint.SetSoftnessOrthoLin(val); break;
-							case SLIDER_ANGULAR: constraint.SetSoftnessOrthoAng(val); break;
-						}
-						break;
-				}
-				break;
-			case SLIDER_SET_RESTITUTION:
-				switch (dirLimOrtho)
-				{
-					case SLIDER_SET_DIRECTION:
-						switch (linAng)
-						{
-							case SLIDER_LINEAR: constraint.SetRestitutionDirLin(val); break;
-							case SLIDER_ANGULAR: constraint.SetRestitutionDirAng(val); break;
-						}
-						break;
-					case SLIDER_SET_LIMIT:
-						switch (linAng)
-						{
-							case SLIDER_LINEAR: constraint.SetRestitutionLimLin(val); break;
-							case SLIDER_ANGULAR: constraint.SetRestitutionLimAng(val); break;
-						}
-						break;
-					case SLIDER_SET_ORTHO:
-						switch (linAng)
-						{
-							case SLIDER_LINEAR: constraint.SetRestitutionOrthoLin(val); break;
-							case SLIDER_ANGULAR: constraint.SetRestitutionOrthoAng(val); break;
-						}
-						break;
-				}
-				break;
-			case SLIDER_SET_DAMPING:
-				switch (dirLimOrtho)
-				{
-					case SLIDER_SET_DIRECTION:
-						switch (linAng)
-						{
-							case SLIDER_LINEAR: constraint.SetDampingDirLin(val); break;
-							case SLIDER_ANGULAR: constraint.SetDampingDirAng(val); break;
-						}
-						break;
-					case SLIDER_SET_LIMIT:
-						switch (linAng)
-						{
-							case SLIDER_LINEAR: constraint.SetDampingLimLin(val); break;
-							case SLIDER_ANGULAR: constraint.SetDampingLimAng(val); break;
-						}
-						break;
-					case SLIDER_SET_ORTHO:
-						switch (linAng)
-						{
-							case SLIDER_LINEAR: constraint.SetDampingOrthoLin(val); break;
-							case SLIDER_ANGULAR: constraint.SetDampingOrthoAng(val); break;
-						}
-						break;
-				}
-				break;
-		}
+        switch (softRestDamp)
+        {
+            case SLIDER_SET_SOFTNESS:
+                switch (dirLimOrtho)
+                {
+                    case SLIDER_SET_DIRECTION:
+                        switch (linAng)
+                        {
+                            case SLIDER_LINEAR: constraint.SetSoftnessDirLin(val); break;
+                            case SLIDER_ANGULAR: constraint.SetSoftnessDirAng(val); break;
+                        }
+                        break;
+                    case SLIDER_SET_LIMIT:
+                        switch (linAng)
+                        {
+                            case SLIDER_LINEAR: constraint.SetSoftnessLimLin(val); break;
+                            case SLIDER_ANGULAR: constraint.SetSoftnessLimAng(val); break;
+                        }
+                        break;
+                    case SLIDER_SET_ORTHO:
+                        switch (linAng)
+                        {
+                            case SLIDER_LINEAR: constraint.SetSoftnessOrthoLin(val); break;
+                            case SLIDER_ANGULAR: constraint.SetSoftnessOrthoAng(val); break;
+                        }
+                        break;
+                }
+                break;
+            case SLIDER_SET_RESTITUTION:
+                switch (dirLimOrtho)
+                {
+                    case SLIDER_SET_DIRECTION:
+                        switch (linAng)
+                        {
+                            case SLIDER_LINEAR: constraint.SetRestitutionDirLin(val); break;
+                            case SLIDER_ANGULAR: constraint.SetRestitutionDirAng(val); break;
+                        }
+                        break;
+                    case SLIDER_SET_LIMIT:
+                        switch (linAng)
+                        {
+                            case SLIDER_LINEAR: constraint.SetRestitutionLimLin(val); break;
+                            case SLIDER_ANGULAR: constraint.SetRestitutionLimAng(val); break;
+                        }
+                        break;
+                    case SLIDER_SET_ORTHO:
+                        switch (linAng)
+                        {
+                            case SLIDER_LINEAR: constraint.SetRestitutionOrthoLin(val); break;
+                            case SLIDER_ANGULAR: constraint.SetRestitutionOrthoAng(val); break;
+                        }
+                        break;
+                }
+                break;
+            case SLIDER_SET_DAMPING:
+                switch (dirLimOrtho)
+                {
+                    case SLIDER_SET_DIRECTION:
+                        switch (linAng)
+                        {
+                            case SLIDER_LINEAR: constraint.SetDampingDirLin(val); break;
+                            case SLIDER_ANGULAR: constraint.SetDampingDirAng(val); break;
+                        }
+                        break;
+                    case SLIDER_SET_LIMIT:
+                        switch (linAng)
+                        {
+                            case SLIDER_LINEAR: constraint.SetDampingLimLin(val); break;
+                            case SLIDER_ANGULAR: constraint.SetDampingLimAng(val); break;
+                        }
+                        break;
+                    case SLIDER_SET_ORTHO:
+                        switch (linAng)
+                        {
+                            case SLIDER_LINEAR: constraint.SetDampingOrthoLin(val); break;
+                            case SLIDER_ANGULAR: constraint.SetDampingOrthoAng(val); break;
+                        }
+                        break;
+                }
+                break;
+        }
         return true;
     }
     public override bool SliderMotorEnable(BulletConstraint pConstraint, int linAng, float numericTrueFalse)
     {
         SliderConstraint constraint = (pConstraint as BulletConstraintXNA).constrain as SliderConstraint;
-		switch (linAng)
-		{
-			case SLIDER_LINEAR:
-				constraint.SetPoweredLinMotor(numericTrueFalse == 0.0 ? false : true);
-				break;
-			case SLIDER_ANGULAR:
-				constraint.SetPoweredAngMotor(numericTrueFalse == 0.0 ? false : true);
-				break;
-		}
+        switch (linAng)
+        {
+            case SLIDER_LINEAR:
+                constraint.SetPoweredLinMotor(numericTrueFalse == 0.0 ? false : true);
+                break;
+            case SLIDER_ANGULAR:
+                constraint.SetPoweredAngMotor(numericTrueFalse == 0.0 ? false : true);
+                break;
+        }
         return true;
     }
     public override bool SliderMotor(BulletConstraint pConstraint, int forceVel, int linAng, float val)
     {
         SliderConstraint constraint = (pConstraint as BulletConstraintXNA).constrain as SliderConstraint;
-		switch (forceVel)
-		{
-			case SLIDER_MOTOR_VELOCITY:
-				switch (linAng)
-				{
-					case SLIDER_LINEAR:
-						constraint.SetTargetLinMotorVelocity(val);
-						break;
-					case SLIDER_ANGULAR:
-						constraint.SetTargetAngMotorVelocity(val);
-						break;
-				}
-				break;
-			case SLIDER_MAX_MOTOR_FORCE:
-				switch (linAng)
-				{
-					case SLIDER_LINEAR:
-						constraint.SetMaxLinMotorForce(val);
-						break;
-					case SLIDER_ANGULAR:
-						constraint.SetMaxAngMotorForce(val);
-						break;
-				}
-				break;
-		}
+        switch (forceVel)
+        {
+            case SLIDER_MOTOR_VELOCITY:
+                switch (linAng)
+                {
+                    case SLIDER_LINEAR:
+                        constraint.SetTargetLinMotorVelocity(val);
+                        break;
+                    case SLIDER_ANGULAR:
+                        constraint.SetTargetAngMotorVelocity(val);
+                        break;
+                }
+                break;
+            case SLIDER_MAX_MOTOR_FORCE:
+                switch (linAng)
+                {
+                    case SLIDER_LINEAR:
+                        constraint.SetMaxLinMotorForce(val);
+                        break;
+                    case SLIDER_ANGULAR:
+                        constraint.SetMaxAngMotorForce(val);
+                        break;
+                }
+                break;
+        }
         return true;
     }
 
@@ -1197,20 +1197,20 @@ private sealed class BulletConstraintXNA : BulletConstraint
                                                          };
         /*
             m_mass = mass;
-			m_motionState =motionState;
-			m_collisionShape = collisionShape;
-			m_localInertia = localInertia;
-			m_linearDamping = 0f;
-			m_angularDamping = 0f;
-			m_friction = 0.5f;
-			m_restitution = 0f;
-			m_linearSleepingThreshold = 0.8f;
-			m_angularSleepingThreshold = 1f;
-			m_additionalDamping = false;
-			m_additionalDampingFactor = 0.005f;
-			m_additionalLinearDampingThresholdSqr = 0.01f;
-			m_additionalAngularDampingThresholdSqr = 0.01f;
-			m_additionalAngularDampingFactor = 0.01f;
+            m_motionState =motionState;
+            m_collisionShape = collisionShape;
+            m_localInertia = localInertia;
+            m_linearDamping = 0f;
+            m_angularDamping = 0f;
+            m_friction = 0.5f;
+            m_restitution = 0f;
+            m_linearSleepingThreshold = 0.8f;
+            m_angularSleepingThreshold = 1f;
+            m_additionalDamping = false;
+            m_additionalDampingFactor = 0.005f;
+            m_additionalLinearDampingThresholdSqr = 0.01f;
+            m_additionalAngularDampingThresholdSqr = 0.01f;
+            m_additionalAngularDampingFactor = 0.01f;
             m_startWorldTransform = IndexedMatrix.Identity;
         */
         body.SetUserPointer(pLocalID);
@@ -2172,7 +2172,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
     }
 
     public override BulletShape CreateTerrainShape(uint id, Vector3 size, float minHeight, float maxHeight, float[] heightMap,
-								float scaleFactor, float collisionMargin)
+                                float scaleFactor, float collisionMargin)
     {
         const int upAxis = 2;
         HeightfieldTerrainShape terrainShape = new HeightfieldTerrainShape((int)size.X, (int)size.Y,

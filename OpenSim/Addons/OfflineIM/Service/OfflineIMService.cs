@@ -90,7 +90,7 @@ namespace OpenSim.OfflineIM
         public bool StoreMessage(GridInstantMessage im, out string reason)
         {
             reason = string.Empty;
-            
+
             // Check limits
             UUID principalID = new UUID(im.toAgentID);
             long count = m_Database.GetCount("PrincipalID", principalID.ToString());

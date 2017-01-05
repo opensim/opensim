@@ -82,7 +82,7 @@ namespace OpenSim.Server
             ServicePointManager.ServerCertificateValidationCallback = ValidateServerCertificate;
 
             m_Server = new HttpServerBase("R.O.B.U.S.T.", args);
-            
+
             string registryLocation;
 
             IConfig serverConfig = m_Server.Config.Configs["Startup"];
@@ -97,7 +97,7 @@ namespace OpenSim.Server
 
 
             string connList = serverConfig.GetString("ServiceConnectors", String.Empty);
-            
+
             registryLocation = serverConfig.GetString("RegistryLocation",".");
 
             IConfig servicesConfig = m_Server.Config.Configs["ServiceList"];

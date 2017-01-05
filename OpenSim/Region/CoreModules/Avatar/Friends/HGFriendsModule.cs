@@ -539,8 +539,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         //            m_log.DebugFormat("[HGFRIENDS MODULE] HG Friendship! thisUUI={0}; friendUUI={1}; foreignThisFriendService={2}; foreignFriendFriendService={3}",
         //              agentUUI, friendUUI, agentFriendService, friendFriendService);
 
-                }                
-                
+                }
+
                 // Delete any previous friendship relations
                 DeletePreviousRelations(agentID, friendID);
 
@@ -641,11 +641,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                             FriendsService.Delete(a1, f.Friend);
                             // and also the converse
                             FriendsService.Delete(f.Friend, a1.ToString());
-                        }                            
+                        }
                     }
                 }
             }
-                        
+
             finfos = GetFriendsFromCache(a1);
             if (finfos != null)
             {
@@ -658,7 +658,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                             FriendsService.Delete(a2, f.Friend);
                             // and also the converse
                             FriendsService.Delete(f.Friend, a2.ToString());
-                        }                            
+                        }
                     }
                 }
             }
@@ -783,7 +783,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     m_log.DebugFormat("[HGFRIENDS MODULE]: Forwading friendship from {0} to {1} @ {2}", agentID, friendID, friendsURL);
                     GridRegion region = new GridRegion();
                     region.ServerURI = friendsURL;
-                    
+
                     string name = im.fromAgentName;
                     if (m_uMan.IsLocalGridUser(agentID))
                     {
@@ -815,7 +815,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     }
 
                     m_HGFriendsConnector.FriendshipOffered(region, agentID, friendID, im.message, name);
-                 
+
                     return true;
                 }
             }

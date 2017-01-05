@@ -44,7 +44,7 @@ namespace OpenSim.Framework
             Material = -2
         }
 
-        
+
         #region SL / file extension / content-type conversions
 
         /// <summary>
@@ -175,10 +175,10 @@ namespace OpenSim.Framework
             new TypeMapping(AssetType.Folder, FolderType.CurrentOutfit, "application/vnd.ll.currentoutfitfolder", "currentoutfitfolder"),
             new TypeMapping(AssetType.Folder, FolderType.Outfit, "application/vnd.ll.outfitfolder", "outfitfolder"),
             new TypeMapping(AssetType.Folder, FolderType.MyOutfits, "application/vnd.ll.myoutfitsfolder", "myoutfitsfolder"),
-            
+
             // This next mappping is an asset to inventory item mapping.
             // Note: LL stores folders as assets of type Folder = 8, and it has a corresponding InventoryType = 8
-            // OpenSim doesn't store folders as assets, so this mapping should only be used when parsing things from the viewer to the server 
+            // OpenSim doesn't store folders as assets, so this mapping should only be used when parsing things from the viewer to the server
             new TypeMapping(AssetType.Folder, InventoryType.Folder, "application/vnd.ll.folder", "folder"),
 
             // OpenSim specific
@@ -198,7 +198,7 @@ namespace OpenSim.Framework
             inventory2Content = new Dictionary<sbyte, string>();
             content2Asset = new Dictionary<string, sbyte>();
             content2Inventory = new Dictionary<string, sbyte>();
-            
+
             foreach (TypeMapping mapping in MAPPINGS)
             {
                 sbyte assetType = mapping.AssetTypeCode;
@@ -226,7 +226,7 @@ namespace OpenSim.Framework
                 }
             }
         }
-        
+
         public static string SLAssetTypeToContentType(int assetType)
         {
             string contentType;
@@ -406,7 +406,7 @@ namespace OpenSim.Framework
                 if(data[0] == "inv_item")
                 {
                     skipInventoryItem(reader);
-                } 
+                }
                 else if (line.IndexOf('{') >= 0)
                 {
                     throw new NotANotecardFormatException(reader.LineNumber);
@@ -462,7 +462,7 @@ namespace OpenSim.Framework
                 {
                     int length = Int32.Parse(data[2]);
                     notecardString = reader.getBlock(length);
-                } 
+                }
                 else if (line.IndexOf('{') >= 0)
                 {
                     throw new NotANotecardFormatException(reader.LineNumber);

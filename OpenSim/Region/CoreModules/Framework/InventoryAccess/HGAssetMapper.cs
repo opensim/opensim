@@ -178,7 +178,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             {
                 UUID uuid = UUID.Zero;
                 UUID.TryParse(meta.CreatorID, out uuid);
-                UserAccount creator = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, uuid); 
+                UserAccount creator = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, uuid);
                 if (creator != null)
                     meta.CreatorID = m_HomeURI + ";" + creator.FirstName + " " + creator.LastName;
             }
@@ -300,8 +300,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         {
                             m_log.Error(
                                 string.Format(
-                                    "[HG ASSET MAPPER]: Failed to post asset {0} (type {1}, length {2}) referenced from {3} to {4} with exception  ", 
-                                    asset.ID, asset.Type, asset.Data.Length, assetID, userAssetURL), 
+                                    "[HG ASSET MAPPER]: Failed to post asset {0} (type {1}, length {2}) referenced from {3} to {4} with exception  ",
+                                    asset.ID, asset.Type, asset.Data.Length, assetID, userAssetURL),
                                 e);
 
                             // For debugging purposes for now we will continue to throw the exception up the stack as was already happening.  However, after
@@ -315,7 +315,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 else
                 {
                     m_log.DebugFormat(
-                        "[HG ASSET MAPPER]: Didn't post asset {0} referenced from {1} because it already exists in asset server {2}", 
+                        "[HG ASSET MAPPER]: Didn't post asset {0} referenced from {1} because it already exists in asset server {2}",
                         uuid, assetID, userAssetURL);
                 }
             }

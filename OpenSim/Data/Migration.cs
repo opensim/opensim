@@ -80,10 +80,10 @@ namespace OpenSim.Data
 
         /// <summary>Have the parameterless constructor just so we can specify it as a generic parameter with the new() constraint.
         /// Currently this is only used in the tests. A Migration instance created this way must be then
-        /// initialized with Initialize(). Regular creation should be through the parameterized constructors. 
+        /// initialized with Initialize(). Regular creation should be through the parameterized constructors.
         /// </summary>
         public Migration()
-        { 
+        {
         }
 
         public Migration(DbConnection conn, Assembly assem, string subtype, string type)
@@ -91,7 +91,7 @@ namespace OpenSim.Data
             Initialize(conn, assem, type, subtype);
         }
 
-        public Migration(DbConnection conn, Assembly assem, string type) 
+        public Migration(DbConnection conn, Assembly assem, string type)
         {
             Initialize(conn, assem, type, "");
         }
@@ -191,7 +191,7 @@ namespace OpenSim.Data
                 int newversion = kvp.Key;
                 // we need to up the command timeout to infinite as we might be doing long migrations.
 
-                /* [AlexRa 01-May-10]: We can't always just run any SQL in a single batch (= ExecuteNonQuery()). Things like 
+                /* [AlexRa 01-May-10]: We can't always just run any SQL in a single batch (= ExecuteNonQuery()). Things like
                  * stored proc definitions might have to be sent to the server each in a separate batch.
                  * This is certainly so for MS SQL; not sure how the MySQL connector sorts out the mess
                  * with 'delimiter @@'/'delimiter ;' around procs.  So each "script" this code executes now is not
@@ -276,7 +276,7 @@ namespace OpenSim.Data
         private delegate void FlushProc();
 
         /// <summary>Scans for migration resources in either old-style "scattered" (one file per version)
-        /// or new-style "integrated" format (single file with ":VERSION nnn" sections). 
+        /// or new-style "integrated" format (single file with ":VERSION nnn" sections).
         /// In the new-style migrations it also recognizes ':GO' separators for parts of the SQL script
         /// that must be sent to the server separately.  The old-style migrations are loaded each in one piece
         /// and don't support the ':GO' feature.
@@ -301,12 +301,12 @@ namespace OpenSim.Data
             {
                 /* The filename should be '<StoreName>.migrations[.NNN]' where NNN
                  * is the last version number defined in the file. If the '.NNN' part is recognized, the code can skip
-                 * the file without looking inside if we have a higher version already. Without the suffix we read 
+                 * the file without looking inside if we have a higher version already. Without the suffix we read
                  * the file anyway and use the version numbers inside.  Any unrecognized suffix (such as '.sql')
                  * is valid but ignored.
-                 * 
-                 *  NOTE that we expect only one 'merged' migration file. If there are several, we take the last one. 
-                 *  If you are numbering them, leave only the latest one in the project or at least make sure they numbered 
+                 *
+                 *  NOTE that we expect only one 'merged' migration file. If there are several, we take the last one.
+                 *  If you are numbering them, leave only the latest one in the project or at least make sure they numbered
                  *  to come up in the correct order (e.g. 'SomeStore.migrations.001' rather than 'SomeStore.migrations.1')
                  */
 
@@ -351,7 +351,7 @@ namespace OpenSim.Data
                         if (sLine.Trim().Equals(":GO", StringComparison.InvariantCultureIgnoreCase))
                         {
                             if (sb.Length == 0) continue;
-                            if (nVersion > after) 
+                            if (nVersion > after)
                                 script.Add(sb.ToString());
                             sb.Length = 0;
                             continue;
@@ -405,10 +405,10 @@ scan_old_style:
                     }
                 }
             }
-            
-            if (migrations.Count < 1) 
+
+            if (migrations.Count < 1)
                 m_log.DebugFormat("[MIGRATIONS]: {0} data tables already up to date at revision {1}", _type, after);
-            
+
             return migrations;
         }
     }

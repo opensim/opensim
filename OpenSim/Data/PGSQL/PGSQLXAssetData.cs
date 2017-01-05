@@ -141,7 +141,7 @@ namespace OpenSim.Data.PGSQL
 
                     using (NpgsqlCommand cmd = new NpgsqlCommand(
                         @"SELECT name, description, access_time, ""AssetType"", local, temporary, asset_flags, creatorid, data
-                            FROM XAssetsMeta 
+                            FROM XAssetsMeta
                             JOIN XAssetsData ON XAssetsMeta.hash = XAssetsData.Hash WHERE id=:ID",
                         dbcon))
                     {
@@ -179,7 +179,7 @@ namespace OpenSim.Data.PGSQL
                                             WebUtil.CopyStream(decompressionStream, outputStream, int.MaxValue);
     //                                        int compressedLength = asset.Data.Length;
                                             asset.Data = outputStream.ToArray();
-    
+
     //                                        m_log.DebugFormat(
     //                                            "[XASSET DB]: Decompressed {0} {1} to {2} bytes from {3}",
     //                                            asset.ID, asset.Name, asset.Data.Length, compressedLength);
@@ -223,16 +223,16 @@ namespace OpenSim.Data.PGSQL
                         {
                             assetName = asset.Name.Substring(0, 64);
                             m_log.WarnFormat(
-                                "[XASSET DB]: Name '{0}' for asset {1} truncated from {2} to {3} characters on add", 
+                                "[XASSET DB]: Name '{0}' for asset {1} truncated from {2} to {3} characters on add",
                                 asset.Name, asset.ID, asset.Name.Length, assetName.Length);
                         }
-    
+
                         string assetDescription = asset.Description;
                         if (asset.Description.Length > 64)
                         {
                             assetDescription = asset.Description.Substring(0, 64);
                             m_log.WarnFormat(
-                                "[XASSET DB]: Description '{0}' for asset {1} truncated from {2} to {3} characters on add", 
+                                "[XASSET DB]: Description '{0}' for asset {1} truncated from {2} to {3} characters on add",
                                 asset.Description, asset.ID, asset.Description.Length, assetDescription.Length);
                         }
 
@@ -268,8 +268,8 @@ namespace OpenSim.Data.PGSQL
                                         where not exists( Select id from XAssetsMeta where id = :ID);
 
                                       update XAssetsMeta
-                                          set id = :ID, hash = :Hash, name = :Name, description = :Description, 
-                                              ""AssetType"" = :AssetType, local = :Local, temporary = :Temporary, create_time = :CreateTime, 
+                                          set id = :ID, hash = :Hash, name = :Name, description = :Description,
+                                              ""AssetType"" = :AssetType, local = :Local, temporary = :Temporary, create_time = :CreateTime,
                                               access_time = :AccessTime, asset_flags = :AssetFlags, creatorid = :CreatorID
                                         where id = :ID;
                                      ",
@@ -321,13 +321,13 @@ namespace OpenSim.Data.PGSQL
                             {
                                 m_log.ErrorFormat("[XASSET DB]: PGSQL failure creating asset data {0} with name \"{1}\". Error: {2}",
                                     asset.FullID, asset.Name, e.Message);
-    
+
                                 transaction.Rollback();
-    
+
                                 return;
                             }
                         }
-    
+
                         transaction.Commit();
                     }
                 }
@@ -374,7 +374,7 @@ namespace OpenSim.Data.PGSQL
                     catch (Exception e)
                     {
                         m_log.ErrorFormat(
-                            "[XASSET PGSQL DB]: Failure updating access_time for asset {0} with name {1} : {2}", 
+                            "[XASSET PGSQL DB]: Failure updating access_time for asset {0} with name {1} : {2}",
                             assetMetadata.ID, assetMetadata.Name, e.Message);
                     }
                 }
@@ -519,7 +519,7 @@ namespace OpenSim.Data.PGSQL
                 {
                     dbcon.Open();
                     using(NpgsqlCommand cmd = new NpgsqlCommand(@"SELECT name, description, access_time, ""AssetType"", temporary, id, asset_flags, creatorid
-                                            FROM XAssetsMeta 
+                                            FROM XAssetsMeta
                                             LIMIT :start, :count",dbcon))
                     {
                         cmd.Parameters.Add(m_database.CreateParameter("start",start));

@@ -53,7 +53,7 @@ namespace OpenSim.Region.ClientStack.Linden
     public class AvatarPickerSearchModule : INonSharedRegionModule
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         private Scene m_scene;
         private IPeople m_People;
         private bool m_Enabled = false;

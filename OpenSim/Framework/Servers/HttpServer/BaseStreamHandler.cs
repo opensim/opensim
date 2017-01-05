@@ -47,7 +47,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             : base(httpMethod, path, name, description) {}
 
         protected BaseStreamHandler(string httpMethod, string path, IServiceAuth auth)
-            : base(httpMethod, path, null, null) 
+            : base(httpMethod, path, null, null)
         {
             m_Auth = auth;
         }
@@ -62,7 +62,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 HttpStatusCode statusCode;
 
                 if (!m_Auth.Authenticate(httpRequest.Headers, httpResponse.AddHeader, out statusCode))
-                {                
+                {
                     httpResponse.StatusCode = (int)statusCode;
                     httpResponse.ContentType = "text/plain";
                     return new byte[0];

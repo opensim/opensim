@@ -53,7 +53,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "Comms", false, "show server throttles",
                 "show server throttles",
                 "Show information about server throttles",
-                HandleShowServerThrottlesCommand); 
+                HandleShowServerThrottlesCommand);
 
             m_console.Commands.AddCommand(
                 "Debug", false, "debug lludp packet",
@@ -207,8 +207,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 HandleClientGetCommand);
 
             m_console.Commands.AddCommand(
-                "Debug", 
-                false, 
+                "Debug",
+                false,
                 "debug lludp client set",
                 "debug lludp client set <param> <value> [<avatar-first-name> <avatar-last-name>]",
                 "Set a debug parameter for a particular client.  If no name is given then the value is set on all clients.",
@@ -228,22 +228,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             long maxSceneDripRate = (long)m_udpServer.Throttle.MaxDripRate;
             cdl.AddRow(
-                "Max scene throttle", 
+                "Max scene throttle",
                 maxSceneDripRate != 0 ? string.Format("{0} kbps", maxSceneDripRate * 8 / 1000) : "unset");
 
             int maxClientDripRate = m_udpServer.ThrottleRates.Total;
             cdl.AddRow(
-                "Max new client throttle", 
+                "Max new client throttle",
                 maxClientDripRate != 0 ? string.Format("{0} kbps", maxClientDripRate * 8 / 1000) : "unset");
 
             m_console.Output(cdl.ToString());
 
             m_console.OutputFormat("{0}\n", GetServerThrottlesReport(m_udpServer));
         }
-                
+
         private string GetServerThrottlesReport(LLUDPServer udpServer)
         {
-            StringBuilder report = new StringBuilder();     
+            StringBuilder report = new StringBuilder();
 
             report.AppendFormat(
                 "{0,7} {1,8} {2,7} {3,7} {4,7} {5,7} {6,9} {7,7}\n",
@@ -254,7 +254,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "Cloud",
                 "Task",
                 "Texture",
-                "Asset");          
+                "Asset");
 
             report.AppendFormat(
                 "{0,7} {1,8} {2,7} {3,7} {4,7} {5,7} {6,9} {7,7}\n",
@@ -265,7 +265,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "kb/s",
                 "kb/s",
                 "kb/s",
-                "kb/s");     
+                "kb/s");
 
             ThrottleRates throttleRates = udpServer.ThrottleRates;
             report.AppendFormat(
@@ -277,16 +277,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 (throttleRates.Cloud * 8) / 1000,
                 (throttleRates.Task * 8) / 1000,
                 (throttleRates.Texture  * 8) / 1000,
-                (throttleRates.Asset  * 8) / 1000);  
+                (throttleRates.Asset  * 8) / 1000);
 
             return report.ToString();
         }
 
         protected string GetColumnEntry(string entry, int maxLength, int columnPadding)
-        {                       
+        {
             return string.Format(
-                "{0,-" + maxLength +  "}{1,-" + columnPadding + "}", 
-                entry.Length > maxLength ? entry.Substring(0, maxLength) : entry, 
+                "{0,-" + maxLength +  "}{1,-" + columnPadding + "}",
+                entry.Length > maxLength ? entry.Substring(0, maxLength) : entry,
                 "");
         }
 
@@ -375,7 +375,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 MainConsole.Instance.OutputFormat(
                     "Usage: debug lludp throttles set <param> <value> [<avatar-first-name> <avatar-last-name>]");
                 return;
-            }           
+            }
 
             string param = args[4];
             string rawValue = args[5];
@@ -467,7 +467,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 MainConsole.Instance.OutputFormat(
                     "Usage: debug lludp throttles get [<avatar-first-name> <avatar-last-name>]");
                 return;
-            }           
+            }
 
             string firstName = null;
             string lastName = null;
@@ -491,7 +491,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     ConsoleDisplayList cdl = new ConsoleDisplayList();
                     cdl.AddRow("adaptive", udpClient.FlowThrottle.AdaptiveEnabled);
                     cdl.AddRow("current", string.Format("{0} kbps", udpClient.FlowThrottle.DripRate * 8 / 1000));
-                    cdl.AddRow("request", string.Format("{0} kbps", udpClient.FlowThrottle.RequestedDripRate * 8 / 1000));  
+                    cdl.AddRow("request", string.Format("{0} kbps", udpClient.FlowThrottle.RequestedDripRate * 8 / 1000));
                     cdl.AddRow("max", string.Format("{0} kbps", udpClient.FlowThrottle.MaxDripRate * 8 / 1000));
 
                     m_console.Output(cdl.ToString());
@@ -509,12 +509,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             long maxSceneDripRate = (long)m_udpServer.Throttle.MaxDripRate;
             cdl.AddRow(
-                "max-scene-throttle", 
+                "max-scene-throttle",
                 maxSceneDripRate != 0 ? string.Format("{0} kbps", maxSceneDripRate * 8 / 1000) : "unset");
 
             int maxClientDripRate = m_udpServer.ThrottleRates.Total;
             cdl.AddRow(
-                "max-new-client-throttle", 
+                "max-new-client-throttle",
                 maxClientDripRate != 0 ? string.Format("{0} kbps", maxClientDripRate * 8 / 1000) : "unset");
 
             m_console.Output(cdl.ToString());
@@ -529,7 +529,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 MainConsole.Instance.OutputFormat("Usage: debug lludp set <param> <value>");
                 return;
-            }           
+            }
 
             string param = args[3];
             string rawValue = args[4];
@@ -552,7 +552,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             else
             {
-                return; 
+                return;
             }
 
             m_console.OutputFormat("{0} set to {1} in {2}", param, rawValue, m_udpServer.Scene.Name);
@@ -598,7 +598,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 MainConsole.Instance.OutputFormat("Usage: debug lludp client set <param> <value> [<avatar-first-name> <avatar-last-name>]");
                 return;
-            }        
+            }
 
             string param = args[4];
             string rawValue = args[5];
@@ -697,12 +697,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             string direction = args[3];
             string subCommand = args[4];
-            string packetName = args[5];           
+            string packetName = args[5];
 
             if (subCommand == "add")
             {
                 MainConsole.Instance.OutputFormat(
-                    "Adding packet {0} to {1} drop list for all connections in {2}", 
+                    "Adding packet {0} to {1} drop list for all connections in {2}",
                     direction, packetName, m_udpServer.Scene.Name);
 
                 m_udpServer.Scene.ForEachScenePresence(
@@ -720,7 +720,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             else if (subCommand == "remove")
             {
                 MainConsole.Instance.OutputFormat(
-                    "Removing packet {0} from {1} drop list for all connections in {2}", 
+                    "Removing packet {0} from {1} drop list for all connections in {2}",
                     direction, packetName, m_udpServer.Scene.Name);
 
                 m_udpServer.Scene.ForEachScenePresence(
@@ -868,10 +868,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 MainConsole.Instance.OutputFormat("OQRE in {0}", m_udpServer.Scene.Name);
                 MainConsole.Instance.OutputFormat("Running: {0}", m_udpServer.OqrEngine.IsRunning);
                 MainConsole.Instance.OutputFormat(
-                    "Requests waiting: {0}", 
+                    "Requests waiting: {0}",
                     m_udpServer.OqrEngine.IsRunning ? m_udpServer.OqrEngine.JobsWaiting.ToString() : "n/a");
             }
-            else 
+            else
             {
                 MainConsole.Instance.OutputFormat("Unrecognized OQRE subcommand {0}", subCommand);
             }

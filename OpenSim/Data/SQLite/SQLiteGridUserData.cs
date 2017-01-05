@@ -43,7 +43,7 @@ namespace OpenSim.Data.SQLite
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public SQLiteGridUserData(string connectionString, string realm) 
+        public SQLiteGridUserData(string connectionString, string realm)
             : base(connectionString, realm, "GridUserStore") {}
 
         public new GridUserData Get(string userID)

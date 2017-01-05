@@ -37,7 +37,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
     class NullPhysicsScene : PhysicsScene
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         private static int m_workIndicator;
 
         public override PhysicsActor AddAvatar(

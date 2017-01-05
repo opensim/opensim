@@ -137,7 +137,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Vector3 childPosition = new Vector3(rootPartPosition + rotatedChildOffsetPosition);
 
             SceneObjectPart childPart = so.Parts[1];
-            
+
             Assert.That(childPart.AbsolutePosition, Is.EqualTo(childPosition));
 
             Assert.That(childPart.GroupPosition, Is.EqualTo(rootPartPosition));

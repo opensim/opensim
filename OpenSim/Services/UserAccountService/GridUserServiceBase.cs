@@ -67,7 +67,7 @@ namespace OpenSim.Services.UserAccountService
                 connString = usersConfig.GetString("ConnectionString", connString);
                 realm = usersConfig.GetString("Realm", realm);
             }
-            
+
             //
             // We tried, but this doesn't exist. We can't proceed.
             //

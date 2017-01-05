@@ -764,7 +764,7 @@ namespace OpenSim.Services.UserAccountService
             string[] modelSpecifiers = model.Split();
             if (modelSpecifiers.Length != 2)
             {
-                m_log.WarnFormat("[USER ACCOUNT SERVICE]: Invalid model name \'{0}\'. Falling back to Ruth for {1}", 
+                m_log.WarnFormat("[USER ACCOUNT SERVICE]: Invalid model name \'{0}\'. Falling back to Ruth for {1}",
                                  model, destinationAgent);
                 CreateDefaultAppearanceEntries(destinationAgent);
                 return;
@@ -774,7 +774,7 @@ namespace OpenSim.Services.UserAccountService
             UserAccount modelAccount = GetUserAccount(UUID.Zero, modelSpecifiers[0], modelSpecifiers[1]);
             if (modelAccount == null)
             {
-                m_log.WarnFormat("[USER ACCOUNT SERVICE]: Requested model \'{0}\' not found. Falling back to Ruth for {1}", 
+                m_log.WarnFormat("[USER ACCOUNT SERVICE]: Requested model \'{0}\' not found. Falling back to Ruth for {1}",
                                  model, destinationAgent);
                 CreateDefaultAppearanceEntries(destinationAgent);
                 return;

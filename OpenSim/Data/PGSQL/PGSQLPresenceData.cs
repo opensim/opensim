@@ -80,7 +80,7 @@ namespace OpenSim.Data.PGSQL
             PresenceData[] pd = Get("SessionID", sessionID.ToString());
             if (pd.Length == 0)
                 return false;
-                
+
             if (regionID == UUID.Zero)
                 return false;
 
@@ -103,7 +103,7 @@ namespace OpenSim.Data.PGSQL
         public bool VerifyAgent(UUID agentId, UUID secureSessionID)
         {
             PresenceData[] ret = Get("SecureSessionID", secureSessionID.ToString());
-            
+
             if (ret.Length == 0)
                 return false;
 

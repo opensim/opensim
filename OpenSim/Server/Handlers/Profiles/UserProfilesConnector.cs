@@ -39,8 +39,8 @@ namespace OpenSim.Server.Handlers.Profiles
 {
     public class UserProfilesConnector: ServiceConnector
     {
-//        static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);        
-        
+//        static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         // Our Local Module
         public IUserProfilesService ServiceModule
         {
@@ -83,7 +83,7 @@ namespace OpenSim.Server.Handlers.Profiles
 
             Object[] args = new Object[] { config, ConfigName };
             ServiceModule = ServerUtils.LoadPlugin<IUserProfilesService>(service, args);
-            
+
             JsonRpcProfileHandlers handler = new JsonRpcProfileHandlers(ServiceModule);
 
             Server.AddJsonRPCHandler("avatarclassifiedsrequest", handler.AvatarClassifiedsRequest);

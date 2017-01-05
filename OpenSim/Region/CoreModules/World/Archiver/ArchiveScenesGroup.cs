@@ -50,7 +50,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// The inner dictionaries contain each row's regions (key: X coordinate).
         /// </summary>
         public SortedDictionary<uint, SortedDictionary<uint, Scene>> Regions { get; set; }
-        
+
         /// <summary>
         /// The subdirectory where each region is stored in the archive.
         /// </summary>
@@ -152,7 +152,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 }
             }
         }
-        
+
         /// <summary>
         /// Returns the scene at position 'location'.
         /// </summary>

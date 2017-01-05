@@ -48,7 +48,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
         }
 
         protected EventAbortException(
-                SerializationInfo info, 
+                SerializationInfo info,
                 StreamingContext context)
         {
         }
@@ -62,7 +62,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
         }
 
         protected SelfDeleteException(
-                SerializationInfo info, 
+                SerializationInfo info,
                 StreamingContext context)
         {
         }
@@ -76,14 +76,14 @@ namespace OpenSim.Region.ScriptEngine.Shared
         }
 
         protected ScriptDeleteException(
-                SerializationInfo info, 
+                SerializationInfo info,
                 StreamingContext context)
         {
         }
     }
 
     /// <summary>
-    /// Used to signal when the script is stopping in co-operation with the script engine 
+    /// Used to signal when the script is stopping in co-operation with the script engine
     /// (instead of through Thread.Abort()).
     /// </summary>
     [Serializable]
@@ -94,7 +94,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
         }
 
         protected ScriptCoopStopException(
-                SerializationInfo info, 
+                SerializationInfo info,
                 StreamingContext context)
         {
         }

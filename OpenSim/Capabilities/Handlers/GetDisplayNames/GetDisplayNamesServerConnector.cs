@@ -61,7 +61,7 @@ namespace OpenSim.Capabilities.Handlers
 
             if (m_UserManagement == null)
                 throw new Exception(String.Format("Failed to load UserManagement from {0}; config is {1}", umService, m_ConfigName));
-            
+
             server.AddStreamHandler(
                 new GetDisplayNamesHandler("/CAPS/agents/", m_UserManagement, "GetDisplayNames", null));
         }

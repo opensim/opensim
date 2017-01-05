@@ -32,7 +32,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             {
                 if (kvp.Key != "local")
                 {
-                    // For the others, call the user agent service 
+                    // For the others, call the user agent service
                     List<string> ids = new List<string>();
                     foreach (FriendInfo f in kvp.Value)
                         ids.Add(f.Friend);

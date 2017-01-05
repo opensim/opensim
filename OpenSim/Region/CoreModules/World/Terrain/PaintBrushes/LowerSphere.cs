@@ -58,7 +58,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
                             map[x, y] = 0.0;
                         else
                             map[x, y] = newz;
-                    } 
+                    }
                 }
             }
 

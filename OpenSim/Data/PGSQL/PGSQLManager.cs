@@ -326,7 +326,7 @@ namespace OpenSim.Data.PGSQL
         /// <param name="migrationStore">migrationStore.</param>
         public void CheckMigration(string migrationStore)
         {
-            using (NpgsqlConnection connection = new NpgsqlConnection(connectionString)) 
+            using (NpgsqlConnection connection = new NpgsqlConnection(connectionString))
             {
                 connection.Open();
                 Assembly assem = GetType().Assembly;

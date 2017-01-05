@@ -64,9 +64,9 @@ public sealed class BSCharacter : BSPhysObject
     private OMV.Vector3 _PIDTarget;
     private float _PIDTau;
 
-//        public override OMV.Vector3 RawVelocity 
-//        { get { return base.RawVelocity; } 
-//            set { 
+//        public override OMV.Vector3 RawVelocity
+//        { get { return base.RawVelocity; }
+//            set {
 //                if (value != base.RawVelocity)
 //                    Util.PrintCallStack();
 //                Console.WriteLine("Set rawvel to {0}", value);
@@ -82,7 +82,7 @@ public sealed class BSCharacter : BSPhysObject
             : base(parent_scene, localID, avName, "BSCharacter")
     {
         _physicsActorType = (int)ActorTypes.Agent;
-        RawPosition = pos;        
+        RawPosition = pos;
 
         _flying = isFlying;
         RawOrientation = OMV.Quaternion.Identity;
@@ -819,7 +819,7 @@ public sealed class BSCharacter : BSPhysObject
         //    0.001m/s. Bullet introduces a lot of jitter in the velocity which causes many
         //    extra updates.
         //
-        // XXX: Contrary to the above comment, setting an update threshold here above 0.4 actually introduces jitter to 
+        // XXX: Contrary to the above comment, setting an update threshold here above 0.4 actually introduces jitter to
         // avatar movement rather than removes it.  The larger the threshold, the bigger the jitter.
         // This is most noticeable in level flight and can be seen with
         // the "show updates" option in a viewer.  With an update threshold, the RawVelocity cycles between a lower

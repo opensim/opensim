@@ -52,7 +52,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// are waiting on ACKs for</param>
     public delegate void PacketStats(int inPackets, int outPackets, int unAckedBytes);
     /// <summary>
-    /// Fired when the queue for one or more packet categories is empty. This 
+    /// Fired when the queue for one or more packet categories is empty. This
     /// event can be hooked to put more data on the empty queues
     /// </summary>
     /// <param name="category">Categories of the packet queues that are empty</param>
@@ -86,8 +86,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Controls whether information is logged about each outbound packet immediately before it is sent.  For debug purposes.
         /// </summary>
         /// <remarks>Any level above 0 will turn on logging.</remarks>
-        public int ThrottleDebugLevel 
-        { 
+        public int ThrottleDebugLevel
+        {
             get
             {
                 return m_throttleDebugLevel;
@@ -157,7 +157,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Number of packets sent to this client</summary>
         public int PacketsSent;
         /// <summary>Number of packets resent to this client</summary>
-        public int PacketsResent;        
+        public int PacketsResent;
         /// <summary>Total byte count of unacked packets sent to this client</summary>
         public int UnackedBytes;
 
@@ -215,7 +215,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// textures are now generally handled through http.
         /// </summary>
         private double m_cannibalrate = 0.0;
-        
+
         private ClientInfo m_info = new ClientInfo();
 
         /// <summary>
@@ -276,7 +276,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Initialize this to a sane value to prevent early disconnects
             TickLastPacketReceived = Environment.TickCount & Int32.MaxValue;
-            m_pingMS = (int)(3.0 * server.TickCountResolution); // so filter doesnt start at 0; 
+            m_pingMS = (int)(3.0 * server.TickCountResolution); // so filter doesnt start at 0;
         }
 
         /// <summary>
@@ -370,7 +370,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return string.Format(
                 "{0,7} {1,7} {2,7} {3,9} {4,7} {5,7} {6,7} {7,7} {8,7} {9,8} {10,7} {11,7}",
                 Util.EnvironmentTickCountSubtract(TickLastPacketReceived),
-                PacketsReceived,                                 
+                PacketsReceived,
                 PacketsSent,
                 PacketsResent,
                 UnackedBytes,
@@ -540,7 +540,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             return data;
         }
-       
+
         public int GetCatBytesCanSend(ThrottleOutPacketType cat, int timeMS)
         {
             int icat = (int)cat;
@@ -559,7 +559,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="packet"></param>
         /// <param name="forceQueue">Always queue the packet if at all possible.</param>
         /// <returns>
-        /// true if the packet has been queued, 
+        /// true if the packet has been queued,
         /// false if the packet has not been queued and should be sent immediately.
         /// </returns>
         public bool EnqueueOutgoing(OutgoingPacket packet, bool forceQueue)
@@ -589,7 +589,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     queue.Enqueue(packet, highPriority);
                     return true;
                 }
-                                  
+
                 if (!forceQueue && bucket.CheckTokens(packet.Buffer.DataLength))
                 {
                     // enough tokens so it can be sent imediatly by caller
@@ -608,24 +608,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // We don't have a token bucket for this category, so it will not be queued
                 return false;
             }
-  
+
         }
 
         /// <summary>
         /// Loops through all of the packet queues for this client and tries to send
         /// an outgoing packet from each, obeying the throttling bucket limits
         /// </summary>
-        /// 
+        ///
         /// <remarks>
-        /// Packet queues are inspected in ascending numerical order starting from 0.  Therefore, queues with a lower 
+        /// Packet queues are inspected in ascending numerical order starting from 0.  Therefore, queues with a lower
         /// ThrottleOutPacketType number will see their packet get sent first (e.g. if both Land and Wind queues have
         /// packets, then the packet at the front of the Land queue will be sent before the packet at the front of the
         /// wind queue).
-        /// 
+        ///
         /// This function is only called from a synchronous loop in the
         /// UDPServer so we don't need to bother making this thread safe
         /// </remarks>
-        /// 
+        ///
         /// <returns>True if any packets were sent, otherwise false</returns>
         public bool DequeueOutgoing()
         {
@@ -791,7 +791,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 double start = Util.GetTimeStampMS();
                 if (start < m_nextOnQueueEmpty)
                     return;
-            
+
                 m_isQueueEmptyRunning = true;
                 m_nextOnQueueEmpty = start + MIN_CALLBACK_MS;
 
@@ -803,7 +803,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-       
+
 
         /// <summary>
         /// Fires the OnQueueEmpty callback and sets the minimum time that it
@@ -820,7 +820,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (callback != null)
             {
                 // if (m_udpServer.IsRunningOutbound)
-                // {                
+                // {
                 try { callback(categories); }
                 catch (Exception e) { m_log.Error("[LLUDPCLIENT]: OnQueueEmpty(" + categories + ") threw an exception: " + e.Message, e); }
                 // }

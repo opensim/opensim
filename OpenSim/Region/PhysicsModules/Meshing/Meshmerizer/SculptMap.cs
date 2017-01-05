@@ -163,11 +163,11 @@ namespace PrimMesher
         {
 
             Bitmap scaledImage = new Bitmap(destWidth, destHeight, PixelFormat.Format24bppRgb);
-            
+
             Color c;
             float xscale = srcImage.Width / destWidth;
             float yscale = srcImage.Height / destHeight;
-            
+
             float sy = 0.5f;
             for (int y = 0; y < destHeight; y++)
             {
@@ -191,7 +191,7 @@ namespace PrimMesher
             return scaledImage;
         }
 
-    }        
-    
+    }
+
     }
 #endif

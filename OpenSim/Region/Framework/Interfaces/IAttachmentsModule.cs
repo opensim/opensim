@@ -112,7 +112,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="sp"></param>
         /// <param name="rezlist"></param>
         void RezMultipleAttachmentsFromInventory(IScenePresence sp,List<KeyValuePair<UUID, uint>> rezlist);
-            
+
         /// <summary>
         /// Detach the given item to the ground.
         /// </summary>
@@ -135,7 +135,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="sp">/param>
         /// <param name="grp">The attachment to detach.</param>
         void DetachSingleAttachmentToInv(IScenePresence sp, SceneObjectGroup grp);
-        
+
         /// Update the position of an attachment.
         /// </summary>
         /// <param name="sog"></param>

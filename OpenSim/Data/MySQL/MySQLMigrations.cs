@@ -39,16 +39,16 @@ namespace OpenSim.Data.MySQL
 {
     /// <summary>This is a MySQL-customized migration processor.  The only difference is in how
     /// it executes SQL scripts (using MySqlScript instead of MyCommand)
-    /// 
+    ///
     /// </summary>
     public class MySqlMigration : Migration
     {
         public MySqlMigration()
             : base()
-        { 
+        {
         }
 
-        public MySqlMigration(DbConnection conn, Assembly assem, string subtype, string type) : 
+        public MySqlMigration(DbConnection conn, Assembly assem, string subtype, string type) :
             base(conn, assem, subtype, type)
         {
         }

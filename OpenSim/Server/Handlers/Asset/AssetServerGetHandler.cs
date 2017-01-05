@@ -53,7 +53,7 @@ namespace OpenSim.Server.Handlers.Asset
         public AssetServerGetHandler(IAssetService service) :
                 base("GET", "/assets")
         {
-            m_AssetService = service; 
+            m_AssetService = service;
         }
 
         public AssetServerGetHandler(IAssetService service, IServiceAuth auth, string redirectURL) :
@@ -155,7 +155,7 @@ namespace OpenSim.Server.Handlers.Asset
                 httpResponse.ContentType = "text/plain";
                 result = new byte[0];
             }
-            
+
             if (httpResponse.StatusCode == (int)HttpStatusCode.NotFound && !string.IsNullOrEmpty(m_RedirectURL) && !string.IsNullOrEmpty(id))
             {
                 httpResponse.StatusCode = (int)HttpStatusCode.Redirect;

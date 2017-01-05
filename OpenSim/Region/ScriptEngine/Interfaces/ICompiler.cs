@@ -46,7 +46,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         /// <param name="assembly"></param>
         /// <param name="linemap"></param>
         void PerformScriptCompile(
-            string source, string asset, UUID ownerID, 
+            string source, string asset, UUID ownerID,
             out string assembly, out Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap);
 
         /// <summary>

@@ -88,7 +88,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         // The following is for setting a minimum delay between events
         private double m_minEventDelay;
-        
+
         private long m_eventDelayTicks;
         private long m_nextEventTimeTicks;
         private bool m_startOnInit = true;
@@ -122,7 +122,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             {
                 if (value > 0.001)
                     m_minEventDelay = value;
-                else 
+                else
                     m_minEventDelay = 0.0;
 
                 m_eventDelayTicks = (long)(m_minEventDelay * 10000000L);
@@ -154,7 +154,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 {
                     bool wasSuspended = m_Suspended;
                     m_Suspended = value;
-    
+
                     if (wasSuspended && !m_Suspended)
                     {
                         lock (EventQueue)
@@ -201,11 +201,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public long EventsQueued
         {
-            get 
+            get
             {
                 lock (EventQueue)
                     return EventQueue.Count;
-            }   
+            }
         }
 
         public long EventsProcessed { get; private set; }
@@ -221,7 +221,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private static readonly int MeasurementWindow = 30 * 1000;   // show the *recent* time used by the script, to find currently active scripts
 
         private bool m_coopTermination;
- 
+
         private EventWaitHandle m_coopSleepHandle;
 
         public void ClearQueue()
@@ -281,7 +281,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         /// <param name='stateSource'></param>
         /// <returns>false if load failed, true if suceeded</returns>
         public bool Load(
-            IScript script, EventWaitHandle coopSleepHandle, string assemblyPath, 
+            IScript script, EventWaitHandle coopSleepHandle, string assemblyPath,
             string dataPath, StateSource stateSource, bool coopTermination)
         {
             m_Script = script;
@@ -324,13 +324,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 return false;
             }
 
-            // For attachments, XEngine saves the state into a .state file when XEngine.SetXMLState() is called.           
+            // For attachments, XEngine saves the state into a .state file when XEngine.SetXMLState() is called.
             string savedState = Path.Combine(m_dataPath, ItemID.ToString() + ".state");
 
             if (File.Exists(savedState))
             {
                 //                m_log.DebugFormat(
-                //                    "[SCRIPT INSTANCE]: Found state for script {0} for {1} ({2}) at {3} in {4}", 
+                //                    "[SCRIPT INSTANCE]: Found state for script {0} for {1} ({2}) at {3} in {4}",
                 //                    ItemID, savedState, Part.Name, Part.ParentGroup.Name, Part.ParentGroup.Scene.Name);
 
                 string xml = String.Empty;
@@ -395,7 +395,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             //            else
             //            {
             //                m_log.DebugFormat(
-            //                    "[SCRIPT INSTANCE]: Did not find state for script {0} for {1} ({2}) at {3} in {4}", 
+            //                    "[SCRIPT INSTANCE]: Did not find state for script {0} for {1} ({2}) at {3} in {4}",
             //                    ItemID, savedState, Part.Name, Part.ParentGroup.Name, Part.ParentGroup.Scene.Name);
             //            }
 
@@ -407,11 +407,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             if (ShuttingDown)
                 return;
 
-            if (m_startedFromSavedState) 
+            if (m_startedFromSavedState)
             {
                 if (m_startOnInit)
                     Start();
-                if (m_postOnRez) 
+                if (m_postOnRez)
                 {
                     PostEvent(new EventParams("on_rez",
                         new Object[] {new LSL_Types.LSLInteger(StartParam)}, new DetectParams[0]));
@@ -439,13 +439,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             new Object[] { new LSL_Types.LSLInteger((int)Changed.TELEPORT) }, new DetectParams[0]));
                 }
             }
-            else 
+            else
             {
                 if (m_startOnInit)
                     Start();
                 PostEvent(new EventParams("state_entry",
                                           new Object[0], new DetectParams[0]));
-                if (m_postOnRez) 
+                if (m_postOnRez)
                 {
                     PostEvent(new EventParams("on_rez",
                         new Object[] {new LSL_Types.LSLInteger(StartParam)}, new DetectParams[0]));
@@ -462,7 +462,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private void ReleaseControls()
         {
             SceneObjectPart part = Engine.World.GetSceneObjectPart(LocalID);
-            
+
             if (part != null)
             {
                 int permsMask;
@@ -508,8 +508,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             {
                 m_log.Warn(
                     string.Format(
-                        "[SCRIPT INSTANCE]: Could not delete script state {0} for script {1} (id {2}) in part {3} (id {4}) in object {5} in {6}.  Exception  ", 
-                        savedState, ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name), 
+                        "[SCRIPT INSTANCE]: Could not delete script state {0} for script {1} (id {2}) in part {3} (id {4}) in object {5} in {6}.  Exception  ",
+                        savedState, ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name),
                     e);
             }
         }
@@ -631,7 +631,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             if (!m_InSelfDelete)
             {
                 m_log.DebugFormat(
-                    "[SCRIPT INSTANCE]: Aborting unstopped script {0} {1} in prim {2}, localID {3}, timeout was {4} ms", 
+                    "[SCRIPT INSTANCE]: Aborting unstopped script {0} {1} in prim {2}, localID {3}, timeout was {4} ms",
                     ScriptName, ItemID, PrimName, LocalID, timeout);
 
                 workItem.Abort();
@@ -709,7 +709,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             lock (EventQueue)
             {
                 // The only events that persist across state changes are timers
-                if (m_StateChangeInProgress && data.EventName != "timer") 
+                if (m_StateChangeInProgress && data.EventName != "timer")
                     return;
 
                 if (EventQueue.Count >= m_MaxScriptQueue)
@@ -784,7 +784,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     return 0;
 
                 ExecutionTimer.Restart();
-                
+
                 try
                 {
                     return EventProcessorInt();
@@ -927,7 +927,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
                                 if(e.InnerException != null && e.InnerException is ScriptException)
                                 {
-                                    string text = e.InnerException.Message + 
+                                    string text = e.InnerException.Message +
                                                 "(script: " + ScriptName +
                                                 " event: " + data.EventName +
                                                 " at " + Part.AbsolutePosition + ")";
@@ -945,10 +945,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                         Part.UUID,
                                         Part.AbsolutePosition,
                                         Part.ParentGroup.Scene.Name));
-        
-                                }    
+
+                                }
                                 else
-                                {  
+                                {
 
                                     // DISPLAY ERROR INWORLD
                                     string text = FormatException(e);
@@ -1217,7 +1217,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             return null;
         }
-        
+
         public override string ToString()
         {
             return String.Format("{0} {1} on {2}", ScriptName, ItemID, PrimName);

@@ -84,7 +84,7 @@ namespace OpenSim.Framework.Tests
             anim4.AnimID = anim2.AnimID;
             anim4.ObjectID = anim2.ObjectID;
             anim4.SequenceNum = anim2.SequenceNum;
-            
+
             Assert.That(anim4.ObjectID == objUUID2 && anim4.AnimID == animUUID2 && anim4.SequenceNum == 1, "void constructor and manual field population failed to set the properties correctly.");
         }
     }

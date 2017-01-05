@@ -36,7 +36,7 @@ namespace OpenSim.Tests.Common
 /*
     public class TestHttpResponse: IHttpResponse
     {
-        public Stream Body 
+        public Stream Body
         {
             get { return _body; }
 
@@ -44,14 +44,14 @@ namespace OpenSim.Tests.Common
         }
         private Stream _body;
 
-        public string ProtocolVersion 
-        { 
+        public string ProtocolVersion
+        {
             get { return _protocolVersion; }
             set { _protocolVersion = value; }
         }
         private string _protocolVersion;
 
-        public bool Chunked 
+        public bool Chunked
         {
             get { return _chunked; }
 
@@ -59,7 +59,7 @@ namespace OpenSim.Tests.Common
         }
         private bool _chunked;
 
-        public ConnectionType Connection 
+        public ConnectionType Connection
         {
             get { return _connection; }
 
@@ -67,7 +67,7 @@ namespace OpenSim.Tests.Common
         }
         private ConnectionType _connection;
 
-        public Encoding Encoding 
+        public Encoding Encoding
         {
             get { return _encoding; }
 
@@ -75,7 +75,7 @@ namespace OpenSim.Tests.Common
         }
         private Encoding _encoding;
 
-        public int KeepAlive 
+        public int KeepAlive
         {
             get { return _keepAlive; }
 
@@ -83,7 +83,7 @@ namespace OpenSim.Tests.Common
         }
         private int _keepAlive;
 
-        public HttpStatusCode Status 
+        public HttpStatusCode Status
         {
             get { return _status; }
 
@@ -91,7 +91,7 @@ namespace OpenSim.Tests.Common
         }
         private HttpStatusCode _status;
 
-        public string Reason 
+        public string Reason
         {
             get { return _reason; }
 
@@ -99,7 +99,7 @@ namespace OpenSim.Tests.Common
         }
         private string _reason;
 
-        public long ContentLength 
+        public long ContentLength
         {
             get { return _contentLength; }
 
@@ -107,7 +107,7 @@ namespace OpenSim.Tests.Common
         }
         private long _contentLength;
 
-        public string ContentType 
+        public string ContentType
         {
             get { return _contentType; }
 
@@ -115,19 +115,19 @@ namespace OpenSim.Tests.Common
         }
         private string _contentType;
 
-        public bool HeadersSent 
+        public bool HeadersSent
         {
             get { return _headersSent; }
         }
         private bool _headersSent;
 
-        public bool Sent 
+        public bool Sent
         {
             get { return _sent; }
         }
         private bool _sent;
 
-        public ResponseCookies Cookies 
+        public ResponseCookies Cookies
         {
             get { return _cookies; }
         }
@@ -141,26 +141,26 @@ namespace OpenSim.Tests.Common
 
         public void AddHeader(string name, string value) {}
 
-        public void Send() 
+        public void Send()
         {
             if (!_headersSent) SendHeaders();
             if (_sent) throw new InvalidOperationException("stuff already sent");
             _sent = true;
         }
 
-        public void SendBody(byte[] buffer, int offset, int count) 
+        public void SendBody(byte[] buffer, int offset, int count)
         {
             if (!_headersSent) SendHeaders();
             _sent = true;
         }
 
-        public void SendBody(byte[] buffer) 
+        public void SendBody(byte[] buffer)
         {
             if (!_headersSent) SendHeaders();
             _sent = true;
         }
 
-        public void SendHeaders() 
+        public void SendHeaders()
         {
             if (_headersSent) throw new InvalidOperationException("headers already sent");
             _headersSent = true;

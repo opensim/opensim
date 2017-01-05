@@ -61,7 +61,7 @@ namespace OpenSim.Region.UserStatistics
             Hashtable nh = new Hashtable();
             nh.Add("hdata", mData);
             nh.Add("Reports", pParams["Reports"]);
-            
+
             return nh;
         }
 
@@ -76,7 +76,7 @@ namespace OpenSim.Region.UserStatistics
         public string rep_Default_report_view(stats_default_page_values values)
         {
 
-            
+
             StringBuilder output = new StringBuilder();
 
 
@@ -105,7 +105,7 @@ TD.align_top { vertical-align: top; }
 </STYLE>
 ";
             HTMLUtil.HtmlHeaders_O(ref output);
-            
+
             HTMLUtil.InsertProtoTypeAJAX(ref output);
             string[] ajaxUpdaterDivs = new string[3];
             int[] ajaxUpdaterSeconds = new int[3];
@@ -124,7 +124,7 @@ TD.align_top { vertical-align: top; }
             ajaxUpdaterReportFragments[2] = "activelogajax.html";
 
             HTMLUtil.InsertPeriodicUpdaters(ref output, ajaxUpdaterDivs, ajaxUpdaterSeconds, ajaxUpdaterReportFragments);
-            
+
             output.Append(STYLESHEET);
             HTMLUtil.HtmlHeaders_C(ref output);
             HTMLUtil.AddReportLinks(ref output, values.stats_reports, "");
@@ -200,7 +200,7 @@ TD.align_top { vertical-align: top; }
             return output.ToString();
         }
 
-       
+
 
         public stats_default_page_values rep_DefaultReport_data(SqliteConnection db, List<Scene> m_scene)
         {
@@ -208,8 +208,8 @@ TD.align_top { vertical-align: top; }
             returnstruct.all_scenes = m_scene.ToArray();
             lock (db)
             {
-                string SQL = @"SELECT COUNT(DISTINCT agent_id) as agents, COUNT(*) as sessions, AVG(avg_fps) as client_fps, 
-                                AVG(avg_sim_fps) as savg_sim_fps, AVG(avg_ping) as sav_ping, SUM(n_out_kb) as num_in_kb, 
+                string SQL = @"SELECT COUNT(DISTINCT agent_id) as agents, COUNT(*) as sessions, AVG(avg_fps) as client_fps,
+                                AVG(avg_sim_fps) as savg_sim_fps, AVG(avg_ping) as sav_ping, SUM(n_out_kb) as num_in_kb,
                                 SUM(n_out_pk) as num_in_packets, SUM(n_in_kb) as num_out_kb, SUM(n_in_pk) as num_out_packets, AVG(mem_use) as sav_mem_use
                                 FROM stats_session_data;";
                 SqliteCommand cmd = new SqliteCommand(SQL, db);
@@ -230,7 +230,7 @@ TD.align_top { vertical-align: top; }
                 sdr.Close();
                 cmd.Dispose();
             }
-            
+
             return returnstruct;
         }
 
@@ -276,5 +276,5 @@ TD.align_top { vertical-align: top; }
         public Dictionary<UUID, USimStatsData> sim_stat_data;
         public Dictionary<string, IStatsController> stats_reports;
     }
- 
+
 }

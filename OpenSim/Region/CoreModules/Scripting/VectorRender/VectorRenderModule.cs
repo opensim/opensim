@@ -117,7 +117,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             return true;
         }
 
-        public void GetDrawStringSize(string text, string fontName, int fontSize, 
+        public void GetDrawStringSize(string text, string fontName, int fontSize,
                                       out double xSize, out double ySize)
         {
             lock (this)
@@ -209,32 +209,32 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             int alpha = 255; // 0 is transparent
             Color bgColor = Color.White;  // Default background color
             char altDataDelim = ';';
-            
+
             char[] paramDelimiter = { ',' };
             char[] nvpDelimiter = { ':' };
-           
+
             extraParams = extraParams.Trim();
             extraParams = extraParams.ToLower();
-            
+
             string[] nvps = extraParams.Split(paramDelimiter);
-            
+
             int temp = -1;
             foreach (string pair in nvps)
             {
                 string[] nvp = pair.Split(nvpDelimiter);
                 string name = "";
                 string value = "";
-                
+
                 if (nvp[0] != null)
                 {
                     name = nvp[0].Trim();
                 }
-                
+
                 if (nvp.Length == 2)
                 {
                     value = nvp[1].Trim();
                 }
-                
+
                 switch (name)
                 {
                     case "width":
@@ -301,7 +301,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                          if (Int32.TryParse(value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hex))
                          {
                              bgColor = Color.FromArgb(hex);
-                         } 
+                         }
                          else
                          {
                              bgColor = Color.FromName(value);
@@ -321,7 +321,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                          }
                          else
                          {
-                             // this function used to accept an int on its own that represented both 
+                             // this function used to accept an int on its own that represented both
                              // width and height, this is to maintain backwards compat, could be removed
                              // but would break existing scripts
                              temp = parseIntParam(name);
@@ -329,10 +329,10 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                              {
                                  if (temp > 1024)
                                     temp = 1024;
-                                    
+
                                  if (temp < 128)
                                      temp = 128;
-                                  
+
                                  width = temp;
                                  height = temp;
                              }
@@ -358,10 +358,10 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                         bitmap = new Bitmap(width, height, PixelFormat.Format32bppRgb);
                     else
                         bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-    
+
                     graph = Graphics.FromImage(bitmap);
-        
-                    // this is really just to save people filling the 
+
+                    // this is really just to save people filling the
                     // background color in their scripts, only do when fully opaque
                     if (alpha >= 255)
                     {
@@ -370,10 +370,10 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                             graph.FillRectangle(bgFillBrush, 0, 0, width, height);
                         }
                     }
-        
+
                     for (int w = 0; w < bitmap.Width; w++)
                     {
-                        if (alpha <= 255) 
+                        if (alpha <= 255)
                         {
                             for (int h = 0; h < bitmap.Height; h++)
                             {
@@ -381,10 +381,10 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                             }
                         }
                     }
-        
+
                     GDIDraw(data, graph, altDataDelim, out reuseable);
                 }
-    
+
                 byte[] imageJ2000 = new byte[0];
 
                 // This code exists for testing purposes, please do not remove.
@@ -394,7 +394,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 //                    imageJ2000 = s_asset2Data;
 //
 //                s_flipper = !s_flipper;
-    
+
                 try
                 {
                     imageJ2000 = OpenJPEG.EncodeFromImage(bitmap, true);
@@ -420,13 +420,13 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                 {
                     if (graph != null)
                         graph.Dispose();
-    
+
                     if (bitmap != null)
                         bitmap.Dispose();
                 }
             }
         }
-        
+
         private int parseIntParam(string strInt)
         {
             int parsed;
@@ -440,7 +440,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                 // m_log.Debug("Problem with Draw. Please verify parameters." + e.ToString());
                 parsed = -1;
             }
-            
+
             return parsed;
         }
 
@@ -572,7 +572,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                                     graph.DrawString("not an image. Please check URL.", errorFont,
                                                      myBrush, new Point(startPoint.X, 12 + startPoint.Y));
                                 }
-    
+
                                 graph.DrawRectangle(drawPen, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
                             }
                         }
@@ -638,11 +638,11 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     {
                         nextLine = nextLine.Remove(0, 8);
                         nextLine = nextLine.Trim();
-    
+
                         string[] fprops = nextLine.Split(partsDelimiter);
                         foreach (string prop in fprops)
                         {
-    
+
                             switch (prop)
                             {
                                 case "B":
@@ -717,7 +717,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                         else if (cap[0].ToLower() != "both")
                             return;
                         string type = cap[1].ToLower();
-                        
+
                         if (end)
                         {
                             switch (type)
@@ -760,7 +760,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                         nextLine = nextLine.Remove(0, 9);
                         nextLine = nextLine.Trim();
                         int hex = 0;
-    
+
                         Color newColor;
                         if (Int32.TryParse(nextLine, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hex))
                         {

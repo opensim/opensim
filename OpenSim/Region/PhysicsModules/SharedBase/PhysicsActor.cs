@@ -134,8 +134,8 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
                 m_objCollisionList.Add(localID, contact);
             }
             else
-            {   
-                float lastVel = m_objCollisionList[localID].RelativeSpeed;        
+            {
+                float lastVel = m_objCollisionList[localID].RelativeSpeed;
                 if (m_objCollisionList[localID].PenetrationDepth < contact.PenetrationDepth)
                 {
                     if(Math.Abs(lastVel) > Math.Abs(contact.RelativeSpeed))
@@ -201,7 +201,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         {
             get { return new NullPhysicsActor(); }
         }
-   
+
         public virtual bool Building { get; set; }
 
         public virtual void getContactData(ref ContactData cdata)
@@ -263,7 +263,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public abstract void delink();
 
         public abstract void LockAngularMotion(byte axislocks);
- 
+
         public virtual void RequestPhysicsterseUpdate()
         {
             // Make a temporary copy of the event to avoid possibility of
@@ -326,7 +326,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public abstract void VehicleFlags(int param, bool remove);
 
         // This is an overridable version of SetVehicle() that works for all physics engines.
-        // This is VERY inefficient. It behoves any physics engine to override this and 
+        // This is VERY inefficient. It behoves any physics engine to override this and
         //     implement a more efficient setting of all the vehicle parameters.
         public virtual void SetVehicle(object pvdata)
         {
@@ -453,7 +453,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public abstract bool APIDActive { set;}
         public abstract float APIDStrength { set;}
         public abstract float APIDDamping { set;}
-        
+
         public abstract void AddForce(Vector3 force, bool pushforce);
         public abstract void AddAngularForce(Vector3 force, bool pushforce);
         public abstract void SetMomentum(Vector3 momentum);
@@ -465,7 +465,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
         // Warning in a parent part it returns itself, not null
         public virtual PhysicsActor ParentActor { get { return this; } }
-        
+
 
         // Extendable interface for new, physics engine specific operations
         public virtual object Extension(string pFunct, params object[] pParams)
@@ -629,7 +629,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public override int PhysicsActorType
         {
             get { return (int)m_actorType; }
-            set {               
+            set {
                 ActorTypes type = (ActorTypes)value;
                 switch (type)
                 {
@@ -664,10 +664,10 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
         public override Vector3 PIDTarget { set { return; } }
 
-        public override bool PIDActive 
+        public override bool PIDActive
         {
             get { return false; }
-            set { return; } 
+            set { return; }
         }
 
         public override float PIDTau { set { return; } }
@@ -676,12 +676,12 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public override bool PIDHoverActive {get {return false;} set { return; } }
         public override PIDHoverType PIDHoverType { set { return; } }
         public override float PIDHoverTau { set { return; } }
-        
+
         public override Quaternion APIDTarget { set { return; } }
         public override bool APIDActive { set { return; } }
         public override float APIDStrength { set { return; } }
         public override float APIDDamping { set { return; } }
-        
+
         public override void SetMomentum(Vector3 momentum) { }
 
         public override void SubscribeEvents(int ms) { }

@@ -96,7 +96,7 @@ namespace OpenSim.Framework.Tests
             VisualParams[(int)AvatarAppearance.VPElement.SHAPE_FOOT_SIZE] = 45;
 
 
-            // head 
+            // head
             VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HEAD_SIZE] = 255;
             VisualParams[(int)AvatarAppearance.VPElement.SHAPE_SQUASH_STRETCH_HEAD] = 0; // head stretch
             VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HEAD_SHAPE] = 155;
@@ -106,7 +106,7 @@ namespace OpenSim.Framework.Tests
             VisualParams[(int)AvatarAppearance.VPElement.SHAPE_FACE_SHEAR] = 127;
             VisualParams[(int)AvatarAppearance.VPElement.SHAPE_FOREHEAD_ANGLE] = 104;
             VisualParams[(int)AvatarAppearance.VPElement.SHAPE_BIG_BROW] = 94;
-            VisualParams[(int)AvatarAppearance.VPElement.SHAPE_PUFFY_UPPER_CHEEKS] = 0; //  upper cheeks 
+            VisualParams[(int)AvatarAppearance.VPElement.SHAPE_PUFFY_UPPER_CHEEKS] = 0; //  upper cheeks
             VisualParams[(int)AvatarAppearance.VPElement.SHAPE_DOUBLE_CHIN] = 122; //  lower cheeks
             VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HIGH_CHEEK_BONES] = 130;
 
@@ -232,7 +232,7 @@ namespace OpenSim.Framework.Tests
         /// <summary>
         /// Test to ensure that the serialization format is the same and the underlying types don't change without notice
         /// oldSerialization is just a json serialization of the OSDMap packed for the AgentCircuitData.
-        /// The idea is that if the current json serializer cannot parse the old serialization, then the underlying types 
+        /// The idea is that if the current json serializer cannot parse the old serialization, then the underlying types
         /// have changed and are incompatible.
         /// </summary>
         [Test]
@@ -319,7 +319,7 @@ namespace OpenSim.Framework.Tests
                 string str = OSDParser.SerializeJsonString(map);
                 //System.Console.WriteLine(str);
                 map2 = (OSDMap) OSDParser.DeserializeJson(str);
-            } 
+            }
             catch (System.NullReferenceException)
             {
                 //spurious litjson errors :P

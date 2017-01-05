@@ -81,7 +81,7 @@ namespace OpenSim.Data
     }
 
 
-    public interface IGroupsData 
+    public interface IGroupsData
     {
         // groups table
         bool StoreGroup(GroupData data);

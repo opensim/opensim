@@ -102,8 +102,8 @@ namespace OpenSim.Region.PhysicsModule.Meshing
             if ((triangle.v1.X == triangle.v2.X && triangle.v1.Y == triangle.v2.Y && triangle.v1.Z == triangle.v2.Z)
                 || (triangle.v1.X == triangle.v3.X && triangle.v1.Y == triangle.v3.Y && triangle.v1.Z == triangle.v3.Z)
                 || (triangle.v2.X == triangle.v3.X && triangle.v2.Y == triangle.v3.Y && triangle.v2.Z == triangle.v3.Z)
-                )               
-            {               
+                )
+            {
                 return;
             }
 
@@ -259,7 +259,7 @@ namespace OpenSim.Region.PhysicsModule.Meshing
         public void getVertexListAsPtrToFloatArray(out IntPtr vertices, out int vertexStride, out int vertexCount)
         {
             // A vertex is 3 floats
-            
+
             vertexStride = 3 * sizeof(float);
 
             // If there isn't an unmanaged array allocated yet, do it now
@@ -299,7 +299,7 @@ namespace OpenSim.Region.PhysicsModule.Meshing
         {
             if (m_pinnedIndex.IsAllocated)
                 return (int[])(m_pinnedIndex.Target);
-        
+
             int[] result = getIndexListAsInt();
             m_pinnedIndex = GCHandle.Alloc(result, GCHandleType.Pinned);
             // Inform the garbage collector of this unmanaged allocation so it can schedule
@@ -357,7 +357,7 @@ namespace OpenSim.Region.PhysicsModule.Meshing
         {
             if (m_pinnedIndex.IsAllocated || m_pinnedVertexes.IsAllocated || m_indicesPtr != IntPtr.Zero || m_verticesPtr != IntPtr.Zero)
                 throw new NotSupportedException("Attempt to Append to a pinned Mesh");
-        
+
             if (!(newMesh is Mesh))
                 return;
 
@@ -370,7 +370,7 @@ namespace OpenSim.Region.PhysicsModule.Meshing
         {
             if (m_pinnedIndex.IsAllocated || m_pinnedVertexes.IsAllocated || m_indicesPtr != IntPtr.Zero || m_verticesPtr != IntPtr.Zero)
                 throw new NotSupportedException("Attempt to TransformLinear a pinned Mesh");
-        
+
             foreach (Vertex v in m_vertices.Keys)
             {
                 if (v == null)

@@ -127,7 +127,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             UserAccount account = m_FriendsModule.UserAccountService.GetUserAccount(UUID.Zero, fromID);
             string name = (account == null) ? "Unknown" : account.FirstName + " " + account.LastName;
 
-            GridInstantMessage im = new GridInstantMessage(m_FriendsModule.Scene, fromID, name, toID, 
+            GridInstantMessage im = new GridInstantMessage(m_FriendsModule.Scene, fromID, name, toID,
                 (byte)InstantMessageDialog.FriendshipOffered, message, false, Vector3.Zero);
 
             // !! HACK

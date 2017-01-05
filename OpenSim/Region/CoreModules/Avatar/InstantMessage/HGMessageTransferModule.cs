@@ -144,11 +144,11 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             foreach (Scene scene in m_Scenes)
             {
 //                m_log.DebugFormat(
-//                    "[HG INSTANT MESSAGE]: Looking for root agent {0} in {1}", 
+//                    "[HG INSTANT MESSAGE]: Looking for root agent {0} in {1}",
 //                    toAgentID.ToString(), scene.RegionInfo.RegionName);
-                ScenePresence sp = scene.GetScenePresence(toAgentID); 
+                ScenePresence sp = scene.GetScenePresence(toAgentID);
                 if (sp != null && !sp.IsChildAgent && !sp.IsDeleted)
-                {                                        
+                {
                     // Local message
 //                  m_log.DebugFormat("[HG INSTANT MESSAGE]: Delivering IM to root agent {0} {1}", user.Name, toAgentID);
                     sp.ControllingClient.SendInstantMessage(im);

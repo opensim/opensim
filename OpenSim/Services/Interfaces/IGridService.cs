@@ -85,7 +85,7 @@ namespace OpenSim.Services.Interfaces
         GridRegion GetRegionByName(UUID scopeID, string regionName);
 
         /// <summary>
-        /// Get information about regions starting with the provided name. 
+        /// Get information about regions starting with the provided name.
         /// </summary>
         /// <param name="name">
         /// The name to match against.
@@ -95,7 +95,7 @@ namespace OpenSim.Services.Interfaces
         /// </param>
         /// <returns>
         /// A list of <see cref="RegionInfo"/>s of regions with matching name. If the
-        /// grid-server couldn't be contacted or returned an error, return null. 
+        /// grid-server couldn't be contacted or returned an error, return null.
         /// </returns>
         List<GridRegion> GetRegionsByName(UUID scopeID, string name, int maxNumber);
 
@@ -139,7 +139,7 @@ namespace OpenSim.Services.Interfaces
 #pragma warning restore 414
 
         /// <summary>
-        /// The port by which http communication occurs with the region 
+        /// The port by which http communication occurs with the region
         /// </summary>
         public uint HttpPort { get; set; }
 
@@ -148,7 +148,7 @@ namespace OpenSim.Services.Interfaces
         /// </summary>
         public string ServerURI
         {
-            get { 
+            get {
                 if (!String.IsNullOrEmpty(m_serverURI)) {
                     return m_serverURI;
                 } else {
@@ -158,7 +158,7 @@ namespace OpenSim.Services.Interfaces
                         return "http://" + m_externalHostName + ":" + HttpPort + "/";
                 }
             }
-            set { 
+            set {
                 if ( value == null)
                 {
                     m_serverURI = String.Empty;
@@ -344,7 +344,7 @@ namespace OpenSim.Services.Interfaces
             RegionSecret = ConvertFrom.RegionSecret;
             EstateOwner = ConvertFrom.EstateOwner;
         }
-                
+
         public GridRegion(Dictionary<string, object> kvp)
         {
             if (kvp.ContainsKey("uuid"))
@@ -424,7 +424,7 @@ namespace OpenSim.Services.Interfaces
             // m_log.DebugFormat("{0} New GridRegion. id={1}, loc=<{2},{3}>, size=<{4},{5}>",
             //                         LogHeader, RegionID, RegionLocX, RegionLocY, RegionSizeX, RegionSizeY);
         }
-                
+
         public Dictionary<string, object> ToKeyValuePairs()
         {
             Dictionary<string, object> kvp = new Dictionary<string, object>();

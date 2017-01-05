@@ -75,7 +75,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         public event PongDelegate OnPong;
 
         /// <summary>
-        /// This is a regular HTTP Request...    This may be removed in the future.   
+        /// This is a regular HTTP Request...    This may be removed in the future.
         /// </summary>
 //        public event RegularHttpRequestDelegate OnRegularHttpRequest;
 
@@ -93,9 +93,9 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// When the websocket is closed, this will be fired.
         /// </summary>
         public event CloseDelegate OnClose;
-        
+
         /// <summary>
-        /// Set this delegate to allow your module to validate the origin of the 
+        /// Set this delegate to allow your module to validate the origin of the
         /// Websocket request.  Primary line of defense against cross site scripting
         /// </summary>
         public ValidateHandshake HandshakeValidateMethodOverride = null;
@@ -181,7 +181,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     throw new InvalidOperationException("The socket has been shutdown");
                 }
-            } 
+            }
             set
             {
                 if (_networkContext != null && _networkContext.Socket != null)
@@ -194,8 +194,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
 
         /// <summary>
-        /// This triggers the websocket to start the upgrade process...  
-        /// This is a Generalized Networking 'common sense' helper method.  Some people expect to call Start() instead 
+        /// This triggers the websocket to start the upgrade process...
+        /// This is a Generalized Networking 'common sense' helper method.  Some people expect to call Start() instead
         /// of the more context appropriate HandshakeAndUpgrade()
         /// </summary>
         public void Start()
@@ -261,7 +261,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     acceptKey = GenerateAcceptKey(websocketKey);
                     string rawaccept = string.Format(HandshakeAcceptText, acceptKey);
                     SendUpgradeSuccess(rawaccept);
-                    
+
 
                 }
                 else
@@ -282,7 +282,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
 
         /// <summary>
-        /// Generates a handshake response key string based on the client's 
+        /// Generates a handshake response key string based on the client's
         /// provided key to prove to the client that we're allowing the Websocket
         /// upgrade of our own free will and we were not coerced into doing it.
         /// </summary>
@@ -298,7 +298,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             SHA1 hashobj = SHA1.Create();
             string ret = Convert.ToBase64String(hashobj.ComputeHash(Encoding.UTF8.GetBytes(acceptkey)));
             hashobj.Clear();
-            
+
             return ret;
         }
 
@@ -310,11 +310,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             // Create a new websocket state so we can keep track of data in between network reads.
             WebSocketState socketState = new WebSocketState() { ReceivedBytes = new List<byte>(), Header = WebsocketFrameHeader.HeaderDefault(), FrameComplete = true};
-            
+
             byte[] bhandshakeResponse = Encoding.UTF8.GetBytes(pHandshakeResponse);
 
-            
-           
+
+
 
             try
             {
@@ -324,7 +324,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
                 // Begin reading the TCP stream before writing the Upgrade success message to the other side of the stream.
                 _networkContext.Stream.BeginRead(_buffer, 0, _bufferLength, OnReceive, socketState);
-                
+
                 // Write the upgrade handshake success message
                 _networkContext.Stream.Write(bhandshakeResponse, 0, bhandshakeResponse.Length);
                 _networkContext.Stream.Flush();
@@ -345,7 +345,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             catch (ObjectDisposedException)
             {
                 Close(string.Empty);
-            }           
+            }
         }
 
         /// <summary>
@@ -369,7 +369,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         /// <summary>
         /// This is our ugly Async OnReceive event handler.
-        /// This chunks the input stream based on the length of the provided buffer and processes out 
+        /// This chunks the input stream based on the length of the provided buffer and processes out
         /// as many frames as it can.   It then moves the unprocessed data to the beginning of the buffer.
         /// </summary>
         /// <param name="ar">Our Async State from beginread</param>
@@ -390,7 +390,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                 if (_bufferPosition > _bufferLength)
                 {
-                    // Message too big for chunksize..   not sure how this happened...  
+                    // Message too big for chunksize..   not sure how this happened...
                     //Close(string.Empty);
                 }
 
@@ -413,7 +413,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             if (pheader.PayloadLen > (ulong) _maxPayloadBytes)
                             {
                                 Close("Invalid Payload size");
-                                
+
                                 return;
                             }
                             if (pheader.PayloadLen > 0)
@@ -487,7 +487,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             _socketState.ReceivedBytes.Clear();
                             _socketState.ExpectedBytes = 0;
                             // do some processing
-                        }                       
+                        }
                     }
                 }
                 if (offset > 0)
@@ -504,7 +504,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
                 else
                 {
-                    // We can't read the stream anymore...  
+                    // We can't read the stream anymore...
                 }
             }
             catch (IOException)
@@ -533,7 +533,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             textMessageFrame.Header.Opcode = WebSocketReader.OpCode.Text;
             textMessageFrame.Header.IsEnd = true;
             SendSocket(textMessageFrame.ToBytes());
-            
+
         }
 
         public void SendData(byte[] data)
@@ -657,7 +657,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     SendSocket(pongFrame.ToBytes());
                     break;
                 case WebSocketReader.OpCode.Pong:
-                 
+
                     PongDelegate pongD = OnPong;
                     if (pongD != null)
                     {
@@ -701,7 +701,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         {
                             textD(this, new WebsocketTextEventArgs() { Data = Encoding.UTF8.GetString(psocketState.ReceivedBytes.ToArray()) });
                         }
-                        
+
                         // Send Done Event!
                     }
                     break;
@@ -719,7 +719,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     {
                         if (psocketState.ContinuationFrame.Header.Opcode == WebSocketReader.OpCode.Text)
                         {
-                            // Send Done event    
+                            // Send Done event
                             TextDelegate textD = OnText;
                             if (textD != null)
                             {
@@ -744,9 +744,9 @@ namespace OpenSim.Framework.Servers.HttpServer
                     break;
                 case WebSocketReader.OpCode.Close:
                     Close(string.Empty);
-                    
+
                     break;
-               
+
             }
             psocketState.Header.SetDefault();
             psocketState.ReceivedBytes.Clear();
@@ -837,12 +837,12 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
 
         /// <summary>
-        /// Attempts to read a header off the provided buffer.  Returns true, exports a WebSocketFrameheader, 
+        /// Attempts to read a header off the provided buffer.  Returns true, exports a WebSocketFrameheader,
         /// and an int to move the buffer forward when it reads a header.  False when it can't read a header
         /// </summary>
         /// <param name="pBuffer">Bytes read from the stream</param>
         /// <param name="pOffset">Starting place in the stream to begin trying to read from</param>
-        /// <param name="length">Lenth in the stream to try and read from.  Provided for cases where the 
+        /// <param name="length">Lenth in the stream to try and read from.  Provided for cases where the
         /// buffer's length is larger then the data in it</param>
         /// <param name="oHeader">Outputs the read WebSocket frame header</param>
         /// <param name="moveBuffer">Informs the calling stream to move the buffer forward</param>
@@ -897,7 +897,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     oHeader.PayloadLen = BitConverter.ToUInt16(pBuffer, pOffset + index);
                     index += 2;
                     break;
-                case 127:   // we got more this is a bigger frame  
+                case 127:   // we got more this is a bigger frame
                     // 8 bytes - uint64 - most significant bit 0  network byte order
                     minumheadersize += 8;
                     if (length < minumheadersize)
@@ -909,7 +909,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     oHeader.PayloadLen = BitConverter.ToUInt64(pBuffer, pOffset + index);
                     index += 8;
                     break;
-                
+
             }
             //oHeader.PayloadLeft = oHeader.PayloadLen; // Start the count in case it's chunked over the network.  This is different then frame fragmentation
             if (oHeader.IsMasked)
@@ -937,9 +937,9 @@ namespace OpenSim.Framework.Servers.HttpServer
         /*
          * RFC6455
 nib   0       1       2       3       4       5       6       7
-byt   0               1               2               3               
-dec   0                   1                   2                   3   
-      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 
+byt   0               1               2               3
+dec   0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
      +-+-+-+-+-------+-+-------------+-------------------------------+
      |F|R|R|R| opcode|M| Payload len |    Extended payload length    |
      |I|S|S|S|  (4)  |A|     (7)     |             (16/64)           +
@@ -963,7 +963,7 @@ dec   0                   1                   2                   3
         public static readonly WebSocketFrame DefaultFrame = new WebSocketFrame(){Header = new WebsocketFrameHeader(),WebSocketPayload = new byte[0]};
         public WebsocketFrameHeader Header;
         public byte[] WebSocketPayload;
-        
+
         public byte[] ToBytes()
         {
             Header.PayloadLen = (ulong)WebSocketPayload.Length;
@@ -991,7 +991,7 @@ dec   0                   1                   2                   3
         public int Mask;
         /*
 byt   0               1               2               3
-      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
      +---------------+---------------+---------------+---------------+
      |    Octal 1    |    Octal 2    |    Octal 3    |    Octal 4    |
      +---------------+---------------+---------------+---------------+
@@ -1002,11 +1002,11 @@ byt   0               1               2               3
 
         public UInt64 PayloadLen;
         //public UInt64 PayloadLeft;
-        // Payload is X + Y   
+        // Payload is X + Y
         //public UInt64 ExtensionDataLength;
         //public UInt64 ApplicationDataLength;
         public static readonly WebsocketFrameHeader ZeroHeader = WebsocketFrameHeader.HeaderDefault();
-       
+
         public void SetDefault()
         {
 
@@ -1025,16 +1025,16 @@ byt   0               1               2               3
         /// <summary>
         /// Returns a byte array representing the Frame header
         /// </summary>
-        /// <param name="payload">This is the frame data payload.  The header describes the size of the payload. 
+        /// <param name="payload">This is the frame data payload.  The header describes the size of the payload.
         /// If payload is null, a Zero sized payload is assumed</param>
         /// <returns>Returns a byte array representing the frame header</returns>
         public byte[] ToBytes(byte[] payload)
         {
             List<byte> result = new List<byte>();
-           
+
             // Squeeze in our opcode and our ending bit.
             result.Add((byte)((byte)Opcode | (IsEnd?0x80:0x00) ));
-           
+
             // Again with the three different byte interpretations of size..
 
             //bytesize
@@ -1056,7 +1056,7 @@ byt   0               1               2               3
                 Array.Reverse(payloadLengthByte);
                 result.AddRange(payloadLengthByte);
             }
-            
+
             // Only add a payload if it's not null
             if (payload != null)
             {
@@ -1155,5 +1155,5 @@ byt   0               1               2               3
 
     }
 
-   
+
 }

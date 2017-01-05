@@ -71,7 +71,7 @@ namespace OpenSim.Services.PresenceService
             data.SessionID = sessionID;
             data.Data = new Dictionary<string, string>();
             data.Data["SecureSessionID"] = secureSessionID.ToString();
-            
+
             m_Database.Store(data);
 
             string prevUserStr = "";
@@ -80,7 +80,7 @@ namespace OpenSim.Services.PresenceService
 
             m_log.DebugFormat("[PRESENCE SERVICE]: LoginAgent: session {0}, user {1}, region {2}, secure session {3}{4}",
                 data.SessionID, data.UserID, data.RegionID, secureSessionID, prevUserStr);
-            
+
             return true;
         }
 
@@ -92,7 +92,7 @@ namespace OpenSim.Services.PresenceService
                 sessionID,
                 (presence == null) ? null : presence.UserID,
                 (presence == null) ? null : presence.RegionID.ToString());
-            
+
             return m_Database.Delete("SessionID", sessionID.ToString());
         }
 
@@ -144,7 +144,7 @@ namespace OpenSim.Services.PresenceService
         public PresenceInfo GetAgent(UUID sessionID)
         {
             PresenceInfo ret = new PresenceInfo();
-            
+
             PresenceData data = m_Database.Get(sessionID);
             if (data == null)
                 return null;

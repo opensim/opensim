@@ -63,9 +63,9 @@ namespace OpenSim.Framework
         {
             get { return m_map; }
             set { m_map = value; }
-        }        
-        
-        public XmlSchema GetSchema() { return null; } 
+        }
+
+        public XmlSchema GetSchema() { return null; }
 
         public static DAMap FromXml(string rawXml)
         {
@@ -73,19 +73,19 @@ namespace OpenSim.Framework
             map.ReadXml(rawXml);
             return map;
         }
-       
+
         public void ReadXml(XmlReader reader)
-        { 
-            ReadXml(reader.ReadInnerXml());            
+        {
+            ReadXml(reader.ReadInnerXml());
         }
 
         public void ReadXml(string rawXml)
-        {            
+        {
             // System.Console.WriteLine("Trying to deserialize [{0}]", rawXml);
-            
+
             lock (this)
             {
-                m_map = (OSDMap)OSDParser.DeserializeLLSDXml(rawXml);         
+                m_map = (OSDMap)OSDParser.DeserializeLLSDXml(rawXml);
                 SanitiseMap(this);
             }
         }
@@ -104,7 +104,7 @@ namespace OpenSim.Framework
         public void CopyFrom(DAMap other)
         {
             // Deep copy
-            
+
             string data = null;
             lock (other)
             {
@@ -113,7 +113,7 @@ namespace OpenSim.Framework
                     data = OSDParser.SerializeLLSDXmlString(other.m_map);
                 }
             }
-            
+
             lock (this)
             {
                 if (data == null)
@@ -185,9 +185,9 @@ namespace OpenSim.Framework
         /// <summary>
         /// Get the number of stores.
         /// </summary>
-        public int CountStores 
+        public int CountStores
         {
-            get 
+            get
             {
                 int count = 0;
 
@@ -263,8 +263,8 @@ namespace OpenSim.Framework
                 throw new Exception("Minimum namespace length is " + MIN_NAMESPACE_LENGTH);
         }
 
-        public bool ContainsStore(string ns, string storeName) 
-        {    
+        public bool ContainsStore(string ns, string storeName)
+        {
             OSD namespaceOsd;
 
             lock (this)
@@ -276,7 +276,7 @@ namespace OpenSim.Framework
             }
 
             return false;
-        }     
+        }
 
         public bool TryGetStore(string ns, string storeName, out OSDMap store)
         {
@@ -297,17 +297,17 @@ namespace OpenSim.Framework
 
             store = null;
             return false;
-        }    
+        }
 
         public void Clear()
         {
             lock (this)
                 m_map.Clear();
-        }  
+        }
 
         public bool RemoveStore(string ns, string storeName)
         {
-            OSD namespaceOsd; 
+            OSD namespaceOsd;
 
             lock (this)
             {
@@ -323,6 +323,6 @@ namespace OpenSim.Framework
             }
 
             return false;
-        }     
+        }
     }
 }

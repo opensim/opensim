@@ -97,7 +97,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         light = 7 // compatibility with old viewers
     }
-    
+
     public enum changes : int
     {
         Add = 0,                // arg null. finishs the prim creation. should be used internally only ( to remove later ?)
@@ -182,7 +182,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         const float comumContactERP = 0.75f;
         const float comumContactCFM = 0.0001f;
         const float comumContactSLIP = 0f;
-        
+
         float frictionMovementMult = 0.8f;
 
         float TerrainBounce = 0.1f;
@@ -241,7 +241,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// </summary>
         private List<PhysicsActor> _collisionEventPrim = new List<PhysicsActor>();
         private List<PhysicsActor> _collisionEventPrimRemove = new List<PhysicsActor>();
-        
+
         private HashSet<OdeCharacter> _badCharacter = new HashSet<OdeCharacter>();
         public Dictionary<IntPtr, PhysicsActor> actor_name_map = new Dictionary<IntPtr, PhysicsActor>();
 
@@ -262,7 +262,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private IntPtr TerrainGeom;
         private float[] TerrainHeightFieldHeight;
         private GCHandle TerrainHeightFieldHeightsHandler = new GCHandle();
-       
+
         private int m_physicsiterations = 15;
         private const float m_SkipFramesAtms = 0.40f; // Drop frames gracefully at a 400 ms lag
 //        private PhysicsActor PANull = new NullPhysicsActor();
@@ -330,7 +330,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             EngineType = pname;
             PhysicsSceneName = EngineType + "/" + pscene.RegionInfo.RegionName;
             EngineName = pname + " " + pversion;
-			m_config = psourceconfig;
+            m_config = psourceconfig;
             m_OSOdeLib = pOSOdeLib;
 
 //            m_OSOdeLib = false; //debug
@@ -343,7 +343,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             base.Initialise(m_frameWorkScene.PhysicsRequestAsset,
                 (m_frameWorkScene.Heightmap != null ? m_frameWorkScene.Heightmap.GetFloatsSerialised() : new float[m_frameWorkScene.RegionInfo.RegionSizeX * m_frameWorkScene.RegionInfo.RegionSizeY]),
-                (float)m_frameWorkScene.RegionInfo.RegionSettings.WaterHeight);           
+                (float)m_frameWorkScene.RegionInfo.RegionSettings.WaterHeight);
         }
 
         public void RegionLoaded()
@@ -354,7 +354,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 m_log.ErrorFormat("[ubOde] No mesher. module disabled");
                 return;
             }
-            
+
             m_meshWorker = new ODEMeshWorker(this, m_log, mesher, physicsconfig);
             m_frameWorkScene.PhysicsEnabled = true;
         }
@@ -394,7 +394,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
                 catch
                 {
-                    // i must RtC#FM 
+                    // i must RtC#FM
                     // i did!
                 }
 
@@ -674,7 +674,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// <param name="space">The space that contains the geoms.  Remember, spaces are also geoms</param>
         /// <param name="g1">a geometry or space</param>
         /// <param name="g2">another geometry or space</param>
-        /// 
+        ///
 
         private void near(IntPtr space, IntPtr g1, IntPtr g2)
         {
@@ -784,7 +784,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (count == 0)
                 return;
 
-            // try get physical actors 
+            // try get physical actors
             PhysicsActor p1;
             PhysicsActor p2;
 
@@ -1135,10 +1135,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         chr.IsColliding = false;
                         // chr.CollidingGround = false; not done here
                         chr.CollidingObj = false;
-                        
+
                         if(chr.Body == IntPtr.Zero || chr.collider == IntPtr.Zero )
                             continue;
-                    
+
                         // do colisions with static space
                         d.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, nearCallback);
 
@@ -1160,7 +1160,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 foreach (OdePrim aprim in _activeprims)
                 {
                     aprim.CollisionScore = 0;
-                    aprim.IsColliding = false;                   
+                    aprim.IsColliding = false;
                 }
             }
             lock (_activegroups)
@@ -1170,7 +1170,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     foreach (OdePrim aprim in _activegroups)
                     {
                         if(!aprim.m_outbounds && d.BodyIsEnabled(aprim.Body) &&
-                                aprim.collide_geom != IntPtr.Zero)    
+                                aprim.collide_geom != IntPtr.Zero)
                         {
                             d.SpaceCollide2(StaticSpace, aprim.collide_geom, IntPtr.Zero, nearCallback);
                             d.SpaceCollide2(GroundSpace, aprim.collide_geom, IntPtr.Zero, nearCallback);
@@ -1251,7 +1251,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 size, feetOffset, avDensity, avMovementDivisorWalk, avMovementDivisorRun);
             newAv.Flying = isFlying;
             newAv.MinimumGroundFlightOffset = minimumGroundFlightOffset;
-            
+
             return newAv;
         }
 
@@ -1301,7 +1301,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public void addActivePrim(OdePrim activatePrim)
         {
-            // adds active prim..   
+            // adds active prim..
             lock (_activeprims)
             {
                 if (!_activeprims.Contains(activatePrim))
@@ -1324,7 +1324,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             OdePrim newPrim;
             lock (OdeLock)
             {
-              
+
                 newPrim = new OdePrim(name, this, position, size, rotation, pbs, isphysical, isPhantom, shapeType, localID);
             }
             return newPrim;
@@ -1372,7 +1372,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
 //                lock (OdeLock)
                 {
-                    
+
                     OdePrim p = (OdePrim)prim;
                     p.setPrimForRemoval();
                 }
@@ -1423,7 +1423,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 _prims[prim.LocalID] = prim;
             }
         }
-        
+
         public bool haveActor(PhysicsActor actor)
         {
             if (actor is OdePrim)
@@ -1531,14 +1531,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             x = (int)(pos.X * spacesPerMeterX);
             if (x > spaceGridMaxX)
                 return staticPrimspaceOffRegion[1];
-            
+
             y = (int)(pos.Y * spacesPerMeterY);
             if (y > spaceGridMaxY)
                 return staticPrimspaceOffRegion[3];
 
             return staticPrimspace[x, y];
         }
- 
+
         #endregion
 
 
@@ -1628,7 +1628,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             TimeSpan timedif = now - m_lastframe;
             float timeStep = (float)timedif.TotalSeconds;
             m_lastframe = now;
-            
+
             // acumulate time so we can reduce error
             step_time += timeStep;
 
@@ -1654,7 +1654,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
 
                 ODEchangeitem item;
-                
+
 //                d.WorldSetQuickStepNumIterations(world, curphysiteractions);
 
                 int loopstartMS = Util.EnvironmentTickCount();
@@ -1662,9 +1662,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 int changestimeMS = 0;
                 int maxChangestime = (int)(reqTimeStep * 500f); // half the time
                 int maxLoopTime = (int)(reqTimeStep * 1200f); // 1.2 the time
- 
+
                 d.AllocateODEDataForThread(~0U);
-               
+
                 if (ChangesQueue.Count > 0)
                 {
                     while (ChangesQueue.Dequeue(out item))
@@ -1726,7 +1726,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                 aprim.Move();
                             }
                         }
- 
+
                         m_rayCastManager.ProcessQueuedRequests();
 
                         collision_optimized();
@@ -1750,7 +1750,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                     {
                                         pobj.SendCollisions((int)(odetimestepMS));
                                         if(pobj.Body != IntPtr.Zero && !pobj.m_isSelected &&
-                                            !pobj.m_disabled && !pobj.m_building && 
+                                            !pobj.m_disabled && !pobj.m_building &&
                                             !d.BodyIsEnabled(pobj.Body))
                                         sleepers.Add(pobj);
                                     }
@@ -1900,7 +1900,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                     d.WorldExportDIF(world, fname, physics_logging_append_existing_logfile, prefix);
                 }
-                
+
                 fps = (float)nodeframes * ODE_STEPSIZE / reqTimeStep;
 
                 if(step_time < HalfOdeStep)
@@ -2166,7 +2166,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 h0 = (float)heights[iy]; // 0,1
                 h2 = (float)heights[iy+xstep]; // 1,1 vertice
                 norm.X = h0 - h2;
-                norm.Y = h1 - h0;              
+                norm.Y = h1 - h0;
             }
             else
             {
@@ -2214,7 +2214,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             const float thickness = 10f;
             const int wrap = 0;
 
- 
+
             float hfmin = float.MaxValue;
             float hfmax = float.MinValue;
             float val;
@@ -2503,7 +2503,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             orderedPrims.Sort(compareByCollisionsDesc);
             topColliders = orderedPrims.Take(25).ToDictionary(p => p.LocalID, p => p.CollisionScore);
-           
+
             return topColliders;
         }
 
@@ -2546,7 +2546,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
         }
 
-       
+
         public override List<ContactResult> RaycastWorld(Vector3 position, Vector3 direction, float length, int Count)
         {
             List<ContactResult> ourresults = new List<ContactResult>();

@@ -65,7 +65,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                 {
                     m_Enabled = true;
 
-                    m_ThisGridURL = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI", 
+                    m_ThisGridURL = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI",
                         new string[] { "Startup", "Hypergrid", "Messaging" }, String.Empty);
                     // Legacy. Remove soon!
                     m_ThisGridURL = config.Configs["Messaging"].GetString("Gatekeeper", m_ThisGridURL);
@@ -154,7 +154,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
 
         void OnIncomingInstantMessage(GridInstantMessage im)
         {
-            if (im.dialog == (byte)InstantMessageDialog.RequestTeleport 
+            if (im.dialog == (byte)InstantMessageDialog.RequestTeleport
                 || im.dialog == (byte)InstantMessageDialog.GodLikeRequestTeleport)
             {
                 UUID sessionID = new UUID(im.imSessionID);
@@ -195,7 +195,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
 
             m_log.DebugFormat("[HG LURE MODULE]: RequestTeleport sessionID={0}, regionID={1}, message={2}", m.imSessionID, m.RegionID, m.message);
             m_PendingLures.Add(sessionID, m, 7200); // 2 hours
-                    
+
             if (m_TransferModule != null)
             {
                 m_TransferModule.SendInstantMessage(m,

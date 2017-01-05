@@ -55,13 +55,13 @@ namespace OpenSim.Region.Framework.Scenes
         public string localZone = TimeZone.CurrentTimeZone.StandardName;
         public TimeSpan utcOffset = TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now);
 
-        public RegionStatsHandler(RegionInfo region_info) 
+        public RegionStatsHandler(RegionInfo region_info)
             : base("GET", "/" + Util.SHA1Hash(region_info.regionSecret), "RegionStats", "Region Statistics")
         {
             regionInfo = region_info;
             osXStatsURI = Util.SHA1Hash(regionInfo.osSecret);
         }
-                    
+
         protected override byte[] ProcessRequest(
             string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
@@ -72,7 +72,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return "text/plain"; }
         }
-        
+
         private string Report()
         {
             OSDMap args = new OSDMap(30);
@@ -83,7 +83,7 @@ namespace OpenSim.Region.Framework.Scenes
             args["UxTime"] = OSD.FromInteger(Util.ToUnixTime(DateTime.Now));
             args["Memory"] = OSD.FromReal(Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0));
             args["Version"] = OSD.FromString(VersionInfo.Version);
-            
+
             string strBuffer = "";
             strBuffer = OSDParser.SerializeJsonString(args);
 

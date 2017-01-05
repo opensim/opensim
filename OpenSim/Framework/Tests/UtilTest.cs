@@ -233,7 +233,7 @@ namespace OpenSim.Framework.Tests
                                                "application/vnd.ll.clothing",
                                                "application/vnd.ll.gesture"
                                            };
-        
+
             for (int i=0;i<inventorytypes.Length;i++)
             {
                 Assert.AreEqual(invcontenttypes[i], SLUtil.SLInvTypeToContentType(inventorytypes[i]),

@@ -50,7 +50,7 @@ namespace OpenSim.Region.UserStatistics
         public Hashtable ProcessModel(Hashtable pParams)
         {
             List<Scene> m_scene = (List<Scene>)pParams["Scenes"];
-            
+
             Hashtable nh = new Hashtable();
             nh.Add("hdata", m_scene);
             nh.Add("simstats", pParams["SimStats"]);
@@ -207,9 +207,9 @@ namespace OpenSim.Region.UserStatistics
                 HTMLUtil.TD_C(ref output);
                 HTMLUtil.TR_C(ref output);
                 HTMLUtil.TABLE_C(ref output);
-                
+
             }
-            
+
             return output.ToString();
         }
 
@@ -218,7 +218,7 @@ namespace OpenSim.Region.UserStatistics
         /// <pre>
         /// {"REGIONNAME": {
         ///     "region": "REGIONNAME",
-        ///     "timeDilation": "101", 
+        ///     "timeDilation": "101",
         ///     ...     // the rest of the stat info
         ///     },
         ///  ...    // entries for each region

@@ -83,7 +83,7 @@ namespace OpenSim.Tests.Common
 //        /// </param>
 //        /// <returns></returns>
 //        public static CachedUserInfo CreateUserWithInventory(
-//            CommunicationsManager commsManager, string firstName, string lastName, 
+//            CommunicationsManager commsManager, string firstName, string lastName,
 //            UUID userId, OnInventoryReceivedDelegate callback)
 //        {
 //            return CreateUserWithInventory(commsManager, firstName, lastName, "troll", userId, callback);
@@ -147,7 +147,7 @@ namespace OpenSim.Tests.Common
             CreateUserWithInventory(scene, ua, pw);
             return ua;
         }
-        
+
         public static void CreateUserWithInventory(Scene scene, UserAccount ua, string pw)
         {
             // FIXME: This should really be set up by UserAccount itself

@@ -36,16 +36,16 @@ namespace OpenSim.Framework.Monitoring
     /// Manages various work items in the simulator.
     /// </summary>
     /// <remarks>
-    /// Currently, here work can be started 
+    /// Currently, here work can be started
     ///  * As a long-running and monitored thread.
     ///  * In a thread that will never timeout but where the job is expected to eventually complete.
     ///  * In a threadpool thread that will timeout if it takes a very long time to complete (> 10 mins).
     ///  * As a job which will be run in a single-threaded job engine.  Such jobs must not incorporate delays (sleeps,
     /// network waits, etc.).
-    /// 
+    ///
     /// This is an evolving approach to better manage the work that OpenSimulator is asked to do from a very diverse
     /// range of sources (client actions, incoming network, outgoing network calls, etc.).
-    /// 
+    ///
     /// Util.FireAndForget is still available to insert jobs in the threadpool, though this is equivalent to
     /// WorkManager.RunInThreadPool().
     /// </remarks>
@@ -122,7 +122,7 @@ namespace OpenSim.Framework.Monitoring
             thread.Priority = priority;
             thread.IsBackground = isBackground;
             thread.Name = name;
-            
+
             Watchdog.ThreadWatchdogInfo twi
                 = new Watchdog.ThreadWatchdogInfo(thread, timeout, name)
             { AlarmIfTimeout = alarmIfTimeout, AlarmMethod = alarmMethod };
@@ -144,7 +144,7 @@ namespace OpenSim.Framework.Monitoring
         /// <param name="name">Name of the thread</param>
         public static void RunInThread(WaitCallback callback, object obj, string name, bool log = false)
         {
-            if (Util.FireAndForgetMethod == FireAndForgetMethod.RegressionTest)           
+            if (Util.FireAndForgetMethod == FireAndForgetMethod.RegressionTest)
             {
                 Culture.SetCurrentCulture();
                 callback(obj);
@@ -169,7 +169,7 @@ namespace OpenSim.Framework.Monitoring
         }
 
         /// <summary>
-        /// Run the callback via a threadpool thread. 
+        /// Run the callback via a threadpool thread.
         /// </summary>
         /// <remarks>
         /// Such jobs may run after some delay but must always complete.
@@ -188,17 +188,17 @@ namespace OpenSim.Framework.Monitoring
         /// <remarks>
         /// This differs from direct scheduling (e.g. Util.FireAndForget) in that a job can be run in the job
         /// engine if it is running, where all jobs are currently performed in sequence on a single thread.  This is
-        /// to prevent observed overload and server freeze problems when there are hundreds of connections which all attempt to 
+        /// to prevent observed overload and server freeze problems when there are hundreds of connections which all attempt to
         /// perform work at once (e.g. in conference situations).  With lower numbers of connections, the small
-        /// delay in performing jobs in sequence rather than concurrently has not been notiecable in testing, though a future more 
+        /// delay in performing jobs in sequence rather than concurrently has not been notiecable in testing, though a future more
         /// sophisticated implementation could perform jobs concurrently when the server is under low load.
-        /// 
+        ///
         /// However, be advised that some callers of this function rely on all jobs being performed in sequence if any
         /// jobs are performed in sequence (i.e. if jobengine is active or not).  Therefore, expanding the jobengine
         /// beyond a single thread will require considerable thought.
-        /// 
+        ///
         /// Also, any jobs submitted must be guaranteed to complete within a reasonable timeframe (e.g. they cannot
-        /// incorporate a network delay with a long timeout).  At the moment, work that could suffer such issues 
+        /// incorporate a network delay with a long timeout).  At the moment, work that could suffer such issues
         /// should still be run directly with RunInThread(), Util.FireAndForget(), etc.  This is another area where
         /// the job engine could be improved and so CPU utilization improved by better management of concurrency within
         /// OpenSimulator.
@@ -212,10 +212,10 @@ namespace OpenSim.Framework.Monitoring
         /// <param name="log">If set to true then extra logging is performed.</param>
         public static void RunJob(
             string jobType, WaitCallback callback, object obj, string name,
-            bool canRunInThisThread = false, bool mustNotTimeout = false, 
+            bool canRunInThisThread = false, bool mustNotTimeout = false,
             bool log = false)
         {
-            if (Util.FireAndForgetMethod == FireAndForgetMethod.RegressionTest)           
+            if (Util.FireAndForgetMethod == FireAndForgetMethod.RegressionTest)
             {
                 Culture.SetCurrentCulture();
                 callback(obj);
@@ -273,16 +273,16 @@ namespace OpenSim.Framework.Monitoring
                     MainConsole.Instance.Output("Usage: debug jobengine log <level>");
                     return;
                 }
-                
+
                 //                int logLevel;
                 int logLevel = int.Parse(args[3]);
                 //                if (ConsoleUtil.TryParseConsoleInt(MainConsole.Instance, args[4], out logLevel))
-                //                {                 
+                //                {
                 JobEngine.LogLevel = logLevel;
                 MainConsole.Instance.OutputFormat("Set debug log level to {0}", JobEngine.LogLevel);
                 //                }
             }
-            else 
+            else
             {
                 MainConsole.Instance.OutputFormat("Unrecognized job engine subcommand {0}", subCommand);
             }

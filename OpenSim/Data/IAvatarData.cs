@@ -39,7 +39,7 @@ namespace OpenSim.Data
         public Dictionary<string, string> Data;
     }
 
-    public interface IAvatarData 
+    public interface IAvatarData
     {
         AvatarBaseData[] Get(string field, string val);
         bool Store(AvatarBaseData data);

@@ -93,7 +93,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             // Check simple 1 prim case
             {
-                LSL_List resList 
+                LSL_List resList
                     = apiGrp1.llGetLinkPrimitiveParams(1, new LSL_List(new LSL_Integer(ScriptBaseClass.PRIM_ROTATION)));
 
                 Assert.That(resList.Length, Is.EqualTo(1));
@@ -101,11 +101,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             // Check 2 prim case
             {
-                LSL_List resList 
+                LSL_List resList
                     = apiGrp1.llGetLinkPrimitiveParams(
-                        1, 
+                        1,
                         new LSL_List(
-                            new LSL_Integer(ScriptBaseClass.PRIM_ROTATION), 
+                            new LSL_Integer(ScriptBaseClass.PRIM_ROTATION),
                             new LSL_Integer(ScriptBaseClass.PRIM_LINK_TARGET),
                             new LSL_Integer(2),
                             new LSL_Integer(ScriptBaseClass.PRIM_ROTATION)));
@@ -115,7 +115,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             // Check invalid parameters are ignored
             {
-                LSL_List resList 
+                LSL_List resList
                     = apiGrp1.llGetLinkPrimitiveParams(3, new LSL_List(new LSL_Integer(ScriptBaseClass.PRIM_ROTATION)));
 
                 Assert.That(resList.Length, Is.EqualTo(0));
@@ -123,11 +123,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             // Check all parameters are ignored if an initial bad link is given
             {
-                LSL_List resList 
+                LSL_List resList
                     = apiGrp1.llGetLinkPrimitiveParams(
-                        3, 
+                        3,
                         new LSL_List(
-                            new LSL_Integer(ScriptBaseClass.PRIM_ROTATION), 
+                            new LSL_Integer(ScriptBaseClass.PRIM_ROTATION),
                             new LSL_Integer(ScriptBaseClass.PRIM_LINK_TARGET),
                             new LSL_Integer(1),
                             new LSL_Integer(ScriptBaseClass.PRIM_ROTATION)));
@@ -137,11 +137,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             // Check only subsequent parameters are ignored when we hit the first bad link number
             {
-                LSL_List resList 
+                LSL_List resList
                     = apiGrp1.llGetLinkPrimitiveParams(
-                        1, 
+                        1,
                         new LSL_List(
-                            new LSL_Integer(ScriptBaseClass.PRIM_ROTATION), 
+                            new LSL_Integer(ScriptBaseClass.PRIM_ROTATION),
                             new LSL_Integer(ScriptBaseClass.PRIM_LINK_TARGET),
                             new LSL_Integer(3),
                             new LSL_Integer(ScriptBaseClass.PRIM_ROTATION)));
@@ -197,7 +197,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
                 new LSL_Types.Vector3(0.0d, 1.0d, 0.0d),    // Prim cut
                 0.90f,                                      // Prim hollow
                 new LSL_Types.Vector3(0.0d, 0.0d, 0.0d),    // Prim twist
-                new LSL_Types.Vector3(2.0d, 1.0d, 0.0d),    // Prim taper 
+                new LSL_Types.Vector3(2.0d, 1.0d, 0.0d),    // Prim taper
                 new LSL_Types.Vector3(0.0d, 0.0d, 0.0d),    // Prim shear
                 0.90f);                                     // Prim hollow check
 
@@ -211,7 +211,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
                 new LSL_Types.Vector3(0.0d, 1.0d, 0.0d),    // Prim cut
                 0.99f,                                      // Prim hollow
                 new LSL_Types.Vector3(1.0d, 0.0d, 0.0d),    // Prim twist
-                new LSL_Types.Vector3(1.0d, 1.0d, 0.0d),    // Prim taper 
+                new LSL_Types.Vector3(1.0d, 1.0d, 0.0d),    // Prim taper
                 new LSL_Types.Vector3(0.0d, 0.0d, 0.0d),    // Prim shear
                 0.99f);                                     // Prim hollow check
 
@@ -252,7 +252,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
                 new LSL_Types.Vector3(0.7d + 0.2d, 0.0d, 0.0d),     // Prim twist
                 // Expression for y selected to test precision problems during sbyte
                 // cast in SetPrimitiveShapeParams.
-                new LSL_Types.Vector3(2.0d, (1.3d + 0.1d), 0.0d),   // Prim taper 
+                new LSL_Types.Vector3(2.0d, (1.3d + 0.1d), 0.0d),   // Prim taper
                 new LSL_Types.Vector3(0.0d, 0.0d, 0.0d),    // Prim shear
                 0.70f);                                     // Prim hollow check
 

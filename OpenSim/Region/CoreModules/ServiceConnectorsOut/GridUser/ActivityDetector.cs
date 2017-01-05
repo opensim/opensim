@@ -37,7 +37,7 @@ using log4net;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
 {
-    public class ActivityDetector 
+    public class ActivityDetector
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -67,7 +67,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
        {
             if (sp.isNPC)
                 return;
-            
+
             if(sp.gotCrossUpdate)
             {
                 Util.FireAndForget(delegate

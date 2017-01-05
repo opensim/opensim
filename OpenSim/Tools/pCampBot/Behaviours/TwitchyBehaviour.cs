@@ -38,7 +38,7 @@ namespace pCampBot
     /// <summary>
     /// This behavior is for the systematic study of some performance improvements made
     /// for OSCC'13.
-    /// Do nothing, but send AgentUpdate packets all the time that have only slightly 
+    /// Do nothing, but send AgentUpdate packets all the time that have only slightly
     /// different state. The delta of difference will be filtered by OpenSim early on
     /// in the packet processing pipeline. These filters did not exist before OSCC'13.
     /// </summary>
@@ -46,10 +46,10 @@ namespace pCampBot
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public TwitchyBehaviour() 
-        { 
+        public TwitchyBehaviour()
+        {
             AbbreviatedName = "tw";
-            Name = "Twitchy"; 
+            Name = "Twitchy";
         }
 
         private const float TWITCH = 0.0001f;

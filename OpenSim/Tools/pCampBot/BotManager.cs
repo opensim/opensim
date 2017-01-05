@@ -219,14 +219,14 @@ namespace pCampBot
                 HandleDisconnect);
 
             m_console.Commands.AddCommand(
-                "Bots", false, "add behaviour", "add behaviour <abbreviated-name> [<bot-number>]", 
+                "Bots", false, "add behaviour", "add behaviour <abbreviated-name> [<bot-number>]",
                 "Add a behaviour to a bot",
                 "If no bot number is specified then behaviour is added to all bots.\n"
                     + "Can be performed on connected or disconnected bots.",
                 HandleAddBehaviour);
 
             m_console.Commands.AddCommand(
-                "Bots", false, "remove behaviour", "remove behaviour <abbreviated-name> [<bot-number>]", 
+                "Bots", false, "remove behaviour", "remove behaviour <abbreviated-name> [<bot-number>]",
                 "Remove a behaviour from a bot",
                 "If no bot number is specified then behaviour is added to all bots.\n"
                     + "Can be performed on connected or disconnected bots.",
@@ -250,14 +250,14 @@ namespace pCampBot
                 "Bots", false, "show bots", "show bots", "Shows the status of all bots.", HandleShowBotsStatus);
 
             m_console.Commands.AddCommand(
-                "Bots", false, "show bot", "show bot <bot-number>", 
+                "Bots", false, "show bot", "show bot <bot-number>",
                 "Shows the detailed status and settings of a particular bot.", HandleShowBotStatus);
 
             m_console.Commands.AddCommand(
-                "Debug", 
-                false, 
-                "debug lludp packet", 
-                "debug lludp packet <level> <avatar-first-name> <avatar-last-name>", 
+                "Debug",
+                false,
+                "debug lludp packet",
+                "debug lludp packet <level> <avatar-first-name> <avatar-last-name>",
                 "Turn on received packet logging.",
                 "If level >  0 then all received packets that are not duplicates are logged.\n"
                 + "If level <= 0 then no received packets are logged.",
@@ -317,7 +317,7 @@ namespace pCampBot
             // We must give each bot its own list of instantiated behaviours since they store state.
             List<IBehaviour> behaviours = new List<IBehaviour>();
 
-            // Hard-coded for now    
+            // Hard-coded for now
             foreach (string abName in abbreviatedNames)
             {
                 IBehaviour newBehaviour = null;
@@ -534,7 +534,7 @@ namespace pCampBot
         }
 
         private void HandleConnect(string module, string[] cmd)
-        {           
+        {
             lock (m_bots)
             {
                 int botsToConnect;
@@ -607,7 +607,7 @@ namespace pCampBot
                 }
 
                 MainConsole.Instance.OutputFormat(
-                    "Added behaviours {0} to bot {1}", 
+                    "Added behaviours {0} to bot {1}",
                     string.Join(", ", behavioursAdded.ConvertAll<string>(b => b.Name).ToArray()), bot.Name);
             }
         }
@@ -665,7 +665,7 @@ namespace pCampBot
                 }
 
                 MainConsole.Instance.OutputFormat(
-                    "Removed behaviours {0} from bot {1}", 
+                    "Removed behaviours {0} from bot {1}",
                     string.Join(", ", behavioursRemoved.ConvertAll<string>(b => b.Name).ToArray()), bot.Name);
             }
         }
@@ -779,7 +779,7 @@ namespace pCampBot
             string rawValue = cmd[3];
 
             if (key == "SEND_AGENT_UPDATES")
-            {   
+            {
                 bool newSendAgentUpdatesSetting;
 
                 if (!ConsoleUtil.TryParseConsoleBool(MainConsole.Instance, rawValue, out newSendAgentUpdatesSetting))
@@ -873,10 +873,10 @@ namespace pCampBot
                     totals[bot.ConnectionState]++;
 
                     cdt.AddRow(
-                        bot.Name, 
-                        currentSim != null ? currentSim.Name : "(none)", 
-                        bot.ConnectionState, 
-                        bot.SimulatorsCount, 
+                        bot.Name,
+                        currentSim != null ? currentSim.Name : "(none)",
+                        bot.ConnectionState,
+                        bot.SimulatorsCount,
                         string.Join(",", bot.Behaviours.Keys.ToArray()));
                 }
             }
@@ -930,7 +930,7 @@ namespace pCampBot
             ConsoleDisplayList statusCdl = new ConsoleDisplayList();
 
             statusCdl.AddRow(
-                "Behaviours", 
+                "Behaviours",
                 string.Join(", ", bot.Behaviours.Values.ToList().ConvertAll<string>(b => b.Name).ToArray()));
 
             GridClient botClient = bot.Client;

@@ -90,8 +90,8 @@ public static class BSParam
     public static float DeactivationTime { get; private set; }
     public static float LinearSleepingThreshold { get; private set; }
     public static float AngularSleepingThreshold { get; private set; }
-	public static float CcdMotionThreshold { get; private set; }
-	public static float CcdSweptSphereRadius { get; private set; }
+    public static float CcdMotionThreshold { get; private set; }
+    public static float CcdSweptSphereRadius { get; private set; }
     public static float ContactProcessingThreshold { get; private set; }
 
     public static bool ShouldMeshSculptedPrim { get; private set; }   // cause scuplted prims to get meshed
@@ -119,14 +119,14 @@ public static class BSParam
     public static float Gravity { get; private set; }
 
     // Physics Engine operation
-	public static float MaxPersistantManifoldPoolSize { get; private set; }
-	public static float MaxCollisionAlgorithmPoolSize { get; private set; }
-	public static bool ShouldDisableContactPoolDynamicAllocation { get; private set; }
-	public static bool ShouldForceUpdateAllAabbs { get; private set; }
-	public static bool ShouldRandomizeSolverOrder { get; private set; }
-	public static bool ShouldSplitSimulationIslands { get; private set; }
-	public static bool ShouldEnableFrictionCaching { get; private set; }
-	public static float NumberOfSolverIterations { get; private set; }
+    public static float MaxPersistantManifoldPoolSize { get; private set; }
+    public static float MaxCollisionAlgorithmPoolSize { get; private set; }
+    public static bool ShouldDisableContactPoolDynamicAllocation { get; private set; }
+    public static bool ShouldForceUpdateAllAabbs { get; private set; }
+    public static bool ShouldRandomizeSolverOrder { get; private set; }
+    public static bool ShouldSplitSimulationIslands { get; private set; }
+    public static bool ShouldEnableFrictionCaching { get; private set; }
+    public static float NumberOfSolverIterations { get; private set; }
     public static bool UseSingleSidedMeshes { get; private set; }
     public static float GlobalContactBreakingThreshold { get; private set; }
     public static float PhysicsUnmanLoggingFrames { get; private set; }
@@ -149,19 +149,19 @@ public static class BSParam
     public static float AvatarFlyingGroundMargin { get; private set; }
     public static float AvatarFlyingGroundUpForce { get; private set; }
     public static float AvatarTerminalVelocity { get; private set; }
-	public static float AvatarContactProcessingThreshold { get; private set; }
+    public static float AvatarContactProcessingThreshold { get; private set; }
     public static float AvatarAddForcePushFactor { get; private set; }
     public static float AvatarStopZeroThreshold { get; private set; }
     public static float AvatarStopZeroThresholdSquared { get; private set; }
-	public static int AvatarJumpFrames { get; private set; }
-	public static float AvatarBelowGroundUpCorrectionMeters { get; private set; }
-	public static float AvatarStepHeight { get; private set; }
-	public static float AvatarStepAngle { get; private set; }
-	public static float AvatarStepGroundFudge { get; private set; }
-	public static float AvatarStepApproachFactor { get; private set; }
-	public static float AvatarStepForceFactor { get; private set; }
-	public static float AvatarStepUpCorrectionFactor { get; private set; }
-	public static int AvatarStepSmoothingSteps { get; private set; }
+    public static int AvatarJumpFrames { get; private set; }
+    public static float AvatarBelowGroundUpCorrectionMeters { get; private set; }
+    public static float AvatarStepHeight { get; private set; }
+    public static float AvatarStepAngle { get; private set; }
+    public static float AvatarStepGroundFudge { get; private set; }
+    public static float AvatarStepApproachFactor { get; private set; }
+    public static float AvatarStepForceFactor { get; private set; }
+    public static float AvatarStepUpCorrectionFactor { get; private set; }
+    public static int AvatarStepSmoothingSteps { get; private set; }
 
     // Vehicle parameters
     public static float VehicleMaxLinearVelocity { get; private set; }
@@ -193,31 +193,31 @@ public static class BSParam
     public static float CSHullVolumeConservationThresholdPercent { get; private set; }
     public static int CSHullMaxVertices { get; private set; }
     public static float CSHullMaxSkinWidth { get; private set; }
-	public static float BHullMaxVerticesPerHull { get; private set; }		// 100
-	public static float BHullMinClusters { get; private set; }				// 2
-	public static float BHullCompacityWeight { get; private set; }			// 0.1
-	public static float BHullVolumeWeight { get; private set; }				// 0.0
-	public static float BHullConcavity { get; private set; }				    // 100
-	public static bool BHullAddExtraDistPoints { get; private set; }		// false
-	public static bool BHullAddNeighboursDistPoints { get; private set; }	// false
-	public static bool BHullAddFacesPoints { get; private set; }			// false
-	public static bool BHullShouldAdjustCollisionMargin { get; private set; }	// false
-	public static float WhichHACD { get; private set; }				    // zero if Bullet HACD, non-zero says VHACD
+    public static float BHullMaxVerticesPerHull { get; private set; }		// 100
+    public static float BHullMinClusters { get; private set; }				// 2
+    public static float BHullCompacityWeight { get; private set; }			// 0.1
+    public static float BHullVolumeWeight { get; private set; }				// 0.0
+    public static float BHullConcavity { get; private set; }				    // 100
+    public static bool BHullAddExtraDistPoints { get; private set; }		// false
+    public static bool BHullAddNeighboursDistPoints { get; private set; }	// false
+    public static bool BHullAddFacesPoints { get; private set; }			// false
+    public static bool BHullShouldAdjustCollisionMargin { get; private set; }	// false
+    public static float WhichHACD { get; private set; }				    // zero if Bullet HACD, non-zero says VHACD
     // Parameters for VHACD 2.0: http://code.google.com/p/v-hacd
     // To enable, set both ShouldUseBulletHACD=true and WhichHACD=1
-	// http://kmamou.blogspot.ca/2014/12/v-hacd-20-parameters-description.html
-	public static float VHACDresolution { get; private set; }			// 100,000 max number of voxels generated during voxelization stage
-	public static float VHACDdepth { get; private set; }				// 20 max number of clipping stages
-	public static float VHACDconcavity { get; private set; }			// 0.0025 maximum concavity
-	public static float VHACDplaneDownsampling { get; private set; }	// 4 granularity of search for best clipping plane
-	public static float VHACDconvexHullDownsampling { get; private set; }	// 4 precision of hull gen process
-	public static float VHACDalpha { get; private set; }				// 0.05 bias toward clipping along symmetry planes
-	public static float VHACDbeta { get; private set; }				    // 0.05 bias toward clipping along revolution axis
-	public static float VHACDgamma { get; private set; }				// 0.00125 max concavity when merging
-	public static float VHACDpca { get; private set; }					// 0 on/off normalizing mesh before decomp
-	public static float VHACDmode { get; private set; }				    // 0 0:voxel based, 1: tetrahedron based
-	public static float VHACDmaxNumVerticesPerCH { get; private set; }	// 64 max triangles per convex hull
-	public static float VHACDminVolumePerCH { get; private set; }		// 0.0001 sampling of generated convex hulls
+    // http://kmamou.blogspot.ca/2014/12/v-hacd-20-parameters-description.html
+    public static float VHACDresolution { get; private set; }			// 100,000 max number of voxels generated during voxelization stage
+    public static float VHACDdepth { get; private set; }				// 20 max number of clipping stages
+    public static float VHACDconcavity { get; private set; }			// 0.0025 maximum concavity
+    public static float VHACDplaneDownsampling { get; private set; }	// 4 granularity of search for best clipping plane
+    public static float VHACDconvexHullDownsampling { get; private set; }	// 4 precision of hull gen process
+    public static float VHACDalpha { get; private set; }				// 0.05 bias toward clipping along symmetry planes
+    public static float VHACDbeta { get; private set; }				    // 0.05 bias toward clipping along revolution axis
+    public static float VHACDgamma { get; private set; }				// 0.00125 max concavity when merging
+    public static float VHACDpca { get; private set; }					// 0 on/off normalizing mesh before decomp
+    public static float VHACDmode { get; private set; }				    // 0 0:voxel based, 1: tetrahedron based
+    public static float VHACDmaxNumVerticesPerCH { get; private set; }	// 64 max triangles per convex hull
+    public static float VHACDminVolumePerCH { get; private set; }		// 0.0001 sampling of generated convex hulls
 
     // Linkset implementation parameters
     public static float LinksetImplementation { get; private set; }
@@ -579,7 +579,7 @@ public static class BSParam
             (s,v) => { ContactProcessingThreshold = v;},
             (s,o) => { s.PE.SetContactProcessingThreshold(o.PhysBody, ContactProcessingThreshold); } ),
 
-	    new ParameterDefn<float>("TerrainImplementation", "Type of shape to use for terrain (0=heightmap, 1=mesh)",
+        new ParameterDefn<float>("TerrainImplementation", "Type of shape to use for terrain (0=heightmap, 1=mesh)",
             (float)BSTerrainPhys.TerrainImplementation.Heightmap ),
         new ParameterDefn<int>("TerrainMeshMagnification", "Number of times the 256x256 heightmap is multiplied to create the terrain mesh" ,
             2 ),
@@ -631,31 +631,31 @@ public static class BSParam
             2.0f ),
         new ParameterDefn<float>("AvatarTerminalVelocity", "Terminal Velocity of falling avatar",
             -54.0f ),
-	    new ParameterDefn<float>("AvatarContactProcessingThreshold", "Distance from capsule to check for collisions",
+        new ParameterDefn<float>("AvatarContactProcessingThreshold", "Distance from capsule to check for collisions",
             0.1f ),
-	    new ParameterDefn<float>("AvatarAddForcePushFactor", "BSCharacter.AddForce is multiplied by this and mass to be like other physics engines",
+        new ParameterDefn<float>("AvatarAddForcePushFactor", "BSCharacter.AddForce is multiplied by this and mass to be like other physics engines",
             0.315f ),
-	    new ParameterDefn<float>("AvatarStopZeroThreshold", "Movement velocity below which avatar is assumed to be stopped",
+        new ParameterDefn<float>("AvatarStopZeroThreshold", "Movement velocity below which avatar is assumed to be stopped",
             0.45f,
             (s) => { return (float)AvatarStopZeroThreshold; },
             (s,v) => { AvatarStopZeroThreshold = v; AvatarStopZeroThresholdSquared = v * v; } ),
-	    new ParameterDefn<float>("AvatarBelowGroundUpCorrectionMeters", "Meters to move avatar up if it seems to be below ground",
+        new ParameterDefn<float>("AvatarBelowGroundUpCorrectionMeters", "Meters to move avatar up if it seems to be below ground",
             1.0f ),
-	    new ParameterDefn<int>("AvatarJumpFrames", "Number of frames to allow jump forces. Changes jump height.",
+        new ParameterDefn<int>("AvatarJumpFrames", "Number of frames to allow jump forces. Changes jump height.",
             4 ),
-	    new ParameterDefn<float>("AvatarStepHeight", "Height of a step obstacle to consider step correction",
+        new ParameterDefn<float>("AvatarStepHeight", "Height of a step obstacle to consider step correction",
             0.999f ) ,
-	    new ParameterDefn<float>("AvatarStepAngle", "The angle (in radians) for a vertical surface to be considered a step",
+        new ParameterDefn<float>("AvatarStepAngle", "The angle (in radians) for a vertical surface to be considered a step",
             0.3f ) ,
-	    new ParameterDefn<float>("AvatarStepGroundFudge", "Fudge factor subtracted from avatar base when comparing collision height",
+        new ParameterDefn<float>("AvatarStepGroundFudge", "Fudge factor subtracted from avatar base when comparing collision height",
             0.1f ) ,
-	    new ParameterDefn<float>("AvatarStepApproachFactor", "Factor to control angle of approach to step (0=straight on)",
+        new ParameterDefn<float>("AvatarStepApproachFactor", "Factor to control angle of approach to step (0=straight on)",
             2f ),
-	    new ParameterDefn<float>("AvatarStepForceFactor", "Controls the amount of force up applied to step up onto a step",
+        new ParameterDefn<float>("AvatarStepForceFactor", "Controls the amount of force up applied to step up onto a step",
             0f ),
-	    new ParameterDefn<float>("AvatarStepUpCorrectionFactor", "Multiplied by height of step collision to create up movement at step",
+        new ParameterDefn<float>("AvatarStepUpCorrectionFactor", "Multiplied by height of step collision to create up movement at step",
             0.8f ),
-	    new ParameterDefn<int>("AvatarStepSmoothingSteps", "Number of frames after a step collision that we continue walking up stairs",
+        new ParameterDefn<int>("AvatarStepSmoothingSteps", "Number of frames after a step collision that we continue walking up stairs",
             1 ),
 
         new ParameterDefn<float>("VehicleMaxLinearVelocity", "Maximum velocity magnitude that can be assigned to a vehicle",
@@ -699,131 +699,131 @@ public static class BSParam
         new ParameterDefn<bool>("VehicleEnableAngularBanking", "Turn on/off vehicle angular banking effect",
             true ),
 
-	    new ParameterDefn<float>("MaxPersistantManifoldPoolSize", "Number of manifolds pooled (0 means default of 4096)",
+        new ParameterDefn<float>("MaxPersistantManifoldPoolSize", "Number of manifolds pooled (0 means default of 4096)",
             0f,
             (s) => { return MaxPersistantManifoldPoolSize; },
             (s,v) => { MaxPersistantManifoldPoolSize = v; s.UnmanagedParams[0].maxPersistantManifoldPoolSize = v; } ),
-	    new ParameterDefn<float>("MaxCollisionAlgorithmPoolSize", "Number of collisions pooled (0 means default of 4096)",
+        new ParameterDefn<float>("MaxCollisionAlgorithmPoolSize", "Number of collisions pooled (0 means default of 4096)",
             0f,
             (s) => { return MaxCollisionAlgorithmPoolSize; },
             (s,v) => { MaxCollisionAlgorithmPoolSize = v; s.UnmanagedParams[0].maxCollisionAlgorithmPoolSize = v; } ),
-	    new ParameterDefn<bool>("ShouldDisableContactPoolDynamicAllocation", "Enable to allow large changes in object count",
+        new ParameterDefn<bool>("ShouldDisableContactPoolDynamicAllocation", "Enable to allow large changes in object count",
             false,
             (s) => { return ShouldDisableContactPoolDynamicAllocation; },
             (s,v) => { ShouldDisableContactPoolDynamicAllocation = v;
                         s.UnmanagedParams[0].shouldDisableContactPoolDynamicAllocation = NumericBool(v); } ),
-	    new ParameterDefn<bool>("ShouldForceUpdateAllAabbs", "Enable to recomputer AABBs every simulator step",
+        new ParameterDefn<bool>("ShouldForceUpdateAllAabbs", "Enable to recomputer AABBs every simulator step",
             false,
             (s) => { return ShouldForceUpdateAllAabbs; },
             (s,v) => { ShouldForceUpdateAllAabbs = v; s.UnmanagedParams[0].shouldForceUpdateAllAabbs = NumericBool(v); } ),
-	    new ParameterDefn<bool>("ShouldRandomizeSolverOrder", "Enable for slightly better stacking interaction",
+        new ParameterDefn<bool>("ShouldRandomizeSolverOrder", "Enable for slightly better stacking interaction",
             true,
             (s) => { return ShouldRandomizeSolverOrder; },
             (s,v) => { ShouldRandomizeSolverOrder = v; s.UnmanagedParams[0].shouldRandomizeSolverOrder = NumericBool(v); } ),
-	    new ParameterDefn<bool>("ShouldSplitSimulationIslands", "Enable splitting active object scanning islands",
+        new ParameterDefn<bool>("ShouldSplitSimulationIslands", "Enable splitting active object scanning islands",
             true,
             (s) => { return ShouldSplitSimulationIslands; },
             (s,v) => { ShouldSplitSimulationIslands = v; s.UnmanagedParams[0].shouldSplitSimulationIslands = NumericBool(v); } ),
-	    new ParameterDefn<bool>("ShouldEnableFrictionCaching", "Enable friction computation caching",
+        new ParameterDefn<bool>("ShouldEnableFrictionCaching", "Enable friction computation caching",
             true,
             (s) => { return ShouldEnableFrictionCaching; },
             (s,v) => { ShouldEnableFrictionCaching = v; s.UnmanagedParams[0].shouldEnableFrictionCaching = NumericBool(v); } ),
-	    new ParameterDefn<float>("NumberOfSolverIterations", "Number of internal iterations (0 means default)",
+        new ParameterDefn<float>("NumberOfSolverIterations", "Number of internal iterations (0 means default)",
             0f,     // zero says use Bullet default
             (s) => { return NumberOfSolverIterations; },
             (s,v) => { NumberOfSolverIterations = v; s.UnmanagedParams[0].numberOfSolverIterations = v; } ),
-	    new ParameterDefn<bool>("UseSingleSidedMeshes", "Whether to compute collisions based on single sided meshes.",
+        new ParameterDefn<bool>("UseSingleSidedMeshes", "Whether to compute collisions based on single sided meshes.",
             true,
             (s) => { return UseSingleSidedMeshes; },
             (s,v) => { UseSingleSidedMeshes = v; s.UnmanagedParams[0].useSingleSidedMeshes = NumericBool(v); } ),
-	    new ParameterDefn<float>("GlobalContactBreakingThreshold", "Amount of shape radius before breaking a collision contact (0 says Bullet default (0.2))",
+        new ParameterDefn<float>("GlobalContactBreakingThreshold", "Amount of shape radius before breaking a collision contact (0 says Bullet default (0.2))",
             0f,
             (s) => { return GlobalContactBreakingThreshold; },
             (s,v) => { GlobalContactBreakingThreshold = v; s.UnmanagedParams[0].globalContactBreakingThreshold = v; } ),
-	    new ParameterDefn<float>("PhysicsUnmanLoggingFrames", "If non-zero, frames between output of detailed unmanaged physics statistics",
+        new ParameterDefn<float>("PhysicsUnmanLoggingFrames", "If non-zero, frames between output of detailed unmanaged physics statistics",
             0f,
             (s) => { return PhysicsUnmanLoggingFrames; },
             (s,v) => { PhysicsUnmanLoggingFrames = v; s.UnmanagedParams[0].physicsLoggingFrames = v; } ),
 
-	    new ParameterDefn<int>("CSHullMaxDepthSplit", "CS impl: max depth to split for hull. 1-10 but > 7 is iffy",
+        new ParameterDefn<int>("CSHullMaxDepthSplit", "CS impl: max depth to split for hull. 1-10 but > 7 is iffy",
             7 ),
-	    new ParameterDefn<int>("CSHullMaxDepthSplitForSimpleShapes", "CS impl: max depth setting for simple prim shapes",
+        new ParameterDefn<int>("CSHullMaxDepthSplitForSimpleShapes", "CS impl: max depth setting for simple prim shapes",
             2 ),
-	    new ParameterDefn<float>("CSHullConcavityThresholdPercent", "CS impl: concavity threshold percent (0-20)",
+        new ParameterDefn<float>("CSHullConcavityThresholdPercent", "CS impl: concavity threshold percent (0-20)",
             5f ),
-	    new ParameterDefn<float>("CSHullVolumeConservationThresholdPercent", "percent volume conservation to collapse hulls (0-30)",
+        new ParameterDefn<float>("CSHullVolumeConservationThresholdPercent", "percent volume conservation to collapse hulls (0-30)",
             5f ),
-	    new ParameterDefn<int>("CSHullMaxVertices", "CS impl: maximum number of vertices in output hulls. Keep < 50.",
+        new ParameterDefn<int>("CSHullMaxVertices", "CS impl: maximum number of vertices in output hulls. Keep < 50.",
             32 ),
-	    new ParameterDefn<float>("CSHullMaxSkinWidth", "CS impl: skin width to apply to output hulls.",
+        new ParameterDefn<float>("CSHullMaxSkinWidth", "CS impl: skin width to apply to output hulls.",
             0f ),
 
-	    new ParameterDefn<float>("BHullMaxVerticesPerHull", "Bullet impl: max number of vertices per created hull",
+        new ParameterDefn<float>("BHullMaxVerticesPerHull", "Bullet impl: max number of vertices per created hull",
             200f ),
-	    new ParameterDefn<float>("BHullMinClusters", "Bullet impl: minimum number of hulls to create per mesh",
+        new ParameterDefn<float>("BHullMinClusters", "Bullet impl: minimum number of hulls to create per mesh",
             10f ),
-	    new ParameterDefn<float>("BHullCompacityWeight", "Bullet impl: weight factor for how compact to make hulls",
+        new ParameterDefn<float>("BHullCompacityWeight", "Bullet impl: weight factor for how compact to make hulls",
             20f ),
-	    new ParameterDefn<float>("BHullVolumeWeight", "Bullet impl: weight factor for volume in created hull",
+        new ParameterDefn<float>("BHullVolumeWeight", "Bullet impl: weight factor for volume in created hull",
             0.1f ),
-	    new ParameterDefn<float>("BHullConcavity", "Bullet impl: weight factor for how convex a created hull can be",
+        new ParameterDefn<float>("BHullConcavity", "Bullet impl: weight factor for how convex a created hull can be",
             10f ),
-	    new ParameterDefn<bool>("BHullAddExtraDistPoints", "Bullet impl: whether to add extra vertices for long distance vectors",
+        new ParameterDefn<bool>("BHullAddExtraDistPoints", "Bullet impl: whether to add extra vertices for long distance vectors",
             true ),
-	    new ParameterDefn<bool>("BHullAddNeighboursDistPoints", "Bullet impl: whether to add extra vertices between neighbor hulls",
+        new ParameterDefn<bool>("BHullAddNeighboursDistPoints", "Bullet impl: whether to add extra vertices between neighbor hulls",
             true ),
-	    new ParameterDefn<bool>("BHullAddFacesPoints", "Bullet impl: whether to add extra vertices to break up hull faces",
+        new ParameterDefn<bool>("BHullAddFacesPoints", "Bullet impl: whether to add extra vertices to break up hull faces",
             true ),
-	    new ParameterDefn<bool>("BHullShouldAdjustCollisionMargin", "Bullet impl: whether to shrink resulting hulls to account for collision margin",
+        new ParameterDefn<bool>("BHullShouldAdjustCollisionMargin", "Bullet impl: whether to shrink resulting hulls to account for collision margin",
             false ),
 
-	    new ParameterDefn<float>("WhichHACD", "zero if Bullet HACD, non-zero says VHACD",
+        new ParameterDefn<float>("WhichHACD", "zero if Bullet HACD, non-zero says VHACD",
             0f ),
-	    new ParameterDefn<float>("VHACDresolution", "max number of voxels generated during voxelization stage",
+        new ParameterDefn<float>("VHACDresolution", "max number of voxels generated during voxelization stage",
             100000f ),
-	    new ParameterDefn<float>("VHACDdepth", "max number of clipping stages",
+        new ParameterDefn<float>("VHACDdepth", "max number of clipping stages",
             20f ),
-	    new ParameterDefn<float>("VHACDconcavity", "maximum concavity",
+        new ParameterDefn<float>("VHACDconcavity", "maximum concavity",
             0.0025f ),
-	    new ParameterDefn<float>("VHACDplaneDownsampling", "granularity of search for best clipping plane",
+        new ParameterDefn<float>("VHACDplaneDownsampling", "granularity of search for best clipping plane",
             4f ),
-	    new ParameterDefn<float>("VHACDconvexHullDownsampling", "precision of hull gen process",
+        new ParameterDefn<float>("VHACDconvexHullDownsampling", "precision of hull gen process",
             4f ),
-	    new ParameterDefn<float>("VHACDalpha", "bias toward clipping along symmetry planes",
+        new ParameterDefn<float>("VHACDalpha", "bias toward clipping along symmetry planes",
             0.05f ),
-	    new ParameterDefn<float>("VHACDbeta", "bias toward clipping along revolution axis",
+        new ParameterDefn<float>("VHACDbeta", "bias toward clipping along revolution axis",
             0.05f ),
-	    new ParameterDefn<float>("VHACDgamma", "max concavity when merging",
+        new ParameterDefn<float>("VHACDgamma", "max concavity when merging",
             0.00125f ),
-	    new ParameterDefn<float>("VHACDpca", "on/off normalizing mesh before decomp",
+        new ParameterDefn<float>("VHACDpca", "on/off normalizing mesh before decomp",
             0f ),
-	    new ParameterDefn<float>("VHACDmode", "0:voxel based, 1: tetrahedron based",
+        new ParameterDefn<float>("VHACDmode", "0:voxel based, 1: tetrahedron based",
             0f ),
-	    new ParameterDefn<float>("VHACDmaxNumVerticesPerCH", "max triangles per convex hull",
+        new ParameterDefn<float>("VHACDmaxNumVerticesPerCH", "max triangles per convex hull",
             64f ),
-	    new ParameterDefn<float>("VHACDminVolumePerCH",	"sampling of generated convex hulls",
+        new ParameterDefn<float>("VHACDminVolumePerCH",	"sampling of generated convex hulls",
             0.0001f ),
 
-	    new ParameterDefn<float>("LinksetImplementation", "Type of linkset implementation (0=Constraint, 1=Compound, 2=Manual)",
+        new ParameterDefn<float>("LinksetImplementation", "Type of linkset implementation (0=Constraint, 1=Compound, 2=Manual)",
             (float)BSLinkset.LinksetImplementation.Compound ),
-	    new ParameterDefn<bool>("LinksetOffsetCenterOfMass", "If 'true', compute linkset center-of-mass and offset linkset position to account for same",
+        new ParameterDefn<bool>("LinksetOffsetCenterOfMass", "If 'true', compute linkset center-of-mass and offset linkset position to account for same",
             true ),
-	    new ParameterDefn<bool>("LinkConstraintUseFrameOffset", "For linksets built with constraints, enable frame offsetFor linksets built with constraints, enable frame offset.",
+        new ParameterDefn<bool>("LinkConstraintUseFrameOffset", "For linksets built with constraints, enable frame offsetFor linksets built with constraints, enable frame offset.",
             false ),
-	    new ParameterDefn<bool>("LinkConstraintEnableTransMotor", "Whether to enable translational motor on linkset constraints",
+        new ParameterDefn<bool>("LinkConstraintEnableTransMotor", "Whether to enable translational motor on linkset constraints",
             true ),
-	    new ParameterDefn<float>("LinkConstraintTransMotorMaxVel", "Maximum velocity to be applied by translational motor in linkset constraints",
+        new ParameterDefn<float>("LinkConstraintTransMotorMaxVel", "Maximum velocity to be applied by translational motor in linkset constraints",
             5.0f ),
-	    new ParameterDefn<float>("LinkConstraintTransMotorMaxForce", "Maximum force to be applied by translational motor in linkset constraints",
+        new ParameterDefn<float>("LinkConstraintTransMotorMaxForce", "Maximum force to be applied by translational motor in linkset constraints",
             0.1f ),
-	    new ParameterDefn<float>("LinkConstraintCFM", "Amount constraint can be violated. 0=no violation, 1=infinite. Default=0.1",
+        new ParameterDefn<float>("LinkConstraintCFM", "Amount constraint can be violated. 0=no violation, 1=infinite. Default=0.1",
             0.1f ),
-	    new ParameterDefn<float>("LinkConstraintERP", "Amount constraint is corrected each tick. 0=none, 1=all. Default = 0.2",
+        new ParameterDefn<float>("LinkConstraintERP", "Amount constraint is corrected each tick. 0=none, 1=all. Default = 0.2",
             0.1f ),
-	    new ParameterDefn<float>("LinkConstraintSolverIterations", "Number of solver iterations when computing constraint. (0 = Bullet default)",
+        new ParameterDefn<float>("LinkConstraintSolverIterations", "Number of solver iterations when computing constraint. (0 = Bullet default)",
             40 ),
 
-	    new ParameterDefn<float>("DebugNumber", "A console setable number sometimes used for debugging",
+        new ParameterDefn<float>("DebugNumber", "A console setable number sometimes used for debugging",
             1.0f ),
 
         new ParameterDefn<int>("PhysicsMetricFrames", "Frames between outputting detailed phys metrics. (0 is off)",

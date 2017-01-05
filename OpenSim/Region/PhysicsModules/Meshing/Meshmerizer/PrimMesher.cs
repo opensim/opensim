@@ -445,7 +445,7 @@ namespace PrimMesher
             new Angle(1.0f, 1.0f, 0.0f)
         };
 
-        private static Coord[] normals4 = 
+        private static Coord[] normals4 =
         {
             new Coord(0.5f, 0.5f, 0.0f).Normalize(),
             new Coord(-0.5f, 0.5f, 0.0f).Normalize(),
@@ -2066,7 +2066,7 @@ namespace PrimMesher
         /// DEPRICATED - use Extrude(PathType.Linear) instead
         /// Extrudes a profile along a straight line path. Used for prim types box, cylinder, and prism.
         /// </summary>
-        /// 
+        ///
         public void ExtrudeLinear()
         {
             this.Extrude(PathType.Linear);
@@ -2077,7 +2077,7 @@ namespace PrimMesher
         /// DEPRICATED - use Extrude(PathType.Circular) instead
         /// Extrude a profile into a circular path prim mesh. Used for prim types torus, tube, and ring.
         /// </summary>
-        /// 
+        ///
         public void ExtrudeCircular()
         {
             this.Extrude(PathType.Circular);

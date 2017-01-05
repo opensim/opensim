@@ -150,7 +150,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 //            TestHelpers.EnableLogging();
 
             TestIntArgEvent("changed");
-        }  
+        }
 
         [Test]
         public void TestCollisionEvent()
@@ -159,7 +159,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 //            TestHelpers.EnableLogging();
 
             TestIntArgEvent("collision");
-        }  
+        }
 
         [Test]
         public void TestCollisionStartEvent()
@@ -168,7 +168,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 //            TestHelpers.EnableLogging();
 
             TestIntArgEvent("collision_start");
-        }  
+        }
 
         [Test]
         public void TestCollisionEndEvent()
@@ -177,7 +177,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 //            TestHelpers.EnableLogging();
 
             TestIntArgEvent("collision_end");
-        }  
+        }
 
         [Test]
         public void TestOnRezEvent()
@@ -186,7 +186,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 //            TestHelpers.EnableLogging();
 
             TestIntArgEvent("on_rez");
-        }  
+        }
 
         [Test]
         public void TestRunTimePermissionsEvent()
@@ -195,7 +195,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 //            TestHelpers.EnableLogging();
 
             TestIntArgEvent("run_time_permissions");
-        }  
+        }
 
         [Test]
         public void TestSensorEvent()
@@ -204,7 +204,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 //            TestHelpers.EnableLogging();
 
             TestIntArgEvent("sensor");
-        }  
+        }
 
         [Test]
         public void TestTouchEvent()
@@ -213,7 +213,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 //            TestHelpers.EnableLogging();
 
             TestIntArgEvent("touch");
-        }  
+        }
 
         [Test]
         public void TestTouchStartEvent()
@@ -222,7 +222,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 //            TestHelpers.EnableLogging();
 
             TestIntArgEvent("touch_start");
-        }            
+        }
 
         [Test]
         public void TestTouchEndEvent()
@@ -231,7 +231,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 //            TestHelpers.EnableLogging();
 
             TestIntArgEvent("touch_end");
-        }  
+        }
 
         [Test]
         public void TestLandCollisionEvent()
@@ -351,8 +351,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             }
 
             Assert.That(
-                gotException, 
-                Is.EqualTo(expectException), 
+                gotException,
+                Is.EqualTo(expectException),
                 "Failed on {0}, exception {1}", script, ge != null ? ge.ToString() : "n/a");
         }
     }

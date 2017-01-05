@@ -38,8 +38,8 @@ namespace OpenSim.Region.Framework.Scenes
     public class EntityManager
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
-        private readonly DoubleDictionaryThreadAbortSafe<UUID, uint, EntityBase> m_entities 
+
+        private readonly DoubleDictionaryThreadAbortSafe<UUID, uint, EntityBase> m_entities
             = new DoubleDictionaryThreadAbortSafe<UUID, uint, EntityBase>();
 
         public int Count

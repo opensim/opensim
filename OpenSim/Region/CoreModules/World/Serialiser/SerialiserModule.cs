@@ -45,7 +45,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SerialiserModule")]
     public class SerialiserModule : ISharedRegionModule, IRegionSerialiserModule
     {
-        private static readonly ILog m_log = 
+        private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
 //        private Commander m_commander = new Commander("export");
@@ -55,15 +55,15 @@ namespace OpenSim.Region.CoreModules.World.Serialiser
 
         #region ISharedRegionModule Members
 
-        public Type ReplaceableInterface 
-        { 
+        public Type ReplaceableInterface
+        {
             get { return null; }
         }
 
         public void Initialise(IConfigSource source)
         {
             IConfig config = source.Configs["Serialiser"];
-            if (config != null) 
+            if (config != null)
             {
                 m_savedir = config.GetString("save_dir", m_savedir);
             }
@@ -150,7 +150,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser
         {
             SceneXmlLoader.SavePrimsToXml2(scene, stream, min, max);
         }
-        
+
         public void SaveNamedPrimsToXml2(Scene scene, string primName, string fileName)
         {
             SceneXmlLoader.SaveNamedPrimsToXml2(scene, primName, fileName);

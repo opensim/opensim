@@ -831,6 +831,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             return success;
-        }        
+        }
     }
 }

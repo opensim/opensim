@@ -36,7 +36,7 @@ namespace OpenSim.Framework.Servers.HttpServer
     {
         private readonly XmlRpcMethod _normalMethod;
         private readonly XmlRpcMethod _throttledMethod;
-       
+
         private readonly BasicDosProtectorOptions _options;
         private readonly BasicDOSProtector _dosProtector;
 
@@ -44,7 +44,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             _normalMethod = normalMethod;
             _throttledMethod = throttledMethod;
-           
+
             _options = options;
             _dosProtector = new BasicDOSProtector(_options);
 
@@ -87,5 +87,5 @@ namespace OpenSim.Framework.Servers.HttpServer
 
     }
 
-    
+
 }

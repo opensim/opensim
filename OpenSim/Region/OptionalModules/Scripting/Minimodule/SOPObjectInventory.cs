@@ -61,25 +61,25 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule.Object
                 if (!m_publicInventory.ContainsKey(privateItem.ItemID))
                        m_publicInventory.Add(privateItem.ItemID, new InventoryItem(m_rootScene, privateItem));
         }
-        
+
         #region IDictionary<UUID, IInventoryItem> implementation
         public void Add (UUID key, IInventoryItem value)
         {
             m_publicInventory.Add(key, value);
             m_privateInventory.Add(key, InventoryItem.FromInterface(value).ToTaskInventoryItem());
         }
-        
+
         public bool ContainsKey (UUID key)
         {
             return m_privateInventory.ContainsKey(key);
         }
-        
+
         public bool Remove (UUID key)
         {
             m_publicInventory.Remove(key);
             return m_privateInventory.Remove(key);
         }
-        
+
         public bool TryGetValue (UUID key, out IInventoryItem value)
         {
             value = null;
@@ -89,7 +89,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule.Object
             {
                 // wasn't found in the public inventory
                 TaskInventoryItem privateItem;
-            
+
                 result = m_privateInventory.TryGetValue(key, out privateItem);
                 if (result)
                 {
@@ -98,16 +98,16 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule.Object
                 }
             } else
                 return true;
-            
+
             return result;
         }
-        
+
         public ICollection<UUID> Keys {
             get {
                 return m_privateInventory.Keys;
             }
         }
-        
+
         public ICollection<IInventoryItem> Values {
             get {
                 SynchronizeDictionaries();
@@ -139,41 +139,41 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule.Object
         {
             Add(item.Key, item.Value);
         }
-        
+
         public void Clear ()
         {
             m_publicInventory.Clear();
             m_privateInventory.Clear();
         }
-        
+
         public bool Contains (KeyValuePair<UUID, IInventoryItem> item)
         {
             return m_privateInventory.ContainsKey(item.Key);
         }
-        
+
         public void CopyTo (KeyValuePair<UUID, IInventoryItem>[] array, int arrayIndex)
         {
             throw new NotImplementedException();
         }
-        
+
         public bool Remove (KeyValuePair<UUID, IInventoryItem> item)
         {
             return Remove(item.Key);
         }
-        
+
         public int Count {
             get {
                 return m_privateInventory.Count;
             }
         }
-        
+
         public bool IsReadOnly {
             get {
                 return false;
             }
         }
         #endregion
-        
+
         #region Explicit implementations
         IInventoryItem System.Collections.Generic.IDictionary<UUID, IInventoryItem>.this[UUID key]
         {
@@ -189,13 +189,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule.Object
                 m_privateInventory[key] = InventoryItem.FromInterface(value).ToTaskInventoryItem();
             }
         }
-                
+
         void System.Collections.Generic.ICollection<System.Collections.Generic.KeyValuePair<UUID, IInventoryItem>>.CopyTo(System.Collections.Generic.KeyValuePair<UUID,IInventoryItem>[] array, int offset)
         {
             throw new NotImplementedException();
         }
         #endregion
-        
+
         public IInventoryItem this[string name]
         {
             get {
@@ -204,7 +204,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule.Object
                     {
                         if (!m_publicInventory.ContainsKey(i.ItemID))
                             m_publicInventory.Add(i.ItemID, new InventoryItem(m_rootScene, i));
-                    
+
                         return m_publicInventory[i.ItemID];
                     }
                 throw new KeyNotFoundException();

@@ -57,7 +57,7 @@ namespace OpenSim.Region.Framework.Scenes
         #region Fields
 
         public string Name { get { return RegionInfo.RegionName; } }
-        
+
         public IConfigSource Config
         {
             get { return GetConfig(); }
@@ -95,7 +95,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// The module commanders available from this scene
         /// </value>
         protected Dictionary<string, ICommander> m_moduleCommanders = new Dictionary<string, ICommander>();
-        
+
         /// <value>
         /// Registered classes that are capable of creating entities.
         /// </value>
@@ -108,7 +108,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected uint m_lastAllocatedLocalId = 720000;
 
         private readonly Mutex _primAllocateMutex = new Mutex(false);
-        
+
         protected readonly ClientManager m_clientManager = new ClientManager();
 
         public bool LoginsEnabled
@@ -264,7 +264,7 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual RegionInfo RegionInfo { get; private set; }
 
         #region admin stuff
-        
+
         public abstract void OtherRegionUp(GridRegion otherRegion);
 
         public virtual string GetSimulatorVersion()
@@ -307,7 +307,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             return myID;
         }
-        
+
         #region Module Methods
 
         /// <summary>
@@ -366,7 +366,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_moduleCommanders.ContainsKey(name))
                     return m_moduleCommanders[name];
             }
-            
+
             return null;
         }
 
@@ -416,7 +416,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void RegisterModuleInterface<M>(M mod)
         {
 //            m_log.DebugFormat("[SCENE BASE]: Registering interface {0}", typeof(M));
-            
+
             List<Object> l = null;
             if (!ModuleInterfaces.TryGetValue(typeof(M), out l))
             {
@@ -527,9 +527,9 @@ namespace OpenSim.Region.Framework.Scenes
                 return new T[] {};
             }
         }
-        
+
         #endregion
-        
+
         /// <summary>
         /// Call this from a region module to add a command to the OpenSim console.
         /// </summary>

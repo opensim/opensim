@@ -83,7 +83,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         /// <param name='id'>The agent ID</para></param>
         /// <returns>true if the agent is in the process of being teleported, false otherwise.</returns>
-        bool IsInTransit(UUID id);        
+        bool IsInTransit(UUID id);
 
         bool Cross(ScenePresence agent, bool isFlying);
 
@@ -95,7 +95,7 @@ namespace OpenSim.Region.Framework.Interfaces
 
         GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos, EntityTransferContext ctx,
                                         out Vector3 newpos, out string reason);
-		GridRegion GetObjectDestination(SceneObjectGroup grp, Vector3 targetPosition, out Vector3 newpos);
+        GridRegion GetObjectDestination(SceneObjectGroup grp, Vector3 targetPosition, out Vector3 newpos);
         bool checkAgentAccessToRegion(ScenePresence agent, GridRegion destiny, Vector3 position, EntityTransferContext ctx, out string reason);
 
         bool CrossPrimGroupIntoNewRegion(GridRegion destination, Vector3 newPosition, SceneObjectGroup grp, bool silent, bool removeScripts);

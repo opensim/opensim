@@ -94,7 +94,7 @@ namespace OpenSim.Services.AssetService
         public virtual AssetBase Get(string id)
         {
 //            m_log.DebugFormat("[ASSET SERVICE]: Get asset for {0}", id);
-            
+
             UUID assetID;
 
             if (!UUID.TryParse(id, out assetID))
@@ -162,7 +162,7 @@ namespace OpenSim.Services.AssetService
         public virtual bool Get(string id, Object sender, AssetRetrieved handler)
         {
             //m_log.DebugFormat("[XASSET SERVICE]: Get asset async {0}", id);
-            
+
             UUID assetID;
 
             if (!UUID.TryParse(id, out assetID))
@@ -171,7 +171,7 @@ namespace OpenSim.Services.AssetService
             AssetBase asset = Get(id);
 
             //m_log.DebugFormat("[XASSET SERVICE]: Got asset {0}", asset);
-            
+
             handler(id, sender, asset);
 
             return true;
@@ -182,7 +182,7 @@ namespace OpenSim.Services.AssetService
             UUID[] uuid = Array.ConvertAll(ids, id => UUID.Parse(id));
             return m_Database.AssetsExist(uuid);
         }
-        
+
         public virtual string Store(AssetBase asset)
         {
             bool exists = m_Database.AssetsExist(new[] { asset.FullID })[0];
@@ -222,7 +222,7 @@ namespace OpenSim.Services.AssetService
 
         private void MigrateFromChainedService(AssetBase asset)
         {
-            Store(asset); 
+            Store(asset);
             m_ChainedAssetService.Delete(asset.ID);
         }
     }

@@ -49,7 +49,7 @@ namespace OpenSim.Services.UserProfilesService
     public class OpenProfileClient
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         private string m_serverURI;
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace OpenSim.Services.UserProfilesService
         {
             m_serverURI = serverURI;
         }
-               
+
         /// <summary>
         /// Gets an avatar's profile using the OpenProfile protocol.
         /// </summary>

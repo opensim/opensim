@@ -38,7 +38,7 @@ using OpenSim.Region.Framework.Scenes;
 namespace OpenSim.Region.OptionalModules.Avatar.Chat
 {
 
-    // An instance of this class exists for each unique combination of 
+    // An instance of this class exists for each unique combination of
     // IRC chat interface characteristics, as determined by the supplied
     // configuration file.
 
@@ -266,11 +266,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             ChannelState cs = p_cs;
 
             // Check to see if we have an existing server/channel setup that can be used
-            // In the absence of variable substitution this will always resolve to the 
-            // same ChannelState instance, and the table will only contains a single 
-            // entry, so the performance considerations for the existing behavior are 
+            // In the absence of variable substitution this will always resolve to the
+            // same ChannelState instance, and the table will only contains a single
+            // entry, so the performance considerations for the existing behavior are
             // zero. Only the IRC connector is shared, the ChannelState still contains
-            // values that, while independent of the IRC connetion, do still distinguish 
+            // values that, while independent of the IRC connetion, do still distinguish
             // this region's behavior.
 
             lock (IRCBridgeModule.m_channels)
@@ -335,7 +335,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
         }
 
-        // These routines allow differentiating changes to 
+        // These routines allow differentiating changes to
         // the underlying channel state. If necessary, a
         // new channel state will be created.
 
@@ -426,7 +426,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         }
 
         // This level of obsessive matching allows us to produce
-        // a minimal overhead int he case of a server which does 
+        // a minimal overhead int he case of a server which does
         // need to differentiate IRC at a region level.
 
         private bool IsAPerfectMatchFor(ChannelState cs)
@@ -447,8 +447,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             );
         }
 
-        // This function implements the variable substitution mechanism 
-        // for the configuration values. Each string read from the 
+        // This function implements the variable substitution mechanism
+        // for the configuration values. Each string read from the
         // configuration file is scanned for '[...]' enclosures. Each
         // one that is found is replaced by either a runtime variable
         // (%xxx) or an existing configuration key. When no further
@@ -585,7 +585,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
         }
 
-        // This function is lifted from the IRCConnector because it 
+        // This function is lifted from the IRCConnector because it
         // contains information that is not differentiating from an
         // IRC point-of-view.
 
@@ -598,7 +598,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             {
 
                 // Scan through the set of unique channel configuration for those
-                // that belong to this connector. And then forward the message to 
+                // that belong to this connector. And then forward the message to
                 // all regions known to those channels.
                 // Note that this code is responsible for completing some of the
                 // settings for the inbound OSChatMessage

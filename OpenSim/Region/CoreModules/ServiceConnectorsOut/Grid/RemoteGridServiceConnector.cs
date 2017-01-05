@@ -58,7 +58,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         private IGridService m_RemoteGridService;
 
         private RegionInfoCache m_RegionInfoCache;
-        
+
         public RemoteGridServicesConnector()
         {
         }
@@ -70,7 +70,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         #region ISharedRegionmodule
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }
@@ -113,7 +113,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 return false;
             }
 
-            Object[] args = new Object[] { source }; 
+            Object[] args = new Object[] { source };
             m_RemoteGridService = ServerUtils.LoadPlugin<IGridService>(networkConnector, args);
 
             m_LocalGridService = new LocalGridServicesConnector(source, m_RegionInfoCache);
@@ -130,11 +130,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 new string[] { "Startup", "Hypergrid", "GridService" }, String.Empty);
             // Legacy. Remove soon!
             m_ThisGatekeeper = gridConfig.GetString("Gatekeeper", m_ThisGatekeeper);
-            
-            Util.checkServiceURI(m_ThisGatekeeper, out m_ThisGatekeeper);          
+
+            Util.checkServiceURI(m_ThisGatekeeper, out m_ThisGatekeeper);
 
             return true;
-        }   
+        }
 
         public void PostInitialise()
         {
@@ -249,14 +249,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             {
                 if(string.IsNullOrWhiteSpace(m_ThisGatekeeper))
                     return rinfo; // no HG
-            
+
                 string regionURI = "";
                 if(!Util.buildHGRegionURI(name, out regionURI, out regionName) || string.IsNullOrWhiteSpace(regionName))
-                    return rinfo; // invalid 
+                    return rinfo; // invalid
                 if(m_ThisGatekeeper != regionURI)
                     return rinfo; // not local grid
             }
-                
+
             rinfo = m_RemoteGridService.GetRegionByName(scopeID, regionName);
             m_RegionInfoCache.Cache(scopeID, rinfo);
             return rinfo;
@@ -275,10 +275,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             {
                 if(string.IsNullOrWhiteSpace(m_ThisGatekeeper))
                     return rinfo; // no HG
-            
+
                 string regionURI = "";
                 if(!Util.buildHGRegionURI(name, out regionURI, out regionName) || string.IsNullOrWhiteSpace(regionName))
-                    return rinfo; // invalid 
+                    return rinfo; // invalid
                 if(m_ThisGatekeeper != regionURI)
                     return rinfo; // not local grid
             }

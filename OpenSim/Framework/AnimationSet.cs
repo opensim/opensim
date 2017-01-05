@@ -84,7 +84,7 @@ namespace OpenSim.Framework
             it.GroupPermissions = 0;
             it.EveryOnePermissions = 0;
         }
-        
+
         public int AnimationCount { get; private set; }
         private Dictionary<string, KeyValuePair<string, UUID>> m_animations = new Dictionary<string, KeyValuePair<string, UUID>>();
 

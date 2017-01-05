@@ -112,9 +112,9 @@ namespace OpenSim.Framework.Capabilities
                         m_httpListener.RemoveStreamHandler("POST", m_capsHandlers[idx].Path);
                         m_capsHandlers.Remove(idx);
                     }
-    
+
                     if (null == value) return;
-    
+
                     m_capsHandlers[idx] = value;
                     m_httpListener.AddStreamHandler(value);
                 }
@@ -147,7 +147,7 @@ namespace OpenSim.Framework.Capabilities
         {
             Hashtable caps = new Hashtable();
             string protocol = "http://";
-            
+
             if (m_useSSL)
                 protocol = "https://";
 

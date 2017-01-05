@@ -77,7 +77,7 @@ namespace OpenSim.OfflineIM
                     break;
             }
             ///
-            m_log.DebugFormat("[OfflineIM.V2.RemoteConnector]: Offline IM server at {0} with auth {1}", 
+            m_log.DebugFormat("[OfflineIM.V2.RemoteConnector]: Offline IM server at {0} with auth {1}",
                 m_ServerURI, (m_Auth == null ? "None" : m_Auth.GetType().ToString()));
         }
 
@@ -140,7 +140,7 @@ namespace OpenSim.OfflineIM
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             sendData["UserID"] = userID;
-            
+
             MakeRequest("DELETE", sendData);
         }
 

@@ -50,7 +50,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void T010_AddObjects()
         {
             TestHelpers.InMethod();
-            
+
             random = new Random();
             SceneObjectGroup found;
             EntityManager entman = new EntityManager();
@@ -62,7 +62,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             UUID obj2 = sog.UUID;
             uint li2 = sog.LocalId;
             entman.Add(sog);
-            
+
             found = (SceneObjectGroup)entman[obj1];
             Assert.That(found.UUID ,Is.EqualTo(obj1));
             found = (SceneObjectGroup)entman[li1];
@@ -85,15 +85,15 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void T011_ThreadAddRemoveTest()
         {
             TestHelpers.InMethod();
-            
-            // This test adds and removes with mutiple threads, attempting to break the 
+
+            // This test adds and removes with mutiple threads, attempting to break the
             // uuid and localid dictionary coherence.
             EntityManager entman = new EntityManager();
             SceneObjectGroup sog = NewSOG();
             for (int j=0; j<20; j++)
             {
                 List<Thread> trdlist = new List<Thread>();
-                
+
                 for (int i=0; i<4; i++)
                 {
                     // Adds scene object
@@ -101,14 +101,14 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                     Thread start = new Thread(new ThreadStart(test.TestAddSceneObject));
                     start.Start();
                     trdlist.Add(start);
-                        
+
                     // Removes it
                     test = new NewTestThreads(entman,sog);
                     start = new Thread(new ThreadStart(test.TestRemoveSceneObject));
                     start.Start();
                     trdlist.Add(start);
                 }
-                foreach (Thread thread in trdlist) 
+                foreach (Thread thread in trdlist)
                 {
                     thread.Join();
                 }
@@ -133,14 +133,14 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             SceneObjectGroup sog = new SceneObjectGroup(sop);
             scene.AddNewSceneObject(sog, false);
-            
+
             return sog;
         }
-                
+
         private static string RandomName()
         {
             StringBuilder name = new StringBuilder();
-            int size = random.Next(40,80); 
+            int size = random.Next(40,80);
             char ch ;
             for (int i=0; i<size; i++)
             {
@@ -156,7 +156,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         private EntityManager entman;
         private SceneObjectGroup sog;
         private Random random;
-        
+
         public NewTestThreads(EntityManager entman, SceneObjectGroup sog)
         {
             this.entman = entman;

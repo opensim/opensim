@@ -67,7 +67,7 @@ namespace OpenSim.Framework
             binaryBucket = im.binaryBucket;
             RegionID = im.RegionID;
             ParentEstateID = im.ParentEstateID;
- 
+
             if (addTimestamp)
                 timestamp = (uint)Util.UnixTimeSinceEpoch();
         }

@@ -55,7 +55,7 @@ namespace OpenSim.Region.Framework.Tests
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
-            
+
             Scene scene = new SceneHelpers().SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
             SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, user1.PrincipalID);
@@ -78,7 +78,7 @@ namespace OpenSim.Region.Framework.Tests
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
-            
+
             Scene scene = new SceneHelpers().SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
             SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, user1.PrincipalID);
@@ -121,7 +121,7 @@ namespace OpenSim.Region.Framework.Tests
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
-            
+
             Scene scene = new SceneHelpers().SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
             SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, user1.PrincipalID);
@@ -130,18 +130,18 @@ namespace OpenSim.Region.Framework.Tests
                 = TaskInventoryHelpers.AddNotecard(
                     scene.AssetService, sop1, "ncItem", TestHelpers.ParseTail(0x800), TestHelpers.ParseTail(0x900), "Hello World!");
 
-            InventoryFolderBase folder 
+            InventoryFolderBase folder
                 = InventoryArchiveUtils.FindFoldersByPath(scene.InventoryService, user1.PrincipalID, "Objects")[0];
-            
+
             // Perform test
             string message;
             scene.MoveTaskInventoryItem(user1.PrincipalID, folder.ID, sop1, sopItem1.ItemID, out message);
-                
+
             InventoryItemBase ncUserItem
                 = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, user1.PrincipalID, "Objects/ncItem");
             Assert.That(ncUserItem, Is.Not.Null, "Objects/ncItem was not found");
         }
-        
+
         /// <summary>
         /// Test MoveTaskInventoryItem from a part inventory to a user inventory where the item has no parent folder assigned.
         /// </summary>
@@ -153,7 +153,7 @@ namespace OpenSim.Region.Framework.Tests
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
-            
+
             Scene scene = new SceneHelpers().SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
             SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, user1.PrincipalID);
@@ -162,11 +162,11 @@ namespace OpenSim.Region.Framework.Tests
             TaskInventoryItem sopItem1
                 = TaskInventoryHelpers.AddNotecard(
                     scene.AssetService, sop1, "ncItem", TestHelpers.ParseTail(0x800), TestHelpers.ParseTail(0x900), "Hello World!");
-            
+
             // Perform test
             string message;
             scene.MoveTaskInventoryItem(user1.PrincipalID, UUID.Zero, sop1, sopItem1.ItemID, out message);
-                
+
             InventoryItemBase ncUserItem
                 = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, user1.PrincipalID, "Notecards/ncItem");
             Assert.That(ncUserItem, Is.Not.Null, "Notecards/ncItem was not found");

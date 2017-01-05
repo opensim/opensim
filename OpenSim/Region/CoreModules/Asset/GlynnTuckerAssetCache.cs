@@ -55,7 +55,7 @@ namespace OpenSim.Region.CoreModules.Asset
         // Instrumentation
         private uint m_DebugRate;
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }

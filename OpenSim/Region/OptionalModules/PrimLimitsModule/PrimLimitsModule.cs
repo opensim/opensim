@@ -52,14 +52,14 @@ namespace OpenSim.Region.OptionalModules
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private bool m_enabled;
 
-        public string Name { get { return "PrimLimitsModule"; } }        
-        
+        public string Name { get { return "PrimLimitsModule"; } }
+
         public Type ReplaceableInterface { get { return null; } }
-        
+
         public void Initialise(IConfigSource config)
         {
             string permissionModules = Util.GetConfigVarFromSections<string>(config, "permissionmodules",
-                new string[] { "Startup", "Permissions" }, "DefaultPermissionsModule"); 
+                new string[] { "Startup", "Permissions" }, "DefaultPermissionsModule");
 
             List<string> modules = new List<string>(permissionModules.Split(',').Select(m => m.Trim()));
 
@@ -69,11 +69,11 @@ namespace OpenSim.Region.OptionalModules
             m_log.DebugFormat("[PRIM LIMITS]: Initialized module");
             m_enabled = true;
         }
-        
+
         public void Close()
         {
         }
-        
+
         public void AddRegion(Scene scene)
         {
             if (!m_enabled)
@@ -86,7 +86,7 @@ namespace OpenSim.Region.OptionalModules
 
             m_log.DebugFormat("[PRIM LIMITS]: Region {0} added", scene.RegionInfo.RegionName);
         }
-        
+
         public void RemoveRegion(Scene scene)
         {
             if (m_enabled)
@@ -97,8 +97,8 @@ namespace OpenSim.Region.OptionalModules
             scene.Permissions.OnRezObject -= CanRezObject;
             scene.Permissions.OnObjectEntry -= CanObjectEnter;
             scene.Permissions.OnDuplicateObject -= CanDuplicateObject;
-        }        
-        
+        }
+
         public void RegionLoaded(Scene scene)
         {
             m_dialogModule = scene.RequestModuleInterface<IDialogModule>();
@@ -158,7 +158,7 @@ namespace OpenSim.Region.OptionalModules
 
             Vector3 oldPoint = obj.GroupPosition;
             ILandObject oldParcel = scene.LandChannel.GetLandObject(oldPoint.X, oldPoint.Y);
-            
+
             // The prim hasn't crossed a region boundry so we don't need to worry
             // about prim counts here
             if(oldParcel != null && oldParcel.Equals(newParcel))

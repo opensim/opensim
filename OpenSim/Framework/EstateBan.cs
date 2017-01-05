@@ -43,7 +43,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                return m_estateID; 
+                return m_estateID;
             }
             set
             {

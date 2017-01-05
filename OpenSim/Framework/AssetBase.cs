@@ -112,7 +112,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                return 
+                return
                     IsTextualAsset && (
                     Type != (sbyte)AssetType.Notecard
                     && Type != (sbyte)AssetType.CallingCard
@@ -137,7 +137,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                return 
+                return
                     (Type == (sbyte)AssetType.Animation ||
                      Type == (sbyte)AssetType.Gesture ||
                      Type == (sbyte)AssetType.Simstate ||
@@ -282,7 +282,7 @@ namespace OpenSim.Framework
 
                 return m_id;
             }
-            
+
             set
             {
                 UUID uuid = UUID.Zero;

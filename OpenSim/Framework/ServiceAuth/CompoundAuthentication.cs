@@ -56,7 +56,7 @@ namespace OpenSim.Framework.ServiceAuth
             m_authentications.Remove(auth);
         }
 
-        public void AddAuthorization(NameValueCollection headers) 
+        public void AddAuthorization(NameValueCollection headers)
         {
             foreach (IServiceAuth auth in m_authentications)
                 auth.AddAuthorization(headers);

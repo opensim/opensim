@@ -65,7 +65,7 @@ namespace OpenSim.Tests.Common
         {
             return m_parcels;
         }
-        
+
         public void Clear(bool setupDefaultParcel)
         {
             m_parcels.Clear();

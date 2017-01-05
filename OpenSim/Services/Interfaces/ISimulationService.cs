@@ -59,7 +59,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="destination"></param>
         /// <param name="aCircuit"></param>
         /// <param name="flags"></param>
-        /// <param name="reason">Reason message in the event of a failure.</param>        
+        /// <param name="reason">Reason message in the event of a failure.</param>
         bool CreateAgent(GridRegion source, GridRegion destination, AgentCircuitData aCircuit, uint flags, EntityTransferContext ctx, out string reason);
 
         /// <summary>

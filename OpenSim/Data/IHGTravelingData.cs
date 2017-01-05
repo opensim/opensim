@@ -48,7 +48,7 @@ namespace OpenSim.Data
     /// <summary>
     /// An interface for connecting to the user grid datastore
     /// </summary>
-    public interface IHGTravelingData 
+    public interface IHGTravelingData
     {
         HGTravelingData Get(UUID sessionID);
         HGTravelingData[] GetSessions(UUID userID);

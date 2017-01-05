@@ -47,10 +47,10 @@ namespace pCampBot
 
         public const int m_regionCrossingTimeout = 1000 * 60;
 
-        public CrossBehaviour() 
-        { 
+        public CrossBehaviour()
+        {
             AbbreviatedName = "c";
-            Name = "Cross"; 
+            Name = "Cross";
         }
 
         public override void Action()

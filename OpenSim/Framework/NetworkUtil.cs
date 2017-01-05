@@ -40,7 +40,7 @@ namespace OpenSim.Framework
     /// Handles NAT translation in a 'manner of speaking'
     /// Allows you to return multiple different external
     /// hostnames depending on the requestors network
-    /// 
+    ///
     /// This enables standard port forwarding techniques
     /// to work correctly with OpenSim.
     /// </summary>
@@ -145,7 +145,7 @@ namespace OpenSim.Framework
                 byte[] subnetBytes = subnet.Value.GetAddressBytes();
                 byte[] localBytes = subnet.Key.GetAddressBytes();
                 byte[] destBytes = destination.GetAddressBytes();
-                
+
                 if (subnetBytes.Length != destBytes.Length || subnetBytes.Length != localBytes.Length)
                     return null;
 

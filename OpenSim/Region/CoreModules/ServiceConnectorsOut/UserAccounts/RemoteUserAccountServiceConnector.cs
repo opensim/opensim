@@ -53,7 +53,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
         private bool m_Enabled = false;
         private UserAccountCache m_Cache;
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }

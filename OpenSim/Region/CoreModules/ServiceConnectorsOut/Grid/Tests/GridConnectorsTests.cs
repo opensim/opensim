@@ -88,7 +88,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
             Scene s = new Scene(new RegionInfo());
             s.RegionInfo.RegionID = r1.RegionID;
             m_LocalConnector.AddRegion(s);
-            
+
             GridRegion r2 = new GridRegion();
             r2.RegionName = "Test Region 2";
             r2.RegionID = new UUID(2);

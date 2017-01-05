@@ -181,12 +181,12 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                                          string extraParams, int updateTimer, bool SetBlending, byte AlphaValue)
         {
             return AddDynamicTextureURL(simID, primID, contentType, url,
-                                          extraParams, updateTimer, SetBlending, 
+                                          extraParams, updateTimer, SetBlending,
                                          (int)(DISP_TEMP|DISP_EXPIRE), AlphaValue, ALL_SIDES);
         }
 
         public UUID AddDynamicTextureURL(UUID simID, UUID primID, string contentType, string url,
-                                         string extraParams, int updateTimer, bool SetBlending, 
+                                         string extraParams, int updateTimer, bool SetBlending,
                                          int disp, byte AlphaValue, int face)
         {
             if (RenderPlugins.ContainsKey(contentType))
@@ -227,7 +227,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
         public UUID AddDynamicTextureData(UUID simID, UUID primID, string contentType, string data,
                                           string extraParams, int updateTimer, bool SetBlending, byte AlphaValue)
         {
-            return AddDynamicTextureData(simID, primID, contentType, data, extraParams, updateTimer, SetBlending, 
+            return AddDynamicTextureData(simID, primID, contentType, data, extraParams, updateTimer, SetBlending,
                                           (int) (DISP_TEMP|DISP_EXPIRE), AlphaValue, ALL_SIDES);
         }
 
@@ -478,17 +478,17 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
                 if (part == null || data == null || data.Length <= 1)
                 {
-                    string msg = 
+                    string msg =
                         String.Format("DynamicTextureModule: Error preparing image using URL {0}", Url);
                     scene.SimChat(Utils.StringToBytes(msg), ChatTypeEnum.Say,
                                   0, part.ParentGroup.RootPart.AbsolutePosition, part.Name, part.UUID, false);
-                    
+
                     return UUID.Zero;
                 }
 
                 byte[] assetData = null;
                 AssetBase oldAsset = null;
-                
+
                 if (BlendWithOldTexture)
                 {
                     Primitive.TextureEntryFace defaultFace = part.Shape.Textures.DefaultTexture;
@@ -558,7 +558,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
                 Bitmap image1 = new Bitmap(image);
                 image.Dispose();
-                
+
                 if (!OpenJPEG.DecodeToImage(backImage, out managedImage, out image) || image == null)
                 {
                     image1.Dispose();

@@ -37,7 +37,7 @@ namespace OpenSim.Services.Interfaces
     public class GridUserInfo
     {
         public string UserID;
-        
+
         public UUID HomeRegionID;
         public Vector3 HomePosition;
         public Vector3 HomeLookAt;
@@ -45,13 +45,13 @@ namespace OpenSim.Services.Interfaces
         public UUID LastRegionID;
         public Vector3 LastPosition;
         public Vector3 LastLookAt;
-        
+
         public bool Online;
         public DateTime Login;
         public DateTime Logout;
 
         public GridUserInfo() {}
-        
+
         public GridUserInfo(Dictionary<string, object> kvp)
         {
             if (kvp.ContainsKey("UserID"))
@@ -96,11 +96,11 @@ namespace OpenSim.Services.Interfaces
             result["Online"] = Online.ToString();
             result["Login"] = Login.ToString();
             result["Logout"] = Logout.ToString();
-            
+
             return result;
         }
     }
-    
+
     public interface IGridUserService
     {
         GridUserInfo LoggedIn(string userID);
@@ -115,7 +115,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="lastLookAt">Last normalized look direction for the user</param>
         /// <returns>True if the logout request was successfully processed, otherwise false</returns>
         bool LoggedOut(string userID, UUID sessionID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt);
-        
+
         bool SetHome(string userID, UUID homeID, Vector3 homePosition, Vector3 homeLookAt);
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="lastLookAt">Normalized look direction</param>
         /// <returns>True if the user's last position was successfully updated, otherwise false</returns>
         bool SetLastPosition(string userID, UUID sessionID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt);
-        
+
         GridUserInfo GetGridUserInfo(string userID);
         GridUserInfo[] GetGridUserInfo(string[] userID);
     }

@@ -74,7 +74,7 @@ namespace OpenSim.Capabilities.Handlers
 
             int page_size = (string.IsNullOrEmpty(psize) ? 500 : Int32.Parse(psize));
             int page_number = (string.IsNullOrEmpty(pnumber) ? 1 : Int32.Parse(pnumber));
-            
+
             // Full content request
             httpResponse.StatusCode = (int)System.Net.HttpStatusCode.OK;
             //httpResponse.ContentLength = ??;

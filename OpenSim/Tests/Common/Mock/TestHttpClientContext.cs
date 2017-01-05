@@ -43,7 +43,7 @@ namespace OpenSim.Tests.Common
         /// Bodies of responses from the server.
         /// </summary>
         public string ResponseBody
-        { 
+        {
             get { return Encoding.UTF8.GetString(m_responseStream.ToArray()); }
         }
 
@@ -56,8 +56,8 @@ namespace OpenSim.Tests.Common
 
         public bool IsSecured { get; set; }
 
-        public bool Secured 
-        { 
+        public bool Secured
+        {
             get { return IsSecured; }
             set { IsSecured = value; }
         }
@@ -67,7 +67,7 @@ namespace OpenSim.Tests.Common
             Secured = secured;
         }
 
-        public void Disconnect(SocketError error) 
+        public void Disconnect(SocketError error)
         {
 //            Console.WriteLine("TestHttpClientContext.Disconnect Received disconnect with status {0}", error);
         }
@@ -76,18 +76,18 @@ namespace OpenSim.Tests.Common
         public void Respond(string httpVersion, HttpStatusCode statusCode, string reason) {Console.WriteLine("xx");}
         public void Respond(string body) { Console.WriteLine("xxx");}
 
-        public void Send(byte[] buffer) 
+        public void Send(byte[] buffer)
         {
             // Getting header data here
 //            Console.WriteLine("xxxx: Got {0}", Encoding.UTF8.GetString(buffer));
         }
 
-        public void Send(byte[] buffer, int offset, int size) 
+        public void Send(byte[] buffer, int offset, int size)
         {
 //            Util.PrintCallStack();
 //
 //            Console.WriteLine(
-//                "TestHttpClientContext.Send(byte[], int, int) got offset={0}, size={1}, buffer={2}", 
+//                "TestHttpClientContext.Send(byte[], int, int) got offset={0}, size={1}, buffer={2}",
 //                offset, size, Encoding.UTF8.GetString(buffer));
 
             m_responseStream.Write(buffer, offset, size);

@@ -58,9 +58,9 @@ namespace OpenSim
         public NetworkServersInfo NetServersInfo { get { return m_networkServersInfo; } }
         public ISimulationDataService SimulationDataService { get { return m_simulationDataService; } }
         public IEstateDataService EstateDataService { get { return m_estateDataService; } }
-       
+
         protected abstract void Initialize();
-        
+
         protected abstract Scene CreateScene(RegionInfo regionInfo, ISimulationDataService simDataService, IEstateDataService estateDataService, AgentCircuitManager circuitManager);
 
         protected override void StartupSpecific()
@@ -125,7 +125,7 @@ namespace OpenSim
                     MainServer.AddHttpServer(server);
                 }
             }
-            
+
             base.StartupSpecific();
         }
 

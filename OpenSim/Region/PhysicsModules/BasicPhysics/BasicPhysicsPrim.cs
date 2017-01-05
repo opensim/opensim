@@ -281,23 +281,23 @@ namespace OpenSim.Region.PhysicsModule.BasicPhysics
             set { return; }
         }
 
-        public override Quaternion APIDTarget 
-        { 
+        public override Quaternion APIDTarget
+        {
             set { return; }
         }
-        
+
         public override bool APIDActive
-        { 
+        {
             set { return; }
         }
-        
+
         public override float APIDStrength
-        { 
+        {
             set { return; }
         }
-        
+
         public override float APIDDamping
-        { 
+        {
             set { return; }
         }
 

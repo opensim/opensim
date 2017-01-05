@@ -46,7 +46,7 @@ namespace OpenSim.Groups
         public string AccessToken;
     }
 
-    public class ExtendedGroupMembersData 
+    public class ExtendedGroupMembersData
     {
         // This is the only difference: this is a string
         public string AgentID;
@@ -65,7 +65,7 @@ namespace OpenSim.Groups
         public UUID RoleID;
         // This is the only difference: this is a string
         public string MemberID;
-    
+
     }
 
     public struct ExtendedGroupNoticeData

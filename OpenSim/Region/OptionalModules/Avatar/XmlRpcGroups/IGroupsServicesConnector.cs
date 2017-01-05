@@ -43,7 +43,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         /// <returns></returns>
         /// <param name='RequestingAgentID'>The UUID of the user making the request.</param>
         /// <param name='GroupID'>
-        /// The ID of the record to retrieve.  
+        /// The ID of the record to retrieve.
         /// GroupName may be specified instead, in which case this parameter will be UUID.Zero
         /// </param>
         /// <param name='GroupName'>
@@ -89,7 +89,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         /// If the user is a member of the group then the data structure is returned.  If not, then null is returned.
         /// </returns>
         GroupMembershipData GetAgentGroupMembership(UUID RequestingAgentID, UUID AgentID, UUID GroupID);
-        
+
         /// <summary>
         /// Get information about the groups to which a user belongs.
         /// </summary>

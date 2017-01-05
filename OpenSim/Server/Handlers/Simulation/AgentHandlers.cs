@@ -190,7 +190,7 @@ namespace OpenSim.Server.Handlers.Simulation
             {
                 // If there is no version in the packet at all we're looking at 0.6 or
                 // even more ancient. Refuse it.
-                if(theirVersion == 0f) 
+                if(theirVersion == 0f)
                 {
                     resp["success"] = OSD.FromBoolean(false);
                     resp["reason"] = OSD.FromString("Your region is running a old version of opensim no longer supported. Consider updating it");
@@ -199,8 +199,8 @@ namespace OpenSim.Server.Handlers.Simulation
                 }
 
                 version = theirVersion;
-                  
-                if (version < VersionInfo.SimulationServiceVersionAcceptedMin || 
+
+                if (version < VersionInfo.SimulationServiceVersionAcceptedMin ||
                     version > VersionInfo.SimulationServiceVersionAcceptedMax )
                 {
                     resp["success"] = OSD.FromBoolean(false);
@@ -274,7 +274,7 @@ namespace OpenSim.Server.Handlers.Simulation
             OSDArray featuresWanted = new OSDArray();
             foreach (UUID feature in features)
                 featuresWanted.Add(OSD.FromString(feature.ToString()));
-            
+
             resp["features"] = featuresWanted;
 
             // We must preserve defaults here, otherwise a false "success" will not be put into the JSON map!
@@ -460,7 +460,7 @@ namespace OpenSim.Server.Handlers.Simulation
                 source.RegionLocY = Int32.Parse(args["source_y"].AsString());
                 source.RegionName = args["source_name"].AsString();
                 source.RegionID = UUID.Parse(args["source_uuid"].AsString());
-                
+
                 if (args.ContainsKey("source_server_uri"))
                     source.RawServerURI = args["source_server_uri"].AsString();
                 else

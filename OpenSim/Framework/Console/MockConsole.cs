@@ -35,7 +35,7 @@ namespace OpenSim.Framework.Console
 {
     /// <summary>
     /// This is a Fake console that's used when setting up the Scene in Unit Tests
-    /// Don't use this except for Unit Testing or you're in for a world of hurt when the 
+    /// Don't use this except for Unit Testing or you're in for a world of hurt when the
     /// sim gets to ReadLine
     /// </summary>
     public class MockConsole : ICommandConsole
@@ -56,7 +56,7 @@ namespace OpenSim.Framework.Console
 
         public string ReadLine(string p, bool isCommand, bool e) { return ""; }
 
-        public object ConsoleScene { 
+        public object ConsoleScene {
             get { return null; }
             set {}
         }

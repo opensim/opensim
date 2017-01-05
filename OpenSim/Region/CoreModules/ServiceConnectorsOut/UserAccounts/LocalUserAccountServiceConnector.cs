@@ -59,7 +59,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 
         #region ISharedRegionModule
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }
@@ -200,7 +200,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                     account = m_Cache.Get(uuid, out inCache);
                     if (inCache)
                         ret.Add(account);
-                    else                        
+                    else
                         missing.Add(id);
                 }
             }

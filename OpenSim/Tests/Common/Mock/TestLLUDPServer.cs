@@ -73,7 +73,7 @@ namespace OpenSim.Tests.Common
 ////        /// The chunks of data to pass to the LLUDPServer when it calls EndReceive
 ////        /// </summary>
 ////        protected Queue<ChunkSenderTuple> m_chunksToLoad = new Queue<ChunkSenderTuple>();
-//        
+//
 ////        protected override void BeginReceive()
 ////        {
 ////            if (m_chunksToLoad.Count > 0 && m_chunksToLoad.Peek().BeginReceiveException)
@@ -83,29 +83,29 @@ namespace OpenSim.Tests.Common
 ////                throw new SocketException();
 ////            }
 ////        }
-//        
+//
 ////        protected override bool EndReceive(out int numBytes, IAsyncResult result, ref EndPoint epSender)
 ////        {
 ////            numBytes = 0;
 ////
 ////            //m_log.Debug("Queue size " + m_chunksToLoad.Count);
-////            
+////
 ////            if (m_chunksToLoad.Count <= 0)
 ////                return false;
-////            
+////
 ////            ChunkSenderTuple tuple = m_chunksToLoad.Dequeue();
 ////            RecvBuffer = tuple.Data;
 ////            numBytes   = tuple.Data.Length;
 ////            epSender   = tuple.Sender;
-////            
+////
 ////            return true;
 ////        }
-//        
+//
 ////        public override void SendPacketTo(byte[] buffer, int size, SocketFlags flags, uint circuitcode)
 ////        {
 ////            // Don't do anything just yet
 ////        }
-//        
+//
 //        /// <summary>
 //        /// Signal that this chunk should throw an exception on Socket.BeginReceive()
 //        /// </summary>
@@ -116,7 +116,7 @@ namespace OpenSim.Tests.Common
 //            tuple.BeginReceiveException = true;
 //            m_chunksToLoad.Enqueue(tuple);
 //        }
-//        
+//
 //        /// <summary>
 //        /// Load some data to be received by the LLUDPServer on the next receive call
 //        /// </summary>
@@ -126,7 +126,7 @@ namespace OpenSim.Tests.Common
 //        {
 //            m_chunksToLoad.Enqueue(new ChunkSenderTuple(data, epSender));
 //        }
-//        
+//
 //        /// <summary>
 //        /// Load a packet to be received by the LLUDPServer on the next receive call
 //        /// </summary>
@@ -135,7 +135,7 @@ namespace OpenSim.Tests.Common
 //        {
 //            LoadReceive(packet.ToBytes(), epSender);
 //        }
-//        
+//
 //        /// <summary>
 //        /// Calls the protected asynchronous result method.  This fires out all data chunks currently queued for send
 //        /// </summary>
@@ -147,7 +147,7 @@ namespace OpenSim.Tests.Common
 ////                OnReceivedData(result);
 //        }
     }
-    
+
     /// <summary>
     /// Record the data and sender tuple
     /// </summary>
@@ -156,13 +156,13 @@ namespace OpenSim.Tests.Common
         public byte[] Data;
         public EndPoint Sender;
         public bool BeginReceiveException;
-        
+
         public ChunkSenderTuple(byte[] data, EndPoint sender)
         {
             Data = data;
             Sender = sender;
         }
-        
+
         public ChunkSenderTuple(EndPoint sender)
         {
             Sender = sender;

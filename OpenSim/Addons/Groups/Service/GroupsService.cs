@@ -126,7 +126,7 @@ namespace OpenSim.Groups
 
         #endregion
 
-        public UUID CreateGroup(string RequestingAgentID, string name, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment, 
+        public UUID CreateGroup(string RequestingAgentID, string name, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment,
             bool allowPublish, bool maturePublish, UUID founderID, out string reason)
         {
             reason = string.Empty;
@@ -264,7 +264,7 @@ namespace OpenSim.Groups
             if (ownerRole != null)
                 ownerRoleID = ownerRole.RoleID;
 
-            // Check visibility? 
+            // Check visibility?
             // When we don't want to check visibility, we pass it "all" as the requestingAgentID
             bool checkVisibility = !RequestingAgentID.Equals(UUID.Zero.ToString());
 
@@ -307,20 +307,20 @@ namespace OpenSim.Groups
                 m.Contribution = Int32.Parse(d.Data["Contribution"]);
                 m.ListInProfile = d.Data["ListInProfile"] == "1" ? true : false;
 
-				GridUserData gud = m_GridUserService.Get(d.PrincipalID);
-				if (gud != null)
-				{
-					if (bool.Parse(gud.Data["Online"])) 
-					{
-						m.OnlineStatus = @"Online";
-					}
-					else 
-					{
-						int unixtime = int.Parse(gud.Data["Login"]);
-						// The viewer is very picky about how these strings are formed. Eg. it will crash on malformed dates!
-						m.OnlineStatus = (unixtime == 0) ? @"unknown" : Util.ToDateTime(unixtime).ToString("MM/dd/yyyy");
-					}
-				}
+                GridUserData gud = m_GridUserService.Get(d.PrincipalID);
+                if (gud != null)
+                {
+                    if (bool.Parse(gud.Data["Online"]))
+                    {
+                        m.OnlineStatus = @"Online";
+                    }
+                    else
+                    {
+                        int unixtime = int.Parse(gud.Data["Login"]);
+                        // The viewer is very picky about how these strings are formed. Eg. it will crash on malformed dates!
+                        m.OnlineStatus = (unixtime == 0) ? @"unknown" : Util.ToDateTime(unixtime).ToString("MM/dd/yyyy");
+                    }
+                }
 
                 // Is this person an owner of the group?
                 m.IsOwner = (rolemembershipsList.Find(r => r.RoleID == ownerRoleID) != null) ? true : false;
@@ -553,8 +553,8 @@ namespace OpenSim.Groups
                     {
                         newRoleID = r.RoleID;
                         break;
-                    }   
-                }   
+                    }
+                }
 
             MembershipData member = m_Database.RetrieveMember(GroupID, AgentID);
             if (member != null)
@@ -712,7 +712,7 @@ namespace OpenSim.Groups
             m_Database.StoreMember(membership);
         }
 
-        public bool AddGroupNotice(string RequestingAgentID, UUID groupID, UUID noticeID, string fromName, string subject, string message, 
+        public bool AddGroupNotice(string RequestingAgentID, UUID groupID, UUID noticeID, string fromName, string subject, string message,
             bool hasAttachment, byte attType, string attName, UUID attItemID, string attOwnerID)
         {
             // Check perms

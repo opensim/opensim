@@ -105,7 +105,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 //            rmcp.LoadModulesFromAddins = false;
 ////            reg.RegisterInterface<IRegionModulesController>(rmcp);
 //            rmcp.Initialise(sim);
-//            rmcp.PostInitialise();           
+//            rmcp.PostInitialise();
 //            TypeExtensionNode node = new TypeExtensionNode();
 //            node.
 //            rmcp.AddNode(node, configSource.Configs["Modules"], new Dictionary<RuntimeAddin, IList<int>>());
@@ -120,9 +120,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             int expectedEventCount = 6;
 
             Assert.AreEqual(
-                expectedEventCount, 
-                co.Count, 
-                "Expected {0} events but only got {1} ({2})", 
+                expectedEventCount,
+                co.Count,
+                "Expected {0} events but only got {1} ({2})",
                 expectedEventCount, co.Count, string.Join(",", co));
             Assert.AreEqual("Initialise",       co[0]);
             Assert.AreEqual("PostInitialise",   co[1]);
@@ -137,7 +137,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     {
         // FIXME: Should really use MethodInfo
         public List<string> CallOrder = new List<string>();
-                
+
         public string Name { get { return "TestSharedRegion"; } }
 
         public Type ReplaceableInterface { get { return null; } }
@@ -186,13 +186,13 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
         public void Initialise() {}
 
-        public void Initialise(OpenSimBase sim) 
+        public void Initialise(OpenSimBase sim)
         {
             m_openSim = sim;
         }
 
         /// <summary>
-        /// Called when the application loading is completed 
+        /// Called when the application loading is completed
         /// </summary>
         public void PostInitialise()
         {
@@ -228,8 +228,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             }
 
             scene.RegionModules.Clear();
-        }       
-        
+        }
+
         public void AddNode(ISharedRegionModule module)
         {
             m_sharedInstances.Add(module);

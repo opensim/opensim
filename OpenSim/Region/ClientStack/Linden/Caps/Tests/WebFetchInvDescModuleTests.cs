@@ -151,7 +151,7 @@ namespace OpenSim.Region.ClientStack.Linden.Caps.Tests
             OSDMap responseOsd = (OSDMap)OSDParser.DeserializeLLSDXml(context.ResponseBody);
             OSDArray foldersOsd = (OSDArray)responseOsd["folders"];
             OSDMap folderOsd = (OSDMap)foldersOsd[0];
-           
+
             // A sanity check that the response has the expected number of descendents for a default inventory
             // TODO: Need a more thorough check.
             Assert.That((int)folderOsd["descendents"], Is.EqualTo(16));

@@ -9,14 +9,14 @@ using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.PhysicsModule.ODE
 {
-	[Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ODEPhysicsScene")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ODEPhysicsScene")]
     public class OdeModule : INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Enabled = false;
-		private IConfigSource m_config;
-		private OdeScene  m_scene;
+        private IConfigSource m_config;
+        private OdeScene  m_scene;
 
        #region INonSharedRegionModule
 
@@ -84,6 +84,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             m_scene.RegionLoaded();
         }
-        #endregion			
+        #endregion
     }
 }

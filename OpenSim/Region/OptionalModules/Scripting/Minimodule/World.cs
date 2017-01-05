@@ -34,7 +34,7 @@ using OpenSim.Region.OptionalModules.Scripting.Minimodule.WorldX;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    public class World : System.MarshalByRefObject, IWorld, IWorldAudio 
+    public class World : System.MarshalByRefObject, IWorld, IWorldAudio
     {
         private readonly Scene m_internalScene;
         private readonly ISecurityCredential m_security;
@@ -149,7 +149,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 e.Sender = new SOPObject(m_internalScene, ((SceneObjectPart) chat.SenderObject).LocalId, m_security);
                 e.Text = chat.Message;
                 e.Channel = chat.Channel;
-                
+
                 _OnChat(this, e);
                 return;
             }
@@ -160,7 +160,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 e.Sender = new SPAvatar(m_internalScene, chat.SenderUUID, m_security);
                 e.Text = chat.Message;
                 e.Channel = chat.Channel;
-                
+
                 _OnChat(this, e);
                 return;
             }

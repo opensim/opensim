@@ -146,7 +146,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         {
             get { return null; }
         }
-        
+
         public void Close()
         {
         }

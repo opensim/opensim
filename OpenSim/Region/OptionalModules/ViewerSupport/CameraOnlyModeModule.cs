@@ -161,7 +161,7 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
                 {
                     foreach (SceneObjectGroup sog in attachs)
                     {
-                        m_log.DebugFormat("[CAMERA-ONLY MODE]: Forcibly detaching attach {0} from {1} in {2}", 
+                        m_log.DebugFormat("[CAMERA-ONLY MODE]: Forcibly detaching attach {0} from {1} in {2}",
                             sog.Name, sp.Name, m_scene.RegionInfo.RegionName);
 
                         m_scene.AttachmentsModule.DetachSingleAttachmentToInv(sp, sog);

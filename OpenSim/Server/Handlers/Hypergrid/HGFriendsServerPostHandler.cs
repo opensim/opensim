@@ -61,7 +61,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             m_UserAgentService = uas;
             m_FriendsLocalSimConnector = friendsConn;
 
-            m_log.DebugFormat("[HGFRIENDS HANDLER]: HGFriendsServerPostHandler is On ({0})", 
+            m_log.DebugFormat("[HGFRIENDS HANDLER]: HGFriendsServerPostHandler is On ({0})",
                 (m_FriendsLocalSimConnector == null ? "robust" : "standalone"));
 
             if (m_TheService == null)
@@ -105,24 +105,24 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
                     case "validate_friendship_offered":
                         return ValidateFriendshipOffered(request);
-                        
+
                     case "statusnotification":
                         return StatusNotification(request);
                     /*
                     case "friendship_approved":
                         return FriendshipApproved(request);
-                    
+
                     case "friendship_denied":
                         return FriendshipDenied(request);
-                    
+
                     case "friendship_terminated":
                         return FriendshipTerminated(request);
-                    
+
                     case "grant_rights":
                         return GrantRights(request);
                         */
                 }
-                
+
                 m_log.DebugFormat("[HGFRIENDS HANDLER]: unknown method {0}", method);
             }
             catch (Exception e)

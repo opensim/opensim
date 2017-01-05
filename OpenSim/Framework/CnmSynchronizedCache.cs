@@ -36,10 +36,10 @@ namespace OpenSim.Framework
     /// Synchronized Cenome cache wrapper.
     /// </summary>
     /// <typeparam name="TKey">
-    /// The type of keys in the cache. 
+    /// The type of keys in the cache.
     /// </typeparam>
     /// <typeparam name="TValue">
-    /// The type of values in the cache. 
+    /// The type of values in the cache.
     /// </typeparam>
     /// <remarks>
     /// <para>
@@ -60,7 +60,7 @@ namespace OpenSim.Framework
         private readonly object m_syncRoot;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CnmSynchronizedCache{TKey,TValue}"/> class. 
+        /// Initializes a new instance of the <see cref="CnmSynchronizedCache{TKey,TValue}"/> class.
         /// Initializes a new instance of the <see cref="CnmSynchronizedCache{TKey,TValue}"/> class.
         /// </summary>
         /// <param name="cache">
@@ -73,13 +73,13 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Returns a <see cref="ICnmCache{TKey,TValue}"/> wrapper that is synchronized (thread safe). 
+        /// Returns a <see cref="ICnmCache{TKey,TValue}"/> wrapper that is synchronized (thread safe).
         /// </summary>
         /// <param name="cache">
         /// The <see cref="ICnmCache{TKey,TValue}"/> to synchronize.
         /// </param>
         /// <returns>
-        /// A <see cref="ICnmCache{TKey,TValue}"/> wrapper that is synchronized (thread safe). 
+        /// A <see cref="ICnmCache{TKey,TValue}"/> wrapper that is synchronized (thread safe).
         /// </returns>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="cache"/>is null.
@@ -125,7 +125,7 @@ namespace OpenSim.Framework
             }
 
             /// <summary>
-            /// Finalizes an instance of the <see cref="SynchronizedEnumerator"/> class. 
+            /// Finalizes an instance of the <see cref="SynchronizedEnumerator"/> class.
             /// </summary>
             ~SynchronizedEnumerator()
             {
@@ -184,7 +184,7 @@ namespace OpenSim.Framework
             /// true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the collection.
             /// </returns>
             /// <exception cref="InvalidOperationException">
-            /// The collection was modified after the enumerator was created. 
+            /// The collection was modified after the enumerator was created.
             /// </exception>
             public bool MoveNext()
             {
@@ -195,7 +195,7 @@ namespace OpenSim.Framework
             /// Sets the enumerator to its initial position, which is before the first element in the collection.
             /// </summary>
             /// <exception cref="InvalidOperationException">
-            /// The collection was modified after the enumerator was created. 
+            /// The collection was modified after the enumerator was created.
             /// </exception>
             public void Reset()
             {
@@ -214,8 +214,8 @@ namespace OpenSim.Framework
         /// </summary>
         /// <remarks>
         /// <para>
-        /// When adding an new element to <see cref="ICnmCache{TKey,TValue}"/> that is limiting element count, 
-        /// <see cref="ICnmCache{TKey,TValue}"/> will remove less recently used elements until it can fit an new element. 
+        /// When adding an new element to <see cref="ICnmCache{TKey,TValue}"/> that is limiting element count,
+        /// <see cref="ICnmCache{TKey,TValue}"/> will remove less recently used elements until it can fit an new element.
         /// </para>
         /// </remarks>
         /// <seealso cref="ICnmCache{TKey,TValue}.MaxCount"/>
@@ -241,13 +241,13 @@ namespace OpenSim.Framework
         /// </value>
         /// <remarks>
         /// <para>
-        /// When element has been stored in <see cref="ICnmCache{TKey,TValue}"/> longer than <see cref="ICnmCache{TKey,TValue}.ExpirationTime"/> 
-        /// and it is not accessed through <see cref="ICnmCache{TKey,TValue}.TryGetValue"/> method or element's value is 
-        /// not replaced by <see cref="ICnmCache{TKey,TValue}.Set"/> method, then it is automatically removed from the 
+        /// When element has been stored in <see cref="ICnmCache{TKey,TValue}"/> longer than <see cref="ICnmCache{TKey,TValue}.ExpirationTime"/>
+        /// and it is not accessed through <see cref="ICnmCache{TKey,TValue}.TryGetValue"/> method or element's value is
+        /// not replaced by <see cref="ICnmCache{TKey,TValue}.Set"/> method, then it is automatically removed from the
         /// <see cref="ICnmCache{TKey,TValue}"/>.
         /// </para>
         /// <para>
-        /// It is possible that <see cref="ICnmCache{TKey,TValue}"/> implementation removes element before it's expiration time, 
+        /// It is possible that <see cref="ICnmCache{TKey,TValue}"/> implementation removes element before it's expiration time,
         /// because total size or count of elements stored to cache is larger than <see cref="ICnmCache{TKey,TValue}.MaxSize"/> or <see cref="ICnmCache{TKey,TValue}.MaxCount"/>.
         /// </para>
         /// <para>
@@ -291,17 +291,17 @@ namespace OpenSim.Framework
         /// Gets a value indicating whether <see cref="ICnmCache{TKey,TValue}"/> is limiting count of elements.
         /// </summary>
         /// <value>
-        /// <see langword="true"/> if the <see cref="ICnmCache{TKey,TValue}"/> count of elements is limited; 
-        /// otherwise, <see langword="false"/>. 
+        /// <see langword="true"/> if the <see cref="ICnmCache{TKey,TValue}"/> count of elements is limited;
+        /// otherwise, <see langword="false"/>.
         /// </value>
         /// <remarks>
         /// <para>
-        /// When adding an new element to <see cref="ICnmCache{TKey,TValue}"/> that is limiting element count, 
-        /// <see cref="ICnmCache{TKey,TValue}"/> will remove less recently used elements until it can fit an new element. 
+        /// When adding an new element to <see cref="ICnmCache{TKey,TValue}"/> that is limiting element count,
+        /// <see cref="ICnmCache{TKey,TValue}"/> will remove less recently used elements until it can fit an new element.
         /// </para>
         /// </remarks>
         /// <seealso cref="ICnmCache{TKey,TValue}.Count"/>
-        /// <seealso cref="ICnmCache{TKey,TValue}.MaxCount"/> 
+        /// <seealso cref="ICnmCache{TKey,TValue}.MaxCount"/>
         /// <seealso cref="ICnmCache{TKey,TValue}.IsSizeLimited"/>
         /// <seealso cref="ICnmCache{TKey,TValue}.IsTimeLimited"/>
         public bool IsCountLimited
@@ -319,13 +319,13 @@ namespace OpenSim.Framework
         /// Gets a value indicating whether <see cref="ICnmCache{TKey,TValue}"/> is limiting size of elements.
         /// </summary>
         /// <value>
-        /// <see langword="true"/> if the <see cref="ICnmCache{TKey,TValue}"/> total size of elements is limited; 
-        /// otherwise, <see langword="false"/>. 
+        /// <see langword="true"/> if the <see cref="ICnmCache{TKey,TValue}"/> total size of elements is limited;
+        /// otherwise, <see langword="false"/>.
         /// </value>
         /// <remarks>
         /// <para>
-        /// When adding an new element to <see cref="ICnmCache{TKey,TValue}"/> that is limiting total size of elements, 
-        /// <see cref="ICnmCache{TKey,TValue}"/> will remove less recently used elements until it can fit an new element. 
+        /// When adding an new element to <see cref="ICnmCache{TKey,TValue}"/> that is limiting total size of elements,
+        /// <see cref="ICnmCache{TKey,TValue}"/> will remove less recently used elements until it can fit an new element.
         /// </para>
         /// </remarks>
         /// <seealso cref="ICnmCache{TKey,TValue}.MaxElementSize"/>
@@ -348,12 +348,12 @@ namespace OpenSim.Framework
         /// Gets a value indicating whether or not access to the <see cref="ICnmCache{TKey,TValue}"/> is synchronized (thread safe).
         /// </summary>
         /// <value>
-        /// <see langword="true"/> if access to the <see cref="ICnmCache{TKey,TValue}"/> is synchronized (thread safe); 
-        /// otherwise, <see langword="false"/>. 
+        /// <see langword="true"/> if access to the <see cref="ICnmCache{TKey,TValue}"/> is synchronized (thread safe);
+        /// otherwise, <see langword="false"/>.
         /// </value>
         /// <remarks>
         /// <para>
-        /// To get synchronized (thread safe) access to <see cref="ICnmCache{TKey,TValue}"/> object, use 
+        /// To get synchronized (thread safe) access to <see cref="ICnmCache{TKey,TValue}"/> object, use
         /// <see cref="CnmSynchronizedCache{TKey,TValue}.Synchronized"/> in <see cref="CnmSynchronizedCache{TKey,TValue}"/> class
         /// to retrieve synchronized wrapper for <see cref="ICnmCache{TKey,TValue}"/> object.
         /// </para>
@@ -369,13 +369,13 @@ namespace OpenSim.Framework
         /// Gets a value indicating whether elements stored to <see cref="ICnmCache{TKey,TValue}"/> have limited inactivity time.
         /// </summary>
         /// <value>
-        /// <see langword="true"/> if the <see cref="ICnmCache{TKey,TValue}"/> has a fixed total size of elements; 
-        /// otherwise, <see langword="false"/>. 
+        /// <see langword="true"/> if the <see cref="ICnmCache{TKey,TValue}"/> has a fixed total size of elements;
+        /// otherwise, <see langword="false"/>.
         /// </value>
         /// <remarks>
         /// If <see cref="ICnmCache{TKey,TValue}"/> have limited inactivity time and element is not accessed through <see cref="ICnmCache{TKey,TValue}.Set"/>
-        /// or <see cref="ICnmCache{TKey,TValue}.TryGetValue"/> methods in <see cref="ICnmCache{TKey,TValue}.ExpirationTime"/> , then element is automatically removed from 
-        /// the cache. Depending on implementation of the <see cref="ICnmCache{TKey,TValue}"/>, some of the elements may 
+        /// or <see cref="ICnmCache{TKey,TValue}.TryGetValue"/> methods in <see cref="ICnmCache{TKey,TValue}.ExpirationTime"/> , then element is automatically removed from
+        /// the cache. Depending on implementation of the <see cref="ICnmCache{TKey,TValue}"/>, some of the elements may
         /// stay longer in cache.
         /// </remarks>
         /// <seealso cref="ICnmCache{TKey,TValue}.ExpirationTime"/>
@@ -397,13 +397,13 @@ namespace OpenSim.Framework
         /// Gets or sets maximal allowed count of elements that can be stored to <see cref="ICnmCache{TKey,TValue}"/>.
         /// </summary>
         /// <value>
-        /// <see cref="int.MaxValue"/>, if <see cref="ICnmCache{TKey,TValue}"/> is not limited by count of elements; 
+        /// <see cref="int.MaxValue"/>, if <see cref="ICnmCache{TKey,TValue}"/> is not limited by count of elements;
         /// otherwise maximal allowed count of elements.
         /// </value>
         /// <remarks>
         /// <para>
-        /// When adding an new element to <see cref="ICnmCache{TKey,TValue}"/> that is limiting element count, 
-        /// <see cref="ICnmCache{TKey,TValue}"/> will remove less recently used elements until it can fit an new element. 
+        /// When adding an new element to <see cref="ICnmCache{TKey,TValue}"/> that is limiting element count,
+        /// <see cref="ICnmCache{TKey,TValue}"/> will remove less recently used elements until it can fit an new element.
         /// </para>
         /// </remarks>
         public int MaxCount
@@ -433,7 +433,7 @@ namespace OpenSim.Framework
         /// </value>
         /// <remarks>
         /// <para>
-        /// If element's size is larger than <see cref="ICnmCache{TKey,TValue}.MaxElementSize"/>, then element is 
+        /// If element's size is larger than <see cref="ICnmCache{TKey,TValue}.MaxElementSize"/>, then element is
         /// not added to the <see cref="ICnmCache{TKey,TValue}"/>.
         /// </para>
         /// </remarks>
@@ -463,8 +463,8 @@ namespace OpenSim.Framework
         /// Normally size is total bytes used by elements in the cache. But it can be any other suitable unit of measure.
         /// </para>
         /// <para>
-        /// When adding an new element to <see cref="ICnmCache{TKey,TValue}"/> that is limiting total size of elements, 
-        /// <see cref="ICnmCache{TKey,TValue}"/> will remove less recently used elements until it can fit an new element. 
+        /// When adding an new element to <see cref="ICnmCache{TKey,TValue}"/> that is limiting total size of elements,
+        /// <see cref="ICnmCache{TKey,TValue}"/> will remove less recently used elements until it can fit an new element.
         /// </para>
         /// </remarks>
         /// <exception cref="ArgumentOutOfRangeException">value is less than 0.</exception>
@@ -501,11 +501,11 @@ namespace OpenSim.Framework
         /// Normally bytes, but can be any suitable unit of measure.
         /// </para>
         /// <para>
-        /// Element's size is given when element is added or replaced by <see cref="ICnmCache{TKey,TValue}.Set"/> method. 
+        /// Element's size is given when element is added or replaced by <see cref="ICnmCache{TKey,TValue}.Set"/> method.
         /// </para>
         /// <para>
-        /// When adding an new element to <see cref="ICnmCache{TKey,TValue}"/> that is limiting total size of elements, 
-        /// <see cref="ICnmCache{TKey,TValue}"/> will remove less recently used elements until it can fit an new element. 
+        /// When adding an new element to <see cref="ICnmCache{TKey,TValue}"/> that is limiting total size of elements,
+        /// <see cref="ICnmCache{TKey,TValue}"/> will remove less recently used elements until it can fit an new element.
         /// </para>
         /// </remarks>
         /// <seealso cref="ICnmCache{TKey,TValue}.MaxElementSize"/>
@@ -532,8 +532,8 @@ namespace OpenSim.Framework
         /// </value>
         /// <remarks>
         /// <para>
-        /// To get synchronized (thread safe) access to <see cref="ICnmCache{TKey,TValue}"/>, use <see cref="CnmSynchronizedCache{TKey,TValue}"/> 
-        /// method <see cref="CnmSynchronizedCache{TKey,TValue}.Synchronized"/> to retrieve synchronized wrapper interface to 
+        /// To get synchronized (thread safe) access to <see cref="ICnmCache{TKey,TValue}"/>, use <see cref="CnmSynchronizedCache{TKey,TValue}"/>
+        /// method <see cref="CnmSynchronizedCache{TKey,TValue}.Synchronized"/> to retrieve synchronized wrapper interface to
         /// <see cref="ICnmCache{TKey,TValue}"/>.
         /// </para>
         /// </remarks>
@@ -647,7 +647,7 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Add or replace an element with the provided <paramref name="key"/>, <paramref name="value"/> and <paramref name="size"/> to 
+        /// Add or replace an element with the provided <paramref name="key"/>, <paramref name="value"/> and <paramref name="size"/> to
         /// <see cref="ICnmCache{TKey,TValue}"/>.
         /// </summary>
         /// <param name="key">
@@ -660,7 +660,7 @@ namespace OpenSim.Framework
         /// The element's size. Normally bytes, but can be any suitable unit of measure.
         /// </param>
         /// <returns>
-        /// <see langword="true"/>if element has been added successfully to the <see cref="ICnmCache{TKey,TValue}"/>; 
+        /// <see langword="true"/>if element has been added successfully to the <see cref="ICnmCache{TKey,TValue}"/>;
         /// otherwise <see langword="false"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException">
@@ -671,17 +671,17 @@ namespace OpenSim.Framework
         /// </exception>
         /// <remarks>
         /// <para>
-        /// If element's <paramref name="size"/> is larger than <see cref="ICnmCache{TKey,TValue}.MaxElementSize"/>, then element is 
-        /// not added to the <see cref="ICnmCache{TKey,TValue}"/>, however - possible older element is 
-        /// removed from the <see cref="ICnmCache{TKey,TValue}"/>. 
+        /// If element's <paramref name="size"/> is larger than <see cref="ICnmCache{TKey,TValue}.MaxElementSize"/>, then element is
+        /// not added to the <see cref="ICnmCache{TKey,TValue}"/>, however - possible older element is
+        /// removed from the <see cref="ICnmCache{TKey,TValue}"/>.
         /// </para>
         /// <para>
-        /// When adding an new element to <see cref="ICnmCache{TKey,TValue}"/> that is limiting total size of elements, 
-        /// <see cref="ICnmCache{TKey,TValue}"/>will remove less recently used elements until it can fit an new element. 
+        /// When adding an new element to <see cref="ICnmCache{TKey,TValue}"/> that is limiting total size of elements,
+        /// <see cref="ICnmCache{TKey,TValue}"/>will remove less recently used elements until it can fit an new element.
         /// </para>
         /// <para>
-        /// When adding an new element to <see cref="ICnmCache{TKey,TValue}"/> that is limiting element count, 
-        /// <see cref="ICnmCache{TKey,TValue}"/>will remove less recently used elements until it can fit an new element. 
+        /// When adding an new element to <see cref="ICnmCache{TKey,TValue}"/> that is limiting element count,
+        /// <see cref="ICnmCache{TKey,TValue}"/>will remove less recently used elements until it can fit an new element.
         /// </para>
         /// </remarks>
         /// <seealso cref="ICnmCache{TKey,TValue}.IsSizeLimited"/>
@@ -703,15 +703,15 @@ namespace OpenSim.Framework
         /// Gets the <paramref name="value"/> associated with the specified <paramref name="key"/>.
         /// </summary>
         /// <returns>
-        /// <see langword="true"/>if the <see cref="ICnmCache{TKey,TValue}"/> contains an element with 
+        /// <see langword="true"/>if the <see cref="ICnmCache{TKey,TValue}"/> contains an element with
         /// the specified key; otherwise, <see langword="false"/>.
         /// </returns>
         /// <param name="key">
         /// The key whose <paramref name="value"/> to get.
         /// </param>
         /// <param name="value">
-        /// When this method returns, the value associated with the specified <paramref name="key"/>, 
-        /// if the <paramref name="key"/> is found; otherwise, the 
+        /// When this method returns, the value associated with the specified <paramref name="key"/>,
+        /// if the <paramref name="key"/> is found; otherwise, the
         /// default value for the type of the <paramref name="value"/> parameter. This parameter is passed uninitialized.
         /// </param>
         /// <exception cref="ArgumentNullException">

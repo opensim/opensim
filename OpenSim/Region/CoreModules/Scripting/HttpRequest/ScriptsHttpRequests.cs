@@ -246,7 +246,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                     }
                 }
             }
-                        
+
             htc.RequestModule = this;
             htc.LocalID = localID;
             htc.ItemID = itemID;
@@ -283,7 +283,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         }
 
         public bool StartHttpRequest(HttpRequestClass req)
-        {          
+        {
             if (!CheckAllowed(new Uri(req.Url)))
                 return false;
 
@@ -541,7 +541,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             try
             {
                 Request = (HttpWebRequest)WebRequest.Create(Url);
-                Request.AllowAutoRedirect = false;               
+                Request.AllowAutoRedirect = false;
 
                 //This works around some buggy HTTP Servers like Lighttpd
                 Request.ServicePoint.Expect100Continue = false;
@@ -684,9 +684,9 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                     resStream.Close();
                 if (response != null)
                     response.Close();
-                
 
-                // We need to resubmit 
+
+                // We need to resubmit
                 if (
                     (Status == (int)HttpStatusCode.MovedPermanently
                         || Status == (int)HttpStatusCode.Found

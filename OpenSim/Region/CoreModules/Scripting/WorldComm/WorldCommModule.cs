@@ -417,7 +417,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                         continue;
                     if (m_scene.GetSceneObjectPart(liHostID) == null)
                         continue;
-   
+
                     if (targets.Contains(liHostID))
                         QueueMessage(new ListenerInfo(li, name, id, msg));
                 }

@@ -51,7 +51,7 @@ namespace OpenSim
 
         public void Microthread(IEnumerable thread)
         {
-            
+
         }
 
         public void RunMicrothread()
@@ -92,7 +92,7 @@ namespace OpenSim
 
         public override void Stop()
         {
-            
+
         }
     }
 }

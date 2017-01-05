@@ -44,14 +44,14 @@ using Nini.Config;
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.AgentPreferences
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "RemoteAgentPreferencesServicesConnector")]
-    public class RemoteAgentPreferencesServicesConnector : AgentPreferencesServicesConnector, 
+    public class RemoteAgentPreferencesServicesConnector : AgentPreferencesServicesConnector,
             ISharedRegionModule, IAgentPreferencesService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Enabled = false;
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }

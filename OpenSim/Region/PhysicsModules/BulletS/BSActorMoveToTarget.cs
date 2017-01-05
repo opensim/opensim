@@ -205,7 +205,7 @@ public class BSActorMoveToTarget : BSActor
             addedForce = correctionVector / timeStep;
             // Remove the existing velocity (only the moveToTarget force counts)
             addedForce -= m_controllingPrim.RawVelocity;
-            // Overcome gravity. 
+            // Overcome gravity.
             addedForce -= m_controllingPrim.Gravity;
 
             // Add enough force to overcome the mass of the object

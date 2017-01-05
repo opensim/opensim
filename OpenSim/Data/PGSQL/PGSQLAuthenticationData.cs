@@ -145,7 +145,7 @@ namespace OpenSim.Data.PGSQL
                     updateBuilder.AppendFormat("\"{0}\" = :{0}",field);
 
                     first = false;
-                    
+
                     cmd.Parameters.Add(m_database.CreateParameter("" + field, data.Data[field]));
                 }
 
@@ -154,7 +154,7 @@ namespace OpenSim.Data.PGSQL
                 cmd.CommandText = updateBuilder.ToString();
                 cmd.Connection = conn;
                 cmd.Parameters.Add(m_database.CreateParameter("principalID", data.PrincipalID));
-                
+
                 conn.Open();
                 if (cmd.ExecuteNonQuery() < 1)
                 {
@@ -195,7 +195,7 @@ namespace OpenSim.Data.PGSQL
         {
             if (System.Environment.TickCount - m_LastExpire > 30000)
                 DoExpire();
-            
+
             string sql = "insert into tokens (uuid, token, validity) values (:principalID, :token, :lifetime)";
             using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
             using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))

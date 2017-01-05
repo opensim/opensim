@@ -55,7 +55,7 @@ namespace OpenSim.Server.Handlers.Neighbour
                 m_log.Error("[NEIGHBOUR IN CONNECTOR]: neighbour service was not provided");
                 return;
             }
-            
+
             //bool authentication = neighbourConfig.GetBoolean("RequireAuthentication", false);
             //if (authentication)
             //    m_AuthenticationService = scene.RequestModuleInterface<IAuthenticationService>();

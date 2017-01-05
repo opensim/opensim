@@ -47,7 +47,7 @@ namespace OpenSim.Region.ClientStack.Linden
     {
 //        private static readonly ILog m_log =
 //            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         private Scene m_scene;
 
         #region INonSharedRegionModule Members
@@ -76,7 +76,7 @@ namespace OpenSim.Region.ClientStack.Linden
         }
 
         public void Close()
-        {            
+        {
         }
 
         public string Name

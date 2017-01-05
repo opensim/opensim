@@ -64,8 +64,8 @@ namespace pCampBot
                 Help();
             }
             else if (
-                commandLineConfig.Get("firstname") == null 
-                    ||  commandLineConfig.Get("lastname") == null 
+                commandLineConfig.Get("firstname") == null
+                    ||  commandLineConfig.Get("lastname") == null
                     || commandLineConfig.Get("password") == null)
             {
                 Console.WriteLine("ERROR: You must supply a firstname, lastname and password for the bots.");
@@ -93,7 +93,7 @@ namespace pCampBot
 
                     if (botConfig != null)
                     {
-                        bm.InitBotSendAgentUpdates 
+                        bm.InitBotSendAgentUpdates
                             = botConfig.GetBoolean("SendAgentUpdates", bm.InitBotSendAgentUpdates);
                         bm.InitBotRequestObjectTextures
                             = botConfig.GetBoolean("RequestObjectTextures", bm.InitBotRequestObjectTextures);

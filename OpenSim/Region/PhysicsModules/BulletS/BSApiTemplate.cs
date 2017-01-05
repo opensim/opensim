@@ -36,16 +36,16 @@ namespace OpenSim.Region.PhysicsModule.BulletS {
     // Constraint type values as defined by Bullet
 public enum ConstraintType : int
 {
-	POINT2POINT_CONSTRAINT_TYPE = 3,
-	HINGE_CONSTRAINT_TYPE,
-	CONETWIST_CONSTRAINT_TYPE,
-	D6_CONSTRAINT_TYPE,
-	SLIDER_CONSTRAINT_TYPE,
-	CONTACT_CONSTRAINT_TYPE,
-	D6_SPRING_CONSTRAINT_TYPE,
-	GEAR_CONSTRAINT_TYPE,           // added in Bullet 2.82
-	FIXED_CONSTRAINT_TYPE,          // added in Bullet 2.82
-	MAX_CONSTRAINT_TYPE,            // last type defined by Bullet
+    POINT2POINT_CONSTRAINT_TYPE = 3,
+    HINGE_CONSTRAINT_TYPE,
+    CONETWIST_CONSTRAINT_TYPE,
+    D6_CONSTRAINT_TYPE,
+    SLIDER_CONSTRAINT_TYPE,
+    CONTACT_CONSTRAINT_TYPE,
+    D6_SPRING_CONSTRAINT_TYPE,
+    GEAR_CONSTRAINT_TYPE,           // added in Bullet 2.82
+    FIXED_CONSTRAINT_TYPE,          // added in Bullet 2.82
+    MAX_CONSTRAINT_TYPE,            // last type defined by Bullet
     //
     BS_FIXED_CONSTRAINT_TYPE = 1234    // BulletSim constraint that is fixed and unmoving
 }
@@ -54,25 +54,25 @@ public enum ConstraintType : int
 [StructLayout(LayoutKind.Sequential)]
 public struct ConvexHull
 {
-	Vector3 Offset;
-	int VertexCount;
-	Vector3[] Vertices;
+    Vector3 Offset;
+    int VertexCount;
+    Vector3[] Vertices;
 }
 public enum BSPhysicsShapeType
 {
-	SHAPE_UNKNOWN   = 0,
-	SHAPE_CAPSULE   = 1,
-	SHAPE_BOX       = 2,
-	SHAPE_CONE      = 3,
-	SHAPE_CYLINDER  = 4,
-	SHAPE_SPHERE    = 5,
-	SHAPE_MESH      = 6,
-	SHAPE_HULL      = 7,
+    SHAPE_UNKNOWN   = 0,
+    SHAPE_CAPSULE   = 1,
+    SHAPE_BOX       = 2,
+    SHAPE_CONE      = 3,
+    SHAPE_CYLINDER  = 4,
+    SHAPE_SPHERE    = 5,
+    SHAPE_MESH      = 6,
+    SHAPE_HULL      = 7,
     // following defined by BulletSim
-	SHAPE_GROUNDPLANE  = 20,
-	SHAPE_TERRAIN   = 21,
-	SHAPE_COMPOUND  = 22,
-	SHAPE_HEIGHTMAP = 23,
+    SHAPE_GROUNDPLANE  = 20,
+    SHAPE_TERRAIN   = 21,
+    SHAPE_COMPOUND  = 22,
+    SHAPE_HEIGHTMAP = 23,
     SHAPE_AVATAR    = 24,
     SHAPE_CONVEXHULL= 25,
     SHAPE_GIMPACT   = 26,
@@ -180,16 +180,16 @@ public struct ConfigurationParameters
     public float collisionMargin;
     public float gravity;
 
-	public float maxPersistantManifoldPoolSize;
-	public float maxCollisionAlgorithmPoolSize;
-	public float shouldDisableContactPoolDynamicAllocation;
-	public float shouldForceUpdateAllAabbs;
-	public float shouldRandomizeSolverOrder;
-	public float shouldSplitSimulationIslands;
-	public float shouldEnableFrictionCaching;
-	public float numberOfSolverIterations;
+    public float maxPersistantManifoldPoolSize;
+    public float maxCollisionAlgorithmPoolSize;
+    public float shouldDisableContactPoolDynamicAllocation;
+    public float shouldForceUpdateAllAabbs;
+    public float shouldRandomizeSolverOrder;
+    public float shouldSplitSimulationIslands;
+    public float shouldEnableFrictionCaching;
+    public float numberOfSolverIterations;
     public float useSingleSidedMeshes;
-	public float globalContactBreakingThreshold;
+    public float globalContactBreakingThreshold;
 
     public float physicsLoggingFrames;
 
@@ -202,30 +202,30 @@ public struct ConfigurationParameters
 public struct HACDParams
 {
                                             // usual default values
-	public float maxVerticesPerHull;		// 100
-	public float minClusters;				// 2
-	public float compacityWeight;			// 0.1
-	public float volumeWeight;				// 0.0
-	public float concavity;				    // 100
-	public float addExtraDistPoints;		// false
-	public float addNeighboursDistPoints;	// false
-	public float addFacesPoints;			// false
-	public float shouldAdjustCollisionMargin;	// false
+    public float maxVerticesPerHull;		// 100
+    public float minClusters;				// 2
+    public float compacityWeight;			// 0.1
+    public float volumeWeight;				// 0.0
+    public float concavity;				    // 100
+    public float addExtraDistPoints;		// false
+    public float addNeighboursDistPoints;	// false
+    public float addFacesPoints;			// false
+    public float shouldAdjustCollisionMargin;	// false
     // VHACD
-	public float whichHACD;				    // zero if Bullet HACD, non-zero says VHACD
-	// http://kmamou.blogspot.ca/2014/12/v-hacd-20-parameters-description.html
-	public float vHACDresolution;			// 100,000 max number of voxels generated during voxelization stage
-	public float vHACDdepth;				// 20 max number of clipping stages
-	public float vHACDconcavity;			// 0.0025 maximum concavity
-	public float vHACDplaneDownsampling;	// 4 granularity of search for best clipping plane
-	public float vHACDconvexHullDownsampling;	// 4 precision of hull gen process
-	public float vHACDalpha;				// 0.05 bias toward clipping along symmetry planes
-	public float vHACDbeta;				    // 0.05 bias toward clipping along revolution axis
-	public float vHACDgamma;				// 0.00125 max concavity when merging
-	public float vHACDpca;					// 0 on/off normalizing mesh before decomp
-	public float vHACDmode;				    // 0 0:voxel based, 1: tetrahedron based
-	public float vHACDmaxNumVerticesPerCH;	// 64 max triangles per convex hull
-	public float vHACDminVolumePerCH;		// 0.0001 sampling of generated convex hulls
+    public float whichHACD;				    // zero if Bullet HACD, non-zero says VHACD
+    // http://kmamou.blogspot.ca/2014/12/v-hacd-20-parameters-description.html
+    public float vHACDresolution;			// 100,000 max number of voxels generated during voxelization stage
+    public float vHACDdepth;				// 20 max number of clipping stages
+    public float vHACDconcavity;			// 0.0025 maximum concavity
+    public float vHACDplaneDownsampling;	// 4 granularity of search for best clipping plane
+    public float vHACDconvexHullDownsampling;	// 4 precision of hull gen process
+    public float vHACDalpha;				// 0.05 bias toward clipping along symmetry planes
+    public float vHACDbeta;				    // 0.05 bias toward clipping along revolution axis
+    public float vHACDgamma;				// 0.00125 max concavity when merging
+    public float vHACDpca;					// 0 on/off normalizing mesh before decomp
+    public float vHACDmode;				    // 0 0:voxel based, 1: tetrahedron based
+    public float vHACDmaxNumVerticesPerCH;	// 64 max triangles per convex hull
+    public float vHACDminVolumePerCH;		// 0.0001 sampling of generated convex hulls
 }
 
 // The states a bullet collision object can have
@@ -322,8 +322,8 @@ public abstract string BulletEngineVersion { get; protected set;}
 
 // Initialization and simulation
 public abstract BulletWorld Initialize(Vector3 maxPosition, ConfigurationParameters parms,
-											int maxCollisions,  ref CollisionDesc[] collisionArray,
-											int maxUpdates, ref EntityProperties[] updateArray
+                                            int maxCollisions,  ref CollisionDesc[] collisionArray,
+                                            int maxUpdates, ref EntityProperties[] updateArray
                                             );
 
 public abstract int PhysicsStep(BulletWorld world, float timeStep, int maxSubSteps, float fixedTimeStep,
@@ -398,7 +398,7 @@ public abstract void DestroyObject(BulletWorld sim, BulletBody obj);
 public abstract BulletShape CreateGroundPlaneShape(UInt32 id, float height, float collisionMargin);
 
 public abstract BulletShape CreateTerrainShape(UInt32 id, Vector3 size, float minHeight, float maxHeight, float[] heightMap,
-								float scaleFactor, float collisionMargin);
+                                float scaleFactor, float collisionMargin);
 
 // =====================================================================================
 // Constraint creation and helper routines

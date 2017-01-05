@@ -356,10 +356,10 @@ namespace OpenSim.Framework
                     Expire(true);
                     return null;
                 }
-    
+
                 item.hits++;
                 item.lastUsed = DateTime.UtcNow;
-    
+
                 Expire(true);
             }
 

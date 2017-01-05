@@ -54,38 +54,38 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
         private Scene m_scene;
 
         public string Name { get { return "Scene Commands Module"; } }
-        
+
         public Type ReplaceableInterface { get { return null; } }
-        
+
         public void Initialise(IConfigSource source)
         {
 //            m_log.DebugFormat("[SCENE COMMANDS MODULE]: INITIALIZED MODULE");
         }
-        
+
         public void PostInitialise()
         {
 //            m_log.DebugFormat("[SCENE COMMANDS MODULE]: POST INITIALIZED MODULE");
         }
-        
+
         public void Close()
         {
 //            m_log.DebugFormat("[SCENE COMMANDS MODULE]: CLOSED MODULE");
         }
-        
+
         public void AddRegion(Scene scene)
         {
 //            m_log.DebugFormat("[SCENE COMMANDS MODULE]: REGION {0} ADDED", scene.RegionInfo.RegionName);
 
             m_scene = scene;
-            
+
             m_scene.RegisterModuleInterface<ISceneCommandsModule>(this);
         }
-        
+
         public void RemoveRegion(Scene scene)
         {
 //            m_log.DebugFormat("[SCENE COMMANDS MODULE]: REGION {0} REMOVED", scene.RegionInfo.RegionName);
-        }        
-        
+        }
+
         public void RegionLoaded(Scene scene)
         {
 //            m_log.DebugFormat("[ATTACHMENTS COMMAND MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
@@ -101,7 +101,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
                     + "client-rot-upd  - the tolerance before clients are updated with new rotation information for an avatar.\n"
                     + "client-vel-upd  - the tolerance before clients are updated with new velocity information for an avatar.\n"
                     + "root-upd-per    - if greater than 1, terse updates are only sent to root agents other than the originator on every n updates.\n"
-                    + "child-upd-per   - if greater than 1, terse updates are only sent to child agents on every n updates.\n"                    
+                    + "child-upd-per   - if greater than 1, terse updates are only sent to child agents on every n updates.\n"
                     + "collisions      - if false then collisions with other objects are turned off.\n"
                     + "pbackup         - if false then periodic scene backup is turned off.\n"
                     + "physics         - if false then all physics objects are non-physical.\n"
@@ -213,7 +213,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 
                 // FIXME: This can only come from the console at the moment but might not always be true.
                 if (ConsoleUtil.TryParseConsoleBool(MainConsole.Instance, options["appear-refresh"], out newValue))
-                    m_scene.SendPeriodicAppearanceUpdates = newValue;     
+                    m_scene.SendPeriodicAppearanceUpdates = newValue;
             }
 
             if (options.ContainsKey("client-pos-upd"))
@@ -222,7 +222,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 
                 // FIXME: This can only come from the console at the moment but might not always be true.
                 if (ConsoleUtil.TryParseConsoleFloat(MainConsole.Instance, options["client-pos-upd"], out newValue))
-                    m_scene.RootPositionUpdateTolerance = newValue;    
+                    m_scene.RootPositionUpdateTolerance = newValue;
             }
 
             if (options.ContainsKey("client-rot-upd"))
@@ -231,7 +231,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 
                 // FIXME: This can only come from the console at the moment but might not always be true.
                 if (ConsoleUtil.TryParseConsoleFloat(MainConsole.Instance, options["client-rot-upd"], out newValue))
-                    m_scene.RootRotationUpdateTolerance = newValue;    
+                    m_scene.RootRotationUpdateTolerance = newValue;
             }
 
             if (options.ContainsKey("client-vel-upd"))
@@ -240,7 +240,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 
                 // FIXME: This can only come from the console at the moment but might not always be true.
                 if (ConsoleUtil.TryParseConsoleFloat(MainConsole.Instance, options["client-vel-upd"], out newValue))
-                    m_scene.RootVelocityUpdateTolerance = newValue;    
+                    m_scene.RootVelocityUpdateTolerance = newValue;
             }
 
             if (options.ContainsKey("root-upd-per"))
@@ -249,7 +249,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 
                 // FIXME: This can only come from the console at the moment but might not always be true.
                 if (ConsoleUtil.TryParseConsoleNaturalInt(MainConsole.Instance, options["root-upd-per"], out newValue))
-                    m_scene.RootTerseUpdatePeriod = newValue;    
+                    m_scene.RootTerseUpdatePeriod = newValue;
             }
 
             if (options.ContainsKey("child-upd-per"))
@@ -258,7 +258,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 
                 // FIXME: This can only come from the console at the moment but might not always be true.
                 if (ConsoleUtil.TryParseConsoleNaturalInt(MainConsole.Instance, options["child-upd-per"], out newValue))
-                    m_scene.ChildTerseUpdatePeriod = newValue;    
+                    m_scene.ChildTerseUpdatePeriod = newValue;
             }
 
             if (options.ContainsKey("pbackup"))

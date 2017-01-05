@@ -92,7 +92,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// this will be multiple times in one instance, while a nonshared
         /// module instance will only be called once.
         /// This method is called after AddRegion has been called in all
-        /// modules for that scene, providing an opportunity to request 
+        /// modules for that scene, providing an opportunity to request
         /// another module's interface, or hook an event from another module.
         /// </summary>
         /// <param name="scene">

@@ -33,7 +33,7 @@ namespace OpenSim.Services.Interfaces
 {
     public class AgentPrefs
     {
-        public AgentPrefs(UUID principalID) 
+        public AgentPrefs(UUID principalID)
         {
             PrincipalID = principalID;
         }

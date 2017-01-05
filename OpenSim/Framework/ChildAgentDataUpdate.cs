@@ -332,7 +332,7 @@ namespace OpenSim.Framework
         public Vector3 UpAxis;
 
         /// <summary>
-        /// Signal on a V2 teleport that Scene.IncomingChildAgentDataUpdate(AgentData ad) should wait for the 
+        /// Signal on a V2 teleport that Scene.IncomingChildAgentDataUpdate(AgentData ad) should wait for the
         /// scene presence to become root (triggered when the viewer sends a CompleteAgentMovement UDP packet after
         /// establishing the connection triggered by it's receipt of a TeleportFinish EQ message).
         /// </summary>
@@ -434,7 +434,7 @@ namespace OpenSim.Framework
             args["active_group_name"] = OSD.FromString(ActiveGroupName);
             if(ActiveGroupTitle != null)
                 args["active_group_title"] = OSD.FromString(ActiveGroupTitle);
-           
+
             if (ChildrenCapSeeds != null && ChildrenCapSeeds.Count > 0)
             {
                 OSDArray childrenSeeds = new OSDArray(ChildrenCapSeeds.Count);
@@ -623,7 +623,7 @@ namespace OpenSim.Framework
 
             if (args.ContainsKey("active_group_name") && args["active_group_name"] != null)
                 ActiveGroupName = args["active_group_name"].AsString();
-            
+
             if(args.ContainsKey("active_group_title") && args["active_group_title"] != null)
                 ActiveGroupTitle = args["active_group_title"].AsString();
 
@@ -843,7 +843,7 @@ namespace OpenSim.Framework
 
     public class CompleteAgentData : AgentData
     {
-        public override OSDMap Pack(EntityTransferContext ctx) 
+        public override OSDMap Pack(EntityTransferContext ctx)
         {
             return base.Pack(ctx);
         }

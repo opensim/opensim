@@ -40,6 +40,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// This is used by osSetParcelSIPAddress
         /// </summary>
         void setLandSIPAddress(string SIPAddress,UUID GlobalID);
-        
+
     }
 }

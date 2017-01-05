@@ -49,7 +49,7 @@ namespace OpenSim.Data.SQLite
          **********************************************************************/
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="dt"></param>
         /// <param name="name"></param>
@@ -147,7 +147,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="dt">Data Table</param>
         /// <returns></returns>
@@ -191,7 +191,7 @@ namespace OpenSim.Data.SQLite
         /// lines for defining SqliteParameters to 2 parameters:
         /// column name and database type.
         /// </para>
-        /// 
+        ///
         /// <para>
         /// It assumes certain conventions like :param as the param
         /// name to replace in parametrized queries, and that source

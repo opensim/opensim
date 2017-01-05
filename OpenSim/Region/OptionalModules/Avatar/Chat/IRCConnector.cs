@@ -97,14 +97,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
         // How many regions depend upon this connection
         // This count is updated by the ChannelState object and reflects the sum
-        // of the region clients associated with the set of associated channel 
+        // of the region clients associated with the set of associated channel
         // state instances. That's why it cannot be managed here.
 
         internal int depends = 0;
 
         // This variable counts the number of resets that have been performed
-        // on the connector. When a listener thread terminates, it checks to 
-        // see of the reset count has changed before it schedules another 
+        // on the connector. When a listener thread terminates, it checks to
+        // see of the reset count has changed before it schedules another
         // reset.
 
         internal int m_resetk = 0;
@@ -428,7 +428,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         public void PrivMsg(string pattern, string from, string region, string msg)
         {
 
-            // m_log.DebugFormat("[IRC-Connector-{0}] PrivMsg to IRC from {1}: <{2}>", idn, from, 
+            // m_log.DebugFormat("[IRC-Connector-{0}] PrivMsg to IRC from {1}: <{2}>", idn, from,
             //     String.Format(pattern, m_ircChannel, from, region, msg));
 
             // One message to the IRC server
@@ -510,7 +510,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                             c.Sender = null;
                             c.SenderUUID = UUID.Zero;
 
-                            // Is message "\001ACTION foo bar\001"? 
+                            // Is message "\001ACTION foo bar\001"?
                             // Then change to: "/me foo bar"
 
                             if ((1 == c.Message[0]) && c.Message.Substring(1).StartsWith("ACTION"))
@@ -608,8 +608,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             string parms = String.Empty;
 
             // ":" indicates that a prefix is present
-            // There are NEVER more than 17 real 
-            // fields. A parameter that starts with 
+            // There are NEVER more than 17 real
+            // fields. A parameter that starts with
             // ":" indicates that the remainder of the
             // line is a single parameter value.
 
@@ -873,7 +873,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                             }
 
                             // Being marked connected is not enough to ping. Socket establishment can sometimes take a long
-                            // time, in which case the watch dog might try to ping the server before the socket has been 
+                            // time, in which case the watch dog might try to ping the server before the socket has been
                             // set up, with nasty side-effects.
 
                             else if (_pdk_ == 0)

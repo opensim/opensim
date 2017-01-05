@@ -207,10 +207,10 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         protected virtual XmlRpcResponse processXMLRPCGridInstantMessage(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             bool successful = false;
-            
+
             // TODO: For now, as IMs seem to be a bit unreliable on OSGrid, catch all exception that
             // happen here and aren't caught and log them.
-            try 
+            try
             {
                 // various rational defaults
                 UUID fromAgentID = UUID.Zero;
@@ -475,7 +475,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         /// </summary>
 
         /// <param name="prevRegionHandle">
-        /// Pass in 0 the first time this method is called.  It will be called recursively with the last 
+        /// Pass in 0 the first time this method is called.  It will be called recursively with the last
         /// regionhandle tried
         /// </param>
         private void SendGridInstantMessageViaXMLRPCAsyncMain(GridInstantMessage im, MessageResultNotification result)

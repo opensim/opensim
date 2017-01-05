@@ -56,7 +56,7 @@ namespace OpenSim.Services.AvatarService
             AvatarData avatar = GetAvatar(principalID);
             return avatar.ToAvatarAppearance();
         }
-        
+
         public bool SetAppearance(UUID principalID, AvatarAppearance appearance)
         {
             AvatarData avatar = new AvatarData(appearance);
@@ -136,7 +136,7 @@ namespace OpenSim.Services.AvatarService
                 {
                     av.Data["Value"] = kvp.Value;
                 }
-                
+
                 if (!m_Database.Store(av))
                 {
                     m_Database.Delete("PrincipalID", principalID.ToString());

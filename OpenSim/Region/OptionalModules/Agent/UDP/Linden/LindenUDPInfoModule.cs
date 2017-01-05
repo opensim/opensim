@@ -52,48 +52,48 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LindenUDPInfoModule")]
     public class LindenUDPInfoModule : ISharedRegionModule
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);                
-        
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         protected Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
-        
-        public string Name { get { return "Linden UDP Module"; } }        
-        
+
+        public string Name { get { return "Linden UDP Module"; } }
+
         public Type ReplaceableInterface { get { return null; } }
-        
+
         public void Initialise(IConfigSource source)
         {
 //            m_log.DebugFormat("[LINDEN UDP INFO MODULE]: INITIALIZED MODULE");
         }
-        
+
         public void PostInitialise()
         {
 //            m_log.DebugFormat("[LINDEN UDP INFO MODULE]: POST INITIALIZED MODULE");
         }
-        
+
         public void Close()
         {
 //            m_log.DebugFormat("[LINDEN UDP INFO MODULE]: CLOSED MODULE");
         }
-        
+
         public void AddRegion(Scene scene)
         {
 //            m_log.DebugFormat("[LINDEN UDP INFO MODULE]: REGION {0} ADDED", scene.RegionInfo.RegionName);
-            
+
             lock (m_scenes)
                 m_scenes[scene.RegionInfo.RegionID] = scene;
 
             scene.AddCommand(
                 "Comms", this, "show pqueues",
                 "show pqueues [full]",
-                "Show priority queue data for each client", 
+                "Show priority queue data for each client",
                 "Without the 'full' option, only root agents are shown."
-                  + "  With the 'full' option child agents are also shown.",                                          
+                  + "  With the 'full' option child agents are also shown.",
                 (mod, cmd) => MainConsole.Instance.Output(GetPQueuesReport(cmd)));
-            
+
             scene.AddCommand(
                 "Comms", this, "show queues",
                 "show queues [full]",
-                "Show queue data for each client", 
+                "Show queue data for each client",
                 "Without the 'full' option, only root agents are shown.\n"
                     + "With the 'full' option child agents are also shown.\n\n"
                     + "Type          - Rt is a root (avatar) client whilst cd is a child (neighbour interacting) client.\n"
@@ -116,13 +116,13 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                 "clear image queues <first-name> <last-name>",
                 "Clear the image queues (textures downloaded via UDP) for a particular client.",
                 (mod, cmd) => MainConsole.Instance.Output(HandleImageQueuesClear(cmd)));
-            
+
             scene.AddCommand(
                 "Comms", this, "show throttles",
                 "show throttles [full]",
-                "Show throttle settings for each client and for the server overall", 
+                "Show throttle settings for each client and for the server overall",
                 "Without the 'full' option, only root agents are shown."
-                  + "  With the 'full' option child agents are also shown.",                                          
+                  + "  With the 'full' option child agents are also shown.",
                 (mod, cmd) => MainConsole.Instance.Output(GetThrottlesReport(cmd)));
 
             scene.AddCommand(
@@ -134,15 +134,15 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                 (mod, cmd) => MainConsole.Instance.Output(HandleClientStatsReport(cmd)));
 
         }
-        
+
         public void RemoveRegion(Scene scene)
         {
 //            m_log.DebugFormat("[LINDEN UDP INFO MODULE]: REGION {0} REMOVED", scene.RegionInfo.RegionName);
-            
+
             lock (m_scenes)
                 m_scenes.Remove(scene.RegionInfo.RegionID);
-        }        
-        
+        }
+
         public void RegionLoaded(Scene scene)
         {
 //            m_log.DebugFormat("[LINDEN UDP INFO MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
@@ -176,7 +176,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
             foreach (ScenePresence agent in foundAgents)
             {
                 LLClientView client = agent.ControllingClient as LLClientView;
-    
+
                 if (client == null)
                     return "This command is only supported for LLClientView";
 
@@ -191,10 +191,10 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
         }
 
         protected string GetColumnEntry(string entry, int maxLength, int columnPadding)
-        {                       
+        {
             return string.Format(
-                "{0,-" + maxLength +  "}{1,-" + columnPadding + "}", 
-                entry.Length > maxLength ? entry.Substring(0, maxLength) : entry, 
+                "{0,-" + maxLength +  "}{1,-" + columnPadding + "}",
+                entry.Length > maxLength ? entry.Substring(0, maxLength) : entry,
                 "");
         }
 
@@ -207,29 +207,29 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
         {
             bool showChildren = false;
             string pname = "";
-            
+
             if (showParams.Length > 2 && showParams[2] == "full")
-                showChildren = true;               
+                showChildren = true;
             else if (showParams.Length > 3)
                 pname = showParams[2] + " " + showParams[3];
-            
-            StringBuilder report = new StringBuilder();            
+
+            StringBuilder report = new StringBuilder();
 
             int columnPadding = 2;
-            int maxNameLength = 18;                                    
+            int maxNameLength = 18;
             int maxRegionNameLength = 14;
             int maxTypeLength = 4;
-//            int totalInfoFieldsLength = maxNameLength + columnPadding + maxRegionNameLength + columnPadding + maxTypeLength + columnPadding;                        
-                                    
+//            int totalInfoFieldsLength = maxNameLength + columnPadding + maxRegionNameLength + columnPadding + maxTypeLength + columnPadding;
+
             report.Append(GetColumnEntry("User", maxNameLength, columnPadding));
             report.Append(GetColumnEntry("Region", maxRegionNameLength, columnPadding));
             report.Append(GetColumnEntry("Type", maxTypeLength, columnPadding));
-            
+
             report.AppendFormat(
                 "{0,7} {1,7} {2,7} {3,7} {4,7} {5,7} {6,7} {7,7} {8,7} {9,7} {10,7} {11,7}\n",
                 "Pri 0",
                 "Pri 1",
-                "Pri 2",                                
+                "Pri 2",
                 "Pri 3",
                 "Pri 4",
                 "Pri 5",
@@ -252,16 +252,16 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                                 bool isChild = client.SceneAgent.IsChildAgent;
                                 if (isChild && !showChildren)
                                     return;
-                        
+
                                 string name = client.Name;
                                 if (pname != "" && name != pname)
                                     return;
-                                
+
                                 string regionName = scene.RegionInfo.RegionName;
-                                
+
                                 report.Append(GetColumnEntry(name, maxNameLength, columnPadding));
                                 report.Append(GetColumnEntry(regionName, maxRegionNameLength, columnPadding));
-                                report.Append(GetColumnEntry(isChild ? "Cd" : "Rt", maxTypeLength, columnPadding));                                  
+                                report.Append(GetColumnEntry(isChild ? "Cd" : "Rt", maxTypeLength, columnPadding));
                                 report.AppendLine(((LLClientView)client).EntityUpdateQueue.ToString());
                             }
                         });
@@ -306,17 +306,17 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
             foreach (ScenePresence agent in foundAgents)
             {
                 LLClientView client = agent.ControllingClient as LLClientView;
-    
+
                 if (client == null)
                     return "This command is only supported for LLClientView";
-    
+
                 J2KImage[] images = client.ImageManager.GetImages();
 
                 report.AppendFormat(
                     "In region {0} ({1} agent)\n",
                     agent.Scene.RegionInfo.RegionName, agent.IsChildAgent ? "child" : "root");
                 report.AppendFormat("Images in queue: {0}\n", images.Length);
-    
+
                 if (images.Length > 0)
                 {
                     report.AppendFormat(
@@ -327,7 +327,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                     "Start Pkt",
                     "Has Asset",
                     "Decoded");
-    
+
                     foreach (J2KImage image in images)
                         report.AppendFormat(
                             "{0,36}  {1,8}  {2,10}  {3,10}  {4,9}  {5,7}\n",
@@ -337,7 +337,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
 
             return report.ToString();
         }
-        
+
         /// <summary>
         /// Generate UDP Queue data report for each client
         /// </summary>
@@ -347,16 +347,16 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
         {
             bool showChildren = false;
             string pname = "";
-            
+
             if (showParams.Length > 2 && showParams[2] == "full")
-                showChildren = true;               
+                showChildren = true;
             else if (showParams.Length > 3)
                 pname = showParams[2] + " " + showParams[3];
-            
-            StringBuilder report = new StringBuilder();            
-            
+
+            StringBuilder report = new StringBuilder();
+
             int columnPadding = 2;
-            int maxNameLength = 18;                                    
+            int maxNameLength = 18;
             int maxRegionNameLength = 14;
             int maxTypeLength = 4;
 
@@ -364,11 +364,11 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                 = maxNameLength + columnPadding
                 + maxRegionNameLength + columnPadding
                 + maxTypeLength + columnPadding;
-                                    
+
             report.Append(GetColumnEntry("User", maxNameLength, columnPadding));
             report.Append(GetColumnEntry("Region", maxRegionNameLength, columnPadding));
             report.Append(GetColumnEntry("Type", maxTypeLength, columnPadding));
-            
+
             report.AppendFormat(
                 "{0,7} {1,7} {2,7} {3,7} {4,9} {5,7} {6,7} {7,7} {8,7} {9,7} {10,8} {11,7}\n",
                 "Since",
@@ -383,7 +383,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                 "Q Pkts",
                 "Q Pkts",
                 "Q Pkts");
-    
+
             report.AppendFormat("{0,-" + totalInfoFieldsLength +  "}", "");
             report.AppendFormat(
                 "{0,7} {1,7} {2,7} {3,7} {4,9} {5,7} {6,7} {7,7} {8,7} {9,7} {10,8} {11,7}\n",
@@ -398,8 +398,8 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                 "Cloud",
                 "Task",
                 "Texture",
-                "Asset");            
-            
+                "Asset");
+
             lock (m_scenes)
             {
                 foreach (Scene scene in m_scenes.Values)
@@ -413,7 +413,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                                 bool isChild = client.SceneAgent.IsChildAgent;
                                 if (isChild && !showChildren)
                                     return;
-                        
+
                                 string name = client.Name;
                                 if (pname != "" && name != pname)
                                     return;
@@ -424,7 +424,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                                 report.Append(GetColumnEntry(regionName, maxRegionNameLength, columnPadding));
                                 report.Append(GetColumnEntry(isChild ? "Cd" : "Rt", maxTypeLength, columnPadding));
 
-                                IStatsCollector stats = (IStatsCollector)client;                            
+                                IStatsCollector stats = (IStatsCollector)client;
                                 report.AppendLine(stats.Report());
                             }
                         });
@@ -432,8 +432,8 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
             }
 
             return report.ToString();
-        }  
-        
+        }
+
         /// <summary>
         /// Show throttle data
         /// </summary>
@@ -443,28 +443,28 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
         {
             bool showChildren = false;
             string pname = "";
-            
+
             if (showParams.Length > 2 && showParams[2] == "full")
-                showChildren = true;               
+                showChildren = true;
             else if (showParams.Length > 3)
                 pname = showParams[2] + " " + showParams[3];
-            
-            StringBuilder report = new StringBuilder();               
-            
+
+            StringBuilder report = new StringBuilder();
+
             int columnPadding = 2;
-            int maxNameLength = 18;                                    
+            int maxNameLength = 18;
             int maxRegionNameLength = 14;
-            int maxTypeLength = 4;     
-            int totalInfoFieldsLength = maxNameLength + columnPadding + maxRegionNameLength + columnPadding + maxTypeLength + columnPadding;                        
-            
+            int maxTypeLength = 4;
+            int totalInfoFieldsLength = maxNameLength + columnPadding + maxRegionNameLength + columnPadding + maxTypeLength + columnPadding;
+
             report.Append(GetColumnEntry("User", maxNameLength, columnPadding));
             report.Append(GetColumnEntry("Region", maxRegionNameLength, columnPadding));
-            report.Append(GetColumnEntry("Type", maxTypeLength, columnPadding));            
-            
+            report.Append(GetColumnEntry("Type", maxTypeLength, columnPadding));
+
             report.AppendFormat(
                 "{0,8} {1,8} {2,7} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7}\n",
                 "Max",
-                "Target", 
+                "Target",
                 "Actual",
                 "Resend",
                 "Land",
@@ -472,8 +472,8 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                 "Cloud",
                 "Task",
                 "Texture",
-                "Asset");          
-    
+                "Asset");
+
             report.AppendFormat("{0,-" + totalInfoFieldsLength +  "}", "");
             report.AppendFormat(
                 "{0,8} {1,8} {2,7} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7}\n",
@@ -486,10 +486,10 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                 "kb/s",
                 "kb/s",
                 "kb/s",
-                "kb/s");                 
-            
+                "kb/s");
+
             report.AppendLine();
-            
+
             lock (m_scenes)
             {
                 foreach (Scene scene in m_scenes.Values)
@@ -504,25 +504,25 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                                 bool isChild = client.SceneAgent.IsChildAgent;
                                 if (isChild && !showChildren)
                                     return;
-                        
+
                                 string name = client.Name;
                                 if (pname != "" && name != pname)
                                     return;
 
                                 string regionName = scene.RegionInfo.RegionName;
-                            
+
                                 LLUDPClient llUdpClient = llClient.UDPClient;
                                 ClientInfo ci = llUdpClient.GetClientInfo();
-                            
+
                                 report.Append(GetColumnEntry(name, maxNameLength, columnPadding));
                                 report.Append(GetColumnEntry(regionName, maxRegionNameLength, columnPadding));
-                                report.Append(GetColumnEntry(isChild ? "Cd" : "Rt", maxTypeLength, columnPadding));                                                             
-                            
+                                report.Append(GetColumnEntry(isChild ? "Cd" : "Rt", maxTypeLength, columnPadding));
+
                                 report.AppendFormat(
                                     "{0,8} {1,8} {2,7} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7}\n",
                                     ci.maxThrottle > 0 ? ((ci.maxThrottle * 8) / 1000).ToString() : "-",
-                                    llUdpClient.FlowThrottle.AdaptiveEnabled 
-                                        ? ((ci.targetThrottle * 8) / 1000).ToString() 
+                                    llUdpClient.FlowThrottle.AdaptiveEnabled
+                                        ? ((ci.targetThrottle * 8) / 1000).ToString()
                                         : (llUdpClient.FlowThrottle.TotalDripRequest * 8 / 1000).ToString(),
                                     (ci.totalThrottle * 8) / 1000,
                                     (ci.resendThrottle * 8) / 1000,
@@ -538,7 +538,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
             }
 
             return report.ToString();
-        }         
+        }
 
         /// <summary>
         /// Show client stats data
@@ -568,20 +568,20 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                                 string childAgentStatus;
 
                                 if (llClient.SceneAgent != null)
-                                    childAgentStatus = llClient.SceneAgent.IsChildAgent ? "N" : "Y"; 
+                                    childAgentStatus = llClient.SceneAgent.IsChildAgent ? "N" : "Y";
                                 else
                                     childAgentStatus = "Off!";
 
-                                m_log.InfoFormat("[INFO]: {0,-12} {1,-20} {2,-6} {3,-11} {4,-11} {5,-16}", 
+                                m_log.InfoFormat("[INFO]: {0,-12} {1,-20} {2,-6} {3,-11} {4,-11} {5,-16}",
                                     scene.RegionInfo.RegionName, llClient.Name,
-                                         childAgentStatus, 
+                                         childAgentStatus,
                                          (DateTime.Now - cinfo.StartedTime).Minutes,
-                                         avg_reqs, 
+                                         avg_reqs,
                                          string.Format(
-                                            "{0} ({1:0.00}%)", 
-                                            llClient.TotalAgentUpdates, 
-                                            cinfo.SyncRequests.ContainsKey("AgentUpdate") 
-                                                ? (float)cinfo.SyncRequests["AgentUpdate"] / llClient.TotalAgentUpdates * 100 
+                                            "{0} ({1:0.00}%)",
+                                            llClient.TotalAgentUpdates,
+                                            cinfo.SyncRequests.ContainsKey("AgentUpdate")
+                                                ? (float)cinfo.SyncRequests["AgentUpdate"] / llClient.TotalAgentUpdates * 100
                                                 : 0));
                             }
                         });

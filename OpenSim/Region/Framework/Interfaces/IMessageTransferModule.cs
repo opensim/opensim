@@ -31,7 +31,7 @@ namespace OpenSim.Region.Framework.Interfaces
 {
     public delegate void MessageResultNotification(bool success);
     public delegate void UndeliveredMessage(GridInstantMessage im);
-   
+
     public interface IMessageTransferModule
     {
         event UndeliveredMessage OnUndeliveredMessage;

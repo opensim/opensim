@@ -66,7 +66,7 @@ namespace OpenSim.Region.UserStatistics
         public string RenderView(Hashtable pModelResult)
         {
             StringBuilder output = new StringBuilder();
-            
+
             HTMLUtil.HR(ref output, "");
             output.Append("<H3>ActiveLog</H3>\n");
 
@@ -102,13 +102,13 @@ namespace OpenSim.Region.UserStatistics
                     }
                 }
                 StringBuilder replaceStr = new StringBuilder();
-                //string titlecolorresults = 
-                
+                //string titlecolorresults =
+
                 string formatresult = Regex.Replace(TitleColor.Replace(result[i], "$1"), "[^ABCDEFabcdef0-9]", "");
                 if (formatresult.Length > 6)
                 {
                     formatresult = formatresult.Substring(0, 6);
-                   
+
                 }
                 for (int j = formatresult.Length; j <= 5; j++)
                     formatresult += "0";
@@ -116,12 +116,12 @@ namespace OpenSim.Region.UserStatistics
                 replaceStr.Append(formatresult);
                 replaceStr.Append("\">$3</font>] $4<br />");
                 string repstr = replaceStr.ToString();
-                
+
                 output.Append(formatopen);
                 output.Append(webFormat.Replace(result[i], repstr));
                 output.Append(formatclose);
             }
-                
+
 
             return output.ToString();
         }

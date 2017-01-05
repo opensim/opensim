@@ -539,7 +539,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osReplaceString(src,pattern,replace,count,start);
         }
-        
+
 
         // Information about data loaded into the region
         public string osLoadedCreationDate()
@@ -914,7 +914,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osGetRegionMapTexture(regionName);
         }
-        
+
         public LSL_List osGetRegionStats()
         {
             return m_OSSL_Functions.osGetRegionStats();
@@ -934,12 +934,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osGetSimulatorMemory();
         }
-        
+
         public void osKickAvatar(string FirstName,string SurName,string alert)
         {
             m_OSSL_Functions.osKickAvatar(FirstName, SurName, alert);
         }
-        
+
         public void osSetSpeed(string UUID, LSL_Float SpeedModifier)
         {
             m_OSSL_Functions.osSetSpeed(UUID, SpeedModifier);
@@ -954,7 +954,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_OSSL_Functions.osCauseDamage(avatar, damage);
         }
-        
+
         public void osCauseHealing(string avatar, double healing)
         {
             m_OSSL_Functions.osCauseHealing(avatar, healing);
@@ -984,12 +984,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_OSSL_Functions.osForceOtherSit(avatar, target);
         }
-        
+
         public LSL_List osGetPrimitiveParams(LSL_Key prim, LSL_List rules)
         {
             return m_OSSL_Functions.osGetPrimitiveParams(prim, rules);
         }
-        
+
         public void osSetPrimitiveParams(LSL_Key prim, LSL_List rules)
         {
             m_OSSL_Functions.osSetPrimitiveParams(prim, rules);

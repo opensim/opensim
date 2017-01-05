@@ -40,12 +40,12 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Provide general help information about this commander.
         /// </value>
         string Help { get; }
-        
+
         /// <summary>
         /// The commands available for this commander
         /// </summary>
         Dictionary<string, ICommand> Commands { get; }
-        
+
         void ProcessConsoleCommand(string function, string[] args);
         void RegisterCommand(string commandName, ICommand command);
         void Run(string function, object[] args);

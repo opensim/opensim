@@ -51,7 +51,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="appearance"></param>
         /// <returns></returns>
         bool SetAppearance(UUID userID, AvatarAppearance appearance);
-        
+
         /// <summary>
         /// Called by the login service
         /// </summary>
@@ -75,7 +75,7 @@ namespace OpenSim.Services.Interfaces
         bool ResetAvatar(UUID userID);
 
         /// <summary>
-        /// These methods raison d'etre: 
+        /// These methods raison d'etre:
         /// No need to send the entire avatar data (SetAvatar) for changing attachments
         /// </summary>
         /// <param name="userID"></param>
@@ -291,8 +291,8 @@ namespace OpenSim.Services.Interfaces
                     byte[] binary = new byte[vps.Length];
 
                     for (int i = 0; i < vps.Length; i++)
-                    	binary[i] = (byte)Convert.ToInt32(vps[i]);
-                    
+                        binary[i] = (byte)Convert.ToInt32(vps[i]);
+
                     appearance.VisualParams = binary;
                 }
 

@@ -59,7 +59,7 @@ namespace OpenSim.Tests.Common
             Assert.AreEqual(m_emptyStringArray, handler.SplitParams(null), "Failed on null.");
             Assert.AreEqual(m_emptyStringArray, handler.SplitParams(""), "Failed on empty path.");
             Assert.AreEqual(m_emptyStringArray, handler.SplitParams("corruptUrl"), "Failed on corrupt url.");
- 
+
             Assert.AreEqual(m_emptyStringArray, handler.SplitParams(assetsPath), "Failed on empty params.");
             Assert.AreEqual(m_emptyStringArray, handler.SplitParams(assetsPath + "/"), "Failed on single slash.");
 

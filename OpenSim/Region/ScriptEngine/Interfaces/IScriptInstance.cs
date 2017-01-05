@@ -104,7 +104,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         string State { get; set; }
 
         /// <summary>
-        /// If true then the engine is responsible for persisted state.  If false then some other component may 
+        /// If true then the engine is responsible for persisted state.  If false then some other component may
         /// persist state (e.g. attachments persisting in assets).
         /// </summary>
         bool StatePersistedHere { get; }
@@ -193,7 +193,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         /// </summary>
         /// <param name="data"></param>
         void PostEvent(EventParams data);
-        
+
         void Suspend();
         void Resume();
 
@@ -223,7 +223,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         /// Reset the script.
         /// </summary>
         /// <remarks>
-        /// This must not be called by any thread other than the one executing the scripts current event.  This is 
+        /// This must not be called by any thread other than the one executing the scripts current event.  This is
         /// because there is no wait or abort logic if another thread is in the middle of processing a script event.
         /// Such an external thread should use ResetScript() instead.
         /// </remarks>

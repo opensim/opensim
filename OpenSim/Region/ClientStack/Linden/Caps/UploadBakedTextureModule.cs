@@ -84,7 +84,7 @@ namespace OpenSim.Region.ClientStack.Linden
         public void AddRegion(Scene s)
         {
             m_scene = s;
-           
+
         }
 
         public void RemoveRegion(Scene s)
@@ -94,14 +94,14 @@ namespace OpenSim.Region.ClientStack.Linden
             s.EventManager.OnRemovePresence -= DeRegisterPresence;
             m_BakedTextureModule = null;
             m_scene = null;
-        }     
+        }
 
         public void RegionLoaded(Scene s)
         {
             m_scene.EventManager.OnRegisterCaps += RegisterCaps;
             m_scene.EventManager.OnNewPresence += RegisterNewPresence;
             m_scene.EventManager.OnRemovePresence += DeRegisterPresence;
-            
+
         }
 
         private void DeRegisterPresence(UUID agentId)
@@ -205,7 +205,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         }
                     }
                     else
-                    {               
+                    {
                         for (int i = 0; i < maxCacheitemsLoop; i++)
                         {
                             if (textureEntry.FaceTextures.Length > cacheItems[i].TextureIndex)
@@ -285,7 +285,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         avatarhandler.UploadBakedTexture,
                         "UploadBakedTexture",
                         agentID.ToString()));
-                
+
             }
             else
             {

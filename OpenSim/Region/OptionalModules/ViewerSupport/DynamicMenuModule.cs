@@ -159,7 +159,7 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
 
                     if (loc == null)
                         continue;
-                    
+
                     loc[d.Title] = OSD.FromString(d.Title);
                 }
             }
@@ -193,7 +193,7 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
 
                     if (loc == null)
                         continue;
-                    
+
                     loc[d.Title] = OSD.FromString(d.Title);
                 }
             }

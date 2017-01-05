@@ -746,7 +746,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int FRICTION = 2;
         public const int RESTITUTION = 4;
         public const int GRAVITY_MULTIPLIER = 8;
-        
+
         // extra constants for llSetPrimMediaParams
         public static readonly LSLInteger LSL_STATUS_OK = new LSLInteger(0);
         public static readonly LSLInteger LSL_STATUS_MALFORMED_PARAMS = new LSLInteger(1000);

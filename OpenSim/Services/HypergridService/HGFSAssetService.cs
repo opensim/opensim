@@ -160,7 +160,7 @@ namespace OpenSim.Services.HypergridService
             return false;
         }
 
-        #endregion 
+        #endregion
 
         protected void AdjustIdentifiers(AssetMetadata meta)
         {

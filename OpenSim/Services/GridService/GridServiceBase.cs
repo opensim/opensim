@@ -68,7 +68,7 @@ namespace OpenSim.Services.GridService
                 connString = gridConfig.GetString("ConnectionString", connString);
                 realm = gridConfig.GetString("Realm", realm);
             }
-            
+
             //
             // We tried, but this doesn't exist. We can't proceed.
             //

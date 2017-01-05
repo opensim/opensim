@@ -151,13 +151,13 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                         // to the command line parameters you use to start up your client
                         // This commonly looks like -helperuri http://127.0.0.1:9000/
 
-                       
+
                         // Local Server..  enables functionality only.
                         httpServer.AddXmlRPCHandler("getCurrencyQuote", quote_func);
                         httpServer.AddXmlRPCHandler("buyCurrency", buy_func);
                         httpServer.AddXmlRPCHandler("preflightBuyLandPrep", preflightBuyLandPrep_func);
                         httpServer.AddXmlRPCHandler("buyLandPrep", landBuy_func);
-                       
+
                     }
 
                     if (m_scenel.ContainsKey(scene.RegionInfo.RegionHandle))
@@ -212,7 +212,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
             bool give_result = doMoneyTransfer(fromID, toID, amount, 2, description);
 
-            
+
             BalanceUpdate(fromID, toID, give_result, description);
 
             return give_result;
@@ -303,7 +303,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         private bool doMoneyTransfer(UUID Sender, UUID Receiver, int amount, int transactiontype, string description)
         {
             bool result = true;
-            
+
             return result;
         }
 
@@ -377,10 +377,10 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
             else
             {
                 m_log.ErrorFormat(
-                    "[MONEY]: Could not resolve user {0}", 
+                    "[MONEY]: Could not resolve user {0}",
                     agentID);
             }
-            
+
             return String.Empty;
         }
 
@@ -464,7 +464,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
             Hashtable quoteResponse = new Hashtable();
             XmlRpcResponse returnval = new XmlRpcResponse();
 
-            
+
             Hashtable currencyResponse = new Hashtable();
             currencyResponse.Add("estimatedCost", 0);
             currencyResponse.Add("currencyBuy", amount);
@@ -475,7 +475,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
             returnval.Value = quoteResponse;
             return returnval;
-            
+
 
 
         }
@@ -485,7 +485,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
             // Hashtable requestData = (Hashtable) request.Params[0];
             // UUID agentId = UUID.Zero;
             // int amount = 0;
-           
+
             XmlRpcResponse returnval = new XmlRpcResponse();
             Hashtable returnresp = new Hashtable();
             returnresp.Add("success", true);
@@ -536,7 +536,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
             // UUID agentId = UUID.Zero;
             // int amount = 0;
-           
+
             retparam.Add("success", true);
             ret.Value = retparam;
 
@@ -553,7 +553,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         /// <param name="agentID"></param>
         private void CheckExistAndRefreshFunds(UUID agentID)
         {
-            
+
         }
 
         /// <summary>
@@ -564,13 +564,13 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         private int GetFundsForAgentID(UUID AgentID)
         {
             int returnfunds = 0;
-            
+
             return returnfunds;
         }
 
         // private void SetLocalFundsForAgentID(UUID AgentID, int amount)
         // {
-            
+
         // }
 
         #endregion
@@ -689,7 +689,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         /// <see cref="OpenSim.Region.Framework.Scenes.EventManager.ClientClosed"/>
         public void ClientClosed(UUID AgentID, Scene scene)
         {
-            
+
         }
 
         /// <summary>
@@ -708,19 +708,19 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
         private void ValidateLandBuy(Object osender, EventManager.LandBuyArgs e)
         {
-            
-            
+
+
             lock (e)
             {
                 e.economyValidated = true;
             }
-       
-            
+
+
         }
 
         private void processLandBuy(Object osender, EventManager.LandBuyArgs e)
         {
-            
+
         }
 
         /// <summary>
@@ -730,7 +730,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         /// <param name="e"></param>
         private void MoneyTransferAction(Object osender, EventManager.MoneyTransferArgs e)
         {
-            
+
         }
 
         /// <summary>
@@ -739,7 +739,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         /// <param name="avatar"></param>
         private void MakeChildAgent(ScenePresence avatar)
         {
-            
+
         }
 
         /// <summary>
@@ -748,7 +748,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         /// <param name="AgentId"></param>
         private void ClientLoggedOut(UUID AgentId, Scene scene)
         {
-            
+
         }
 
         /// <summary>
@@ -768,7 +768,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         /// <param name="regionID"></param>
         private void AvatarEnteringParcel(ScenePresence avatar, int localLandID, UUID regionID)
         {
-            
+
             //m_log.Info("[FRIEND]: " + avatar.Name + " status:" + (!avatar.IsChildAgent).ToString());
         }
 
@@ -809,12 +809,12 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
             Scene s = LocateSceneClientIn(remoteClient.AgentId);
 
-            // Implmenting base sale data checking here so the default OpenSimulator implementation isn't useless 
+            // Implmenting base sale data checking here so the default OpenSimulator implementation isn't useless
             // combined with other implementations.  We're actually validating that the client is sending the data
             // that it should.   In theory, the client should already know what to send here because it'll see it when it
-            // gets the object data.   If the data sent by the client doesn't match the object, the viewer probably has an 
-            // old idea of what the object properties are.   Viewer developer Hazim informed us that the base module 
-            // didn't check the client sent data against the object do any.   Since the base modules are the 
+            // gets the object data.   If the data sent by the client doesn't match the object, the viewer probably has an
+            // old idea of what the object properties are.   Viewer developer Hazim informed us that the base module
+            // didn't check the client sent data against the object do any.   Since the base modules are the
             // 'crowning glory' examples of good practice..
 
             // Validate that the object exists in the scene the user is in
@@ -824,15 +824,15 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                 remoteClient.SendAgentAlertMessage("Unable to buy now. The object was not found.", false);
                 return;
             }
-            
-            // Validate that the client sent the price that the object is being sold for 
+
+            // Validate that the client sent the price that the object is being sold for
             if (part.SalePrice != salePrice)
             {
                 remoteClient.SendAgentAlertMessage("Cannot buy at this price. Buy Failed. If you continue to get this relog.", false);
                 return;
             }
 
-            // Validate that the client sent the proper sale type the object has set 
+            // Validate that the client sent the proper sale type the object has set
             if (part.ObjectSaleType != saleType)
             {
                 remoteClient.SendAgentAlertMessage("Cannot buy this way. Buy Failed. If you continue to get this relog.", false);

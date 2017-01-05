@@ -139,7 +139,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             continue;
                         }
                     }
-                   
+
                     CurrentRayFilter = req.filter;
                     CurrentMaxCount = req.Count;
 
@@ -279,7 +279,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// Method that actually initiates the raycast with spaces
         /// </summary>
         /// <param name="req"></param>
-        /// 
+        ///
 
         private void NoContacts(ODERayRequest req)
         {
@@ -488,7 +488,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             newcontactgeom = (d.ContactGeom)Marshal.PtrToStructure(contactptr, typeof(d.ContactGeom));
             return true;
         }
-        
+
         // This is the standard Near. g1 is the ray
         private void near(IntPtr space, IntPtr g1, IntPtr g2)
         {
@@ -530,7 +530,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             uint col1 = d.GeomGetCollideBits(g1);
             uint col2 = d.GeomGetCollideBits(g2);
 */
-            
+
             uint ID = 0;
             PhysicsActor p2 = null;
 
@@ -671,7 +671,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 d.GeomDestroy(Plane);
                 Plane = IntPtr.Zero;
-            }           
+            }
         }
     }
 

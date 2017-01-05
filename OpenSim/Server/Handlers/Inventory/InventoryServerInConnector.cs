@@ -61,7 +61,7 @@ namespace OpenSim.Server.Handlers.Inventory
         {
             if (configName != string.Empty)
                 m_ConfigName = configName;
-    
+
             IConfig serverConfig = config.Configs[m_ConfigName];
             if (serverConfig == null)
                 throw new Exception(String.Format("No section '{0}' in config file", m_ConfigName));
@@ -92,7 +92,7 @@ namespace OpenSim.Server.Handlers.Inventory
             m_httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<Guid, InventoryCollection>(
                 "POST", "/GetFolderContent/", GetFolderContent, CheckAuthSession));
-            
+
             m_httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
                     "POST", "/UpdateFolder/", m_InventoryService.UpdateFolder, CheckAuthSession));
@@ -151,7 +151,7 @@ namespace OpenSim.Server.Handlers.Inventory
 
             m_httpServer.AddStreamHandler(new InventoryServerMoveItemsHandler(m_InventoryService));
 
-            
+
             // for persistent active gestures
             m_httpServer.AddStreamHandler(
                 new RestDeserialiseTrustedHandler<Guid, List<InventoryItemBase>>

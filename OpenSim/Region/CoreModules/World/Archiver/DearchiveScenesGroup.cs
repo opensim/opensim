@@ -214,7 +214,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 return false;
             string regionDirectory = parts[1];
             relativePath = parts[2];
-            
+
             RegionInfo region;
             if (m_directory2region.TryGetValue(regionDirectory, out region))
             {

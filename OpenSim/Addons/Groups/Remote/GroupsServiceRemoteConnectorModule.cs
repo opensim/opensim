@@ -113,7 +113,7 @@ namespace OpenSim.Groups
             if (!m_Enabled)
                 return;
 
-            m_log.DebugFormat("[Groups.RemoteConnector]: Registering {0} with {1}", this.Name, scene.RegionInfo.RegionName); 
+            m_log.DebugFormat("[Groups.RemoteConnector]: Registering {0} with {1}", this.Name, scene.RegionInfo.RegionName);
             scene.RegisterModuleInterface<IGroupsServicesConnector>(this);
             m_Scenes.Add(scene);
         }
@@ -151,7 +151,7 @@ namespace OpenSim.Groups
 
         #region IGroupsServicesConnector
 
-        public UUID CreateGroup(UUID RequestingAgentID, string name, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment, 
+        public UUID CreateGroup(UUID RequestingAgentID, string name, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment,
             bool allowPublish, bool maturePublish, UUID founderID, out string reason)
         {
             m_log.DebugFormat("[Groups.RemoteConnector]: Creating group {0}", name);
@@ -167,7 +167,7 @@ namespace OpenSim.Groups
             return groupID;
         }
 
-        public bool UpdateGroup(string RequestingAgentID, UUID groupID, string charter, bool showInList, UUID insigniaID, int membershipFee, 
+        public bool UpdateGroup(string RequestingAgentID, UUID groupID, string charter, bool showInList, UUID insigniaID, int membershipFee,
             bool openEnrollment, bool allowPublish, bool maturePublish, out string reason)
         {
             string r = string.Empty;
@@ -186,9 +186,9 @@ namespace OpenSim.Groups
             if (GroupID == UUID.Zero && (GroupName == null || GroupName != null && GroupName == string.Empty))
                 return null;
 
-            return m_CacheWrapper.GetGroupRecord(RequestingAgentID,GroupID,GroupName, delegate 
-            { 
-                return m_GroupsService.GetGroupRecord(RequestingAgentID, GroupID, GroupName); 
+            return m_CacheWrapper.GetGroupRecord(RequestingAgentID,GroupID,GroupName, delegate
+            {
+                return m_GroupsService.GetGroupRecord(RequestingAgentID, GroupID, GroupName);
             });
         }
 
@@ -362,7 +362,7 @@ namespace OpenSim.Groups
             m_GroupsService.RemoveAgentToGroupInvite(RequestingAgentID, inviteID);
         }
 
-        public bool AddGroupNotice(string RequestingAgentID, UUID groupID, UUID noticeID, string fromName, string subject, string message, 
+        public bool AddGroupNotice(string RequestingAgentID, UUID groupID, UUID noticeID, string fromName, string subject, string message,
             bool hasAttachment, byte attType, string attName, UUID attItemID, string attOwnerID)
         {
             GroupNoticeInfo notice = new GroupNoticeInfo();

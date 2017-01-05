@@ -67,7 +67,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends.Tests
             // so that different services and simulator can share the data in standalone mode.  This is pretty horrible
             // effectively the statics are global variables.
             NullFriendsData.Clear();
-                
+
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
             // Not strictly necessary since FriendsModule assumes it is the default (!)

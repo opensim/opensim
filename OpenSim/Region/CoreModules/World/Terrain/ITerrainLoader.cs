@@ -33,7 +33,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
     public interface ITerrainLoader
     {
         // Returns true if that extension can be used for terrain save-tile
-        // (Look into each file in Region.CoreModules.World.Terrain.FileLoaders) 
+        // (Look into each file in Region.CoreModules.World.Terrain.FileLoaders)
         bool SupportsTileSave();
 
         string FileExtension { get; }

@@ -279,7 +279,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
 
             m_host.Sound = soundID;
             m_host.SoundGain = volume;
-            m_host.SoundFlags = iflags;      
+            m_host.SoundFlags = iflags;
             m_host.SoundRadius = radius;
 
             m_host.ScheduleFullUpdate();
@@ -309,14 +309,14 @@ namespace OpenSim.Region.CoreModules.World.Sound
             else
             {
                 byte bflags = 0;
-                
+
                 if (isMaster)
                     bflags |= (byte)SoundFlags.SYNC_MASTER;
                 // TODO check viewer seems to accept both
                 if (useMaster)
                     bflags |= (byte)SoundFlags.SYNC_SLAVE;
                 PlayAttachedSound(soundID, part.OwnerID, part.UUID, volume, position, bflags, radius);
-            } 
+            }
         }
 
         public void TriggerSoundLimited(UUID objectID, UUID sound,

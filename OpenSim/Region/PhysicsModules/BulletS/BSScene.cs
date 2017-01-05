@@ -351,12 +351,12 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             if (BSParam.UseSeparatePhysicsThread)
             {
                 // The physics simulation should happen independently of the heartbeat loop
-                m_physicsThread 
+                m_physicsThread
                     = WorkManager.StartThread(
-                        BulletSPluginPhysicsThread, 
-                        string.Format("{0} ({1})", BulletEngineName, RegionName), 
-                        ThreadPriority.Normal, 
-                        true, 
+                        BulletSPluginPhysicsThread,
+                        string.Format("{0} ({1})", BulletEngineName, RegionName),
+                        ThreadPriority.Normal,
+                        true,
                         true);
             }
         }

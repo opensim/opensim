@@ -52,27 +52,27 @@ namespace OpenSim.Framework.Console
             /// The module from which this command comes
             /// </value>
             public string module;
-            
+
             /// <value>
             /// Whether the module is shared
             /// </value>
             public bool shared;
-            
+
             /// <value>
             /// Very short BNF description
             /// </value>
             public string help_text;
-            
+
             /// <value>
             /// Longer one line help text
             /// </value>
             public string long_help;
-            
+
             /// <value>
             /// Full descriptive help for this command
             /// </value>
             public string descriptive_help;
-            
+
             /// <value>
             /// The method to invoke for this command
             /// </value>
@@ -106,7 +106,7 @@ namespace OpenSim.Framework.Console
         {
             List<string> help = new List<string>();
             List<string> helpParts = new List<string>(cmd);
-            
+
             // Remove initial help keyword
             helpParts.RemoveAt(0);
 
@@ -154,7 +154,7 @@ namespace OpenSim.Framework.Console
 
             return help;
         }
-        
+
         /// <summary>
         /// See if we can find the requested command in order to display longer help
         /// </summary>
@@ -171,23 +171,23 @@ namespace OpenSim.Framework.Console
                 help.Insert(0, ItemHelpText);
                 return help;
             }
-            
+
             Dictionary<string, object> dict = tree;
             while (helpParts.Count > 0)
             {
                 string helpPart = helpParts[0];
-                
+
                 if (!dict.ContainsKey(helpPart))
                     break;
-                
+
                 //m_log.Debug("Found {0}", helpParts[0]);
-                
+
                 if (dict[helpPart] is Dictionary<string, Object>)
-                    dict = (Dictionary<string, object>)dict[helpPart]; 
-                
+                    dict = (Dictionary<string, object>)dict[helpPart];
+
                 helpParts.RemoveAt(0);
             }
-        
+
             // There was a command for the given help string
             if (dict.ContainsKey(String.Empty))
             {
@@ -200,14 +200,14 @@ namespace OpenSim.Framework.Console
                 // If we do have some descriptive help then insert a spacing line before for readability.
                 if (descriptiveHelp != string.Empty)
                     help.Add(string.Empty);
-                
+
                 help.Add(commandInfo.descriptive_help);
             }
             else
             {
                 help.Add(string.Format("No help is available for {0}", originalHelpRequest));
             }
-            
+
             return help;
         }
 
@@ -268,7 +268,7 @@ namespace OpenSim.Framework.Console
 //            }
 //            return result;
 //        }
-        
+
         /// <summary>
         /// Add a command to those which can be invoked from the console.
         /// </summary>
@@ -299,7 +299,7 @@ namespace OpenSim.Framework.Console
             string[] parts = Parser.Parse(command);
 
             Dictionary<string, Object> current = tree;
-            
+
             foreach (string part in parts)
             {
                 if (current.ContainsKey(part))
@@ -326,7 +326,7 @@ namespace OpenSim.Framework.Console
 
                 return;
             }
-            
+
             info = new CommandInfo();
             info.module = module;
             info.shared = shared;
@@ -471,7 +471,7 @@ namespace OpenSim.Framework.Console
 
             return null;
         }
-                
+
         public bool HasCommand(string command)
         {
             string[] result;

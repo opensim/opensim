@@ -209,7 +209,7 @@ namespace OpenSim.Data.MySQL
                     {
                         assetName = asset.Name.Substring(0, AssetBase.MAX_ASSET_NAME);
                         m_log.WarnFormat(
-                            "[XASSET DB]: Name '{0}' for asset {1} truncated from {2} to {3} characters on add", 
+                            "[XASSET DB]: Name '{0}' for asset {1} truncated from {2} to {3} characters on add",
                             asset.Name, asset.ID, asset.Name.Length, assetName.Length);
                     }
 
@@ -218,7 +218,7 @@ namespace OpenSim.Data.MySQL
                     {
                         assetDescription = asset.Description.Substring(0, AssetBase.MAX_ASSET_DESC);
                         m_log.WarnFormat(
-                            "[XASSET DB]: Description '{0}' for asset {1} truncated from {2} to {3} characters on add", 
+                            "[XASSET DB]: Description '{0}' for asset {1} truncated from {2} to {3} characters on add",
                             asset.Description, asset.ID, asset.Description.Length, assetDescription.Length);
                     }
 
@@ -341,7 +341,7 @@ namespace OpenSim.Data.MySQL
                 catch (Exception)
                 {
                     m_log.ErrorFormat(
-                        "[XASSET MYSQL DB]: Failure updating access_time for asset {0} with name {1}", 
+                        "[XASSET MYSQL DB]: Failure updating access_time for asset {0} with name {1}",
                         assetMetadata.ID, assetMetadata.Name);
                 }
             }

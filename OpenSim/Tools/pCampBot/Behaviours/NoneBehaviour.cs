@@ -38,10 +38,10 @@ namespace pCampBot
     /// </summary>
     public class NoneBehaviour : AbstractBehaviour
     {
-        public NoneBehaviour() 
-        { 
+        public NoneBehaviour()
+        {
             AbbreviatedName = "n";
-            Name = "None"; 
+            Name = "None";
         }
 
         public override void Action()
@@ -52,7 +52,7 @@ namespace pCampBot
             Bot.Client.Self.Movement.Stop = false;
         }
 
-        public override void Interrupt() 
+        public override void Interrupt()
         {
             m_interruptEvent.Set();
         }

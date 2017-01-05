@@ -41,7 +41,7 @@ namespace OpenSim.Services.UserAccountService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public AgentPreferencesService(IConfigSource config) : base(config) 
+        public AgentPreferencesService(IConfigSource config) : base(config)
         {
             m_log.Debug("[AGENT PREFERENCES SERVICE]: Starting agent preferences service");
         }

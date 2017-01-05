@@ -46,43 +46,43 @@ namespace OpenSim.Data.SQLite
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         private SqliteConnection m_connection;
         private string m_connectionString;
-        
+
         private Dictionary<string, FieldInfo> m_FieldMap =
             new Dictionary<string, FieldInfo>();
-        
+
         protected virtual Assembly Assembly
         {
             get { return GetType().Assembly; }
         }
-        
+
         public SQLiteUserProfilesData()
         {
         }
-        
+
         public SQLiteUserProfilesData(string connectionString)
         {
             Initialise(connectionString);
         }
-        
+
         public void Initialise(string connectionString)
         {
             if (Util.IsWindows())
                 Util.LoadArchSpecificWindowsDll("sqlite3.dll");
-            
+
             m_connectionString = connectionString;
-            
+
             m_log.Info("[PROFILES_DATA]: Sqlite - connecting: "+m_connectionString);
-            
+
             m_connection = new SqliteConnection(m_connectionString);
             m_connection.Open();
-            
+
             Migration m = new Migration(m_connection, Assembly, "UserProfiles");
             m.Update();
         }
-        
+
         private string[] FieldList
         {
             get { return new List<string>(m_FieldMap.Keys).ToArray(); }
@@ -123,7 +123,7 @@ namespace OpenSim.Data.SQLite
             }
 
             reader.Close();
-            
+
             return data;
         }
         public bool UpdateClassifiedRecord(UserClassifiedAdd ad, ref string result)
@@ -162,21 +162,21 @@ namespace OpenSim.Data.SQLite
             query += ":ParcelName,";
             query += ":Flags,";
             query += ":ListingPrice ) ";
-            
+
             if(string.IsNullOrEmpty(ad.ParcelName))
                 ad.ParcelName = "Unknown";
             if(ad.ParcelId == null)
                 ad.ParcelId = UUID.Zero;
             if(string.IsNullOrEmpty(ad.Description))
                 ad.Description = "No Description";
-            
+
             DateTime epoch = new DateTime(1970, 1, 1);
             DateTime now = DateTime.Now;
             TimeSpan epochnow = now - epoch;
             TimeSpan duration;
             DateTime expiration;
             TimeSpan epochexp;
-            
+
             if(ad.Flags == 2)
             {
                 duration = new TimeSpan(7,0,0,0);
@@ -211,7 +211,7 @@ namespace OpenSim.Data.SQLite
                     cmd.Parameters.AddWithValue(":ParcelName", ad.ParcelName.ToString());
                     cmd.Parameters.AddWithValue(":Flags", ad.Flags.ToString());
                     cmd.Parameters.AddWithValue(":ListingPrice", ad.Price.ToString ());
-                    
+
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -227,17 +227,17 @@ namespace OpenSim.Data.SQLite
         public bool DeleteClassifiedRecord(UUID recordId)
         {
             string query = string.Empty;
-            
+
             query += "DELETE FROM classifieds WHERE ";
             query += "classifieduuid = :ClasifiedId";
-            
+
             try
             {
                 using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
                 {
                     cmd.CommandText = query;
                     cmd.Parameters.AddWithValue(":ClassifiedId", recordId.ToString());
- 
+
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -254,17 +254,17 @@ namespace OpenSim.Data.SQLite
         {
             IDataReader reader = null;
             string query = string.Empty;
-            
+
             query += "SELECT * FROM classifieds WHERE ";
             query += "classifieduuid = :AdId";
-            
+
             try
             {
                 using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
                 {
                     cmd.CommandText = query;
                     cmd.Parameters.AddWithValue(":AdId", ad.ClassifiedId.ToString());
-                    
+
                     using (reader = cmd.ExecuteReader())
                     {
                         if(reader.Read ())
@@ -299,24 +299,24 @@ namespace OpenSim.Data.SQLite
         {
             IDataReader reader = null;
             string query = string.Empty;
-            
+
             query += "SELECT `pickuuid`,`name` FROM userpicks WHERE ";
             query += "creatoruuid = :Id";
             OSDArray data = new OSDArray();
-            
+
             try
             {
                 using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
                 {
                     cmd.CommandText = query;
                     cmd.Parameters.AddWithValue(":Id", avatarId.ToString());
-                    
+
                     using (reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
                         {
                             OSDMap record = new OSDMap();
-                            
+
                             record.Add("pickuuid",OSD.FromString((string)reader["pickuuid"]));
                             record.Add("name",OSD.FromString((string)reader["name"]));
                             data.Add(record);
@@ -336,11 +336,11 @@ namespace OpenSim.Data.SQLite
             IDataReader reader = null;
             string query = string.Empty;
             UserProfilePick pick = new UserProfilePick();
-            
+
             query += "SELECT * FROM userpicks WHERE ";
             query += "creatoruuid = :CreatorId AND ";
             query += "pickuuid =  :PickId";
-            
+
             try
             {
                 using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
@@ -348,17 +348,17 @@ namespace OpenSim.Data.SQLite
                     cmd.CommandText = query;
                     cmd.Parameters.AddWithValue(":CreatorId", avatarId.ToString());
                     cmd.Parameters.AddWithValue(":PickId", pickId.ToString());
-                    
+
                     using (reader = cmd.ExecuteReader())
                     {
-                        
+
                         while (reader.Read())
                         {
                             string description = (string)reader["description"];
-                            
+
                             if (string.IsNullOrEmpty(description))
                                 description = "No description given.";
-                            
+
                             UUID.TryParse((string)reader["pickuuid"], out pick.PickId);
                             UUID.TryParse((string)reader["creatoruuid"], out pick.CreatorId);
                             UUID.TryParse((string)reader["parceluuid"], out pick.ParcelId);
@@ -385,7 +385,7 @@ namespace OpenSim.Data.SQLite
         }
 
         public bool UpdatePicksRecord(UserProfilePick pick)
-        {      
+        {
             string query = string.Empty;
 
             query += "INSERT OR REPLACE INTO userpicks (";
@@ -416,7 +416,7 @@ namespace OpenSim.Data.SQLite
             query += ":GlobalPos,";
             query += ":SortOrder,";
             query += ":Enabled) ";
-            
+
             try
             {
                 using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
@@ -456,10 +456,10 @@ namespace OpenSim.Data.SQLite
         public bool DeletePicksRecord(UUID pickId)
         {
             string query = string.Empty;
-            
+
             query += "DELETE FROM userpicks WHERE ";
             query += "pickuuid = :PickId";
-            
+
             try
             {
                 using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
@@ -479,15 +479,15 @@ namespace OpenSim.Data.SQLite
         }
 
         public bool GetAvatarNotes(ref UserProfileNotes notes)
-        {  
+        {
             IDataReader reader = null;
             string query = string.Empty;
-            
+
             query += "SELECT `notes` FROM usernotes WHERE ";
             query += "useruuid = :Id AND ";
             query += "targetuuid = :TargetId";
             OSDArray data = new OSDArray();
-            
+
             try
             {
                 using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
@@ -495,7 +495,7 @@ namespace OpenSim.Data.SQLite
                     cmd.CommandText = query;
                     cmd.Parameters.AddWithValue(":Id", notes.UserId.ToString());
                     cmd.Parameters.AddWithValue(":TargetId", notes.TargetId.ToString());
-                    
+
                     using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                     {
                         while (reader.Read())
@@ -514,10 +514,10 @@ namespace OpenSim.Data.SQLite
         }
 
         public bool UpdateAvatarNotes(ref UserProfileNotes note, ref string result)
-        {          
+        {
             string query = string.Empty;
             bool remove;
-            
+
             if(string.IsNullOrEmpty(note.Notes))
             {
                 remove = true;
@@ -533,7 +533,7 @@ namespace OpenSim.Data.SQLite
                 query += ":TargetId,";
                 query += ":Notes )";
             }
-            
+
             try
             {
                 using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
@@ -544,7 +544,7 @@ namespace OpenSim.Data.SQLite
                         cmd.Parameters.AddWithValue(":Notes", note.Notes);
                     cmd.Parameters.AddWithValue(":TargetId", note.TargetId.ToString ());
                     cmd.Parameters.AddWithValue(":UserId", note.UserId.ToString());
-                    
+
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -561,7 +561,7 @@ namespace OpenSim.Data.SQLite
         {
             IDataReader reader = null;
             string query = string.Empty;
-            
+
             query += "SELECT * FROM userprofile WHERE ";
             query += "useruuid = :Id";
 
@@ -569,7 +569,7 @@ namespace OpenSim.Data.SQLite
                 {
                     cmd.CommandText = query;
                     cmd.Parameters.AddWithValue(":Id", props.UserId.ToString());
-                    
+
 
                     try
                     {
@@ -611,7 +611,7 @@ namespace OpenSim.Data.SQLite
                             props.Language = string.Empty;
                             props.PublishProfile = false;
                             props.PublishMature = false;
-                            
+
                             query = "INSERT INTO userprofile (";
                             query += "useruuid, ";
                             query += "profilePartner, ";
@@ -659,7 +659,7 @@ namespace OpenSim.Data.SQLite
                                 put.Parameters.AddWithValue(":profileAboutText", props.AboutText);
                                 put.Parameters.AddWithValue(":profileFirstImage", props.FirstLifeImageId.ToString());
                                 put.Parameters.AddWithValue(":profileFirstText", props.FirstLifeText);
-                                
+
                                 put.ExecuteNonQuery();
                             }
                         }
@@ -668,9 +668,9 @@ namespace OpenSim.Data.SQLite
         }
 
         public bool UpdateAvatarProperties(ref UserProfileProperties props, ref string result)
-        {           
+        {
             string query = string.Empty;
-            
+
             query += "UPDATE userprofile SET ";
             query += "profileURL=:profileURL, ";
             query += "profileImage=:image, ";
@@ -678,7 +678,7 @@ namespace OpenSim.Data.SQLite
             query += "profileFirstImage=:firstlifeimage,";
             query += "profileFirstText=:firstlifetext ";
             query += "WHERE useruuid=:uuid";
-            
+
             try
             {
                 using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
@@ -690,7 +690,7 @@ namespace OpenSim.Data.SQLite
                     cmd.Parameters.AddWithValue(":firstlifeimage", props.FirstLifeImageId.ToString());
                     cmd.Parameters.AddWithValue(":firstlifetext", props.FirstLifeText);
                     cmd.Parameters.AddWithValue(":uuid", props.UserId.ToString());
-                    
+
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -698,16 +698,16 @@ namespace OpenSim.Data.SQLite
             {
                 m_log.ErrorFormat("[PROFILES_DATA]" +
                                   ": AgentPropertiesUpdate exception {0}", e.Message);
-                
+
                 return false;
             }
             return true;
         }
 
         public bool UpdateAvatarInterests(UserProfileProperties up, ref string result)
-        {         
+        {
             string query = string.Empty;
-            
+
             query += "UPDATE userprofile SET ";
             query += "profileWantToMask=:WantMask, ";
             query += "profileWantToText=:WantText,";
@@ -715,7 +715,7 @@ namespace OpenSim.Data.SQLite
             query += "profileSkillsText=:SkillsText, ";
             query += "profileLanguages=:Languages ";
             query += "WHERE useruuid=:uuid";
-            
+
             try
             {
                 using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
@@ -727,7 +727,7 @@ namespace OpenSim.Data.SQLite
                     cmd.Parameters.AddWithValue(":SkillsText", up.SkillsText);
                     cmd.Parameters.AddWithValue(":Languages", up.Language);
                     cmd.Parameters.AddWithValue(":uuid", up.UserId.ToString());
-                    
+
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -741,17 +741,17 @@ namespace OpenSim.Data.SQLite
             return true;
         }
 
- 
+
         public bool UpdateUserPreferences(ref UserPreferences pref, ref string result)
-        {           
+        {
             string query = string.Empty;
-            
+
             query += "UPDATE usersettings SET ";
             query += "imviaemail=:ImViaEmail, ";
             query += "visible=:Visible, ";
             query += "email=:EMail ";
             query += "WHERE useruuid=:uuid";
-            
+
             try
             {
                 using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
@@ -761,7 +761,7 @@ namespace OpenSim.Data.SQLite
                     cmd.Parameters.AddWithValue(":Visible", pref.Visible);
                     cmd.Parameters.AddWithValue(":EMail", pref.EMail);
                     cmd.Parameters.AddWithValue(":uuid", pref.UserId.ToString());
-                        
+
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -779,20 +779,20 @@ namespace OpenSim.Data.SQLite
         {
             IDataReader reader = null;
             string query = string.Empty;
-            
+
             query += "SELECT imviaemail,visible,email FROM ";
             query += "usersettings WHERE ";
             query += "useruuid = :Id";
-            
+
             OSDArray data = new OSDArray();
-            
+
             try
             {
                 using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
                 {
                     cmd.CommandText = query;
                     cmd.Parameters.AddWithValue("?Id", pref.UserId.ToString());
-                        
+
                     using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                     {
                         if(reader.Read())
@@ -805,13 +805,13 @@ namespace OpenSim.Data.SQLite
                          {
                             query = "INSERT INTO usersettings VALUES ";
                             query += "(:Id,'false','false', :Email)";
-                            
+
                             using (SqliteCommand put = (SqliteCommand)m_connection.CreateCommand())
                             {
                                 put.Parameters.AddWithValue(":Id", pref.UserId.ToString());
                                 put.Parameters.AddWithValue(":Email", pref.EMail);
                                 put.ExecuteNonQuery();
-                                    
+
                             }
                         }
                     }
@@ -831,11 +831,11 @@ namespace OpenSim.Data.SQLite
         {
             IDataReader reader = null;
             string query = string.Empty;
-            
+
             query += "SELECT * FROM `userdata` WHERE ";
             query += "UserId = :Id AND ";
             query += "TagId = :TagId";
-            
+
             try
             {
                 using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
@@ -843,7 +843,7 @@ namespace OpenSim.Data.SQLite
                     cmd.CommandText = query;
                     cmd.Parameters.AddWithValue(":Id", props.UserId.ToString());
                     cmd.Parameters.AddWithValue (":TagId", props.TagId.ToString());
-                    
+
                     using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                     {
                         if(reader.Read())
@@ -858,7 +858,7 @@ namespace OpenSim.Data.SQLite
                             query += ":TagId,";
                             query += ":DataKey,";
                             query +=  ":DataVal) ";
-                            
+
                             using (SqliteCommand put = (SqliteCommand)m_connection.CreateCommand())
                             {
                                 put.Parameters.AddWithValue(":Id", props.UserId.ToString());
@@ -882,16 +882,16 @@ namespace OpenSim.Data.SQLite
             return true;
         }
         public bool SetUserAppData(UserAppData props, ref string result)
-        {         
+        {
             string query = string.Empty;
-            
+
             query += "UPDATE userdata SET ";
             query += "TagId = :TagId, ";
             query += "DataKey = :DataKey, ";
             query += "DataVal = :DataVal WHERE ";
             query += "UserId = :UserId AND ";
             query += "TagId = :TagId";
-            
+
             try
             {
                 using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
@@ -918,17 +918,17 @@ namespace OpenSim.Data.SQLite
             IDataReader reader = null;
             OSDArray data = new OSDArray();
             string query = "SELECT `snapshotuuid` FROM {0} WHERE `creatoruuid` = :Id";
-            
+
             // Get classified image assets
-            
-            
+
+
             try
             {
                 using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
                 {
                     cmd.CommandText = query;
                     cmd.Parameters.AddWithValue(":Id", avatarId.ToString());
-                    
+
                     using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                     {
                         while(reader.Read())
@@ -942,7 +942,7 @@ namespace OpenSim.Data.SQLite
                 {
                     cmd.CommandText = query;
                     cmd.Parameters.AddWithValue(":Id", avatarId.ToString());
-                    
+
                     using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                     {
                         if(reader.Read())
@@ -951,14 +951,14 @@ namespace OpenSim.Data.SQLite
                         }
                     }
                 }
-                    
+
                 query = "SELECT `profileImage`, `profileFirstImage` FROM `userprofile` WHERE `useruuid` = :Id";
-                
+
                 using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
                 {
                     cmd.CommandText = query;
                     cmd.Parameters.AddWithValue(":Id", avatarId.ToString());
-                    
+
                     using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                     {
                         if(reader.Read())

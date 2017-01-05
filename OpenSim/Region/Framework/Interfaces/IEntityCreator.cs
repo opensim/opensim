@@ -41,7 +41,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         /// <returns></returns>
         PCode[] CreationCapabilities { get; }
-        
+
         /// <summary>
         /// Create an entity
         /// </summary>

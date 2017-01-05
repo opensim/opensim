@@ -40,7 +40,7 @@ namespace OpenSim.Data.Null
     public class NullUserAccountData : IUserAccountData
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         private Dictionary<UUID, UserAccountData> m_DataByUUID = new Dictionary<UUID, UserAccountData>();
         private Dictionary<string, UserAccountData> m_DataByName = new Dictionary<string, UserAccountData>();
         private Dictionary<string, UserAccountData> m_DataByEmail = new Dictionary<string, UserAccountData>();
@@ -48,7 +48,7 @@ namespace OpenSim.Data.Null
         public NullUserAccountData(string connectionString, string realm)
         {
 //            m_log.DebugFormat(
-//                "[NULL USER ACCOUNT DATA]: Initializing new NullUserAccountData with connectionString [{0}], realm [{1}]", 
+//                "[NULL USER ACCOUNT DATA]: Initializing new NullUserAccountData with connectionString [{0}], realm [{1}]",
 //                connectionString, realm);
         }
 
@@ -65,12 +65,12 @@ namespace OpenSim.Data.Null
 //            if (m_log.IsDebugEnabled)
 //            {
 //                m_log.DebugFormat(
-//                    "[NULL USER ACCOUNT DATA]: Called Get with fields [{0}], values [{1}]", 
+//                    "[NULL USER ACCOUNT DATA]: Called Get with fields [{0}], values [{1}]",
 //                    string.Join(", ", fields), string.Join(", ", values));
 //            }
-            
+
             UserAccountData[] userAccounts = new UserAccountData[0];
-            
+
             List<string> fieldsLst = new List<string>(fields);
             if (fieldsLst.Contains("PrincipalID"))
             {
@@ -79,33 +79,33 @@ namespace OpenSim.Data.Null
                 if (UUID.TryParse(values[i], out id))
                     if (m_DataByUUID.ContainsKey(id))
                         userAccounts = new UserAccountData[] { m_DataByUUID[id] };
-            }            
+            }
             else if (fieldsLst.Contains("FirstName") && fieldsLst.Contains("LastName"))
             {
                 int findex = fieldsLst.IndexOf("FirstName");
                 int lindex = fieldsLst.IndexOf("LastName");
                 if (m_DataByName.ContainsKey(values[findex] + " " + values[lindex]))
-                {                                       
+                {
                     userAccounts = new UserAccountData[] { m_DataByName[values[findex] + " " + values[lindex]] };
                 }
-            }            
+            }
             else if (fieldsLst.Contains("Email"))
             {
                 int i = fieldsLst.IndexOf("Email");
                 if (m_DataByEmail.ContainsKey(values[i]))
                     userAccounts = new UserAccountData[] { m_DataByEmail[values[i]] };
             }
-            
+
 //            if (m_log.IsDebugEnabled)
 //            {
 //                StringBuilder sb = new StringBuilder();
 //                foreach (UserAccountData uad in userAccounts)
 //                    sb.AppendFormat("({0} {1} {2}) ", uad.FirstName, uad.LastName, uad.PrincipalID);
-//                    
+//
 //                m_log.DebugFormat(
 //                    "[NULL USER ACCOUNT DATA]: Returning {0} user accounts out of {1}: [{2}]", userAccounts.Length, m_DataByName.Count, sb);
 //            }
-            
+
             return userAccounts;
         }
 
@@ -113,16 +113,16 @@ namespace OpenSim.Data.Null
         {
             if (data == null)
                 return false;
-                       
+
             m_log.DebugFormat(
-                "[NULL USER ACCOUNT DATA]: Storing user account {0} {1} {2} {3}", 
+                "[NULL USER ACCOUNT DATA]: Storing user account {0} {1} {2} {3}",
                 data.FirstName, data.LastName, data.PrincipalID, this.GetHashCode());
-            
+
             m_DataByUUID[data.PrincipalID] = data;
             m_DataByName[data.FirstName + " " + data.LastName] = data;
             if (data.Data.ContainsKey("Email") && data.Data["Email"] != null && data.Data["Email"] != string.Empty)
                 m_DataByEmail[data.Data["Email"]] = data;
-            
+
 //            m_log.DebugFormat("m_DataByUUID count is {0}, m_DataByName count is {1}", m_DataByUUID.Count, m_DataByName.Count);
 
             return true;
@@ -132,7 +132,7 @@ namespace OpenSim.Data.Null
         {
 //            m_log.DebugFormat(
 //                "[NULL USER ACCOUNT DATA]: Called GetUsers with scope [{0}], query [{1}]", scopeID, query);
-            
+
             string[] words = query.Split(new char[] { ' ' });
 
             for (int i = 0; i < words.Length; i++)

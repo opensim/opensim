@@ -72,12 +72,12 @@ namespace OpenSim.Framework.Serialization
         /// Path for region settings.
         /// </value>
         public const string SETTINGS_PATH = "settings/";
-        
+
         /// <value>
         /// Path for region settings.
         /// </value>
         public const string LANDDATA_PATH = "landdata/";
-        
+
         /// <value>
         /// Path for user profiles
         /// </value>

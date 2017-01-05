@@ -88,7 +88,7 @@ namespace Amib.Threading.Internal
         private ManualResetEvent _workItemCompleted;
 
         /// <summary>
-        /// A reference count to the _workItemCompleted. 
+        /// A reference count to the _workItemCompleted.
         /// When it reaches to zero _workItemCompleted is Closed
         /// </summary>
         private int _workItemCompletedRefCount;
@@ -114,13 +114,13 @@ namespace Amib.Threading.Internal
         private event WorkItemStateCallback _workItemCompletedEvent;
 
         /// <summary>
-        /// A reference to an object that indicates whatever the 
+        /// A reference to an object that indicates whatever the
         /// WorkItemsGroup has been canceled
         /// </summary>
         private CanceledWorkItemsGroup _canceledWorkItemsGroup = CanceledWorkItemsGroup.NotCanceledWorkItemsGroup;
 
         /// <summary>
-        /// A reference to an object that indicates whatever the 
+        /// A reference to an object that indicates whatever the
         /// SmartThreadPool has been canceled
         /// </summary>
         private CanceledWorkItemsGroup _canceledSmartThreadPool = CanceledWorkItemsGroup.NotCanceledWorkItemsGroup;
@@ -197,7 +197,7 @@ namespace Amib.Threading.Internal
         /// <param name="workItemInfo">The WorkItemInfo of te workitem</param>
         /// <param name="callback">Callback delegate for the callback.</param>
         /// <param name="state">State with which to call the callback delegate.</param>
-        /// 
+        ///
         /// We assume that the WorkItem object is created within the thread
         /// that meant to run the callback
         public WorkItem(
@@ -402,7 +402,7 @@ namespace Amib.Threading.Internal
             {
                 tae.GetHashCode();
                 // Check if the work item was cancelled
-                // If we got a ThreadAbortException and the STP is not shutting down, it means the 
+                // If we got a ThreadAbortException and the STP is not shutting down, it means the
                 // work items was cancelled.
                 if (!SmartThreadPool.CurrentThreadEntry.AssociatedSmartThreadPool.IsShuttingdown)
                 {
@@ -471,7 +471,7 @@ namespace Amib.Threading.Internal
         /// <param name="waitableResults">Array of work item result objects</param>
         /// <param name="millisecondsTimeout">The number of milliseconds to wait, or Timeout.Infinite (-1) to wait indefinitely.</param>
         /// <param name="exitContext">
-        /// true to exit the synchronization domain for the context before the wait (if in a synchronized context), and reacquire it; otherwise, false. 
+        /// true to exit the synchronization domain for the context before the wait (if in a synchronized context), and reacquire it; otherwise, false.
         /// </param>
         /// <param name="cancelWaitHandle">A cancel wait handle to interrupt the wait if needed</param>
         /// <returns>
@@ -553,7 +553,7 @@ namespace Amib.Threading.Internal
         /// <param name="waitableResults">Array of work item result objects</param>
         /// <param name="millisecondsTimeout">The number of milliseconds to wait, or Timeout.Infinite (-1) to wait indefinitely.</param>
         /// <param name="exitContext">
-        /// true to exit the synchronization domain for the context before the wait (if in a synchronized context), and reacquire it; otherwise, false. 
+        /// true to exit the synchronization domain for the context before the wait (if in a synchronized context), and reacquire it; otherwise, false.
         /// </param>
         /// <param name="cancelWaitHandle">A cancel wait handle to interrupt the wait if needed</param>
         /// <returns>
@@ -734,7 +734,7 @@ namespace Amib.Threading.Internal
                                 // so it already signaled its completion.
                                 //signalComplete = true;
                             }
-                        } 
+                        }
                         success = true;
                         break;
                     case WorkItemState.Completed:
@@ -856,7 +856,7 @@ namespace Amib.Threading.Internal
                 {
                     case 0:
                         // The work item signaled
-                        // Note that the signal could be also as a result of canceling the 
+                        // Note that the signal could be also as a result of canceling the
                         // work item (not the get result)
                         break;
                     case 1:
@@ -884,7 +884,7 @@ namespace Amib.Threading.Internal
         }
 
         /// <summary>
-        /// A wait handle to wait for completion, cancel, or timeout 
+        /// A wait handle to wait for completion, cancel, or timeout
         /// </summary>
         private WaitHandle GetWaitHandle()
         {

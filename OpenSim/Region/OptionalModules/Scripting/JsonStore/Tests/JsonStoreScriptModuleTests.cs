@@ -180,7 +180,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : { 'World' : 'Two' } }"); 
+            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : { 'World' : 'Two' } }");
 
             {
                 string value = (string)InvokeOp("JsonGetValue", storeId, "Hello.World");
@@ -213,7 +213,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : { 'World' : 'Two' } }"); 
+            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : { 'World' : 'Two' } }");
 
             {
                 string value = (string)InvokeOp("JsonGetJson", storeId, "Hello.World");
@@ -246,11 +246,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 //            TestHelpers.InMethod();
 ////            TestHelpers.EnableLogging();
 //
-//            UUID storeId 
+//            UUID storeId
 //                = (UUID)m_smcm.InvokeOperation(
-//                    UUID.Zero, UUID.Zero, "JsonCreateStore", new object[] { "{ 'Hello' : 'World' }" }); 
+//                    UUID.Zero, UUID.Zero, "JsonCreateStore", new object[] { "{ 'Hello' : 'World' }" });
 //
-//            string value 
+//            string value
 //                = (string)m_smcm.InvokeOperation(
 //                    UUID.Zero, UUID.Zero, "JsonTakeValue", new object[] { storeId, "Hello" });
 //
@@ -271,7 +271,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             // Test remove of node in object pointing to a string
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : 'World' }"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : 'World' }");
 
                 int returnValue = (int)InvokeOp( "JsonRemoveValue", storeId, "Hello");
                 Assert.That(returnValue, Is.EqualTo(1));
@@ -285,7 +285,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             // Test remove of node in object pointing to another object
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : { 'World' : 'Wally' } }"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : { 'World' : 'Wally' } }");
 
                 int returnValue = (int)InvokeOp( "JsonRemoveValue", storeId, "Hello");
                 Assert.That(returnValue, Is.EqualTo(1));
@@ -299,7 +299,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             // Test remove of node in an array
             {
-                UUID storeId 
+                UUID storeId
                     = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : [ 'value1', 'value2' ] }");
 
                 int returnValue = (int)InvokeOp( "JsonRemoveValue", storeId, "Hello[0]");
@@ -320,7 +320,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             // Test remove of non-existing value
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : 'World' }"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : 'World' }");
 
                 int fakeValueRemove = (int)InvokeOp("JsonRemoveValue", storeId, "Cheese");
                 Assert.That(fakeValueRemove, Is.EqualTo(0));
@@ -340,7 +340,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 //            TestHelpers.InMethod();
 ////            TestHelpers.EnableLogging();
 //
-//            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : { 'World' : 'One' } }"); 
+//            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : { 'World' : 'One' } }");
 //
 //            {
 //                int result = (int)InvokeOp("JsonTestPath", storeId, "Hello.World");
@@ -372,7 +372,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 //            TestHelpers.InMethod();
 ////            TestHelpers.EnableLogging();
 //
-//            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : { 'World' : 'One' } }"); 
+//            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : { 'World' : 'One' } }");
 //
 //            {
 //                int result = (int)InvokeOp("JsonTestPathJson", storeId, "Hello.World");
@@ -437,7 +437,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : { 'World' : [ 'one', 2 ] } }"); 
+            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello' : { 'World' : [ 'one', 2 ] } }");
 
             {
                 int result = (int)InvokeOp("JsonGetNodeType", storeId, ".");
@@ -509,7 +509,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 //            TestHelpers.EnableLogging();
 
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}");
 
                 int result = (int)InvokeOp("JsonSetValue", storeId, "Fun", "Times");
                 Assert.That(result, Is.EqualTo(1));
@@ -520,7 +520,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             // Test setting a key containing periods with delineation
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}");
 
                 int result = (int)InvokeOp("JsonSetValue", storeId, "{Fun.Circus}", "Times");
                 Assert.That(result, Is.EqualTo(1));
@@ -533,7 +533,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             // Test setting a key containing unbalanced ] without delineation.  Expecting failure
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}");
 
                 int result = (int)InvokeOp("JsonSetValue", storeId, "Fun]Circus", "Times");
                 Assert.That(result, Is.EqualTo(0));
@@ -544,7 +544,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             // Test setting a key containing unbalanced [ without delineation.  Expecting failure
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}");
 
                 int result = (int)InvokeOp("JsonSetValue", storeId, "Fun[Circus", "Times");
                 Assert.That(result, Is.EqualTo(0));
@@ -555,7 +555,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             // Test setting a key containing unbalanced [] without delineation.  Expecting failure
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}");
 
                 int result = (int)InvokeOp("JsonSetValue", storeId, "Fun[]Circus", "Times");
                 Assert.That(result, Is.EqualTo(0));
@@ -566,7 +566,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             // Test setting a key containing unbalanced ] with delineation
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}");
 
                 int result = (int)InvokeOp("JsonSetValue", storeId, "{Fun]Circus}", "Times");
                 Assert.That(result, Is.EqualTo(1));
@@ -577,7 +577,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             // Test setting a key containing unbalanced [ with delineation
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}");
 
                 int result = (int)InvokeOp("JsonSetValue", storeId, "{Fun[Circus}", "Times");
                 Assert.That(result, Is.EqualTo(1));
@@ -588,7 +588,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             // Test setting a key containing empty balanced [] with delineation
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}");
 
                 int result = (int)InvokeOp("JsonSetValue", storeId, "{Fun[]Circus}", "Times");
                 Assert.That(result, Is.EqualTo(1));
@@ -600,7 +600,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 //            // Commented out as this currently unexpectedly fails.
 //            // Test setting a key containing brackets around an integer with delineation
 //            {
-//                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+//                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}");
 //
 //                int result = (int)InvokeOp("JsonSetValue", storeId, "{Fun[0]Circus}", "Times");
 //                Assert.That(result, Is.EqualTo(1));
@@ -610,10 +610,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 //            }
 
             // *** Test {} ***
-           
+
             // Test setting a key containing unbalanced } without delineation.  Expecting failure (?)
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}");
 
                 int result = (int)InvokeOp("JsonSetValue", storeId, "Fun}Circus", "Times");
                 Assert.That(result, Is.EqualTo(0));
@@ -624,7 +624,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             // Test setting a key containing unbalanced { without delineation.  Expecting failure (?)
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}");
 
                 int result = (int)InvokeOp("JsonSetValue", storeId, "Fun{Circus", "Times");
                 Assert.That(result, Is.EqualTo(0));
@@ -636,7 +636,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 //            // Commented out as this currently unexpectedly fails.
 //            // Test setting a key containing unbalanced }
 //            {
-//                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+//                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}");
 //
 //                int result = (int)InvokeOp("JsonSetValue", storeId, "{Fun}Circus}", "Times");
 //                Assert.That(result, Is.EqualTo(0));
@@ -644,7 +644,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             // Test setting a key containing unbalanced { with delineation
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}");
 
                 int result = (int)InvokeOp("JsonSetValue", storeId, "{Fun{Circus}", "Times");
                 Assert.That(result, Is.EqualTo(1));
@@ -655,7 +655,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             // Test setting a key containing balanced {} with delineation.  This should fail.
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}");
 
                 int result = (int)InvokeOp("JsonSetValue", storeId, "{Fun{Filled}Circus}", "Times");
                 Assert.That(result, Is.EqualTo(0));
@@ -666,7 +666,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             // Test setting to location that does not exist.  This should fail.
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{}");
 
                 int result = (int)InvokeOp("JsonSetValue", storeId, "Fun.Circus", "Times");
                 Assert.That(result, Is.EqualTo(0));
@@ -691,7 +691,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             // Single quoted token case
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }");
 
                 int result = (int)InvokeOp("JsonSetJson", storeId, "Fun", "'Times'");
                 Assert.That(result, Is.EqualTo(1));
@@ -702,7 +702,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             // Sub-tree case
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }");
 
                 int result = (int)InvokeOp("JsonSetJson", storeId, "Fun", "{ 'Filled' : 'Times' }");
                 Assert.That(result, Is.EqualTo(1));
@@ -713,7 +713,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             // If setting single strings in JsonSetValueJson, these must be single quoted tokens, not bare strings.
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }");
 
                 int result = (int)InvokeOp("JsonSetJson", storeId, "Fun", "Times");
                 Assert.That(result, Is.EqualTo(0));
@@ -724,7 +724,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             // Test setting to location that does not exist.  This should fail.
             {
-                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }"); 
+                UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ }");
 
                 int result = (int)InvokeOp("JsonSetJson", storeId, "Fun.Circus", "'Times'");
                 Assert.That(result, Is.EqualTo(0));
@@ -757,7 +757,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, TestHelpers.ParseTail(0x1));
             m_scene.AddSceneObject(so);
 
-            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello':'World' }"); 
+            UUID storeId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello':'World' }");
 
             {
                 string notecardName = "nc1";
@@ -820,14 +820,14 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
             SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, TestHelpers.ParseTail(0x1));
             m_scene.AddSceneObject(so);
 
-            UUID creatingStoreId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello':'World' }"); 
+            UUID creatingStoreId = (UUID)InvokeOp("JsonCreateStore", "{ 'Hello':'World' }");
 
             // Write notecard
             InvokeOpOnHost("JsonWriteNotecard", so.UUID, creatingStoreId, "", notecardName);
 
             {
                 // Read notecard
-                UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+                UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{}");
                 UUID readNotecardRequestId = (UUID)InvokeOpOnHost("JsonReadNotecard", so.UUID, receivingStoreId, "", notecardName);
                 Assert.That(readNotecardRequestId, Is.Not.EqualTo(UUID.Zero));
 
@@ -837,10 +837,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             {
                 // Read notecard to new single component path
-                UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+                UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{}");
                 UUID readNotecardRequestId = (UUID)InvokeOpOnHost("JsonReadNotecard", so.UUID, receivingStoreId, "make", notecardName);
                 Assert.That(readNotecardRequestId, Is.Not.EqualTo(UUID.Zero));
-            
+
                 string value = (string)InvokeOp("JsonGetValue", receivingStoreId, "Hello");
                 Assert.That(value, Is.EqualTo(""));
 
@@ -850,7 +850,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             {
                 // Read notecard to new multi-component path.  This should not work.
-                UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{}"); 
+                UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{}");
                 UUID readNotecardRequestId = (UUID)InvokeOpOnHost("JsonReadNotecard", so.UUID, receivingStoreId, "make.it", notecardName);
                 Assert.That(readNotecardRequestId, Is.Not.EqualTo(UUID.Zero));
 
@@ -863,7 +863,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             {
                 // Read notecard to existing multi-component path.  This should work
-                UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{ 'make' : { 'it' : 'so' } }"); 
+                UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{ 'make' : { 'it' : 'so' } }");
                 UUID readNotecardRequestId = (UUID)InvokeOpOnHost("JsonReadNotecard", so.UUID, receivingStoreId, "make.it", notecardName);
                 Assert.That(readNotecardRequestId, Is.Not.EqualTo(UUID.Zero));
 
@@ -876,7 +876,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore.Tests
 
             {
                 // Read notecard to invalid path.  This should not work.
-                UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{ 'make' : { 'it' : 'so' } }"); 
+                UUID receivingStoreId = (UUID)InvokeOp("JsonCreateStore", "{ 'make' : { 'it' : 'so' } }");
                 UUID readNotecardRequestId = (UUID)InvokeOpOnHost("JsonReadNotecard", so.UUID, receivingStoreId, "/", notecardName);
                 Assert.That(readNotecardRequestId, Is.Not.EqualTo(UUID.Zero));
 

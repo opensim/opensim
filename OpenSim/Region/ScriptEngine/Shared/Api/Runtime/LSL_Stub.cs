@@ -1580,7 +1580,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llSetVelocity(force, local);
         }
 
-		
+
         public void llSetAngularVelocity(LSL_Vector force, int local)
         {
             m_LSL_Functions.llSetAngularVelocity(force, local);
@@ -1995,7 +1995,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_LSL_Functions.llXorBase64StringsCorrect(str1, str2);
         }
-        
+
         public LSL_List llGetPrimMediaParams(int face, LSL_List rules)
         {
             return m_LSL_Functions.llGetPrimMediaParams(face, rules);

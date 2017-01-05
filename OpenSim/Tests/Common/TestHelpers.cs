@@ -81,9 +81,9 @@ namespace OpenSim.Tests.Common
 
             return false;
         }
-        
+
         /// <summary>
-        /// A debugging method that can be used to print out which test method you are in 
+        /// A debugging method that can be used to print out which test method you are in
         /// </summary>
         public static void InMethod()
         {
@@ -129,7 +129,7 @@ namespace OpenSim.Tests.Common
         {
             string rawUuid = stem.PadRight(32, '0');
 
-            return UUID.Parse(rawUuid);           
+            return UUID.Parse(rawUuid);
         }
 
         /// <summary>
@@ -158,7 +158,7 @@ namespace OpenSim.Tests.Common
         {
             string rawUuid = stem.PadLeft(32, '0');
 
-            return UUID.Parse(rawUuid);           
+            return UUID.Parse(rawUuid);
         }
     }
 }

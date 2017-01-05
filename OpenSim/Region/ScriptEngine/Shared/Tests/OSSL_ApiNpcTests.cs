@@ -296,7 +296,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             string npcRaw
                 = osslApi.osNpcCreate(
                     "Jane", "Doe", new LSL_Types.Vector3(128, 128, 128), notecardName, ScriptBaseClass.OS_NPC_CREATOR_OWNED);
-            
+
             otherOsslApi.osNpcRemove(npcRaw);
 
             // Should still be around
@@ -340,7 +340,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             string npcRaw
                 = osslApi.osNpcCreate(
                     "Jane", "Doe", new LSL_Types.Vector3(128, 128, 128), notecardName, ScriptBaseClass.OS_NPC_NOT_OWNED);
-            
+
             osslApi.osNpcRemove(npcRaw);
 
             UUID npcId = new UUID(npcRaw);

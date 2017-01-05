@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         public const int LAND_SELECT_OBJECTS_GROUP = 4;
         public const int LAND_SELECT_OBJECTS_OTHER = 8;
 
-        
+
         public const byte LAND_TYPE_PUBLIC = 0; //Equals 00000000
         // types 1 to 7 are exclusive
         public const byte LAND_TYPE_OWNED_BY_OTHER = 1; //Equals 00000001
@@ -75,7 +75,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         #endregion
 
         private readonly Scene m_scene;
-        private readonly LandManagementModule m_landManagementModule;        
+        private readonly LandManagementModule m_landManagementModule;
 
         public LandChannel(Scene scene, LandManagementModule landManagementMod)
         {
@@ -91,7 +91,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 return m_landManagementModule.GetLandObject(x_float, y_float);
             }
-            
+
             ILandObject obj = new LandObject(UUID.Zero, false, m_scene);
             obj.LandData.Name = "NO LAND";
             return obj;
@@ -117,7 +117,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 return m_landManagementModule.GetLandObject(x, y);
             }
-            
+
             ILandObject obj = new LandObject(UUID.Zero, false, m_scene);
             obj.LandData.Name = "NO LAND";
             return obj;
@@ -132,7 +132,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             return new List<ILandObject>();
         }
-        
+
         public void Clear(bool setupDefaultParcel)
         {
             if (m_landManagementModule != null)
@@ -182,7 +182,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 m_landManagementModule.Subdivide(start_x, start_y, end_x, end_y, attempting_user_id);
             }
         }
-        
+
         public void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient)
         {
             if (m_landManagementModule != null)

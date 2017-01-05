@@ -43,9 +43,9 @@ namespace OpenSim.Services.AuthenticationService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<string, IAuthenticationService> m_svcChecks 
+        private Dictionary<string, IAuthenticationService> m_svcChecks
             = new Dictionary<string, IAuthenticationService>();
-        
+
         public WebkeyOrPasswordAuthenticationService(IConfigSource config)
             : base(config)
         {
@@ -86,7 +86,7 @@ namespace OpenSim.Services.AuthenticationService
                     }
                 }
 
-              
+
 
                 if (result == string.Empty)
                 {
@@ -97,8 +97,8 @@ namespace OpenSim.Services.AuthenticationService
             {
                 m_log.DebugFormat("[AUTH SERVICE]: PrincipalID {0} or its data not found", principalID);
             }
-            
-            
+
+
             return result;
         }
     }

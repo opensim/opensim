@@ -144,10 +144,10 @@ namespace OpenSim.Region.Framework.Scenes
 //                    "[ASYNC INVENTORY SENDER]: Handling request from {0} for {1} on queue", fh.Client.Name, fh.ItemID);
 
                 InventoryItemBase item = m_scene.InventoryService.GetItem(fh.Client.AgentId, fh.ItemID);
-    
+
                 if (item != null)
                     fh.Client.SendInventoryItemDetails(item.Owner, item);
-    
+
                  // TODO: Possibly log any failure
             }
         }

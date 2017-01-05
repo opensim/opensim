@@ -120,7 +120,7 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
             string request = "<llsd><map><key>items</key><array><map><key>item_id</key><uuid>";
             request += "10000000-0000-0000-0000-000000000001"; // Notecard 1
             request += "</uuid></map></array></map></llsd>";
-            
+
             string llsdresponse = handler.FetchInventoryRequest(request, "/FETCH", string.Empty, req, resp);
 
             Assert.That(llsdresponse != null, Is.True, "Incorrect null response");

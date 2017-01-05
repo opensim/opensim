@@ -106,13 +106,13 @@ namespace OpenSim.Framework.Serialization.External
                     {
                         errors = true;
                         parseExceptionAction(nodeToFill, nodeName, e);
-                        
+
                         if (xtr.EOF)
                         {
                             m_log.Debug("[ExternalRepresentationUtils]: Aborting ExecuteReadProcessors due to unexpected end of XML");
                             break;
                         }
-                        
+
                         if (++numErrors == 10)
                         {
                             m_log.Debug("[ExternalRepresentationUtils]: Aborting ExecuteReadProcessors due to too many parsing errors");
@@ -369,7 +369,7 @@ namespace OpenSim.Framework.Serialization.External
                         break;
 
                     case XmlNodeType.XmlDeclaration:
-                        // For various reasons, not all serializations have xml declarations (or consistent ones) 
+                        // For various reasons, not all serializations have xml declarations (or consistent ones)
                         // and as it's embedded inside a byte stream we don't need it anyway, so ignore.
                         break;
 

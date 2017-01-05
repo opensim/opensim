@@ -47,7 +47,7 @@ namespace OpenSim.Framework
             WearableCacheItem[] retitems = new WearableCacheItem[itemmax];
             for (uint i=0;i<itemmax;i++)
                 retitems[i] = new WearableCacheItem() {CacheId = UUID.Zero, TextureID = UUID.Zero, TextureIndex = i};
-            return retitems;          
+            return retitems;
         }
 
         public static WearableCacheItem[] FromOSD(OSD pInput, IAssetCache dataCache)
@@ -64,7 +64,7 @@ namespace OpenSim.Framework
                                     CacheId = item["cacheid"].AsUUID(),
                                     TextureID = item["textureid"].AsUUID()
                                 });
-                    
+
                     if (dataCache != null && item.ContainsKey("assetdata"))
                     {
                         AssetBase asset = new AssetBase(item["textureid"].AsUUID(),"BakedTexture",(sbyte)AssetType.Texture,UUID.Zero.ToString());
@@ -181,7 +181,7 @@ namespace OpenSim.Framework
                         pcache[idx].TextureAsset = asset;
                     }
                     else
- */ 
+ */
                         pcache[idx].TextureAsset = null;
                 }
             }

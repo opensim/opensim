@@ -41,7 +41,7 @@ namespace OpenSim.Services.AuthenticationService
     // Generic Authentication service used for identifying
     // and authenticating principals.
     // Principals may be clients acting on users' behalf,
-    // or any other components that need 
+    // or any other components that need
     // verifiable identification.
     //
     public class AuthenticationServiceBase : ServiceBase
@@ -49,7 +49,7 @@ namespace OpenSim.Services.AuthenticationService
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
- 
+
         protected IAuthenticationData m_Database;
         protected IUserAccountService m_UserAccountService = null;
 
@@ -178,7 +178,7 @@ namespace OpenSim.Services.AuthenticationService
             m_log.DebugFormat("[AUTHENTICATION DB]: Set authentication info for principalID {0}", info.PrincipalID);
             return true;
         }
-        
+
         protected string GetToken(UUID principalID, int lifetime)
         {
             UUID token = UUID.Random();

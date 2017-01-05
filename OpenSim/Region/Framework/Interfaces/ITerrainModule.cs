@@ -48,7 +48,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// This call causes all the terrain patches to be sent to the client.
         /// </summary>
         void PushTerrain(IClientAPI pClient);
-     
+
         /// <summary>
         /// Load a terrain from a stream.
         /// </summary>
@@ -60,7 +60,7 @@ namespace OpenSim.Region.Framework.Interfaces
         void LoadFromStream(string filename, System.Uri pathToTerrainHeightmap);
         void LoadFromStream(string filename, Vector3 displacement,
                                 float radianRotation, Vector2 rotationDisplacement, Stream stream);
-        void LoadFromStream(string filename, Vector3 displacement, 
+        void LoadFromStream(string filename, Vector3 displacement,
                                 float rotationDegress, Vector2 boundingOrigin, Vector2 boundingSize, Stream stream);
         /// <summary>
         /// Save a terrain to a stream.

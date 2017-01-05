@@ -64,7 +64,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         public LocalGridServicesConnector(IConfigSource source)
         {
             m_log.DebugFormat("{0} LocalGridServicesConnector instantiated directly.", LogHeader);
-            InitialiseService(source, null);        
+            InitialiseService(source, null);
         }
 
         public LocalGridServicesConnector(IConfigSource source, RegionInfoCache regionInfoCache)
@@ -75,7 +75,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         #region ISharedRegionModule
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }
@@ -92,7 +92,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             {
                 string name = moduleConfig.GetString("GridServices", "");
                 if (name == Name)
-                {                   
+                {
                     if(InitialiseService(source, null))
                         m_log.Info("[LOCAL GRID SERVICE CONNECTOR]: Local grid connector enabled");
                 }
@@ -190,8 +190,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             // This shouldn't happen
             if (region == null)
                 return;
-            
-            m_RegionInfoCache.CacheNearNeighbour(region.ScopeID, region);           
+
+            m_RegionInfoCache.CacheNearNeighbour(region.ScopeID, region);
         }
 
         public string RegisterRegion(UUID scopeID, GridRegion regionInfo)
@@ -206,7 +206,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public List<GridRegion> GetNeighbours(UUID scopeID, UUID regionID)
         {
-            return m_GridService.GetNeighbours(scopeID, regionID); 
+            return m_GridService.GetNeighbours(scopeID, regionID);
         }
 
         public GridRegion GetRegionByUUID(UUID scopeID, UUID regionID)
@@ -282,7 +282,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         {
             return m_GridService.GetHyperlinks(scopeID);
         }
-        
+
         public int GetRegionFlags(UUID scopeID, UUID regionID)
         {
             return m_GridService.GetRegionFlags(scopeID, regionID);

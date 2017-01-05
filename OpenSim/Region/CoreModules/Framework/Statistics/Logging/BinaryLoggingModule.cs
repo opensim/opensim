@@ -45,14 +45,14 @@ namespace OpenSim.Region.CoreModules.Framework.Statistics.Logging
     public class BinaryLoggingModule : INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         protected bool m_collectStats;
         protected Scene m_scene = null;
-        
+
         public string Name { get { return "Binary Statistics Logging Module"; } }
         public Type ReplaceableInterface { get { return null; } }
 
-        public void Initialise(IConfigSource source) 
+        public void Initialise(IConfigSource source)
         {
             try
             {
@@ -81,23 +81,23 @@ namespace OpenSim.Region.CoreModules.Framework.Statistics.Logging
                 // if it doesn't work, we don't collect anything
             }
         }
-        
+
         public void AddRegion(Scene scene)
         {
             m_scene = scene;
         }
-        
-        public void RemoveRegion(Scene scene) 
+
+        public void RemoveRegion(Scene scene)
         {
         }
-        
-        public void RegionLoaded(Scene scene) 
+
+        public void RegionLoaded(Scene scene)
         {
             if (m_collectStats)
                 m_scene.StatsReporter.OnSendStatsResult += LogSimStats;
         }
-        
-        public void Close() 
+
+        public void Close()
         {
         }
 
@@ -107,12 +107,12 @@ namespace OpenSim.Region.CoreModules.Framework.Statistics.Logging
             public string Path;
             public System.IO.BinaryWriter Log;
         }
-        
+
         static StatLogger m_statLog = null;
         static TimeSpan m_statLogPeriod = TimeSpan.FromSeconds(300);
         static string m_statsDir = String.Empty;
         static Object m_statLockObject = new Object();
-        
+
         private void LogSimStats(SimStats stats)
         {
             SimStatsPacket pack = new SimStatsPacket();

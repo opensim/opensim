@@ -48,7 +48,7 @@ namespace OpenSim.Tests.Common
     {
         public static ScenePresence AddChildClient(
             Scene scene, LLUDPServer udpServer, UUID agentId, UUID sessionId, uint circuitCode)
-        {           
+        {
             IPEndPoint testEp = new IPEndPoint(IPAddress.Loopback, 999);
 
             UseCircuitCodePacket uccp = new UseCircuitCodePacket();

@@ -155,8 +155,8 @@ public BSAPIUnman(string paramName, BSScene physScene)
 
 // Initialization and simulation
 public override BulletWorld Initialize(Vector3 maxPosition, ConfigurationParameters parms,
-											int maxCollisions,  ref CollisionDesc[] collisionArray,
-											int maxUpdates, ref EntityProperties[] updateArray
+                                            int maxCollisions,  ref CollisionDesc[] collisionArray,
+                                            int maxUpdates, ref EntityProperties[] updateArray
                                             )
 {
     // Pin down the memory that will be used to pass object collisions and updates back from unmanaged code
@@ -1472,8 +1472,8 @@ public delegate void DebugLogCallback([MarshalAs(UnmanagedType.LPStr)]string msg
 // Initialization and simulation
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern IntPtr Initialize2(Vector3 maxPosition, IntPtr parms,
-											int maxCollisions,  IntPtr collisionArray,
-											int maxUpdates, IntPtr updateArray,
+                                            int maxCollisions,  IntPtr collisionArray,
+                                            int maxUpdates, IntPtr updateArray,
                                             DebugLogCallback logRoutine);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]

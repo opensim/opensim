@@ -44,7 +44,7 @@ namespace OpenSim.Region.CoreModules.World
     public class AccessModule : ISharedRegionModule
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-                
+
         private List<Scene> m_SceneList = new List<Scene>();
 
         public void Initialise(IConfigSource config)

@@ -50,7 +50,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.AgentPreferences
 
         #region ISharedRegionModule
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }

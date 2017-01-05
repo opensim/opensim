@@ -46,7 +46,7 @@ namespace OpenSim.Tests.Common
 {
     public class TestEventQueueGetModule : IEventQueue, INonSharedRegionModule
     {
-        public class Event 
+        public class Event
         {
             public string Name { get; set; }
             public object[] Args { get; set; }
@@ -64,7 +64,7 @@ namespace OpenSim.Tests.Common
 
         public void Close() {}
 
-        public void AddRegion(Scene scene) 
+        public void AddRegion(Scene scene)
         {
             Events = new Dictionary<UUID, List<Event>>();
             scene.RegisterModuleInterface<IEventQueue>(this);
@@ -138,12 +138,12 @@ namespace OpenSim.Tests.Common
         }
 
         public void ChatterboxInvitation(
-            UUID sessionID, string sessionName, UUID fromAgent, string message, UUID toAgent, string fromName, 
-            byte dialog, uint timeStamp, bool offline, int parentEstateID, Vector3 position, uint ttl, 
+            UUID sessionID, string sessionName, UUID fromAgent, string message, UUID toAgent, string fromName,
+            byte dialog, uint timeStamp, bool offline, int parentEstateID, Vector3 position, uint ttl,
             UUID transactionID, bool fromGroup, byte[] binaryBucket)
         {
             AddEvent(
-                toAgent, "ChatterboxInvitation", sessionID, sessionName, fromAgent, message, toAgent, fromName, dialog, 
+                toAgent, "ChatterboxInvitation", sessionID, sessionName, fromAgent, message, toAgent, fromName, dialog,
                 timeStamp, offline, parentEstateID, position, ttl, transactionID, fromGroup, binaryBucket);
         }
 

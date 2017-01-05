@@ -5,16 +5,16 @@ Copyright (c) 2004-2005 Matthew Holmes (matthew@wildfiregames.com), Dan Moorehea
 Redistribution and use in source and binary forms, with or without modification, are permitted
 provided that the following conditions are met:
 
-* Redistributions of source code must retain the above copyright notice, this list of conditions 
-  and the following disclaimer. 
-* Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
-  and the following disclaimer in the documentation and/or other materials provided with the 
-  distribution. 
-* The name of the author may not be used to endorse or promote products derived from this software 
-  without specific prior written permission. 
+* Redistributions of source code must retain the above copyright notice, this list of conditions
+  and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice, this list of conditions
+  and the following disclaimer in the documentation and/or other materials provided with the
+  distribution.
+* The name of the author may not be used to endorse or promote products derived from this software
+  without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, 
-BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
 OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
@@ -28,57 +28,57 @@ using System.Runtime.Serialization;
 
 namespace Prebuild.Core
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	[Serializable]
-	public class WarningException : Exception
-	{
-		#region Constructors
+    /// <summary>
+    ///
+    /// </summary>
+    [Serializable]
+    public class WarningException : Exception
+    {
+        #region Constructors
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public WarningException()
-		{
-		}
+        /// <summary>
+        ///
+        /// </summary>
+        public WarningException()
+        {
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="format"></param>
-		/// <param name="args"></param>
-		public WarningException(string format, params object[] args)
-			: base(String.Format(format, args))
-		{
-		}
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public WarningException(string format, params object[] args)
+            : base(String.Format(format, args))
+        {
+        }
 
-		/// <summary>
-		/// Exception with specified string
-		/// </summary>
-		/// <param name="message">Exception message</param>
-		public WarningException(string message): base(message)
-		{
-		}
+        /// <summary>
+        /// Exception with specified string
+        /// </summary>
+        /// <param name="message">Exception message</param>
+        public WarningException(string message): base(message)
+        {
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="message"></param>
-		/// <param name="exception"></param>
-		public WarningException(string message, Exception exception) : base(message, exception)
-		{
-		}
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="exception"></param>
+        public WarningException(string message, Exception exception) : base(message, exception)
+        {
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="info"></param>
-		/// <param name="context"></param>
-		protected WarningException(SerializationInfo info, StreamingContext context) : base( info, context )
-		{
-		}
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="info"></param>
+        /// <param name="context"></param>
+        protected WarningException(SerializationInfo info, StreamingContext context) : base( info, context )
+        {
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

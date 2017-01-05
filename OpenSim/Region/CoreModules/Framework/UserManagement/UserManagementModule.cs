@@ -345,7 +345,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="uuid"></param>
         /// <param name="names">Caller please provide a properly instantiated array for names, string[2]</param>
@@ -557,7 +557,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 return ret;
 
             // try grid user service
-            
+
             GridUserInfo[] pinfos = m_Scenes[0].GridUserService.GetGridUserInfo(missing.ToArray());
             if(pinfos.Length > 0)
             {

@@ -44,7 +44,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.ScriptBase
         /// <summary>
         /// Used for script sleeps when we are using co-operative script termination.
         /// </summary>
-        /// <remarks>null if co-operative script termination is not active</remarks>  
+        /// <remarks>null if co-operative script termination is not active</remarks>
         WaitHandle m_coopSleepHandle;
 
         public XEngineScriptBase(WaitHandle coopSleepHandle) : base()

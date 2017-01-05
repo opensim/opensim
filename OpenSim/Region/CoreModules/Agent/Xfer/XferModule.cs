@@ -53,7 +53,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
         private double  lastTimeTick = 0.0;
         private double  lastFilesExpire = 0.0;
         private bool    inTimeTick = false;
-  
+
         public struct XferRequest
         {
             public IClientAPI remoteClient;
@@ -68,7 +68,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
             public int refsCount;
             public double timeStampMS;
         }
-       
+
         #region INonSharedRegionModule Members
 
         public void Initialise(IConfigSource config)
@@ -202,7 +202,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                 }
             }
         }
-        
+
         public void NewClient(IClientAPI client)
         {
             client.OnRequestXfer += RequestXfer;
@@ -275,7 +275,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                             int burstSize = remoteClient.GetAgentThrottleSilent((int)ThrottleOutPacketType.Asset) >> 11;
                             if(Transfers.Count > 1)
                                 burstSize /= Transfers.Count;
-                            XferDownLoad transaction = 
+                            XferDownLoad transaction =
                                 new XferDownLoad(fileName, fileData, xferID, remoteClient, burstSize);
 
                             Transfers.Add(xferID, transaction);
@@ -288,7 +288,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                     }
                 }
                 else
-                    m_log.WarnFormat("[Xfer]: {0} not found", fileName);               
+                    m_log.WarnFormat("[Xfer]: {0} not found", fileName);
             }
         }
 
@@ -381,9 +381,9 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                             lastBytes = 1024;
                             LastPacket--;
                         }
-                        
+
                     }
-                
+
                     lastAckPacket = -1;
                     lastSentPacket = -1;
 

@@ -160,7 +160,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
                 // Item has copy permissions so original should stay intact.
                 List<TaskInventoryItem> originalItems = so1.RootPart.Inventory.GetInventoryItems();
                 Assert.That(originalItems.Count, Is.EqualTo(1));
-    
+
                 // Should now have copied.
                 List<TaskInventoryItem> copiedItems = so2.RootPart.Inventory.GetInventoryItems(inventoryItemName);
                 Assert.That(copiedItems.Count, Is.EqualTo(1));
@@ -194,7 +194,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             api.llGiveInventory(user2Id.ToString(), inventoryItemName);
 
-            InventoryItemBase receivedItem 
+            InventoryItemBase receivedItem
                 = UserInventoryHelpers.GetInventoryItem(
                     m_scene.InventoryService, user2Id, string.Format("Objects/{0}", inventoryItemName));
 
@@ -222,7 +222,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             // Create an object embedded inside the first
             UUID itemId = TestHelpers.ParseTail(0x20);
-            TaskInventoryItem tii 
+            TaskInventoryItem tii
                 = TaskInventoryHelpers.AddSceneObject(m_scene.AssetService, so1.RootPart, inventoryItemName, itemId, user1Id);
             tii.NextPermissions &= ~((uint)PermissionMask.Modify);
 
@@ -230,7 +230,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             api.llGiveInventory(user2Id.ToString(), inventoryItemName);
 
-            InventoryItemBase receivedItem 
+            InventoryItemBase receivedItem
                 = UserInventoryHelpers.GetInventoryItem(
                     m_scene.InventoryService, user2Id, string.Format("Objects/{0}", inventoryItemName));
 

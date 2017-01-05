@@ -115,7 +115,7 @@ namespace OpenSim.Region.Framework.Scenes
                 OpenSim.Framework.RegionFlags? regionFlags = n.RegionFlags;
 
                 //                m_log.DebugFormat(
-                //                    "{0}: Region flags for {1} as seen by {2} are {3}", 
+                //                    "{0}: Region flags for {1} as seen by {2} are {3}",
                 //                    LogHeader, n.RegionName, m_scene.Name, regionFlags != null ? regionFlags.ToString() : "not present");
 
                 // Robust services before 2015-01-14 do not return the regionFlags information.  In this case, we could
@@ -175,7 +175,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendChildAgentDataUpdate(AgentPosition cAgentData, ScenePresence presence)
         {
             //            m_log.DebugFormat(
-            //                "[SCENE COMMUNICATION SERVICE]: Sending child agent position updates for {0} in {1}", 
+            //                "[SCENE COMMUNICATION SERVICE]: Sending child agent position updates for {0} in {1}",
             //                presence.Name, m_scene.Name);
 
             // This assumes that we know what our neighbors are.
@@ -248,7 +248,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Closes a child agents in a collection of regions. Does so asynchronously 
+        /// Closes a child agents in a collection of regions. Does so asynchronously
         /// so that the caller doesn't wait.
         /// </summary>
         /// <param name="agentID"></param>

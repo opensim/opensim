@@ -40,7 +40,7 @@ namespace OpenSim.Region.Framework.Scenes
     /// Running               => PreRemove, Removing
     /// PreRemove             => Running, Removing
     /// Removing              => Removed
-    /// 
+    ///
     /// All other methods should only see the scene presence in running state - this is the normal operational state
     /// Removed state occurs when the presence has been removed.  This is the end state with no exit.
     /// </remarks>
@@ -89,13 +89,13 @@ namespace OpenSim.Region.Framework.Scenes
                 else if (newState == ScenePresenceState.PreRemove && m_state == ScenePresenceState.Running)
                     transitionOkay = true;
                 else if (newState == ScenePresenceState.Removing)
-                {   
+                {
                     if (m_state == ScenePresenceState.Running || m_state == ScenePresenceState.PreRemove)
                         transitionOkay = true;
                 }
                 else if (newState == ScenePresenceState.Removed && m_state == ScenePresenceState.Removing)
                     transitionOkay = true;
-            }           
+            }
 
             if (!transitionOkay)
             {

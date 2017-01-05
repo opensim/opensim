@@ -68,11 +68,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
         private int m_refreshtime = 0;
         private int m_lastrefresh = 0;
         private System.Timers.Timer m_refreshTimer;
-        
+
         #region ISharedRegionModule
-        
+
         public Type ReplaceableInterface { get { return null; } }
-        public string Name { get { return "MapImageServiceModule"; } }        
+        public string Name { get { return "MapImageServiceModule"; } }
         public void RegionLoaded(Scene scene) { }
         public void Close() { }
         public void PostInitialise() { }
@@ -115,12 +115,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
                 m_log.WarnFormat("[MAP IMAGE SERVICE MODULE]: Unable to load LocalServiceModule from {0}. MapService module disabled. Please fix the configuration.", service);
                 return;
             }
-   
+
             // we don't want the timer if the interval is zero, but we still want this module enables
             if(refreshminutes > 0)
             {
                 m_refreshtime = refreshminutes * 60 * 1000; // convert from minutes to ms
-   
+
                 m_refreshTimer = new System.Timers.Timer();
                 m_refreshTimer.Enabled = true;
                 m_refreshTimer.AutoReset = true;
@@ -131,7 +131,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
                 m_log.InfoFormat("[MAP IMAGE SERVICE MODULE]: enabled with refresh time {0} min and service object {1}",
                              refreshminutes, service);
             }
-            else 
+            else
             {
                 m_log.InfoFormat("[MAP IMAGE SERVICE MODULE]: enabled with no refresh and service object {0}", service);
             }
@@ -171,7 +171,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
         }
 
         #endregion ISharedRegionModule
-        
+
         ///<summary>
         ///
         ///</summary>

@@ -55,7 +55,7 @@ namespace OpenSim.Services.Interfaces
     // Generic Authentication service used for identifying
     // and authenticating principals.
     // Principals may be clients acting on users' behalf,
-    // or any other components that need 
+    // or any other components that need
     // verifiable identification.
     //
     public interface IAuthenticationService

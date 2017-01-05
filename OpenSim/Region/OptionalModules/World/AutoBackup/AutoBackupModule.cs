@@ -63,28 +63,28 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
     /// If specified in Regions.ini, the settings should be within the region's section name.
     /// If specified in OpenSim.ini, the settings should be within the [AutoBackupModule] section.
     /// Region-specific settings take precedence.
-    /// 
+    ///
     /// AutoBackupModuleEnabled: True/False. Default: False. If True, use the auto backup module. This setting does not support per-region basis.
     ///     All other settings under [AutoBackupModule] are ignored if AutoBackupModuleEnabled is false, even per-region settings!
-    /// AutoBackup: True/False. Default: False. If True, activate auto backup functionality. 
-    /// 	This is the only required option for enabling auto-backup; the other options have sane defaults. 
+    /// AutoBackup: True/False. Default: False. If True, activate auto backup functionality.
+    /// 	This is the only required option for enabling auto-backup; the other options have sane defaults.
     /// 	If False for a particular region, the auto-backup module becomes a no-op for the region, and all other AutoBackup* settings are ignored.
     /// 	If False globally (the default), only regions that specifically override it in Regions.ini will get AutoBackup functionality.
-    /// AutoBackupInterval: Double, non-negative value. Default: 720 (12 hours). 
-    /// 	The number of minutes between each backup attempt. 
+    /// AutoBackupInterval: Double, non-negative value. Default: 720 (12 hours).
+    /// 	The number of minutes between each backup attempt.
     /// 	If a negative or zero value is given, it is equivalent to setting AutoBackup = False.
-    /// AutoBackupBusyCheck: True/False. Default: True. 
-    /// 	If True, we will only take an auto-backup if a set of conditions are met. 
+    /// AutoBackupBusyCheck: True/False. Default: True.
+    /// 	If True, we will only take an auto-backup if a set of conditions are met.
     /// 	These conditions are heuristics to try and avoid taking a backup when the sim is busy.
     /// AutoBackupSkipAssets
     ///     If true, assets are not saved to the oar file. Considerably reduces impact on simulator when backing up. Intended for when assets db is backed up separately
     /// AutoBackupKeepFilesForDays
     ///     Backup files older than this value (in days) are deleted during the current backup process, 0 will disable this and keep all backup files indefinitely
-    /// AutoBackupScript: String. Default: not specified (disabled). 
+    /// AutoBackupScript: String. Default: not specified (disabled).
     /// 	File path to an executable script or binary to run when an automatic backup is taken.
     ///  The file should really be (Windows) an .exe or .bat, or (Linux/Mac) a shell script or binary.
     ///  Trying to "run" directories, or things with weird file associations on Win32, might cause unexpected results!
-    /// 	argv[1] of the executed file/script will be the file name of the generated OAR. 
+    /// 	argv[1] of the executed file/script will be the file name of the generated OAR.
     /// 	If the process can't be spawned for some reason (file not found, no execute permission, etc), write a warning to the console.
     /// AutoBackupNaming: string. Default: Time.
     /// 	One of three strings (case insensitive):
@@ -295,7 +295,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             if (args.Length != 2) {
                 MainConsole.Instance.OutputFormat ("Usage: dobackup <regionname>");
                 return;
-            }  
+            }
             bool found = false;
             string name = args [1];
             lock (m_Scenes) {

@@ -42,7 +42,7 @@ using OpenMetaverse.StructuredData;
 namespace OpenSim.Services.Connectors.SimianGrid
 {
     /// <summary>
-    /// Connects user account data (creating new users, looking up existing 
+    /// Connects user account data (creating new users, looking up existing
     /// users) to the SimianGrid backend
     /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "SimianUserAccountServiceConnector")]
@@ -220,7 +220,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             };
 
             OSDMap response = SimianGrid.PostToService(m_serverUrl, requestArgs);
-            
+
             if (response["Success"].AsBoolean())
             {
                 m_log.InfoFormat("[SIMIAN ACCOUNT CONNECTOR]: Storing user account data for " + data.Name);
@@ -305,7 +305,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             account.LocalToGrid = true;
             if (response.ContainsKey("LocalToGrid"))
                 account.LocalToGrid = (response["LocalToGrid"].AsString() == "true" ? true : false);
-                
+
             GetFirstLastName(response["Name"].AsString(), out account.FirstName, out account.LastName);
 
             // Cache the user account info

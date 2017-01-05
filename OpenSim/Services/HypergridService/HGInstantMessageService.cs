@@ -184,7 +184,7 @@ namespace OpenSim.Services.HypergridService
                     else if (o is string)
                         url = (string)o;
 
-                    // We need to compare the current location with the previous 
+                    // We need to compare the current location with the previous
                     // or the recursive loop will never end because it will never try to lookup the agent again
                     if (!firstTime)
                     {

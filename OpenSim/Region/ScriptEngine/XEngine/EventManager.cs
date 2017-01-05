@@ -79,7 +79,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         }
 
         /// <summary>
-        /// When an object gets paid by an avatar and generates the paid event, 
+        /// When an object gets paid by an avatar and generates the paid event,
         /// this will pipe it to the script engine
         /// </summary>
         /// <param name="objectID">Object ID that got paid</param>
@@ -413,7 +413,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return;
 
             foreach(SceneObjectPart part in grp.Parts)
-            { 
+            {
                 myScriptEngine.PostObjectEvent(part.LocalId, new EventParams(
                     "attach",new object[] {
                     new LSL_Types.LSLString(avatar.ToString()) },

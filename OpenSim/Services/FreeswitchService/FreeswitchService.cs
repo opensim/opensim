@@ -74,7 +74,7 @@ namespace OpenSim.Services.FreeswitchService
                 response["str_response_string"] = String.Format(@"<?xml version=""1.0"" encoding=""utf-8""?>
                    <document type=""freeswitch/xml"">
                      <section name=""dialplan"">
-                     <context name=""{0}"">" + 
+                     <context name=""{0}"">" +
 
 /*                           <!-- dial via SIP uri -->
                             <extension name=""sip_uri"">
@@ -116,21 +116,21 @@ namespace OpenSim.Services.FreeswitchService
         {
             Hashtable response = new Hashtable();
             string domain = (string) request["domain"];
-            if (domain != m_freeSwitchRealm) 
+            if (domain != m_freeSwitchRealm)
             {
                 response["content_type"] = "text/xml";
                 response["keepalive"] = false;
                 response["int_response_code"] = 200;
                 response["str_response_string"] = "";
-            } 
-            else 
+            }
+            else
             {
 //                 m_log.DebugFormat("[FreeSwitchDirectory]: HandleDirectoryRequest called with {0}",request.ToString());
-            
+
                  // information in the request we might be interested in
-             
+
                  // Request 1 sip_auth for users account
-             
+
                  //Event-Calling-Function=sofia_reg_parse_auth
                  //Event-Calling-Line-Number=1494
                  //action=sip_auth
@@ -145,10 +145,10 @@ namespace OpenSim.Services.FreeswitchService
                  //user=xhZuXKmRpECyr2AARJYyGgg%3D%3D
                  //domain=9.20.151.43
                  //ip=9.167.220.137    // this is the correct IP rather than sip_contact_host above when through a vpn or NAT setup
-             
+
 //                 foreach (DictionaryEntry item in request)
 //                    m_log.DebugFormat("[FreeSwitchDirectory]: requestBody item {0} {1}", item.Key, item.Value);
-             
+
                  string eventCallingFunction = (string) request["Event-Calling-Function"];
                  if (eventCallingFunction == null)
                  {
@@ -159,15 +159,15 @@ namespace OpenSim.Services.FreeswitchService
                  {
                      eventCallingFunction = "sofia_reg_parse_auth";
                  }
-             
+
                  if (eventCallingFunction == "sofia_reg_parse_auth")
                  {
                      string sipAuthMethod = (string)request["sip_auth_method"];
-                 
+
                      if (sipAuthMethod == "REGISTER")
                      {
                          response = HandleRegister(m_freeSwitchContext, m_freeSwitchRealm, request);
-                     } 
+                     }
                      else if (sipAuthMethod == "INVITE")
                      {
                           response = HandleInvite(m_freeSwitchContext, m_freeSwitchRealm, request);
@@ -215,16 +215,16 @@ namespace OpenSim.Services.FreeswitchService
             }
             return response;
         }
-        
+
         private Hashtable HandleRegister(string Context, string Realm, Hashtable request)
         {
             m_log.Info("[FreeSwitchDirectory]: HandleRegister called");
-            
+
             // TODO the password we return needs to match that sent in the request, this is hard coded for now
             string password = "1234";
             string domain = (string) request["domain"];
             string user = (string) request["user"];
-            
+
             Hashtable response = new Hashtable();
             response["content_type"] = "text/xml";
             response["keepalive"] = false;
@@ -249,20 +249,20 @@ namespace OpenSim.Services.FreeswitchService
                     "</section>\r\n" +
                 "</document>\r\n",
                 domain , user, password, Context);
-                
+
             return response;
         }
-        
+
         private Hashtable HandleInvite(string Context, string Realm, Hashtable request)
         {
             m_log.Info("[FreeSwitchDirectory]: HandleInvite called");
-            
+
             // TODO the password we return needs to match that sent in the request, this is hard coded for now
             string password = "1234";
             string domain = (string) request["domain"];
             string user = (string) request["user"];
             string sipRequestUser = (string) request["sip_request_user"];
-            
+
             Hashtable response = new Hashtable();
             response["content_type"] = "text/xml";
             response["keepalive"] = false;
@@ -296,18 +296,18 @@ namespace OpenSim.Services.FreeswitchService
                     "</section>\r\n" +
                 "</document>\r\n",
                 domain , user, password,sipRequestUser, Context);
-                
+
             return response;
         }
 
         private Hashtable HandleLocateUser(String Realm, Hashtable request)
         {
             m_log.Info("[FreeSwitchDirectory]: HandleLocateUser called");
-            
+
             // TODO the password we return needs to match that sent in the request, this is hard coded for now
             string domain = (string) request["domain"];
             string user = (string) request["user"];
-            
+
             Hashtable response = new Hashtable();
             response["content_type"] = "text/xml";
             response["keepalive"] = false;
@@ -330,17 +330,17 @@ namespace OpenSim.Services.FreeswitchService
                     "</section>\r\n" +
                 "</document>\r\n",
                 domain , user);
-            
+
             return response;
         }
-       
+
         private Hashtable HandleConfigSofia(string Context, string Realm, Hashtable request)
         {
             m_log.Info("[FreeSwitchDirectory]: HandleConfigSofia called.");
-            
+
             // TODO the password we return needs to match that sent in the request, this is hard coded for now
             string domain = (string) request["domain"];
-            
+
             Hashtable response = new Hashtable();
             response["content_type"] = "text/xml";
             response["keepalive"] = false;
@@ -381,9 +381,9 @@ namespace OpenSim.Services.FreeswitchService
                             "</variables>\r\n"+
                         "</domain>\r\n" +
                     "</section>\r\n" +
-                "</document>\r\n", 
-                domain, Context); 
-             
+                "</document>\r\n",
+                domain, Context);
+
             return response;
         }
 

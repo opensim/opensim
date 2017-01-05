@@ -104,7 +104,7 @@ namespace OpenSim.Server.Base
         // libomv, which has a hard-coded path to "." for pinvoke
         // to load the openjpeg dll
         //
-        // Will look for a way to fix, but for now this keeps the 
+        // Will look for a way to fix, but for now this keeps the
         // confusion to a minimum. this was copied from our region
         // plugin loader, we have been doing this in there for a long time.
         //
@@ -183,7 +183,7 @@ namespace OpenSim.Server.Base
 
             if(port != 0)
                 server = MainServer.GetHttpServer(port);
-            else    
+            else
                 server = MainServer.Instance;
 
             return server;
@@ -222,19 +222,19 @@ namespace OpenSim.Server.Base
             // This is good to debug configuration problems
             //if (dllName == string.Empty)
             //    Util.PrintCallStack();
-            
+
             string className = String.Empty;
 
             // The path for a dynamic plugin will contain ":" on Windows
             string[] parts = dllName.Split (new char[] {':'});
 
-            if (parts [0].Length > 1) 
+            if (parts [0].Length > 1)
             {
                 dllName = parts [0];
                 if (parts.Length > 1)
                     className = parts[1];
-            } 
-            else 
+            }
+            else
             {
                 // This is Windows - we must replace the ":" in the path
                 dllName = String.Format ("{0}:{1}", parts [0], parts [1]);
@@ -242,17 +242,17 @@ namespace OpenSim.Server.Base
                     className = parts[2];
             }
 
-			// Handle extra string arguments in a more generic way
-			if (dllName.Contains("@"))
-			{
-				string[] dllNameParts = dllName.Split(new char[] {'@'});
-				dllName = dllNameParts[dllNameParts.Length - 1];
-				List<Object> argList = new List<Object>(args);
-				for (int i = 0 ; i < dllNameParts.Length - 1 ; ++i)
-					argList.Add(dllNameParts[i]);
+            // Handle extra string arguments in a more generic way
+            if (dllName.Contains("@"))
+            {
+                string[] dllNameParts = dllName.Split(new char[] {'@'});
+                dllName = dllNameParts[dllNameParts.Length - 1];
+                List<Object> argList = new List<Object>(args);
+                for (int i = 0 ; i < dllNameParts.Length - 1 ; ++i)
+                    argList.Add(dllNameParts[i]);
 
-				args = argList.ToArray();
-			}
+                args = argList.ToArray();
+            }
 
             return LoadPlugin<T>(dllName, className, args);
         }
@@ -276,10 +276,10 @@ namespace OpenSim.Server.Base
                 {
                     if (pluginType.IsPublic)
                     {
-                        if (className != String.Empty 
+                        if (className != String.Empty
                             && pluginType.ToString() != pluginType.Namespace + "." + className)
                             continue;
-                        
+
                         Type typeInterface = pluginType.GetInterface(interfaceName);
 
                         if (typeInterface != null)
@@ -295,8 +295,8 @@ namespace OpenSim.Server.Base
                                 if (!(e is System.MissingMethodException))
                                 {
                                     m_log.Error(string.Format("[SERVER UTILS]: Error loading plugin {0} from {1}. Exception: {2}",
-                                        interfaceName, 
-                                        dllName, 
+                                        interfaceName,
+                                        dllName,
                                         e.InnerException == null ? e.Message : e.InnerException.Message),
                                             e);
                                 }
@@ -479,7 +479,7 @@ namespace OpenSim.Server.Base
             XmlDocument doc = new XmlDocument();
 
             doc.LoadXml(data);
-            
+
             XmlNodeList rootL = doc.GetElementsByTagName("ServerResponse");
 
             if (rootL.Count != 1)

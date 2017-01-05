@@ -45,8 +45,8 @@ namespace pCampBot
         private Stopwatch m_StopWatch = new Stopwatch();
         private List<UUID> m_processed = new List<UUID>();
 
-        public InventoryDownloadBehaviour() 
-        { 
+        public InventoryDownloadBehaviour()
+        {
             AbbreviatedName = "inv";
             Name = "Inventory";
         }
@@ -113,7 +113,7 @@ namespace pCampBot
 
         }
 
-        public override void Interrupt() 
+        public override void Interrupt()
         {
             m_interruptEvent.Set();
         }

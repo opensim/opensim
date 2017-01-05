@@ -44,7 +44,7 @@ namespace OpenSim.Region.UserStatistics
             jsFileName = "prototype.js";
         }
 
-        public Prototype_distributor(string jsName) 
+        public Prototype_distributor(string jsName)
         {
             jsFileName = jsName;
         }

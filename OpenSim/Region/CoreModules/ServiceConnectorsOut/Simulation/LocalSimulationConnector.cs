@@ -219,7 +219,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             }
 
 //            m_log.DebugFormat(
-//                "[LOCAL COMMS]: Did not find region {0} {1} for ChildAgentUpdate", 
+//                "[LOCAL COMMS]: Did not find region {0} {1} for ChildAgentUpdate",
 //                destination.RegionName, destination.RegionID);
 
             return false;
@@ -265,7 +265,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                     reason = "Destination is a variable-sized region, and source is an old simulator. Consider upgrading.";
                     m_log.DebugFormat("[LOCAL SIMULATION CONNECTOR]: Request to access this variable-sized region from older simulator was denied");
                     return false;
-                
+
                 }
 
 

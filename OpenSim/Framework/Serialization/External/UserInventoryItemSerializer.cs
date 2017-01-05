@@ -36,9 +36,9 @@ using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
-    
+
 namespace OpenSim.Framework.Serialization.External
-{        
+{
     /// <summary>
     /// Serialize and deserialize user inventory items as an external format.
     /// </summary>
@@ -49,14 +49,14 @@ namespace OpenSim.Framework.Serialization.External
         private static Dictionary<string, Action<InventoryItemBase, XmlReader>> m_InventoryItemXmlProcessors
             = new Dictionary<string, Action<InventoryItemBase, XmlReader>>();
 
-        #region InventoryItemBase Processor initialization 
+        #region InventoryItemBase Processor initialization
         static UserInventoryItemSerializer()
         {
             m_InventoryItemXmlProcessors.Add("Name", ProcessName);
             m_InventoryItemXmlProcessors.Add("ID", ProcessID);
             m_InventoryItemXmlProcessors.Add("InvType", ProcessInvType);
             m_InventoryItemXmlProcessors.Add("CreatorUUID", ProcessCreatorUUID);
-            m_InventoryItemXmlProcessors.Add("CreatorID", ProcessCreatorID); 
+            m_InventoryItemXmlProcessors.Add("CreatorID", ProcessCreatorID);
             m_InventoryItemXmlProcessors.Add("CreatorData", ProcessCreatorData);
             m_InventoryItemXmlProcessors.Add("CreationDate", ProcessCreationDate);
             m_InventoryItemXmlProcessors.Add("Owner", ProcessOwner);
@@ -73,7 +73,7 @@ namespace OpenSim.Framework.Serialization.External
             m_InventoryItemXmlProcessors.Add("GroupID", ProcessGroupID);
             m_InventoryItemXmlProcessors.Add("GroupOwned", ProcessGroupOwned);
         }
-        #endregion 
+        #endregion
 
         #region InventoryItemBase Processors
         private static void ProcessName(InventoryItemBase item, XmlReader reader)
@@ -189,7 +189,7 @@ namespace OpenSim.Framework.Serialization.External
         {
             return Deserialize(Encoding.ASCII.GetString(serialization, 0, serialization.Length));
         }
-        
+
         /// <summary>
         /// Deserialize settings
         /// </summary>
@@ -212,8 +212,8 @@ namespace OpenSim.Framework.Serialization.External
 
             //m_log.DebugFormat("[XXX]: parsed InventoryItemBase {0} - {1}", obj.Name, obj.UUID);
             return item;
-        }      
-        
+        }
+
         public static string Serialize(InventoryItemBase inventoryItem, Dictionary<string, object> options, IUserAccountService userAccountService)
         {
             StringWriter sw = new StringWriter();
@@ -294,11 +294,11 @@ namespace OpenSim.Framework.Serialization.External
             }
 
             writer.WriteEndElement();
-            
+
             writer.Close();
             sw.Close();
-            
+
             return sw.ToString();
-        }        
+        }
     }
 }

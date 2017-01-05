@@ -243,8 +243,8 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                     triangle.v3.Z)
                 || (triangle.v2.X == triangle.v3.X && triangle.v2.Y == triangle.v3.Y && triangle.v2.Z ==
                     triangle.v3.Z)
-                )               
-            {               
+                )
+            {
                 return;
             }
 
@@ -444,7 +444,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         {
             if (m_indicesPtr != IntPtr.Zero || m_verticesPtr != IntPtr.Zero)
                 throw new NotSupportedException("Attempt to Append to a pinned Mesh");
-        
+
             if (!(newMesh is Mesh))
                 return;
 

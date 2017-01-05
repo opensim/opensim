@@ -46,7 +46,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "RegionReadyModule")]
     public class RegionReadyModule : IRegionReadyModule, INonSharedRegionModule
     {
-        private static readonly ILog m_log = 
+        private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IConfig m_config = null;
@@ -57,24 +57,24 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
         private bool m_enabled = false;
         private bool m_disable_logins;
         private string m_uri = string.Empty;
-        
+
         Scene m_scene;
-        
+
         #region INonSharedRegionModule interface
 
-        public Type ReplaceableInterface 
-        { 
+        public Type ReplaceableInterface
+        {
             get { return null; }
         }
-            
+
         public void Initialise(IConfigSource config)
         {
             m_config = config.Configs["RegionReady"];
-            if (m_config != null) 
+            if (m_config != null)
             {
                 m_enabled = m_config.GetBoolean("enabled", false);
-                
-                if (m_enabled) 
+
+                if (m_enabled)
                 {
                     m_channelNotify = m_config.GetInt("channel_notify", m_channelNotify);
                     m_disable_logins = m_config.GetBoolean("login_disable", false);
@@ -106,7 +106,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                 m_scene.EventManager.OnEmptyScriptCompileQueue += OnEmptyScriptCompileQueue;
 
                 // This should always show up to the user but should not trigger warn/errors as these messages are
-                // expected and are not simulator problems.  Ideally, there would be a status level in log4net but 
+                // expected and are not simulator problems.  Ideally, there would be a status level in log4net but
                 // failing that, we will print out to console instead.
                 MainConsole.Instance.OutputFormat("Region {0} - LOGINS DISABLED DURING INITIALIZATION.", m_scene.Name);
 
@@ -152,12 +152,12 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
         {
             m_log.DebugFormat("[RegionReady]: Script compile queue empty!");
 
-            if (m_firstEmptyCompileQueue || m_oarFileLoading) 
+            if (m_firstEmptyCompileQueue || m_oarFileLoading)
             {
                 OSChatMessage c = new OSChatMessage();
-                if (m_firstEmptyCompileQueue) 
+                if (m_firstEmptyCompileQueue)
                     c.Message = "server_startup,";
-                else 
+                else
                     c.Message = "oar_file_load,";
                 m_firstEmptyCompileQueue = false;
                 m_oarFileLoading = false;
@@ -165,7 +165,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                 m_scene.Backup(false);
 
                 c.From = "RegionReady";
-                if (m_lastOarLoadedOk) 
+                if (m_lastOarLoadedOk)
                     c.Message += "1,";
                 else
                     c.Message += "0,";
@@ -193,7 +193,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
         {
             m_oarFileLoading = true;
 
-            if (message==String.Empty) 
+            if (message==String.Empty)
             {
                 m_lastOarLoadedOk = true;
             }
@@ -226,7 +226,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                 //                 m_scene.RegionInfo.RegionName, m_oarFileLoading.ToString());
 
                 // Putting this out to console to make it eye-catching for people who are running OpenSimulator
-                // without info log messages enabled.  Making this a warning is arguably misleading since it isn't a 
+                // without info log messages enabled.  Making this a warning is arguably misleading since it isn't a
                 // warning, and monitor scripts looking for warn/error/fatal messages will received false positives.
                 // Arguably, log4net needs a status log level (like Apache).
                 MainConsole.Instance.OutputFormat("INITIALIZATION COMPLETE FOR {0} - LOGINS ENABLED", m_scene.Name);
@@ -256,7 +256,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
 //                m_scene.EventManager.OnRezScript  += OnRezScript;
 //                m_oarFileLoading = true;
 //                m_firstEmptyCompileQueue = true;
-//                
+//
 //                m_scene.LoginsDisabled = true;
 //                m_scene.LoginLock = true;
 //                if ( m_uri != string.Empty )

@@ -79,7 +79,7 @@ namespace OpenSim.Framework.Monitoring
             string category,
             string container,
             Func<Check, bool> checkFunc,
-            StatVerbosity verbosity) 
+            StatVerbosity verbosity)
         {
             if (ChecksManager.SubCommands.Contains(category))
                 throw new Exception(
@@ -108,9 +108,9 @@ namespace OpenSim.Framework.Monitoring
         public virtual string ToConsoleString()
         {
             return string.Format(
-                "{0}.{1}.{2} - {3}", 
-                Category, 
-                Container, 
+                "{0}.{1}.{2} - {3}",
+                Category,
+                Container,
                 ShortName,
                 Description);
         }

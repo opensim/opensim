@@ -155,7 +155,7 @@ namespace OpenSim.Region.CoreModules
             // Register event handlers for when Avatars enter the region, and frame ticks
             m_scene.EventManager.OnFrame += WindUpdate;
 
-            // Register the wind module 
+            // Register the wind module
             m_scene.RegisterModuleInterface<IWindModule>(this);
 
             // Generate initial wind values
@@ -351,7 +351,7 @@ namespace OpenSim.Region.CoreModules
         #region IWindModule Methods
 
         /// <summary>
-        /// Retrieve the wind speed at the given region coordinate.  This 
+        /// Retrieve the wind speed at the given region coordinate.  This
         /// implimentation ignores Z.
         /// </summary>
         /// <param name="x">0...255</param>
@@ -396,7 +396,7 @@ namespace OpenSim.Region.CoreModules
 
         public string WindActiveModelPluginName
         {
-            get 
+            get
             {
                 if (m_activeWindPlugin != null)
                 {
@@ -429,7 +429,7 @@ namespace OpenSim.Region.CoreModules
                     {
                         client.SendWindData(m_dataVersion, windSpeeds);
                     });
-                
+
                 }
                 finally
                 {
@@ -440,7 +440,7 @@ namespace OpenSim.Region.CoreModules
         }
 
         /// <summary>
-        /// Calculate new wind 
+        /// Calculate new wind
         /// returns false if no change
         /// </summary>
 

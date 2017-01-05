@@ -33,7 +33,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
     public class RaiseSphere : ITerrainPaintableEffect
     {
         #region ITerrainPaintableEffect Members
-        
+
 
         public void PaintEffect(ITerrainChannel map, bool[,] mask, double rx, double ry, double rz,
             double strength, double duration, int startX, int endX, int startY, int endY)

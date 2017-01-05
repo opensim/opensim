@@ -31,7 +31,7 @@ namespace OpenSim.Region.Framework.Interfaces
 {
     public interface IWindModule : INonSharedRegionModule
     {
-        
+
         /// <summary>
         /// Retrieves the current wind speed at the given Region Coordinates
         /// </summary>

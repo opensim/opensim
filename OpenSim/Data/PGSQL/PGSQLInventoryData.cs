@@ -69,7 +69,7 @@ namespace OpenSim.Data.PGSQL
         {
             m_connectionString = connectionString;
             database = new PGSQLManager(connectionString);
-          
+
             //New migrations check of store
             database.CheckMigration(_migrationStore);
         }
@@ -190,8 +190,8 @@ namespace OpenSim.Data.PGSQL
             /*  NOTE: the implementation below is very inefficient (makes a separate request to get subfolders for
              * every found folder, recursively).  Inventory code for other DBs has been already rewritten to get ALL
              * inventory for a specific user at once.
-             * 
-             * Meanwhile, one little thing is corrected:  getFolderHierarchy(UUID.Zero) doesn't make sense and should never 
+             *
+             * Meanwhile, one little thing is corrected:  getFolderHierarchy(UUID.Zero) doesn't make sense and should never
              * be used, so check for that and return an empty list.
              */
 
@@ -264,11 +264,11 @@ namespace OpenSim.Data.PGSQL
         /// <param name="folder">Folder to update</param>
         public void updateInventoryFolder(InventoryFolderBase folder)
         {
-            string sql = @"UPDATE inventoryfolders SET ""agentID"" = :agentID, 
+            string sql = @"UPDATE inventoryfolders SET ""agentID"" = :agentID,
                                                        ""parentFolderID"" = :parentFolderID,
                                                        ""folderName"" = :folderName,
                                                        type = :type,
-                                                       version = :version 
+                                                       version = :version
                            WHERE folderID = :folderID";
 
             string folderName = folder.Name;
@@ -337,7 +337,7 @@ namespace OpenSim.Data.PGSQL
                 cmd.Parameters.Add(database.CreateParameter("parentID", UUID.Zero));
                 conn.Open();
                 subFolders = getFolderHierarchy(folderID, cmd);
-                
+
 
                 //Delete all sub-folders
                 foreach (InventoryFolderBase f in subFolders)
@@ -403,7 +403,7 @@ namespace OpenSim.Data.PGSQL
                     }
                 }
             }
-            
+
             m_log.InfoFormat("[INVENTORY DB]: Found no inventory item with ID : {0}", itemID);
             return null;
         }
@@ -420,24 +420,24 @@ namespace OpenSim.Data.PGSQL
                 return;
             }
 
-            string sql = @"INSERT INTO inventoryitems 
-                            (""inventoryID"", ""assetID"", ""assetType"", ""parentFolderID"", ""avatarID"", ""inventoryName"", 
+            string sql = @"INSERT INTO inventoryitems
+                            (""inventoryID"", ""assetID"", ""assetType"", ""parentFolderID"", ""avatarID"", ""inventoryName"",
                              ""inventoryDescription"", ""inventoryNextPermissions"", ""inventoryCurrentPermissions"",
                              ""invType"", ""creatorID"", ""inventoryBasePermissions"", ""inventoryEveryOnePermissions"", ""inventoryGroupPermissions"",
-                             ""salePrice"", ""SaleType"", ""creationDate"", ""groupID"", ""groupOwned"", flags) 
+                             ""salePrice"", ""SaleType"", ""creationDate"", ""groupID"", ""groupOwned"", flags)
                         VALUES
                             (:inventoryID, :assetID, :assetType, :parentFolderID, :avatarID, :inventoryName, :inventoryDescription,
                              :inventoryNextPermissions, :inventoryCurrentPermissions, :invType, :creatorID,
                              :inventoryBasePermissions, :inventoryEveryOnePermissions, :inventoryGroupPermissions, :SalePrice, :SaleType,
                              :creationDate, :groupID, :groupOwned, :flags)";
-            
+
             string itemName = item.Name;
             if (item.Name.Length > 64)
             {
                 itemName = item.Name.Substring(0, 64);
                 m_log.Warn("[INVENTORY DB]: Name field truncated from " + item.Name.Length.ToString() + " to " + itemName.Length.ToString() + " characters");
             }
-            
+
             string itemDesc = item.Description;
             if (item.Description.Length > 128)
             {
@@ -502,25 +502,25 @@ namespace OpenSim.Data.PGSQL
         /// <param name="item">Inventory item to update</param>
         public void updateInventoryItem(InventoryItemBase item)
         {
-            string sql = @"UPDATE inventoryitems SET ""assetID"" = :assetID, 
+            string sql = @"UPDATE inventoryitems SET ""assetID"" = :assetID,
                                                 ""assetType"" = :assetType,
                                                 ""parentFolderID"" = :parentFolderID,
                                                 ""avatarID"" = :avatarID,
-                                                ""inventoryName"" = :inventoryName, 
-                                                ""inventoryDescription"" = :inventoryDescription, 
-                                                ""inventoryNextPermissions"" = :inventoryNextPermissions, 
-                                                ""inventoryCurrentPermissions"" = :inventoryCurrentPermissions, 
-                                                ""invType"" = :invType, 
-                                                ""creatorID"" = :creatorID, 
-                                                ""inventoryBasePermissions"" = :inventoryBasePermissions, 
-                                                ""inventoryEveryOnePermissions"" = :inventoryEveryOnePermissions, 
-                                                ""inventoryGroupPermissions"" = :inventoryGroupPermissions, 
-                                                ""salePrice"" = :SalePrice, 
-                                                ""saleType"" = :SaleType, 
-                                                ""creationDate"" = :creationDate, 
-                                                ""groupID"" = :groupID, 
-                                                ""groupOwned"" = :groupOwned, 
-                                                flags = :flags 
+                                                ""inventoryName"" = :inventoryName,
+                                                ""inventoryDescription"" = :inventoryDescription,
+                                                ""inventoryNextPermissions"" = :inventoryNextPermissions,
+                                                ""inventoryCurrentPermissions"" = :inventoryCurrentPermissions,
+                                                ""invType"" = :invType,
+                                                ""creatorID"" = :creatorID,
+                                                ""inventoryBasePermissions"" = :inventoryBasePermissions,
+                                                ""inventoryEveryOnePermissions"" = :inventoryEveryOnePermissions,
+                                                ""inventoryGroupPermissions"" = :inventoryGroupPermissions,
+                                                ""salePrice"" = :SalePrice,
+                                                ""saleType"" = :SaleType,
+                                                ""creationDate"" = :creationDate,
+                                                ""groupID"" = :groupID,
+                                                ""groupOwned"" = :groupOwned,
+                                                flags = :flags
                                         WHERE ""inventoryID"" = :inventoryID";
 
             string itemName = item.Name;
@@ -529,7 +529,7 @@ namespace OpenSim.Data.PGSQL
                 itemName = item.Name.Substring(0, 64);
                 m_log.Warn("[INVENTORY DB]: Name field truncated from " + item.Name.Length.ToString() + " to " + itemName.Length.ToString() + " characters on update");
             }
-            
+
             string itemDesc = item.Description;
             if (item.Description.Length > 128)
             {

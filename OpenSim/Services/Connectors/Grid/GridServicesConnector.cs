@@ -683,7 +683,7 @@ namespace OpenSim.Services.Connectors
 
             return rinfos;
         }
-        
+
         public int GetRegionFlags(UUID scopeID, UUID regionID)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
@@ -755,7 +755,7 @@ namespace OpenSim.Services.Connectors
             if (reply != string.Empty)
             {
                 Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
-                
+
                 if ((replyData != null) && replyData.Count > 0)
                 {
                     foreach (string key in replyData.Keys)

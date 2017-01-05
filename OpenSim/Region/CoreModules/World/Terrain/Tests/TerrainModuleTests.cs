@@ -45,8 +45,8 @@ namespace OpenSim.Region.CoreModules.Terrain.Tests
             //UUID userId = TestHelpers.ParseTail(0x1);
 
             TerrainModule tm = new TerrainModule();
-            Scene scene = new SceneHelpers().SetupScene();            
-            SceneHelpers.SetupSceneModules(scene, tm);             
+            Scene scene = new SceneHelpers().SetupScene();
+            SceneHelpers.SetupSceneModules(scene, tm);
 
             // Fillheight of 30
             {

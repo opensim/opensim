@@ -89,7 +89,7 @@ namespace OpenSim.Tests.Common
             m_allItems[item.inventoryID] = item.Clone();
 
 //            Console.WriteLine(
-//                "Added item {0} {1}, folder {2}, creator {3}, owner {4}", 
+//                "Added item {0} {1}, folder {2}, creator {3}, owner {4}",
 //                item.inventoryName, item.inventoryID, item.parentFolderID, item.creatorID, item.avatarID);
 
             return true;
@@ -123,8 +123,8 @@ namespace OpenSim.Tests.Common
 
         public bool MoveItem(string id, string newParent) { throw new NotImplementedException(); }
 
-        public bool MoveFolder(string id, string newParent) 
-        { 
+        public bool MoveFolder(string id, string newParent)
+        {
             // Don't use GetFolders() here - it takes a clone!
             XInventoryFolder folder = m_allFolders[new UUID(id)];
 
@@ -133,11 +133,11 @@ namespace OpenSim.Tests.Common
 
             folder.parentFolderID = new UUID(newParent);
 
-//            XInventoryFolder[] newParentFolders 
+//            XInventoryFolder[] newParentFolders
 //                = GetFolders(new string[] { "folderID" }, new string[] { folder.parentFolderID.ToString() });
 
 //            Console.WriteLine(
-//                "Moved folder {0} {1}, to {2} {3}", 
+//                "Moved folder {0} {1}, to {2} {3}",
 //                folder.folderName, folder.folderID, newParentFolders[0].folderName, folder.parentFolderID);
 
             // TODO: Really need to implement folder version incrementing, though this should be common code anyway,

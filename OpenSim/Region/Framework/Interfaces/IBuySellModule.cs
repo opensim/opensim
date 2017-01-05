@@ -31,7 +31,7 @@ using OpenSim.Framework;
 namespace OpenSim.Region.Framework.Interfaces
 {
     public interface IBuySellModule
-    { 
+    {
         /// <summary>
         /// Try to buy an object
         /// </summary>

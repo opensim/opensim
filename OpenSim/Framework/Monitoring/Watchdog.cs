@@ -96,7 +96,7 @@ namespace OpenSim.Framework.Monitoring
                 FirstTick = Environment.TickCount & Int32.MaxValue;
                 LastTick = FirstTick;
 
-                Stat 
+                Stat
                     = new Stat(
                         name,
                         string.Format("Last update of thread {0}", name),

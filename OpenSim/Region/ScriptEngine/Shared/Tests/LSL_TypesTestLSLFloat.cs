@@ -155,7 +155,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             m_stringDoubleSet.Add("1ef", 1.0);
             m_stringDoubleSet.Add("e10", 0.0);
             m_stringDoubleSet.Add("1.e0.0", 1.0);
- 
+
             m_doubleStringSet = new Dictionary<double, string>();
             m_doubleStringSet.Add(2.0, "2.000000");
             m_doubleStringSet.Add(-2.0, "-2.000000");

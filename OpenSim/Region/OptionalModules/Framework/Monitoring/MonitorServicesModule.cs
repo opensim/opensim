@@ -48,11 +48,11 @@ namespace OpenSim.Region.OptionalModules.Framework.Monitoring
         protected Scene m_scene;
 
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         public string Name { get { return "Services Health Monitoring Module"; } }
-        
+
         public Type ReplaceableInterface { get { return null; } }
-        
+
         public void Initialise(IConfigSource source)
         {
         }
@@ -64,7 +64,7 @@ namespace OpenSim.Region.OptionalModules.Framework.Monitoring
         public void Close()
         {
         }
-        
+
         public void AddRegion(Scene scene)
         {
             if (m_scene == null)

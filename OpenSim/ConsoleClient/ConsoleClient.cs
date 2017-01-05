@@ -178,7 +178,7 @@ namespace OpenSim.ConsoleClient
                 Requester.MakeRequest(requestUrl, requestData, ReadResponses);
                 return;
             }
-            
+
             List<string> lines = new List<string>();
 
             foreach (XmlNode part in rootNodeL[0].ChildNodes)
@@ -202,7 +202,7 @@ namespace OpenSim.ConsoleClient
                 string[] parts = l.Split(new char[] {':'}, 3);
                 if (parts.Length != 3)
                     continue;
-                
+
                 if (parts[2].StartsWith("+++") || parts[2].StartsWith("-++"))
                     prompt = parts[2];
                 else

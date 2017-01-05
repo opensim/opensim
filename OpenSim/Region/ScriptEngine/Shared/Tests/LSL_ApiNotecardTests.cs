@@ -76,7 +76,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
             string[] ncLines = { "One", "Twoè", "Three" };
 
-            TaskInventoryItem ncItem 
+            TaskInventoryItem ncItem
                 = TaskInventoryHelpers.AddNotecard(m_scene.AssetService, m_so.RootPart, "nc", "1", "10", string.Join("\n", ncLines));
 
             AssertValidNotecardLine(ncItem.Name, 0, ncLines[0]);
@@ -111,7 +111,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         {
             string key = m_lslApi.llGetNotecardLine(ncName, lineNumber);
             Assert.That(key, Is.Not.EqualTo(UUID.Zero.ToString()));
-        
+
             Assert.That(m_engine.PostedEvents.Count, Is.EqualTo(1));
             Assert.That(m_engine.PostedEvents.ContainsKey(m_scriptItem.ItemID));
 
@@ -223,8 +223,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 //                // Check that request to URL works.
 //                string testResponse = "Hello World";
 //
-//                m_engine.ClearPostedEvents();                
-//                m_engine.PostEventHook 
+//                m_engine.ClearPostedEvents();
+//                m_engine.PostEventHook
 //                    += (itemId, evp) => m_lslApi.llHTTPResponse(evp.Params[0].ToString(), 200, testResponse);
 //
 ////                Console.WriteLine("Trying {0}", returnedUri);

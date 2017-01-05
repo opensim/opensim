@@ -55,7 +55,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
         public InstantMessageServerConnector(IConfigSource config, IHttpServer server) :
             this(config, server, (IInstantMessageSimConnector)null)
-        {            
+        {
         }
 
         public InstantMessageServerConnector(IConfigSource config, IHttpServer server, string configName) :

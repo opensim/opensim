@@ -39,7 +39,7 @@ namespace OpenSim.Framework.Monitoring
         /// </summary>
         /// <returns></returns>
         string Report();
-         
+
         /// <summary>
         /// Report back collected statistical information in json
         /// </summary>

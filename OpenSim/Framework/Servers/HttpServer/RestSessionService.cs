@@ -291,5 +291,5 @@ namespace OpenSim.Framework.Servers.HttpServer
                 serializer.Serialize(xmlWriter, response);
             }
         }
-    }   
+    }
 }

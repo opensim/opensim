@@ -51,7 +51,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="maturePublish"></param>
         /// <returns>The UUID of the created group</returns>
         UUID CreateGroup(
-            IClientAPI remoteClient, string name, string charter, bool showInList, UUID insigniaID, int membershipFee, 
+            IClientAPI remoteClient, string name, string charter, bool showInList, UUID insigniaID, int membershipFee,
             bool openEnrollment, bool allowPublish, bool maturePublish);
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="GroupID">ID of the group</param>
         /// <returns>The group's data.  Null if there is no such group.</returns>
         GroupRecord GetGroupRecord(UUID GroupID);
-        
+
         void ActivateGroup(IClientAPI remoteClient, UUID groupID);
         List<GroupTitlesData> GroupTitlesRequest(IClientAPI remoteClient, UUID groupID);
         List<GroupMembersData> GroupMembersRequest(IClientAPI remoteClient, UUID groupID);
@@ -83,7 +83,7 @@ namespace OpenSim.Region.Framework.Interfaces
         void SetGroupAcceptNotices(IClientAPI remoteClient, UUID groupID, bool acceptNotices, bool listInProfile);
 
         void GroupTitleUpdate(IClientAPI remoteClient, UUID GroupID, UUID TitleRoleID);
-        
+
         GroupNoticeData[] GroupNoticesListRequest(IClientAPI remoteClient, UUID GroupID);
         string GetGroupTitle(UUID avatarID);
         void GroupRoleUpdate(IClientAPI remoteClient, UUID GroupID, UUID RoleID, string name, string description, string title, ulong powers, byte updateType);

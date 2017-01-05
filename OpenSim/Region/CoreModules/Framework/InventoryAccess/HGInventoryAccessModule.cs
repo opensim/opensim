@@ -91,9 +91,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 if (name == Name)
                 {
                     m_Enabled = true;
-                    
+
                     InitialiseCommon(source);
-                        
+
                     m_log.InfoFormat("[HG INVENTORY ACCESS MODULE]: {0} enabled.", Name);
 
                     IConfig thisModuleConfig = source.Configs["HGInventoryAccessModule"];
@@ -117,7 +117,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         m_log.Warn("[HG INVENTORY ACCESS MODULE]: HGInventoryAccessModule configs not found. ProfileServerURI not set!");
 
                     m_bypassPermissions = !Util.GetConfigVarFromSections<bool>(source, "serverside_object_permissions",
-                                            new string[] { "Startup", "Permissions" }, true); 
+                                            new string[] { "Startup", "Permissions" }, true);
 
                 }
             }
@@ -248,7 +248,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         }
 
 
-        /// 
+        ///
         /// CapsUpdateInventoryItemAsset
         ///
         public override UUID CapsUpdateInventoryItemAsset(IClientAPI remoteClient, UUID itemID, byte[] data)
@@ -268,7 +268,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             return newAssetID;
         }
 
-        /// 
+        ///
         /// UpdateInventoryItemAsset
         ///
         public override bool UpdateInventoryItemAsset(UUID ownerID, InventoryItemBase item, AssetBase asset)
@@ -317,7 +317,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     RezSelected, RemoveItem, fromTaskID, attachment);
         }
 
-        public override SceneObjectGroup RezObject(IClientAPI remoteClient, UUID itemID, 
+        public override SceneObjectGroup RezObject(IClientAPI remoteClient, UUID itemID,
                             UUID groupID, Vector3 RayEnd, Vector3 RayStart,
                             UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                             bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
@@ -386,7 +386,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 if (!m_CheckSeparateAssets)
                 {
                     if (!UserManagementModule.IsLocalGridUser(userID))
-                    { // foreign 
+                    { // foreign
                         ScenePresence sp = null;
                         if (m_Scene.TryGetScenePresence(userID, out sp))
                         {
@@ -524,7 +524,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         foreach (InventoryItemBase it in content.Items)
                             it.Name = it.Name + " (Unavailable)"; ;
 
-                        // Send the new names 
+                        // Send the new names
                         inv.SendBulkUpdateInventory(keep.ToArray(), content.Items.ToArray());
 
                     }

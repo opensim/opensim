@@ -53,6 +53,7 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
         private UTF8Encoding enc = new UTF8Encoding();
         private string m_URL = String.Empty;
         private static XmlSerializer m_serializer = new XmlSerializer(typeof(AssetBase));
+        private static bool m_enabled = false;
 
         private static IServiceAuth m_Auth;
 
@@ -63,11 +64,19 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
                 return;
 
             m_URL = config.GetString("URL", String.Empty);
+            if (m_URL == String.Empty)
+                return;
+
+            m_enabled = true;
+
             m_Auth = ServiceAuth.Create(configSource, "XBakes");
         }
 
         public void AddRegion(Scene scene)
         {
+            if (!m_enabled)
+                return;
+
             // m_log.InfoFormat("[XBakes]: Enabled for region {0}", scene.RegionInfo.RegionName);
             m_Scene = scene;
 
@@ -168,7 +177,7 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
 
             int numberWears = 0;
             MemoryStream reqStream;
-           
+
             using (MemoryStream bakeStream = new MemoryStream())
             using (XmlTextWriter bakeWriter = new XmlTextWriter(bakeStream, null))
             {

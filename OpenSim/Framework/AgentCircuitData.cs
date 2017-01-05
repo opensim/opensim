@@ -77,7 +77,7 @@ namespace OpenSim.Framework
         public bool child;
 
         /// <summary>
-        /// Number given to the client when they log-in that they provide 
+        /// Number given to the client when they log-in that they provide
         /// as credentials to the UDP server
         /// </summary>
         public uint circuitcode;
@@ -328,7 +328,7 @@ namespace OpenSim.Framework
                 Vector3.TryParse(args["start_pos"].AsString(), out startpos);
 
             //m_log.InfoFormat("[AGENTCIRCUITDATA]: agentid={0}, child={1}, startpos={2}", AgentID, child, startpos);
-            
+
             try
             {
                 // Unpack various appearance elements
@@ -353,7 +353,7 @@ namespace OpenSim.Framework
             {
                 m_log.ErrorFormat("[AGENTCIRCUITDATA] failed to unpack appearance; {0}",e.Message);
             }
-            
+
             ServiceURLs = new Dictionary<string, object>();
             // Try parse the new way, OSDMap
             if (args.ContainsKey("serviceurls") && args["serviceurls"] != null && (args["serviceurls"]).Type == OSDType.Map)

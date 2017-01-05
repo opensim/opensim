@@ -47,7 +47,7 @@ namespace OpenSim.Services.InventoryService.Tests
     {
         private IInventoryService CreateXInventoryService()
         {
-            IConfigSource config = new IniConfigSource();            
+            IConfigSource config = new IniConfigSource();
             config.AddConfig("InventoryService");
             config.Configs["InventoryService"].Set("StorageProvider", "OpenSim.Tests.Common.dll");
 
@@ -73,19 +73,19 @@ namespace OpenSim.Services.InventoryService.Tests
             UUID folderId = TestHelpers.ParseTail(0x30);
             int invType = (int)InventoryType.Animation;
             int assetType = (int)AssetType.Animation;
-            string itemName = "item1";           
+            string itemName = "item1";
 
             IInventoryService xis = CreateXInventoryService();
 
-            InventoryItemBase itemToStore 
-                = new InventoryItemBase(itemId, ownerId) 
-                { 
-                    CreatorIdentification = creatorId.ToString(), 
-                    AssetID = assetId, 
-                    Name = itemName,  
-                    Folder = folderId, 
-                    InvType = invType, 
-                    AssetType = assetType 
+            InventoryItemBase itemToStore
+                = new InventoryItemBase(itemId, ownerId)
+                {
+                    CreatorIdentification = creatorId.ToString(),
+                    AssetID = assetId,
+                    Name = itemName,
+                    Folder = folderId,
+                    InvType = invType,
+                    AssetType = assetType
                 };
 
             Assert.That(xis.AddItem(itemToStore), Is.True);
@@ -115,20 +115,20 @@ namespace OpenSim.Services.InventoryService.Tests
             UUID folderId = TestHelpers.ParseTail(0x30);
             int invType = (int)InventoryType.Animation;
             int assetType = (int)AssetType.Animation;
-            string itemName = "item1";           
+            string itemName = "item1";
             string itemName2 = "item2";
 
             IInventoryService xis = CreateXInventoryService();
 
-            InventoryItemBase itemToStore 
-                = new InventoryItemBase(itemId, ownerId) 
-                { 
-                    CreatorIdentification = creatorId.ToString(), 
-                    AssetID = assetId, 
-                    Name = itemName,  
-                    Folder = folderId, 
-                    InvType = invType, 
-                    AssetType = assetType 
+            InventoryItemBase itemToStore
+                = new InventoryItemBase(itemId, ownerId)
+                {
+                    CreatorIdentification = creatorId.ToString(),
+                    AssetID = assetId,
+                    Name = itemName,
+                    Folder = folderId,
+                    InvType = invType,
+                    AssetType = assetType
                 };
 
             Assert.That(xis.AddItem(itemToStore), Is.True);
@@ -149,7 +149,7 @@ namespace OpenSim.Services.InventoryService.Tests
             UUID folderId2 = TestHelpers.ParseTail(0x70);
             int invType2 = (int)InventoryType.CallingCard;
             int assetType2 = (int)AssetType.CallingCard;
-            string itemName3 = "item3"; 
+            string itemName3 = "item3";
 
             itemToStore.CreatorIdentification = creatorId2.ToString();
             itemToStore.Owner = ownerId2;

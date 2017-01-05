@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Contributors 
+ * Copyright (c) Contributors
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -83,7 +83,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         public void Initialise(IConfigSource config)
         {
-            try 
+            try
             {
                 if ((m_config = config.Configs["JsonStore"]) == null)
                 {
@@ -159,7 +159,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
         // -----------------------------------------------------------------
         /// <summary>
-        /// Called when all modules have been added for a region. This is 
+        /// Called when all modules have been added for a region. This is
         /// where we hook up events
         /// </summary>
         // -----------------------------------------------------------------
@@ -184,7 +184,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 #region SceneEvents
         // -----------------------------------------------------------------
         /// <summary>
-        /// 
+        ///
         /// </summary>
         // -----------------------------------------------------------------
         public void EventManagerOnObjectBeingRemovedFromScene(SceneObjectGroup obj)
@@ -196,10 +196,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
 #region ScriptInvocationInteface
 
-        
+
         // -----------------------------------------------------------------
         /// <summary>
-        /// 
+        ///
         /// </summary>
         // -----------------------------------------------------------------
         public JsonStoreStats GetStoreStats()
@@ -210,13 +210,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             {
                 stats.StoreCount = m_JsonValueStore.Count;
             }
-            
+
             return stats;
         }
-        
+
         // -----------------------------------------------------------------
         /// <summary>
-        /// 
+        ///
         /// </summary>
         // -----------------------------------------------------------------
         public bool AttachObjectStore(UUID objectID)
@@ -235,17 +235,17 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             {
                 if (m_JsonValueStore.ContainsKey(objectID))
                     return true;
-                
+
                 JsonStore map = new JsonObjectStore(m_scene,objectID);
                 m_JsonValueStore.Add(objectID,map);
             }
-            
+
             return true;
         }
-        
+
         // -----------------------------------------------------------------
         /// <summary>
-        /// 
+        ///
         /// </summary>
         // -----------------------------------------------------------------
         public bool CreateStore(string value, ref UUID result)
@@ -254,12 +254,12 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 result = UUID.Random();
 
             JsonStore map = null;
-            
+
             if (! m_enabled) return false;
-            
+
 
             try
-            { 
+            {
                 map = new JsonStore(value);
             }
             catch (Exception)
@@ -270,13 +270,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
             lock (m_JsonValueStore)
                 m_JsonValueStore.Add(result,map);
-            
+
             return true;
         }
 
         // -----------------------------------------------------------------
         /// <summary>
-        /// 
+        ///
         /// </summary>
         // -----------------------------------------------------------------
         public bool DestroyStore(UUID storeID)
@@ -289,7 +289,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
         // -----------------------------------------------------------------
         /// <summary>
-        /// 
+        ///
         /// </summary>
         // -----------------------------------------------------------------
         public bool TestStore(UUID storeID)
@@ -302,7 +302,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
         // -----------------------------------------------------------------
         /// <summary>
-        /// 
+        ///
         /// </summary>
         // -----------------------------------------------------------------
         public JsonStoreNodeType GetNodeType(UUID storeID, string path)
@@ -318,7 +318,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                     return JsonStoreNodeType.Undefined;
                 }
             }
-            
+
             try
             {
                 lock (map)
@@ -334,7 +334,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
         // -----------------------------------------------------------------
         /// <summary>
-        /// 
+        ///
         /// </summary>
         // -----------------------------------------------------------------
         public JsonStoreValueType GetValueType(UUID storeID, string path)
@@ -350,7 +350,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                     return JsonStoreValueType.Undefined;
                 }
             }
-            
+
             try
             {
                 lock (map)
@@ -366,7 +366,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
         // -----------------------------------------------------------------
         /// <summary>
-        /// 
+        ///
         /// </summary>
         // -----------------------------------------------------------------
         public bool SetValue(UUID storeID, string path, string value, bool useJson)
@@ -382,7 +382,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                     return false;
                 }
             }
-            
+
             try
             {
                 lock (map)
@@ -393,7 +393,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                                          storeID,map.StringSpace,m_maxStringSpace);
                         return false;
                     }
-                    
+
                     return map.SetValue(path,value,useJson);
                 }
             }
@@ -404,10 +404,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
             return false;
         }
-        
+
         // -----------------------------------------------------------------
         /// <summary>
-        /// 
+        ///
         /// </summary>
         // -----------------------------------------------------------------
         public bool RemoveValue(UUID storeID, string path)
@@ -423,7 +423,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                     return false;
                 }
             }
-            
+
             try
             {
                 lock (map)
@@ -436,10 +436,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
             return false;
         }
-        
+
         // -----------------------------------------------------------------
         /// <summary>
-        /// 
+        ///
         /// </summary>
         // -----------------------------------------------------------------
         public int GetArrayLength(UUID storeID, string path)
@@ -464,19 +464,19 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             {
                 m_log.Error("[JsonStore]: unable to retrieve value", e);
             }
-            
+
             return -1;
         }
 
         // -----------------------------------------------------------------
         /// <summary>
-        /// 
+        ///
         /// </summary>
         // -----------------------------------------------------------------
         public bool GetValue(UUID storeID, string path, bool useJson, out string value)
         {
             value = String.Empty;
-            
+
             if (! m_enabled) return false;
 
             JsonStore map = null;
@@ -497,13 +497,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             {
                 m_log.Error("[JsonStore]: unable to retrieve value", e);
             }
-            
+
             return false;
         }
 
         // -----------------------------------------------------------------
         /// <summary>
-        /// 
+        ///
         /// </summary>
         // -----------------------------------------------------------------
         public void TakeValue(UUID storeID, string path, bool useJson, TakeValueCallback cback)
@@ -536,13 +536,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             {
                 m_log.Error("[JsonStore] unable to retrieve value", e);
             }
-            
+
             cback(String.Empty);
         }
 
         // -----------------------------------------------------------------
         /// <summary>
-        /// 
+        ///
         /// </summary>
         // -----------------------------------------------------------------
         public void ReadValue(UUID storeID, string path, bool useJson, TakeValueCallback cback)
@@ -575,7 +575,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             {
                 m_log.Error("[JsonStore]: unable to retrieve value", e);
             }
-            
+
             cback(String.Empty);
         }
 

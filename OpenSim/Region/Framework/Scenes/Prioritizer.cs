@@ -35,7 +35,7 @@ using OpenSim.Region.PhysicsModules.SharedBase;
 
 /*
  * Steps to add a new prioritization policy:
- * 
+ *
  *  - Add a new value to the UpdatePrioritizationSchemes enum.
  *  - Specify this new value in the [InterestManagement] section of your
  *    OpenSim.ini. The name in the config file must match the enum value name
@@ -59,7 +59,7 @@ namespace OpenSim.Region.Framework.Scenes
     public class Prioritizer
     {
         private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         private Scene m_scene;
 
         public Prioritizer(Scene scene)
@@ -91,7 +91,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return 0;
 
             uint priority;
-            
+
             switch (m_scene.UpdatePrioritizationScheme)
             {
 /*
@@ -116,7 +116,7 @@ namespace OpenSim.Region.Framework.Scenes
                     priority = GetPriorityByBestAvatarResponsiveness(client, entity);
                     break;
             }
-            
+
             return priority;
         }
 
@@ -145,7 +145,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             return ComputeDistancePriority(client,entity,false);
         }
-        
+
         private uint GetPriorityByFrontBack(IClientAPI client, ISceneEntity entity)
         {
             // And anything attached to this avatar gets top priority as well
@@ -172,7 +172,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (entity is SceneObjectPart)
                 {
-                    // Attachments are high priority, 
+                    // Attachments are high priority,
                     if (((SceneObjectPart)entity).ParentGroup.IsAttachment)
                         return 2;
 
@@ -196,7 +196,7 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence presence = m_scene.GetScenePresence(client.AgentId);
             if (presence == null)
             {
-                // this shouldn't happen, it basically means that we are prioritizing 
+                // this shouldn't happen, it basically means that we are prioritizing
                 // updates to send to a client that doesn't have a presence in the scene
                 // seems like there's race condition here...
 
@@ -204,7 +204,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // throw new InvalidOperationException("Prioritization agent not defined");
                 return PriorityQueue.NumberOfQueues - 1;
             }
-                
+
             // Use group position for child prims, since we are putting child prims in
             // the same queue with the root of the group, the root prim (which goes into
             // the queue first) should always be sent first, no need to adjust child prim
@@ -227,14 +227,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             Vector3 presencePos = presence.AbsolutePosition;
 
-            // Compute the distance... 
+            // Compute the distance...
             double distance = Vector3.Distance(presencePos, entityPos);
 
             // And convert the distance to a priority queue, this computation gives queues
             // at 10, 20, 40, 80, 160, 320, 640, and 1280m
             uint pqueue = PriorityQueue.NumberOfImmediateQueues + 1; // reserve attachments queue
             uint queues = PriorityQueue.NumberOfQueues - PriorityQueue.NumberOfImmediateQueues;
-/*            
+/*
             for (int i = 0; i < queues - 1; i++)
             {
                 if (distance < 30 * Math.Pow(2.0,i))
@@ -246,7 +246,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 float tmp = (float)Math.Log((double)distance) * 1.442695f - 3.321928f;
                 // for a map identical to original:
-                // now 
+                // now
                 // 1st constant is 1/(log(2)) (natural log) so we get log2(distance)
                 // 2st constant makes it be log2(distance/10)
                 pqueue += (uint)tmp;
@@ -265,7 +265,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // Plane equation
                 float d = -Vector3.Dot(camPosition, camAtAxis);
                 float p = Vector3.Dot(camAtAxis, entityPos) + d;
-                if (p < 0.0f) 
+                if (p < 0.0f)
                     pqueue++;
             }
 
@@ -291,7 +291,7 @@ namespace OpenSim.Region.Framework.Scenes
 //            uint pqueue = minpqueue;
             uint pqueue = PriorityQueue.NumberOfImmediateQueues;
             float distance;
-                
+
             Vector3 presencePos = presence.AbsolutePosition;
             if(entity is ScenePresence)
             {
@@ -319,10 +319,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 float tmp = (float)Math.Log(distance) * 1.442695f - 3.321928f;
                 // for a map identical to original:
-                // now 
+                // now
                 // 1st constant is 1/(log(2)) (natural log) so we get log2(distance)
                 // 2st constant makes it be log2(distance/10)
-                
+
                 pqueue += (uint)tmp;
                 if (pqueue > maxqueue)
                     pqueue = maxqueue;

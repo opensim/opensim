@@ -180,7 +180,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 
             ManagedImage managedImage;
             Image image;
-            
+
             try
             {
                 if (OpenJPEG.DecodeToImage(asset.Data, out managedImage, out image))
@@ -201,7 +201,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                 m_log.ErrorFormat("{0} OpenJpeg was unable to encode this.   Asset Data is empty for {1}", LogHeader, id);
             }
             return null;
-            
+
         }
 
         // Compute the average color of a texture.

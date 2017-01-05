@@ -91,7 +91,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// 300 Redirect: different presentation forms available, take a pick
         /// </summary>
         RedirectMultipleChoices = 300,
-        
+
         /// <summary>
         /// 301 Redirect: requested resource has moved and now lives somewhere else
         /// </summary>

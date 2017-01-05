@@ -83,7 +83,7 @@ namespace OpenSim.Framework.Servers.HttpServer
     {
         void Handle(string path, Stream request, Stream response, IOSHttpRequest httpReqbuest, IOSHttpResponse httpResponse);
     }
-    
+
     public interface IGenericHTTPHandler : IRequestHandler
     {
         Hashtable Handle(string path, Hashtable request);

@@ -98,7 +98,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        /// Sends packets for this texture to a client until packetsToSend is 
+        /// Sends packets for this texture to a client until packetsToSend is
         /// hit or the transfer completes
         /// </summary>
         /// <param name="client">Reference to the client that the packets are destined for</param>
@@ -198,7 +198,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         m_currentPacket = m_stopPacket;
                         return;
                     }
-                    
+
                     if (DiscardLevel >= 0 || m_stopPacket == 0)
                     {
                         // This shouldn't happen, but if it does, we really can't proceed

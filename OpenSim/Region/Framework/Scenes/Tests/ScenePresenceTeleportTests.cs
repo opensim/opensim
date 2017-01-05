@@ -465,7 +465,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 teleportLookAt,
                 (uint)TeleportFlags.ViaLocation);
 
-            // FIXME: Not setting up InformClientOfNeighbour on the TestClient means that it does not initiate 
+            // FIXME: Not setting up InformClientOfNeighbour on the TestClient means that it does not initiate
             // communication with the destination region.  But this is a very non-obvious way of doing it - really we
             // should be forced to expicitly set this up.
 
@@ -627,8 +627,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // Both these operations will occur on different threads and will wait for each other.
             // We have to do this via ThreadPool directly since FireAndForget has been switched to sync for the V1
             // test protocol, where we are trying to avoid unpredictable async operations in regression tests.
-            tc.OnTestClientSendRegionTeleport 
-                += (regionHandle, simAccess, regionExternalEndPoint, locationID, flags, capsURL) 
+            tc.OnTestClientSendRegionTeleport
+                += (regionHandle, simAccess, regionExternalEndPoint, locationID, flags, capsURL)
                     => ThreadPool.UnsafeQueueUserWorkItem(o => destinationTestClients[0].CompleteMovement(), null);
 
             sceneA.RequestTeleportLocation(

@@ -75,7 +75,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
         }
 
 #region IApplicationPlugin implementation
-        
+
         public void Initialise (OpenSimBase openSim)
         {
             m_openSim = openSim;
@@ -111,7 +111,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             {
                 m_log.InfoFormat(
                     "[REGIONMODULES]: From plugin {0}, (version {1}), loaded {2} modules, {3} shared, {4} non-shared {5} unknown",
-                    loadedModuleData.Key.Id, 
+                    loadedModuleData.Key.Id,
                     loadedModuleData.Key.Version,
                     loadedModuleData.Value[0] + loadedModuleData.Value[1] + loadedModuleData.Value[2],
                     loadedModuleData.Value[0], loadedModuleData.Value[1], loadedModuleData.Value[2]);
@@ -261,7 +261,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
         }
 
 #region Region Module interfacesController implementation
-        
+
         /// <summary>
         /// Check that the given module is no disabled in the [Modules] section of the config files.
         /// </summary>
@@ -293,10 +293,10 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
                 if (className != String.Empty &&
                         node.Type.ToString() != className)
                     return false;
-            }            
-            
+            }
+
             return true;
-        }        
+        }
 
         // The root of all evil.
         // This is where we handle adding the modules to scenes when they

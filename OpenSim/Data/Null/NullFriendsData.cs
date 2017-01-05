@@ -79,7 +79,7 @@ namespace OpenSim.Data.Null
                 {
                     return fdata.PrincipalID == userID.ToString();
                 });
-    
+
                 if (lst != null)
                 {
                     lst.ForEach(f =>
@@ -87,14 +87,14 @@ namespace OpenSim.Data.Null
                         FriendsData f2 = m_Data.Find(candidateF2 => f.Friend == candidateF2.PrincipalID);
                         if (f2 != null)
                             f.Data["TheirFlags"] = f2.Data["Flags"];
-    
+
     //                    m_log.DebugFormat(
     //                        "[NULL FRIENDS DATA]: Got {0} {1} {2} for {3}",
     //                        f.Friend, f.Data["Flags"], f2 != null ? f.Data["TheirFlags"] : "not found!", f.PrincipalID);
                     });
-    
+
     //                m_log.DebugFormat("[NULL FRIENDS DATA]: Got {0} friends for {1}", lst.Count, userID);
-    
+
                     return lst.ToArray();
                 }
             }
@@ -134,7 +134,7 @@ namespace OpenSim.Data.Null
     //                    m_log.DebugFormat(
     //                        "[NULL FRIENDS DATA]: Deleting friend {0} {1} for {2}",
     //                        friend.Friend, friend.Data["Flags"], friend.PrincipalID);
-    
+
                         m_Data.Remove(friend);
                         return true;
                     }

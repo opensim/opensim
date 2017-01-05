@@ -35,7 +35,7 @@ using OpenSim.Region.OptionalModules.Scripting.Minimodule.Interfaces;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    public class MicroScheduler : System.MarshalByRefObject, IMicrothreader 
+    public class MicroScheduler : System.MarshalByRefObject, IMicrothreader
     {
         private readonly List<IEnumerator> m_threads = new List<IEnumerator>();
 

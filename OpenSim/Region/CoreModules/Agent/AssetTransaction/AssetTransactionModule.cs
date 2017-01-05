@@ -43,7 +43,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             IAgentAssetTransactions
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         protected Scene m_Scene;
         private bool m_dumpAssetsToFile = false;
         private int  m_levelUpload = 0;
@@ -53,7 +53,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         /// </summary>
         private Dictionary<UUID, AgentAssetTransactions> AgentTransactions =
             new Dictionary<UUID, AgentAssetTransactions>();
-        
+
         #region Region Module interface
 
         public void Initialise(IConfigSource source)
@@ -241,7 +241,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 //            m_log.DebugFormat(
 //                "[ASSET TRANSACTION MODULE]: HandleUDPUploadRequest - assetID: {0}, transaction {1}, type {2}, storeLocal {3}, tempFile {4}, data.Length {5}",
 //                assetID, transactionID, type, storeLocal, tempFile, data.Length);
-            
+
             if (((AssetType)type == AssetType.Texture ||
                 (AssetType)type == AssetType.Sound ||
                 (AssetType)type == AssetType.TextureTGA ||

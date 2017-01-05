@@ -48,16 +48,16 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         private OpenSim.Framework.Animation m_defaultAnimation = new OpenSim.Framework.Animation();
         private List<OpenSim.Framework.Animation> m_animations = new List<OpenSim.Framework.Animation>();
 
-        public OpenSim.Framework.Animation DefaultAnimation 
+        public OpenSim.Framework.Animation DefaultAnimation
         {
-            get { return m_defaultAnimation; } 
+            get { return m_defaultAnimation; }
         }
-        
-        public OpenSim.Framework.Animation ImplicitDefaultAnimation 
+
+        public OpenSim.Framework.Animation ImplicitDefaultAnimation
         {
-            get { return m_implicitDefaultAnimation; } 
+            get { return m_implicitDefaultAnimation; }
         }
-        
+
         public AnimationSet()
         {
             ResetDefaultAnimation();
@@ -101,7 +101,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// </summary>
         /// <param name='animID'></param>
         /// <param name='allowNoDefault'>
-        /// If true, then the default animation can be entirely removed. 
+        /// If true, then the default animation can be entirely removed.
         /// If false, then removing the default animation will reset it to the simulator default (currently STAND).
         /// </param>
         public bool Remove(UUID animID, bool allowNoDefault)
@@ -215,9 +215,9 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 foreach (OpenSim.Framework.Animation anim in m_animations)
                     theArray[i++] = anim;
             }
-            catch 
+            catch
             {
-                /* S%^t happens. Ignore. */ 
+                /* S%^t happens. Ignore. */
             }
             return theArray;
         }

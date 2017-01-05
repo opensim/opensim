@@ -33,7 +33,7 @@ namespace OpenSim.Framework.Servers.HttpServer
     {
         private readonly GenericHTTPMethod _normalMethod;
         private readonly GenericHTTPMethod _throttledMethod;
-      
+
         private readonly BasicDosProtectorOptions _options;
         private readonly BasicDOSProtector _dosProtector;
 
@@ -41,7 +41,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             _normalMethod = normalMethod;
             _throttledMethod = throttledMethod;
-            
+
             _options = options;
             _dosProtector = new BasicDOSProtector(_options);
         }
@@ -60,7 +60,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             return process;
         }
-        
+
         private string GetRemoteAddr(Hashtable request)
         {
             string remoteaddr = "";

@@ -126,7 +126,7 @@ namespace OpenSim.Region.CoreModules.Framework.Library
                 return;
 
             // This will never run more than once, even if the region is restarted
-            if (!m_HasRunOnce) 
+            if (!m_HasRunOnce)
             {
                 LoadLibrariesFromArchives();
                 //DumpLibrary();

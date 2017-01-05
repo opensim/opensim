@@ -40,7 +40,7 @@ namespace OpenSim.Framework
         Crashed = 2,
         Starting = 3,
     };
-            
+
     /// <value>
     /// Indicate what action to take on an object derez request
     /// </value>
@@ -118,7 +118,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="mod"></param>
         void RegisterModuleInterface<M>(M mod);
-        
+
         void StackModuleInterface<M>(M mod);
 
         /// <summary>

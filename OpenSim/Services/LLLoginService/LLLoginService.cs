@@ -131,7 +131,7 @@ namespace OpenSim.Services.LLLoginService
             m_AllowedClients = Util.GetConfigVarFromSections<string>(
                     config, "AllowedClients", possibleAccessControlConfigSections, string.Empty);
             m_DeniedClients = Util.GetConfigVarFromSections<string>(
-                    config, "DeniedClients", possibleAccessControlConfigSections, string.Empty); 
+                    config, "DeniedClients", possibleAccessControlConfigSections, string.Empty);
 
             m_MessageUrl = m_LoginServerConfig.GetString("MessageUrl", string.Empty);
             m_DSTZone = m_LoginServerConfig.GetString("DSTZone", "America/Los_Angeles;Pacific Standard Time");
@@ -180,13 +180,13 @@ namespace OpenSim.Services.LLLoginService
             string hgInvServicePlugin = m_LoginServerConfig.GetString("HGInventoryServicePlugin", String.Empty);
             if (hgInvServicePlugin != string.Empty)
             {
-				// TODO: Remove HGInventoryServiceConstructorArg after 0.9 release
+                // TODO: Remove HGInventoryServiceConstructorArg after 0.9 release
                 string hgInvServiceArg = m_LoginServerConfig.GetString("HGInventoryServiceConstructorArg", String.Empty);
-				if (hgInvServiceArg != String.Empty)
-				{
-					m_log.Warn("[LLOGIN SERVICE]: You are using HGInventoryServiceConstructorArg, which is deprecated. See example file for correct syntax.");
-					hgInvServicePlugin = hgInvServiceArg + "@" + hgInvServicePlugin;
-				}
+                if (hgInvServiceArg != String.Empty)
+                {
+                    m_log.Warn("[LLOGIN SERVICE]: You are using HGInventoryServiceConstructorArg, which is deprecated. See example file for correct syntax.");
+                    hgInvServicePlugin = hgInvServiceArg + "@" + hgInvServicePlugin;
+                }
                 m_HGInventoryService = ServerUtils.LoadPlugin<IInventoryService>(hgInvServicePlugin, args);
             }
 
@@ -270,7 +270,7 @@ namespace OpenSim.Services.LLLoginService
             return response;
         }
 
-        public LoginResponse Login(string firstName, string lastName, string passwd, string startLocation, UUID scopeID, 
+        public LoginResponse Login(string firstName, string lastName, string passwd, string startLocation, UUID scopeID,
             string clientVersion, string channel, string mac, string id0, IPEndPoint clientIP, bool LibOMVclient)
         {
             bool success = false;
@@ -283,7 +283,7 @@ namespace OpenSim.Services.LLLoginService
 
             m_log.InfoFormat("[LLOGIN SERVICE]: Login request for {0} {1} at {2} using viewer {3}, channel {4}, IP {5}, Mac {6}, Id0 {7}, Possible LibOMVGridProxy: {8} ",
                 firstName, lastName, startLocation, clientVersion, channel, clientIP.Address.ToString(), mac, id0, LibOMVclient.ToString());
-            
+
             try
             {
                 //
@@ -452,7 +452,7 @@ namespace OpenSim.Services.LLLoginService
                     guinfo = new GridUserInfo();
                     guinfo.LastPosition = guinfo.HomePosition = new Vector3(128, 128, 30);
                 }
-                
+
                 //
                 // Find the destination region/grid
                 //
@@ -494,7 +494,7 @@ namespace OpenSim.Services.LLLoginService
                 //
                 string reason = string.Empty;
                 GridRegion dest;
-                AgentCircuitData aCircuit = LaunchAgentAtGrid(gatekeeper, destination, account, avatar, session, secureSession, position, where, 
+                AgentCircuitData aCircuit = LaunchAgentAtGrid(gatekeeper, destination, account, avatar, session, secureSession, position, where,
                     clientVersion, channel, mac, id0, clientIP, flags, out where, out reason, out dest);
                 destination = dest;
                 if (aCircuit == null)
@@ -504,7 +504,7 @@ namespace OpenSim.Services.LLLoginService
                     return new LLFailedLoginResponse("key", reason, "false");
 
                 }
-                // Get Friends list 
+                // Get Friends list
                 FriendInfo[] friendsList = new FriendInfo[0];
                 if (m_FriendsService != null)
                 {
@@ -587,7 +587,7 @@ namespace OpenSim.Services.LLLoginService
                     lookAt = pinfo.HomeLookAt;
                     flags |= TeleportFlags.ViaHome;
                 }
-                
+
                 if (tryDefaults)
                 {
                     List<GridRegion> defaults = m_GridService.GetDefaultRegions(scopeID);
@@ -648,7 +648,7 @@ namespace OpenSim.Services.LLLoginService
                     position = pinfo.LastPosition;
                     lookAt = pinfo.LastLookAt;
                 }
-                
+
                 return region;
             }
             else
@@ -684,7 +684,7 @@ namespace OpenSim.Services.LLLoginService
                                 regions = m_GridService.GetDefaultRegions(scopeID);
                                 if (regions != null && regions.Count > 0)
                                 {
-                                    where = "safe"; 
+                                    where = "safe";
                                     return regions[0];
                                 }
                                 else
@@ -719,7 +719,7 @@ namespace OpenSim.Services.LLLoginService
                                 return null;
                             }
                             // Valid specification of a remote grid
-                            
+
                             regionName = parts[0];
                             string domainLocator = parts[1];
                             parts = domainLocator.Split(new char[] {':'});
@@ -737,7 +737,7 @@ namespace OpenSim.Services.LLLoginService
                         List<GridRegion> defaults = m_GridService.GetDefaultRegions(scopeID);
                         if (defaults != null && defaults.Count > 0)
                         {
-                            where = "safe"; 
+                            where = "safe";
                             return defaults[0];
                         }
                         else
@@ -798,7 +798,7 @@ namespace OpenSim.Services.LLLoginService
                 string homeURI = null;
                 if (account.ServiceURLs != null && account.ServiceURLs.ContainsKey("HomeURI"))
                     homeURI = (string)account.ServiceURLs["HomeURI"];
-                
+
                 GridRegion destination = m_GatekeeperConnector.GetHyperlinkRegion(gatekeeper, regionID, account.PrincipalID, homeURI, out message);
                 return destination;
             }
@@ -917,8 +917,8 @@ namespace OpenSim.Services.LLLoginService
                 return null;
         }
 
-        private AgentCircuitData MakeAgent(GridRegion region, UserAccount account, 
-            AvatarAppearance avatar, UUID session, UUID secureSession, uint circuit, Vector3 position, 
+        private AgentCircuitData MakeAgent(GridRegion region, UserAccount account,
+            AvatarAppearance avatar, UUID session, UUID secureSession, uint circuit, Vector3 position,
             string ipaddress, string viewer, string channel, string mac, string id0)
         {
             AgentCircuitData aCircuit = new AgentCircuitData();
@@ -956,7 +956,7 @@ namespace OpenSim.Services.LLLoginService
             if (account.ServiceURLs == null)
                 return;
 
-            // Old style: get the service keys from the DB 
+            // Old style: get the service keys from the DB
             foreach (KeyValuePair<string, object> kvp in account.ServiceURLs)
             {
                 if (kvp.Value != null)
@@ -1053,7 +1053,7 @@ namespace OpenSim.Services.LLLoginService
             switch (subcommand)
             {
                 case "level":
-                    // Set the minimum level to allow login 
+                    // Set the minimum level to allow login
                     // Useful to allow grid update without worrying about users.
                     // or fixing critical issues
                     //

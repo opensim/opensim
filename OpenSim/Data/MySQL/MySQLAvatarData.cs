@@ -57,7 +57,7 @@ namespace OpenSim.Data.MySQL
                 cmd.CommandText = String.Format("delete from {0} where `PrincipalID` = ?PrincipalID and `Name` = ?Name", m_Realm);
                 cmd.Parameters.AddWithValue("?PrincipalID", principalID.ToString());
                 cmd.Parameters.AddWithValue("?Name", name);
-    
+
                 if (ExecuteNonQuery(cmd) > 0)
                     return true;
             }

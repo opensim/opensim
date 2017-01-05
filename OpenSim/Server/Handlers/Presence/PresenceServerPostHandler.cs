@@ -158,7 +158,7 @@ namespace OpenSim.Server.Handlers.Presence
 
             return FailureResult();
         }
-        
+
         byte[] Report(Dictionary<string, object> request)
         {
             UUID session = UUID.Zero;
@@ -241,7 +241,7 @@ namespace OpenSim.Server.Handlers.Presence
             }
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
-            
+
             //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
             return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }

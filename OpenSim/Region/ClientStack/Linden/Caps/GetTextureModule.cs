@@ -81,7 +81,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 new OpenMetaverse.BlockingQueue<aPollRequest>();
 
         private Dictionary<UUID,PollServiceTextureEventArgs> m_pollservices = new Dictionary<UUID,PollServiceTextureEventArgs>();
-   
+
         private string m_Url = "localhost";
 
         #region ISharedRegionModule Members
@@ -148,7 +148,7 @@ namespace OpenSim.Region.ClientStack.Linden
         }
         private int ExtractImageThrottle(byte[] pthrottles)
         {
-       
+
             byte[] adjData;
             int pos = 0;
 
@@ -195,10 +195,10 @@ namespace OpenSim.Region.ClientStack.Linden
             if(m_NumberScenes <= 0 && m_workerThreads != null)
             {
                 m_log.DebugFormat("[GetTextureModule] Closing");
-                
+
                 foreach (Thread t in m_workerThreads)
                     Watchdog.AbortThread(t.ManagedThreadId);
-            
+
                 m_queue.Clear();
             }
         }
@@ -269,7 +269,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     reqinfo.reqID = x;
                     reqinfo.request = y;
                     reqinfo.send503 = false;
-                    
+
                     lock (responses)
                     {
                         if (responses.Count > 0)
@@ -339,7 +339,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         Hashtable headers = new Hashtable();
                         headers["Retry-After"] = 30;
                         response["headers"] = headers;
-                   
+
                         responses[requestID] = new aPollResponse() {bytes = 0, response = response};
 
                         return;
@@ -355,13 +355,13 @@ namespace OpenSim.Region.ClientStack.Linden
                         response["content_type"] = "text/plain";
                         response["keepalive"] = false;
                         response["reusecontext"] = false;
-                    
+
                         responses[requestID] = new aPollResponse() {bytes = 0, response = response};
 
                         return;
                     }
                 }
-                        
+
                 response = m_getTextureHandler.Handle(requestinfo.request);
 
                 lock (responses)
@@ -398,16 +398,16 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 string capUrl = "/CAPS/" + UUID.Random() + "/";
 
-                // Register this as a poll service           
+                // Register this as a poll service
                 PollServiceTextureEventArgs args = new PollServiceTextureEventArgs(agentID, m_scene);
-                
+
                 args.Type = PollServiceEventArgs.EventType.Texture;
                 MainServer.Instance.AddPollServiceHTTPHandler(capUrl, args);
 
                 string hostName = m_scene.RegionInfo.ExternalHostName;
                 uint port = (MainServer.Instance == null) ? 0 : MainServer.Instance.Port;
                 string protocol = "http";
-                
+
                 if (MainServer.Instance.UseSSL)
                 {
                     hostName = MainServer.Instance.SSLCommonName;
@@ -513,5 +513,5 @@ namespace OpenSim.Region.ClientStack.Linden
             }
             public int ThrottleBytes;
         }
-    }   
+    }
 }

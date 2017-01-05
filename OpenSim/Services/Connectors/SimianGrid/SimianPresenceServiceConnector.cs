@@ -121,7 +121,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
                         serviceUrl = serviceUrl + '/';
                     m_serverUrl = serviceUrl;
-                    m_activityDetector = new SimianActivityDetector(this); 
+                    m_activityDetector = new SimianActivityDetector(this);
                     m_Enabled = true;
                 }
             }
@@ -210,7 +210,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 m_log.WarnFormat("[SIMIAN PRESENCE CONNECTOR]: Failed to retrieve session {0}: {1}",sessionID.ToString(),sessionResponse["Message"].AsString());
                 return null;
             }
-            
+
             UUID userID = sessionResponse["UserID"].AsUUID();
             OSDMap userResponse = GetUserData(userID);
             if (userResponse == null)
@@ -238,7 +238,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 m_log.WarnFormat("[SIMIAN PRESENCE CONNECTOR]: Failed to retrieve sessions: {0}",sessionListResponse["Message"].AsString());
                 return null;
             }
-            
+
             OSDArray sessionList = sessionListResponse["Sessions"] as OSDArray;
             for (int i = 0; i < sessionList.Count; i++)
             {
@@ -311,7 +311,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public GridUserInfo GetGridUserInfo(string user)
         {
-            // m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting session data for agent " + user); 
+            // m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting session data for agent " + user);
 
             UUID userID = new UUID(user);
             OSDMap userResponse = GetUserData(userID);
@@ -421,7 +421,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
             return null;
         }
-        
+
         private string SerializeLocation(UUID regionID, Vector3 position, Vector3 lookAt)
         {
             return "{" + String.Format("\"SceneID\":\"{0}\",\"Position\":\"{1}\",\"LookAt\":\"{2}\"", regionID, position, lookAt) + "}";

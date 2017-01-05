@@ -146,7 +146,7 @@ public class HullCreation : OpenSimTestCase
         uint torusLocalID = 125;
         PhysicsScene.AddPrimShape("testTorus", pbs, pos, size, rot, isPhys, torusLocalID);
         BSPrim primTypeTorus = (BSPrim)PhysicsScene.PhysObjects[torusLocalID];
-        
+
         // The actual prim shape creation happens at taint time
         PhysicsScene.ProcessTaints();
 

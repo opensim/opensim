@@ -189,7 +189,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 if (i == 0)
                 {
                     rootpos = obj.Position;
-//                    rootrot = obj.Rotation;                    
+//                    rootrot = obj.Rotation;
                 }
 
                 // Combine the extraparams data into it's ugly blob again....
@@ -321,7 +321,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 pbs.TextureEntry = tmp.GetBytes();
                 prim.Shape = pbs;
                 prim.Scale = obj.Scale;
-                
+
                 SceneObjectGroup grp = new SceneObjectGroup();
 
                 grp.SetRootPart(prim);
@@ -329,21 +329,21 @@ namespace OpenSim.Region.ClientStack.Linden
                 if (i == 0)
                 {
                     rootGroup = grp;
-                   
+
                 }
                 grp.AttachToScene(m_scene);
                 grp.AbsolutePosition = obj.Position;
                 prim.RotationOffset = obj.Rotation;
-                
+
                 // Required for linking
                 grp.RootPart.ClearUpdateSchedule();
-                
+
                 if (m_scene.Permissions.CanRezObject(1, avatar.UUID, pos))
                 {
                     m_scene.AddSceneObject(grp);
                     grp.AbsolutePosition = obj.Position;
                 }
-                
+
                 allparts[i] = grp;
             }
 
@@ -359,7 +359,7 @@ namespace OpenSim.Region.ClientStack.Linden
             pos
                 = m_scene.GetNewRezLocation(
                     Vector3.Zero, rootpos, UUID.Zero, rot, (byte)1, 1, true, allparts[0].GroupScale, false);
-           
+
             responsedata["int_response_code"] = 200; //501; //410; //404;
             responsedata["content_type"] = "text/plain";
             responsedata["keepalive"] = false;
@@ -367,7 +367,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             return responsedata;
         }
-        
+
         private string ConvertUintToBytes(uint val)
         {
             byte[] resultbytes = Utils.UIntToBytes(val);

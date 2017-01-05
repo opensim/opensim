@@ -47,7 +47,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.MapImage
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static bool m_Enabled = false;
-        
+
         private IConfigSource m_Config;
 
         #region Region Module interface
@@ -75,7 +75,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.MapImage
         {
         }
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }

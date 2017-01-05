@@ -43,7 +43,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
     [TestFixture]
     public class SerialiserTests : OpenSimTestCase
     {
-        private const string ObjectRootPartStubXml = 
+        private const string ObjectRootPartStubXml =
 @"<SceneObjectGroup>
     <RootPart>
         <SceneObjectPart xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
@@ -149,9 +149,9 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
                 <llsd>
                     <map>
                         <key>MyNamespace</key>
-                        <map>                                
+                        <map>
                             <key>MyStore</key>
-                            <map>   
+                            <map>
                                 <key>the answer</key>
                                 <integer>42</integer>
                             </map>
@@ -162,12 +162,12 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
         </SceneObjectPart>
     </RootPart>";
 
-        private const string ObjectWithNoOtherPartsXml = ObjectRootPartStubXml + 
+        private const string ObjectWithNoOtherPartsXml = ObjectRootPartStubXml +
 @"
     <OtherParts />
 </SceneObjectGroup>";
 
-        private const string ObjectWithOtherPartsXml = ObjectRootPartStubXml + 
+        private const string ObjectWithOtherPartsXml = ObjectRootPartStubXml +
 @"
   <OtherParts>
     <Part>
@@ -574,9 +574,9 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
                     <llsd>
                         <map>
                             <key>MyNamespace</key>
-                            <map>                                
+                            <map>
                                 <key>MyStore</key>
-                                <map>   
+                                <map>
                                     <key>last words</key>
                                     <string>Rosebud</string>
                                 </map>
@@ -636,7 +636,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
                 Assert.That(part.Name, Is.EqualTo("PrimMyRide"));
                 OSDMap store = part.DynAttrs.GetStore("MyNamespace", "MyStore");
                 Assert.AreEqual(42, store["the answer"].AsInteger());
-            }                                    
+            }
 
             {
                 SceneObjectPart part = parts[1];
@@ -723,7 +723,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             xtr.ReadStartElement("SceneObjectGroup");
             xtr.ReadStartElement("RootPart");
             xtr.ReadStartElement("SceneObjectPart");
-           
+
             UUID uuid = UUID.Zero;
             string name = null;
             UUID creatorId = UUID.Zero;
@@ -733,7 +733,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             {
                 if (xtr.NodeType != XmlNodeType.Element)
                     continue;
-                
+
                 switch (xtr.Name)
                 {
                     case "UUID":
@@ -833,7 +833,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             XmlTextReader xtr = new XmlTextReader(new StringReader(xml2));
             xtr.ReadStartElement("SceneObjectGroup");
             xtr.ReadStartElement("SceneObjectPart");
-           
+
             UUID uuid = UUID.Zero;
             string name = null;
             UUID creatorId = UUID.Zero;
@@ -843,7 +843,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             {
                 if (xtr.NodeType != XmlNodeType.Element)
                     continue;
-                
+
                 switch (xtr.Name)
                 {
                     case "UUID":

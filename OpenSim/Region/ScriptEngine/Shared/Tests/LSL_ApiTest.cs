@@ -88,19 +88,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             CheckllAngleBetween(new Vector3(1, 1, 1), 0,   1, 1);
             CheckllAngleBetween(new Vector3(1, 1, 1), 90,  1, 1);
             CheckllAngleBetween(new Vector3(1, 1, 1), 180, 1, 1);
-            
+
             CheckllAngleBetween(new Vector3(1, 0, 0), 0,   1.6f, 1.8f);
             CheckllAngleBetween(new Vector3(1, 0, 0), 90,  0.3f, 3.9f);
             CheckllAngleBetween(new Vector3(1, 0, 0), 180, 8.8f, 7.4f);
-            
+
             CheckllAngleBetween(new Vector3(0, 1, 0), 0,   9.8f, -9.4f);
             CheckllAngleBetween(new Vector3(0, 1, 0), 90,  8.4f, -8.2f);
             CheckllAngleBetween(new Vector3(0, 1, 0), 180, 0.4f, -5.8f);
-            
+
             CheckllAngleBetween(new Vector3(0, 0, 1), 0,   -6.8f, 3.4f);
             CheckllAngleBetween(new Vector3(0, 0, 1), 90,  -3.6f, 5.6f);
             CheckllAngleBetween(new Vector3(0, 0, 1), 180, -3.8f, 1.1f);
-            
+
             CheckllAngleBetween(new Vector3(1, 1, 1), 0,   -7.7f, -2.0f);
             CheckllAngleBetween(new Vector3(1, 1, 1), 90,  -3.0f, -9.1f);
             CheckllAngleBetween(new Vector3(1, 1, 1), 180, -7.9f, -8.0f);
@@ -246,7 +246,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             LSL_Types.Quaternion newRot = m_lslApi.llEuler2Rot(eulerCalc);
             // Multiple original quaternion by conjugate of quaternion calculated with angles.
             LSL_Types.Quaternion check = rot * new LSL_Types.Quaternion(-newRot.x, -newRot.y, -newRot.z, newRot.s);
-            
+
             Assert.AreEqual(0.0, check.x, VECTOR_COMPONENT_ACCURACY, "TestllRot2Euler X bounds check fail");
             Assert.AreEqual(0.0, check.y, VECTOR_COMPONENT_ACCURACY, "TestllRot2Euler Y bounds check fail");
             Assert.AreEqual(0.0, check.z, VECTOR_COMPONENT_ACCURACY, "TestllRot2Euler Z bounds check fail");

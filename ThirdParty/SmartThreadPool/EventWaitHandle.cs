@@ -36,34 +36,34 @@ namespace Amib.Threading.Internal
             return waitHandle.WaitOne(millisecondsTimeout, exitContext);
         }
 
-	    private static IntPtr[] PrepareNativeHandles(WaitHandle[] waitHandles)
-	    {
-	        IntPtr[] nativeHandles = new IntPtr[waitHandles.Length];
-	        for (int i = 0; i < waitHandles.Length; i++)
-	        {
+        private static IntPtr[] PrepareNativeHandles(WaitHandle[] waitHandles)
+        {
+            IntPtr[] nativeHandles = new IntPtr[waitHandles.Length];
+            for (int i = 0; i < waitHandles.Length; i++)
+            {
                 nativeHandles[i] = waitHandles[i].Handle;
-	        }
-	        return nativeHandles;
-	    }
+            }
+            return nativeHandles;
+        }
 
-	    public static bool WaitAll(WaitHandle[] waitHandles, int millisecondsTimeout, bool exitContext)
-	    {
+        public static bool WaitAll(WaitHandle[] waitHandles, int millisecondsTimeout, bool exitContext)
+        {
             uint timeout = millisecondsTimeout < 0 ? INFINITE : (uint)millisecondsTimeout;
 
             IntPtr[] nativeHandles = PrepareNativeHandles(waitHandles);
 
-	        int result = WaitForMultipleObjects((uint)waitHandles.Length, nativeHandles, true, timeout);
+            int result = WaitForMultipleObjects((uint)waitHandles.Length, nativeHandles, true, timeout);
 
             if (result == WAIT_TIMEOUT || result == WAIT_FAILED)
             {
                 return false;
             }
 
-	        return true;
-	    }
+            return true;
+        }
 
 
-	    public static int WaitAny(WaitHandle[] waitHandles, int millisecondsTimeout, bool exitContext)
+        public static int WaitAny(WaitHandle[] waitHandles, int millisecondsTimeout, bool exitContext)
         {
             uint timeout = millisecondsTimeout < 0 ? INFINITE : (uint)millisecondsTimeout;
 
@@ -90,7 +90,7 @@ namespace Amib.Threading.Internal
 
             return WaitAny(waitHandles, millisecondsTimeout, false);
         }
- 
+
         #endregion
 
         #region External methods

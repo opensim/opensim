@@ -35,7 +35,7 @@ namespace OpenSim.Framework
     public static class PrimeNumberHelper
     {
         /// <summary>
-        /// Precalculated prime numbers. 
+        /// Precalculated prime numbers.
         /// </summary>
         private static readonly int[] Primes = new int[]
                                                    {

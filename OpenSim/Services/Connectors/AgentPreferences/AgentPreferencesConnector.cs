@@ -110,7 +110,7 @@ namespace OpenSim.Services.Connectors
             {
                 m_log.DebugFormat("[AGENT PREFERENCES CONNECTOR]: Exception when contacting agent preferences server at {0}: {1}", uri, e.Message);
             }
-                
+
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
             if (replyData != null)
             {

@@ -62,7 +62,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public int PacketsPooled
         {
-            get 
+            get
             {
                 lock (pool)
                     return pool.Count;
@@ -74,9 +74,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public int BlocksPooled
         {
-            get 
+            get
             {
-                lock (DataBlocks) 
+                lock (DataBlocks)
                     return DataBlocks.Count;
             }
         }
@@ -248,7 +248,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             }
                         }
                         break;
-                    
+
                     // Other packets wont pool
                     default:
                         return;
@@ -276,7 +276,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     DataBlocks[typeof(T)] = new Stack<Object>();
                 }
-                
+
                 return new T();
             }
         }

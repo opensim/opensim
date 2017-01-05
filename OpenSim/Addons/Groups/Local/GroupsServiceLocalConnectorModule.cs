@@ -108,7 +108,7 @@ namespace OpenSim.Groups
             if (!m_Enabled)
                 return;
 
-            m_log.DebugFormat("[Groups]: Registering {0} with {1}", this.Name, scene.RegionInfo.RegionName); 
+            m_log.DebugFormat("[Groups]: Registering {0} with {1}", this.Name, scene.RegionInfo.RegionName);
             scene.RegisterModuleInterface<IGroupsServicesConnector>(this);
             m_Scenes.Add(scene);
         }
@@ -146,16 +146,16 @@ namespace OpenSim.Groups
 
         #region IGroupsServicesConnector
 
-        public UUID CreateGroup(UUID RequestingAgentID, string name, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment, 
+        public UUID CreateGroup(UUID RequestingAgentID, string name, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment,
             bool allowPublish, bool maturePublish, UUID founderID, out string reason)
         {
             m_log.DebugFormat("[Groups]: Creating group {0}", name);
             reason = string.Empty;
-            return m_GroupsService.CreateGroup(RequestingAgentID.ToString(), name, charter, showInList, insigniaID, 
+            return m_GroupsService.CreateGroup(RequestingAgentID.ToString(), name, charter, showInList, insigniaID,
                     membershipFee, openEnrollment, allowPublish, maturePublish, founderID, out reason);
         }
 
-        public bool UpdateGroup(string RequestingAgentID, UUID groupID, string charter, bool showInList, UUID insigniaID, int membershipFee, 
+        public bool UpdateGroup(string RequestingAgentID, UUID groupID, string charter, bool showInList, UUID insigniaID, int membershipFee,
             bool openEnrollment, bool allowPublish, bool maturePublish, out string reason)
         {
             reason = string.Empty;
@@ -296,7 +296,7 @@ namespace OpenSim.Groups
         public bool AddGroupNotice(string RequestingAgentID, UUID groupID, UUID noticeID, string fromName, string subject, string message,
             bool hasAttachment, byte attType, string attName, UUID attItemID, string attOwnerID)
         {
-            return m_GroupsService.AddGroupNotice(RequestingAgentID, groupID, noticeID, fromName, subject, message, 
+            return m_GroupsService.AddGroupNotice(RequestingAgentID, groupID, noticeID, fromName, subject, message,
                 hasAttachment, attType, attName, attItemID, attOwnerID);
         }
 

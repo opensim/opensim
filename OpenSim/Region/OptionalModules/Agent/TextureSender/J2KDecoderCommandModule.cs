@@ -54,36 +54,36 @@ namespace OpenSim.Region.OptionalModules.Agent.TextureSender
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_scene;
-        
+
         public string Name { get { return "Asset Information Module"; } }
-        
+
         public Type ReplaceableInterface { get { return null; } }
-        
+
         public void Initialise(IConfigSource source)
         {
 //            m_log.DebugFormat("[J2K DECODER COMMAND MODULE]: INITIALIZED MODULE");
         }
-        
+
         public void PostInitialise()
         {
 //            m_log.DebugFormat("[J2K DECODER COMMAND MODULE]: POST INITIALIZED MODULE");
         }
-        
+
         public void Close()
         {
 //            m_log.DebugFormat("[J2K DECODER COMMAND MODULE]: CLOSED MODULE");
         }
-        
+
         public void AddRegion(Scene scene)
         {
 //            m_log.DebugFormat("[J2K DECODER COMMAND MODULE]: REGION {0} ADDED", scene.RegionInfo.RegionName);
         }
-        
+
         public void RemoveRegion(Scene scene)
         {
 //            m_log.DebugFormat("[J2K DECODER COMMAND MODULE]: REGION {0} REMOVED", scene.RegionInfo.RegionName);
         }
-        
+
         public void RegionLoaded(Scene scene)
         {
 //            m_log.DebugFormat("[J2K DECODER COMMAND MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
@@ -117,10 +117,10 @@ namespace OpenSim.Region.OptionalModules.Agent.TextureSender
                 MainConsole.Instance.OutputFormat("ERROR: {0} is not a valid ID format", rawAssetId);
                 return;
             }
-            
+
             AssetBase asset = m_scene.AssetService.Get(assetId.ToString());
             if (asset == null)
-            {                
+            {
                 MainConsole.Instance.OutputFormat("ERROR: No asset found with ID {0}", assetId);
                 return;
             }

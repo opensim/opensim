@@ -55,41 +55,41 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 //        private IAvatarFactoryModule m_avatarFactory;
 
         public string Name { get { return "Attachments Command Module"; } }
-        
+
         public Type ReplaceableInterface { get { return null; } }
-        
+
         public void Initialise(IConfigSource source)
         {
 //            m_log.DebugFormat("[ATTACHMENTS COMMAND MODULE]: INITIALIZED MODULE");
         }
-        
+
         public void PostInitialise()
         {
 //            m_log.DebugFormat("[ATTACHMENTS COMMAND MODULE]: POST INITIALIZED MODULE");
         }
-        
+
         public void Close()
         {
 //            m_log.DebugFormat("[ATTACHMENTS COMMAND MODULE]: CLOSED MODULE");
         }
-        
+
         public void AddRegion(Scene scene)
         {
 //            m_log.DebugFormat("[ATTACHMENTS COMMAND MODULE]: REGION {0} ADDED", scene.RegionInfo.RegionName);
         }
-        
+
         public void RemoveRegion(Scene scene)
         {
 //            m_log.DebugFormat("[ATTACHMENTS COMMAND MODULE]: REGION {0} REMOVED", scene.RegionInfo.RegionName);
-            
+
             lock (m_scenes)
                 m_scenes.Remove(scene);
-        }        
-        
+        }
+
         public void RegionLoaded(Scene scene)
         {
 //            m_log.DebugFormat("[ATTACHMENTS COMMAND MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
-            
+
             lock (m_scenes)
                 m_scenes.Add(scene);
 

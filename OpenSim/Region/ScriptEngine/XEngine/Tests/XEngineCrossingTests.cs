@@ -126,11 +126,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
             OSChatMessage messageReceived = null;
             sceneA.EventManager.OnChatFromWorld += (s, m) => { messageReceived = m; chatEvent.Set(); };
 
-            sceneA.RezNewScript(userId, scriptItemSceneA, 
+            sceneA.RezNewScript(userId, scriptItemSceneA,
 @"integer c = 0;
 
 default
-{    
+{
     state_entry()
     {
         llSay(0, ""Script running"");
@@ -143,7 +143,7 @@ default
 
     touch_start(integer n)
     {
-        c = c + 1; 
+        c = c + 1;
         llSay(0, (string)c);
     }
 }");
@@ -151,7 +151,7 @@ default
             chatEvent.WaitOne(60000);
 
             Assert.That(messageReceived, Is.Not.Null, "No chat message received.");
-            Assert.That(messageReceived.Message, Is.EqualTo("Script running"));           
+            Assert.That(messageReceived.Message, Is.EqualTo("Script running"));
 
             {
                 // XXX: Should not be doing this so directly.  Should call some variant of EventManager.touch() instead.
@@ -167,7 +167,7 @@ default
                 xEngineA.PostObjectEvent(soSceneA.LocalId, ep);
                 chatEvent.WaitOne(60000);
 
-                Assert.That(messageReceived.Message, Is.EqualTo("1")); 
+                Assert.That(messageReceived.Message, Is.EqualTo("1"));
             }
 
             AutoResetEvent chatEventB = new AutoResetEvent(false);
@@ -181,7 +181,7 @@ default
             chatEventB.WaitOne(60000);
             Assert.That(messageReceived, Is.Not.Null, "No Changed message received.");
             Assert.That(messageReceived.Message, Is.Not.Null, "Changed message without content");
-            Assert.That(messageReceived.Message, Is.EqualTo("Changed")); 
+            Assert.That(messageReceived.Message, Is.EqualTo("Changed"));
 
             // TEST sending event to moved prim and output
             {
@@ -202,7 +202,7 @@ default
                 xEngineB.PostObjectEvent(soSceneB.LocalId, ep);
                 chatEventB.WaitOne(60000);
 
-                Assert.That(messageReceived.Message, Is.EqualTo("2")); 
+                Assert.That(messageReceived.Message, Is.EqualTo("2"));
             }
         }
     }

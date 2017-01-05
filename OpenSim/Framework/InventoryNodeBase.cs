@@ -41,19 +41,19 @@ namespace OpenSim.Framework
         {
             get { return m_name; }
             set { m_name = value; }
-        } 
+        }
         private string m_name = string.Empty;
-        
+
         /// <summary>
         /// A UUID containing the ID for the inventory node itself
         /// </summary>
-        public UUID ID 
+        public UUID ID
         {
             get { return m_id; }
             set { m_id = value; }
         }
         private UUID m_id;
-        
+
         /// <summary>
         /// The agent who's inventory this is contained by
         /// </summary>

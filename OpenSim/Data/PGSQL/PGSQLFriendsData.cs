@@ -50,7 +50,7 @@ namespace OpenSim.Data.PGSQL
             }
         }
 
-        
+
         public override bool Delete(string principalID, string friend)
         {
             UUID princUUID = UUID.Zero;
@@ -97,7 +97,7 @@ namespace OpenSim.Data.PGSQL
             using (NpgsqlCommand cmd = new NpgsqlCommand())
             {
 
-                cmd.CommandText = String.Format("select a.*,case when b.\"Flags\" is null then '-1' else b.\"Flags\" end as \"TheirFlags\" from {0} as a " + 
+                cmd.CommandText = String.Format("select a.*,case when b.\"Flags\" is null then '-1' else b.\"Flags\" end as \"TheirFlags\" from {0} as a " +
                                                 " left join {0} as b on a.\"PrincipalID\" = b.\"Friend\" and a.\"Friend\" = b.\"PrincipalID\" " +
                                                 " where a.\"PrincipalID\" = :PrincipalID", m_Realm);
                 cmd.Parameters.Add(m_database.CreateParameter("PrincipalID", principalID.ToString()));
@@ -111,6 +111,6 @@ namespace OpenSim.Data.PGSQL
         {
             return GetFriends(principalID);
         }
- 
+
     }
 }

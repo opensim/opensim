@@ -53,17 +53,17 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private bool m_debugEnabled = false;
 
-        public const GroupPowers DefaultEveryonePowers 
-            = GroupPowers.AllowSetHome 
-                | GroupPowers.Accountable 
-                | GroupPowers.JoinChat 
-                | GroupPowers.AllowVoiceChat 
-                | GroupPowers.ReceiveNotices 
-                | GroupPowers.StartProposal 
+        public const GroupPowers DefaultEveryonePowers
+            = GroupPowers.AllowSetHome
+                | GroupPowers.Accountable
+                | GroupPowers.JoinChat
+                | GroupPowers.AllowVoiceChat
+                | GroupPowers.ReceiveNotices
+                | GroupPowers.StartProposal
                 | GroupPowers.VoteOnProposal;
 
         // Would this be cleaner as (GroupPowers)ulong.MaxValue?
-        public const GroupPowers DefaultOwnerPowers 
+        public const GroupPowers DefaultOwnerPowers
             = GroupPowers.Accountable
                 | GroupPowers.AllowEditLand
                 | GroupPowers.AllowFly
@@ -823,7 +823,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             if (!m_groupsAgentsInvitedToChatSession[groupID].Contains(agentID))
                 m_groupsAgentsInvitedToChatSession[groupID].Add(agentID);
-        }   
+        }
 
         private void CreateGroupChatSessionTracking(UUID groupID)
         {
@@ -1051,7 +1051,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         private void LogRespDataToConsoleError(UUID requestingAgentID, string function, Hashtable param, Hashtable respData)
         {
             m_log.ErrorFormat(
-                "[XMLRPC-GROUPS-CONNECTOR]: Error when calling {0} for {1} with params {2}.  Response params are {3}", 
+                "[XMLRPC-GROUPS-CONNECTOR]: Error when calling {0} for {1} with params {2}.  Response params are {3}",
                 function, requestingAgentID, Util.PrettyFormatToSingleLine(param), Util.PrettyFormatToSingleLine(respData));
         }
 
@@ -1151,7 +1151,7 @@ namespace Nwc.XmlRpc
                 {
                     _serializer.Serialize(xml, this);
                     xml.Flush();
-                }            
+                }
             }
 
             XmlRpcResponse resp;

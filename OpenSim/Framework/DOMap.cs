@@ -47,7 +47,7 @@ namespace OpenSim.Framework
     public class DOMap
     {
         private IDictionary<string, object> m_map;
-        
+
         public void Add(string ns, string objName, object dynObj)
         {
             DAMap.ValidateNamespace(ns);

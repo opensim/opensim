@@ -61,31 +61,31 @@ namespace OpenSim.Region.OptionalModules.Avatar.Friends
         private IPresenceService m_presenceService;
 
 //        private IAvatarFactoryModule m_avatarFactory;
-        
-        public string Name { get { return "Appearance Information Module"; } }        
-        
+
+        public string Name { get { return "Appearance Information Module"; } }
+
         public Type ReplaceableInterface { get { return null; } }
-        
+
         public void Initialise(IConfigSource source)
         {
 //            m_log.DebugFormat("[FRIENDS COMMAND MODULE]: INITIALIZED MODULE");
         }
-        
+
         public void PostInitialise()
         {
 //            m_log.DebugFormat("[FRIENDS COMMAND MODULE]: POST INITIALIZED MODULE");
         }
-        
+
         public void Close()
         {
 //            m_log.DebugFormat("[FRIENDS COMMAND MODULE]: CLOSED MODULE");
         }
-        
+
         public void AddRegion(Scene scene)
         {
 //            m_log.DebugFormat("[FRIENDS COMMANDO MODULE]: REGION {0} ADDED", scene.RegionInfo.RegionName);
         }
-        
+
         public void RemoveRegion(Scene scene)
         {
 //            m_log.DebugFormat("[FRIENDS COMMAND MODULE]: REGION {0} REMOVED", scene.RegionInfo.RegionName);

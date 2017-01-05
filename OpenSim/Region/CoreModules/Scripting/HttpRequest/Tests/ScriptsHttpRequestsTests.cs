@@ -45,7 +45,7 @@ using OpenSim.Tests.Common;
 namespace OpenSim.Region.CoreModules.Scripting.HttpRequest.Tests
 {
     class TestWebRequestCreate : IWebRequestCreate
-    {       
+    {
         public TestWebRequest NextRequest { get; set; }
 
         public WebRequest Create(Uri uri)
@@ -65,13 +65,13 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest.Tests
 
         public Func<IAsyncResult, WebResponse> OnEndGetResponse { get; set; }
 
-        public TestWebRequest() : base() 
+        public TestWebRequest() : base()
         {
 //            Console.WriteLine("created");
         }
 
-//        public TestWebRequest(SerializationInfo serializationInfo, StreamingContext streamingContext) 
-//            : base(serializationInfo, streamingContext) 
+//        public TestWebRequest(SerializationInfo serializationInfo, StreamingContext streamingContext)
+//            : base(serializationInfo, streamingContext)
 //        {
 //            Console.WriteLine("created");
 //        }
@@ -97,7 +97,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest.Tests
         public string Response { get; set; }
 
 #pragma warning disable 0618
-        public TestHttpWebResponse(SerializationInfo serializationInfo, StreamingContext streamingContext) 
+        public TestHttpWebResponse(SerializationInfo serializationInfo, StreamingContext streamingContext)
             : base(serializationInfo, streamingContext) {}
 #pragma warning restore 0618
 
@@ -111,24 +111,24 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest.Tests
     {
         WaitHandle m_wh = new ManualResetEvent(true);
 
-        object IAsyncResult.AsyncState 
+        object IAsyncResult.AsyncState
         {
             get {
                 throw new System.NotImplementedException ();
             }
         }
 
-        WaitHandle IAsyncResult.AsyncWaitHandle 
+        WaitHandle IAsyncResult.AsyncWaitHandle
         {
             get { return m_wh; }
         }
 
-        bool IAsyncResult.CompletedSynchronously 
+        bool IAsyncResult.CompletedSynchronously
         {
             get { return false; }
         }
 
-        bool IAsyncResult.IsCompleted 
+        bool IAsyncResult.IsCompleted
         {
             get { return true; }
         }
@@ -155,7 +155,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest.Tests
             TestHelpers.EnableLogging();
 
             if (!Util.IsPlatformMono)
-                Assert.Ignore("Ignoring test since can only currently run on Mono");           
+                Assert.Ignore("Ignoring test since can only currently run on Mono");
 
             string rawResponse = "boom";
 
@@ -163,7 +163,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest.Tests
 
             TestWebRequest twr = new TestWebRequest();
             //twr.OnEndGetResponse += ar => new TestHttpWebResponse(null, new StreamingContext());
-            twr.OnEndGetResponse += ar => 
+            twr.OnEndGetResponse += ar =>
             {
                 SerializationInfo si = new SerializationInfo(typeof(HttpWebResponse), new FormatterConverter());
                 StreamingContext sc = new StreamingContext();

@@ -38,7 +38,7 @@ namespace OpenSim.Services.Base
     public class ServiceBase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         public T LoadPlugin<T>(string dllName) where T:class
         {
             return LoadPlugin<T>(dllName, new Object[0]);
@@ -105,12 +105,12 @@ namespace OpenSim.Services.Base
                 List<string> strArgs = new List<string>();
                 foreach (Object arg in args)
                     strArgs.Add(arg.ToString());
-                
+
                 m_log.Error(
                     string.Format(
-                        "[SERVICE BASE]: Failed to load plugin {0} from {1} with args {2}", 
+                        "[SERVICE BASE]: Failed to load plugin {0} from {1} with args {2}",
                         interfaceName, dllName, string.Join(", ", strArgs.ToArray())), e);
-                
+
                 return null;
             }
         }

@@ -142,7 +142,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // Check rest of exepcted parameters.
             Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(spUuid), Is.Not.Null);
             Assert.That(scene.AuthenticateHandler.GetAgentCircuits().Count, Is.EqualTo(1));
-          
+
             Assert.That(sp.IsChildAgent, Is.False);
             Assert.That(sp.UUID, Is.EqualTo(spUuid));
 
@@ -262,9 +262,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
-            
+
 //            UUID agent1Id = UUID.Parse("00000000-0000-0000-0000-000000000001");
-            
+
             TestScene myScene1 = new SceneHelpers().SetupScene("Neighbour y", UUID.Random(), 1000, 1000);
             TestScene myScene2 = new SceneHelpers().SetupScene("Neighbour y + 1", UUID.Random(), 1001, 1000);
 
@@ -279,7 +279,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             EventQueueGetModule eqgm2 = new EventQueueGetModule();
             SceneHelpers.SetupSceneModules(myScene2, configSource, etm, eqgm2);
-            
+
 //            SceneHelpers.AddScenePresence(myScene1, agent1Id);
 //            ScenePresence childPresence = myScene2.GetScenePresence(agent1);
 //

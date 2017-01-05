@@ -707,7 +707,7 @@ namespace OpenSim.Data.SQLite
                 DataRow[] primsForRegion = prims.Select(byRegion);
 //                m_log.Info("[SQLITE REGION DB]: Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
 
-                // First, create all groups 
+                // First, create all groups
                 foreach (DataRow primRow in primsForRegion)
                 {
                     try
@@ -733,12 +733,12 @@ namespace OpenSim.Data.SQLite
                             }
 
                             SceneObjectGroup group = new SceneObjectGroup(prim);
-                            
+
                             createdObjects.Add(group.UUID, group);
                             retvals.Add(group);
                             LoadItems(prim);
 
-                           
+
                         }
                     }
                     catch (Exception e)
@@ -1298,7 +1298,7 @@ namespace OpenSim.Data.SQLite
             createCol(prims, "VolumeDetect", typeof(Int16));
 
             createCol(prims, "MediaURL", typeof(String));
-            
+
             createCol(prims, "AttachedPosX", typeof(Double));
             createCol(prims, "AttachedPosY", typeof(Double));
             createCol(prims, "AttachedPosZ", typeof(Double));
@@ -1795,7 +1795,7 @@ namespace OpenSim.Data.SQLite
 //                m_log.DebugFormat("[SQLITE]: MediaUrl type [{0}]", row["MediaURL"].GetType());
                 prim.MediaUrl = (string)row["MediaURL"];
             }
-            
+
             prim.AttachedPos = new Vector3(
                 Convert.ToSingle(row["AttachedPosX"]),
                 Convert.ToSingle(row["AttachedPosY"]),
@@ -1806,7 +1806,7 @@ namespace OpenSim.Data.SQLite
             {
                 //m_log.DebugFormat("[SQLITE]: DynAttrs type [{0}]", row["DynAttrs"].GetType());
                 prim.DynAttrs = DAMap.FromXml((string)row["DynAttrs"]);
-            }   
+            }
             else
             {
                 prim.DynAttrs = new DAMap();
@@ -1818,7 +1818,7 @@ namespace OpenSim.Data.SQLite
             prim.Friction = Convert.ToSingle(row["Friction"]);
             prim.Restitution = Convert.ToSingle(row["Restitution"]);
 
-            
+
             if (!(row["KeyframeMotion"] is DBNull))
             {
                 Byte[] data = (byte[])row["KeyframeMotion"];
@@ -2532,7 +2532,7 @@ namespace OpenSim.Data.SQLite
 
             if (!(row["Media"] is System.DBNull))
                 s.Media = PrimitiveBaseShape.MediaList.FromXml((string)row["Media"]);
-                        
+
             return s;
         }
 

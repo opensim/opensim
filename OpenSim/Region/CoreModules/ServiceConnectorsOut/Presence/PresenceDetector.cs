@@ -35,7 +35,7 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 {
-    public class PresenceDetector 
+    public class PresenceDetector
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -70,7 +70,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
         {
             if (sp.isNPC)
                 return;
-            
+
             if(sp.gotCrossUpdate)
             {
                 Util.FireAndForget(delegate

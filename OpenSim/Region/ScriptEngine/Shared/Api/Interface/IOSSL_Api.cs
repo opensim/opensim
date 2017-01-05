@@ -54,7 +54,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         NoAccess = -1,
 
         /// <summary>
-        /// Function is no threat at all. It doesn't constitute a threat to 
+        /// Function is no threat at all. It doesn't constitute a threat to
         /// either users or the system and has no known side effects.
         /// </summary>
         None = 0,
@@ -66,7 +66,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         Nuisance = 1,
 
         /// <summary>
-        /// Extreme levels of abuse of this function can cause impaired 
+        /// Extreme levels of abuse of this function can cause impaired
         /// functioning of the region, or very gullible users can be tricked
         /// into experiencing harmless effects.
         /// </summary>
@@ -81,7 +81,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         /// <summary>
         /// Intentional abuse can cause denial of service and crashes with
-        /// potential of data or state loss; or trusting users can be tricked 
+        /// potential of data or state loss; or trusting users can be tricked
         /// into embarrassing or uncomfortable situations.
         /// </summary>
         Moderate = 4,
@@ -145,7 +145,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         // Avatar Info Commands
         string osGetAgentIP(string agent);
         LSL_List osGetAgents();
-        
+
         // Teleport commands
         void osTeleportAgent(string agent, string regionName, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat);
         void osTeleportAgent(string agent, int regionX, int regionY, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat);

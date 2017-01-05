@@ -54,7 +54,7 @@ namespace OpenSim.Server.Handlers.Land
                 m_log.Error("[LAND IN CONNECTOR]: Land service was not provided");
                 return;
             }
-            
+
             //bool authentication = neighbourConfig.GetBoolean("RequireAuthentication", false);
             //if (authentication)
             //    m_AuthenticationService = scene.RequestModuleInterface<IAuthenticationService>();

@@ -41,7 +41,7 @@ using Nini.Config;
 
 namespace OpenSim.Groups
 {
-    public class GroupsServiceRemoteConnector 
+    public class GroupsServiceRemoteConnector
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -71,7 +71,7 @@ namespace OpenSim.Groups
             }
             ///
 
-            m_log.DebugFormat("[Groups.RemoteConnector]: Groups server at {0}, authentication {1}", 
+            m_log.DebugFormat("[Groups.RemoteConnector]: Groups server at {0}, authentication {1}",
                 m_ServerURI, (m_Auth == null ? "None" : m_Auth.GetType().ToString()));
         }
 

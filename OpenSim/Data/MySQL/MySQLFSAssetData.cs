@@ -54,7 +54,7 @@ namespace OpenSim.Data.MySQL
         {
             get { return GetType().Assembly; }
         }
-        
+
         public MySQLFSAssetData()
         {
         }

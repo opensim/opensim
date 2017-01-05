@@ -77,7 +77,7 @@ namespace OpenSim.Region.CoreModules
         // Number of virtual days to a virtual year
         private int    m_YearLengthDays           = 0;
 
-        // Ratio of Daylight hours to Night time hours.  This is accomplished by shifting the 
+        // Ratio of Daylight hours to Night time hours.  This is accomplished by shifting the
         // sun's orbit above the horizon
         private double m_HorizonShift = 0;
 
@@ -162,7 +162,7 @@ namespace OpenSim.Region.CoreModules
                 // Determine the current "day" from current time, so we can use "today"
                 // to determine Seasonal Tilt and what'not
 
-                // Integer math rounded is on purpose to drop fractional day, determines number 
+                // Integer math rounded is on purpose to drop fractional day, determines number
                 // of virtual days since Epoch
                 PosTime = CurrentTime / SecondsPerSunCycle;
 
@@ -343,7 +343,7 @@ namespace OpenSim.Region.CoreModules
             m_log.Debug("[SUN]: Positional data updated every " + m_UpdateInterval + " frames");
         }
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }
@@ -417,7 +417,7 @@ namespace OpenSim.Region.CoreModules
                     client.SendSunPos(Position, Velocity, CurrentTime, SecondsPerSunCycle, SecondsPerYear, OrbitalPosition);
                 }
             }
-        }            
+        }
 
         public void SunUpdate()
         {
@@ -464,7 +464,7 @@ namespace OpenSim.Region.CoreModules
 
                 while (sunFixedHour < 0)
                     sunFixedHour += 24;
-                
+
                 m_SunFixedHour = sunFixedHour;
                 m_SunFixed = fixedSun;
 
@@ -516,7 +516,7 @@ namespace OpenSim.Region.CoreModules
 
                 case "current_time":
                     return GetCurrentTimeAsLindenSunHour();
-                
+
                 default:
                     throw new Exception("Unknown sun parameter.");
             }

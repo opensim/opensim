@@ -167,7 +167,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     m_Enabled = true;
                     m_log.DebugFormat("[FRIENDS MODULE]: {0} enabled.", Name);
                 }
-            }            
+            }
         }
 
         protected virtual void InitModule(IConfigSource config)
@@ -570,7 +570,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         protected virtual void OnInstantMessage(IClientAPI client, GridInstantMessage im)
         {
             if ((InstantMessageDialog)im.dialog == InstantMessageDialog.FriendshipOffered)
-            { 
+            {
                 // we got a friendship offer
                 UUID principalID = new UUID(im.fromAgentID);
                 UUID friendID = new UUID(im.toAgentID);
@@ -605,7 +605,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             im.imSessionID = im.fromAgentID;
             im.fromAgentName = GetFriendshipRequesterName(agentID);
 
-            // Try the local sim            
+            // Try the local sim
             if (LocalFriendshipOffered(friendID, im))
                 return true;
 
@@ -648,7 +648,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 ccm.CreateCallingCard(client.AgentId, friendID, UUID.Zero);
             }
 
-            // Update the local cache. 
+            // Update the local cache.
             RecacheFriends(client);
 
             //
@@ -704,7 +704,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 }
             }
         }
-        
+
         public void RemoveFriendship(IClientAPI client, UUID exfriendID)
         {
             if (!DeleteFriendship(client.AgentId, exfriendID))
@@ -732,7 +732,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
                     m_FriendsSimConnector.FriendshipTerminated(region, client.AgentId, exfriendID);
                 }
-            }            
+            }
         }
 
         public void FindFriend(IClientAPI remoteClient,UUID HunterID ,UUID PreyID)
@@ -740,7 +740,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             UUID requester = remoteClient.AgentId;
             if(requester != HunterID) // only allow client agent to be the hunter (?)
                 return;
-            
+
             FriendInfo[] friends = GetFriendsFromCache(requester);
             if (friends.Length == 0)
                 return;
@@ -773,7 +773,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             }
 
             PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { PreyID.ToString() });
-            
+
             if (friendSessions == null || friendSessions.Length == 0)
                 return;
 

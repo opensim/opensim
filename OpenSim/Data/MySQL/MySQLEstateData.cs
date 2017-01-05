@@ -403,19 +403,19 @@ namespace OpenSim.Data.MySQL
                 return e;
             }
         }
-        
+
         public List<EstateSettings> LoadEstateSettingsAll()
         {
-            List<EstateSettings> allEstateSettings = new List<EstateSettings>();            
-            
+            List<EstateSettings> allEstateSettings = new List<EstateSettings>();
+
             List<int> allEstateIds = GetEstatesAll();
-            
+
             foreach (int estateId in allEstateIds)
                 allEstateSettings.Add(LoadEstateSettings(estateId));
-            
+
             return allEstateSettings;
         }
-        
+
         public List<int> GetEstatesAll()
         {
             List<int> result = new List<int>();
@@ -441,7 +441,7 @@ namespace OpenSim.Data.MySQL
                 dbcon.Close();
             }
 
-            return result;            
+            return result;
         }
 
         public List<int> GetEstates(string search)

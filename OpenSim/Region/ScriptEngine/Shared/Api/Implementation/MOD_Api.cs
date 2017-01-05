@@ -107,14 +107,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// Dumps an error message on the debug console.
         /// </summary>
         /// <param name='message'></param>
-        internal void MODShoutError(string message) 
+        internal void MODShoutError(string message)
         {
             if (message.Length > 1023)
                 message = message.Substring(0, 1023);
 
             World.SimChat(
                 Utils.StringToBytes(message),
-                ChatTypeEnum.Shout, ScriptBaseClass.DEBUG_CHANNEL, 
+                ChatTypeEnum.Shout, ScriptBaseClass.DEBUG_CHANNEL,
                 m_host.ParentGroup.RootPart.AbsolutePosition, m_host.Name, m_host.UUID, false);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
@@ -122,7 +122,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="fname">The name of the function to invoke</param>
         /// <param name="parms">List of parameters</param>
@@ -130,9 +130,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void modInvokeN(string fname, params object[] parms)
         {
 //            m_log.DebugFormat(
-//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type", 
-//                fname, 
-//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())), 
+//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type",
+//                fname,
+//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())),
 //                ((MethodInfo)MethodBase.GetCurrentMethod()).ReturnType);
 
             Type returntype = m_comms.LookupReturnType(fname);
@@ -145,9 +145,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String modInvokeS(string fname, params object[] parms)
         {
 //            m_log.DebugFormat(
-//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type", 
-//                fname, 
-//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())), 
+//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type",
+//                fname,
+//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())),
 //                ((MethodInfo)MethodBase.GetCurrentMethod()).ReturnType);
 
             Type returntype = m_comms.LookupReturnType(fname);
@@ -161,9 +161,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer modInvokeI(string fname, params object[] parms)
         {
 //            m_log.DebugFormat(
-//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type", 
-//                fname, 
-//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())), 
+//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type",
+//                fname,
+//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())),
 //                ((MethodInfo)MethodBase.GetCurrentMethod()).ReturnType);
 
             Type returntype = m_comms.LookupReturnType(fname);
@@ -173,13 +173,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             int result = (int)modInvoke(fname,parms);
             return new LSL_Integer(result);
         }
-        
+
         public LSL_Float modInvokeF(string fname, params object[] parms)
         {
 //            m_log.DebugFormat(
-//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type", 
-//                fname, 
-//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())), 
+//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type",
+//                fname,
+//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())),
 //                ((MethodInfo)MethodBase.GetCurrentMethod()).ReturnType);
 
             Type returntype = m_comms.LookupReturnType(fname);
@@ -193,9 +193,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Key modInvokeK(string fname, params object[] parms)
         {
 //            m_log.DebugFormat(
-//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type", 
-//                fname, 
-//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())), 
+//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type",
+//                fname,
+//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())),
 //                ((MethodInfo)MethodBase.GetCurrentMethod()).ReturnType);
 
             Type returntype = m_comms.LookupReturnType(fname);
@@ -209,9 +209,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector modInvokeV(string fname, params object[] parms)
         {
 //            m_log.DebugFormat(
-//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type", 
-//                fname, 
-//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())), 
+//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type",
+//                fname,
+//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())),
 //                ((MethodInfo)MethodBase.GetCurrentMethod()).ReturnType);
 
             Type returntype = m_comms.LookupReturnType(fname);
@@ -225,9 +225,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Rotation modInvokeR(string fname, params object[] parms)
         {
 //            m_log.DebugFormat(
-//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type", 
-//                fname, 
-//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())), 
+//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type",
+//                fname,
+//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())),
 //                ((MethodInfo)MethodBase.GetCurrentMethod()).ReturnType);
 
             Type returntype = m_comms.LookupReturnType(fname);
@@ -241,9 +241,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_List modInvokeL(string fname, params object[] parms)
         {
 //            m_log.DebugFormat(
-//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type", 
-//                fname, 
-//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())), 
+//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type",
+//                fname,
+//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())),
 //                ((MethodInfo)MethodBase.GetCurrentMethod()).ReturnType);
 
             Type returntype = m_comms.LookupReturnType(fname);
@@ -308,22 +308,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
 //            m_log.DebugFormat(
-//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type", 
-//                fname, 
-//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())), 
+//                "[MOD API]: Invoking dynamic function {0}, args '{1}' with {2} return type",
+//                fname,
+//                string.Join(",", Array.ConvertAll<object, string>(parms, o => o.ToString())),
 //                ((MethodInfo)MethodBase.GetCurrentMethod()).ReturnType);
 
             Type[] signature = m_comms.LookupTypeSignature(fname);
             if (signature.Length != parms.Length)
                 MODError(String.Format("wrong number of parameters to function {0}",fname));
-            
+
             object[] convertedParms = new object[parms.Length];
             for (int i = 0; i < parms.Length; i++)
                 convertedParms[i] = ConvertFromLSL(parms[i], signature[i], fname);
 
             // now call the function, the contract with the function is that it will always return
             // non-null but don't trust it completely
-            try 
+            try
             {
                 object result = m_comms.InvokeOperation(m_host.UUID, m_item.ItemID, fname, convertedParms);
                 if (result != null)
@@ -342,7 +342,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return null;
         }
-        
+
         /// <summary>
         /// Send a command to functions registered on an event
         /// </summary>
@@ -365,7 +365,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         protected object ConvertFromLSL(object lslparm, Type type, string fname)
         {
-            
+
             if(lslparm.GetType() == type)
                 return lslparm;
 
@@ -429,7 +429,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     for (int i = 0; i < plist.Length; i++)
                     {
                         if (plist[i] is LSL_String)
-                            result[i] = (string)(LSL_String)plist[i];                            
+                            result[i] = (string)(LSL_String)plist[i];
                         else if (plist[i] is LSL_Integer)
                             result[i] = (int)(LSL_Integer)plist[i];
                         // The int check exists because of the many plain old int script constants in ScriptBase which
@@ -451,7 +451,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return result;
                 }
             }
-            
+
             MODError(String.Format("{0}: parameter type mismatch; expecting {1}, type(parm)={2}", fname, type.Name, lslparm.GetType()));
             return null;
         }

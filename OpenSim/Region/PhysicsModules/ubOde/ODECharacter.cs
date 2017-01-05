@@ -67,7 +67,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         StopERP3 = 7 + 512,
         StopCFM3 = 8 + 512
     }
- 
+
     public class OdeCharacter : PhysicsActor
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -121,7 +121,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private float m_buoyancy = 0f;
 
         private bool m_freemove = false;
- 
+
 //        private string m_name = String.Empty;
         // other filter control
         int m_colliderfilter = 0;
@@ -155,7 +155,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public UUID m_uuid;
         public bool bad = false;
 
-        float mu;       
+        float mu;
 
         // HoverHeight control
         private float m_PIDHoverHeight;
@@ -218,7 +218,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             walkDivisor = walk_divisor;
             runDivisor = rundivisor;
 
-            m_mass = m_density * m_size.X * m_size.Y * m_size.Z; ; // sure we have a default           
+            m_mass = m_density * m_size.X * m_size.Y * m_size.Z; ; // sure we have a default
 
             PID_D = basePID_D * m_mass * invtimeStep;
             PID_P = basePID_P * m_mass * invtimeStep;
@@ -256,7 +256,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public override uint LocalID
         {
-            get { return m_localID; }     
+            get { return m_localID; }
             set { m_localID = value; }
         }
 
@@ -508,7 +508,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 m_log.Warn("[PHYSICS]: Got a NaN AvatarSize from Scene on a Character");
             }
-            
+
         }
         /// <summary>
         /// This creates the Avatar's physical Surrogate at the position supplied
@@ -636,7 +636,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             get
             {
-                return m_targetVelocity; 
+                return m_targetVelocity;
             }
             set
             {
@@ -774,7 +774,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             PID_D = basePID_D * m_mass / _parent_scene.ODE_STEPSIZE;
             PID_P = basePID_P * m_mass / _parent_scene.ODE_STEPSIZE;
-            
+
             Body = d.BodyCreate(_parent_scene.world);
 
             _zeroFlag = false;
@@ -900,7 +900,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             x = tx * cos - y * sin;
             y = tx * sin + y * cos;
         }
-      
+
         public bool Collide(IntPtr me, IntPtr other, bool reverse, ref d.ContactGeom contact,
                 ref d.ContactGeom altContact , ref bool useAltcontact, ref bool feetcollision)
         {
@@ -944,7 +944,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         }
                     }
                     return true;
-                }               
+                }
 /*
                 d.AABB aabb;
                 d.GeomGetAABB(other,out aabb);
@@ -1141,7 +1141,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             n.Y = 0f;
                             n.Z = 1.0f;
                          }
-                    }               
+                    }
                 }
 
                 if (depth < 0.2f)
@@ -1223,7 +1223,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         break;
                 }     // end switch (m_PIDHoverType)
 
-                    // don't go underground 
+                    // don't go underground
                 if (m_targetHoverHeight > terrainheight + 0.5f * (aabb.MaxZ - aabb.MinZ))
                 {
                     float fz = (m_targetHoverHeight - localpos.Z);
@@ -1248,7 +1248,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     }
                 }
             }
-            
+
             //******************************************
             if (!m_iscolliding)
                 m_collideNormal.Z = 0;
@@ -1495,7 +1495,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// Used to copy variables from unmanaged space at heartbeat rate and also trigger scene updates acording
         /// also outbounds checking
         /// copy and outbounds now done in move(..) at ode rate
-        /// 
+        ///
         /// </summary>
         public void UpdatePositionAndVelocity()
         {
@@ -1625,7 +1625,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         CollisionEventsThisFrame.Clear();
                     }
                 }
-            }           
+            }
         }
 
         public override bool SubscribedEvents()
@@ -1697,7 +1697,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                       _position.Z + (m_size.Z - oldsz) * 0.5f);
 
 //                    Velocity = Vector3.Zero;
-                    m_targetVelocity = Vector3.Zero;                  
+                    m_targetVelocity = Vector3.Zero;
 
                     _parent_scene.actor_name_map[collider] = (PhysicsActor)this;
                     _parent_scene.actor_name_map[capsule] = (PhysicsActor)this;
@@ -1717,7 +1717,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     d.BodySetPosition(Body, newPos.X, newPos.Y, newPos.Z);
                 _position = newPos;
                 m_freemove = false;
-                m_pidControllerActive = true;               
+                m_pidControllerActive = true;
             }
 
         private void changeOrientation(Quaternion newOri)
@@ -1772,35 +1772,35 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private void changeSetTorque(Vector3 newTorque)
         {
-        }                                 
+        }
 
         private void changeAddForce(Vector3 newForce)
         {
-        }                                 
+        }
 
         private void changeAddAngularForce(Vector3 arg)
         {
-        }                                 
+        }
 
         private void changeAngularLock(byte arg)
         {
-        }                                 
+        }
 
         private void changeFloatOnWater(bool arg)
         {
-        }                                 
+        }
 
         private void changeVolumedetetion(bool arg)
         {
-        }                                 
+        }
 
         private void changeSelectedStatus(bool arg)
         {
-        }                                 
+        }
 
         private void changeDisable(bool arg)
         {
-        }                                 
+        }
 
         private void changeBuilding(bool arg)
         {

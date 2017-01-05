@@ -198,7 +198,7 @@ namespace OpenSim.Services.Connectors
             accs = doGetMultiUserAccounts(scopeID, IDs, out multisuported);
             if(multisuported)
                 return accs;
-            
+
             // service does not do multi accounts so need to do it one by one
 
             UUID uuid = UUID.Zero;
@@ -344,7 +344,7 @@ namespace OpenSim.Services.Connectors
 
             return SendAndGetReply(sendData);
         }
-        
+
         private UserAccount SendAndGetReply(Dictionary<string, object> sendData)
         {
             string reply = string.Empty;

@@ -125,7 +125,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
                 SendConsoleOutput(agentID, "Command parameter error");
                 return;
             }
-             
+
             m_scene.StoreExtraSetting("auto_grant_attach_perms", val);
 
             SendConsoleOutput(agentID, String.Format("auto_grant_attach_perms set to {0}", val));
@@ -155,7 +155,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
             ScenePresence target;
             if (!m_scene.TryGetScenePresence(item.PermsGranter, out target))
                 return 0;
-            
+
             if (target.UUID != hostPart.ParentGroup.OwnerID)
             {
                 uint effectivePerms = hostPart.ParentGroup.GetEffectivePermissions();

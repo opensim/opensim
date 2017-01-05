@@ -168,7 +168,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             string filename = string.Empty;
 
             try
-            {               
+            {
                 //m_log.Debug("JPEG: " + imageURL);
                 string name = regionID.ToString();
                 filename = Path.Combine(storagePath, name + ".jpg");

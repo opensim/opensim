@@ -113,7 +113,7 @@ namespace OpenSim.Region.Framework.Scenes
             snd_StonePlastic, snd_MetalPlastic, snd_GlassPlastic, snd_WoodPlastic, snd_FleshPlastic, snd_PlasticPlastic, snd_PlasticRubber,
             snd_StoneRubber, snd_MetalRubber, snd_GlassRubber, snd_WoodRubber, snd_FleshRubber, snd_PlasticRubber, snd_RubberRubber
             };
-        
+
         public static void PartCollisionSound(SceneObjectPart part, List<CollisionForSoundInfo> collidersinfolist)
         {
             if (collidersinfolist.Count == 0 || part == null)

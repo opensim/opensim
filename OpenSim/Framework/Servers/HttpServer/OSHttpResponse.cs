@@ -115,7 +115,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public bool KeepAlive
         {
-            get 
+            get
             {
                 return _httpResponse.Connection == ConnectionType.KeepAlive;
             }

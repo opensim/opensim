@@ -54,24 +54,24 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
         private ICommandConsole m_console;
 
         public string Name { get { return "Region Commands Module"; } }
-        
+
         public Type ReplaceableInterface { get { return null; } }
-        
+
         public void Initialise(IConfigSource source)
         {
 //            m_log.DebugFormat("[REGION COMMANDS MODULE]: INITIALIZED MODULE");
         }
-        
+
         public void PostInitialise()
         {
 //            m_log.DebugFormat("[REGION COMMANDS MODULE]: POST INITIALIZED MODULE");
         }
-        
+
         public void Close()
         {
 //            m_log.DebugFormat("[REGION COMMANDS MODULE]: CLOSED MODULE");
         }
-        
+
         public void AddRegion(Scene scene)
         {
 //            m_log.DebugFormat("[REGION COMMANDS MODULE]: REGION {0} ADDED", scene.RegionInfo.RegionName);
@@ -87,14 +87,14 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             m_console.Commands.AddCommand(
                 "Regions", false, "show region",
                 "show region",
-                "Show control information for the currently selected region (host name, max physical prim size, etc).", 
+                "Show control information for the currently selected region (host name, max physical prim size, etc).",
                 "A synonym for \"region get\"",
                 HandleShowRegion);
 
             m_console.Commands.AddCommand(
                 "Regions", false, "region get",
                 "region get",
-                "Show control information for the currently selected region (host name, max physical prim size, etc).", 
+                "Show control information for the currently selected region (host name, max physical prim size, etc).",
                 "Some parameters can be set with the \"region set\" command.\n"
                 + "Others must be changed via a viewer (usually via the region/estate dialog box).",
                 HandleShowRegion);
@@ -204,7 +204,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             {
                 MainConsole.Instance.OutputFormat("Usage: region set <param> <value>");
                 return;
-            }           
+            }
 
             string param = args[2];
             string rawValue = args[3];
@@ -225,7 +225,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 if (newValue > ri.AgentCapacity)
                 {
                     MainConsole.Instance.OutputFormat(
-                        "Cannot set {0} to {1} in {2} as max-agent-limit is {3}", "agent-limit", 
+                        "Cannot set {0} to {1} in {2} as max-agent-limit is {3}", "agent-limit",
                         newValue, m_scene.Name, ri.AgentCapacity);
                 }
                 else

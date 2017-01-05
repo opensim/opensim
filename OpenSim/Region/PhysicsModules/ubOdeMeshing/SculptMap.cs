@@ -57,7 +57,7 @@ namespace PrimMesher
             int numLodPixels = lod * lod;  // (32 * 2)^2  = 64^2 pixels for default sculpt map image
 
             bool needsScaling = false;
-            bool smallMap = false;          
+            bool smallMap = false;
 
             width = bmW;
             height = bmH;

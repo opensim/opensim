@@ -43,16 +43,15 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="token"></param>
         /// <param name="godLike"></param>
         /// <param name="controllingClient"></param>
-        void RequestGodlikePowers(UUID agentID, UUID sessionID, UUID token, bool godLike, IClientAPI controllingClient);
-            
+        void RequestGodlikePowers(UUID agentID, UUID sessionID, UUID token, bool godLike);
+
         /// <summary>
         /// Kicks User specified from the simulator.  This logs them off of the grid.
         /// </summary>
         /// <param name="godID">The person doing the kicking</param>
-        /// <param name="sessionID">The session of the person doing the kicking</param>
         /// <param name="agentID">the person that is being kicked</param>
         /// <param name="kickflags">This isn't used apparently</param>
         /// <param name="reason">The message to send to the user after it's been turned into a field</param>
-        void KickUser(UUID godID, UUID sessionID, UUID agentID, uint kickflags, byte[] reason);
+        void KickUser(UUID godID, UUID agentID, uint kickflags, byte[] reason);
     }
 }
