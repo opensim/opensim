@@ -10455,6 +10455,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private bool HandleRequestGodlikePowers(IClientAPI sender, Packet Pack)
         {
             RequestGodlikePowersPacket rglpPack = (RequestGodlikePowersPacket)Pack;
+
+            if (rglpPack.AgentData.SessionID != SessionId ||
+                    rglpPack.AgentData.AgentID != AgentId)
+                return true;
+            
             RequestGodlikePowersPacket.RequestBlockBlock rblock = rglpPack.RequestBlock;
             UUID token = rblock.Token;
 
@@ -10464,7 +10469,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (handlerReqGodlikePowers != null)
             {
-                handlerReqGodlikePowers(ablock.AgentID, ablock.SessionID, token, rblock.Godlike, this);
+                handlerReqGodlikePowers(ablock.AgentID, ablock.SessionID, token, rblock.Godlike);
             }
 
             return true;
@@ -10474,6 +10479,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             GodUpdateRegionInfoPacket GodUpdateRegionInfo =
                 (GodUpdateRegionInfoPacket)Packet;
+
+            if (GodUpdateRegionInfo.AgentData.SessionID != SessionId ||
+                    GodUpdateRegionInfo.AgentData.AgentID != AgentId)
+                return true;
 
             GodUpdateRegionInfoUpdate handlerGodUpdateRegionInfo = OnGodUpdateRegionInfoUpdate;
             if (handlerGodUpdateRegionInfo != null)
@@ -10508,6 +10517,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             GodlikeMessagePacket GodlikeMessage =
                 (GodlikeMessagePacket)Packet;
 
+            if (GodlikeMessage.AgentData.SessionID != SessionId ||
+                    GodlikeMessage.AgentData.AgentID != AgentId)
+                return true;
+
             GodlikeMessage handlerGodlikeMessage = onGodlikeMessage;
             if (handlerGodlikeMessage != null)
             {
@@ -10524,6 +10537,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             StateSavePacket SaveStateMessage =
                 (StateSavePacket)Packet;
+
+            if (SaveStateMessage.AgentData.SessionID != SessionId ||
+                    SaveStateMessage.AgentData.AgentID != AgentId)
+                return true;
+
             SaveStateHandler handlerSaveStatePacket = OnSaveState;
             if (handlerSaveStatePacket != null)
             {
@@ -10537,30 +10555,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             GodKickUserPacket gkupack = (GodKickUserPacket)Pack;
 
-            if (gkupack.UserInfo.GodSessionID == SessionId && AgentId == gkupack.UserInfo.GodID)
+            if (gkupack.UserInfo.GodSessionID != SessionId ||
+                    gkupack.UserInfo.GodID != AgentId)
+                return true;
+
+            GodKickUser handlerGodKickUser = OnGodKickUser;
+            if (handlerGodKickUser != null)
             {
-                GodKickUser handlerGodKickUser = OnGodKickUser;
-                if (handlerGodKickUser != null)
-                {
-                    handlerGodKickUser(gkupack.UserInfo.GodID, gkupack.UserInfo.GodSessionID,
-                                       gkupack.UserInfo.AgentID, gkupack.UserInfo.KickFlags, gkupack.UserInfo.Reason);
-                }
+                handlerGodKickUser(gkupack.UserInfo.GodID, gkupack.UserInfo.AgentID, gkupack.UserInfo.KickFlags, gkupack.UserInfo.Reason);
             }
-            else
-            {
-                SendAgentAlertMessage("Kick request denied", false);
-            }
-            //KickUserPacket kupack = new KickUserPacket();
-            //KickUserPacket.UserInfoBlock kupackib = kupack.UserInfo;
 
-            //kupack.UserInfo.AgentID = gkupack.UserInfo.AgentID;
-            //kupack.UserInfo.SessionID = gkupack.UserInfo.GodSessionID;
-
-            //kupack.TargetBlock.TargetIP = (uint)0;
-            //kupack.TargetBlock.TargetPort = (ushort)0;
-            //kupack.UserInfo.Reason = gkupack.UserInfo.Reason;
-
-            //OutPacket(kupack, ThrottleOutPacketType.Task);
             return true;
         }
         #endregion GodPackets

@@ -227,10 +227,10 @@ namespace OpenSim.Framework
         byte RayEndIsIntersection);
 
     public delegate void RequestGodlikePowers(
-        UUID AgentID, UUID SessionID, UUID token, bool GodLike, IClientAPI remote_client);
+        UUID AgentID, UUID SessionID, UUID token, bool GodLike);
 
     public delegate void GodKickUser(
-        UUID GodAgentID, UUID GodSessionID, UUID AgentID, uint kickflags, byte[] reason);
+        UUID GodAgentID, UUID AgentID, uint kickflags, byte[] reason);
 
     public delegate void CreateInventoryFolder(
         IClientAPI remoteClient, UUID folderID, ushort folderType, string folderName, UUID parentID);

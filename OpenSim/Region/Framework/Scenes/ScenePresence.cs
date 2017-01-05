@@ -4506,34 +4506,22 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         /// <summary>
-        /// This allows the Sim owner the abiility to kick users from their sim currently.
-        /// It tells the client that the agent has permission to do so.
+        /// handle god level requests.
         /// </summary>
-        public void GrantGodlikePowers(UUID agentID, UUID sessionID, UUID token, bool godStatus)
+        public void GrantGodlikePowers(UUID token, bool godStatus)
         {
             int oldgodlevel = GodLevel;
-
-            if (godStatus)
+            
+            if (godStatus && !isNPC && m_scene.Permissions.IsGod(UUID))
             {
-                // For now, assign god level 200 to anyone
-                // who is granted god powers, but has no god level set.
-                //
-                UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, agentID);
-                if (account != null)
-                {
-                    if (account.UserLevel > 0)
-                        GodLevel = account.UserLevel;
-                    else
-                        GodLevel = 200;
-                }
+                GodLevel = 200;
+                if(GodLevel < UserLevel)
+                    GodLevel = UserLevel;
             }
             else
-            {
-                GodLevel = 0;
-            }
+                GodLevel = 0;    
 
             ControllingClient.SendAdminResponse(token, (uint)GodLevel);
-
             if(oldgodlevel != GodLevel)
                 parcelGodCheck(m_currentParcelUUID, GodLevel >= 200);
         }
@@ -4640,7 +4628,7 @@ namespace OpenSim.Region.Framework.Scenes
             cAgent.BodyRotation = Rotation;
             cAgent.ControlFlags = (uint)m_AgentControlFlags;
 
-            if (m_scene.Permissions.IsGod(new UUID(cAgent.AgentID)))
+            if (GodLevel > 200 && m_scene.Permissions.IsGod(cAgent.AgentID))
                 cAgent.GodLevel = (byte)GodLevel;
             else 
                 cAgent.GodLevel = (byte) 0;
@@ -4741,10 +4729,12 @@ namespace OpenSim.Region.Framework.Scenes
             Rotation = cAgent.BodyRotation;
             m_AgentControlFlags = (AgentManager.ControlFlags)cAgent.ControlFlags; 
 
-            if (m_scene.Permissions.IsGod(new UUID(cAgent.AgentID)))
+            if (cAgent.GodLevel >200 && m_scene.Permissions.IsGod(cAgent.AgentID))
                 GodLevel = cAgent.GodLevel;
-            SetAlwaysRun = cAgent.AlwaysRun;
+            else
+                GodLevel = 0;
 
+            SetAlwaysRun = cAgent.AlwaysRun;
 
             Appearance = new AvatarAppearance(cAgent.Appearance);
 /*
