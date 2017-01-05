@@ -1087,7 +1087,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (account != null)
                 UserLevel = account.UserLevel;
 
-            if(!isNPC && m_scene.AutomaticGodsOption && m_scene.Permissions != null)
+            if(!isNPC && m_scene.AutomaticGodsOption)
             {
                 if(m_scene.Permissions.IsGod(m_uuid))
                     m_godLevel = 200;
@@ -4519,8 +4519,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void GrantGodlikePowers(UUID token, bool godStatus)
         {
-            if(m_scene.AutomaticGodsOption)
-                return;
+//            if(m_scene.AutomaticGodsOption)
+//                return;
 
             int oldgodlevel = GodLevel;
 
@@ -4580,7 +4580,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_pos = cAgentData.Position + offset;
 
             CameraPosition = cAgentData.Center + offset;
-            if(!m_scene.AutomaticGodsOption)
+//            if(!m_scene.AutomaticGodsOption)
             {
                 if(cAgentData.GodLevel >= 200 && m_scene.Permissions.IsGod(m_uuid))
                     GodLevel = cAgentData.GodLevel;
@@ -4646,7 +4646,7 @@ namespace OpenSim.Region.Framework.Scenes
             cAgent.HeadRotation = m_headrotation;
             cAgent.BodyRotation = Rotation;
             cAgent.ControlFlags = (uint)m_AgentControlFlags;
-            if(!m_scene.AutomaticGodsOption)
+//            if(!m_scene.AutomaticGodsOption)
             {
                 if (GodLevel >= 200 && m_scene.Permissions.IsGod(cAgent.AgentID))
                     cAgent.GodLevel = (byte)GodLevel;
@@ -4750,7 +4750,7 @@ namespace OpenSim.Region.Framework.Scenes
             Rotation = cAgent.BodyRotation;
             m_AgentControlFlags = (AgentManager.ControlFlags)cAgent.ControlFlags;
 
-            if(!m_scene.AutomaticGodsOption)
+//            if(!m_scene.AutomaticGodsOption)
             {
                 if (cAgent.GodLevel >= 200 && m_scene.Permissions.IsGod(cAgent.AgentID))
                     GodLevel = cAgent.GodLevel;
