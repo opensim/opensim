@@ -39,6 +39,8 @@ namespace OpenSim.Region.Framework.Interfaces
         event ChangeDelegate OnRegionInfoChange;
         event ChangeDelegate OnEstateInfoChange;
         event MessageDelegate OnEstateMessage;
+        event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
+        event EstateTeleportAllUsersHomeRequest OnEstateTeleportAllUsersHomeRequest;
 
         uint GetRegionFlags();
         bool IsManager(UUID avatarID);
