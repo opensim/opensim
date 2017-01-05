@@ -45,13 +45,14 @@ using Mono.Addins;
 namespace OpenSim.Region.CoreModules.World.Estate
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "XEstate")]
-    public class XEstateModule : ISharedRegionModule
+    public class EstateModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected List<Scene> m_Scenes = new List<Scene>();
         protected bool m_InInfoUpdate = false;
         private string token = "7db8eh2gvgg45jj";
+		protected bool m_enabled = false;
 
         public bool InInfoUpdate
         {
@@ -73,10 +74,19 @@ namespace OpenSim.Region.CoreModules.World.Estate
             IConfig estateConfig = config.Configs["Estates"];
             if (estateConfig != null)
             {
+				if (estateConfig.GetString("EstateCommunicationsHandler", Name) == Name)
+					m_enabled = true;
+				else
+					return;
+
                 port = (uint)estateConfig.GetInt("Port", 0);
                 // this will need to came from somewhere else
                 token = estateConfig.GetString("Token", token);
             }
+			else
+			{
+				m_enabled = true;
+			}
 
             m_EstateConnector = new EstateConnector(this, token, port);
 
@@ -98,12 +108,18 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public void AddRegion(Scene scene)
         {
+			if (!m_enabled)
+				return;
+
             lock (m_Scenes)
                 m_Scenes.Add(scene);
         }
 
         public void RegionLoaded(Scene scene)
         {
+			if (!m_enabled)
+				return;
+
             IEstateModule em = scene.RequestModuleInterface<IEstateModule>();
 
             em.OnRegionInfoChange += OnRegionInfoChange;
@@ -115,6 +131,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public void RemoveRegion(Scene scene)
         {
+			if (!m_enabled)
+				return;
+
             lock (m_Scenes)
                 m_Scenes.Remove(scene);
         }

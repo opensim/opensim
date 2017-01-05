@@ -45,11 +45,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected XEstateModule m_EstateModule;
+        protected EstateModule m_EstateModule;
         private string token;
         uint port = 0;
 
-        public EstateConnector(XEstateModule module, string _token, uint _port)
+        public EstateConnector(EstateModule module, string _token, uint _port)
         {
             m_EstateModule = module;
             token = _token;
