@@ -316,6 +316,8 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_seeIntoBannedRegion = false;
         public int MaxUndoCount = 5;
 
+        public bool AutomaticGodsOption {get; private set; }
+
         public bool SeeIntoRegion { get; set; }
 
         // Using this for RegionReady module to prevent LoginsDisabled from changing under our feet;
@@ -1207,6 +1209,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             #endregion Interest Management
 
+            AutomaticGodsOption = Util.GetConfigVarFromSections<bool>(config, "automatic_gods",
+                new string[] { "Startup", "Permissions" }, true);
 
             StatsReporter = new SimStatsReporter(this);
 

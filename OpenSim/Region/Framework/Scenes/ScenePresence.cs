@@ -1087,6 +1087,14 @@ namespace OpenSim.Region.Framework.Scenes
             if (account != null)
                 UserLevel = account.UserLevel;
 
+            if(!isNPC && m_scene.AutomaticGodsOption && m_scene.Permissions != null)
+            {
+                if(m_scene.Permissions.IsGod(m_uuid))
+                    m_godLevel = 200;
+                if(m_godLevel < UserLevel)
+                    m_godLevel = UserLevel;
+            }
+
  //           IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
  //           if (gm != null)
  //              Grouptitle = gm.GetGroupTitle(m_uuid);
@@ -4262,6 +4270,7 @@ namespace OpenSim.Region.Framework.Scenes
                         agentpos.Position = AbsolutePosition;
                         agentpos.Velocity = Velocity;
                         agentpos.RegionHandle = RegionHandle;
+                        agentpos.GodLevel = GodLevel;
                         agentpos.Throttles = ControllingClient.GetThrottlesPacked(1);
 
                         // Let's get this out of the update loop
@@ -4510,6 +4519,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void GrantGodlikePowers(UUID token, bool godStatus)
         {
+            if(m_scene.AutomaticGodsOption)
+                return;
+
             int oldgodlevel = GodLevel;
 
             if (godStatus && !isNPC && m_scene.Permissions.IsGod(UUID))
@@ -4568,6 +4580,13 @@ namespace OpenSim.Region.Framework.Scenes
                 m_pos = cAgentData.Position + offset;
 
             CameraPosition = cAgentData.Center + offset;
+            if(!m_scene.AutomaticGodsOption)
+            {
+                if(cAgentData.GodLevel >= 200 && m_scene.Permissions.IsGod(m_uuid))
+                    GodLevel = cAgentData.GodLevel;
+                else
+                    GodLevel = 0;
+            }
 
             if ((cAgentData.Throttles != null) && cAgentData.Throttles.Length > 0)
             {
@@ -4627,11 +4646,13 @@ namespace OpenSim.Region.Framework.Scenes
             cAgent.HeadRotation = m_headrotation;
             cAgent.BodyRotation = Rotation;
             cAgent.ControlFlags = (uint)m_AgentControlFlags;
-
-            if (GodLevel > 200 && m_scene.Permissions.IsGod(cAgent.AgentID))
-                cAgent.GodLevel = (byte)GodLevel;
-            else
-                cAgent.GodLevel = (byte) 0;
+            if(!m_scene.AutomaticGodsOption)
+            {
+                if (GodLevel >= 200 && m_scene.Permissions.IsGod(cAgent.AgentID))
+                    cAgent.GodLevel = (byte)GodLevel;
+                else
+                    cAgent.GodLevel = (byte) 0;
+            }
 
             cAgent.AlwaysRun = SetAlwaysRun;
 
@@ -4729,10 +4750,13 @@ namespace OpenSim.Region.Framework.Scenes
             Rotation = cAgent.BodyRotation;
             m_AgentControlFlags = (AgentManager.ControlFlags)cAgent.ControlFlags;
 
-            if (cAgent.GodLevel >200 && m_scene.Permissions.IsGod(cAgent.AgentID))
-                GodLevel = cAgent.GodLevel;
-            else
-                GodLevel = 0;
+            if(!m_scene.AutomaticGodsOption)
+            {
+                if (cAgent.GodLevel >= 200 && m_scene.Permissions.IsGod(cAgent.AgentID))
+                    GodLevel = cAgent.GodLevel;
+                else
+                    GodLevel = 0;
+            }
 
             SetAlwaysRun = cAgent.AlwaysRun;
 

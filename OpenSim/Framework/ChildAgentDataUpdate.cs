@@ -89,6 +89,7 @@ namespace OpenSim.Framework
         public Vector3 AtAxis;
         public Vector3 LeftAxis;
         public Vector3 UpAxis;
+        public int GodLevel;
         public bool ChangedGrid;
 
         // This probably shouldn't be here
@@ -116,6 +117,7 @@ namespace OpenSim.Framework
 
             args["far"] = OSD.FromReal(Far);
             args["changed_grid"] = OSD.FromBoolean(ChangedGrid);
+            args["god_level"] = OSD.FromString(GodLevel.ToString());
 
             if ((Throttles != null) && (Throttles.Length > 0))
                 args["throttles"] = OSD.FromBinary(Throttles);
@@ -173,6 +175,9 @@ namespace OpenSim.Framework
 
             if (args["changed_grid"] != null)
                 ChangedGrid = args["changed_grid"].AsBoolean();
+
+            if (args["god_level"] != null)
+                Int32.TryParse(args["god_level"].AsString(), out GodLevel);
 
             if (args["far"] != null)
                 Far = (float)(args["far"].AsReal());

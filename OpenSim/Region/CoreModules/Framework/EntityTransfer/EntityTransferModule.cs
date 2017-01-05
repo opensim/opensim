@@ -2077,6 +2077,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 agentpos.Position = sp.AbsolutePosition;
                 agentpos.Velocity = sp.Velocity;
                 agentpos.RegionHandle = currentRegionHandler;
+                agentpos.GodLevel = sp.GodLevel;
                 agentpos.Throttles = spClient.GetThrottlesPacked(1);
                 //            agentpos.ChildrenCapSeeds = seeds;
 
