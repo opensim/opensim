@@ -68,20 +68,23 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public void Initialise(IConfigSource config)
         {
-            int port = 0;
+            uint port = MainServer.Instance.Port;
 
             IConfig estateConfig = config.Configs["Estates"];
             if (estateConfig != null)
             {
-                port = estateConfig.GetInt("Port", 0);
+                port = (uint)estateConfig.GetInt("Port", 0);
                 // this will need to came from somewhere else
                 token = estateConfig.GetString("Token", token);
             }
 
-            m_EstateConnector = new EstateConnector(this, token);
+            m_EstateConnector = new EstateConnector(this, token, port);
+
+            if(port == 0)
+                 port = MainServer.Instance.Port;
 
             // Instantiate the request handler
-            IHttpServer server = MainServer.GetHttpServer((uint)port);
+            IHttpServer server = MainServer.GetHttpServer(port);
             server.AddStreamHandler(new EstateRequestHandler(this, token));
         }
 

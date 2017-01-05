@@ -47,11 +47,13 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         protected XEstateModule m_EstateModule;
         private string token;
+        uint port = 0;
 
-        public EstateConnector(XEstateModule module, string _token)
+        public EstateConnector(XEstateModule module, string _token, uint _port)
         {
             m_EstateModule = module;
             token = _token;
+            port = _port;
         }
 
         public void SendTeleportHomeOneUser(uint EstateID, UUID PreyID)
@@ -189,8 +191,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
             try
             {
                 string url = "";
-                if(string.IsNullOrEmpty(region.ServerURI))
-                    url = "http://" + region.ExternalHostName + ":" + region.HttpPort;
+                if(port != 0)
+                    url = "http://" + region.ExternalHostName + ":" + port;
                 else
                     url = region.ServerURI;
 
