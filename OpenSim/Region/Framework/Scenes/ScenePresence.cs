@@ -1056,6 +1056,18 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Constructor(s)
 
+        private void SetAutoGod()
+        {
+            if(!isNPC && m_scene.Permissions.IsGod(m_uuid))
+            {
+                m_godLevel = 200;
+                if(m_godLevel < UserLevel)
+                    m_godLevel = UserLevel;
+            else
+                m_godLevel = 0;
+            }
+        }
+
         public ScenePresence(
             IClientAPI client, Scene world, AvatarAppearance appearance, PresenceType type)
         {
@@ -2121,17 +2133,14 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_log.DebugFormat("[CompleteMovement] ReleaseAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
-
-                if(m_teleportFlags > 0)  //sanity check
-                    gotCrossUpdate = false;
+                if(m_teleportFlags > 0)
+                {
+                    gotCrossUpdate = false; // sanity check
+                    Thread.Sleep(500);  // let viewers catch us
+                }
 
                 if(!gotCrossUpdate)
                     RotateToLookAt(look);
-
-
-// start sending terrain patchs
-                if (!gotCrossUpdate && !isNPC)
-                    Scene.SendLayerData(ControllingClient);
 
                 // HG
                 bool isHGTP = (m_teleportFlags & TeleportFlags.ViaHGLogin) != 0;
@@ -2140,6 +2149,14 @@ namespace OpenSim.Region.Framework.Scenes
 //                    ControllingClient.SendNameReply(m_uuid, Firstname, Lastname);
                     m_log.DebugFormat("[CompleteMovement] HG");
                 }
+
+                if(!IsChildAgent && !isNPC)
+                    
+                ControllingClient.SendAdminResponse(UUID.Zero, (uint)GodLevel);
+
+// start sending terrain patchs
+                if (!gotCrossUpdate && !isNPC)
+                    Scene.SendLayerData(ControllingClient);
 
                 m_previusParcelHide = false;
                 m_previusParcelUUID = UUID.Zero;
@@ -4580,7 +4597,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_pos = cAgentData.Position + offset;
 
             CameraPosition = cAgentData.Center + offset;
-//            if(!m_scene.AutomaticGodsOption)
+            if(m_scene.AutomaticGodsOption)
+                SetAutoGod();
+            else
             {
                 if(cAgentData.GodLevel >= 200 && m_scene.Permissions.IsGod(m_uuid))
                     GodLevel = cAgentData.GodLevel;
@@ -4646,7 +4665,9 @@ namespace OpenSim.Region.Framework.Scenes
             cAgent.HeadRotation = m_headrotation;
             cAgent.BodyRotation = Rotation;
             cAgent.ControlFlags = (uint)m_AgentControlFlags;
-//            if(!m_scene.AutomaticGodsOption)
+            if(m_scene.AutomaticGodsOption)
+                SetAutoGod();
+            else
             {
                 if (GodLevel >= 200 && m_scene.Permissions.IsGod(cAgent.AgentID))
                     cAgent.GodLevel = (byte)GodLevel;
@@ -4750,7 +4771,9 @@ namespace OpenSim.Region.Framework.Scenes
             Rotation = cAgent.BodyRotation;
             m_AgentControlFlags = (AgentManager.ControlFlags)cAgent.ControlFlags;
 
-//            if(!m_scene.AutomaticGodsOption)
+            if(m_scene.AutomaticGodsOption)
+                SetAutoGod();
+            else
             {
                 if (cAgent.GodLevel >= 200 && m_scene.Permissions.IsGod(cAgent.AgentID))
                     GodLevel = cAgent.GodLevel;
