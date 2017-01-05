@@ -112,7 +112,7 @@ namespace OpenSim.Region.Framework.Interfaces
         UUID AddDynamicTextureData(
             UUID simID, UUID primID, string contentType, string data, string extraParams,
             int updateTimer, bool SetBlending, int disp, byte AlphaValue, int face);
-        
+
         void GetDrawStringSize(string contentType, string text, string fontName, int fontSize,
                                out double xSize, out double ySize);
     }
@@ -140,7 +140,7 @@ namespace OpenSim.Region.Framework.Interfaces
         bool AsyncConvertUrl(UUID id, string url, string extraParams);
         bool AsyncConvertData(UUID id, string bodyData, string extraParams);
 
-        void GetDrawStringSize(string text, string fontName, int fontSize, 
+        void GetDrawStringSize(string text, string fontName, int fontSize,
                                out double xSize, out double ySize);
     }
 

@@ -49,7 +49,7 @@ using TeleportFlags = OpenSim.Framework.Constants.TeleportFlags;
 
 namespace OpenSim.Region.OptionalModules.ViewerSupport
 {
-    public class SimulatorFeaturesHelper 
+    public class SimulatorFeaturesHelper
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 

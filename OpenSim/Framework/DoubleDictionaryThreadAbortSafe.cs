@@ -69,7 +69,7 @@ namespace OpenSim.Framework
                 // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
                 // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
                 // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}            
+                try {}
                 finally
                 {
                     rwLock.EnterWriteLock();
@@ -90,10 +90,10 @@ namespace OpenSim.Framework
                 Dictionary1[key1] = value;
                 Dictionary2[key2] = value;
             }
-            finally 
-            { 
+            finally
+            {
                 if (gotLock)
-                    rwLock.ExitWriteLock(); 
+                    rwLock.ExitWriteLock();
             }
         }
 
@@ -107,7 +107,7 @@ namespace OpenSim.Framework
                 // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
                 // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
                 // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}            
+                try {}
                 finally
                 {
                     rwLock.EnterWriteLock();
@@ -117,10 +117,10 @@ namespace OpenSim.Framework
                 Dictionary1.Remove(key1);
                 success = Dictionary2.Remove(key2);
             }
-            finally 
-            { 
+            finally
+            {
                 if (gotLock)
-                    rwLock.ExitWriteLock(); 
+                    rwLock.ExitWriteLock();
             }
 
             return success;
@@ -136,7 +136,7 @@ namespace OpenSim.Framework
                 // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
                 // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
                 // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}            
+                try {}
                 finally
                 {
                     rwLock.EnterWriteLock();
@@ -159,10 +159,10 @@ namespace OpenSim.Framework
                     }
                 }
             }
-            finally 
-            { 
+            finally
+            {
                 if (gotLock)
-                    rwLock.ExitWriteLock(); 
+                    rwLock.ExitWriteLock();
             }
 
             return found;
@@ -178,7 +178,7 @@ namespace OpenSim.Framework
                 // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
                 // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
                 // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}            
+                try {}
                 finally
                 {
                     rwLock.EnterWriteLock();
@@ -201,10 +201,10 @@ namespace OpenSim.Framework
                     }
                 }
             }
-            finally 
-            { 
+            finally
+            {
                 if (gotLock)
-                    rwLock.ExitWriteLock(); 
+                    rwLock.ExitWriteLock();
             }
 
             return found;
@@ -219,7 +219,7 @@ namespace OpenSim.Framework
                 // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
                 // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
                 // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}            
+                try {}
                 finally
                 {
                     rwLock.EnterWriteLock();
@@ -229,10 +229,10 @@ namespace OpenSim.Framework
                 Dictionary1.Clear();
                 Dictionary2.Clear();
             }
-            finally 
-            { 
+            finally
+            {
                 if (gotLock)
-                    rwLock.ExitWriteLock(); 
+                    rwLock.ExitWriteLock();
             }
         }
 
@@ -256,24 +256,24 @@ namespace OpenSim.Framework
             bool success;
             bool gotLock = false;
 
-            try 
-            { 
+            try
+            {
                 // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
                 // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
                 // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}            
+                try {}
                 finally
                 {
                     rwLock.EnterReadLock();
                     gotLock = true;
                 }
 
-                success = Dictionary1.TryGetValue(key, out value); 
+                success = Dictionary1.TryGetValue(key, out value);
             }
-            finally 
-            { 
+            finally
+            {
                 if (gotLock)
-                    rwLock.ExitReadLock(); 
+                    rwLock.ExitReadLock();
             }
 
             return success;
@@ -284,24 +284,24 @@ namespace OpenSim.Framework
             bool success;
             bool gotLock = false;
 
-            try 
-            { 
+            try
+            {
                 // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
                 // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
                 // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}            
+                try {}
                 finally
                 {
                     rwLock.EnterReadLock();
                     gotLock = true;
                 }
 
-                success = Dictionary2.TryGetValue(key, out value); 
+                success = Dictionary2.TryGetValue(key, out value);
             }
-            finally 
-            {   
+            finally
+            {
                 if (gotLock)
-                    rwLock.ExitReadLock(); 
+                    rwLock.ExitReadLock();
             }
 
             return success;
@@ -316,7 +316,7 @@ namespace OpenSim.Framework
                 // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
                 // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
                 // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}            
+                try {}
                 finally
                 {
                     rwLock.EnterReadLock();
@@ -326,10 +326,10 @@ namespace OpenSim.Framework
                 foreach (TValue value in Dictionary1.Values)
                     action(value);
             }
-            finally 
-            { 
+            finally
+            {
                 if (gotLock)
-                    rwLock.ExitReadLock(); 
+                    rwLock.ExitReadLock();
             }
         }
 
@@ -342,7 +342,7 @@ namespace OpenSim.Framework
                 // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
                 // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
                 // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}            
+                try {}
                 finally
                 {
                     rwLock.EnterReadLock();
@@ -352,10 +352,10 @@ namespace OpenSim.Framework
                 foreach (KeyValuePair<TKey1, TValue> entry in Dictionary1)
                     action(entry);
             }
-            finally 
-            { 
+            finally
+            {
                 if (gotLock)
-                    rwLock.ExitReadLock(); 
+                    rwLock.ExitReadLock();
             }
         }
 
@@ -368,7 +368,7 @@ namespace OpenSim.Framework
                 // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
                 // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
                 // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}            
+                try {}
                 finally
                 {
                     rwLock.EnterReadLock();
@@ -378,10 +378,10 @@ namespace OpenSim.Framework
                 foreach (KeyValuePair<TKey2, TValue> entry in Dictionary2)
                     action(entry);
             }
-            finally 
-            { 
+            finally
+            {
                 if (gotLock)
-                    rwLock.ExitReadLock(); 
+                    rwLock.ExitReadLock();
             }
         }
 
@@ -394,7 +394,7 @@ namespace OpenSim.Framework
                 // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
                 // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
                 // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}            
+                try {}
                 finally
                 {
                     rwLock.EnterReadLock();
@@ -407,10 +407,10 @@ namespace OpenSim.Framework
                         return value;
                 }
             }
-            finally 
-            { 
+            finally
+            {
                 if (gotLock)
-                    rwLock.ExitReadLock(); 
+                    rwLock.ExitReadLock();
             }
 
             return default(TValue);
@@ -426,7 +426,7 @@ namespace OpenSim.Framework
                 // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
                 // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
                 // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}            
+                try {}
                 finally
                 {
                     rwLock.EnterReadLock();
@@ -439,10 +439,10 @@ namespace OpenSim.Framework
                         list.Add(value);
                 }
             }
-            finally 
-            { 
+            finally
+            {
                 if (gotLock)
-                    rwLock.ExitReadLock(); 
+                    rwLock.ExitReadLock();
             }
 
             return list;
@@ -458,7 +458,7 @@ namespace OpenSim.Framework
                 // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
                 // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
                 // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}            
+                try {}
                 finally
                 {
                     rwLock.EnterUpgradeableReadLock();
@@ -482,7 +482,7 @@ namespace OpenSim.Framework
 
                 try
                 {
-                    try {}            
+                    try {}
                     finally
                     {
                         rwLock.EnterUpgradeableReadLock();
@@ -495,16 +495,16 @@ namespace OpenSim.Framework
                     for (int i = 0; i < list2.Count; i++)
                         Dictionary2.Remove(list2[i]);
                 }
-                finally 
-                { 
+                finally
+                {
                     if (gotWriteLock)
-                        rwLock.ExitWriteLock(); 
+                        rwLock.ExitWriteLock();
                 }
             }
-            finally 
-            { 
+            finally
+            {
                 if (gotUpgradeableLock)
-                    rwLock.ExitUpgradeableReadLock(); 
+                    rwLock.ExitUpgradeableReadLock();
             }
 
             return list.Count;

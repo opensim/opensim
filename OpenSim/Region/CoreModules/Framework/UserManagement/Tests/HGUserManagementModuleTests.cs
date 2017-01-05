@@ -37,7 +37,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement.Tests
 {
     [TestFixture]
     public class HGUserManagementModuleTests : OpenSimTestCase
-    {    
+    {
         /// <summary>
         /// Test that a new HG agent (i.e. one without a user account) has their name cached in the UMM upon creation.
         /// </summary>

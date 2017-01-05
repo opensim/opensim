@@ -37,7 +37,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// This function extends the simple URL configuration in the caps handlers
         /// to facilitate more interesting computation when an external handler is
-        /// sent to the viewer. 
+        /// sent to the viewer.
         /// </summary>
         /// <param name="agentID">New user UUID</param>
         /// <param name="caps">Internal caps registry, where the external handler will be registered</param>

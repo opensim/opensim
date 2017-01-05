@@ -101,7 +101,7 @@ namespace OpenSim.Region.DataSnapshot
 
         public void Initialise(IConfigSource config)
         {
-            if (!m_configLoaded) 
+            if (!m_configLoaded)
             {
                 m_configLoaded = true;
                 //m_log.Debug("[DATASNAPSHOT]: Loading configuration");
@@ -248,7 +248,7 @@ namespace OpenSim.Region.DataSnapshot
             m_snapStore.ForceSceneStale(scene);
         }
 
-        public void Close() 
+        public void Close()
         {
             if (!m_enabled)
                 return;

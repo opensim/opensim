@@ -58,7 +58,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
             m_xEngine = new XEngine();
 
             IniConfigSource configSource = new IniConfigSource();
-            
+
             IConfig startupConfig = configSource.AddConfig("Startup");
             startupConfig.Set("DefaultScriptEngine", "XEngine");
 

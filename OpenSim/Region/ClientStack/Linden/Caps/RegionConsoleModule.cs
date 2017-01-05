@@ -58,7 +58,7 @@ namespace OpenSim.Region.ClientStack.Linden
     {
 //        private static readonly ILog m_log =
 //            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         private Scene m_scene;
         private IEventQueue m_eventQueue;
         private Commands m_commands = new Commands();
@@ -155,7 +155,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             SendConsoleOutput(agentID, reply);
         }
-        
+
         public void AddCommand(string module, bool shared, string command, string help, string longhelp, CommandDelegate fn)
         {
             m_commands.AddCommand(module, shared, command, help, longhelp, fn);

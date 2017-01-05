@@ -39,7 +39,7 @@ namespace OpenSim.Region.Framework.Interfaces
         bool HandleItemCreationFromTransaction(IClientAPI remoteClient, UUID transactionID, UUID folderID,
                                                uint callbackID, string description, string name, sbyte invType,
                                                sbyte type, byte wearableType, uint nextOwnerMask);
-        
+
         void HandleTaskItemUpdateFromTransaction(
             IClientAPI remoteClient, SceneObjectPart part, UUID transactionID, TaskInventoryItem item);
 

@@ -43,10 +43,10 @@ namespace OpenSim
     public class ConfigurationLoader
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         /// <summary>
         /// Various Config settings the region needs to start
-        /// Physics Engine, Mesh Engine, GridMode, PhysicsPrim allowed, Neighbor, 
+        /// Physics Engine, Mesh Engine, GridMode, PhysicsPrim allowed, Neighbor,
         /// StorageDLL, Storage Connection String, Estate connection String, Client Stack
         /// Standalone settings.
         /// </summary>
@@ -188,7 +188,7 @@ namespace OpenSim
                         {
                             iniFileExists = true;
                             AddIncludes(overrideConfig, overrideSources);
-                        } 
+                        }
                     }
                     m_config.Source.Merge(overrideConfig.Source);
                 }
@@ -198,7 +198,7 @@ namespace OpenSim
             {
                 m_log.FatalFormat("[CONFIG]: Could not load any configuration");
                 Environment.Exit(1);
-            } 
+            }
             else if (!iniFileExists)
             {
                 m_log.FatalFormat("[CONFIG]: Could not load any configuration");
@@ -257,14 +257,14 @@ namespace OpenSim
                             string path = Path.Combine(basepath, chunkWithoutWildcards);
                             path = Path.GetFullPath(path) + chunkWithWildcards;
                             string[] paths = Util.Glob(path);
-                            
+
                             // If the include path contains no wildcards, then warn the user that it wasn't found.
                             if (wildcardIndex == -1 && paths.Length == 0)
                             {
                                 m_log.WarnFormat("[CONFIG]: Could not find include file {0}", path);
                             }
                             else
-                            {                            
+                            {
                                 foreach (string p in paths)
                                 {
                                     if (!sources.Contains(p))
@@ -377,7 +377,7 @@ namespace OpenSim
                 m_configSettings.PhysicsEngine = startupConfig.GetString("physics");
                 m_configSettings.MeshEngineName = startupConfig.GetString("meshing");
 
-                m_configSettings.ClientstackDll 
+                m_configSettings.ClientstackDll
                     = startupConfig.GetString("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
             }
 

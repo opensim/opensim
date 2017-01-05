@@ -125,8 +125,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         // Just some recomputed constants:
 #pragma warning disable 414
-        static readonly float TwoPI = ((float)Math.PI) * 2f; 
-        static readonly float FourPI = ((float)Math.PI) * 4f; 
+        static readonly float TwoPI = ((float)Math.PI) * 2f;
+        static readonly float FourPI = ((float)Math.PI) * 4f;
         static readonly float PIOverFour = ((float)Math.PI) / 4f;
         static readonly float PIOverTwo = ((float)Math.PI) / 2f;
 #pragma warning restore 414
@@ -1595,7 +1595,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         //     in that direction.
         // TODO: implement reference frame.
         public void ComputeAngularDeflection()
-        {   
+        {
 
             if (BSParam.VehicleEnableAngularDeflection && m_angularDeflectionEfficiency != 0 && VehicleForwardSpeed > 0.2)
             {

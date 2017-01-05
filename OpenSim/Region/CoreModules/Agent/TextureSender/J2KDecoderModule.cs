@@ -285,7 +285,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                 // Cache Decoded layers
                 SaveFileCacheForAsset(assetID, layers);
             }
-            
+
             // Notify Interested Parties
             lock (m_notifyList)
             {

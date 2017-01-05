@@ -51,7 +51,7 @@ namespace OpenSim.Groups
         private List<Scene> m_sceneList = new List<Scene>();
 
         private IMessageTransferModule m_msgTransferModule = null;
-        
+
         private IGroupsServicesConnector m_groupData = null;
         private IUserManagement m_UserManagement;
 
@@ -210,7 +210,7 @@ namespace OpenSim.Groups
             if (m_debugEnabled) m_log.Debug("[Groups]: Shutting down Groups module.");
         }
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }
@@ -318,7 +318,7 @@ namespace OpenSim.Groups
 
             SendAgentGroupDataUpdate(remoteClient, false);
 
-            // also current viewers do ignore it and ask later on a much nicer thread 
+            // also current viewers do ignore it and ask later on a much nicer thread
             // its a info request not a change, so nothing is sent to others
             // they do get the group title with the avatar object update on arrivel to a region
         }
@@ -453,9 +453,9 @@ namespace OpenSim.Groups
                     }
 
                     if (m_groupData.AddGroupNotice(GetRequestingAgentIDStr(remoteClient), GroupID, NoticeID, im.fromAgentName, Subject, Message,
-                        hasAttachment, 
+                        hasAttachment,
                         (byte)(item == null ? 0 : item.AssetType),
-                        item == null ? null : item.Name, 
+                        item == null ? null : item.Name,
                         item == null ? UUID.Zero : item.ID,
                         item == null ? UUID.Zero.ToString() : item.Owner.ToString()))
                     {
@@ -463,7 +463,7 @@ namespace OpenSim.Groups
                         {
                             OnNewGroupNotice(GroupID, NoticeID);
                         }
-                       
+
                         // Send notice out to everyone that wants notices
                         foreach (GroupMembersData member in m_groupData.GetGroupMembers(GetRequestingAgentIDStr(remoteClient), GroupID))
                         {
@@ -497,7 +497,7 @@ namespace OpenSim.Groups
 
                     m_log.DebugFormat("[Groups]: Giving inventory from {0} to {1}", giver, remoteClient.AgentId);
                     string message;
-                    InventoryItemBase itemCopy = ((Scene)(remoteClient.Scene)).GiveInventoryItem(remoteClient.AgentId, 
+                    InventoryItemBase itemCopy = ((Scene)(remoteClient.Scene)).GiveInventoryItem(remoteClient.AgentId,
                         giver, notice.noticeData.AttachmentItemID, out message);
 
                     if (itemCopy == null)
@@ -509,10 +509,10 @@ namespace OpenSim.Groups
                     remoteClient.SendInventoryItemCreateUpdate(itemCopy, 0);
                 }
             }
-          
+
             // Interop, received special 210 code for ejecting a group member
             // this only works within the comms servers domain, and won't work hypergrid
-            // TODO:FIXME: Use a presense server of some kind to find out where the 
+            // TODO:FIXME: Use a presense server of some kind to find out where the
             // client actually is, and try contacting that region directly to notify them,
             // or provide the notification via xmlrpc update queue
             if ((im.dialog == 210))
@@ -523,7 +523,7 @@ namespace OpenSim.Groups
 
                 UUID ejecteeID = new UUID(im.toAgentID);
 
-				im.imSessionID = UUID.Zero.Guid;
+                im.imSessionID = UUID.Zero.Guid;
                 im.dialog = (byte)InstantMessageDialog.MessageFromAgent;
                 OutgoingInstantMessage(im, ejecteeID);
 
@@ -577,7 +577,7 @@ namespace OpenSim.Groups
         {
             return m_groupData.GetGroupRecord(UUID.Zero.ToString(), UUID.Zero, name);
         }
-        
+
         public void ActivateGroup(IClientAPI remoteClient, UUID groupID)
         {
             if (m_debugEnabled) m_log.DebugFormat("[Groups]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
@@ -585,7 +585,7 @@ namespace OpenSim.Groups
             m_groupData.SetAgentActiveGroup(GetRequestingAgentIDStr(remoteClient), GetRequestingAgentIDStr(remoteClient), groupID);
 
             // Changing active group changes title, active powers, all kinds of things
-            // anyone who is in any region that can see this client, should probably be 
+            // anyone who is in any region that can see this client, should probably be
             // updated with new group info.  At a minimum, they should get ScenePresence
             // updated with new title.
             SendAgentGroupDataUpdate(remoteClient, true);
@@ -620,10 +620,10 @@ namespace OpenSim.Groups
 
         public List<GroupMembersData> GroupMembersRequest(IClientAPI remoteClient, UUID groupID)
         {
-            if (m_debugEnabled) 
+            if (m_debugEnabled)
                 m_log.DebugFormat(
                     "[Groups]: GroupMembersRequest called for {0} from client {1}", groupID, remoteClient.Name);
-            
+
             List<GroupMembersData> data = m_groupData.GetGroupMembers(GetRequestingAgentIDStr(remoteClient), groupID);
 
             if (m_debugEnabled)
@@ -706,7 +706,7 @@ namespace OpenSim.Groups
 
         public GroupMembershipData GetMembershipData(UUID groupID, UUID agentID)
         {
-            if (m_debugEnabled) 
+            if (m_debugEnabled)
                 m_log.DebugFormat(
                     "[Groups]: {0} called with groupID={1}, agentID={2}",
                     System.Reflection.MethodBase.GetCurrentMethod().Name, groupID, agentID);
@@ -776,7 +776,7 @@ namespace OpenSim.Groups
             }
 
             string reason = string.Empty;
-            UUID groupID = m_groupData.CreateGroup(remoteClient.AgentId, name, charter, showInList, insigniaID, membershipFee, openEnrollment, 
+            UUID groupID = m_groupData.CreateGroup(remoteClient.AgentId, name, charter, showInList, insigniaID, membershipFee, openEnrollment,
                 allowPublish, maturePublish, remoteClient.AgentId, out reason);
 
             if (groupID != UUID.Zero)
@@ -823,7 +823,7 @@ namespace OpenSim.Groups
             if (membership != null)
             {
                 return membership.GroupTitle;
-            } 
+            }
             return string.Empty;
         }
 
@@ -839,7 +839,7 @@ namespace OpenSim.Groups
             // TODO: Not sure what all is needed here, but if the active group role change is for the group
             // the client currently has set active, then we need to do a scene presence update too
             // if (m_groupData.GetAgentActiveMembership(GetRequestingAgentID(remoteClient)).GroupID == GroupID)
-                
+
             SendDataUpdate(remoteClient, true);
         }
 
@@ -899,7 +899,7 @@ namespace OpenSim.Groups
                 case 1:
                     // Remove
                     m_groupData.RemoveAgentFromGroupRole(GetRequestingAgentIDStr(remoteClient), memberID.ToString(), groupID, roleID);
-                    
+
                     break;
                 default:
                     m_log.ErrorFormat("[Groups]: {0} does not understand changes == {1}", System.Reflection.MethodBase.GetCurrentMethod().Name, changes);
@@ -1072,7 +1072,7 @@ namespace OpenSim.Groups
 
             // Send Message to Ejectee
             GridInstantMessage msg = new GridInstantMessage();
-            
+
             // if local send a normal message
             if(ejecteeClient != null)
             {
@@ -1324,7 +1324,7 @@ namespace OpenSim.Groups
                     membershipArray = membershipData.ToArray();
                 }
             }
-            
+
             if (m_debugEnabled)
             {
                 m_log.InfoFormat("[Groups]: Get group membership information for {0} requested by {1}", dataForAgentID, requestingClient.AgentId);

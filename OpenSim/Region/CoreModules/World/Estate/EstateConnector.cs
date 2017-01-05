@@ -149,7 +149,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             {
                 foreach (Scene s in m_EstateModule.Scenes)
                 {
-                    RegionInfo sreg = s.RegionInfo;  
+                    RegionInfo sreg = s.RegionInfo;
                     if (regions.Contains(sreg.RegionID))
                     {
                         string url = sreg.ExternalHostName + ":" + sreg.HttpPort;

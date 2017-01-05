@@ -75,7 +75,7 @@ namespace OpenSim.Data.SQLite
                 }
                 else
                 {
-                    cmd.CommandText = String.Format("select * from {0} where (ScopeID='{1}' or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like '{2}%' or LastName like '{3}%')", 
+                    cmd.CommandText = String.Format("select * from {0} where (ScopeID='{1}' or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like '{2}%' or LastName like '{3}%')",
                         m_Realm, scopeID.ToString(), words[0], words[1]);
                 }
 

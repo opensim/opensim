@@ -61,7 +61,7 @@ namespace OpenSim.Server.Handlers.BakedTextures
                     ServerUtils.LoadPlugin<IBakedTextureService>(assetService, args);
 
             IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName);
-            
+
             server.AddStreamHandler(new BakesServerGetHandler(m_BakesService, auth));
             server.AddStreamHandler(new BakesServerPostHandler(m_BakesService, auth));
         }

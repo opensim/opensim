@@ -31,10 +31,10 @@ namespace OpenSim.Framework
 {
     /// <summary>
     /// This class was created to refactor OutPacket out of AssetCache
-    /// There is a conflict between 
+    /// There is a conflict between
     /// OpenSim.Framework.Communications.Cache.AssetRequest and OpenSim.Framework.AssetRequest
-    /// and unifying them results in a prebuild chicken and egg problem with OpenSim.Framework requiring 
-    /// OpenSim.Framework.Communications.Cache while OpenSim.Framework.Communications.Cache 
+    /// and unifying them results in a prebuild chicken and egg problem with OpenSim.Framework requiring
+    /// OpenSim.Framework.Communications.Cache while OpenSim.Framework.Communications.Cache
     /// requiring OpenSim.Framework
     /// </summary>
     public class AssetRequestToClient

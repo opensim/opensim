@@ -40,7 +40,7 @@ using OpenSim.Region.ScriptEngine.Shared;
 namespace OpenSim.Tests.Common
 {
     public class MockScriptEngine : INonSharedRegionModule, IScriptModule, IScriptEngine
-    {      
+    {
         public IConfigSource ConfigSource { get; private set; }
 
         public IConfig Config { get; private set; }
@@ -89,7 +89,7 @@ namespace OpenSim.Tests.Common
         {
         }
 
-        public string Name { get { return "Mock Script Engine"; } }        
+        public string Name { get { return "Mock Script Engine"; } }
         public string ScriptEngineName { get { return Name; } }
 
         public Type ReplaceableInterface { get { return null; } }
@@ -200,7 +200,7 @@ namespace OpenSim.Tests.Common
         {
             throw new System.NotImplementedException ();
         }
-       
+
         public IScriptWorkItem QueueEventHandler(object parms)
         {
             throw new System.NotImplementedException ();
@@ -258,7 +258,7 @@ namespace OpenSim.Tests.Common
 
         public string[] ScriptReferencedAssemblies { get { throw new System.NotImplementedException (); } }
 
-        public ParameterInfo[] ScriptBaseClassParameters { get { throw new System.NotImplementedException (); } }       
+        public ParameterInfo[] ScriptBaseClassParameters { get { throw new System.NotImplementedException (); } }
 
         public void ClearPostedEvents()
         {

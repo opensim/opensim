@@ -42,7 +42,7 @@ namespace OpenSim.Data.Tests
     public class PropertyScrambler<T>
     {
         readonly System.Collections.Generic.List<string> membersToNotScramble = new List<string>();
-        
+
         private void AddExpressionToNotScrableList(Expression expression)
         {
             UnaryExpression unaryExpression = expression as UnaryExpression;

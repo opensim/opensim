@@ -70,7 +70,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // Must still be possible to successfully log in
             UUID loggingInUserId = TestHelpers.ParseTail(0x2);
 
-            UserAccount ua 
+            UserAccount ua
                 = UserAccountHelpers.CreateUserWithInventory(scene, "Test", "User", loggingInUserId, "password");
 
             SceneHelpers.AddScenePresence(scene, ua);
@@ -107,7 +107,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // Must still be possible to successfully log in
             UUID loggingInUserId = TestHelpers.ParseTail(0x2);
 
-            UserAccount ua 
+            UserAccount ua
                 = UserAccountHelpers.CreateUserWithInventory(scene, "Test", "User", loggingInUserId, "password");
 
             SceneHelpers.AddScenePresence(scene, ua);

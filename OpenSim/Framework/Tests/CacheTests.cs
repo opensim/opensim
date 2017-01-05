@@ -70,7 +70,7 @@ namespace OpenSim.Framework.Tests
             Assert.That(citem == null, "Item should not be in Cache");
         }
 
-        
+
         [Test]
         public void ExpireItemManually()
         {
@@ -96,7 +96,7 @@ namespace OpenSim.Framework.Tests
             cachedItem.Store(foo);
             cache.Store(cacheItemUUID.ToString(), cachedItem);
             cache.Clear();
-  
+
             object citem = cache.Get(cacheItemUUID.ToString());
             Assert.That(citem == null, "Item should not be in Cache because we manually invalidated it");
         }

@@ -33,7 +33,7 @@ using Nini.Config;
 
 namespace OpenSim.Services.Connectors
 {
-    public class HeloServicesConnector 
+    public class HeloServicesConnector
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(

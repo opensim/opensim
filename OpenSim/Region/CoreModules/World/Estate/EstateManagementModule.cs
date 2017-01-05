@@ -57,8 +57,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
         private Timer m_regionChangeTimer = new Timer();
         public Scene Scene { get; private set; }
         public IUserManagement UserManager { get; private set; }
-        
-        protected EstateManagementCommands m_commands;                
+
+        protected EstateManagementCommands m_commands;
 
         /// <summary>
         /// If false, region restart requests from the client are blocked even if they are otherwise legitimate.
@@ -77,12 +77,12 @@ namespace OpenSim.Region.CoreModules.World.Estate
         private int m_delayCount = 0;
 
         #region Region Module interface
-        
-        public string Name { get { return "EstateManagementModule"; } }
-        
-        public Type ReplaceableInterface { get { return null; } }        
 
-        public void Initialise(IConfigSource source) 
+        public string Name { get { return "EstateManagementModule"; } }
+
+        public Type ReplaceableInterface { get { return null; } }
+
+        public void Initialise(IConfigSource source)
         {
             AllowRegionRestartFromClient = true;
 
@@ -91,7 +91,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (config != null)
                 AllowRegionRestartFromClient = config.GetBoolean("AllowRegionRestartFromClient", true);
         }
-        
+
         public void AddRegion(Scene scene)
         {
             Scene = scene;
@@ -108,19 +108,19 @@ namespace OpenSim.Region.CoreModules.World.Estate
             m_regionChangeTimer.Elapsed += RaiseRegionInfoChange;
             m_regionChangeTimer.AutoReset = false;
         }
-        
-        public void RemoveRegion(Scene scene) {}            
-        
+
+        public void RemoveRegion(Scene scene) {}
+
         public void RegionLoaded(Scene scene)
         {
             // Sets up the sun module based no the saved Estate and Region Settings
             // DO NOT REMOVE or the sun will stop working
             scene.TriggerEstateSunUpdate();
-            
-            UserManager = scene.RequestModuleInterface<IUserManagement>();            
+
+            UserManager = scene.RequestModuleInterface<IUserManagement>();
         }
 
-        public void Close() 
+        public void Close()
         {
             m_commands.Close();
         }
@@ -486,7 +486,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             if((byte)maxAgents <= Scene.RegionInfo.AgentCapacity)
                 Scene.RegionInfo.RegionSettings.AgentLimit = (byte) maxAgents;
-			else
+            else
                 Scene.RegionInfo.RegionSettings.AgentLimit = Scene.RegionInfo.AgentCapacity;
 
             Scene.RegionInfo.RegionSettings.ObjectBonus = objectBonusFactor;
@@ -640,7 +640,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 restartModule.ScheduleRestart(UUID.Zero, "Region will restart in {0}", times.ToArray(), false);
 
                 m_log.InfoFormat(
-                    "User {0} requested restart of region {1} in {2} seconds", 
+                    "User {0} requested restart of region {1} in {2} seconds",
                     remoteClient.Name, Scene.Name, times.Count != 0 ? times[0] : 0);
             }
         }
@@ -648,9 +648,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
         private void handleChangeEstateCovenantRequest(IClientAPI remoteClient, UUID estateCovenantID)
         {
 //            m_log.DebugFormat(
-//                "[ESTATE MANAGEMENT MODULE]: Handling request from {0} to change estate covenant to {1}", 
+//                "[ESTATE MANAGEMENT MODULE]: Handling request from {0} to change estate covenant to {1}",
 //                remoteClient.Name, estateCovenantID);
-            
+
             Scene.RegionInfo.RegionSettings.Covenant = estateCovenantID;
             Scene.RegionInfo.RegionSettings.CovenantChangedDateTime = Util.UnixTimeSinceEpoch();
             Scene.RegionInfo.RegionSettings.Save();
@@ -694,7 +694,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 }
             }
         }
- 
+
         private void execDeltaRequests(object o)
         {
             IClientAPI remote_client;
@@ -720,23 +720,23 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 if(!Scene.IsRunning)
                     break;
 
-                if(req == null) 
+                if(req == null)
                 {
                     if(changed.Count > 0)
                     {
                         foreach(EstateSettings est in changed.Values)
                             Scene.EstateDataService.StoreEstateSettings(est);
-                            
+
                         TriggerEstateInfoChange();
                     }
-                        
+
                     EstateSettings es = Scene.RegionInfo.EstateSettings;
                     foreach(KeyValuePair<IClientAPI,UUID> kvp in sendAllowedOrBanList)
                     {
                         IClientAPI cli = kvp.Key;
                         UUID invoive = kvp.Value;
                         cli.SendEstateList(invoive, (int)Constants.EstateAccessCodex.AllowedAccess, es.EstateAccess, es.EstateID);
-                        cli.SendBannedUserList(invoive, es.EstateBans, es.EstateID);                       
+                        cli.SendBannedUserList(invoive, es.EstateBans, es.EstateID);
                     }
                     sendAllowedOrBanList.Clear();
 
@@ -777,7 +777,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 bool doOtherEstates = ((estateAccessType & 3) != 0);
 
                 EstateSettings thisSettings = Scene.RegionInfo.EstateSettings;
-                int thisEstateID =(int)thisSettings.EstateID; 
+                int thisEstateID =(int)thisSettings.EstateID;
 
                 UUID agentID = remote_client.AgentId;
 
@@ -811,7 +811,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     }
                     estateIDs.Clear();
                 }
-                
+
                 // the commands
                 // first the ones allowed for estate managers on this region
                 if ((estateAccessType & 4) != 0) // User add
@@ -1020,7 +1020,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                             break;
                         }
                     }
-                    
+
                     if (alreadyInList && listitem != null)
                     {
                         if (doOtherEstates) // All estates
@@ -1072,7 +1072,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                                 if(!isadmin && !estateSettings.IsEstateOwner(agentID)) // redundante check?
                                     continue;
                                 if(estateSettings.EstateManagersCount() >= (int)Constants.EstateAccessLimits.EstateManagers)
-                                    continue;                           
+                                    continue;
                                 estateSettings.AddEstateManager(user);
                                 changed[(int)estateSettings.EstateID] = estateSettings;
                             }
@@ -1158,7 +1158,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             IClientAPI remote_client, UUID invoice, UUID senderID, UUID sessionID, string senderName, string message)
         {
             IDialogModule dm = Scene.RequestModuleInterface<IDialogModule>();
-            
+
             if (dm != null)
                 dm.SendNotificationToUsersInRegion(senderID, senderName, message);
         }
@@ -1249,7 +1249,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 }
             });
         }
-        
+
         private void AbortTerrainXferHandler(IClientAPI remoteClient, ulong XferID)
         {
             lock (this)
@@ -1332,7 +1332,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 if (TerrainUploader == null)
                 {
                     m_log.DebugFormat(
-                        "[TERRAIN]: Started receiving terrain upload for region {0} from {1}", 
+                        "[TERRAIN]: Started receiving terrain upload for region {0} from {1}",
                         Scene.Name, remote_client.Name);
 
                     TerrainUploader = new EstateTerrainXferHandler(remote_client, clientFileName);
@@ -1352,7 +1352,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
         {
             // Save terrain here
             ITerrainModule terr = Scene.RequestModuleInterface<ITerrainModule>();
-            
+
             if (terr != null)
             {
 //                m_log.Warn("[CLIENT]: Got Request to Send Terrain in region " + Scene.RegionInfo.RegionName);

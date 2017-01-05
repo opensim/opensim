@@ -96,9 +96,9 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             m_Enabled = true;
 
-            m_drawPrimVolume 
+            m_drawPrimVolume
                 = Util.GetConfigVarFromSections<bool>(m_config, "DrawPrimOnMapTile", configSections, m_drawPrimVolume);
-            m_textureTerrain 
+            m_textureTerrain
                 = Util.GetConfigVarFromSections<bool>(m_config, "TextureOnMapTile", configSections, m_textureTerrain);
             m_texturePrims
                 = Util.GetConfigVarFromSections<bool>(m_config, "TexturePrims", configSections, m_texturePrims);
@@ -277,7 +277,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                                                        m_scene.RegionInfo.RegionSizeY * 0.5f - 0.5f);
 
             warp_Material waterColorMaterial = new warp_Material(ConvertColor(WATER_COLOR));
-			waterColorMaterial.setReflectivity(0);  // match water color with standard map module thanks lkalif
+            waterColorMaterial.setReflectivity(0);  // match water color with standard map module thanks lkalif
             waterColorMaterial.setTransparency((byte)((1f - WATER_COLOR.A) * 255f));
             renderer.Scene.addMaterial("WaterColor", waterColorMaterial);
             renderer.SetObjectMaterial("Water", "WaterColor");
@@ -292,7 +292,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             float regionsx = m_scene.RegionInfo.RegionSizeX;
             float regionsy = m_scene.RegionInfo.RegionSizeY;
-            
+
             // 'diff' is the difference in scale between the real region size and the size of terrain we're buiding
             float diff = regionsx / 256f;
 
@@ -377,7 +377,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             warp_Material material = new warp_Material(texture);
             material.setReflectivity(50);
             renderer.Scene.addMaterial("TerrainColor", material);
-			renderer.Scene.material("TerrainColor").setReflectivity(0); // reduces tile seams a bit thanks lkalif
+            renderer.Scene.material("TerrainColor").setReflectivity(0); // reduces tile seams a bit thanks lkalif
             renderer.SetObjectMaterial("Terrain", "TerrainColor");
         }
 
@@ -530,7 +530,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
                 if (!fetched)
                 {
-                    // Fetch the texture, decode and get the average color, 
+                    // Fetch the texture, decode and get the average color,
                     // then save it to a temporary metadata asset
                     AssetBase textureAsset = m_scene.AssetService.Get(face.TextureID.ToString());
                     if (textureAsset != null)
@@ -616,7 +616,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 catch (Exception e)
                 {
                     m_log.Warn(string.Format("[WARP 3D IMAGE MODULE]: Failed to decode asset {0}, exception  ", id), e);
-                }                    
+                }
             }
 
             return ret;
@@ -678,10 +678,10 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                     {
                         width = bitmap.Width;
                         height = bitmap.Height;
-    
+
                         BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
                         pixelBytes = (bitmap.PixelFormat == PixelFormat.Format24bppRgb) ? 3 : 4;
-    
+
                         // Sum up the individual channels
                         unsafe
                         {
@@ -690,7 +690,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                                 for (int y = 0; y < height; y++)
                                 {
                                     byte* row = (byte*)bitmapData.Scan0 + (y * bitmapData.Stride);
-    
+
                                     for (int x = 0; x < width; x++)
                                     {
                                         b += row[x * pixelBytes + 0];
@@ -705,7 +705,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                                 for (int y = 0; y < height; y++)
                                 {
                                     byte* row = (byte*)bitmapData.Scan0 + (y * bitmapData.Stride);
-    
+
                                     for (int x = 0; x < width; x++)
                                     {
                                         b += row[x * pixelBytes + 0];

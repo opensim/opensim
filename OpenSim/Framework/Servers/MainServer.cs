@@ -223,11 +223,11 @@ namespace OpenSim.Framework.Servers
                 {
                     handlers.AppendFormat(
                         "Registered HTTP Handlers for server at {0}:{1}\n", httpServer.ListenIPAddress, httpServer.Port);
-        
+
                     handlers.AppendFormat("* XMLRPC:\n");
                     foreach (String s in httpServer.GetXmlRpcHandlerKeys())
                         handlers.AppendFormat("\t{0}\n", s);
-        
+
                     handlers.AppendFormat("* HTTP:\n");
                     foreach (String s in httpServer.GetHTTPHandlerKeys())
                         handlers.AppendFormat("\t{0}\n", s);
@@ -235,19 +235,19 @@ namespace OpenSim.Framework.Servers
                     handlers.AppendFormat("* HTTP (poll):\n");
                     foreach (String s in httpServer.GetPollServiceHandlerKeys())
                         handlers.AppendFormat("\t{0}\n", s);
-                    
+
                     handlers.AppendFormat("* JSONRPC:\n");
                     foreach (String s in httpServer.GetJsonRpcHandlerKeys())
                         handlers.AppendFormat("\t{0}\n", s);
-        
+
 //                    handlers.AppendFormat("* Agent:\n");
 //                    foreach (String s in httpServer.GetAgentHandlerKeys())
 //                        handlers.AppendFormat("\t{0}\n", s);
-        
+
                     handlers.AppendFormat("* LLSD:\n");
                     foreach (String s in httpServer.GetLLSDHandlerKeys())
                         handlers.AppendFormat("\t{0}\n", s);
-        
+
                     handlers.AppendFormat("* StreamHandlers ({0}):\n", httpServer.GetStreamHandlerKeys().Count);
                     foreach (String s in httpServer.GetStreamHandlerKeys())
                         handlers.AppendFormat("\t{0}\n", s);
@@ -334,7 +334,7 @@ namespace OpenSim.Framework.Servers
         {
             if (port == 0)
                 return Instance;
-            
+
             if (instance != null && port == Instance.Port)
                 return Instance;
 

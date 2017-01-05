@@ -49,7 +49,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public Vector3(Vector3 pv) : this(pv.X, pv.Y, pv.Z)
         {
         }
-        
+
         public void setValues(float x, float y, float z)
         {
             X = x;

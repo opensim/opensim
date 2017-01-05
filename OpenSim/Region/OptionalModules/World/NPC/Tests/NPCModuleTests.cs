@@ -209,10 +209,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             UserAccountHelpers.CreateUserWithInventory(m_scene, userId);
             ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, userId);
 
-            InventoryItemBase att1Item 
+            InventoryItemBase att1Item
                 = UserInventoryHelpers.CreateInventoryItem(
                     m_scene, "att1", TestHelpers.ParseTail(0x2), TestHelpers.ParseTail(0x3), sp.UUID, InventoryType.Object);
-            InventoryItemBase att2Item 
+            InventoryItemBase att2Item
                 = UserInventoryHelpers.CreateInventoryItem(
                     m_scene, "att2", TestHelpers.ParseTail(0x12), TestHelpers.ParseTail(0x13), sp.UUID, InventoryType.Object);
 

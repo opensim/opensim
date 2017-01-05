@@ -131,7 +131,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         public void TestImplicitCastBooleanToLSLInteger()
         {
             TestHelpers.InMethod();
-            
+
             LSL_Types.LSLInteger testInteger;
 
             testInteger = (1 == 0);

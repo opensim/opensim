@@ -38,12 +38,12 @@ namespace OpenSim.Data
         public UUID ownerRoleID;
         public string name;
         public string charter;
-        public bool showInList; 
-        public UUID insigniaID; 
+        public bool showInList;
+        public UUID insigniaID;
         public int membershipFee;
         public bool openEnrollment;
         public bool allowPublish;
-        public bool maturePublish; 
+        public bool maturePublish;
         public UUID founderID;
         public ulong everyonePowers;
         public ulong ownersPowers;

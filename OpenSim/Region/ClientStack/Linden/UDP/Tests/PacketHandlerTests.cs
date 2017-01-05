@@ -59,7 +59,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 //            agent.InventoryFolder = UUID.Zero;
 //            agent.startpos = Vector3.Zero;
 //            agent.CapsPath = "http://wibble.com";
-//            
+//
 //            TestLLUDPServer testLLUDPServer;
 //            TestLLPacketServer testLLPacketServer;
 //            AgentCircuitManager acm;
@@ -67,7 +67,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 //            SetupStack(scene, out testLLUDPServer, out testLLPacketServer, out acm);
 //
 //            TestClient testClient = new TestClient(agent, scene);
-//            
+//
 //            LLPacketHandler packetHandler
 //                = new LLPacketHandler(testClient, testLLPacketServer, new ClientStackUserSettings());
 //
@@ -87,14 +87,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 //        /// <param name="testPacketServer"></param>
 //        /// <param name="acm">Agent circuit manager used in setting up the stack</param>
 //        protected void SetupStack(
-//            IScene scene, out TestLLUDPServer testLLUDPServer, out TestLLPacketServer testPacketServer, 
+//            IScene scene, out TestLLUDPServer testLLUDPServer, out TestLLPacketServer testPacketServer,
 //            out AgentCircuitManager acm)
 //        {
 //            IConfigSource configSource = new IniConfigSource();
 //            ClientStackUserSettings userSettings = new ClientStackUserSettings();
 //            testLLUDPServer = new TestLLUDPServer();
 //            acm = new AgentCircuitManager();
-//                                    
+//
 //            uint port = 666;
 //            testLLUDPServer.Initialise(null, ref port, 0, false, configSource, acm);
 //            testPacketServer = new TestLLPacketServer(testLLUDPServer, userSettings);

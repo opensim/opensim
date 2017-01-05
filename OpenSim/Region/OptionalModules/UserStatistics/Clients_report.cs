@@ -115,7 +115,7 @@ namespace OpenSim.Region.UserStatistics
                         udata.fps = Convert.ToSingle(sdr["simfps"]);
                         clidata.Add(udata);
                         totalclients += udata.count;
-                        
+
                     }
                 }
                 sdr.Close();
@@ -126,9 +126,9 @@ namespace OpenSim.Region.UserStatistics
                     sql =
                         "select region_id, client_version, count(*) as cnt, avg(avg_sim_fps) as simfps from stats_session_data group by region_id, client_version order by region_id, count(*) desc;";
                     cmd = new SqliteCommand(sql, dbConn);
-                    
+
                     sdr = cmd.ExecuteReader();
-                    
+
                     if (sdr.HasRows)
                     {
                         while (sdr.Read())
@@ -145,10 +145,10 @@ namespace OpenSim.Region.UserStatistics
                     cmd.Dispose();
                 }
             }
-            
+
             foreach (ClientVersionData cvd in cliRegData)
             {
-                
+
                 if (regionTotals.ContainsKey(cvd.region_id))
                 {
                     int regiontotal = (int)regionTotals[cvd.region_id];

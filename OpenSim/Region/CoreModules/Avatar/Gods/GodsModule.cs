@@ -112,19 +112,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
             client.OnGodKickUser += KickUser;
             client.OnRequestGodlikePowers += RequestGodlikePowers;
         }
-        
+
         public void UnsubscribeFromClientEvents(IClientAPI client)
         {
             client.OnGodKickUser -= KickUser;
             client.OnRequestGodlikePowers -= RequestGodlikePowers;
         }
-        
+
         private void OnRegisterCaps(UUID agentID, Caps caps)
         {
             string uri = "/CAPS/" + UUID.Random();
 
             caps.RegisterHandler(
-                "UntrustedSimulatorMessage", 
+                "UntrustedSimulatorMessage",
                 new RestStreamHandler("POST", uri, HandleUntrustedSimulatorMessage, "UntrustedSimulatorMessage", null));
         }
 
@@ -176,7 +176,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
             if (godLike && sp.GodLevel < 200 && DialogModule != null)
                DialogModule.SendAlertToUser(agentID, "Request for god powers denied");
         }
-        
+
         /// <summary>
         /// Kicks or freezes User specified from the simulator. This logs them off of the grid
         /// </summary>
@@ -261,7 +261,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
             if(sp.IsDeleted || sp.IsChildAgent)
                 return;
             sp.ControllingClient.Kick(reason);
-            sp.Scene.CloseAgent(sp.UUID, true); 
+            sp.Scene.CloseAgent(sp.UUID, true);
         }
 
         private void OnIncomingInstantMessage(GridInstantMessage msg)

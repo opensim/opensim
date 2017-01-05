@@ -55,7 +55,7 @@ namespace OpenSim.Services.Connectors
         private List<AssetBase>[] m_sendRetries = new  List<AssetBase>[MAXSENDRETRIESLEN];
         private System.Timers.Timer m_retryTimer;
         private int m_maxAssetRequestConcurrency = 30;
-        
+
         private delegate void AssetRetrievedEx(AssetBase asset);
 
         // Keeps track of concurrent requests for the same asset, so that it's only loaded once.
@@ -150,7 +150,7 @@ namespace OpenSim.Services.Connectors
             string prefix = id.Substring(0, 2).ToLower();
 
             string host;
-            
+
             // HG URLs will not be valid UUIDS
             if (m_UriMap.ContainsKey(prefix))
                 host = m_UriMap[prefix];
@@ -180,11 +180,11 @@ namespace OpenSim.Services.Connectors
             if(m_retryCounter >= 61 ) // avoid overflow 60 is max in use below
                 m_retryCounter = 1;
 
-            int inUse = 0; 
+            int inUse = 0;
             int nextlevel;
-            int timefactor; 
+            int timefactor;
             List<AssetBase> retrylist;
-            // we need to go down            
+            // we need to go down
             for(int i = MAXSENDRETRIESLEN - 1; i >= 0; i--)
             {
                 lock(m_sendRetries)
@@ -219,13 +219,13 @@ namespace OpenSim.Services.Connectors
                 lock(m_sendRetries)
                     m_sendRetries[i] = null;
 
-                // we are the only ones with a copy of this retrylist now                
+                // we are the only ones with a copy of this retrylist now
                 foreach(AssetBase ass in retrylist)
                    retryStore(ass, nextlevel);
             }
 
             lock(m_sendRetries)
-            {          
+            {
                 if(inUse == 0 )
                     m_retryTimer.Stop();
 
@@ -245,7 +245,7 @@ namespace OpenSim.Services.Connectors
             AssetBase asset = null;
             if (m_Cache != null)
                 asset = m_Cache.Get(id);
-            
+
             if (asset == null || asset.Data == null || asset.Data.Length == 0)
             {
                 // XXX: Commented out for now since this has either never been properly operational or not for some time
@@ -259,7 +259,7 @@ namespace OpenSim.Services.Connectors
 
                 asset = SynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", uri, 0, m_Auth);
 
- 
+
                 if (m_Cache != null)
                 {
                     if (asset != null)
@@ -438,7 +438,7 @@ namespace OpenSim.Services.Connectors
                 // This is most likely to happen because the server doesn't support this function,
                 // so just silently return "doesn't exist" for all the assets.
             }
-            
+
             if (exist == null)
                 exist = new bool[ids.Length];
 
@@ -557,7 +557,7 @@ namespace OpenSim.Services.Connectors
                 if(nextRetryLevel >= MAXSENDRETRIESLEN)
                     m_log.WarnFormat("[Assets] Upload giveup after several retries id: {0} type {1}",
                             asset.ID.ToString(), asset.Type.ToString());
-                else                
+                else
                 {
                     lock(m_sendRetries)
                     {

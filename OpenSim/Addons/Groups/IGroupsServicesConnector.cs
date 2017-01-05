@@ -34,9 +34,9 @@ namespace OpenSim.Groups
 {
     public interface IGroupsServicesConnector
     {
-        UUID CreateGroup(UUID RequestingAgentID, string name, string charter, bool showInList, UUID insigniaID, int membershipFee, 
+        UUID CreateGroup(UUID RequestingAgentID, string name, string charter, bool showInList, UUID insigniaID, int membershipFee,
             bool openEnrollment, bool allowPublish, bool maturePublish, UUID founderID, out string reason);
-        bool UpdateGroup(string RequestingAgentID, UUID groupID, string charter, bool showInList, UUID insigniaID, int membershipFee, 
+        bool UpdateGroup(string RequestingAgentID, UUID groupID, string charter, bool showInList, UUID insigniaID, int membershipFee,
             bool openEnrollment, bool allowPublish, bool maturePublish, out string reason);
         ExtendedGroupRecord GetGroupRecord(string RequestingAgentID, UUID GroupID, string GroupName);
         List<DirGroupsReplyData> FindGroups(string RequestingAgentID, string search);
@@ -75,7 +75,7 @@ namespace OpenSim.Groups
         /// If the user is a member of the group then the data structure is returned.  If not, then null is returned.
         /// </returns>
         ExtendedGroupMembershipData GetAgentGroupMembership(string RequestingAgentID, string AgentID, UUID GroupID);
-        
+
         /// <summary>
         /// Get information about the groups to which a user belongs.
         /// </summary>
@@ -87,7 +87,7 @@ namespace OpenSim.Groups
         /// </returns>
         List<GroupMembershipData> GetAgentGroupMemberships(string RequestingAgentID, string AgentID);
 
-        bool AddGroupNotice(string RequestingAgentID, UUID groupID, UUID noticeID, string fromName, string subject, string message, 
+        bool AddGroupNotice(string RequestingAgentID, UUID groupID, UUID noticeID, string fromName, string subject, string message,
             bool hasAttachment, byte attType, string attName, UUID attItemID, string attOwnerID);
         GroupNoticeInfo GetGroupNotice(string RequestingAgentID, UUID noticeID);
         List<ExtendedGroupNoticeData> GetGroupNotices(string RequestingAgentID, UUID GroupID);

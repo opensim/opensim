@@ -140,7 +140,7 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
             string request = "<llsd><map><key>folders</key><array><map><key>fetch_folders</key><integer>1</integer><key>fetch_items</key><boolean>1</boolean><key>folder_id</key><uuid>";
             request += m_rootFolderID;
             request += "</uuid><key>owner_id</key><uuid>00000000-0000-0000-0000-000000000000</uuid><key>sort_order</key><integer>1</integer></map></array></map></llsd>";
-            
+
             string llsdresponse = handler.FetchInventoryDescendentsRequest(request, "/FETCH", string.Empty, req, resp);
 
             Assert.That(llsdresponse != null, Is.True, "Incorrect null response");
@@ -203,7 +203,7 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
 
             // Make sure that the note card link is included
             Assert.That(llsdresponse.Contains("Link to notecard"), Is.True, "Link to notecard is missing");
-            
+
             //Make sure the notecard item itself is included
             Assert.That(llsdresponse.Contains("Test Notecard 2"), Is.True, "Notecard 2 item (the source) is missing");
 

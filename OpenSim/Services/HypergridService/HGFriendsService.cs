@@ -227,7 +227,7 @@ namespace OpenSim.Services.HypergridService
 
             List<UUID> localFriendsOnline = new List<UUID>();
 
-            m_log.DebugFormat("[HGFRIENDS SERVICE]: Status notification: foreign user {0} wants to notify {1} local friends of {2} status", 
+            m_log.DebugFormat("[HGFRIENDS SERVICE]: Status notification: foreign user {0} wants to notify {1} local friends of {2} status",
                 foreignUserID, friends.Count, (online ? "online" : "offline"));
 
             // First, let's double check that the reported friends are, indeed, friends of that user

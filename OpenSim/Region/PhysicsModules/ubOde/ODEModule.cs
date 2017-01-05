@@ -11,16 +11,16 @@ using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.PhysicsModule.ubOde
 {
-	[Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ubODEPhysicsScene")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ubODEPhysicsScene")]
     class ubOdeModule : INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static Dictionary<Scene, ODEScene> m_scenes = new Dictionary<Scene, ODEScene>();
         private bool m_Enabled = false;
-		private IConfigSource m_config;
+        private IConfigSource m_config;
         private bool OSOdeLib;
-        
+
 
        #region INonSharedRegionModule
 
@@ -80,7 +80,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             if(m_scenes.ContainsKey(scene)) // ???
                 return;
-		    ODEScene newodescene = new ODEScene(scene, m_config, Name, Version, OSOdeLib);
+            ODEScene newodescene = new ODEScene(scene, m_config, Name, Version, OSOdeLib);
             m_scenes[scene] = newodescene;
         }
 
@@ -100,13 +100,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             if (!m_Enabled)
                 return;
-            
+
             if(m_scenes.ContainsKey(scene))
             {
                 m_scenes[scene].RegionLoaded();
             }
 
         }
-        #endregion			
+        #endregion
     }
 }

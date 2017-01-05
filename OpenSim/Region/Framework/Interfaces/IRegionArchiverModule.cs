@@ -40,17 +40,17 @@ namespace OpenSim.Region.Framework.Interfaces
     {
         void HandleLoadOarConsoleCommand(string module, string[] cmdparams);
         void HandleSaveOarConsoleCommand(string module, string[] cmdparams);
-            
+
         /// <summary>
         /// Archive the region to the given path
         /// </summary>
-        /// 
+        ///
         /// This method occurs asynchronously.  If you want notification of when it has completed then subscribe to
         /// the EventManager.OnOarFileSaved event.
-        /// 
+        ///
         /// <param name="savePath"></param>
         void ArchiveRegion(string savePath, Dictionary<string, object> options);
-        
+
         /// <summary>
         /// Archive the region to the given path
         /// </summary>
@@ -94,35 +94,35 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </remarks>
         /// <param name="loadPath"></param>
         void DearchiveRegion(string loadPath);
-        
+
         /// <summary>
         /// Dearchive the given region archive.  This replaces the existing scene.
         /// </summary>
-        /// 
+        ///
         /// If you want notification of when it has completed then subscribe to the EventManager.OnOarFileLoaded event.
-        /// 
+        ///
         /// <param name="loadPath"></param>
         /// <param name="requestId">If supplied, this request Id is later returned in the saved event</param>
         /// <param name="options">
         /// Dictionary of options.
         /// </param>
         void DearchiveRegion(string loadPath, Guid requestId, Dictionary<string,object> options);
-        
-        /// <summary>
-        /// Dearchive a region from a stream.  This replaces the existing scene. 
-        /// </summary>
-        /// 
-        /// If you want notification of when it has completed then subscribe to the EventManager.OnOarFileLoaded event.
-        /// 
-        /// <param name="loadStream"></param>
-        void DearchiveRegion(Stream loadStream);
-        
+
         /// <summary>
         /// Dearchive a region from a stream.  This replaces the existing scene.
         /// </summary>
-        /// 
+        ///
         /// If you want notification of when it has completed then subscribe to the EventManager.OnOarFileLoaded event.
-        /// 
+        ///
+        /// <param name="loadStream"></param>
+        void DearchiveRegion(Stream loadStream);
+
+        /// <summary>
+        /// Dearchive a region from a stream.  This replaces the existing scene.
+        /// </summary>
+        ///
+        /// If you want notification of when it has completed then subscribe to the EventManager.OnOarFileLoaded event.
+        ///
         /// <param name="loadStream"></param>
         /// <param name="requestId">If supplied, this request Id is later returned in the saved event</param>
         /// <param name="options">

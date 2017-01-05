@@ -31,7 +31,7 @@ using log4net;
 
 namespace OpenSim.Framework
 {
-   
+
     public class BasicDOSProtector
     {
         public enum ThrottleAction
@@ -43,7 +43,7 @@ namespace OpenSim.Framework
         private readonly BasicDosProtectorOptions _options;
         private readonly Dictionary<string, CircularBuffer<int>> _deeperInspection;   // per client request checker
         private readonly Dictionary<string, int> _tempBlocked;  // blocked list
-        private readonly Dictionary<string, int> _sessions; 
+        private readonly Dictionary<string, int> _sessions;
         private readonly System.Timers.Timer _forgetTimer;  // Cleanup timer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private readonly System.Threading.ReaderWriterLockSlim _blockLockSlim = new System.Threading.ReaderWriterLockSlim();
@@ -133,7 +133,7 @@ namespace OpenSim.Framework
                 else
                     throw new System.Security.SecurityException("Throttled");
             }
-           
+
             _blockLockSlim.ExitReadLock();
 
             lock (_generalRequestTimes)
@@ -169,10 +169,10 @@ namespace OpenSim.Framework
                         _blockLockSlim.ExitWriteLock();
 
                     }
-                    
+
 
                 }
-                else 
+                else
                     ProcessConcurrency(key, endpoint);
             }
             if (_generalRequestTimes.Size == _generalRequestTimes.Capacity &&
@@ -194,7 +194,7 @@ namespace OpenSim.Framework
             _sessionLockSlim.EnterWriteLock();
             if (_sessions.ContainsKey(key))
                 _sessions[key] = _sessions[key] + 1;
-            else 
+            else
                 _sessions.Add(key,1);
             _sessionLockSlim.ExitWriteLock();
         }
@@ -209,7 +209,7 @@ namespace OpenSim.Framework
             }
             else
                 _sessions.Add(key, 1);
-           
+
             _sessionLockSlim.ExitWriteLock();
         }
 

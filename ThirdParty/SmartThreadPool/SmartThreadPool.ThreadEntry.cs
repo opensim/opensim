@@ -26,15 +26,15 @@ namespace Amib.Threading
             /// <summary>
             /// A reference from each thread in the thread pool to its SmartThreadPool
             /// object container.
-            /// With this variable a thread can know whatever it belongs to a 
+            /// With this variable a thread can know whatever it belongs to a
             /// SmartThreadPool.
             /// </summary>
             private readonly SmartThreadPool _associatedSmartThreadPool;
 
             /// <summary>
-            /// A reference to the current work item a thread from the thread pool 
+            /// A reference to the current work item a thread from the thread pool
             /// is executing.
-            /// </summary>            
+            /// </summary>
             public WorkItem CurrentWorkItem { get; set; }
 
             public ThreadEntry(SmartThreadPool stp)

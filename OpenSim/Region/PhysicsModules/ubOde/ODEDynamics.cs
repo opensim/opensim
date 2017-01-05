@@ -170,7 +170,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_type = vd.m_type;
             m_flags = vd.m_flags;
 
-            
+
             // Linear properties
             m_linearMotorDirection = vd.m_linearMotorDirection;
 
@@ -761,8 +761,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 roll = (float)Math.Atan2(minuszY, zZ);
             }
             return ;
-        }        
-        
+        }
+
         internal void Step()
         {
             IntPtr Body = rootPrim.Body;
@@ -797,7 +797,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             Vector3 curLocalAngVel = curAngVel * irotq; // current angular velocity in  local
 
             float ldampZ = 0;
-            
+
             bool mousemode = false;
             bool mousemodebank = false;
 
@@ -852,7 +852,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 m_lmEfect = 0;
                 m_ffactor = 1f;
             }
-           
+
             // hover
             if (m_VhoverTimescale < 300 && rootPrim.prim_geom != IntPtr.Zero)
             {
@@ -1001,7 +1001,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                         if (broll > halfpi)
                                             broll = pi - broll;
                                         else if (broll < -halfpi)
-                                            broll = -pi - broll;                           
+                                            broll = -pi - broll;
                     */
                     broll *= m_bankingEfficiency;
                     if (m_bankingMix != 0)
@@ -1054,7 +1054,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     float invamts = 1.0f/m_angularMotorTimescale;
                     float tmp;
 
-                    // get out of x == 0 plane 
+                    // get out of x == 0 plane
                     if(Math.Abs(dirv.X) < 0.001f)
                         dirv.X = 0.001f;
 
@@ -1068,7 +1068,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         torque.Y += (tmp - curLocalAngVel.Y) * invamts;
                         torque.Y -= curLocalAngVel.Y * m_amdampY;
                     }
-                    else 
+                    else
                         torque.Y -= curLocalAngVel.Y * m_invtimestep;
 
                     if (Math.Abs(dirv.Y) > 0.01)
@@ -1099,7 +1099,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     {
                         if(mousemodebank)
                             torque.X -= curLocalAngVel.X * m_invtimestep;
-                        else 
+                        else
                             torque.Z -= curLocalAngVel.Z * m_invtimestep;
                     }
                 }
@@ -1133,11 +1133,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if (m_angularDeflectionEfficiency > 0)
                 {
                     Vector3 dirv;
-                
+
                     if (curLocalVel.X > 0.01f)
                         dirv = curLocalVel;
                     else if (curLocalVel.X < -0.01f)
-                        // use oposite 
+                        // use oposite
                         dirv = -curLocalVel;
                     else
                     {
@@ -1167,7 +1167,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     torque.Z -= curLocalAngVel.Z * m_amdampZ;
                 }
             }
-          
+
             force *= dmass.mass;
 
             force += rootPrim.m_force;

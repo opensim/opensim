@@ -54,7 +54,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Avatar
 
         #region ISharedRegionModule
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }
@@ -144,12 +144,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Avatar
         {
             return m_AvatarService.GetAppearance(userID);
         }
-        
+
         public bool SetAppearance(UUID userID, AvatarAppearance appearance)
         {
             return m_AvatarService.SetAppearance(userID,appearance);
         }
-            
+
         public AvatarData GetAvatar(UUID userID)
         {
             return m_AvatarService.GetAvatar(userID);
@@ -174,7 +174,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Avatar
         {
             return m_AvatarService.RemoveItems(userID, names);
         }
-        
+
         #endregion
 
     }

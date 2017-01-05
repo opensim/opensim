@@ -47,7 +47,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authentication
 
         private bool m_Enabled = false;
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }

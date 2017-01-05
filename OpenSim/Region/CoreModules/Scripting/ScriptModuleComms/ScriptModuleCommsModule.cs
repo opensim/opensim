@@ -89,7 +89,7 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
         public void RegionLoaded(Scene scene)
         {
             m_scriptModule = scene.RequestModuleInterface<IScriptModule>();
-            
+
             if (m_scriptModule != null)
                 m_log.Info("[MODULE COMMANDS]: Script engine found, module active");
         }
@@ -237,7 +237,7 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
                 }
             }
         }
-        
+
         public Delegate[] GetScriptInvocationList()
         {
             List<Delegate> ret = new List<Delegate>();
@@ -361,14 +361,14 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
         public object LookupModConstant(string cname)
         {
             // m_log.DebugFormat("[MODULE COMMANDS] lookup constant <{0}>",cname);
-            
+
             lock (m_constants)
             {
                 object value = null;
                 if (m_constants.TryGetValue(cname,out value))
                     return value;
             }
-            
+
             return null;
         }
 

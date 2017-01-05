@@ -58,7 +58,7 @@ namespace OpenSim.Tools.Configger
                     vol = vcomps[0];
                 }
             }
-            
+
             string[] comps = path.Split(new char[] {Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar}, StringSplitOptions.RemoveEmptyEntries);
 
             // Glob

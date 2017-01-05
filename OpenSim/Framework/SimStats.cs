@@ -32,7 +32,7 @@ namespace OpenSim.Framework
 {
     /// <summary>
     /// Enapsulate statistics for a simulator/scene.
-    /// 
+    ///
     /// TODO: This looks very much like the OpenMetaverse SimStatsPacket.  It should be much more generic stats
     /// storage.
     /// </summary>
@@ -49,7 +49,7 @@ namespace OpenSim.Framework
             get { return m_regionY; }
         }
         private uint m_regionY;
-        
+
         public SimStatsPacket.RegionBlock RegionBlock
         {
             get { return m_regionBlock; }
@@ -73,7 +73,7 @@ namespace OpenSim.Framework
             get { return m_regionFlags; }
         }
         private uint m_regionFlags;
-            
+
         public uint ObjectCapacity
         {
             get { return m_objectCapacity; }
@@ -85,9 +85,9 @@ namespace OpenSim.Framework
             get { return regionUUID; }
         }
         private UUID regionUUID;
-                
+
         public SimStats(
-            uint regionX, uint regionY, uint regionFlags, uint objectCapacity, 
+            uint regionX, uint regionY, uint regionFlags, uint objectCapacity,
             SimStatsPacket.RegionBlock regionBlock, SimStatsPacket.StatBlock[] statsBlock,
             SimStatsPacket.StatBlock[] ExtraStatsBlock, UUID pRUUID)
         {

@@ -43,7 +43,7 @@ namespace OpenSim.Framework
         {
             return "CAPS/" + capsObjectPath + "0000/";
         }
-        
+
         /// <summary>
         /// Get a random CAPS object path component that will be used as the identifying part of all future CAPS requests
         /// </summary>

@@ -59,7 +59,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
         private AssetPermissions m_AssetPerms;
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }
@@ -159,7 +159,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
         {
             if (!m_Enabled)
                 return;
-            
+
             m_aScene = scene;
 
             m_aScene.RegisterModuleInterface<IAssetService>(this);
@@ -180,7 +180,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
                 if (!(m_Cache is ISharedRegionModule))
                     m_Cache = null;
-                
+
             }
 
             m_log.InfoFormat("[HG ASSET CONNECTOR]: Enabled hypergrid asset broker for region {0}", scene.RegionInfo.RegionName);
@@ -206,7 +206,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
         {
             //m_log.DebugFormat("[HG ASSET CONNECTOR]: Get {0}", id);
             AssetBase asset = null;
-            
+
             if (m_Cache != null)
             {
                 asset = m_Cache.Get(id);
@@ -247,7 +247,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
         public AssetMetadata GetMetadata(string id)
         {
             AssetBase asset = null;
-            
+
             if (m_Cache != null)
             {
                 if (m_Cache != null)
@@ -270,7 +270,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
         public byte[] GetData(string id)
         {
             AssetBase asset = null;
-            
+
             if (m_Cache != null)
             {
                 if (m_Cache != null)
@@ -290,7 +290,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
         public bool Get(string id, Object sender, AssetRetrieved handler)
         {
             AssetBase asset = null;
-            
+
             if (m_Cache != null)
                 asset = m_Cache.Get(id);
 
@@ -348,7 +348,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             bool isHG = IsHG(asset.ID);
             if ((m_Cache != null) && !isHG)
-                // Don't store it in the cache if the asset is to 
+                // Don't store it in the cache if the asset is to
                 // be sent to the other grid, because this is already
                 // a copy of the local asset.
                 m_Cache.Cache(asset);
@@ -366,7 +366,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             if (String.IsNullOrEmpty(id))
                 return string.Empty;
-            
+
            if(asset.ID != id)
            {
                 asset.ID = id;
@@ -380,7 +380,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
         public bool UpdateContent(string id, byte[] data)
         {
             AssetBase asset = null;
-            
+
             if (m_Cache != null)
                 asset = m_Cache.Get(id);
 

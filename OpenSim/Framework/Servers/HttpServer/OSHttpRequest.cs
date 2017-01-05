@@ -155,11 +155,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         private string _userAgent;
 
         internal IHttpRequest IHttpRequest
-        { 
+        {
             get { return _request; }
         }
 
-        internal IHttpClientContext IHttpClientContext 
+        internal IHttpClientContext IHttpClientContext
         {
             get { return _context; }
         }
@@ -192,19 +192,19 @@ namespace OpenSim.Framework.Servers.HttpServer
                     // ignore
                 }
             }
-            
+
             if (null != req.Headers["content-type"])
                 _contentType = _request.Headers["content-type"];
             if (null != req.Headers["user-agent"])
                 _userAgent = req.Headers["user-agent"];
-            
+
             if (null != req.Headers["remote_addr"])
             {
                 try
                 {
                     IPAddress addr = IPAddress.Parse(req.Headers["remote_addr"]);
                     // sometimes req.Headers["remote_port"] returns a comma separated list, so use
-                    // the first one in the list and log it 
+                    // the first one in the list and log it
                     string[] strPorts = req.Headers["remote_port"].Split(new char[] { ',' });
                     if (strPorts.Length > 1)
                     {
@@ -216,7 +216,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
                 catch (FormatException)
                 {
-                    _log.ErrorFormat("[OSHttpRequest]: format exception on addr/port {0}:{1}, ignoring", 
+                    _log.ErrorFormat("[OSHttpRequest]: format exception on addr/port {0}:{1}, ignoring",
                                      req.Headers["remote_addr"], req.Headers["remote_port"]);
                 }
             }

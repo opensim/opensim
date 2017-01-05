@@ -319,7 +319,7 @@ public abstract class BSLinkset
     public virtual bool AllPartsComplete
     {
         get {
-            bool ret = true; 
+            bool ret = true;
             this.ForEachMember((member) =>
             {
                 if ((!member.IsInitialized) || member.IsIncomplete || member.PrimAssetState == BSPhysObject.PrimAssetCondition.Waiting)

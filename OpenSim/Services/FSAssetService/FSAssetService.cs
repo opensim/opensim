@@ -115,7 +115,7 @@ namespace OpenSim.Services.FSAssetService
             }
 
             IConfig assetConfig = config.Configs[configName];
-            
+
             if (assetConfig == null)
                 throw new Exception("No AssetService configuration");
 
@@ -128,12 +128,12 @@ namespace OpenSim.Services.FSAssetService
 
             // If not found above, fallback to Database defaults
             IConfig dbConfig = config.Configs["DatabaseService"];
-            
+
             if (dbConfig != null)
             {
                 if (dllName == String.Empty)
                     dllName = dbConfig.GetString("StorageProvider", String.Empty);
-                
+
                 if (connectionString == String.Empty)
                     connectionString = dbConfig.GetString("ConnectionString", String.Empty);
             }
@@ -156,7 +156,7 @@ namespace OpenSim.Services.FSAssetService
 
             // Setup Fallback Service
             string str = assetConfig.GetString("FallbackService", string.Empty);
-            
+
             if (str != string.Empty)
             {
                 object[] args = new object[] { config };
@@ -204,7 +204,7 @@ namespace OpenSim.Services.FSAssetService
                                 Store(a, false);
                             });
                 }
-            
+
                 m_WriterThread = new Thread(Writer);
                 m_WriterThread.Start();
 
@@ -214,7 +214,7 @@ namespace OpenSim.Services.FSAssetService
                     m_StatsThread.Start();
                 }
             }
-            
+
             m_log.Info("[FSASSETS]: FS asset service enabled");
         }
 
@@ -223,7 +223,7 @@ namespace OpenSim.Services.FSAssetService
             while (true)
             {
                 Thread.Sleep(60000);
-                 
+
                 lock (m_statsLock)
                 {
                     if (m_readCount > 0)
@@ -723,7 +723,7 @@ namespace OpenSim.Services.FSAssetService
             AssetBase asset = Get(args[2], out hash);
 
             if (asset == null || asset.Data.Length == 0)
-            {   
+            {
                 MainConsole.Instance.Output("Asset not found");
                 return;
             }
@@ -765,7 +765,7 @@ namespace OpenSim.Services.FSAssetService
             AssetBase asset = Get(args[2]);
 
             if (asset == null || asset.Data.Length == 0)
-            {   
+            {
                 MainConsole.Instance.Output("Asset not found");
                 return;
             }

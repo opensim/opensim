@@ -48,16 +48,16 @@ using OpenSim.Services.Interfaces;
 /***************************************************************************
  * Simian Data Map
  * ===============
- * 
+ *
  * OwnerID -> Type -> Key
  * -----------------------
- * 
+ *
  * UserID -> Group -> ActiveGroup
  * + GroupID
- * 
+ *
  * UserID -> GroupSessionDropped -> GroupID
  * UserID -> GroupSessionInvited -> GroupID
- * 
+ *
  * UserID -> GroupMember -> GroupID
  * + SelectedRoleID [UUID]
  * + AcceptNotices  [bool]
@@ -65,9 +65,9 @@ using OpenSim.Services.Interfaces;
  * + Contribution   [int]
  *
  * UserID -> GroupRole[GroupID] -> RoleID
- * 
- * 
- * GroupID -> Group -> GroupName 
+ *
+ *
+ * GroupID -> Group -> GroupName
  * + Charter
  * + ShowInList
  * + InsigniaID
@@ -79,17 +79,17 @@ using OpenSim.Services.Interfaces;
  * + EveryonePowers
  * + OwnerRoleID
  * + OwnersPowers
- * 
+ *
  * GroupID -> GroupRole -> RoleID
  * + Name
  * + Description
  * + Title
  * + Powers
- * 
+ *
  * GroupID -> GroupMemberInvite -> InviteID
  * + AgentID
  * + RoleID
- * 
+ *
  * GroupID -> GroupNotice -> NoticeID
  * + TimeStamp      [uint]
  * + FromName       [string]
@@ -106,12 +106,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public const GroupPowers m_DefaultEveryonePowers = GroupPowers.AllowSetHome | 
-            GroupPowers.Accountable | 
-            GroupPowers.JoinChat | 
-            GroupPowers.AllowVoiceChat | 
-            GroupPowers.ReceiveNotices | 
-            GroupPowers.StartProposal | 
+        public const GroupPowers m_DefaultEveryonePowers = GroupPowers.AllowSetHome |
+            GroupPowers.Accountable |
+            GroupPowers.JoinChat |
+            GroupPowers.AllowVoiceChat |
+            GroupPowers.ReceiveNotices |
+            GroupPowers.StartProposal |
             GroupPowers.VoteOnProposal;
 
         // Would this be cleaner as (GroupPowers)ulong.MaxValue;
@@ -168,12 +168,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         private bool m_debugEnabled = false;
 
         private Dictionary<string, bool> m_pendingRequests = new Dictionary<string,bool>();
-        
+
         private ExpiringCache<string, OSDMap> m_memoryCache;
         private int m_cacheTimeout = 30;
 
         // private IUserAccountService m_accountService = null;
-        
+
 
         #region Region Module interfaceBase Members
 
@@ -229,10 +229,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     m_log.InfoFormat("[SIMIAN-GROUPS-CONNECTOR] Groups Cache Timeout set to {0}.", m_cacheTimeout);
                 }
 
-                
+
 
                 m_memoryCache = new ExpiringCache<string,OSDMap>();
-                
+
 
                 // If we got all the config options we need, lets start'er'up
                 m_connectorEnabled = true;
@@ -287,8 +287,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         /// <summary>
         /// Create a Group, including Everyone and Owners Role, place FounderID in both groups, select Owner as selected role, and newly created group as agent's active role.
         /// </summary>
-        public UUID CreateGroup(UUID requestingAgentID, string name, string charter, bool showInList, UUID insigniaID, 
-                                int membershipFee, bool openEnrollment, bool allowPublish, 
+        public UUID CreateGroup(UUID requestingAgentID, string name, string charter, bool showInList, UUID insigniaID,
+                                int membershipFee, bool openEnrollment, bool allowPublish,
                                 bool maturePublish, UUID founderID)
         {
             if (m_debugEnabled) m_log.InfoFormat("[SIMIAN-GROUPS-CONNECTOR]  {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
@@ -313,7 +313,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             {
                 AddGroupRole(requestingAgentID, GroupID, UUID.Zero, "Everyone", "Members of " + name, "Member of " + name, (ulong)m_DefaultEveryonePowers);
                 AddGroupRole(requestingAgentID, GroupID, OwnerRoleID, "Owners", "Owners of " + name, "Owner of " + name, (ulong)m_DefaultOwnerPowers);
-                
+
                 AddAgentToGroup(requestingAgentID, requestingAgentID, GroupID, OwnerRoleID);
 
                 return GroupID;
@@ -325,8 +325,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         }
 
 
-        public void UpdateGroup(UUID requestingAgentID, UUID groupID, string charter, bool showInList, 
-                                UUID insigniaID, int membershipFee, bool openEnrollment, 
+        public void UpdateGroup(UUID requestingAgentID, UUID groupID, string charter, bool showInList,
+                                UUID insigniaID, int membershipFee, bool openEnrollment,
                                 bool allowPublish, bool maturePublish)
         {
             if (m_debugEnabled) m_log.InfoFormat("[SIMIAN-GROUPS-CONNECTOR]  {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
@@ -350,7 +350,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         }
 
 
-        public void AddGroupRole(UUID requestingAgentID, UUID groupID, UUID roleID, string name, string description, 
+        public void AddGroupRole(UUID requestingAgentID, UUID groupID, UUID roleID, string name, string description,
                                  string title, ulong powers)
         {
             if (m_debugEnabled) m_log.InfoFormat("[SIMIAN-GROUPS-CONNECTOR]  {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
@@ -393,7 +393,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         }
 
 
-        public void UpdateGroupRole(UUID requestingAgentID, UUID groupID, UUID roleID, string name, string description, 
+        public void UpdateGroupRole(UUID requestingAgentID, UUID groupID, UUID roleID, string name, string description,
                                     string title, ulong powers)
         {
             if (m_debugEnabled) m_log.InfoFormat("[SIMIAN-GROUPS-CONNECTOR]  {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
@@ -434,7 +434,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 {
                     return null;
                 }
-            } 
+            }
             else if (!string.IsNullOrEmpty(groupName))
             {
                 if (!SimianGetFirstGenericEntry("Group", groupName, out groupID, out GroupInfoMap))
@@ -481,7 +481,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             {
                 MemberGroupProfile.Charter = groupProfile["Charter"].AsString();
             }
-            
+
             MemberGroupProfile.ShowInList = groupProfile["ShowInList"].AsString() == "1";
             MemberGroupProfile.InsigniaID = groupProfile["InsigniaID"].AsUUID();
             MemberGroupProfile.MembershipFee = groupProfile["MembershipFee"].AsInteger();
@@ -489,7 +489,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             MemberGroupProfile.AllowPublish = groupProfile["AllowPublish"].AsBoolean();
             MemberGroupProfile.MaturePublish = groupProfile["MaturePublish"].AsBoolean();
             MemberGroupProfile.FounderID = groupProfile["FounderID"].AsUUID();;
-            MemberGroupProfile.OwnerRole = groupProfile["OwnerRoleID"].AsUUID(); 
+            MemberGroupProfile.OwnerRole = groupProfile["OwnerRoleID"].AsUUID();
 
             Dictionary<UUID, OSDMap> Members;
             if (SimianGetGenericEntries("GroupMember",groupID.ToString(), out Members))
@@ -546,7 +546,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             {
                 GroupMemberInfo = new OSDMap();
             }
-            
+
             GroupMemberInfo["AcceptNotices"] = OSD.FromBoolean(acceptNotices);
             GroupMemberInfo["ListInProfile"] = OSD.FromBoolean(listInProfile);
             GroupMemberInfo["Contribution"] = OSD.FromInteger(0);
@@ -624,7 +624,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             // Remove Group Member information for this group
             SimianRemoveGenericEntry(agentID, "GroupMember", groupID.ToString());
 
-            // By using a Simian Generics Type consisting of a prefix and a groupID, 
+            // By using a Simian Generics Type consisting of a prefix and a groupID,
             // combined with RoleID as key allows us to get a list of roles a particular member
             // of a group is assigned to.
             string GroupRoleMemberType = "GroupRole" + groupID.ToString();
@@ -696,7 +696,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     {
                         data.members = 0;
                     }
-                    
+
                     // TODO: sort results?
                     // data.searchOrder = order;
 
@@ -721,8 +721,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 data.AcceptNotices = UserGroupMemberInfo["AcceptNotices"].AsBoolean();
                 data.Contribution = UserGroupMemberInfo["Contribution"].AsInteger();
                 data.ListInProfile = UserGroupMemberInfo["ListInProfile"].AsBoolean();
-                data.ActiveRole = UserGroupMemberInfo["SelectedRoleID"].AsUUID();         
-                
+                data.ActiveRole = UserGroupMemberInfo["SelectedRoleID"].AsUUID();
+
                 ///////////////////////////////
                 // Agent Specific Information:
                 //
@@ -730,7 +730,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 if (SimianGetGenericEntry(agentID, "Group", "ActiveGroup", out UserActiveGroup))
                 {
                     data.Active = UserActiveGroup["GroupID"].AsUUID().Equals(groupID);
-                }                
+                }
 
                 ///////////////////////////////
                 // Role Specific Information:
@@ -740,8 +740,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 {
                     data.GroupTitle = GroupRoleInfo["Title"].AsString();
                     data.GroupPowers = GroupRoleInfo["Powers"].AsULong();
-                }                
-                
+                }
+
                 ///////////////////////////////
                 // Group Specific Information:
                 //
@@ -759,7 +759,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     data.MembershipFee = GroupInfo["MembershipFee"].AsInteger();
                     data.OpenEnrollment = GroupInfo["OpenEnrollment"].AsBoolean();
                     data.ShowInList = GroupInfo["ShowInList"].AsBoolean();
-                }                       
+                }
             }
 
             return data;
@@ -794,7 +794,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     memberships.Add(GetAgentGroupMembership(requestingAgentID, agentID, UUID.Parse(key)));
                 }
             }
-            
+
             return memberships;
         }
 
@@ -1017,7 +1017,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             Notice["BinaryBucket"] = OSD.FromBinary(binaryBucket);
 
             SimianAddGeneric(groupID, "GroupNotice", noticeID.ToString(), Notice);
-            
+
         }
         #endregion
 
@@ -1250,7 +1250,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 { "OwnerID", ownerID.ToString() },
                 { "Type", type }
             };
-            
+
 
 
             OSDMap response = CachedPostRequest(requestArgs);
@@ -1357,7 +1357,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 || requestArgs["RequestMethod"] == "AddGeneric")
             {
                 m_log.WarnFormat("[SIMIAN GROUPS CONNECTOR]: clearing generics cache");
-                
+
                 // Any and all updates cause the cache to clear
                 m_memoryCache.Clear();
 
@@ -1383,14 +1383,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 {
                     if (m_memoryCache.TryGetValue(CacheKey, out response))
                         return response;
-                    
+
                     if (! m_pendingRequests.ContainsKey(CacheKey))
                     {
                         m_pendingRequests.Add(CacheKey,true);
                         firstRequest = true;
                     }
                 }
-                
+
                 if (firstRequest)
                 {
                     // if it wasn't in the cache, pass the request to the Simian Grid Services
@@ -1402,7 +1402,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     {
                         m_log.ErrorFormat("[SIMIAN GROUPS CONNECTOR]: request failed {0}", CacheKey);
                     }
-                    
+
                     // and cache the response
                     lock (m_memoryCache)
                     {
@@ -1420,7 +1420,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             // {
             //     m_log.WarnFormat("[SIMIAN GROUPS CONNECTOR]: query not in the cache");
             //     Util.PrintCallStack();
-                
+
             //     // if it wasn't in the cache, pass the request to the Simian Grid Services
             //     response = WebUtil.PostToService(m_groupsServerURI, requestArgs);
 

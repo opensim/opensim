@@ -274,7 +274,7 @@ namespace OpenSim.Framework.Monitoring
                     {
                         if (!(string.IsNullOrEmpty(pContainerName) || pContainerName == AllSubCommand || pContainerName == contName))
                             continue;
-                        
+
                         OSDMap statMap = new OSDMap();
 
                         SortedDictionary<string, Stat> theStats = RegisteredStats[catName][contName];
@@ -398,7 +398,7 @@ namespace OpenSim.Framework.Monitoring
             {
                 if (!TryGetStatParents(stat, out category, out container))
                     return false;
-                
+
                 if(container != null)
                 {
                     container.Remove(stat.ShortName);

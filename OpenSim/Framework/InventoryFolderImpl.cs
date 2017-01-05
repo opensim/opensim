@@ -314,7 +314,7 @@ namespace OpenSim.Framework
         /// XPath like expression
         ///
         /// FIXME: Delimitors which occur in names themselves are not currently escapable.
-        /// 
+        ///
         /// <param name="path">
         /// The path to the required folder.
         /// It this is empty or consists only of the PATH_DELIMTER then this folder itself is returned.

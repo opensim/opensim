@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 using System;
 using System.Collections;
 using System.Collections.Specialized;
@@ -44,7 +44,7 @@ using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
- 
+
 namespace OpenSim.Capabilities.Handlers
 {
     public class GetTextureRobustHandler : BaseStreamHandler
@@ -52,9 +52,9 @@ namespace OpenSim.Capabilities.Handlers
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private IAssetService m_assetService;
- 
+
         public const string DefaultFormat = "x-j2c";
- 
+
         // TODO: Change this to a config option
         private string m_RedirectURL = null;
 
@@ -66,28 +66,28 @@ namespace OpenSim.Capabilities.Handlers
             if (m_RedirectURL != null && !m_RedirectURL.EndsWith("/"))
                 m_RedirectURL += "/";
         }
- 
+
         protected override byte[] ProcessRequest(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             // Try to parse the texture ID from the request URL
             NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
             string textureStr = query.GetOne("texture_id");
             string format = query.GetOne("format");
- 
+
             //m_log.DebugFormat("[GETTEXTURE]: called {0}", textureStr);
- 
+
             if (m_assetService == null)
             {
                 m_log.Error("[GETTEXTURE]: Cannot fetch texture " + textureStr + " without an asset service");
                 httpResponse.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
                 return null;
             }
- 
+
             UUID textureID;
             if (!String.IsNullOrEmpty(textureStr) && UUID.TryParse(textureStr, out textureID))
             {
 //                m_log.DebugFormat("[GETTEXTURE]: Received request for texture id {0}", textureID);
- 
+
                 string[] formats;
                 if (!string.IsNullOrEmpty(format))
                 {
@@ -98,10 +98,10 @@ namespace OpenSim.Capabilities.Handlers
                     formats = WebUtil.GetPreferredImageTypes(httpRequest.Headers.Get("Accept"));
                     if (formats.Length == 0)
                         formats = new string[1] { DefaultFormat }; // default
- 
+
                 }
                 // OK, we have an array with preferred formats, possibly with only one entry
- 
+
                 httpResponse.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
                 foreach (string f in formats)
                 {
@@ -113,14 +113,14 @@ namespace OpenSim.Capabilities.Handlers
             {
                 m_log.Warn("[GETTEXTURE]: Failed to parse a texture_id from GetTexture request: " + httpRequest.Url);
             }
- 
+
 //            m_log.DebugFormat(
 //                "[GETTEXTURE]: For texture {0} sending back response {1}, data length {2}",
 //                textureID, httpResponse.StatusCode, httpResponse.ContentLength);
- 
+
             return null;
         }
- 
+
         /// <summary>
         ///
         /// </summary>
@@ -133,16 +133,16 @@ namespace OpenSim.Capabilities.Handlers
         {
 //            m_log.DebugFormat("[GETTEXTURE]: {0} with requested format {1}", textureID, format);
             AssetBase texture;
- 
+
             string fullID = textureID.ToString();
             if (format != DefaultFormat)
                 fullID = fullID + "-" + format;
- 
+
             if (!String.IsNullOrEmpty(m_RedirectURL))
             {
                 // Only try to fetch locally cached textures. Misses are redirected
                 texture = m_assetService.GetCached(fullID);
- 
+
                 if (texture != null)
                 {
                     if (texture.Type != (sbyte)AssetType.Texture)
@@ -166,14 +166,14 @@ namespace OpenSim.Capabilities.Handlers
             {
                 // try the cache
                 texture = m_assetService.GetCached(fullID);
- 
+
                 if (texture == null)
                 {
 //                    m_log.DebugFormat("[GETTEXTURE]: texture was not in the cache");
- 
+
                     // Fetch locally or remotely. Misses return a 404
                     texture = m_assetService.Get(textureID.ToString());
- 
+
                     if (texture != null)
                     {
                         if (texture.Type != (sbyte)AssetType.Texture)
@@ -192,7 +192,7 @@ namespace OpenSim.Capabilities.Handlers
                             newTexture.Data = ConvertTextureData(texture, format);
                             if (newTexture.Data.Length == 0)
                                 return false; // !!! Caller try another codec, please!
- 
+
                             newTexture.Flags = AssetFlags.Collectable;
                             newTexture.Temporary = true;
                             newTexture.Local = true;
@@ -209,17 +209,17 @@ namespace OpenSim.Capabilities.Handlers
                    return true;
                }
             }
- 
+
             // not found
 //            m_log.Warn("[GETTEXTURE]: Texture " + textureID + " not found");
             httpResponse.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
             return true;
         }
- 
+
         private void WriteTextureData(IOSHttpRequest request, IOSHttpResponse response, AssetBase texture, string format)
         {
             string range = request.Headers.GetOne("Range");
- 
+
             if (!String.IsNullOrEmpty(range)) // JP2's only
             {
                 // Range request
@@ -233,7 +233,7 @@ namespace OpenSim.Capabilities.Handlers
 //                        m_log.DebugFormat(
 //                            "[GETTEXTURE]: Client requested range for texture {0} starting at {1} but texture has end of {2}",
 //                            texture.ID, start, texture.Data.Length);
- 
+
                         // Stricly speaking, as per http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html, we should be sending back
                         // Requested Range Not Satisfiable (416) here.  However, it appears that at least recent implementations
                         // of the Linden Lab viewer (3.2.1 and 3.3.4 and probably earlier), a viewer that has previously
@@ -244,7 +244,7 @@ namespace OpenSim.Capabilities.Handlers
                         // level 2.  If this estimate is greater than the total texture size, returning a RequestedRangeNotSatisfiable
                         // here will cause the viewer to treat the texture as bad and never display the full resolution
                         // However, if we return PartialContent (or OK) instead, the viewer will display that resolution.
- 
+
 //                        response.StatusCode = (int)System.Net.HttpStatusCode.RequestedRangeNotSatisfiable;
 //                        response.AddHeader("Content-Range", String.Format("bytes */{0}", texture.Data.Length));
 //                        response.StatusCode = (int)System.Net.HttpStatusCode.OK;
@@ -257,13 +257,13 @@ namespace OpenSim.Capabilities.Handlers
                         // the rest of the entity.
                         if (end == -1)
                             end = int.MaxValue;
- 
+
                         end = Utils.Clamp(end, 0, texture.Data.Length - 1);
                         start = Utils.Clamp(start, 0, end);
                         int len = end - start + 1;
- 
+
 //                        m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);
- 
+
                         // Always return PartialContent, even if the range covered the entire data length
                         // We were accidentally sending back 404 before in this situation
                         // https://issues.apache.org/bugzilla/show_bug.cgi?id=51878 supports sending 206 even if the
@@ -275,11 +275,11 @@ namespace OpenSim.Capabilities.Handlers
 //                            response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 //                        else
                         response.StatusCode = (int)System.Net.HttpStatusCode.PartialContent;
- 
+
                         response.ContentLength = len;
                         response.ContentType = texture.Metadata.ContentType;
                         response.AddHeader("Content-Range", String.Format("bytes {0}-{1}/{2}", start, end, texture.Data.Length));
- 
+
                         response.Body.Write(texture.Data, start, len);
                     }
                 }
@@ -300,7 +300,7 @@ namespace OpenSim.Capabilities.Handlers
                     response.ContentType = "image/" + format;
                 response.Body.Write(texture.Data, 0, texture.Data.Length);
             }
- 
+
 //            if (response.StatusCode < 200 || response.StatusCode > 299)
 //                m_log.WarnFormat(
 //                    "[GETTEXTURE]: For texture {0} requested range {1} responded {2} with content length {3} (actual {4})",
@@ -310,7 +310,7 @@ namespace OpenSim.Capabilities.Handlers
 //                    "[GETTEXTURE]: For texture {0} requested range {1} responded {2} with content length {3} (actual {4})",
 //                    texture.FullID, range, response.StatusCode, response.ContentLength, texture.Data.Length);
         }
- 
+
         /// <summary>
         /// Parse a range header.
         /// </summary>
@@ -327,18 +327,18 @@ namespace OpenSim.Capabilities.Handlers
         private bool TryParseRange(string header, out int start, out int end)
         {
             start = end = 0;
- 
+
             if (header.StartsWith("bytes="))
             {
                 string[] rangeValues = header.Substring(6).Split('-');
- 
+
                 if (rangeValues.Length == 2)
                 {
                     if (!Int32.TryParse(rangeValues[0], out start))
                         return false;
- 
+
                     string rawEnd = rangeValues[1];
- 
+
                     if (rawEnd == "")
                     {
                         end = -1;
@@ -350,27 +350,27 @@ namespace OpenSim.Capabilities.Handlers
                     }
                 }
             }
- 
+
             start = end = 0;
             return false;
         }
- 
+
         private byte[] ConvertTextureData(AssetBase texture, string format)
         {
             m_log.DebugFormat("[GETTEXTURE]: Converting texture {0} to {1}", texture.ID, format);
             byte[] data = new byte[0];
- 
+
             MemoryStream imgstream = new MemoryStream();
             Bitmap mTexture = null;
             ManagedImage managedImage = null;
             Image image = null;
- 
+
             try
             {
                 // Taking our jpeg2000 data, decoding it, then saving it to a byte array with regular data
- 
+
                 imgstream = new MemoryStream();
- 
+
                 // Decode image to System.Drawing.Image
                 if (OpenJPEG.DecodeToImage(texture.Data, out managedImage, out image) && image != null)
                 {
@@ -380,7 +380,7 @@ namespace OpenSim.Capabilities.Handlers
                     using(EncoderParameters myEncoderParameters = new EncoderParameters())
                     {
                         myEncoderParameters.Param[0] = new EncoderParameter(Encoder.Quality,95L);
- 
+
                         // Save bitmap to stream
                         ImageCodecInfo codec = GetEncoderInfo("image/" + format);
                         if (codec != null)
@@ -404,10 +404,10 @@ namespace OpenSim.Capabilities.Handlers
                 // If we encountered an exception, one or more of these will be null
                 if (mTexture != null)
                     mTexture.Dispose();
- 
+
                 if (image != null)
                     image.Dispose();
- 
+
                 if(managedImage != null)
                     managedImage.Clear();
 
@@ -417,10 +417,10 @@ namespace OpenSim.Capabilities.Handlers
                     imgstream.Dispose();
                 }
             }
- 
+
             return data;
         }
- 
+
         // From msdn
         private static ImageCodecInfo GetEncoderInfo(String mimeType)
         {

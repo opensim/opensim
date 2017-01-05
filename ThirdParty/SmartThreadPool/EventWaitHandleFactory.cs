@@ -10,7 +10,7 @@ namespace Amib.Threading.Internal
     /// <summary>
     /// EventWaitHandleFactory class.
     /// This is a static class that creates AutoResetEvent and ManualResetEvent objects.
-    /// In WindowCE the WaitForMultipleObjects API fails to use the Handle property 
+    /// In WindowCE the WaitForMultipleObjects API fails to use the Handle property
     /// of XxxResetEvent. It can use only handles that were created by the CreateEvent API.
     /// Consequently this class creates the needed XxxResetEvent and replaces the handle if
     /// it's a WindowsCE OS.
@@ -57,7 +57,7 @@ namespace Amib.Threading.Internal
         /// <param name="initialState">The initial state of the event</param>
         private static void ReplaceEventHandle(WaitHandle waitHandle, bool manualReset, bool initialState)
         {
-            // Store the old handle 
+            // Store the old handle
             IntPtr oldHandle = waitHandle.Handle;
 
             // Create a new event
@@ -67,7 +67,7 @@ namespace Amib.Threading.Internal
             waitHandle.Handle = newHandle;
 
             // Close the old event
-            CloseHandle (oldHandle);        
+            CloseHandle (oldHandle);
         }
 
         [DllImport("coredll.dll", SetLastError = true)]

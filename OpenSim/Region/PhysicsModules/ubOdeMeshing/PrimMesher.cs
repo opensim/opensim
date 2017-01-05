@@ -522,7 +522,7 @@ namespace PrimMesher
         public Profile(int sides, float profileStart, float profileEnd, float hollow, int hollowSides, bool hasProfileCut, bool createFaces)
         {
             const float halfSqr2 = 0.7071067811866f;
-            
+
             coords = new List<Coord>();
             faces = new List<Face>();
 
@@ -769,7 +769,7 @@ namespace PrimMesher
                         }
                     }
                 }
-                
+
             }
 
             else if (createFaces)
@@ -865,7 +865,7 @@ namespace PrimMesher
             int i;
             int numVerts = coords.Count;
             Coord vert;
-                     
+
             for (i = 0; i < numVerts; i++)
             {
                 vert = coords[i];
@@ -1226,7 +1226,7 @@ namespace PrimMesher
             s += "\nrevolutions..........: " + this.revolutions.ToString();
             s += "\nstepsPerRevolution...: " + this.stepsPerRevolution.ToString();
             s += "\nhasProfileCut........: " + this.hasProfileCut.ToString();
-            s += "\nhasHollow............: " + this.hasHollow.ToString();          
+            s += "\nhasHollow............: " + this.hasHollow.ToString();
 
             return s;
         }
@@ -1324,7 +1324,7 @@ namespace PrimMesher
                     needEndFaces = true;
             }
             else needEndFaces = true;
-            
+
             if (pathType == PathType.Circular)
             {
                 if (sides == 3)
@@ -1377,7 +1377,7 @@ namespace PrimMesher
                     hollow *= 1.414f;
             }
 
-            Profile profile = new Profile(sides, profileStart, profileEnd, hollow, hollowSides, 
+            Profile profile = new Profile(sides, profileStart, profileEnd, hollow, hollowSides,
                                 HasProfileCut,true);
             errorMessage = profile.errorMessage;
 
@@ -1407,7 +1407,7 @@ namespace PrimMesher
             path.stepsPerRevolution = stepsPerRevolution;
 
             path.Create(pathType, steps);
-            
+
             int lastNode = path.pathNodes.Count - 1;
 
             for (int nodeIndex = 0; nodeIndex < path.pathNodes.Count; nodeIndex++)
@@ -1537,7 +1537,7 @@ namespace PrimMesher
         /// DEPRICATED - use Extrude(PathType.Linear) instead
         /// Extrudes a profile along a straight line path. Used for prim types box, cylinder, and prism.
         /// </summary>
-        /// 
+        ///
         public void ExtrudeLinear()
         {
             Extrude(PathType.Linear);
@@ -1548,7 +1548,7 @@ namespace PrimMesher
         /// DEPRICATED - use Extrude(PathType.Circular) instead
         /// Extrude a profile into a circular path prim mesh. Used for prim types torus, tube, and ring.
         /// </summary>
-        /// 
+        ///
         public void ExtrudeCircular()
         {
             Extrude(PathType.Circular);

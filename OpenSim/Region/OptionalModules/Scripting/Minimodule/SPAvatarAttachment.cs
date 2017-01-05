@@ -41,7 +41,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         private readonly UUID m_assetId;
 
         private readonly ISecurityCredential m_security;
-        
+
         public SPAvatarAttachment(Scene rootScene, IAvatar self, int location, UUID itemId, UUID assetId, ISecurityCredential security)
         {
             m_rootScene = rootScene;
@@ -51,9 +51,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             //m_itemId = itemId;
             m_assetId = assetId;
         }
-        
+
         public int Location { get { return m_location; } }
-        
+
         public IObject Asset
         {
             get

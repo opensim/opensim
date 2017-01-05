@@ -41,7 +41,7 @@ namespace OpenSim.Tests.Common
     public class TestScene : Scene
     {
         public TestScene(
-            RegionInfo regInfo, AgentCircuitManager authen, 
+            RegionInfo regInfo, AgentCircuitManager authen,
             ISimulationDataService simDataService, IEstateDataService estateDataService,
             IConfigSource config, string simulatorVersion)
             : base(regInfo, authen, simDataService, estateDataService,
@@ -54,7 +54,7 @@ namespace OpenSim.Tests.Common
             //Console.WriteLine("TestScene destructor called for {0}", RegionInfo.RegionName);
             Console.WriteLine("TestScene destructor called");
         }
-        
+
         /// <summary>
         /// Temporarily override session authentication for tests (namely teleport).
         /// </summary>
@@ -68,7 +68,7 @@ namespace OpenSim.Tests.Common
             reason = String.Empty;
             return true;
         }
-            
+
         public AsyncSceneObjectGroupDeleter SceneObjectGroupDeleter
         {
             get { return m_asyncSceneObjectDeleter; }

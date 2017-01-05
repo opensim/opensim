@@ -273,10 +273,10 @@ namespace OpenSim.Region.PhysicsModule.POS
             set { return; }
         }
 
-        public override bool PIDActive 
-        { 
+        public override bool PIDActive
+        {
             get { return false; }
-            set { return; } 
+            set { return; }
         }
 
         public override float PIDTau
@@ -304,7 +304,7 @@ namespace OpenSim.Region.PhysicsModule.POS
         {
             set { return; }
         }
-        
+
         public override Quaternion APIDTarget
         {
             set { return; }

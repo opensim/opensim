@@ -47,7 +47,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Avatar
 
         private bool m_Enabled = false;
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }

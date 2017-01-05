@@ -43,7 +43,7 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Capabilities.Handlers
 {
-    public class FetchInvDescHandler 
+    public class FetchInvDescHandler
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -53,14 +53,14 @@ namespace OpenSim.Capabilities.Handlers
         private IScene m_Scene;
 //        private object m_fetchLock = new Object();
 
-        public FetchInvDescHandler(IInventoryService invService, ILibraryService libService, IScene s) 
+        public FetchInvDescHandler(IInventoryService invService, ILibraryService libService, IScene s)
         {
             m_InventoryService = invService;
             m_LibraryService = libService;
             m_Scene = s;
         }
 
-        
+
         public string FetchInventoryDescendentsRequest(string request, string path, string param, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             //m_log.DebugFormat("[XXX]: FetchInventoryDescendentsRequest in {0}, {1}", (m_Scene == null) ? "none" : m_Scene.Name, request);
@@ -72,14 +72,14 @@ namespace OpenSim.Capabilities.Handlers
             // correctly mark it as a uuid
             //
             request = request.Replace("<string>00000000-0000-0000-0000-000000000000</string>", "<uuid>00000000-0000-0000-0000-000000000000</uuid>");
-    
+
             // another hack <integer>1</integer> results in a
             // System.ArgumentException: Object type System.Int32 cannot
             // be converted to target type: System.Boolean
             //
             request = request.Replace("<key>fetch_folders</key><integer>0</integer>", "<key>fetch_folders</key><boolean>0</boolean>");
             request = request.Replace("<key>fetch_folders</key><integer>1</integer>", "<key>fetch_folders</key><boolean>1</boolean>");
-    
+
             Hashtable hash = new Hashtable();
             try
             {
@@ -90,9 +90,9 @@ namespace OpenSim.Capabilities.Handlers
                 m_log.ErrorFormat("[WEB FETCH INV DESC HANDLER]: Fetch error: {0}{1}" + e.Message, e.StackTrace);
                 m_log.Error("Request: " + request);
             }
-    
+
             ArrayList foldersrequested = (ArrayList)hash["folders"];
-    
+
             string response = "";
             string bad_folders_response = "";
 
@@ -516,7 +516,7 @@ from docs seems this was never a spec
 //                                }
 //                            }
 //                        }
-//    
+//
 //                        foreach (UUID linkedItemFolderId in linkedItemFolderIdsToSend)
 //                        {
 //                            m_log.DebugFormat(

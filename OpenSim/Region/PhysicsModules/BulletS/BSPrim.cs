@@ -1144,14 +1144,14 @@ public class BSPrim : BSPhysObject
         }
     }
 
-    public override bool PIDActive 
+    public override bool PIDActive
     {
         get
         {
             return MoveToTargetActive;
         }
 
-        set 
+        set
         {
             MoveToTargetActive = value;
 
@@ -1179,13 +1179,13 @@ public class BSPrim : BSPhysObject
                 // if the actor exists, tell it to refresh its values.
                 actor.Refresh();
             }
-            
+
         }
     }
     // Used for llSetHoverHeight and maybe vehicle height
     // Hover Height will override MoveTo target's Z
     public override bool PIDHoverActive {
-        get 
+        get
         {
         return base.HoverActive;
         }

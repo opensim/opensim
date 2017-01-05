@@ -293,7 +293,7 @@ namespace OpenSim.Server.Handlers.Inventory
                 result["FID"] = icoll.FolderID.ToString();
                 result["VERSION"] = icoll.Version.ToString();
                 Dictionary<string, object> folders = new Dictionary<string, object>();
-                int i = 0; 
+                int i = 0;
                 if (icoll.Folders != null)
                 {
                     foreach (InventoryFolderBase f in icoll.Folders)
@@ -407,7 +407,7 @@ namespace OpenSim.Server.Handlers.Inventory
                 }
             }
             result["ITEMS"] = sitems;
-            
+
             string xmlString = ServerUtils.BuildXmlResponse(result);
 
             //m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);

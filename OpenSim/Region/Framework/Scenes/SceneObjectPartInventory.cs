@@ -55,7 +55,7 @@ namespace OpenSim.Region.Framework.Scenes
         private object m_inventoryFileLock = new object();
 
         private Dictionary<UUID, ArrayList> m_scriptErrors = new Dictionary<UUID, ArrayList>();
-        
+
         /// <value>
         /// The part to which the inventory belongs.
         /// </value>
@@ -76,7 +76,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Tracks whether inventory has changed since the last persistent backup
         /// </summary>
         internal bool HasInventoryChanged;
-        
+
         /// <value>
         /// Inventory serial number
         /// </value>
@@ -91,8 +91,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </value>
         protected internal TaskInventoryDictionary Items
         {
-            get { 
-                return m_items; 
+            get {
+                return m_items;
             }
             set
             {
@@ -110,7 +110,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return m_items.Count;
             }
         }
-        
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -393,7 +393,7 @@ namespace OpenSim.Region.Framework.Scenes
                 StoreScriptError(item.ItemID, msg);
                 m_log.ErrorFormat(
                     "[PRIM INVENTORY]: Couldn't start script {0}, {1} at {2} in {3} since asset ID {4} could not be found",
-                    item.Name, item.ItemID, m_part.AbsolutePosition, 
+                    item.Name, item.ItemID, m_part.AbsolutePosition,
                     m_part.ParentGroup.Scene.RegionInfo.RegionName, item.AssetID);
 
                 return false;
@@ -410,7 +410,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_items[item.ItemID].PermsGranter = UUID.Zero;
 
                 m_items.LockItemsForWrite(false);
-                
+
                 string script = Utils.BytesToString(asset.Data);
                 m_part.ParentGroup.Scene.EventManager.TriggerRezScript(
                     m_part.LocalId, item.ItemID, script, startParam, postOnRez, engine, stateSource);
@@ -428,7 +428,7 @@ namespace OpenSim.Region.Framework.Scenes
         private UUID RestoreSavedScriptState(UUID loadedID, UUID oldID, UUID newID)
         {
 //            m_log.DebugFormat(
-//                "[PRIM INVENTORY]: Restoring scripted state for item {0}, oldID {1}, loadedID {2}", 
+//                "[PRIM INVENTORY]: Restoring scripted state for item {0}, oldID {1}, loadedID {2}",
 //                newID, oldID, loadedID);
 
             IScriptModule[] engines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
@@ -477,7 +477,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     m_part.ParentGroup.m_savedScriptState[stateID] = newDoc.OuterXml;
                 }
-                
+
                 foreach (IScriptModule e in engines)
                 {
                     if (e != null)
@@ -544,7 +544,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             ArrayList errors;
 
-            // Indicate to CreateScriptInstanceInternal() we want it to 
+            // Indicate to CreateScriptInstanceInternal() we want it to
             // post any compilation/loading error messages
             lock (m_scriptErrors)
             {
@@ -641,7 +641,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (!sceneObjectBeingDeleted)
                     m_part.RemoveScriptEvents(itemId);
-                
+
                 m_part.ParentGroup.Scene.EventManager.TriggerRemoveScript(m_part.LocalId, itemId);
                 m_part.ParentGroup.AddActiveScriptCount(-1);
             }
@@ -650,7 +650,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.WarnFormat(
                     "[PRIM INVENTORY]: " +
                     "Couldn't stop script with ID {0} since it couldn't be found for prim {1}, {2} at {3} in {4}",
-                    itemId, m_part.Name, m_part.UUID, 
+                    itemId, m_part.Name, m_part.UUID,
                     m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
             }
         }
@@ -679,7 +679,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.WarnFormat(
                     "[PRIM INVENTORY]: " +
                     "Couldn't stop script with ID {0} since it couldn't be found for prim {1}, {2} at {3} in {4}",
-                    itemId, m_part.Name, m_part.UUID, 
+                    itemId, m_part.Name, m_part.UUID,
                     m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
             }
         }
@@ -802,11 +802,11 @@ namespace OpenSim.Region.Framework.Scenes
             m_items.LockItemsForWrite(true);
             m_items.Add(item.ItemID, item);
             m_items.LockItemsForWrite(false);
-                if (allowedDrop) 
+                if (allowedDrop)
                     m_part.TriggerScriptChangedEvent(Changed.ALLOWED_DROP);
                 else
                     m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
-            
+
             m_inventorySerial++;
             //m_inventorySerial += 2;
             HasInventoryChanged = true;
@@ -887,7 +887,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (null == rezAsset)
             {
                 m_log.WarnFormat(
-                    "[PRIM INVENTORY]: Could not find asset {0} for inventory item {1} in {2}", 
+                    "[PRIM INVENTORY]: Could not find asset {0} for inventory item {1} in {2}",
                     item.AssetID, item.Name, m_part.Name);
                 objlist = null;
                 veclist = null;
@@ -895,7 +895,7 @@ namespace OpenSim.Region.Framework.Scenes
                 offsetHeight = 0;
                 return false;
             }
-          
+
             bool single = m_part.ParentGroup.Scene.GetObjectsToRez(rezAsset.Data, false, out objlist, out veclist, out bbox, out offsetHeight);
 
             for (int i = 0; i < objlist.Count; i++)
@@ -985,7 +985,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             return true;
         }
-        
+
         /// <summary>
         /// Update an existing inventory item.
         /// </summary>
@@ -1009,7 +1009,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_items.ContainsKey(item.ItemID))
             {
 //                m_log.DebugFormat("[PRIM INVENTORY]: Updating item {0} in {1}", item.Name, m_part.Name);
-                
+
                 item.ParentID = m_part.UUID;
                 item.ParentPartID = m_part.UUID;
 
@@ -1025,7 +1025,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_inventorySerial++;
                 if (fireScriptEvents)
                     m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
-                
+
                 if (considerChanged)
                 {
                     HasInventoryChanged = true;
@@ -1039,7 +1039,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.ErrorFormat(
                     "[PRIM INVENTORY]: " +
                     "Tried to retrieve item ID {0} from prim {1}, {2} at {3} in {4} but the item does not exist in this inventory",
-                    item.ItemID, m_part.Name, m_part.UUID, 
+                    item.ItemID, m_part.Name, m_part.UUID,
                     m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
             }
             m_items.LockItemsForWrite(false);
@@ -1084,7 +1084,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
                 m_items.LockItemsForRead(false);
-                
+
 
                 if (scriptcount <= 0)
                 {
@@ -1381,7 +1381,7 @@ namespace OpenSim.Region.Framework.Scenes
                 item.CurrentPermissions = perms;
                 item.BasePermissions = perms;
             }
-            
+
             m_inventorySerial++;
             HasInventoryChanged = true;
         }
@@ -1485,7 +1485,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             return ret;
         }
-        
+
         public Dictionary<UUID, string> GetScriptStates()
         {
             return GetScriptStates(false);
@@ -1493,13 +1493,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Dictionary<UUID, string> GetScriptStates(bool oldIDs)
         {
-            Dictionary<UUID, string> ret = new Dictionary<UUID, string>();            
-            
+            Dictionary<UUID, string> ret = new Dictionary<UUID, string>();
+
             if (m_part.ParentGroup.Scene == null) // Group not in a scene
                 return ret;
-            
+
             IScriptModule[] engines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
-            
+
             if (engines.Length == 0) // No engine at all
                 return ret;
 
@@ -1535,7 +1535,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             return ret;
         }
-        
+
         public void ResumeScripts()
         {
             IScriptModule[] engines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();

@@ -63,7 +63,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour
 
         #region ISharedRegionModule
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }
@@ -113,7 +113,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour
 
         public void RemoveRegion(Scene scene)
         {
-            // Always remove 
+            // Always remove
             if (m_Scenes.Contains(scene))
                 m_Scenes.Remove(scene);
         }

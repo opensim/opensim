@@ -81,6 +81,6 @@ namespace OpenSim.Framework
         /// Direction in which the scene presence is looking.
         /// </summary>
         /// <remarks>Will be Vector3.Zero for a child agent.</remarks>
-        Vector3 Lookat { get; }        
+        Vector3 Lookat { get; }
     }
 }

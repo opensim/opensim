@@ -32,13 +32,13 @@ using NUnit.Framework;
 
 namespace OpenSim.Tests.Common
 {
-    [AttributeUsage(AttributeTargets.All, 
-        AllowMultiple=false, 
+    [AttributeUsage(AttributeTargets.All,
+        AllowMultiple=false,
         Inherited=true)]
     public class DatabaseTestAttribute : LongRunningAttribute
     {
         public DatabaseTestAttribute() : base("Database")
-        { 
+        {
         }
     }
 }

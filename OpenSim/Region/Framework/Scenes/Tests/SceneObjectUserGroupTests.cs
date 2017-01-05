@@ -53,30 +53,30 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
-                        
+
             UUID userId = UUID.Parse("10000000-0000-0000-0000-000000000001");
-            
+
             TestScene scene = new SceneHelpers().SetupScene();
             IConfigSource configSource = new IniConfigSource();
-            
+
             IConfig startupConfig = configSource.AddConfig("Startup");
             startupConfig.Set("serverside_object_permissions", true);
-            
-            IConfig groupsConfig = configSource.AddConfig("Groups");            
+
+            IConfig groupsConfig = configSource.AddConfig("Groups");
             groupsConfig.Set("Enabled", true);
-            groupsConfig.Set("Module", "GroupsModule");            
-            groupsConfig.Set("DebugEnabled", true);            
-                       
+            groupsConfig.Set("Module", "GroupsModule");
+            groupsConfig.Set("DebugEnabled", true);
+
             SceneHelpers.SetupSceneModules(
-                scene, configSource, new object[] 
-                   { new DefaultPermissionsModule(), 
-                     new GroupsModule(), 
+                scene, configSource, new object[]
+                   { new DefaultPermissionsModule(),
+                     new GroupsModule(),
                      new MockGroupsServicesConnector() });
-            
-            IClientAPI client = SceneHelpers.AddScenePresence(scene, userId).ControllingClient;            
-            
-            IGroupsModule groupsModule = scene.RequestModuleInterface<IGroupsModule>();     
-            
+
+            IClientAPI client = SceneHelpers.AddScenePresence(scene, userId).ControllingClient;
+
+            IGroupsModule groupsModule = scene.RequestModuleInterface<IGroupsModule>();
+
             groupsModule.CreateGroup(client, "group1", "To boldly go", true, UUID.Zero, 5, true, true, true);
         }
     }

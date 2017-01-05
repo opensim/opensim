@@ -35,9 +35,9 @@ public interface ISnmpModule
     void Major(string Message, Scene scene);
     void ColdStart(int step , Scene scene);
     void Shutdown(int step , Scene scene);
-	//
-	// Node Start/stop events
-	//
+    //
+    // Node Start/stop events
+    //
     void LinkUp(Scene scene);
     void LinkDown(Scene scene);
     void BootInfo(string data, Scene scene);

@@ -35,7 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes
-{        
+{
     #region Delegates
     public delegate uint GenerateClientFlagsHandler(UUID userID, UUID objectID);
     public delegate void SetBypassPermissionsHandler(bool value);
@@ -98,7 +98,7 @@ namespace OpenSim.Region.Framework.Scenes
     public class ScenePermissions
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         private Scene m_scene;
 
         public ScenePermissions(Scene scene)
@@ -261,7 +261,7 @@ namespace OpenSim.Region.Framework.Scenes
         public bool CanDeleteObject(UUID objectID, UUID deleter)
         {
             bool result = true;
-            
+
             DeleteObjectHandler handler = OnDeleteObject;
             if (handler != null)
             {
@@ -275,14 +275,14 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-            
+
             return result;
         }
 
         public bool CanTransferObject(UUID objectID, UUID recipient)
         {
             bool result = true;
-            
+
             TransferObjectHandler handler = OnTransferObject;
             if (handler != null)
             {
@@ -296,7 +296,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-            
+
             return result;
         }
 
@@ -306,7 +306,7 @@ namespace OpenSim.Region.Framework.Scenes
         public bool CanTakeObject(UUID objectID, UUID AvatarTakingUUID)
         {
             bool result = true;
-            
+
             TakeObjectHandler handler = OnTakeObject;
             if (handler != null)
             {
@@ -320,11 +320,11 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-            
+
 //            m_log.DebugFormat(
-//                "[SCENE PERMISSIONS]: CanTakeObject() fired for object {0}, taker {1}, result {2}", 
+//                "[SCENE PERMISSIONS]: CanTakeObject() fired for object {0}, taker {1}, result {2}",
 //                objectID, AvatarTakingUUID, result);
-                        
+
             return result;
         }
 
@@ -363,7 +363,7 @@ namespace OpenSim.Region.Framework.Scenes
         public bool CanTakeCopyObject(UUID objectID, UUID userID)
         {
             bool result = true;
-            
+
             TakeCopyObjectHandler handler = OnTakeCopyObject;
             if (handler != null)
             {
@@ -377,11 +377,11 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-            
+
 //            m_log.DebugFormat(
-//                "[SCENE PERMISSIONS]: CanTakeCopyObject() fired for object {0}, user {1}, result {2}", 
+//                "[SCENE PERMISSIONS]: CanTakeCopyObject() fired for object {0}, user {1}, result {2}",
 //                objectID, userID, result);
-            
+
             return result;
         }
 
@@ -478,7 +478,7 @@ namespace OpenSim.Region.Framework.Scenes
         public bool CanReturnObjects(ILandObject land, UUID user, List<SceneObjectGroup> objects)
         {
             bool result = true;
-            
+
             ReturnObjectsHandler handler = OnReturnObjects;
             if (handler != null)
             {
@@ -492,11 +492,11 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-            
+
 //            m_log.DebugFormat(
-//                "[SCENE PERMISSIONS]: CanReturnObjects() fired for user {0} for {1} objects on {2}, result {3}", 
+//                "[SCENE PERMISSIONS]: CanReturnObjects() fired for user {0} for {1} objects on {2}, result {3}",
 //                user, objects.Count, land.LandData.Name, result);
-                        
+
             return result;
         }
 
@@ -1004,7 +1004,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             return true;
         }
-        
+
         public bool CanTransferObjectInventory(UUID itemID, UUID objectID, UUID userID)
         {
             TransferObjectInventoryHandler handler = OnTransferObjectInventory;
@@ -1019,7 +1019,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             return true;
         }
-        
+
         /// <summary>
         /// Check whether the specified user is allowed to create the given inventory type in their inventory.
         /// </summary>
@@ -1039,8 +1039,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
             return true;
-        } 
-        
+        }
+
         /// <summary>
         /// Check whether the specified user is allowed to edit the given inventory item within their own inventory.
         /// </summary>
@@ -1061,7 +1061,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             return true;
         }
-        
+
         /// <summary>
         /// Check whether the specified user is allowed to copy the given inventory item from their own inventory.
         /// </summary>
@@ -1082,7 +1082,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             return true;
         }
-        
+
         /// <summary>
         /// Check whether the specified user is allowed to edit the given inventory item within their own inventory.
         /// </summary>
@@ -1103,7 +1103,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             return true;
         }
-        
+
         public bool CanTransferUserInventory(UUID itemID, UUID userID, UUID recipientID)
         {
             TransferUserInventoryHandler handler = OnTransferUserInventory;
@@ -1118,7 +1118,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             return true;
         }
-        
+
         public bool CanTeleport(UUID userID)
         {
             TeleportHandler handler = OnTeleport;
@@ -1133,7 +1133,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             return true;
         }
-        
+
         public bool CanControlPrimMedia(UUID userID, UUID primID, int face)
         {
             ControlPrimMediaHandler handler = OnControlPrimMedia;
@@ -1147,8 +1147,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
             return true;
-        } 
-        
+        }
+
         public bool CanInteractWithPrimMedia(UUID userID, UUID primID, int face)
         {
             InteractWithPrimMediaHandler handler = OnInteractWithPrimMedia;

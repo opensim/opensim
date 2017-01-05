@@ -123,7 +123,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// </summary>
         /// <param name='animID'></param>
         /// <param name='allowNoDefault'>
-        /// If true, then the default animation can be entirely removed. 
+        /// If true, then the default animation can be entirely removed.
         /// If false, then removing the default animation will reset it to the simulator default (currently STAND).
         /// </param>
         public void RemoveAnimation(UUID animID, bool allowNoDefault)
@@ -192,7 +192,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// that are mutually exclusive, e.g. flying and sitting.
         /// </summary>
         /// <returns>'true' if the animation was updated</returns>
-        /// 
+        ///
 
 
 
@@ -488,7 +488,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 m_animTickLand = Environment.TickCount;
                 // TODO: SOFT_LAND support
                 float fallVsq = m_lastFallVelocity * m_lastFallVelocity;
-                if (fallVsq > 300f) // aprox 20*h 
+                if (fallVsq > 300f) // aprox 20*h
                     return "STANDUP";
                 else if (fallVsq > 160f)
                     return "SOFT_LAND";

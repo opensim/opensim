@@ -50,7 +50,7 @@ namespace OpenSim.Region.ClientStack.Linden
     /// This is required for uploading Mesh.
     /// Since is accepts an open-ended response, we also send more information
     /// for viewers that care to interpret it.
-    /// 
+    ///
     /// NOTE: Part of this code was adapted from the Aurora project, specifically
     /// the normal part of the response in the capability handler.
     /// </remarks>
@@ -82,7 +82,7 @@ namespace OpenSim.Region.ClientStack.Linden
             IConfig config = source.Configs["SimulatorFeatures"];
 
             if (config != null)
-            {  
+            {
                 //
                 // All this is obsolete since getting these features from the grid service!!
                 // Will be removed after the next release
@@ -251,7 +251,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             //Send back data
             Hashtable responsedata = new Hashtable();
-            responsedata["int_response_code"] = 200; 
+            responsedata["int_response_code"] = 200;
             responsedata["content_type"] = "text/plain";
             responsedata["keepalive"] = false;
 

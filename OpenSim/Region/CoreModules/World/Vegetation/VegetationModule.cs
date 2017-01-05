@@ -39,14 +39,14 @@ namespace OpenSim.Region.CoreModules.World.Vegetation
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "VegetationModule")]
     public class VegetationModule : INonSharedRegionModule, IVegetationModule
-    { 
+    {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         protected Scene m_scene;
-        
+
         protected static readonly PCode[] creationCapabilities = new PCode[] { PCode.Grass, PCode.NewTree, PCode.Tree };
         public PCode[] CreationCapabilities { get { return creationCapabilities; } }
-        
+
         public void Initialise(IConfigSource source)
         {
         }
@@ -83,10 +83,10 @@ namespace OpenSim.Region.CoreModules.World.Vegetation
             treeShape.PCode = newTree ? (byte)PCode.NewTree : (byte)PCode.Tree;
             treeShape.Scale = scale;
             treeShape.State = (byte)treeType;
-            
+
             return m_scene.AddNewPrim(uuid, groupID, position, rotation, treeShape);
         }
-        
+
         public SceneObjectGroup CreateEntity(
             UUID ownerID, UUID groupID, Vector3 pos, Quaternion rot, PrimitiveBaseShape shape)
         {
@@ -95,22 +95,22 @@ namespace OpenSim.Region.CoreModules.World.Vegetation
                 m_log.DebugFormat("[VEGETATION]: PCode {0} not handled by {1}", shape.PCode, Name);
                 return null;
             }
-            
+
             SceneObjectGroup sceneObject = new SceneObjectGroup(ownerID, pos, rot, shape);
             SceneObjectPart rootPart = sceneObject.GetPart(sceneObject.UUID);
-            
+
             // if grass or tree, make phantom
             //rootPart.TrimPermissions();
             rootPart.AddFlag(PrimFlags.Phantom);
             if (rootPart.Shape.PCode != (byte)PCode.Grass)
                 AdaptTree(ref shape);
-            
+
             m_scene.AddNewSceneObject(sceneObject, true);
             sceneObject.SetGroup(groupID, null);
-            
+
             return sceneObject;
         }
-        
+
         protected void AdaptTree(ref PrimitiveBaseShape tree)
         {
             // Tree size has to be adapted depending on its type

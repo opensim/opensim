@@ -36,7 +36,7 @@ namespace OpenSim.Tests.Common
     {
         protected Dictionary<UUID, AssetBase> Assets = new Dictionary<UUID, AssetBase>();
 
-        public AssetBase FetchAsset(UUID uuid) 
+        public AssetBase FetchAsset(UUID uuid)
         {
             if (AssetsExist(new[] { uuid })[0])
                 return Assets[uuid];
@@ -44,17 +44,17 @@ namespace OpenSim.Tests.Common
                 return null;
         }
 
-        public void CreateAsset(AssetBase asset) 
+        public void CreateAsset(AssetBase asset)
         {
             Assets[asset.FullID] = asset;
         }
 
-        public void UpdateAsset(AssetBase asset) 
+        public void UpdateAsset(AssetBase asset)
         {
             CreateAsset(asset);
         }
 
-        public bool[] AssetsExist(UUID[] uuids) 
+        public bool[] AssetsExist(UUID[] uuids)
         {
             return Array.ConvertAll(uuids, id => Assets.ContainsKey(id));
         }

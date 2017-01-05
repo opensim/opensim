@@ -52,8 +52,8 @@ namespace OpenSim.Server.Handlers.Asset.Test
 
             UUID assetId = TestHelpers.ParseTail(0x1);
 
-            IConfigSource config = new IniConfigSource();         
-            config.AddConfig("AssetService");           
+            IConfigSource config = new IniConfigSource();
+            config.AddConfig("AssetService");
             config.Configs["AssetService"].Set("StorageProvider", "OpenSim.Tests.Common.dll");
 
             AssetService assetService = new AssetService(config);
@@ -72,7 +72,7 @@ namespace OpenSim.Server.Handlers.Asset.Test
                 XmlSerializer serializer = new XmlSerializer(typeof(AssetBase));
                 serializer.Serialize(writer, asset);
                 writer.Flush();
-            }            
+            }
 
             buffer.Position = 0;
             asph.Handle(null, buffer, null, null);
@@ -87,13 +87,13 @@ namespace OpenSim.Server.Handlers.Asset.Test
         {
             TestHelpers.InMethod();
 
-            IConfigSource config = new IniConfigSource();         
-            config.AddConfig("AssetService");           
+            IConfigSource config = new IniConfigSource();
+            config.AddConfig("AssetService");
             config.Configs["AssetService"].Set("StorageProvider", "OpenSim.Tests.Common.dll");
 
             AssetService assetService = new AssetService(config);
 
-            AssetServerPostHandler asph = new AssetServerPostHandler(assetService);          
+            AssetServerPostHandler asph = new AssetServerPostHandler(assetService);
 
             MemoryStream buffer = new MemoryStream();
             byte[] badData = new byte[] { 0x48, 0x65, 0x6c, 0x6c, 0x6f };

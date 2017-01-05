@@ -67,7 +67,7 @@ namespace OpenSim.Framework.Console
         {
             System.Console.WriteLine(text);
         }
-        
+
         public virtual void OutputFormat(string format, params object[] components)
         {
             Output(string.Format(format, components));
@@ -86,7 +86,7 @@ namespace OpenSim.Framework.Console
 
             return ret;
         }
-                
+
         public string CmdPrompt(string p, List<char> excludedCharacters)
         {
             bool itisdone = false;
@@ -95,7 +95,7 @@ namespace OpenSim.Framework.Console
             {
                 itisdone = true;
                 ret = CmdPrompt(p);
-                
+
                 foreach (char c in excludedCharacters)
                 {
                     if (ret.Contains(c.ToString()))
@@ -117,7 +117,7 @@ namespace OpenSim.Framework.Console
             {
                 itisdone = true;
                 ret = CmdPrompt(p, def);
-                
+
                 if (ret == String.Empty)
                 {
                     ret = def;

@@ -169,7 +169,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     }
                     else
                     {
-                        if (newState == AgentTransferState.Cancelling 
+                        if (newState == AgentTransferState.Cancelling
                             && (oldState == AgentTransferState.Preparing || oldState == AgentTransferState.Transferring))
                         {
                             transitionOkay = true;
@@ -181,7 +181,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     }
 
                     if (!transitionOkay)
-                        failureMessage 
+                        failureMessage
                             = string.Format(
                                 "Agent with ID {0} is not allowed to move from old transit state {1} to new state {2} in {3}",
                                 id, oldState, newState, m_mod.Scene.RegionInfo.RegionName);
@@ -192,7 +192,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     m_agentsInTransit[id] = newState;
 
 //                    m_log.DebugFormat(
-//                        "[ENTITY TRANSFER STATE MACHINE]: Changed agent with id {0} from state {1} to {2} in {3}", 
+//                        "[ENTITY TRANSFER STATE MACHINE]: Changed agent with id {0} from state {1} to {2} in {3}",
 //                        id, oldState, newState, m_mod.Scene.Name);
                 }
                 else if (failIfNotOkay)
@@ -204,11 +204,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 //                {
 //                    if (oldState != null)
 //                        m_log.DebugFormat(
-//                            "[ENTITY TRANSFER STATE MACHINE]: Ignored change of agent with id {0} from state {1} to {2} in {3}", 
+//                            "[ENTITY TRANSFER STATE MACHINE]: Ignored change of agent with id {0} from state {1} to {2} in {3}",
 //                            id, oldState, newState, m_mod.Scene.Name);
 //                    else
 //                        m_log.DebugFormat(
-//                            "[ENTITY TRANSFER STATE MACHINE]: Ignored change of agent with id {0} to state {1} in {2} since agent not in transit", 
+//                            "[ENTITY TRANSFER STATE MACHINE]: Ignored change of agent with id {0} to state {1} in {2} since agent not in transit",
 //                            id, newState, m_mod.Scene.Name);
 //                }
             }
@@ -281,7 +281,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             if (!m_mod.WaitForAgentArrivedAtDestination)
                 return true;
-            
+
             lock (m_agentsInTransit)
             {
                 AgentTransferState? currentState = GetAgentTransferState(id);

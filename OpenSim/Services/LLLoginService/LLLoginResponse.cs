@@ -61,7 +61,7 @@ namespace OpenSim.Services.LLLoginService
 
         static LLFailedLoginResponse()
         {
-            UserProblem = new LLFailedLoginResponse("key", 
+            UserProblem = new LLFailedLoginResponse("key",
                 "Could not authenticate your avatar. Please check your username and password, and check the grid if problems persist.",
                 "false");
             GridProblem = new LLFailedLoginResponse("key",
@@ -307,7 +307,7 @@ namespace OpenSim.Services.LLLoginService
                     {
                         DST = dstTimeZone.IsDaylightSavingTime(DateTime.Now) ? "Y" : "N";
                     }
-                
+
                     break;
             }
         }
@@ -417,7 +417,7 @@ namespace OpenSim.Services.LLLoginService
 //            try
 //            {
 //                // First try to fetch DST from Pacific Standard Time, because this is
-//                // the one expected by the viewer. "US/Pacific" is the string to search 
+//                // the one expected by the viewer. "US/Pacific" is the string to search
 //                // on linux and mac, and should work also on Windows (to confirm)
 //                gridTimeZone = TimeZoneInfo.FindSystemTimeZoneById("US/Pacific");
 //            }
@@ -447,7 +447,7 @@ namespace OpenSim.Services.LLLoginService
             ErrorReason = "key";
             welcomeMessage = "Welcome to OpenSim!";
             seedCapability = String.Empty;
-            home = "{'region_handle':[" 
+            home = "{'region_handle':["
                     + "r" + Util.RegionToWorldLoc(1000).ToString()
                     + ","
                     + "r" + Util.RegionToWorldLoc(1000).ToString()
@@ -593,7 +593,7 @@ namespace OpenSim.Services.LLLoginService
                     // responseData["real_currency"] = currency;
                     responseData["currency"] = currency;
                 }
-                
+
                 if (ClassifiedFee != String.Empty)
                     responseData["classified_fee"] = ClassifiedFee;
 
@@ -1070,7 +1070,7 @@ namespace OpenSim.Services.LLLoginService
             get { return activeGestures; }
             set { activeGestures = value; }
         }
-                
+
         public string Home
         {
             get { return home; }

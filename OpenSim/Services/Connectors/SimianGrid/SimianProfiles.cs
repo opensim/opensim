@@ -70,7 +70,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         private bool m_Enabled = false;
 
         #region INonSharedRegionModule
-        
+
         public Type ReplaceableInterface { get { return null; } }
         public void RegionLoaded(Scene scene) { }
         public void Close() { }
@@ -284,7 +284,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         private void RequestAvatarPropertiesHandler(IClientAPI client, UUID avatarID)
         {
             m_log.DebugFormat("[SIMIAN PROFILES]: Request avatar properties for {0}",avatarID);
-            
+
             OSDMap user = FetchUserData(avatarID);
 
             ProfileFlags flags = ProfileFlags.AllowPublish | ProfileFlags.MaturePublish;
@@ -455,7 +455,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         private OSDMap FetchUserData(UUID userID)
         {
             m_log.DebugFormat("[SIMIAN PROFILES]: Fetch information about {0}",userID);
-            
+
             NameValueCollection requestArgs = new NameValueCollection
             {
                 { "RequestMethod", "GetUser" },

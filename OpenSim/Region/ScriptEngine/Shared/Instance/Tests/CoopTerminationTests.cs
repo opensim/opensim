@@ -79,7 +79,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             m_xEngine.DebugLevel = 1;
 
             IniConfigSource configSource = new IniConfigSource();
-            
+
             IConfig startupConfig = configSource.AddConfig("Startup");
             startupConfig.Set("DefaultScriptEngine", "XEngine");
 
@@ -124,9 +124,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            string script = 
+            string script =
 @"default
-{    
+{
     state_entry()
     {
         llSay(0, ""Thin Lizzy"");
@@ -143,12 +143,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            string script = 
+            string script =
 @"default
-{    
+{
     state_entry()
     {
-        integer i = 0;        
+        integer i = 0;
         for (i = 0; i <= 1; i++) llSay(0, ""Iter "" + (string)i);
     }
 }";
@@ -162,14 +162,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            string script = 
+            string script =
 @"default
-{    
+{
     state_entry()
     {
         integer i = 0;
         llSay(0, ""Thin Lizzy"");
-        
+
         for (i = 0; i < 2147483647; i++) llSay(0, ""Iter "" + (string)i);
     }
 }";
@@ -183,15 +183,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            string script = 
+            string script =
 @"default
-{    
+{
     state_entry()
     {
         integer i = 0;
         llSay(0, ""Thin Lizzy"");
-        
-        for (i = 0; i < 2147483647; i++) 
+
+        for (i = 0; i < 2147483647; i++)
         {
             llSay(0, ""Iter "" + (string)i);
         }
@@ -207,12 +207,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            string script = 
+            string script =
 @"default
-{    
+{
     state_entry()
     {
-        integer i = 0;        
+        integer i = 0;
         while (i < 2) llSay(0, ""Iter "" + (string)i++);
     }
 }";
@@ -226,15 +226,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            string script = 
+            string script =
 @"default
-{    
+{
     state_entry()
     {
         integer i = 0;
         llSay(0, ""Thin Lizzy"");
 
-        while (1 == 1)        
+        while (1 == 1)
             llSay(0, ""Iter "" + (string)i++);
     }
 }";
@@ -248,15 +248,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            string script = 
+            string script =
 @"default
-{    
+{
     state_entry()
     {
         integer i = 0;
         llSay(0, ""Thin Lizzy"");
 
-        while (1 == 1) 
+        while (1 == 1)
         {
             llSay(0, ""Iter "" + (string)i++);
         }
@@ -272,9 +272,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            string script = 
+            string script =
 @"default
-{    
+{
     state_entry()
     {
         integer i = 0;
@@ -293,9 +293,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            string script = 
+            string script =
 @"default
-{    
+{
     state_entry()
     {
         integer i = 0;
@@ -315,15 +315,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            string script = 
+            string script =
 @"default
-{    
+{
     state_entry()
     {
         integer i = 0;
         llSay(0, ""Thin Lizzy"");
 
-        do 
+        do
         {
             llSay(0, ""Iter "" + (string)i++);
         } while (1 == 1);
@@ -339,15 +339,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             TestHelpers.InMethod();
             TestHelpers.EnableLogging();
 
-            string script = 
+            string script =
 @"default
-{    
+{
     state_entry()
     {
         integer i = 0;
         llSay(0, ""Thin Lizzy"");
 
-        @p1;      
+        @p1;
         llSay(0, ""Iter "" + (string)i++);
         jump p1;
     }
@@ -364,7 +364,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            string script = 
+            string script =
 @"
 integer i = 0;
 
@@ -375,7 +375,7 @@ ufn1()
 }
 
 default
-{    
+{
     state_entry()
     {
         integer i = 0;
@@ -396,9 +396,9 @@ default
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            string script = 
+            string script =
 @"default
-{    
+{
     state_entry()
     {
         integer i = 0;
@@ -417,7 +417,7 @@ default
 //            UUID objectId = TestHelpers.ParseTail(0x100);
 //            UUID itemId = TestHelpers.ParseTail(0x3);
 
-            SceneObjectGroup so 
+            SceneObjectGroup so
                 = SceneHelpers.CreateSceneObject(1, userId, string.Format("Object for {0}", itemName), 0x100);
             m_scene.AddNewSceneObject(so, true);
 
@@ -505,7 +505,7 @@ default
 
             if (++m_chatMessagesReceived >= m_chatMessagesThreshold)
             {
-                m_scene.EventManager.OnChatFromWorld -= OnChatFromWorld;            
+                m_scene.EventManager.OnChatFromWorld -= OnChatFromWorld;
                 m_chatEvent.Set();
             }
         }

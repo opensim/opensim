@@ -218,7 +218,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             if (terrainConfig != null)
             {
                 m_InitialTerrain = terrainConfig.GetString("InitialTerrain", m_InitialTerrain);
-                m_sendTerrainUpdatesByViewDistance = 
+                m_sendTerrainUpdatesByViewDistance =
                     terrainConfig.GetBoolean(
                         "SendTerrainUpdatesByViewDistance",m_sendTerrainUpdatesByViewDistance);
             }
@@ -240,7 +240,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     if(m_baked != null)
                         m_channel = m_baked.MakeCopy();
                     else
-                        m_channel = new TerrainChannel(m_InitialTerrain, 
+                        m_channel = new TerrainChannel(m_InitialTerrain,
                                                 (int)m_scene.RegionInfo.RegionSizeX,
                                                 (int)m_scene.RegionInfo.RegionSizeY,
                                                 (int)m_scene.RegionInfo.RegionSizeZ);
@@ -463,7 +463,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             throw new TerrainException(String.Format("unable to load heightmap from file {0}: no loader available for that format", filename));
         }
 
-        public void LoadFromStream(string filename, Vector3 displacement, 
+        public void LoadFromStream(string filename, Vector3 displacement,
                                     float rotationDegrees, Vector2 boundingOrigin, Vector2 boundingSize, Stream stream)
         {
             foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
@@ -724,7 +724,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         /// <summary>
         /// Saves the current state of the region into the baked map buffer.
-        
+
         /// </summary>
         public void UpdateBakedMap()
         {
@@ -825,7 +825,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 m_scene.RegionInfo.RegionName, filename, m_supportFileExtensionsForTileSave);
         }
 
-        
+
         /// <summary>
         /// This is used to check to see of any of the terrain is tainted and, if so, schedule
         /// updates for all the presences.
@@ -945,7 +945,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             lock (m_perClientPatchUpdates)
                 m_perClientPatchUpdates.Remove(client);
         }
-        
+
         /// <summary>
         /// Scan over changes in the terrain and limit height changes. This enforces the
         ///     non-estate owner limits on rate of terrain editting.
@@ -1312,7 +1312,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 }
             }
             return ret;
-        }   
+        }
 
         private void client_OnModifyTerrain(UUID user, float height, float seconds, byte size, byte action,
                                             float north, float west, float south, float east, UUID agentId)

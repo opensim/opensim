@@ -189,7 +189,7 @@ namespace OpenSim.Data.SQLite
                         m_Fields[name].SetValue(row, reader[name]);
                     }
                 }
-                
+
                 if (m_DataField != null)
                 {
                     Dictionary<string, string> data =
@@ -268,7 +268,7 @@ namespace OpenSim.Data.SQLite
         public virtual bool Delete(string field, string key)
         {
             return Delete(new string[] { field }, new string[] { key });
-        }        
+        }
 
         public virtual bool Delete(string[] fields, string[] keys)
         {

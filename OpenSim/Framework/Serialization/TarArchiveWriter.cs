@@ -113,7 +113,7 @@ namespace OpenSim.Framework.Serialization
             lock (m_bw)
             {
                 m_bw.Write(finalZeroPadding);
-    
+
                 m_bw.Flush();
                 m_bw.Close();
             }
@@ -149,7 +149,7 @@ namespace OpenSim.Framework.Serialization
         {
 //            m_log.DebugFormat(
 //                "[TAR ARCHIVE WRITER]: Data for {0} is {1} bytes", filePath, (null == data ? "null" : data.Length.ToString()));
-                  
+
             byte[] header = new byte[512];
 
             // file path field (100)
@@ -208,18 +208,18 @@ namespace OpenSim.Framework.Serialization
             {
                 // Write out header
                 m_bw.Write(header);
-    
+
                 // Write out data
                 // An IOException occurs if we try to write out an empty array in Mono 2.6
                 if (data.Length > 0)
                     m_bw.Write(data);
-    
+
                 if (data.Length % 512 != 0)
                 {
                     int paddingRequired = 512 - (data.Length % 512);
-    
+
                     //m_log.DebugFormat("[TAR ARCHIVE WRITER]: Padding data with {0} bytes", paddingRequired);
-    
+
                     byte[] padding = new byte[paddingRequired];
                     m_bw.Write(padding);
                 }

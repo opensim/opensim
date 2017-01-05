@@ -44,9 +44,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
 {
     [TestFixture]
     public class InventoryTransferModuleTests : OpenSimTestCase
-    {    
-        protected TestScene m_scene;       
-            
+    {
+        protected TestScene m_scene;
+
         [SetUp]
         public override void SetUp()
         {
@@ -56,9 +56,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
             config.AddConfig("Messaging");
             config.Configs["Messaging"].Set("InventoryTransferModule", "InventoryTransferModule");
 
-            m_scene = new SceneHelpers().SetupScene();            
+            m_scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, config, new InventoryTransferModule());
-        } 
+        }
 
         [Test]
         public void TestAcceptGivenItem()
@@ -69,9 +69,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
             UUID itemId = TestHelpers.ParseTail(0x100);
             UUID assetId = TestHelpers.ParseTail(0x200);
 
-            UserAccount ua1 
+            UserAccount ua1
                 = UserAccountHelpers.CreateUserWithInventory(m_scene, "User", "One", TestHelpers.ParseTail(0x1), "pw");
-            UserAccount ua2 
+            UserAccount ua2
                 = UserAccountHelpers.CreateUserWithInventory(m_scene, "User", "Two", TestHelpers.ParseTail(0x2), "pw");
 
             ScenePresence giverSp = SceneHelpers.AddScenePresence(m_scene, ua1);
@@ -81,7 +81,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
             TestClient receiverClient = (TestClient)receiverSp.ControllingClient;
 
             // Create the object to test give
-            InventoryItemBase originalItem 
+            InventoryItemBase originalItem
                 = UserInventoryHelpers.CreateInventoryItem(
                     m_scene, "givenObj", itemId, assetId, giverSp.UUID, InventoryType.Object);
 
@@ -89,35 +89,35 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
             byte[] itemIdBytes = itemId.GetBytes();
             Array.Copy(itemIdBytes, 0, giveImBinaryBucket, 1, itemIdBytes.Length);
 
-            GridInstantMessage giveIm 
+            GridInstantMessage giveIm
                 = new GridInstantMessage(
-                    m_scene, 
-                    giverSp.UUID, 
-                    giverSp.Name, 
-                    receiverSp.UUID, 
+                    m_scene,
+                    giverSp.UUID,
+                    giverSp.Name,
+                    receiverSp.UUID,
                     (byte)InstantMessageDialog.InventoryOffered,
                     false,
-                    "inventory offered msg", 
+                    "inventory offered msg",
                     initialSessionId,
-                    false, 
+                    false,
                     Vector3.Zero,
                     giveImBinaryBucket,
                     true);
 
             giverClient.HandleImprovedInstantMessage(giveIm);
 
-            // These details might not all be correct.  
-            GridInstantMessage acceptIm 
+            // These details might not all be correct.
+            GridInstantMessage acceptIm
                 = new GridInstantMessage(
-                    m_scene, 
-                    receiverSp.UUID, 
-                    receiverSp.Name, 
-                    giverSp.UUID, 
-                    (byte)InstantMessageDialog.InventoryAccepted, 
+                    m_scene,
+                    receiverSp.UUID,
+                    receiverSp.Name,
+                    giverSp.UUID,
+                    (byte)InstantMessageDialog.InventoryAccepted,
                     false,
-                    "inventory accepted msg", 
+                    "inventory accepted msg",
                     initialSessionId,
-                    false, 
+                    false,
                     Vector3.Zero,
                     null,
                     true);
@@ -133,7 +133,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
             Assert.That(originalItemAfterGive.ID, Is.EqualTo(originalItem.ID));
 
             // Test for item successfully making it into the receiver's inventory
-            InventoryItemBase receivedItem 
+            InventoryItemBase receivedItem
                 = UserInventoryHelpers.GetInventoryItem(m_scene.InventoryService, receiverSp.UUID, "Objects/givenObj");
 
             Assert.That(receivedItem, Is.Not.Null);
@@ -148,7 +148,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
             Assert.That(originalItemAfterDelete, Is.Not.Null);
 
             // TODO: Test scenario where giver deletes their item first.
-        }       
+        }
 
         /// <summary>
         /// Test user rejection of a given item.
@@ -165,9 +165,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
             UUID itemId = TestHelpers.ParseTail(0x100);
             UUID assetId = TestHelpers.ParseTail(0x200);
 
-            UserAccount ua1 
+            UserAccount ua1
                 = UserAccountHelpers.CreateUserWithInventory(m_scene, "User", "One", TestHelpers.ParseTail(0x1), "pw");
-            UserAccount ua2 
+            UserAccount ua2
                 = UserAccountHelpers.CreateUserWithInventory(m_scene, "User", "Two", TestHelpers.ParseTail(0x2), "pw");
 
             ScenePresence giverSp = SceneHelpers.AddScenePresence(m_scene, ua1);
@@ -177,7 +177,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
             TestClient receiverClient = (TestClient)receiverSp.ControllingClient;
 
             // Create the object to test give
-            InventoryItemBase originalItem 
+            InventoryItemBase originalItem
                 = UserInventoryHelpers.CreateInventoryItem(
                     m_scene, "givenObj", itemId, assetId, giverSp.UUID, InventoryType.Object);
 
@@ -188,36 +188,36 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
             byte[] itemIdBytes = itemId.GetBytes();
             Array.Copy(itemIdBytes, 0, giveImBinaryBucket, 1, itemIdBytes.Length);
 
-            GridInstantMessage giveIm 
+            GridInstantMessage giveIm
                 = new GridInstantMessage(
-                    m_scene, 
-                    giverSp.UUID, 
-                    giverSp.Name, 
-                    receiverSp.UUID, 
+                    m_scene,
+                    giverSp.UUID,
+                    giverSp.Name,
+                    receiverSp.UUID,
                     (byte)InstantMessageDialog.InventoryOffered,
                     false,
-                    "inventory offered msg", 
+                    "inventory offered msg",
                     initialSessionId,
-                    false, 
+                    false,
                     Vector3.Zero,
                     giveImBinaryBucket,
                     true);
 
             giverClient.HandleImprovedInstantMessage(giveIm);
 
-            // These details might not all be correct.  
+            // These details might not all be correct.
             // Session ID is now the created item ID (!)
-            GridInstantMessage rejectIm 
+            GridInstantMessage rejectIm
                 = new GridInstantMessage(
-                    m_scene, 
-                    receiverSp.UUID, 
-                    receiverSp.Name, 
-                    giverSp.UUID, 
-                    (byte)InstantMessageDialog.InventoryDeclined, 
+                    m_scene,
+                    receiverSp.UUID,
+                    receiverSp.Name,
+                    giverSp.UUID,
+                    (byte)InstantMessageDialog.InventoryDeclined,
                     false,
-                    "inventory declined msg", 
+                    "inventory declined msg",
                     new UUID(receivedIm.imSessionID),
-                    false, 
+                    false,
                     Vector3.Zero,
                     null,
                     true);
@@ -233,7 +233,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
             Assert.That(originalItemAfterGive.ID, Is.EqualTo(originalItem.ID));
 
             // Test for item successfully making it into the receiver's inventory
-            InventoryItemBase receivedItem 
+            InventoryItemBase receivedItem
                 = UserInventoryHelpers.GetInventoryItem(m_scene.InventoryService, receiverSp.UUID, "Trash/givenObj");
 
             InventoryFolderBase trashFolder
@@ -250,7 +250,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
                 = UserInventoryHelpers.GetInventoryItem(m_scene.InventoryService, giverSp.UUID, "Objects/givenObj");
 
             Assert.That(originalItemAfterDelete, Is.Not.Null);
-        }  
+        }
 
         [Test]
         public void TestAcceptGivenFolder()
@@ -261,9 +261,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
             UUID initialSessionId = TestHelpers.ParseTail(0x10);
             UUID folderId = TestHelpers.ParseTail(0x100);
 
-            UserAccount ua1 
+            UserAccount ua1
                 = UserAccountHelpers.CreateUserWithInventory(m_scene, "User", "One", TestHelpers.ParseTail(0x1), "pw");
-            UserAccount ua2 
+            UserAccount ua2
                 = UserAccountHelpers.CreateUserWithInventory(m_scene, "User", "Two", TestHelpers.ParseTail(0x2), "pw");
 
             ScenePresence giverSp = SceneHelpers.AddScenePresence(m_scene, ua1);
@@ -272,7 +272,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
             ScenePresence receiverSp = SceneHelpers.AddScenePresence(m_scene, ua2);
             TestClient receiverClient = (TestClient)receiverSp.ControllingClient;
 
-            InventoryFolderBase originalFolder 
+            InventoryFolderBase originalFolder
                 = UserInventoryHelpers.CreateInventoryFolder(
                     m_scene.InventoryService, giverSp.UUID, folderId, "f1", true);
 
@@ -281,35 +281,35 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
             byte[] itemIdBytes = folderId.GetBytes();
             Array.Copy(itemIdBytes, 0, giveImBinaryBucket, 1, itemIdBytes.Length);
 
-            GridInstantMessage giveIm 
+            GridInstantMessage giveIm
                 = new GridInstantMessage(
-                    m_scene, 
-                    giverSp.UUID, 
-                    giverSp.Name, 
-                    receiverSp.UUID, 
+                    m_scene,
+                    giverSp.UUID,
+                    giverSp.Name,
+                    receiverSp.UUID,
                     (byte)InstantMessageDialog.InventoryOffered,
                     false,
-                    "inventory offered msg", 
+                    "inventory offered msg",
                     initialSessionId,
-                    false, 
+                    false,
                     Vector3.Zero,
                     giveImBinaryBucket,
                     true);
 
             giverClient.HandleImprovedInstantMessage(giveIm);
 
-            // These details might not all be correct.  
-            GridInstantMessage acceptIm 
+            // These details might not all be correct.
+            GridInstantMessage acceptIm
                 = new GridInstantMessage(
-                    m_scene, 
-                    receiverSp.UUID, 
-                    receiverSp.Name, 
-                    giverSp.UUID, 
-                    (byte)InstantMessageDialog.InventoryAccepted, 
+                    m_scene,
+                    receiverSp.UUID,
+                    receiverSp.Name,
+                    giverSp.UUID,
+                    (byte)InstantMessageDialog.InventoryAccepted,
                     false,
-                    "inventory accepted msg", 
+                    "inventory accepted msg",
                     initialSessionId,
-                    false, 
+                    false,
                     Vector3.Zero,
                     null,
                     true);
@@ -325,7 +325,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
             Assert.That(originalFolderAfterGive.ID, Is.EqualTo(originalFolder.ID));
 
             // Test for item successfully making it into the receiver's inventory
-            InventoryFolderBase receivedFolder 
+            InventoryFolderBase receivedFolder
                 = UserInventoryHelpers.GetInventoryFolder(m_scene.InventoryService, receiverSp.UUID, "f1");
 
             Assert.That(receivedFolder, Is.Not.Null);
@@ -340,7 +340,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
             Assert.That(originalFolderAfterDelete, Is.Not.Null);
 
             // TODO: Test scenario where giver deletes their item first.
-        }       
+        }
 
         /// <summary>
         /// Test user rejection of a given item.
@@ -357,9 +357,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
             UUID initialSessionId = TestHelpers.ParseTail(0x10);
             UUID folderId = TestHelpers.ParseTail(0x100);
 
-            UserAccount ua1 
+            UserAccount ua1
                 = UserAccountHelpers.CreateUserWithInventory(m_scene, "User", "One", TestHelpers.ParseTail(0x1), "pw");
-            UserAccount ua2 
+            UserAccount ua2
                 = UserAccountHelpers.CreateUserWithInventory(m_scene, "User", "Two", TestHelpers.ParseTail(0x2), "pw");
 
             ScenePresence giverSp = SceneHelpers.AddScenePresence(m_scene, ua1);
@@ -369,7 +369,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
             TestClient receiverClient = (TestClient)receiverSp.ControllingClient;
 
             // Create the folder to test give
-            InventoryFolderBase originalFolder 
+            InventoryFolderBase originalFolder
                 = UserInventoryHelpers.CreateInventoryFolder(
                     m_scene.InventoryService, giverSp.UUID, folderId, "f1", true);
 
@@ -381,36 +381,36 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
             byte[] itemIdBytes = folderId.GetBytes();
             Array.Copy(itemIdBytes, 0, giveImBinaryBucket, 1, itemIdBytes.Length);
 
-            GridInstantMessage giveIm 
+            GridInstantMessage giveIm
                 = new GridInstantMessage(
-                    m_scene, 
-                    giverSp.UUID, 
-                    giverSp.Name, 
-                    receiverSp.UUID, 
+                    m_scene,
+                    giverSp.UUID,
+                    giverSp.Name,
+                    receiverSp.UUID,
                     (byte)InstantMessageDialog.InventoryOffered,
                     false,
-                    "inventory offered msg", 
+                    "inventory offered msg",
                     initialSessionId,
-                    false, 
+                    false,
                     Vector3.Zero,
                     giveImBinaryBucket,
                     true);
 
             giverClient.HandleImprovedInstantMessage(giveIm);
 
-            // These details might not all be correct.  
+            // These details might not all be correct.
             // Session ID is now the created item ID (!)
-            GridInstantMessage rejectIm 
+            GridInstantMessage rejectIm
                 = new GridInstantMessage(
-                    m_scene, 
-                    receiverSp.UUID, 
-                    receiverSp.Name, 
-                    giverSp.UUID, 
-                    (byte)InstantMessageDialog.InventoryDeclined, 
+                    m_scene,
+                    receiverSp.UUID,
+                    receiverSp.Name,
+                    giverSp.UUID,
+                    (byte)InstantMessageDialog.InventoryDeclined,
                     false,
-                    "inventory declined msg", 
+                    "inventory declined msg",
                     new UUID(receivedIm.imSessionID),
-                    false, 
+                    false,
                     Vector3.Zero,
                     null,
                     true);
@@ -426,7 +426,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
             Assert.That(originalFolderAfterGive.ID, Is.EqualTo(originalFolder.ID));
 
             // Test for folder successfully making it into the receiver's inventory
-            InventoryFolderBase receivedFolder 
+            InventoryFolderBase receivedFolder
                 = UserInventoryHelpers.GetInventoryFolder(m_scene.InventoryService, receiverSp.UUID, "Trash/f1");
 
             InventoryFolderBase trashFolder
@@ -443,6 +443,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer.Tests
                 = UserInventoryHelpers.GetInventoryFolder(m_scene.InventoryService, giverSp.UUID, "f1");
 
             Assert.That(originalFolderAfterDelete, Is.Not.Null);
-        }  
+        }
     }
 }

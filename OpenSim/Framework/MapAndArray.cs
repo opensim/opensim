@@ -45,9 +45,9 @@ namespace OpenSim.Framework
 
         /// <summary>Number of values currently stored in the collection</summary>
         public int Count { get { return m_array.Length; } }
-        /// <summary>NOTE: This collection is thread safe. You do not need to 
-        /// acquire a lock to add, remove, or enumerate entries. This 
-        /// synchronization object should only be locked for larger 
+        /// <summary>NOTE: This collection is thread safe. You do not need to
+        /// acquire a lock to add, remove, or enumerate entries. This
+        /// synchronization object should only be locked for larger
         /// transactions</summary>
         public object SyncRoot { get { return m_syncRoot; } }
 
@@ -92,7 +92,7 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Adds a key/value pair to the collection. This will throw an 
+        /// Adds a key/value pair to the collection. This will throw an
         /// exception if the key is already present in the collection
         /// </summary>
         /// <param name="key">Key to add or update</param>
@@ -166,7 +166,7 @@ namespace OpenSim.Framework
         /// Gets a reference to the immutable array of values stored in this
         /// collection. This array is thread safe for iteration
         /// </summary>
-        /// <returns>A thread safe reference ton an array of all of the stored 
+        /// <returns>A thread safe reference ton an array of all of the stored
         /// values</returns>
         public TValue[] GetArray()
         {
@@ -175,7 +175,7 @@ namespace OpenSim.Framework
 
         private void CreateArray()
         {
-            // Rebuild the array from the dictionary. This method must be 
+            // Rebuild the array from the dictionary. This method must be
             // called from inside a lock
             TValue[] array = new TValue[m_dict.Count];
             int i = 0;

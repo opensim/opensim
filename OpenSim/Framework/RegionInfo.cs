@@ -376,7 +376,7 @@ namespace OpenSim.Framework
         }
 
         public string MaptileStaticFile { get; private set; }
-        
+
         /// <summary>
         /// The port by which http communication occurs with the region (most noticeably, CAPS communication)
         /// </summary>
@@ -389,17 +389,17 @@ namespace OpenSim.Framework
         /// <summary>
         /// A well-formed URI for the host region server (namely "http://" + ExternalHostName)
         /// </summary>
-        
+
         public string ServerURI
         {
-            get { 
+            get {
                 if ( m_serverURI != string.Empty ) {
                     return m_serverURI;
                 } else {
                     return "http://" + m_externalHostName + ":" + m_httpPort + "/";
                 }
-            }            
-            set { 
+            }
+            set {
                 if ( value.EndsWith("/") ) {
                     m_serverURI = value;
                 } else {
@@ -749,10 +749,10 @@ namespace OpenSim.Framework
 
             m_physPrimMax = config.GetInt("PhysicalPrimMax", 0);
             allKeys.Remove("PhysicalPrimMax");
-            
+
             m_clampPrimSize = config.GetBoolean("ClampPrimSize", false);
             allKeys.Remove("ClampPrimSize");
-            
+
             m_objectCapacity = config.GetInt("MaxPrims", 15000);
             allKeys.Remove("MaxPrims");
 
@@ -766,12 +766,12 @@ namespace OpenSim.Framework
             string mapTileStaticUUID = config.GetString("MaptileStaticUUID", UUID.Zero.ToString());
             if (UUID.TryParse(mapTileStaticUUID.Trim(), out m_maptileStaticUUID))
             {
-                config.Set("MaptileStaticUUID", m_maptileStaticUUID.ToString()); 
+                config.Set("MaptileStaticUUID", m_maptileStaticUUID.ToString());
             }
 
             MaptileStaticFile = config.GetString("MaptileStaticFile", String.Empty);
             allKeys.Remove("MaptileStaticFile");
-            
+
             #endregion
 
             AgentCapacity = config.GetInt("MaxAgents", 100);
@@ -919,10 +919,10 @@ namespace OpenSim.Framework
 
             if (m_physPrimMin > 0)
                 config.Set("PhysicalPrimMax", m_physPrimMin);
-            
+
             if (m_physPrimMax > 0)
                 config.Set("PhysicalPrimMax", m_physPrimMax);
-                        
+
             config.Set("ClampPrimSize", m_clampPrimSize.ToString());
 
             if (m_objectCapacity > 0)
@@ -1038,7 +1038,7 @@ namespace OpenSim.Framework
 
             configMember.addConfigurationOption("region_type", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Free form string describing the type of region", String.Empty, true);
-            
+
             configMember.addConfigurationOption("region_static_maptile", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                                                 "UUID of a texture to use as the map for this region", m_maptileStaticUUID.ToString(), true);
         }
@@ -1090,7 +1090,7 @@ namespace OpenSim.Framework
 
             configMember.addConfigurationOption("object_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                                                 "Max objects this sim will hold", "15000", true);
-            
+
             configMember.addConfigurationOption("agent_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                                                 "Max avatars this sim will hold", "100", true);
 
@@ -1307,8 +1307,8 @@ namespace OpenSim.Framework
             kvp["http_port"] = HttpPort.ToString();
             kvp["internal_ip_address"] = InternalEndPoint.Address.ToString();
             kvp["internal_port"] = InternalEndPoint.Port.ToString();
-			// TODO: Remove in next major version
-			kvp["alternate_ports"] = "False";
+            // TODO: Remove in next major version
+            kvp["alternate_ports"] = "False";
             kvp["server_uri"] = ServerURI;
 
             return kvp;

@@ -44,7 +44,7 @@ namespace OpenSim.Data
     /// <summary>
     /// An interface for connecting to the presence datastore
     /// </summary>
-    public interface IPresenceData 
+    public interface IPresenceData
     {
         bool Store(PresenceData data);
 

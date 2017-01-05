@@ -92,7 +92,7 @@ namespace OpenSim.Server.Base
 
                 // Check if a prompt was given on the command line
                 prompt = startupConfig.GetString("prompt", prompt);
-                
+
                 // Check for a Log4Net config file on the command line
                 logConfig =startupConfig.GetString("logconfig", logConfig);
             }
@@ -116,7 +116,7 @@ namespace OpenSim.Server.Base
             // Merge OpSys env vars
             Console.WriteLine("[CONFIG]: Loading environment variables for Config");
             Util.MergeEnvironmentToConfig(Config);
-            
+
             // Merge the configuration from the command line into the loaded file
             Config.Merge(argvConfig);
 

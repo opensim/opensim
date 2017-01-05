@@ -275,6 +275,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         public bool SupportsTileSave()
         {
             return false;
-        }       
+        }
     }
 }

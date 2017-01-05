@@ -32,7 +32,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 {
     public interface ITerrainFloodEffect
     {
-        void FloodEffect(ITerrainChannel map, Boolean[,] fillArea, double strength, 
+        void FloodEffect(ITerrainChannel map, Boolean[,] fillArea, double strength,
             int startX, int endX, int startY, int endY);
     }
 }

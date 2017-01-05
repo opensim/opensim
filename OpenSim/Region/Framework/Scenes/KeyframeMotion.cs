@@ -140,7 +140,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 timer.Start();
                         };
                     }
-                    
+
                     // Check again, in case the regions were started while we were adding the event handler
                     if (SceneManager.Instance.AllRegionsReady)
                     {
@@ -821,7 +821,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             SceneObjectGroup tmp = m_group;
             m_group = null;
- 
+
             using (MemoryStream ms = new MemoryStream())
             {
                 BinaryFormatter fmt = new BinaryFormatter();
@@ -839,10 +839,10 @@ namespace OpenSim.Region.Framework.Scenes
         public void StartCrossingCheck()
         {
             // timer will be restart by crossingFailure
-            // or never since crossing worked and this 
+            // or never since crossing worked and this
             // should be deleted
             StopTimer();
-           
+
             m_isCrossing = true;
             m_waitingCrossing = true;
 

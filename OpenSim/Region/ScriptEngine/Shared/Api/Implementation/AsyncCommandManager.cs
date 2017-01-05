@@ -81,64 +81,64 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public Dataserver DataserverPlugin
         {
-            get 
-            { 
+            get
+            {
                 lock (staticLock)
-                    return m_Dataserver[m_ScriptEngine]; 
+                    return m_Dataserver[m_ScriptEngine];
             }
         }
 
         public Timer TimerPlugin
         {
-            get 
-            { 
+            get
+            {
                 lock (staticLock)
-                    return m_Timer[m_ScriptEngine]; 
+                    return m_Timer[m_ScriptEngine];
             }
         }
 
         public HttpRequest HttpRequestPlugin
         {
-            get 
-            { 
+            get
+            {
                 lock (staticLock)
-                    return m_HttpRequest[m_ScriptEngine]; 
+                    return m_HttpRequest[m_ScriptEngine];
             }
         }
 
         public Listener ListenerPlugin
         {
-            get 
-            { 
+            get
+            {
                 lock (staticLock)
-                    return m_Listener[m_ScriptEngine]; 
+                    return m_Listener[m_ScriptEngine];
             }
         }
 
         public SensorRepeat SensorRepeatPlugin
         {
-            get 
-            { 
+            get
+            {
                 lock (staticLock)
-                    return m_SensorRepeat[m_ScriptEngine]; 
+                    return m_SensorRepeat[m_ScriptEngine];
             }
         }
 
         public XmlRequest XmlRequestPlugin
         {
-            get 
-            { 
+            get
+            {
                 lock (staticLock)
-                    return m_XmlRequest[m_ScriptEngine]; 
+                    return m_XmlRequest[m_ScriptEngine];
             }
         }
 
         public IScriptEngine[] ScriptEngines
         {
-            get 
-            { 
+            get
+            {
                 lock (staticLock)
-                    return m_ScriptEngines.ToArray(); 
+                    return m_ScriptEngines.ToArray();
             }
         }
 
@@ -387,7 +387,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
- 
+
 
         public static Object[] GetSerializationData(IScriptEngine engine, UUID itemID)
         {

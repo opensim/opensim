@@ -72,7 +72,7 @@ namespace OpenSim.Server.Handlers.Base
 
         // We call this from our plugin module to get our configuration
         public IConfig GetConfig()
-        { 
+        {
             IConfig config = null;
             config = ServerUtils.GetConfig(ConfigFile, ConfigName);
 
@@ -96,12 +96,12 @@ namespace OpenSim.Server.Handlers.Base
 
         // We get our remote initial configuration for bootstrapping in case
         // we have no configuration in our main file or in an existing
-        // modular config file. This is the last resort to bootstrap the 
+        // modular config file. This is the last resort to bootstrap the
         // configuration, likely a new plugin loading for the first time.
         private IConfigSource GetConfigSource()
         {
             IConfigSource source = null;
-            
+
             source = ServerUtils.LoadInitialConfig(ConfigURL);
 
             if (source == null)

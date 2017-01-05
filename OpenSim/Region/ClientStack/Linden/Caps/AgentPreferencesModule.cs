@@ -133,7 +133,7 @@ namespace OpenSim.Region.ClientStack.LindenCaps
             {
                 data = new AgentPrefs(agent);
             }
-                
+
             if (req.ContainsKey("access_prefs"))
             {
                 OSDMap accessPrefs = (OSDMap)req["access_prefs"];  // We could check with ContainsKey...

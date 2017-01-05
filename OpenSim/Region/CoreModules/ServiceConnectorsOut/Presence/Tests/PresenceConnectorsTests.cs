@@ -72,7 +72,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence.Tests
         public void TestPresenceV0_1()
         {
             SetUp();
-            
+
                 // Let's stick in a test presence
                 /*
                 PresenceData p = new PresenceData();

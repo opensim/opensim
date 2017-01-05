@@ -159,12 +159,12 @@ namespace OpenSim.Framework
         /// </summary>
         public virtual ulong HomeRegion
         {
-            get 
-            { 
+            get
+            {
                 return Util.RegionWorldLocToHandle(Util.RegionToWorldLoc(m_homeRegionX), Util.RegionToWorldLoc(m_homeRegionY));
-                // return Utils.UIntsToLong( m_homeRegionX * (uint)Constants.RegionSize, m_homeRegionY * (uint)Constants.RegionSize); 
+                // return Utils.UIntsToLong( m_homeRegionX * (uint)Constants.RegionSize, m_homeRegionY * (uint)Constants.RegionSize);
             }
-            
+
             set
             {
                 uint regionWorldLocX, regionWorldLocY;
@@ -212,7 +212,7 @@ namespace OpenSim.Framework
             get { return m_surname; }
             set { m_surname = value; }
         }
-        
+
         /// <value>
         /// The concatentation of the various name components.
         /// </value>

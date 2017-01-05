@@ -571,7 +571,7 @@ namespace OpenSim.Region.Framework.Scenes
             return errors;
         }
 
-        
+
         public string ToXml2()
         {
             using (StringWriter sw = new StringWriter())

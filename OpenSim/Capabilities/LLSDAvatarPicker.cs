@@ -42,7 +42,7 @@ namespace OpenSim.Framework.Capabilities
     {
         public string username;
         public string display_name;
-        //'display_name_next_update':d"1970-01-01T00:00:00Z" 
+        //'display_name_next_update':d"1970-01-01T00:00:00Z"
         public string legacy_first_name;
         public string legacy_last_name;
         public UUID id;

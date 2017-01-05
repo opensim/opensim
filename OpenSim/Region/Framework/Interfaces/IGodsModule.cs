@@ -44,7 +44,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="godLike"></param>
         /// <param name="controllingClient"></param>
         void RequestGodlikePowers(UUID agentID, UUID sessionID, UUID token, bool godLike);
-            
+
         /// <summary>
         /// Kicks User specified from the simulator.  This logs them off of the grid.
         /// </summary>

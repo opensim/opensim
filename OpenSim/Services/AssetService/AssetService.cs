@@ -95,7 +95,7 @@ namespace OpenSim.Services.AssetService
         public virtual AssetBase Get(string id)
         {
 //            m_log.DebugFormat("[ASSET SERVICE]: Get asset for {0}", id);
-            
+
             UUID assetID;
 
             if (!UUID.TryParse(id, out assetID))
@@ -166,7 +166,7 @@ namespace OpenSim.Services.AssetService
                 return new bool[ids.Length];
             }
         }
-        
+
         public virtual string Store(AssetBase asset)
         {
             bool exists = m_Database.AssetsExist(new[] { asset.FullID })[0];
@@ -175,14 +175,14 @@ namespace OpenSim.Services.AssetService
 //                m_log.DebugFormat(
 //                    "[ASSET SERVICE]: Storing asset {0} {1}, bytes {2}", asset.Name, asset.FullID, asset.Data.Length);
                if (!m_Database.StoreAsset(asset))
-            	{
+                {
                 return UUID.Zero.ToString();
-            	}
+                }
             }
 //            else
 //            {
 //                m_log.DebugFormat(
-//                    "[ASSET SERVICE]: Not storing asset {0} {1}, bytes {2} as it already exists", asset.Name, asset.FullID, asset.Data.Length);                
+//                    "[ASSET SERVICE]: Not storing asset {0} {1}, bytes {2} as it already exists", asset.Name, asset.FullID, asset.Data.Length);
 //            }
 
             return asset.ID;

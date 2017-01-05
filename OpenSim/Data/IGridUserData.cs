@@ -47,7 +47,7 @@ namespace OpenSim.Data
     /// <summary>
     /// An interface for connecting to the user grid datastore
     /// </summary>
-    public interface IGridUserData 
+    public interface IGridUserData
     {
         GridUserData Get(string userID);
         GridUserData[] GetAll(string query);

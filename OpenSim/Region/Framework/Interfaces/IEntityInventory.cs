@@ -36,8 +36,8 @@ namespace OpenSim.Region.Framework.Interfaces
     /// <summary>
     /// Interface to an entity's (SceneObjectPart's) inventory
     /// </summary>
-    /// 
-    /// This is not a finished 1.0 candidate interface 
+    ///
+    /// This is not a finished 1.0 candidate interface
     public interface IEntityInventory
     {
         /// <summary>
@@ -48,21 +48,21 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Reset UUIDs for all the items in the prim's inventory.
         /// </summary>
-        /// 
+        ///
         /// This involves either generating
         /// new ones or setting existing UUIDs to the correct parent UUIDs.
         ///
         /// If this method is called and there are inventory items, then we regard the inventory as having changed.
-        /// 
+        ///
         /// <param name="linkNum">Link number for the part</param>
         void ResetInventoryIDs();
 
         /// <summary>
         /// Reset parent object UUID for all the items in the prim's inventory.
         /// </summary>
-        /// 
+        ///
         /// If this method is called and there are inventory items, then we regard the inventory as having changed.
-        /// 
+        ///
         /// <param name="linkNum">Link number for the part</param>
         void ResetObjectID();
 
@@ -87,7 +87,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="stateSource"></param>
         /// <returns>Number of scripts started.</returns>
         int CreateScriptInstances(int startParam, bool postOnRez, string engine, int stateSource);
-        
+
         ArrayList GetScriptErrors(UUID itemID);
         void ResumeScripts();
 
@@ -238,10 +238,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Get the scene object(s) referenced by an inventory item.
         /// </summary>
-        /// 
+        ///
         /// This is returned in a 'rez ready' state.  That is, name, description, permissions and other details have
         /// been adjusted to reflect the part and item from which it originates.
-        /// 
+        ///
         /// <param name="item">Inventory item</param>
         /// <param name="objlist">The scene objects</param>
         /// <param name="veclist">Relative offsets for each object</param>
@@ -312,7 +312,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         /// <returns></returns>
         List<UUID> GetInventoryList();
-        
+
         /// <summary>
         /// Get the xml representing the saved states of scripts in this inventory.
         /// </summary>

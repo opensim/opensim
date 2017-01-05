@@ -107,7 +107,7 @@ namespace OpenSim.Services.Connectors
             {
                 string reply = SynchronousRestFormsRequester.MakeRequest("POST",
                         uri,
-                        reqString, 
+                        reqString,
                         m_Auth);
                 if (reply != string.Empty)
                 {
@@ -315,8 +315,8 @@ namespace OpenSim.Services.Connectors
                 }
                 else
                 {
-					if (replyData["result"].ToString() == "null")
-						return null;
+                    if (replyData["result"].ToString() == "null")
+                        return null;
 
                     m_log.DebugFormat("[PRESENCE CONNECTOR]: Invalid reply (result not dictionary) received from presence server when querying for sessionID {0}", sessionID.ToString());
                 }
@@ -366,7 +366,7 @@ namespace OpenSim.Services.Connectors
 
             if (replyData != null)
             {
-                if (replyData.ContainsKey("result") && 
+                if (replyData.ContainsKey("result") &&
                     (replyData["result"].ToString() == "null" || replyData["result"].ToString() == "Failure"))
                 {
                     return new PresenceInfo[0];

@@ -41,7 +41,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 {
     public class AssetXferUploader
     {
-       
+
         private List<UUID> defaultIDs = new List<UUID> {
                 // Viewer's notion of the default texture
                 new UUID("5748decc-f629-461c-9a36-a35a221fe21f"), // others == default blank

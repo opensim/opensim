@@ -31,7 +31,7 @@ using System.Text;
 
 namespace OpenSim.Framework
 {
-    public interface IRegistryCore 
+    public interface IRegistryCore
     {
         T Get<T>();
         void RegisterInterface<T>(T iface);

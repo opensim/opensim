@@ -914,7 +914,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             // Sum velocities
             m_lastAngularVelocity = m_angularMotorVelocity + vertattr; // + bank + deflection
-            
+
             if ((m_flags & (VehicleFlag.NO_DEFLECTION_UP)) != 0)
             {
                 m_lastAngularVelocity.X = 0;

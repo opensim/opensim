@@ -40,7 +40,7 @@ using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Region.OptionalModules.WebSocketEchoModule
 {
-    
+
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "WebSocketEchoModule")]
     public class WebSocketEchoModule : ISharedRegionModule
     {
@@ -111,7 +111,7 @@ namespace OpenSim.Region.OptionalModules.WebSocketEchoModule
             obj.SendPingCheck();
         }
 
-        
+
         private void HandlerOnOnUpgradeCompleted(object sender, UpgradeCompletedEventArgs completeddata)
         {
             WebSocketHttpServerHandler obj = sender as WebSocketHttpServerHandler;
@@ -136,14 +136,14 @@ namespace OpenSim.Region.OptionalModules.WebSocketEchoModule
             obj.Dispose();
         }
 
-        // Shutting down..  so shut down all sockets.   
+        // Shutting down..  so shut down all sockets.
         // Note..    this should be done outside of an ienumerable if you're also hook to the close event.
         public void Close()
         {
             if (!enabled)
                 return;
-        
-            // We convert this to a for loop so we're not in in an IEnumerable when the close 
+
+            // We convert this to a for loop so we're not in in an IEnumerable when the close
             //call triggers an event which then removes item from _activeHandlers that we're enumerating
             WebSocketHttpServerHandler[] items = new WebSocketHttpServerHandler[_activeHandlers.Count];
             _activeHandlers.CopyTo(items);

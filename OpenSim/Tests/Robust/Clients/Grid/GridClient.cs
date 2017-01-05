@@ -95,7 +95,7 @@ namespace Robust.Tests
             Assert.AreNotEqual(regions, null, "GetRegionsByName failed");
             Assert.AreEqual(regions.Count, 3, "GetRegionsByName should return 3");
 
-            regions = m_Connector.GetRegionRange(UUID.Zero, 
+            regions = m_Connector.GetRegionRange(UUID.Zero,
                 (int)Util.RegionToWorldLoc(900), (int)Util.RegionToWorldLoc(1002),
                 (int)Util.RegionToWorldLoc(900), (int)Util.RegionToWorldLoc(1002) );
             Assert.AreNotEqual(regions, null, "GetRegionRange failed");
@@ -126,7 +126,7 @@ namespace Robust.Tests
             region.ExternalHostName = "127.0.0.1";
             region.HttpPort = 9000;
             region.InternalEndPoint = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("0.0.0.0"), 9000);
-          
+
             return region;
         }
     }

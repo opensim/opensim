@@ -40,7 +40,7 @@ namespace OpenSim.Framework.Console
     //    private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public const int LocalIdNotFound = 0;
-    
+
         /// <summary>
         /// Used by modules to display stock co-ordinate help, though possibly this should be under some general section
         /// rather than in each help summary.
@@ -57,10 +57,10 @@ namespace OpenSim.Framework.Console
     show object pos ,20,20 to ,40,40
     delete object pos ,,30 to ,,~
     show object pos ,,-~ to ,,30";
-    
+
         public const string MinRawConsoleVectorValue = "-~";
         public const string MaxRawConsoleVectorValue = "~";
-    
+
         public const string VectorSeparator = ",";
         public static char[] VectorSeparatorChars = VectorSeparator.ToCharArray();
 
@@ -81,7 +81,7 @@ namespace OpenSim.Framework.Console
 
             return true;
         }
-    
+
         /// <summary>
         /// Try to parse a console UUID from the console.
         /// </summary>
@@ -101,7 +101,7 @@ namespace OpenSim.Framework.Console
 
                 return false;
             }
-    
+
             return true;
         }
 
@@ -259,7 +259,7 @@ namespace OpenSim.Framework.Console
 
             return false;
         }
-    
+
         /// <summary>
         /// Convert a minimum vector input from the console to an OpenMetaverse.Vector3
         /// </summary>
@@ -270,7 +270,7 @@ namespace OpenSim.Framework.Console
         {
             return TryParseConsoleVector(rawConsoleVector, c => float.MinValue.ToString(), out vector);
         }
-    
+
         /// <summary>
         /// Convert a maximum vector input from the console to an OpenMetaverse.Vector3
         /// </summary>
@@ -281,7 +281,7 @@ namespace OpenSim.Framework.Console
         {
             return TryParseConsoleVector(rawConsoleVector, c => float.MaxValue.ToString(), out vector);
         }
-    
+
         /// <summary>
         /// Convert a vector input from the console to an OpenMetaverse.Vector3
         /// </summary>
@@ -354,10 +354,10 @@ namespace OpenSim.Framework.Console
             string rawConsoleVector, int dimensions, Func<string, string> blankComponentFunc)
         {
             List<string> components = rawConsoleVector.Split(VectorSeparatorChars).ToList();
-    
+
             if (components.Count < 1 || components.Count > dimensions)
                 return null;
-    
+
             if (components.Count < dimensions)
             {
                 if (blankComponentFunc == null)
@@ -380,7 +380,7 @@ namespace OpenSim.Framework.Console
                         else
                             return c;
                     });
-    
+
             return string.Join(VectorSeparator, cookedComponents.ToArray());
         }
     }

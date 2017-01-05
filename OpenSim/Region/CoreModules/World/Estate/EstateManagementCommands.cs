@@ -49,18 +49,18 @@ namespace OpenSim.Region.CoreModules.World.Estate
     public class EstateManagementCommands
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         protected EstateManagementModule m_module;
 
         public EstateManagementCommands(EstateManagementModule module)
         {
             m_module = module;
         }
-        
+
         public void Initialise()
-        {            
+        {
 //            m_log.DebugFormat("[ESTATE MODULE]: Setting up estate commands for region {0}", m_module.Scene.RegionInfo.RegionName);
-            
+
             m_module.Scene.AddCommand("Regions", m_module, "set terrain texture",
                                "set terrain texture <number> <uuid> [<x>] [<y>]",
                                "Sets the terrain <number> to <uuid>, if <x> or <y> are specified, it will only " +
@@ -77,14 +77,14 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             m_module.Scene.AddCommand("Regions", m_module, "set water height",
                                "set water height <height> [<x>] [<y>]",
-                               "Sets the water height in meters.  If <x> and <y> are specified, it will only set it on regions with a matching coordinate. " + 
+                               "Sets the water height in meters.  If <x> and <y> are specified, it will only set it on regions with a matching coordinate. " +
                                "Specify -1 in <x> or <y> to wildcard that coordinate.",
                                consoleSetWaterHeight);
 
             m_module.Scene.AddCommand(
                 "Estates", m_module, "estate show", "estate show", "Shows all estates on the simulator.", ShowEstatesCommand);
         }
-        
+
         public void Close() {}
 
         #region CommandHandlers
@@ -120,7 +120,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                             m_module.Scene.RegionInfo.RegionSettings.TerrainTexture4 = texture;
                             break;
                     }
-                    
+
                     m_module.Scene.RegionInfo.RegionSettings.Save();
                     m_module.TriggerRegionInfoChange();
                     m_module.sendRegionHandshakeToAll();
@@ -130,7 +130,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
         protected void consoleSetWaterHeight(string module, string[] args)
         {
             string heightstring = args[3];
-           
+
             int x = (args.Length > 4 ? int.Parse(args[4]) : -1);
             int y = (args.Length > 5 ? int.Parse(args[5]) : -1);
 
@@ -143,13 +143,13 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     m_log.Debug("[ESTATEMODULE]: Setting water height in " + m_module.Scene.RegionInfo.RegionName + " to " +
                                 string.Format(" {0}", selectedheight));
                     m_module.Scene.RegionInfo.RegionSettings.WaterHeight = selectedheight;
-                    
+
                     m_module.Scene.RegionInfo.RegionSettings.Save();
                     m_module.TriggerRegionInfoChange();
                     m_module.sendRegionHandshakeToAll();
                 }
             }
-        }     
+        }
         protected void consoleSetTerrainHeights(string module, string[] args)
         {
             string num = args[3];
@@ -198,31 +198,31 @@ namespace OpenSim.Region.CoreModules.World.Estate
                             m_module.Scene.RegionInfo.RegionSettings.Elevation2NE = highValue;
                             break;
                     }
-                    
+
                     m_module.Scene.RegionInfo.RegionSettings.Save();
                     m_module.TriggerRegionInfoChange();
                     m_module.sendRegionHandshakeToAll();
                 }
             }
-        }     
-        
+        }
+
         protected void ShowEstatesCommand(string module, string[] cmd)
         {
-            StringBuilder report = new StringBuilder();  
+            StringBuilder report = new StringBuilder();
             RegionInfo ri = m_module.Scene.RegionInfo;
             EstateSettings es = ri.EstateSettings;
-            
-            report.AppendFormat("Estate information for region {0}\n", ri.RegionName);            
+
+            report.AppendFormat("Estate information for region {0}\n", ri.RegionName);
             report.AppendFormat(
                 "{0,-20} {1,-7} {2,-20}\n",
                 "Estate Name",
                 "ID",
                 "Owner");
-            
+
             report.AppendFormat(
-                "{0,-20} {1,-7} {2,-20}\n", 
+                "{0,-20} {1,-7} {2,-20}\n",
                 es.EstateName, es.EstateID, m_module.UserManager.GetUserName(es.EstateOwner));
-            
+
             MainConsole.Instance.Output(report.ToString());
         }
         #endregion

@@ -98,7 +98,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
             return false;
         }
 
-        public void GetDrawStringSize(string text, string fontName, int fontSize, 
+        public void GetDrawStringSize(string text, string fontName, int fontSize,
                                       out double xSize, out double ySize)
         {
             xSize = 0;
@@ -124,7 +124,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
         {
             if (m_scene == null)
                 m_scene = scene;
-            
+
         }
 
         public void RemoveRegion(Scene scene)
@@ -166,15 +166,15 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.AllowAutoRedirect = false;
-            
-            if (!string.IsNullOrEmpty(m_proxyurl)) 
+
+            if (!string.IsNullOrEmpty(m_proxyurl))
             {
-                if (!string.IsNullOrEmpty(m_proxyexcepts)) 
+                if (!string.IsNullOrEmpty(m_proxyexcepts))
                 {
                     string[] elist = m_proxyexcepts.Split(';');
                     request.Proxy = new WebProxy(m_proxyurl, true, elist);
-                } 
-                else 
+                }
+                else
                 {
                     request.Proxy = new WebProxy(m_proxyurl, true);
                 }
@@ -253,7 +253,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
                             {
                                 imageJ2000 = OpenJPEG.EncodeFromImage(resize, true);
                             }
-                        } 
+                        }
                         catch (Exception)
                         {
                             m_log.Error("[LOADIMAGEURLMODULE]: OpenJpeg Conversion Failed.  Empty byte data returned!");

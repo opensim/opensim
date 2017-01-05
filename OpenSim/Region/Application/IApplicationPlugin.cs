@@ -43,7 +43,7 @@ namespace OpenSim
         void Initialise(OpenSimBase openSim);
 
         /// <summary>
-        /// Called when the application loading is completed 
+        /// Called when the application loading is completed
         /// </summary>
         void PostInitialise();
     }

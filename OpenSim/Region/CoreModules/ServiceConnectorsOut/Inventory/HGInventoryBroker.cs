@@ -86,7 +86,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             }
         }
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }
@@ -299,7 +299,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                 return m_InventoryURLs[userID];
 
             return null; //it means that the methods should forward to local grid's inventory
- 
+
         }
         #endregion
 

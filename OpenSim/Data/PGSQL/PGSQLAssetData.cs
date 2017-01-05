@@ -151,35 +151,35 @@ namespace OpenSim.Data.PGSQL
         /// <param name="asset">the asset</param>
         override public bool StoreAsset(AssetBase asset)
         {
-           
+
             string sql =
                 @"UPDATE assets set name = :name, description = :description, " + "\"assetType\" " + @" = :assetType,
                          local = :local, temporary = :temporary, creatorid = :creatorid, data = :data
                     WHERE id=:id;
 
                   INSERT INTO assets
-                    (id, name, description, " + "\"assetType\" " + @", local, 
+                    (id, name, description, " + "\"assetType\" " + @", local,
                      temporary, create_time, access_time, creatorid, asset_flags, data)
-                  Select :id, :name, :description, :assetType, :local, 
+                  Select :id, :name, :description, :assetType, :local,
                          :temporary, :create_time, :access_time, :creatorid, :asset_flags, :data
-                   Where not EXISTS(SELECT * FROM assets WHERE id=:id) 
+                   Where not EXISTS(SELECT * FROM assets WHERE id=:id)
                 ";
-            
+
             string assetName = asset.Name;
             if (asset.Name.Length > AssetBase.MAX_ASSET_NAME)
             {
                 assetName = asset.Name.Substring(0, AssetBase.MAX_ASSET_NAME);
                 m_log.WarnFormat(
-                    "[ASSET DB]: Name '{0}' for asset {1} truncated from {2} to {3} characters on add", 
+                    "[ASSET DB]: Name '{0}' for asset {1} truncated from {2} to {3} characters on add",
                     asset.Name, asset.ID, asset.Name.Length, assetName.Length);
             }
-            
+
             string assetDescription = asset.Description;
             if (asset.Description.Length > AssetBase.MAX_ASSET_DESC)
             {
                 assetDescription = asset.Description.Substring(0, AssetBase.MAX_ASSET_DESC);
                 m_log.WarnFormat(
-                    "[ASSET DB]: Description '{0}' for asset {1} truncated from {2} to {3} characters on add", 
+                    "[ASSET DB]: Description '{0}' for asset {1} truncated from {2} to {3} characters on add",
                     asset.Description, asset.ID, asset.Description.Length, assetDescription.Length);
             }
 
@@ -278,7 +278,7 @@ namespace OpenSim.Data.PGSQL
         {
             List<AssetMetadata> retList = new List<AssetMetadata>(count);
             string sql = @" SELECT id, name, description, " + "\"assetType\"" + @", temporary, creatorid
-                              FROM assets 
+                              FROM assets
                              order by id
                              limit :stop
                             offset :start;";

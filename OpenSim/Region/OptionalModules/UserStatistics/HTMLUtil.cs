@@ -95,7 +95,7 @@ namespace OpenSim.Region.UserStatistics
         {
             o.Append("</table>\n");
         }
-        
+
         public static void BLOCKQUOTE_O(ref StringBuilder o, string pclass)
         {
             o.Append("<blockquote");
@@ -199,7 +199,7 @@ namespace OpenSim.Region.UserStatistics
 ");
             for (int i = 0; i < divID.Length; i++)
             {
-            
+
                 o.Append("new updater('");
                 o.Append(divID[i]);
                 o.Append("', ");

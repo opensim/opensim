@@ -137,7 +137,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         }
 
         protected virtual void InitOnce(Scene scene)
-        {            
+        {
             m_aScene = scene;
             //m_regionClient = new RegionToRegionClient(m_aScene, m_hyperlinkService);
         }
@@ -248,7 +248,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             // else do the remote thing
             if (!m_localBackend.IsLocalRegion(destination.RegionID))
                 return m_remoteConnector.CloseAgent(destination, id, auth_token);
-            
+
             return false;
         }
 

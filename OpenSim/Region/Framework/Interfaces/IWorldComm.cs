@@ -140,7 +140,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         /// <returns>ListenerInfo with filter filled in</returns>
         IWorldCommListenerInfo GetNextMessage();
-        
+
         void ListenControl(UUID itemID, int handle, int active);
         void ListenRemove(UUID itemID, int handle);
         void DeleteListener(UUID itemID);

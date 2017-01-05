@@ -98,7 +98,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             // crossing is async
             Thread.Sleep(500);
-            
+
             Assert.IsNull(sceneA.GetSceneObjectGroup(so1Id));
             Assert.NotNull(sceneB.GetSceneObjectGroup(so1Id));
         }

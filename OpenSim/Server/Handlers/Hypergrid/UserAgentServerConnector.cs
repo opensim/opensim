@@ -63,14 +63,14 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
         public UserAgentServerConnector(IConfigSource config, IHttpServer server) :
             this(config, server, (IFriendsSimConnector)null)
-        {            
+        {
         }
 
         public UserAgentServerConnector(IConfigSource config, IHttpServer server, string configName) :
             this(config, server)
         {
         }
-        
+
         public UserAgentServerConnector(IConfigSource config, IHttpServer server, IFriendsSimConnector friendsConnector) :
                 base(config, server, String.Empty)
         {

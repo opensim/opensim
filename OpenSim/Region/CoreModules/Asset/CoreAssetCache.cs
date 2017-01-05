@@ -54,7 +54,7 @@ namespace OpenSim.Region.CoreModules.Asset
             get { return "CoreAssetCache"; }
         }
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }

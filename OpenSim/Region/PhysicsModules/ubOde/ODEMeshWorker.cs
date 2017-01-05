@@ -27,7 +27,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         AssetOK = 0x0f,     // 00001111
 
         NeedMask = 0x30,    // 00110000
-        needMesh = 0x10,    // 00010000 
+        needMesh = 0x10,    // 00010000
         needAsset = 0x20,   // 00100000
 
         FailMask = 0xC0,    // 11000000
@@ -287,7 +287,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public bool needsMeshing(ODEPhysRepData repData)
         {
             PrimitiveBaseShape pbs = repData.pbs;
-            // check sculpts or meshs 
+            // check sculpts or meshs
             if (pbs.SculptEntry)
             {
                 if (meshSculptedPrim)
@@ -462,7 +462,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         repData.meshState = MeshState.MeshFailed;
                         return;
                     }
-                }               
+                }
             }
 
             repData.meshState = MeshState.AssetOK;
@@ -525,7 +525,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
 
             mesh = m_mesher.CreateMesh(actor.Name, pbs, size, clod, true, convex, true);
-   
+
             if (mesh == null)
             {
                 if (pbs.SculptEntry)
@@ -607,7 +607,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                     else if (_pbs.PathCurve == (byte)Extrusion.Curve1)
                     {
-                        //a tube 
+                        //a tube
 
                         volume *= 0.78539816339e-2f * (float)(200 - _pbs.PathScaleX);
                         tmp = 1.0f - 2.0e-2f * (float)(200 - _pbs.PathScaleY);
@@ -857,7 +857,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             // this is crude aproximation
             profileBegin = (float)_pbs.ProfileBegin * 2.0e-5f;
             profileEnd = 1.0f - (float)_pbs.ProfileEnd * 2.0e-5f;
-            volume *= (profileEnd - profileBegin);           
+            volume *= (profileEnd - profileBegin);
 
             repData.volume = volume;
         }

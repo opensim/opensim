@@ -62,19 +62,19 @@ namespace OpenSim.Region.CoreModules.Avatars.Commands
         private Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
 
         public string Name { get { return "User Commands Module"; } }
-        
+
         public Type ReplaceableInterface { get { return null; } }
-        
+
         public void Initialise(IConfigSource source)
         {
 //            m_log.DebugFormat("[USER COMMANDS MODULE]: INITIALIZED MODULE");
         }
-        
+
         public void PostInitialise()
         {
 //            m_log.DebugFormat("[USER COMMANDS MODULE]: POST INITIALIZED MODULE");
         }
-        
+
         public void Close()
         {
 //            m_log.DebugFormat("[USER COMMANDS MODULE]: CLOSED MODULE");

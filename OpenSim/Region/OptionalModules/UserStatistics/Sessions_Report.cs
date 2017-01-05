@@ -52,7 +52,7 @@ namespace OpenSim.Region.UserStatistics
             SqliteConnection dbConn = (SqliteConnection)pParams["DatabaseConnection"];
             List<SessionList> lstSessions = new List<SessionList>();
             Hashtable requestvars = (Hashtable) pParams["RequestVars"];
-            
+
 
             string puserUUID = string.Empty;
             string clientVersionString = string.Empty;
@@ -113,7 +113,7 @@ namespace OpenSim.Region.UserStatistics
                     cmd.Parameters.Add(new SqliteParameter(":client_version", clientVersionString));
 
                 SqliteDataReader sdr = cmd.ExecuteReader();
-                
+
                 if (sdr.HasRows)
                 {
                     UUID userUUID = UUID.Zero;
@@ -134,7 +134,7 @@ namespace OpenSim.Region.UserStatistics
                         }
 
                         ShortSessionData ssd = new ShortSessionData();
-                        
+
                         ssd.last_update = Utils.UnixTimeToDateTime((uint)Convert.ToInt32(sdr["last_updated"]));
                         ssd.start_time = Utils.UnixTimeToDateTime((uint)Convert.ToInt32(sdr["start_time"]));
                         ssd.session_id = UUID.Parse(sdr["session_id"].ToString());
@@ -145,7 +145,7 @@ namespace OpenSim.Region.UserStatistics
                     }
                 }
                 sdr.Close();
-                cmd.Dispose();               
+                cmd.Dispose();
             }
             modeldata["SessionData"] = lstSessions;
             return modeldata;
@@ -248,7 +248,7 @@ TD.align_top { vertical-align: top; }
                     output.Append(sesdata.client_version);
                     HTMLUtil.TD_C(ref output);
                     HTMLUtil.TR_C(ref output);
-                    
+
                 }
                 HTMLUtil.TR_O(ref output, "");
                 HTMLUtil.TD_O(ref output, "align_top", 1, 5);

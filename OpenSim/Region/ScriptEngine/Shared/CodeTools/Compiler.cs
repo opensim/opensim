@@ -119,7 +119,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             {
                 in_startup = false;
                 CheckOrCreateScriptsDirectory();
-                
+
                 // First time we start? Delete old files
                 if (DeleteScriptsOnStartup)
                     DeleteOldFiles();
@@ -310,9 +310,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             {
 //                m_log.DebugFormat("[Compiler]: Found existing assembly {0} for asset {1} in {2}", assembly, asset, m_scriptEngine.World.Name);
 
-                // If we have already read this linemap file, then it will be in our dictionary. 
+                // If we have already read this linemap file, then it will be in our dictionary.
                 // Don't build another copy of the dictionary (saves memory) and certainly
-                // don't keep reading the same file from disk multiple times. 
+                // don't keep reading the same file from disk multiple times.
                 if (!m_lineMaps.ContainsKey(assembly))
                     m_lineMaps[assembly] = ReadMapFile(assembly + ".map");
                 linemap = m_lineMaps[assembly];
@@ -366,8 +366,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
                 LSL_Converter = (ICodeConverter)new CSCodeGenerator(comms, m_insertCoopTerminationCalls);
                 AddCSScriptHeader(
-                        m_scriptEngine.ScriptClassName, 
-                        m_scriptEngine.ScriptBaseClassName, 
+                        m_scriptEngine.ScriptClassName,
+                        m_scriptEngine.ScriptBaseClassName,
                         m_scriptEngine.ScriptBaseClassParameters,
                         sb);
 
@@ -381,20 +381,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 }
 
                 linemap = ((CSCodeGenerator)LSL_Converter).PositionMap;
-                // Write the linemap to a file and save it in our dictionary for next time. 
+                // Write the linemap to a file and save it in our dictionary for next time.
                 m_lineMaps[assembly] = linemap;
                 WriteMapFile(assembly + ".map", linemap);
                 LSL_Converter.Clear();
             }
             else
-            {         
+            {
                 switch (language)
                 {
                     case enumCompileType.cs:
                         compileScript = CreateCSCompilerScript(
-                            compileScript, 
-                            m_scriptEngine.ScriptClassName, 
-                            m_scriptEngine.ScriptBaseClassName, 
+                            compileScript,
+                            m_scriptEngine.ScriptClassName,
+                            m_scriptEngine.ScriptBaseClassName,
                             m_scriptEngine.ScriptBaseClassParameters);
                         break;
                     case enumCompileType.vb:
@@ -434,22 +434,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         public static void AddCSScriptHeader(string className, string baseClassName, ParameterInfo[] constructorParameters, StringBuilder sb)
         {
             sb.Append(string.Format(
-@"using OpenSim.Region.ScriptEngine.Shared; 
+@"using OpenSim.Region.ScriptEngine.Shared;
 using System.Collections.Generic;
 
-namespace SecondLife 
-{{ 
-    public class {0} : {1} 
+namespace SecondLife
+{{
+    public class {0} : {1}
     {{
         public {0}({2}) : base({3}) {{}}
 ",
                 className,
-                baseClassName, 
-                constructorParameters != null 
-                    ? string.Join(", ", Array.ConvertAll<ParameterInfo, string>(constructorParameters, pi => pi.ToString())) 
-                    : "", 
-                constructorParameters != null 
-                    ? string.Join(", ", Array.ConvertAll<ParameterInfo, string>(constructorParameters, pi => pi.Name)) 
+                baseClassName,
+                constructorParameters != null
+                    ? string.Join(", ", Array.ConvertAll<ParameterInfo, string>(constructorParameters, pi => pi.ToString()))
+                    : "",
+                constructorParameters != null
+                    ? string.Join(", ", Array.ConvertAll<ParameterInfo, string>(constructorParameters, pi => pi.Name))
                     : ""
                ));
         }
@@ -462,26 +462,26 @@ namespace SecondLife
         public static string CreateCSCompilerScript(
             string compileScript, string className, string baseClassName, ParameterInfo[] constructorParameters)
         {
-            compileScript = string.Format(    
-@"using OpenSim.Region.ScriptEngine.Shared; 
+            compileScript = string.Format(
+@"using OpenSim.Region.ScriptEngine.Shared;
 using System.Collections.Generic;
 
-namespace SecondLife 
-{{ 
-    public class {0} : {1} 
+namespace SecondLife
+{{
+    public class {0} : {1}
     {{
         public {0}({2}) : base({3}) {{}}
 {4}
     }}
 }}",
                 className,
-                baseClassName, 
-                constructorParameters != null 
-                    ? string.Join(", ", Array.ConvertAll<ParameterInfo, string>(constructorParameters, pi => pi.ToString())) 
-                    : "", 
-                constructorParameters != null 
-                    ? string.Join(", ", Array.ConvertAll<ParameterInfo, string>(constructorParameters, pi => pi.Name)) 
-                    : "", 
+                baseClassName,
+                constructorParameters != null
+                    ? string.Join(", ", Array.ConvertAll<ParameterInfo, string>(constructorParameters, pi => pi.ToString()))
+                    : "",
+                constructorParameters != null
+                    ? string.Join(", ", Array.ConvertAll<ParameterInfo, string>(constructorParameters, pi => pi.Name))
+                    : "",
                 compileScript);
 
             return compileScript;
@@ -508,7 +508,7 @@ namespace SecondLife
         internal string CompileFromDotNetText(string Script, enumCompileType lang, string asset, string assembly)
         {
 //            m_log.DebugFormat("[Compiler]: Compiling to assembly\n{0}", Script);
-            
+
             string ext = "." + lang.ToString();
 
             // Output assembly name
@@ -562,7 +562,7 @@ namespace SecondLife
 
             if (m_scriptEngine.ScriptReferencedAssemblies != null)
                 Array.ForEach<string>(
-                    m_scriptEngine.ScriptReferencedAssemblies, 
+                    m_scriptEngine.ScriptReferencedAssemblies,
                     a => parameters.ReferencedAssemblies.Add(Path.Combine(rootPath, a)));
 
             parameters.GenerateExecutable = false;
@@ -571,7 +571,7 @@ namespace SecondLife
             //parameters.WarningLevel = 1; // Should be 4?
             parameters.TreatWarningsAsErrors = false;
             parameters.GenerateInMemory = false;
-  
+
             CompilerResults results;
 
             CodeDomProvider provider;
@@ -605,7 +605,7 @@ namespace SecondLife
 //                            results = CScodeProvider.CompileAssemblyFromSource(
 //                                parameters, Script);
 //                        }
-                        
+
                         results = provider.CompileAssemblyFromSource(
                                 parameters, Script);
                         // Deal with an occasional segv in the compiler.
@@ -685,14 +685,14 @@ namespace SecondLife
             }
 
             provider.Dispose();
-           
+
             if (hadErrors)
             {
                 throw new Exception(errtext);
             }
 
             //  On today's highly asynchronous systems, the result of
-            //  the compile may not be immediately apparent. Wait a 
+            //  the compile may not be immediately apparent. Wait a
             //  reasonable amount of time before giving up on it.
 
             if (!File.Exists(assembly))

@@ -47,7 +47,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap.Tests
     {
         protected TestScene m_scene;
         protected MoapModule m_module;
-            
+
         [SetUp]
         public override void SetUp()
         {
@@ -55,45 +55,45 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap.Tests
 
             m_module = new MoapModule();
             m_scene = new SceneHelpers().SetupScene();
-            SceneHelpers.SetupSceneModules(m_scene, m_module);            
-        }        
-        
+            SceneHelpers.SetupSceneModules(m_scene, m_module);
+        }
+
         [Test]
         public void TestClearMediaUrl()
         {
-            TestHelpers.InMethod();           
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
-            
+
             SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene).RootPart;
-            MediaEntry me = new MediaEntry();            
-            
+            MediaEntry me = new MediaEntry();
+
             m_module.SetMediaEntry(part, 1, me);
             m_module.ClearMediaEntry(part, 1);
-            
+
             Assert.That(part.Shape.Media[1], Is.EqualTo(null));
-            
+
             // Although we've cleared one face, other faces may still be present.  So we need to check for an
             // update media url version
             Assert.That(part.MediaUrl, Is.EqualTo("x-mv:0000000001/" + UUID.Zero));
-            
+
             // By changing media flag to false, the face texture once again becomes identical to the DefaultTexture.
             // Therefore, when libOMV reserializes it, it disappears and we are left with no face texture in this slot.
             // Not at all confusing, eh?
             Assert.That(part.Shape.Textures.FaceTextures[1], Is.Null);
         }
-        
+
         [Test]
         public void TestSetMediaUrl()
         {
             TestHelpers.InMethod();
-            
-            string homeUrl = "opensimulator.org";            
-            
+
+            string homeUrl = "opensimulator.org";
+
             SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene).RootPart;
-            MediaEntry me = new MediaEntry() { HomeURL = homeUrl };            
-            
+            MediaEntry me = new MediaEntry() { HomeURL = homeUrl };
+
             m_module.SetMediaEntry(part, 1, me);
-            
+
             Assert.That(part.Shape.Media[1].HomeURL, Is.EqualTo(homeUrl));
             Assert.That(part.MediaUrl, Is.EqualTo("x-mv:0000000000/" + UUID.Zero));
             Assert.That(part.Shape.Textures.FaceTextures[1].MediaFlags, Is.True);

@@ -400,7 +400,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     block[k++] = (terrData[x, y] - sub) * premult;
                 }
             }
- 
+
             wbits = (prequant >> 1);
 
             dct16x16(block, iout, ref wbits);
@@ -490,22 +490,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         #region DCT
 
         /* DCT (Discrete Cosine Transform)
-        adaptation from 
+        adaptation from
         General Purpose 2D,3D FFT (Fast Fourier Transform) Package
         by Takuya OOURA (email: ooura@kurims.kyoto-u.ac.jp)
 
         -------- 16x16 DCT (Discrete Cosine Transform) / Inverse of DCT --------
             [definition]
                 <case1> Normalized 16x16 IDCT
-                    C[k1 + k2] = (1/8) * sum_j1=0^15 sum_j2=0^15 
-                                    tmp[j1 + j2] * s[j1] * s[j2] * 
-                                    cos(pi*j1*(k1+1/2)/16) * 
+                    C[k1 + k2] = (1/8) * sum_j1=0^15 sum_j2=0^15
+                                    tmp[j1 + j2] * s[j1] * s[j2] *
+                                    cos(pi*j1*(k1+1/2)/16) *
                                     cos(pi*j2*(k2+1/2)/16), 0<=k1<16, 0<=k2<16
                                     (s[0] = 1/sqrt(2), s[j] = 1, j > 0)
                 <case2> Normalized 16x16 DCT
-                    C[k1 + k2] = (1/8) * s[k1] * s[k2] * sum_j1=0^15 sum_j2=0^15 
-                                    tmp[j1 + j2] * 
-                                    cos(pi*(j1+1/2)*k1/16) * 
+                    C[k1 + k2] = (1/8) * s[k1] * s[k2] * sum_j1=0^15 sum_j2=0^15
+                                    tmp[j1 + j2] *
+                                    cos(pi*(j1+1/2)*k1/16) *
                                     cos(pi*(j2+1/2)*k2/16), 0<=k1<16, 0<=k2<16
                                     (s[0] = 1/sqrt(2), s[j] = 1, j > 0)
         */

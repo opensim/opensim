@@ -621,7 +621,7 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
         private Thread httpThread;
         public int Idata;
         private UUID _itemID;
-        public UUID ItemID 
+        public UUID ItemID
         {
             get { return _itemID; }
             set { _itemID = value; }
@@ -633,7 +633,7 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
             set { _localID = value; }
         }
         private UUID _reqID;
-        public UUID ReqID 
+        public UUID ReqID
         {
             get { return _reqID; }
             set { _reqID = value; }

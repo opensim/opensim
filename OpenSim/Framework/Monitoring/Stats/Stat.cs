@@ -121,17 +121,17 @@ namespace OpenSim.Framework.Monitoring
             string container,
             StatType type,
             Action<Stat> pullAction,
-            StatVerbosity verbosity) 
+            StatVerbosity verbosity)
                 : this(
-                    shortName, 
-                    name, 
-                    description, 
-                    unitName, 
-                    category, 
-                    container, 
-                    type, 
-                    MeasuresOfInterest.None, 
-                    pullAction, 
+                    shortName,
+                    name,
+                    description,
+                    unitName,
+                    category,
+                    container,
+                    type,
+                    MeasuresOfInterest.None,
+                    pullAction,
                     verbosity)
         {
         }
@@ -227,11 +227,11 @@ namespace OpenSim.Framework.Monitoring
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendFormat(
-                "{0}.{1}.{2} : {3}{4}", 
-                Category, 
-                Container, 
-                ShortName, 
-                Value, 
+                "{0}.{1}.{2} : {3}{4}",
+                Category,
+                Container,
+                ShortName,
+                Value,
                 string.IsNullOrEmpty(UnitName) ? "" : string.Format(" {0}", UnitName));
 
             AppendMeasuresOfInterest(sb);
@@ -290,7 +290,7 @@ namespace OpenSim.Framework.Monitoring
                 lock (m_samples)
                 {
                     //                    m_log.DebugFormat(
-                    //                        "[STAT]: Samples for {0} are {1}", 
+                    //                        "[STAT]: Samples for {0} are {1}",
                     //                        Name, string.Join(",", m_samples.Select(s => s.ToString()).ToArray()));
 
                     foreach (double s in m_samples)
@@ -326,9 +326,9 @@ namespace OpenSim.Framework.Monitoring
             if (ComputeMeasuresOfInterest(out lastChangeOverTime, out averageChangeOverTime))
             {
                 sb.AppendFormat(
-                    ", {0:0.##}{1}/s, {2:0.##}{3}/s", 
-                    lastChangeOverTime, 
-                    string.IsNullOrEmpty(UnitName) ? "" : string.Format(" {0}", UnitName), 
+                    ", {0:0.##}{1}/s, {2:0.##}{3}/s",
+                    lastChangeOverTime,
+                    string.IsNullOrEmpty(UnitName) ? "" : string.Format(" {0}", UnitName),
                     averageChangeOverTime,
                     string.IsNullOrEmpty(UnitName) ? "" : string.Format(" {0}", UnitName));
             }

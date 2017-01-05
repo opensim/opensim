@@ -125,7 +125,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         public void TestImplicitCastBooleanToLSLFloat()
         {
             TestHelpers.InMethod();
-            
+
             LSL_Types.LSLString testString;
 
             testString = (LSL_Types.LSLString) (1 == 0);

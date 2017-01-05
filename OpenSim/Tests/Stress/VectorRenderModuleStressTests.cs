@@ -105,7 +105,7 @@ namespace OpenSim.Tests.Stress
             public void Draw()
             {
                 SceneObjectGroup so = SceneHelpers.AddSceneObject(m_tests.Scene);
-                
+
                 while (Ready)
                 {
                     UUID originalTextureID = so.RootPart.Shape.Textures.GetFace(0).TextureID;
@@ -120,7 +120,7 @@ namespace OpenSim.Tests.Stress
                         string.Format("PenColour BLACK; MoveTo 40,220; FontSize 32; Text {0};", text),
                         "",
                         0);
-    
+
                     Assert.That(originalTextureID, Is.Not.EqualTo(so.RootPart.Shape.Textures.GetFace(0).TextureID));
 
                     Pass++;

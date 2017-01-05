@@ -351,7 +351,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 // your head but the sensor will stay with your (global)
                 // avatar rotation and position.
                 // Position of a sensor in a child prim attached to an avatar
-                // will be still wrong. 
+                // will be still wrong.
                 ScenePresence avatar = m_CmdManager.m_ScriptEngine.World.GetScenePresence(SensePoint.ParentGroup.AttachedAvatar);
 
                 // Don't proceed if the avatar for this attachment has since been removed from the scene.
@@ -473,7 +473,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             SceneObjectPart SensePoint = ts.host;
             Vector3 fromRegionPos = SensePoint.GetWorldPosition();
-            
+
             Quaternion q = SensePoint.GetWorldRotation();
             if (SensePoint.ParentGroup.IsAttachment)
             {
@@ -486,7 +486,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 // your head but the sensor will stay with your (global)
                 // avatar rotation and position.
                 // Position of a sensor in a child prim attached to an avatar
-                // will be still wrong. 
+                // will be still wrong.
                 ScenePresence avatar = m_CmdManager.m_ScriptEngine.World.GetScenePresence(SensePoint.ParentGroup.AttachedAvatar);
 
                 // Don't proceed if the avatar for this attachment has since been removed from the scene.
@@ -502,7 +502,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             bool attached = (SensePoint.ParentGroup.AttachmentPoint != 0);
             Vector3 toRegionPos;
             double dis;
-            
+
             Action<ScenePresence> senseEntity = new Action<ScenePresence>(presence =>
             {
 //                m_log.DebugFormat(
@@ -542,7 +542,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
                 if (presence.IsDeleted || presence.IsChildAgent || presence.GodLevel > 0.0)
                     return;
-                
+
                 // if the object the script is in is attached and the avatar is the owner
                 // then this one is not wanted
                 if (attached && presence.UUID == SensePoint.OwnerID)
@@ -700,7 +700,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                     DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
 
                 AddSenseRepeater(ts);
-                
+
                 idx += 6;
             }
         }
@@ -716,6 +716,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             }
 
             return retList;
-        }           
+        }
     }
 }

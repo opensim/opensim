@@ -46,7 +46,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="part"></param>
         /// <param name="change">bit field with what is changed</param>
-        /// 
+        ///
         public UndoState(SceneObjectPart part, ObjectChangeType change)
         {
             data = new ObjectChangeData();
@@ -73,7 +73,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
         /// <summary>
-        /// check if undo or redo is too old 
+        /// check if undo or redo is too old
         /// </summary>
 
         public bool checkExpire()
@@ -97,8 +97,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="part"></param>
         /// <returns>true what fiels and related data are equal, False otherwise.</returns>
-        /// 
-        public bool Compare(SceneObjectPart part, ObjectChangeType change)    
+        ///
+        public bool Compare(SceneObjectPart part, ObjectChangeType change)
         {
             if (data.change != change) // if diferent targets, then they are diferent
                 return false;
@@ -130,7 +130,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// executes the undo or redo to a part or its group
         /// </summary>
         /// <param name="part"></param>
-        /// 
+        ///
 
         public void PlayState(SceneObjectPart part)
         {
@@ -140,7 +140,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (grp != null)
             {
-                grp.doChangeObject(part, data);              
+                grp.doChangeObject(part, data);
             }
             part.Undoing = false;
         }

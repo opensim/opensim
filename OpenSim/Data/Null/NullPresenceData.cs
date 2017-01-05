@@ -39,7 +39,7 @@ namespace OpenSim.Data.Null
     public class NullPresenceData : IPresenceData
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         public static NullPresenceData Instance;
 
         Dictionary<UUID, PresenceData> m_presenceData = new Dictionary<UUID, PresenceData>();
@@ -100,7 +100,7 @@ namespace OpenSim.Data.Null
         {
             if (Instance != this)
                 return Instance.ReportAgent(sessionID, regionID);
-            
+
             if (m_presenceData.ContainsKey(sessionID))
             {
                 m_presenceData[sessionID].RegionID = regionID;
@@ -129,7 +129,7 @@ namespace OpenSim.Data.Null
 //                        Console.WriteLine("HOME for " + p.UserID + " is " + (p.Data.ContainsKey("HomeRegionID") ? p.Data["HomeRegionID"] : "Not found"));
                     }
                 }
-                
+
                 return presences.ToArray();
             }
             else if (field == "SessionID")
@@ -172,7 +172,7 @@ namespace OpenSim.Data.Null
         {
 //            m_log.DebugFormat(
 //                "[NULL PRESENCE DATA]: Deleting presence data for field {0} with parameter {1}", field, data);
-            
+
             if (Instance != this)
                 return Instance.Delete(field, data);
 

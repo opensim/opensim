@@ -329,8 +329,8 @@ namespace OpenSim.Data.MySQL
                     {
                         m_log.Error(
                             string.Format(
-                                "[ASSETS DB]: MySql failure fetching asset set from {0}, count {1}.  Exception  ", 
-                                start, count), 
+                                "[ASSETS DB]: MySql failure fetching asset set from {0}, count {1}.  Exception  ",
+                                start, count),
                             e);
                     }
                 }

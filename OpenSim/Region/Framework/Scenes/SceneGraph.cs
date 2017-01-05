@@ -87,21 +87,21 @@ namespace OpenSim.Region.Framework.Scenes
         protected int m_scriptLPS = 0;
 
         protected internal PhysicsScene _PhyScene;
-        
+
         /// <summary>
         /// Index the SceneObjectGroup for each part by the root part's UUID.
         /// </summary>
         protected internal Dictionary<UUID, SceneObjectGroup> SceneObjectGroupsByFullID = new Dictionary<UUID, SceneObjectGroup>();
-        
+
         /// <summary>
         /// Index the SceneObjectGroup for each part by that part's UUID.
         /// </summary>
         protected internal Dictionary<UUID, SceneObjectGroup> SceneObjectGroupsByFullPartID = new Dictionary<UUID, SceneObjectGroup>();
-        
+
         /// <summary>
         /// Index the SceneObjectGroup for each part by that part's local ID.
         /// </summary>
-        protected internal Dictionary<uint, SceneObjectGroup> SceneObjectGroupsByLocalPartID = new Dictionary<uint, SceneObjectGroup>();        
+        protected internal Dictionary<uint, SceneObjectGroup> SceneObjectGroupsByLocalPartID = new Dictionary<uint, SceneObjectGroup>();
 
         /// <summary>
         /// Lock to prevent object group update, linking, delinking and duplication operations from running concurrently.
@@ -121,11 +121,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         public PhysicsScene PhysicsScene
         {
-            get 
+            get
             {
                 if (_PhyScene == null)
                     _PhyScene = m_parentScene.RequestModuleInterface<PhysicsScene>();
-                return _PhyScene; 
+                return _PhyScene;
             }
             set
             {
@@ -215,7 +215,7 @@ namespace OpenSim.Region.Framework.Scenes
             // the joint in the Scene does not exist in the PhysicsScene.
             //
             // To solve this, we have an event in the PhysicsScene that is fired when a joint
-            // has changed position (because one of its associated PhysicsActors has changed 
+            // has changed position (because one of its associated PhysicsActors has changed
             // position).
             //
             // Therefore, JointMoved and JointDeactivated events will be fired as a result of the following Simulate().
@@ -244,7 +244,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // coarse locations are sent as BYTE, so limited to the 255m max of normal regions
             // try to work around that scale down X and Y acording to region size, so reducing the resolution
-            // 
+            //
             // viewers need to scale up
             float scaleX = (float)m_parentScene.RegionInfo.RegionSizeX / (float)Constants.RegionSize;
             if (scaleX == 0)
@@ -259,7 +259,7 @@ namespace OpenSim.Region.Framework.Scenes
             for (int i = 0; i < Math.Min(presences.Count, maxLocations); ++i)
             {
                 ScenePresence sp = presences[i];
-                
+
                 // If this presence is a child agent, we don't want its coarse locations
                 if (sp.IsChildAgent)
                     continue;
@@ -346,7 +346,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             return ret;
         }
-                
+
         /// <summary>
         /// Add a newly created object to the scene.  This will both update the scene, and send information about the
         /// new object to all clients interested in the scene.
@@ -372,11 +372,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             return ret;
         }
-        
+
         /// <summary>
         /// Add a newly created object to the scene.
         /// </summary>
-        /// 
+        ///
         /// This method does not send updates to the client - callers need to handle this themselves.
         /// Caller should also trigger EventManager.TriggerObjectAddedToScene
         /// <param name="sceneObject"></param>
@@ -630,7 +630,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 List<SceneObjectGroup> updates;
 
-                // Some updates add more updates to the updateList. 
+                // Some updates add more updates to the updateList.
                 // Get the current list of updates and clear the list before iterating
                 lock (m_updateList)
                 {
@@ -762,7 +762,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 Dictionary<UUID, ScenePresence> newmap = new Dictionary<UUID, ScenePresence>(m_scenePresenceMap);
                 List<ScenePresence> newlist = new List<ScenePresence>(m_scenePresenceArray);
-                
+
                 // Remove the presence reference from the dictionary
                 if (newmap.ContainsKey(agentID))
                 {
@@ -874,7 +874,7 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region Get Methods
-        
+
         /// <summary>
         /// Get the controlling client for the given avatar, if there is one.
         ///
@@ -1190,7 +1190,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return null;
             return group.GetPart(localID);
         }
-        
+
         /// <summary>
         /// Get a prim by name from the scene (will return the first
         /// found, if there are more than one prim with the same name)
@@ -1209,7 +1209,7 @@ namespace OpenSim.Region.Framework.Scenes
                         foreach (SceneObjectPart p in ((SceneObjectGroup)entity).Parts)
                         {
 //                            m_log.DebugFormat("[SCENE GRAPH]: Part {0} has name {1}", p.UUID, p.Name);
-                        
+
                             if (p.Name == name)
                             {
                                 sop = p;
@@ -1308,7 +1308,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Performs action on all scene presences. This can ultimately run the actions in parallel but
         /// any delegates passed in will need to implement their own locking on data they reference and
-        /// modify outside of the scope of the delegate. 
+        /// modify outside of the scope of the delegate.
         /// </summary>
         /// <param name="action"></param>
         public void ForEachScenePresence(Action<ScenePresence> action)
@@ -1343,7 +1343,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
-        
+
         #endregion
 
         #region Client Event handlers
@@ -1574,7 +1574,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void UpdatePrimGroupPosition(uint localId, Vector3 pos, UUID updatingAgentId)
         {
             SceneObjectGroup group = GetGroupByPrim(localId);
-            
+
             if (group != null)
             {
                 if (group.IsAttachment || (group.RootPart.Shape.PCode == 9 && group.RootPart.Shape.State != 0))
@@ -1589,7 +1589,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    if (m_parentScene.Permissions.CanMoveObject(group.UUID, updatingAgentId) 
+                    if (m_parentScene.Permissions.CanMoveObject(group.UUID, updatingAgentId)
                         && m_parentScene.Permissions.CanObjectEntry(group.UUID, false, pos))
                     {
                         group.UpdateGroupPosition(pos);
@@ -1611,7 +1611,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void UpdatePrimTexture(uint localID, byte[] texture, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
-            
+
             if (group != null)
             {
                 if (m_parentScene.Permissions.CanEditObject(group.UUID,remoteClient.AgentId))
@@ -1730,8 +1730,8 @@ namespace OpenSim.Region.Framework.Scenes
                     SceneObjectPart part = m_parentScene.GetSceneObjectPart(primLocalID);
                     if (part != null)
                     {
-	                    part.ClickAction = Convert.ToByte(clickAction);
-	                    group.HasGroupChanged = true;
+                        part.ClickAction = Convert.ToByte(clickAction);
+                        group.HasGroupChanged = true;
                     }
                 }
             }
@@ -1966,7 +1966,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // However, editing linked parts and unlinking may be different
                     //
                     SceneObjectGroup group = root.ParentGroup;
-                   
+
                     List<SceneObjectPart> newSet = new List<SceneObjectPart>(group.Parts);
 
                     newSet.Remove(root);
@@ -1978,7 +1978,7 @@ namespace OpenSim.Region.Framework.Scenes
                         group.DelinkFromGroup(p, false);
 
                     SceneObjectPart newRoot = newSet[0];
-                    
+
                     // If there is more than one prim remaining, we
                     // need to re-link
                     //
@@ -1996,7 +1996,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         newRoot.TriggerScriptChangedEvent(Changed.LINK);
                         newRoot.ParentGroup.HasGroupChanged = true;
-                        newRoot.ParentGroup.ScheduleGroupForFullUpdate();                   
+                        newRoot.ParentGroup.ScheduleGroupForFullUpdate();
                     }
                 }
 
@@ -2089,7 +2089,7 @@ namespace OpenSim.Region.Framework.Scenes
         public SceneObjectGroup DuplicateObject(uint originalPrimID, Vector3 offset, uint flags, UUID AgentID, UUID GroupID, Quaternion rot)
         {
 //            m_log.DebugFormat(
-//                "[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}", 
+//                "[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}",
 //                originalPrimID, offset, AgentID);
 
             SceneObjectGroup original = GetGroupByPrim(originalPrimID);
@@ -2194,6 +2194,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
-       
+
     }
 }

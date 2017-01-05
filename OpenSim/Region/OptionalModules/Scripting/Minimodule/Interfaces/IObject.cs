@@ -60,19 +60,19 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         /// <summary>
         /// Returns whether or not this object is still in the world.
         /// Eg, if you store an IObject reference, however the object
-        /// is deleted before you use it, it will throw a NullReference 
+        /// is deleted before you use it, it will throw a NullReference
         /// exception. 'Exists' allows you to check the object is still
         /// in play before utilizing it.
         /// </summary>
         /// <example>
         /// IObject deleteMe = World.Objects[0];
-        /// 
+        ///
         /// if (deleteMe.Exists) {
         ///     deleteMe.Say("Hello, I still exist!");
         /// }
-        /// 
+        ///
         /// World.Objects.Remove(deleteMe);
-        /// 
+        ///
         /// if (!deleteMe.Exists) {
         ///     Host.Console.Info("I was deleted");
         /// }
@@ -81,7 +81,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         /// Objects should be near-guarunteed to exist for any event which
         /// passes them as an argument. Storing an object for a longer period
         /// of time however will limit their reliability.
-        /// 
+        ///
         /// It is a good practice to use Try/Catch blocks handling for
         /// NullReferenceException, when accessing remote objects.
         /// </remarks>
@@ -118,8 +118,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         IObject[] Children { get; }
 
         /// <summary>
-        /// Returns a list of materials attached to this object. Each may contain unique texture 
-        /// and other visual information. For primitive based objects, this correlates with 
+        /// Returns a list of materials attached to this object. Each may contain unique texture
+        /// and other visual information. For primitive based objects, this correlates with
         /// Object Faces. For mesh based objects, this correlates with Materials.
         /// </summary>
         IObjectMaterial[] Materials { get; }
@@ -152,7 +152,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         String TouchText { get; set; }
 
         /// <summary>
-        /// Text to be associated with this object, in the 
+        /// Text to be associated with this object, in the
         /// Second Life(r) viewer, this is shown above the
         /// object.
         /// </summary>

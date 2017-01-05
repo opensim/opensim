@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Contributors 
+ * Copyright (c) Contributors
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,7 +79,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         public void Initialise(IConfigSource config)
         {
-            try 
+            try
             {
                 if ((m_config = config.Configs["JsonStore"]) == null)
                 {
@@ -127,7 +127,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             if (m_enabled)
             {
                 m_scene = scene;
-                
+
             }
         }
 
@@ -143,7 +143,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
         // -----------------------------------------------------------------
         /// <summary>
-        /// Called when all modules have been added for a region. This is 
+        /// Called when all modules have been added for a region. This is
         /// where we hook up events
         /// </summary>
         // -----------------------------------------------------------------

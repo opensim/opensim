@@ -45,7 +45,7 @@ namespace OpenSim.Data.PGSQL
             IAvatarData
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         public PGSQLAvatarData(string connectionString, string realm) :
                 base(connectionString, realm, "Avatar")
         {

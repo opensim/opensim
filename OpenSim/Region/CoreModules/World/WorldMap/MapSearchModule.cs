@@ -186,7 +186,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         //                remoteClient.SendAlertMessage("Hyperlink could not be established.");
 
                     //m_log.DebugFormat("[MAPSEARCHMODULE]: search {0} returned {1} regions", mapName, regionInfos.Count);
- 
+
                     MapBlockData data;
                     if (regionInfos != null && regionInfos.Count > 0)
                     {
@@ -214,7 +214,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     // send extra user messages for V3
                     // because the UI is very confusing
                     // while we don't fix the hard-coded urls
-                    if (flags == 2) 
+                    if (flags == 2)
                     {
                         if (regionInfos == null || regionInfos.Count == 0)
                             remoteClient.SendAgentAlertMessage("No regions found with that name.", true);

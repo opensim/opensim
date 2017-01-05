@@ -1495,7 +1495,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return false;
                 }
             }
-            
+
             public static bool operator true(key k)
             {
                 return (Boolean)k;
@@ -1575,7 +1575,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 string s = String.Format(Culture.FormatProvider, "{0:0.000000}", f.value);
                 m_string = s;
             }
-            
+
             public LSLString(int i)
             {
                 string s = String.Format("{0}", i);
@@ -1583,7 +1583,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             }
 
             public LSLString(LSLInteger i) : this(i.value) {}
-            
+
             #endregion
 
             #region Operators
@@ -1648,7 +1648,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 return new LSLString(d);
             }
-            
+
             static public explicit operator LSLString(int i)
             {
                 return new LSLString(i);
@@ -1936,7 +1936,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                         return false;
                     }
                 }
-                
+
                 return value == ((LSLInteger)o).value;
             }
 

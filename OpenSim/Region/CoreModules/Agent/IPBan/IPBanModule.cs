@@ -38,7 +38,7 @@ using OpenSim.Region.Framework.Scenes;
 namespace OpenSim.Region.CoreModules.Agent.IPBan
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "IPBanModule")]
-    public class IPBanModule : ISharedRegionModule 
+    public class IPBanModule : ISharedRegionModule
     {
         #region Implementation of ISharedRegionModule
 
@@ -86,7 +86,7 @@ namespace OpenSim.Region.CoreModules.Agent.IPBan
 
         public void Close()
         {
-            
+
         }
 
         public string Name
@@ -107,9 +107,9 @@ namespace OpenSim.Region.CoreModules.Agent.IPBan
         /// matching domain (including "betasomewhere.com", "beta.somewhere.com",
         /// "somewhere.com.beta") - make sure to be reasonably specific in DNS
         /// bans.
-        /// 
+        ///
         /// IP address bans match on first characters, so,
-        /// "127.0.0.1" will ban only that address, 
+        /// "127.0.0.1" will ban only that address,
         /// "127.0.1" will ban "127.0.10.0"
         /// but "127.0.1." will ban only the "127.0.1.*" network
         /// </summary>

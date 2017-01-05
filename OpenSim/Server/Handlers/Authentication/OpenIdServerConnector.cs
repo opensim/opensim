@@ -41,7 +41,7 @@ namespace OpenSim.Server.Handlers.Authentication
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
- 
+
         private IAuthenticationService m_AuthenticationService;
         private IUserAccountService m_UserAccountService;
         private string m_ConfigName = "OpenIdService";

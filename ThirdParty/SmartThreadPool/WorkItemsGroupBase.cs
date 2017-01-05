@@ -132,7 +132,7 @@ namespace Amib.Threading.Internal
         /// </summary>
         /// <param name="callback">A callback to execute</param>
         /// <param name="state">
-        /// The context object of the work item. Used for passing arguments to the work item. 
+        /// The context object of the work item. Used for passing arguments to the work item.
         /// </param>
         /// <returns>Returns a work item result</returns>
         public IWorkItemResult QueueWorkItem(WorkItemCallback callback, object state)
@@ -147,7 +147,7 @@ namespace Amib.Threading.Internal
         /// </summary>
         /// <param name="callback">A callback to execute</param>
         /// <param name="state">
-        /// The context object of the work item. Used for passing arguments to the work item. 
+        /// The context object of the work item. Used for passing arguments to the work item.
         /// </param>
         /// <param name="workItemPriority">The work item priority</param>
         /// <returns>Returns a work item result</returns>
@@ -165,7 +165,7 @@ namespace Amib.Threading.Internal
         /// <param name="workItemInfo">Work item information</param>
         /// <param name="callback">A callback to execute</param>
         /// <param name="state">
-        /// The context object of the work item. Used for passing arguments to the work item. 
+        /// The context object of the work item. Used for passing arguments to the work item.
         /// </param>
         /// <returns>Returns a work item result</returns>
         public IWorkItemResult QueueWorkItem(WorkItemInfo workItemInfo, WorkItemCallback callback, object state)
@@ -181,7 +181,7 @@ namespace Amib.Threading.Internal
         /// </summary>
         /// <param name="callback">A callback to execute</param>
         /// <param name="state">
-        /// The context object of the work item. Used for passing arguments to the work item. 
+        /// The context object of the work item. Used for passing arguments to the work item.
         /// </param>
         /// <param name="postExecuteWorkItemCallback">
         /// A delegate to call after the callback completion
@@ -203,7 +203,7 @@ namespace Amib.Threading.Internal
         /// </summary>
         /// <param name="callback">A callback to execute</param>
         /// <param name="state">
-        /// The context object of the work item. Used for passing arguments to the work item. 
+        /// The context object of the work item. Used for passing arguments to the work item.
         /// </param>
         /// <param name="postExecuteWorkItemCallback">
         /// A delegate to call after the callback completion
@@ -227,7 +227,7 @@ namespace Amib.Threading.Internal
         /// </summary>
         /// <param name="callback">A callback to execute</param>
         /// <param name="state">
-        /// The context object of the work item. Used for passing arguments to the work item. 
+        /// The context object of the work item. Used for passing arguments to the work item.
         /// </param>
         /// <param name="postExecuteWorkItemCallback">
         /// A delegate to call after the callback completion
@@ -251,7 +251,7 @@ namespace Amib.Threading.Internal
         /// </summary>
         /// <param name="callback">A callback to execute</param>
         /// <param name="state">
-        /// The context object of the work item. Used for passing arguments to the work item. 
+        /// The context object of the work item. Used for passing arguments to the work item.
         /// </param>
         /// <param name="postExecuteWorkItemCallback">
         /// A delegate to call after the callback completion

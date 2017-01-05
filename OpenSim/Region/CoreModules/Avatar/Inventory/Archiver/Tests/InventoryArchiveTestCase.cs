@@ -49,35 +49,35 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
     public class InventoryArchiveTestCase : OpenSimTestCase
     {
         protected ManualResetEvent mre = new ManualResetEvent(false);
-        
+
         /// <summary>
         /// A raw array of bytes that we'll use to create an IAR memory stream suitable for isolated use in each test.
         /// </summary>
         protected byte[] m_iarStreamBytes;
-                
+
         /// <summary>
         /// Stream of data representing a common IAR for load tests.
         /// </summary>
         protected MemoryStream m_iarStream;
-        
-        protected UserAccount m_uaMT 
-            = new UserAccount { 
+
+        protected UserAccount m_uaMT
+            = new UserAccount {
                 PrincipalID = UUID.Parse("00000000-0000-0000-0000-000000000555"),
                 FirstName = "Mr",
                 LastName = "Tiddles" };
-        
+
         protected UserAccount m_uaLL1
-            = new UserAccount { 
+            = new UserAccount {
                 PrincipalID = UUID.Parse("00000000-0000-0000-0000-000000000666"),
                 FirstName = "Lord",
-                LastName = "Lucan" }; 
-        
+                LastName = "Lucan" };
+
         protected UserAccount m_uaLL2
-            = new UserAccount { 
+            = new UserAccount {
                 PrincipalID = UUID.Parse("00000000-0000-0000-0000-000000000777"),
                 FirstName = "Lord",
-                LastName = "Lucan" };       
-        
+                LastName = "Lucan" };
+
         protected string m_item1Name = "Ray Gun Item";
         protected string m_coaItemName = "Coalesced Item";
 
@@ -105,72 +105,72 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             base.SetUp();
             m_iarStream = new MemoryStream(m_iarStreamBytes);
         }
-        
+
         protected void ConstructDefaultIarBytesForTestLoad()
         {
 //            log4net.Config.XmlConfigurator.Configure();
-            
+
             InventoryArchiverModule archiverModule = new InventoryArchiverModule();
             Scene scene = new SceneHelpers().SetupScene();
-            SceneHelpers.SetupSceneModules(scene, archiverModule);            
-            
+            SceneHelpers.SetupSceneModules(scene, archiverModule);
+
             UserAccountHelpers.CreateUserWithInventory(scene, m_uaLL1, "hampshire");
 
             MemoryStream archiveWriteStream = new MemoryStream();
-            
+
             // Create scene object asset
             UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000040");
-            SceneObjectGroup object1 = SceneHelpers.CreateSceneObject(1, ownerId, "Ray Gun Object", 0x50);         
+            SceneObjectGroup object1 = SceneHelpers.CreateSceneObject(1, ownerId, "Ray Gun Object", 0x50);
 
             UUID asset1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
             AssetBase asset1 = AssetHelpers.CreateAsset(asset1Id, object1);
-            scene.AssetService.Store(asset1);            
+            scene.AssetService.Store(asset1);
 
             // Create scene object item
             InventoryItemBase item1 = new InventoryItemBase();
             item1.Name = m_item1Name;
-            item1.ID = UUID.Parse("00000000-0000-0000-0000-000000000020");            
+            item1.ID = UUID.Parse("00000000-0000-0000-0000-000000000020");
             item1.AssetID = asset1.FullID;
             item1.GroupID = UUID.Random();
             item1.CreatorId = m_uaLL1.PrincipalID.ToString();
             item1.Owner = m_uaLL1.PrincipalID;
-            item1.Folder = scene.InventoryService.GetRootFolder(m_uaLL1.PrincipalID).ID;            
+            item1.Folder = scene.InventoryService.GetRootFolder(m_uaLL1.PrincipalID).ID;
             scene.AddInventoryItem(item1);
-            
+
             // Create coalesced objects asset
             SceneObjectGroup cobj1 = SceneHelpers.CreateSceneObject(1, m_uaLL1.PrincipalID, "Object1", 0x120);
             cobj1.AbsolutePosition = new Vector3(15, 30, 45);
-            
+
             SceneObjectGroup cobj2 = SceneHelpers.CreateSceneObject(1, m_uaLL1.PrincipalID, "Object2", 0x140);
-            cobj2.AbsolutePosition = new Vector3(25, 50, 75);               
-            
+            cobj2.AbsolutePosition = new Vector3(25, 50, 75);
+
             CoalescedSceneObjects coa = new CoalescedSceneObjects(m_uaLL1.PrincipalID, cobj1, cobj2);
-            
+
             AssetBase coaAsset = AssetHelpers.CreateAsset(0x160, coa);
-            scene.AssetService.Store(coaAsset);            
-            
+            scene.AssetService.Store(coaAsset);
+
             // Create coalesced objects inventory item
             InventoryItemBase coaItem = new InventoryItemBase();
             coaItem.Name = m_coaItemName;
-            coaItem.ID = UUID.Parse("00000000-0000-0000-0000-000000000180");            
+            coaItem.ID = UUID.Parse("00000000-0000-0000-0000-000000000180");
             coaItem.AssetID = coaAsset.FullID;
             coaItem.GroupID = UUID.Random();
             coaItem.CreatorId = m_uaLL1.PrincipalID.ToString();
             coaItem.Owner = m_uaLL1.PrincipalID;
-            coaItem.Folder = scene.InventoryService.GetRootFolder(m_uaLL1.PrincipalID).ID;            
-            scene.AddInventoryItem(coaItem);            
-            
+            coaItem.Folder = scene.InventoryService.GetRootFolder(m_uaLL1.PrincipalID).ID;
+            scene.AddInventoryItem(coaItem);
+
             archiverModule.ArchiveInventory(
-                UUID.Random(), m_uaLL1.FirstName, m_uaLL1.LastName, "/*", "hampshire", archiveWriteStream);            
-            
+                UUID.Random(), m_uaLL1.FirstName, m_uaLL1.LastName, "/*", "hampshire", archiveWriteStream);
+
             m_iarStreamBytes = archiveWriteStream.ToArray();
         }
-        
+
         protected void SaveCompleted(
-            UUID id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream, 
+            UUID id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream,
             Exception reportedException, int SaveCount, int FilterCount)
         {
             mre.Set();
-        }        
+        }
     }
 }

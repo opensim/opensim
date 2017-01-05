@@ -52,7 +52,7 @@ namespace OpenSim.Framework
 
         private static XmlSerializer tiiSerializer = new XmlSerializer(typeof (TaskInventoryItem));
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         private Thread LockedByThread;
 //        private string WriterStack;
 
@@ -98,7 +98,7 @@ namespace OpenSim.Framework
                     if (!LockedByThread.IsAlive)
                     {
                         //Locked by dead thread, reset.
-                        m_itemLock = new System.Threading.ReaderWriterLockSlim(); 
+                        m_itemLock = new System.Threading.ReaderWriterLockSlim();
                     }
                 }
 
@@ -146,7 +146,7 @@ namespace OpenSim.Framework
 //                    {}
                     m_itemLock.ExitWriteLock();
                 }
-                
+
                 while (!m_itemLock.TryEnterReadLock(60000))
                 {
                     m_log.Error("Thread lock detected while trying to aquire READ lock in TaskInventoryDictionary. Locked by thread " + LockedByThread.Name + ". I'm going to try to solve the thread lock automatically to preserve region stability, but this needs to be fixed.");

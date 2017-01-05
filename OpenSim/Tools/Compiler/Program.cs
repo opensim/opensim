@@ -38,7 +38,7 @@ namespace OpenSim.Tools.LSL.Compiler
     class Program
     {
 //        Commented out because generated warning since m_positionMap could never be anything other than null
-//        private static Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> m_positionMap; 
+//        private static Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> m_positionMap;
         private static CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();
 
         static void Main(string[] args)
@@ -154,7 +154,7 @@ namespace OpenSim.Tools.LSL.Compiler
                                              lslPos.Key - 1, lslPos.Value - 1,
                                              CompErr.ErrorNumber, text, severity);
                 }
-                
+
                 disp = "Completed with errors";
 
                 if (!File.Exists(OutFile))

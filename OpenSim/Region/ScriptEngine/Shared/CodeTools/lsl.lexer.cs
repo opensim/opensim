@@ -379,7 +379,7 @@ public override int yynum { get { return 96; }}
  public FLOAT_CONSTANT(Lexer yyl):base(yyl) {}}
 //%|LSLTokens
 public class yyLSLTokens : YyLexer {
- public yyLSLTokens(ErrorHandler eh):base(eh) { arr = new int[] { 
+ public yyLSLTokens(ErrorHandler eh):base(eh) { arr = new int[] {
 101,4,6,52,0,
 46,0,53,0,6,
 102,4,16,117,0,
@@ -19717,13 +19717,13 @@ public override TOKEN OldAction(Lexer yym,ref string yytext,int action, ref bool
       break;
    case 1063: ;
       break;
-   case 1076: ;   
+   case 1076: ;
       break;
    case 1032: { yym.yy_begin("YYINITIAL"); ((LSLTokens)yym).yytext = ((LSLTokens)yym).str; ((LSLTokens)yym).str = String.Empty; return new STRING_CONSTANT(yym); }
       break;
    case 1067: ;
       break;
-   case 1072: ;   
+   case 1072: ;
       break;
    case 1003: { ((LSLTokens)yym).str += "\\\""; }
       break;

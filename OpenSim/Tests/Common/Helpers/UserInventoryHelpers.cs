@@ -101,7 +101,7 @@ namespace OpenSim.Tests.Common
             Scene scene, string itemName, UUID itemId, InventoryType itemType, AssetBase asset, UUID userId)
         {
             return AddInventoryItem(
-                scene, itemName, itemId, itemType, asset, userId, 
+                scene, itemName, itemId, itemType, asset, userId,
                 scene.InventoryService.GetFolderForType(userId, (FolderType)asset.Type).Name);
         }
 
@@ -128,7 +128,7 @@ namespace OpenSim.Tests.Common
             item.Owner = userId;
             item.AssetType = asset.Type;
             item.InvType = (int)itemType;
-            item.BasePermissions = (uint)OpenMetaverse.PermissionMask.All | 
+            item.BasePermissions = (uint)OpenMetaverse.PermissionMask.All |
                 (uint)(Framework.PermissionMask.foldedMask | Framework.PermissionMask.foldedCopy | Framework.PermissionMask.foldedModify | Framework.PermissionMask.foldedTransfer);
             item.CurrentPermissions = (uint)OpenMetaverse.PermissionMask.All |
                 (uint)(Framework.PermissionMask.foldedMask | Framework.PermissionMask.foldedCopy | Framework.PermissionMask.foldedModify | Framework.PermissionMask.foldedTransfer);
@@ -211,7 +211,7 @@ namespace OpenSim.Tests.Common
         /// </param>
         /// <param name="useExistingFolders">
         /// If true, then folders in the path which already the same name are
-        /// used.  This applies to the terminal folder as well.  
+        /// used.  This applies to the terminal folder as well.
         /// If false, then all folders in the path are created, even if there is already a folder at a particular
         /// level with the same name.
         /// </param>
@@ -236,7 +236,7 @@ namespace OpenSim.Tests.Common
         /// </param>
         /// <param name="useExistingFolders">
         /// If true, then folders in the path which already the same name are
-        /// used.  This applies to the terminal folder as well.  
+        /// used.  This applies to the terminal folder as well.
         /// If false, then all folders in the path are created, even if there is already a folder at a particular
         /// level with the same name.
         /// </param>
@@ -259,7 +259,7 @@ namespace OpenSim.Tests.Common
         /// Create inventory folders starting from a given parent folder
         /// </summary>
         /// <remarks>
-        /// If any stem of the path names folders that already exist then these are not recreated.  This includes the 
+        /// If any stem of the path names folders that already exist then these are not recreated.  This includes the
         /// final folder.
         /// TODO: May need to make it an option to create duplicate folders.
         /// </remarks>
@@ -271,7 +271,7 @@ namespace OpenSim.Tests.Common
         /// </param>
         /// <param name="useExistingFolders">
         /// If true, then folders in the path which already the same name are
-        /// used.  This applies to the terminal folder as well.  
+        /// used.  This applies to the terminal folder as well.
         /// If false, then all folders in the path are created, even if there is already a folder at a particular
         /// level with the same name.
         /// </param>
@@ -299,10 +299,10 @@ namespace OpenSim.Tests.Common
                 else
                     folderIdForCreate = folderId;
 
-                folder 
+                folder
                     = new InventoryFolderBase(
                         folderIdForCreate, components[0], parentFolder.Owner, (short)AssetType.Unknown, parentFolder.ID, 0);
-                
+
                 inventoryService.AddFolder(folder);
             }
 //            else

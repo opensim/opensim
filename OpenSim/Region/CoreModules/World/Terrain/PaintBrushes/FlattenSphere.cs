@@ -77,7 +77,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
                     {
                         map[x, y] += delta;
                     }
- 
+
                 }
             }
         }

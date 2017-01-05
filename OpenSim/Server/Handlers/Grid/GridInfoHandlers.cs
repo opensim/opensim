@@ -83,10 +83,10 @@ namespace OpenSim.Server.Handlers.Grid
                 {
                     _info["login"]
                         = String.Format(
-                            "http://127.0.0.1:{0}/", 
+                            "http://127.0.0.1:{0}/",
                             netCfg.GetString(
                                 "http_listener_port", ConfigSettings.DefaultRegionHttpPort.ToString()));
-                    
+
                     IssueWarning();
                 }
                 else
@@ -99,7 +99,7 @@ namespace OpenSim.Server.Handlers.Grid
             {
                 _log.Warn("[GRID INFO SERVICE]: Cannot get grid info from config source, using minimal defaults");
             }
-            
+
             _log.DebugFormat("[GRID INFO SERVICE]: Grid info service initialized with {0} keys", _info.Count);
         }
 
@@ -107,7 +107,7 @@ namespace OpenSim.Server.Handlers.Grid
         {
             _log.Warn("[GRID INFO SERVICE]: found no [GridInfo] section in your configuration files");
             _log.Warn("[GRID INFO SERVICE]: trying to guess sensible defaults, you might want to provide better ones:");
-            
+
             foreach (string k in _info.Keys)
             {
                 _log.WarnFormat("[GRID INFO SERVICE]: {0}: {1}", k, _info[k]);
@@ -181,7 +181,7 @@ namespace OpenSim.Server.Handlers.Grid
                 new string[] { "Startup", "Hypergrid" }, String.Empty);
 
             if (!String.IsNullOrEmpty(HomeURI))
-                map["home"] = OSD.FromString(HomeURI); 
+                map["home"] = OSD.FromString(HomeURI);
             else // Legacy. Remove soon!
             {
                 IConfig cfg = m_Config.Configs["LoginService"];

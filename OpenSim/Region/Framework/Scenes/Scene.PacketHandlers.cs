@@ -86,7 +86,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 EventManager.TriggerOnChatFromWorld(this, args);
         }
-        
+
         protected void SimChat(byte[] message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
                                UUID fromID, bool fromAgent, bool broadcast)
         {
@@ -212,13 +212,13 @@ namespace OpenSim.Region.Framework.Scenes
             if (groupID != UUID.Zero)
             {
                 GroupMembershipData gmd = m_groupsModule.GetMembershipData(groupID, remoteClient.AgentId);
-    
+
                 if (gmd == null)
                 {
 //                    m_log.WarnFormat(
 //                        "[GROUPS]: User {0} is not a member of group {1} so they can't update {2} to this group",
 //                        remoteClient.Name, GroupID, objectLocalID);
-    
+
                     return;
                 }
             }
@@ -243,7 +243,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart part = GetSceneObjectPart(primLocalID);
             if (part == null)
                 return;
- 
+
             bool oldgprSelect = part.ParentGroup.IsSelected;
 
             // This is wrong, wrong, wrong. Selection should not be
@@ -259,14 +259,14 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // restore targetOmega
                 if (part.AngularVelocity != Vector3.Zero)
-                    part.ScheduleTerseUpdate();     
+                    part.ScheduleTerseUpdate();
             }
         }
 
-        public virtual void ProcessMoneyTransferRequest(UUID source, UUID destination, int amount, 
+        public virtual void ProcessMoneyTransferRequest(UUID source, UUID destination, int amount,
                                                         int transactiontype, string description)
         {
-            EventManager.MoneyTransferArgs args = new EventManager.MoneyTransferArgs(source, destination, amount, 
+            EventManager.MoneyTransferArgs args = new EventManager.MoneyTransferArgs(source, destination, amount,
                                                                                      transactiontype, description);
 
             EventManager.TriggerMoneyTransfer(this, args);
@@ -275,8 +275,8 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void ProcessParcelBuy(UUID agentId, UUID groupId, bool final, bool groupOwned,
                 bool removeContribution, int parcelLocalID, int parcelArea, int parcelPrice, bool authenticated)
         {
-            EventManager.LandBuyArgs args = new EventManager.LandBuyArgs(agentId, groupId, final, groupOwned, 
-                                                                         removeContribution, parcelLocalID, parcelArea, 
+            EventManager.LandBuyArgs args = new EventManager.LandBuyArgs(agentId, groupId, final, groupOwned,
+                                                                         removeContribution, parcelLocalID, parcelArea,
                                                                          parcelPrice, authenticated);
 
             // First, allow all validators a stab at it
@@ -289,7 +289,7 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void ProcessObjectGrab(uint localID, Vector3 offsetPos, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs)
         {
             SceneObjectPart part = GetSceneObjectPart(localID);
-            
+
             if (part == null)
                 return;
 
@@ -302,7 +302,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Currently only grab/touch for the single prim
             // the client handles rez correctly
             obj.ObjectGrabHandler(localID, offsetPos, remoteClient);
-    
+
             // If the touched prim handles touches, deliver it
             if ((part.ScriptEvents & scriptEvents.touch_start) != 0)
                 EventManager.TriggerObjectGrab(part.LocalId, 0, part.OffsetPosition, remoteClient, surfaceArg);
@@ -310,7 +310,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Deliver to the root prim if the touched prim doesn't handle touches
             // or if we're meant to pass on touches anyway.
             if (((part.ScriptEvents & scriptEvents.touch_start) == 0) ||
-                (part.PassTouches && (part.LocalId != obj.RootPart.LocalId))) 
+                (part.PassTouches && (part.LocalId != obj.RootPart.LocalId)))
             {
                 EventManager.TriggerObjectGrab(obj.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
             }
@@ -337,7 +337,7 @@ namespace OpenSim.Region.Framework.Scenes
             // get's it's position on the simulator even if it was the same as before
             // This keeps the moving user's client in sync with the rest of the world.
             group.SendGroupTerseUpdate();
- 
+
             SurfaceTouchEventArgs surfaceArg = null;
             if (surfaceArgs != null && surfaceArgs.Count > 0)
                 surfaceArg = surfaceArgs[0];
@@ -483,7 +483,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 });
         }
-        
+
         private bool ShouldSendDiscardableEffect(IClientAPI thisClient, ScenePresence other)
         {
             return Vector3.Distance(other.CameraPosition, thisClient.SceneAgent.AbsolutePosition) < 10;
@@ -603,7 +603,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_descendentsRequestProcessing = false;
             }
         }
-        
+
         /// <summary>
         /// Handle an inventory folder creation request from the client.
         /// </summary>
@@ -657,7 +657,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
-        
+
         public void HandleMoveInventoryFolder(IClientAPI remoteClient, UUID folderID, UUID parentID)
         {
             InventoryFolderBase folder = InventoryService.GetFolder(remoteClient.AgentId, folderID);

@@ -114,9 +114,9 @@ namespace OpenSim.Region.Framework.Scenes
         public bool AddInventoryItem(UUID agentID, uint localID, InventoryItemBase item, UUID copyItemID)
         {
 //            m_log.DebugFormat(
-//                "[PRIM INVENTORY]: Adding inventory item {0} from {1} to part with local ID {2}", 
+//                "[PRIM INVENTORY]: Adding inventory item {0} from {1} to part with local ID {2}",
 //                item.Name, remoteClient.Name, localID);
-            
+
             UUID newItemId = (copyItemID != UUID.Zero) ? copyItemID : item.ID;
 
             SceneObjectPart part = GetPart(localID);
@@ -147,8 +147,8 @@ namespace OpenSim.Region.Framework.Scenes
                     // We're adding this to a prim we don't own. Force
                     // owner change
                     taskItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
-                } 
-                else 
+                }
+                else
                 {
                     taskItem.BasePermissions = item.BasePermissions;
                     taskItem.CurrentPermissions = item.CurrentPermissions;
@@ -156,13 +156,13 @@ namespace OpenSim.Region.Framework.Scenes
                     taskItem.GroupPermissions = item.GroupPermissions;
                     taskItem.NextPermissions = item.NextPermissions;
                 }
-                          
+
                 taskItem.Flags = item.Flags;
 
 //                m_log.DebugFormat(
-//                    "[PRIM INVENTORY]: Flags are 0x{0:X} for item {1} added to part {2} by {3}", 
-//                    taskItem.Flags, taskItem.Name, localID, remoteClient.Name);                      
-                
+//                    "[PRIM INVENTORY]: Flags are 0x{0:X} for item {1} added to part {2} by {3}",
+//                    taskItem.Flags, taskItem.Name, localID, remoteClient.Name);
+
                 // TODO: These are pending addition of those fields to TaskInventoryItem
 //                taskItem.SalePrice = item.SalePrice;
 //                taskItem.SaleType = item.SaleType;
@@ -328,13 +328,13 @@ namespace OpenSim.Region.Framework.Scenes
             xmldoc.AppendChild(xmlnode);
             XmlElement rootElement = xmldoc.CreateElement("", "ScriptData",
                     String.Empty);
-            
+
             xmldoc.AppendChild(rootElement);
 
-            
+
             XmlElement wrapper = xmldoc.CreateElement("", "ScriptStates",
                     String.Empty);
-            
+
             rootElement.AppendChild(wrapper);
 
             foreach (KeyValuePair<UUID, string> state in states)
@@ -362,7 +362,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             IScriptModule scriptModule = null;
-            
+
             foreach (IScriptModule sm in s.RequestModuleInterfaces<IScriptModule>())
             {
                 if (sm.ScriptEngineName == s.DefaultScriptEngine)
@@ -401,7 +401,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             XmlElement dataE = (XmlElement)dataL[0];
-            
+
             foreach (XmlNode n in dataE.ChildNodes)
             {
                 XmlElement stateE = (XmlElement)n;

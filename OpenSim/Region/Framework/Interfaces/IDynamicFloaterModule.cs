@@ -36,7 +36,7 @@ namespace OpenSim.Region.Framework.Interfaces
 
     public abstract class FloaterData
     {
-        public abstract int Channel { get; } 
+        public abstract int Channel { get; }
         public abstract string FloaterName { get; set; }
         public virtual string XmlName { get; set; }
         public virtual string XmlText { get; set; }

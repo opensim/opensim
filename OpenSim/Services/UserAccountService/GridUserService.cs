@@ -45,7 +45,7 @@ namespace OpenSim.Services.UserAccountService
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static bool m_Initialized;
 
-        public GridUserService(IConfigSource config) : base(config) 
+        public GridUserService(IConfigSource config) : base(config)
         {
             m_log.Debug("[GRID USER SERVICE]: Starting user grid service");
 

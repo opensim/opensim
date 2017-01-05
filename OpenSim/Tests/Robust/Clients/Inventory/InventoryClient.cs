@@ -176,7 +176,7 @@ namespace Robust.Tests
             Assert.NotNull(items, "(Repeat) Failed to get multiple items");
             Assert.IsTrue(items.Length == 2, "(Repeat) Requested 2 items, but didn't receive 2 items");
 
-            // This item doesn't exist, but [0] does, and it's cached. 
+            // This item doesn't exist, but [0] does, and it's cached.
             uuids[1] = new UUID("bb000000-0000-0000-0000-0000000000bb");
             // Fetching should return 2 items, but [1] should be null
             items = m_Connector.GetMultipleItems(m_userID, uuids);
@@ -185,7 +185,7 @@ namespace Robust.Tests
             Assert.AreEqual("Test Notecard 1", items[0].Name, "(Three times) Wrong name for Notecard 1");
             Assert.IsNull(items[1], "(Three times) Expecting 2nd item to be null");
 
-            // Now both don't exist 
+            // Now both don't exist
             uuids[0] = new UUID("aa000000-0000-0000-0000-0000000000aa");
             items = m_Connector.GetMultipleItems(m_userID, uuids);
             Assert.Null(items[0], "Request to multiple non-existent items is supposed to return null [0]");

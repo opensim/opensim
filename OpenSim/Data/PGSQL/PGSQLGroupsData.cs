@@ -37,7 +37,7 @@ using Npgsql;
 namespace OpenSim.Data.PGSQL
 {
     public class PGSQLGroupsData : IGroupsData
-    {        
+    {
         private PGSqlGroupsGroupsHandler m_Groups;
         private PGSqlGroupsMembershipHandler m_Membership;
         private PGSqlGroupsRolesHandler m_Roles;
@@ -83,17 +83,17 @@ namespace OpenSim.Data.PGSQL
 
         public GroupData[] RetrieveGroups(string pattern)
         {
-                       
+
             if (string.IsNullOrEmpty(pattern)) // True for where clause
             {
                 pattern = " 1 ORDER BY lower(\"Name\") LIMIT 100";
-                
+
                 return m_Groups.Get(pattern);
             }
-            else   
-            {             
+            else
+            {
                 pattern = " \"ShowInList\" = 1 AND lower(\"Name\") LIKE lower('%" + pattern + "%') ORDER BY lower(\"Name\") LIMIT 100";
-        
+
                 return m_Groups.Get(pattern, new NpgsqlParameter("pattern", pattern));
             }
         }
@@ -138,10 +138,10 @@ namespace OpenSim.Data.PGSQL
 
         public bool DeleteMember(UUID groupID, string pricipalID)
         {
-            return m_Membership.Delete(new string[] { "GroupID", "PrincipalID" }, 
+            return m_Membership.Delete(new string[] { "GroupID", "PrincipalID" },
                                        new string[] { groupID.ToString(), pricipalID });
         }
-        
+
         public int MemberCount(UUID groupID)
         {
             return (int)m_Membership.GetCount("GroupID", groupID.ToString());
@@ -173,7 +173,7 @@ namespace OpenSim.Data.PGSQL
 
         public bool DeleteRole(UUID groupID, UUID roleID)
         {
-            return m_Roles.Delete(new string[] { "GroupID", "RoleID" }, 
+            return m_Roles.Delete(new string[] { "GroupID", "RoleID" },
                                   new string[] { groupID.ToString(), roleID.ToString() });
         }
 
@@ -365,7 +365,7 @@ namespace OpenSim.Data.PGSQL
             get { return GetType().Assembly; }
         }
 
-        public PGSqlGroupsGroupsHandler(string connectionString, string realm, string store) 
+        public PGSqlGroupsGroupsHandler(string connectionString, string realm, string store)
             : base(connectionString, realm, store)
         {
         }
@@ -380,7 +380,7 @@ namespace OpenSim.Data.PGSQL
             get { return GetType().Assembly; }
         }
 
-        public PGSqlGroupsMembershipHandler(string connectionString, string realm) 
+        public PGSqlGroupsMembershipHandler(string connectionString, string realm)
             : base(connectionString, realm, string.Empty)
         {
         }
@@ -395,7 +395,7 @@ namespace OpenSim.Data.PGSQL
             get { return GetType().Assembly; }
         }
 
-        public PGSqlGroupsRolesHandler(string connectionString, string realm) 
+        public PGSqlGroupsRolesHandler(string connectionString, string realm)
             : base(connectionString, realm, string.Empty)
         {
         }
@@ -410,7 +410,7 @@ namespace OpenSim.Data.PGSQL
             get { return GetType().Assembly; }
         }
 
-        public PGSqlGroupsRoleMembershipHandler(string connectionString, string realm) 
+        public PGSqlGroupsRoleMembershipHandler(string connectionString, string realm)
             : base(connectionString, realm, string.Empty)
         {
         }
@@ -425,7 +425,7 @@ namespace OpenSim.Data.PGSQL
             get { return GetType().Assembly; }
         }
 
-        public PGSqlGroupsInvitesHandler(string connectionString, string realm) 
+        public PGSqlGroupsInvitesHandler(string connectionString, string realm)
             : base(connectionString, realm, string.Empty)
         {
         }
@@ -436,7 +436,7 @@ namespace OpenSim.Data.PGSQL
             using (NpgsqlCommand cmd = new NpgsqlCommand())
             {
                 cmd.CommandText = String.Format("delete from {0} where \"TMStamp\" < CURRENT_DATE - INTERVAL '2 week'", m_Realm);
-                
+
                 ExecuteNonQuery(cmd);
             }
 
@@ -451,7 +451,7 @@ namespace OpenSim.Data.PGSQL
             get { return GetType().Assembly; }
         }
 
-        public PGSqlGroupsNoticesHandler(string connectionString, string realm) 
+        public PGSqlGroupsNoticesHandler(string connectionString, string realm)
             : base(connectionString, realm, string.Empty)
         {
         }
@@ -462,7 +462,7 @@ namespace OpenSim.Data.PGSQL
             using (NpgsqlCommand cmd = new NpgsqlCommand())
             {
                 cmd.CommandText = String.Format("delete from {0} where \"TMStamp\" < CURRENT_DATE - INTERVAL '2 week'", m_Realm);
-                
+
                 ExecuteNonQuery(cmd);
             }
 
@@ -477,7 +477,7 @@ namespace OpenSim.Data.PGSQL
             get { return GetType().Assembly; }
         }
 
-        public PGSqlGroupsPrincipalsHandler(string connectionString, string realm) 
+        public PGSqlGroupsPrincipalsHandler(string connectionString, string realm)
             : base(connectionString, realm, string.Empty)
         {
         }

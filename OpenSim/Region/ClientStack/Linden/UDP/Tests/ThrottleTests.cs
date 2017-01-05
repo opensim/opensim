@@ -137,7 +137,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             Scene scene = new SceneHelpers().SetupScene();
             TestLLUDPServer udpServer = ClientStackHelpers.AddUdpServer(scene);
 
-            ScenePresence sp 
+            ScenePresence sp
                 = ClientStackHelpers.AddChildClient(
                     scene, udpServer, TestHelpers.ParseTail(0x1), TestHelpers.ParseTail(0x2), 123456);
 
@@ -145,7 +145,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 
             udpServer.Throttle.DebugLevel = 1;
             udpClient.ThrottleDebugLevel = 1;
-            
+
             int resendBytes = 1000;
             int landBytes = 2000;
             int windBytes = 3000;
@@ -161,8 +161,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             int totalBytes = LLUDPServer.MTU + landBytes + windBytes + cloudBytes + taskBytes + textureBytes + assetBytes;
 
             AssertThrottles(
-                udpClient, 
-                LLUDPServer.MTU, landBytes, windBytes, cloudBytes, taskBytes, 
+                udpClient,
+                LLUDPServer.MTU, landBytes, windBytes, cloudBytes, taskBytes,
                 textureBytes, assetBytes, totalBytes, 0, 0);
         }
 
@@ -181,7 +181,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 
             TestLLUDPServer udpServer = ClientStackHelpers.AddUdpServer(scene, ics);
 
-            ScenePresence sp 
+            ScenePresence sp
                 = ClientStackHelpers.AddChildClient(
                     scene, udpServer, TestHelpers.ParseTail(0x1), TestHelpers.ParseTail(0x2), 123456);
 
@@ -207,7 +207,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             double commitRatio = 32000.0 / totalBytes;
 
             AssertThrottles(
-                udpClient, 
+                udpClient,
                 LLUDPServer.MTU, landBytes * commitRatio, windBytes * commitRatio, cloudBytes * commitRatio, taskBytes * commitRatio,
                 textureBytes * commitRatio, assetBytes * commitRatio, udpClient.FlowThrottle.AdjustedDripRate, totalBytes, 0);
 
@@ -217,7 +217,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             commitRatio = (32000.0 + 20.0 * LLUDPServer.MTU) / totalBytes;
 
             AssertThrottles(
-                udpClient, 
+                udpClient,
                 LLUDPServer.MTU, landBytes * commitRatio, windBytes * commitRatio, cloudBytes * commitRatio, taskBytes * commitRatio,
                 textureBytes * commitRatio, assetBytes * commitRatio, udpClient.FlowThrottle.AdjustedDripRate, totalBytes, 0);
 
@@ -227,7 +227,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             commitRatio = (32000.0 + (20.0 * LLUDPServer.MTU)/Math.Pow(2,1)) / totalBytes;
 
             AssertThrottles(
-                udpClient, 
+                udpClient,
                 LLUDPServer.MTU, landBytes * commitRatio, windBytes * commitRatio, cloudBytes * commitRatio, taskBytes * commitRatio,
                 textureBytes * commitRatio, assetBytes * commitRatio, udpClient.FlowThrottle.AdjustedDripRate, totalBytes, 0);
         }
@@ -248,14 +248,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             int taskBytes = 14000;
             int textureBytes = 16000;
             int assetBytes = 18000;
-            int totalBytes 
+            int totalBytes
                 = (int)((resendBytes + landBytes + windBytes + cloudBytes + taskBytes + textureBytes + assetBytes) / 2);
 
             Scene scene = new SceneHelpers().SetupScene();
             TestLLUDPServer udpServer = ClientStackHelpers.AddUdpServer(scene);
             udpServer.Throttle.RequestedDripRate = totalBytes;
 
-            ScenePresence sp1 
+            ScenePresence sp1
                 = ClientStackHelpers.AddChildClient(
                     scene, udpServer, TestHelpers.ParseTail(0x1), TestHelpers.ParseTail(0x2), 123456);
 
@@ -265,8 +265,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
                 udpClient1, resendBytes, landBytes, windBytes, cloudBytes, taskBytes, textureBytes, assetBytes);
 
             AssertThrottles(
-                udpClient1, 
-                resendBytes / 2, landBytes / 2, windBytes / 2, cloudBytes / 2, taskBytes / 2, 
+                udpClient1,
+                resendBytes / 2, landBytes / 2, windBytes / 2, cloudBytes / 2, taskBytes / 2,
                 textureBytes / 2, assetBytes / 2, totalBytes, 0, 0);
 
             // Test: Now add another client
@@ -281,13 +281,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
                 udpClient2, resendBytes, landBytes, windBytes, cloudBytes, taskBytes, textureBytes, assetBytes);
 
             AssertThrottles(
-                udpClient1, 
-                resendBytes / 4, landBytes / 4, windBytes / 4, cloudBytes / 4, taskBytes / 4, 
+                udpClient1,
+                resendBytes / 4, landBytes / 4, windBytes / 4, cloudBytes / 4, taskBytes / 4,
                 textureBytes / 4, assetBytes / 4, totalBytes / 2, 0, 0);
 
             AssertThrottles(
-                udpClient2, 
-                resendBytes / 4, landBytes / 4, windBytes / 4, cloudBytes / 4, taskBytes / 4, 
+                udpClient2,
+                resendBytes / 4, landBytes / 4, windBytes / 4, cloudBytes / 4, taskBytes / 4,
                 textureBytes / 4, assetBytes / 4, totalBytes / 2, 0, 0);
         }
 
@@ -307,14 +307,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             int taskBytes = 12000;
             int textureBytes = 14000;
             int assetBytes = 16000;
-            int totalBytes 
+            int totalBytes
                 = (int)((resendBytes + landBytes + windBytes + cloudBytes + taskBytes + textureBytes + assetBytes) / 2);
 
             Scene scene = new SceneHelpers().SetupScene();
             TestLLUDPServer udpServer = ClientStackHelpers.AddUdpServer(scene);
             udpServer.ThrottleRates.Total = totalBytes;
 
-            ScenePresence sp 
+            ScenePresence sp
                 = ClientStackHelpers.AddChildClient(
                     scene, udpServer, TestHelpers.ParseTail(0x1), TestHelpers.ParseTail(0x2), 123456);
 
@@ -325,8 +325,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
                 udpClient, resendBytes, landBytes, windBytes, cloudBytes, taskBytes, textureBytes, assetBytes);
 
             AssertThrottles(
-                udpClient, 
-                resendBytes / 2, landBytes / 2, windBytes / 2, cloudBytes / 2, taskBytes / 2, 
+                udpClient,
+                resendBytes / 2, landBytes / 2, windBytes / 2, cloudBytes / 2, taskBytes / 2,
                 textureBytes / 2, assetBytes / 2, totalBytes, 0, totalBytes);
         }
 
@@ -352,7 +352,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             udpServer.ThrottleRates.Total = (int)(totalBytes * 1.1);
             udpServer.Throttle.RequestedDripRate = (int)(totalBytes * 1.5);
 
-            ScenePresence sp1 
+            ScenePresence sp1
                 = ClientStackHelpers.AddChildClient(
                     scene, udpServer, TestHelpers.ParseTail(0x1), TestHelpers.ParseTail(0x2), 123456);
 
@@ -363,8 +363,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
                 udpClient1, resendBytes, landBytes, windBytes, cloudBytes, taskBytes, textureBytes, assetBytes);
 
             AssertThrottles(
-                udpClient1, 
-                resendBytes, landBytes, windBytes, cloudBytes, taskBytes, 
+                udpClient1,
+                resendBytes, landBytes, windBytes, cloudBytes, taskBytes,
                 textureBytes, assetBytes, totalBytes, 0, totalBytes * 1.1);
 
             // Now add another client
@@ -379,25 +379,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
                 udpClient2, resendBytes, landBytes, windBytes, cloudBytes, taskBytes, textureBytes, assetBytes);
 
             AssertThrottles(
-                udpClient1, 
-                resendBytes * 0.75, landBytes * 0.75, windBytes * 0.75, cloudBytes * 0.75, taskBytes * 0.75, 
+                udpClient1,
+                resendBytes * 0.75, landBytes * 0.75, windBytes * 0.75, cloudBytes * 0.75, taskBytes * 0.75,
                 textureBytes * 0.75, assetBytes * 0.75, totalBytes * 0.75, 0, totalBytes * 1.1);
 
             AssertThrottles(
-                udpClient2, 
-                resendBytes * 0.75, landBytes * 0.75, windBytes * 0.75, cloudBytes * 0.75, taskBytes * 0.75, 
+                udpClient2,
+                resendBytes * 0.75, landBytes * 0.75, windBytes * 0.75, cloudBytes * 0.75, taskBytes * 0.75,
                 textureBytes * 0.75, assetBytes * 0.75, totalBytes * 0.75, 0, totalBytes * 1.1);
         }
 
         private void AssertThrottles(
-            LLUDPClient udpClient, 
+            LLUDPClient udpClient,
             double resendBytes, double landBytes, double windBytes, double cloudBytes, double taskBytes, double textureBytes, double assetBytes,
             double totalBytes, double targetBytes, double maxBytes)
         {
             ClientInfo ci = udpClient.GetClientInfo();
 
 //                            Console.WriteLine(
-//                                "Resend={0}, Land={1}, Wind={2}, Cloud={3}, Task={4}, Texture={5}, Asset={6}, TOTAL = {7}", 
+//                                "Resend={0}, Land={1}, Wind={2}, Cloud={3}, Task={4}, Texture={5}, Asset={6}, TOTAL = {7}",
 //                                ci.resendThrottle, ci.landThrottle, ci.windThrottle, ci.cloudThrottle, ci.taskThrottle, ci.textureThrottle, ci.assetThrottle, ci.totalThrottle);
 
             Assert.AreEqual((int)resendBytes, ci.resendThrottle, "Resend");

@@ -317,10 +317,10 @@ public abstract class BSPhysObject : PhysicsActor
 
     public virtual bool ForceBodyShapeRebuild(bool inTaintTime) { return false; }
 
-    public override bool PIDActive 
+    public override bool PIDActive
     {
         get { return MoveToTargetActive; }
-        set { MoveToTargetActive = value; } 
+        set { MoveToTargetActive = value; }
     }
 
     public override OMV.Vector3 PIDTarget { set { MoveToTargetTarget = value; } }
@@ -572,7 +572,7 @@ public abstract class BSPhysObject : PhysicsActor
             newContact.RelativeSpeed = -OMV.Vector3.Dot(relvel, contactNormal);
             // DetailLog("{0},{1}.Collision.AddCollider,vel={2},contee.vel={3},relvel={4},relspeed={5}",
             //         LocalID, TypeName, RawVelocity, (collidee == null ? OMV.Vector3.Zero : collidee.RawVelocity), relvel, newContact.RelativeSpeed);
-                    
+
             lock (PhysScene.CollisionLock)
             {
                 CollisionCollection.AddCollider(collideeLocalID, newContact);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Contributors 
+ * Copyright (c) Contributors
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@ namespace OpenSim.Region.Framework.Interfaces
         Array = 2,
         Value = 3
     }
-    
+
     public enum JsonStoreValueType
     {
         Undefined = 0,
@@ -50,7 +50,7 @@ namespace OpenSim.Region.Framework.Interfaces
         String = 4,
         UUID = 5
     }
-    
+
     public struct JsonStoreStats
     {
         public int StoreCount;

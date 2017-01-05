@@ -102,7 +102,7 @@ namespace OpenSim.Framework
                     }
                     else
                     {
-                        item = oldHeadNext.Item;                       
+                        item = oldHeadNext.Item;
                         haveAdvancedHead = CAS(ref head, oldHead, oldHeadNext);
                         if (haveAdvancedHead)
                         {

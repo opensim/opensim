@@ -41,7 +41,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     {
         protected IAssetService m_assetService;
         protected UuidGatherer m_uuidGatherer;
-            
+
         [SetUp]
         public void Init()
         {
@@ -55,9 +55,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void TestCorruptAsset()
         {
             TestHelpers.InMethod();
-            
+
             UUID corruptAssetUuid = UUID.Parse("00000000-0000-0000-0000-000000000666");
-            AssetBase corruptAsset 
+            AssetBase corruptAsset
                 = AssetHelpers.CreateAsset(corruptAssetUuid, AssetType.Notecard, "CORRUPT ASSET", UUID.Zero);
             m_assetService.Store(corruptAsset);
 
@@ -67,7 +67,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // We count the uuid as gathered even if the asset itself is corrupt.
             Assert.That(m_uuidGatherer.GatheredUuids.Count, Is.EqualTo(1));
         }
-        
+
         /// <summary>
         /// Test requests made for non-existent assets while we're gathering
         /// </summary>
@@ -75,7 +75,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void TestMissingAsset()
         {
             TestHelpers.InMethod();
-            
+
             UUID missingAssetUuid = UUID.Parse("00000000-0000-0000-0000-000000000666");
 
             m_uuidGatherer.AddForInspection(missingAssetUuid);
@@ -89,23 +89,23 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         {
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
-                      
+
             UUID ownerId = TestHelpers.ParseTail(0x10);
             UUID embeddedId = TestHelpers.ParseTail(0x20);
             UUID secondLevelEmbeddedId = TestHelpers.ParseTail(0x21);
             UUID missingEmbeddedId = TestHelpers.ParseTail(0x22);
             UUID ncAssetId = TestHelpers.ParseTail(0x30);
 
-            AssetBase ncAsset 
+            AssetBase ncAsset
                 = AssetHelpers.CreateNotecardAsset(
                     ncAssetId, string.Format("Hello{0}World{1}", embeddedId, missingEmbeddedId));
             m_assetService.Store(ncAsset);
 
-            AssetBase embeddedAsset 
+            AssetBase embeddedAsset
                 = AssetHelpers.CreateNotecardAsset(embeddedId, string.Format("{0} We'll meet again.", secondLevelEmbeddedId));
             m_assetService.Store(embeddedAsset);
 
-            AssetBase secondLevelEmbeddedAsset 
+            AssetBase secondLevelEmbeddedAsset
                 = AssetHelpers.CreateNotecardAsset(secondLevelEmbeddedId, "Don't know where, don't know when.");
             m_assetService.Store(secondLevelEmbeddedAsset);
 

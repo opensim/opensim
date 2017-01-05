@@ -53,7 +53,7 @@ namespace OpenSim.Framework
         // should be only used as initial default value ( V1 viewers )
         public readonly static int VISUALPARAM_COUNT = 218;
 
-//        public readonly static int TEXTURE_COUNT = 21 
+//        public readonly static int TEXTURE_COUNT = 21
         // 21 bad, make it be updated as libovm gets update
         // also keeping in sync with it
         public readonly static int TEXTURE_COUNT = Primitive.TextureEntry.MAX_FACES;
@@ -121,7 +121,7 @@ namespace OpenSim.Framework
             get { return m_avatarHeight; }
             set { m_avatarHeight = value; }
         }
-        
+
         public virtual WearableCacheItem[] WearableCacheItems
         {
             get { return m_cacheitems; }
@@ -219,7 +219,7 @@ namespace OpenSim.Framework
                     m_wearables[i] = new AvatarWearable();
                     AvatarWearable wearable = appearance.Wearables[i];
                     for (int j = 0; j < wearable.Count; j++)
-                            m_wearables[i].Add(wearable[j].ItemID, wearable[j].AssetID);                       
+                            m_wearables[i].Add(wearable[j].ItemID, wearable[j].AssetID);
                  }
             }
             else
@@ -291,18 +291,18 @@ namespace OpenSim.Framework
         public virtual void ResetAppearance()
         {
 //            m_log.WarnFormat("[AVATAR APPEARANCE]: Reset appearance");
-            
+
             m_serial = 0;
 
             SetDefaultTexture();
-            
+
             //for (int i = 0; i < BAKE_INDICES.Length; i++)
             // {
             //     int idx = BAKE_INDICES[i];
             //     m_texture.FaceTextures[idx].TextureID = UUID.Zero;
             // }
         }
-        
+
         protected virtual void SetDefaultParams()
         {
             m_visualparams = new byte[] { 33,61,85,23,58,127,63,85,63,42,0,85,63,36,85,95,153,63,34,0,63,109,88,132,63,136,81,85,103,136,127,0,150,150,150,127,0,0,0,0,0,127,0,0,255,127,114,127,99,63,127,140,127,127,0,0,0,191,0,104,0,0,0,0,0,0,0,0,0,145,216,133,0,127,0,127,170,0,0,127,127,109,85,127,127,63,85,42,150,150,150,150,150,150,150,25,150,150,150,0,127,0,0,144,85,127,132,127,85,0,127,127,127,127,127,127,59,127,85,127,127,106,47,79,127,127,204,2,141,66,0,0,127,127,0,0,0,0,127,0,159,0,0,178,127,36,85,131,127,127,127,153,95,0,140,75,27,127,127,0,150,150,198,0,0,63,30,127,165,209,198,127,127,153,204,51,51,255,255,255,204,0,255,150,150,150,150,150,150,150,150,150,150,0,150,150,150,150,150,0,127,127,150,150,150,150,150,150,150,150,0,0,150,51,132,150,150,150 };
@@ -319,14 +319,14 @@ namespace OpenSim.Framework
         public virtual void ResetBakedTextures()
         {
             SetDefaultTexture();
-            
+
             //for (int i = 0; i < BAKE_INDICES.Length; i++)
             // {
             //     int idx = BAKE_INDICES[i];
             //     m_texture.FaceTextures[idx].TextureID = UUID.Zero;
             // }
         }
-        
+
         protected virtual void SetDefaultTexture()
         {
             m_texture = new Primitive.TextureEntry(new UUID(AppearanceManager.DEFAULT_AVATAR_TEXTURE));
@@ -371,7 +371,7 @@ namespace OpenSim.Framework
             }
 
             m_texture = textureEntry;
-            
+
             return changed;
         }
 
@@ -531,14 +531,14 @@ namespace OpenSim.Framework
         {
             lock (m_attachments)
             {
-				List<AvatarAttachment> alist = new List<AvatarAttachment>();
+                List<AvatarAttachment> alist = new List<AvatarAttachment>();
                 foreach (KeyValuePair<int, List<AvatarAttachment>> kvp in m_attachments)
                 {
                     foreach (AvatarAttachment attach in kvp.Value)
                         alist.Add(new AvatarAttachment(attach));
                 }
-				return alist;
-			}
+                return alist;
+            }
         }
 
         internal void AppendAttachment(AvatarAttachment attach)
@@ -551,7 +551,7 @@ namespace OpenSim.Framework
             {
                 if (!m_attachments.ContainsKey(attach.AttachPoint))
                     m_attachments[attach.AttachPoint] = new List<AvatarAttachment>();
-    
+
                 foreach (AvatarAttachment prev in m_attachments[attach.AttachPoint])
                 {
                     if (prev.ItemID == attach.ItemID)
@@ -608,7 +608,7 @@ namespace OpenSim.Framework
                         m_attachments.Remove(attachpoint);
                         return true;
                     }
-                    
+
                     return false;
                 }
 
@@ -622,13 +622,13 @@ namespace OpenSim.Framework
                 if (existingAttachment != null)
                 {
 //                    m_log.DebugFormat(
-//                        "[AVATAR APPEARANCE]: Found existing attachment for {0}, asset {1} at point {2}", 
+//                        "[AVATAR APPEARANCE]: Found existing attachment for {0}, asset {1} at point {2}",
 //                        existingAttachment.ItemID, existingAttachment.AssetID, existingAttachment.AttachPoint);
 
                     if (existingAttachment.AssetID != UUID.Zero && existingAttachment.AttachPoint == (attachpoint & 0x7F))
                     {
                         m_log.DebugFormat(
-                            "[AVATAR APPEARANCE]: Ignoring attempt to attach an already attached item {0} at point {1}", 
+                            "[AVATAR APPEARANCE]: Ignoring attempt to attach an already attached item {0} at point {1}",
                             item, attachpoint);
 
                         return false;
@@ -640,7 +640,7 @@ namespace OpenSim.Framework
                         DetachAttachment(existingAttachment.ItemID);
                     }
                 }
-                
+
                 // check if this is an append or a replace, 0x80 marks it as an append
                 if ((attachpoint & 0x80) > 0)
                 {
@@ -701,16 +701,16 @@ namespace OpenSim.Framework
                     if (index >= 0)
                     {
 //                        m_log.DebugFormat(
-//                            "[AVATAR APPEARANCE]: Detaching attachment {0}, index {1}, point {2}", 
+//                            "[AVATAR APPEARANCE]: Detaching attachment {0}, index {1}, point {2}",
 //                            m_attachments[kvp.Key][index].ItemID, index, m_attachments[kvp.Key][index].AttachPoint);
 
                         // Remove it from the list of attachments at that attach point
                         m_attachments[kvp.Key].RemoveAt(index);
-    
+
                         // And remove the list if there are no more attachments here
                         if (m_attachments[kvp.Key].Count == 0)
                             m_attachments.Remove(kvp.Key);
-    
+
                         return true;
                     }
                 }
@@ -867,7 +867,7 @@ namespace OpenSim.Framework
                     {
                         AvatarAttachment att = new AvatarAttachment((OSDMap)attachs[i]);
                         AppendAttachment(att);
-                        
+
 //                        m_log.DebugFormat(
 //                            "[AVATAR APPEARANCE]: Unpacked attachment itemID {0}, assetID {1}, point {2}",
 //                            att.ItemID, att.AssetID, att.AttachPoint);
@@ -1644,14 +1644,14 @@ namespace OpenSim.Framework
             SHAPE_EYELID_INNER_CORNER_UP = 214,
             SKIRT_SKIRT_RED = 215,
             SKIRT_SKIRT_GREEN = 216,
-            SKIRT_SKIRT_BLUE = 217, 
+            SKIRT_SKIRT_BLUE = 217,
 
             /// <summary>
             /// Avatar Physics section.  These are 0 type visual params which get transmitted.
             /// </summary>
 
             /// <summary>
-            /// Breast Part 1 
+            /// Breast Part 1
             /// </summary>
             BREAST_PHYSICS_MASS = 218,
             BREAST_PHYSICS_GRAVITY = 219,
@@ -1697,7 +1697,7 @@ namespace OpenSim.Framework
             BREAST_PHYSICS_LEFTRIGHT_GAIN = 249,
             BREAST_PHYSICS_LEFTRIGHT_DAMPING = 250,
 
-            // Ubit: 07/96/2013 new parameters 
+            // Ubit: 07/96/2013 new parameters
             _APPEARANCEMESSAGE_VERSION = 251,    //ID 11000
 
             SHAPE_HOVER = 252,    //ID 11001

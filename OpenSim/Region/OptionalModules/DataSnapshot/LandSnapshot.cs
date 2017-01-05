@@ -143,7 +143,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
 
                     LandData parcel = land.LandData;
                     if (m_parent.ExposureLevel.Equals("all") ||
-                        (m_parent.ExposureLevel.Equals("minimum") && 
+                        (m_parent.ExposureLevel.Equals("minimum") &&
                         (parcel.Flags & (uint)ParcelFlags.ShowDirectory) == (uint)ParcelFlags.ShowDirectory))
                     {
 

@@ -55,7 +55,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         private bool m_enabled = true;
         private Scene m_scene;
         private String m_simianURL;
-        
+
 #region IRegionModule Members
 
         public string Name
@@ -65,10 +65,10 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource config)
         {
-            try 
+            try
             {
                 IConfig m_config;
-               
+
                 if ((m_config = config.Configs["SimianExternalCaps"]) != null)
                 {
                     m_enabled = m_config.GetBoolean("Enabled", m_enabled);
@@ -97,10 +97,10 @@ namespace OpenSim.Services.Connectors.SimianGrid
         public void Close() { }
 
         public void AddRegion(Scene scene)
-        { 
+        {
             if (! m_enabled)
                 return;
-            
+
             m_scene = scene;
             m_scene.RegisterModuleInterface<IExternalCapsModule>(this);
         }
@@ -153,7 +153,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             subs["%USR%"] = agentID.ToString();
             subs["%CAP%"] = cap.ToString();
             subs["%SIM%"] = m_scene.RegionInfo.RegionID.ToString();
-            
+
             caps.RegisterHandler(capName,ExpandSkeletonURL(urlSkel,subs));
             return true;
         }
@@ -168,12 +168,12 @@ namespace OpenSim.Services.Connectors.SimianGrid
         private String ExpandSkeletonURL(String urlSkel, Dictionary<String,String> subs)
         {
             String result = urlSkel;
-            
+
             foreach (KeyValuePair<String,String> kvp in subs)
             {
                 result = result.Replace(kvp.Key,kvp.Value);
             }
-            
+
             return result;
         }
     }

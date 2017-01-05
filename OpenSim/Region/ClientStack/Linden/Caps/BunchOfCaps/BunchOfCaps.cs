@@ -97,7 +97,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private ModelCost m_ModelCost;
 
         // private static readonly string m_remoteParcelRequestPath = "0009/";// This is in the LandManagementModule.
-        
+
         // These are callbacks which will be setup by the scene so that we can update scene data when we
         // receive capability calls
         public NewInventoryItem AddNewInventoryItem = null;
@@ -119,7 +119,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private bool m_enableModelUploadTextureToInventory = false; // place uploaded textures also in inventory
                                                                     // may not be visible till relog
-        
+
         private bool m_RestrictFreeTestUploadPerms = false; // reduces also the permitions. Needs a creator defined!!
         private UUID m_testAssetsCreatorID = UUID.Zero;
 
@@ -138,7 +138,7 @@ namespace OpenSim.Region.ClientStack.Linden
             processUpload = 3
         }
         private FileAgentInventoryState m_FileAgentInventoryState = FileAgentInventoryState.idle;
-        
+
         public BunchOfCaps(Scene scene, UUID agentID, Caps caps)
         {
             m_Scene = scene;
@@ -147,7 +147,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             // create a model upload cost provider
             m_ModelCost = new ModelCost(scene);
-           
+
             m_PrimScaleMin = m_ModelCost.PrimScaleMin;
 
             IConfigSource config = m_Scene.Config;
@@ -216,7 +216,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public string GetNewCapPath()
         {
-            return  "/CAPS/" + UUID.Random(); 
+            return  "/CAPS/" + UUID.Random();
         }
 
         /// <summary>
@@ -271,7 +271,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         "POST", GetNewCapPath(), HomeLocation, "HomeLocation", null);
                     m_HostCapsObj.RegisterHandler("HomeLocation", HomeLocationHandler);
                 }
-                
+
                 if(m_AllowCapGroupMemberData)
                 {
                     IRequestHandler GroupMemberDataHandler = new RestStreamHandler(
@@ -314,7 +314,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 IRequestHandler CopyInventoryFromNotecardHandler = new RestStreamHandler(
                         "POST",  GetNewCapPath(), CopyInventoryFromNotecard, "CopyInventoryFromNotecard", null);
                 m_HostCapsObj.RegisterHandler("CopyInventoryFromNotecard", CopyInventoryFromNotecardHandler);
-             
+
             }
             catch (Exception e)
             {
@@ -568,8 +568,8 @@ namespace OpenSim.Region.ClientStack.Linden
                     {
                         string error;
                         int modelcost;
-                        
-                        
+
+
                         if (!m_ModelCost.MeshModelCost(llsdRequest.asset_resources, baseCost, out modelcost,
                             meshcostdata, out error, ref warning))
                         {
@@ -639,7 +639,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         client.SendAgentAlertMessage(warning, true);
                 }
             }
-            
+
             string assetDes = llsdRequest.description;
             UUID newAsset = UUID.Random();
             UUID newInvItem = UUID.Random();
@@ -813,7 +813,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                     List<UUID> textures = new List<UUID>();
 
-                   
+
 //                    if (doTextInv)
                         m_Scene.TryGetClient(m_HostCapsObj.AgentID, out client);
 
@@ -895,7 +895,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         meshAvatarSkeletons.Add(curAvSkeleton);
                         meshAvatarColliders.Add(curAvCollider);
 
-                        // test code 
+                        // test code
                         if (curAvSkeleton && client != null)
                         {
                             string name = assetName;
@@ -1054,7 +1054,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         prim.LastOwnerID = creatorID;
                         prim.RezzerID = creatorID;
                         prim.CreationDate = Util.UnixTimeSinceEpoch();
-                        
+
                         if (grp == null)
                             prim.Name = assetName;
                         else
@@ -1437,7 +1437,7 @@ namespace OpenSim.Region.ClientStack.Linden
         public string GetObjectCost(string request, string path,
                 string param, IOSHttpRequest httpRequest,
                 IOSHttpResponse httpResponse)
-        {          
+        {
             OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
             OSDMap resp = new OSDMap();
 
@@ -1446,7 +1446,7 @@ namespace OpenSim.Region.ClientStack.Linden
             for (int i = 0; i < object_ids.Count; i++)
             {
                 UUID uuid = object_ids[i].AsUUID();
-                                
+
                 SceneObjectPart part = m_Scene.GetSceneObjectPart(uuid);
                 SceneObjectGroup grp = null;
                 if (part != null)
@@ -1479,7 +1479,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 resp[UUID.Zero.ToString()] = object_data;
             }
             string response = OSDParser.SerializeLLSDXmlString(resp);
-            return response; 
+            return response;
         }
 
         public string ResourceCostSelected(string request, string path,
@@ -1548,7 +1548,7 @@ namespace OpenSim.Region.ClientStack.Linden
             resp["selected"] = object_data;
 //            resp["transaction_id"] = "undef";
             string response = OSDParser.SerializeLLSDXmlString(resp);
-            return response; 
+            return response;
         }
 
         public string UpdateAgentInformation(string request, string path,
@@ -1564,7 +1564,7 @@ namespace OpenSim.Region.ClientStack.Linden
             resp["access_prefs"] = accessPrefs;
 
             string response = OSDParser.SerializeLLSDXmlString(resp);
-            return response; 
+            return response;
         }
 
         public bool OSDMapTOVector3(OSDMap map, out Vector3 v)
@@ -1598,19 +1598,19 @@ namespace OpenSim.Region.ClientStack.Linden
 
             IClientAPI client = null;
             ScenePresence sp;
-           
+
             while(true)
             {
                 if(m_Scene.GridUserService == null)
                     break;
-                    
+
                 if(m_Scene.UserManagementModule == null)
                     break;
 
                 m_Scene.TryGetScenePresence(m_AgentID, out sp);
                 if(sp == null || sp.IsChildAgent || sp.IsDeleted || sp.IsInTransit)
                     break;
-                
+
                 client = sp.ControllingClient;
 
                 if(!m_Scene.UserManagementModule.IsLocalGridUser(m_AgentID))
@@ -1637,7 +1637,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 ILandObject land = m_Scene.LandChannel.GetLandObject(pos);
                 if(land == null)
                     break;
-                
+
                 ulong gpowers = client.GetGroupPowers(land.LandData.GroupID);
                 SceneObjectGroup telehub = null;
                 if (m_Scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero)
@@ -1648,7 +1648,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     !m_Scene.Permissions.IsGod(m_AgentID) &&
                     m_AgentID != land.LandData.OwnerID && // (b) land owners can set home
                     // (c) members of the land-associated group in roles that can set home
-                    ((gpowers & (ulong)GroupPowers.AllowSetHome) != (ulong)GroupPowers.AllowSetHome) && 
+                    ((gpowers & (ulong)GroupPowers.AllowSetHome) != (ulong)GroupPowers.AllowSetHome) &&
                     // (d) parcels with telehubs can be the home of anyone
                     (telehub == null || !land.ContainsPoint((int)telehub.AbsolutePosition.X, (int)telehub.AbsolutePosition.Y)))
                 {
@@ -1675,7 +1675,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 break;
             }
-            
+
             string response;
 
             if(fail)
@@ -1728,11 +1728,11 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_GroupsModule = m_Scene.RequestModuleInterface<IGroupsModule>();
                 if(m_GroupsModule == null)
                     break;
-                    
+
                 m_Scene.TryGetScenePresence(m_AgentID, out sp);
                 if(sp == null || sp.IsChildAgent || sp.IsDeleted || sp.IsInTransit)
                     break;
-                
+
                 client = sp.ControllingClient;
 
                 OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
@@ -1866,12 +1866,12 @@ namespace OpenSim.Region.ClientStack.Linden
                 OSDMap osdname = new OSDMap();
                 if(parts[0] == "Unknown")
                 {
-                    osdname["display_name_next_update"] = OSD.FromDate(DateTime.UtcNow.AddHours(1));        
+                    osdname["display_name_next_update"] = OSD.FromDate(DateTime.UtcNow.AddHours(1));
                     osdname["display_name_expires"] = OSD.FromDate(DateTime.UtcNow.AddHours(2));
                 }
                 else
                 {
-                    osdname["display_name_next_update"] = OSD.FromDate(DateTime.UtcNow.AddDays(8));        
+                    osdname["display_name_next_update"] = OSD.FromDate(DateTime.UtcNow.AddDays(8));
                     osdname["display_name_expires"] = OSD.FromDate(DateTime.UtcNow.AddMonths(1));
                 }
                 osdname["display_name"] = OSD.FromString(kvp.Value);
@@ -1916,7 +1916,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private string m_assetType = String.Empty;
         private int m_cost;
         private string m_error = String.Empty;
-        
+
         private Timer m_timeoutTimer = new Timer();
         private UUID m_texturesFolder;
         private int m_nreqtextures;
@@ -1928,7 +1928,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private int m_groupMask;
         private int m_everyoneMask;
 
-        
+
         public AssetUploader(string assetName, string description, UUID assetID, UUID inventoryItem,
                                 UUID parentFolderID, string invType, string assetType, string path,
                                 IHttpServer httpServer, bool dumpAssetsToFile,

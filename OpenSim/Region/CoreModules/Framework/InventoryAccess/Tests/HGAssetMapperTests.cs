@@ -77,7 +77,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             scene.StartScripts();
 
             HGAssetMapper hgam = new HGAssetMapper(scene, homeUrl);
-            UserAccount ua 
+            UserAccount ua
                 = UserAccountHelpers.CreateUserWithInventory(scene, userFirstName, userLastName, userId, "password");
 
             SceneObjectGroup so = SceneHelpers.AddSceneObject(scene, soPartsCount, ua.PrincipalID, "part", soIdTail);
@@ -116,7 +116,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             XmlNode uuidAttribute = savedScriptStateNodes[0].Attributes.GetNamedItem("UUID");
             Assert.NotNull(uuidAttribute);
             // XXX: To check the actual UUID attribute we would have to do some work to retreive the UUID of the task
-            // item created earlier. 
+            // item created earlier.
         }
 
         private void RezScript(Scene scene, UUID soId, string script, string itemName, UUID userId)
@@ -131,9 +131,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             // immediately for tests rather than chunter through it's threaded mechanisms.
             AutoResetEvent chatEvent = new AutoResetEvent(false);
 
-            scene.EventManager.OnChatFromWorld += (s, c) => 
+            scene.EventManager.OnChatFromWorld += (s, c) =>
             {
-//                Console.WriteLine("Got chat [{0}]", c.Message);           
+//                Console.WriteLine("Got chat [{0}]", c.Message);
                 chatEvent.Set();
             };
 

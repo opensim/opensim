@@ -55,7 +55,7 @@ namespace OpenSim.Region.ClientStack.Linden
     {
 //        private static readonly ILog m_log =
 //            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         private Scene m_scene;
         private IAssetService m_AssetService;
         private bool m_Enabled = true;
@@ -64,7 +64,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private string m_URL2;
         private string m_RedirectURL = null;
         private string m_RedirectURL2 = null;
-       
+
         struct aPollRequest
         {
             public PollServiceMeshEventArgs thepoll;
@@ -132,7 +132,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
 
             m_scene = pScene;
-            
+
             m_assetService = pScene.AssetService;
         }
 
@@ -342,7 +342,7 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 string capUrl = "/CAPS/" + UUID.Random() + "/";
 
-                // Register this as a poll service           
+                // Register this as a poll service
                 PollServiceMeshEventArgs args = new PollServiceMeshEventArgs(capUrl, agentID, m_scene);
 
                 args.Type = PollServiceEventArgs.EventType.Mesh;
@@ -394,7 +394,7 @@ namespace OpenSim.Region.ClientStack.Linden
             private readonly Scene m_scene;
             private ThrottleOutPacketType Throttle;
             private readonly UUID User;
-            
+
             public MeshCapsDataThrottler(int pBytes, int max, int min, Scene pScene, UUID puser)
             {
                 ThrottleBytes = pBytes;
@@ -422,7 +422,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     // Normal
                     if (BytesSent <= ThrottleBytes)
                     {
-                        BytesSent += response.bytes;                     
+                        BytesSent += response.bytes;
                         return true;
                     }
                     else
@@ -432,7 +432,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 }
                 return haskey;
             }
-           
+
             public void ProcessTime()
             {
                 PassTime();

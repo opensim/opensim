@@ -65,14 +65,14 @@ namespace OpenSim.Services.Connectors.SimianGrid
         private int m_refreshtime = 0;
         private int m_lastrefresh = 0;
         private System.Timers.Timer m_refreshTimer = new System.Timers.Timer();
-        
+
         #region ISharedRegionModule
-        
+
         public Type ReplaceableInterface { get { return null; } }
-        public string Name { get { return "SimianGridMaptile"; } }        
+        public string Name { get { return "SimianGridMaptile"; } }
         public void RegionLoaded(Scene scene) { }
         public void Close() { }
-        
+
         ///<summary>
         ///
         ///</summary>
@@ -81,7 +81,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             IConfig config = source.Configs["SimianGridMaptiles"];
             if (config == null)
                 return;
-            
+
             if (! config.GetBoolean("Enabled", false))
                 return;
 
@@ -218,7 +218,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                                 {
                                     uint locX = scene.RegionInfo.RegionLocX + (xx / Constants.RegionSize);
                                     uint locY = scene.RegionInfo.RegionLocY + (yy / Constants.RegionSize);
-                                    
+
                                     ConvertAndUploadMaptile(subMapTile, locX, locY);
                                 }
                             }
@@ -232,7 +232,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             }
 
         }
-        
+
         ///<summary>
         ///
         ///</summary>
@@ -255,7 +255,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     { "ContentType", "image/png" },
                     { "EncodedData", System.Convert.ToBase64String(pngData) }
                 };
-                            
+
             OSDMap response = SimianGrid.PostToService(m_serverUrl,requestArgs);
             if (! response["Success"].AsBoolean())
             {

@@ -49,7 +49,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         }
 
         public delegate void ChatToNPC(
-            string message, byte type, Vector3 fromPos, string fromName, 
+            string message, byte type, Vector3 fromPos, string fromName,
             UUID fromAgentID, UUID ownerID, byte source, byte audible);
 
         /// <summary>
@@ -223,7 +223,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
 
         }
-                
+
         public void SendSitResponse(UUID TargetID, Vector3 OffsetPos,
                     Quaternion SitOrientation, bool autopilot,
                     Vector3 CameraAtOffset, Vector3 CameraEyeOffset, bool ForceMouseLook)
@@ -519,7 +519,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public event AvatarInterestUpdate OnAvatarInterestUpdate;
 
         public event PlacesQuery OnPlacesQuery;
-        
+
         public event FindAgentUpdate OnFindAgent;
         public event TrackAgentUpdate OnTrackAgent;
         public event NewUserReport OnUserReport;
@@ -931,7 +931,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 OnRegionHandShakeReply(this);
             }
         }
-        
+
         public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, UUID AssetFullID)
         {
         }
@@ -951,7 +951,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public void SendImageFirstPart(ushort numParts, UUID ImageUUID, uint ImageSize, byte[] ImageData, byte imageCodec)
         {
         }
-        
+
         public void SendImageNotFound(UUID imageid)
         {
         }
@@ -959,7 +959,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public void SendImageNextPart(ushort partNumber, UUID imageUuid, byte[] imageData)
         {
         }
-        
+
         public void SendShutdownConnectionNotice()
         {
         }
@@ -970,7 +970,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public void SendObjectPropertiesFamilyData(ISceneEntity Entity, uint RequestFlags)
         {
-            
+
         }
 
         public void SendObjectPropertiesReply(ISceneEntity entity)
@@ -984,7 +984,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public void SendViewerEffect(ViewerEffectPacket.EffectBlock[] effectBlocks)
         {
         }
-            
+
         public void SendViewerTime(int phase)
         {
         }
@@ -1029,7 +1029,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             // We never start the client, so always fail.
             throw new NotImplementedException();
         }
-        
+
         public void Stop()
         {
         }
@@ -1224,11 +1224,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public void SendJoinGroupReply(UUID groupID, bool success)
         {
         }
-        
+
         public void SendEjectGroupMemberReply(UUID agentID, UUID groupID, bool success)
         {
         }
-        
+
         public void SendLeaveGroupReply(UUID groupID, bool success)
         {
         }
@@ -1318,7 +1318,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
         #endregion
-        
+
         public void SendRebakeAvatarTextures(UUID textureID)
         {
         }
@@ -1326,15 +1326,15 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public void SendAvatarInterestsReply(UUID avatarID, uint wantMask, string wantText, uint skillsMask, string skillsText, string languages)
         {
         }
-        
+
         public void SendGroupAccountingDetails(IClientAPI sender,UUID groupID, UUID transactionID, UUID sessionID, int amt)
         {
         }
-        
+
         public void SendGroupAccountingSummary(IClientAPI sender,UUID groupID, uint moneyAmt, int totalTier, int usedTier)
         {
         }
-        
+
         public void SendGroupTransactionsSummaryDetails(IClientAPI sender,UUID groupID, UUID transactionID, UUID sessionID,int amt)
         {
         }
@@ -1354,7 +1354,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public void SendTextBoxRequest(string message, int chatChannel, string objectname, UUID ownerID, string ownerFirstName, string ownerLastName, UUID objectId)
         {
         }
-        
+
         public void SendAgentTerseUpdate(ISceneEntity presence)
         {
         }

@@ -48,17 +48,17 @@ namespace OpenSim.Server.Handlers
         static readonly ILog m_log =
             LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         public IUserProfilesService Service
         {
             get; private set;
         }
-        
+
         public JsonRpcProfileHandlers(IUserProfilesService service)
         {
             Service = service;
         }
-        
+
         #region Classifieds
         /// <summary>
         /// Request avatar's classified ads.
@@ -80,17 +80,17 @@ namespace OpenSim.Server.Handlers
                 m_log.DebugFormat ("Classified Request");
                 return false;
             }
-            
+
             OSDMap request = (OSDMap)json["params"];
             UUID creatorId = new UUID(request["creatorId"].AsString());
-            
-            
+
+
             OSDArray data = (OSDArray) Service.AvatarClassifiedsRequest(creatorId);
             response.Result = data;
-            
+
             return true;
         }
-        
+
         public bool ClassifiedUpdate(OSDMap json, ref JsonRpcResponse response)
         {
             if(!json.ContainsKey("params"))
@@ -100,7 +100,7 @@ namespace OpenSim.Server.Handlers
                 m_log.DebugFormat ("Classified Update Request");
                 return false;
             }
-            
+
             string result = string.Empty;
             UserClassifiedAdd ad = new UserClassifiedAdd();
             object Ad = (object)ad;
@@ -110,12 +110,12 @@ namespace OpenSim.Server.Handlers
                 response.Result = OSD.SerializeMembers(ad);
                 return true;
             }
-            
+
             response.Error.Code = ErrorCode.InternalError;
             response.Error.Message = string.Format("{0}", result);
             return false;
         }
-        
+
         public bool ClassifiedDelete(OSDMap json, ref JsonRpcResponse response)
         {
             if(!json.ContainsKey("params"))
@@ -124,10 +124,10 @@ namespace OpenSim.Server.Handlers
                 m_log.DebugFormat ("Classified Delete Request");
                 return false;
             }
-            
+
             OSDMap request = (OSDMap)json["params"];
             UUID classifiedId = new UUID(request["classifiedId"].AsString());
-            
+
             if (Service.ClassifiedDelete(classifiedId))
                 return true;
 
@@ -135,7 +135,7 @@ namespace OpenSim.Server.Handlers
             response.Error.Message = "data error removing record";
             return false;
         }
-        
+
         public bool ClassifiedInfoRequest(OSDMap json, ref JsonRpcResponse response)
         {
             if(!json.ContainsKey("params"))
@@ -145,7 +145,7 @@ namespace OpenSim.Server.Handlers
                 m_log.DebugFormat ("Classified Info Request");
                 return false;
             }
-            
+
             string result = string.Empty;
             UserClassifiedAdd ad = new UserClassifiedAdd();
             object Ad = (object)ad;
@@ -155,13 +155,13 @@ namespace OpenSim.Server.Handlers
                 response.Result = OSD.SerializeMembers(ad);
                 return true;
             }
-            
+
             response.Error.Code = ErrorCode.InternalError;
             response.Error.Message = string.Format("{0}", result);
             return false;
         }
         #endregion Classifieds
-        
+
         #region Picks
         public bool AvatarPicksRequest(OSDMap json, ref JsonRpcResponse response)
         {
@@ -171,17 +171,17 @@ namespace OpenSim.Server.Handlers
                 m_log.DebugFormat ("Avatar Picks Request");
                 return false;
             }
-            
+
             OSDMap request = (OSDMap)json["params"];
             UUID creatorId = new UUID(request["creatorId"].AsString());
-            
-            
+
+
             OSDArray data = (OSDArray) Service.AvatarPicksRequest(creatorId);
             response.Result = data;
-            
+
             return true;
         }
-        
+
         public bool PickInfoRequest(OSDMap json, ref JsonRpcResponse response)
         {
             if(!json.ContainsKey("params"))
@@ -191,7 +191,7 @@ namespace OpenSim.Server.Handlers
                 m_log.DebugFormat ("Avatar Picks Info Request");
                 return false;
             }
-            
+
             string result = string.Empty;
             UserProfilePick pick = new UserProfilePick();
             object Pick = (object)pick;
@@ -201,12 +201,12 @@ namespace OpenSim.Server.Handlers
                 response.Result = OSD.SerializeMembers(pick);
                 return true;
             }
-            
+
             response.Error.Code = ErrorCode.InternalError;
             response.Error.Message = string.Format("{0}", result);
             return false;
         }
-        
+
         public bool PicksUpdate(OSDMap json, ref JsonRpcResponse response)
         {
             if(!json.ContainsKey("params"))
@@ -216,7 +216,7 @@ namespace OpenSim.Server.Handlers
                 m_log.DebugFormat ("Avatar Picks Update Request");
                 return false;
             }
-            
+
             string result = string.Empty;
             UserProfilePick pick = new UserProfilePick();
             object Pick = (object)pick;
@@ -226,13 +226,13 @@ namespace OpenSim.Server.Handlers
                 response.Result = OSD.SerializeMembers(pick);
                 return true;
             }
-            
+
             response.Error.Code = ErrorCode.InternalError;
             response.Error.Message = "unable to update pick";
-            
+
             return false;
         }
-        
+
         public bool PicksDelete(OSDMap json, ref JsonRpcResponse response)
         {
             if(!json.ContainsKey("params"))
@@ -241,18 +241,18 @@ namespace OpenSim.Server.Handlers
                 m_log.DebugFormat ("Avatar Picks Delete Request");
                 return false;
             }
-            
+
             OSDMap request = (OSDMap)json["params"];
             UUID pickId = new UUID(request["pickId"].AsString());
             if(Service.PicksDelete(pickId))
                 return true;
-            
+
             response.Error.Code = ErrorCode.InternalError;
             response.Error.Message = "data error removing record";
             return false;
         }
         #endregion Picks
-        
+
         #region Notes
         public bool AvatarNotesRequest(OSDMap json, ref JsonRpcResponse response)
         {
@@ -277,7 +277,7 @@ namespace OpenSim.Server.Handlers
             response.Error.Message = "Error reading notes";
             return false;
         }
-        
+
         public bool NotesUpdate(OSDMap json, ref JsonRpcResponse response)
         {
             if(!json.ContainsKey("params"))
@@ -287,7 +287,7 @@ namespace OpenSim.Server.Handlers
                 m_log.DebugFormat ("Avatar Notes Update Request");
                 return false;
             }
-            
+
             string result = string.Empty;
             UserProfileNotes note = new UserProfileNotes();
             object Notes = (object) note;
@@ -300,7 +300,7 @@ namespace OpenSim.Server.Handlers
             return true;
         }
         #endregion Notes
-        
+
         #region Profile Properties
         public bool AvatarPropertiesRequest(OSDMap json, ref JsonRpcResponse response)
         {
@@ -311,7 +311,7 @@ namespace OpenSim.Server.Handlers
                 m_log.DebugFormat ("Avatar Properties Request");
                 return false;
             }
-            
+
             string result = string.Empty;
             UserProfileProperties props = new UserProfileProperties();
             object Props = (object)props;
@@ -321,12 +321,12 @@ namespace OpenSim.Server.Handlers
                 response.Result = OSD.SerializeMembers(props);
                 return true;
             }
-            
+
             response.Error.Code = ErrorCode.InternalError;
             response.Error.Message = string.Format("{0}", result);
             return false;
         }
-        
+
         public bool AvatarPropertiesUpdate(OSDMap json, ref JsonRpcResponse response)
         {
             if(!json.ContainsKey("params"))
@@ -336,7 +336,7 @@ namespace OpenSim.Server.Handlers
                 m_log.DebugFormat ("Avatar Properties Update Request");
                 return false;
             }
-            
+
             string result = string.Empty;
             UserProfileProperties props = new UserProfileProperties();
             object Props = (object)props;
@@ -346,13 +346,13 @@ namespace OpenSim.Server.Handlers
                 response.Result = OSD.SerializeMembers(props);
                 return true;
             }
-            
+
             response.Error.Code = ErrorCode.InternalError;
             response.Error.Message = string.Format("{0}", result);
             return false;
         }
         #endregion Profile Properties
-        
+
         #region Interests
         public bool AvatarInterestsUpdate(OSDMap json, ref JsonRpcResponse response)
         {
@@ -363,7 +363,7 @@ namespace OpenSim.Server.Handlers
                 m_log.DebugFormat ("Avatar Interests Update Request");
                 return false;
             }
-            
+
             string result = string.Empty;
             UserProfileProperties props = new UserProfileProperties();
             object Props = (object)props;
@@ -373,7 +373,7 @@ namespace OpenSim.Server.Handlers
                 response.Result = OSD.SerializeMembers(props);
                 return true;
             }
-            
+
             response.Error.Code = ErrorCode.InternalError;
             response.Error.Message = string.Format("{0}", result);
             return false;
@@ -399,7 +399,7 @@ namespace OpenSim.Server.Handlers
                 response.Result = OSD.SerializeMembers(prefs);
                 return true;
             }
-            
+
             response.Error.Code = ErrorCode.InternalError;
             response.Error.Message = string.Format("{0}", result);
 //            m_log.InfoFormat("[PROFILES]: User preferences request error - {0}", response.Error.Message);
@@ -415,7 +415,7 @@ namespace OpenSim.Server.Handlers
                 m_log.DebugFormat ("User Preferences Update Request");
                 return false;
             }
-            
+
             string result = string.Empty;
             UserPreferences prefs = new UserPreferences();
             object Prefs = (object)prefs;
@@ -425,7 +425,7 @@ namespace OpenSim.Server.Handlers
                 response.Result = OSD.SerializeMembers(prefs);
                 return true;
             }
-            
+
             response.Error.Code = ErrorCode.InternalError;
             response.Error.Message = string.Format("{0}", result);
             m_log.InfoFormat("[PROFILES]: User preferences update error - {0}", response.Error.Message);
@@ -443,13 +443,13 @@ namespace OpenSim.Server.Handlers
                 m_log.DebugFormat ("Avatar Image Assets Request");
                 return false;
             }
-            
+
             OSDMap request = (OSDMap)json["params"];
             UUID avatarId = new UUID(request["avatarId"].AsString());
 
             OSDArray data = (OSDArray) Service.AvatarImageAssetsRequest(avatarId);
             response.Result = data;
-            
+
             return true;
         }
         #endregion Utiltiy
@@ -464,7 +464,7 @@ namespace OpenSim.Server.Handlers
                 m_log.DebugFormat ("User Application Service URL Request: No Parameters!");
                 return false;
             }
-            
+
             string result = string.Empty;
             UserAppData props = new UserAppData();
             object Props = (object)props;
@@ -475,15 +475,15 @@ namespace OpenSim.Server.Handlers
                 res["result"] = OSD.FromString("success");
                 res["token"] = OSD.FromString (result);
                 response.Result = res;
-                
+
                 return true;
             }
-            
+
             response.Error.Code = ErrorCode.InternalError;
             response.Error.Message = string.Format("{0}", result);
             return false;
         }
-        
+
         public bool UpdateUserAppData(OSDMap json, ref JsonRpcResponse response)
         {
             if(!json.ContainsKey("params"))
@@ -493,7 +493,7 @@ namespace OpenSim.Server.Handlers
                 m_log.DebugFormat ("User App Data Update Request");
                 return false;
             }
-            
+
             string result = string.Empty;
             UserAppData props = new UserAppData();
             object Props = (object)props;
@@ -503,7 +503,7 @@ namespace OpenSim.Server.Handlers
                 response.Result = OSD.SerializeMembers(props);
                 return true;
             }
-            
+
             response.Error.Code = ErrorCode.InternalError;
             response.Error.Message = string.Format("{0}", result);
             return false;

@@ -110,11 +110,11 @@ namespace OpenSim.Data.PGSQL
             Dictionary<UUID, SceneObjectGroup> objects = new Dictionary<UUID, SceneObjectGroup>();
             SceneObjectGroup grp = null;
 
-            string sql = @"SELECT *, 
-                           CASE WHEN prims.""UUID"" = prims.""SceneGroupID"" THEN 0 ELSE 1 END as sort 
-                            FROM prims 
-                            LEFT JOIN primshapes ON prims.""UUID"" = primshapes.""UUID"" 
-                            WHERE ""RegionUUID"" = :RegionUUID 
+            string sql = @"SELECT *,
+                           CASE WHEN prims.""UUID"" = prims.""SceneGroupID"" THEN 0 ELSE 1 END as sort
+                            FROM prims
+                            LEFT JOIN primshapes ON prims.""UUID"" = primshapes.""UUID""
+                            WHERE ""RegionUUID"" = :RegionUUID
                             ORDER BY ""SceneGroupID"" asc, sort asc, ""LinkNumber"" asc";
 
             using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
@@ -146,7 +146,7 @@ namespace OpenSim.Data.PGSQL
                             // There sometimes exist OpenSim bugs that 'orphan groups' so that none of the prims are
                             // recorded as the root prim (for which the UUID must equal the persisted group UUID).  In
                             // this case, force the UUID to be the same as the group UUID so that at least these can be
-                            // deleted (we need to change the UUID so that any other prims in the linkset can also be 
+                            // deleted (we need to change the UUID so that any other prims in the linkset can also be
                             // deleted).
                             if (sceneObjectPart.UUID != groupID && groupID != UUID.Zero)
                             {
@@ -178,7 +178,7 @@ namespace OpenSim.Data.PGSQL
                 objects[grp.UUID] = grp;
 
             // Instead of attempting to LoadItems on every prim,
-            // most of which probably have no items... get a 
+            // most of which probably have no items... get a
             // list from DB of all prims which have items and
             // LoadItems only on those
             List<SceneObjectPart> primsWithInventory = new List<SceneObjectPart>();
@@ -331,52 +331,52 @@ namespace OpenSim.Data.PGSQL
         private void StoreSceneObjectPrim(SceneObjectPart sceneObjectPart, NpgsqlCommand sqlCommand, UUID sceneGroupID, UUID regionUUID)
         {
             //Big query to update or insert a new prim.
-            
+
             string queryPrims = @"
-        UPDATE prims SET 
-            ""CreationDate"" = :CreationDate, ""Name"" = :Name, ""Text"" = :Text, ""Description"" = :Description, ""SitName"" = :SitName, 
-            ""TouchName"" = :TouchName, ""ObjectFlags"" = :ObjectFlags, ""OwnerMask"" = :OwnerMask, ""NextOwnerMask"" = :NextOwnerMask, ""GroupMask"" = :GroupMask, 
-            ""EveryoneMask"" = :EveryoneMask, ""BaseMask"" = :BaseMask, ""PositionX"" = :PositionX, ""PositionY"" = :PositionY, ""PositionZ"" = :PositionZ, 
-            ""GroupPositionX"" = :GroupPositionX, ""GroupPositionY"" = :GroupPositionY, ""GroupPositionZ"" = :GroupPositionZ, ""VelocityX"" = :VelocityX, 
-            ""VelocityY"" = :VelocityY, ""VelocityZ"" = :VelocityZ, ""AngularVelocityX"" = :AngularVelocityX, ""AngularVelocityY"" = :AngularVelocityY, 
-            ""AngularVelocityZ"" = :AngularVelocityZ, ""AccelerationX"" = :AccelerationX, ""AccelerationY"" = :AccelerationY, 
-            ""AccelerationZ"" = :AccelerationZ, ""RotationX"" = :RotationX, ""RotationY"" = :RotationY, ""RotationZ"" = :RotationZ, ""RotationW"" = :RotationW, 
-            ""SitTargetOffsetX"" = :SitTargetOffsetX, ""SitTargetOffsetY"" = :SitTargetOffsetY, ""SitTargetOffsetZ"" = :SitTargetOffsetZ, 
-            ""SitTargetOrientW"" = :SitTargetOrientW, ""SitTargetOrientX"" = :SitTargetOrientX, ""SitTargetOrientY"" = :SitTargetOrientY, 
-            ""SitTargetOrientZ"" = :SitTargetOrientZ, ""RegionUUID"" = :RegionUUID, ""CreatorID"" = :CreatorID, ""OwnerID"" = :OwnerID, ""GroupID"" = :GroupID, 
-            ""LastOwnerID"" = :LastOwnerID, ""SceneGroupID"" = :SceneGroupID, ""PayPrice"" = :PayPrice, ""PayButton1"" = :PayButton1, ""PayButton2"" = :PayButton2, 
-            ""PayButton3"" = :PayButton3, ""PayButton4"" = :PayButton4, ""LoopedSound"" = :LoopedSound, ""LoopedSoundGain"" = :LoopedSoundGain, 
-            ""TextureAnimation"" = :TextureAnimation, ""OmegaX"" = :OmegaX, ""OmegaY"" = :OmegaY, ""OmegaZ"" = :OmegaZ, ""CameraEyeOffsetX"" = :CameraEyeOffsetX, 
-            ""CameraEyeOffsetY"" = :CameraEyeOffsetY, ""CameraEyeOffsetZ"" = :CameraEyeOffsetZ, ""CameraAtOffsetX"" = :CameraAtOffsetX, 
-            ""CameraAtOffsetY"" = :CameraAtOffsetY, ""CameraAtOffsetZ"" = :CameraAtOffsetZ, ""ForceMouselook"" = :ForceMouselook, 
-            ""ScriptAccessPin"" = :ScriptAccessPin, ""AllowedDrop"" = :AllowedDrop, ""DieAtEdge"" = :DieAtEdge, ""SalePrice"" = :SalePrice, 
-            ""SaleType"" = :SaleType, ""ColorR"" = :ColorR, ""ColorG"" = :ColorG, ""ColorB"" = :ColorB, ""ColorA"" = :ColorA, ""ParticleSystem"" = :ParticleSystem, 
+        UPDATE prims SET
+            ""CreationDate"" = :CreationDate, ""Name"" = :Name, ""Text"" = :Text, ""Description"" = :Description, ""SitName"" = :SitName,
+            ""TouchName"" = :TouchName, ""ObjectFlags"" = :ObjectFlags, ""OwnerMask"" = :OwnerMask, ""NextOwnerMask"" = :NextOwnerMask, ""GroupMask"" = :GroupMask,
+            ""EveryoneMask"" = :EveryoneMask, ""BaseMask"" = :BaseMask, ""PositionX"" = :PositionX, ""PositionY"" = :PositionY, ""PositionZ"" = :PositionZ,
+            ""GroupPositionX"" = :GroupPositionX, ""GroupPositionY"" = :GroupPositionY, ""GroupPositionZ"" = :GroupPositionZ, ""VelocityX"" = :VelocityX,
+            ""VelocityY"" = :VelocityY, ""VelocityZ"" = :VelocityZ, ""AngularVelocityX"" = :AngularVelocityX, ""AngularVelocityY"" = :AngularVelocityY,
+            ""AngularVelocityZ"" = :AngularVelocityZ, ""AccelerationX"" = :AccelerationX, ""AccelerationY"" = :AccelerationY,
+            ""AccelerationZ"" = :AccelerationZ, ""RotationX"" = :RotationX, ""RotationY"" = :RotationY, ""RotationZ"" = :RotationZ, ""RotationW"" = :RotationW,
+            ""SitTargetOffsetX"" = :SitTargetOffsetX, ""SitTargetOffsetY"" = :SitTargetOffsetY, ""SitTargetOffsetZ"" = :SitTargetOffsetZ,
+            ""SitTargetOrientW"" = :SitTargetOrientW, ""SitTargetOrientX"" = :SitTargetOrientX, ""SitTargetOrientY"" = :SitTargetOrientY,
+            ""SitTargetOrientZ"" = :SitTargetOrientZ, ""RegionUUID"" = :RegionUUID, ""CreatorID"" = :CreatorID, ""OwnerID"" = :OwnerID, ""GroupID"" = :GroupID,
+            ""LastOwnerID"" = :LastOwnerID, ""SceneGroupID"" = :SceneGroupID, ""PayPrice"" = :PayPrice, ""PayButton1"" = :PayButton1, ""PayButton2"" = :PayButton2,
+            ""PayButton3"" = :PayButton3, ""PayButton4"" = :PayButton4, ""LoopedSound"" = :LoopedSound, ""LoopedSoundGain"" = :LoopedSoundGain,
+            ""TextureAnimation"" = :TextureAnimation, ""OmegaX"" = :OmegaX, ""OmegaY"" = :OmegaY, ""OmegaZ"" = :OmegaZ, ""CameraEyeOffsetX"" = :CameraEyeOffsetX,
+            ""CameraEyeOffsetY"" = :CameraEyeOffsetY, ""CameraEyeOffsetZ"" = :CameraEyeOffsetZ, ""CameraAtOffsetX"" = :CameraAtOffsetX,
+            ""CameraAtOffsetY"" = :CameraAtOffsetY, ""CameraAtOffsetZ"" = :CameraAtOffsetZ, ""ForceMouselook"" = :ForceMouselook,
+            ""ScriptAccessPin"" = :ScriptAccessPin, ""AllowedDrop"" = :AllowedDrop, ""DieAtEdge"" = :DieAtEdge, ""SalePrice"" = :SalePrice,
+            ""SaleType"" = :SaleType, ""ColorR"" = :ColorR, ""ColorG"" = :ColorG, ""ColorB"" = :ColorB, ""ColorA"" = :ColorA, ""ParticleSystem"" = :ParticleSystem,
             ""ClickAction"" = :ClickAction, ""Material"" = :Material, ""CollisionSound"" = :CollisionSound, ""CollisionSoundVolume"" = :CollisionSoundVolume, ""PassTouches"" = :PassTouches,
             ""LinkNumber"" = :LinkNumber, ""MediaURL"" = :MediaURL, ""DynAttrs"" = :DynAttrs,
             ""PhysicsShapeType"" = :PhysicsShapeType, ""Density"" = :Density, ""GravityModifier"" = :GravityModifier, ""Friction"" = :Friction, ""Restitution"" = :Restitution
         WHERE ""UUID"" = :UUID ;
 
-        INSERT INTO 
+        INSERT INTO
             prims (
             ""UUID"", ""CreationDate"", ""Name"", ""Text"", ""Description"", ""SitName"", ""TouchName"", ""ObjectFlags"", ""OwnerMask"", ""NextOwnerMask"", ""GroupMask"",
-            ""EveryoneMask"", ""BaseMask"", ""PositionX"", ""PositionY"", ""PositionZ"", ""GroupPositionX"", ""GroupPositionY"", ""GroupPositionZ"", ""VelocityX"", 
-            ""VelocityY"", ""VelocityZ"", ""AngularVelocityX"", ""AngularVelocityY"", ""AngularVelocityZ"", ""AccelerationX"", ""AccelerationY"", ""AccelerationZ"", 
-            ""RotationX"", ""RotationY"", ""RotationZ"", ""RotationW"", ""SitTargetOffsetX"", ""SitTargetOffsetY"", ""SitTargetOffsetZ"", ""SitTargetOrientW"", 
-            ""SitTargetOrientX"", ""SitTargetOrientY"", ""SitTargetOrientZ"", ""RegionUUID"", ""CreatorID"", ""OwnerID"", ""GroupID"", ""LastOwnerID"", ""SceneGroupID"", 
-            ""PayPrice"", ""PayButton1"", ""PayButton2"", ""PayButton3"", ""PayButton4"", ""LoopedSound"", ""LoopedSoundGain"", ""TextureAnimation"", ""OmegaX"", 
-            ""OmegaY"", ""OmegaZ"", ""CameraEyeOffsetX"", ""CameraEyeOffsetY"", ""CameraEyeOffsetZ"", ""CameraAtOffsetX"", ""CameraAtOffsetY"", ""CameraAtOffsetZ"", 
-            ""ForceMouselook"", ""ScriptAccessPin"", ""AllowedDrop"", ""DieAtEdge"", ""SalePrice"", ""SaleType"", ""ColorR"", ""ColorG"", ""ColorB"", ""ColorA"", 
+            ""EveryoneMask"", ""BaseMask"", ""PositionX"", ""PositionY"", ""PositionZ"", ""GroupPositionX"", ""GroupPositionY"", ""GroupPositionZ"", ""VelocityX"",
+            ""VelocityY"", ""VelocityZ"", ""AngularVelocityX"", ""AngularVelocityY"", ""AngularVelocityZ"", ""AccelerationX"", ""AccelerationY"", ""AccelerationZ"",
+            ""RotationX"", ""RotationY"", ""RotationZ"", ""RotationW"", ""SitTargetOffsetX"", ""SitTargetOffsetY"", ""SitTargetOffsetZ"", ""SitTargetOrientW"",
+            ""SitTargetOrientX"", ""SitTargetOrientY"", ""SitTargetOrientZ"", ""RegionUUID"", ""CreatorID"", ""OwnerID"", ""GroupID"", ""LastOwnerID"", ""SceneGroupID"",
+            ""PayPrice"", ""PayButton1"", ""PayButton2"", ""PayButton3"", ""PayButton4"", ""LoopedSound"", ""LoopedSoundGain"", ""TextureAnimation"", ""OmegaX"",
+            ""OmegaY"", ""OmegaZ"", ""CameraEyeOffsetX"", ""CameraEyeOffsetY"", ""CameraEyeOffsetZ"", ""CameraAtOffsetX"", ""CameraAtOffsetY"", ""CameraAtOffsetZ"",
+            ""ForceMouselook"", ""ScriptAccessPin"", ""AllowedDrop"", ""DieAtEdge"", ""SalePrice"", ""SaleType"", ""ColorR"", ""ColorG"", ""ColorB"", ""ColorA"",
             ""ParticleSystem"", ""ClickAction"", ""Material"", ""CollisionSound"", ""CollisionSoundVolume"", ""PassTouches"", ""LinkNumber"", ""MediaURL"", ""DynAttrs"",
             ""PhysicsShapeType"", ""Density"", ""GravityModifier"", ""Friction"", ""Restitution""
-            ) Select 
-            :UUID, :CreationDate, :Name, :Text, :Description, :SitName, :TouchName, :ObjectFlags, :OwnerMask, :NextOwnerMask, :GroupMask, 
-            :EveryoneMask, :BaseMask, :PositionX, :PositionY, :PositionZ, :GroupPositionX, :GroupPositionY, :GroupPositionZ, :VelocityX, 
-            :VelocityY, :VelocityZ, :AngularVelocityX, :AngularVelocityY, :AngularVelocityZ, :AccelerationX, :AccelerationY, :AccelerationZ, 
-            :RotationX, :RotationY, :RotationZ, :RotationW, :SitTargetOffsetX, :SitTargetOffsetY, :SitTargetOffsetZ, :SitTargetOrientW, 
-            :SitTargetOrientX, :SitTargetOrientY, :SitTargetOrientZ, :RegionUUID, :CreatorID, :OwnerID, :GroupID, :LastOwnerID, :SceneGroupID, 
-            :PayPrice, :PayButton1, :PayButton2, :PayButton3, :PayButton4, :LoopedSound, :LoopedSoundGain, :TextureAnimation, :OmegaX, 
-            :OmegaY, :OmegaZ, :CameraEyeOffsetX, :CameraEyeOffsetY, :CameraEyeOffsetZ, :CameraAtOffsetX, :CameraAtOffsetY, :CameraAtOffsetZ, 
-            :ForceMouselook, :ScriptAccessPin, :AllowedDrop, :DieAtEdge, :SalePrice, :SaleType, :ColorR, :ColorG, :ColorB, :ColorA, 
+            ) Select
+            :UUID, :CreationDate, :Name, :Text, :Description, :SitName, :TouchName, :ObjectFlags, :OwnerMask, :NextOwnerMask, :GroupMask,
+            :EveryoneMask, :BaseMask, :PositionX, :PositionY, :PositionZ, :GroupPositionX, :GroupPositionY, :GroupPositionZ, :VelocityX,
+            :VelocityY, :VelocityZ, :AngularVelocityX, :AngularVelocityY, :AngularVelocityZ, :AccelerationX, :AccelerationY, :AccelerationZ,
+            :RotationX, :RotationY, :RotationZ, :RotationW, :SitTargetOffsetX, :SitTargetOffsetY, :SitTargetOffsetZ, :SitTargetOrientW,
+            :SitTargetOrientX, :SitTargetOrientY, :SitTargetOrientZ, :RegionUUID, :CreatorID, :OwnerID, :GroupID, :LastOwnerID, :SceneGroupID,
+            :PayPrice, :PayButton1, :PayButton2, :PayButton3, :PayButton4, :LoopedSound, :LoopedSoundGain, :TextureAnimation, :OmegaX,
+            :OmegaY, :OmegaZ, :CameraEyeOffsetX, :CameraEyeOffsetY, :CameraEyeOffsetZ, :CameraAtOffsetX, :CameraAtOffsetY, :CameraAtOffsetZ,
+            :ForceMouselook, :ScriptAccessPin, :AllowedDrop, :DieAtEdge, :SalePrice, :SaleType, :ColorR, :ColorG, :ColorB, :ColorA,
             :ParticleSystem, :ClickAction, :Material, :CollisionSound, :CollisionSoundVolume, :PassTouches, :LinkNumber, :MediaURL, :DynAttrs,
             :PhysicsShapeType, :Density, :GravityModifier, :Friction, :Restitution
             where not EXISTS (SELECT ""UUID"" FROM prims WHERE ""UUID"" = :UUID);
@@ -401,26 +401,26 @@ namespace OpenSim.Data.PGSQL
         private void StoreSceneObjectPrimShapes(SceneObjectPart sceneObjectPart, NpgsqlCommand sqlCommand, UUID sceneGroupID, UUID regionUUID)
         {
             //Big query to or insert or update primshapes
-            
+
             string queryPrimShapes = @"
-        UPDATE primshapes SET 
-            ""Shape"" = :Shape, ""ScaleX"" = :ScaleX, ""ScaleY"" = :ScaleY, ""ScaleZ"" = :ScaleZ, ""PCode"" = :PCode, ""PathBegin"" = :PathBegin, 
-            ""PathEnd"" = :PathEnd, ""PathScaleX"" = :PathScaleX, ""PathScaleY"" = :PathScaleY, ""PathShearX"" = :PathShearX, ""PathShearY"" = :PathShearY, 
-            ""PathSkew"" = :PathSkew, ""PathCurve"" = :PathCurve, ""PathRadiusOffset"" = :PathRadiusOffset, ""PathRevolutions"" = :PathRevolutions, 
-            ""PathTaperX"" = :PathTaperX, ""PathTaperY"" = :PathTaperY, ""PathTwist"" = :PathTwist, ""PathTwistBegin"" = :PathTwistBegin, 
-            ""ProfileBegin"" = :ProfileBegin, ""ProfileEnd"" = :ProfileEnd, ""ProfileCurve"" = :ProfileCurve, ""ProfileHollow"" = :ProfileHollow, 
+        UPDATE primshapes SET
+            ""Shape"" = :Shape, ""ScaleX"" = :ScaleX, ""ScaleY"" = :ScaleY, ""ScaleZ"" = :ScaleZ, ""PCode"" = :PCode, ""PathBegin"" = :PathBegin,
+            ""PathEnd"" = :PathEnd, ""PathScaleX"" = :PathScaleX, ""PathScaleY"" = :PathScaleY, ""PathShearX"" = :PathShearX, ""PathShearY"" = :PathShearY,
+            ""PathSkew"" = :PathSkew, ""PathCurve"" = :PathCurve, ""PathRadiusOffset"" = :PathRadiusOffset, ""PathRevolutions"" = :PathRevolutions,
+            ""PathTaperX"" = :PathTaperX, ""PathTaperY"" = :PathTaperY, ""PathTwist"" = :PathTwist, ""PathTwistBegin"" = :PathTwistBegin,
+            ""ProfileBegin"" = :ProfileBegin, ""ProfileEnd"" = :ProfileEnd, ""ProfileCurve"" = :ProfileCurve, ""ProfileHollow"" = :ProfileHollow,
             ""Texture"" = :Texture, ""ExtraParams"" = :ExtraParams, ""State"" = :State, ""Media"" = :Media
         WHERE ""UUID"" = :UUID ;
 
-        INSERT INTO 
+        INSERT INTO
             primshapes (
-            ""UUID"", ""Shape"", ""ScaleX"", ""ScaleY"", ""ScaleZ"", ""PCode"", ""PathBegin"", ""PathEnd"", ""PathScaleX"", ""PathScaleY"", ""PathShearX"", ""PathShearY"", 
-            ""PathSkew"", ""PathCurve"", ""PathRadiusOffset"", ""PathRevolutions"", ""PathTaperX"", ""PathTaperY"", ""PathTwist"", ""PathTwistBegin"", ""ProfileBegin"", 
+            ""UUID"", ""Shape"", ""ScaleX"", ""ScaleY"", ""ScaleZ"", ""PCode"", ""PathBegin"", ""PathEnd"", ""PathScaleX"", ""PathScaleY"", ""PathShearX"", ""PathShearY"",
+            ""PathSkew"", ""PathCurve"", ""PathRadiusOffset"", ""PathRevolutions"", ""PathTaperX"", ""PathTaperY"", ""PathTwist"", ""PathTwistBegin"", ""ProfileBegin"",
             ""ProfileEnd"", ""ProfileCurve"", ""ProfileHollow"", ""Texture"", ""ExtraParams"", ""State"", ""Media""
-            ) 
+            )
             Select
-            :UUID, :Shape, :ScaleX, :ScaleY, :ScaleZ, :PCode, :PathBegin, :PathEnd, :PathScaleX, :PathScaleY, :PathShearX, :PathShearY, 
-            :PathSkew, :PathCurve, :PathRadiusOffset, :PathRevolutions, :PathTaperX, :PathTaperY, :PathTwist, :PathTwistBegin, :ProfileBegin, 
+            :UUID, :Shape, :ScaleX, :ScaleY, :ScaleZ, :PCode, :PathBegin, :PathEnd, :PathScaleX, :PathScaleY, :PathShearX, :PathShearY,
+            :PathSkew, :PathCurve, :PathRadiusOffset, :PathRevolutions, :PathTaperX, :PathTaperY, :PathTwist, :PathTwistBegin, :ProfileBegin,
             :ProfileEnd, :ProfileCurve, :ProfileHollow, :Texture, :ExtraParams, :State, :Media
         where not EXISTS (SELECT ""UUID"" FROM primshapes WHERE ""UUID"" = :UUID);
         ";
@@ -500,7 +500,7 @@ namespace OpenSim.Data.PGSQL
             sql =
                 @"INSERT INTO primitems (
             ""itemID"",""primID"",""assetID"",""parentFolderID"",""invType"",""assetType"",""name"",""description"",""creationDate"",""creatorID"",""ownerID"",""lastOwnerID"",""groupID"",
-            ""nextPermissions"",""currentPermissions"",""basePermissions"",""everyonePermissions"",""groupPermissions"",""flags"") 
+            ""nextPermissions"",""currentPermissions"",""basePermissions"",""everyonePermissions"",""groupPermissions"",""flags"")
             VALUES (:itemID,:primID,:assetID,:parentFolderID,:invType,:assetType,:name,:description,:creationDate,:creatorID,:ownerID,
             :lastOwnerID,:groupID,:nextPermissions,:currentPermissions,:basePermissions,:everyonePermissions,:groupPermissions,:flags)";
 
@@ -538,7 +538,7 @@ namespace OpenSim.Data.PGSQL
         {
             TerrainData terrData = null;
 
-            string sql = @"select ""RegionUUID"", ""Revision"", ""Heightfield"" from terrain 
+            string sql = @"select ""RegionUUID"", ""Revision"", ""Heightfield"" from terrain
                             where ""RegionUUID"" = :RegionUUID order by ""Revision"" desc limit 1; ";
 
             using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
@@ -577,7 +577,7 @@ namespace OpenSim.Data.PGSQL
         {
             TerrainData terrData = null;
 
-            string sql = @"select ""RegionUUID"", ""Revision"", ""Heightfield"" from bakedterrain 
+            string sql = @"select ""RegionUUID"", ""Revision"", ""Heightfield"" from bakedterrain
                             where ""RegionUUID"" = :RegionUUID; ";
 
             using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
@@ -1319,7 +1319,7 @@ namespace OpenSim.Data.PGSQL
         {
             {
                 string sql = "DELETE FROM regionenvironment WHERE region_id = :region_id ;";
-                
+
                 using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
                 {
@@ -1420,17 +1420,17 @@ namespace OpenSim.Data.PGSQL
             {
                 //This method only updates region settings!!! First call LoadRegionSettings to create new region settings in DB
                 sql =
-                   @"UPDATE regionsettings SET block_terraform = :block_terraform ,block_fly = :block_fly ,allow_damage = :allow_damage 
-,restrict_pushing = :restrict_pushing ,allow_land_resell = :allow_land_resell ,allow_land_join_divide = :allow_land_join_divide 
-,block_show_in_search = :block_show_in_search ,agent_limit = :agent_limit ,object_bonus = :object_bonus ,maturity = :maturity 
-,disable_scripts = :disable_scripts ,disable_collisions = :disable_collisions ,disable_physics = :disable_physics 
-,terrain_texture_1 = :terrain_texture_1 ,terrain_texture_2 = :terrain_texture_2 ,terrain_texture_3 = :terrain_texture_3 
-,terrain_texture_4 = :terrain_texture_4 ,elevation_1_nw = :elevation_1_nw ,elevation_2_nw = :elevation_2_nw 
-,elevation_1_ne = :elevation_1_ne ,elevation_2_ne = :elevation_2_ne ,elevation_1_se = :elevation_1_se ,elevation_2_se = :elevation_2_se 
-,elevation_1_sw = :elevation_1_sw ,elevation_2_sw = :elevation_2_sw ,water_height = :water_height ,terrain_raise_limit = :terrain_raise_limit 
-,terrain_lower_limit = :terrain_lower_limit ,use_estate_sun = :use_estate_sun ,fixed_sun = :fixed_sun ,sun_position = :sun_position 
-,covenant = :covenant ,covenant_datetime = :covenant_datetime, sunvectorx = :sunvectorx, sunvectory = :sunvectory, sunvectorz = :sunvectorz,  
-""Sandbox"" = :Sandbox, loaded_creation_datetime = :loaded_creation_datetime, loaded_creation_id = :loaded_creation_id, ""map_tile_ID"" = :TerrainImageID, 
+                   @"UPDATE regionsettings SET block_terraform = :block_terraform ,block_fly = :block_fly ,allow_damage = :allow_damage
+,restrict_pushing = :restrict_pushing ,allow_land_resell = :allow_land_resell ,allow_land_join_divide = :allow_land_join_divide
+,block_show_in_search = :block_show_in_search ,agent_limit = :agent_limit ,object_bonus = :object_bonus ,maturity = :maturity
+,disable_scripts = :disable_scripts ,disable_collisions = :disable_collisions ,disable_physics = :disable_physics
+,terrain_texture_1 = :terrain_texture_1 ,terrain_texture_2 = :terrain_texture_2 ,terrain_texture_3 = :terrain_texture_3
+,terrain_texture_4 = :terrain_texture_4 ,elevation_1_nw = :elevation_1_nw ,elevation_2_nw = :elevation_2_nw
+,elevation_1_ne = :elevation_1_ne ,elevation_2_ne = :elevation_2_ne ,elevation_1_se = :elevation_1_se ,elevation_2_se = :elevation_2_se
+,elevation_1_sw = :elevation_1_sw ,elevation_2_sw = :elevation_2_sw ,water_height = :water_height ,terrain_raise_limit = :terrain_raise_limit
+,terrain_lower_limit = :terrain_lower_limit ,use_estate_sun = :use_estate_sun ,fixed_sun = :fixed_sun ,sun_position = :sun_position
+,covenant = :covenant ,covenant_datetime = :covenant_datetime, sunvectorx = :sunvectorx, sunvectory = :sunvectory, sunvectorz = :sunvectorz,
+""Sandbox"" = :Sandbox, loaded_creation_datetime = :loaded_creation_datetime, loaded_creation_id = :loaded_creation_id, ""map_tile_ID"" = :TerrainImageID,
 ""TelehubObject"" = :telehubobject, ""parcel_tile_ID"" = :ParcelImageID
  WHERE ""regionUUID"" = :regionUUID";
 
@@ -1465,13 +1465,13 @@ namespace OpenSim.Data.PGSQL
                                 elevation_2_ne,elevation_1_se,elevation_2_se,elevation_1_sw,elevation_2_sw,water_height,terrain_raise_limit,
                                 terrain_lower_limit,use_estate_sun,fixed_sun,sun_position,covenant,covenant_datetime,sunvectorx, sunvectory, sunvectorz,
                                 ""Sandbox"", loaded_creation_datetime, loaded_creation_id
-                                ) 
+                                )
                             VALUES
                                 (:regionUUID,:block_terraform,:block_fly,:allow_damage,:restrict_pushing,:allow_land_resell,:allow_land_join_divide,
                                 :block_show_in_search,:agent_limit,:object_bonus,:maturity,:disable_scripts,:disable_collisions,:disable_physics,
                                 :terrain_texture_1,:terrain_texture_2,:terrain_texture_3,:terrain_texture_4,:elevation_1_nw,:elevation_2_nw,:elevation_1_ne,
                                 :elevation_2_ne,:elevation_1_se,:elevation_2_se,:elevation_1_sw,:elevation_2_sw,:water_height,:terrain_raise_limit,
-                                :terrain_lower_limit,:use_estate_sun,:fixed_sun,:sun_position,:covenant, :covenant_datetime, :sunvectorx,:sunvectory, 
+                                :terrain_lower_limit,:use_estate_sun,:fixed_sun,:sun_position,:covenant, :covenant_datetime, :sunvectorx,:sunvectory,
                                 :sunvectorz, :Sandbox, :loaded_creation_datetime, :loaded_creation_id )";
 
             using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
@@ -1626,7 +1626,7 @@ namespace OpenSim.Data.PGSQL
             newData.MediaLoop = Convert.ToBoolean(row["MediaLoop"]);
             newData.ObscureMusic = Convert.ToBoolean(row["ObscureMusic"]);
             newData.ObscureMedia = Convert.ToBoolean(row["ObscureMedia"]);
-            
+
             newData.SeeAVs = Convert.ToBoolean(row["SeeAVs"]);
             newData.AnyAVSounds = Convert.ToBoolean(row["AnyAVSounds"]);
             newData.GroupAVSounds = Convert.ToBoolean(row["GroupAVSounds"]);
@@ -1789,7 +1789,7 @@ namespace OpenSim.Data.PGSQL
             if (!(primRow["DynAttrs"] is System.DBNull) && (string)primRow["DynAttrs"] != "")
                 prim.DynAttrs = DAMap.FromXml((string)primRow["DynAttrs"]);
             else
-                prim.DynAttrs = new DAMap();             
+                prim.DynAttrs = new DAMap();
 
             prim.PhysicsShapeType = Convert.ToByte(primRow["PhysicsShapeType"]);
             prim.Density = Convert.ToSingle(primRow["Density"]);
@@ -2195,17 +2195,17 @@ namespace OpenSim.Data.PGSQL
 
             parameters.Add(_Database.CreateParameter("CollisionSound", prim.CollisionSound));
             parameters.Add(_Database.CreateParameter("CollisionSoundVolume", prim.CollisionSoundVolume));
-            
+
             parameters.Add(_Database.CreateParameter("PassTouches", prim.PassTouches));
 
             parameters.Add(_Database.CreateParameter("LinkNumber", prim.LinkNum));
             parameters.Add(_Database.CreateParameter("MediaURL", prim.MediaUrl));
-            
+
             if (prim.DynAttrs.CountNamespaces > 0)
                 parameters.Add(_Database.CreateParameter("DynAttrs", prim.DynAttrs.ToXml()));
             else
                 parameters.Add(_Database.CreateParameter("DynAttrs", null));
-            
+
             parameters.Add(_Database.CreateParameter("PhysicsShapeType", prim.PhysicsShapeType));
             parameters.Add(_Database.CreateParameter("Density", (double)prim.Density));
             parameters.Add(_Database.CreateParameter("GravityModifier", (double)prim.GravityModifier));

@@ -37,7 +37,7 @@ namespace OpenSim.Services.Interfaces
     public interface IGatekeeperService
     {
         bool LinkRegion(string regionDescriptor, out UUID regionID, out ulong regionHandle, out string externalName, out string imageURL, out string reason, out int sizeX, out int sizeY);
-        
+
         /// <summary>
         /// Returns the region a Hypergrid visitor should enter.
         /// </summary>
@@ -59,7 +59,7 @@ namespace OpenSim.Services.Interfaces
     public interface IUserAgentService
     {
         bool LoginAgentToGrid(GridRegion source, AgentCircuitData agent, GridRegion gatekeeper, GridRegion finalDestination, bool fromLogin, out string reason);
-        
+
         void LogoutAgent(UUID userID, UUID sessionID);
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace OpenSim.Services.Interfaces
         /// <returns>On success: the user's Server URLs. If the user doesn't exist: "".</returns>
         /// <remarks>Throws an exception if an error occurs (e.g., can't contact the server).</remarks>
         string LocateUser(UUID userID);
-        
+
         /// <summary>
         /// Returns the Universal User Identifier for 'targetUserID' on behalf of 'userID'.
         /// </summary>

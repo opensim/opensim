@@ -44,17 +44,17 @@ namespace OpenSim.Framework
     /// <summary>
     /// Manager for registries and plugins
     /// </summary>
-	public class PluginManager : SetupService
-	{
-		public AddinRegistry PluginRegistry;
+    public class PluginManager : SetupService
+    {
+        public AddinRegistry PluginRegistry;
 
-		public PluginManager(AddinRegistry registry): base (registry)
+        public PluginManager(AddinRegistry registry): base (registry)
         {
-			PluginRegistry = registry;
+            PluginRegistry = registry;
 
-		}
+        }
 
-		/// <summary>
+        /// <summary>
         /// Installs the plugin.
         /// </summary>
         /// <returns>
@@ -97,14 +97,14 @@ namespace OpenSim.Framework
                 Addin addin = PluginRegistry.GetAddin(aentry.Addin.Id);
                 PluginRegistry.DisableAddin(addin.Id);
                 addin.Enabled = false;
-                
+
                 MainConsole.Instance.Output("Installation Success");
                 ListInstalledAddins(out res);
                 result = res;
                 return true;
-            } 
+            }
             else
-            {                
+            {
                 MainConsole.Instance.Output("Installation Failed");
                 result = res;
                 return false;
@@ -159,11 +159,11 @@ namespace OpenSim.Framework
         {
             Dictionary<string, object> res = new Dictionary<string, object>();
 
-			Addin[] addins = GetSortedAddinList("RobustPlugin");
-			if(addins.Count() < 1)
-			{
-				MainConsole.Instance.Output("Error!");
-			}
+            Addin[] addins = GetSortedAddinList("RobustPlugin");
+            if(addins.Count() < 1)
+            {
+                MainConsole.Instance.Output("Error!");
+            }
             int count = 0;
             foreach (Addin addin in addins)
             {
@@ -377,7 +377,7 @@ namespace OpenSim.Framework
                 r["enabled"] = rep.Enabled == true ? true : false;
                 r["name"] = rep.Name;
                 r["url"] = rep.Url;
-                
+
                 res.Add(count.ToString(), r);
                 count++;
             }
@@ -493,7 +493,7 @@ namespace OpenSim.Framework
         }
 
 
-		
+
         #region Util
         private void Testing()
         {
@@ -537,15 +537,15 @@ namespace OpenSim.Framework
 
             ArrayList xlist = new ArrayList();
             ArrayList list = new ArrayList();
-			try 
-			{
-            	list.AddRange(PluginRegistry.GetAddins());
-			}
-			catch (Exception)
-			{
-				Addin[] x = xlist.ToArray(typeof(Addin)) as Addin[];
-				return x;
-			}
+            try
+            {
+                list.AddRange(PluginRegistry.GetAddins());
+            }
+            catch (Exception)
+            {
+                Addin[] x = xlist.ToArray(typeof(Addin)) as Addin[];
+                return x;
+            }
 
             foreach (Addin addin in list)
             {
@@ -559,5 +559,5 @@ namespace OpenSim.Framework
             return addins;
         }
         #endregion Util
-	}
+    }
 }

@@ -45,10 +45,10 @@ namespace pCampBot
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public PhysicsBehaviour2() 
-        { 
+        public PhysicsBehaviour2()
+        {
             AbbreviatedName = "ph2";
-            Name = "Physics2"; 
+            Name = "Physics2";
         }
 
         private const int TIME_WALKING = 5 * 10; // 5 seconds

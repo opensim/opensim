@@ -41,11 +41,11 @@ namespace OpenSim.Region.Framework.Interfaces
         // These are required to decouple Scenes from EventQueueHelper
         void DisableSimulator(ulong handle, UUID avatarID);
         void EnableSimulator(ulong handle, IPEndPoint endPoint, UUID avatarID, int regionSizeX, int regionSizeY);
-        void EstablishAgentCommunication(UUID avatarID, IPEndPoint endPoint, 
+        void EstablishAgentCommunication(UUID avatarID, IPEndPoint endPoint,
                                          string capsPath, ulong regionHandle, int regionSizeX, int regionSizeY);
-        void TeleportFinishEvent(ulong regionHandle, byte simAccess, 
+        void TeleportFinishEvent(ulong regionHandle, byte simAccess,
                                  IPEndPoint regionExternalEndPoint,
-                                 uint locationID, uint flags, string capsURL, 
+                                 uint locationID, uint flags, string capsURL,
                                  UUID agentID, int regionSizeX, int regionSizeY);
         void CrossRegion(ulong handle, Vector3 pos, Vector3 lookAt,
                          IPEndPoint newRegionExternalEndPoint,

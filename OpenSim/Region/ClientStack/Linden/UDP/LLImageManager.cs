@@ -82,7 +82,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (pAssetCache != null)
                 m_missingImage = pAssetCache.Get("5748decc-f629-461c-9a36-a35a221fe21f");
-            
+
             if (m_missingImage == null)
                 m_log.Error("[ClientView] - Couldn't set missing image asset, falling back to missing image packet. This is known to crash the client");
 

@@ -127,7 +127,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TaskInventoryItem grp1Item
                 = TaskInventoryHelpers.AddNotecard(
                     m_scene.AssetService, grp1.RootPart, "ncItem", TestHelpers.ParseTail(0x800), TestHelpers.ParseTail(0x900), "Hello World!");
-            
+
             grp1Item.PermsMask |= ScriptBaseClass.PERMISSION_CHANGE_LINKS;
 
             LSL_Api apiGrp1 = new LSL_Api();
@@ -156,7 +156,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TaskInventoryItem grp1Item
                 = TaskInventoryHelpers.AddNotecard(
                     m_scene.AssetService, grp1.RootPart, "ncItem", TestHelpers.ParseTail(0x800), TestHelpers.ParseTail(0x900), "Hello World!");
-            
+
             grp1Item.PermsMask |= ScriptBaseClass.PERMISSION_CHANGE_LINKS;
 
             LSL_Api apiGrp1 = new LSL_Api();

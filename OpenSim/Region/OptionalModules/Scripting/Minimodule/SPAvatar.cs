@@ -70,18 +70,18 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             get { return GetSP().AbsolutePosition; }
             set { GetSP().Teleport(value); }
         }
-        
+
         public bool IsChildAgent
         {
             get { return GetSP().IsChildAgent; }
         }
-        
+
         #region IAvatar implementation
         public IAvatarAttachment[] Attachments
         {
             get {
                 List<IAvatarAttachment> attachments = new List<IAvatarAttachment>();
-                
+
                 List<AvatarAttachment> internalAttachments = GetSP().Appearance.GetAttachments();
                 foreach (AvatarAttachment attach in internalAttachments)
                 {
@@ -89,7 +89,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                                                            new UUID(attach.ItemID),
                                                            new UUID(attach.AssetID), m_security));
                 }
-                
+
                 return attachments.ToArray();
             }
         }

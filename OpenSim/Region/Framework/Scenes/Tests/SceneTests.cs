@@ -66,7 +66,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             uint sizeX = 512;
             uint sizeY = 512;
 
-            Scene scene 
+            Scene scene
                 = new SceneHelpers().SetupScene("scene", regionUuid, 1000, 1000, sizeX, sizeY, new IniConfigSource());
 
             Assert.AreEqual(sizeX, scene.RegionInfo.RegionSizeX);
@@ -83,7 +83,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             Scene scene = new SceneHelpers().SetupScene();
             scene.Update(1);
-            
+
             Assert.That(scene.Frame, Is.EqualTo(1));
         }
 

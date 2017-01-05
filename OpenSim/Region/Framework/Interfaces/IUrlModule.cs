@@ -41,7 +41,7 @@ namespace OpenSim.Region.Framework.Interfaces
         void ReleaseURL(string url);
         void HttpResponse(UUID request, int status, string body);
         void HttpContentType(UUID request, string type);
-        
+
         string GetHttpHeader(UUID request, string header);
         int GetFreeUrls();
 

@@ -86,9 +86,9 @@ namespace OpenSim
             if (logConfigFile != String.Empty)
             {
                 XmlConfigurator.Configure(new System.IO.FileInfo(logConfigFile));
-                m_log.InfoFormat("[OPENSIM MAIN]: configured log4net using \"{0}\" as configuration file", 
+                m_log.InfoFormat("[OPENSIM MAIN]: configured log4net using \"{0}\" as configuration file",
                                  logConfigFile);
-            } 
+            }
             else
             {
                 XmlConfigurator.Configure();
@@ -104,22 +104,22 @@ namespace OpenSim
                 "[OPENSIM MAIN]: Environment variable MONO_THREADS_PER_CPU is {0}", monoThreadsPerCpu ?? "unset");
 
             // Verify the Threadpool allocates or uses enough worker and IO completion threads
-			// .NET 2.0, workerthreads default to 50 *  numcores
-			// .NET 3.0, workerthreads defaults to 250 * numcores
-			// .NET 4.0, workerthreads are dynamic based on bitness and OS resources
+            // .NET 2.0, workerthreads default to 50 *  numcores
+            // .NET 3.0, workerthreads defaults to 250 * numcores
+            // .NET 4.0, workerthreads are dynamic based on bitness and OS resources
             // Max IO Completion threads are 1000 on all 3 CLRs
             //
             // Mono 2.10.9 to at least Mono 3.1, workerthreads default to 100 * numcores, iocp threads to 4 * numcores
-			int workerThreadsMin = 500;
-			int workerThreadsMax = 1000; // may need further adjustment to match other CLR
-			int iocpThreadsMin = 1000;
-			int iocpThreadsMax = 2000; // may need further adjustment to match other CLR
+            int workerThreadsMin = 500;
+            int workerThreadsMax = 1000; // may need further adjustment to match other CLR
+            int iocpThreadsMin = 1000;
+            int iocpThreadsMax = 2000; // may need further adjustment to match other CLR
 
             {
                 int currentMinWorkerThreads, currentMinIocpThreads;
                 System.Threading.ThreadPool.GetMinThreads(out currentMinWorkerThreads, out currentMinIocpThreads);
                 m_log.InfoFormat(
-                    "[OPENSIM MAIN]: Runtime gave us {0} min worker threads and {1} min IOCP threads", 
+                    "[OPENSIM MAIN]: Runtime gave us {0} min worker threads and {1} min IOCP threads",
                     currentMinWorkerThreads, currentMinIocpThreads);
             }
 
@@ -138,30 +138,30 @@ namespace OpenSim
                 m_log.InfoFormat("[OPENSIM MAIN]: Limiting max worker threads to {0}",workerThreads);
             }
 
-			// Increase the number of IOCP threads available.
-			// Mono defaults to a tragically low number (24 on 6-core / 8GB Fedora 17)
-			if (iocpThreads < iocpThreadsMin)
+            // Increase the number of IOCP threads available.
+            // Mono defaults to a tragically low number (24 on 6-core / 8GB Fedora 17)
+            if (iocpThreads < iocpThreadsMin)
             {
                 iocpThreads = iocpThreadsMin;
                 m_log.InfoFormat("[OPENSIM MAIN]: Bumping up max IOCP threads to {0}",iocpThreads);
             }
-			// Make sure we don't overallocate IOCP threads and thrash system resources
+            // Make sure we don't overallocate IOCP threads and thrash system resources
             if ( iocpThreads > iocpThreadsMax )
             {
                 iocpThreads = iocpThreadsMax;
                 m_log.InfoFormat("[OPENSIM MAIN]: Limiting max IOCP completion threads to {0}",iocpThreads);
             }
-			// set the resulting worker and IO completion thread counts back to ThreadPool
+            // set the resulting worker and IO completion thread counts back to ThreadPool
             if ( System.Threading.ThreadPool.SetMaxThreads(workerThreads, iocpThreads) )
-			{
-	            m_log.InfoFormat(
+            {
+                m_log.InfoFormat(
                     "[OPENSIM MAIN]: Threadpool set to {0} max worker threads and {1} max IOCP threads",
                     workerThreads, iocpThreads);
-			}
-			else
-			{
-	            m_log.Warn("[OPENSIM MAIN]: Threadpool reconfiguration failed, runtime defaults still in effect.");				
-			}
+            }
+            else
+            {
+                m_log.Warn("[OPENSIM MAIN]: Threadpool reconfiguration failed, runtime defaults still in effect.");
+            }
 
             // Check if the system is compatible with OpenSimulator.
             // Ensures that the minimum system requirements are met
@@ -179,7 +179,7 @@ namespace OpenSim
             Culture.SetCurrentCulture();
 
             // Validate that the user has the most basic configuration done
-            // If not, offer to do the most basic configuration for them warning them along the way of the importance of 
+            // If not, offer to do the most basic configuration for them warning them along the way of the importance of
             // reading these files.
             /*
             m_log.Info("Checking for reguired configuration...\n");
@@ -188,13 +188,13 @@ namespace OpenSim
                                || (File.Exists(Path.Combine(Util.configDir(), "opensim.ini")))
                                || (File.Exists(Path.Combine(Util.configDir(), "openSim.ini")))
                                || (File.Exists(Path.Combine(Util.configDir(), "Opensim.ini")));
-            
+
             bool StanaloneCommon_ProperCased = File.Exists(Path.Combine(Path.Combine(Util.configDir(), "config-include"), "StandaloneCommon.ini"));
             bool StanaloneCommon_lowercased = File.Exists(Path.Combine(Path.Combine(Util.configDir(), "config-include"), "standalonecommon.ini"));
             bool GridCommon_ProperCased = File.Exists(Path.Combine(Path.Combine(Util.configDir(), "config-include"), "GridCommon.ini"));
             bool GridCommon_lowerCased = File.Exists(Path.Combine(Path.Combine(Util.configDir(), "config-include"), "gridcommon.ini"));
 
-            if ((OpenSim_Ini) 
+            if ((OpenSim_Ini)
                 && (
                 (StanaloneCommon_ProperCased
                 || StanaloneCommon_lowercased
@@ -212,7 +212,7 @@ namespace OpenSim
                                         "yes");
                 if (resp == "yes")
                 {
-                    
+
                         if (!(OpenSim_Ini))
                         {
                             try
@@ -312,7 +312,7 @@ namespace OpenSim
             m_saveCrashDumps = configSource.Configs["Startup"].GetBoolean("save_crashes", false);
 
             // load Crash directory config
-            m_crashDir = configSource.Configs["Startup"].GetString("crash_dir", m_crashDir);           
+            m_crashDir = configSource.Configs["Startup"].GetString("crash_dir", m_crashDir);
 
             if (background)
             {
@@ -320,9 +320,9 @@ namespace OpenSim
                 m_sim.Startup();
             }
             else
-            {                       
+            {
                 m_sim = new OpenSim(configSource);
-                          
+
                 m_sim.Startup();
 
                 while (true)

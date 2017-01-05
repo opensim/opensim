@@ -34,9 +34,9 @@ namespace OpenSim.Region.Framework.Interfaces
     /// <summary>
     /// Provide mechanisms for messaging groups.
     /// </summary>
-    /// 
+    ///
     /// TODO: Provide a mechanism for receiving group messages as well as sending them
-    /// 
+    ///
     public interface IGroupsMessagingModule
     {
         /// <summary>
@@ -56,13 +56,13 @@ namespace OpenSim.Region.Framework.Interfaces
         /// True if the chat session was started successfully, false otherwise.
         /// </returns>
         bool StartGroupChatSession(UUID agentID, UUID groupID);
-        
+
         /// <summary>
         /// Send a message to each member of a group whose chat session is active.
         /// </summary>
         /// <param name="im">
         /// The message itself.  The fields that must be populated are
-        /// 
+        ///
         /// imSessionID - Populate this with the group ID (session ID and group ID are currently identical)
         /// fromAgentName - Populate this with whatever arbitrary name you want to show up in the chat dialog
         /// message - The message itself
@@ -76,7 +76,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         /// <param name="im">
         /// The message itself.  The fields that must be populated are
-        /// 
+        ///
         /// imSessionID - Populate this with the group ID (session ID and group ID are currently identical)
         /// fromAgentName - Populate this with whatever arbitrary name you want to show up in the chat dialog
         /// message - The message itself
@@ -84,7 +84,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </param>
         /// <param name="groupID"></param>
         /// <param name="sendingAgentForGroupCalls">
-        /// The requesting agent to use when querying the groups service.  Sometimes this is different from 
+        /// The requesting agent to use when querying the groups service.  Sometimes this is different from
         /// im.fromAgentID, with group notices, for example.
         /// </param>
         /// <param name="sendCondition">

@@ -44,7 +44,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 //        private static readonly ILog m_log =
 //                LogManager.GetLogger(
 //                MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         private static RegionsExpiringCache m_Cache;
         private int numberInstances;
 
@@ -60,12 +60,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (rinfo != null)
                 this.Cache(rinfo.ScopeID, rinfo);
         }
-        
+
         public void Cache(UUID scopeID, GridRegion rinfo)
         {
             if (rinfo == null)
                 return;
-            
+
             m_Cache.AddOrUpdate(scopeID, rinfo, CACHE_EXPIRATION_SECONDS);
         }
 
@@ -73,7 +73,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         {
             if (rinfo == null)
                 return;
-            
+
             m_Cache.AddOrUpdate(rinfo.ScopeID, rinfo, 1e7f);
         }
 
@@ -81,7 +81,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         {
             if (rinfo == null)
                 return;
-            
+
             m_Cache.AddOrUpdate(scopeID, rinfo, CACHE_EXPIRATION_SECONDS);
         }
 
@@ -89,7 +89,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         {
             if (rinfo == null)
                 return;
-            
+
             m_Cache.AddOrUpdate(scopeID, rinfo, expireSeconds);
         }
 
@@ -141,7 +141,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 inCache = true;
                 return rinfo;
             }
-            
+
             return null;
         }
 
@@ -155,7 +155,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 inCache = true;
                 return rinfo;
             }
-            
+
             return null;
         }
     }
@@ -300,7 +300,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         private Dictionary<string, ulong> byname;
         private Dictionary<UUID, ulong> byuuid;
         // includes handles to the inside of large regions
-        private Dictionary<ulong, ulong> innerHandles = new Dictionary<ulong, ulong>(); 
+        private Dictionary<ulong, ulong> innerHandles = new Dictionary<ulong, ulong>();
 
         public RegionInfoForScope()
         {
@@ -342,7 +342,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 byuuid = new Dictionary<UUID, ulong>();
 
             storage[handle] = region;
-            expires[handle] = expire; 
+            expires[handle] = expire;
             byname[region.RegionName] = handle;
             byuuid[region.RegionID] = handle;
 
@@ -385,7 +385,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             storage[handle] = region;
             byname[region.RegionName] = handle;
             byuuid[region.RegionID] = handle;
-           
+
         }
 
         public void Remove(GridRegion region)
@@ -483,7 +483,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             if(!innerHandles.ContainsKey(handle))
                 return null;
-            
+
             ulong rhandle = innerHandles[handle];
             if(storage.ContainsKey(rhandle))
                 return storage[rhandle];
@@ -495,7 +495,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         {
             if(byname == null || !byname.ContainsKey(name))
                 return null;
-            
+
             ulong handle = byname[name];
             if(storage.ContainsKey(handle))
                 return storage[handle];
@@ -528,7 +528,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             if(!innerHandles.ContainsKey(handle))
                 return null;
-            
+
             ulong rhandle = innerHandles[handle];
             if(!storage.ContainsKey(rhandle))
                 return null;
@@ -536,7 +536,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             GridRegion r = storage[rhandle];
             if(r == null)
                 return null;
-                
+
             // extra check, possible redundant
 
             int test = r.RegionLocX;
@@ -552,7 +552,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (y < test)
                 return r;
 
-/* 
+/*
             // next do the harder work
             foreach(KeyValuePair<ulong, GridRegion> kvp in storage)
             {
@@ -588,7 +588,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 if(kvp.Value < now)
                     toexpire.Add(kvp.Key);
             }
- 
+
             if(toexpire.Count == 0)
                 return expires.Count;
 
@@ -597,7 +597,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 Clear();
                 return 0;
             }
-            
+
             foreach(ulong h in toexpire)
             {
                 if(storage != null)
@@ -658,7 +658,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     innerHandles[fh.toHandle()] = handle;
                     fh.y += 256;
                 }
-                    
+
                 fh.y = startY;
                 fh.x += 256;
             }
@@ -684,18 +684,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     innerHandles.Remove(fh.toHandle());
                     fh.y += 256;
                 }
-                    
+
                 fh.y = startY;
                 fh.x += 256;
             }
         }
     }
-  
+
     public class RegionsExpiringCache
     {
         const double CACHE_PURGE_HZ = 60; // seconds
         const int MAX_LOCK_WAIT = 10000; // milliseconds
- 
+
         /// <summary>For thread safety</summary>
         object syncRoot = new object();
         /// <summary>For thread safety</summary>
@@ -728,7 +728,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     ris = new RegionInfoForScope(region, expire);
                     InfobyScope[scope] = ris;
                 }
-                else 
+                else
                     ris.AddUpdate(region, expire);
 
                 return true;
@@ -748,7 +748,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             }
             finally { Monitor.Exit(syncRoot); }
         }
-        
+
         public bool Contains(UUID scope, GridRegion region)
         {
             if(region == null)
@@ -758,11 +758,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 throw new ApplicationException("Lock could not be acquired after " + MAX_LOCK_WAIT + "ms");
 
             try
-            {               
+            {
                 RegionInfoForScope ris = null;
                 if(!InfobyScope.TryGetValue(scope, out ris) || ris == null)
                     return false;
-            
+
                 return ris.Contains(region);
             }
             finally { Monitor.Exit(syncRoot); }
@@ -774,11 +774,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 throw new ApplicationException("Lock could not be acquired after " + MAX_LOCK_WAIT + "ms");
 
             try
-            {               
+            {
                 RegionInfoForScope ris = null;
                 if(!InfobyScope.TryGetValue(scope, out ris) || ris == null)
                     return false;
-            
+
                 return ris.Contains(handle);
             }
             finally { Monitor.Exit(syncRoot); }
@@ -790,7 +790,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 throw new ApplicationException("Lock could not be acquired after " + MAX_LOCK_WAIT + "ms");
 
             try
-            {               
+            {
                 int count = 0;
                 foreach(RegionInfoForScope ris in InfobyScope.Values)
                     count += ris.Count();
@@ -804,7 +804,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (!Monitor.TryEnter(syncRoot, MAX_LOCK_WAIT))
                 throw new ApplicationException("Lock could not be acquired after " + MAX_LOCK_WAIT + "ms");
             try
-            {               
+            {
                 RegionInfoForScope ris = null;
                 if(!InfobyScope.TryGetValue(scope, out ris) || ris == null)
                     return false;
@@ -825,7 +825,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (!Monitor.TryEnter(syncRoot, MAX_LOCK_WAIT))
                 throw new ApplicationException("Lock could not be acquired after " + MAX_LOCK_WAIT + "ms");
             try
-            {               
+            {
                 RegionInfoForScope ris = null;
                 if(!InfobyScope.TryGetValue(scope, out ris) || ris == null)
                     return false;
@@ -940,7 +940,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         private void PurgeCache(object sender, System.Timers.ElapsedEventArgs e)
         {
             // Only let one thread purge at once - a buildup could cause a crash
-            // This could cause the purge to be delayed while there are lots of read/write ops 
+            // This could cause the purge to be delayed while there are lots of read/write ops
             // happening on the cache
             if (!Monitor.TryEnter(isPurging))
                 return;
@@ -961,7 +961,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                         if (kvp.Value.expire(now) == 0)
                             expiredscopes.Add(kvp.Key);
                     }
-                    
+
                     if (expiredscopes.Count > 0)
                     {
                         foreach (UUID sid in expiredscopes)

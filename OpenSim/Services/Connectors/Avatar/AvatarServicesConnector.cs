@@ -94,13 +94,13 @@ namespace OpenSim.Services.Connectors
             AvatarData avatar = GetAvatar(userID);
             return avatar.ToAvatarAppearance();
         }
-        
+
         public bool SetAppearance(UUID userID, AvatarAppearance appearance)
         {
             AvatarData avatar = new AvatarData(appearance);
             return SetAvatar(userID,avatar);
         }
-            
+
         public AvatarData GetAvatar(UUID userID)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();

@@ -92,7 +92,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="assetService">
         /// Asset service.
         /// </param>
-        public UuidGatherer(IAssetService assetService) : this(assetService, new Dictionary<UUID, sbyte>()) {}       
+        public UuidGatherer(IAssetService assetService) : this(assetService, new Dictionary<UUID, sbyte>()) {}
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenSim.Region.Framework.Scenes.UuidGatherer"/> class.
@@ -101,7 +101,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Asset service.
         /// </param>
         /// <param name="collector">
-        /// Gathered UUIDs will be collected in this dictinaory.  
+        /// Gathered UUIDs will be collected in this dictinaory.
         /// It can be pre-populated if you want to stop the gatherer from analyzing assets that have already been fetched and inspected.
         /// </param>
         public UuidGatherer(IAssetService assetService, IDictionary<UUID, sbyte> collector)
@@ -128,7 +128,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_assetUuidsToInspect.Enqueue(uuid);
             return true;
         }
-        
+
         /// <summary>
         /// Gather all the asset uuids associated with a given object.
         /// </summary>
@@ -194,7 +194,7 @@ namespace OpenSim.Region.Framework.Scenes
                         catch (Exception)
                         {
                             m_log.WarnFormat(
-                                "[UUID GATHERER]: Could not check particle system for part {0} {1} in object {2} {3} since it is corrupt.  Continuing.", 
+                                "[UUID GATHERER]: Could not check particle system for part {0} {1} in object {2} {3} since it is corrupt.  Continuing.",
                                 part.Name, part.UUID, sceneObject.Name, sceneObject.UUID);
                         }
                     }
@@ -205,7 +205,7 @@ namespace OpenSim.Region.Framework.Scenes
                     foreach (TaskInventoryItem tii in taskDictionary.Values)
                     {
                         //                        m_log.DebugFormat(
-                        //                            "[ARCHIVER]: Analysing item {0} asset type {1} in {2} {3}", 
+                        //                            "[ARCHIVER]: Analysing item {0} asset type {1} in {2} {3}",
                         //                            tii.Name, tii.Type, part.Name, part.UUID);
 
                         if (!GatheredUuids.ContainsKey(tii.AssetID))
@@ -214,19 +214,19 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // FIXME: We need to make gathering modular but we cannot yet, since gatherers are not guaranteed
                     // to be called with scene objects that are in a scene (e.g. in the case of hg asset mapping and
-                    // inventory transfer.  There needs to be a way for a module to register a method without assuming a 
+                    // inventory transfer.  There needs to be a way for a module to register a method without assuming a
                     // Scene.EventManager is present.
                     //                    part.ParentGroup.Scene.EventManager.TriggerGatherUuids(part, assetUuids);
 
 
                     // still needed to retrieve textures used as materials for any parts containing legacy materials stored in DynAttrs
-                    RecordMaterialsUuids(part); 
+                    RecordMaterialsUuids(part);
                 }
                 catch (Exception e)
                 {
                     m_log.ErrorFormat("[UUID GATHERER]: Failed to get part - {0}", e);
                     m_log.DebugFormat(
-                        "[UUID GATHERER]: Texture entry length for prim was {0} (min is 46)", 
+                        "[UUID GATHERER]: Texture entry length for prim was {0} (min is 46)",
                         part.Shape.TextureEntry.Length);
                 }
             }
@@ -283,7 +283,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             try
-            {              
+            {
                 AssetBase assetBase = GetAsset(assetUuid);
 
                 if (null != assetBase)
@@ -322,14 +322,14 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.ErrorFormat("[UUID GATHERER]: Failed to gather uuids for asset id {0}", assetUuid);
                 throw;
             }
-        }       
+        }
 
         private void AddForInspection(UUID assetUuid, sbyte assetType)
         {
             // Here, we want to collect uuids which require further asset fetches but mark the others as gathered
             try
-            {               
-                if ((sbyte)AssetType.Bodypart == assetType 
+            {
+                if ((sbyte)AssetType.Bodypart == assetType
                     || (sbyte)AssetType.Clothing == assetType
                     || (sbyte)AssetType.Gesture == assetType
                     || (sbyte)AssetType.Notecard == assetType
@@ -347,7 +347,7 @@ namespace OpenSim.Region.Framework.Scenes
             catch (Exception)
             {
                 m_log.ErrorFormat(
-                    "[UUID GATHERER]: Failed to gather uuids for asset id {0}, type {1}", 
+                    "[UUID GATHERER]: Failed to gather uuids for asset id {0}, type {1}",
                     assetUuid, assetType);
                 throw;
             }
@@ -511,7 +511,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="gestureAsset"></param>
         private void RecordGestureAssetUuids(AssetBase gestureAsset)
-        {           
+        {
             using (MemoryStream ms = new MemoryStream(gestureAsset.Data))
                 using (StreamReader sr = new StreamReader(ms))
             {

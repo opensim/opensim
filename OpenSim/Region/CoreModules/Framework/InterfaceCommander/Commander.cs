@@ -41,34 +41,34 @@ namespace OpenSim.Region.CoreModules.Framework.InterfaceCommander
     public class Commander : ICommander
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-                
+
         /// <value>
         /// Used in runtime class generation
         /// </summary>
         private string m_generatedApiClassName;
-        
+
         public string Name
         {
             get { return m_name; }
         }
         private string m_name;
-        
+
         public string Help
         {
             get
             {
                 StringBuilder sb = new StringBuilder();
-                
+
                 sb.AppendLine("=== " + m_name + " ===");
-                
+
                 foreach (ICommand com in m_commands.Values)
                 {
                     sb.AppendLine("* " + Name + " " + com.Name + " - " + com.Help);
                 }
-                
+
                 return sb.ToString();
             }
-        }        
+        }
 
         /// <summary>
         /// Constructor
@@ -78,7 +78,7 @@ namespace OpenSim.Region.CoreModules.Framework.InterfaceCommander
         {
             m_name = name;
             m_generatedApiClassName = m_name[0].ToString().ToUpper();
-            
+
             if (m_name.Length > 1)
                 m_generatedApiClassName += m_name.Substring(1);
         }
@@ -87,7 +87,7 @@ namespace OpenSim.Region.CoreModules.Framework.InterfaceCommander
         {
             get { return m_commands; }
         }
-        private Dictionary<string, ICommand> m_commands = new Dictionary<string, ICommand>();        
+        private Dictionary<string, ICommand> m_commands = new Dictionary<string, ICommand>();
 
         #region ICommander Members
 
@@ -162,7 +162,7 @@ namespace OpenSim.Region.CoreModules.Framework.InterfaceCommander
                 {
                     if (function != "help")
                         Console.WriteLine("ERROR: Invalid command - No such command exists");
-                    
+
                     Console.Write(Help);
                 }
             }

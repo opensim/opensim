@@ -92,11 +92,11 @@ namespace OpenSim.Services.EstateService
         {
             return m_database.CreateNewEstate();
         }
-        
+
         public List<EstateSettings> LoadEstateSettingsAll()
         {
-            return m_database.LoadEstateSettingsAll();            
-        }        
+            return m_database.LoadEstateSettingsAll();
+        }
 
         public void StoreEstateSettings(EstateSettings es)
         {
@@ -107,7 +107,7 @@ namespace OpenSim.Services.EstateService
         {
             return m_database.GetEstates(search);
         }
-        
+
         public List<int> GetEstatesAll()
         {
             return m_database.GetEstatesAll();

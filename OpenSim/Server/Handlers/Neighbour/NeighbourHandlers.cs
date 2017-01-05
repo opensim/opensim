@@ -150,7 +150,7 @@ namespace OpenSim.Server.Handlers.Neighbour
 
             // Finally!
             GridRegion thisRegion = m_NeighbourService.HelloNeighbour(regionhandle, aRegion);
-            
+
             OSDMap resp = new OSDMap(1);
 
             if (thisRegion != null)

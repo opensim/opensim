@@ -68,7 +68,7 @@ namespace OpenSim.Services.AvatarService
                 connString = presenceConfig.GetString("ConnectionString", connString);
                 realm = presenceConfig.GetString("Realm", realm);
             }
-            
+
             //
             // We tried, but this doesn't exist. We can't proceed.
             //

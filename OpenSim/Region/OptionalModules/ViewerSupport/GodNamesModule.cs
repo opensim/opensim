@@ -50,7 +50,7 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
         private static List<String> m_lastNames = new List<String>();
         private static List<String> m_fullNames = new List<String>();
 
-        public void Initialise(IConfigSource config) 
+        public void Initialise(IConfigSource config)
         {
             IConfig moduleConfig = config.Configs["GodNames"];
 
@@ -133,7 +133,7 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
                 fnames.Add(name);
             }
             ((OSDMap)namesmap)["full_names"] = fnames;
-            
+
             OSDArray lnames = new OSDArray();
             foreach (string name in m_lastNames) {
                 lnames.Add(name);

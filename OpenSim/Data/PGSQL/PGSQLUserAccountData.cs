@@ -42,13 +42,13 @@ namespace OpenSim.Data.PGSQL
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        
+
         public PGSQLUserAccountData(string connectionString, string realm) :
             base(connectionString, realm, "UserAccount")
         {
         }
-        
-        /* 
+
+        /*
         private string m_Realm;
         private List<string> m_ColumnNames = null;
         private PGSQLManager m_database;
@@ -122,7 +122,7 @@ namespace OpenSim.Data.PGSQL
             {
                 cmd.Parameters.Add(m_database.CreateParameter("principalID", principalID));
                 cmd.Parameters.Add(m_database.CreateParameter("scopeID", scopeID));
-                
+
                 conn.Open();
                 using (NpgsqlDataReader result = cmd.ExecuteReader())
                 {
@@ -158,8 +158,8 @@ namespace OpenSim.Data.PGSQL
             }
             return null;
         }
-        
-        
+
+
         public override bool Store(UserAccountData data)
         {
             if (data.Data.ContainsKey("PrincipalID"))
@@ -214,7 +214,7 @@ namespace OpenSim.Data.PGSQL
                 catch (Exception e){
                     m_log.ErrorFormat("[USER]: ERROR opened update user {0} ", e.Message);
                 }
-                
+
 
                 if (conta < 1)
                 {
@@ -242,14 +242,14 @@ namespace OpenSim.Data.PGSQL
             }
             return true;
         }
-        
+
 
         public bool Store(UserAccountData data, UUID principalID, string token)
         {
             return false;
         }
 
-        
+
         public bool SetDataItem(UUID principalID, string item, string value)
         {
             string sql = string.Format(@"update {0} set {1} = :{1} where ""UUID"" = :UUID", m_Realm, item);
@@ -299,7 +299,7 @@ namespace OpenSim.Data.PGSQL
 
             string sql = "";
             UUID scope_id;
-            UUID.TryParse(scopeID.ToString(), out scope_id); 
+            UUID.TryParse(scopeID.ToString(), out scope_id);
 
             using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
             using (NpgsqlCommand cmd = new NpgsqlCommand())

@@ -64,7 +64,7 @@ namespace OpenSim.Framework.Capabilities
 
         private CapsHandlers m_capsHandlers;
 
-        private Dictionary<string, PollServiceEventArgs> m_pollServiceHandlers 
+        private Dictionary<string, PollServiceEventArgs> m_pollServiceHandlers
             = new Dictionary<string, PollServiceEventArgs>();
 
         private Dictionary<string, string> m_externalCapsHandlers = new Dictionary<string, string>();
@@ -160,7 +160,7 @@ namespace OpenSim.Framework.Capabilities
         public void RegisterPollHandler(string capName, PollServiceEventArgs pollServiceHandler)
         {
 //            m_log.DebugFormat(
-//                "[CAPS]: Registering handler with name {0}, url {1} for {2}", 
+//                "[CAPS]: Registering handler with name {0}, url {1} for {2}",
 //                capName, pollServiceHandler.Url, m_agentID, m_regionName);
 
             m_pollServiceHandlers.Add(capName, pollServiceHandler);
@@ -170,7 +170,7 @@ namespace OpenSim.Framework.Capabilities
 //            uint port = (MainServer.Instance == null) ? 0 : MainServer.Instance.Port;
 //            string protocol = "http";
 //            string hostName = m_httpListenerHostName;
-//            
+//
 //            if (MainServer.Instance.UseSSL)
 //            {
 //                hostName = MainServer.Instance.SSLCommonName;
@@ -238,7 +238,7 @@ namespace OpenSim.Framework.Capabilities
                         string hostName = m_httpListenerHostName;
                         uint port = (MainServer.Instance == null) ? 0 : MainServer.Instance.Port;
                         string protocol = "http";
-                        
+
                         if (MainServer.Instance.UseSSL)
                         {
                             hostName = MainServer.Instance.SSLCommonName;

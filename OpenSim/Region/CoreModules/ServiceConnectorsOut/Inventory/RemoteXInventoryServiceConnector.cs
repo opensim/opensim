@@ -74,7 +74,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             }
         }
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }

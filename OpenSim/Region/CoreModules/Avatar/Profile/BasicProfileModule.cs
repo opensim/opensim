@@ -68,7 +68,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Profile
         {
             if (!m_Enabled)
                 return;
-            
+
             lock (m_Scenes)
             {
                 if (!m_Scenes.Contains(scene))

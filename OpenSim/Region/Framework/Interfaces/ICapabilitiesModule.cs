@@ -41,13 +41,13 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="agentId"></param>
         /// <param name="capsObjectPath"></param>
         void CreateCaps(UUID agentId, uint circuitCode);
-        
+
         /// <summary>
         /// Remove the caps handler for a given agent.
         /// </summary>
         /// <param name="agentId"></param>
         void RemoveCaps(UUID agentId, uint circuitCode);
-        
+
         /// <summary>
         /// Will return null if the agent doesn't have a caps handler registered
         /// </summary>
@@ -55,13 +55,13 @@ namespace OpenSim.Region.Framework.Interfaces
         Caps GetCapsForUser(uint circuitCode);
 
         void SetAgentCapsSeeds(AgentCircuitData agent);
-        
+
         Dictionary<ulong, string> GetChildrenSeeds(UUID agentID);
-        
+
         string GetChildSeed(UUID agentID, ulong handle);
-        
+
         void SetChildrenSeed(UUID agentID, Dictionary<ulong, string> seeds);
-        
+
         void DropChildSeed(UUID agentID, ulong handle);
 
         string GetCapsPath(UUID agentId);

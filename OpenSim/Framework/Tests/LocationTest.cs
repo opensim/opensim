@@ -85,6 +85,6 @@ namespace OpenSim.Framework.Tests
             Assert.That(TestLocation2.Equals(cln), "Cloned object failed .Equals(obj) Test");
 
         }
-        
+
     }
 }

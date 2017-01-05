@@ -151,27 +151,27 @@ namespace OpenSim.Server.Handlers.Asset
                 MainConsole.Instance.OutputFormat("ERROR: {0} is not a valid ID format", rawAssetId);
                 return;
             }
-            
+
             AssetBase asset = m_AssetService.Get(assetId.ToString());
             if (asset == null)
-            {                
+            {
                 MainConsole.Instance.OutputFormat("ERROR: No asset found with ID {0}", assetId);
-                return;                
+                return;
             }
-            
+
             string fileName = rawAssetId;
 
             if (!ConsoleUtil.CheckFileDoesNotExist(MainConsole.Instance, fileName))
                 return;
-            
+
             using (FileStream fs = new FileStream(fileName, FileMode.CreateNew))
             {
                 using (BinaryWriter bw = new BinaryWriter(fs))
                 {
                     bw.Write(asset.Data);
                 }
-            }   
-            
+            }
+
             MainConsole.Instance.OutputFormat("Asset dumped to file {0}", fileName);
         }
 

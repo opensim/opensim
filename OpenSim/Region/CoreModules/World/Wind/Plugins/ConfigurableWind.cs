@@ -50,7 +50,7 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
         private float m_avgDirection = 0.0f; // Average direction of the wind in degrees
         private float m_varStrength = 5.0f; // Max Strength  Variance
         private float m_varDirection = 30.0f;// Max Direction Variance
-        private float m_rateChange = 1.0f; // 
+        private float m_rateChange = 1.0f; //
 
         private Vector2 m_curPredominateWind = new Vector2();
 
@@ -70,7 +70,7 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
 
         public void Initialise()
         {
-            
+
         }
 
         #endregion
@@ -111,7 +111,7 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
             // Prevailing wind algorithm
             // Inspired by Kanker Greenacre
 
-            // TODO: 
+            // TODO:
             // * This should probably be based on in-world time.
             // * should probably move all these local variables to class members and constants
             double time = DateTime.Now.TimeOfDay.Seconds / 86400.0f;
@@ -125,7 +125,7 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
             offset = Math.Sin(theta) * Math.Sin(theta*4) + (Math.Sin(theta*13) / 3);
             double windSpeed = m_avgStrength + (m_varStrength * offset);
 
-            if (windSpeed < 0) 
+            if (windSpeed < 0)
                 windSpeed = -windSpeed;
 
             m_curPredominateWind.X = (float)Math.Cos(windDir);
@@ -157,9 +157,9 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
 
         public string Description
         {
-            get 
+            get
             {
-                return "Provides a predominate wind direction that can change within configured variances for direction and speed."; 
+                return "Provides a predominate wind direction that can change within configured variances for direction and speed.";
             }
         }
 

@@ -190,7 +190,7 @@ namespace OpenSim.Data.SQLite
             IDataReader r = null;
 
             using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
-            {            
+            {
                 names.Remove("EstateID");
 
                 string sql = "insert into estate_settings ("+String.Join(",", names.ToArray())+") values ( :"+String.Join(", :", names.ToArray())+")";
@@ -386,15 +386,15 @@ namespace OpenSim.Data.SQLite
                 return DoLoad(cmd, UUID.Zero, false);
             }
         }
-        
+
         public List<EstateSettings> LoadEstateSettingsAll()
         {
             List<EstateSettings> estateSettings = new List<EstateSettings>();
-            
+
             List<int> estateIds = GetEstatesAll();
             foreach (int estateId in estateIds)
                 estateSettings.Add(LoadEstateSettings(estateId));
-            
+
             return estateSettings;
         }
 
@@ -421,7 +421,7 @@ namespace OpenSim.Data.SQLite
 
             return result;
         }
-        
+
         public List<int> GetEstatesAll()
         {
             List<int> result = new List<int>();
@@ -442,7 +442,7 @@ namespace OpenSim.Data.SQLite
             }
             r.Close();
 
-            return result;            
+            return result;
         }
 
         public List<int> GetEstatesByOwner(UUID ownerID)

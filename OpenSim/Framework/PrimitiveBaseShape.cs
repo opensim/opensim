@@ -238,8 +238,8 @@ namespace OpenSim.Framework
                 SculptTexture = prim.Sculpt.SculptTexture;
                 SculptType = (byte)prim.Sculpt.Type;
             }
-            else 
-            {  
+            else
+            {
                 SculptType = (byte)OpenMetaverse.SculptType.None;
             }
         }

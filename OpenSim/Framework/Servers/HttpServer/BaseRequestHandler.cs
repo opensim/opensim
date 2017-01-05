@@ -69,13 +69,13 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 StatsManager.RegisterStat(
                     new Stat(
-                    "requests", 
-                    "requests", 
-                    "Number of requests received by this service endpoint", 
-                    "requests", 
-                    "service", 
-                    string.Format("{0}:{1}", httpMethod, path), 
-                    StatType.Pull, 
+                    "requests",
+                    "requests",
+                    "Number of requests received by this service endpoint",
+                    "requests",
+                    "service",
+                    string.Format("{0}:{1}", httpMethod, path),
+                    StatType.Pull,
                     MeasuresOfInterest.AverageChangeOverTime,
                     s => s.Value = RequestsReceived,
                     StatVerbosity.Debug));

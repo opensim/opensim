@@ -200,6 +200,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             }
 
             return retList;
-        }  
+        }
     }
 }

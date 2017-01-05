@@ -43,33 +43,33 @@ namespace OpenSim.Framework
         LandData LandData { get; set; }
         bool[,] LandBitmap { get; set; }
         UUID RegionUUID { get; }
-        
+
         /// <summary>
         /// Prim counts for this land object.
         /// </summary>
         IPrimCounts PrimCounts { get; set; }
-        
+
         /// <summary>
-        /// The start point for the land object.  This is the northern-most point as one scans land working from 
+        /// The start point for the land object.  This is the northern-most point as one scans land working from
         /// west to east.
         /// </summary>
         Vector2 StartPoint { get; }
-        
+
         /// <summary>
-        /// The end point for the land object.  This is the southern-most point as one scans land working from 
+        /// The end point for the land object.  This is the southern-most point as one scans land working from
         /// west to east.
-        /// </summary>        
+        /// </summary>
         Vector2 EndPoint { get; }
 
-        // a estimation of a parcel center. 
+        // a estimation of a parcel center.
         Vector2 CenterPoint { get; }
-        
+
         // get positions
         Vector2? GetNearestPoint(Vector3 pos);
         Vector2? GetNearestPointAlongDirection(Vector3 pos, Vector3 pdirection);
 
         bool ContainsPoint(int x, int y);
-        
+
         ILandObject Copy();
 
         void SendLandUpdateToAvatarsOverMe();
@@ -97,16 +97,16 @@ namespace OpenSim.Framework
         /// </summary>
         /// <returns>The bitmap created.</returns>
         bool[,] BasicFullRegionLandBitmap();
-        
+
         /// <summary>
         /// Create a square land bitmap.
         /// </summary>
         /// <remarks>
         /// Land co-ordinates are zero indexed.  The inputs are treated as points.  So if you want to create a bitmap
-        /// that covers an entire 256 x 256m region apart from a strip of land on the east, then you would need to 
+        /// that covers an entire 256 x 256m region apart from a strip of land on the east, then you would need to
         /// specify start_x = 0, start_y = 0, end_x = 252 (or anything up to 255), end_y = 255.
-        /// 
-        /// At the moment, the smallest parcel of land is 4m x 4m, so if the 
+        ///
+        /// At the moment, the smallest parcel of land is 4m x 4m, so if the
         /// region is 256 x 256m (the SL size), the bitmap returned will start at (0,0) and end at (63,63).
         /// The value of the set_value needs to be true to define an active parcel of the given size.
         /// </remarks>
@@ -117,7 +117,7 @@ namespace OpenSim.Framework
         /// <param name="set_value"></param>
         /// <returns>The bitmap created.</returns>
         bool[,] GetSquareLandBitmap(int start_x, int start_y, int end_x, int end_y, bool set_value = true);
-        
+
         bool[,] ModifyLandBitmapSquare(bool[,] land_bitmap, int start_x, int start_y, int end_x, int end_y, bool set_value);
 
         /// <summary>
@@ -153,7 +153,7 @@ namespace OpenSim.Framework
         /// <param name="isEmptyNow">out: This is set if the resultant bitmap is now empty</param>
         /// <param name="AABBMin">out: parcel.AABBMin &lt;x,y,0&gt;</param>
         /// <param name="AABBMax">out: parcel.AABBMax &lt;x,y,0&gt</param>
-        /// <returns>New parcel bitmap</returns>       
+        /// <returns>New parcel bitmap</returns>
         bool[,] RemoveFromLandBitmap(bool[,] bitmap_base, bool[,] bitmap_new, out bool isEmptyNow, out Vector3 AABBMin, out Vector3 AABBMax);
 
         byte[] ConvertLandBitmapToBytes();
@@ -177,7 +177,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="url"></param>
         void SetMediaUrl(string url);
-        
+
         /// <summary>
         /// Set the music url for this land parcel
         /// </summary>

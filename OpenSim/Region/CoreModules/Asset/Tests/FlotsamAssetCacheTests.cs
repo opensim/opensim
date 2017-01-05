@@ -112,7 +112,7 @@ namespace OpenSim.Region.CoreModules.Asset.Tests
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
-            
+
             AssetBase asset = AssetHelpers.CreateNotecardAsset();
             asset.ID = TestHelpers.ParseTail(0x2).ToString();
 

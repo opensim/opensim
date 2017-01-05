@@ -575,7 +575,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             }
 
             responseData["success"] = true;
-            
+
             m_log.Info("[RADMIN]: Shutdown Administrator Request complete");
         }
 
@@ -747,9 +747,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     {
                         // No INI setting recorded.
                     }
-                    
+
                     string regionIniPath;
-                    
+
                     if (requestData.Contains("region_file"))
                     {
                         // Make sure that the file to be created is in a subdirectory of the region storage directory.
@@ -773,7 +773,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                                             region.RegionName.Replace(" ", "_").Replace(":", "_").
                                                                 Replace("/", "_")));
                     }
-                    
+
                     m_log.DebugFormat("[RADMIN] CreateRegion: persisting region {0} to {1}",
                                       region.RegionID, regionIniPath);
                     region.SaveRegionToFile("dynamic region", regionIniPath);
@@ -782,9 +782,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 {
                     region.Persistent = false;
                 }
-                    
+
                 // Set the estate
-                
+
                 // Check for an existing estate
                 List<int> estateIDs = m_application.EstateDataService.GetEstates((string) requestData["estate_name"]);
                 if (estateIDs.Count < 1)
@@ -795,12 +795,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         // ok, client wants us to use an explicit UUID
                         // regardless of what the avatar name provided
                         userID = new UUID((string) requestData["estate_owner_uuid"]);
-                        
+
                         // Check that the specified user exists
                         Scene currentOrFirst = m_application.SceneManager.CurrentOrFirstScene;
                         IUserAccountService accountService = currentOrFirst.UserAccountService;
                         UserAccount user = accountService.GetUserAccount(currentOrFirst.RegionInfo.ScopeID, userID);
-                        
+
                         if (user == null)
                             throw new Exception("Specified user was not found.");
                     }
@@ -809,23 +809,23 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         // We need to look up the UUID for the avatar with the provided name.
                         string ownerFirst = (string) requestData["estate_owner_first"];
                         string ownerLast = (string) requestData["estate_owner_last"];
-                        
+
                         Scene currentOrFirst = m_application.SceneManager.CurrentOrFirstScene;
                         IUserAccountService accountService = currentOrFirst.UserAccountService;
                         UserAccount user = accountService.GetUserAccount(currentOrFirst.RegionInfo.ScopeID,
                                                                            ownerFirst, ownerLast);
-                        
+
                         // Check that the specified user exists
                         if (user == null)
                             throw new Exception("Specified user was not found.");
-                        
+
                         userID = user.PrincipalID;
                     }
                     else
                     {
                         throw new Exception("Estate owner details not provided.");
                     }
-                    
+
                     // Create a new estate with the name provided
                     region.EstateSettings = m_application.EstateDataService.CreateNewEstate();
 
@@ -852,7 +852,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                             throw new Exception("Failed to join estate.");
                     }
                 }
-                
+
                 // Create the region and perform any initial initialization
 
                 IScene newScene;
@@ -1159,7 +1159,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     // Set home position
 
-                    GridRegion home = scene.GridService.GetRegionByPosition(scopeID, 
+                    GridRegion home = scene.GridService.GetRegionByPosition(scopeID,
                                         (int)Util.RegionToWorldLoc(regionXLocation), (int)Util.RegionToWorldLoc(regionYLocation));
                     if (null == home)
                     {
@@ -1389,7 +1389,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     if ((null != regionXLocation) && (null != regionYLocation))
                     {
-                        GridRegion home = scene.GridService.GetRegionByPosition(scopeID, 
+                        GridRegion home = scene.GridService.GetRegionByPosition(scopeID,
                                         (int)Util.RegionToWorldLoc((uint)regionXLocation), (int)Util.RegionToWorldLoc((uint)regionYLocation));
                         if (null == home) {
                             m_log.WarnFormat("[RADMIN]: Unable to set home region for updated user account {0} {1}", firstName, lastName);
@@ -1416,7 +1416,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     throw e;
                 }
-                
+
                 m_log.Info("[RADMIN]: UpdateUserAccount: request complete");
             }
         }
@@ -1608,7 +1608,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     GetSceneFromRegionParams(requestData, responseData, out scene);
 
                     string filename = (string) requestData["filename"];
-                    
+
                     bool mergeOar = false;
                     bool skipAssets = false;
 
@@ -1735,7 +1735,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     scene.EventManager.OnOarFileSaved += RemoteAdminOarSaveCompleted;
 
                     m_log.InfoFormat(
-                        "[RADMIN]: Submitting save OAR request for {0} to file {1}, request ID {2}", 
+                        "[RADMIN]: Submitting save OAR request for {0} to file {1}, request ID {2}",
                         scene.Name, filename, requestId);
 
                     archiver.ArchiveRegion(filename, requestId, options);
@@ -2082,8 +2082,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             Hashtable responseData = (Hashtable)response.Value;
 //            Hashtable requestData = (Hashtable)request.Params[0];
 
-            m_application.SceneManager.ForEachScene(s => 
-                s.RegionInfo.EstateSettings = m_application.EstateDataService.LoadEstateSettings(s.RegionInfo.RegionID, false)                
+            m_application.SceneManager.ForEachScene(s =>
+                s.RegionInfo.EstateSettings = m_application.EstateDataService.LoadEstateSettings(s.RegionInfo.RegionID, false)
             );
 
             responseData["success"] = true;
@@ -2815,7 +2815,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             if (destinationFolder.Type != (short)FolderType.Clothing)
             {
                 destinationFolder = new InventoryFolderBase();
-                
+
                 destinationFolder.ID       = UUID.Random();
                 destinationFolder.Name     = "Clothing";
                 destinationFolder.Owner    = destination;
@@ -2951,11 +2951,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             {
                 sourceFolder = new InventoryFolderBase();
                 sourceFolder.ID       = UUID.Random();
-                if (assetType == FolderType.Clothing) 
+                if (assetType == FolderType.Clothing)
                 {
                     sourceFolder.Name     = "Clothing";
-                } 
-                else 
+                }
+                else
                 {
                     sourceFolder.Name     = "Body Parts";
                 }
@@ -3168,7 +3168,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                             // Set home position
 
-                            GridRegion home = scene.GridService.GetRegionByPosition(scopeID, 
+                            GridRegion home = scene.GridService.GetRegionByPosition(scopeID,
                                         (int)Util.RegionToWorldLoc(regionXLocation), (int)Util.RegionToWorldLoc(regionYLocation));
                             if (null == home) {
                                 m_log.WarnFormat("[RADMIN]: Unable to set home region for newly created user account {0} {1}", names[0], names[1]);

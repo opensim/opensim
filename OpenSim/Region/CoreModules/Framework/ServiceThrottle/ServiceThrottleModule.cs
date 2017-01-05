@@ -49,7 +49,7 @@ namespace OpenSim.Region.CoreModules.Framework
 
         private readonly List<Scene> m_scenes = new List<Scene>();
         private JobEngine m_processorJobEngine;
- 
+
         #region ISharedRegionModule
 
         public void Initialise(IConfigSource config)

@@ -49,7 +49,7 @@ namespace OpenSim.Framework.Monitoring
         /// <summary>
         /// Is this engine running?
         /// </summary>
-        public bool IsRunning { get; private set; } 
+        public bool IsRunning { get; private set; }
 
         /// <summary>
         /// The current job that the engine is running.
@@ -73,7 +73,7 @@ namespace OpenSim.Framework.Monitoring
         /// Controls whether we need to warn in the log about exceeding the max queue size.
         /// </summary>
         /// <remarks>
-        /// This is flipped to false once queue max has been exceeded and back to true when it falls below max, in 
+        /// This is flipped to false once queue max has been exceeded and back to true when it falls below max, in
         /// order to avoid spamming the log with lots of warnings.
         /// </remarks>
         private bool m_warnOverMaxQueue = true;
@@ -120,7 +120,7 @@ namespace OpenSim.Framework.Monitoring
         }
 
         public void Stop()
-        {   
+        {
             lock (JobLock)
             {
                 try
@@ -150,7 +150,7 @@ namespace OpenSim.Framework.Monitoring
         /// Make a job.
         /// </summary>
         /// <remarks>
-        /// We provide this method to replace the constructor so that we can later pool job objects if necessary to 
+        /// We provide this method to replace the constructor so that we can later pool job objects if necessary to
         /// reduce memory churn.  Normally one would directly call QueueJob() with parameters anyway.
         /// </remarks>
         /// <returns></returns>
@@ -304,7 +304,7 @@ namespace OpenSim.Framework.Monitoring
                 CommonId = commonId;
                 Action = action;
             }
-                        
+
             /// <summary>
             /// Make a job.  It needs to be separately queued.
             /// </summary>

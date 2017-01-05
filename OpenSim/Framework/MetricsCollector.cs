@@ -42,23 +42,23 @@ namespace OpenSim.Framework
         }
     }
 
-    
+
     struct MetricsBucket<T>
     {
         public T value;
         public int count;
     }
 
-    
+
     /// <summary>
     /// Collects metrics in a sliding window.
     /// </summary>
     /// <remarks>
     /// MetricsCollector provides the current Sum of the metrics that it collects. It can easily be extended
     /// to provide the Average, too. It uses a sliding window to keep these values current.
-    /// 
+    ///
     /// This class is not thread-safe.
-    /// 
+    ///
     /// Subclass MetricsCollector to have it use a concrete value type. Override the abstract methods.
     /// </remarks>
     public abstract class MetricsCollector<T>

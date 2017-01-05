@@ -104,10 +104,10 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             using (Bitmap gradientmapLd = new Bitmap("defaultstripe.png"))
             {
                 pallete = gradientmapLd.Height;
-    
+
                 bmp = new Bitmap(map.Width, map.Height);
                 colours = new Color[pallete];
-    
+
                 for (int i = 0; i < pallete; i++)
                 {
                     colours[i] = gradientmapLd.GetPixel(0, i);

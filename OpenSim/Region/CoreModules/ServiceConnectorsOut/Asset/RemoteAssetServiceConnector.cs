@@ -50,7 +50,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
         private bool m_Enabled = false;
         private IAssetCache m_Cache;
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }

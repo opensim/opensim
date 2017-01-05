@@ -102,19 +102,19 @@ namespace OpenSim.Data.Null
         {
             return new EstateSettings();
         }
-        
+
         public List<EstateSettings> LoadEstateSettingsAll()
         {
             List<EstateSettings> allEstateSettings = new List<EstateSettings>();
             allEstateSettings.Add(GetEstate());
             return allEstateSettings;
         }
-        
+
         public List<int> GetEstatesAll()
         {
             List<int> result = new List<int>();
             result.Add((int)GetEstate().EstateID);
-            return result;            
+            return result;
         }
 
         public List<int> GetEstates(string search)

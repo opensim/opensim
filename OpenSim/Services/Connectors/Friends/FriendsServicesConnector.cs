@@ -86,7 +86,7 @@ namespace OpenSim.Services.Connectors.Friends
 
 
         #region IFriendsService
-        
+
         public FriendInfo[] GetFriends(UUID PrincipalID)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();

@@ -50,19 +50,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
     {
         protected TestScene m_scene;
         protected InventoryArchiverModule m_archiverModule;
-            
+
         [SetUp]
         public override void SetUp()
         {
             base.SetUp();
-            
+
             SerialiserModule serialiserModule = new SerialiserModule();
             m_archiverModule = new InventoryArchiverModule();
 
             m_scene = new SceneHelpers().SetupScene();
-            SceneHelpers.SetupSceneModules(m_scene, serialiserModule, m_archiverModule);            
+            SceneHelpers.SetupSceneModules(m_scene, serialiserModule, m_archiverModule);
         }
-        
+
         /// <summary>
         /// Test that the IAR has the required files in the right order.
         /// </summary>
@@ -73,20 +73,20 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         public void TestOrder()
         {
             TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();            
-            
+//            log4net.Config.XmlConfigurator.Configure();
+
             MemoryStream archiveReadStream = new MemoryStream(m_iarStreamBytes);
-            TarArchiveReader tar = new TarArchiveReader(archiveReadStream);            
+            TarArchiveReader tar = new TarArchiveReader(archiveReadStream);
             string filePath;
             TarArchiveReader.TarEntryType tarEntryType;
-            
+
             byte[] data = tar.ReadEntry(out filePath, out tarEntryType);
             Assert.That(filePath, Is.EqualTo(ArchiveConstants.CONTROL_FILE_PATH));
-            
+
             InventoryArchiveReadRequest iarr
                 = new InventoryArchiveReadRequest(UUID.Random(), null, null, null, null, null, null, (Stream)null, false);
             iarr.LoadControlFile(filePath, data);
-            
+
             Assert.That(iarr.ControlFileLoaded, Is.True);
         }
 
@@ -119,22 +119,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 //            InventoryArchiveUtils.
             bool gotObjectsFolder = false;
 
-            string objectsFolderName 
+            string objectsFolderName
                 = string.Format(
-                    "{0}{1}", 
-                    ArchiveConstants.INVENTORY_PATH, 
+                    "{0}{1}",
+                    ArchiveConstants.INVENTORY_PATH,
                     InventoryArchiveWriteRequest.CreateArchiveFolderName(
                         UserInventoryHelpers.GetInventoryFolder(m_scene.InventoryService, userId, "Objects")));
 
             string filePath;
             TarArchiveReader.TarEntryType tarEntryType;
-            
+
             while (tar.ReadEntry(out filePath, out tarEntryType) != null)
             {
 //                Console.WriteLine("Got {0}", filePath);
 
                 // Lazily, we only bother to look for the system objects folder created when we call CreateUserWithInventory()
-                // XXX: But really we need to stop all that stuff being created in tests or check for such folders 
+                // XXX: But really we need to stop all that stuff being created in tests or check for such folders
                 // more thoroughly
                 if (filePath == objectsFolderName)
                     gotObjectsFolder = true;
@@ -157,19 +157,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             UserAccountHelpers.CreateUserWithInventory(m_scene, userFirstName, userLastName, userId, userPassword);
 
             // Create base folder
-            InventoryFolderBase f1 
+            InventoryFolderBase f1
                 = UserInventoryHelpers.CreateInventoryFolder(m_scene.InventoryService, userId, "f1", true);
-            
+
             // Create item1
-            SceneObjectGroup so1 = SceneHelpers.CreateSceneObject(1, userId, "My Little Dog Object", 0x5);         
+            SceneObjectGroup so1 = SceneHelpers.CreateSceneObject(1, userId, "My Little Dog Object", 0x5);
             InventoryItemBase i1 = UserInventoryHelpers.AddInventoryItem(m_scene, so1, 0x50, 0x60, "f1");
 
             // Create embedded folder
-            InventoryFolderBase f1_1 
+            InventoryFolderBase f1_1
                 = UserInventoryHelpers.CreateInventoryFolder(m_scene.InventoryService, userId, "f1/f1.1", true);
 
             // Create embedded item
-            SceneObjectGroup so1_1 = SceneHelpers.CreateSceneObject(1, userId, "My Little Cat Object", 0x6);         
+            SceneObjectGroup so1_1 = SceneHelpers.CreateSceneObject(1, userId, "My Little Cat Object", 0x6);
             InventoryItemBase i2 = UserInventoryHelpers.AddInventoryItem(m_scene, so1_1, 0x500, 0x600, "f1/f1.1");
 
             MemoryStream archiveWriteStream = new MemoryStream();
@@ -188,18 +188,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 //            InventoryArchiveUtils.
             bool gotf1 = false, gotf1_1 = false, gotso1 = false, gotso2 = false;
 
-            string f1FileName 
+            string f1FileName
                 = string.Format("{0}{1}", ArchiveConstants.INVENTORY_PATH, InventoryArchiveWriteRequest.CreateArchiveFolderName(f1));
-            string f1_1FileName 
+            string f1_1FileName
                 = string.Format("{0}{1}", f1FileName, InventoryArchiveWriteRequest.CreateArchiveFolderName(f1_1));
-            string so1FileName 
+            string so1FileName
                 = string.Format("{0}{1}", f1FileName, InventoryArchiveWriteRequest.CreateArchiveItemName(i1));
             string so2FileName
                 = string.Format("{0}{1}", f1_1FileName, InventoryArchiveWriteRequest.CreateArchiveItemName(i2));
 
             string filePath;
             TarArchiveReader.TarEntryType tarEntryType;
-            
+
             while (tar.ReadEntry(out filePath, out tarEntryType) != null)
             {
 //                Console.WriteLine("Got {0}", filePath);
@@ -222,7 +222,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             // TODO: Test presence of more files and contents of files.
         }
-        
+
         /// <summary>
         /// Test saving a single inventory item to an IAR
         /// (subject to change since there is no fixed format yet).
@@ -239,10 +239,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             string userPassword = "troll";
             UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000020");
             UserAccountHelpers.CreateUserWithInventory(m_scene, userFirstName, userLastName, userId, userPassword);
-            
+
             // Create asset
             UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000040");
-            SceneObjectGroup object1 = SceneHelpers.CreateSceneObject(1, ownerId, "My Little Dog Object", 0x50);         
+            SceneObjectGroup object1 = SceneHelpers.CreateSceneObject(1, ownerId, "My Little Dog Object", 0x50);
 
             UUID asset1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
             AssetBase asset1 = AssetHelpers.CreateAsset(asset1Id, object1);
@@ -255,7 +255,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.Name = item1Name;
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
-            InventoryFolderBase objsFolder 
+            InventoryFolderBase objsFolder
                 = InventoryArchiveUtils.FindFoldersByPath(m_scene.InventoryService, userId, "Objects")[0];
             item1.Folder = objsFolder.ID;
             m_scene.AddInventoryItem(item1);
@@ -285,7 +285,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             TarArchiveReader.TarEntryType tarEntryType;
 
 //            Console.WriteLine("Reading archive");
-            
+
             while (tar.ReadEntry(out filePath, out tarEntryType) != null)
             {
                 Console.WriteLine("Got {0}", filePath);
@@ -294,7 +294,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 //                {
 //                    gotControlFile = true;
 //                }
-                
+
                 if (filePath.StartsWith(ArchiveConstants.INVENTORY_PATH) && filePath.EndsWith(".xml"))
                 {
 //                    string fileName = filePath.Remove(0, "Objects/".Length);

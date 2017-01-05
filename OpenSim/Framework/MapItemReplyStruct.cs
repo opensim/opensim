@@ -60,7 +60,7 @@ namespace OpenSim.Framework
             map["Extra2"] = OSD.FromInteger(Extra2);
             return map;
         }
-        
+
         public void FromOSD(OSDMap map)
         {
             x = (uint) map["X"].AsInteger();

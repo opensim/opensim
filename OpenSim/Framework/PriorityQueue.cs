@@ -57,11 +57,11 @@ namespace OpenSim.Framework
         private Dictionary<uint, LookupItem> m_lookupTable;
 
         // internal state used to ensure the deqeues are spread across the priority
-        // queues "fairly". queuecounts is the amount to pull from each queue in 
+        // queues "fairly". queuecounts is the amount to pull from each queue in
         // each pass. weighted towards the higher priority queues
         private uint m_nextQueue = 0;
         private uint m_countFromQueue = 0;
-        // first queues are imediate, so no counts 
+        // first queues are imediate, so no counts
 //        private uint[] m_queueCounts = { 0, 0,          8,  4,  4, 2,  2,   2,  2,  1,  1, 1 };
         private uint[] m_queueCounts = {0,   0,   8,      8,  5,  4, 3,  2,   1,  1,  1,  1};
         // this is                     ava, ava, attach, <10m, 20,40,80,160m,320,640,1280, +
@@ -105,7 +105,7 @@ namespace OpenSim.Framework
                 int count = 0;
                 for (int i = 0; i < m_heaps.Length; ++i)
                     count += m_heaps[i].Count;
-                
+
                 return count;
             }
         }
@@ -170,26 +170,26 @@ namespace OpenSim.Framework
                     return true;
                 }
             }
-            
+
             // To get the fair queing, we cycle through each of the
-            // queues when finding an element to dequeue. 
+            // queues when finding an element to dequeue.
             // We pull (NumberOfQueues - QueueIndex) items from each queue in order
             // to give lower numbered queues a higher priority and higher percentage
-            // of the bandwidth. 
-            
+            // of the bandwidth.
+
             // Check for more items to be pulled from the current queue
             if (m_heaps[m_nextQueue].Count > 0 && m_countFromQueue > 0)
             {
                 m_countFromQueue--;
-                
+
                 MinHeapItem item = m_heaps[m_nextQueue].RemoveMin();
                 m_lookupTable.Remove(item.Value.Entity.LocalId);
                 timeinqueue = Util.EnvironmentTickCountSubtract(item.EntryTime);
                 value = item.Value;
-                
+
                 return true;
             }
-            
+
             // Find the next non-immediate queue with updates in it
             for (uint i = NumberOfImmediateQueues; i < NumberOfQueues; ++i)
             {
@@ -198,7 +198,7 @@ namespace OpenSim.Framework
                     m_nextQueue = NumberOfImmediateQueues;
 
                 m_countFromQueue = m_queueCounts[m_nextQueue];
-                
+
                 if (m_heaps[m_nextQueue].Count > 0)
                 {
                     m_countFromQueue--;
@@ -218,7 +218,7 @@ namespace OpenSim.Framework
 
         /// <summary>
         /// Reapply the prioritization function to each of the updates currently
-        /// stored in the priority queues. 
+        /// stored in the priority queues.
         /// </summary
         public void Reprioritize(UpdatePriorityHandler handler)
         {

@@ -87,12 +87,12 @@ namespace OpenSim.Capabilities.Handlers
                 OSDMap osdname = new OSDMap();
                 if(parts[0] == "Unknown")
                 {
-                    osdname["display_name_next_update"] = OSD.FromDate(DateTime.UtcNow.AddHours(1));        
+                    osdname["display_name_next_update"] = OSD.FromDate(DateTime.UtcNow.AddHours(1));
                     osdname["display_name_expires"] = OSD.FromDate(DateTime.UtcNow.AddHours(2));
                 }
                 else
                 {
-                    osdname["display_name_next_update"] = OSD.FromDate(DateTime.UtcNow.AddDays(8));        
+                    osdname["display_name_next_update"] = OSD.FromDate(DateTime.UtcNow.AddDays(8));
                     osdname["display_name_expires"] = OSD.FromDate(DateTime.UtcNow.AddMonths(1));
                 }
                 osdname["display_name"] = OSD.FromString(kvp.Value);

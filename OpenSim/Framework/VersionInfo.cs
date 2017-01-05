@@ -58,10 +58,10 @@ namespace OpenSim
         }
 
         public const int VERSIONINFO_VERSION_LENGTH = 27;
-        
+
         /// <value>
         /// This is the external interface version.  It is separate from the OpenSimulator project version.
-        /// 
+        ///
         /// </value>
         /// Commented because it's not used anymore, see below for new
         /// versioning method.
@@ -70,18 +70,18 @@ namespace OpenSim
         /// <summary>
         /// This rules versioning regarding teleports, and compatibility between simulators in that regard.
         /// </summary>
-        /// 
+        ///
         /// <remarks>
         /// The protocol version that we will use for outgoing transfers
-        /// Valid values are 
-        /// "SIMULATION/0.3" 
+        /// Valid values are
+        /// "SIMULATION/0.3"
         ///   - This is the latest, and it supports teleports to variable-sized regions
         ///   - Older versions can teleport to this one, but only if the destination region
         ///     is 256x256
         /// "SIMULATION/0.2"
         ///   - A source simulator which only implements "SIMULATION/0.1" can still teleport here
         ///   - this protocol is more efficient than "SIMULATION/0.1"
-        /// "SIMULATION/0.1" 
+        /// "SIMULATION/0.1"
         ///   - this is an older teleport protocol used in OpenSimulator 0.7.5 and before.
         /// </remarks>
         public readonly static float SimulationServiceVersionAcceptedMin = 0.3f;

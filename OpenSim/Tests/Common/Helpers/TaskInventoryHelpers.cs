@@ -78,12 +78,12 @@ namespace OpenSim.Tests.Common
                 = AssetHelpers.CreateAsset(assetID, AssetType.Notecard, nc.AssetData, UUID.Zero);
             assetService.Store(ncAsset);
 
-            TaskInventoryItem ncItem 
-                = new TaskInventoryItem 
+            TaskInventoryItem ncItem
+                = new TaskInventoryItem
                     { Name = itemName, AssetID = assetID, ItemID = itemID,
                       Type = (int)AssetType.Notecard, InvType = (int)InventoryType.Notecard };
-            part.Inventory.AddInventoryItem(ncItem, true); 
-            
+            part.Inventory.AddInventoryItem(ncItem, true);
+
             return ncItem;
         }
 
@@ -119,7 +119,7 @@ namespace OpenSim.Tests.Common
         {
             return AddScript(assetService, part, UUID.Random(), UUID.Random(), scriptName, scriptSource);
         }
-                
+
         /// <summary>
         /// Add a simple script to the given part.
         /// </summary>
@@ -145,7 +145,7 @@ namespace OpenSim.Tests.Common
                 = AssetHelpers.CreateAsset(assetId, AssetType.LSLText, ast.AssetData, UUID.Zero);
             assetService.Store(asset);
             TaskInventoryItem item
-                = new TaskInventoryItem 
+                = new TaskInventoryItem
             { Name = scriptName, AssetID = assetId, ItemID = itemId,
                 Type = (int)AssetType.LSLText, InvType = (int)InventoryType.LSL };
             part.Inventory.AddInventoryItem(item, true);

@@ -57,9 +57,9 @@ namespace OpenSim
         public NetworkServersInfo NetServersInfo { get { return m_networkServersInfo; } }
         public ISimulationDataService SimulationDataService { get { return m_simulationDataService; } }
         public IEstateDataService EstateDataService { get { return m_estateDataService; } }
-       
+
         protected abstract void Initialize();
-        
+
         protected abstract Scene CreateScene(RegionInfo regionInfo, ISimulationDataService simDataService, IEstateDataService estateDataService, AgentCircuitManager circuitManager);
 
         protected override void StartupSpecific()
@@ -68,11 +68,11 @@ namespace OpenSim
 
             Initialize();
 
-            m_httpServer 
+            m_httpServer
                 = new BaseHttpServer(
-                    m_httpServerPort, m_networkServersInfo.HttpUsesSSL, m_networkServersInfo.httpSSLPort, 
+                    m_httpServerPort, m_networkServersInfo.HttpUsesSSL, m_networkServersInfo.httpSSLPort,
                     m_networkServersInfo.HttpSSLCN);
-            
+
             if (m_networkServersInfo.HttpUsesSSL && (m_networkServersInfo.HttpListenerPort == m_networkServersInfo.httpSSLPort))
             {
                 m_log.Error("[REGION SERVER]: HTTP Server config failed.   HTTP Server and HTTPS server must be on different ports");
@@ -107,7 +107,7 @@ namespace OpenSim
                     server.Start();
                 }
             }
-            
+
             base.StartupSpecific();
         }
 

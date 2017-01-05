@@ -34,7 +34,7 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public static class SOPMaterialData
     {
-        public enum SopMaterial : int // redundante and not in use for now 
+        public enum SopMaterial : int // redundante and not in use for now
         {
             Stone = 0,
             Metal = 1,

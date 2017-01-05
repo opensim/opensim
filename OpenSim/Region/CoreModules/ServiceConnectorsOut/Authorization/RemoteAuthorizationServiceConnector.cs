@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
         private bool m_Enabled = false;
         private List<Scene> m_scenes = new List<Scene>();
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }
@@ -103,7 +103,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
                 m_scenes.Add(scene);
                 scene.RegisterModuleInterface<IAuthorizationService>(this);
             }
-            
+
         }
 
         public void RemoveRegion(Scene scene)
@@ -118,16 +118,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
             m_log.InfoFormat("[REMOTE AUTHORIZATION CONNECTOR]: Enabled remote authorization for region {0}", scene.RegionInfo.RegionName);
 
         }
-        
+
         public bool IsAuthorizedForRegion(
              string userID, string firstName, string lastName, string regionID, out string message)
         {
             m_log.InfoFormat(
                 "[REMOTE AUTHORIZATION CONNECTOR]: IsAuthorizedForRegion checking {0} for region {1}", userID, regionID);
-            
+
             bool isAuthorized = true;
             message = String.Empty;
-            
+
             // get the scene this call is being made for
             Scene scene = null;
             lock (m_scenes)
@@ -140,11 +140,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
                     }
                 }
             }
-            
+
             if (scene != null)
             {
                 string mail = String.Empty;
-                
+
                 UserAccount account = scene.UserAccountService.GetUserAccount(UUID.Zero, new UUID(userID));
 
                 //if account not found, we assume its a foreign visitor from HG, else use account data...
@@ -165,7 +165,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
                     "[REMOTE AUTHORIZATION CONNECTOR] IsAuthorizedForRegion, can't find scene to match region id of {0}",
                     regionID);
             }
-            
+
             return isAuthorized;
         }
     }

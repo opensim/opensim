@@ -78,22 +78,22 @@ namespace OpenSim.Region.CoreModules.World.Region
                         scene.RegionInfo.RegionID.ToString()));
 
             m_Scene = scene;
-            
+
             scene.RegisterModuleInterface<IRestartModule>(this);
             MainConsole.Instance.Commands.AddCommand("Regions",
                     false, "region restart bluebox",
                     "region restart bluebox <message> <delta seconds>+",
-                    "Schedule a region restart", 
+                    "Schedule a region restart",
                     "Schedule a region restart after a given number of seconds.  If one delta is given then the region is restarted in delta seconds time.  A time to restart is sent to users in the region as a dismissable bluebox notice.  If multiple deltas are given then a notice is sent when we reach each delta.",
                     HandleRegionRestart);
-            
+
             MainConsole.Instance.Commands.AddCommand("Regions",
                     false, "region restart notice",
                     "region restart notice <message> <delta seconds>+",
-                    "Schedule a region restart", 
+                    "Schedule a region restart",
                     "Schedule a region restart after a given number of seconds.  If one delta is given then the region is restarted in delta seconds time.  A time to restart is sent to users in the region as a transient notice.  If multiple deltas are given then a notice is sent when we reach each delta.",
                     HandleRegionRestart);
-            
+
             MainConsole.Instance.Commands.AddCommand("Regions",
                     false, "region restart abort",
                     "region restart abort [<message>]",
@@ -183,7 +183,7 @@ namespace OpenSim.Region.CoreModules.World.Region
                 nextAlert = m_Alerts[1];
                 break;
             }
-            
+
             int currentAlert = m_Alerts[0];
 
             m_Alerts.RemoveAt(0);
@@ -242,7 +242,7 @@ namespace OpenSim.Region.CoreModules.World.Region
             else
             {
                 m_log.WarnFormat(
-                    "[RESTART MODULE]: Tried to set restart timer to {0} in {1}, which is not a valid interval", 
+                    "[RESTART MODULE]: Tried to set restart timer to {0} in {1}, which is not a valid interval",
                     intervalSeconds, m_Scene.Name);
             }
         }
@@ -286,7 +286,7 @@ namespace OpenSim.Region.CoreModules.World.Region
                 File.Delete(Path.Combine(m_MarkerPath,
                         m_Scene.RegionInfo.RegionID.ToString()));
         }
-        
+
         private void HandleRegionRestart(string module, string[] args)
         {
             if (!(MainConsole.Instance.ConsoleScene is Scene))

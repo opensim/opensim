@@ -23,8 +23,8 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * The design of this map service is based on SimianGrid's PHP-based 
+ *
+ * The design of this map service is based on SimianGrid's PHP-based
  * map service. See this URL for the original PHP version:
  * https://github.com/openmetaversefoundation/simiangrid/
  */
@@ -291,7 +291,7 @@ namespace OpenSim.Services.MapImageService
         {
             try
             {
-                if (File.Exists(fileName))                    
+                if (File.Exists(fileName))
                     return new Bitmap(fileName);
 
                 else

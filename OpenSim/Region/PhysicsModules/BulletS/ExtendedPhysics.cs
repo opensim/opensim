@@ -136,7 +136,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
                 return;
             }
- 
+
             // Register as LSL functions all the [ScriptInvocation] marked methods.
             Comms.RegisterScriptInvocations(this);
             Comms.RegisterConstants(this);

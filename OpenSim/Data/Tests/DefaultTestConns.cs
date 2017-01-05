@@ -39,16 +39,16 @@ namespace OpenSim.Data.Tests
     /// a connection string for testing one of the supported databases.
     /// The connections must be in the section [TestConnections] with names matching the connection class
     /// name for the specific database, e.g.:
-    /// 
+    ///
     /// [TestConnections]
     /// MySqlConnection="..."
     /// SqlConnection="..."
     /// SqliteConnection="..."
-    /// 
+    ///
     /// Note that the conn string may also be set explicitly in the [TestCase()] attribute of test classes
     /// based on BasicDataServiceTest.cs.
     /// </summary>
-    
+
     static class DefaultTestConns
     {
         private static Dictionary<Type, string> conns = new Dictionary<Type, string>();
@@ -63,8 +63,8 @@ namespace OpenSim.Data.Tests
             Assembly asm = Assembly.GetExecutingAssembly();
             string sType = connType.Name;
 
-            // Note: when running from NUnit, the DLL is located in some temp dir, so how do we get 
-            // to the INI file? Ok, so put it into the resources! 
+            // Note: when running from NUnit, the DLL is located in some temp dir, so how do we get
+            // to the INI file? Ok, so put it into the resources!
             // string iniName = Path.Combine(Path.GetDirectoryName(asm.Location), "TestDataConnections.ini");
 
             string[] allres = asm.GetManifestResourceNames();

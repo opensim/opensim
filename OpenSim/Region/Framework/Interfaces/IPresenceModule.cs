@@ -33,7 +33,7 @@ namespace OpenSim.Region.Framework.Interfaces
     {
         public string UserID;
         public UUID RegionID;
-        
+
         public PresenceInfo(string userID, UUID regionID)
         {
             UserID = userID;

@@ -141,7 +141,7 @@ namespace OpenSim.Server.Handlers.MapImage
                     }
                     else
                     {
-                        m_log.WarnFormat("[MAP IMAGE HANDLER]: IP address {0} may be rogue. Region not found at coordinates {1}-{2}", 
+                        m_log.WarnFormat("[MAP IMAGE HANDLER]: IP address {0} may be rogue. Region not found at coordinates {1}-{2}",
                             ipAddr, x, y);
                         return FailureResult("Region not found at given coordinates");
                     }

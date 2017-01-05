@@ -433,9 +433,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             if (m_insertCoopTerminationChecks)
             {
                 // We have to check in event functions as well because the user can manually call these.
-                if (previousSymbol is GlobalFunctionDefinition 
-                    || previousSymbol is WhileStatement 
-                    || previousSymbol is DoWhileStatement 
+                if (previousSymbol is GlobalFunctionDefinition
+                    || previousSymbol is WhileStatement
+                    || previousSymbol is DoWhileStatement
                     || previousSymbol is ForLoop
                     || previousSymbol is StateEvent)
                 GenerateIndentedLine(m_coopTerminationCheck, sb);
@@ -474,8 +474,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             {
                 // A non-braced single line do while structure cannot contain multiple statements.
                 // So to insert the termination check we change this to a braced control structure instead.
-                if (previousSymbol is WhileStatement 
-                    || previousSymbol is DoWhileStatement 
+                if (previousSymbol is WhileStatement
+                    || previousSymbol is DoWhileStatement
                     || previousSymbol is ForLoop)
                 {
                     transformToBlock = true;
@@ -530,7 +530,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         // This code checks for LSL of the following forms, and generates a
         // warning if it finds them.
         //
-        // list l = [ "foo" ]; 
+        // list l = [ "foo" ];
         // l = (l=[]) + l + ["bar"];
         // (produces l=["foo","bar"] in SL but l=["bar"] in OS)
         //
@@ -758,7 +758,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             for (int i = 0; i < fls.kids.Count; i++)
             {
                 SYMBOL s = (SYMBOL)fls.kids[i];
-                
+
                 // Statements surrounded by parentheses in for loops
                 //
                 // e.g.  for ((i = 0), (j = 7); (i < 10); (++i))
@@ -774,7 +774,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 // like it would be considerably more complicated to handle).
                 while (s is ParenthesisExpression)
                     s = (SYMBOL)s.kids.Pop();
-                    
+
                 GenerateNodeToSB(fls, s, sb);
                 if (0 < comma--)
                     Generate(", ", sb);
@@ -891,9 +891,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                     else if (value is OpenMetaverse.Quaternion)
                         retval = String.Format("new LSL_Types.Quaternion(\"{0}\")",((OpenMetaverse.Quaternion)value).ToString());
                     else retval = id;
-                    
+
                     Generate(retval, s, sb);
-                    return; 
+                    return;
                 }
             }
 
@@ -911,7 +911,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             string modinvoke = null;
             if (m_comms != null)
                 modinvoke = m_comms.LookupModInvocation(fc.Id);
-            
+
             if (modinvoke != null)
             {
                 if (fc.kids[0] is ArgumentList)
@@ -926,7 +926,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             {
                 Generate(String.Format("{0}(", CheckName(fc.Id)), fc, sb);
             }
-            
+
             foreach (SYMBOL kid in fc.kids)
                 GenerateNodeToSB(fc, kid, sb);
 
@@ -1124,7 +1124,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         {
             Indent(sb);
             sb.Append(s);
-            
+
             if (null != sym)
                 m_positionMap.Add(new KeyValuePair<int, int>(m_CSharpLine, m_CSharpCol), new KeyValuePair<int, int>(sym.Line, sym.Position));
 

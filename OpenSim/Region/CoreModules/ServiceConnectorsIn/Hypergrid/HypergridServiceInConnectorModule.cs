@@ -48,7 +48,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Hypergrid
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static bool m_Enabled = false;
-        
+
         private IConfigSource m_Config;
         private bool m_Registered = false;
         private string m_LocalServiceDll = String.Empty;
@@ -88,7 +88,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Hypergrid
         {
         }
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }
@@ -130,7 +130,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Hypergrid
                 m_HypergridHandler = new GatekeeperServiceInConnector(m_Config, MainServer.Instance, simService);
 
                 m_UASHandler = new UserAgentServerConnector(m_Config, MainServer.Instance, friendsConn);
-                
+
                 new HeloServiceInConnector(m_Config, MainServer.Instance, "HeloService");
 
                 new HGFriendsServerConnector(m_Config, MainServer.Instance, "HGFriendsService", friendsConn);

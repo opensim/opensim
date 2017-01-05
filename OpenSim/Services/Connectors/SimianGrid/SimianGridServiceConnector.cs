@@ -91,7 +91,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 m_log.Error("[SIMIAN GRID CONNECTOR]: No Server URI named in section GridService");
                 throw new Exception("Grid connector init error");
             }
-            
+
             if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
                 serviceUrl = serviceUrl + '/';
             m_ServerURI = serviceUrl;
@@ -230,7 +230,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             };
 
             // m_log.DebugFormat("[SIMIAN GRID CONNECTOR] request grid at {0}",position.ToString());
-            
+
             OSDMap response = SimianGrid.PostToService(m_ServerURI, requestArgs);
             if (response["Success"].AsBoolean())
             {
@@ -308,7 +308,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             };
 
             //m_log.DebugFormat("[SIMIAN GRID CONNECTOR] request regions by range {0} to {1}",minPosition.ToString(),maxPosition.ToString());
-            
+
 
             OSDMap response = SimianGrid.PostToService(m_ServerURI, requestArgs);
             if (response["Success"].AsBoolean())
@@ -413,7 +413,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 return -1;
             }
         }
-        
+
         public Dictionary<string, object> GetExtraFeatures()
         {
             /// See SimulatorFeaturesModule - Need to get map, search and destination guide

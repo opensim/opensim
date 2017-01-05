@@ -414,7 +414,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             }
         }
 
-        // This method gives the region an opportunity to interfere with 
+        // This method gives the region an opportunity to interfere with
         // message delivery. For now we just enforce the enable/disable
         // flag.
 
@@ -428,7 +428,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             }
         }
 
-        // This supports any local message traffic that might be needed in 
+        // This supports any local message traffic that might be needed in
         // support of command processing. At present there is none.
 
         internal void LocalChat(string msg)

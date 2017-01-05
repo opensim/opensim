@@ -39,7 +39,7 @@ namespace OpenSim.Data
     }
 
 
-    public interface IOfflineIMData 
+    public interface IOfflineIMData
     {
         OfflineIMData[] Get(string field, string val);
         long GetCount(string field, string key);

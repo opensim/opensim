@@ -67,7 +67,7 @@ namespace OpenSim.Server.Handlers.Authorization
 
             xs = new XmlSerializer(typeof(AuthorizationResponse));
             return ServerUtils.SerializeResult(xs, result);
-            
+
         }
     }
 }

@@ -45,7 +45,7 @@ using System.IO;
 namespace OpenSim.Region.OptionalModules.World.TreePopulator
 {
     /// <summary>
-    /// Version 2.02 - Still hacky 
+    /// Version 2.02 - Still hacky
     /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "TreePopulatorModule")]
     public class TreePopulatorModule : INonSharedRegionModule, ICommandableModule, IVegetationModule
@@ -60,7 +60,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
             public string m_name;
             public Boolean m_frozen;
             public Tree m_tree_type;
-            public int m_tree_quantity; 
+            public int m_tree_quantity;
             public float m_treeline_low;
             public float m_treeline_high;
             public Vector3 m_seed_point;
@@ -78,7 +78,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
             {
             }
 
-            public Copse(string fileName, Boolean planted) 
+            public Copse(string fileName, Boolean planted)
             {
                 Copse cp = (Copse)DeserializeObject(fileName);
 
@@ -139,7 +139,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
             {
                 string frozen = (this.m_frozen ? "F" : "A");
 
-                return string.Format("{0}TPM: {1}; {2}; {3:0.0}; {4:0.0}; {5:0.0}; {6}; {7:0.0}; {8:0.0}; {9:0.0}; {10:0.00};", 
+                return string.Format("{0}TPM: {1}; {2}; {3:0.0}; {4:0.0}; {5:0.0}; {6}; {7:0.0}; {8:0.0}; {9:0.0}; {10:0.00};",
                     frozen,
                     this.m_name,
                     this.m_tree_quantity,
@@ -156,7 +156,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
 
         private List<Copse> m_copse;
 
-        private double m_update_ms = 1000.0; // msec between updates 
+        private double m_update_ms = 1000.0; // msec between updates
         private bool m_active_trees = false;
 
         Timer CalculateTrees;
@@ -174,7 +174,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
 
         public void Initialise(IConfigSource config)
         {
-            
+
             // ini file settings
             try
             {
@@ -621,11 +621,11 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
                 CalculateTrees.Elapsed += CalculateTrees_Elapsed;
                 CalculateTrees.Start();
             }
-            else 
+            else
             {
                  CalculateTrees.Stop();
             }
-        } 
+        }
 
         private void growTrees()
         {
@@ -670,7 +670,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
                             if (copse.m_trees.Count < copse.m_tree_quantity)
                             {
                                 // Tree has grown enough to seed if it has grown by at least 25% of seeded to full grown height
-                                if (s_tree.Scale.Z > copse.m_initial_scale.Z + (copse.m_maximum_scale.Z - copse.m_initial_scale.Z) / 4.0) 
+                                if (s_tree.Scale.Z > copse.m_initial_scale.Z + (copse.m_maximum_scale.Z - copse.m_initial_scale.Z) / 4.0)
                                 {
                                     if (Util.RandomClass.NextDouble() > 0.75)
                                     {

@@ -48,12 +48,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
 {
     [TestFixture]
     public class InventoryAccessModuleTests : OpenSimTestCase
-    {      
+    {
         protected TestScene m_scene;
         protected BasicInventoryAccessModule m_iam;
         protected UUID m_userId = UUID.Parse("00000000-0000-0000-0000-000000000020");
         protected TestClient m_tc;
-            
+
         [SetUp]
         public override void SetUp()
         {
@@ -68,32 +68,32 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             SceneHelpers sceneHelpers = new SceneHelpers();
             m_scene = sceneHelpers.SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, config, m_iam);
-            
+
             // Create user
             string userFirstName = "Jock";
             string userLastName = "Stirrup";
             string userPassword = "troll";
-            UserAccountHelpers.CreateUserWithInventory(m_scene, userFirstName, userLastName, m_userId, userPassword);                        
-            
+            UserAccountHelpers.CreateUserWithInventory(m_scene, userFirstName, userLastName, m_userId, userPassword);
+
             AgentCircuitData acd = new AgentCircuitData();
             acd.AgentID = m_userId;
             m_tc = new TestClient(acd, m_scene);
         }
-        
+
         [Test]
         public void TestRezCoalescedObject()
         {
 /*
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
-            
+
             // Create asset
             SceneObjectGroup object1 = SceneHelpers.CreateSceneObject(1, m_userId, "Object1", 0x20);
             object1.AbsolutePosition = new Vector3(15, 30, 45);
-            
+
             SceneObjectGroup object2 = SceneHelpers.CreateSceneObject(1, m_userId, "Object2", 0x40);
-            object2.AbsolutePosition = new Vector3(25, 50, 75);                 
-            
+            object2.AbsolutePosition = new Vector3(25, 50, 75);
+
             CoalescedSceneObjects coa = new CoalescedSceneObjects(m_userId, object1, object2);
 
             UUID asset1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
@@ -107,46 +107,46 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             item1.Name = item1Name;
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
-            InventoryFolderBase objsFolder 
+            InventoryFolderBase objsFolder
                 = InventoryArchiveUtils.FindFoldersByPath(m_scene.InventoryService, m_userId, "Objects")[0];
             item1.Folder = objsFolder.ID;
             item1.Flags |= (uint)InventoryItemFlags.ObjectHasMultipleItems;
             m_scene.AddInventoryItem(item1);
-            
-            SceneObjectGroup so 
+
+            SceneObjectGroup so
                 = m_iam.RezObject(
-                    m_tc, item1Id, new Vector3(100, 100, 100), Vector3.Zero, UUID.Zero, 1, false, false, false, UUID.Zero, false);            
-            
+                    m_tc, item1Id, new Vector3(100, 100, 100), Vector3.Zero, UUID.Zero, 1, false, false, false, UUID.Zero, false);
+
             Assert.That(so, Is.Not.Null);
-            
+
             Assert.That(m_scene.SceneGraph.GetTotalObjectsCount(), Is.EqualTo(2));
-          
+
             SceneObjectPart retrievedObj1Part = m_scene.GetSceneObjectPart(object1.Name);
             Assert.That(retrievedObj1Part, Is.Null);
-            
+
             retrievedObj1Part = m_scene.GetSceneObjectPart(item1.Name);
             Assert.That(retrievedObj1Part, Is.Not.Null);
             Assert.That(retrievedObj1Part.Name, Is.EqualTo(item1.Name));
-            
+
             // Bottom of coalescence is placed on ground, hence we end up with 100.5 rather than 85 since the bottom
             // object is unit square.
             Assert.That(retrievedObj1Part.AbsolutePosition, Is.EqualTo(new Vector3(95, 90, 100.5f)));
-            
+
             SceneObjectPart retrievedObj2Part = m_scene.GetSceneObjectPart(object2.Name);
-            Assert.That(retrievedObj2Part, Is.Not.Null);            
+            Assert.That(retrievedObj2Part, Is.Not.Null);
             Assert.That(retrievedObj2Part.Name, Is.EqualTo(object2.Name));
             Assert.That(retrievedObj2Part.AbsolutePosition, Is.EqualTo(new Vector3(105, 110, 130.5f)));
 */
-        }        
-        
+        }
+
         [Test]
         public void TestRezObject()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
-            
+
             // Create asset
-            SceneObjectGroup object1 = SceneHelpers.CreateSceneObject(1, m_userId, "My Little Dog Object", 0x40);         
+            SceneObjectGroup object1 = SceneHelpers.CreateSceneObject(1, m_userId, "My Little Dog Object", 0x40);
 
             UUID asset1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
             AssetBase asset1 = AssetHelpers.CreateAsset(asset1Id, object1);
@@ -159,17 +159,17 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             item1.Name = item1Name;
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
-            InventoryFolderBase objsFolder 
+            InventoryFolderBase objsFolder
                 = InventoryArchiveUtils.FindFoldersByPath(m_scene.InventoryService, m_userId, "Objects")[0];
             item1.Folder = objsFolder.ID;
             m_scene.AddInventoryItem(item1);
-            
-            SceneObjectGroup so 
+
+            SceneObjectGroup so
                 = m_iam.RezObject(
-                    m_tc, item1Id, UUID.Zero, Vector3.Zero, Vector3.Zero, UUID.Zero, 1, false, false, false, UUID.Zero, false);            
-            
+                    m_tc, item1Id, UUID.Zero, Vector3.Zero, Vector3.Zero, UUID.Zero, 1, false, false, false, UUID.Zero, false);
+
             Assert.That(so, Is.Not.Null);
-            
+
             SceneObjectPart retrievedPart = m_scene.GetSceneObjectPart(so.UUID);
             Assert.That(retrievedPart, Is.Not.Null);
         }

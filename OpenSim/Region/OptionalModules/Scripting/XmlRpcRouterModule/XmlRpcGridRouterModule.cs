@@ -54,7 +54,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcGridRouterModule
     public class XmlRpcGridRouter : INonSharedRegionModule, IXmlRpcRouter
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         private Dictionary<UUID, UUID> m_Channels =
                 new Dictionary<UUID, UUID>();
 
@@ -94,7 +94,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcGridRouterModule
             {
                 scriptEngine.OnScriptRemoved += this.ScriptRemoved;
                 scriptEngine.OnObjectRemoved += this.ObjectRemoved;
-          
+
             }
         }
 
@@ -131,7 +131,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcGridRouterModule
             if (!m_Enabled)
                 return;
 
-            m_log.InfoFormat("[XMLRPC GRID ROUTER]: New receiver Obj: {0} Ch: {1} ID: {2} URI: {3}", 
+            m_log.InfoFormat("[XMLRPC GRID ROUTER]: New receiver Obj: {0} Ch: {1} ID: {2} URI: {3}",
                                 objectID.ToString(), channel.ToString(), itemID.ToString(), uri);
 
             XmlRpcInfo info = new XmlRpcInfo();

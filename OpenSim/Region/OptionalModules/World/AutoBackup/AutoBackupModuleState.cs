@@ -35,7 +35,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
     /// If you use this class in any way outside of AutoBackupModule, you should treat the class as opaque.
     /// Since it is not part of the framework, you really should not rely upon it outside of the AutoBackupModule implementation.
     /// </summary>
-    /// 
+    ///
     public class AutoBackupModuleState
     {
         private Dictionary<Guid, string> m_liveRequests = null;

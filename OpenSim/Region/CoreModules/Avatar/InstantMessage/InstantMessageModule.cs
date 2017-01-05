@@ -49,7 +49,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         /// Is this module enabled?
         /// </value>
         protected bool m_enabled = false;
-        
+
         protected readonly List<Scene> m_scenes = new List<Scene>();
 
         #region Region Module interface
@@ -65,7 +65,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                         "InstantMessageModule")
                     return;
             }
-            
+
             m_enabled = true;
         }
 

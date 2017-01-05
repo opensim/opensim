@@ -65,11 +65,11 @@ namespace OpenSim.Region.Framework.DynamicAttributes.DOExampleModule
         private Scene m_scene;
         private IDialogModule m_dialogMod;
 
-        public string Name { get { return "DO"; } }        
-        public Type ReplaceableInterface { get { return null; } }        
+        public string Name { get { return "DO"; } }
+        public Type ReplaceableInterface { get { return null; } }
 
         public void Initialise(IConfigSource source) {}
-        
+
         public void AddRegion(Scene scene)
         {
             if (ENABLED)
@@ -80,18 +80,18 @@ namespace OpenSim.Region.Framework.DynamicAttributes.DOExampleModule
                 m_dialogMod = m_scene.RequestModuleInterface<IDialogModule>();
             }
         }
-        
-        public void RemoveRegion(Scene scene) 
+
+        public void RemoveRegion(Scene scene)
         {
             if (ENABLED)
             {
                 m_scene.EventManager.OnSceneGroupMove -= OnSceneGroupMove;
             }
         }
-        
+
         public void RegionLoaded(Scene scene) {}
-        
-        public void Close() 
+
+        public void Close()
         {
             RemoveRegion(m_scene);
         }
@@ -116,7 +116,7 @@ namespace OpenSim.Region.Framework.DynamicAttributes.DOExampleModule
 
             rootPart.DynObjs.Add(DAExampleModule.Namespace, Name, new MyObject(movesSoFar));
         }
-        
+
         private bool OnSceneGroupMove(UUID groupId, Vector3 delta)
         {
             SceneObjectGroup so = m_scene.GetSceneObjectGroup(groupId);
@@ -129,11 +129,11 @@ namespace OpenSim.Region.Framework.DynamicAttributes.DOExampleModule
             if (rawObj != null)
             {
                 MyObject myObj = (MyObject)rawObj;
-               
+
                 m_dialogMod.SendGeneralAlert(string.Format("{0} {1} moved {2} times", so.Name, so.UUID, ++myObj.Moves));
             }
-            
+
             return true;
-        }        
+        }
     }
 }

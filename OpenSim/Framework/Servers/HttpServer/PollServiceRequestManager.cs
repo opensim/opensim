@@ -80,7 +80,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             startInfo.ThreadPoolName = "PoolService";
 
             m_threadPool = new SmartThreadPool(startInfo);
-		
+
         }
 
         public void Start()
@@ -109,7 +109,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 true,
                 null,
                 1000 * 60 * 10);
-				
+
 
         }
 

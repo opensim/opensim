@@ -38,7 +38,7 @@ namespace OpenSim.Data
         /// <summary>This function converts a value returned from the database in one of the
         /// supported formats into a UUID.  This function is not actually DBMS-specific right
         /// now
-        /// 
+        ///
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>

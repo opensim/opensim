@@ -1,21 +1,21 @@
 ﻿/* The MIT License
- * 
+ *
  * Copyright (c) 2010 Intel Corporation.
  * All rights reserved.
  *
- * Based on the convexdecomposition library from 
+ * Based on the convexdecomposition library from
  * <http://codesuppository.googlecode.com> by John W. Ratcliff and Stan Melax.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -246,13 +246,13 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
         }
 
         private static float DistToPt(float3 p, float4 plane)
-	    {
-		    float x = p.x;
-		    float y = p.y;
-		    float z = p.z;
-		    float d = x*plane.x + y*plane.y + z*plane.z + plane.w;
-		    return d;
-	    }
+        {
+            float x = p.x;
+            float y = p.y;
+            float z = p.z;
+            float d = x*plane.x + y*plane.y + z*plane.z + plane.w;
+            return d;
+        }
 
         private static void intersect(float3 p1, float3 p2, ref float3 split, float4 plane)
         {

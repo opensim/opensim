@@ -35,13 +35,13 @@ using OpenSim.Services.Interfaces;
 namespace OpenSim.Framework.Serialization
 {
     /// <summary>
-    /// Resolves OpenSim Profile Anchors (OSPA).  An OSPA is a string used to provide information for 
+    /// Resolves OpenSim Profile Anchors (OSPA).  An OSPA is a string used to provide information for
     /// identifying user profiles or supplying a simple name if no profile is available.
     /// </summary>
     public class OspResolver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         public const string OSPA_PREFIX = "ospa:";
         public const string OSPA_NAME_KEY = "n";
         public const string OSPA_NAME_VALUE_SEPARATOR = " ";
@@ -76,7 +76,7 @@ namespace OpenSim.Framework.Serialization
 
             return null;
         }
-        
+
         /// <summary>
         /// Make an OSPA given a user name
         /// </summary>
@@ -89,17 +89,17 @@ namespace OpenSim.Framework.Serialization
 
 //            m_log.DebugFormat("[OSP RESOLVER]: Made OSPA {0} for {1} {2}", ospa, firstName, lastName);
 //            System.Console.WriteLine("[OSP RESOLVER]: Made OSPA {0} for {1} {2}", ospa, firstName, lastName);
-            
+
             return ospa;
         }
-        
+
         /// <summary>
         /// Resolve an osp string into the most suitable internal OpenSim identifier.
         /// </summary>
-        /// 
+        ///
         /// In some cases this will be a UUID if a suitable profile exists on the system.  In other cases, this may
         /// just return the same identifier after creating a temporary profile.
-        /// 
+        ///
         /// <param name="ospa"></param>
         /// <param name="commsManager"></param>
         /// <returns>
@@ -111,14 +111,14 @@ namespace OpenSim.Framework.Serialization
             if (!ospa.StartsWith(OSPA_PREFIX))
             {
 //                m_log.DebugFormat("[OSP RESOLVER]: ResolveOspa() got unrecognized format [{0}]", ospa);
-                return UUID.Zero;            
+                return UUID.Zero;
             }
 
 //            m_log.DebugFormat("[OSP RESOLVER]: Resolving {0}", ospa);
-            
+
             string ospaMeat = ospa.Substring(OSPA_PREFIX.Length);
             string[] ospaTuples = ospaMeat.Split(OSPA_TUPLE_SEPARATOR_ARRAY);
-            
+
             foreach (string tuple in ospaTuples)
             {
                 int tupleSeparatorIndex = tuple.IndexOf(OSPA_PAIR_SEPARATOR);
@@ -128,17 +128,17 @@ namespace OpenSim.Framework.Serialization
                     m_log.WarnFormat("[OSP RESOLVER]: Ignoring non-tuple component {0} in OSPA {1}", tuple, ospa);
                     continue;
                 }
-                
+
                 string key = tuple.Remove(tupleSeparatorIndex).Trim();
                 string value = tuple.Substring(tupleSeparatorIndex + 1).Trim();
-                
+
                 if (OSPA_NAME_KEY == key)
                     return ResolveOspaName(value, userService);
             }
-            
+
             return UUID.Zero;
         }
-        
+
         /// <summary>
         /// Hash a profile name into a UUID
         /// </summary>
@@ -148,7 +148,7 @@ namespace OpenSim.Framework.Serialization
         {
             return new UUID(Utils.MD5(Encoding.Unicode.GetBytes(name)), 0);
         }
-        
+
         /// <summary>
         /// Resolve an OSPI name by querying existing persistent user profiles.  If there is no persistent user profile
         /// then a temporary user profile is inserted in the cache.
@@ -164,13 +164,13 @@ namespace OpenSim.Framework.Serialization
                 return UUID.Zero;
 
             int nameSeparatorIndex = name.IndexOf(OSPA_NAME_VALUE_SEPARATOR);
-            
+
             if (nameSeparatorIndex < 0)
             {
                 m_log.WarnFormat("[OSP RESOLVER]: Ignoring unseparated name {0}", name);
                 return UUID.Zero;
             }
-            
+
             string firstName = name.Remove(nameSeparatorIndex).TrimEnd();
             string lastName = name.Substring(nameSeparatorIndex + 1).TrimStart();
 
@@ -178,14 +178,14 @@ namespace OpenSim.Framework.Serialization
             if (account != null)
             {
 //                m_log.DebugFormat(
-//                    "[OSP RESOLVER]: Found user account with uuid {0} for {1} {2}", 
+//                    "[OSP RESOLVER]: Found user account with uuid {0} for {1} {2}",
 //                    account.PrincipalID, firstName, lastName);
-                
+
                 return account.PrincipalID;
             }
 //            else
 //            {
-//                m_log.DebugFormat("[OSP RESOLVER]: No resolved OSPA user account for {0}", name);            
+//                m_log.DebugFormat("[OSP RESOLVER]: No resolved OSPA user account for {0}", name);
 //            }
 
             // XXX: Disable temporary user profile creation for now as implementation is incomplete - justincc
@@ -194,11 +194,11 @@ namespace OpenSim.Framework.Serialization
             tempUserProfile.FirstName = firstName;
             tempUserProfile.SurName = lastName;
             tempUserProfile.ID = HashName(tempUserProfile.Name);
-            
+
             m_log.DebugFormat(
                 "[OSP RESOLVER]: Adding temporary user profile for {0} {1}", tempUserProfile.Name, tempUserProfile.ID);
             commsManager.UserService.AddTemporaryUserProfile(tempUserProfile);
-            
+
             return tempUserProfile.ID;
             */
 

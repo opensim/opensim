@@ -82,11 +82,11 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 
             string[] configSections = new string[] { "Map", "Startup" };
 
-            drawPrimVolume 
+            drawPrimVolume
                 = Util.GetConfigVarFromSections<bool>(m_config, "DrawPrimOnMapTile", configSections, drawPrimVolume);
-            textureTerrain 
+            textureTerrain
                 = Util.GetConfigVarFromSections<bool>(m_config, "TextureOnMapTile", configSections, textureTerrain);
-            generateMaptiles 
+            generateMaptiles
                 = Util.GetConfigVarFromSections<bool>(m_config, "GenerateMaptiles", configSections, generateMaptiles);
 
             if (generateMaptiles)
@@ -126,15 +126,15 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                     catch (Exception)
                     {
                         m_log.ErrorFormat(
-                            "[MAPTILE]: Failed to load Static map image texture file: {0} for {1}", 
+                            "[MAPTILE]: Failed to load Static map image texture file: {0} for {1}",
                             m_scene.RegionInfo.MaptileStaticFile, m_scene.Name);
                         //mapbmp = new Bitmap((int)m_scene.Heightmap.Width, (int)m_scene.Heightmap.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
                         mapbmp = null;
                     }
 
-                    if (mapbmp != null) 
+                    if (mapbmp != null)
                         m_log.DebugFormat(
-                            "[MAPTILE]: Static map image texture file {0} found for {1}", 
+                            "[MAPTILE]: Static map image texture file {0} found for {1}",
                             m_scene.RegionInfo.MaptileStaticFile, m_scene.Name);
                 }
             }
@@ -308,7 +308,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             List<uint> z_localIDs = new List<uint>();
             Dictionary<uint, DrawStruct> z_sort = new Dictionary<uint, DrawStruct>();
 
-            try 
+            try
             {
                 lock (objs)
                 {

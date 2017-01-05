@@ -99,13 +99,13 @@ namespace OpenSim.Framework.Monitoring
             }
 
             string path = cmd[2];
-            
+
             using (StreamWriter sw = new StreamWriter(path, true))
             {
                 foreach (string line in GetReport())
                     sw.WriteLine(line);
-            }   
-            
+            }
+
             MainConsole.Instance.OutputFormat("Stats saved to file {0}", path);
         }
 

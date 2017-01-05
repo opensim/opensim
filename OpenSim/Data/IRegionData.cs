@@ -67,7 +67,7 @@ namespace OpenSim.Data
     /// <summary>
     /// An interface for connecting to the authentication datastore
     /// </summary>
-    public interface IRegionData 
+    public interface IRegionData
     {
         RegionData Get(UUID regionID, UUID ScopeID);
         List<RegionData> Get(string regionName, UUID ScopeID);

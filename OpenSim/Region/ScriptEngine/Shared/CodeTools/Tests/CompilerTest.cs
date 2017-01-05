@@ -81,7 +81,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
             m_resolveEventHandler = new ResolveEventHandler(AssemblyResolver.OnAssemblyResolve);
 
             System.AppDomain.CurrentDomain.AssemblyResolve += m_resolveEventHandler;
-                
+
             m_compilerParameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenSim.Region.ScriptEngine.Shared.dll"));
             m_compilerParameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenSim.Region.ScriptEngine.Shared.Api.Runtime.dll"));
             m_compilerParameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenMetaverseTypes.dll"));
@@ -112,7 +112,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
             CSCodeGenerator cg = new CSCodeGenerator();
             string output = cg.Convert(input);
 
-            output = Compiler.CreateCSCompilerScript(output, "script1", typeof(ScriptBaseClass).FullName, null);         
+            output = Compiler.CreateCSCompilerScript(output, "script1", typeof(ScriptBaseClass).FullName, null);
             //            System.Console.WriteLine(output);
 
             positionMap = cg.PositionMap;
@@ -154,7 +154,7 @@ erros position is better tested on viewers
         @l;
         i = 1;
     }
-}", out positionMap);           
+}", out positionMap);
 
             Assert.AreEqual(
                 new KeyValuePair<int, int>(7, 9),

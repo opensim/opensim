@@ -122,12 +122,12 @@ namespace OpenSim.Services.Connectors
                         catch (Exception e)
                         {
                             m_log.ErrorFormat(
-                                "[LAND CONNECTOR]: Got exception while parsing land-data: {0} {1}", 
+                                "[LAND CONNECTOR]: Got exception while parsing land-data: {0} {1}",
                                 e.Message, e.StackTrace);
                         }
                     }
                 }
-                else 
+                else
                     m_log.WarnFormat("[LAND CONNECTOR]: Couldn't find region with handle {0}", regionHandle);
             }
             catch (Exception e)
@@ -135,7 +135,7 @@ namespace OpenSim.Services.Connectors
                 m_log.ErrorFormat(
                     "[LAND CONNECTOR]: Couldn't contact region {0}: {1} {2}", regionHandle, e.Message, e.StackTrace);
             }
-        
+
             return landData;
         }
     }

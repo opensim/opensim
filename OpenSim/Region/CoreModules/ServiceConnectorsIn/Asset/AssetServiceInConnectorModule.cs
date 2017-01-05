@@ -45,7 +45,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Asset
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static bool m_Enabled = false;
-        
+
         private IConfigSource m_Config;
         bool m_Registered = false;
 
@@ -74,7 +74,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Asset
         {
         }
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }
@@ -95,7 +95,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Asset
 
                 m_log.Info("[HGAssetService]: Starting...");
 
-                
+
                 Object[] args = new Object[] { m_Config, MainServer.Instance, "HGAssetService" };
 
                 ServerUtils.LoadPlugin<IServiceConnector>("OpenSim.Server.Handlers.dll:AssetServiceConnector", args);

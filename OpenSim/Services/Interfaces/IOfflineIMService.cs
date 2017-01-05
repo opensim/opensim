@@ -35,9 +35,9 @@ namespace OpenSim.Services.Interfaces
     public interface IOfflineIMService
     {
         List<GridInstantMessage> GetMessages(UUID principalID);
-        
+
         bool StoreMessage(GridInstantMessage im, out string reason);
-        
+
         /// <summary>
         /// Delete messages to or from this user (or group).
         /// </summary>

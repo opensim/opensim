@@ -180,7 +180,7 @@ namespace OpenSim.Region.ClientStack.Linden.Tests
             TestHelpers.InMethod();
 //            TestHelpers.EnableLogging();
 
-            UUID npcId 
+            UUID npcId
                 = m_npcMod.CreateNPC(
                     "John", "Smith", new Vector3(128, 128, 30), UUID.Zero, true, m_scene, new AvatarAppearance());
 

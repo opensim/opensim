@@ -51,10 +51,10 @@ POSSIBILITY OF SUCH DAMAGE.
  distribute, sublicense, and/or sell copies of the Software, and to
  permit persons to whom the Software is furnished to do so, subject to
  the following conditions:
- 
+
  The above copyright notice and this permission notice shall be
  included in all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -156,7 +156,7 @@ namespace Prebuild.Core.Targets
 
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     [Target("autotools")]
     public class AutotoolsTarget : ITarget
@@ -650,7 +650,7 @@ namespace Prebuild.Core.Targets
                     string tempAssemblyFile = Path.Combine(Path.GetTempPath(), project.Name + "-temp.dll");
                     System.CodeDom.Compiler.CompilerParameters cparam =
                         new System.CodeDom.Compiler.CompilerParameters(args, tempAssemblyFile);
-                    
+
                     System.CodeDom.Compiler.CompilerResults cr =
                         cscp.CompileAssemblyFromFile(cparam, sources);
 
@@ -673,11 +673,11 @@ namespace Prebuild.Core.Targets
                         if (File.Exists(tempAssemblyFile))
                             File.Delete(tempAssemblyFile);
                     }
-                    catch 
+                    catch
                     {
                         Console.WriteLine("Error! '{0}'", e);
                     }
-                   
+
                 }
 
                 // Tell the user if there's a problem copying the file
@@ -977,7 +977,7 @@ namespace Prebuild.Core.Targets
 
             if(autotoolsStream == null) {
 
-              /* 
+              /*
                * try without the default namespace prepended, in
                * case prebuild.exe assembly was compiled with
                * something other than Visual Studio .NET

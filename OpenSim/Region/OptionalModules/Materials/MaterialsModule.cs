@@ -59,8 +59,8 @@ namespace OpenSim.Region.OptionalModules.Materials
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public string Name { get { return "MaterialsModule"; } }        
-        
+        public string Name { get { return "MaterialsModule"; } }
+
         public Type ReplaceableInterface { get { return null; } }
 
         IAssetCache m_cache;
@@ -88,13 +88,13 @@ namespace OpenSim.Region.OptionalModules.Materials
             if (m_enabled)
                 m_log.DebugFormat("[Materials]: Initialized");
         }
-        
+
         public void Close()
         {
             if (!m_enabled)
                 return;
         }
-        
+
         public void AddRegion(Scene scene)
         {
             if (!m_enabled)
@@ -152,7 +152,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                         m_scene.AssetService.Store(a);
                     }
                 });
-            }       
+            }
         }
 
         private void EventManager_OnObjectAddedToScene(SceneObjectGroup obj)
@@ -166,7 +166,7 @@ namespace OpenSim.Region.OptionalModules.Materials
         {
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
 
-            IRequestHandler renderMaterialsPostHandler 
+            IRequestHandler renderMaterialsPostHandler
                 = new RestStreamHandler("POST", capsBase + "/",
                     (request, path, param, httpRequest, httpResponse)
                         => RenderMaterialsPostCap(request, agentID),
@@ -177,7 +177,7 @@ namespace OpenSim.Region.OptionalModules.Materials
             // and POST handlers, (at least at the time this was originally written), so we first set up a POST
             // handler normally and then add a GET handler via MainServer
 
-            IRequestHandler renderMaterialsGetHandler 
+            IRequestHandler renderMaterialsGetHandler
                 = new RestStreamHandler("GET", capsBase + "/",
                     (request, path, param, httpRequest, httpResponse)
                         => RenderMaterialsGetCap(request),
@@ -185,14 +185,14 @@ namespace OpenSim.Region.OptionalModules.Materials
             MainServer.Instance.AddStreamHandler(renderMaterialsGetHandler);
 
             // materials viewer seems to use either POST or PUT, so assign POST handler for PUT as well
-            IRequestHandler renderMaterialsPutHandler 
+            IRequestHandler renderMaterialsPutHandler
                 = new RestStreamHandler("PUT", capsBase + "/",
                     (request, path, param, httpRequest, httpResponse)
                         => RenderMaterialsPutCap(request, agentID),
                     "RenderMaterials", null);
             MainServer.Instance.AddStreamHandler(renderMaterialsPutHandler);
         }
-        
+
         public void RemoveRegion(Scene scene)
         {
             if (!m_enabled)
@@ -201,8 +201,8 @@ namespace OpenSim.Region.OptionalModules.Materials
             m_scene.EventManager.OnRegisterCaps -= OnRegisterCaps;
             m_scene.EventManager.OnObjectAddedToScene -= EventManager_OnObjectAddedToScene;
             m_scene.EventManager.OnBackup -= EventManager_OnBackup;
-        }        
-        
+        }
+
         public void RegionLoaded(Scene scene)
         {
             if (!m_enabled) return;
@@ -285,7 +285,7 @@ namespace OpenSim.Region.OptionalModules.Materials
         /// Find the materials used in the SOP, and add them to 'm_regionMaterials'.
         /// </summary>
         private void GetStoredMaterialsInPart(SceneObjectPart part)
-        { 
+        {
             if (part.Shape == null)
                 return;
 
@@ -299,7 +299,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                 GetStoredMaterialInFace(part, te.DefaultTexture);
             else
                 m_log.WarnFormat(
-                    "[Materials]: Default texture for part {0} (part of object {1}) in {2} unexpectedly null.  Ignoring.", 
+                    "[Materials]: Default texture for part {0} (part of object {1}) in {2} unexpectedly null.  Ignoring.",
                     part.Name, part.ParentGroup.Name, m_scene.Name);
 
             foreach (Primitive.TextureEntryFace face in te.FaceTextures)
@@ -363,7 +363,7 @@ namespace OpenSim.Region.OptionalModules.Materials
 
                 byte[] inBytes = req["Zipped"].AsBinary();
 
-                try 
+                try
                 {
                     osd = ZDecompressBytesToOsd(inBytes);
 
@@ -409,7 +409,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                     //return "";
                 }
             }
-            
+
             resp["Zipped"] = ZCompressOSD(respArr, false);
             string response = OSDParser.SerializeLLSDXmlString(resp);
 
@@ -435,7 +435,7 @@ namespace OpenSim.Region.OptionalModules.Materials
 
                 byte[] inBytes = req["Zipped"].AsBinary();
 
-                try 
+                try
                 {
                     osd = ZDecompressBytesToOsd(inBytes);
 
@@ -493,7 +493,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                                             m_log.WarnFormat("[Materials]: Error in TextureEntry for SOP {0} {1}", sop.Name, sop.UUID);
                                             continue;
                                         }
-                                        
+
                                         UUID id;
                                         if (mat == null)
                                         {
@@ -588,7 +588,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                     //return "";
                 }
             }
-            
+
             resp["Zipped"] = ZCompressOSD(respArr, false);
             string response = OSDParser.SerializeLLSDXmlString(resp);
 
@@ -684,7 +684,7 @@ namespace OpenSim.Region.OptionalModules.Materials
 
             if (sop.Name != "Primitive")
                 return sop.Name;
-            
+
             if ((sop.ParentGroup != null) && (sop.ParentGroup.Name != "Primitive"))
                 return sop.ParentGroup.Name;
 
@@ -748,7 +748,7 @@ namespace OpenSim.Region.OptionalModules.Materials
 
             using (MemoryStream msSinkCompressed = new MemoryStream())
             {
-                using (Ionic.Zlib.ZlibStream zOut = new Ionic.Zlib.ZlibStream(msSinkCompressed, 
+                using (Ionic.Zlib.ZlibStream zOut = new Ionic.Zlib.ZlibStream(msSinkCompressed,
                     Ionic.Zlib.CompressionMode.Compress, CompressionLevel.BestCompression, true))
                 {
                     zOut.Write(data, 0, data.Length);

@@ -38,7 +38,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         TYPE_NONE = 0,
 
         /// <summary>
-        /// No Angular motor, High Left right friction, No Hover, Linear Deflection 1, no angular deflection 
+        /// No Angular motor, High Left right friction, No Hover, Linear Deflection 1, no angular deflection
         /// no vertical attractor, No banking, Identity rotation frame
         /// </summary>
         TYPE_SLED = 1,

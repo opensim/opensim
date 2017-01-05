@@ -76,7 +76,7 @@ namespace OpenSim.Groups
 
             // Check if it already exists
             GroupData grec = m_Database.RetrieveGroup(groupID);
-            if (grec == null || 
+            if (grec == null ||
                 (grec != null && grec.Data["Location"] != string.Empty && grec.Data["Location"].ToLower() != serviceLocation.ToLower()))
             {
                 // Create the group

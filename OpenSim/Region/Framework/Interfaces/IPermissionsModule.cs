@@ -42,7 +42,7 @@ namespace OpenSim.Region.Framework.Interfaces
 
     public interface IPermissionsModule
     {
-        
+
         /// <summary>
         /// Returns the type of permissions that the user has over an object.
         /// </summary>

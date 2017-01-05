@@ -48,7 +48,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
         }
 
         // Called from standalone configurations
-        public HGFriendsServerConnector(IConfigSource config, IHttpServer server, string configName, IFriendsSimConnector localConn) 
+        public HGFriendsServerConnector(IConfigSource config, IHttpServer server, string configName, IFriendsSimConnector localConn)
             : base(config, server, configName)
         {
             if (configName != string.Empty)

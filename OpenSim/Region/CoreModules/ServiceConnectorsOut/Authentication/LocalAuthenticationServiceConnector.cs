@@ -53,7 +53,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authentication
 
         #region ISharedRegionModule
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }
@@ -143,13 +143,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authentication
         {
             // Not implemented at the regions
             realID = UUID.Zero;
-            return string.Empty; 
+            return string.Empty;
         }
 
         public string Authenticate(UUID principalID, string password, int lifetime)
         {
             // Not implemented at the regions
-            return string.Empty; 
+            return string.Empty;
         }
 
         public bool Verify(UUID principalID, string token, int lifetime)

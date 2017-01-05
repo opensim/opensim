@@ -54,34 +54,34 @@ namespace OpenSim.Region.OptionalModules.Avatar.SitStand
         private Scene m_scene;
 
         public string Name { get { return "SitStand Command Module"; } }
-        
+
         public Type ReplaceableInterface { get { return null; } }
-        
+
         public void Initialise(IConfigSource source)
         {
 //            m_log.DebugFormat("[ANIMATIONS COMMAND MODULE]: INITIALIZED MODULE");
         }
-        
+
         public void PostInitialise()
         {
 //            m_log.DebugFormat("[ANIMATIONS COMMAND MODULE]: POST INITIALIZED MODULE");
         }
-        
+
         public void Close()
         {
 //            m_log.DebugFormat("[ANIMATIONS COMMAND MODULE]: CLOSED MODULE");
         }
-        
+
         public void AddRegion(Scene scene)
         {
 //            m_log.DebugFormat("[ANIMATIONS COMMAND MODULE]: REGION {0} ADDED", scene.RegionInfo.RegionName);
         }
-        
+
         public void RemoveRegion(Scene scene)
         {
 //            m_log.DebugFormat("[ATTACHMENTS COMMAND MODULE]: REGION {0} REMOVED", scene.RegionInfo.RegionName);
-        }        
-        
+        }
+
         public void RegionLoaded(Scene scene)
         {
 //            m_log.DebugFormat("[ANIMATIONS COMMAND MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
@@ -143,7 +143,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.SitStand
                 if (sitPart != null)
                 {
                     MainConsole.Instance.OutputFormat(
-                        "Sitting {0} on {1} {2} in {3}", 
+                        "Sitting {0} on {1} {2} in {3}",
                         sp.Name, sitPart.ParentGroup.Name, sitPart.ParentGroup.UUID, m_scene.Name);
 
                     sp.HandleAgentRequestSit(sp.ControllingClient, sp.UUID, sitPart.UUID, Vector3.Zero);
@@ -202,14 +202,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.SitStand
 
                 foreach (ScenePresence sp in scenePresences)
                 {
-                    if (!sp.IsChildAgent && nameRegex.IsMatch(sp.Name)) 
+                    if (!sp.IsChildAgent && nameRegex.IsMatch(sp.Name))
                         scenePresencesMatched.Add(sp);
                 }
             }
             else
             {
                 ScenePresence sp = m_scene.GetScenePresence(firstName, lastName);
-        
+
                 if (sp != null && !sp.IsChildAgent)
                     scenePresencesMatched.Add(sp);
             }

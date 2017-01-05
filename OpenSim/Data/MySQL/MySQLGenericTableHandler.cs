@@ -40,7 +40,7 @@ namespace OpenSim.Data.MySQL
     public class MySQLGenericTableHandler<T> : MySqlFramework where T: class, new()
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         protected Dictionary<string, FieldInfo> m_Fields =
                 new Dictionary<string, FieldInfo>();
 
@@ -58,7 +58,7 @@ namespace OpenSim.Data.MySQL
         {
             m_Realm = realm;
             m_connectionString = connectionString;
-            
+
             if (storeName != String.Empty)
             {
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
@@ -130,7 +130,7 @@ namespace OpenSim.Data.MySQL
                                              m_Realm, where);
 
                 cmd.CommandText = query;
-                
+
                 return DoQuery(cmd);
             }
         }
@@ -185,7 +185,7 @@ namespace OpenSim.Data.MySQL
                                 m_Fields[name].SetValue(row, reader[name]);
                             }
                         }
-                
+
                         if (m_DataField != null)
                         {
                             Dictionary<string, string> data =
@@ -215,9 +215,9 @@ namespace OpenSim.Data.MySQL
             {
                 string query = String.Format("select * from {0} where {1}",
                                              m_Realm, where);
-                
+
                 cmd.CommandText = query;
-                
+
                 return DoQuery(cmd);
             }
         }
@@ -236,16 +236,16 @@ namespace OpenSim.Data.MySQL
                 {
                     names.Add(fi.Name);
                     values.Add("?" + fi.Name);
-                    
+
                     // Temporarily return more information about what field is unexpectedly null for
-                    // http://opensimulator.org/mantis/view.php?id=5403.  This might be due to a bug in the 
+                    // http://opensimulator.org/mantis/view.php?id=5403.  This might be due to a bug in the
                     // InventoryTransferModule or we may be required to substitute a DBNull here.
                     if (fi.GetValue(row) == null)
                         throw new NullReferenceException(
                             string.Format(
-                                "[MYSQL GENERIC TABLE HANDLER]: Trying to store field {0} for {1} which is unexpectedly null", 
+                                "[MYSQL GENERIC TABLE HANDLER]: Trying to store field {0} for {1} which is unexpectedly null",
                                 fi.Name, row));
-                    
+
                     cmd.Parameters.AddWithValue(fi.Name, fi.GetValue(row).ToString());
                 }
 

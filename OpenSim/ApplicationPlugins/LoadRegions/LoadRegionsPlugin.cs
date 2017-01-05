@@ -124,7 +124,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                 m_log.Debug("[LOAD REGIONS PLUGIN]: Creating Region: " + regionsToLoad[i].RegionName + " (ThreadID: " +
                             Thread.CurrentThread.ManagedThreadId.ToString() +
                             ")");
-                
+
                 bool changed = m_openSim.PopulateRegionEstateInfo(regionsToLoad[i]);
 
                 m_openSim.CreateRegion(regionsToLoad[i], true, out scene);

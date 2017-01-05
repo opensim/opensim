@@ -112,7 +112,7 @@ namespace OpenSim.Server.Base
             MainServer.Instance = httpServer;
 
             // If https_listener = true, then add an ssl listener on the https_port...
-            if (ssl_listener == true) 
+            if (ssl_listener == true)
             {
                 uint https_port = (uint)networkConfig.GetInt("https_port", 0);
 

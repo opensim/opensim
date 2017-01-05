@@ -68,7 +68,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         private static readonly UUID STOP_UUID = UUID.Random();
 
         private OpenSim.Framework.BlockingQueue<MapRequestState> requests = new OpenSim.Framework.BlockingQueue<MapRequestState>();
-        
+
         private ManualResetEvent m_mapBlockRequestEvent = new ManualResetEvent(false);
         private Dictionary<UUID, Queue<MapBlockRequestData>> m_mapBlockRequests = new Dictionary<UUID, Queue<MapBlockRequestData>>();
 
@@ -729,7 +729,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         break;
 
                     // agent gone?
-                    
+
                     m_scene.TryGetScenePresence(st.agentID, out av);
                     if (av == null || av.IsChildAgent || av.IsDeleted || av.IsInTransit)
                         continue;
@@ -748,7 +748,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         {
                             m_cachedRegionMapItemsResponses.TryGetValue(st.regionhandle, out responseMap);
                             dorequest = false;
-                        }                           
+                        }
                         else
                             m_cachedRegionMapItemsResponses.Add(st.regionhandle, null, expireResponsesTime); //  a bit more time for the access
                     }
@@ -1133,7 +1133,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 if(m_mapBlockRequests[agentID].Count < 150 )
                     m_mapBlockRequests[agentID].Enqueue(req);
                 else
-                { 
+                {
                     spamBlocked[agentID] = now + SPAMBLOCKTIMEms;
                     m_log.DebugFormat("[WoldMapModule] RequestMapBlocks blocking spammer {0} for {1} s",agentID, SPAMBLOCKTIMEms/1000.0);
                 }
@@ -1193,7 +1193,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 maxY * (int)Constants.RegionSize);
 
             // only send a negative answer for a single region request
-            // corresponding to a click on the map. Current viewers 
+            // corresponding to a click on the map. Current viewers
             // keep displaying "loading.." without this
             if (regions.Count == 0 && (flag & 0x10000) != 0 && minX == maxX && minY == maxY)
             {
@@ -1539,7 +1539,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         responsemap["10"] = responsearr;
                     else
                     responsemap["7"] = responsearr;
-                }              
+                }
             }
 
             if (m_scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero)

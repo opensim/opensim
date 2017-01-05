@@ -165,7 +165,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             get { return GetSOP().Description; }
             set
             {
-                if (CanEdit()) 
+                if (CanEdit())
                     GetSOP().Description = value;
             }
         }
@@ -192,7 +192,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 rets = new IObject[total];
 
                 int i = 0;
-                    
+
                 foreach (SceneObjectPart part in my.ParentGroup.Parts)
                 {
                     rets[i++] = new SOPObject(m_rootScene, part.LocalId, m_security);
@@ -273,8 +273,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         public Vector3 SitTarget
         {
             get { return GetSOP().SitTargetPosition; }
-            set 
-            { 
+            set
+            {
                 if (CanEdit())
                 {
                     GetSOP().SitTargetPosition = value;
@@ -285,8 +285,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         public string SitTargetText
         {
             get { return GetSOP().SitName; }
-            set 
-            { 
+            set
+            {
                 if (CanEdit())
                 {
                     GetSOP().SitName = value;
@@ -297,7 +297,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         public string TouchText
         {
             get { return GetSOP().TouchName; }
-            set 
+            set
             {
                 if (CanEdit())
                 {
@@ -309,7 +309,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         public string Text
         {
             get { return GetSOP().Text; }
-            set 
+            set
             {
                 if (CanEdit())
                 {
@@ -382,11 +382,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             get { return this; }
         }
 
-        public IObjectInventory Inventory 
+        public IObjectInventory Inventory
         {
             get { return new SOPObjectInventory(m_rootScene, GetSOP().TaskInventory); }
         }
-        
+
         #region Public Functions
 
         public void Say(string msg)
@@ -406,7 +406,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             SceneObjectPart sop = GetSOP();
             m_rootScene.SimChat(Utils.StringToBytes(msg), ChatTypeEnum.Say,channel, sop.AbsolutePosition, sop.Name, sop.UUID, false);
         }
-         
+
         public void Dialog(UUID avatar, string message, string[] buttons, int chat_channel)
         {
             if (!CanEdit())
@@ -445,9 +445,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             dm.SendDialogToUser(
                 avatar, GetSOP().Name, GetSOP().UUID, GetSOP().OwnerID,
                 message, new UUID("00000000-0000-2222-3333-100000001000"), chat_channel, buttons);
-            
+
         }
-        
+
         #endregion
 
 
@@ -540,7 +540,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                     if (hasCut) ret += 2;
                     if (hasDimple) ret += 2;
                     if (hasHollow)
-                        ret += 1; // GOTCHA: LSL shows 2 additional sides here. 
+                        ret += 1; // GOTCHA: LSL shows 2 additional sides here.
                                   // This has been fixed, but may cause porting issues.
                     break;
                 case (int) PrimType.Torus:

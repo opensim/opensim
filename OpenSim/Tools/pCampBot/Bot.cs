@@ -57,10 +57,10 @@ namespace pCampBot
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public int PacketDebugLevel 
-        { 
+        public int PacketDebugLevel
+        {
             get { return m_packetDebugLevel; }
-            set 
+            set
             {
                 if (value == m_packetDebugLevel)
                     return;
@@ -217,7 +217,7 @@ namespace pCampBot
             Dictionary<string, IBehaviour> updatedBehaviours = new Dictionary<string, IBehaviour>(Behaviours);
 
             if (!updatedBehaviours.ContainsKey(behaviour.AbbreviatedName))
-            {                    
+            {
                 behaviour.Initialize(this);
                 updatedBehaviours.Add(behaviour.AbbreviatedName, behaviour);
                 Behaviours = updatedBehaviours;
@@ -313,7 +313,7 @@ namespace pCampBot
                 foreach (IBehaviour behaviour in Behaviours.Values)
                 {
 //                        Thread.Sleep(Random.Next(3000, 10000));
-                
+
                     // m_log.DebugFormat("[pCAMPBOT]: For {0} performing action {1}", Name, b.GetType());
                     behaviour.Action();
                 }
@@ -329,7 +329,7 @@ namespace pCampBot
         public void Disconnect()
         {
             ConnectionState = ConnectionState.Disconnecting;
-              
+
             foreach (IBehaviour behaviour in Behaviours.Values)
                 behaviour.Close();
 
@@ -337,7 +337,7 @@ namespace pCampBot
         }
 
         public void Connect()
-        {            
+        {
             Thread connectThread = new Thread(ConnectInternal);
             connectThread.Name = Name;
             connectThread.IsBackground = true;
@@ -508,7 +508,7 @@ namespace pCampBot
                 InventoryFolder clothfolder = FindClothingFolder();
                 UUID transid = UUID.Random();
                 List<InventoryBase> listwearables = new List<InventoryBase>();
-                
+
                 for (int i = 0; i < clothing.Length; i++)
                 {
                     UUID assetID = UUID.Random();
@@ -707,7 +707,7 @@ namespace pCampBot
                 m_log.Warn(string.Format("Error requesting {0} {1}", texture ? "texture" : "mesh", assetID), e);
             }
         }
-        
+
         public void Asset_TextureCallback_Texture(TextureRequestState state, AssetTexture assetTexture)
         {
             if (state == TextureRequestState.Finished)
@@ -722,7 +722,7 @@ namespace pCampBot
             lock (Manager.AssetsReceived)
                 Manager.AssetsReceived[assetMesh.AssetID] = success;
         }
-        
+
         public void Asset_ReceivedCallback(AssetDownload transfer, Asset asset)
         {
             lock (Manager.AssetsReceived)
@@ -733,7 +733,7 @@ namespace pCampBot
 //                SaveAsset((AssetWearable) asset);
 //            }
         }
-         
+
         private void PacketReceivedDebugHandler(object o, PacketReceivedEventArgs args)
         {
             Packet p = args.Packet;
@@ -741,7 +741,7 @@ namespace pCampBot
             Simulator s = args.Simulator;
 
             m_log.DebugFormat(
-                "[BOT]: Bot {0} received from {1} packet {2} #{3}, rel {4}, res {5}", 
+                "[BOT]: Bot {0} received from {1} packet {2} #{3}, rel {4}, res {5}",
                 Name, s.Name, p.Type, h.Sequence, h.Reliable, h.Resent);
         }
     }

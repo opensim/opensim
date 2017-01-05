@@ -126,7 +126,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
         /// </remarks>
         internal static Object UniversalColliderSyncObject = new Object();
         internal static Object SimulationLock = new Object();
-        
+
         /// <summary>
         /// Is stats collecting enabled for this ODE scene?
         /// </summary>
@@ -495,14 +495,14 @@ namespace OpenSim.Region.PhysicsModule.ODE
         int spaceGridMaxY;
 
         private ODERayCastRequestManager m_rayCastManager;
-	
-		public Scene m_frameWorkScene = null;
+
+        public Scene m_frameWorkScene = null;
 
         public OdeScene(Scene pscene, IConfigSource psourceconfig, string pname, string pversion)
-		{
-			m_config = psourceconfig;
-			m_frameWorkScene = pscene;
-			
+        {
+            m_config = psourceconfig;
+            m_frameWorkScene = pscene;
+
             EngineType = pname;
             PhysicsSceneName = EngineType + "/" + pscene.RegionInfo.RegionName;
             EngineName = pname + " " + pversion;
@@ -513,8 +513,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
             InitialiseFromConfig(m_config);
 
             // This may not be that good since terrain may not be avaiable at this point
-            base.Initialise(pscene.PhysicsRequestAsset, 
-                (pscene.Heightmap != null ? pscene.Heightmap.GetFloatsSerialised() : new float[(int)(extent.X * extent.Y)]), 
+            base.Initialise(pscene.PhysicsRequestAsset,
+                (pscene.Heightmap != null ? pscene.Heightmap.GetFloatsSerialised() : new float[(int)(extent.X * extent.Y)]),
                 (float)pscene.RegionInfo.RegionSettings.WaterHeight);
 
         }
@@ -524,8 +524,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
             mesher = m_frameWorkScene.RequestModuleInterface<IMesher>();
             if (mesher == null)
                 m_log.WarnFormat("[ODE SCENE]: No mesher in {0}. Things will not work well.", PhysicsSceneName);
-				
-			m_frameWorkScene.PhysicsEnabled = true;				
+
+            m_frameWorkScene.PhysicsEnabled = true;
         }
 
         /// <summary>
@@ -535,11 +535,11 @@ namespace OpenSim.Region.PhysicsModule.ODE
         /// </summary>
         private void Initialise(Vector3 regionExtent)
         {
-			WorldExtents.X = regionExtent.X;
+            WorldExtents.X = regionExtent.X;
             m_regionWidth = (uint)regionExtent.X;
             WorldExtents.Y = regionExtent.Y;
             m_regionHeight = (uint)regionExtent.Y;
-			
+
             nearCallback = near;
             m_rayCastManager = new ODERayCastRequestManager(this);
 
@@ -671,7 +671,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 spacesPerMeterY = spaceGridMaxY / WorldExtents.Y;
             }
 
-            staticPrimspace = new IntPtr[spaceGridMaxX, spaceGridMaxY]; 
+            staticPrimspace = new IntPtr[spaceGridMaxX, spaceGridMaxY];
 
             // make this index limits
             spaceGridMaxX--;
@@ -948,7 +948,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             {
                 if (g1 == IntPtr.Zero || g2 == IntPtr.Zero)
                     return;
-                
+
                 // Separating static prim geometry spaces.
                 // We'll be calling near recursivly if one
                 // of them is a space to find all of the
@@ -1027,10 +1027,10 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             PhysicsActor p1;
             PhysicsActor p2;
-            
+
             p1ExpectedPoints = 0;
             p2ExpectedPoints = 0;
-            
+
             if (!actor_name_map.TryGetValue(g1, out p1))
             {
                 p1 = PANull;
@@ -1067,7 +1067,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 IntPtr joint;
                 // If we're colliding with terrain, use 'TerrainContact' instead of contact.
                 // allows us to have different settings
-                
+
                 // We only need to test p2 for 'jump crouch purposes'
                 if (p2 is OdeCharacter && p1.PhysicsActorType == (int)ActorTypes.Prim)
                 {
@@ -1081,7 +1081,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 {
                     p2.IsColliding = true;
                 }
-                
+
                 //if ((framecount % m_returncollisions) == 0)
 
                 switch (p1.PhysicsActorType)
@@ -1160,7 +1160,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
                 // Logic for collision handling
                 // Note, that if *all* contacts are skipped (VolumeDetect)
-                // The prim still detects (and forwards) collision events but 
+                // The prim still detects (and forwards) collision events but
                 // appears to be phantom for the world
                 Boolean skipThisContact = false;
 
@@ -1235,10 +1235,10 @@ namespace OpenSim.Region.PhysicsModule.ODE
                                         material = ((OdePrim) p2).m_material;
                                         p2ExpectedPoints = ((OdePrim)p2).ExpectedCollisionContacts;
                                     }
-                                   
+
                                     // Unnessesary because p1 is defined above
                                     //if (p1 is OdePrim)
-                                    // { 
+                                    // {
                                     //     p1ExpectedPoints = ((OdePrim)p1).ExpectedCollisionContacts;
                                     // }
                                     //m_log.DebugFormat("Material: {0}", material);
@@ -1350,7 +1350,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                                 material = ((OdePrim)p2).m_material;
                                 p2ExpectedPoints = ((OdePrim)p2).ExpectedCollisionContacts;
                             }
-                            
+
                             //m_log.DebugFormat("Material: {0}", material);
                             m_materialContacts[material, 0].geom = curContact;
 
@@ -1370,7 +1370,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 }
 
                 collision_accounting_events(p1, p2, maxDepthContact);
-                
+
                 if (count > ((p1ExpectedPoints + p2ExpectedPoints) * 0.25) + (geomContactPointsStartthrottle))
                 {
                     // If there are more then 3 contact points, it's likely
@@ -1410,7 +1410,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                              break;
                         }
                     }
-                } 
+                }
                 else if (at == ActorTypes.Prim)
                 {
                     if (((Math.Abs(contactGeom.normal.X - contact.normal.X) < 1.026f) && (Math.Abs(contactGeom.normal.Y - contact.normal.Y) < 0.303f) && (Math.Abs(contactGeom.normal.Z - contact.normal.Z) < 0.065f)))
@@ -1544,11 +1544,11 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 // since we don't know if we're colliding yet
                 if (chr.Shell == IntPtr.Zero || chr.Body == IntPtr.Zero)
                     continue;
-                
+
                 chr.IsColliding = false;
                 chr.CollidingGround = false;
                 chr.CollidingObj = false;
-                
+
                 // Test the avatar's geometry for collision with the space
                 // This will return near and the space that they are the closest to
                 // And we'll run this again against the avatar and the space segment
@@ -1562,7 +1562,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 {
                     m_log.ErrorFormat("[ODE SCENE]: Unable to space collide {0}", PhysicsSceneName);
                 }
-                
+
                 //float terrainheight = GetTerrainHeightAtXY(chr.Position.X, chr.Position.Y);
                 //if (chr.Position.Z + (chr.Velocity.Z * timeStep) < terrainheight + 10)
                 //{
@@ -1655,7 +1655,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                             //m_log.DebugFormat("x{0} y{1} = {2}", x, y, (float)TerrainHeightFieldHeights[heightFieldGeom][index]);
                             return (float)TerrainHeightFieldHeights[heightFieldGeom][index];
                         }
-                            
+
                         else
                             return 0f;
                     }
@@ -1675,7 +1675,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             {
                 return 0f;
             }
-        } 
+        }
 // End recovered. Kitto Flora
 
         /// <summary>
@@ -1685,7 +1685,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
         internal void AddCollisionEventReporting(PhysicsActor obj)
         {
 //            m_log.DebugFormat("[PHYSICS]: Adding {0} {1} to collision event reporting", obj.SOPName, obj.LocalID);
-            
+
             lock (m_collisionEventActorsChanges)
                 m_collisionEventActorsChanges[obj.LocalID] = obj;
         }
@@ -2071,7 +2071,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
             lock (externalJointRequestsLock)
             {
-                if (!requestedJointsToBeCreated.Contains(joint)) // forbid same creation request from entering twice 
+                if (!requestedJointsToBeCreated.Contains(joint)) // forbid same creation request from entering twice
                 {
                     requestedJointsToBeCreated.Add(joint);
                 }
@@ -2417,7 +2417,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 //            waitForSpaceUnlock(space);
             d.SpaceSetSublevel(space, 1);
             d.SpaceAdd(space, staticPrimspace[iprimspaceArrItemX, iprimspaceArrItemY]);
-            
+
             return staticPrimspace[iprimspaceArrItemX, iprimspaceArrItemY];
         }
 
@@ -2514,7 +2514,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 iPropertiesNotSupportedDefault++;
 
             if ((pbs.PathTwistBegin != 0) || (pbs.PathTwist != 0))
-                iPropertiesNotSupportedDefault++; 
+                iPropertiesNotSupportedDefault++;
 
             if ((pbs.ProfileBegin != 0) || pbs.ProfileEnd != 0)
                 iPropertiesNotSupportedDefault++;
@@ -2587,7 +2587,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 #if SPAM
             m_log.Debug("Mesh");
 #endif
-            return true; 
+            return true;
         }
 
         /// <summary>
@@ -2652,7 +2652,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                         }
                         _taintedPrims.Clear();
                     }
-                   
+
                     int time = Util.EnvironmentTickCountSubtract(tstart);
                     m_log.InfoFormat("[Ode] finished {0} operations in {1}ms", donechanges, time);
                 }
@@ -2716,7 +2716,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 CreateRequestedJoints(); // this must be outside of the lock (OdeLock) to avoid deadlocks
             }
 
-            
+
             lock (OdeLock)
             {
                 d.AllocateODEDataForThread(~0U);
@@ -3109,7 +3109,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                                         // as the axis for the hinge.
 
                                         // Therefore, we must get the joint's coordinate frame based on the
-                                        // joint.Rotation field, which originates from the orientation of the 
+                                        // joint.Rotation field, which originates from the orientation of the
                                         // joint's proxy object in the scene.
 
                                         // The joint's coordinate frame is defined as the transformation matrix
@@ -3237,7 +3237,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             int startTime = Util.EnvironmentTickCount();
             m_log.DebugFormat("[ODE SCENE]: Setting terrain for {0} with offset {1}", PhysicsSceneName, pOffset);
 
-            
+
             float[] _heightmap;
 
             // ok im lasy this are just a aliases

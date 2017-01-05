@@ -430,7 +430,7 @@ namespace OpenSim.Framework
         {
             if (ban == null)
                 return;
-            if (!IsBanned(ban.BannedUserID, 32) && 
+            if (!IsBanned(ban.BannedUserID, 32) &&
                 (l_EstateBans.Count < (int)Constants.EstateAccessLimits.EstateBans)) //Ignore age-based bans
                 l_EstateBans.Add(ban);
         }

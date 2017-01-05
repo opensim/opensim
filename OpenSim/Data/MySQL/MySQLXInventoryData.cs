@@ -80,7 +80,7 @@ namespace OpenSim.Data.MySQL
 
             return m_Items.Store(item);
         }
-        
+
         public bool DeleteFolders(string field, string val)
         {
             return m_Folders.Delete(field, val);
@@ -220,12 +220,12 @@ namespace OpenSim.Data.MySQL
 
                     cmd.Parameters.AddWithValue("?PrincipalID", principalID.ToString());
                     cmd.Parameters.AddWithValue("?AssetID", assetID.ToString());
-                
+
                     using (IDataReader reader = cmd.ExecuteReader())
                     {
 
                         int perms = 0;
-                    
+
                         if (reader.Read())
                         {
                             perms = Convert.ToInt32(reader["inventoryCurrentPermissions"]);

@@ -68,7 +68,7 @@ namespace OpenSim.Services.ProfilesService
                 if (string.IsNullOrEmpty(connString))
                     connString = dbConfig.GetString("ConnectionString", String.Empty);
             }
-            
+
             IConfig ProfilesConfig = config.Configs[configName];
             if (ProfilesConfig != null)
             {
@@ -76,7 +76,7 @@ namespace OpenSim.Services.ProfilesService
                 connString = ProfilesConfig.GetString("ConnectionString", connString);
                 realm = ProfilesConfig.GetString("Realm", realm);
             }
-            
+
             ProfilesData = LoadPlugin<IProfilesData>(dllName, new Object[] { connString });
             if (ProfilesData == null)
                 throw new Exception("Could not find a storage interface in the given module");

@@ -226,7 +226,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                     float pctX = (float)x / 255f;
                     float pctY = (float)y / 255f;
 
-                    // Use bilinear interpolation between the four corners of start height and 
+                    // Use bilinear interpolation between the four corners of start height and
                     // height range to select the current values at this position
                     float startHeight = ImageUtils.Bilinear(
                         startHeights[0],
@@ -257,7 +257,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                     float highFreq = Perlin.turbulence2(vec.X, vec.Y, 2f) * 2.25f;
                     float noise = (lowFreq + highFreq) * 2f;
 
-                    // Combine the current height, generated noise, start height, and height range parameters, then scale all of it 
+                    // Combine the current height, generated noise, start height, and height range parameters, then scale all of it
                     float layer = ((height + noise - startHeight) / heightRange) * 4f;
                     if (Single.IsNaN(layer))
                         layer = 0f;

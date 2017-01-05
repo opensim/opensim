@@ -149,10 +149,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
         private void OnInstantMessage(IClientAPI client, GridInstantMessage im)
         {
 //            m_log.DebugFormat(
-//                "[INVENTORY TRANSFER]: {0} IM type received from client {1}. From={2} ({3}), To={4}", 
+//                "[INVENTORY TRANSFER]: {0} IM type received from client {1}. From={2} ({3}), To={4}",
 //                (InstantMessageDialog)im.dialog, client.Name,
 //                im.fromAgentID, im.fromAgentName, im.toAgentID);
-          
+
             Scene scene = FindClientScene(client.AgentId);
 
             if (scene == null) // Something seriously wrong here.
@@ -164,31 +164,31 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
                 if (im.binaryBucket.Length < 17) // Invalid
                     return;
-            
+
                 UUID recipientID = new UUID(im.toAgentID);
                 ScenePresence user = scene.GetScenePresence(recipientID);
                 UUID copyID;
 
                 // First byte is the asset type
                 AssetType assetType = (AssetType)im.binaryBucket[0];
-                
+
                 if (AssetType.Folder == assetType)
                 {
                     UUID folderID = new UUID(im.binaryBucket, 1);
-                    
+
                     m_log.DebugFormat(
                         "[INVENTORY TRANSFER]: Inserting original folder {0} into agent {1}'s inventory",
                         folderID, new UUID(im.toAgentID));
-                    
+
                     InventoryFolderBase folderCopy
                         = scene.GiveInventoryFolder(client, recipientID, client.AgentId, folderID, UUID.Zero);
-                    
+
                     if (folderCopy == null)
                     {
                         client.SendAgentAlertMessage("Can't find folder to give. Nothing given.", false);
                         return;
                     }
-                                                           
+
                     // The outgoing binary bucket should contain only the byte which signals an asset folder is
                     // being copied and the following bytes for the copied folder's UUID
                     copyID = folderCopy.ID;
@@ -196,7 +196,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     im.binaryBucket = new byte[1 + copyIDBytes.Length];
                     im.binaryBucket[0] = (byte)AssetType.Folder;
                     Array.Copy(copyIDBytes, 0, im.binaryBucket, 1, copyIDBytes.Length);
-                    
+
                     if (user != null)
                         user.ControllingClient.SendBulkUpdateInventory(folderCopy);
 
@@ -225,10 +225,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         client.SendAgentAlertMessage(message, false);
                         return;
                     }
-                    
+
                     copyID = itemCopy.ID;
                     Array.Copy(copyID.GetBytes(), 0, im.binaryBucket, 1, 16);
-                    
+
                     if (user != null)
                         user.ControllingClient.SendBulkUpdateInventory(itemCopy);
 
@@ -253,7 +253,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 else
                 {
                     if (m_TransferModule != null)
-                        m_TransferModule.SendInstantMessage(im, delegate(bool success) 
+                        m_TransferModule.SendInstantMessage(im, delegate(bool success)
                         {
                             if (!success)
                                 client.SendAlertMessage("User not online. Inventory has been saved");
@@ -308,8 +308,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
             }
 
             // XXX: This code was placed here to try and accomodate RLV which moves given folders named #RLV/~<name>
-            // to the requested folder, which in this case is #RLV.  However, it is the viewer that appears to be 
-            // response from renaming the #RLV/~example folder to ~example.  For some reason this is not yet 
+            // to the requested folder, which in this case is #RLV.  However, it is the viewer that appears to be
+            // response from renaming the #RLV/~example folder to ~example.  For some reason this is not yet
             // happening, possibly because we are not sending the correct inventory update messages with the correct
             // transaction IDs
             else if (im.dialog == (byte) InstantMessageDialog.TaskInventoryAccepted)
@@ -380,7 +380,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 InventoryItemBase item = invService.GetItem(client.AgentId, inventoryID);
                 InventoryFolderBase folder = null;
                 UUID? previousParentFolderID = null;
-                
+
                 if (item != null && trashFolder != null)
                 {
                     previousParentFolderID = item.Folder;
@@ -404,18 +404,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         client.SendBulkUpdateInventory(folder);
                     }
                 }
-                
+
                 if ((null == item && null == folder) | null == trashFolder)
                 {
                     string reason = String.Empty;
-                    
+
                     if (trashFolder == null)
                         reason += " Trash folder not found.";
                     if (item == null)
                         reason += " Item not found.";
                     if (folder == null)
                         reason += " Folder not found.";
-                    
+
                     client.SendAgentAlertMessage("Unable to delete "+
                             "received inventory" + reason, false);
                 }
@@ -471,12 +471,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
             {
                 if (im.binaryBucket.Length < 17) // Invalid
                     return;
-            
+
                 UUID recipientID = new UUID(im.toAgentID);
 
                 // First byte is the asset type
                 AssetType assetType = (AssetType)im.binaryBucket[0];
-                
+
                 if (AssetType.Folder == assetType)
                 {
                     UUID folderID = new UUID(im.binaryBucket, 1);
@@ -505,12 +505,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
             {
                 if (im.binaryBucket.Length < 1) // Invalid
                     return;
-            
+
                 UUID recipientID = new UUID(im.toAgentID);
 
                 // Bucket is the asset type
                 AssetType assetType = (AssetType)im.binaryBucket[0];
-                
+
                 if (AssetType.Folder == assetType)
                 {
                     UUID folderID = new UUID(im.imSessionID);

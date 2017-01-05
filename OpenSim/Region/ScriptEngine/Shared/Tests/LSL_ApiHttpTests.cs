@@ -112,7 +112,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         public void TearDown()
         {
             MainServer.Instance.Stop();
-        }       
+        }
 
         [Test]
         public void TestLlReleaseUrl()
@@ -204,8 +204,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
                 // Check that request to URL works.
                 string testResponse = "Hello World";
 
-                m_engine.ClearPostedEvents();                
-                m_engine.PostEventHook 
+                m_engine.ClearPostedEvents();
+                m_engine.PostEventHook
                     += (itemId, evp) => m_lslApi.llHTTPResponse(evp.Params[0].ToString(), 200, testResponse);
 
 //                Console.WriteLine("Trying {0}", returnedUri);

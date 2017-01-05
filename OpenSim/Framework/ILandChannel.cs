@@ -38,7 +38,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         /// <returns></returns>
         List<ILandObject> AllParcels();
-             
+
         /// <summary>
         /// Get the parcel at the specified point
         /// </summary>
@@ -75,7 +75,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="localID"></param>
         /// <returns></returns>
         ILandObject GetLandObject(int localID);
-        
+
         /// <summary>
         /// Clear the land channel of all parcels.
         /// </summary>
@@ -83,7 +83,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// If true, set up a default parcel covering the whole region owned by the estate owner.
         /// </param>
         void Clear(bool setupDefaultParcel);
-        
+
         bool IsForcefulBansAllowed();
         void UpdateLandObject(int localID, LandData data);
         void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient);

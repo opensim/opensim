@@ -70,7 +70,7 @@ namespace OpenSim.Services.HypergridService
             //
             IConfig invConfig = config.Configs[m_ConfigName];
             if (invConfig != null)
-            {                
+            {
                 // realm = authConfig.GetString("Realm", realm);
                 string userAccountsDll = invConfig.GetString("UserAccountsService", string.Empty);
                 if (userAccountsDll == string.Empty)
@@ -82,7 +82,7 @@ namespace OpenSim.Services.HypergridService
                     throw new Exception(String.Format("Unable to create UserAccountService from {0}", userAccountsDll));
 
                 m_HomeURL = Util.GetConfigVarFromSections<string>(config, "HomeURI",
-                    new string[] { "Startup", "Hypergrid", m_ConfigName }, String.Empty); 
+                    new string[] { "Startup", "Hypergrid", m_ConfigName }, String.Empty);
 
                 m_Cache = UserAccountCache.CreateUserAccountCache(m_UserAccountService);
             }
@@ -113,7 +113,7 @@ namespace OpenSim.Services.HypergridService
 
             if (folders.Length > 0)
                 return ConvertToOpenSim(folders[0]);
-            
+
             // make one
             XInventoryFolder suitcase = CreateFolder(principalID, UUID.Zero, (int)FolderType.Suitcase, "My Suitcase");
             return ConvertToOpenSim(suitcase);
@@ -160,7 +160,7 @@ namespace OpenSim.Services.HypergridService
         {
             return new InventoryCollection[0];
         }
-        
+
         //public List<InventoryItemBase> GetFolderItems(UUID principalID, UUID folderID)
         //{
         //}

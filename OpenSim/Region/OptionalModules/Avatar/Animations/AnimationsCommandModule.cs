@@ -57,41 +57,41 @@ namespace OpenSim.Region.OptionalModules.Avatar.Animations
         private List<Scene> m_scenes = new List<Scene>();
 
         public string Name { get { return "Animations Command Module"; } }
-        
+
         public Type ReplaceableInterface { get { return null; } }
-        
+
         public void Initialise(IConfigSource source)
         {
 //            m_log.DebugFormat("[ANIMATIONS COMMAND MODULE]: INITIALIZED MODULE");
         }
-        
+
         public void PostInitialise()
         {
 //            m_log.DebugFormat("[ANIMATIONS COMMAND MODULE]: POST INITIALIZED MODULE");
         }
-        
+
         public void Close()
         {
 //            m_log.DebugFormat("[ANIMATIONS COMMAND MODULE]: CLOSED MODULE");
         }
-        
+
         public void AddRegion(Scene scene)
         {
 //            m_log.DebugFormat("[ANIMATIONS COMMAND MODULE]: REGION {0} ADDED", scene.RegionInfo.RegionName);
         }
-        
+
         public void RemoveRegion(Scene scene)
         {
 //            m_log.DebugFormat("[ATTACHMENTS COMMAND MODULE]: REGION {0} REMOVED", scene.RegionInfo.RegionName);
-            
+
             lock (m_scenes)
                 m_scenes.Remove(scene);
-        }        
-        
+        }
+
         public void RegionLoaded(Scene scene)
         {
 //            m_log.DebugFormat("[ANIMATIONS COMMAND MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
-            
+
             lock (m_scenes)
                 m_scenes.Add(scene);
 
@@ -156,18 +156,18 @@ namespace OpenSim.Region.OptionalModules.Avatar.Animations
 
             string cma = spa.CurrentMovementAnimation;
             cdl.AddRow(
-                "Current movement anim", 
+                "Current movement anim",
                 string.Format("{0}, {1}", DefaultAvatarAnimations.GetDefaultAnimation(cma), cma));
 
             UUID defaultAnimId = anims.DefaultAnimation.AnimID;
             cdl.AddRow(
-                "Default anim", 
+                "Default anim",
                 string.Format("{0}, {1}", defaultAnimId, sp.Animator.GetAnimName(defaultAnimId)));
 
             UUID implicitDefaultAnimId = anims.ImplicitDefaultAnimation.AnimID;
             cdl.AddRow(
-                "Implicit default anim", 
-                string.Format("{0}, {1}", 
+                "Implicit default anim",
+                string.Format("{0}, {1}",
                     implicitDefaultAnimId, sp.Animator.GetAnimName(implicitDefaultAnimId)));
 
             cdl.AddToStringBuilder(sb);

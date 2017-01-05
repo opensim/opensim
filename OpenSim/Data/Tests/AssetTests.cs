@@ -110,7 +110,7 @@ namespace OpenSim.Data.Tests
         public void T010_StoreReadVerifyAssets()
         {
             TestHelpers.InMethod();
-            
+
             AssetBase a1 = new AssetBase(uuid1, "asset one", (sbyte)AssetType.Texture, critter1.ToString());
             AssetBase a2 = new AssetBase(uuid2, "asset two", (sbyte)AssetType.Texture, critter2.ToString());
             AssetBase a3 = new AssetBase(uuid3, "asset three", (sbyte)AssetType.Texture, critter3.ToString());
@@ -128,7 +128,7 @@ namespace OpenSim.Data.Tests
             a1.UploadAttempts = 0;
             a2.UploadAttempts = 0;
             a3.UploadAttempts = 0;
-            
+
             AssetBase a1a = m_db.GetAsset(uuid1);
             a1a.UploadAttempts = 0;
             Assert.That(a1a, Constraints.PropertyCompareConstraint(a1));
@@ -190,7 +190,7 @@ namespace OpenSim.Data.Tests
         public void T020_CheckForWeirdCreatorID()
         {
             TestHelpers.InMethod();
-            
+
             // It is expected that eventually the CreatorID might be an arbitrary string (an URI)
             // rather than a valid UUID (?).  This test is to make sure that the database layer does not
             // attempt to convert CreatorID to GUID, but just passes it both ways as a string.
