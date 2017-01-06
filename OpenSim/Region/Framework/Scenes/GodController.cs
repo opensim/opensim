@@ -141,7 +141,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!shoudBeGod)
                 godLevel = 0;
 
-            if (m_viewerUiIsGod != shoudBeGod)
+            if (m_viewerUiIsGod != shoudBeGod && (!m_scenePresence.IsChildAgent))
             {
                 m_scenePresence.ControllingClient.SendAdminResponse(UUID.Zero, (uint)godLevel);
                 m_viewerUiIsGod = shoudBeGod;

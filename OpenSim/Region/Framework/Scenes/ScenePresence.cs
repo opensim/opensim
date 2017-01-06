@@ -1290,6 +1290,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 IsChildAgent = false;
+                GodController.SyncViewerState();
             }
 
             m_log.DebugFormat("[MakeRootAgent] out lock: {0}ms", Util.EnvironmentTickCountSubtract(ts));
