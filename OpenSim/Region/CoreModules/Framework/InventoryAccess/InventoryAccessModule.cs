@@ -1141,6 +1141,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                             part.OwnerID = item.Owner;
                             part.RezzerID = item.Owner;
                             part.Inventory.ChangeInventoryOwner(item.Owner);
+
+                            // This applies the base mask from the item as the next
+                            // permissions for the object. This is correct because the
+                            // giver's base mask was masked by the giver's next owner
+                            // mask, so the base mask equals the original next owner mask.
+                            part.NextOwnerMask = item.BasePermissions;
                         }
 
                         so.ApplyNextOwnerPermissions();
@@ -1152,10 +1158,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         {
                             if ((item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
                             {
-                                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
-                                    part.EveryoneMask = item.EveryOnePermissions & part.BaseMask;
-                                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
-                                    part.NextOwnerMask = item.NextPermissions & part.BaseMask;
+                                part.EveryoneMask = item.EveryOnePermissions & part.BaseMask;
+                                part.NextOwnerMask = item.NextPermissions & part.BaseMask;
                             }
                         }
                     }

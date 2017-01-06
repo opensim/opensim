@@ -627,6 +627,7 @@ namespace OpenSim.Region.Framework.Scenes
             itemCopy.AssetType = item.AssetType;
             itemCopy.InvType = item.InvType;
             itemCopy.Folder = recipientFolderId;
+            itemCopy.Flags = item.Flags;
 
             if (Permissions.PropagatePermissions() && recipient != senderId)
             {
@@ -643,7 +644,7 @@ namespace OpenSim.Region.Framework.Scenes
                 //
                 // Transfer
                 // Copy
-                // Modufy
+                // Modify
                 uint permsMask = ~ ((uint)PermissionMask.Copy |
                                     (uint)PermissionMask.Transfer |
                                     (uint)PermissionMask.Modify);
@@ -718,6 +719,10 @@ namespace OpenSim.Region.Framework.Scenes
                 itemCopy.BasePermissions = basePerms;
                 itemCopy.CurrentPermissions = ownerPerms;
                 itemCopy.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
+                // Need to clear the other inventory slam options.
+                // That is so we can handle the case where the recipient
+                // changes the bits in inventory before rezzing
+                itemCopy.Flags &= ~(uint)(InventoryItemFlags.ObjectOverwriteBase | InventoryItemFlags.ObjectOverwriteOwner | InventoryItemFlags.ObjectOverwriteGroup | InventoryItemFlags.ObjectOverwriteEveryone | InventoryItemFlags.ObjectOverwriteNextOwner);
 
                 itemCopy.NextPermissions = item.NextPermissions;
 
@@ -767,9 +772,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             itemCopy.GroupID = UUID.Zero;
             itemCopy.GroupOwned = false;
-            itemCopy.Flags = item.Flags;
-            itemCopy.SalePrice = item.SalePrice;
-            itemCopy.SaleType = item.SaleType;
+            itemCopy.SalePrice = 0; //item.SalePrice;
+            itemCopy.SaleType = 0; //item.SaleType;
 
             IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
             if (invAccess != null)
@@ -1251,9 +1255,11 @@ namespace OpenSim.Region.Framework.Scenes
                 agentItem.CurrentPermissions = agentItem.BasePermissions;
 
                 agentItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
+                agentItem.Flags &= ~(uint)(InventoryItemFlags.ObjectOverwriteBase | InventoryItemFlags.ObjectOverwriteOwner | InventoryItemFlags.ObjectOverwriteGroup | InventoryItemFlags.ObjectOverwriteEveryone | InventoryItemFlags.ObjectOverwriteNextOwner);
                 agentItem.NextPermissions = taskItem.NextPermissions;
                 agentItem.EveryOnePermissions = taskItem.EveryonePermissions & (taskItem.NextPermissions | (uint)PermissionMask.Move);
-                agentItem.GroupPermissions = taskItem.GroupPermissions & taskItem.NextPermissions;
+                // Group permissions make no sense here
+                agentItem.GroupPermissions = 0;
             }
             else
             {
@@ -1261,7 +1267,7 @@ namespace OpenSim.Region.Framework.Scenes
                 agentItem.CurrentPermissions = taskItem.CurrentPermissions;
                 agentItem.NextPermissions = taskItem.NextPermissions;
                 agentItem.EveryOnePermissions = taskItem.EveryonePermissions;
-                agentItem.GroupPermissions = taskItem.GroupPermissions;
+                agentItem.GroupPermissions = 0;
             }
 
             message = null;
