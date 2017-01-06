@@ -1045,7 +1045,6 @@ namespace OpenSim.Region.Framework.Scenes
         public ScenePresence(
             IClientAPI client, Scene world, AvatarAppearance appearance, PresenceType type)
         {
-            GodController = new GodController(world, this);
 
             m_scene = world;
             AttachmentsSyncLock = new Object();
@@ -1072,8 +1071,12 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 m_userFlags = 0;
 
+            int userlevel = 0;
             if (account != null)
-                GodController.UserLevel = account.UserLevel;
+                userlevel = account.UserLevel;
+
+//            GodController = new GodController(world, this, userlevel);
+            GodController = new GodController(world, this);
 
  //           IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
  //           if (gm != null)
@@ -4612,6 +4615,7 @@ namespace OpenSim.Region.Framework.Scenes
             cAgent.UpAxis = CameraUpAxis;
 
             cAgent.Far = DrawDistance;
+            cAgent.GodData = GodController.State();
 
             // Throttles
             cAgent.Throttles = ControllingClient.GetThrottlesPacked(1);
