@@ -99,7 +99,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         private bool m_allowGridGods = false;
         private bool m_RegionOwnerIsGod = false;
         private bool m_RegionManagerIsGod = false;
-        private bool m_ParcelOwnerIsGod = false;
 
         private bool m_SimpleBuildPermissions = false;
 
@@ -177,8 +176,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_RegionOwnerIsGod = Util.GetConfigVarFromSections<bool>(config, "region_owner_is_god",
                 new string[] { "Startup", "Permissions" }, true);
             m_RegionManagerIsGod = Util.GetConfigVarFromSections<bool>(config, "region_manager_is_god",
-                new string[] { "Startup", "Permissions" }, false);
-            m_ParcelOwnerIsGod = Util.GetConfigVarFromSections<bool>(config, "parcel_owner_is_god",
                 new string[] { "Startup", "Permissions" }, false);
 
             m_SimpleBuildPermissions = Util.GetConfigVarFromSections<bool>(config, "simple_build_permissions",
@@ -718,6 +715,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (IsAdministrator(user))
                 return PermissionClass.Owner;
 
+/* to review later
             // Users should be able to edit what is over their land.
             Vector3 taskPos = obj.AbsolutePosition;
             ILandObject parcel = m_scene.LandChannel.GetLandObject(taskPos.X, taskPos.Y);
@@ -727,7 +725,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 if (!IsAdministrator(objectOwner))
                     return PermissionClass.Owner;
             }
-
+*/
             // Group permissions
             if ((obj.GroupID != UUID.Zero) && IsGroupMember(obj.GroupID, user, 0))
                 return PermissionClass.Group;
