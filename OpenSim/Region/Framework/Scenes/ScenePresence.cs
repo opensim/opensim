@@ -4509,9 +4509,11 @@ namespace OpenSim.Region.Framework.Scenes
             if (isNPC)
                 return;
 
-            bool success = GodController.RequestGodMode(godStatus);
-            if (success && godStatus)
-                parcelGodCheck(m_currentParcelUUID, GodController.GodLevel >= 200);
+            bool wasgod = (GodController.GodLevel >= 200);
+            GodController.RequestGodMode(godStatus);
+            bool isgod = GodController.GodLevel >= 200;
+            if (wasgod != isgod)
+                parcelGodCheck(m_currentParcelUUID, isgod);
         }
 
         #region Child Agent Updates

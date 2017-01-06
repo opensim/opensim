@@ -50,7 +50,7 @@ namespace OpenSim.Region.Framework.Scenes
         ScenePresence m_scenePresence;
         Scene m_scene;
         protected bool m_allowGridGods;
-        protected bool m_forceGridGods;
+        protected bool m_forceGridGodsOnly;
         protected bool m_regionOwnerIsGod;
         protected bool m_regionManagerIsGod;
         protected bool m_parcelOwnerIsGod;
@@ -78,25 +78,30 @@ namespace OpenSim.Region.Framework.Scenes
                     "allow_grid_gods", sections, false);
 
             // If grid gods are active, dont allow any other gods
-            m_forceGridGods =
+            m_forceGridGodsOnly =
                     Util.GetConfigVarFromSections<bool>(config,
-                    "force_grid_gods", sections, false);
+                    "force_grid_gods_only", sections, false);
 
-            // The owner of a region is a god in his region only.
-            m_regionOwnerIsGod =
+            if(!m_forceGridGodsOnly) // damm redundant and error prone option
+            {
+                // The owner of a region is a god in his region only.
+                m_regionOwnerIsGod =
                     Util.GetConfigVarFromSections<bool>(config,
                     "region_owner_is_god", sections, true);
 
-            // Region managers are gods in the regions they manage.
-            m_regionManagerIsGod =
+                // Region managers are gods in the regions they manage.
+                m_regionManagerIsGod =
                     Util.GetConfigVarFromSections<bool>(config,
                     "region_manager_is_god", sections, false);
 
-            // Parcel owners are gods in their own parcels only.
-            m_parcelOwnerIsGod =
+                // Parcel owners are gods in their own parcels only.
+                m_parcelOwnerIsGod =
                     Util.GetConfigVarFromSections<bool>(config,
                     "parcel_owner_is_god", sections, false);
-
+            }
+            else
+                m_allowGridGods = true; // reduce user mistakes increased by this over complex options set
+                 
             // God mode should be turned on in the viewer whenever
             // the user has god rights somewhere. They may choose
             // to turn it off again, though.
@@ -110,13 +115,12 @@ namespace OpenSim.Region.Framework.Scenes
             m_allowGodActionsWithoutGodMode =
                     Util.GetConfigVarFromSections<bool>(config,
                     "implicit_gods", sections, false);
-
         }
 
         protected int PotentialGodLevel()
         {
             int godLevel = m_allowGridGods ? m_userLevel : 200;
-            if ((!m_forceGridGods) && m_userLevel < 200)
+            if ((!m_forceGridGodsOnly) && m_userLevel < 200)
                 godLevel = 200;
 
             return godLevel;
@@ -126,6 +130,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (m_allowGridGods && m_userLevel > 0)
                 return true;
+
+            if(m_forceGridGodsOnly)
+                return false;
 
             if (m_regionOwnerIsGod && m_scene.RegionInfo.EstateSettings.IsEstateOwner(m_scenePresence.UUID))
                 return true;
@@ -164,13 +171,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool RequestGodMode(bool god)
         {
+            // this is used by viewer protocol
+            // and they may want a answer
             if (!god)
             {
-                if (m_viewerUiIsGod)
-                    m_scenePresence.ControllingClient.SendAdminResponse(UUID.Zero, 0);
-
+                m_scenePresence.ControllingClient.SendAdminResponse(UUID.Zero, 0);
                 m_viewerUiIsGod = false;
-
                 return true;
             }
 
@@ -178,12 +184,8 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
 
             int godLevel = PotentialGodLevel();
-
-            if (!m_viewerUiIsGod)
-                m_scenePresence.ControllingClient.SendAdminResponse(UUID.Zero, (uint)godLevel);
-
+            m_scenePresence.ControllingClient.SendAdminResponse(UUID.Zero, (uint)godLevel);
             m_viewerUiIsGod = true;
-
             return true;
         }
 
