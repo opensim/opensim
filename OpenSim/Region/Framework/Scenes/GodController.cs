@@ -113,6 +113,15 @@ namespace OpenSim.Region.Framework.Scenes
 
         }
 
+        protected int PotentialGodLevel()
+        {
+            int godLevel = m_allowGridGods ? m_userLevel : 200;
+            if ((!m_forceGridGods) && m_userLevel < 200)
+                godLevel = 200;
+
+            return godLevel;
+        }
+
         protected bool CanBeGod()
         {
             bool canBeGod = false;
@@ -143,9 +152,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             bool shoudBeGod = m_forceGodModeAlwaysOn ? canBeGod : (m_viewerUiIsGod && canBeGod);
 
-            int godLevel = m_allowGridGods ? m_userLevel : 200;
-            if ((!m_forceGridGods) && m_userLevel < 200)
-                godLevel = 200;
+            int godLevel = PotentialGodLevel();
 
             if (!shoudBeGod)
                 godLevel = 0;
@@ -172,7 +179,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!CanBeGod())
                 return false;
 
-            int godLevel = m_allowGridGods ? m_userLevel : 200;
+            int godLevel = PotentialGodLevel();
 
             if (!m_viewerUiIsGod)
                 m_scenePresence.ControllingClient.SendAdminResponse(UUID.Zero, (uint)godLevel);
@@ -211,7 +218,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                int godLevel = m_allowGridGods ? m_userLevel : 200;
+                int godLevel = PotentialGodLevel();
                 if (!m_viewerUiIsGod)
                     godLevel = 0;
 
@@ -223,7 +230,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                int godLevel = m_allowGridGods ? m_userLevel : 200;
+                int godLevel = PotentialGodLevel();
                 if (m_viewerUiIsGod)
                     return godLevel;
 
