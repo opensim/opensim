@@ -141,7 +141,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     if (avatar == null)
                         return;
 
-                    if (avatar.UserLevel < m_levelHGFriends)
+                    if (avatar.GodController.UserLevel < m_levelHGFriends)
                     {
                         client.SendAgentAlertMessage("Unable to send friendship invitation to foreigner. Insufficient permissions.", false);
                         return;

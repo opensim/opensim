@@ -537,7 +537,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 // check user level
                 if (avatar != null)
                 {
-                    if (avatar.UserLevel < m_levelUpload)
+                    if (avatar.GodController.UserLevel < m_levelUpload)
                     {
                         LLSDAssetUploadError resperror = new LLSDAssetUploadError();
                         resperror.message = "Insufficient permissions to upload";

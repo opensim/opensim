@@ -4977,7 +4977,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (presence != null && presence.PresenceType != PresenceType.Npc)
                 {
                     // agent must not be a god
-                    if (presence.UserLevel >= 200) return;
+                    if (presence.GodController.UserLevel >= 200) return;
 
                     // agent must be over the owners land
                     if (m_host.OwnerID == World.LandChannel.GetLandObject(presence.AbsolutePosition).LandData.OwnerID)
@@ -5029,7 +5029,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     else
                     {
                         // agent must not be a god
-                        if (presence.GodLevel >= 200) return;
+                        if (presence.GodController.GodLevel >= 200) return;
 
                         // agent must be over the owners land
                         ILandObject agentLand = World.LandChannel.GetLandObject(presence.AbsolutePosition);
@@ -5256,7 +5256,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
 
                 // Pushee is in GodMode this pushing object isn't owned by them
-                if (avatar.GodLevel > 0 && m_host.OwnerID != targetID)
+                if (avatar.GodController.GodLevel > 0 && m_host.OwnerID != targetID)
                     return;
 
                 pusheeav = avatar;
@@ -6687,7 +6687,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 delegate (ScenePresence ssp)
                 {
                     // Gods are not listed in SL
-                    if (!ssp.IsDeleted && ssp.GodLevel == 0.0 && !ssp.IsChildAgent)
+                    if (!ssp.IsDeleted && ssp.GodController.GodLevel == 0.0 && !ssp.IsChildAgent)
                     {
                         if (!regionWide)
                         {

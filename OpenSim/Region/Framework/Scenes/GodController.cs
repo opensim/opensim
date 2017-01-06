@@ -199,6 +199,7 @@ namespace OpenSim.Region.Framework.Scenes
         public int UserLevel
         {
             get { return m_userLevel; }
+            set { m_userLevel = UserLevel; }
         }
 
         public int GodLevel

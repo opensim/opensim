@@ -255,7 +255,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 // check user level
                 if (avatar != null)
                 {
-                    if (avatar.UserLevel < m_levelUpload)
+                    if (avatar.GodController.UserLevel < m_levelUpload)
                     {
                         remoteClient.SendAgentAlertMessage("Unable to upload asset. Insufficient permissions.", false);
                         return;
