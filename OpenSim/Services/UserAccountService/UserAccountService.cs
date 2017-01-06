@@ -947,7 +947,6 @@ namespace OpenSim.Services.UserAccountService
             if (item.InvType == (int)InventoryType.Object)
             {
                 uint perms = item.CurrentPermissions;
-                PermissionsUtil.ApplyFoldedPermissions(item.CurrentPermissions, ref perms);
                 item.CurrentPermissions = perms;
             }
 

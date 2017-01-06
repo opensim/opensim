@@ -64,24 +64,5 @@ namespace OpenSim.Framework
                 str = ".";
             return str;
         }
-
-        /// <summary>
-        /// Applies an object's folded permissions to its regular permissions.
-        /// </summary>
-        /// <param name="foldedPerms">The folded permissions. Only the lowest 7 bits are examined.</param>
-        /// <param name="mainPerms">The permissions variable to modify.</param>
-        public static void ApplyFoldedPermissions(uint foldedPerms, ref uint mainPerms)
-        {
-//            if ((foldedPerms & 7) == 0)
-//                return; // assume that if the folded permissions are 0 then this means that they weren't actually recorded
-
-            if ((foldedPerms & ((uint)PermissionMask.Copy >> 13)) == 0)
-                mainPerms &= ~(uint)PermissionMask.Copy;
-            if ((foldedPerms & ((uint)PermissionMask.Transfer >> 13)) == 0)
-                mainPerms &= ~(uint)PermissionMask.Transfer;
-            if ((foldedPerms & ((uint)PermissionMask.Modify >> 13)) == 0)
-                mainPerms &= ~(uint)PermissionMask.Modify;
-        }
-
     }
 }
