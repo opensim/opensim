@@ -1005,7 +1005,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             Object[] parms = new Object[]{localID, itemID, script, startParam, postOnRez, (StateSource)stateSource};
 
-            if (stateSource == (int)StateSource.ScriptedRez)
+            // There IS such a thing as too much optimization!!
+            // DON'T try to defer and queue the below states!
+            // Doing so may make rezzing snappier in world, but prevents
+            // vital events like attach, changed owner, etc, from firing.
+            // This just MUST be synchronous. Believe me, I'm The Author!
+            if (stateSource == (int)StateSource.ScriptedRez ||
+                stateSource == (int)StateSource.NewRez ||
+                stateSource == (int)StateSource.AttachedRez)
             {
                 lock (m_CompileDict)
                 {
