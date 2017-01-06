@@ -198,12 +198,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetState(OSD state)
         {
+            if(state == null)
+                return;
+
             OSDMap s = (OSDMap)state;
 
             if (s.ContainsKey("ViewerUiIsGod"))
                 m_viewerUiIsGod = s["ViewerUiIsGod"].AsBoolean();
-
-            SyncViewerState();
         }
 
         public int UserLevel
