@@ -178,7 +178,6 @@ namespace OpenSim.Region.Framework.Scenes
             OSDMap godMap = new OSDMap(2);
 
             godMap.Add("ViewerUiIsGod", OSD.FromBoolean(m_viewerUiIsGod));
-            godMap.Add("UserLevel", OSD.FromInteger(m_userLevel));
 
             return godMap;
         }
@@ -189,9 +188,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (s.ContainsKey("ViewerUiIsGod"))
                 m_viewerUiIsGod = s["ViewerUiIsGod"].AsBoolean();
-
-            if (s.ContainsKey("UserLevel"))
-                m_userLevel = s["UserLevel"].AsInteger();
 
             SyncViewerState();
         }
