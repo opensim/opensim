@@ -131,7 +131,7 @@ namespace OpenSim.Region.Framework.Scenes
             return canBeGod;
         }
 
-        protected void SyncViewerState()
+        public void SyncViewerState()
         {
             bool canBeGod = CanBeGod();
 
