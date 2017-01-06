@@ -1290,7 +1290,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 IsChildAgent = false;
-                GodController.SyncViewerState();
+                
             }
 
             m_log.DebugFormat("[MakeRootAgent] out lock: {0}ms", Util.EnvironmentTickCountSubtract(ts));
@@ -2122,6 +2122,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 if(!IsChildAgent && !isNPC)
+                    GodController.SyncViewerState();
                     
 // start sending terrain patchs
                 if (!gotCrossUpdate && !isNPC)
