@@ -597,9 +597,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             if (remoteClient != null && (remoteClient.AgentId != so.RootPart.OwnerID) && m_Scene.Permissions.PropagatePermissions())
             {
-                // Changing ownership, so apply the "Next Owner" permissions to all of the
-                // inventory item's permissions.
-
                 uint perms = effectivePerms;
                 uint nextPerms = (perms & 7) << 13;
                 if ((nextPerms & (uint)PermissionMask.Copy) == 0)
@@ -620,13 +617,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
             else
             {
-                // Not changing ownership.
-                // In this case we apply the permissions in the object's items ONLY to the inventory
-                // item's "Next Owner" permissions, but NOT to its "Current", "Base", etc. permissions.
-                // E.g., if the object contains a No-Transfer item then the item's "Next Owner"
-                // permissions are also No-Transfer.
-                PermissionsUtil.ApplyFoldedPermissions(effectivePerms, ref allObjectsNextOwnerPerms);
-
                 item.BasePermissions = effectivePerms;
                 item.CurrentPermissions = effectivePerms;
                 item.NextPermissions = so.RootPart.NextOwnerMask & effectivePerms;
