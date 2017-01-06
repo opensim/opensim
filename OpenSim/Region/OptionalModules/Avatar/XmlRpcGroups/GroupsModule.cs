@@ -877,7 +877,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             if (avatar != null)
             {
-                if (avatar.UserLevel < m_levelGroupCreate)
+                if (avatar.GodController.UserLevel < m_levelGroupCreate)
                 {
                     remoteClient.SendCreateGroupReply(UUID.Zero, false, "You have insufficient permissions to create a group.");
                     return UUID.Zero;

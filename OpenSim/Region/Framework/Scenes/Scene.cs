@@ -1207,7 +1207,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             #endregion Interest Management
 
-
             StatsReporter = new SimStatsReporter(this);
 
             StatsReporter.OnSendStatsResult += SendSimStatsPackets;

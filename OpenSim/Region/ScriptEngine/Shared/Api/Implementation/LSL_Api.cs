@@ -4977,7 +4977,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (presence != null && presence.PresenceType != PresenceType.Npc)
                 {
                     // agent must not be a god
-                    if (presence.UserLevel >= 200) return;
+                    if (presence.GodController.UserLevel >= 200) return;
 
                     // agent must be over the owners land
                     if (m_host.OwnerID == World.LandChannel.GetLandObject(presence.AbsolutePosition).LandData.OwnerID)
@@ -5029,7 +5029,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     else
                     {
                         // agent must not be a god
-                        if (presence.GodLevel >= 200) return;
+                        if (presence.GodController.GodLevel >= 200) return;
 
                         // agent must be over the owners land
                         ILandObject agentLand = World.LandChannel.GetLandObject(presence.AbsolutePosition);
@@ -5256,7 +5256,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
 
                 // Pushee is in GodMode this pushing object isn't owned by them
-                if (avatar.GodLevel > 0 && m_host.OwnerID != targetID)
+                if (avatar.GodController.GodLevel > 0 && m_host.OwnerID != targetID)
                     return;
 
                 pusheeav = avatar;
@@ -6687,7 +6687,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 delegate (ScenePresence ssp)
                 {
                     // Gods are not listed in SL
-                    if (!ssp.IsDeleted && ssp.GodLevel == 0.0 && !ssp.IsChildAgent)
+                    if (!ssp.IsDeleted && ssp.GodController.GodLevel == 0.0 && !ssp.IsChildAgent)
                     {
                         if (!regionWide)
                         {
@@ -14482,91 +14482,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             });
 
             return contacts.ToArray();
-        }
-
-        private ContactResult? GroundIntersection2(Vector3 rayStart, Vector3 rayEnd)
-        {
-            // get work copies
-            float sx = rayStart.X;
-            float ex = rayEnd.X;
-            float sy = rayStart.Y;
-            float ey = rayEnd.Y;
-
-            float dx = ex - sx;
-            float dy = ey - sy;
-
-            // region size info
-            float rsx =  World.RegionInfo.RegionSizeX;
-
-            float tmp;
-
-            // region bounds
-            if(sx < 0)
-            {
-                if(ex < 0) // totally outside
-                    return null;
-                if(dx <= 0) // out and going away
-                    return null;
-                else if(ex >= rsx)
-                    ex = rsx - 0.001f;
-                tmp = -sx / dx;
-                sy += dy * dx;
-                sx = 0;
-            }
-            else if(sx >= rsx)
-            {
-                if(ex >= rsx)  // totally outside
-                    return null;
-                if(dx >= 0) // out and going away
-                    return null;
-                else if(ex < 0)
-                    ex = 0;
-                tmp = (rsx - sx) / dx;
-                sy += dy * dx;
-                sx = rsx - 0.001f;
-            }
-
-            float rsy =  World.RegionInfo.RegionSizeY;
-            if(sy < 0)
-            {
-                if(dy <= 0) // out and going away
-                    return null;
-                else if(ey >= rsy)
-                    ey = rsy - 0.001f;
-                tmp = -sy / dy;
-                sx += dy * dx;
-                sy = 0;
-            }
-            else if(sy >= rsy)
-            {
-                if(dy >= 0) // out and going away
-                    return null;
-                else if(ey < 0)
-                    ey = 0;
-                tmp = (rsy - sy) / dy;
-                sx += dy * dx;
-                sy = rsy - 0.001f;
-            }
-
-            if(sx < 0 || sx >= rsx)
-                return null;
-
-            float sz = rayStart.Z;
-            float ez = rayEnd.Z;
-            float dz = ez - sz;
-
-            float dist = dx * dx + dy * dy + dz * dz;
-            if(dist < 0.001)
-                return null;
-            dist = (float)Math.Sqrt(dist);
-            tmp = 1.0f / dist;
-            Vector3 rayn = new Vector3(dx * tmp, dy * tmp, dz * tmp);
-
-            ContactResult? result = null;
-
-
-
-            return result;
         }
 
         private ContactResult? GroundIntersection(Vector3 rayStart, Vector3 rayEnd)

@@ -756,7 +756,7 @@ namespace OpenSim.Groups
 
             if (avatar != null)
             {
-                if (avatar.UserLevel < m_levelGroupCreate)
+                if (avatar.GodController.UserLevel < m_levelGroupCreate)
                 {
                     remoteClient.SendCreateGroupReply(UUID.Zero, false, String.Format("Insufficient permissions to create a group. Requires level {0}", m_levelGroupCreate));
                     return UUID.Zero;

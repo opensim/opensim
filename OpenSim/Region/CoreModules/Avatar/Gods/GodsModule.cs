@@ -173,7 +173,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
 
             sp.GrantGodlikePowers(token, godLike);
 
-            if (godLike && sp.GodLevel < 200 && DialogModule != null)
+            if (godLike && sp.GodController.GodLevel < 200 && DialogModule != null)
                DialogModule.SendAlertToUser(agentID, "Request for god powers denied");
         }
 
@@ -194,14 +194,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
             int godlevel = 200;
             // update level so higher gods can kick lower ones
             ScenePresence god = m_scene.GetScenePresence(godID);
-            if(god != null && god.GodLevel > godlevel)
-                godlevel =  god.GodLevel;
+            if(god != null && god.GodController.GodLevel > godlevel)
+                godlevel =  god.GodController.GodLevel;
 
             if(agentID == ALL_AGENTS)
             {
                 m_scene.ForEachRootScenePresence(delegate(ScenePresence p)
                     {
-                        if (p.UUID != godID && godlevel > p.GodLevel)
+                        if (p.UUID != godID && godlevel > p.GodController.GodLevel)
                             doKickmodes(godID, p, kickflags, reason);
                     });
                 return;
@@ -224,7 +224,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
                 return;
             }
 
-            if (godlevel <= sp.GodLevel) // no god wars
+            if (godlevel <= sp.GodController.GodLevel) // no god wars
                 return;
 
             if(sp.UUID == godID)

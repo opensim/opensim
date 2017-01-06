@@ -547,7 +547,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             {
                 ScenePresence sp = m_scene.GetScenePresence(user);
                 if (sp != null)
-                    return (sp.UserLevel >= 200);
+                    return (sp.GodController.UserLevel >= 200);
 
                 UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, user);
                 if (account != null)

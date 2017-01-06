@@ -1977,7 +1977,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             ScenePresence SP;
             ((Scene)client.Scene).TryGetScenePresence(client.AgentId, out SP);
             List<SceneObjectGroup> returns = new List<SceneObjectGroup>();
-            if (SP.UserLevel != 0)
+            if (SP.GodController.UserLevel != 0)
             {
                 if (flags == 0) //All parcels, scripted or not
                 {
@@ -2043,7 +2043,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             ((Scene)client.Scene).TryGetScenePresence(client.AgentId, out parcelManager);
             System.Threading.Timer Timer;
 
-            if (targetAvatar.UserLevel == 0)
+            if (targetAvatar.GodController.UserLevel == 0)
             {
                 ILandObject land = ((Scene)client.Scene).LandChannel.GetLandObject(targetAvatar.AbsolutePosition.X, targetAvatar.AbsolutePosition.Y);
                 if (!((Scene)client.Scene).Permissions.CanEditParcelProperties(client.AgentId, land, GroupPowers.LandEjectAndFreeze, true))
