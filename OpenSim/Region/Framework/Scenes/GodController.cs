@@ -53,7 +53,6 @@ namespace OpenSim.Region.Framework.Scenes
         protected bool m_forceGridGodsOnly;
         protected bool m_regionOwnerIsGod;
         protected bool m_regionManagerIsGod;
-        protected bool m_parcelOwnerIsGod;
         protected bool m_forceGodModeAlwaysOn;
         protected bool m_allowGodActionsWithoutGodMode;
 
@@ -94,10 +93,6 @@ namespace OpenSim.Region.Framework.Scenes
                     Util.GetConfigVarFromSections<bool>(config,
                     "region_manager_is_god", sections, false);
 
-                // Parcel owners are gods in their own parcels only.
-                m_parcelOwnerIsGod =
-                    Util.GetConfigVarFromSections<bool>(config,
-                    "parcel_owner_is_god", sections, false);
             }
             else
                 m_allowGridGods = true; // reduce user mistakes increased by this over complex options set
@@ -139,14 +134,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_regionManagerIsGod && m_scene.Permissions.IsEstateManager(m_scenePresence.UUID))
                 return true;
-
-            if (m_parcelOwnerIsGod) // Skip expensive check if we're already god!
-            {
-                Vector3 pos = m_scenePresence.AbsolutePosition;
-                ILandObject parcel = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
-                if (parcel != null && parcel.LandData.OwnerID == m_scenePresence.UUID)
-                return true;
-            }
 
             return false;
         }
