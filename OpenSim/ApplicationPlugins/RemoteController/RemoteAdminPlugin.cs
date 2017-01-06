@@ -3053,11 +3053,13 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         {
             if (item.InvType == (int)InventoryType.Object && (item.CurrentPermissions & 7) != 0)
             {
-                uint perms = item.CurrentPermissions;
-                PermissionsUtil.ApplyFoldedPermissions(item.CurrentPermissions, ref perms);
-                item.CurrentPermissions = perms;
+                if ((item.CurrentPermissions & ((uint)PermissionMask.Copy >> 13)) == 0)
+                    item.CurrentPermissions &= ~(uint)PermissionMask.Copy;
+                if ((item.CurrentPermissions & ((uint)PermissionMask.Transfer >> 13)) == 0)
+                    item.CurrentPermissions &= ~(uint)PermissionMask.Transfer;
+                if ((item.CurrentPermissions & ((uint)PermissionMask.Modify >> 13)) == 0)
+                    item.CurrentPermissions &= ~(uint)PermissionMask.Modify;
             }
-
             item.CurrentPermissions &= item.NextPermissions;
             item.BasePermissions &= item.NextPermissions;
             item.EveryOnePermissions &= item.NextPermissions;

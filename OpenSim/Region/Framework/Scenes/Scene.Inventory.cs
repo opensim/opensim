@@ -681,13 +681,17 @@ namespace OpenSim.Region.Framework.Scenes
                 // a mask
                 if (item.InvType == (int)InventoryType.Object)
                 {
+                    // Create a safe mask for the current perms
+                    uint foldedPerms = (item.CurrentPermissions & 7) << 13;
+                    foldedPerms |= permsMask;
+
                     bool isRootMod = (item.CurrentPermissions &
                                       (uint)PermissionMask.Modify) != 0 ?
                                       true : false;
 
                     // Mask the owner perms to the folded perms
-                    PermissionsUtil.ApplyFoldedPermissions(item.CurrentPermissions, ref ownerPerms);
-                    PermissionsUtil.ApplyFoldedPermissions(item.CurrentPermissions, ref basePerms);
+                    ownerPerms &= foldedPerms;
+                    basePerms &= foldedPerms;
 
                     // If the root was mod, let the mask reflect that
                     // We also need to adjust the base here, because
@@ -1240,19 +1244,9 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 agentItem.BasePermissions = taskItem.BasePermissions & (taskItem.NextPermissions | (uint)PermissionMask.Move);
                 if (taskItem.InvType == (int)InventoryType.Object)
-                {
-                    // Bake the new base permissions from folded permissions
-                    // The folded perms are in the lowest 3 bits of the current perms
-                    // We use base permissions here to avoid baking the "Locked" status
-                    // into the item as it is passed.
-                    uint perms = taskItem.BasePermissions & taskItem.NextPermissions;
-                    PermissionsUtil.ApplyFoldedPermissions(taskItem.CurrentPermissions, ref perms);
-                    // Avoid the "lock trap" - move must always be enabled but the above may remove it
-                    // Add it back here.
-                    agentItem.BasePermissions = perms | (uint)PermissionMask.Move;
-                    // Newly given items cannot be "locked" on rez. Make sure by
-                    // setting current equal to base.
-                }
+                    agentItem.CurrentPermissions = agentItem.BasePermissions & (((taskItem.CurrentPermissions & 7) << 13) | (taskItem.CurrentPermissions & (uint)PermissionMask.Move));
+                else
+                    agentItem.CurrentPermissions = agentItem.BasePermissions & taskItem.CurrentPermissions;
 
                 agentItem.CurrentPermissions = agentItem.BasePermissions;
 
