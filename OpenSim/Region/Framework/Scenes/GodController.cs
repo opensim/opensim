@@ -124,26 +124,24 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected bool CanBeGod()
         {
-            bool canBeGod = false;
-
             if (m_allowGridGods && m_userLevel > 0)
-                canBeGod = true;
+                return true;
 
             if (m_regionOwnerIsGod && m_scene.RegionInfo.EstateSettings.IsEstateOwner(m_scenePresence.UUID))
-                canBeGod = true;
+                return true;
 
             if (m_regionManagerIsGod && m_scene.Permissions.IsEstateManager(m_scenePresence.UUID))
-                canBeGod = true;
+                return true;
 
-            if (!canBeGod && m_parcelOwnerIsGod) // Skip expensive check if we're already god!
+            if (m_parcelOwnerIsGod) // Skip expensive check if we're already god!
             {
                 Vector3 pos = m_scenePresence.AbsolutePosition;
                 ILandObject parcel = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
                 if (parcel != null && parcel.LandData.OwnerID == m_scenePresence.UUID)
-                    canBeGod = true;
+                return true;
             }
 
-            return canBeGod;
+            return false;
         }
 
         public void SyncViewerState()
@@ -211,7 +209,7 @@ namespace OpenSim.Region.Framework.Scenes
         public int UserLevel
         {
             get { return m_userLevel; }
-            set { m_userLevel = UserLevel; }
+            set { m_userLevel = value; }
         }
 
         public int GodLevel
