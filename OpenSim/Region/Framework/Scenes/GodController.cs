@@ -50,6 +50,7 @@ namespace OpenSim.Region.Framework.Scenes
         ScenePresence m_scenePresence;
         Scene m_scene;
         protected bool m_allowGridGods;
+        protected bool m_forceGridGods;
         protected bool m_regionOwnerIsGod;
         protected bool m_regionManagerIsGod;
         protected bool m_parcelOwnerIsGod;
@@ -75,6 +76,11 @@ namespace OpenSim.Region.Framework.Scenes
             m_allowGridGods =
                     Util.GetConfigVarFromSections<bool>(config,
                     "allow_grid_gods", sections, false);
+
+            // If grid gods are active, dont allow any other gods
+            m_forceGridGods =
+                    Util.GetConfigVarFromSections<bool>(config,
+                    "force_grid_gods", sections, false);
 
             // The owner of a region is a god in his region only.
             m_regionOwnerIsGod =
@@ -138,6 +144,9 @@ namespace OpenSim.Region.Framework.Scenes
             bool shoudBeGod = m_forceGodModeAlwaysOn ? canBeGod : (m_viewerUiIsGod && canBeGod);
 
             int godLevel = m_allowGridGods ? m_userLevel : 200;
+            if ((!m_forceGridGods) && m_userLevel < 200)
+                godLevel = 200;
+
             if (!shoudBeGod)
                 godLevel = 0;
 
