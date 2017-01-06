@@ -781,8 +781,8 @@ namespace OpenSim.Groups
 
             if (groupID != UUID.Zero)
             {
-                if (money != null)
-                    money.ApplyCharge(remoteClient.AgentId, money.GroupCreationCharge, MoneyTransactionType.GroupCreate);
+                if (money != null && money.GroupCreationCharge > 0)
+                    money.ApplyCharge(remoteClient.AgentId, money.GroupCreationCharge, MoneyTransactionType.GroupCreate, name);
 
                 remoteClient.SendCreateGroupReply(groupID, true, "Group created successfully");
 
