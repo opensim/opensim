@@ -310,7 +310,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         foreach (string id in ids)
                         {
                             string current = id.Trim();
-                            if (current.ToUpper() == "PARCEL_GROUP_MEMBER" || current.ToUpper() == "PARCEL_OWNER" || current.ToUpper() == "ESTATE_MANAGER" || current.ToUpper() == "ESTATE_OWNER" || current.ToUpper() == "GOD" || current.ToUpper() == "GRID_GOD")
+                            if (current.ToUpper() == "PARCEL_GROUP_MEMBER" || current.ToUpper() == "PARCEL_OWNER" || current.ToUpper() == "ESTATE_MANAGER" || current.ToUpper() == "ESTATE_OWNER" || current.ToUpper() == "ACTIVE_GOD" || current.ToUpper() == "GRID_GOD")
                             {
                                 if (!perms.AllowedOwnerClasses.Contains(current))
                                     perms.AllowedOwnerClasses.Add(current.ToUpper());
@@ -426,7 +426,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
 
                     //Only active gods may use the function
-                    if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("GOD"))
+                    if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("ACTIVE_GOD"))
                     {
                         ScenePresence sp = World.GetScenePresence(ownerID);
                         if (sp != null && !sp.IsDeleted && sp.IsGod)
