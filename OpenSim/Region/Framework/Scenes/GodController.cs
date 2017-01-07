@@ -47,23 +47,35 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public class GodController
     {
+        public enum ImplicitGodLevels : int
+        {
+            EstateManager = 210,    // estate manager implicit god level
+            RegionOwner = 220       // region owner implicit god level should be >= than estate
+        }
+
         ScenePresence m_scenePresence;
         Scene m_scene;
         protected bool m_allowGridGods;
+        protected bool m_forceGridGodsOnly;
         protected bool m_regionOwnerIsGod;
         protected bool m_regionManagerIsGod;
-        protected bool m_parcelOwnerIsGod;
         protected bool m_forceGodModeAlwaysOn;
         protected bool m_allowGodActionsWithoutGodMode;
 
-        protected bool m_viewerUiIsGod = false;
-
         protected int m_userLevel = 0;
+        // the god level from local or grid user rights
+        protected int m_rightsGodLevel = 0;
+        // the level seen by viewers
+        protected int m_godlevel = 0;
+        // new level that can be fixed or equal to godlevel, acording to options
+        protected int m_effectivegodlevel = 0;
+        protected int m_lastLevelToViewer = 0;
 
-        public GodController(Scene scene, ScenePresence sp)
+        public GodController(Scene scene, ScenePresence sp, int userlevel)
         {
             m_scene = scene;
             m_scenePresence = sp;
+            m_userLevel = userlevel;
 
             IConfigSource config = scene.Config;
 
@@ -76,21 +88,27 @@ namespace OpenSim.Region.Framework.Scenes
                     Util.GetConfigVarFromSections<bool>(config,
                     "allow_grid_gods", sections, false);
 
-            // The owner of a region is a god in his region only.
-            m_regionOwnerIsGod =
+            // If grid gods are active, dont allow any other gods
+            m_forceGridGodsOnly =
+                    Util.GetConfigVarFromSections<bool>(config,
+                    "force_grid_gods_only", sections, false);
+
+            if(!m_forceGridGodsOnly)
+            {
+                // The owner of a region is a god in his region only.
+                m_regionOwnerIsGod =
                     Util.GetConfigVarFromSections<bool>(config,
                     "region_owner_is_god", sections, true);
 
-            // Region managers are gods in the regions they manage.
-            m_regionManagerIsGod =
+                // Region managers are gods in the regions they manage.
+                m_regionManagerIsGod =
                     Util.GetConfigVarFromSections<bool>(config,
                     "region_manager_is_god", sections, false);
 
-            // Parcel owners are gods in their own parcels only.
-            m_parcelOwnerIsGod =
-                    Util.GetConfigVarFromSections<bool>(config,
-                    "parcel_owner_is_god", sections, false);
-
+            }
+            else
+                m_allowGridGods = true; // reduce potencial user mistakes
+                 
             // God mode should be turned on in the viewer whenever
             // the user has god rights somewhere. They may choose
             // to turn it off again, though.
@@ -105,78 +123,121 @@ namespace OpenSim.Region.Framework.Scenes
                     Util.GetConfigVarFromSections<bool>(config,
                     "implicit_gods", sections, false);
 
+            m_rightsGodLevel = CalcRightsGodLevel();
+
+            if(m_allowGodActionsWithoutGodMode)
+            {
+                m_effectivegodlevel = m_rightsGodLevel;
+
+                m_forceGodModeAlwaysOn = false;
+            }
+
+            else if(m_forceGodModeAlwaysOn)
+            {
+                m_godlevel = m_rightsGodLevel;
+                m_effectivegodlevel = m_rightsGodLevel;
+            }
+
+            m_scenePresence.isGod = (m_effectivegodlevel >= 200);
+            m_scenePresence.isLegacyGod = (m_godlevel >= 200);
+        }
+
+        // calculates god level at sp creation from local and grid user god rights
+        // for now this is assumed static until user leaves region.
+        // later estate and gride level updates may update this
+        protected int CalcRightsGodLevel()
+        {
+            int level = 0;
+            if (m_allowGridGods && m_userLevel >= 200)
+                level = m_userLevel;
+
+            if(m_forceGridGodsOnly || level >= (int)ImplicitGodLevels.RegionOwner)
+                return level;
+
+            if (m_regionOwnerIsGod && m_scene.RegionInfo.EstateSettings.IsEstateOwner(m_scenePresence.UUID))
+                level = (int)ImplicitGodLevels.RegionOwner;
+
+            if(level >= (int)ImplicitGodLevels.EstateManager)
+                return level;
+
+            if (m_regionManagerIsGod && m_scene.Permissions.IsEstateManager(m_scenePresence.UUID))
+                level = (int)ImplicitGodLevels.EstateManager;
+
+            return level;
         }
 
         protected bool CanBeGod()
         {
-            bool canBeGod = false;
-
-            if (m_allowGridGods && m_userLevel > 0)
-                canBeGod = true;
-
-            if (m_regionOwnerIsGod && m_scene.RegionInfo.EstateSettings.IsEstateOwner(m_scenePresence.UUID))
-                canBeGod = true;
-
-            if (m_regionManagerIsGod && m_scene.Permissions.IsEstateManager(m_scenePresence.UUID))
-                canBeGod = true;
-
-            if (!canBeGod && m_parcelOwnerIsGod) // Skip expensive check if we're already god!
-            {
-                Vector3 pos = m_scenePresence.AbsolutePosition;
-                ILandObject parcel = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
-                if (parcel != null && parcel.LandData.OwnerID == m_scenePresence.UUID)
-                    canBeGod = true;
-            }
-
-            return canBeGod;
+            return m_rightsGodLevel >= 200;
         }
 
-        protected void SyncViewerState()
+        protected void UpdateGodLevels(bool viewerState)
         {
-            bool canBeGod = CanBeGod();
-
-            bool shoudBeGod = m_forceGodModeAlwaysOn ? canBeGod : (m_viewerUiIsGod && canBeGod);
-
-            int godLevel = m_allowGridGods ? m_userLevel : 200;
-            if (!shoudBeGod)
-                godLevel = 0;
-
-            if (m_viewerUiIsGod != shoudBeGod)
+            if(!CanBeGod())
             {
-                m_scenePresence.ControllingClient.SendAdminResponse(UUID.Zero, (uint)godLevel);
-                m_viewerUiIsGod = shoudBeGod;
+                m_godlevel = 0;
+                m_effectivegodlevel = 0;
+                m_scenePresence.isGod = false;
+                m_scenePresence.isLegacyGod = false;
+                return;
             }
+
+            // legacy some are controled by viewer, others are static
+            if(m_allowGodActionsWithoutGodMode)
+            {
+                if(viewerState)
+                    m_godlevel = m_rightsGodLevel;
+                else
+                    m_godlevel = 0;
+
+                m_effectivegodlevel = m_rightsGodLevel;
+            }
+            else
+            {
+                // new all change with viewer
+                if(viewerState)
+                {
+                    m_godlevel = m_rightsGodLevel;
+                    m_effectivegodlevel = m_rightsGodLevel;
+                }
+                else
+                {
+                    m_godlevel = 0;
+                    m_effectivegodlevel = 0;
+                }
+            }
+            m_scenePresence.isGod = (m_effectivegodlevel >= 200);
+            m_scenePresence.isLegacyGod = (m_godlevel >= 200);
         }
 
-        public bool RequestGodMode(bool god)
+        public void SyncViewerState()
         {
-            if (!god)
-            {
-                if (m_viewerUiIsGod)
-                    m_scenePresence.ControllingClient.SendAdminResponse(UUID.Zero, 0);
+            if(m_lastLevelToViewer == m_godlevel)
+                return;
 
-                m_viewerUiIsGod = false;
+            m_lastLevelToViewer = m_godlevel;
 
-                return true;
-            }
+            if(m_scenePresence.IsChildAgent)
+                return;            
 
-            if (!CanBeGod())
-                return false;
-
-            int godLevel = m_allowGridGods ? m_userLevel : 200;
-
-            if (!m_viewerUiIsGod)
-                m_scenePresence.ControllingClient.SendAdminResponse(UUID.Zero, (uint)godLevel);
-
-            m_viewerUiIsGod = true;
-
-            return true;
+            m_scenePresence.ControllingClient.SendAdminResponse(UUID.Zero, (uint)m_godlevel);
         }
 
-        public OSD State()
+        public void RequestGodMode(bool god)
+        {
+            UpdateGodLevels(god);
+
+            if(m_lastLevelToViewer != m_godlevel)
+            {
+                m_scenePresence.ControllingClient.SendAdminResponse(UUID.Zero, (uint)m_godlevel);
+                m_lastLevelToViewer = m_godlevel;
+            }
+        }
+
+       public OSD State()
         {
             OSDMap godMap = new OSDMap(2);
-
+            bool m_viewerUiIsGod = m_godlevel >= 200;
             godMap.Add("ViewerUiIsGod", OSD.FromBoolean(m_viewerUiIsGod));
 
             return godMap;
@@ -184,45 +245,42 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetState(OSD state)
         {
-            OSDMap s = (OSDMap)state;
+            bool newstate = false;
+            if(m_forceGodModeAlwaysOn)
+                newstate = true;
+            else
+            {
+                if(state != null)
+                {
+                    OSDMap s = (OSDMap)state;
 
-            if (s.ContainsKey("ViewerUiIsGod"))
-                m_viewerUiIsGod = s["ViewerUiIsGod"].AsBoolean();
+                    if (s.ContainsKey("ViewerUiIsGod"))
+                        newstate = s["ViewerUiIsGod"].AsBoolean();
+                    m_lastLevelToViewer = m_godlevel; // we are not changing viewer level by default
+                }
+            }       
+            UpdateGodLevels(newstate);
+        }
 
-            SyncViewerState();
+        public void HasMovedAway()
+        {
+            m_lastLevelToViewer = 0;
         }
 
         public int UserLevel
         {
             get { return m_userLevel; }
-            set { m_userLevel = UserLevel; }
+            set { m_userLevel = value; }
         }
 
         public int GodLevel
         {
-            get
-            {
-                int godLevel = m_allowGridGods ? m_userLevel : 200;
-                if (!m_viewerUiIsGod)
-                    godLevel = 0;
-
-                return godLevel;
-            }
+            get { return m_godlevel; }
         }
 
         public int EffectiveLevel
         {
-            get
-            {
-                int godLevel = m_allowGridGods ? m_userLevel : 200;
-                if (m_viewerUiIsGod)
-                    return godLevel;
-
-                if (m_allowGodActionsWithoutGodMode && CanBeGod())
-                    return godLevel;
-
-                return 0;
-            }
+            get { return m_effectivegodlevel; }
         }
     }
 }

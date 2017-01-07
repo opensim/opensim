@@ -182,7 +182,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         private ScriptCompileQueue m_CompileQueue = new ScriptCompileQueue();
         IWorkItemResult m_CurrentCompile = null;
-        private Dictionary<UUID, int> m_CompileDict = new Dictionary<UUID, int>();
+        private Dictionary<UUID, ScriptCompileInfo> m_CompileDict = new Dictionary<UUID, ScriptCompileInfo>();
 
         private ScriptEngineConsoleCommands m_consoleCommands;
 
@@ -234,6 +234,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public IConfigSource ConfigSource
         {
             get { return m_ConfigSource; }
+        }
+
+        private class ScriptCompileInfo
+        {
+            public List<EventParams> eventList = new List<EventParams>();
         }
 
         /// <summary>
@@ -1009,7 +1014,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 lock (m_CompileDict)
                 {
-                    m_CompileDict[itemID] = 0;
+//                    m_log.DebugFormat("[XENGINE]: Set compile dict for {0}", itemID);
+                    m_CompileDict[itemID] = new ScriptCompileInfo();
                 }
 
                 DoOnRezScript(parms);
@@ -1017,7 +1023,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             else
             {
                 lock (m_CompileDict)
-                    m_CompileDict[itemID] = 0;
+                    m_CompileDict[itemID] = new ScriptCompileInfo();
+//                m_log.DebugFormat("[XENGINE]: Set compile dict for {0} delayed", itemID);
 
                 // This must occur after the m_CompileDict so that an existing compile thread cannot hit the check
                 // in DoOnRezScript() before m_CompileDict has been updated.
@@ -1135,7 +1142,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 if (!m_CompileDict.ContainsKey(itemID))
                     return false;
-                m_CompileDict.Remove(itemID);
             }
 
             // Get the asset ID of the script, so we can check if we
@@ -1150,6 +1156,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 m_log.ErrorFormat("[Script]: SceneObjectPart with localID {0} unavailable. Script NOT started.", localID);
                 m_ScriptErrorMessage += "SceneObjectPart unavailable. Script NOT started.\n";
                 m_ScriptFailCount++;
+                lock (m_CompileDict)
+                    m_CompileDict.Remove(itemID);
                 return false;
             }
 
@@ -1158,6 +1166,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 m_ScriptErrorMessage += "Can't find script inventory item.\n";
                 m_ScriptFailCount++;
+                lock (m_CompileDict)
+                    m_CompileDict.Remove(itemID);
                 return false;
             }
 
@@ -1275,6 +1285,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
     //                            e.Message.ToString());
     //                }
 
+                    lock (m_CompileDict)
+                        m_CompileDict.Remove(itemID);
                     return false;
                 }
             }
@@ -1345,6 +1357,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             {
                                 m_AddingAssemblies[assemblyPath]--;
                             }
+                            lock (m_CompileDict)
+                                m_CompileDict.Remove(itemID);
                             return false;
                         }
                     }
@@ -1402,6 +1416,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                         assemblyName.FullName, World.Name),
                                     e2);
 
+                                lock (m_CompileDict)
+                                    m_CompileDict.Remove(itemID);
                                 return false;
                             }
 
@@ -1451,6 +1467,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                         assemblyName.FullName, World.Name),
                                     e2);
 
+                                lock (m_CompileDict)
+                                    m_CompileDict.Remove(itemID);
                                 return false;
                             }
 
@@ -1478,7 +1496,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                     if(!instance.Load(scriptObj, coopSleepHandle, assemblyPath,
                             Path.Combine(ScriptEnginePath, World.RegionInfo.RegionID.ToString()), stateSource, coopTerminationForThisScript))
-                            return false;
+                    {
+                        lock (m_CompileDict)
+                            m_CompileDict.Remove(itemID);
+                        return false;
+                    }
 
 //                    if (DebugLevel >= 1)
 //                    m_log.DebugFormat(
@@ -1518,7 +1540,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
 
             if (instance != null)
+            {
                 instance.Init();
+                lock (m_CompileDict)
+                {
+                    foreach (EventParams pp in m_CompileDict[itemID].eventList)
+                        instance.PostEvent(pp);
+                }
+            }
+            lock (m_CompileDict)
+                m_CompileDict.Remove(itemID);
 
             bool runIt;
             if (m_runFlags.TryGetValue(itemID, out runIt))
@@ -1742,6 +1773,17 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         instance.PostEvent(p);
                         result = true;
                     }
+                    else
+                    {
+                        lock (m_CompileDict)
+                        {
+                            if (m_CompileDict.ContainsKey(itemID))
+                            {
+                                m_CompileDict[itemID].eventList.Add(p);
+                                result = true;
+                            }
+                        }
+                    }
                 }
             }
 
@@ -1762,6 +1804,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 if (instance != null)
                     instance.PostEvent(p);
                 return true;
+            }
+            lock (m_CompileDict)
+            {
+                if (m_CompileDict.ContainsKey(itemID))
+                {
+                    m_CompileDict[itemID].eventList.Add(p);
+                    return true;
+                }
             }
             return false;
         }

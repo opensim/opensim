@@ -532,16 +532,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
             else
             {
+                AddPermissions(item, objlist[0], objlist, remoteClient);
+
                 item.CreationDate = Util.UnixTimeSinceEpoch();
                 item.Description = asset.Description;
                 item.Name = asset.Name;
                 item.AssetType = asset.Type;
-
-                //preserve perms on return
-                if(DeRezAction.Return == action)
-                    AddPermissions(item, objlist[0], objlist, null);
-                else
-                    AddPermissions(item, objlist[0], objlist, remoteClient);
 
                 m_Scene.AddInventoryItem(item);
 
@@ -599,15 +595,16 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
             effectivePerms |= (uint)PermissionMask.Move;
 
-            //PermissionsUtil.LogPermissions(item.Name, "Before AddPermissions", item.BasePermissions, item.CurrentPermissions, item.NextPermissions);
-
             if (remoteClient != null && (remoteClient.AgentId != so.RootPart.OwnerID) && m_Scene.Permissions.PropagatePermissions())
             {
-                // Changing ownership, so apply the "Next Owner" permissions to all of the
-                // inventory item's permissions.
-
                 uint perms = effectivePerms;
-                PermissionsUtil.ApplyFoldedPermissions(effectivePerms, ref perms);
+                uint nextPerms = (perms & 7) << 13;
+                if ((nextPerms & (uint)PermissionMask.Copy) == 0)
+                    perms &= ~(uint)PermissionMask.Copy;
+                if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
+                    perms &= ~(uint)PermissionMask.Transfer;
+                if ((nextPerms & (uint)PermissionMask.Modify) == 0)
+                    perms &= ~(uint)PermissionMask.Modify;
 
                 item.BasePermissions = perms & so.RootPart.NextOwnerMask;
                 item.CurrentPermissions = item.BasePermissions;
@@ -620,13 +617,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
             else
             {
-                // Not changing ownership.
-                // In this case we apply the permissions in the object's items ONLY to the inventory
-                // item's "Next Owner" permissions, but NOT to its "Current", "Base", etc. permissions.
-                // E.g., if the object contains a No-Transfer item then the item's "Next Owner"
-                // permissions are also No-Transfer.
-                PermissionsUtil.ApplyFoldedPermissions(effectivePerms, ref allObjectsNextOwnerPerms);
-
                 item.BasePermissions = effectivePerms;
                 item.CurrentPermissions = effectivePerms;
                 item.NextPermissions = so.RootPart.NextOwnerMask & effectivePerms;
@@ -640,10 +630,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                          (uint)PermissionMask.Move |
                          (uint)PermissionMask.Export |
                          7); // Preserve folded permissions
-            }
-
-            //PermissionsUtil.LogPermissions(item.Name, "After AddPermissions", item.BasePermissions, item.CurrentPermissions, item.NextPermissions);
-
+            }    
+            
             return item;
         }
 
@@ -1153,6 +1141,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                             part.OwnerID = item.Owner;
                             part.RezzerID = item.Owner;
                             part.Inventory.ChangeInventoryOwner(item.Owner);
+
+                            // This applies the base mask from the item as the next
+                            // permissions for the object. This is correct because the
+                            // giver's base mask was masked by the giver's next owner
+                            // mask, so the base mask equals the original next owner mask.
+                            part.NextOwnerMask = item.BasePermissions;
                         }
 
                         so.ApplyNextOwnerPermissions();
@@ -1164,10 +1158,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         {
                             if ((item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
                             {
-                                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
-                                    part.EveryoneMask = item.EveryOnePermissions & part.BaseMask;
-                                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
-                                    part.NextOwnerMask = item.NextPermissions & part.BaseMask;
+                                part.EveryoneMask = item.EveryOnePermissions & part.BaseMask;
+                                part.NextOwnerMask = item.NextPermissions & part.BaseMask;
                             }
                         }
                     }

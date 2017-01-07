@@ -185,7 +185,13 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_log.DebugFormat("[GetMeshModule] Closing");
                 foreach (Thread t in m_workerThreads)
                     Watchdog.AbortThread(t.ManagedThreadId);
-                m_queue.Clear();
+                // This will fail on region shutdown. Its harmless.
+                // Prevent red ink.
+                try
+                {
+                    m_queue.Clear();
+                }
+                catch {}
             }
         }
 

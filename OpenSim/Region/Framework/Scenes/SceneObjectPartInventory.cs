@@ -1358,6 +1358,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (item.InvType == (int)InventoryType.Object && (item.CurrentPermissions & 7) != 0)
                 {
+//                    m_log.DebugFormat (
+//                        "[SCENE OBJECT PART INVENTORY]: Applying next permissions {0} to {1} in {2} with current {3}, base {4}, everyone {5}",
+//                        item.NextPermissions, item.Name, m_part.Name, item.CurrentPermissions, item.BasePermissions, item.EveryonePermissions);
+
                     if ((item.CurrentPermissions & ((uint)PermissionMask.Copy >> 13)) == 0)
                         item.CurrentPermissions &= ~(uint)PermissionMask.Copy;
                     if ((item.CurrentPermissions & ((uint)PermissionMask.Transfer >> 13)) == 0)

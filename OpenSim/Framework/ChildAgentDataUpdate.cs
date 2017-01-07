@@ -90,7 +90,7 @@ namespace OpenSim.Framework
         public Vector3 LeftAxis;
         public Vector3 UpAxis;
         //public int GodLevel;
-        public OSD GodData = new OSDMap();
+        public OSD GodData = null;
         public bool ChangedGrid;
 
         // This probably shouldn't be here
@@ -119,12 +119,15 @@ namespace OpenSim.Framework
             args["far"] = OSD.FromReal(Far);
             args["changed_grid"] = OSD.FromBoolean(ChangedGrid);
             //args["god_level"] = OSD.FromString(GodLevel.ToString());
-            args["god_data"] = GodData;
-            OSDMap g = (OSDMap)GodData;
-            // Set legacy value
-            // TODO: remove after 0.9 is superseded
-            if (g.ContainsKey("ViewerUiIsGod"))
-                args["god_level"] = g["ViewerUiIsGod"].AsBoolean() ? 200 : 0;;
+            if(GodData != null)
+            {
+                args["god_data"] = GodData;
+                OSDMap g = (OSDMap)GodData;
+                // Set legacy value
+                // TODO: remove after 0.9 is superseded
+                if (g.ContainsKey("ViewerUiIsGod"))
+                    args["god_level"] = g["ViewerUiIsGod"].AsBoolean() ? 200 : 0;
+            }
 
             if ((Throttles != null) && (Throttles.Length > 0))
                 args["throttles"] = OSD.FromBinary(Throttles);
@@ -185,7 +188,7 @@ namespace OpenSim.Framework
 
             //if (args["god_level"] != null)
             //    Int32.TryParse(args["god_level"].AsString(), out GodLevel);
-            if (args["god_data"] != null)
+            if (args.ContainsKey("god_data") && args["god_data"] != null)
                 GodData = args["god_data"];
 
             if (args["far"] != null)
@@ -362,7 +365,7 @@ namespace OpenSim.Framework
         public Quaternion BodyRotation;
         public uint ControlFlags;
         public float EnergyLevel;
-        public OSD GodData = new OSDMap();
+        public OSD GodData = null;
         //public Byte GodLevel;
         public bool AlwaysRun;
         public UUID PreyAgent;
@@ -438,10 +441,13 @@ namespace OpenSim.Framework
 
             args["energy_level"] = OSD.FromReal(EnergyLevel);
             //args["god_level"] = OSD.FromString(GodLevel.ToString());
-            args["god_data"] = GodData;
-            OSDMap g = (OSDMap)GodData;
-            if (g.ContainsKey("ViewerUiIsGod"))
-                args["god_level"] = g["ViewerUiIsGod"].AsBoolean() ? 200 : 0;;
+            if(GodData != null)
+            {
+                args["god_data"] = GodData;
+                OSDMap g = (OSDMap)GodData;
+                if (g.ContainsKey("ViewerUiIsGod"))
+                    args["god_level"] = g["ViewerUiIsGod"].AsBoolean() ? 200 : 0;;
+            }
             args["always_run"] = OSD.FromBoolean(AlwaysRun);
             args["prey_agent"] = OSD.FromUUID(PreyAgent);
             args["agent_access"] = OSD.FromString(AgentAccess.ToString());
@@ -622,7 +628,7 @@ namespace OpenSim.Framework
             //if (args["god_level"] != null)
             //    Byte.TryParse(args["god_level"].AsString(), out GodLevel);
 
-            if (args["god_data"] != null)
+            if (args.ContainsKey("god_data") && args["god_data"] != null)
                 GodData = args["god_data"];
 
             if (args["always_run"] != null)

@@ -781,8 +781,8 @@ namespace OpenSim.Groups
 
             if (groupID != UUID.Zero)
             {
-                if (money != null)
-                    money.ApplyCharge(remoteClient.AgentId, money.GroupCreationCharge, MoneyTransactionType.GroupCreate);
+                if (money != null && money.GroupCreationCharge > 0)
+                    money.ApplyCharge(remoteClient.AgentId, money.GroupCreationCharge, MoneyTransactionType.GroupCreate, name);
 
                 remoteClient.SendCreateGroupReply(groupID, true, "Group created successfully");
 
@@ -979,10 +979,28 @@ namespace OpenSim.Groups
         {
             if (m_debugEnabled) m_log.DebugFormat("[Groups]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
+            GroupRecord groupRecord = GetGroupRecord(groupID);
+            IMoneyModule money = remoteClient.Scene.RequestModuleInterface<IMoneyModule>();
+
+            // Should check to see if there's an outstanding invitation
+
+            if (money != null && groupRecord.MembershipFee > 0)
+            {
+                // Does the agent have the funds to cover the group join fee?
+                if (!money.AmountCovered(remoteClient.AgentId, groupRecord.MembershipFee))
+                {
+                    remoteClient.SendAlertMessage("Insufficient funds to join the group.");
+                    remoteClient.SendJoinGroupReply(groupID, false);
+                    return;
+                }
+            }
+
             string reason = string.Empty;
-            // Should check to see if OpenEnrollment, or if there's an outstanding invitation
+
             if (m_groupData.AddAgentToGroup(GetRequestingAgentIDStr(remoteClient), GetRequestingAgentIDStr(remoteClient), groupID, UUID.Zero, string.Empty, out reason))
             {
+                if (money != null && groupRecord.MembershipFee > 0)
+                    money.ApplyCharge(remoteClient.AgentId, groupRecord.MembershipFee, MoneyTransactionType.GroupJoin, groupRecord.GroupName);
 
                 remoteClient.SendJoinGroupReply(groupID, true);
 

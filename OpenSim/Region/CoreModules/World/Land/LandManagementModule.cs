@@ -1818,13 +1818,20 @@ namespace OpenSim.Region.CoreModules.World.Land
                             uint wx;
                             uint wy;
                             Util.RegionHandleToWorldLoc(regionHandle, out wx, out wy);
-                            wx += x;
-                            wy += y;
                             GridRegion info = m_scene.GridService.GetRegionByPosition(scope, (int)wx, (int)wy);
                             if(info != null)
                             {
                                 wx -= (uint)info.RegionLocX;
                                 wy -= (uint)info.RegionLocY;
+                                wx += x;
+                                wy += y;
+                                // Firestorm devs have no ideia how to do handlers math
+                                // on all cases
+                                if(wx > info.RegionSizeX || wy > info.RegionSizeY)
+                                {
+                                    wx = x;
+                                    wy = y;
+                                }
                                 parcelID = Util.BuildFakeParcelID(info.RegionHandle, wx, wy);
                             }
                         }
@@ -1845,8 +1852,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                                 parcelID = Util.BuildFakeParcelID(info.RegionHandle, x, y);
                         }
                     }
-
-
                 }
             }
             catch (LLSD.LLSDParseException e)

@@ -99,7 +99,9 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         private bool m_allowGridGods = false;
         private bool m_RegionOwnerIsGod = false;
         private bool m_RegionManagerIsGod = false;
-        private bool m_ParcelOwnerIsGod = false;
+        private bool m_forceGridGodsOnly;
+        private bool m_forceGodModeAlwaysOn;
+        private bool m_allowGodActionsWithoutGodMode;
 
         private bool m_SimpleBuildPermissions = false;
 
@@ -168,21 +170,27 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             m_Enabled = true;
 
-            m_allowGridGods = Util.GetConfigVarFromSections<bool>(config, "allow_grid_gods",
-                new string[] { "Startup", "Permissions" }, false);
-            m_bypassPermissions = !Util.GetConfigVarFromSections<bool>(config, "serverside_object_permissions",
-                new string[] { "Startup", "Permissions" }, true);
-            m_propagatePermissions = Util.GetConfigVarFromSections<bool>(config, "propagate_permissions",
-                new string[] { "Startup", "Permissions" }, true);
-            m_RegionOwnerIsGod = Util.GetConfigVarFromSections<bool>(config, "region_owner_is_god",
-                new string[] { "Startup", "Permissions" }, true);
-            m_RegionManagerIsGod = Util.GetConfigVarFromSections<bool>(config, "region_manager_is_god",
-                new string[] { "Startup", "Permissions" }, false);
-            m_ParcelOwnerIsGod = Util.GetConfigVarFromSections<bool>(config, "parcel_owner_is_god",
-                new string[] { "Startup", "Permissions" }, false);
+            string[] sections = new string[] { "Startup", "Permissions" };
 
-            m_SimpleBuildPermissions = Util.GetConfigVarFromSections<bool>(config, "simple_build_permissions",
-                new string[] { "Startup", "Permissions" }, false);
+            m_allowGridGods = Util.GetConfigVarFromSections<bool>(config, "allow_grid_gods", sections, false);
+            m_bypassPermissions = !Util.GetConfigVarFromSections<bool>(config, "serverside_object_permissions", sections, true);
+            m_propagatePermissions = Util.GetConfigVarFromSections<bool>(config, "propagate_permissions", sections, true);
+
+            m_forceGridGodsOnly = Util.GetConfigVarFromSections<bool>(config, "force_grid_gods_only", sections, false);
+            if(!m_forceGridGodsOnly)
+            {            
+                m_RegionOwnerIsGod = Util.GetConfigVarFromSections<bool>(config, "region_owner_is_god",sections, true);
+                m_RegionManagerIsGod = Util.GetConfigVarFromSections<bool>(config, "region_manager_is_god",sections, false);
+            }
+            else
+                m_allowGridGods = true;
+
+            m_forceGodModeAlwaysOn = Util.GetConfigVarFromSections<bool>(config, "automatic_gods", sections, false);
+            m_allowGodActionsWithoutGodMode = Util.GetConfigVarFromSections<bool>(config, "implicit_gods", sections, false);
+            if(m_allowGodActionsWithoutGodMode)
+                m_forceGodModeAlwaysOn = false;
+
+            m_SimpleBuildPermissions = Util.GetConfigVarFromSections<bool>(config, "simple_build_permissions",sections, false);
 
             m_allowedScriptCreators
                 = ParseUserSetConfigSetting(config, "allowed_script_creators", m_allowedScriptCreators);
@@ -718,6 +726,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (IsAdministrator(user))
                 return PermissionClass.Owner;
 
+/* to review later
             // Users should be able to edit what is over their land.
             Vector3 taskPos = obj.AbsolutePosition;
             ILandObject parcel = m_scene.LandChannel.GetLandObject(taskPos.X, taskPos.Y);
@@ -727,7 +736,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 if (!IsAdministrator(objectOwner))
                     return PermissionClass.Owner;
             }
-
+*/
             // Group permissions
             if ((obj.GroupID != UUID.Zero) && IsGroupMember(obj.GroupID, user, 0))
                 return PermissionClass.Group;

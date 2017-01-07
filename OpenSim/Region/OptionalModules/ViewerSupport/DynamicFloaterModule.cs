@@ -134,7 +134,7 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
             }
             else
             {
-                using (FileStream fs = File.Open(dialogData.XmlName + ".xml", FileMode.Open))
+                using (FileStream fs = File.Open(dialogData.XmlName + ".xml", FileMode.Open, FileAccess.Read))
                 {
                     using (StreamReader sr = new StreamReader(fs))
                         xml = sr.ReadToEnd().Replace("\n", "");

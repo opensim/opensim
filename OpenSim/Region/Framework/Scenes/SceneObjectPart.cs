@@ -5242,6 +5242,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             BaseMask &= NextOwnerMask | (uint)PermissionMask.Export;
             OwnerMask &= NextOwnerMask;
             EveryoneMask &= NextOwnerMask | (uint)PermissionMask.Export;
+            GroupMask = 0; // Giving an object zaps group permissions
 
             Inventory.ApplyNextOwnerPermissions();
         }
