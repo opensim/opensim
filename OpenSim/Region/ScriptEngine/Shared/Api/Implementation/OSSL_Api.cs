@@ -415,14 +415,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                     }
 
-                    //Only gods may use the function
-                    if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("GOD"))
-                    {
-                        if (World.Permissions.IsGod(ownerID))
-                        {
-                            return String.Empty;
-                        }
-                    }
 
                     //Only grid gods may use the function
                     if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("GRID_GOD"))
@@ -432,6 +424,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return String.Empty;
                         }
                     }
+
+                    //Only active gods may use the function
+                    if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("GOD"))
+                    {
+                        ScenePresence sp = World.GetScenePresence(ownerID);
+                        if (sp != null && !sp.IsDeleted && sp.IsGod)
+                        {
+                            return String.Empty;
+                        }
+                    }
+
 
                     if (!m_FunctionPerms[function].AllowedCreators.Contains(m_item.CreatorID))
                         return(
