@@ -1999,8 +1999,16 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             IClientAPI spClient = sp.ControllingClient;
 
-            if (!seeds.ContainsKey(currentRegionHandler))
-                seeds.Add(currentRegionHandler, spClient.RequestClientInfo().CapsPath);
+            // This will fail if the user aborts login
+            try
+            {
+                if (!seeds.ContainsKey(currentRegionHandler))
+                    seeds.Add(currentRegionHandler, spClient.RequestClientInfo().CapsPath);
+            }
+            catch
+            {
+                return;
+            }
 
             AgentCircuitData currentAgentCircuit =
                 spScene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);

@@ -1118,7 +1118,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             SceneObjectGroup objatt;
 
-            UUID rezGroupID = sp.ControllingClient.ActiveGroupId;
+            UUID rezGroupID;
+
+            // This will fail if the user aborts login. sp will exist
+            // but ControllintClient will be null.
+            try
+            {
+                rezGroupID = sp.ControllingClient.ActiveGroupId;
+            }
+            catch
+            {
+                return null;
+            }
 
             if (itemID != UUID.Zero)
                 objatt = m_invAccessModule.RezObject(sp.ControllingClient,
