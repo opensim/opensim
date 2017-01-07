@@ -68,7 +68,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 
         public void OnMakeRootAgent(ScenePresence sp)
         {
-            if (sp.isNPC)
+            if (sp.IsNPC)
                 return;
 
             if(sp.gotCrossUpdate)

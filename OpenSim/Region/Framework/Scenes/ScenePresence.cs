@@ -90,15 +90,15 @@ namespace OpenSim.Region.Framework.Scenes
                 m_scene.EventManager.TriggerScenePresenceUpdated(this);
         }
 
-        public bool isNPC { get; private set; }
+        public bool IsNPC { get; private set; }
 
         // simple yes or no isGOD from god level >= 200
         // should only be set by GodController
         // we have two to suport legacy behaviour
-        // isLegacyGod was controlled by viewer in older versions
-        // isGod may now be also controled by viewer acording to options
-        public bool isLegacyGod { get; set; }
-        public bool isGod { get; set; }
+        // IsViewerUIGod was controlled by viewer in older versions
+        // IsGod may now be also controled by viewer acording to options
+        public bool IsViewerUIGod { get; set; }
+        public bool IsGod { get; set; }
 
         private PresenceType m_presenceType;
         public PresenceType PresenceType {
@@ -106,7 +106,7 @@ namespace OpenSim.Region.Framework.Scenes
             private set
             {
                 m_presenceType = value;
-                isNPC = (m_presenceType == PresenceType.Npc);
+                IsNPC = (m_presenceType == PresenceType.Npc);
             }
         }
 
@@ -1264,7 +1264,7 @@ namespace OpenSim.Region.Framework.Scenes
                     IsLoggingIn = false;
                 }
 
-                IsChildAgent = false;               
+                IsChildAgent = false;
             }
 
             m_log.DebugFormat("[MakeRootAgent] out lock: {0}ms", Util.EnvironmentTickCountSubtract(ts));
@@ -1974,7 +1974,7 @@ namespace OpenSim.Region.Framework.Scenes
             try
             {
                 // Make sure it's not a login agent. We don't want to wait for updates during login
-                if (!isNPC && !IsRealLogin(m_teleportFlags))
+                if (!IsNPC && !IsRealLogin(m_teleportFlags))
                 {
 
                     // Let's wait until UpdateAgent (called by departing region) is done
@@ -2012,7 +2012,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_log.DebugFormat("[CompleteMovement] MakeRootAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
-                if(!haveGroupInformation && !IsChildAgent && !isNPC)
+                if(!haveGroupInformation && !IsChildAgent && !IsNPC)
                 {
                     IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
                     if (gm != null)
@@ -2086,7 +2086,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_currentParcelHide = false;
                 m_currentParcelUUID = UUID.Zero;
 
-                if(!isNPC)
+                if(!IsNPC)
                 {
                     GodController.SyncViewerState();
                     
@@ -2104,7 +2104,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // verify baked textures and cache
                     bool cachedbaked = false;
 
-                    if (isNPC)
+                    if (IsNPC)
                         cachedbaked = true;
                     else
                     {
@@ -2156,7 +2156,7 @@ namespace OpenSim.Region.Framework.Scenes
                             if (p == this)
                                 continue;
 
-                            if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.isLegacyGod)
+                            if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                                 continue;
 
                             SendAppearanceToAgentNF(p);
@@ -2168,14 +2168,14 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.DebugFormat("[CompleteMovement] ValidateAndSendAppearanceAndAgentData: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                     // attachments
-                    if (isNPC || IsRealLogin(m_teleportFlags))
+                    if (IsNPC || IsRealLogin(m_teleportFlags))
                     {
                         if (Scene.AttachmentsModule != null)
                             // Util.FireAndForget(
                             //      o =>
                             //      {
 
-                            if (!isNPC)
+                            if (!IsNPC)
                                 Scene.AttachmentsModule.RezAttachments(this);
                             else
                                 Util.FireAndForget(x =>
@@ -2206,7 +2206,7 @@ namespace OpenSim.Region.Framework.Scenes
                                     continue;
                                 }
 
-                                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.isLegacyGod)
+                                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                                     continue;
 
                                 SendAttachmentsToAgentNF(p);
@@ -2226,7 +2226,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     // let updates be sent,  with some delay
                     m_lastChildUpdatesTime = Util.EnvironmentTickCount() + 10000;
-                    m_lastChildAgentUpdateGodLevel = GodController.GodLevel;
+                    m_lastChildAgentUpdateGodLevel = GodController.ViwerUIGodLevel;
                     m_lastChildAgentUpdateDrawDistance = DrawDistance;
                     m_lastChildAgentUpdatePosition = AbsolutePosition;
                     m_childUpdatesBusy = false; // allow them
@@ -2235,7 +2235,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.DebugFormat("[CompleteMovement] openChildAgents: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 // send the rest of the world
-                if (m_teleportFlags > 0 && !isNPC || m_currentParcelHide)
+                if (m_teleportFlags > 0 && !IsNPC || m_currentParcelHide)
                     SendInitialDataToMe();
 
                 // priority uses avatar position only
@@ -3811,7 +3811,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!remoteClient.IsActive)
                 return;
 
-            if (ParcelHideThisAvatar && p.currentParcelUUID != currentParcelUUID && !p.isLegacyGod)
+            if (ParcelHideThisAvatar && p.currentParcelUUID != currentParcelUUID && !p.IsViewerUIGod)
                 return;
 
             //m_log.DebugFormat("[SCENE PRESENCE]: " + Name + " sending TerseUpdate to " + remoteClient.Name + " : Pos={0} Rot={1} Vel={2}", m_pos, Rotation, m_velocity);
@@ -3921,7 +3921,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // get the avatar, then a kill if can't see it
                 p.SendInitialAvatarDataToAgent(this);
 
-                if (p.ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !isLegacyGod)
+                if (p.ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !IsViewerUIGod)
                     return;
 
                 p.SendAppearanceToAgentNF(this);
@@ -3969,7 +3969,7 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (ScenePresence p in presences)
             {
                 p.ControllingClient.SendAvatarDataImmediate(this);
-                if (p != this && ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.isLegacyGod)
+                if (p != this && ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                     // either just kill the object
                     // p.ControllingClient.SendKillObject(new List<uint> {LocalId});
                     // or also attachments viewer may still know about
@@ -3982,7 +3982,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendInitialAvatarDataToAgent(ScenePresence p)
         {
             p.ControllingClient.SendAvatarDataImmediate(this);
-            if (p != this && ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.isLegacyGod)
+            if (p != this && ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                     // either just kill the object
                     // p.ControllingClient.SendKillObject(new List<uint> {LocalId});
                     // or also attachments viewer may still know about
@@ -3996,7 +3996,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendAvatarDataToAgent(ScenePresence avatar)
         {
             //m_log.DebugFormat("[SCENE PRESENCE] SendAvatarDataToAgent from {0} ({1}) to {2} ({3})", Name, UUID, avatar.Name, avatar.UUID);
-            if (ParcelHideThisAvatar && currentParcelUUID != avatar.currentParcelUUID && !avatar.isLegacyGod)
+            if (ParcelHideThisAvatar && currentParcelUUID != avatar.currentParcelUUID && !avatar.IsViewerUIGod)
                 return;
             avatar.ControllingClient.SendAvatarDataImmediate(this);
         }
@@ -4041,7 +4041,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //            m_log.DebugFormat(
             //                "[SCENE PRESENCE]: Sending appearance data from {0} {1} to {2} {3}", Name, m_uuid, avatar.Name, avatar.UUID);
-            if (ParcelHideThisAvatar && currentParcelUUID != avatar.currentParcelUUID && !avatar.isLegacyGod)
+            if (ParcelHideThisAvatar && currentParcelUUID != avatar.currentParcelUUID && !avatar.IsViewerUIGod)
                 return;
             SendAppearanceToAgentNF(avatar);
         }
@@ -4057,7 +4057,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsChildAgent || Animator == null)
                 return;
 
-            if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.isLegacyGod)
+            if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                 return;
 
             Animator.SendAnimPackToClient(p.ControllingClient);
@@ -4068,7 +4068,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsChildAgent)
                 return;
 
-            if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.isLegacyGod)
+            if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                 return;
 
             p.ControllingClient.SendAnimations(animations, seqs, ControllingClient.AgentId, objectIDs);
@@ -4093,7 +4093,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_scene.ForEachScenePresence(delegate(ScenePresence p)
             {
-                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.isLegacyGod)
+                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                     return;
                 p.ControllingClient.SendAnimations(animations, seqs, ControllingClient.AgentId, objectIDs);
             });
@@ -4192,7 +4192,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
 
                 bool doUpdate = false;
-                if(m_lastChildAgentUpdateGodLevel != GodController.GodLevel)
+                if(m_lastChildAgentUpdateGodLevel != GodController.ViwerUIGodLevel)
                     doUpdate = true;
                
                 if(!doUpdate && Math.Abs(DrawDistance - m_lastChildAgentUpdateDrawDistance) > 32.0f)
@@ -4209,7 +4209,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_childUpdatesBusy = true;
                     m_lastChildAgentUpdatePosition = pos;
-                    m_lastChildAgentUpdateGodLevel = GodController.GodLevel;
+                    m_lastChildAgentUpdateGodLevel = GodController.ViwerUIGodLevel;
                     m_lastChildAgentUpdateDrawDistance = DrawDistance;
 //                        m_lastChildAgentUpdateCamPosition = CameraPosition;
 
@@ -4470,12 +4470,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void GrantGodlikePowers(UUID token, bool godStatus)
         {
-            if (isNPC)
+            if (IsNPC)
                 return;
 
-            bool wasgod = isLegacyGod;
+            bool wasgod = IsViewerUIGod;
             GodController.RequestGodMode(godStatus);
-            if (wasgod != isLegacyGod)
+            if (wasgod != IsViewerUIGod)
                 parcelGodCheck(m_currentParcelUUID);
         }
 
@@ -4909,7 +4909,7 @@ namespace OpenSim.Region.Framework.Scenes
             RaiseCollisionScriptEvents(coldata);
 
             // Gods do not take damage and Invulnerable is set depending on parcel/region flags
-            if (Invulnerable || isLegacyGod)
+            if (Invulnerable || IsViewerUIGod)
                 return;
 
             // The following may be better in the ICombatModule
@@ -5194,7 +5194,7 @@ namespace OpenSim.Region.Framework.Scenes
                         if (p != this && sog.HasPrivateAttachmentPoint)
                             return;
 
-                        if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.isLegacyGod)
+                        if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                             return;
 
                         SendTerseUpdateToAgentNF(p);
@@ -5308,7 +5308,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (p == this)
                     continue;
 
-                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.isLegacyGod)
+                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                     continue;
 
                 p.ControllingClient.SendEntityUpdate(rootpart, rootflag);
@@ -5366,7 +5366,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (p == this)
                     continue;
 
-                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.isLegacyGod)
+                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                     continue;
 
                 p.ControllingClient.SendEntityUpdate(rootpart, flag);
@@ -5416,7 +5416,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (p == this)
                     continue;
 
-                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.isLegacyGod)
+                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                     continue;
 
                 p.ControllingClient.SendEntityUpdate(part, flag);
@@ -5457,7 +5457,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (p == this)
                     continue;
-                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.isLegacyGod)
+                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                     continue;
 
                 p.ControllingClient.SendEntityUpdate(part, flag);
@@ -6095,7 +6095,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // the TP point. This behaviour mimics agni.
                     if (land.LandData.LandingType == (byte)LandingType.LandingPoint &&
                         land.LandData.UserLocation != Vector3.Zero &&
-                        !isLegacyGod &&
+                        !IsViewerUIGod &&
                         ((land.LandData.OwnerID != m_uuid &&
                           !m_scene.Permissions.IsGod(m_uuid) &&
                           !m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_uuid)) ||
@@ -6120,7 +6120,7 @@ namespace OpenSim.Region.Framework.Scenes
             string reason;
 
             // dont mess with gods
-            if(isLegacyGod || m_scene.Permissions.IsGod(m_uuid))
+            if(IsViewerUIGod || m_scene.Permissions.IsGod(m_uuid))
                 return true;
 
             // respect region owner and managers
@@ -6194,7 +6194,7 @@ namespace OpenSim.Region.Framework.Scenes
             detobj.posVector = av.AbsolutePosition;
             detobj.rotQuat = av.Rotation;
             detobj.velVector = av.Velocity;
-            detobj.colliderType = av.isNPC ? 0x20 : 0x1; // OpenSim\Region\ScriptEngine\Shared\Helpers.cs
+            detobj.colliderType = av.IsNPC ? 0x20 : 0x1; // OpenSim\Region\ScriptEngine\Shared\Helpers.cs
             if(av.IsSatOnObject)
                 detobj.colliderType |= 0x4; //passive
             else if(detobj.velVector != Vector3.Zero)
@@ -6417,7 +6417,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (p.ParcelHideThisAvatar && p.currentParcelUUID != currentParcelID)
                 {
-                    if (isLegacyGod)
+                    if (IsViewerUIGod)
                         p.SendViewTo(this);
                     else
                         p.SendKillTo(this);
@@ -6468,7 +6468,7 @@ namespace OpenSim.Region.Framework.Scenes
                             continue;
 
                         // those not on parcel dont see me
-                        if (currentParcelID != p.currentParcelUUID && !p.isLegacyGod)
+                        if (currentParcelID != p.currentParcelUUID && !p.IsViewerUIGod)
                         {
                             killsToSendto.Add(p); // they dont see me
                         }
@@ -6494,9 +6494,9 @@ namespace OpenSim.Region.Framework.Scenes
                             // only those on previus parcel need receive kills
                             if (previusParcelID == p.currentParcelUUID)
                             {
-                                if(!p.isLegacyGod)
+                                if(!p.IsViewerUIGod)
                                     killsToSendto.Add(p); // they dont see me
-                                if(!isLegacyGod)
+                                if(!IsViewerUIGod)
                                     killsToSendme.Add(p);  // i dont see them
                             }
                             // only those on new parcel need see
@@ -6518,7 +6518,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 continue;
 
                             // those not on new parcel dont see me
-                            if (currentParcelID != p.currentParcelUUID && !p.isLegacyGod)
+                            if (currentParcelID != p.currentParcelUUID && !p.IsViewerUIGod)
                             {
                                 killsToSendto.Add(p); // they dont see me
                             }
@@ -6544,7 +6544,7 @@ namespace OpenSim.Region.Framework.Scenes
                             if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
                                 continue;
                             // only those old parcel need kills
-                            if (previusParcelID == p.currentParcelUUID && !isLegacyGod)
+                            if (previusParcelID == p.currentParcelUUID && !IsViewerUIGod)
                             {
                                 killsToSendme.Add(p);  // i dont see them
                             }
@@ -6606,7 +6606,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (Scene.AttachmentsModule != null)
                     Scene.AttachmentsModule.DeleteAttachmentsFromScene(this, true);
 
-                if (!ParcelHideThisAvatar || isLegacyGod)
+                if (!ParcelHideThisAvatar || IsViewerUIGod)
                     return;
 
                 List<ScenePresence> allpresences = m_scene.GetScenePresences();

@@ -356,7 +356,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 return;
 
             ScenePresence p = FindPresence(targetID);
-            if (p != null && p.isNPC)
+            if (p != null && p.IsNPC)
             {
                 remoteClient.SendAvatarClassifiedReply(targetID, classifieds);
                 return;
@@ -751,7 +751,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             Dictionary<UUID, string> picks = new Dictionary<UUID, string>();
 
             ScenePresence p = FindPresence(targetId);
-            if (p != null && p.isNPC)
+            if (p != null && p.IsNPC)
             {
                 remoteClient.SendAvatarPicksReply(targetId, picks);
                 return;
@@ -1165,7 +1165,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         public void NotesUpdate(IClientAPI remoteClient, UUID queryTargetID, string queryNotes)
         {
             ScenePresence p = FindPresence(queryTargetID);
-            if (p != null && p.isNPC)
+            if (p != null && p.IsNPC)
             {
                 remoteClient.SendAgentAlertMessage(
                         "Notes for NPCs not available", false);
@@ -1329,7 +1329,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             }
 
             ScenePresence p = FindPresence(avatarID);
-            if (p != null && p.isNPC)
+            if (p != null && p.IsNPC)
             {
                 remoteClient.SendAvatarProperties(avatarID, ((INPC)(p.ControllingClient)).profileAbout, ((INPC)(p.ControllingClient)).Born,
                       Utils.StringToBytes("Non Player Character (NPC)"), "NPCs have no life", 0x10,

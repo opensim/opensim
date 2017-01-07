@@ -364,7 +364,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 return false;
 
             // npcs dont have baked cache
-            if (((ScenePresence)sp).isNPC)
+            if (((ScenePresence)sp).IsNPC)
                 return true;
 
             // uploaded baked textures will be in assets local cache
@@ -507,7 +507,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         {
             int hits = 0;
 
-            if (((ScenePresence)sp).isNPC)
+            if (((ScenePresence)sp).IsNPC)
                 return true;
 
             lock (m_setAppearanceLock)
@@ -701,7 +701,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
         public int RequestRebake(IScenePresence sp, bool missingTexturesOnly)
         {
-            if (((ScenePresence)sp).isNPC)
+            if (((ScenePresence)sp).IsNPC)
                 return 0;
 
             int texturesRebaked = 0;

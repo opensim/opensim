@@ -169,7 +169,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
 
             GridInstantMessage m;
 
-            if (scene.Permissions.IsAdministrator(client.AgentId) && presence.GodController.GodLevel >= 200 && (!scene.Permissions.IsAdministrator(targetid)))
+            if (scene.Permissions.IsAdministrator(client.AgentId) && presence.IsViewerUIGod && (!scene.Permissions.IsAdministrator(targetid)))
             {
                 m = new GridInstantMessage(scene, client.AgentId,
                         client.FirstName+" "+client.LastName, targetid,

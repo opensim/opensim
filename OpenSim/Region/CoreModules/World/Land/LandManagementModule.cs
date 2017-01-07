@@ -1285,7 +1285,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 UUID parcelID = land.LandData.GlobalID;
                 m_scene.ForEachScenePresence(delegate(ScenePresence avatar)
                 {
-                    if (avatar.IsDeleted || avatar.isNPC)
+                    if (avatar.IsDeleted || avatar.IsNPC)
                         return;
 
                     IClientAPI client = avatar.ControllingClient;

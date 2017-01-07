@@ -11455,7 +11455,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 ScenePresence p;
                 if (scene.TryGetScenePresence(sender.AgentId, out p))
                 {
-                    if (p.GodController.GodLevel >= 200)
+                    if (p.IsViewerUIGod)
                     {
                         groupProfileReply.GroupData.OpenEnrollment = true;
                         groupProfileReply.GroupData.MembershipFee = 0;

@@ -540,7 +540,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                     }
                 }
 
-                if (presence.IsDeleted || presence.IsChildAgent || presence.GodController.GodLevel > 0.0)
+                if (presence.IsDeleted || presence.IsChildAgent || presence.IsViewerUIGod)
                     return;
 
                 // if the object the script is in is attached and the avatar is the owner
