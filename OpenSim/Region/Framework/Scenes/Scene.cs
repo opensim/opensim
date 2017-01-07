@@ -3951,7 +3951,7 @@ namespace OpenSim.Region.Framework.Scenes
             bool vialogin = ((teleportFlags & (uint)TPFlags.ViaLogin) != 0 ||
                 (teleportFlags & (uint)TPFlags.ViaHGLogin) != 0);
             bool viahome = ((teleportFlags & (uint)TPFlags.ViaHome) != 0);
-            bool godlike = ((teleportFlags & (uint)TPFlags.Godlike) != 0);
+//            bool godlike = ((teleportFlags & (uint)TPFlags.Godlike) != 0);
 
             reason = String.Empty;
 
@@ -4251,7 +4251,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
             // only check access, actual relocations will happen later on ScenePresence MakeRoot
             // allow child agents creation
-            if(!godlike && teleportFlags != (uint) TPFlags.Default)
+//            if(!godlike && teleportFlags != (uint) TPFlags.Default)
+            if(teleportFlags != (uint) TPFlags.Default)
             {
                 bool checkTeleHub;
 
@@ -6188,9 +6189,10 @@ Environment.Exit(1);
             if (Permissions.IsGod(agentID))
                 return true;
 
-            bool isAdmin = Permissions.IsAdministrator(agentID);
-            if(isAdmin)
-                return true;
+            // Permissions.IsAdministrator is the same as IsGod for now
+//            bool isAdmin = Permissions.IsAdministrator(agentID);
+//            if(isAdmin)
+//                return true;
 
             // also honor estate managers access rights
             bool isManager = Permissions.IsEstateManager(agentID);
