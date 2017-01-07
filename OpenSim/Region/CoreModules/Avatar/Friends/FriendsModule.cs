@@ -369,6 +369,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         public virtual bool SendFriendsOnlineIfNeeded(IClientAPI client)
         {
+            if (client == null)
+                return false;
+
             UUID agentID = client.AgentId;
 
             // Check if the online friends list is needed
