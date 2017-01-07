@@ -118,7 +118,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 // If we're in god mode, we reverse the meaning. Offer
                 // calling card becomes "Take a calling card" for that
                 // person, no matter if they agree or not.
-                if (sp.isViewerUIGod)
+                if (sp.IsViewerUIGod)
                 {
                     CreateCallingCard(client.AgentId, destID, UUID.Zero, true);
                     return;

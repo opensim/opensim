@@ -11455,7 +11455,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 ScenePresence p;
                 if (scene.TryGetScenePresence(sender.AgentId, out p))
                 {
-                    if (p.isViewerUIGod)
+                    if (p.IsViewerUIGod)
                     {
                         groupProfileReply.GroupData.OpenEnrollment = true;
                         groupProfileReply.GroupData.MembershipFee = 0;

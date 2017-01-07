@@ -137,8 +137,8 @@ namespace OpenSim.Region.Framework.Scenes
                 m_godlevel = m_rightsGodLevel;
             }
 
-            m_scenePresence.isGod = (m_godlevel >= 200);
-            m_scenePresence.isViewerUIGod = (m_viewergodlevel >= 200);
+            m_scenePresence.IsGod = (m_godlevel >= 200);
+            m_scenePresence.IsViewerUIGod = (m_viewergodlevel >= 200);
         }
 
         // calculates god level at sp creation from local and grid user god rights
@@ -176,8 +176,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_viewergodlevel = 0;
                 m_godlevel = 0;
-                m_scenePresence.isGod = false;
-                m_scenePresence.isViewerUIGod = false;
+                m_scenePresence.IsGod = false;
+                m_scenePresence.IsViewerUIGod = false;
                 return;
             }
 
@@ -205,8 +205,8 @@ namespace OpenSim.Region.Framework.Scenes
                     m_godlevel = 0;
                 }
             }
-            m_scenePresence.isGod = (m_godlevel >= 200);
-            m_scenePresence.isViewerUIGod = (m_viewergodlevel >= 200);
+            m_scenePresence.IsGod = (m_godlevel >= 200);
+            m_scenePresence.IsViewerUIGod = (m_viewergodlevel >= 200);
         }
 
         public void SyncViewerState()

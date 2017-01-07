@@ -721,7 +721,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 ScenePresence sp = World.GetScenePresence(m_host.OwnerID);
 
-                if (sp == null || !sp.isViewerUIGod)
+                if (sp == null || !sp.IsViewerUIGod)
                 {
                     LSShoutError("lsSetWindlightScene can only be used by estate managers or owners.");
                     return 0;
@@ -768,7 +768,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 ScenePresence sp = World.GetScenePresence(m_host.OwnerID);
 
-                if (sp == null || !sp.isViewerUIGod)
+                if (sp == null || !sp.IsViewerUIGod)
                 {
                     LSShoutError("lsSetWindlightScene can only be used by estate managers or owners.");
                     return;
@@ -799,7 +799,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 ScenePresence sp = World.GetScenePresence(m_host.OwnerID);
 
-                if (sp == null || !sp.isViewerUIGod)
+                if (sp == null || !sp.IsViewerUIGod)
                 {
                     LSShoutError("lsSetWindlightSceneTargeted can only be used by estate managers or owners.");
                     return 0;

@@ -173,7 +173,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
 
             sp.GrantGodlikePowers(token, godLike);
 
-            if (godLike && !sp.isViewerUIGod && DialogModule != null)
+            if (godLike && !sp.IsViewerUIGod && DialogModule != null)
                DialogModule.SendAlertToUser(agentID, "Request for god powers denied");
         }
 
