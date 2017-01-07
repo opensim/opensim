@@ -927,28 +927,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
                                 if(e.InnerException != null && e.InnerException is ScriptException)
                                 {
-                                    if (e.InnerException.Message != "Softfail")
-                                    {
-                                        string text = e.InnerException.Message +
-                                                    "(script: " + ScriptName +
-                                                    " event: " + data.EventName +
-                                                    " at " + Part.AbsolutePosition + ")";
-                                        if (text.Length > 1000)
-                                            text = text.Substring(0, 1000);
-                                        Engine.World.SimChat(Utils.StringToBytes(text),
-                                                               ChatTypeEnum.DebugChannel, 2147483647,
-                                                               Part.AbsolutePosition,
-                                                               Part.Name, Part.UUID, false);
-                                        m_log.Debug(string.Format(
-                                            "[SCRIPT INSTANCE]: {0} (at event {1}, part {2} {3} at {4} in {5}",
-                                            e.InnerException.Message,
-                                            data.EventName,
-                                            PrimName,
-                                            Part.UUID,
-                                            Part.AbsolutePosition,
-                                            Part.ParentGroup.Scene.Name));
+                                    string text = e.InnerException.Message +
+                                                "(script: " + ScriptName +
+                                                " event: " + data.EventName +
+                                                " at " + Part.AbsolutePosition + ")";
+                                    if (text.Length > 1000)
+                                        text = text.Substring(0, 1000);
+                                    Engine.World.SimChat(Utils.StringToBytes(text),
+                                                           ChatTypeEnum.DebugChannel, 2147483647,
+                                                           Part.AbsolutePosition,
+                                                           Part.Name, Part.UUID, false);
+                                    m_log.Debug(string.Format(
+                                        "[SCRIPT INSTANCE]: {0} (at event {1}, part {2} {3} at {4} in {5}",
+                                        e.InnerException.Message,
+                                        data.EventName,
+                                        PrimName,
+                                        Part.UUID,
+                                        Part.AbsolutePosition,
+                                        Part.ParentGroup.Scene.Name));
 
-                                    }
                                 }
                                 else
                                 {
