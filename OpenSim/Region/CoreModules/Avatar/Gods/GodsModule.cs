@@ -194,14 +194,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
             int godlevel = 200;
             // update level so higher gods can kick lower ones
             ScenePresence god = m_scene.GetScenePresence(godID);
-            if(god != null && god.GodController.GodLevel > godlevel)
-                godlevel =  god.GodController.GodLevel;
+            if(god != null && god.GodController.EffectiveLevel > godlevel)
+                godlevel =  god.GodController.EffectiveLevel;
 
             if(agentID == ALL_AGENTS)
             {
                 m_scene.ForEachRootScenePresence(delegate(ScenePresence p)
                     {
-                        if (p.UUID != godID && godlevel > p.GodController.GodLevel)
+                        if (p.UUID != godID && godlevel > p.GodController.EffectiveLevel)
                             doKickmodes(godID, p, kickflags, reason);
                     });
                 return;
@@ -224,7 +224,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
                 return;
             }
 
-            if (godlevel <= sp.GodController.GodLevel) // no god wars
+            if (godlevel <= sp.GodController.EffectiveLevel) // no god wars
                 return;
 
             if(sp.UUID == godID)
