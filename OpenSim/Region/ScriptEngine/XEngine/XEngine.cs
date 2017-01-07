@@ -1014,7 +1014,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 lock (m_CompileDict)
                 {
-                    m_log.DebugFormat("[XENGINE]: Set compile dict for {0}", itemID);
+//                    m_log.DebugFormat("[XENGINE]: Set compile dict for {0}", itemID);
                     m_CompileDict[itemID] = new ScriptCompileInfo();
                 }
 
@@ -1024,7 +1024,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 lock (m_CompileDict)
                     m_CompileDict[itemID] = new ScriptCompileInfo();
-                m_log.DebugFormat("[XENGINE]: Set compile dict for {0} delayed", itemID);
+//                m_log.DebugFormat("[XENGINE]: Set compile dict for {0} delayed", itemID);
 
                 // This must occur after the m_CompileDict so that an existing compile thread cannot hit the check
                 // in DoOnRezScript() before m_CompileDict has been updated.
