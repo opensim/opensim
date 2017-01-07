@@ -229,7 +229,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                     fromPos = avatar.AbsolutePosition;
                     fromName = avatar.Name;
                     fromID = c.Sender.AgentId;
-                    if (avatar.GodController.GodLevel >= 200)
+                    if (avatar.isViewerUIGod)
                     { // let gods speak to outside or things may get confusing
                         fromNamePrefix = m_adminPrefix;
                         checkParcelHide = false;
@@ -305,7 +305,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                     {
                         if (checkParcelHide)
                         {
-                            if (sourceParcelID != Presencecheck.LandData.GlobalID && presence.GodController.GodLevel < 200)
+                            if (sourceParcelID != Presencecheck.LandData.GlobalID && !presence.isViewerUIGod)
                                 return;
                         }
                         if (c.Sender == null || Presencecheck.IsEitherBannedOrRestricted(c.Sender.AgentId) != true)
