@@ -2226,7 +2226,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     // let updates be sent,  with some delay
                     m_lastChildUpdatesTime = Util.EnvironmentTickCount() + 10000;
-                    m_lastChildAgentUpdateGodLevel = GodController.GodLevel;
+                    m_lastChildAgentUpdateGodLevel = GodController.ViwerUIGodLevel;
                     m_lastChildAgentUpdateDrawDistance = DrawDistance;
                     m_lastChildAgentUpdatePosition = AbsolutePosition;
                     m_childUpdatesBusy = false; // allow them
@@ -4192,7 +4192,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
 
                 bool doUpdate = false;
-                if(m_lastChildAgentUpdateGodLevel != GodController.GodLevel)
+                if(m_lastChildAgentUpdateGodLevel != GodController.ViwerUIGodLevel)
                     doUpdate = true;
                
                 if(!doUpdate && Math.Abs(DrawDistance - m_lastChildAgentUpdateDrawDistance) > 32.0f)
@@ -4209,7 +4209,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_childUpdatesBusy = true;
                     m_lastChildAgentUpdatePosition = pos;
-                    m_lastChildAgentUpdateGodLevel = GodController.GodLevel;
+                    m_lastChildAgentUpdateGodLevel = GodController.ViwerUIGodLevel;
                     m_lastChildAgentUpdateDrawDistance = DrawDistance;
 //                        m_lastChildAgentUpdateCamPosition = CameraPosition;
 

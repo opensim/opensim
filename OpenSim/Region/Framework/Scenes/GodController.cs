@@ -272,12 +272,12 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_userLevel = value; }
         }
 
-        public int GodLevel
+        public int ViwerUIGodLevel
         {
             get { return m_viewergodlevel; }
         }
 
-        public int EffectiveLevel
+        public int GodLevel
         {
             get { return m_godlevel; }
         }
