@@ -310,7 +310,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         foreach (string id in ids)
                         {
                             string current = id.Trim();
-                            if (current.ToUpper() == "PARCEL_GROUP_MEMBER" || current.ToUpper() == "PARCEL_OWNER" || current.ToUpper() == "ESTATE_MANAGER" || current.ToUpper() == "ESTATE_OWNER" || current.ToUpper() == "ACTIVE_GOD" || current.ToUpper() == "GRID_GOD")
+                            if (current.ToUpper() == "PARCEL_GROUP_MEMBER" || current.ToUpper() == "PARCEL_OWNER" || current.ToUpper() == "ESTATE_MANAGER" || current.ToUpper() == "ESTATE_OWNER" || current.ToUpper() == "ACTIVE_GOD" || current.ToUpper() == "GRID_GOD" || current.ToUpper() == "GOD")
                             {
                                 if (!perms.AllowedOwnerClasses.Contains(current))
                                     perms.AllowedOwnerClasses.Add(current.ToUpper());
@@ -420,6 +420,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("GRID_GOD"))
                     {
                         if (World.Permissions.IsGridGod(ownerID))
+                        {
+                            return String.Empty;
+                        }
+                    }
+
+                    //Any god may use the function
+                    if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("GOD"))
+                    {
+                        if (World.Permissions.IsAdministrator(ownerID))
                         {
                             return String.Empty;
                         }
