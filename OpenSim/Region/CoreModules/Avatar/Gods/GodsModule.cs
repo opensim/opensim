@@ -165,7 +165,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
             UUID agentID, UUID sessionID, UUID token, bool godLike)
         {
             ScenePresence sp = m_scene.GetScenePresence(agentID);
-            if(sp == null || sp.IsDeleted || sp.isNPC)
+            if(sp == null || sp.IsDeleted || sp.IsNPC)
                 return;
 
             if (sessionID != sp.ControllingClient.SessionId)

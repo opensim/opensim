@@ -90,7 +90,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_scene.EventManager.TriggerScenePresenceUpdated(this);
         }
 
-        public bool isNPC { get; private set; }
+        public bool IsNPC { get; private set; }
 
         // simple yes or no isGOD from god level >= 200
         // should only be set by GodController
@@ -106,7 +106,7 @@ namespace OpenSim.Region.Framework.Scenes
             private set
             {
                 m_presenceType = value;
-                isNPC = (m_presenceType == PresenceType.Npc);
+                IsNPC = (m_presenceType == PresenceType.Npc);
             }
         }
 
@@ -1974,7 +1974,7 @@ namespace OpenSim.Region.Framework.Scenes
             try
             {
                 // Make sure it's not a login agent. We don't want to wait for updates during login
-                if (!isNPC && !IsRealLogin(m_teleportFlags))
+                if (!IsNPC && !IsRealLogin(m_teleportFlags))
                 {
 
                     // Let's wait until UpdateAgent (called by departing region) is done
@@ -2012,7 +2012,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_log.DebugFormat("[CompleteMovement] MakeRootAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
-                if(!haveGroupInformation && !IsChildAgent && !isNPC)
+                if(!haveGroupInformation && !IsChildAgent && !IsNPC)
                 {
                     IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
                     if (gm != null)
@@ -2086,7 +2086,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_currentParcelHide = false;
                 m_currentParcelUUID = UUID.Zero;
 
-                if(!isNPC)
+                if(!IsNPC)
                 {
                     GodController.SyncViewerState();
                     
@@ -2104,7 +2104,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // verify baked textures and cache
                     bool cachedbaked = false;
 
-                    if (isNPC)
+                    if (IsNPC)
                         cachedbaked = true;
                     else
                     {
@@ -2168,14 +2168,14 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.DebugFormat("[CompleteMovement] ValidateAndSendAppearanceAndAgentData: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                     // attachments
-                    if (isNPC || IsRealLogin(m_teleportFlags))
+                    if (IsNPC || IsRealLogin(m_teleportFlags))
                     {
                         if (Scene.AttachmentsModule != null)
                             // Util.FireAndForget(
                             //      o =>
                             //      {
 
-                            if (!isNPC)
+                            if (!IsNPC)
                                 Scene.AttachmentsModule.RezAttachments(this);
                             else
                                 Util.FireAndForget(x =>
@@ -2235,7 +2235,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.DebugFormat("[CompleteMovement] openChildAgents: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 // send the rest of the world
-                if (m_teleportFlags > 0 && !isNPC || m_currentParcelHide)
+                if (m_teleportFlags > 0 && !IsNPC || m_currentParcelHide)
                     SendInitialDataToMe();
 
                 // priority uses avatar position only
@@ -4470,7 +4470,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void GrantGodlikePowers(UUID token, bool godStatus)
         {
-            if (isNPC)
+            if (IsNPC)
                 return;
 
             bool wasgod = isViewerUIGod;
@@ -6194,7 +6194,7 @@ namespace OpenSim.Region.Framework.Scenes
             detobj.posVector = av.AbsolutePosition;
             detobj.rotQuat = av.Rotation;
             detobj.velVector = av.Velocity;
-            detobj.colliderType = av.isNPC ? 0x20 : 0x1; // OpenSim\Region\ScriptEngine\Shared\Helpers.cs
+            detobj.colliderType = av.IsNPC ? 0x20 : 0x1; // OpenSim\Region\ScriptEngine\Shared\Helpers.cs
             if(av.IsSatOnObject)
                 detobj.colliderType |= 0x4; //passive
             else if(detobj.velVector != Vector3.Zero)

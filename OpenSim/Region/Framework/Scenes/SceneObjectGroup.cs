@@ -2302,7 +2302,7 @@ namespace OpenSim.Region.Framework.Scenes
                                     List<ScenePresence> sitters = GetSittingAvatars();
                                     foreach(ScenePresence sp in sitters)
                                     {
-                                        if(!sp.IsDeleted && !sp.isNPC && sp.IsSatOnObject)
+                                        if(!sp.IsDeleted && !sp.IsNPC && sp.IsSatOnObject)
                                             return;
                                     }
                                 }

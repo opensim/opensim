@@ -718,7 +718,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (!m_scene.TryGetScenePresence(avatar, out sp))
                 return true;
 
-            if(sp==null || !sp.isNPC)
+            if(sp==null || !sp.IsNPC)
                 return true;
 
             INPC npccli = (INPC)sp.ControllingClient;
