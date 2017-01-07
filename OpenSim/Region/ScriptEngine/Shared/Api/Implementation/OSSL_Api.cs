@@ -431,7 +431,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         ScenePresence sp = World.GetScenePresence(ownerID);
                         if (sp != null && !sp.IsDeleted && sp.IsGod)
                         {
-                            return String.Empty;
+                            return "Softfail";
                         }
                     }
 

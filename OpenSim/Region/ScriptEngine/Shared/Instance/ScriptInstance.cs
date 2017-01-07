@@ -927,6 +927,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
                                 if(e.InnerException != null && e.InnerException is ScriptException)
                                 {
+                                    if (e.InnerException.Message == "Softfail")
+                                        return;
+
                                     string text = e.InnerException.Message +
                                                 "(script: " + ScriptName +
                                                 " event: " + data.EventName +
