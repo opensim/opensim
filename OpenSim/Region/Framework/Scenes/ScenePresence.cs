@@ -1077,6 +1077,7 @@ namespace OpenSim.Region.Framework.Scenes
 
 //            GodController = new GodController(world, this, userlevel);
             GodController = new GodController(world, this);
+            GodController.UserLevel = userlevel;
 
  //           IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
  //           if (gm != null)
