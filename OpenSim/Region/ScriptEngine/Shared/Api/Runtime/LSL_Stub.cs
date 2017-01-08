@@ -2036,9 +2036,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llSetKeyframedMotion(frames, options);
         }
 
-        public void llSetPhysicsMaterial(int material_bits, float material_gravity_modifier, float material_restitution, float material_friction, float material_density)
+        public void llSetPhysicsMaterial(int material, LSL_Float material_gravity_modifier, LSL_Float material_restitution, LSL_Float material_friction, LSL_Float material_density)
         {
-            m_LSL_Functions.llSetPhysicsMaterial(material_bits, material_gravity_modifier, material_restitution, material_friction, material_density);
+            m_LSL_Functions.llSetPhysicsMaterial(material, material_gravity_modifier, material_restitution, material_friction, material_density);
         }
 
         public LSL_List llGetPhysicsMaterial()

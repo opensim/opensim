@@ -8849,10 +8849,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         public void llSetPhysicsMaterial(int material_bits,
-                float material_gravity_modifier, float material_restitution,
-                float material_friction, float material_density)
+                LSL_Float material_gravity_modifier, LSL_Float material_restitution,
+                LSL_Float material_friction, LSL_Float material_density)
         {
-            SetPhysicsMaterial(m_host, material_bits, material_density, material_friction, material_restitution, material_gravity_modifier);
+            SetPhysicsMaterial(m_host, material_bits, (float)material_density, (float)material_friction, (float)material_restitution, (float)material_gravity_modifier);
         }
 
         // vector up using libomv (c&p from sop )
