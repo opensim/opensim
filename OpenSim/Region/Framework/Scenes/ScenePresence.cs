@@ -6120,7 +6120,7 @@ namespace OpenSim.Region.Framework.Scenes
             string reason;
 
             // dont mess with gods
-            if(IsViewerUIGod || m_scene.Permissions.IsGod(m_uuid))
+            if(IsGod)
                 return true;
 
             // respect region owner and managers

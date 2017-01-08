@@ -310,7 +310,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         foreach (string id in ids)
                         {
                             string current = id.Trim();
-                            if (current.ToUpper() == "PARCEL_GROUP_MEMBER" || current.ToUpper() == "PARCEL_OWNER" || current.ToUpper() == "ESTATE_MANAGER" || current.ToUpper() == "ESTATE_OWNER" || current.ToUpper() == "GOD" || current.ToUpper() == "GRID_GOD")
+                            if (current.ToUpper() == "PARCEL_GROUP_MEMBER" || current.ToUpper() == "PARCEL_OWNER" || current.ToUpper() == "ESTATE_MANAGER" || current.ToUpper() == "ESTATE_OWNER" || current.ToUpper() == "ACTIVE_GOD" || current.ToUpper() == "GRID_GOD" || current.ToUpper() == "GOD")
                             {
                                 if (!perms.AllowedOwnerClasses.Contains(current))
                                     perms.AllowedOwnerClasses.Add(current.ToUpper());
@@ -415,14 +415,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                     }
 
-                    //Only gods may use the function
-                    if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("GOD"))
-                    {
-                        if (World.Permissions.IsGod(ownerID))
-                        {
-                            return String.Empty;
-                        }
-                    }
 
                     //Only grid gods may use the function
                     if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("GRID_GOD"))
@@ -432,6 +424,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return String.Empty;
                         }
                     }
+
+                    //Any god may use the function
+                    if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("GOD"))
+                    {
+                        if (World.Permissions.IsAdministrator(ownerID))
+                        {
+                            return String.Empty;
+                        }
+                    }
+
+                    //Only active gods may use the function
+                    if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("ACTIVE_GOD"))
+                    {
+                        ScenePresence sp = World.GetScenePresence(ownerID);
+                        if (sp != null && !sp.IsDeleted && sp.IsGod)
+                        {
+                            return String.Empty;
+                        }
+                    }
+
 
                     if (!m_FunctionPerms[function].AllowedCreators.Contains(m_item.CreatorID))
                         return(
