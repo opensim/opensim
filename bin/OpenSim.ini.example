@@ -59,6 +59,9 @@
     PublicPort = "8002"
 
     ;# {PrivatePort} {} {PrivatePort} {8003} "8003"
+    ; port to access private grid services.
+    ; grids that run all their regions should deny access to this port
+    ; from outside their networks, using firewalls
     PrivatePort = "8003"
 
 
