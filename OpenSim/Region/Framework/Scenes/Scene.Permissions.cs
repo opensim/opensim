@@ -179,8 +179,7 @@ namespace OpenSim.Region.Framework.Scenes
                 PrimFlags.ObjectTransfer |
                 PrimFlags.ObjectYouOwner |
                 PrimFlags.ObjectAnyOwner |
-                PrimFlags.ObjectOwnerModify |
-                PrimFlags.ObjectYouOfficer;
+                PrimFlags.ObjectOwnerModify;
 #pragma warning restore 0612
 
             SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
