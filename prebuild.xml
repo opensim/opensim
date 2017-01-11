@@ -497,6 +497,7 @@
       <Reference name="OpenSim.Framework.Monitoring"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="Mono.Posix" path="../../../bin/"/>
       <Reference name="Nini" path="../../../bin/"/>
       <Reference name="log4net" path="../../../bin/"/>
 
