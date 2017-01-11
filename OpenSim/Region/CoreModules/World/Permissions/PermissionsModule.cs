@@ -479,7 +479,32 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             return false;
         }
+/*
+        private bool CheckGroupPowers(ScenePresence sp, UUID groupID, ulong powersMask)
+        {
+            if(sp == null || sp.ControllingClient == null)
+                return false;
+ 
+            ulong grpPowers = sp.ControllingClient.GetGroupPowers(groupID);
 
+            return (grpPowers & powersMask) != 0;
+        }
+
+        private bool CheckActiveGroupPowers(ScenePresence sp, UUID groupID, ulong powersMask)
+        {
+            if(sp == null || sp.ControllingClient == null)
+                return false;
+ 
+            if(sp.ControllingClient.ActiveGroupId != groupID)
+                return false;
+            // activeGroupPowers only get current selected role powers, at least with xmlgroups.
+            // lets get any role avoiding the extra burden of user also having to change role
+            //  ulong grpPowers = sp.ControllingClient.ActiveGroupPowers(groupID);
+            ulong grpPowers = sp.ControllingClient.GetGroupPowers(groupID);
+
+            return (grpPowers & powersMask) != 0;
+        }
+*/
         /// <summary>
         /// Parse a user set configuration setting
         /// </summary>
@@ -605,73 +630,150 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         }
 
         #region Object Permissions
+#pragma warning disable 0612
+        const uint DEFAULT_FLAGS  = (uint)~(
+            PrimFlags.ObjectCopy | // Tells client you can copy the object
+            PrimFlags.ObjectModify | // tells client you can modify the object
+            PrimFlags.ObjectMove |   // tells client that you can move the object (only, no mod)
+            PrimFlags.ObjectTransfer | // tells the client that you can /take/ the object if you don't own it
+            PrimFlags.ObjectYouOwner | // Tells client that you're the owner of the object
+            PrimFlags.ObjectAnyOwner | // Tells client that someone owns the object
+            PrimFlags.ObjectOwnerModify // Tells client that you're the owner of the object
+            );
 
-        public uint GenerateClientFlags(UUID user, UUID objID)
+        const uint NOT_DEFAULT_FLAGS  = (uint)~(
+            PrimFlags.ObjectCopy | // Tells client you can copy the object
+            PrimFlags.ObjectModify | // tells client you can modify the object
+            PrimFlags.ObjectMove |   // tells client that you can move the object (only, no mod)
+            PrimFlags.ObjectTransfer | // tells the client that you can /take/ the object if you don't own it
+            PrimFlags.ObjectYouOwner | // Tells client that you're the owner of the object
+            PrimFlags.ObjectAnyOwner | // Tells client that someone owns the object
+            PrimFlags.ObjectOwnerModify // Tells client that you're the owner of the object
+            );
+#pragma warning restore 0612
+
+        const uint EXTRAOWNERMASK = (uint)(
+                PrimFlags.ObjectYouOwner | 
+                PrimFlags.ObjectAnyOwner
+                );
+
+        const uint EXTRAGODMASK = (uint)(
+                PrimFlags.ObjectYouOwner | 
+                PrimFlags.ObjectAnyOwner |
+                PrimFlags.ObjectOwnerModify |
+                PrimFlags.ObjectModify |
+                PrimFlags.ObjectMove
+                );
+
+        public uint GenerateClientFlags(ScenePresence sp, uint curEffectivePerms, UUID objID)
         {
-            // Here's the way this works,
-            // ObjectFlags and Permission flags are two different enumerations
-            // ObjectFlags, however, tells the client to change what it will allow the user to do.
-            // So, that means that all of the permissions type ObjectFlags are /temporary/ and only
-            // supposed to be set when customizing the objectflags for the client.
-
-            // These temporary objectflags get computed and added in this function based on the
-            // Permission mask that's appropriate!
-            // Outside of this method, they should never be added to objectflags!
-            // -teravus
+            if(sp == null || curEffectivePerms == 0)
+                return (uint)0;
 
             SceneObjectPart task = m_scene.GetSceneObjectPart(objID);
 
             // this shouldn't ever happen..     return no permissions/objectflags.
             if (task == null)
                 return (uint)0;
-
-            uint objflags = task.GetEffectiveObjectFlags();
-            UUID objectOwner = task.OwnerID;
-
-
+ 
             // Remove any of the objectFlags that are temporary.  These will get added back if appropriate
-            // in the next bit of code
+            uint objflags = curEffectivePerms & NOT_DEFAULT_FLAGS ;
 
-            // libomv will moan about PrimFlags.ObjectYouOfficer being
-            // deprecated
-#pragma warning disable 0612
-            objflags &= (uint)
-                ~(PrimFlags.ObjectCopy | // Tells client you can copy the object
-                    PrimFlags.ObjectModify | // tells client you can modify the object
-                    PrimFlags.ObjectMove |   // tells client that you can move the object (only, no mod)
-                    PrimFlags.ObjectTransfer | // tells the client that you can /take/ the object if you don't own it
-                    PrimFlags.ObjectYouOwner | // Tells client that you're the owner of the object
-                    PrimFlags.ObjectAnyOwner | // Tells client that someone owns the object
-                    PrimFlags.ObjectOwnerModify | // Tells client that you're the owner of the object
-                    PrimFlags.ObjectYouOfficer // Tells client that you've got group object editing permission. Used when ObjectGroupOwned is set
-                    );
-#pragma warning restore 0612
+            uint returnMask;
 
-            // Creating the three ObjectFlags options for this method to choose from.
-            // Customize the OwnerMask
-            uint objectOwnerMask = ApplyObjectModifyMasks(task.OwnerMask, objflags);
-            objectOwnerMask |= (uint)PrimFlags.ObjectYouOwner | (uint)PrimFlags.ObjectAnyOwner | (uint)PrimFlags.ObjectOwnerModify;
-
-            // Customize the GroupMask
-            uint objectGroupMask = ApplyObjectModifyMasks(task.GroupMask, objflags);
-
-            // Customize the EveryoneMask
-            uint objectEveryoneMask = ApplyObjectModifyMasks(task.EveryoneMask, objflags);
-            if (objectOwner != UUID.Zero)
-                objectEveryoneMask |= (uint)PrimFlags.ObjectAnyOwner;
-
-            PermissionClass permissionClass = GetPermissionClass(user, task);
-
-            switch (permissionClass)
+            // gods have owner rights with Modify and Move always on 
+            if(sp.IsGod)
             {
-                case PermissionClass.Owner:
-                    return objectOwnerMask;
-                case PermissionClass.Group:
-                    return objectGroupMask | objectEveryoneMask;
-                case PermissionClass.Everyone:
-                default:
-                    return objectEveryoneMask;
+                returnMask = ApplyObjectModifyMasks(task.OwnerMask, objflags);
+                returnMask |= EXTRAGODMASK;
+                return returnMask;
             }
+
+            //bypass option == owner rights
+            if (m_bypassPermissions)
+            {
+                returnMask = ApplyObjectModifyMasks(task.OwnerMask, objflags);
+                returnMask |= EXTRAOWNERMASK;
+                if((returnMask & (uint)PrimFlags.ObjectModify) != 0)
+                    returnMask |= (uint)PrimFlags.ObjectOwnerModify;
+                return returnMask;
+            }
+
+            UUID taskOwnerID = task.OwnerID;
+            UUID spID = sp.UUID;
+
+            // owner
+            if (spID == taskOwnerID)
+            {
+                returnMask = ApplyObjectModifyMasks(task.OwnerMask, objflags);
+                returnMask |= EXTRAOWNERMASK;
+                if((returnMask & (uint)PrimFlags.ObjectModify) != 0)
+                    returnMask |= (uint)PrimFlags.ObjectOwnerModify;
+                return returnMask;
+            }
+
+            // if not god or owner, do attachments as everyone
+            if(task.ParentGroup.IsAttachment)
+            {
+                returnMask = ApplyObjectModifyMasks(task.EveryoneMask, objflags);
+                if (taskOwnerID != UUID.Zero)
+                    returnMask |= (uint)PrimFlags.ObjectAnyOwner;
+                return returnMask;
+            }
+
+            // if friends with rights then owner
+            if (IsFriendWithPerms(spID, taskOwnerID))
+            {
+                returnMask = ApplyObjectModifyMasks(task.OwnerMask, objflags);
+                returnMask |= EXTRAOWNERMASK;
+                if((returnMask & (uint)PrimFlags.ObjectModify) != 0)
+                    returnMask |= (uint)PrimFlags.ObjectOwnerModify;
+                return returnMask;
+            }
+
+            // group owned or shared ?
+            UUID taskGroupID = task.GroupID;
+            IClientAPI client = sp.ControllingClient;
+            if(taskGroupID != UUID.Zero &&  client != null && client.IsGroupMember(taskGroupID))
+            {
+                if(taskGroupID == taskOwnerID)
+                {
+                    // object is owned by group, owner rights and group role powers do apply
+                    if((client.GetGroupPowers(taskGroupID) & (ulong)GroupPowers.ObjectManipulate) != 0)
+                    // instead forcing active group can be safeguard againts casual mistakes ??
+                    //if(CheckActiveGroupPowers(sp, task.GroupID, (ulong)GroupPowers.ObjectManipulate))
+                    {
+                        returnMask = ApplyObjectModifyMasks(task.OwnerMask, objflags);
+                        returnMask |= 
+                            (uint)PrimFlags.ObjectGroupOwned |
+                            (uint)PrimFlags.ObjectAnyOwner;
+                        if((returnMask & (uint)PrimFlags.ObjectModify) != 0)
+                            returnMask |= (uint)PrimFlags.ObjectOwnerModify;
+                        return returnMask;
+                    }
+                    else
+                    {
+                        // no special rights
+                        returnMask = ApplyObjectModifyMasks(task.EveryoneMask, objflags);
+                        returnMask |= (uint)PrimFlags.ObjectAnyOwner;
+                        return returnMask;
+                    }
+                }
+                else
+                {
+                    // group sharing
+                    returnMask = ApplyObjectModifyMasks(task.GroupMask, objflags);
+                    if (taskOwnerID != UUID.Zero)
+                        returnMask |= (uint)PrimFlags.ObjectAnyOwner;
+                    return returnMask;
+                }
+            }
+
+            // fallback is everyone rights
+            returnMask = ApplyObjectModifyMasks(task.EveryoneMask, objflags);
+            if (taskOwnerID != UUID.Zero)
+                returnMask |= (uint)PrimFlags.ObjectAnyOwner;
+            return returnMask;
         }
 
         private uint ApplyObjectModifyMasks(uint setPermissionMask, uint objectFlagsMask)
@@ -702,6 +804,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return objectFlagsMask;
         }
 
+        // OARs need this method that handles offline users
         public PermissionClass GetPermissionClass(UUID user, SceneObjectPart obj)
         {
             if (obj == null)
@@ -715,31 +818,19 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (user == objectOwner)
                 return PermissionClass.Owner;
 
-            if (IsFriendWithPerms(user, objectOwner) && !obj.ParentGroup.IsAttachment)
-                return PermissionClass.Owner;
-
-            // Estate users should be able to edit anything in the sim if RegionOwnerIsGod is set
-            if (m_RegionOwnerIsGod && IsEstateManager(user) && !IsAdministrator(objectOwner))
-                return PermissionClass.Owner;
-
             // Admin should be able to edit anything in the sim (including admin objects)
             if (IsAdministrator(user))
                 return PermissionClass.Owner;
 
-/* to review later
-            // Users should be able to edit what is over their land.
-            Vector3 taskPos = obj.AbsolutePosition;
-            ILandObject parcel = m_scene.LandChannel.GetLandObject(taskPos.X, taskPos.Y);
-            if (parcel != null && parcel.LandData.OwnerID == user && m_ParcelOwnerIsGod)
+            if(!obj.ParentGroup.IsAttachment)
             {
-                // Admin objects should not be editable by the above
-                if (!IsAdministrator(objectOwner))
+                if (IsFriendWithPerms(user, objectOwner) )
                     return PermissionClass.Owner;
+
+                // Group permissions
+                if (obj.GroupID != UUID.Zero && IsGroupMember(obj.GroupID, user, 0))
+                    return PermissionClass.Group;
             }
-*/
-            // Group permissions
-            if ((obj.GroupID != UUID.Zero) && IsGroupMember(obj.GroupID, user, 0))
-                return PermissionClass.Group;
 
             return PermissionClass.Everyone;
         }
