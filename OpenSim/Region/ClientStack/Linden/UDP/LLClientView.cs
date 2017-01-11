@@ -4126,14 +4126,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //            Vector3 mycamera = Vector3.Zero;
             Vector3 mypos = Vector3.Zero;
             ScenePresence mysp = (ScenePresence)SceneAgent;
-            if(mysp != null && !mysp.IsDeleted)
+
+            // we should have a presence
+            if(mysp == null)
+                return;
+
+            if(doCulling)
             {
                 cullingrange = mysp.DrawDistance + m_scene.ReprioritizationDistance + 16f;
 //                mycamera = mysp.CameraPosition;
                 mypos = mysp.AbsolutePosition;
             }
-            else
-                 doCulling = false;
 
             while (maxUpdatesBytes > 0)
             {
@@ -4330,7 +4333,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (update.Entity is ScenePresence)
                         ablock = CreateAvatarUpdateBlock((ScenePresence)update.Entity);
                     else
-                        ablock = CreatePrimUpdateBlock((SceneObjectPart)update.Entity, this.m_agentId);
+                        ablock = CreatePrimUpdateBlock((SceneObjectPart)update.Entity, mysp);
                     objectUpdateBlocks.Add(ablock);
                     objectUpdates.Value.Add(update);
                     maxUpdatesBytes -= ablock.Length;
@@ -4462,6 +4465,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         // hack.. dont use
+/*
         public void SendPartFullUpdate(ISceneEntity ent, uint? parentID)
         {
             if (ent is SceneObjectPart)
@@ -4472,7 +4476,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 packet.RegionData.TimeDilation = Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);
                 packet.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
 
-                ObjectUpdatePacket.ObjectDataBlock blk = CreatePrimUpdateBlock(part, this.m_agentId);
+                ObjectUpdatePacket.ObjectDataBlock blk = CreatePrimUpdateBlock(part, mysp);
                 if (parentID.HasValue)
                 {
                     blk.ParentID = parentID.Value;
@@ -4488,7 +4492,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //                updatesThisCall, Name, SceneAgent.IsChildAgent ? "child" : "root", Scene.Name);
 //
         }
-
+*/
         public void ReprioritizeUpdates()
         {
             lock (m_entityUpdates.SyncRoot)
@@ -5726,7 +5730,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return update;
         }
 
-        protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(SceneObjectPart data, UUID recipientID)
+//        protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(SceneObjectPart data, UUID recipientID)
+        protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(SceneObjectPart data, ScenePresence sp)
         {
             byte[] objectData = new byte[60];
             data.RelativePosition.ToBytes(objectData, 0);
@@ -5826,12 +5831,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #region PrimFlags
 
-            PrimFlags flags = (PrimFlags)m_scene.Permissions.GenerateClientFlags(recipientID, data.UUID);
+            PrimFlags flags = (PrimFlags)m_scene.Permissions.GenerateClientFlags(sp, data.UUID);
 
             // Don't send the CreateSelected flag to everyone
             flags &= ~PrimFlags.CreateSelected;
 
-            if (recipientID == data.OwnerID)
+            if (sp.UUID == data.OwnerID)
             {
                 if (data.CreateSelected)
                 {

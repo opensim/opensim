@@ -623,7 +623,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 PrimFlags.ObjectOwnerModify
                 );
 
-        public uint GenerateClientFlags(UUID user, UUID objID)
+        public uint GenerateClientFlags(ScenePresence sp, UUID objID)
         {
             // ObjectFlags and Permission flags are two different enumerations
             // ObjectFlags, tells the client what it will allow the user to do.
@@ -641,8 +641,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             objflags &= NOT_DEFAULT_FLAGS;
 
-            // get a relevant class for current user on task
-            PermissionClass permissionClass = GetPermissionClass(user, task);
+            // get a relevant class for current presence on task
+            PermissionClass permissionClass = GetPermissionClass(sp, task);
 
             // handle acording
             uint returnMask = 0;
@@ -668,10 +668,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                     returnMask = ApplyObjectModifyMasks(task.EveryoneMask, objflags);
                     if (task.OwnerID != UUID.Zero)
                         returnMask |= (uint)PrimFlags.ObjectAnyOwner;
-
-                    // allow estatemanagers to move prims to help solve disputes
-                    if(!task.ParentGroup.IsAttachment && IsEstateManager(user))
-                        returnMask |= (uint)PrimFlags.ObjectMove;
                     break;
             }
             return returnMask;
@@ -705,6 +701,39 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return objectFlagsMask;
         }
 
+        private PermissionClass GetPermissionClass(ScenePresence sp, SceneObjectPart obj)
+        {
+            if (obj == null || sp == null)
+                return PermissionClass.Everyone;
+
+            if (m_bypassPermissions)
+                return PermissionClass.Owner;
+
+
+            if (sp.IsGod)
+                return PermissionClass.Owner;
+
+            UUID user = sp.UUID;
+
+            // Object owners should be able to edit their own content
+            UUID objectOwner = obj.OwnerID;
+            if (user == objectOwner)
+                return PermissionClass.Owner;
+
+            if(!obj.ParentGroup.IsAttachment)
+            {
+                if (IsFriendWithPerms(user, objectOwner) )
+                    return PermissionClass.Owner;
+
+                // Group permissions
+                if (obj.GroupID != UUID.Zero && IsGroupMember(obj.GroupID, user, 0))
+                    return PermissionClass.Group;
+            }
+
+            return PermissionClass.Everyone;
+        }
+
+        // OARs need this method that handles offline users
         public PermissionClass GetPermissionClass(UUID user, SceneObjectPart obj)
         {
             if (obj == null)

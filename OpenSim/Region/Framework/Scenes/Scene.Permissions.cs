@@ -37,7 +37,7 @@ using OpenSim.Region.Framework.Interfaces;
 namespace OpenSim.Region.Framework.Scenes
 {
     #region Delegates
-    public delegate uint GenerateClientFlagsHandler(UUID userID, UUID objectID);
+    public delegate uint GenerateClientFlagsHandler(ScenePresence sp, UUID objectID);
     public delegate void SetBypassPermissionsHandler(bool value);
     public delegate bool BypassPermissionsHandler();
     public delegate bool PropagatePermissionsHandler();
@@ -167,7 +167,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Object Permission Checks
 
-        public uint GenerateClientFlags(UUID userID, UUID objectID)
+        public uint GenerateClientFlags(ScenePresence sp, UUID objectID)
         {
             // libomv will moan about PrimFlags.ObjectYouOfficer being
             // obsolete...
@@ -195,7 +195,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handlerGenerateClientFlags.GetInvocationList();
                 foreach (GenerateClientFlagsHandler check in list)
                 {
-                    perms &= check(userID, objectID);
+                    perms &= check(sp, objectID);
                 }
             }
             return perms;
