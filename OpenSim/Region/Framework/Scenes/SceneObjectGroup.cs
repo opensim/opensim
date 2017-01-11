@@ -2233,7 +2233,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (part.OwnerID != userId)
                     {
-                        part.LastOwnerID = part.OwnerID;
+                        if(part.GroupID != part.OwnerID)
+                            part.LastOwnerID = part.OwnerID;
                         part.OwnerID = userId;
                     }
                 });
