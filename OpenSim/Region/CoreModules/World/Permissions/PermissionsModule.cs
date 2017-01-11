@@ -480,6 +480,31 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return false;
         }
 
+        private bool CheckGroupPowers(ScenePresence sp, UUID groupID, ulong powersMask)
+        {
+            if(sp == null || sp.ControllingClient == null)
+                return false;
+ 
+            ulong grpPowers = sp.ControllingClient.GetGroupPowers(groupID);
+
+            return (grpPowers & powersMask) != 0;
+        }
+
+        private bool CheckActiveGroupPowers(ScenePresence sp, UUID groupID, ulong powersMask)
+        {
+            if(sp == null || sp.ControllingClient == null)
+                return false;
+ 
+            if(sp.ControllingClient.ActiveGroupId != groupID)
+                return false;
+            // activeGroupPowers only get current selected role powers, at least with xmlgroups.
+            // lets get any role avoiding the extra burden of user also having to change role
+            //  ulong grpPowers = sp.ControllingClient.ActiveGroupPowers(groupID);
+            ulong grpPowers = sp.ControllingClient.GetGroupPowers(groupID);
+
+            return (grpPowers & powersMask) != 0;
+        }
+
         /// <summary>
         /// Parse a user set configuration setting
         /// </summary>
@@ -623,7 +648,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 PrimFlags.ObjectOwnerModify
                 );
 
-        public uint GenerateClientFlags(ScenePresence sp, UUID objID)
+        public uint GenerateClientFlags(ScenePresence sp, uint curEffectivePerms, UUID objID)
         {
             // ObjectFlags and Permission flags are two different enumerations
             // ObjectFlags, tells the client what it will allow the user to do.
@@ -634,12 +659,12 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (task == null)
                 return (uint)0;
 
-            uint objflags = task.GetEffectiveObjectFlags();
+            if(curEffectivePerms == 0)
+                return 0;
  
             // Remove any of the objectFlags that are temporary.  These will get added back if appropriate
             // in the next bit of code
-
-            objflags &= NOT_DEFAULT_FLAGS;
+            uint objflags = curEffectivePerms & NOT_DEFAULT_FLAGS ;
 
             // get a relevant class for current presence on task
             PermissionClass permissionClass = GetPermissionClass(sp, task);
@@ -658,9 +683,35 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
                 case PermissionClass.Group:
                     // Customize the GroupMask
-                    returnMask = ApplyObjectModifyMasks(task.GroupMask | task.EveryoneMask, objflags);
-                    if (task.OwnerID != UUID.Zero)
-                        returnMask |= (uint)PrimFlags.ObjectAnyOwner;
+                    if(task.GroupID == task.OwnerID)
+                    {
+                        // object is owned by group, owner rights do apply
+                        // we are not limiting to group owned parcel so this work anywhere
+                        if(CheckGroupPowers(sp, task.GroupID, (ulong)GroupPowers.ObjectManipulate))
+                        // instead forcing active group can be safeguard againts casual mistakes ??
+                        //if(CheckActiveGroupPowers(sp, task.GroupID, (ulong)GroupPowers.ObjectManipulate))
+                        {
+                            returnMask = ApplyObjectModifyMasks(task.OwnerMask | task.EveryoneMask, objflags);
+                            returnMask |= 
+                                (uint)PrimFlags.ObjectGroupOwned |
+                                (uint)PrimFlags.ObjectAnyOwner;
+                            if((returnMask & (uint)PrimFlags.ObjectModify) != 0)
+                                returnMask |= (uint)PrimFlags.ObjectOwnerModify;
+                        }
+                        else
+                        {
+                            // no special rights
+                            returnMask = ApplyObjectModifyMasks(task.EveryoneMask, objflags);
+                            returnMask |= (uint)PrimFlags.ObjectAnyOwner;
+                        }
+                    }
+                    else
+                    {
+                        // not group owned, group sharing rights apply
+                         returnMask = ApplyObjectModifyMasks(task.GroupMask | task.EveryoneMask, objflags);
+                         if (task.OwnerID != UUID.Zero)
+                            returnMask |= (uint)PrimFlags.ObjectAnyOwner;
+                    }
                     break;
 
                 case PermissionClass.Everyone:
@@ -726,7 +777,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                     return PermissionClass.Owner;
 
                 // Group permissions
-                if (obj.GroupID != UUID.Zero && IsGroupMember(obj.GroupID, user, 0))
+                // in future group membership must leave llclentViewer, but for now it is there.
+                if (obj.GroupID != UUID.Zero && sp.ControllingClient != null && sp.ControllingClient.IsGroupMember(obj.GroupID))
                     return PermissionClass.Group;
             }
 
