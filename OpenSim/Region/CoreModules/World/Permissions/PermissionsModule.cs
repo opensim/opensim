@@ -592,10 +592,10 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
         protected bool IsFriendWithPerms(UUID user, UUID objectOwner)
         {
-            if (user == UUID.Zero)
+            if (FriendsModule == null)
                 return false;
 
-            if (FriendsModule == null)
+            if (user == UUID.Zero)
                 return false;
 
             int friendPerms = FriendsModule.GetRightsGrantedByFriend(user, objectOwner);
@@ -684,7 +684,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             // gods have owner rights with Modify and Move always on 
             if(sp.IsGod)
             {
-                returnMask = ApplyObjectModifyMasks(task.OwnerMask, objflags);
+                returnMask = ApplyObjectModifyMasks(task.OwnerMask, objflags, true);
                 returnMask |= EXTRAGODMASK;
                 return returnMask;
             }
@@ -692,12 +692,14 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             //bypass option == owner rights
             if (m_bypassPermissions)
             {
-                returnMask = ApplyObjectModifyMasks(task.OwnerMask, objflags);
+                returnMask = ApplyObjectModifyMasks(task.OwnerMask, objflags, true);
                 returnMask |= EXTRAOWNERMASK;
                 if((returnMask & (uint)PrimFlags.ObjectModify) != 0)
                     returnMask |= (uint)PrimFlags.ObjectOwnerModify;
                 return returnMask;
             }
+
+            bool unlocked = (task.ParentGroup.RootPart.OwnerMask & (uint)PermissionMask.Move) != 0;
 
             UUID taskOwnerID = task.OwnerID;
             UUID spID = sp.UUID;
@@ -705,7 +707,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             // owner
             if (spID == taskOwnerID)
             {
-                returnMask = ApplyObjectModifyMasks(task.OwnerMask, objflags);
+                returnMask = ApplyObjectModifyMasks(task.OwnerMask, objflags, unlocked);
                 returnMask |= EXTRAOWNERMASK;
                 if((returnMask & (uint)PrimFlags.ObjectModify) != 0)
                     returnMask |= (uint)PrimFlags.ObjectOwnerModify;
@@ -715,16 +717,19 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             // if not god or owner, do attachments as everyone
             if(task.ParentGroup.IsAttachment)
             {
-                returnMask = ApplyObjectModifyMasks(task.EveryoneMask, objflags);
+                returnMask = ApplyObjectModifyMasks(task.EveryoneMask, objflags, unlocked);
                 if (taskOwnerID != UUID.Zero)
                     returnMask |= (uint)PrimFlags.ObjectAnyOwner;
                 return returnMask;
             }
 
+            UUID taskGroupID = task.GroupID;
+            bool groupdOwned = taskOwnerID == taskGroupID;
+
             // if friends with rights then owner
-            if (IsFriendWithPerms(spID, taskOwnerID))
+            if (!groupdOwned && IsFriendWithPerms(spID, taskOwnerID))
             {
-                returnMask = ApplyObjectModifyMasks(task.OwnerMask, objflags);
+                returnMask = ApplyObjectModifyMasks(task.OwnerMask, objflags, unlocked);
                 returnMask |= EXTRAOWNERMASK;
                 if((returnMask & (uint)PrimFlags.ObjectModify) != 0)
                     returnMask |= (uint)PrimFlags.ObjectOwnerModify;
@@ -732,18 +737,15 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             }
 
             // group owned or shared ?
-            UUID taskGroupID = task.GroupID;
             IClientAPI client = sp.ControllingClient;
             if(taskGroupID != UUID.Zero &&  client != null && client.IsGroupMember(taskGroupID))
             {
-                if(taskGroupID == taskOwnerID)
+                if(groupdOwned)
                 {
-                    // object is owned by group, owner rights and group role powers do apply
+                    // object is owned by group, check role powers
                     if((client.GetGroupPowers(taskGroupID) & (ulong)GroupPowers.ObjectManipulate) != 0)
-                    // instead forcing active group can be safeguard againts casual mistakes ??
-                    //if(CheckActiveGroupPowers(sp, task.GroupID, (ulong)GroupPowers.ObjectManipulate))
                     {
-                        returnMask = ApplyObjectModifyMasks(task.OwnerMask, objflags);
+                        returnMask = ApplyObjectModifyMasks(task.OwnerMask, objflags, unlocked);
                         returnMask |= 
                             (uint)PrimFlags.ObjectGroupOwned |
                             (uint)PrimFlags.ObjectAnyOwner;
@@ -753,16 +755,18 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                     }
                     else
                     {
-                        // no special rights
-                        returnMask = ApplyObjectModifyMasks(task.EveryoneMask, objflags);
-                        returnMask |= (uint)PrimFlags.ObjectAnyOwner;
+                        // group sharing or everyone
+                        returnMask = ApplyObjectModifyMasks(task.GroupMask | task.EveryoneMask, objflags, unlocked);
+                        returnMask |=
+                            (uint)PrimFlags.ObjectGroupOwned |
+                            (uint)PrimFlags.ObjectAnyOwner;
                         return returnMask;
                     }
                 }
                 else
                 {
-                    // group sharing
-                    returnMask = ApplyObjectModifyMasks(task.GroupMask, objflags);
+                    // group sharing or everyone
+                    returnMask = ApplyObjectModifyMasks(task.GroupMask | task.EveryoneMask, objflags, unlocked);
                     if (taskOwnerID != UUID.Zero)
                         returnMask |= (uint)PrimFlags.ObjectAnyOwner;
                     return returnMask;
@@ -770,13 +774,13 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             }
 
             // fallback is everyone rights
-            returnMask = ApplyObjectModifyMasks(task.EveryoneMask, objflags);
+            returnMask = ApplyObjectModifyMasks(task.EveryoneMask, objflags, unlocked);
             if (taskOwnerID != UUID.Zero)
                 returnMask |= (uint)PrimFlags.ObjectAnyOwner;
             return returnMask;
         }
 
-        private uint ApplyObjectModifyMasks(uint setPermissionMask, uint objectFlagsMask)
+        private uint ApplyObjectModifyMasks(uint setPermissionMask, uint objectFlagsMask, bool unlocked)
         {
             // We are adding the temporary objectflags to the object's objectflags based on the
             // permission flag given.  These change the F flags on the client.
@@ -786,14 +790,17 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 objectFlagsMask |= (uint)PrimFlags.ObjectCopy;
             }
 
-            if ((setPermissionMask & (uint)PermissionMask.Move) != 0)
+            if (unlocked)
             {
-                objectFlagsMask |= (uint)PrimFlags.ObjectMove;
-            }
+                if ((setPermissionMask & (uint)PermissionMask.Move) != 0)
+                {
+                    objectFlagsMask |= (uint)PrimFlags.ObjectMove;
+                }
 
-            if ((setPermissionMask & (uint)PermissionMask.Modify) != 0)
-            {
-                objectFlagsMask |= (uint)PrimFlags.ObjectModify;
+                if ((setPermissionMask & (uint)PermissionMask.Modify) != 0)
+                {
+                    objectFlagsMask |= (uint)PrimFlags.ObjectModify;
+                }
             }
 
             if ((setPermissionMask & (uint)PermissionMask.Transfer) != 0)
@@ -1559,35 +1566,35 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         private bool CanRezObject(int objectCount, UUID owner, Vector3 objectPosition, Scene scene)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-            if (m_bypassPermissions) return m_bypassPermissionsValue;
+            if (m_bypassPermissions)
+                return m_bypassPermissionsValue;
 
 //            m_log.DebugFormat("[PERMISSIONS MODULE]: Checking rez object at {0} in {1}", objectPosition, m_scene.Name);
 
             ILandObject parcel = m_scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
-            if (parcel == null)
+            if (parcel == null || parcel.LandData == null)
                 return false;
 
-            if ((parcel.LandData.Flags & (uint)ParcelFlags.CreateObjects) != 0)
-            {
+            LandData landdata = parcel.LandData;
+            if ((owner == landdata.OwnerID))
                 return true;
-            }
-            else if ((owner == parcel.LandData.OwnerID) || IsAdministrator(owner))
-            {
+
+            if ((landdata.Flags & (uint)ParcelFlags.CreateObjects) != 0)
                 return true;
-            }
-            else if (((parcel.LandData.Flags & (uint)ParcelFlags.CreateGroupObjects) != 0)
-                && (parcel.LandData.GroupID != UUID.Zero) && IsGroupMember(parcel.LandData.GroupID, owner, 0))
-            {
+
+            if(IsAdministrator(owner))
                 return true;
-            }
-            else if (parcel.LandData.GroupID != UUID.Zero && IsGroupMember(parcel.LandData.GroupID, owner, (ulong)GroupPowers.AllowRez))
+
+            if(landdata.GroupID != UUID.Zero)
             {
-                return true;
+                if ((landdata.Flags & (uint)ParcelFlags.CreateGroupObjects) != 0)
+                    return IsGroupMember(landdata.GroupID, owner, 0);
+
+                if (landdata.IsGroupOwned && IsGroupMember(landdata.GroupID, owner, (ulong)GroupPowers.AllowRez))
+                    return true;
             }
-            else
-            {
-                return false;
-            }
+
+            return false;
         }
 
         private bool CanRunConsoleCommand(UUID user, Scene requestFromScene)
