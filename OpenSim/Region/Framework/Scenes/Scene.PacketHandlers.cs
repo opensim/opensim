@@ -183,8 +183,7 @@ namespace OpenSim.Region.Framework.Scenes
                     part.SendFullUpdate(remoteClient);
 
                 // A prim is only tainted if it's allowed to be edited by the person clicking it.
-                if (Permissions.CanEditObject(sog.UUID, remoteClient.AgentId)
-                    || Permissions.CanMoveObject(sog.UUID, remoteClient.AgentId))
+                if (Permissions.CanChangeSelectedState(sog.UUID, (ScenePresence)remoteClient.SceneAgent))
                 {
                     part.IsSelected = true;
                     EventManager.TriggerParcelPrimCountTainted();
@@ -250,8 +249,7 @@ namespace OpenSim.Region.Framework.Scenes
             // handled by group, but by prim. Legacy cruft.
             // TODO: Make selection flagging per prim!
             //
-            if (Permissions.CanEditObject(part.ParentGroup.UUID, remoteClient.AgentId)
-                || Permissions.CanMoveObject(part.ParentGroup.UUID, remoteClient.AgentId))
+            if (Permissions.CanChangeSelectedState(part.ParentGroup.UUID, (ScenePresence)remoteClient.SceneAgent))
             {
                 part.IsSelected = false;
                 if (!part.ParentGroup.IsAttachment && oldgprSelect != part.ParentGroup.IsSelected)

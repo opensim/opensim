@@ -404,6 +404,20 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
+        #region persence EDIT or MOVE OBJECT
+        private  const uint CANSELECTMASK = (uint)(
+            PrimFlags.ObjectMove |
+            PrimFlags.ObjectModify |
+            PrimFlags.ObjectOwnerModify
+            );
+
+        public bool CanChangeSelectedState(UUID objectID, ScenePresence sp)
+        {
+            uint perms = GenerateClientFlags(sp , objectID);
+            return (perms & CANSELECTMASK) != 0;
+        }
+
+        #endregion
         #region EDIT OBJECT
         public bool CanEditObject(UUID objectID, UUID editorID)
         {
