@@ -63,11 +63,12 @@ namespace OpenSim.Framework
         None = 0,
 
         // folded perms
-        foldedTransfer = 1,
-        foldedModify = 1 << 1,
-        foldedCopy = 1 << 2,
+        FoldedTransfer = 1,
+        FoldedModify = 1 << 1,
+        FoldedCopy = 1 << 2,
+        FoldedExport = 1 << 4,
 
-        foldedMask = 0x07,
+        FoldedMask = 0x17,
 
         //
         Transfer = 1 << 13,
