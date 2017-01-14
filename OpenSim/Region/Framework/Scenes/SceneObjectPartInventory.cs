@@ -1170,7 +1170,7 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (TaskInventoryItem item in m_items.Values)
                 {
                     UUID ownerID = item.OwnerID;
-                    uint everyoneMask = 0;
+                    uint everyoneMask = item.EveryonePermissions;
                     uint baseMask = item.BasePermissions;
                     uint ownerMask = item.CurrentPermissions;
                     uint groupMask = item.GroupPermissions;
