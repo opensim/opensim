@@ -66,9 +66,10 @@ namespace OpenSim.Framework
         FoldedTransfer = 1,
         FoldedModify = 1 << 1,
         FoldedCopy = 1 << 2,
-        FoldedExport = 1 << 4,
+        FoldedExport = 1 << 3,
+        Slam = 1 << 4,
 
-        FoldedMask = 0x17,
+        FoldedMask = 0x0f,
 
         //
         Transfer = 1 << 13,

@@ -605,15 +605,18 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     perms &= ~(uint)PermissionMask.Transfer;
                 if ((nextPerms & (uint)PermissionMask.Modify) == 0)
                     perms &= ~(uint)PermissionMask.Modify;
-
-                item.BasePermissions = perms & so.RootPart.NextOwnerMask;
+                
+//                item.BasePermissions = perms & so.RootPart.NextOwnerMask;
+                
+                uint nextp = so.RootPart.NextOwnerMask | 0x0f;
+                item.BasePermissions = perms & nextp;
                 item.CurrentPermissions = item.BasePermissions;
                 item.NextPermissions = perms & so.RootPart.NextOwnerMask;
                 item.EveryOnePermissions = so.RootPart.EveryoneMask & so.RootPart.NextOwnerMask;
                 item.GroupPermissions = so.RootPart.GroupMask & so.RootPart.NextOwnerMask;
 
                 // apply next owner perms on rez
-                item.CurrentPermissions |= SceneObjectGroup.SLAM;
+                item.CurrentPermissions |= (uint)PermissionMask.Slam;
             }
             else
             {
@@ -1124,7 +1127,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 //                    rootPart.OwnerID, item.Owner, item.CurrentPermissions);
 
                 if ((rootPart.OwnerID != item.Owner) ||
-                    (item.CurrentPermissions & 8) != 0 ||
+                    (item.CurrentPermissions & (uint)PermissionMask.Slam) != 0 ||
                     (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0)
                 {
                     //Need to kill the for sale here
