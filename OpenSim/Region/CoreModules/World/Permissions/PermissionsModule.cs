@@ -631,7 +631,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
         #region Object Permissions
 #pragma warning disable 0612
-        const uint DEFAULT_FLAGS  = (uint)(
+        const uint DEFAULT_FLAGS  = (uint)~(
             PrimFlags.ObjectCopy | // Tells client you can copy the object
             PrimFlags.ObjectModify | // tells client you can modify the object
             PrimFlags.ObjectMove |   // tells client that you can move the object (only, no mod)
@@ -701,7 +701,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             bool unlocked = (task.ParentGroup.RootPart.OwnerMask & (uint)PermissionMask.Move) != 0;
 
-            uint effectivePerms;
             UUID taskOwnerID = task.OwnerID;
             UUID spID = sp.UUID;
 
@@ -719,8 +718,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if(task.ParentGroup.IsAttachment)
             {
                 returnMask = ApplyObjectModifyMasks(task.EveryoneMask, objflags, unlocked);
-                effectivePerms = task.ParentGroup.GetEffectivePermissions(); 
-                returnMask &= effectivePerms;
                 if (taskOwnerID != UUID.Zero)
                     returnMask |= (uint)PrimFlags.ObjectAnyOwner;
                 return returnMask;
@@ -728,7 +725,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             UUID taskGroupID = task.GroupID;
             bool groupdOwned = taskOwnerID == taskGroupID;
-
 
             // if friends with rights then owner
             if (!groupdOwned && IsFriendWithPerms(spID, taskOwnerID))
@@ -757,9 +753,9 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                             returnMask |= (uint)PrimFlags.ObjectOwnerModify;
                         return returnMask;
                     }
-                    else if(task.GroupMask != 0)
+                    else
                     {
-                        // group sharing 
+                        // group sharing or everyone
                         returnMask = ApplyObjectModifyMasks(task.GroupMask | task.EveryoneMask, objflags, unlocked);
                         returnMask |=
                             (uint)PrimFlags.ObjectGroupOwned |
@@ -767,9 +763,9 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                         return returnMask;
                     }
                 }
-                else if(task.GroupMask != 0)
+                else
                 {
-                    // group sharing
+                    // group sharing or everyone
                     returnMask = ApplyObjectModifyMasks(task.GroupMask | task.EveryoneMask, objflags, unlocked);
                     if (taskOwnerID != UUID.Zero)
                         returnMask |= (uint)PrimFlags.ObjectAnyOwner;
@@ -778,9 +774,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             }
 
             // fallback is everyone rights
-            effectivePerms = task.ParentGroup.GetEffectivePermissions(); 
             returnMask = ApplyObjectModifyMasks(task.EveryoneMask, objflags, unlocked);
-            returnMask &= effectivePerms;
             if (taskOwnerID != UUID.Zero)
                 returnMask |= (uint)PrimFlags.ObjectAnyOwner;
             return returnMask;
