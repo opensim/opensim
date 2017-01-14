@@ -69,7 +69,7 @@ namespace OpenSim.Framework
         Slam = (1 << 3) | (1 << 4),
         FoldedExport = 1 << 5,
 
-        FoldedMask = 0x0f,
+        FoldedMask = 0x027,
 
         //
         Transfer = 1 << 13,
