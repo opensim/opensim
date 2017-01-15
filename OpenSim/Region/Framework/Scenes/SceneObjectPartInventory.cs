@@ -944,7 +944,7 @@ namespace OpenSim.Region.Framework.Scenes
                 group.SetGroup(m_part.GroupID, null);
 
                 // TODO: Remove magic number badness
-                if ((rootPart.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0) // Magic number
+                if ((rootPart.OwnerID != item.OwnerID) || (item.CurrentPermissions & (uint)PermissionMask.Slam) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0) // Magic number
                 {
                     if (m_part.ParentGroup.Scene.Permissions.PropagatePermissions())
                     {
@@ -965,7 +965,7 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (SceneObjectPart part in partList)
                 {
                     // TODO: Remove magic number badness
-                    if ((part.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0) // Magic number
+                    if ((part.OwnerID != item.OwnerID) || (item.CurrentPermissions & (uint)PermissionMask.Slam) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0) // Magic number
                     {
                         part.LastOwnerID = part.OwnerID;
                         part.OwnerID = item.OwnerID;
@@ -1318,6 +1318,48 @@ namespace OpenSim.Region.Framework.Scenes
             {
             }
         }
+
+        // reduce to minimal set
+        public void AggregateEveryOnePerms(ref uint current)
+        {
+            foreach (TaskInventoryItem item in m_items.Values)
+            {
+                current &= item.EveryonePermissions;
+                if(current == 0)
+                    break;
+            }
+        }
+
+        public void AggregateGroupPerms(ref uint current)
+        {
+            foreach (TaskInventoryItem item in m_items.Values)
+            {
+                current &= item.GroupPermissions;
+                if(current == 0)
+                    break;
+            }
+        }
+
+        public void AggregateGroupOrEveryonePerms(ref uint current)
+        {
+            foreach (TaskInventoryItem item in m_items.Values)
+            {
+                current &= (item.GroupPermissions | item.EveryonePermissions);
+                if(current == 0)
+                    break;
+            }
+        }
+
+        public void AggregateOwnerPerms(ref uint current)
+        {
+            foreach (TaskInventoryItem item in m_items.Values)
+            {
+                current &= item.CurrentPermissions;
+                if(current == 0)
+                    break;
+            }
+        }
+
 
         public uint MaskEffectivePermissions()
         {
