@@ -2744,28 +2744,10 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Set the owner of the root part.
+        /// Set the owner of all linkset.
         /// </summary>
-        /// <param name="part"></param>
         /// <param name="cAgentID"></param>
         /// <param name="cGroupID"></param>
-        public void SetRootPartOwner(SceneObjectPart part, UUID cAgentID, UUID cGroupID)
-        {
-            if(part.GroupID != part.OwnerID && cGroupID != part.OwnerID)
-                part.LastOwnerID = part.OwnerID;
-            part.OwnerID = cAgentID;
-            part.GroupID = cGroupID;
-
-            if (part.OwnerID != cAgentID)
-            {
-                // Apply Next Owner Permissions if we're not bypassing permissions
-                if (!m_scene.Permissions.BypassPermissions())
-                    ApplyNextOwnerPermissions();
-            }
-
-            part.ScheduleFullUpdate();
-        }
-
         public void SetOwner(UUID cAgentID, UUID cGroupID)
         {
             SceneObjectPart rpart = RootPart;
@@ -2787,8 +2769,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             rpart.ScheduleFullUpdate();
         }
-
-
 
         /// <summary>
         /// Make a copy of the given part.
