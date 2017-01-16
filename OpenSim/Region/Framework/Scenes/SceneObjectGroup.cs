@@ -2766,6 +2766,30 @@ namespace OpenSim.Region.Framework.Scenes
             part.ScheduleFullUpdate();
         }
 
+        public void SetOwner(UUID cAgentID, UUID cGroupID)
+        {
+            SceneObjectPart rpart = RootPart;
+            UUID oldowner = rpart.OwnerID;
+            ForEachPart(delegate(SceneObjectPart part)
+            {
+                if(part.GroupID != part.OwnerID)
+                    part.LastOwnerID = part.OwnerID;
+                part.OwnerID = cAgentID;
+                part.GroupID = cGroupID;
+                });
+
+            if (oldowner != cAgentID)
+            {
+                // Apply Next Owner Permissions if we're not bypassing permissions
+                if (!m_scene.Permissions.BypassPermissions())
+                    ApplyNextOwnerPermissions();
+            }
+
+            rpart.ScheduleFullUpdate();
+        }
+
+
+
         /// <summary>
         /// Make a copy of the given part.
         /// </summary>

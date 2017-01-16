@@ -136,8 +136,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                     return false;
                 }
 
-                group.SetOwnerId(remoteClient.AgentId);
-                group.SetRootPartOwner(part, remoteClient.AgentId, remoteClient.ActiveGroupId);
+                group.SetOwner(remoteClient.AgentId, remoteClient.ActiveGroupId);
 
                 if (m_scene.Permissions.PropagatePermissions())
                 {

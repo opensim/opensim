@@ -2103,8 +2103,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (original.OwnerID != AgentID)
                     {
-                        copy.SetOwnerId(AgentID);
-                        copy.SetRootPartOwner(copy.RootPart, AgentID, GroupID);
+                        copy.SetOwner(AgentID, GroupID);
 
                         SceneObjectPart[] partList = copy.Parts;
 

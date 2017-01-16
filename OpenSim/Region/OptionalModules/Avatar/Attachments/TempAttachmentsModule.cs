@@ -163,8 +163,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
                 if ((effectivePerms & (uint)PermissionMask.Transfer) == 0)
                     return 0;
 
-                hostPart.ParentGroup.SetOwnerId(target.UUID);
-                hostPart.ParentGroup.SetRootPartOwner(hostPart.ParentGroup.RootPart, target.UUID, target.ControllingClient.ActiveGroupId);
+                hostPart.ParentGroup.SetOwner(target.UUID, target.ControllingClient.ActiveGroupId);
 
                 if (m_scene.Permissions.PropagatePermissions())
                 {
