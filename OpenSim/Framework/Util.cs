@@ -80,15 +80,17 @@ namespace OpenSim.Framework
         FoldedMask = 0x0f,
 
         //
-        Transfer = 1 << 13,
-        Modify = 1 << 14,
-        Copy = 1 << 15,
-        Export = 1 << 16,
-        Move = 1 << 19,
-        Damage = 1 << 20,
+        Transfer = 1 << 13, // 0x02000
+        Modify = 1 << 14,   // 0x04000
+        Copy = 1 << 15,     // 0x08000
+        Export = 1 << 16,   // 0x10000
+        Move = 1 << 19,     // 0x80000
+        Damage = 1 << 20,   // 0x100000 does not seem to be in use
         // All does not contain Export, which is special and must be
         // explicitly given
-        All = (1 << 13) | (1 << 14) | (1 << 15) | (1 << 19)
+        All = 0x8e000,
+        AllAndExport = 0x9e000,
+        AllEffective = 0x9e000
     }
 
     /// <summary>

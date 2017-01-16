@@ -2537,6 +2537,33 @@ namespace OpenSim.Region.Framework.Scenes
             return (uint)Flags | (uint)LocalFlags;
         }
 
+        // some of this lines need be moved to other place later
+
+        // effective permitions considering only this part inventory contents perms
+        public uint AggregatedInnerOwnerPerms {get; private set; }
+        public uint AggregatedInnerGroupPerms {get; private set; }
+        public uint AggregatedInnerEveryonePerms {get; private set; }
+        private object InnerPermsLock = new object();
+
+        public void AggregateInnerPerms()
+        {
+            const uint mask = (uint)PermissionMask.AllEffective;
+
+            uint owner = mask;
+            uint group = mask;
+            uint everyone = mask;
+
+            lock(InnerPermsLock) // do we really need this?
+            {
+                if(Inventory != null)
+                    Inventory.AggregateInnerPerms(ref owner, ref group, ref everyone);
+            
+                AggregatedInnerOwnerPerms = owner & mask;
+                AggregatedInnerGroupPerms = group & mask;
+                AggregatedInnerEveryonePerms = everyone & mask;
+            }
+        }
+
         public Vector3 GetGeometricCenter()
         {
             // this is not real geometric center but a average of positions relative to root prim acording to

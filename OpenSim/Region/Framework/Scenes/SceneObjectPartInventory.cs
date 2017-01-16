@@ -1317,47 +1317,15 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        // reduce to minimal set
-        public void AggregateEveryOnePerms(ref uint current)
+        public void AggregateInnerPerms(ref uint owner, ref uint group, ref uint everyone)
         {
             foreach (TaskInventoryItem item in m_items.Values)
             {
-                current &= item.EveryonePermissions;
-                if(current == 0)
-                    break;
+                owner &= item.CurrentPermissions;
+                group &= item.GroupPermissions;
+                everyone &= item.EveryonePermissions;
             }
         }
-
-        public void AggregateGroupPerms(ref uint current)
-        {
-            foreach (TaskInventoryItem item in m_items.Values)
-            {
-                current &= item.GroupPermissions;
-                if(current == 0)
-                    break;
-            }
-        }
-
-        public void AggregateGroupOrEveryonePerms(ref uint current)
-        {
-            foreach (TaskInventoryItem item in m_items.Values)
-            {
-                current &= (item.GroupPermissions | item.EveryonePermissions);
-                if(current == 0)
-                    break;
-            }
-        }
-
-        public void AggregateOwnerPerms(ref uint current)
-        {
-            foreach (TaskInventoryItem item in m_items.Values)
-            {
-                current &= item.CurrentPermissions;
-                if(current == 0)
-                    break;
-            }
-        }
-
 
         public uint MaskEffectivePermissions()
         {
