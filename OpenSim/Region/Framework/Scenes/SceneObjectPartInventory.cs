@@ -943,8 +943,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 group.SetGroup(m_part.GroupID, null);
 
-                // TODO: Remove magic number badness
-                if ((rootPart.OwnerID != item.OwnerID) || (item.CurrentPermissions & (uint)PermissionMask.Slam) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0) // Magic number
+                if ((rootPart.OwnerID != item.OwnerID) || (item.CurrentPermissions & (uint)PermissionMask.Slam) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0)
                 {
                     if (m_part.ParentGroup.Scene.Permissions.PropagatePermissions())
                     {
@@ -964,8 +963,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 foreach (SceneObjectPart part in partList)
                 {
-                    // TODO: Remove magic number badness
-                    if ((part.OwnerID != item.OwnerID) || (item.CurrentPermissions & (uint)PermissionMask.Slam) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0) // Magic number
+                    if ((part.OwnerID != item.OwnerID) || (item.CurrentPermissions & (uint)PermissionMask.Slam) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0)
                     {
                         part.LastOwnerID = part.OwnerID;
                         part.OwnerID = item.OwnerID;

@@ -608,7 +608,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 
 //                item.BasePermissions = perms & so.RootPart.NextOwnerMask;
                 
-                uint nextp = so.RootPart.NextOwnerMask | 0x0f;
+                uint nextp = so.RootPart.NextOwnerMask | (uint)PermissionMask.FoldedMask;
                 item.BasePermissions = perms & nextp;
                 item.CurrentPermissions = item.BasePermissions;
                 item.NextPermissions = perms & so.RootPart.NextOwnerMask;
@@ -616,7 +616,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 item.GroupPermissions = so.RootPart.GroupMask & so.RootPart.NextOwnerMask;
 
                 // apply next owner perms on rez
-                item.CurrentPermissions |= (uint)PermissionMask.Slam;
+                item.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
             }
             else
             {
