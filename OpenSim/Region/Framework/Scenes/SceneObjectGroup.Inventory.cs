@@ -277,6 +277,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        private uint m_EffectiveGroupOrEveryOnePerms;
         public uint EffectiveGroupOrEveryOnePerms
         {
             get
@@ -285,7 +286,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // bc this is on heavy duty code paths
                 // but for now we need to test the concept
                 AggregateDeepPerms();
-                return m_EffectiveEveryOnePerms | m_EffectiveGroupPerms;
+                return m_EffectiveGroupOrEveryOnePerms;
             }
         }
 
@@ -339,18 +340,28 @@ namespace OpenSim.Region.Framework.Scenes
                 // recover modify and move
                 baseGroupPerms &= movemodmask;
                 group |= baseGroupPerms;
+                group &= allmask;
+
+                uint groupOrEveryone = group;
+
                 if((group & copytransfermast) == 0)
                     group |= (uint)PermissionMask.Transfer;
-                group &= allmask;
                 m_EffectiveGroupPerms = group;
 
                 // recover move
                 baseEveryonePerms &= (uint)PermissionMask.Move;
                 everyone |= baseEveryonePerms;
+                everyone &= allmask;
+
+                groupOrEveryone |= everyone;
+
                 if((everyone & copytransfermast) == 0) // not much sense but as sl
                     everyone |= (uint)PermissionMask.Transfer;
-                everyone &= allmask;
                 m_EffectiveEveryOnePerms = everyone;
+
+                if((groupOrEveryone & copytransfermast) == 0) // not much sense but as sl
+                    groupOrEveryone |= (uint)PermissionMask.Transfer;
+                m_EffectiveGroupOrEveryOnePerms = groupOrEveryone;
             }
         }
 
@@ -375,6 +386,7 @@ namespace OpenSim.Region.Framework.Scenes
                 for (int i = 0; i < parts.Length; i++)
                 {
                     SceneObjectPart part = parts[i];
+                    part.AggregateInnerPerms();
                     owner &= part.AggregatedInnerOwnerPerms; 
                     group &= part.AggregatedInnerGroupPerms;
                     everyone &= part.AggregatedInnerEveryonePerms;
@@ -390,18 +402,28 @@ namespace OpenSim.Region.Framework.Scenes
                 // recover modify and move
                 baseGroupPerms &= movemodmask;
                 group |= baseGroupPerms;
+                group &= allmask;
+
+                uint groupOrEveryone = group;
+
                 if((group & copytransfermast) == 0)
                     group |= (uint)PermissionMask.Transfer;
-                group &= allmask;
                 m_EffectiveGroupPerms = group;
 
                 // recover move
                 baseEveryonePerms &= (uint)PermissionMask.Move;
                 everyone |= baseEveryonePerms;
+                everyone &= allmask;
+
+                groupOrEveryone |= everyone;
+
                 if((everyone & copytransfermast) == 0) // not much sense but as sl
                     everyone |= (uint)PermissionMask.Transfer;
-                everyone &= allmask;
                 m_EffectiveEveryOnePerms = everyone;
+
+                if((groupOrEveryone & copytransfermast) == 0) // not much sense but as sl
+                    groupOrEveryone |= (uint)PermissionMask.Transfer;
+                m_EffectiveGroupOrEveryOnePerms = groupOrEveryone;
             }
         }
 
