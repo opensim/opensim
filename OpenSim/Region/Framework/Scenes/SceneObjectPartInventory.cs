@@ -965,7 +965,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if ((part.OwnerID != item.OwnerID) || (item.CurrentPermissions & (uint)PermissionMask.Slam) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0)
                     {
-                        part.LastOwnerID = part.OwnerID;
+                        if(part.GroupID != part.OwnerID)
+                            part.LastOwnerID = part.OwnerID;
                         part.OwnerID = item.OwnerID;
                         part.Inventory.ChangeInventoryOwner(item.OwnerID);
                     }

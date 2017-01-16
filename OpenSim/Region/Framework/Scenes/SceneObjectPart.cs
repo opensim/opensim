@@ -2228,7 +2228,11 @@ namespace OpenSim.Region.Framework.Scenes
             dupe.LocalId = plocalID;
 
             // This may be wrong...    it might have to be applied in SceneObjectGroup to the object that's being duplicated.
-            dupe.LastOwnerID = OwnerID;
+            if(OwnerID != GroupID)
+                dupe.LastOwnerID = OwnerID;
+            else
+                dupe.LastOwnerID = LastOwnerID; // redundant ?
+
             dupe.RezzerID = RezzerID;
 
             byte[] extraP = new byte[Shape.ExtraParams.Length];
@@ -5246,7 +5250,8 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
                 //LogPermissions("After ApplyNextOwnerPermissions");
 
-                LastOwnerID = OwnerID;
+                if(OwnerID != GroupID)
+                    LastOwnerID = OwnerID;
                 OwnerID = item.Owner;
                 Inventory.ChangeInventoryOwner(item.Owner);
             }
