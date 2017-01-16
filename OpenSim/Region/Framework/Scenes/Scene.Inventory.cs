@@ -1258,6 +1258,10 @@ namespace OpenSim.Region.Framework.Scenes
             agentItem.InvType = taskItem.InvType;
             agentItem.Flags = taskItem.Flags;
 
+            // The code below isn't OK. It doesn't account for flags being changed
+            // in the object inventory, so it will break when you do it. That
+            // is the previous behaviour, so no matter at this moment. However, there is a lot
+            // TODO: Fix this after the inventory fixer exists and has beenr run
             if ((part.OwnerID != destAgent) && Permissions.PropagatePermissions())
             {
                 agentItem.BasePermissions = taskItem.BasePermissions & (taskItem.NextPermissions | (uint)PermissionMask.Move);
@@ -1266,7 +1270,7 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                     agentItem.CurrentPermissions = agentItem.BasePermissions & taskItem.CurrentPermissions;
 
-                agentItem.CurrentPermissions = agentItem.BasePermissions;
+                agentItem.BasePermissions = agentItem.CurrentPermissions;
 
                 agentItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
                 agentItem.Flags &= ~(uint)(InventoryItemFlags.ObjectOverwriteBase | InventoryItemFlags.ObjectOverwriteOwner | InventoryItemFlags.ObjectOverwriteGroup | InventoryItemFlags.ObjectOverwriteEveryone | InventoryItemFlags.ObjectOverwriteNextOwner);

@@ -67,6 +67,14 @@ namespace OpenSim.Framework
         FoldedModify = 1 << 1,
         FoldedCopy = 1 << 2,
         FoldedExport = 1 << 3,
+
+        // DO NOT USE THIS FOR NEW WORK. IT IS DEPRECATED AND
+        // EXISTS ONLY TO REACT TO EXISTING OBJECTS HAVING IT.
+        // NEW CODE SHOULD NEVER SET THIS BIT!
+        // Use InventoryItemFlags.ObjectSlamPerm in the Flags field of
+        // this legacy slam bit. It comes from prior incomplete
+        // understanding of the code and the prohibition on
+        // reading viewer code that used to be in place.
         Slam = (1 << 4),
 
         FoldedMask = 0x0f,
