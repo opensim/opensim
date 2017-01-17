@@ -693,17 +693,11 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             PrimFlags.ObjectOwnerModify // Tells client that you're the owner of the object
             );
 
-        public uint GenerateClientFlags(ScenePresence sp, uint curEffectivePerms, UUID objID)
+        public uint GenerateClientFlags(SceneObjectPart task, ScenePresence sp, uint curEffectivePerms)
         {
-            if(sp == null || curEffectivePerms == 0)
-                return (uint)0;
+            if(sp == null  || task == null || curEffectivePerms == 0)
+                return 0;
 
-            SceneObjectPart task = m_scene.GetSceneObjectPart(objID);
-
-            // this shouldn't ever happen..     return no permissions/objectflags.
-            if (task == null)
-                return (uint)0;
- 
             // Remove any of the objectFlags that are temporary.  These will get added back if appropriate
             uint objflags = curEffectivePerms & NOT_DEFAULT_FLAGS ;
 
@@ -719,6 +713,9 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             }
 
             SceneObjectGroup grp = task.ParentGroup;
+            if(grp == null)
+                return 0;
+
             bool unlocked = (grp.RootPart.OwnerMask & (uint)PermissionMask.Move) != 0;
 
             //bypass option == owner rights
@@ -887,7 +884,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (part == null)
                 return 0;
 
-            // Admin should be able to edit anything in the sim (including admin objects)
             if (IsAdministrator(currentUser))
                 return (uint)PermissionMask.AllEffective;
 
@@ -901,15 +897,14 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             uint lockmask = (uint)PermissionMask.AllEffective;
             if(locked)
-                lockmask = (uint)PermissionMask.Move;
+                lockmask &= ~(uint)PermissionMask.Modify;
            
             if (currentUser == objectOwner)
                 return group.EffectiveOwnerPerms & lockmask;
             
             if (group.IsAttachment)
                 return 0;
-
-            // Friends with benefits should be able to edit the objects too
+          
             if (IsFriendWithPerms(currentUser, objectOwner))
                 return group.EffectiveOwnerPerms  & lockmask;
 

@@ -37,7 +37,7 @@ using OpenSim.Region.Framework.Interfaces;
 namespace OpenSim.Region.Framework.Scenes
 {
     #region Delegates
-    public delegate uint GenerateClientFlagsHandler(ScenePresence sp, uint curEffectivePerms, UUID objectID);
+    public delegate uint GenerateClientFlagsHandler(SceneObjectPart part, ScenePresence sp, uint curEffectivePerms);
     public delegate void SetBypassPermissionsHandler(bool value);
     public delegate bool BypassPermissionsHandler();
     public delegate bool PropagatePermissionsHandler();
@@ -167,7 +167,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Object Permission Checks
 
-        public uint GenerateClientFlags(ScenePresence sp, UUID objectID)
+        public uint GenerateClientFlags( SceneObjectPart part, ScenePresence sp)
         {
             // libomv will moan about PrimFlags.ObjectYouOfficer being
             // obsolete...
@@ -182,8 +182,6 @@ namespace OpenSim.Region.Framework.Scenes
                 PrimFlags.ObjectOwnerModify;
 #pragma warning restore 0612
 
-            SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
-
             if (part == null)
                 return 0;
 
@@ -195,7 +193,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handlerGenerateClientFlags.GetInvocationList();
                 foreach (GenerateClientFlagsHandler check in list)
                 {
-                    perms &= check(sp, perms, objectID);
+                    perms &= check(part, sp, perms);
                 }
             }
             return perms;
@@ -411,9 +409,9 @@ namespace OpenSim.Region.Framework.Scenes
             PrimFlags.ObjectOwnerModify
             );
 
-        public bool CanChangeSelectedState(UUID objectID, ScenePresence sp)
+        public bool CanChangeSelectedState(SceneObjectPart part, ScenePresence sp)
         {
-            uint perms = GenerateClientFlags(sp , objectID);
+            uint perms = GenerateClientFlags(part, sp);
             return (perms & CANSELECTMASK) != 0;
         }
 

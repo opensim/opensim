@@ -5731,28 +5731,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
 //        protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(SceneObjectPart data, UUID recipientID)
-        protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(SceneObjectPart data, ScenePresence sp)
+        protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(SceneObjectPart part, ScenePresence sp)
         {
             byte[] objectData = new byte[60];
-            data.RelativePosition.ToBytes(objectData, 0);
-            data.Velocity.ToBytes(objectData, 12);
-            data.Acceleration.ToBytes(objectData, 24);
+            part.RelativePosition.ToBytes(objectData, 0);
+            part.Velocity.ToBytes(objectData, 12);
+            part.Acceleration.ToBytes(objectData, 24);
 
-            Quaternion rotation = data.RotationOffset;
+            Quaternion rotation = part.RotationOffset;
             rotation.Normalize();
             rotation.ToBytes(objectData, 36);
-            data.AngularVelocity.ToBytes(objectData, 48);
+            part.AngularVelocity.ToBytes(objectData, 48);
 
             ObjectUpdatePacket.ObjectDataBlock update = new ObjectUpdatePacket.ObjectDataBlock();
-            update.ClickAction = (byte)data.ClickAction;
+            update.ClickAction = (byte)part.ClickAction;
             update.CRC = 0;
-            update.ExtraParams = data.Shape.ExtraParams ?? Utils.EmptyBytes;
-            update.FullID = data.UUID;
-            update.ID = data.LocalId;
+            update.ExtraParams = part.Shape.ExtraParams ?? Utils.EmptyBytes;
+            update.FullID = part.UUID;
+            update.ID = part.LocalId;
             //update.JointAxisOrAnchor = Vector3.Zero; // These are deprecated
             //update.JointPivot = Vector3.Zero;
             //update.JointType = 0;
-            update.Material = data.Material;
+            update.Material = part.Material;
             update.MediaURL = Utils.EmptyBytes; // FIXME: Support this in OpenSim
 /*
             if (data.ParentGroup.IsAttachment)
@@ -5781,68 +5781,68 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 */
 
-            if (data.ParentGroup.IsAttachment)
+            if (part.ParentGroup.IsAttachment)
             {
-                if (data.IsRoot)
+                if (part.IsRoot)
                 {
-                    update.NameValue = Util.StringToBytes256("AttachItemID STRING RW SV " + data.ParentGroup.FromItemID);
+                    update.NameValue = Util.StringToBytes256("AttachItemID STRING RW SV " + part.ParentGroup.FromItemID);
                 }
                 else
                     update.NameValue = Utils.EmptyBytes;
 
-                int st = (int)data.ParentGroup.AttachmentPoint;
+                int st = (int)part.ParentGroup.AttachmentPoint;
                 update.State = (byte)(((st & 0xf0) >> 4) + ((st & 0x0f) << 4)); ;
             }
             else
             {
                 update.NameValue = Utils.EmptyBytes;
-                update.State = data.Shape.State; // not sure about this
+                update.State = part.Shape.State; // not sure about this
             }
 
 
             update.ObjectData = objectData;
-            update.ParentID = data.ParentID;
-            update.PathBegin = data.Shape.PathBegin;
-            update.PathCurve = data.Shape.PathCurve;
-            update.PathEnd = data.Shape.PathEnd;
-            update.PathRadiusOffset = data.Shape.PathRadiusOffset;
-            update.PathRevolutions = data.Shape.PathRevolutions;
-            update.PathScaleX = data.Shape.PathScaleX;
-            update.PathScaleY = data.Shape.PathScaleY;
-            update.PathShearX = data.Shape.PathShearX;
-            update.PathShearY = data.Shape.PathShearY;
-            update.PathSkew = data.Shape.PathSkew;
-            update.PathTaperX = data.Shape.PathTaperX;
-            update.PathTaperY = data.Shape.PathTaperY;
-            update.PathTwist = data.Shape.PathTwist;
-            update.PathTwistBegin = data.Shape.PathTwistBegin;
-            update.PCode = data.Shape.PCode;
-            update.ProfileBegin = data.Shape.ProfileBegin;
-            update.ProfileCurve = data.Shape.ProfileCurve;
-            update.ProfileEnd = data.Shape.ProfileEnd;
-            update.ProfileHollow = data.Shape.ProfileHollow;
-            update.PSBlock = data.ParticleSystem ?? Utils.EmptyBytes;
-            update.TextColor = data.GetTextColor().GetBytes(false);
-            update.TextureAnim = data.TextureAnimation ?? Utils.EmptyBytes;
-            update.TextureEntry = data.Shape.TextureEntry ?? Utils.EmptyBytes;
-            update.Scale = data.Shape.Scale;
-            update.Text = Util.StringToBytes256(data.Text);
-            update.MediaURL = Util.StringToBytes256(data.MediaUrl);
+            update.ParentID = part.ParentID;
+            update.PathBegin = part.Shape.PathBegin;
+            update.PathCurve = part.Shape.PathCurve;
+            update.PathEnd = part.Shape.PathEnd;
+            update.PathRadiusOffset = part.Shape.PathRadiusOffset;
+            update.PathRevolutions = part.Shape.PathRevolutions;
+            update.PathScaleX = part.Shape.PathScaleX;
+            update.PathScaleY = part.Shape.PathScaleY;
+            update.PathShearX = part.Shape.PathShearX;
+            update.PathShearY = part.Shape.PathShearY;
+            update.PathSkew = part.Shape.PathSkew;
+            update.PathTaperX = part.Shape.PathTaperX;
+            update.PathTaperY = part.Shape.PathTaperY;
+            update.PathTwist = part.Shape.PathTwist;
+            update.PathTwistBegin = part.Shape.PathTwistBegin;
+            update.PCode = part.Shape.PCode;
+            update.ProfileBegin = part.Shape.ProfileBegin;
+            update.ProfileCurve = part.Shape.ProfileCurve;
+            update.ProfileEnd = part.Shape.ProfileEnd;
+            update.ProfileHollow = part.Shape.ProfileHollow;
+            update.PSBlock = part.ParticleSystem ?? Utils.EmptyBytes;
+            update.TextColor = part.GetTextColor().GetBytes(false);
+            update.TextureAnim = part.TextureAnimation ?? Utils.EmptyBytes;
+            update.TextureEntry = part.Shape.TextureEntry ?? Utils.EmptyBytes;
+            update.Scale = part.Shape.Scale;
+            update.Text = Util.StringToBytes256(part.Text);
+            update.MediaURL = Util.StringToBytes256(part.MediaUrl);
 
             #region PrimFlags
 
-            PrimFlags flags = (PrimFlags)m_scene.Permissions.GenerateClientFlags(sp, data.UUID);
+            PrimFlags flags = (PrimFlags)m_scene.Permissions.GenerateClientFlags(part, sp);
 
             // Don't send the CreateSelected flag to everyone
             flags &= ~PrimFlags.CreateSelected;
 
-            if (sp.UUID == data.OwnerID)
+            if (sp.UUID == part.OwnerID)
             {
-                if (data.CreateSelected)
+                if (part.CreateSelected)
                 {
                     // Only send this flag once, then unset it
                     flags |= PrimFlags.CreateSelected;
-                    data.CreateSelected = false;
+                    part.CreateSelected = false;
                 }
             }
 
@@ -5854,21 +5854,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #endregion PrimFlags
 
-            if (data.Sound != UUID.Zero)
+            if (part.Sound != UUID.Zero)
             {
-                update.Sound = data.Sound;
-                update.OwnerID = data.OwnerID;
-                update.Gain = (float)data.SoundGain;
-                update.Radius = (float)data.SoundRadius;
-                update.Flags = data.SoundFlags;
+                update.Sound = part.Sound;
+                update.OwnerID = part.OwnerID;
+                update.Gain = (float)part.SoundGain;
+                update.Radius = (float)part.SoundRadius;
+                update.Flags = part.SoundFlags;
             }
 
-            switch ((PCode)data.Shape.PCode)
+            switch ((PCode)part.Shape.PCode)
             {
                 case PCode.Grass:
                 case PCode.Tree:
                 case PCode.NewTree:
-                    update.Data = new byte[] { data.Shape.State };
+                    update.Data = new byte[] { part.Shape.State };
                     break;
                 default:
                     update.Data = Utils.EmptyBytes;
