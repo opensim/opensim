@@ -476,8 +476,8 @@ namespace OpenSim.Region.Framework.Scenes
             APIDActive = false;
             Flags = 0;
             CreateSelected = true;
-
             TrimPermissions();
+            AggregateInnerPerms();
         }
 
         #endregion Constructors
@@ -4495,7 +4495,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
                         break;
                 }
-
+                AggregateInnerPerms();
                 SendFullUpdateToAllClients();
             }
         }
@@ -4511,6 +4511,8 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             GroupMask = source.GroupMask & BaseMask;
             EveryoneMask = source.EveryoneMask & BaseMask;
             NextOwnerMask = source.NextOwnerMask & BaseMask;
+
+            AggregateInnerPerms();
 
             if (OwnerMask != prevOwnerMask ||
                 GroupMask != prevGroupMask ||
@@ -5335,6 +5337,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                 item.OwnerChanged = false;
                 Inventory.UpdateInventoryItem(item, false, false);
             }
+            AggregateInnerPerms();
         }
 
         /// <summary>

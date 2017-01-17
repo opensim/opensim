@@ -171,7 +171,7 @@ namespace OpenSim.Region.Framework.Scenes
                 bool addFromAllowedDrop = agentID != part.OwnerID;
 
                 part.Inventory.AddInventoryItem(taskItem, addFromAllowedDrop);
-
+                part.ParentGroup.AggregatePerms();
                 return true;
             }
             else
@@ -259,7 +259,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // this can't be done here but on every place where a change may happen (rez, (de)link, contents , perms,  etc)
                 // bc this is on heavy duty code paths
                 // but for now we need to test the concept
-                AggregateDeepPerms();
+//                AggregateDeepPerms();
                 return m_EffectiveEveryOnePerms;
             }
         }
@@ -272,7 +272,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // this can't be done here but on every place where a change may happen (rez, (de)link, contents , perms,  etc)
                 // bc this is on heavy duty code paths
                 // but for now we need to test the concept
-                AggregateDeepPerms();
+//                AggregateDeepPerms();
                 return m_EffectiveGroupPerms;
             }
         }
@@ -285,7 +285,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // this can't be done here but on every place where a change may happen (rez, (de)link, contents , perms,  etc)
                 // bc this is on heavy duty code paths
                 // but for now we need to test the concept
-                AggregateDeepPerms();
+//                AggregateDeepPerms();
                 return m_EffectiveGroupOrEveryOnePerms;
             }
         }
@@ -298,7 +298,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // this can't be done here but on every place where a change may happen (rez, (de)link, contents , perms,  etc)
                 // bc this is on heavy duty code paths
                 // but for now we need to test the concept
-                AggregateDeepPerms();
+ //               AggregateDeepPerms();
                 return m_EffectiveOwnerPerms;
             }
         }

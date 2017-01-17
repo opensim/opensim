@@ -338,6 +338,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Update item with new asset
             item.AssetID = asset.FullID;
             group.UpdateInventoryItem(item);
+            group.AggregatePerms();
 
             part.SendPropertiesToClient(remoteClient);
 
@@ -1214,6 +1215,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     group.RemoveInventoryItem(localID, itemID);
+                    group.AggregatePerms();
                 }
 
                 part.SendPropertiesToClient(remoteClient);
@@ -1530,9 +1532,10 @@ namespace OpenSim.Region.Framework.Scenes
             destTaskItem.Type = srcTaskItem.Type;
 
             destPart.Inventory.AddInventoryItem(destTaskItem, part.OwnerID != destPart.OwnerID);
-
             if ((srcTaskItem.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
+            {
                 part.Inventory.RemoveInventoryItem(itemId);
+            }
 
             ScenePresence avatar;
 
@@ -1977,6 +1980,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             part.Inventory.AddInventoryItem(taskItem, false);
             part.Inventory.CreateScriptInstance(taskItem, 0, false, DefaultScriptEngine, 0);
+
+            part.ParentGroup.AggregatePerms();
 
             // tell anyone managing scripts that a new script exists
             EventManager.TriggerNewScript(agentID, part, taskItem.ItemID);
@@ -2658,6 +2663,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // We can only call this after adding the scene object, since the scene object references the scene
                 // to find out if scripts should be activated at all.
+                group.AggregatePerms();
                 group.CreateScriptInstances(param, true, DefaultScriptEngine, 3);
 
                 group.ScheduleGroupForFullUpdate();

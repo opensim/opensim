@@ -2441,17 +2441,16 @@ namespace OpenSim.Region.Framework.Scenes
             dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);
             dupe.m_rootPart.LinkNum = m_rootPart.LinkNum;
 
-
             if (userExposed)
                 dupe.m_rootPart.TrimPermissions();
 
             List<SceneObjectPart> partList = new List<SceneObjectPart>(m_parts.GetArray());
 
             partList.Sort(delegate(SceneObjectPart p1, SceneObjectPart p2)
-            {
-                return p1.LinkNum.CompareTo(p2.LinkNum);
-            }
-            );
+                    {
+                        return p1.LinkNum.CompareTo(p2.LinkNum);
+                    }
+                );
 
             foreach (SceneObjectPart part in partList)
             {
@@ -2503,10 +2502,12 @@ namespace OpenSim.Region.Framework.Scenes
                 if (dupe.m_rootPart.PhysActor != null)
                     dupe.m_rootPart.PhysActor.Building = false; // tell physics to finish building
 
+                dupe.AggregateDeepPerms();
+
                 dupe.HasGroupChanged = true;
                 dupe.AttachToBackup();
 
-                ScheduleGroupForFullUpdate();
+                dupe.ScheduleGroupForFullUpdate();
             }
 
             m_dupeInProgress = false;
@@ -3426,6 +3427,7 @@ namespace OpenSim.Region.Framework.Scenes
             objectGroup.HasGroupChangedDueToDelink = true;
 
             InvalidBoundsRadius();
+            objectGroup.AggregatePerms();
 
             if (sendEvents)
                 linkPart.TriggerScriptChangedEvent(Changed.LINK);
@@ -3964,8 +3966,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void AdjustChildPrimPermissions(bool forceTaskInventoryPermissive)
         {
-            uint newOwnerMask = (uint)(PermissionMask.All | PermissionMask.Export) & 0xfffffff8; // Mask folded bits
-            uint foldedPerms = RootPart.OwnerMask & 3;
+            uint newOwnerMask = (uint)(PermissionMask.All | PermissionMask.Export) & 0xfffffff0; // Mask folded bits
+            uint foldedPerms = RootPart.OwnerMask & (uint)PermissionMask.FoldedMask;
 
             ForEachPart(part =>
             {
@@ -3976,14 +3978,14 @@ namespace OpenSim.Region.Framework.Scenes
                     part.Inventory.ApplyGodPermissions(part.BaseMask);
             });
 
-            uint lockMask = ~(uint)(PermissionMask.Move | PermissionMask.Modify);
-            uint lockBit = RootPart.OwnerMask & (uint)(PermissionMask.Move | PermissionMask.Modify);
+            uint lockMask = ~(uint)(PermissionMask.Move);
+            uint lockBit = RootPart.OwnerMask & (uint)(PermissionMask.Move);
             RootPart.OwnerMask = (RootPart.OwnerMask & lockBit) | ((newOwnerMask | foldedPerms) & lockMask);
 
 //            m_log.DebugFormat(
 //                "[SCENE OBJECT GROUP]: RootPart.OwnerMask now {0} for {1} in {2}",
 //                (OpenMetaverse.PermissionMask)RootPart.OwnerMask, Name, Scene.Name);
-
+            AggregatePerms();
             RootPart.ScheduleFullUpdate();
         }
 
@@ -4008,6 +4010,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (SceneObjectPart part in Parts)
                     part.Inventory.ApplyGodPermissions(RootPart.BaseMask);
+                AggregatePerms();
             }
 
             HasGroupChanged = true;
@@ -5223,6 +5226,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 part.ResetOwnerChangeFlag();
             });
+            AggregatePerms();
         }
 
         // clear some references to easy cg

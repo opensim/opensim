@@ -114,7 +114,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             // Script state may, or may not, exist. Not having any, is NOT
             // ever a problem.
             sceneObject.LoadScriptState(reader);
-
+            sceneObject.AggregateDeepPerms();
             return sceneObject;
         }
 
@@ -278,7 +278,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 // Script state may, or may not, exist. Not having any, is NOT
                 // ever a problem.
                 sceneObject.LoadScriptState(doc);
-
+                sceneObject.AggregatePerms();
                 return sceneObject;
             }
             catch (Exception e)
@@ -1739,6 +1739,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             reader.ReadEndElement(); // SceneObjectPart
 
+            obj.AggregateInnerPerms();
             // m_log.DebugFormat("[SceneObjectSerializer]: parsed SOP {0} {1}", obj.Name, obj.UUID);
             return obj;
         }
