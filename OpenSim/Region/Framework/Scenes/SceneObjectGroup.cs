@@ -2764,7 +2764,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // Apply Next Owner Permissions if we're not bypassing permissions
                 if (!m_scene.Permissions.BypassPermissions())
+                {
                     ApplyNextOwnerPermissions();
+                    AggregatePerms();
+                }
             }
 
             rpart.ScheduleFullUpdate();

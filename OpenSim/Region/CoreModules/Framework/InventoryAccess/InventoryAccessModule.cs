@@ -1180,6 +1180,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                                 part.NextOwnerMask = item.NextPermissions & part.BaseMask;
                             }
                         }
+
                     }
                 }
                 else
@@ -1198,6 +1199,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
 
                 rootPart.TrimPermissions();
+                so.AggregateDeepPerms();
 
                 if (isAttachment)
                     so.FromItemID = item.ID;

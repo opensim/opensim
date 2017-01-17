@@ -2754,9 +2754,16 @@ namespace OpenSim.Region.Framework.Scenes
                         continue;
 
                     sog.SetOwnerId(groupID);
-                    // Make the group mask be the previous owner mask
-                    sog.RootPart.GroupMask = sog.RootPart.OwnerMask;
+
+                    // this is wrong, GroupMask is used for group sharing, still possible to set
+                    // this whould give owner rights to users that are member of group but don't have role powers to edit
+//                    sog.RootPart.GroupMask = sog.RootPart.OwnerMask;
+
+                    // we should keep all permissions on deed to group
+                    // and with this comented code, if user does not set next permissions on the object
+                    // and on ALL contents of ALL prims, he may loose rights, making the object useless
                     sog.ApplyNextOwnerPermissions();
+                    sog.AggregatePerms();
 
                     sog.ScheduleGroupForFullUpdate();
 
