@@ -134,11 +134,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
         private int llAttachToAvatarTemp(UUID host, UUID script, int attachmentPoint)
         {
             SceneObjectPart hostPart = m_scene.GetSceneObjectPart(host);
-
             if (hostPart == null)
                 return 0;
 
-            if (hostPart.ParentGroup.IsAttachment)
+            SceneObjectGroup hostgroup = hostPart.ParentGroup;
+
+            if (hostgroup== null || hostgroup.IsAttachment)
                 return 0;
 
             IAttachmentsModule attachmentsModule = m_scene.RequestModuleInterface<IAttachmentsModule>();
@@ -156,31 +157,32 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
             if (!m_scene.TryGetScenePresence(item.PermsGranter, out target))
                 return 0;
 
-            if (target.UUID != hostPart.ParentGroup.OwnerID)
+            if (target.UUID != hostgroup.OwnerID)
             {
-                uint effectivePerms = hostPart.ParentGroup.GetEffectivePermissions();
+                uint effectivePerms = hostgroup.GetEffectivePermissions();
 
                 if ((effectivePerms & (uint)PermissionMask.Transfer) == 0)
                     return 0;
 
-                hostPart.ParentGroup.SetOwner(target.UUID, target.ControllingClient.ActiveGroupId);
+                hostgroup.SetOwner(target.UUID, target.ControllingClient.ActiveGroupId);
 
                 if (m_scene.Permissions.PropagatePermissions())
                 {
-                    foreach (SceneObjectPart child in hostPart.ParentGroup.Parts)
+                    foreach (SceneObjectPart child in hostgroup.Parts)
                     {
                         child.Inventory.ChangeInventoryOwner(target.UUID);
                         child.TriggerScriptChangedEvent(Changed.OWNER);
                         child.ApplyNextOwnerPermissions();
                     }
+                    hostgroup.AggregatePerms();
                 }
 
-                hostPart.ParentGroup.RootPart.ObjectSaleType = 0;
-                hostPart.ParentGroup.RootPart.SalePrice = 10;
+                hostgroup.RootPart.ObjectSaleType = 0;
+                hostgroup.RootPart.SalePrice = 10;
 
-                hostPart.ParentGroup.HasGroupChanged = true;
-                hostPart.ParentGroup.RootPart.SendPropertiesToClient(target.ControllingClient);
-                hostPart.ParentGroup.RootPart.ScheduleFullUpdate();
+                hostgroup.HasGroupChanged = true;
+                hostgroup.RootPart.SendPropertiesToClient(target.ControllingClient);
+                hostgroup.RootPart.ScheduleFullUpdate();
             }
 
             return attachmentsModule.AttachObject(target, hostPart.ParentGroup, (uint)attachmentPoint, false, false, true) ? 1 : 0;

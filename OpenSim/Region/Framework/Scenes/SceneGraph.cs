@@ -2101,20 +2101,23 @@ namespace OpenSim.Region.Framework.Scenes
                     SceneObjectGroup copy = original.Copy(true);
                     copy.AbsolutePosition = copy.AbsolutePosition + offset;
 
+                    SceneObjectPart[] parts = copy.Parts;
+
+                    m_numTotalPrim += parts.Length;
+
                     if (original.OwnerID != AgentID)
                     {
                         copy.SetOwner(AgentID, GroupID);
 
-                        SceneObjectPart[] partList = copy.Parts;
-
                         if (m_parentScene.Permissions.PropagatePermissions())
                         {
-                            foreach (SceneObjectPart child in partList)
+                            foreach (SceneObjectPart child in parts)
                             {
                                 child.Inventory.ChangeInventoryOwner(AgentID);
                                 child.TriggerScriptChangedEvent(Changed.OWNER);
                                 child.ApplyNextOwnerPermissions();
                             }
+                            copy.AggregatePerms();
                         }
                     }
 
@@ -2123,10 +2126,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                     lock (SceneObjectGroupsByFullID)
                         SceneObjectGroupsByFullID[copy.UUID] = copy;
-
-                    SceneObjectPart[] parts = copy.Parts;
-
-                    m_numTotalPrim += parts.Length;
 
                     foreach (SceneObjectPart part in parts)
                     {
@@ -2150,21 +2149,17 @@ namespace OpenSim.Region.Framework.Scenes
                     // think it's selected, so it will never send a deselect...
                     copy.IsSelected = false;
 
-                    m_numPrim += copy.Parts.Length;
-
                     if (rot != Quaternion.Identity)
-                    {
                         copy.UpdateGroupRotationR(rot);
-                    }
-
-                    copy.CreateScriptInstances(0, false, m_parentScene.DefaultScriptEngine, 1);
-                    copy.HasGroupChanged = true;
-                    copy.ScheduleGroupForFullUpdate();
-                    copy.ResumeScripts();
 
                     // required for physics to update it's position
-                    copy.AbsolutePosition = copy.AbsolutePosition;
+                    copy.ResetChildPrimPhysicsPositions();
 
+                    copy.CreateScriptInstances(0, false, m_parentScene.DefaultScriptEngine, 1);
+                    copy.ResumeScripts();
+
+                    copy.HasGroupChanged = true;
+                    copy.ScheduleGroupForFullUpdate();
                     return copy;
                 }
             }

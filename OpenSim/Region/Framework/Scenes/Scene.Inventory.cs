@@ -2766,8 +2766,6 @@ namespace OpenSim.Region.Framework.Scenes
                         child.Inventory.ChangeInventoryOwner(groupID);
                         child.TriggerScriptChangedEvent(Changed.OWNER);
                     }
-
-
                 }
             }
 

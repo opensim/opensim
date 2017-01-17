@@ -5243,17 +5243,13 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
             if (OwnerID != item.Owner)
             {
-                //LogPermissions("Before ApplyNextOwnerPermissions");
-
-                if (scene.Permissions.PropagatePermissions())
-                    ApplyNextOwnerPermissions();
-
-                //LogPermissions("After ApplyNextOwnerPermissions");
-
                 if(OwnerID != GroupID)
                     LastOwnerID = OwnerID;
                 OwnerID = item.Owner;
                 Inventory.ChangeInventoryOwner(item.Owner);
+
+                if (scene.Permissions.PropagatePermissions())
+                    ApplyNextOwnerPermissions();
             }
         }
 
@@ -5277,6 +5273,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             GroupMask = 0; // Giving an object zaps group permissions
 
             Inventory.ApplyNextOwnerPermissions();
+            AggregateInnerPerms();
         }
 
         public void UpdateLookAt()
