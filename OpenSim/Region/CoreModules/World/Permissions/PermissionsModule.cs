@@ -76,7 +76,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         //private uint PERM_MODIFY = (uint)16384;
         private uint PERM_MOVE = (uint)524288;
         private uint PERM_TRANS = (uint)8192;
-        private uint PERM_LOCKED = (uint)540672;
+//        private uint PERM_LOCKED = (uint)540672;
+        private uint PERM_LOCKED = (uint)524288; // same as move
 
         /// <value>
         /// Different user set names that come in from the configuration file.
@@ -479,6 +480,23 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             return false;
         }
+
+        protected bool GroupMemberPowers(UUID groupID, UUID userID, ref ulong powers)
+        {
+            powers = 0;
+            if (null == GroupsModule)
+                return false;
+
+            GroupMembershipData gmd = GroupsModule.GetMembershipData(groupID, userID);
+            
+            if (gmd != null)
+            {
+                powers = gmd.GroupPowers;
+                return true;
+            }
+            return false;
+        }
+
 /*
         private bool CheckGroupPowers(ScenePresence sp, UUID groupID, ulong powersMask)
         {
@@ -853,6 +871,64 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             }
 
             return PermissionClass.Everyone;
+        }
+
+        /// <summary>
+        /// General permissions checks for any operation involving an object.  These supplement more specific checks
+        /// implemented by callers.
+        /// </summary>
+        /// <param name="currentUser"></param>
+        /// <param name="objId">This is a scene object group UUID</param>
+        /// <param name="denyOnLocked"></param>
+        /// <returns></returns>
+        protected uint GetObjectPermissions(UUID currentUser, UUID objId, bool denyOnLocked)
+        {
+            SceneObjectPart part = m_scene.GetSceneObjectPart(objId);
+            if (part == null)
+                return 0;
+
+            // Admin should be able to edit anything in the sim (including admin objects)
+            if (IsAdministrator(currentUser))
+                return (uint)PermissionMask.AllEffective;
+
+            SceneObjectGroup group = part.ParentGroup;
+            SceneObjectPart root = group.RootPart;
+            if (root == null)
+                return 0;
+
+            UUID objectOwner = group.OwnerID;
+            bool locked = denyOnLocked && ((root.OwnerMask & PERM_LOCKED) == 0);
+
+            uint lockmask = (uint)PermissionMask.AllEffective;
+            if(locked)
+                lockmask = (uint)PermissionMask.Move;
+           
+            if (currentUser == objectOwner)
+                return group.EffectiveOwnerPerms & lockmask;
+            
+            if (group.IsAttachment)
+                return 0;
+
+            // Friends with benefits should be able to edit the objects too
+            if (IsFriendWithPerms(currentUser, objectOwner))
+                return group.EffectiveOwnerPerms  & lockmask;
+
+            UUID sogGroupID = group.GroupID;
+            if (sogGroupID != UUID.Zero)
+            {
+                ulong powers = 0;
+                if(GroupMemberPowers(sogGroupID, currentUser, ref powers))
+                {
+                    if(sogGroupID == objectOwner)
+                    {
+                        if((powers & (ulong)GroupPowers.ObjectManipulate) != 0)
+                            return group.EffectiveOwnerPerms & lockmask;
+                    }
+                    return  group.EffectiveGroupOrEveryOnePerms & lockmask;
+                } 
+            }
+
+            return group.EffectiveEveryOnePerms & lockmask;
         }
 
         /// <summary>
