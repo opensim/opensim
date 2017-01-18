@@ -2029,11 +2029,6 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.DebugFormat("[CompleteMovement]: Missing COF for {0} is {1}", client.AgentId, COF);
                 }
 
-                // Tell the client that we're totally ready
-                ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
-
-                m_log.DebugFormat("[CompleteMovement] MoveAgentIntoRegion: {0}ms", Util.EnvironmentTickCountSubtract(ts));
-
                 if (!string.IsNullOrEmpty(m_callbackURI))
                 {
                     // We cannot sleep here since this would hold up the inbound packet processing thread, as
@@ -2054,6 +2049,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     Scene.SimulationService.ReleaseAgent(originID, UUID, m_callbackURI);
                     m_callbackURI = null;
+                    m_log.DebugFormat("[CompleteMovement] ReleaseAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
                 }
 //            else
 //            {
@@ -2062,19 +2058,48 @@ namespace OpenSim.Region.Framework.Scenes
 //                    client.Name, client.AgentId, m_scene.RegionInfo.RegionName);
 //            }
 
-                m_log.DebugFormat("[CompleteMovement] ReleaseAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+
+                // Tell the client that we're totally ready
+                ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
+                m_log.DebugFormat("[CompleteMovement] MoveAgentIntoRegion: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+
+                bool isHGTP = (m_teleportFlags & TeleportFlags.ViaHGLogin) != 0;
+
+                int delayctnr = Util.EnvironmentTickCount();
+
+                if (!IsChildAgent)
+                {
+                    // verify baked textures and cache
+                    bool cachedbaked = false;
+
+                    if (IsNPC)
+                        cachedbaked = true;
+                    else
+                    {
+                        if (m_scene.AvatarFactory != null && !isHGTP)
+                            cachedbaked = m_scene.AvatarFactory.ValidateBakedTextureCache(this);
+
+                        // not sure we need this
+                        if (!cachedbaked)
+                        {
+                            if (m_scene.AvatarFactory != null)
+                                m_scene.AvatarFactory.QueueAppearanceSave(UUID);
+                        }
+                    }
+                    m_log.DebugFormat("[CompleteMovement] Baked check: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                }
 
                 if(m_teleportFlags > 0)
                 {
                     gotCrossUpdate = false; // sanity check
-                    Thread.Sleep(500);  // let viewers catch us
+                    if(Util.EnvironmentTickCountSubtract(delayctnr)< 500)
+                        Thread.Sleep(500);  // let viewers catch us
                 }
 
                 if(!gotCrossUpdate)
                     RotateToLookAt(look);
 
                 // HG
-                bool isHGTP = (m_teleportFlags & TeleportFlags.ViaHGLogin) != 0;
                 if(isHGTP)
                 {
 //                    ControllingClient.SendNameReply(m_uuid, Firstname, Lastname);
@@ -2101,24 +2126,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (!IsChildAgent)
                 {
-                    // verify baked textures and cache
-                    bool cachedbaked = false;
-
-                    if (IsNPC)
-                        cachedbaked = true;
-                    else
-                    {
-                        if (m_scene.AvatarFactory != null && !isHGTP)
-                            cachedbaked = m_scene.AvatarFactory.ValidateBakedTextureCache(this);
-
-                        // not sure we need this
-                        if (!cachedbaked)
-                        {
-                            if (m_scene.AvatarFactory != null)
-                                m_scene.AvatarFactory.QueueAppearanceSave(UUID);
-                        }
-                    }
-
                     List<ScenePresence> allpresences = m_scene.GetScenePresences();
 
                     // send avatar object to all presences including us, so they cross it into region
