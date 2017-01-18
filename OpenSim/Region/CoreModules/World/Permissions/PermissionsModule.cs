@@ -1320,6 +1320,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 if (sog == null)
                     return false;
 
+                // check object mod right
                 uint perms = GetObjectPermissions(user, sog, true);
                 if((perms & (uint)PermissionMask.Modify) == 0)
                     return false;
@@ -1331,14 +1332,27 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 TaskInventoryItem ti = part.Inventory.GetInventoryItem(notecard);
                 if (ti == null)
                     return false;
-
+               
                 if (ti.OwnerID != user)
                 {
-                    if (ti.GroupID == UUID.Zero)
+                    UUID tiGroupID = ti.GroupID;
+                    if (tiGroupID == UUID.Zero)
                         return false;
 
-                    if (!IsGroupMember(ti.GroupID, user, 0))
+                    ulong powers = 0;
+                    if(!GroupMemberPowers(tiGroupID, user, ref powers))
                         return false;
+
+                    if(tiGroupID == ti.OwnerID && (powers & (ulong)GroupPowers.ObjectManipulate) != 0)
+                    {
+                        if ((ti.CurrentPermissions & ((uint)PermissionMask.Modify | (uint)PermissionMask.Copy)) ==
+                        ((uint)PermissionMask.Modify | (uint)PermissionMask.Copy))
+                            return true;
+                    }
+                    if ((ti.GroupPermissions & ((uint)PermissionMask.Modify | (uint)PermissionMask.Copy)) ==
+                        ((uint)PermissionMask.Modify | (uint)PermissionMask.Copy))
+                        return true;
+                    return false;
                 }
 
                 // Require full perms
