@@ -728,7 +728,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 return returnMask;
             }
 
-
             UUID taskOwnerID = task.OwnerID;
             UUID spID = sp.UUID;
 
@@ -878,16 +877,14 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         /// <param name="objId">This is a scene object group UUID</param>
         /// <param name="denyOnLocked"></param>
         /// <returns></returns>
-        protected uint GetObjectPermissions(UUID currentUser, UUID objId, bool denyOnLocked)
+        protected uint GetObjectPermissions(UUID currentUser, SceneObjectGroup group, bool denyOnLocked)
         {
-            SceneObjectPart part = m_scene.GetSceneObjectPart(objId);
-            if (part == null)
+            if (group == null)
                 return 0;
 
             if (IsAdministrator(currentUser))
                 return (uint)PermissionMask.AllEffective;
 
-            SceneObjectGroup group = part.ParentGroup;
             SceneObjectPart root = group.RootPart;
             if (root == null)
                 return 0;
@@ -1193,29 +1190,13 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            if (!GenericObjectPermission(owner, objectID, true))
-            {
-                //They can't even edit the object
-                return false;
-            }
-
-            SceneObjectPart part = scene.GetSceneObjectPart(objectID);
-            if (part == null)
+            SceneObjectGroup sog = scene.GetGroupByPrim(objectID);
+            if (sog == null)
                 return false;
 
-            if (part.OwnerID == owner)
-            {
-                if ((part.OwnerMask & PERM_COPY) == 0)
-                    return false;
-            }
-            else if (part.GroupID != UUID.Zero)
-            {
-                if ((part.OwnerID == part.GroupID) && ((owner != part.LastOwnerID) || ((part.GroupMask & PERM_TRANS) == 0)))
-                    return false;
-
-                if ((part.GroupMask & PERM_COPY) == 0)
-                    return false;
-            }
+            uint perms = GetObjectPermissions(owner, sog, false);
+            if((perms & (uint)PermissionMask.Copy) == 0)
+                return false;
 
             //If they can rez, they can duplicate
             return CanRezObject(objectCount, owner, objectPosition, scene);
@@ -1226,7 +1207,14 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            return GenericObjectPermission(deleter, objectID, false);
+            SceneObjectGroup sog = scene.GetGroupByPrim(objectID);
+            if (sog == null)
+                return false;
+
+            uint perms = GetObjectPermissions(deleter, sog, false);
+            if((perms & (uint)PermissionMask.Modify) == 0)
+                return false;
+            return true;
         }
 
         private bool CanEditObject(UUID objectID, UUID editorID, Scene scene)
@@ -1234,7 +1222,14 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            return GenericObjectPermission(editorID, objectID, false);
+            SceneObjectGroup sog = scene.GetGroupByPrim(objectID);
+            if (sog == null)
+                return false;
+
+            uint perms = GetObjectPermissions(editorID, sog, true);
+            if((perms & (uint)PermissionMask.Modify) == 0)
+                return false;
+            return true;
         }
 
         private bool CanEditObjectInventory(UUID objectID, UUID editorID, Scene scene)
@@ -1242,7 +1237,14 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            return GenericObjectPermission(editorID, objectID, false);
+            SceneObjectGroup sog = scene.GetGroupByPrim(objectID);
+            if (sog == null)
+                return false;
+
+            uint perms = GetObjectPermissions(editorID, sog, true);
+            if((perms & (uint)PermissionMask.Modify) == 0)
+                return false;
+            return true;
         }
 
         private bool CanEditParcelProperties(UUID user, ILandObject parcel, GroupPowers p, Scene scene, bool allowManager)
@@ -1314,30 +1316,19 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             }
             else // Prim inventory
             {
-                SceneObjectPart part = scene.GetSceneObjectPart(objectID);
+                SceneObjectGroup sog = scene.GetGroupByPrim(objectID);
+                if (sog == null)
+                    return false;
 
+                uint perms = GetObjectPermissions(user, sog, true);
+                if((perms & (uint)PermissionMask.Modify) == 0)
+                    return false;
+
+                SceneObjectPart part = scene.GetSceneObjectPart(objectID);
                 if (part == null)
                     return false;
 
-                if (part.OwnerID != user)
-                {
-                    if (part.GroupID == UUID.Zero)
-                        return false;
-
-                    if (!IsGroupMember(part.GroupID, user, 0))
-                        return false;
-
-                    if ((part.GroupMask & (uint)PermissionMask.Modify) == 0)
-                        return false;
-                }
-                else
-                {
-                    if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
-                    return false;
-                }
-
                 TaskInventoryItem ti = part.Inventory.GetInventoryItem(notecard);
-
                 if (ti == null)
                     return false;
 
@@ -1351,14 +1342,10 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 }
 
                 // Require full perms
-                if ((ti.CurrentPermissions &
-                        ((uint)PermissionMask.Modify |
-                        (uint)PermissionMask.Copy)) !=
-                        ((uint)PermissionMask.Modify |
-                        (uint)PermissionMask.Copy))
+                if ((ti.CurrentPermissions & ((uint)PermissionMask.Modify | (uint)PermissionMask.Copy)) !=
+                        ((uint)PermissionMask.Modify | (uint)PermissionMask.Copy))
                     return false;
             }
-
             return true;
         }
 
@@ -1407,85 +1394,26 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (m_bypassPermissions)
             {
                 SceneObjectPart part = scene.GetSceneObjectPart(objectID);
+                if(part == null)
+                    return false;
+
                 if (part.OwnerID != moverID)
                 {
-                    if (!part.ParentGroup.IsDeleted)
-                    {
-                        if (part.ParentGroup.IsAttachment)
+                    if (part.ParentGroup.IsDeleted || part.ParentGroup.IsAttachment)
                             return false;
-                    }
                 }
                 return m_bypassPermissionsValue;
             }
 
-            bool permission = GenericObjectPermission(moverID, objectID, true);
-            if (!permission)
-            {
-                if (!m_scene.Entities.ContainsKey(objectID))
-                {
-                    return false;
-                }
+            SceneObjectGroup sog = scene.GetGroupByPrim(objectID);
+            if (sog == null)
+                return false;
 
-                // The client
-                // may request to edit linked parts, and therefore, it needs
-                // to also check for SceneObjectPart
-
-                // If it's not an object, we cant edit it.
-                if ((!(m_scene.Entities[objectID] is SceneObjectGroup)))
-                {
-                    return false;
-                }
-
-
-                SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objectID];
-
-
-                // UUID taskOwner = null;
-                // Added this because at this point in time it wouldn't be wise for
-                // the administrator object permissions to take effect.
-                // UUID objectOwner = task.OwnerID;
-
-                // Anyone can move
-                if ((task.RootPart.EveryoneMask & PERM_MOVE) != 0)
-                    permission = true;
-
-                // Locked
-                if ((task.RootPart.OwnerMask & PERM_LOCKED) == 0)
-                    permission = false;
-            }
-            else
-            {
-                bool locked = false;
-                if (!m_scene.Entities.ContainsKey(objectID))
-                {
-                    return false;
-                }
-
-                // If it's not an object, we cant edit it.
-                if ((!(m_scene.Entities[objectID] is SceneObjectGroup)))
-                {
-                    return false;
-                }
-
-                SceneObjectGroup group = (SceneObjectGroup)m_scene.Entities[objectID];
-
-                UUID objectOwner = group.OwnerID;
-                locked = ((group.RootPart.OwnerMask & PERM_LOCKED) == 0);
-
-                // This is an exception to the generic object permission.
-                // Administrators who lock their objects should not be able to move them,
-                // however generic object permission should return true.
-                // This keeps locked objects from being affected by random click + drag actions by accident
-                // and allows the administrator to grab or delete a locked object.
-
-                // Administrators and estate managers are still able to click+grab locked objects not
-                // owned by them in the scene
-                // This is by design.
-
-                if (locked && (moverID == objectOwner))
-                    return false;
-            }
-            return permission;
+            uint perms = GetObjectPermissions(moverID, sog, true);
+            if((perms & (uint)PermissionMask.Move) == 0)
+                return false;
+            // admins exception ?  if needed then should be done at GetObjectPermissions
+            return true;
         }
 
         private bool CanObjectEntry(UUID objectID, bool enteringRegion, Vector3 newPoint, Scene scene)
