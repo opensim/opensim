@@ -2113,12 +2113,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // PROBABLE END OF FIXME
 
-                    // Since we copy from a source group that is in selected
-                    // state, but the copy is shown deselected in the viewer,
-                    // We need to clear the selection flag here, else that
-                    // prim never gets persisted at all. The client doesn't
-                    // think it's selected, so it will never send a deselect...
-                    copy.IsSelected = false;
+                    copy.IsSelected = createSelected;
 
                     if (rot != Quaternion.Identity)
                         copy.UpdateGroupRotationR(rot);
