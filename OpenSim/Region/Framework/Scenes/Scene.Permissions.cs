@@ -47,7 +47,7 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool TakeObjectHandler(SceneObjectGroup sog, ScenePresence sp);
     public delegate bool SellGroupObjectHandler(UUID userID, UUID groupID, Scene scene);
     public delegate bool TakeCopyObjectHandler(SceneObjectGroup sog, ScenePresence sp);
-    public delegate bool DuplicateObjectHandler(int objectCount, UUID objectID, UUID owner, Scene scene, Vector3 objectPosition);
+    public delegate bool DuplicateObjectHandler(SceneObjectGroup sog, ScenePresence sp, Scene scenen);
     public delegate bool EditObjectByIDsHandler(UUID objectID, UUID editorID, Scene scene);
     public delegate bool EditObjectHandler(SceneObjectGroup sog, ScenePresence sp);
     public delegate bool EditObjectInventoryHandler(UUID objectID, UUID editorID, Scene scene);
@@ -392,15 +392,20 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region DUPLICATE OBJECT
-        public bool CanDuplicateObject(int objectCount, UUID objectID, UUID owner, Vector3 objectPosition)
+        public bool CanDuplicateObject(SceneObjectGroup sog, UUID agentID)
         {
             DuplicateObjectHandler handler = OnDuplicateObject;
             if (handler != null)
             {
+                if(sog == null || sog.IsDeleted)
+                    return false;
+                ScenePresence sp = m_scene.GetScenePresence(agentID);
+                if(sp == null || sp.IsDeleted)
+                    return false;
                 Delegate[] list = handler.GetInvocationList();
                 foreach (DuplicateObjectHandler h in list)
                 {
-                    if (h(objectCount, objectID, owner, m_scene, objectPosition) == false)
+                    if (h(sog, sp, m_scene) == false)
                         return false;
                 }
             }

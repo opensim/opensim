@@ -106,6 +106,7 @@ namespace OpenSim.Region.OptionalModules
 
         private bool CanRezObject(int objectCount, UUID ownerID, Vector3 objectPosition, Scene scene)
         {
+            
             ILandObject lo = scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
 
             string response = DoCommonChecks(objectCount, ownerID, lo, scene);
@@ -119,15 +120,16 @@ namespace OpenSim.Region.OptionalModules
         }
 
         //OnDuplicateObject
-        private bool CanDuplicateObject(int objectCount, UUID objectID, UUID ownerID, Scene scene, Vector3 objectPosition)
+        private bool CanDuplicateObject(SceneObjectGroup sog, ScenePresence sp, Scene scene)
         {
+            Vector3 objectPosition = sog.AbsolutePosition;
             ILandObject lo = scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
 
-            string response = DoCommonChecks(objectCount, ownerID, lo, scene);
+            string response = DoCommonChecks(sog.PrimCount, sp.UUID, lo, scene);
 
             if (response != null)
             {
-                m_dialogModule.SendAlertToUser(ownerID, response);
+                m_dialogModule.SendAlertToUser(sp.UUID, response);
                 return false;
             }
             return true;

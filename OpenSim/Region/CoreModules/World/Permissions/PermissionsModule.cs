@@ -1221,24 +1221,23 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return IsAdministrator(user);
         }
 
-        private bool CanDuplicateObject(int objectCount, UUID objectID, UUID userID, Scene scene, Vector3 objectPosition)
+        private bool CanDuplicateObject(SceneObjectGroup sog, ScenePresence sp, Scene scene)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            SceneObjectGroup sog = scene.GetGroupByPrim(objectID);
-            if (sog == null)
+            if (sog == null || sog.IsDeleted || sp == null || sp.IsDeleted)
                 return false;
 
-            uint perms = GetObjectPermissions(userID, sog, false);
+            uint perms = GetObjectPermissions(sp, sog, false);
             if((perms & (uint)PermissionMask.Copy) == 0)
                 return false;
 
-            if(sog.OwnerID != userID && sog.OwnerID != sog.GroupID && (perms & (uint)PermissionMask.Transfer) == 0)
+            if(sog.OwnerID != sp.UUID && sog.OwnerID != sog.GroupID && (perms & (uint)PermissionMask.Transfer) == 0)
                 return false;
 
             //If they can rez, they can duplicate
-            return CanRezObject(objectCount, userID, objectPosition, scene);
+            return CanRezObject(0, sp.UUID, sog.AbsolutePosition, scene);
         }
 
         private bool CanDeleteObject(UUID objectID, UUID userID, Scene scene)
