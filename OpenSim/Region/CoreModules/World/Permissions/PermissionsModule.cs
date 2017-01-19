@@ -1420,28 +1420,21 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return GenericEstatePermission(user);
         }
 
-        private bool CanMoveObject(UUID objectID, UUID moverID, Scene scene)
+        private bool CanMoveObject(SceneObjectGroup sog, ScenePresence sp)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+
+            if(sog == null || sog.IsDeleted || sp == null || sp.IsDeleted)
+                return false;
+
             if (m_bypassPermissions)
             {
-                SceneObjectPart part = scene.GetSceneObjectPart(objectID);
-                if(part == null)
+                if (sog.OwnerID != sp.UUID && sog.IsAttachment)
                     return false;
-
-                if (part.OwnerID != moverID)
-                {
-                    if (part.ParentGroup.IsDeleted || part.ParentGroup.IsAttachment)
-                            return false;
-                }
                 return m_bypassPermissionsValue;
             }
 
-            SceneObjectGroup sog = scene.GetGroupByPrim(objectID);
-            if (sog == null)
-                return false;
-
-            uint perms = GetObjectPermissions(moverID, sog, true);
+            uint perms = GetObjectPermissions(sp, sog, true);
             if((perms & (uint)PermissionMask.Move) == 0)
                 return false;
             return true;

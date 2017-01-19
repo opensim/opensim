@@ -1379,7 +1379,7 @@ namespace OpenSim.Region.Framework.Scenes
                             if ((data.change & (ObjectChangeType.Position | ObjectChangeType.Rotation)) != 0)
                             {
                                 // Are we allowed to move it?
-                                if (m_parentScene.Permissions.CanMoveObject(grp.UUID, remoteClient.AgentId))
+                                if (m_parentScene.Permissions.CanMoveObject(grp, remoteClient))
                                 {
                                     // Strip all but move and rotation from request
                                     data.change &= (ObjectChangeType.Group | ObjectChangeType.Position | ObjectChangeType.Rotation);
@@ -1474,7 +1474,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanMoveObject(group.UUID, remoteClient.AgentId))
+                if (m_parentScene.Permissions.CanMoveObject(group, remoteClient))
                 {
                     group.UpdateSingleRotation(rot, localID);
                 }
@@ -1492,7 +1492,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanMoveObject(group.UUID, remoteClient.AgentId))
+                if (m_parentScene.Permissions.CanMoveObject(group, remoteClient))
                 {
                     group.UpdateSingleRotation(rot, pos, localID);
                 }
@@ -1510,7 +1510,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanMoveObject(group.UUID, remoteClient.AgentId))
+                if (m_parentScene.Permissions.CanMoveObject(group, remoteClient))
                 {
                     group.UpdateGroupRotationR(rot);
                 }
@@ -1529,7 +1529,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanMoveObject(group.UUID, remoteClient.AgentId))
+                if (m_parentScene.Permissions.CanMoveObject(group, remoteClient))
                 {
                     group.UpdateGroupRotationPR(pos, rot);
                 }
@@ -1547,7 +1547,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanMoveObject(group.UUID, remoteClient.AgentId) || group.IsAttachment)
+                if (m_parentScene.Permissions.CanMoveObject(group, remoteClient) || group.IsAttachment)
                 {
                     group.UpdateSinglePosition(pos, localID);
                 }
@@ -1561,17 +1561,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="pos"></param>
         /// <param name="remoteClient"></param>
         public void UpdatePrimGroupPosition(uint localId, Vector3 pos, IClientAPI remoteClient)
-        {
-            UpdatePrimGroupPosition(localId, pos, remoteClient.AgentId);
-        }
-
-        /// <summary>
-        /// Update the position of the given group.
-        /// </summary>
-        /// <param name="localId"></param>
-        /// <param name="pos"></param>
-        /// <param name="updatingAgentId"></param>
-        public void UpdatePrimGroupPosition(uint localId, Vector3 pos, UUID updatingAgentId)
         {
             SceneObjectGroup group = GetGroupByPrim(localId);
 
@@ -1589,7 +1578,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    if (m_parentScene.Permissions.CanMoveObject(group.UUID, updatingAgentId)
+                    if (m_parentScene.Permissions.CanMoveObject(group, remoteClient)
                         && m_parentScene.Permissions.CanObjectEntry(group.UUID, false, pos))
                     {
                         group.UpdateGroupPosition(pos);
@@ -2025,27 +2014,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected internal void MakeObjectSearchable(IClientAPI remoteClient, bool IncludeInSearch, uint localID)
         {
-            UUID user = remoteClient.AgentId;
-            UUID objid = UUID.Zero;
-            SceneObjectPart obj = null;
-
-            EntityBase[] entityList = GetEntities();
-            foreach (EntityBase ent in entityList)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    SceneObjectGroup sog = ent as SceneObjectGroup;
-
-                    foreach (SceneObjectPart part in sog.Parts)
-                    {
-                        if (part.LocalId == localID)
-                        {
-                            objid = part.UUID;
-                            obj = part;
-                        }
-                    }
-                }
-            }
+            SceneObjectGroup sog = GetGroupByPrim(localID);
+            if(sog == null)
+                return;
 
             //Protip: In my day, we didn't call them searchable objects, we called them limited point-to-point joints
             //aka ObjectFlags.JointWheel = IncludeInSearch
@@ -2062,15 +2033,15 @@ namespace OpenSim.Region.Framework.Scenes
             // libomv will complain about PrimFlags.JointWheel being
             // deprecated, so we
             #pragma warning disable 0612
-            if (IncludeInSearch && m_parentScene.Permissions.CanEditObject(objid, user))
+            if (IncludeInSearch && m_parentScene.Permissions.CanEditObject(sog.UUID, remoteClient.AgentId))
             {
-                obj.ParentGroup.RootPart.AddFlag(PrimFlags.JointWheel);
-                obj.ParentGroup.HasGroupChanged = true;
+                sog.RootPart.AddFlag(PrimFlags.JointWheel);
+                sog.HasGroupChanged = true;
             }
-            else if (!IncludeInSearch && m_parentScene.Permissions.CanMoveObject(objid,user))
+            else if (!IncludeInSearch && m_parentScene.Permissions.CanMoveObject(sog, remoteClient))
             {
-                obj.ParentGroup.RootPart.RemFlag(PrimFlags.JointWheel);
-                obj.ParentGroup.HasGroupChanged = true;
+                sog.RootPart.RemFlag(PrimFlags.JointWheel);
+                sog.HasGroupChanged = true;
             }
             #pragma warning restore 0612
         }

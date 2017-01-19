@@ -325,7 +325,7 @@ namespace OpenSim.Region.Framework.Scenes
             if(group == null || group.IsDeleted)
                 return;
 
-            if (Permissions.CanMoveObject(group.UUID, remoteClient.AgentId))// && PermissionsMngr.)
+            if (Permissions.CanMoveObject(group, remoteClient))// && PermissionsMngr.)
             {
                 group.GrabMovement(objectID, offset, pos, remoteClient);
             }
@@ -386,7 +386,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup group = GetGroupByPrim(objectID);
             if (group != null)
             {
-                if (Permissions.CanMoveObject(group.UUID, remoteClient.AgentId))// && PermissionsMngr.)
+                if (Permissions.CanMoveObject(group, remoteClient))// && PermissionsMngr.)
                 {
                     group.SpinStart(remoteClient);
                 }
@@ -404,7 +404,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup group = GetGroupByPrim(objectID);
             if (group != null)
             {
-                if (Permissions.CanMoveObject(group.UUID, remoteClient.AgentId))// && PermissionsMngr.)
+                if (Permissions.CanMoveObject(group, remoteClient))// && PermissionsMngr.)
                 {
                     group.SpinMovement(rotation, remoteClient);
                 }

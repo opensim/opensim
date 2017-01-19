@@ -157,29 +157,28 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             // Cross
             sceneA.SceneGraph.UpdatePrimGroupPosition(
-                so1.LocalId, new Vector3(so1StartPos.X, so1StartPos.Y - 20, so1StartPos.Z), userId);
+                so1.LocalId, new Vector3(so1StartPos.X, so1StartPos.Y - 20, so1StartPos.Z), sp1SceneA.ControllingClient);
 
             // crossing is async
             Thread.Sleep(500);
 
             SceneObjectGroup so1PostCross;
 
-            {
-                ScenePresence sp1SceneAPostCross = sceneA.GetScenePresence(userId);
-                Assert.IsTrue(sp1SceneAPostCross.IsChildAgent, "sp1SceneAPostCross.IsChildAgent unexpectedly false");
+            ScenePresence sp1SceneAPostCross = sceneA.GetScenePresence(userId);
+            Assert.IsTrue(sp1SceneAPostCross.IsChildAgent, "sp1SceneAPostCross.IsChildAgent unexpectedly false");
 
-                ScenePresence sp1SceneBPostCross = sceneB.GetScenePresence(userId);
-                TestClient sceneBTc = ((TestClient)sp1SceneBPostCross.ControllingClient);
-                sceneBTc.CompleteMovement();
+            ScenePresence sp1SceneBPostCross = sceneB.GetScenePresence(userId);
+            TestClient sceneBTc = ((TestClient)sp1SceneBPostCross.ControllingClient);
+            sceneBTc.CompleteMovement();
 
-                Assert.IsFalse(sp1SceneBPostCross.IsChildAgent, "sp1SceneAPostCross.IsChildAgent unexpectedly true");
-                Assert.IsTrue(sp1SceneBPostCross.IsSatOnObject);
+            Assert.IsFalse(sp1SceneBPostCross.IsChildAgent, "sp1SceneAPostCross.IsChildAgent unexpectedly true");
+            Assert.IsTrue(sp1SceneBPostCross.IsSatOnObject);
 
-                Assert.IsNull(sceneA.GetSceneObjectGroup(so1Id), "uck");
-                so1PostCross = sceneB.GetSceneObjectGroup(so1Id);
-                Assert.NotNull(so1PostCross);
-                Assert.AreEqual(1, so1PostCross.GetSittingAvatarsCount());
-            }
+            Assert.IsNull(sceneA.GetSceneObjectGroup(so1Id), "uck");
+            so1PostCross = sceneB.GetSceneObjectGroup(so1Id);
+            Assert.NotNull(so1PostCross);
+            Assert.AreEqual(1, so1PostCross.GetSittingAvatarsCount());
+
 
             Vector3 so1PostCrossPos = so1PostCross.AbsolutePosition;
 
@@ -187,7 +186,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             // Recross
             sceneB.SceneGraph.UpdatePrimGroupPosition(
-                so1PostCross.LocalId, new Vector3(so1PostCrossPos.X, so1PostCrossPos.Y + 20, so1PostCrossPos.Z), userId);
+                so1PostCross.LocalId, new Vector3(so1PostCrossPos.X, so1PostCrossPos.Y + 20, so1PostCrossPos.Z), sp1SceneBPostCross.ControllingClient);
 
             // crossing is async
             Thread.Sleep(500);
@@ -255,13 +254,19 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             lmmA.EventManagerOnNoLandDataFromStorage();
             lmmB.EventManagerOnNoLandDataFromStorage();
 
+            AgentCircuitData acd = SceneHelpers.GenerateAgentData(userId);
+            TestClient tc = new TestClient(acd, sceneA);
+            List<TestClient> destinationTestClients = new List<TestClient>();
+            EntityTransferHelpers.SetupInformClientOfNeighbourTriggersNeighbourClientCreate(tc, destinationTestClients);
+            ScenePresence sp1SceneA = SceneHelpers.AddScenePresence(sceneA, tc, acd);
+
             SceneObjectGroup so1 = SceneHelpers.AddSceneObject(sceneA, 1, userId, "", sceneObjectIdTail);
             UUID so1Id = so1.UUID;
             so1.AbsolutePosition = new Vector3(128, 10, 20);
 
             // Cross with a negative value.  We must make this call rather than setting AbsolutePosition directly
             // because only this will execute permission checks in the source region.
-            sceneA.SceneGraph.UpdatePrimGroupPosition(so1.LocalId, new Vector3(128, -10, 20), userId);
+            sceneA.SceneGraph.UpdatePrimGroupPosition(so1.LocalId, new Vector3(128, -10, 20), sp1SceneA.ControllingClient);
 
             // crossing is async
             Thread.Sleep(500);

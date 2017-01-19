@@ -50,7 +50,7 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool DuplicateObjectHandler(int objectCount, UUID objectID, UUID owner, Scene scene, Vector3 objectPosition);
     public delegate bool EditObjectHandler(UUID objectID, UUID editorID, Scene scene);
     public delegate bool EditObjectInventoryHandler(UUID objectID, UUID editorID, Scene scene);
-    public delegate bool MoveObjectHandler(UUID objectID, UUID moverID, Scene scene);
+    public delegate bool MoveObjectHandler(SceneObjectGroup sog, ScenePresence sp);
     public delegate bool ObjectEntryHandler(UUID objectID, bool enteringRegion, Vector3 newPoint, Scene scene);
     public delegate bool ReturnObjectsHandler(ILandObject land, UUID user, List<SceneObjectGroup> objects, Scene scene);
     public delegate bool InstantMessageHandler(UUID user, UUID target, Scene startScene);
@@ -450,15 +450,22 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region MOVE OBJECT
-        public bool CanMoveObject(UUID objectID, UUID moverID)
+        public bool CanMoveObject(SceneObjectGroup sog, IClientAPI client)
         {
+            if(sog == null || client == null)
+                return false;
+
+            ScenePresence sp = client.SceneAgent as ScenePresence;
+            if(sp == null)
+                return false;
+
             MoveObjectHandler handler = OnMoveObject;
             if (handler != null)
             {
                 Delegate[] list = handler.GetInvocationList();
                 foreach (MoveObjectHandler h in list)
                 {
-                    if (h(objectID, moverID, m_scene) == false)
+                    if (h(sog, sp) == false)
                         return false;
                 }
             }
