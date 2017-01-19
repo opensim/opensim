@@ -78,7 +78,7 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool AbandonParcelHandler(UUID user, ILandObject parcel, Scene scene);
     public delegate bool ReclaimParcelHandler(UUID user, ILandObject parcel, Scene scene);
     public delegate bool DeedParcelHandler(UUID user, ILandObject parcel, Scene scene);
-    public delegate bool DeedObjectHandler(UUID user, UUID group, Scene scene);
+    public delegate bool DeedObjectHandler(ScenePresence sp, SceneObjectGroup sog, UUID targetGroupID);
     public delegate bool BuyLandHandler(UUID user, ILandObject parcel, Scene scene);
     public delegate bool LinkObjectHandler(UUID user, UUID objectID);
     public delegate bool DelinkObjectHandler(UUID user, UUID objectID);
@@ -934,15 +934,20 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
-        public bool CanDeedObject(UUID user, UUID group)
+        public bool CanDeedObject(IClientAPI client, SceneObjectGroup sog, UUID targetGroupID)
         {
             DeedObjectHandler handler = OnDeedObject;
             if (handler != null)
             {
+               if(sog == null || client == null || client.SceneAgent == null || targetGroupID == UUID.Zero)
+                    return false;
+
+                ScenePresence sp = client.SceneAgent as ScenePresence;
+
                 Delegate[] list = handler.GetInvocationList();
                 foreach (DeedObjectHandler h in list)
                 {
-                    if (h(user, group, m_scene) == false)
+                    if (h(sp, sog, targetGroupID) == false)
                         return false;
                 }
             }

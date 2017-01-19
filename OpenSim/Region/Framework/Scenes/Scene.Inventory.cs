@@ -2717,9 +2717,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (ownerID != UUID.Zero)
                     return;
-
-                if (!Permissions.CanDeedObject(remoteClient.AgentId, groupID))
-                    return;
             }
 
             List<SceneObjectGroup> groups = new List<SceneObjectGroup>();
@@ -2750,15 +2747,9 @@ namespace OpenSim.Region.Framework.Scenes
                         child.TriggerScriptChangedEvent(Changed.OWNER);
                     }
                 }
-                else // The object was deeded to the group
+                else // The object deeded to the group
                 {
-                    if (!Permissions.IsGod(remoteClient.AgentId) && sog.OwnerID != remoteClient.AgentId)
-                        continue;
-
-                    if (!Permissions.CanTransferObject(sog.UUID, groupID))
-                        continue;
-
-                    if (sog.GroupID != groupID)
+                    if (!Permissions.CanDeedObject(remoteClient, sog, groupID))
                         continue;
 
                     sog.SetOwnerId(groupID);

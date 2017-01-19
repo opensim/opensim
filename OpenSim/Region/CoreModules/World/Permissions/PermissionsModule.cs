@@ -71,12 +71,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         #region Constants
         // These are here for testing.  They will be taken out
 
-        //private uint PERM_ALL = (uint)2147483647;
-        private uint PERM_COPY = (uint)32768;
-        //private uint PERM_MODIFY = (uint)16384;
-        private uint PERM_MOVE = (uint)524288;
-        private uint PERM_TRANS = (uint)8192;
-//        private uint PERM_LOCKED = (uint)540672;
         private uint PERM_LOCKED = (uint)524288; // same as move
 
         /// <value>
@@ -867,6 +861,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return PermissionClass.Everyone;
         }
 
+        // get effective object permissions using user UUID. User rights will be fixed
         protected uint GetObjectPermissions(UUID currentUser, SceneObjectGroup group, bool denyOnLocked)
         {
             if (group == null)
@@ -918,6 +913,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return group.EffectiveEveryOnePerms & lockmask;
         }
 
+        // get effective object permissions using present presence. So some may depend on requested rights (ie God)
         protected uint GetObjectPermissions(ScenePresence sp, SceneObjectGroup group, bool denyOnLocked)
         {
             if (sp == null || sp.IsDeleted || group == null || group.IsDeleted)
@@ -1178,15 +1174,40 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return GenericParcelOwnerPermission(user, parcel, (ulong)GroupPowers.LandDeed, false);
         }
 
-        private bool CanDeedObject(UUID user, UUID group, Scene scene)
+        private bool CanDeedObject(ScenePresence sp, SceneObjectGroup sog, UUID targetGroupID)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            ScenePresence sp = scene.GetScenePresence(user);
-            IClientAPI client = sp.ControllingClient;
+            if(sog == null || sog.IsDeleted || sp == null || sp.IsDeleted || targetGroupID == UUID.Zero)
+                return false;
 
-            if ((client.GetGroupPowers(group) & (ulong)GroupPowers.DeedObject) == 0)
+            // object has group already?
+            if(sog.GroupID != targetGroupID)
+                return false;
+
+            // is effectivelly shared?            
+            if(sog.EffectiveGroupPerms == 0)
+                return false;
+
+            if(sp.IsGod)
+                return true;
+
+            // owned by requester?
+            if(sog.OwnerID != sp.UUID)
+                return false;
+
+            // owner can transfer?
+            if((sog.EffectiveOwnerPerms & (uint)PermissionMask.Transfer) == 0)
+                return false;
+            
+            // group member ? 
+            ulong powers = 0;
+            if(!GroupMemberPowers(targetGroupID, sp, ref powers))
+                return false;
+
+            // has group rights?
+            if ((powers & (ulong)GroupPowers.DeedObject) == 0)
                 return false;
 
             return true;
