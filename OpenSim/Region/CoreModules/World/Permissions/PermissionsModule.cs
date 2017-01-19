@@ -1671,39 +1671,45 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return IsGroupMember(groupID, userID, (ulong)GroupPowers.ObjectSetForSale);
         }
 
-        private bool CanTakeObject(UUID objectID, UUID userID, Scene scene)
+        private bool CanTakeObject(SceneObjectGroup sog, ScenePresence sp)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            SceneObjectGroup sog = m_scene.GetGroupByPrim(objectID);
-            if (sog == null)
+            if (sog == null || sog.IsDeleted || sp == null || sp.IsDeleted)
+                return false;
+
+            // take is not a attachment op            
+            if(sog.IsAttachment)
                 return false;
 
             // ignore locked, viewers shell ask for confirmation
-            uint perms = GetObjectPermissions(userID, sog, false);
+            uint perms = GetObjectPermissions(sp, sog, false);
             if((perms & (uint)PermissionMask.Modify) == 0)
                 return false;
 
-            if (sog.OwnerID != userID && ((perms & (uint)PermissionMask.Transfer) == 0))
+            if (sog.OwnerID != sp.UUID && ((perms & (uint)PermissionMask.Transfer) == 0))
                  return false;
             return true;
         }
 
-        private bool CanTakeCopyObject(UUID objectID, UUID userID, Scene inScene)
+        private bool CanTakeCopyObject(SceneObjectGroup sog, ScenePresence sp)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            SceneObjectGroup sog = m_scene.GetGroupByPrim(objectID);
-            if (sog == null)
+            if (sog == null || sog.IsDeleted || sp == null || sp.IsDeleted)
                 return false;
 
-            uint perms = GetObjectPermissions(userID, sog, true);
+            // refuse on attachments
+            if(sog.IsAttachment && !sp.IsGod)
+                return false;
+
+            uint perms = GetObjectPermissions(sp, sog, true);
             if((perms & (uint)PermissionMask.Copy) == 0)
                 return false;
 
-            if(sog.OwnerID != userID && sog.OwnerID != sog.GroupID && (perms & (uint)PermissionMask.Transfer) == 0)
+            if(sog.OwnerID != sp.UUID && sog.OwnerID != sog.GroupID && (perms & (uint)PermissionMask.Transfer) == 0)
                  return false;
             return true;
         }

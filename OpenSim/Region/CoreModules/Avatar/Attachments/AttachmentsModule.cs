@@ -1322,7 +1322,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 if (part == null)
                     return;
 
-                if (!m_scene.Permissions.CanTakeObject(part.UUID, remoteClient.AgentId))
+                SceneObjectGroup group = part.ParentGroup;
+
+                if (!m_scene.Permissions.CanTakeObject(group, sp))
                 {
                     remoteClient.SendAgentAlertMessage(
                         "You don't have sufficient permissions to attach this object", false);
@@ -1334,7 +1336,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 AttachmentPt &= 0x7f;
 
                 // Calls attach with a Zero position
-                SceneObjectGroup group = part.ParentGroup;
                 if (AttachObject(sp, group , AttachmentPt, false, true, append))
                 {
                     if (DebugLevel > 0)

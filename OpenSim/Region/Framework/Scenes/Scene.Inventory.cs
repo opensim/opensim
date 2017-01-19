@@ -2126,6 +2126,8 @@ namespace OpenSim.Region.Framework.Scenes
             List<SceneObjectGroup> deleteGroups = new List<SceneObjectGroup>();
             List<SceneObjectGroup> takeGroups = new List<SceneObjectGroup>();
 
+            ScenePresence sp = remoteClient.SceneAgent as ScenePresence;
+
             // Start with true for both, then remove the flags if objects
             // that we can't derez are part of the selection
             bool permissionToTake = true;
@@ -2180,14 +2182,14 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (action == DeRezAction.TakeCopy)
                     {
-                        if (!Permissions.CanTakeCopyObject(grp.UUID, remoteClient.AgentId))
+                        if (!Permissions.CanTakeCopyObject(grp, sp))
                             permissionToTakeCopy = false;
                     }
                     else
                     {
                         permissionToTakeCopy = false;
                     }
-                    if (!Permissions.CanTakeObject(grp.UUID, remoteClient.AgentId))
+                    if (!Permissions.CanTakeObject(grp, sp))
                         permissionToTake = false;
 
                     if (!Permissions.CanDeleteObject(grp.UUID, remoteClient.AgentId))

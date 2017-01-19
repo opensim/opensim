@@ -44,9 +44,9 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool RezObjectHandler(int objectCount, UUID owner, Vector3 objectPosition, Scene scene);
     public delegate bool DeleteObjectHandler(UUID objectID, UUID deleter, Scene scene);
     public delegate bool TransferObjectHandler(UUID objectID, UUID recipient, Scene scene);
-    public delegate bool TakeObjectHandler(UUID objectID, UUID stealer, Scene scene);
+    public delegate bool TakeObjectHandler(SceneObjectGroup sog, ScenePresence sp);
     public delegate bool SellGroupObjectHandler(UUID userID, UUID groupID, Scene scene);
-    public delegate bool TakeCopyObjectHandler(UUID objectID, UUID userID, Scene inScene);
+    public delegate bool TakeCopyObjectHandler(SceneObjectGroup sog, ScenePresence sp);
     public delegate bool DuplicateObjectHandler(int objectCount, UUID objectID, UUID owner, Scene scene, Vector3 objectPosition);
     public delegate bool EditObjectHandler(UUID objectID, UUID editorID, Scene scene);
     public delegate bool EditObjectInventoryHandler(UUID objectID, UUID editorID, Scene scene);
@@ -300,7 +300,7 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region TAKE OBJECT
-        public bool CanTakeObject(UUID objectID, UUID AvatarTakingUUID)
+        public bool CanTakeObject(SceneObjectGroup sog, ScenePresence sp)
         {
             bool result = true;
 
@@ -310,7 +310,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (TakeObjectHandler h in list)
                 {
-                    if (h(objectID, AvatarTakingUUID, m_scene) == false)
+                    if (h(sog, sp) == false)
                     {
                         result = false;
                         break;
@@ -357,7 +357,7 @@ namespace OpenSim.Region.Framework.Scenes
 
 
         #region TAKE COPY OBJECT
-        public bool CanTakeCopyObject(UUID objectID, UUID userID)
+        public bool CanTakeCopyObject(SceneObjectGroup sog, ScenePresence sp)
         {
             bool result = true;
 
@@ -367,7 +367,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (TakeCopyObjectHandler h in list)
                 {
-                    if (h(objectID, userID, m_scene) == false)
+                    if (h(sog, sp) == false)
                     {
                         result = false;
                         break;
