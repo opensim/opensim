@@ -2551,6 +2551,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void AggregateInnerPerms()
         {
+            // assuming child prims permissions masks are irrelevant on a linkset
+            // root part is handle at SOG since its masks are the sog masks
             const uint mask = (uint)PermissionMask.AllEffective;
 
             uint owner = mask;
