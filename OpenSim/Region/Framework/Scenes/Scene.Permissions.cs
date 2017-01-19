@@ -455,9 +455,10 @@ namespace OpenSim.Region.Framework.Scenes
             if(sog == null || client == null)
                 return false;
 
-            ScenePresence sp = client.SceneAgent as ScenePresence;
-            if(sp == null)
+            if(client.SceneAgent == null)
                 return false;
+
+            ScenePresence sp = client.SceneAgent as ScenePresence;
 
             MoveObjectHandler handler = OnMoveObject;
             if (handler != null)
