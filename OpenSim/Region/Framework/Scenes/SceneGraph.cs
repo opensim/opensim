@@ -1358,7 +1358,7 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectGroup grp = part.ParentGroup;
                 if (grp != null)
                 {
-                    if (m_parentScene.Permissions.CanEditObject(grp.UUID, remoteClient.AgentId))
+                    if (m_parentScene.Permissions.CanEditObject(grp, remoteClient))
                     {
                         // These two are exceptions SL makes in the interpretation
                         // of the change flags. Must check them here because otherwise
@@ -1406,7 +1406,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (part != null)
             {
-                if (m_parentScene.Permissions.CanEditObject(part.ParentGroup.UUID, remoteClient.AgentId))
+                if (m_parentScene.Permissions.CanEditObject(part.ParentGroup, remoteClient))
                 {
                     bool physbuild = false;
                     if (part.ParentGroup.RootPart.PhysActor != null)
@@ -1428,7 +1428,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanEditObject(group.UUID, remoteClient.AgentId))
+                if (m_parentScene.Permissions.CanEditObject(group, remoteClient))
                 {
                     bool physbuild = false;
                     if (group.RootPart.PhysActor != null)
@@ -1603,7 +1603,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanEditObject(group.UUID,remoteClient.AgentId))
+                if (m_parentScene.Permissions.CanEditObject(group, remoteClient))
                 {
                     group.UpdateTextureEntry(localID, texture);
                 }
@@ -1627,7 +1627,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanEditObject(group.UUID, remoteClient.AgentId))
+                if (m_parentScene.Permissions.CanEditObject(group, remoteClient))
                 {
                     // VolumeDetect can't be set via UI and will always be off when a change is made there
                     // now only change volume dtc if phantom off
@@ -1674,7 +1674,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanEditObject(group.UUID, remoteClient.AgentId))
+                if (m_parentScene.Permissions.CanEditObject(group, remoteClient))
                 {
                     group.SetPartName(Util.CleanString(name), primLocalID);
                     group.HasGroupChanged = true;
@@ -1692,7 +1692,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanEditObject(group.UUID, remoteClient.AgentId))
+                if (m_parentScene.Permissions.CanEditObject(group, remoteClient))
                 {
                     group.SetPartDescription(Util.CleanString(description), primLocalID);
                     group.HasGroupChanged = true;
@@ -1714,7 +1714,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanEditObject(group.UUID, remoteClient.AgentId))
+                if (m_parentScene.Permissions.CanEditObject(group, remoteClient))
                 {
                     SceneObjectPart part = m_parentScene.GetSceneObjectPart(primLocalID);
                     if (part != null)
@@ -1731,7 +1731,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanEditObject(group.UUID, remoteClient.AgentId))
+                if (m_parentScene.Permissions.CanEditObject(group, remoteClient))
                 {
                     SceneObjectPart part = m_parentScene.GetSceneObjectPart(primLocalID);
                     if (part != null)
@@ -2033,7 +2033,7 @@ namespace OpenSim.Region.Framework.Scenes
             // libomv will complain about PrimFlags.JointWheel being
             // deprecated, so we
             #pragma warning disable 0612
-            if (IncludeInSearch && m_parentScene.Permissions.CanEditObject(sog.UUID, remoteClient.AgentId))
+            if (IncludeInSearch && m_parentScene.Permissions.CanEditObject(sog, remoteClient))
             {
                 sog.RootPart.AddFlag(PrimFlags.JointWheel);
                 sog.HasGroupChanged = true;

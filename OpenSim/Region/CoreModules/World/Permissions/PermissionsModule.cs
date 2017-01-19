@@ -283,6 +283,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_scene.Permissions.OnIsEstateManager += IsEstateManager;
             m_scene.Permissions.OnDuplicateObject += CanDuplicateObject;
             m_scene.Permissions.OnDeleteObject += CanDeleteObject;
+            m_scene.Permissions.OnEditObjectByIDs += CanEditObjectByIDs;
             m_scene.Permissions.OnEditObject += CanEditObject;
             m_scene.Permissions.OnEditParcelProperties += CanEditParcelProperties;
             m_scene.Permissions.OnInstantMessage += CanInstantMessage;
@@ -1235,7 +1236,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return true;
         }
 
-        private bool CanEditObject(UUID objectID, UUID userID, Scene scene)
+        private bool CanEditObjectByIDs(UUID objectID, UUID userID, Scene scene)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1245,6 +1246,20 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 return false;
 
             uint perms = GetObjectPermissions(userID, sog, true);
+            if((perms & (uint)PermissionMask.Modify) == 0)
+                return false;
+            return true;
+        }
+
+        private bool CanEditObject(SceneObjectGroup sog, ScenePresence sp)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            if(sog == null || sog.IsDeleted || sp == null || sp.IsDeleted)
+                return false;
+
+            uint perms = GetObjectPermissions(sp, sog, true);
             if((perms & (uint)PermissionMask.Modify) == 0)
                 return false;
             return true;
