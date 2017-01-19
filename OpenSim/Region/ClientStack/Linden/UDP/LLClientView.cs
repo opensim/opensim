@@ -7758,10 +7758,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             ObjectDuplicate handlerObjectDuplicate = null;
 
-            for (int i = 0; i < dupe.ObjectData.Length; i++)
+            handlerObjectDuplicate = OnObjectDuplicate;
+            if (handlerObjectDuplicate != null)
             {
-                handlerObjectDuplicate = OnObjectDuplicate;
-                if (handlerObjectDuplicate != null)
+                for (int i = 0; i < dupe.ObjectData.Length; i++)
                 {
                     UUID rezGroupID = dupe.AgentData.GroupID;
                     if(!IsGroupMember(rezGroupID))

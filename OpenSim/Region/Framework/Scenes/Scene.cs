@@ -3605,7 +3605,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="GroupID">Group of new object</param>
         public void DuplicateObject(uint originalPrim, Vector3 offset, uint flags, UUID AgentID, UUID GroupID)
         {
-            SceneObjectGroup copy = SceneGraph.DuplicateObject(originalPrim, offset, flags, AgentID, GroupID, Quaternion.Identity);
+            bool createSelected = (flags & (uint)PrimFlags.CreateSelected) != 0;
+            SceneObjectGroup copy = SceneGraph.DuplicateObject(originalPrim, offset, AgentID,
+                    GroupID, Quaternion.Identity, createSelected);
             if (copy != null)
                 EventManager.TriggerObjectAddedToScene(copy);
         }
@@ -3634,6 +3636,8 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.Info("HITTARGET: " + RayTargetObj.ToString() + ", COPYTARGET: " + localID.ToString());
             SceneObjectPart target = GetSceneObjectPart(localID);
             SceneObjectPart target2 = GetSceneObjectPart(RayTargetObj);
+
+            bool createSelected = (dupeFlags & (uint)PrimFlags.CreateSelected) != 0;
 
             if (target != null && target2 != null)
             {
@@ -3676,13 +3680,13 @@ namespace OpenSim.Region.Framework.Scenes
                         Quaternion worldRot = target2.GetWorldRotation();
 
                         // SceneObjectGroup obj = m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, worldRot);
-                        copy = m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, worldRot);
+                        copy = m_sceneGraph.DuplicateObject(localID, pos, AgentID, GroupID, worldRot, createSelected);
                         //obj.Rotation = worldRot;
                         //obj.UpdateGroupRotationR(worldRot);
                     }
                     else
                     {
-                        copy = m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, Quaternion.Identity);
+                        copy = m_sceneGraph.DuplicateObject(localID, pos, AgentID, GroupID, Quaternion.Identity, createSelected);
                     }
 
                     if (copy != null)

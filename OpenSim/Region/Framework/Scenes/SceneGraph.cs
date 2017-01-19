@@ -2057,7 +2057,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="rot"></param>
         /// <returns>null if duplication fails, otherwise the duplicated object</returns>
         /// <summary>
-        public SceneObjectGroup DuplicateObject(uint originalPrimID, Vector3 offset, uint flags, UUID AgentID, UUID GroupID, Quaternion rot)
+        public SceneObjectGroup DuplicateObject(uint originalPrimID, Vector3 offset, UUID AgentID, UUID GroupID, Quaternion rot, bool createSelected)
         {
 //            m_log.DebugFormat(
 //                "[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}",
