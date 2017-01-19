@@ -928,6 +928,40 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return group.EffectiveEveryOnePerms & lockmask;
         }
 
+        private uint GetItemPermissions(TaskInventoryItem ti, UUID userID, bool notEveryone)
+        {
+            UUID tiOwnerID = ti.OwnerID;
+            if(tiOwnerID == userID)
+                return ti.CurrentPermissions;
+ 
+            // ??           
+            if (IsFriendWithPerms(userID, tiOwnerID))
+                return ti.CurrentPermissions;
+
+            UUID tiGroupID = ti.GroupID;
+            if(tiGroupID != UUID.Zero)
+            {
+                ulong powers = 0;
+                if(GroupMemberPowers(tiGroupID, userID, ref powers))
+                {
+                    if(tiGroupID == ti.OwnerID)
+                    {
+                        if((powers & (ulong)GroupPowers.ObjectManipulate) != 0)
+                            return ti.CurrentPermissions;
+                    }
+                    uint p = ti.GroupPermissions;
+                    if(!notEveryone)
+                        p |= ti.EveryonePermissions;
+                    return p;
+                } 
+            }
+
+            if(notEveryone)
+                return 0;
+
+            return ti.EveryonePermissions;
+        }
+
         /// <summary>
         /// General permissions checks for any operation involving an object.  These supplement more specific checks
         /// implemented by callers.
@@ -1796,7 +1830,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
                 TaskInventoryItem ti = part.Inventory.GetInventoryItem(script);
 
-                if (ti == null)
+//                if (ti == null || ti.InvType != (int)InventoryType.LSL)
+                if (ti == null) // legacy may not have type
                     return false;
 
                 if (ti.OwnerID != user)
@@ -1870,6 +1905,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
                 TaskInventoryItem ti = part.Inventory.GetInventoryItem(notecard);
 
+//                if (ti == null || ti.InvType != (int)InventoryType.Notecard)
                 if (ti == null)
                     return false;
 
@@ -1938,6 +1974,23 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
+            SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
+            if (part == null)
+                return false;
+
+            SceneObjectGroup sog = part.ParentGroup;
+            if (sog == null)
+                return false;
+
+            uint perms = GetObjectPermissions(objectID, sog, true);
+            if((perms & (uint)PermissionMask.Modify) == 0)
+                return false;
+
+            TaskInventoryItem ti = part.Inventory.GetInventoryItem(itemID);
+            if(ti == null)
+                return false;
+
+            //TODO item perm ?
             return true;
         }
 
@@ -1946,6 +1999,23 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
+            SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
+            if (part == null)
+                return false;
+
+            SceneObjectGroup sog = part.ParentGroup;
+            if (sog == null)
+                return false;
+
+            uint perms = GetObjectPermissions(objectID, sog, true);
+            if((perms & (uint)PermissionMask.Modify) == 0)
+                return false;
+
+            TaskInventoryItem ti = part.Inventory.GetInventoryItem(itemID);
+            if(ti == null)
+                return false;
+
+            //TODO item perm ?
             return true;
         }
 
@@ -1962,26 +2032,23 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
             ScenePresence p = m_scene.GetScenePresence(userID);
 
-            if (part == null || p == null)
+            if (p == null)
                 return false;
 
-            if (!IsAdministrator(userID))
+            SceneObjectGroup sog = m_scene.GetGroupByPrim(objectID);
+            if (sog == null)
+                return false;
+
+            uint perms = GetObjectPermissions(userID, sog, true);
+            if((perms & (uint)PermissionMask.Modify) == 0)
+                return false;
+
+            if ((int)InventoryType.LSL == invType)
             {
-                if (part.OwnerID != userID)
-                {
-                    // Group permissions
-                    if ((part.GroupID == UUID.Zero) || (p.ControllingClient.GetGroupPowers(part.GroupID) == 0) || ((part.GroupMask & (uint)PermissionMask.Modify) == 0))
-                        return false;
-                } else {
-                    if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
-                        return false;
-                }
-                if ((int)InventoryType.LSL == invType)
-                    if (m_allowedScriptCreators == UserSet.Administrators)
-                        return false;
+                if (m_allowedScriptCreators == UserSet.Administrators)
+                 return false;
             }
 
             return true;
