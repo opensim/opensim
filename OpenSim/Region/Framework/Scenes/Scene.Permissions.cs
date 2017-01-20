@@ -68,8 +68,8 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool TerraformLandHandler(UUID user, Vector3 position, Scene requestFromScene);
     public delegate bool RunConsoleCommandHandler(UUID user, Scene requestFromScene);
     public delegate bool IssueEstateCommandHandler(UUID user, Scene requestFromScene, bool ownerCommand);
-    public delegate bool IsGodHandler(UUID user, Scene requestFromScene);
-    public delegate bool IsGridGodHandler(UUID user, Scene requestFromScene);
+    public delegate bool IsGodHandler(UUID user);
+    public delegate bool IsGridGodHandler(UUID user);
     public delegate bool IsAdministratorHandler(UUID user);
     public delegate bool IsEstateManagerHandler(UUID user);
     public delegate bool EditParcelHandler(UUID user, ILandObject parcel, Scene scene);
@@ -139,7 +139,6 @@ namespace OpenSim.Region.Framework.Scenes
         public event TerraformLandHandler OnTerraformLand;
         public event RunConsoleCommandHandler OnRunConsoleCommand;
         public event IssueEstateCommandHandler OnIssueEstateCommand;
-        public event IsGodHandler OnIsGod;
         public event IsGridGodHandler OnIsGridGod;
         public event IsAdministratorHandler OnIsAdministrator;
         public event IsEstateManagerHandler OnIsEstateManager;
@@ -798,13 +797,13 @@ namespace OpenSim.Region.Framework.Scenes
         #region CAN BE GODLIKE
         public bool IsGod(UUID user)
         {
-            IsGodHandler handler = OnIsGod;
+            IsAdministratorHandler handler = OnIsAdministrator;
             if (handler != null)
             {
                 Delegate[] list = handler.GetInvocationList();
-                foreach (IsGodHandler h in list)
+                foreach (IsAdministratorHandler h in list)
                 {
-                    if (h(user, m_scene) == false)
+                    if (h(user) == false)
                         return false;
                 }
             }
@@ -819,7 +818,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (IsGridGodHandler h in list)
                 {
-                    if (h(user, m_scene) == false)
+                    if (h(user) == false)
                         return false;
                 }
             }
