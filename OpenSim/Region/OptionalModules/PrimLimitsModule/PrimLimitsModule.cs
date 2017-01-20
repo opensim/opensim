@@ -139,8 +139,8 @@ namespace OpenSim.Region.OptionalModules
         {
             float newX = newPoint.X;
             float newY = newPoint.Y;
-            if (newX < -1f || newX > (scene.RegionInfo.RegionSizeX + 1.0f) ||
-                newY < -1f || newY > (scene.RegionInfo.RegionSizeY + 1.0f) )
+            if (newX < -1.0f || newX > (scene.RegionInfo.RegionSizeX + 1.0f) ||
+                newY < -1.0f || newY > (scene.RegionInfo.RegionSizeY + 1.0f) )
                 return true;
 
             if (sog == null)
@@ -160,14 +160,12 @@ namespace OpenSim.Region.OptionalModules
             }
 
             int objectCount = sog.PrimCount;
-            int usedPrims = newParcel.PrimCounts.Total;
-            int simulatorCapacity = newParcel.GetSimulatorMaxPrimCount();
 
             // TODO: Add Special Case here for temporary prims
 
             string response = DoCommonChecks(objectCount, sog.OwnerID, newParcel, scene);
 
-            if (response != null)
+            if (response != null && m_dialogModule != null)
             {
                 m_dialogModule.SendAlertToUser(sog.OwnerID, response);
                 return false;
@@ -182,7 +180,7 @@ namespace OpenSim.Region.OptionalModules
             int OwnedParcelsCapacity = lo.GetSimulatorMaxPrimCount();
             if ((objectCount + lo.PrimCounts.Total) > OwnedParcelsCapacity)
             {
-                response = "Unable to rez object because the parcel is too full";
+                response = "Unable to rez object because the region is too full";
             }
             else
             {
