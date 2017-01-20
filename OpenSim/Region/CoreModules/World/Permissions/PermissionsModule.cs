@@ -1441,16 +1441,16 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
 
-            if(sog == null || sog.IsDeleted)
-                return false;
-
             float newX = newPoint.X;
             float newY = newPoint.Y;
 
-            // allow outside region this mb needed for crossings
+            // allow outside region this is needed for crossings
             if (newX < -1f || newX > (scene.RegionInfo.RegionSizeX + 1.0f) ||
                 newY < -1f || newY > (scene.RegionInfo.RegionSizeY + 1.0f) )
                 return true;
+
+            if(sog == null || sog.IsDeleted)
+                return false;
 
             if (m_bypassPermissions)
                 return m_bypassPermissionsValue;
