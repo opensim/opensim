@@ -1437,42 +1437,40 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return true;
         }
 
-        private bool CanObjectEntry(UUID objectID, bool enteringRegion, Vector3 newPoint, Scene scene)
+        private bool CanObjectEntry(SceneObjectGroup sog, bool enteringRegion, Vector3 newPoint, Scene scene)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-            if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            // allow outide region this mb needed for crossings ???
-            if (newPoint.X < -1f || newPoint.Y < -1f)
-                return true;
-            if (newPoint.X > scene.RegionInfo.RegionSizeX + 1.0f ||  newPoint.Y > scene.RegionInfo.RegionSizeY + 1.0f)
+            if(sog == null || sog.IsDeleted)
+                return false;
+
+            float newX = newPoint.X;
+            float newY = newPoint.Y;
+
+            // allow outside region this mb needed for crossings
+            if (newX < -1f || newX > (scene.RegionInfo.RegionSizeX + 1.0f) ||
+                newY < -1f || newY > (scene.RegionInfo.RegionSizeY + 1.0f) )
                 return true;
 
-            ILandObject parcel = m_scene.LandChannel.GetLandObject(newPoint.X, newPoint.Y);
+            if (m_bypassPermissions)
+                return m_bypassPermissionsValue;
+
+            ILandObject parcel = scene.LandChannel.GetLandObject(newX, newY);
             if (parcel == null)
                 return false;
 
             if ((parcel.LandData.Flags & ((int)ParcelFlags.AllowAPrimitiveEntry)) != 0)
                 return true;
 
-            EntityBase ent = null;
-            if (!m_scene.Entities.TryGetValue(objectID, out ent))
-                return false;
-
-            if(ent == null || !(ent is SceneObjectGroup))
-                return false;
-
-            SceneObjectGroup task = (SceneObjectGroup)ent;
-
             if (!enteringRegion)
             {
-                ILandObject fromparcel = m_scene.LandChannel.GetLandObject(task.AbsolutePosition.X, task.AbsolutePosition.Y);
-
-                if (fromparcel == parcel) // it already entered parcel ????
+                Vector3 oldPoint = sog.AbsolutePosition;
+                ILandObject fromparcel = m_scene.LandChannel.GetLandObject(oldPoint.X, oldPoint.Y);
+                if (fromparcel != null && fromparcel.Equals(parcel)) // it already entered parcel ????
                     return true;
             }
 
-            if (GenericParcelPermission(task.OwnerID, parcel, 0))
+            if (GenericParcelPermission(sog.OwnerID, parcel, 0))
                 return true;
 
             //Otherwise, false!

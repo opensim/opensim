@@ -1579,7 +1579,7 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                 {
                     if (m_parentScene.Permissions.CanMoveObject(group, remoteClient)
-                        && m_parentScene.Permissions.CanObjectEntry(group.UUID, false, pos))
+                        && m_parentScene.Permissions.CanObjectEntry(group, false, pos))
                     {
                         group.UpdateGroupPosition(pos);
                     }

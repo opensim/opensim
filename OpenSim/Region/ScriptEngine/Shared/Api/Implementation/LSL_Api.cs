@@ -2722,7 +2722,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (part.ParentGroup.RootPart == part)
             {
                 SceneObjectGroup parent = part.ParentGroup;
-                if (!parent.IsAttachment && !World.Permissions.CanObjectEntry(parent.UUID, false, (Vector3)toPos))
+                if (!parent.IsAttachment && !World.Permissions.CanObjectEntry(parent, false, (Vector3)toPos))
                     return;
                 parent.UpdateGroupPosition((Vector3)toPos);
             }

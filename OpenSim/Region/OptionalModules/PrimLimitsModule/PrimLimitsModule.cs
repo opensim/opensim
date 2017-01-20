@@ -135,50 +135,41 @@ namespace OpenSim.Region.OptionalModules
             return true;
         }
 
-        private bool CanObjectEnter(UUID objectID, bool enteringRegion, Vector3 newPoint, Scene scene)
+        private bool CanObjectEnter(SceneObjectGroup sog, bool enteringRegion, Vector3 newPoint, Scene scene)
         {
-            if (newPoint.X < -1f || newPoint.X > (scene.RegionInfo.RegionSizeX + 1) ||
-                newPoint.Y < -1f || newPoint.Y > (scene.RegionInfo.RegionSizeY) )
+            float newX = newPoint.X;
+            float newY = newPoint.Y;
+            if (newX < -1f || newX > (scene.RegionInfo.RegionSizeX + 1.0f) ||
+                newY < -1f || newY > (scene.RegionInfo.RegionSizeY + 1.0f) )
                 return true;
 
-            SceneObjectPart obj = scene.GetSceneObjectPart(objectID);
-
-            if (obj == null)
+            if (sog == null)
                 return false;
 
-            // Prim counts are determined by the location of the root prim.  if we're
-            // moving a child prim, just let it pass
-            if (!obj.IsRoot)
-            {
-                return true;
-            }
-
-            ILandObject newParcel = scene.LandChannel.GetLandObject(newPoint.X, newPoint.Y);
+            ILandObject newParcel = scene.LandChannel.GetLandObject(newX, newY);
 
             if (newParcel == null)
                 return true;
 
-            Vector3 oldPoint = obj.GroupPosition;
-            ILandObject oldParcel = scene.LandChannel.GetLandObject(oldPoint.X, oldPoint.Y);
-
-            // The prim hasn't crossed a region boundry so we don't need to worry
-            // about prim counts here
-            if(oldParcel != null && oldParcel.Equals(newParcel))
+            if(!enteringRegion)
             {
-                return true;
+                Vector3 oldPoint = sog.AbsolutePosition;
+                ILandObject oldParcel = scene.LandChannel.GetLandObject(oldPoint.X, oldPoint.Y);
+                if(oldParcel != null && oldParcel.Equals(newParcel))
+                    return true;
             }
 
-            int objectCount = obj.ParentGroup.PrimCount;
+            int objectCount = sog.PrimCount;
             int usedPrims = newParcel.PrimCounts.Total;
             int simulatorCapacity = newParcel.GetSimulatorMaxPrimCount();
 
             // TODO: Add Special Case here for temporary prims
 
-            string response = DoCommonChecks(objectCount, obj.OwnerID, newParcel, scene);
+            string response = DoCommonChecks(objectCount, sog.OwnerID, newParcel, scene);
 
             if (response != null)
             {
-                m_dialogModule.SendAlertToUser(obj.OwnerID, response);
+                m_dialogModule.SendAlertToUser(sog.OwnerID, response);
                 return false;
             }
             return true;

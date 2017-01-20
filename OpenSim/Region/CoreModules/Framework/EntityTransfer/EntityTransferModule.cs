@@ -2620,7 +2620,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 // FIXME: It would be better to never add the scene object at all rather than add it and then delete
                 // it
-                if (!Scene.Permissions.CanObjectEntry(so.UUID, true, so.AbsolutePosition))
+                if (!Scene.Permissions.CanObjectEntry(so, true, so.AbsolutePosition))
                 {
                     // Deny non attachments based on parcel settings
                     //
