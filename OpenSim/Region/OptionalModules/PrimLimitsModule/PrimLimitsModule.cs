@@ -165,9 +165,10 @@ namespace OpenSim.Region.OptionalModules
 
             string response = DoCommonChecks(objectCount, sog.OwnerID, newParcel, scene);
 
-            if (response != null && m_dialogModule != null)
+            if (response != null)
             {
-                m_dialogModule.SendAlertToUser(sog.OwnerID, response);
+                if(m_dialogModule != null)
+                    m_dialogModule.SendAlertToUser(sog.OwnerID, response);
                 return false;
             }
             return true;
