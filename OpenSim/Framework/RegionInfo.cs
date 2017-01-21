@@ -130,7 +130,7 @@ namespace OpenSim.Framework
         private float m_physPrimMin = 0;
         private int m_physPrimMax = 0;
         private bool m_clampPrimSize = false;
-        private int m_objectCapacity = 0;
+        private int m_objectCapacity = 15000;
         private int m_maxPrimsPerUser = -1;
         private int m_linksetCapacity = 0;
         private string m_regionType = String.Empty;
@@ -753,7 +753,7 @@ namespace OpenSim.Framework
             m_clampPrimSize = config.GetBoolean("ClampPrimSize", false);
             allKeys.Remove("ClampPrimSize");
 
-            m_objectCapacity = config.GetInt("MaxPrims", 15000);
+            m_objectCapacity = config.GetInt("MaxPrims", m_objectCapacity);
             allKeys.Remove("MaxPrims");
 
             m_maxPrimsPerUser = config.GetInt("MaxPrimsPerUser", -1);
