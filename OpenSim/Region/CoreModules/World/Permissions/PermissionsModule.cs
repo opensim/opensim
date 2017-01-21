@@ -1612,12 +1612,40 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return IsAdministrator(user);
         }
 
-        private bool CanRunScript(UUID script, UUID objectID, UUID user, Scene scene)
+        private bool CanRunScript(TaskInventoryItem scriptitem, SceneObjectPart part)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            return true;
+            if(scriptitem == null || part == null)
+                return false;
+
+            SceneObjectGroup sog = part.ParentGroup;
+            if(sog == null)
+                return false;
+
+            Vector3 pos = sog.AbsolutePosition;
+            ILandObject parcel = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
+            if (parcel == null)
+                return false;
+
+            LandData ldata = parcel.LandData;
+            if(ldata == null)
+                return false;
+
+            uint lflags = ldata.Flags;
+ 
+            if ((lflags & (uint)ParcelFlags.AllowOtherScripts) != 0)
+               return true;
+
+            if ((part.OwnerID == ldata.OwnerID))
+                return true;
+
+            if (((lflags & (uint)ParcelFlags.AllowGroupScripts) != 0)
+                    && (ldata.GroupID != UUID.Zero) && (ldata.GroupID == part.GroupID))
+                return true;
+            
+            return GenericEstatePermission(part.OwnerID);
         }
 
         private bool CanSellParcel(UUID user, ILandObject parcel, Scene scene)

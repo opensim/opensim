@@ -360,7 +360,7 @@ namespace OpenSim.Region.Framework.Scenes
 //             m_log.DebugFormat("[PRIM INVENTORY]: Starting script {0} {1} in prim {2} {3} in {4}",
 //                 item.Name, item.ItemID, m_part.Name, m_part.UUID, m_part.ParentGroup.Scene.RegionInfo.RegionName);
 
-            if (!m_part.ParentGroup.Scene.Permissions.CanRunScript(item.ItemID, m_part.UUID, item.OwnerID))
+            if (!m_part.ParentGroup.Scene.Permissions.CanRunScript(item, m_part))
             {
                 StoreScriptError(item.ItemID, "no permission");
                 return false;

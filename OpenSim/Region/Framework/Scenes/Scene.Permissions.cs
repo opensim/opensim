@@ -60,7 +60,8 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool ViewNotecardHandler(UUID script, UUID objectID, UUID user, Scene scene);
     public delegate bool EditScriptHandler(UUID script, UUID objectID, UUID user, Scene scene);
     public delegate bool EditNotecardHandler(UUID notecard, UUID objectID, UUID user, Scene scene);
-    public delegate bool RunScriptHandler(UUID script, UUID objectID, UUID user, Scene scene);
+    public delegate bool RunScriptHandlerByIDs(UUID script, UUID objectID, UUID user, Scene scene);
+    public delegate bool RunScriptHandler(TaskInventoryItem item, SceneObjectPart part);
     public delegate bool CompileScriptHandler(UUID ownerUUID, int scriptType, Scene scene);
     public delegate bool StartScriptHandler(UUID script, UUID user, Scene scene);
     public delegate bool StopScriptHandler(UUID script, UUID user, Scene scene);
@@ -131,6 +132,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event ViewNotecardHandler OnViewNotecard;
         public event EditScriptHandler OnEditScript;
         public event EditNotecardHandler OnEditNotecard;
+        public event RunScriptHandlerByIDs OnRunScriptByIDs;
         public event RunScriptHandler OnRunScript;
         public event CompileScriptHandler OnCompileScript;
         public event StartScriptHandler OnStartScript;
@@ -654,11 +656,11 @@ namespace OpenSim.Region.Framework.Scenes
         #region RUN SCRIPT (When Script Placed in Object)
         public bool CanRunScript(UUID script, UUID objectID, UUID user)
         {
-            RunScriptHandler handler = OnRunScript;
+            RunScriptHandlerByIDs handler = OnRunScriptByIDs;
             if (handler != null)
             {
                 Delegate[] list = handler.GetInvocationList();
-                foreach (RunScriptHandler h in list)
+                foreach (RunScriptHandlerByIDs h in list)
                 {
                     if (h(script, objectID, user, m_scene) == false)
                         return false;
@@ -666,6 +668,24 @@ namespace OpenSim.Region.Framework.Scenes
             }
             return true;
         }
+
+        public bool CanRunScript(TaskInventoryItem item, SceneObjectPart part)
+        {
+            RunScriptHandler handler = OnRunScript;
+            if (handler != null)
+            {
+                if(item == null || part == null)
+                    return false;
+                Delegate[] list = handler.GetInvocationList();
+                foreach (RunScriptHandler h in list)
+                {
+                    if (h(item, part) == false)
+                        return false;
+                }
+            }
+            return true;
+        }
+
 
         #endregion
 
