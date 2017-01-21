@@ -1043,7 +1043,9 @@ namespace OpenSim.Region.CoreModules.World.Land
             else
                 LandData.AABBMax = new Vector3(tx, ty, (float)m_scene.Heightmap[tx - 1, ty - 1]);
 
-            LandData.Area = tempArea * landUnit * landUnit;
+            tempArea *= landUnit * landUnit;
+            LandData.Area = tempArea;
+            LandData.SimwideArea = tempArea;
         }
 
         #endregion
