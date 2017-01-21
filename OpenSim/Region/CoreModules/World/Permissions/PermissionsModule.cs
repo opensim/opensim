@@ -1473,19 +1473,25 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            GroupPowers powers;
-            ILandObject l;
-
             ScenePresence sp = scene.GetScenePresence(user);
             if (sp == null)
                 return false;
 
+            bool isPrivUser = sp.IsGod || IsEstateManager(user);
+
             IClientAPI client = sp.ControllingClient;
-            uint perms;
+            GroupPowers powers;
+            ILandObject l;
+
             foreach (SceneObjectGroup g in new List<SceneObjectGroup>(objects))
             {
-                perms = GetObjectPermissions(sp, g, false);
-                if((perms & (uint)PermissionMask.Modify) == 0) //??
+                if(g.IsAttachment)
+                {
+                    objects.Remove(g);
+                    continue;
+                }
+
+                if (isPrivUser || g.OwnerID == user)
                     continue;
 
                 // This is a short cut for efficiency. If land is non-null,
@@ -1499,27 +1505,28 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 else
                 {
                     Vector3 pos = g.AbsolutePosition;
-
                     l = scene.LandChannel.GetLandObject(pos.X, pos.Y);
                 }
 
                 // If it's not over any land, then we can't do a thing
-                if (l == null)
+                if (l == null || l.LandData == null)
                 {
                     objects.Remove(g);
                     continue;
                 }
 
+                LandData ldata = l.LandData;
                 // If we own the land outright, then allow
                 //
-                if (l.LandData.OwnerID == user)
+                if (ldata.OwnerID == user)
                     continue;
 
                 // Group voodoo
                 //
-                if (l.LandData.IsGroupOwned)
+                if (ldata.IsGroupOwned)
                 {
-                    powers = (GroupPowers)client.GetGroupPowers(l.LandData.GroupID);
+                    UUID lGroupID = ldata.GroupID;
+                    powers = (GroupPowers)client.GetGroupPowers(lGroupID);
                     // Not a group member, or no rights at all
                     //
                     if (powers == (GroupPowers)0)
@@ -1530,7 +1537,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
                     // Group deeded object?
                     //
-                    if (g.OwnerID == l.LandData.GroupID &&
+                    if (g.OwnerID == lGroupID &&
                         (powers & GroupPowers.ReturnGroupOwned) == (GroupPowers)0)
                     {
                         objects.Remove(g);
@@ -1539,7 +1546,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
                     // Group set object?
                     //
-                    if (g.GroupID == l.LandData.GroupID &&
+                    if (g.GroupID == lGroupID &&
                         (powers & GroupPowers.ReturnGroupSet) == (GroupPowers)0)
                     {
                         objects.Remove(g);
