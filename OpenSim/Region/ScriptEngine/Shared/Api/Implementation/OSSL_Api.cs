@@ -3538,7 +3538,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             LSL_Float health = new LSL_Float(-1);
             ScenePresence presence = World.GetScenePresence(new UUID(avatar));
-            if (presence != null) health = presence.Health;
+            if (presence != null)
+                health = presence.Health;
             return health;
         }
 
@@ -3578,7 +3579,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID avatarId = new UUID(avatar);
             ScenePresence presence = World.GetScenePresence(avatarId);
 
-            if (presence != null && World.ScriptDanger(m_host.LocalId, m_host.GetWorldPosition()))
+            if (presence != null)
             {
                 float health = presence.Health;
                 health += (float)healing;
@@ -3598,7 +3599,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID avatarId = new UUID(avatar);
             ScenePresence presence = World.GetScenePresence(avatarId);
 
-            if (presence != null && World.ScriptDanger(m_host.LocalId, m_host.GetWorldPosition()))
+            if (presence != null)
             {
                 if (health > 100.0)
                     health = 100.0;
@@ -3617,7 +3618,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID avatarId = new UUID(avatar);
             ScenePresence presence = World.GetScenePresence(avatarId);
 
-            if (presence != null && World.ScriptDanger(m_host.LocalId, m_host.GetWorldPosition()))
+            if (presence != null)
                  presence.HealRate = (float)healrate;
         }
 

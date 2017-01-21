@@ -5083,65 +5083,59 @@ Label_GroupsDone:
         #endregion
 
         #region Script Engine
+        public bool LSLScriptDanger(SceneObjectPart part, Vector3 pos)
+        {
+
+            ILandObject parcel = LandChannel.GetLandObject(pos.X, pos.Y);
+            if (parcel == null)
+                return true;
+            
+            LandData ldata = parcel.LandData;
+            if (ldata == null)
+                return true;
+     
+            uint landflags = ldata.Flags;
+        
+            uint mask = (uint)(ParcelFlags.CreateObjects | ParcelFlags.AllowAPrimitiveEntry);
+            if((landflags & mask) != mask)
+                return true;
+ 
+            if((landflags & (uint)ParcelFlags.AllowOtherScripts) != 0)
+                return false;
+
+            if(part == null)
+                return true;
+            if(part.GroupID == ldata.GroupID && (landflags & (uint)ParcelFlags.AllowGroupScripts) != 0)
+                return false;
+
+            return true;
+        }
 
         private bool ScriptDanger(SceneObjectPart part, Vector3 pos)
         {
+            if (part == null)
+                return false;
+
             ILandObject parcel = LandChannel.GetLandObject(pos.X, pos.Y);
-            if (part != null)
+            if (parcel != null)
             {
-                if (parcel != null)
-                {
-                    if ((parcel.LandData.Flags & (uint)ParcelFlags.AllowOtherScripts) != 0)
-                    {
-                        return true;
-                    }
-                    else if ((part.OwnerID == parcel.LandData.OwnerID) || Permissions.IsGod(part.OwnerID))
-                    {
-                        return true;
-                    }
-                    else if (((parcel.LandData.Flags & (uint)ParcelFlags.AllowGroupScripts) != 0)
-                        && (parcel.LandData.GroupID != UUID.Zero) && (parcel.LandData.GroupID == part.GroupID))
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
+                if ((parcel.LandData.Flags & (uint)ParcelFlags.AllowOtherScripts) != 0)
+                    return true;
 
-                    if (pos.X > 0f && pos.X < RegionInfo.RegionSizeX && pos.Y > 0f && pos.Y < RegionInfo.RegionSizeY)
-                    {
-                        // The only time parcel != null when an object is inside a region is when
-                        // there is nothing behind the landchannel.  IE, no land plugin loaded.
-                        return true;
-                    }
-                    else
-                    {
-                        // The object is outside of this region.  Stop piping events to it.
-                        return false;
-                    }
-                }
+                if ((part.OwnerID == parcel.LandData.OwnerID) || Permissions.IsGod(part.OwnerID))
+                    return true;
+
+                if (((parcel.LandData.Flags & (uint)ParcelFlags.AllowGroupScripts) != 0)
+                    && (parcel.LandData.GroupID != UUID.Zero) && (parcel.LandData.GroupID == part.GroupID))
+                    return true;
             }
             else
             {
-                return false;
+                if (pos.X > 0f && pos.X < RegionInfo.RegionSizeX && pos.Y > 0f && pos.Y < RegionInfo.RegionSizeY)
+                    return true;
             }
-        }
 
-        public bool ScriptDanger(uint localID, Vector3 pos)
-        {
-            SceneObjectPart part = GetSceneObjectPart(localID);
-            if (part != null)
-            {
-                return ScriptDanger(part, pos);
-            }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
         public bool PipeEventsForScript(uint localID)
