@@ -287,8 +287,10 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             fullSimParcel.SetLandBitmap(fullSimParcel.GetSquareLandBitmap(0, 0,
                                             (int)m_scene.RegionInfo.RegionSizeX, (int)m_scene.RegionInfo.RegionSizeY));
-            fullSimParcel.LandData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
-            fullSimParcel.LandData.ClaimDate = Util.UnixTimeSinceEpoch();
+            LandData ldata = fullSimParcel.LandData;
+            ldata.SimwideArea = ldata.Area;
+            ldata.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+            ldata.ClaimDate = Util.UnixTimeSinceEpoch();
 
             return AddLandObject(fullSimParcel);
         }

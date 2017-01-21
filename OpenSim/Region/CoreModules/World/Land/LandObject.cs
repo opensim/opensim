@@ -356,6 +356,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
         }
 
+        // the total prims a parcel owner can have on a region
         public int GetSimulatorMaxPrimCount()
         {
             if (overrideSimulatorMaxPrimCount != null)
@@ -370,7 +371,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                                     * (double)m_scene.RegionInfo.RegionSettings.ObjectBonus
                                     / (long)(m_scene.RegionInfo.RegionSizeX * m_scene.RegionInfo.RegionSizeY)
                                     +0.5 );
-
+                // sanity check
                 if(simMax > m_scene.RegionInfo.ObjectCapacity)
                     simMax = m_scene.RegionInfo.ObjectCapacity;
                  //m_log.DebugFormat("Simwide Area: {0}, Capacity {1}, SimMax {2}, SimWidePrims {3}",
@@ -1045,7 +1046,6 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             tempArea *= landUnit * landUnit;
             LandData.Area = tempArea;
-            LandData.SimwideArea = tempArea;
         }
 
         #endregion
