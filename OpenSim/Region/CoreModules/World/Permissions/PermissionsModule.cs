@@ -98,8 +98,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         private bool m_forceAdminModeAlwaysOn;
         private bool m_allowAdminActionsWithoutGodMode;
 
-        private bool m_SimpleBuildPermissions = false;
-
         /// <value>
         /// The set of users that are allowed to create scripts.  This is only active if permissions are not being
         /// bypassed.  This overrides normal permissions.
@@ -184,8 +182,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_allowAdminActionsWithoutGodMode = Util.GetConfigVarFromSections<bool>(config, "implicit_gods", sections, false);
             if(m_allowAdminActionsWithoutGodMode)
                 m_forceAdminModeAlwaysOn = false;
-
-            m_SimpleBuildPermissions = Util.GetConfigVarFromSections<bool>(config, "simple_build_permissions",sections, false);
 
             m_allowedScriptCreators
                 = ParseUserSetConfigSetting(config, "allowed_script_creators", m_allowedScriptCreators);
@@ -1068,27 +1064,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return false;
         }
 
-        protected bool GenericParcelPermission(UUID user, ILandObject parcel, ulong groupPowers)
-        {
-            if (parcel.LandData.OwnerID == user)
-                return true;
-
-            if ((parcel.LandData.GroupID != UUID.Zero) && IsGroupMember(parcel.LandData.GroupID, user, groupPowers))
-                return true;
-
-            if (IsEstateManager(user))
-                return true;
-
-            if (IsAdministrator(user))
-                return true;
-
-            if (m_SimpleBuildPermissions &&
-                (parcel.LandData.Flags & (uint)ParcelFlags.UseAccessList) == 0 && parcel.IsInLandAccessList(user))
-                return true;
-
-            return false;
-        }
-
         protected bool GenericParcelOwnerPermission(UUID user, ILandObject parcel, ulong groupPowers, bool allowEstateManager)
         {
             if (parcel.LandData.OwnerID == user)
@@ -1470,8 +1445,24 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                     return true;
             }
 
-            if (GenericParcelPermission(sog.OwnerID, parcel, 0))
+            UUID userID = sog.OwnerID;
+            LandData landdata = parcel.LandData;
+
+            if (landdata.OwnerID == userID)
                 return true;
+
+            if (IsAdministrator(userID))
+                return true;
+
+            UUID landGroupID = landdata.GroupID;
+            if (landGroupID != UUID.Zero)
+            {
+                if ((parcel.LandData.Flags & ((int)ParcelFlags.AllowGroupObjectEntry)) != 0)
+                    return IsGroupMember(landGroupID, userID, 0);
+
+                 if (landdata.IsGroupOwned && IsGroupMember(landGroupID, userID, (ulong)GroupPowers.AllowRez))
+                    return true;
+            }
 
             //Otherwise, false!
             return false;
@@ -1688,13 +1679,13 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return true;
         }
 
-        private bool CanTerraformLand(UUID user, Vector3 position, Scene requestFromScene)
+        private bool CanTerraformLand(UUID userID, Vector3 position, Scene requestFromScene)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
             // Estate override
-            if (GenericEstatePermission(user))
+            if (GenericEstatePermission(userID))
                 return true;
 
             float X = position.X;
@@ -1712,13 +1703,19 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             ILandObject parcel = m_scene.LandChannel.GetLandObject(X, Y);
             if (parcel == null)
                 return false;
-
-            // Others allowed to terraform?
-            if ((parcel.LandData.Flags & ((int)ParcelFlags.AllowTerraform)) != 0)
+            
+            LandData landdata = parcel.LandData;
+            if (landdata == null)
+                return false;
+            
+            if ((landdata.Flags & ((int)ParcelFlags.AllowTerraform)) != 0)
                 return true;
 
-            // Land owner can terraform too
-            if (parcel != null && GenericParcelPermission(user, parcel, (ulong)GroupPowers.AllowEditLand))
+            if(landdata.OwnerID == userID)
+                return true;
+            
+            if (landdata.IsGroupOwned && parcel.LandData.GroupID != UUID.Zero &&  
+                    IsGroupMember(landdata.GroupID, userID, (ulong)GroupPowers.AllowEditLand))
                 return true;
 
             return false;
