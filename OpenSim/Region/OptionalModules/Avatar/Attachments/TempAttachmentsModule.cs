@@ -159,7 +159,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 
             if (target.UUID != hostgroup.OwnerID)
             {
-                uint effectivePerms = hostgroup.GetEffectivePermissions();
+                uint effectivePerms = hostgroup.EffectiveOwnerPerms;
 
                 if ((effectivePerms & (uint)PermissionMask.Transfer) == 0)
                     return 0;

@@ -2770,7 +2770,7 @@ namespace OpenSim.Region.Framework.Scenes
                         SceneObjectGroup sog = (SceneObjectGroup)e;
                         if (sog != null && !sog.IsAttachment)
                         {
-                            if (!exceptNoCopy || ((sog.GetEffectivePermissions() & (uint)PermissionMask.Copy) != 0))
+                            if (!exceptNoCopy || ((sog.EffectiveOwnerPerms & (uint)PermissionMask.Copy) != 0))
                             {
                                 DeleteSceneObject((SceneObjectGroup)e, false);
                             }

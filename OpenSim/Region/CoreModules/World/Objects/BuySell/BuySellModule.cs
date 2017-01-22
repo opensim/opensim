@@ -127,7 +127,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
             switch (saleType)
             {
             case 1: // Sell as original (in-place sale)
-                uint effectivePerms = group.GetEffectivePermissions();
+                uint effectivePerms = group.EffectiveOwnerPerms;
 
                 if ((effectivePerms & (uint)PermissionMask.Transfer) == 0)
                 {
@@ -174,7 +174,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                 string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(group);
                 group.AbsolutePosition = originalPosition;
 
-                uint perms = group.GetEffectivePermissions();
+                uint perms = group.EffectiveOwnerPerms;
 
                 if ((perms & (uint)PermissionMask.Transfer) == 0)
                 {
