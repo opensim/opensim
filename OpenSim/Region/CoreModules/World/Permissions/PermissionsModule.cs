@@ -739,10 +739,10 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             }
 
             UUID taskGroupID = task.GroupID;
-            bool groupdOwned = taskOwnerID == taskGroupID;
+            bool notGroupdOwned = taskOwnerID != taskGroupID;
 
             // if friends with rights then owner
-            if (!groupdOwned && IsFriendWithPerms(spID, taskOwnerID))
+            if (notGroupdOwned && IsFriendWithPerms(spID, taskOwnerID))
             {
                 returnMask = ApplyObjectModifyMasks(grp.EffectiveOwnerPerms, objflags, unlocked);
                 returnMask |= EXTRAOWNERMASK;
@@ -756,47 +756,37 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             ulong  powers = 0;
             if(taskGroupID != UUID.Zero && GroupMemberPowers(taskGroupID, sp, ref powers))
             {
-                // shared as priority over group roles
-                bool notShared = (grp.EffectiveGroupPerms & SHAREDMASK) == 0;
-                if(groupdOwned && notShared)
-                {
-                    // object is owned by group, check role powers
-                    if((powers & (ulong)GroupPowers.ObjectManipulate) == 0)
-                    {
-                        // group sharing or everyone
-                        returnMask = ApplyObjectModifyMasks(grp.EffectiveGroupOrEveryOnePerms, objflags, unlocked);
-                        returnMask |=
-                            (uint)PrimFlags.ObjectGroupOwned |
-                            (uint)PrimFlags.ObjectAnyOwner;
-                        return returnMask;
-                    }
-
-                    // we may have copy without transfer
-                    uint grpEffectiveOwnerPerms = grp.EffectiveOwnerPerms;
-                    if((grpEffectiveOwnerPerms & (uint)PermissionMask.Transfer) == 0)
-                        grpEffectiveOwnerPerms &= ~(uint)PermissionMask.Copy;
-                    returnMask = ApplyObjectModifyMasks(grpEffectiveOwnerPerms, objflags, unlocked);
-                    returnMask |= 
-                        (uint)PrimFlags.ObjectGroupOwned |
-                        (uint)PrimFlags.ObjectAnyOwner;
-                    if((returnMask & (uint)PrimFlags.ObjectModify) != 0)
-                        returnMask |= (uint)PrimFlags.ObjectOwnerModify;
-                    return returnMask;
-                }
-                else
+                if(notGroupdOwned)
                 {
                     // group sharing or everyone
                     returnMask = ApplyObjectModifyMasks(grp.EffectiveGroupOrEveryOnePerms, objflags, unlocked);
-                    if(groupdOwned)
-                    {
-                        returnMask |=
-                            (uint)PrimFlags.ObjectGroupOwned |
-                            (uint)PrimFlags.ObjectAnyOwner;
-                    }
-                    else if (taskOwnerID != UUID.Zero)
+                    if (taskOwnerID != UUID.Zero)
                         returnMask |= (uint)PrimFlags.ObjectAnyOwner;
                     return returnMask;
                 }
+
+                // object is owned by group, check role powers
+                if((powers & (ulong)GroupPowers.ObjectManipulate) == 0)
+                {
+                    // group sharing or everyone
+                    returnMask = ApplyObjectModifyMasks(grp.EffectiveGroupOrEveryOnePerms, objflags, unlocked);
+                    returnMask |=
+                        (uint)PrimFlags.ObjectGroupOwned |
+                        (uint)PrimFlags.ObjectAnyOwner;
+                    return returnMask;
+                }
+
+                // we may have copy without transfer
+                uint grpEffectiveOwnerPerms = grp.EffectiveOwnerPerms;
+                if((grpEffectiveOwnerPerms & (uint)PermissionMask.Transfer) == 0)
+                    grpEffectiveOwnerPerms &= ~(uint)PermissionMask.Copy;
+                returnMask = ApplyObjectModifyMasks(grpEffectiveOwnerPerms, objflags, unlocked);
+                returnMask |= 
+                    (uint)PrimFlags.ObjectGroupOwned |
+                    (uint)PrimFlags.ObjectYouOwner;
+                if((returnMask & (uint)PrimFlags.ObjectModify) != 0)
+                    returnMask |= (uint)PrimFlags.ObjectOwnerModify;
+                return returnMask;
             }
 
             // fallback is everyone rights
@@ -898,17 +888,17 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             
             if (group.IsAttachment)
                 return 0;
-          
-            if (IsFriendWithPerms(currentUser, objectOwner))
-                return group.EffectiveOwnerPerms  & lockmask;
 
             UUID sogGroupID = group.GroupID;
+            bool notgroudOwned = sogGroupID != objectOwner;
+
+            if (notgroudOwned && IsFriendWithPerms(currentUser, objectOwner))
+                return group.EffectiveOwnerPerms  & lockmask;
+
             ulong powers = 0;
             if (sogGroupID != UUID.Zero && GroupMemberPowers(sogGroupID, currentUser, ref powers))
             {
-                bool Shared = (group.EffectiveGroupPerms & SHAREDMASK) != 0;
-
-                if(Shared || sogGroupID != objectOwner)
+                if(notgroudOwned)
                     return  group.EffectiveGroupOrEveryOnePerms & lockmask;
 
                 if((powers & (ulong)GroupPowers.ObjectManipulate) == 0)
@@ -955,16 +945,16 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (group.IsAttachment)
                 return 0;
           
-            if (IsFriendWithPerms(spID, objectOwner))
+            UUID sogGroupID = group.GroupID;
+            bool notgroudOwned = sogGroupID != objectOwner;
+
+            if (notgroudOwned && IsFriendWithPerms(spID, objectOwner))
                 return group.EffectiveOwnerPerms  & lockmask;
 
-            UUID sogGroupID = group.GroupID;
             ulong powers = 0;
             if (sogGroupID != UUID.Zero && GroupMemberPowers(sogGroupID, sp, ref powers))
             {
-                bool Shared = (group.EffectiveGroupPerms & SHAREDMASK) != 0;
-
-                if(Shared || sogGroupID != objectOwner)
+                if(notgroudOwned)
                     return  group.EffectiveGroupOrEveryOnePerms & lockmask;
 
                 if((powers & (ulong)GroupPowers.ObjectManipulate) == 0)
