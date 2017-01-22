@@ -1380,18 +1380,10 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
-            if ((taskItem.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
+            if (!Permissions.CanCopyObjectInventory(itemId, part.UUID, remoteClient.AgentId))
             {
-                // If the item to be moved is no copy, we need to be able to
-                // edit the prim.
-                if (!Permissions.CanEditObjectInventory(part.UUID, remoteClient.AgentId))
-                    return;
-            }
-            else
-            {
-                // If the item is copiable, then we just need to have perms
-                // on it. The delete check is a pure rights check
-                if (!Permissions.CanDeleteObject(part.UUID, remoteClient.AgentId))
+                // check also if we can delete the no copy item
+                if(!Permissions.CanEditObject(part.UUID, remoteClient.AgentId))
                     return;
             }
 
@@ -2125,6 +2117,7 @@ namespace OpenSim.Region.Framework.Scenes
             List<uint> deleteIDs = new List<uint>();
             List<SceneObjectGroup> deleteGroups = new List<SceneObjectGroup>();
             List<SceneObjectGroup> takeGroups = new List<SceneObjectGroup>();
+            List<SceneObjectGroup> takeDeleteGroups = new List<SceneObjectGroup>();
 
             ScenePresence sp = remoteClient.SceneAgent as ScenePresence;
 
@@ -2192,7 +2185,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (!Permissions.CanTakeObject(grp, sp))
                         permissionToTake = false;
 
-                    if (!Permissions.CanDeleteObject(grp.UUID, remoteClient.AgentId))
+                    if (!Permissions.CanDeleteObject(grp, remoteClient))
                         permissionToDelete = false;
                 }
 
@@ -2249,26 +2242,24 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                if (permissionToTake && (!permissionToDelete))
-                    takeGroups.Add(grp);
-
                 if (permissionToDelete)
                 {
                     if (permissionToTake)
+                        takeDeleteGroups.Add(grp);
+                    else
                         deleteGroups.Add(grp);
                     deleteIDs.Add(grp.LocalId);
                 }
+                else if(permissionToTake)
+                    takeGroups.Add(grp);
             }
 
              SendKillObject(deleteIDs);
 
-            if (deleteGroups.Count > 0)
+            if (takeDeleteGroups.Count > 0)
             {
-                foreach (SceneObjectGroup g in deleteGroups)
-                    deleteIDs.Remove(g.LocalId);
-
                 m_asyncSceneObjectDeleter.DeleteToInventory(
-                        action, destinationID, deleteGroups, remoteClient,
+                        action, destinationID, takeDeleteGroups, remoteClient,
                         true);
             }
             if (takeGroups.Count > 0)
@@ -2277,7 +2268,7 @@ namespace OpenSim.Region.Framework.Scenes
                         action, destinationID, takeGroups, remoteClient,
                         false);
             }
-            if (deleteIDs.Count > 0)
+            if (deleteGroups.Count > 0)
             {
                 foreach (SceneObjectGroup g in deleteGroups)
                     DeleteSceneObject(g, true);

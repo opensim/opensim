@@ -42,7 +42,8 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool BypassPermissionsHandler();
     public delegate bool PropagatePermissionsHandler();
     public delegate bool RezObjectHandler(int objectCount, UUID owner, Vector3 objectPosition, Scene scene);
-    public delegate bool DeleteObjectHandler(UUID objectID, UUID deleter, Scene scene);
+    public delegate bool DeleteObjectHandlerByIDs(UUID objectID, UUID deleter, Scene scene);
+    public delegate bool DeleteObjectHandler(SceneObjectGroup sog, ScenePresence sp);  
     public delegate bool TransferObjectHandler(UUID objectID, UUID recipient, Scene scene);
     public delegate bool TakeObjectHandler(SceneObjectGroup sog, ScenePresence sp);
     public delegate bool SellGroupObjectHandler(UUID userID, UUID groupID, Scene scene);
@@ -114,6 +115,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event BypassPermissionsHandler OnBypassPermissions;
         public event PropagatePermissionsHandler OnPropagatePermissions;
         public event RezObjectHandler OnRezObject;
+        public event DeleteObjectHandlerByIDs OnDeleteObjectByIDs;
         public event DeleteObjectHandler OnDeleteObject;
         public event TransferObjectHandler OnTransferObject;
         public event TakeObjectHandler OnTakeObject;
@@ -262,13 +264,39 @@ namespace OpenSim.Region.Framework.Scenes
         {
             bool result = true;
 
-            DeleteObjectHandler handler = OnDeleteObject;
+            DeleteObjectHandlerByIDs handler = OnDeleteObjectByIDs;
             if (handler != null)
             {
                 Delegate[] list = handler.GetInvocationList();
-                foreach (DeleteObjectHandler h in list)
+                foreach (DeleteObjectHandlerByIDs h in list)
                 {
                     if (h(objectID, deleter, m_scene) == false)
+                    {
+                        result = false;
+                        break;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public bool CanDeleteObject(SceneObjectGroup sog, IClientAPI client)
+        {
+            bool result = true;
+
+            DeleteObjectHandler handler = OnDeleteObject;
+            if (handler != null)
+            {
+               if(sog == null || client == null || client.SceneAgent == null)
+                    return false;
+
+                ScenePresence sp = client.SceneAgent as ScenePresence;
+
+                Delegate[] list = handler.GetInvocationList();
+                foreach (DeleteObjectHandler h in list)
+                {
+                    if (h(sog, sp) == false)
                     {
                         result = false;
                         break;

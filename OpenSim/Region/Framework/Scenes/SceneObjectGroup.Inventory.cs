@@ -315,8 +315,7 @@ namespace OpenSim.Region.Framework.Scenes
                 const uint copytransfermast = (uint)(PermissionMask.Copy | PermissionMask.Transfer);
 
                 uint basePerms = (RootPart.BaseMask & allmask) | (uint)PermissionMask.Move;
-                bool noBaseTransfer = (RootPart.OwnerID != RootPart.GroupID &&
-                        (basePerms & (uint)PermissionMask.Transfer) == 0);
+                bool noBaseTransfer = (basePerms & (uint)PermissionMask.Transfer) == 0;
 
                 uint rootOwnerPerms = RootPart.OwnerMask;
                 uint owner = rootOwnerPerms;
@@ -342,17 +341,17 @@ namespace OpenSim.Region.Framework.Scenes
 
                 owner &= basePerms;
                 m_EffectiveOwnerPerms = owner;
+                uint ownertransfermask = owner & (uint)PermissionMask.Transfer;
 
                 // recover modify and move
                 rootGroupPerms &= movemodmask;
                 group |= rootGroupPerms;
                 if(noBaseTransfer)
                     group &=~(uint)PermissionMask.Copy;
+                else
+                    group |= ownertransfermask;
 
                 uint groupOrEveryone = group;
-
-                if((group & copytransfermast) == 0)
-                    group |= (uint)PermissionMask.Transfer;
                 m_EffectiveGroupPerms = group & owner;
 
                 // recover move
@@ -361,15 +360,12 @@ namespace OpenSim.Region.Framework.Scenes
                 everyone &= ~(uint)PermissionMask.Modify;
                 if(noBaseTransfer)
                     everyone &=~(uint)PermissionMask.Copy;
+                else
+                    everyone |= ownertransfermask;
 
                 groupOrEveryone |= everyone;
 
-                if((everyone & copytransfermast) == 0)
-                    everyone |= (uint)PermissionMask.Transfer;
                 m_EffectiveEveryOnePerms = everyone  & owner;
-
-                if((groupOrEveryone & copytransfermast) == 0)
-                    groupOrEveryone |= (uint)PermissionMask.Transfer;
                 m_EffectiveGroupOrEveryOnePerms = groupOrEveryone  & owner;
             }
         }
@@ -386,8 +382,7 @@ namespace OpenSim.Region.Framework.Scenes
                 const uint copytransfermast = (uint)(PermissionMask.Copy | PermissionMask.Transfer);
 
                 uint basePerms = (RootPart.BaseMask & allmask) | (uint)PermissionMask.Move;
-                bool noBaseTransfer = (RootPart.OwnerID == RootPart.GroupID &&
-                        (basePerms & (uint)PermissionMask.Transfer) == 0);
+                bool noBaseTransfer = (basePerms & (uint)PermissionMask.Transfer) == 0;
 
                 uint rootOwnerPerms = RootPart.OwnerMask;
                 uint owner = rootOwnerPerms;
@@ -412,17 +407,17 @@ namespace OpenSim.Region.Framework.Scenes
 
                 owner &= basePerms;
                 m_EffectiveOwnerPerms = owner;
+                uint ownertransfermask = owner & (uint)PermissionMask.Transfer;
 
                 // recover modify and move
                 rootGroupPerms &= movemodmask;
                 group |= rootGroupPerms;
                 if(noBaseTransfer)
                     group &=~(uint)PermissionMask.Copy;
+                else
+                    group |= ownertransfermask;
 
                 uint groupOrEveryone = group;
-
-                if((group & copytransfermast) == 0)
-                    group |= (uint)PermissionMask.Transfer;
                 m_EffectiveGroupPerms = group & owner;
 
                 // recover move
@@ -431,15 +426,12 @@ namespace OpenSim.Region.Framework.Scenes
                 everyone &= ~(uint)PermissionMask.Modify;
                 if(noBaseTransfer)
                     everyone &=~(uint)PermissionMask.Copy;
+                else
+                    everyone |= ownertransfermask;
 
                 groupOrEveryone |= everyone;
 
-                if((everyone & copytransfermast) == 0)
-                    everyone |= (uint)PermissionMask.Transfer;
                 m_EffectiveEveryOnePerms = everyone  & owner;
-
-                if((groupOrEveryone & copytransfermast) == 0)
-                    groupOrEveryone |= (uint)PermissionMask.Transfer;
                 m_EffectiveGroupOrEveryOnePerms = groupOrEveryone  & owner;
             }
         }
