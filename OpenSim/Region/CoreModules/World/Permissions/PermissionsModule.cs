@@ -258,56 +258,65 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_scene.Permissions.OnBypassPermissions += BypassPermissions;
             m_scene.Permissions.OnSetBypassPermissions += SetBypassPermissions;
             m_scene.Permissions.OnPropagatePermissions += PropagatePermissions;
-            m_scene.Permissions.OnGenerateClientFlags += GenerateClientFlags;
-            m_scene.Permissions.OnAbandonParcel += CanAbandonParcel;
-            m_scene.Permissions.OnReclaimParcel += CanReclaimParcel;
-            m_scene.Permissions.OnDeedParcel += CanDeedParcel;
-            m_scene.Permissions.OnDeedObject += CanDeedObject;
+
             m_scene.Permissions.OnIsGridGod += IsGridAdministrator;
             m_scene.Permissions.OnIsAdministrator += IsAdministrator;
             m_scene.Permissions.OnIsEstateManager += IsEstateManager;
+
+            m_scene.Permissions.OnGenerateClientFlags += GenerateClientFlags;
+
+            m_scene.Permissions.OnIssueEstateCommand += CanIssueEstateCommand;
+            m_scene.Permissions.OnRunConsoleCommand += CanRunConsoleCommand;
+
+            m_scene.Permissions.OnTeleport += CanTeleport;
+
+            m_scene.Permissions.OnInstantMessage += CanInstantMessage;
+
+            m_scene.Permissions.OnAbandonParcel += CanAbandonParcel;
+            m_scene.Permissions.OnReclaimParcel += CanReclaimParcel;
+            m_scene.Permissions.OnDeedParcel += CanDeedParcel;
+            m_scene.Permissions.OnSellParcel += CanSellParcel;
+            m_scene.Permissions.OnEditParcelProperties += CanEditParcelProperties;
+            m_scene.Permissions.OnTerraformLand += CanTerraformLand;
+            m_scene.Permissions.OnBuyLand += CanBuyLand;
+
+            m_scene.Permissions.OnRezObject += CanRezObject;
+            m_scene.Permissions.OnObjectEntry += CanObjectEntry;
+            m_scene.Permissions.OnReturnObjects += CanReturnObjects;
+
             m_scene.Permissions.OnDuplicateObject += CanDuplicateObject;
             m_scene.Permissions.OnDeleteObjectByIDs += CanDeleteObjectByIDs;
             m_scene.Permissions.OnDeleteObject += CanDeleteObject;
             m_scene.Permissions.OnEditObjectByIDs += CanEditObjectByIDs;
             m_scene.Permissions.OnEditObject += CanEditObject;
-            m_scene.Permissions.OnEditParcelProperties += CanEditParcelProperties;
-            m_scene.Permissions.OnInstantMessage += CanInstantMessage;
             m_scene.Permissions.OnInventoryTransfer += CanInventoryTransfer;
-            m_scene.Permissions.OnIssueEstateCommand += CanIssueEstateCommand;
             m_scene.Permissions.OnMoveObject += CanMoveObject;
-            m_scene.Permissions.OnObjectEntry += CanObjectEntry;
-            m_scene.Permissions.OnReturnObjects += CanReturnObjects;
-            m_scene.Permissions.OnRezObject += CanRezObject;
-            m_scene.Permissions.OnRunConsoleCommand += CanRunConsoleCommand;
-            m_scene.Permissions.OnRunScript += CanRunScript;
-            m_scene.Permissions.OnCompileScript += CanCompileScript;
-            m_scene.Permissions.OnSellParcel += CanSellParcel;
             m_scene.Permissions.OnTakeObject += CanTakeObject;
-            m_scene.Permissions.OnSellGroupObject += CanSellGroupObject;
             m_scene.Permissions.OnTakeCopyObject += CanTakeCopyObject;
-            m_scene.Permissions.OnTerraformLand += CanTerraformLand;
             m_scene.Permissions.OnLinkObject += CanLinkObject;
             m_scene.Permissions.OnDelinkObject += CanDelinkObject;
-            m_scene.Permissions.OnBuyLand += CanBuyLand;
+            m_scene.Permissions.OnDeedObject += CanDeedObject;
+            m_scene.Permissions.OnSellGroupObject += CanSellGroupObject;
 
-            m_scene.Permissions.OnViewNotecard += CanViewNotecard;
-            m_scene.Permissions.OnViewScript += CanViewScript;
-            m_scene.Permissions.OnEditNotecard += CanEditNotecard;
-            m_scene.Permissions.OnEditScript += CanEditScript;
 
             m_scene.Permissions.OnCreateObjectInventory += CanCreateObjectInventory;
             m_scene.Permissions.OnEditObjectInventory += CanEditObjectInventory;
             m_scene.Permissions.OnCopyObjectInventory += CanCopyObjectInventory;
             m_scene.Permissions.OnDeleteObjectInventory += CanDeleteObjectInventory;
+
+            m_scene.Permissions.OnViewNotecard += CanViewNotecard;
+            m_scene.Permissions.OnViewScript += CanViewScript;
+            m_scene.Permissions.OnEditNotecard += CanEditNotecard;
+            m_scene.Permissions.OnEditScript += CanEditScript;
             m_scene.Permissions.OnResetScript += CanResetScript;
+            m_scene.Permissions.OnRunScript += CanRunScript;
+            m_scene.Permissions.OnCompileScript += CanCompileScript;
 
             m_scene.Permissions.OnCreateUserInventory += CanCreateUserInventory;
             m_scene.Permissions.OnCopyUserInventory += CanCopyUserInventory;
             m_scene.Permissions.OnEditUserInventory += CanEditUserInventory;
             m_scene.Permissions.OnDeleteUserInventory += CanDeleteUserInventory;
 
-            m_scene.Permissions.OnTeleport += CanTeleport;
 
             m_scene.Permissions.OnControlPrimMedia += CanControlPrimMedia;
             m_scene.Permissions.OnInteractWithPrimMedia += CanInteractWithPrimMedia;
@@ -2061,7 +2070,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (sog == null)
                 return false;
 
-            uint perms = GetObjectPermissions(objectID, sog, true);
+            uint perms = GetObjectPermissions(userID, sog, true);
             if((perms & (uint)PermissionMask.Modify) == 0)
                 return false;
 
@@ -2076,6 +2085,56 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             if(sog.OwnerID != userID && (itperms & (uint)PermissionMask.Transfer) == 0)
                 return false;
+
+            return true;
+        }
+
+        // object inventory to object inventory item drag and drop
+        private bool CanDoObjectInvToObjectInv(TaskInventoryItem item, SceneObjectPart sourcePart, SceneObjectPart destPart)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            if (sourcePart == null || destPart == null || item == null)
+                return false;
+
+            SceneObjectGroup srcsog = sourcePart.ParentGroup;
+            SceneObjectGroup destsog = destPart.ParentGroup;
+            if (srcsog == null || destsog == null)
+                return false;
+
+            // dest is locked
+            if((destsog.EffectiveOwnerPerms & (uint)PermissionMask.Move) == 0)
+                return false;
+
+            uint itperms = item.CurrentPermissions;
+
+            // if item is no copy the source is modifed
+            if((itperms & (uint)PermissionMask.Copy) == 0 && (srcsog.EffectiveOwnerPerms & (uint)PermissionMask.Modify) == 0)
+                return false;
+
+            UUID srcOwner = srcsog.OwnerID;
+            UUID destOwner = destsog.OwnerID;
+            bool notSameOwner = srcOwner != destOwner;
+
+            if(notSameOwner)
+            {
+                if((itperms & (uint)PermissionMask.Transfer) == 0)
+                    return false;
+
+                // scripts can't be droped
+                if(item.InvType == (int)InventoryType.LSL)
+                    return false;
+
+                if((destPart.GetEffectiveObjectFlags() & (uint)PrimFlags.AllowInventoryDrop) == 0)
+                    return false;
+            }
+            else
+            {
+                if((destPart.GetEffectiveObjectFlags() & (uint)PrimFlags.AllowInventoryDrop) == 0 &&
+                            (destsog.EffectiveOwnerPerms & (uint)PermissionMask.Modify) == 0)
+                    return false;
+            }
 
             return true;
         }
