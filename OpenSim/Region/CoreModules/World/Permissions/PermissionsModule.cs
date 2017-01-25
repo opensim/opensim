@@ -303,6 +303,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_scene.Permissions.OnEditObjectInventory += CanEditObjectInventory;
             m_scene.Permissions.OnCopyObjectInventory += CanCopyObjectInventory;
             m_scene.Permissions.OnDeleteObjectInventory += CanDeleteObjectInventory;
+            m_scene.Permissions.OnDoObjectInvToObjectInv += CanDoObjectInvToObjectInv;
 
             m_scene.Permissions.OnViewNotecard += CanViewNotecard;
             m_scene.Permissions.OnViewScript += CanViewScript;

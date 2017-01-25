@@ -86,6 +86,7 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool DelinkObjectHandler(UUID user, UUID objectID);
     public delegate bool CreateObjectInventoryHandler(int invType, UUID objectID, UUID userID);
     public delegate bool CopyObjectInventoryHandler(UUID itemID, UUID objectID, UUID userID);
+    public delegate bool DoObjectInvToObjectInv(TaskInventoryItem item, SceneObjectPart sourcePart, SceneObjectPart destPart);
     public delegate bool DeleteObjectInventoryHandler(UUID itemID, UUID objectID, UUID userID);
     public delegate bool TransferObjectInventoryHandler(UUID itemID, UUID objectID, UUID userID);
     public delegate bool CreateUserInventoryHandler(int invType, UUID userID);
@@ -158,6 +159,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event DelinkObjectHandler OnDelinkObject;
         public event CreateObjectInventoryHandler OnCreateObjectInventory;
         public event CopyObjectInventoryHandler OnCopyObjectInventory;
+        public event DoObjectInvToObjectInv OnDoObjectInvToObjectInv;
         public event DeleteObjectInventoryHandler OnDeleteObjectInventory;
         public event TransferObjectInventoryHandler OnTransferObjectInventory;
         public event CreateUserInventoryHandler OnCreateUserInventory;
@@ -1084,6 +1086,23 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (CopyObjectInventoryHandler h in list)
                 {
                     if (h(itemID, objectID, userID) == false)
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public bool CanDoObjectInvToObjectInv(TaskInventoryItem item, SceneObjectPart sourcePart, SceneObjectPart destPart)
+        {
+            DoObjectInvToObjectInv handler = OnDoObjectInvToObjectInv;
+            if (handler != null)
+            {
+                if (sourcePart == null || destPart == null || item == null)
+                    return false;
+                Delegate[] list = handler.GetInvocationList();
+                foreach (DoObjectInvToObjectInv h in list)
+                {
+                    if (h(item, sourcePart, destPart) == false)
                         return false;
                 }
             }

@@ -1461,28 +1461,8 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
-            // Can't transfer this
-            //
-            if (part.OwnerID != destPart.OwnerID && (srcTaskItem.CurrentPermissions & (uint)PermissionMask.Transfer) == 0)
+            if(!Permissions.CanDoObjectInvToObjectInv(srcTaskItem, part, destPart))
                 return;
-
-            bool overrideNoMod = false;
-            if ((part.GetEffectiveObjectFlags() & (uint)PrimFlags.AllowInventoryDrop) != 0)
-                overrideNoMod = true;
-
-            if (part.OwnerID != destPart.OwnerID && (destPart.GetEffectiveObjectFlags() & (uint)PrimFlags.AllowInventoryDrop) == 0)
-            {
-                // object cannot copy items to an object owned by a different owner
-                // unless llAllowInventoryDrop has been called
-
-                return;
-            }
-
-            // must have both move and modify permission to put an item in an object
-            if (((part.OwnerMask & (uint)PermissionMask.Modify) == 0) && (!overrideNoMod))
-            {
-                return;
-            }
 
             TaskInventoryItem destTaskItem = new TaskInventoryItem();
 
