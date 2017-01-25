@@ -39,6 +39,7 @@ using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Avatar.AvatarFactory;
 using OpenSim.Region.OptionalModules.World.NPC;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.CoreModules.World.Permissions;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;
 using OpenSim.Region.ScriptEngine.Shared.Instance;
@@ -63,12 +64,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             base.SetUp();
 
             IConfigSource initConfigSource = new IniConfigSource();
-            IConfig config = initConfigSource.AddConfig("XEngine");
+            IConfig config = initConfigSource.AddConfig("Startup");
+            config.Set("serverside_object_permissions", true);
+            config =initConfigSource.AddConfig("Permissions");
+            config.Set("permissionmodules", "DefaultPermissionsModule");
+            config.Set("serverside_object_permissions", true);
+            config.Set("propagate_permissions", true);
+
+            config = initConfigSource.AddConfig("XEngine");
             config.Set("Enabled", "true");
 
             m_scene = new SceneHelpers().SetupScene();
-            SceneHelpers.SetupSceneModules(m_scene, initConfigSource);
-
+            SceneHelpers.SetupSceneModules(m_scene, initConfigSource, new object[] { new DefaultPermissionsModule() });
             m_engine = new XEngine.XEngine();
             m_engine.Initialise(initConfigSource);
             m_engine.AddRegion(m_scene);
