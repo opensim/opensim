@@ -111,7 +111,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="item">The user inventory item being added.</param>
         /// <param name="copyItemID">The item UUID that should be used by the new item.</param>
         /// <returns></returns>
-        public bool AddInventoryItem(UUID agentID, uint localID, InventoryItemBase item, UUID copyItemID)
+        public bool AddInventoryItem(UUID agentID, uint localID, InventoryItemBase item, UUID copyItemID, bool withModRights = true)
         {
 //            m_log.DebugFormat(
 //                "[PRIM INVENTORY]: Adding inventory item {0} from {1} to part with local ID {2}",
@@ -120,69 +120,72 @@ namespace OpenSim.Region.Framework.Scenes
             UUID newItemId = (copyItemID != UUID.Zero) ? copyItemID : item.ID;
 
             SceneObjectPart part = GetPart(localID);
-            if (part != null)
-            {
-                TaskInventoryItem taskItem = new TaskInventoryItem();
-
-                taskItem.ItemID = newItemId;
-                taskItem.AssetID = item.AssetID;
-                taskItem.Name = item.Name;
-                taskItem.Description = item.Description;
-                taskItem.OwnerID = part.OwnerID; // Transfer ownership
-                taskItem.CreatorID = item.CreatorIdAsUuid;
-                taskItem.Type = item.AssetType;
-                taskItem.InvType = item.InvType;
-
-                if (agentID != part.OwnerID && m_scene.Permissions.PropagatePermissions())
-                {
-                    taskItem.BasePermissions = item.BasePermissions &
-                            item.NextPermissions;
-                    taskItem.CurrentPermissions = item.CurrentPermissions &
-                            item.NextPermissions;
-                    taskItem.EveryonePermissions = item.EveryOnePermissions &
-                            item.NextPermissions;
-                    taskItem.GroupPermissions = item.GroupPermissions &
-                            item.NextPermissions;
-                    taskItem.NextPermissions = item.NextPermissions;
-                    // We're adding this to a prim we don't own. Force
-                    // owner change
-                    taskItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
-                }
-                else
-                {
-                    taskItem.BasePermissions = item.BasePermissions;
-                    taskItem.CurrentPermissions = item.CurrentPermissions;
-                    taskItem.EveryonePermissions = item.EveryOnePermissions;
-                    taskItem.GroupPermissions = item.GroupPermissions;
-                    taskItem.NextPermissions = item.NextPermissions;
-                }
-
-                taskItem.Flags = item.Flags;
-
-//                m_log.DebugFormat(
-//                    "[PRIM INVENTORY]: Flags are 0x{0:X} for item {1} added to part {2} by {3}",
-//                    taskItem.Flags, taskItem.Name, localID, remoteClient.Name);
-
-                // TODO: These are pending addition of those fields to TaskInventoryItem
-//                taskItem.SalePrice = item.SalePrice;
-//                taskItem.SaleType = item.SaleType;
-                taskItem.CreationDate = (uint)item.CreationDate;
-
-                bool addFromAllowedDrop = agentID != part.OwnerID;
-
-                part.Inventory.AddInventoryItem(taskItem, addFromAllowedDrop);
-                part.ParentGroup.AggregatePerms();
-                return true;
-            }
-            else
+            if (part == null)
             {
                 m_log.ErrorFormat(
                     "[PRIM INVENTORY]: " +
                     "Couldn't find prim local ID {0} in group {1}, {2} to add inventory item ID {3}",
                     localID, Name, UUID, newItemId);
+                return false;
             }
 
-            return false;
+            TaskInventoryItem taskItem = new TaskInventoryItem();
+
+            taskItem.ItemID = newItemId;
+            taskItem.AssetID = item.AssetID;
+            taskItem.Name = item.Name;
+            taskItem.Description = item.Description;
+            taskItem.OwnerID = part.OwnerID; // Transfer ownership
+            taskItem.CreatorID = item.CreatorIdAsUuid;
+            taskItem.Type = item.AssetType;
+            taskItem.InvType = item.InvType;
+
+            if (agentID != part.OwnerID && m_scene.Permissions.PropagatePermissions())
+            {
+                taskItem.BasePermissions = item.BasePermissions &
+                        item.NextPermissions;
+                taskItem.CurrentPermissions = item.CurrentPermissions &
+                        item.NextPermissions;
+                taskItem.EveryonePermissions = item.EveryOnePermissions &
+                        item.NextPermissions;
+                taskItem.GroupPermissions = item.GroupPermissions &
+                        item.NextPermissions;
+                taskItem.NextPermissions = item.NextPermissions;
+                // We're adding this to a prim we don't own. Force
+                // owner change
+                taskItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
+
+            }
+            else
+            {
+                taskItem.BasePermissions = item.BasePermissions;
+                taskItem.CurrentPermissions = item.CurrentPermissions;
+                taskItem.EveryonePermissions = item.EveryOnePermissions;
+                taskItem.GroupPermissions = item.GroupPermissions;
+                taskItem.NextPermissions = item.NextPermissions;
+            }
+
+            taskItem.Flags = item.Flags;
+
+//                m_log.DebugFormat(
+//                    "[PRIM INVENTORY]: Flags are 0x{0:X} for item {1} added to part {2} by {3}",
+//                    taskItem.Flags, taskItem.Name, localID, remoteClient.Name);
+
+            // TODO: These are pending addition of those fields to TaskInventoryItem
+//                taskItem.SalePrice = item.SalePrice;
+//                taskItem.SaleType = item.SaleType;
+            taskItem.CreationDate = (uint)item.CreationDate;
+                
+            bool addFromAllowedDrop;
+            if(withModRights)
+                addFromAllowedDrop = false;
+            else
+                addFromAllowedDrop = (part.ParentGroup.RootPart.GetEffectiveObjectFlags() & (uint)PrimFlags.AllowInventoryDrop) != 0;
+
+            part.Inventory.AddInventoryItem(taskItem, addFromAllowedDrop);
+            part.ParentGroup.AggregatePerms();
+            return true;
+
         }
 
         /// <summary>
