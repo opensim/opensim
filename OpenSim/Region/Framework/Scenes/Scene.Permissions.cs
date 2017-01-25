@@ -87,6 +87,7 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool CreateObjectInventoryHandler(int invType, UUID objectID, UUID userID);
     public delegate bool CopyObjectInventoryHandler(UUID itemID, UUID objectID, UUID userID);
     public delegate bool DoObjectInvToObjectInv(TaskInventoryItem item, SceneObjectPart sourcePart, SceneObjectPart destPart);
+    public delegate bool DoDropInObjectInv(InventoryItemBase item, ScenePresence sp, SceneObjectPart destPart);
     public delegate bool DeleteObjectInventoryHandler(UUID itemID, UUID objectID, UUID userID);
     public delegate bool TransferObjectInventoryHandler(UUID itemID, UUID objectID, UUID userID);
     public delegate bool CreateUserInventoryHandler(int invType, UUID userID);
@@ -160,6 +161,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event CreateObjectInventoryHandler OnCreateObjectInventory;
         public event CopyObjectInventoryHandler OnCopyObjectInventory;
         public event DoObjectInvToObjectInv OnDoObjectInvToObjectInv;
+        public event DoDropInObjectInv OnDropInObjectInv;
         public event DeleteObjectInventoryHandler OnDeleteObjectInventory;
         public event TransferObjectInventoryHandler OnTransferObjectInventory;
         public event CreateUserInventoryHandler OnCreateUserInventory;
@@ -1103,6 +1105,28 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (DoObjectInvToObjectInv h in list)
                 {
                     if (h(item, sourcePart, destPart) == false)
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public bool CanDropInObjectInv(InventoryItemBase item, IClientAPI client, SceneObjectPart destPart)
+        {
+            DoDropInObjectInv handler = OnDropInObjectInv;
+            if (handler != null)
+            {
+                if (client == null || client.SceneAgent == null|| destPart == null || item == null)
+                    return false;
+
+                ScenePresence sp = client.SceneAgent as ScenePresence;
+                if(sp == null || sp.IsDeleted)
+                    return false;
+
+                Delegate[] list = handler.GetInvocationList();
+                foreach (DoDropInObjectInv h in list)
+                {
+                    if (h(item, sp, destPart) == false)
                         return false;
                 }
             }

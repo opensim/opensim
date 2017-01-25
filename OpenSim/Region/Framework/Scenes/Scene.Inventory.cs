@@ -1645,76 +1645,78 @@ namespace OpenSim.Region.Framework.Scenes
                                         uint primLocalID)
         {
             UUID itemID = itemInfo.ItemID;
+            if (itemID == UUID.Zero)
+            {
+                m_log.ErrorFormat(
+                            "[PRIM INVENTORY]: UpdateTaskInventory called with item ID Zero to update for {1}!",
+                            remoteClient.Name);
+                return;
+            }
 
             // Find the prim we're dealing with
             SceneObjectPart part = GetSceneObjectPart(primLocalID);
-
-            if (part != null)
+            if(part == null)
             {
-                TaskInventoryItem currentItem = part.Inventory.GetInventoryItem(itemID);
-                bool allowInventoryDrop = (part.GetEffectiveObjectFlags()
-                                           & (uint)PrimFlags.AllowInventoryDrop) != 0;
+                m_log.WarnFormat(
+                    "[PRIM INVENTORY]: " +
+                    "Update with item {0} requested of prim {1} for {2} but this prim does not exist",
+                    itemID, primLocalID, remoteClient.Name);
+                    return;
+            }
 
-                // Explicity allow anyone to add to the inventory if the
-                // AllowInventoryDrop flag has been set. Don't however let
-                // them update an item unless they pass the external checks
-                //
-                if (!Permissions.CanEditObjectInventory(part.UUID, remoteClient.AgentId)
-                    && (currentItem != null || !allowInventoryDrop))
+            TaskInventoryItem currentItem = part.Inventory.GetInventoryItem(itemID);
+
+            if (currentItem == null)
+            {
+                InventoryItemBase item = InventoryService.GetItem(remoteClient.AgentId, itemID);
+
+                // if not found Try library
+                if (item == null && LibraryService != null && LibraryService.LibraryRootFolder != null)
+                    item = LibraryService.LibraryRootFolder.FindItem(itemID);
+
+                if(item == null)
+                {
+                    m_log.ErrorFormat(
+                            "[PRIM INVENTORY]: Could not find inventory item {0} to update for {1}!",
+                            itemID, remoteClient.Name);
+                    return;
+                }
+
+                if (!Permissions.CanDropInObjectInv(item, remoteClient, part))
                     return;
 
-                if (currentItem == null)
+                UUID copyID = UUID.Random();
+                part.ParentGroup.AddInventoryItem(remoteClient.AgentId, primLocalID, item, copyID);
+                m_log.InfoFormat(
+                    "[PRIM INVENTORY]: Update with item {0} requested of prim {1} for {2}",
+                    item.Name, primLocalID, remoteClient.Name);
+                part.SendPropertiesToClient(remoteClient);
+                if (!Permissions.BypassPermissions())
                 {
-                    UUID copyID = UUID.Random();
-                    if (itemID != UUID.Zero)
+                    if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                     {
-                        InventoryItemBase item = InventoryService.GetItem(remoteClient.AgentId, itemID);
-
-                        // Try library
-                        if (null == item && LibraryService != null && LibraryService.LibraryRootFolder != null)
-                        {
-                            item = LibraryService.LibraryRootFolder.FindItem(itemID);
-                        }
-
-                        // If we've found the item in the user's inventory or in the library
-                        if (item != null)
-                        {
-                            part.ParentGroup.AddInventoryItem(remoteClient.AgentId, primLocalID, item, copyID);
-                            m_log.InfoFormat(
-                                "[PRIM INVENTORY]: Update with item {0} requested of prim {1} for {2}",
-                                item.Name, primLocalID, remoteClient.Name);
-                            part.SendPropertiesToClient(remoteClient);
-                            if (!Permissions.BypassPermissions())
-                            {
-                                if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
-                                {
-                                    List<UUID> uuids = new List<UUID>();
-                                    uuids.Add(itemID);
-                                    RemoveInventoryItem(remoteClient, uuids);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            m_log.ErrorFormat(
-                                "[PRIM INVENTORY]: Could not find inventory item {0} to update for {1}!",
-                                itemID, remoteClient.Name);
-                        }
+                        List<UUID> uuids = new List<UUID>();
+                        uuids.Add(itemID);
+                        RemoveInventoryItem(remoteClient, uuids);
                     }
                 }
-                else // Updating existing item with new perms etc
-                {
+            }
+            else // Updating existing item with new perms etc
+            {
 //                    m_log.DebugFormat(
 //                        "[PRIM INVENTORY]: Updating item {0} in {1} for UpdateTaskInventory()",
 //                        currentItem.Name, part.Name);
 
-                    // Only look for an uploaded updated asset if we are passed a transaction ID.  This is only the
-                    // case for updates uploded through UDP.  Updates uploaded via a capability (e.g. a script update)
-                    // will not pass in a transaction ID in the update message.
-                    if (transactionID != UUID.Zero && AgentTransactionsModule != null)
-                    {
-                        AgentTransactionsModule.HandleTaskItemUpdateFromTransaction(
-                            remoteClient, part, transactionID, currentItem);
+                if (!Permissions.CanEditObjectInventory(part.UUID, remoteClient.AgentId))
+                    return;
+
+                // Only look for an uploaded updated asset if we are passed a transaction ID.  This is only the
+                // case for updates uploded through UDP.  Updates uploaded via a capability (e.g. a script update)
+                // will not pass in a transaction ID in the update message.
+                if (transactionID != UUID.Zero && AgentTransactionsModule != null)
+                {
+                    AgentTransactionsModule.HandleTaskItemUpdateFromTransaction(
+                        remoteClient, part, transactionID, currentItem);
 
 //                        if ((InventoryType)itemInfo.InvType == InventoryType.Notecard)
 //                            remoteClient.SendAgentAlertMessage("Notecard saved", false);
@@ -1722,49 +1724,30 @@ namespace OpenSim.Region.Framework.Scenes
 //                            remoteClient.SendAgentAlertMessage("Script saved", false);
 //                        else
 //                            remoteClient.SendAgentAlertMessage("Item saved", false);
-                    }
+                }
 
-                    // Base ALWAYS has move
-                    currentItem.BasePermissions |= (uint)PermissionMask.Move;
+                // Base ALWAYS has move
+                currentItem.BasePermissions |= (uint)PermissionMask.Move;
 
-                    itemInfo.Flags = currentItem.Flags;
+                itemInfo.Flags = currentItem.Flags;
 
-                    // Check if we're allowed to mess with permissions
-                    if (!Permissions.IsGod(remoteClient.AgentId)) // Not a god
+                // Check if we're allowed to mess with permissions
+                if (!Permissions.IsGod(remoteClient.AgentId)) // Not a god
+                {
+                    if (remoteClient.AgentId != part.OwnerID) // Not owner
                     {
-                        if (remoteClient.AgentId != part.OwnerID) // Not owner
-                        {
-                            // Friends and group members can't change any perms
-                            itemInfo.BasePermissions = currentItem.BasePermissions;
-                            itemInfo.EveryonePermissions = currentItem.EveryonePermissions;
-                            itemInfo.GroupPermissions = currentItem.GroupPermissions;
-                            itemInfo.NextPermissions = currentItem.NextPermissions;
-                            itemInfo.CurrentPermissions = currentItem.CurrentPermissions;
-                        }
-                        else
-                        {
-                            // Owner can't change base, and can change other
-                            // only up to base
-                            itemInfo.BasePermissions = currentItem.BasePermissions;
-                            if (itemInfo.EveryonePermissions != currentItem.EveryonePermissions)
-                                itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteEveryone;
-                            if (itemInfo.GroupPermissions != currentItem.GroupPermissions)
-                                itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteGroup;
-                            if (itemInfo.CurrentPermissions != currentItem.CurrentPermissions)
-                                itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteOwner;
-                            if (itemInfo.NextPermissions != currentItem.NextPermissions)
-                                itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteNextOwner;
-                            itemInfo.EveryonePermissions &= currentItem.BasePermissions;
-                            itemInfo.GroupPermissions &= currentItem.BasePermissions;
-                            itemInfo.CurrentPermissions &= currentItem.BasePermissions;
-                            itemInfo.NextPermissions &= currentItem.BasePermissions;
-                        }
-
+                        // Friends and group members can't change any perms
+                        itemInfo.BasePermissions = currentItem.BasePermissions;
+                        itemInfo.EveryonePermissions = currentItem.EveryonePermissions;
+                        itemInfo.GroupPermissions = currentItem.GroupPermissions;
+                        itemInfo.NextPermissions = currentItem.NextPermissions;
+                        itemInfo.CurrentPermissions = currentItem.CurrentPermissions;
                     }
                     else
                     {
-                        if (itemInfo.BasePermissions != currentItem.BasePermissions)
-                            itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteBase;
+                        // Owner can't change base, and can change other
+                        // only up to base
+                        itemInfo.BasePermissions = currentItem.BasePermissions;
                         if (itemInfo.EveryonePermissions != currentItem.EveryonePermissions)
                             itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteEveryone;
                         if (itemInfo.GroupPermissions != currentItem.GroupPermissions)
@@ -1773,23 +1756,34 @@ namespace OpenSim.Region.Framework.Scenes
                             itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteOwner;
                         if (itemInfo.NextPermissions != currentItem.NextPermissions)
                             itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteNextOwner;
+                        itemInfo.EveryonePermissions &= currentItem.BasePermissions;
+                        itemInfo.GroupPermissions &= currentItem.BasePermissions;
+                        itemInfo.CurrentPermissions &= currentItem.BasePermissions;
+                        itemInfo.NextPermissions &= currentItem.BasePermissions;
                     }
 
-                    // Next ALWAYS has move
-                    itemInfo.NextPermissions |= (uint)PermissionMask.Move;
-
-                    if (part.Inventory.UpdateInventoryItem(itemInfo))
-                    {
-                        part.SendPropertiesToClient(remoteClient);
-                    }
                 }
-            }
-            else
-            {
-                m_log.WarnFormat(
-                    "[PRIM INVENTORY]: " +
-                    "Update with item {0} requested of prim {1} for {2} but this prim does not exist",
-                    itemID, primLocalID, remoteClient.Name);
+                else
+                {
+                    if (itemInfo.BasePermissions != currentItem.BasePermissions)
+                        itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteBase;
+                    if (itemInfo.EveryonePermissions != currentItem.EveryonePermissions)
+                        itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteEveryone;
+                    if (itemInfo.GroupPermissions != currentItem.GroupPermissions)
+                        itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteGroup;
+                    if (itemInfo.CurrentPermissions != currentItem.CurrentPermissions)
+                        itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteOwner;
+                    if (itemInfo.NextPermissions != currentItem.NextPermissions)
+                        itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteNextOwner;
+                }
+
+                // Next ALWAYS has move
+                itemInfo.NextPermissions |= (uint)PermissionMask.Move;
+
+                if (part.Inventory.UpdateInventoryItem(itemInfo))
+                {
+                    part.SendPropertiesToClient(remoteClient);
+                }
             }
         }
 
