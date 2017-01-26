@@ -920,8 +920,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
             set
             {
+                float old = m_density;
                 m_density = value / 100f;
-                // for not prim mass is not updated since this implies full rebuild of body inertia TODO
+                if(m_density != old)
+                    UpdatePrimBodyData();
             }
         }
         public override float GravModifier
