@@ -1783,63 +1783,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        /// <summary>
-        /// Attach this scene object to the given avatar.
-        /// </summary>
-        /// <param name="agentID"></param>
-        /// <param name="attachmentpoint"></param>
-        /// <param name="AttachOffset"></param>
-        private void AttachToAgent(
-            ScenePresence avatar, SceneObjectGroup so, uint attachmentpoint, Vector3 attachOffset, bool silent)
-        {
-            if (avatar != null)
-            {
-                // don't attach attachments to child agents
-                if (avatar.IsChildAgent) return;
-
-                // Remove from database and parcel prim count
-                m_scene.DeleteFromStorage(so.UUID);
-                m_scene.EventManager.TriggerParcelPrimCountTainted();
-
-                so.AttachedAvatar = avatar.UUID;
-
-                if (so.RootPart.PhysActor != null)
-                {
-                    m_scene.PhysicsScene.RemovePrim(so.RootPart.PhysActor);
-                    so.RootPart.PhysActor = null;
-                }
-
-                so.AbsolutePosition = attachOffset;
-                so.RootPart.AttachedPos = attachOffset;
-                so.IsAttachment = true;
-                so.RootPart.SetParentLocalId(avatar.LocalId);
-                so.AttachmentPoint = attachmentpoint;
-
-                avatar.AddAttachment(this);
-
-                if (!silent)
-                {
-                    // Killing it here will cause the client to deselect it
-                    // It then reappears on the avatar, deselected
-                    // through the full update below
-                    //
-                    if (IsSelected)
-                    {
-                        m_scene.SendKillObject(new List<uint> { m_rootPart.LocalId });
-                    }
-
-                    IsSelected = false; // fudge....
-                    ScheduleGroupForFullUpdate();
-                }
-            }
-            else
-            {
-                m_log.WarnFormat(
-                    "[SOG]: Tried to add attachment {0} to avatar with UUID {1} in region {2} but the avatar is not present",
-                    UUID, avatar.ControllingClient.AgentId, Scene.RegionInfo.RegionName);
-            }
-        }
-
         public byte GetAttachmentPoint()
         {
             return m_rootPart.Shape.State;

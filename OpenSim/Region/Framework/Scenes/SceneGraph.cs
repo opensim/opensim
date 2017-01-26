@@ -1569,7 +1569,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (group.IsAttachment || (group.RootPart.Shape.PCode == 9 && group.RootPart.Shape.State != 0))
                 {
                     // Set the new attachment point data in the object
-                    byte attachmentPoint = group.GetAttachmentPoint();
+                    byte attachmentPoint = (byte)group.AttachmentPoint;
                     group.UpdateGroupPosition(pos);
                     group.IsAttachment = false;
                     group.AbsolutePosition = group.RootPart.AttachedPos;
