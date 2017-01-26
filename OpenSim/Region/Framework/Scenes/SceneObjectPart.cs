@@ -244,11 +244,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public uint TimeStampTerse;
 
-        // The following two are to hold the attachment data
-        // while an object is inworld
-        [XmlIgnore]
-        public byte AttachPoint = 0;
-
         [XmlIgnore]
         public Quaternion AttachRotation = Quaternion.Identity;
 
@@ -277,7 +272,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         public scriptEvents AggregateScriptEvents;
 
-        public Vector3 AttachedPos;
+        public Vector3 AttachedPos
+        {
+            get;
+            set;
+        }
 
         // rotation locks on local X,Y and or Z axis bit flags
         // bits are as in llSetStatus defined in SceneObjectGroup.axisSelect enum

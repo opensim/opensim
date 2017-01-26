@@ -7972,7 +7972,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 return 0;
             }
-
         }
 
         public void llDialog(string avatar, string message, LSL_List buttons, int chat_channel)
@@ -15867,7 +15866,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            group.RootPart.AttachPoint = group.RootPart.Shape.State;
             group.RootPart.AttachedPos = group.AbsolutePosition;
 
             group.ResetIDs();
