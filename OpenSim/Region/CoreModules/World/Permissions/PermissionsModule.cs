@@ -349,9 +349,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (!m_Enabled)
                 return;
 
-            if(scene != m_scene)
-                return;
-
             m_scene.UnregisterModuleInterface<IPermissionsModule>(this);
 
             scenePermissions.OnBypassPermissions -= BypassPermissions;

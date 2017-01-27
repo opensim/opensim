@@ -78,9 +78,8 @@ namespace OpenSim.Region.OptionalModules
         public void AddRegion(Scene scene)
         {
             if (!m_enabled)
-            {
                 return;
-            }
+
             m_scene = scene;
             scene.Permissions.OnRezObject += CanRezObject;
             scene.Permissions.OnObjectEntry += CanObjectEnter;
@@ -91,10 +90,8 @@ namespace OpenSim.Region.OptionalModules
 
         public void RemoveRegion(Scene scene)
         {
-            if (m_enabled)
-            {
+            if (!m_enabled)
                 return;
-            }
 
             m_scene.Permissions.OnRezObject -= CanRezObject;
             m_scene.Permissions.OnObjectEntry -= CanObjectEnter;
