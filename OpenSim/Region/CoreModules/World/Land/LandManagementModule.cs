@@ -1581,6 +1581,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         }
                     }
                 }
+                FinalizeLandPrimCountUpdate(); // update simarea information
             }
         }
 
