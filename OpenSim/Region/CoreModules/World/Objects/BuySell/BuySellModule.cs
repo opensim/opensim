@@ -98,7 +98,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
             if (part.OwnerID == part.GroupID) // Group owned
             {
                 // Does the user have the power to put the object on sale?
-                if (!m_scene.Permissions.CanSellGroupObject(client.AgentId, part.GroupID, m_scene))
+                if (!m_scene.Permissions.CanSellGroupObject(client.AgentId, part.GroupID))
                 {
                     client.SendAgentAlertMessage("You don't have permission to set group-owned objects on sale", false);
                     return;

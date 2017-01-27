@@ -349,7 +349,77 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (!m_Enabled)
                 return;
 
+            if(scene != m_scene)
+                return;
+
             m_scene.UnregisterModuleInterface<IPermissionsModule>(this);
+
+            scenePermissions.OnBypassPermissions -= BypassPermissions;
+            scenePermissions.OnSetBypassPermissions -= SetBypassPermissions;
+            scenePermissions.OnPropagatePermissions -= PropagatePermissions;
+
+            scenePermissions.OnIsGridGod -= IsGridAdministrator;
+            scenePermissions.OnIsAdministrator -= IsAdministrator;
+            scenePermissions.OnIsEstateManager -= IsEstateManager;
+
+            scenePermissions.OnGenerateClientFlags -= GenerateClientFlags;
+
+            scenePermissions.OnIssueEstateCommand -= CanIssueEstateCommand;
+            scenePermissions.OnRunConsoleCommand -= CanRunConsoleCommand;
+
+            scenePermissions.OnTeleport -= CanTeleport;
+
+            scenePermissions.OnInstantMessage -= CanInstantMessage;
+
+            scenePermissions.OnAbandonParcel -= CanAbandonParcel;
+            scenePermissions.OnReclaimParcel -= CanReclaimParcel;
+            scenePermissions.OnDeedParcel -= CanDeedParcel;
+            scenePermissions.OnSellParcel -= CanSellParcel;
+            scenePermissions.OnEditParcelProperties -= CanEditParcelProperties;
+            scenePermissions.OnTerraformLand -= CanTerraformLand;
+            scenePermissions.OnBuyLand -= CanBuyLand;
+
+            scenePermissions.OnRezObject -= CanRezObject;
+            scenePermissions.OnObjectEntry -= CanObjectEntry;
+            scenePermissions.OnReturnObjects -= CanReturnObjects;
+
+            scenePermissions.OnDuplicateObject -= CanDuplicateObject;
+            scenePermissions.OnDeleteObjectByIDs -= CanDeleteObjectByIDs;
+            scenePermissions.OnDeleteObject -= CanDeleteObject;
+            scenePermissions.OnEditObjectByIDs -= CanEditObjectByIDs;
+            scenePermissions.OnEditObject -= CanEditObject;
+            scenePermissions.OnInventoryTransfer -= CanInventoryTransfer;
+            scenePermissions.OnMoveObject -= CanMoveObject;
+            scenePermissions.OnTakeObject -= CanTakeObject;
+            scenePermissions.OnTakeCopyObject -= CanTakeCopyObject;
+            scenePermissions.OnLinkObject -= CanLinkObject;
+            scenePermissions.OnDelinkObject -= CanDelinkObject;
+            scenePermissions.OnDeedObject -= CanDeedObject;
+            scenePermissions.OnSellGroupObject -= CanSellGroupObject;
+            
+            scenePermissions.OnCreateObjectInventory -= CanCreateObjectInventory;
+            scenePermissions.OnEditObjectInventory -= CanEditObjectInventory;
+            scenePermissions.OnCopyObjectInventory -= CanCopyObjectInventory;
+            scenePermissions.OnDeleteObjectInventory -= CanDeleteObjectInventory;
+            scenePermissions.OnDoObjectInvToObjectInv -= CanDoObjectInvToObjectInv;
+            scenePermissions.OnDropInObjectInv -= CanDropInObjectInv;
+
+            scenePermissions.OnViewNotecard -= CanViewNotecard;
+            scenePermissions.OnViewScript -= CanViewScript;
+            scenePermissions.OnEditNotecard -= CanEditNotecard;
+            scenePermissions.OnEditScript -= CanEditScript;
+            scenePermissions.OnResetScript -= CanResetScript;
+            scenePermissions.OnRunScript -= CanRunScript;
+            scenePermissions.OnCompileScript -= CanCompileScript;
+            
+            scenePermissions.OnCreateUserInventory -= CanCreateUserInventory;
+            scenePermissions.OnCopyUserInventory -= CanCopyUserInventory;
+            scenePermissions.OnEditUserInventory -= CanEditUserInventory;
+            scenePermissions.OnDeleteUserInventory -= CanDeleteUserInventory;
+
+            scenePermissions.OnControlPrimMedia -= CanControlPrimMedia;
+            scenePermissions.OnInteractWithPrimMedia -= CanInteractWithPrimMedia;
+
         }
 
         public void Close()
@@ -1099,7 +1169,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 #endregion
 
         #region Permission Checks
-        private bool CanAbandonParcel(UUID user, ILandObject parcel, Scene scene)
+        private bool CanAbandonParcel(UUID user, ILandObject parcel)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1107,7 +1177,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return GenericParcelOwnerPermission(user, parcel, (ulong)GroupPowers.LandRelease, false);
         }
 
-        private bool CanReclaimParcel(UUID user, ILandObject parcel, Scene scene)
+        private bool CanReclaimParcel(UUID user, ILandObject parcel)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1115,7 +1185,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return GenericParcelOwnerPermission(user, parcel, 0,true);
         }
 
-        private bool CanDeedParcel(UUID user, ILandObject parcel, Scene scene)
+        private bool CanDeedParcel(UUID user, ILandObject parcel)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1129,7 +1199,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (parcel.LandData.OwnerID != user) // Only the owner can deed!
                 return false;
 
-            ScenePresence sp = scene.GetScenePresence(user);
+            ScenePresence sp = m_scene.GetScenePresence(user);
             if(sp == null)
                 return false;
 
@@ -1179,7 +1249,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return true;
         }
 
-        private bool CanDuplicateObject(SceneObjectGroup sog, ScenePresence sp, Scene scene)
+        private bool CanDuplicateObject(SceneObjectGroup sog, ScenePresence sp)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1195,7 +1265,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 return false;
 
             //If they can rez, they can duplicate
-            return CanRezObject(0, sp.UUID, sog.AbsolutePosition, scene);
+            return CanRezObject(0, sp.UUID, sog.AbsolutePosition);
         }
 
         private bool CanDeleteObject(SceneObjectGroup sog, ScenePresence sp)
@@ -1240,14 +1310,14 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return false;
         }
 
-        private bool CanDeleteObjectByIDs(UUID objectID, UUID userID, Scene scene)
+        private bool CanDeleteObjectByIDs(UUID objectID, UUID userID)
         {
             // ignoring locked. viewers should warn and ask for confirmation
 
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            SceneObjectGroup sog = scene.GetGroupByPrim(objectID);
+            SceneObjectGroup sog = m_scene.GetGroupByPrim(objectID);
             if (sog == null)
                 return false;
 
@@ -1282,12 +1352,12 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return false;
         }
 
-        private bool CanEditObjectByIDs(UUID objectID, UUID userID, Scene scene)
+        private bool CanEditObjectByIDs(UUID objectID, UUID userID)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            SceneObjectGroup sog = scene.GetGroupByPrim(objectID);
+            SceneObjectGroup sog = m_scene.GetGroupByPrim(objectID);
             if (sog == null)
                 return false;
 
@@ -1311,12 +1381,12 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return true;
         }
 
-        private bool CanEditObjectInventory(UUID objectID, UUID userID, Scene scene)
+        private bool CanEditObjectInventory(UUID objectID, UUID userID)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            SceneObjectGroup sog = scene.GetGroupByPrim(objectID);
+            SceneObjectGroup sog = m_scene.GetGroupByPrim(objectID);
             if (sog == null)
                 return false;
 
@@ -1326,7 +1396,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return true;
         }
 
-        private bool CanEditParcelProperties(UUID userID, ILandObject parcel, GroupPowers p, Scene scene, bool allowManager)
+        private bool CanEditParcelProperties(UUID userID, ILandObject parcel, GroupPowers p, bool allowManager)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1342,7 +1412,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         /// <param name="user"></param>
         /// <param name="scene"></param>
         /// <returns></returns>
-        private bool CanEditScript(UUID script, UUID objectID, UUID userID, Scene scene)
+        private bool CanEditScript(UUID script, UUID objectID, UUID userID)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1353,7 +1423,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             // Ordinarily, if you can view it, you can edit it
             // There is no viewing a no mod script
             //
-            return CanViewScript(script, objectID, userID, scene);
+            return CanViewScript(script, objectID, userID);
         }
 
         /// <summary>
@@ -1364,7 +1434,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         /// <param name="user"></param>
         /// <param name="scene"></param>
         /// <returns></returns>
-        private bool CanEditNotecard(UUID notecard, UUID objectID, UUID user, Scene scene)
+        private bool CanEditNotecard(UUID notecard, UUID objectID, UUID user)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1395,7 +1465,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             }
             else // Prim inventory
             {
-                SceneObjectPart part = scene.GetSceneObjectPart(objectID);
+                SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
                 if (part == null)
                     return false;
 
@@ -1442,21 +1512,21 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return true;
         }
 
-        private bool CanInstantMessage(UUID user, UUID target, Scene startScene)
+        private bool CanInstantMessage(UUID user, UUID target)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
             // If the sender is an object, check owner instead
             //
-            SceneObjectPart part = startScene.GetSceneObjectPart(user);
+            SceneObjectPart part = m_scene.GetSceneObjectPart(user);
             if (part != null)
                 user = part.OwnerID;
 
             return GenericCommunicationPermission(user, target);
         }
 
-        private bool CanInventoryTransfer(UUID user, UUID target, Scene startScene)
+        private bool CanInventoryTransfer(UUID user, UUID target)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1464,7 +1534,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return GenericCommunicationPermission(user, target);
         }
 
-        private bool CanIssueEstateCommand(UUID user, Scene requestFromScene, bool ownerCommand)
+        private bool CanIssueEstateCommand(UUID user, bool ownerCommand)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1498,7 +1568,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return true;
         }
 
-        private bool CanObjectEntry(SceneObjectGroup sog, bool enteringRegion, Vector3 newPoint, Scene scene)
+        private bool CanObjectEntry(SceneObjectGroup sog, bool enteringRegion, Vector3 newPoint)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
 
@@ -1506,8 +1576,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             float newY = newPoint.Y;
 
             // allow outside region this is needed for crossings
-            if (newX < -1f || newX > (scene.RegionInfo.RegionSizeX + 1.0f) ||
-                newY < -1f || newY > (scene.RegionInfo.RegionSizeY + 1.0f) )
+            if (newX < -1f || newX > (m_scene.RegionInfo.RegionSizeX + 1.0f) ||
+                newY < -1f || newY > (m_scene.RegionInfo.RegionSizeY + 1.0f) )
                 return true;
 
             if(sog == null || sog.IsDeleted)
@@ -1516,7 +1586,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (m_bypassPermissions)
                 return m_bypassPermissionsValue;
 
-            ILandObject parcel = scene.LandChannel.GetLandObject(newX, newY);
+            ILandObject parcel = m_scene.LandChannel.GetLandObject(newX, newY);
             if (parcel == null)
                 return false;
 
@@ -1554,12 +1624,12 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return false;
         }
 
-        private bool CanReturnObjects(ILandObject land, UUID user, List<SceneObjectGroup> objects, Scene scene)
+        private bool CanReturnObjects(ILandObject land, UUID user, List<SceneObjectGroup> objects)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            ScenePresence sp = scene.GetScenePresence(user);
+            ScenePresence sp = m_scene.GetScenePresence(user);
             if (sp == null)
                 return false;
 
@@ -1591,7 +1661,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 else
                 {
                     Vector3 pos = g.AbsolutePosition;
-                    l = scene.LandChannel.GetLandObject(pos.X, pos.Y);
+                    l = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
                 }
 
                 // If it's not over any land, then we can't do a thing
@@ -1662,7 +1732,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return true;
         }
 
-        private bool CanRezObject(int objectCount, UUID userID, Vector3 objectPosition, Scene scene)
+        private bool CanRezObject(int objectCount, UUID userID, Vector3 objectPosition)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions)
@@ -1670,7 +1740,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
 //            m_log.DebugFormat("[PERMISSIONS MODULE]: Checking rez object at {0} in {1}", objectPosition, m_scene.Name);
 
-            ILandObject parcel = scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
+            ILandObject parcel = m_scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
             if (parcel == null || parcel.LandData == null)
                 return false;
 
@@ -1696,7 +1766,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return false;
         }
 
-        private bool CanRunConsoleCommand(UUID user, Scene requestFromScene)
+        private bool CanRunConsoleCommand(UUID user)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1741,7 +1811,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return GenericEstatePermission(part.OwnerID);
         }
 
-        private bool CanSellParcel(UUID user, ILandObject parcel, Scene scene)
+        private bool CanSellParcel(UUID user, ILandObject parcel)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1749,7 +1819,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return GenericParcelOwnerPermission(user, parcel, (ulong)GroupPowers.LandSetSale, true);
         }
 
-        private bool CanSellGroupObject(UUID userID, UUID groupID, Scene scene)
+        private bool CanSellGroupObject(UUID userID, UUID groupID)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1823,7 +1893,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return true;
         }
 
-        private bool CanTerraformLand(UUID userID, Vector3 position, Scene requestFromScene)
+        private bool CanTerraformLand(UUID userID, Vector3 position)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1873,7 +1943,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         /// <param name="user"></param>
         /// <param name="scene"></param>
         /// <returns></returns>
-        private bool CanViewScript(UUID script, UUID objectID, UUID userID, Scene scene)
+        private bool CanViewScript(UUID script, UUID objectID, UUID userID)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1915,7 +1985,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             }
             else // Prim inventory
             {
-                SceneObjectPart part = scene.GetSceneObjectPart(objectID);
+                SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
                 if (part == null)
                     return false;
 
@@ -1962,7 +2032,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         /// <param name="user"></param>
         /// <param name="scene"></param>
         /// <returns></returns>
-        private bool CanViewNotecard(UUID notecard, UUID objectID, UUID userID, Scene scene)
+        private bool CanViewNotecard(UUID notecard, UUID objectID, UUID userID)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -1988,7 +2058,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             }
             else // Prim inventory
             {
-                SceneObjectPart part = scene.GetSceneObjectPart(objectID);
+                SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
                 if (part == null)
                     return false;
 
@@ -2051,7 +2121,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return true;
         }
 
-        private bool CanBuyLand(UUID userID, ILandObject parcel, Scene scene)
+        private bool CanBuyLand(UUID userID, ILandObject parcel)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -2319,7 +2389,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return true;
         }
 
-        private bool CanResetScript(UUID primID, UUID script, UUID agentID, Scene scene)
+        private bool CanResetScript(UUID primID, UUID script, UUID agentID)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -2334,7 +2404,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return true;
         }
 
-        private bool CanCompileScript(UUID ownerUUID, int scriptType, Scene scene)
+        private bool CanCompileScript(UUID ownerUUID, int scriptType)
         {
              //m_log.DebugFormat("check if {0} is allowed to compile {1}", ownerUUID, scriptType);
             switch (scriptType) {
