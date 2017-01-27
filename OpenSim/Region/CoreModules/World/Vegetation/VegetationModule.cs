@@ -105,8 +105,9 @@ namespace OpenSim.Region.CoreModules.World.Vegetation
             if (rootPart.Shape.PCode != (byte)PCode.Grass)
                 AdaptTree(ref shape);
 
-            m_scene.AddNewSceneObject(sceneObject, true);
             sceneObject.SetGroup(groupID, null);
+            m_scene.AddNewSceneObject(sceneObject, true);
+            sceneObject.AggregatePerms();
 
             return sceneObject;
         }

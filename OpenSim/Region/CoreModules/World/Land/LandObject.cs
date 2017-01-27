@@ -1664,7 +1664,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             SceneObjectGroup[] objs = new SceneObjectGroup[1];
             objs[0] = obj;
-            m_scene.returnObjects(objs, obj.OwnerID);
+            m_scene.returnObjects(objs, null);
         }
 
         public void ReturnLandObjects(uint type, UUID[] owners, UUID[] tasks, IClientAPI remote_client)
@@ -1695,6 +1695,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (obj.GroupID == LandData.GroupID)
                         {
+                            if (obj.OwnerID == LandData.OwnerID)
+                                continue;
                             if (!returns.ContainsKey(obj.OwnerID))
                                 returns[obj.OwnerID] =
                                         new List<SceneObjectGroup>();
@@ -1736,8 +1738,8 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             foreach (List<SceneObjectGroup> ol in returns.Values)
             {
-                if (m_scene.Permissions.CanReturnObjects(this, remote_client.AgentId, ol))
-                    m_scene.returnObjects(ol.ToArray(), remote_client.AgentId);
+                if (m_scene.Permissions.CanReturnObjects(this, remote_client, ol))
+                    m_scene.returnObjects(ol.ToArray(), remote_client);
             }
         }
 

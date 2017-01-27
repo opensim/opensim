@@ -54,7 +54,7 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool EditObjectInventoryHandler(UUID objectID, UUID editorID);
     public delegate bool MoveObjectHandler(SceneObjectGroup sog, ScenePresence sp);
     public delegate bool ObjectEntryHandler(SceneObjectGroup sog, bool enteringRegion, Vector3 newPoint);
-    public delegate bool ReturnObjectsHandler(ILandObject land, UUID user, List<SceneObjectGroup> objects);
+    public delegate bool ReturnObjectsHandler(ILandObject land, ScenePresence sp, List<SceneObjectGroup> objects);
     public delegate bool InstantMessageHandler(UUID user, UUID target);
     public delegate bool InventoryTransferHandler(UUID user, UUID target);
     public delegate bool ViewScriptHandler(UUID script, UUID objectID, UUID user);
@@ -556,17 +556,24 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region RETURN OBJECT
-        public bool CanReturnObjects(ILandObject land, UUID user, List<SceneObjectGroup> objects)
+        public bool CanReturnObjects(ILandObject land, IClientAPI client, List<SceneObjectGroup> objects)
         {
             bool result = true;
 
             ReturnObjectsHandler handler = OnReturnObjects;
             if (handler != null)
             {
+                if(objects == null)
+                    return false;
+                
+                ScenePresence sp = null;
+                if(client != null && client.SceneAgent != null)
+                    sp = client.SceneAgent as ScenePresence;
+
                 Delegate[] list = handler.GetInvocationList();
                 foreach (ReturnObjectsHandler h in list)
                 {
-                    if (h(land, user, objects) == false)
+                    if (h(land, sp, objects) == false)
                     {
                         result = false;
                         break;

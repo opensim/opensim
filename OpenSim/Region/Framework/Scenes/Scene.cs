@@ -2604,8 +2604,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // Otherwise, use this default creation code;
                 sceneObject = new SceneObjectGroup(ownerID, pos, rot, shape);
-                AddNewSceneObject(sceneObject, true);
                 sceneObject.SetGroup(groupID, null);
+                AddNewSceneObject(sceneObject, true);
 
                 if (AgentPreferencesService != null) // This will override the brave new full perm world!
                 {
@@ -2784,7 +2784,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             if (toReturn.Count > 0)
             {
-                returnObjects(toReturn.ToArray(), UUID.Zero);
+                returnObjects(toReturn.ToArray(), null);
             }
         }
 

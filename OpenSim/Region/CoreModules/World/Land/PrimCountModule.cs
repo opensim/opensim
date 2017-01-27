@@ -92,10 +92,8 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_Scene.RegisterModuleInterface<IPrimCountModule>(this);
 
             m_Scene.EventManager.OnObjectAddedToScene += OnParcelPrimCountAdd;
-            m_Scene.EventManager.OnObjectBeingRemovedFromScene +=
-                    OnObjectBeingRemovedFromScene;
-            m_Scene.EventManager.OnParcelPrimCountTainted +=
-                    OnParcelPrimCountTainted;
+            m_Scene.EventManager.OnObjectBeingRemovedFromScene +=  OnObjectBeingRemovedFromScene;
+            m_Scene.EventManager.OnParcelPrimCountTainted +=  OnParcelPrimCountTainted;
             m_Scene.EventManager.OnLandObjectAdded += delegate(ILandObject lo) { OnParcelPrimCountTainted(); };
         }
 
@@ -215,29 +213,15 @@ namespace OpenSim.Region.CoreModules.World.Land
                 else
                     parcelCounts.Users[obj.OwnerID] = partCount;
 
-                if (obj.IsSelected)
-                {
+                if (obj.IsSelected || obj.GetSittingAvatarsCount() > 0)
                     parcelCounts.Selected += partCount;
-                }
+
+                if (obj.OwnerID == landData.OwnerID)
+                    parcelCounts.Owner += partCount;
+                else if (landData.GroupID != UUID.Zero && obj.GroupID == landData.GroupID)
+                    parcelCounts.Group += partCount;
                 else
-                {
-                    if (landData.IsGroupOwned)
-                    {
-                        if (obj.OwnerID == landData.GroupID)
-                            parcelCounts.Owner += partCount;
-                        else if (landData.GroupID != UUID.Zero && obj.GroupID == landData.GroupID)
-                            parcelCounts.Group += partCount;
-                        else
-                            parcelCounts.Others += partCount;
-                    }
-                    else
-                    {
-                        if (obj.OwnerID == landData.OwnerID)
-                            parcelCounts.Owner += partCount;
-                        else
-                            parcelCounts.Others += partCount;
-                    }
-                }
+                    parcelCounts.Others += partCount;
             }
         }
 
@@ -393,7 +377,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                     count = counts.Owner;
                     count += counts.Group;
                     count += counts.Others;
-                    count += counts.Selected;
                 }
             }
 

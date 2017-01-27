@@ -282,9 +282,10 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             scenePermissions.OnTerraformLand += CanTerraformLand;
             scenePermissions.OnBuyLand += CanBuyLand;
 
+            scenePermissions.OnReturnObjects += CanReturnObjects;
+
             scenePermissions.OnRezObject += CanRezObject;
             scenePermissions.OnObjectEntry += CanObjectEntry;
-            scenePermissions.OnReturnObjects += CanReturnObjects;
 
             scenePermissions.OnDuplicateObject += CanDuplicateObject;
             scenePermissions.OnDeleteObjectByIDs += CanDeleteObjectByIDs;
@@ -1621,19 +1622,20 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return false;
         }
 
-        private bool CanReturnObjects(ILandObject land, UUID user, List<SceneObjectGroup> objects)
+        private bool CanReturnObjects(ILandObject land, ScenePresence sp, List<SceneObjectGroup> objects)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            ScenePresence sp = m_scene.GetScenePresence(user);
-            if (sp == null)
-                return false;
+            if(sp == null)
+                return true;  // assuming that in this case rights are as owner
 
-            bool isPrivUser = sp.IsGod || IsEstateManager(user);
+            UUID userID = sp.UUID;
+            bool isPrivUser = sp.IsGod || IsEstateManager(userID);
 
             IClientAPI client = sp.ControllingClient;
-            GroupPowers powers;
+
+            ulong powers = 0;
             ILandObject l;
 
             foreach (SceneObjectGroup g in new List<SceneObjectGroup>(objects))
@@ -1644,7 +1646,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                     continue;
                 }
 
-                if (isPrivUser || g.OwnerID == user)
+                if (isPrivUser || g.OwnerID == userID)
                     continue;
 
                 // This is a short cut for efficiency. If land is non-null,
@@ -1671,7 +1673,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 LandData ldata = l.LandData;
                 // If we own the land outright, then allow
                 //
-                if (ldata.OwnerID == user)
+                if (ldata.OwnerID == userID)
                     continue;
 
                 // Group voodoo
@@ -1679,19 +1681,19 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 if (ldata.IsGroupOwned)
                 {
                     UUID lGroupID = ldata.GroupID;
-                    powers = (GroupPowers)client.GetGroupPowers(lGroupID);
                     // Not a group member, or no rights at all
                     //
-                    if (powers == (GroupPowers)0)
+                    powers = client.GetGroupPowers(lGroupID);
+                    if(powers == 0)
                     {
                         objects.Remove(g);
                         continue;
                     }
-
+ 
                     // Group deeded object?
                     //
                     if (g.OwnerID == lGroupID &&
-                        (powers & GroupPowers.ReturnGroupOwned) == (GroupPowers)0)
+                        (powers & (ulong)GroupPowers.ReturnGroupOwned) == 0)
                     {
                         objects.Remove(g);
                         continue;
@@ -1700,13 +1702,13 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                     // Group set object?
                     //
                     if (g.GroupID == lGroupID &&
-                        (powers & GroupPowers.ReturnGroupSet) == (GroupPowers)0)
+                        (powers & (ulong)GroupPowers.ReturnGroupSet) == 0)
                     {
                         objects.Remove(g);
                         continue;
                     }
 
-                    if ((powers & GroupPowers.ReturnNonGroup) == (GroupPowers)0)
+                    if ((powers & (ulong)GroupPowers.ReturnNonGroup) == 0)
                     {
                         objects.Remove(g);
                         continue;

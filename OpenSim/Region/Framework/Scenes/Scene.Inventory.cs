@@ -2085,7 +2085,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name='action'>DeRezAction</param>
         /// <param name='destinationID'>User folder ID to place derezzed object</param>
         public virtual void DeRezObjects(
-            IClientAPI remoteClient, List<uint> localIDs, UUID groupID, DeRezAction action, UUID destinationID)
+            IClientAPI remoteClient, List<uint> localIDs, UUID groupID, DeRezAction action, UUID destinationID, bool AddToReturns = true)
         {
             // First, see of we can perform the requested action and
             // build a list of eligible objects
@@ -2094,7 +2094,11 @@ namespace OpenSim.Region.Framework.Scenes
             List<SceneObjectGroup> takeGroups = new List<SceneObjectGroup>();
             List<SceneObjectGroup> takeDeleteGroups = new List<SceneObjectGroup>();
 
-            ScenePresence sp = remoteClient.SceneAgent as ScenePresence;
+            ScenePresence sp = null;
+            if(remoteClient != null)
+                sp = remoteClient.SceneAgent as ScenePresence;
+            else if(action != DeRezAction.Return)
+                return; // only Return can be called without a client
 
             // Start with true for both, then remove the flags if objects
             // that we can't derez are part of the selection
@@ -2201,13 +2205,14 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if (Permissions.CanReturnObjects(
                                         null,
-                                        remoteClient.AgentId,
+                                        remoteClient,
                                         new List<SceneObjectGroup>() {grp}))
                         {
                             permissionToTake = true;
                             permissionToDelete = true;
-
-                            AddReturn(grp.OwnerID == grp.GroupID ? grp.LastOwnerID : grp.OwnerID, grp.Name, grp.AbsolutePosition, "parcel owner return");
+                            if(AddToReturns)
+                                AddReturn(grp.OwnerID == grp.GroupID ? grp.LastOwnerID : grp.OwnerID, grp.Name, grp.AbsolutePosition,
+                                        "parcel owner return");
                         }
                     }
                     else // Auto return passes through here with null agent
@@ -2641,7 +2646,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public virtual bool returnObjects(SceneObjectGroup[] returnobjects,
-                UUID AgentId)
+                IClientAPI client)
         {
             List<uint> localIDs = new List<uint>();
 
@@ -2651,8 +2656,8 @@ namespace OpenSim.Region.Framework.Scenes
                         "parcel owner return");
                 localIDs.Add(grp.RootPart.LocalId);
             }
-            DeRezObjects(null, localIDs, UUID.Zero, DeRezAction.Return,
-                    UUID.Zero);
+            DeRezObjects(client, localIDs, UUID.Zero, DeRezAction.Return,
+                    UUID.Zero, false);
 
             return true;
         }

@@ -185,8 +185,10 @@ namespace OpenSim.Region.Framework.Scenes
                 // A prim is only tainted if it's allowed to be edited by the person clicking it.
                 if (Permissions.CanChangeSelectedState(part, (ScenePresence)remoteClient.SceneAgent))
                 {
+                    bool oldsel = part.IsSelected;
                     part.IsSelected = true;
-                    EventManager.TriggerParcelPrimCountTainted();
+                    if(!oldsel)
+                        EventManager.TriggerParcelPrimCountTainted();
                 }
 
                 part.SendPropertiesToClient(remoteClient);
@@ -228,6 +230,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (so.OwnerID == remoteClient.AgentId)
                 {
                     so.SetGroup(groupID, remoteClient);
+                    EventManager.TriggerParcelPrimCountTainted();
                 }
             }
         }
