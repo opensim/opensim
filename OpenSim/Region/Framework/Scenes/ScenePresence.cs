@@ -3117,6 +3117,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 Vector3 standPos = sitPartWorldPosition + adjustmentForSitPose;
                 m_pos = standPos;
+
             }
 
             // We need to wait until we have calculated proper stand positions before sitting up the physical
@@ -3131,6 +3132,7 @@ namespace OpenSim.Region.Framework.Scenes
                 part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
 
                 SendAvatarDataToAllAgents();
+                m_scene.EventManager.TriggerParcelPrimCountTainted(); // update select/ sat on
             }
 
             // reset to default sitAnimation
@@ -3263,6 +3265,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // Moved here to avoid a race with default sit anim
                 // The script event needs to be raised after the default sit anim is set.
                 part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
+                m_scene.EventManager.TriggerParcelPrimCountTainted(); // update select/ sat on
             }
         }
 
@@ -3412,6 +3415,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             Animator.SetMovementAnimations("SIT");
             part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
+            m_scene.EventManager.TriggerParcelPrimCountTainted(); // update select/ sat on
         }
 
         public void HandleAgentSit(IClientAPI remoteClient, UUID agentID)
