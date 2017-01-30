@@ -209,7 +209,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             if (m_Cache != null)
             {
-                asset = m_Cache.Get(id);
+                bool negative;
+                asset = m_Cache.Get(id, out negative);
+
+                if (negative)
+                    return null;
 
                 if (asset != null)
                     return asset;
@@ -238,8 +242,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
         public AssetBase GetCached(string id)
         {
+            bool negative;
             if (m_Cache != null)
-                return m_Cache.Get(id);
+                return m_Cache.Get(id, out negative);
 
             return null;
         }
@@ -250,8 +255,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             if (m_Cache != null)
             {
-                if (m_Cache != null)
-                    m_Cache.Get(id);
+                bool negative;
+                asset = m_Cache.Get(id, out negative);
+
+                if (negative)
+                    return null;
 
                 if (asset != null)
                     return asset.Metadata;
@@ -273,8 +281,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             if (m_Cache != null)
             {
-                if (m_Cache != null)
-                    m_Cache.Get(id);
+                bool negative;
+                asset = m_Cache.Get(id, out negative);
+
+                if (negative)
+                    return null;
 
                 if (asset != null)
                     return asset.Data;
@@ -292,7 +303,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             AssetBase asset = null;
 
             if (m_Cache != null)
-                asset = m_Cache.Get(id);
+            {
+                bool negative;
+                asset = m_Cache.Get(id, out negative);
+
+                if (negative)
+                    return false;
+            }
 
             if (asset != null)
             {
@@ -381,8 +398,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
         {
             AssetBase asset = null;
 
+            bool negative;
             if (m_Cache != null)
-                asset = m_Cache.Get(id);
+                asset = m_Cache.Get(id, out negative);
 
             if (asset != null)
             {

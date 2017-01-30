@@ -474,6 +474,8 @@ namespace OpenSim.Region.CoreModules.Asset
                 {
                     using (FileStream stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
                     {
+                        if (stream.Length == 0) // Empty file will trigger exception below
+                            return null;
                         BinaryFormatter bformatter = new BinaryFormatter();
 
                         asset = (AssetBase)bformatter.Deserialize(stream);
@@ -531,13 +533,25 @@ namespace OpenSim.Region.CoreModules.Asset
             return found;
         }
 
+        // For IAssetService
         public AssetBase Get(string id)
         {
+            bool negative;
+            return Get(id, out negative);
+        }
+
+        public AssetBase Get(string id, out bool negative)
+        {
+            negative = false;
+
             m_Requests++;
 
             object dummy;
             if (m_negativeCache.TryGetValue(id, out dummy))
+            {
+                negative = true;
                 return null;
+            }
 
             AssetBase asset = null;
             asset = GetFromWeakReference(id);
@@ -578,12 +592,6 @@ namespace OpenSim.Region.CoreModules.Asset
                 GenerateCacheHitReport().ForEach(l => m_log.InfoFormat("[FLOTSAM ASSET CACHE]: {0}", l));
             }
 
-            if(asset == null)
-            {
-
-
-            }
-
             return asset;
         }
 
@@ -599,7 +607,8 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public AssetBase GetCached(string id)
         {
-            return Get(id);
+            bool negative;
+            return Get(id, out negative);
         }
 
         public void Expire(string id)
@@ -1227,19 +1236,24 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public AssetMetadata GetMetadata(string id)
         {
-            AssetBase asset = Get(id);
+            bool negative;
+            AssetBase asset = Get(id, out negative);
             return asset.Metadata;
         }
 
         public byte[] GetData(string id)
         {
-            AssetBase asset = Get(id);
+            bool negative;
+            AssetBase asset = Get(id, out negative);
             return asset.Data;
         }
 
         public bool Get(string id, object sender, AssetRetrieved handler)
         {
-            AssetBase asset = Get(id);
+            bool negative;
+            AssetBase asset = Get(id, out negative);
+            if (negative)
+                return false;
             handler(id, sender, asset);
             return true;
         }
@@ -1270,7 +1284,8 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public bool UpdateContent(string id, byte[] data)
         {
-            AssetBase asset = Get(id);
+            bool negative;
+            AssetBase asset = Get(id, out negative);
             asset.Data = data;
             Cache(asset);
             return true;

@@ -115,7 +115,8 @@ namespace OpenSim.Region.CoreModules.Asset
         public bool Check(string id)
         {
             // XXX This is probably not an efficient implementation.
-            return Get(id) != null;
+            bool negative;
+            return Get(id, out negative) != null;
         }
 
         public void Cache(AssetBase asset)
@@ -129,8 +130,9 @@ namespace OpenSim.Region.CoreModules.Asset
             // We don't do negative caching
         }
 
-        public AssetBase Get(string id)
+        public AssetBase Get(string id, out bool negative)
         {
+            negative = false;
             return (AssetBase)m_Cache.Get(id);
         }
 

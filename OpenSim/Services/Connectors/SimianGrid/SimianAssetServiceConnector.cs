@@ -136,7 +136,10 @@ namespace OpenSim.Services.Connectors.SimianGrid
             // Cache fetch
             if (m_cache != null)
             {
-                AssetBase asset = m_cache.Get(id);
+                bool negative;
+                AssetBase asset = m_cache.Get(id, out negative);
+                if (negative)
+                    return null;
                 if (asset != null)
                     return asset;
             }
@@ -147,8 +150,9 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public AssetBase GetCached(string id)
         {
+            bool negative;
             if (m_cache != null)
-                return m_cache.Get(id);
+                return m_cache.Get(id, out negative);
 
             return null;
         }
@@ -169,7 +173,10 @@ namespace OpenSim.Services.Connectors.SimianGrid
             // Cache fetch
             if (m_cache != null)
             {
-                AssetBase asset = m_cache.Get(id);
+                bool negative;
+                AssetBase asset = m_cache.Get(id, out negative);
+                if (negative)
+                    return null;
                 if (asset != null)
                     return asset.Metadata;
             }
@@ -212,7 +219,12 @@ namespace OpenSim.Services.Connectors.SimianGrid
             // Cache fetch
             if (m_cache != null)
             {
-                AssetBase asset = m_cache.Get(id);
+                bool negative;
+                AssetBase asset = m_cache.Get(id, out negative);
+
+                if (negative)
+                    return false;
+
                 if (asset != null)
                 {
                     handler(id, sender, asset);

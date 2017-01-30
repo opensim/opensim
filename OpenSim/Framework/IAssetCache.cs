@@ -48,7 +48,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name='id'></param>
         /// <returns>null if the asset does not exist.</returns>
-        AssetBase Get(string id);
+        AssetBase Get(string id, out bool negative);
 
         /// <summary>
         /// Check whether an asset with the specified id exists in the cache.

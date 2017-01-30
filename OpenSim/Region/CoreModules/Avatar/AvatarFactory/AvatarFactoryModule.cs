@@ -299,7 +299,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 if (bakedTextureFace == null)
                     continue;
 
-                AssetBase asset = cache.Get(bakedTextureFace.TextureID.ToString());
+                bool negative;
+                AssetBase asset = cache.Get(bakedTextureFace.TextureID.ToString(), out negative);
 
                 if (asset != null && asset.Local)
                 {

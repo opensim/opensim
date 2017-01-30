@@ -113,7 +113,8 @@ namespace OpenSim.Framework
                 {
                     if (dataCache.Check(item.TextureID.ToString()))
                     {
-                        AssetBase assetItem = dataCache.Get(item.TextureID.ToString());
+                        bool negative;
+                        AssetBase assetItem = dataCache.Get(item.TextureID.ToString(), out negative);
                         if (assetItem != null)
                         {
                             itemmap.Add("assetdata", OSD.FromBinary(assetItem.Data));
