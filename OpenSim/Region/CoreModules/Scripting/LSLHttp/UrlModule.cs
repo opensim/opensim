@@ -83,17 +83,17 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<UUID, UrlData> m_RequestMap =
+        protected Dictionary<UUID, UrlData> m_RequestMap =
                 new Dictionary<UUID, UrlData>();
 
-        private Dictionary<string, UrlData> m_UrlMap =
+        protected Dictionary<string, UrlData> m_UrlMap =
                 new Dictionary<string, UrlData>();
 
-        private uint m_HttpsPort = 0;
-        private IHttpServer m_HttpServer = null;
-        private IHttpServer m_HttpsServer = null;
+        protected uint m_HttpsPort = 0;
+        protected IHttpServer m_HttpServer = null;
+        protected IHttpServer m_HttpsServer = null;
 
-        public string ExternalHostNameForLSL { get; private set; }
+        public string ExternalHostNameForLSL { get; protected set; }
 
         /// <summary>
         /// The default maximum number of urls
@@ -107,7 +107,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         public Type ReplaceableInterface
         {
-            get { return null; }
+            get { return typeof(IUrlModule); }
         }
 
         public string Name
@@ -453,7 +453,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         }
 
 
-        private void RemoveUrl(UrlData data)
+        protected void RemoveUrl(UrlData data)
         {
             if (data.isSsl)
                 m_HttpsServer.RemoveHTTPHandler("", "/lslhttps/"+data.urlcode.ToString()+"/");
@@ -461,7 +461,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 m_HttpServer.RemoveHTTPHandler("", "/lslhttp/"+data.urlcode.ToString()+"/");
         }
 
-        private Hashtable NoEvents(UUID requestID, UUID sessionID)
+        protected Hashtable NoEvents(UUID requestID, UUID sessionID)
         {
             Hashtable response = new Hashtable();
             UrlData url;
@@ -499,7 +499,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             return response;
         }
 
-        private bool HasEvents(UUID requestID, UUID sessionID)
+        protected bool HasEvents(UUID requestID, UUID sessionID)
         {
             UrlData url=null;
 
@@ -530,7 +530,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 }
             }
         }
-        private Hashtable GetEvents(UUID requestID, UUID sessionID)
+        protected Hashtable GetEvents(UUID requestID, UUID sessionID)
         {
             UrlData url = null;
             RequestData requestData = null;
@@ -735,7 +735,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             }
         }
 
-        private void OnScriptReset(uint localID, UUID itemID)
+        protected void OnScriptReset(uint localID, UUID itemID)
         {
             ScriptRemoved(itemID);
         }

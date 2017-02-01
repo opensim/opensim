@@ -454,7 +454,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
                 if (physicsParms == null)
                 {
-                    m_log.WarnFormat("[MESH]: unknown mesh type for prim {0}",primName);
+                    //m_log.WarnFormat("[MESH]: unknown mesh type for prim {0}",primName);
                     return false;
                 }
 
@@ -712,7 +712,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                         else
                         {
                             // if neither mesh or decomposition present, warn and use convex
-                            m_log.WarnFormat("[MESH]: Data for PRIM shape type ( mesh or decomposition) not found for prim {0}",primName);
+                            //m_log.WarnFormat("[MESH]: Data for PRIM shape type ( mesh or decomposition) not found for prim {0}",primName);
                         }
                     }
                     vs.Clear();

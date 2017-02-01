@@ -209,7 +209,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             if (m_Cache != null)
             {
-                asset = m_Cache.Get(id);
+                if (!m_Cache.Get(id, out asset))
+                    return null;
 
                 if (asset != null)
                     return asset;
@@ -238,8 +239,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
         public AssetBase GetCached(string id)
         {
+            AssetBase asset = null;
             if (m_Cache != null)
-                return m_Cache.Get(id);
+                m_Cache.Get(id, out asset);
 
             return null;
         }
@@ -250,8 +252,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             if (m_Cache != null)
             {
-                if (m_Cache != null)
-                    m_Cache.Get(id);
+                if (!m_Cache.Get(id, out asset))
+                    return null;
 
                 if (asset != null)
                     return asset.Metadata;
@@ -273,8 +275,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             if (m_Cache != null)
             {
-                if (m_Cache != null)
-                    m_Cache.Get(id);
+                if (!m_Cache.Get(id, out asset))
+                    return null;
 
                 if (asset != null)
                     return asset.Data;
@@ -292,7 +294,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             AssetBase asset = null;
 
             if (m_Cache != null)
-                asset = m_Cache.Get(id);
+            {
+                if (!m_Cache.Get(id, out asset))
+                    return false;
+            }
 
             if (asset != null)
             {
@@ -382,7 +387,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             AssetBase asset = null;
 
             if (m_Cache != null)
-                asset = m_Cache.Get(id);
+                m_Cache.Get(id, out asset);
 
             if (asset != null)
             {

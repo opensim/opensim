@@ -248,22 +248,16 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             if (scene == null)
                 scene = m_SceneList[0];
 
-// Avination new code
-//            SendReply reply = SynchronousRestObjectRequester.MakeRequest<GridInstantMessage, SendReply>(
-//                    "POST", m_RestURL+"/SaveMessage/?scope=" +
-//                    scene.RegionInfo.ScopeID.ToString(), im);
-
-// current opensim and osgrid compatible
-            bool success = SynchronousRestObjectRequester.MakeRequest<GridInstantMessage, bool>(
-                    "POST", m_RestURL+"/SaveMessage/", im, 10000);
-// current opensim and osgrid compatible end
+            SendReply reply = SynchronousRestObjectRequester.MakeRequest<GridInstantMessage, SendReply>(
+                    "POST", m_RestURL+"/SaveMessage/?scope=" +
+                    scene.RegionInfo.ScopeID.ToString(), im);
 
             if (im.dialog == (byte)InstantMessageDialog.MessageFromAgent)
             {
                 IClientAPI client = FindClient(new UUID(im.fromAgentID));
                 if (client == null)
                     return;
-/* Avination new code
+
                 if (reply.Message == String.Empty)
                     reply.Message = "User is not logged in. " + (reply.Success ? "Message saved." : "Message not saved");
 
@@ -296,16 +290,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                             reply.Message,
                             false, new Vector3()));
                 }
-*/
-// current opensim and osgrid compatible
-                client.SendInstantMessage(new GridInstantMessage(
-                        null, new UUID(im.toAgentID),
-                        "System", new UUID(im.fromAgentID),
-                        (byte)InstantMessageDialog.MessageFromAgent,
-                        "User is not logged in. "+
-                        (success ? "Message saved." : "Message not saved"),
-                        false, new Vector3()));
-// current opensim and osgrid compatible end
             }
         }
     }
