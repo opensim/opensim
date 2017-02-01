@@ -131,16 +131,15 @@ namespace OpenSim.Region.CoreModules.Asset
             // We don't do negative caching
         }
 
-        public AssetBase Get(string id, out bool negative)
+        public bool Get(string id, out AssetBase asset)
         {
-            negative = false;
+            Object a = null;
+            m_Cache.TryGet(id, out a);
 
-            Object asset = null;
-            m_Cache.TryGet(id, out asset);
+            Debug(a);
 
-            Debug(asset);
-
-            return (AssetBase)asset;
+            asset = (AssetBase)a;
+            return true;
         }
 
         public void Expire(string id)

@@ -159,10 +159,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             AssetBase asset = null;
             if (m_Cache != null)
             {
-                bool negative;
-                asset = m_Cache.Get(id, out negative);
-
-                if (negative)
+                if (!m_Cache.Get(id, out asset))
                     return null;
             }
 
@@ -183,13 +180,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
         {
 //            m_log.DebugFormat("[LOCAL ASSET SERVICES CONNECTOR]: Cache request for {0}", id);
 
+            AssetBase asset = null;
             if (m_Cache != null)
-            {
-                bool negative;
-                return m_Cache.Get(id, out negative);
-            }
+                m_Cache.Get(id, out asset);
 
-            return null;
+            return asset;
         }
 
         public AssetMetadata GetMetadata(string id)
@@ -197,9 +192,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             AssetBase asset = null;
             if (m_Cache != null)
             {
-                bool negative;
-                asset = m_Cache.Get(id, out negative);
-                if (negative)
+                if (!m_Cache.Get(id, out asset))
                     return null;
             }
 

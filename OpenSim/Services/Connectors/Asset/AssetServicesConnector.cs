@@ -246,11 +246,7 @@ namespace OpenSim.Services.Connectors
 
             if (m_Cache != null)
             {
-                bool negative;
-
-                asset = m_Cache.Get(id, out negative);
-
-                if (negative)
+                if (!m_Cache.Get(id, out asset))
                     return null;
             }
 
@@ -283,21 +279,21 @@ namespace OpenSim.Services.Connectors
         {
 //            m_log.DebugFormat("[ASSET SERVICE CONNECTOR]: Cache request for {0}", id);
 
-            bool negative;
+            AssetBase asset = null;
             if (m_Cache != null)
-                return m_Cache.Get(id, out negative);
+            {
+                m_Cache.Get(id, out asset);
+            }
 
-            return null;
+            return asset;
         }
 
         public AssetMetadata GetMetadata(string id)
         {
             if (m_Cache != null)
             {
-                bool negative;
-                AssetBase fullAsset = m_Cache.Get(id, out negative);
-
-                if (negative)
+                AssetBase fullAsset;
+                if (!m_Cache.Get(id, out fullAsset))
                     return null;
 
                 if (fullAsset != null)
@@ -314,10 +310,8 @@ namespace OpenSim.Services.Connectors
         {
             if (m_Cache != null)
             {
-                bool negative;
-                AssetBase fullAsset = m_Cache.Get(id, out negative);
-
-                if (negative)
+                AssetBase fullAsset;
+                if (!m_Cache.Get(id, out fullAsset))
                     return null;
 
                 if (fullAsset != null)
@@ -407,11 +401,7 @@ namespace OpenSim.Services.Connectors
             AssetBase asset = null;
             if (m_Cache != null)
             {
-                bool negative;
-
-                asset = m_Cache.Get(id, out negative);
-
-                if (negative)
+                if (!m_Cache.Get(id, out asset))
                     return false;
             }
 
@@ -613,9 +603,8 @@ namespace OpenSim.Services.Connectors
         {
             AssetBase asset = null;
 
-            bool negative;
             if (m_Cache != null)
-                asset = m_Cache.Get(id, out negative);
+                m_Cache.Get(id, out asset);
 
             if (asset == null)
             {

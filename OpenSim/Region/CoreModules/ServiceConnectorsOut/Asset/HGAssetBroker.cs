@@ -209,10 +209,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             if (m_Cache != null)
             {
-                bool negative;
-                asset = m_Cache.Get(id, out negative);
-
-                if (negative)
+                if (!m_Cache.Get(id, out asset))
                     return null;
 
                 if (asset != null)
@@ -242,9 +239,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
         public AssetBase GetCached(string id)
         {
-            bool negative;
+            AssetBase asset = null;
             if (m_Cache != null)
-                return m_Cache.Get(id, out negative);
+                m_Cache.Get(id, out asset);
 
             return null;
         }
@@ -255,10 +252,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             if (m_Cache != null)
             {
-                bool negative;
-                asset = m_Cache.Get(id, out negative);
-
-                if (negative)
+                if (!m_Cache.Get(id, out asset))
                     return null;
 
                 if (asset != null)
@@ -281,10 +275,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             if (m_Cache != null)
             {
-                bool negative;
-                asset = m_Cache.Get(id, out negative);
-
-                if (negative)
+                if (!m_Cache.Get(id, out asset))
                     return null;
 
                 if (asset != null)
@@ -304,10 +295,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             if (m_Cache != null)
             {
-                bool negative;
-                asset = m_Cache.Get(id, out negative);
-
-                if (negative)
+                if (!m_Cache.Get(id, out asset))
                     return false;
             }
 
@@ -398,9 +386,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
         {
             AssetBase asset = null;
 
-            bool negative;
             if (m_Cache != null)
-                asset = m_Cache.Get(id, out negative);
+                m_Cache.Get(id, out asset);
 
             if (asset != null)
             {

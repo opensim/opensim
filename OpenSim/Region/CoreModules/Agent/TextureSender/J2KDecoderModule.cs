@@ -369,8 +369,8 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
             else if (Cache != null)
             {
                 string assetName = "j2kCache_" + AssetId.ToString();
-                bool negative;
-                AssetBase layerDecodeAsset = Cache.Get(assetName, out negative);
+                AssetBase layerDecodeAsset;
+                Cache.Get(assetName, out layerDecodeAsset);
 
                 if (layerDecodeAsset != null)
                 {
