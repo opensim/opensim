@@ -243,7 +243,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             if (m_Cache != null)
                 m_Cache.Get(id, out asset);
 
-            return null;
+            return asset;
         }
 
         public AssetMetadata GetMetadata(string id)
