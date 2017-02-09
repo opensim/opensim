@@ -1732,6 +1732,10 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
+            // A god is a god is a god
+            if (IsAdministrator(user))
+                return true;
+
             if (objectID == UUID.Zero) // User inventory
             {
                 IInventoryService invService = m_scene.InventoryService;
@@ -1827,6 +1831,10 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            // A god is a god is a god
+            if (IsAdministrator(user))
+                return true;
 
             if (objectID == UUID.Zero) // User inventory
             {
