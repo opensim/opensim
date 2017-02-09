@@ -806,6 +806,9 @@ namespace OpenSim.Region.CoreModules.Asset
 
                     return;
                 }
+                catch (UnauthorizedAccessException e)
+                {
+                }
                 finally
                 {
                     if (stream != null)
