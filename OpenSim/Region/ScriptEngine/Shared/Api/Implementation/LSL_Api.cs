@@ -424,6 +424,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return lease;
         }
 
+        protected SceneObjectPart MonitoringObject()
+        {
+            UUID m = m_host.ParentGroup.MonitoringObject;
+            if (m == UUID.Zero)
+                return null;
+
+            SceneObjectPart p = m_ScriptEngine.World.GetSceneObjectPart(m);
+            if (p == null)
+                m_host.ParentGroup.MonitoringObject = UUID.Zero;
+
+            return p;
+        }
+
         protected virtual void ScriptSleep(int delay)
         {
             delay = (int)((float)delay * m_ScriptDelayFactor);

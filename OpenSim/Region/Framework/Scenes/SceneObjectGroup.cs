@@ -376,6 +376,8 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_dupeInProgress = false;
         internal Dictionary<UUID, string> m_savedScriptState;
 
+        public UUID MonitoringObject { get; set; }
+
         #region Properties
 
         /// <summary>
