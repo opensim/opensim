@@ -1520,6 +1520,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_log.Debug("[SCENE]: Persisting changed objects");
             Backup(true);
 
+            m_log.Debug("[SCENE]: Closing scene");
+
             m_sceneGraph.Close();
 
             base.Close();
@@ -3983,7 +3985,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (!LoginsEnabled)
             {
-                reason = "Logins Disabled";
+                reason = "Logins to this region are disabled";
                 return false;
             }
 
