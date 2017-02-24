@@ -1190,13 +1190,26 @@ namespace OpenSim.Framework
         {
             foreach (IAppender appender in LogManager.GetRepository().GetAppenders())
             {
-                if (appender is FileAppender)
+                if (appender is FileAppender && appender.Name == "LogFileAppender")
                 {
                     return ((FileAppender)appender).File;
                 }
             }
 
             return "./OpenSim.log";
+        }
+
+        public static string statsLogFile()
+        {
+            foreach (IAppender appender in LogManager.GetRepository().GetAppenders())
+            {
+                if (appender is FileAppender && appender.Name == "StatsLogFileAppender")
+                {
+                    return ((FileAppender)appender).File;
+                }
+            }
+
+            return "./OpenSimStats.log";
         }
 
         public static string logDir()
