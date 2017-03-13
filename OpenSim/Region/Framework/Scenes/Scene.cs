@@ -1212,6 +1212,28 @@ namespace OpenSim.Region.Framework.Scenes
             StatsReporter.OnSendStatsResult += SendSimStatsPackets;
             StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
 
+            IConfig restartConfig = config.Configs["RestartModule"];
+            if (restartConfig != null)
+            {
+                string markerPath = restartConfig.GetString("MarkerPath", String.Empty);
+
+                if (markerPath != String.Empty)
+                {
+                    string path = Path.Combine(markerPath, RegionInfo.RegionID.ToString() + ".started");
+                    try
+                    {
+                        string pidstring = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
+                        FileStream fs = File.Create(path);
+                        System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+                        Byte[] buf = enc.GetBytes(pidstring);
+                        fs.Write(buf, 0, buf.Length);
+                        fs.Close();
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+            }
         }
 
         public Scene(RegionInfo regInfo)
