@@ -61,6 +61,8 @@ namespace OpenSim.Region.CoreModules.World.Region
         protected IDialogModule m_DialogModule = null;
         protected string m_MarkerPath = String.Empty;
         private int[] m_CurrentAlerts = null;
+        protected bool m_shortCircuitDelays = false;
+        protected bool m_rebootAll = false;
 
         public void Initialise(IConfigSource config)
         {
@@ -69,6 +71,9 @@ namespace OpenSim.Region.CoreModules.World.Region
             {
                 m_MarkerPath = restartConfig.GetString("MarkerPath", String.Empty);
             }
+            IConfig startupConfig = config.Configs["Startup"];
+            m_shortCircuitDelays = startupConfig.GetBoolean("SkipDelayOnEmptyRegion", false);
+            m_rebootAll = startupConfig.GetBoolean("InworldRestartShutsDown", false);
         }
 
         public void AddRegion(Scene scene)
@@ -250,6 +255,14 @@ namespace OpenSim.Region.CoreModules.World.Region
         private void OnTimer(object source, ElapsedEventArgs e)
         {
             int nextInterval = DoOneNotice(true);
+            if (m_shortCircuitDelays)
+            {
+                if (CountAgents() == 0)
+                {
+                    m_Scene.RestartNow();
+                    return;
+                }
+            }
 
             SetTimer(nextInterval);
         }
@@ -348,6 +361,36 @@ namespace OpenSim.Region.CoreModules.World.Region
             catch (Exception)
             {
             }
+        }
+
+        int CountAgents()
+        {
+            m_log.Info("[RESTART MODULE]: Counting affected avatars");
+            int agents = 0;
+
+            if (m_rebootAll)
+            {
+                foreach (Scene s in SceneManager.Instance.Scenes)
+                {
+                    foreach (ScenePresence sp in s.GetScenePresences())
+                    {
+                        if (!sp.IsChildAgent)
+                            agents++;
+                    }
+                }
+            }
+            else
+            {
+                foreach (ScenePresence sp in m_Scene.GetScenePresences())
+                {
+                    if (!sp.IsChildAgent)
+                        agents++;
+                }
+            }
+
+            m_log.InfoFormat("[RESTART MODULE]: Avatars in region: {0}", agents);
+
+            return agents;
         }
     }
 }
