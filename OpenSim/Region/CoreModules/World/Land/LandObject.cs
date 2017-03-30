@@ -1649,8 +1649,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 foreach (SceneObjectGroup obj in primsOverMe)
                 {
-                    if (obj.OwnerID == previousOwner && obj.GroupID == UUID.Zero &&
-                        (obj.EffectiveOwnerPerms & (uint)(OpenSim.Framework.PermissionMask.Transfer)) != 0)
+                    if(m_scene.Permissions.CanSellObject(previousOwner,obj, (byte)SaleType.Original))
                         m_BuySellModule.BuyObject(sp.ControllingClient, UUID.Zero, obj.LocalId, 1, 0);
                 }
             }

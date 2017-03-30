@@ -300,6 +300,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             scenePermissions.OnDelinkObject += CanDelinkObject;
             scenePermissions.OnDeedObject += CanDeedObject;
             scenePermissions.OnSellGroupObject += CanSellGroupObject;
+            scenePermissions.OnSellObjectByUserID += CanSellObjectByUserID;
+            scenePermissions.OnSellObject += CanSellObject;
             
             scenePermissions.OnCreateObjectInventory += CanCreateObjectInventory;
             scenePermissions.OnEditObjectInventory += CanEditObjectInventory;
@@ -393,7 +395,10 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             scenePermissions.OnLinkObject -= CanLinkObject;
             scenePermissions.OnDelinkObject -= CanDelinkObject;
             scenePermissions.OnDeedObject -= CanDeedObject;
+
             scenePermissions.OnSellGroupObject -= CanSellGroupObject;
+            scenePermissions.OnSellObjectByUserID -= CanSellObjectByUserID;
+            scenePermissions.OnSellObject -= CanSellObject;
             
             scenePermissions.OnCreateObjectInventory -= CanCreateObjectInventory;
             scenePermissions.OnEditObjectInventory -= CanEditObjectInventory;
@@ -1826,6 +1831,86 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return IsGroupMember(groupID, userID, (ulong)GroupPowers.ObjectSetForSale);
         }
 
+        private bool CanSellObjectByUserID(SceneObjectGroup sog, UUID userID, byte saleType)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            if (sog == null || sog.IsDeleted || userID == UUID.Zero)
+                return false;
+
+            // sell is not a attachment op
+            if(sog.IsAttachment)
+                return false;
+
+            if(IsAdministrator(userID))
+                return true;
+
+            uint sogEffectiveOwnerPerms = sog.EffectiveOwnerPerms;
+            if((sogEffectiveOwnerPerms & (uint)PermissionMask.Transfer) == 0)
+                return false;
+
+            if(saleType == (byte)SaleType.Copy &&
+                    (sogEffectiveOwnerPerms & (uint)PermissionMask.Copy) == 0)
+                return false;
+
+            UUID sogOwnerID = sog.OwnerID;
+
+            if(sogOwnerID == userID)
+                return true;
+
+            // else only group owned can be sold by members with powers
+            UUID sogGroupID = sog.GroupID;
+            if(sog.OwnerID != sogGroupID || sogGroupID == UUID.Zero)
+                return false;
+
+            return IsGroupMember(sogGroupID, userID, (ulong)GroupPowers.ObjectSetForSale);
+        }
+
+        private bool CanSellObject(SceneObjectGroup sog, ScenePresence sp, byte saleType)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            if (sog == null || sog.IsDeleted || sp == null || sp.IsDeleted)
+                return false;
+
+            // sell is not a attachment op
+            if(sog.IsAttachment)
+                return false;
+
+            if(sp.IsGod)
+                return true;
+
+            uint sogEffectiveOwnerPerms = sog.EffectiveOwnerPerms;
+            if((sogEffectiveOwnerPerms & (uint)PermissionMask.Transfer) == 0)
+                return false;
+
+            if(saleType == (byte)SaleType.Copy &&
+                    (sogEffectiveOwnerPerms & (uint)PermissionMask.Copy) == 0)
+                return false;
+
+            UUID userID = sp.UUID;
+            UUID sogOwnerID = sog.OwnerID;
+
+            if(sogOwnerID == userID)
+                return true;
+
+            // else only group owned can be sold by members with powers
+            UUID sogGroupID = sog.GroupID;
+            if(sog.OwnerID != sogGroupID || sogGroupID == UUID.Zero)
+                return false;
+
+            ulong powers = 0;
+            if(!GroupMemberPowers(sogGroupID, sp, ref powers))
+                return false;
+
+            if((powers & (ulong)GroupPowers.ObjectSetForSale) == 0)
+                return false;
+
+            return true;
+        }
+
         private bool CanTakeObject(SceneObjectGroup sog, ScenePresence sp)
         {
             // ignore locked, viewers shell ask for confirmation
@@ -1835,7 +1920,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (sog == null || sog.IsDeleted || sp == null || sp.IsDeleted)
                 return false;
 
-            // take is not a attachment op            
+            // take is not a attachment op
             if(sog.IsAttachment)
                 return false;
 

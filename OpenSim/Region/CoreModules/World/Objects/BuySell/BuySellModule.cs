@@ -89,28 +89,23 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
             if (part == null)
                 return;
 
-            if (part.ParentGroup.IsDeleted)
+            SceneObjectGroup sog = part.ParentGroup;
+            if (sog == null || sog.IsDeleted)
                 return;
 
-            if (part.OwnerID != part.GroupID && part.OwnerID != client.AgentId && (!m_scene.Permissions.IsGod(client.AgentId)))
-                return;
-
-            if (part.OwnerID == part.GroupID) // Group owned
+            // Does the user have the power to put the object on sale?
+            if (!m_scene.Permissions.CanSellObject(client, sog, saleType))
             {
-                // Does the user have the power to put the object on sale?
-                if (!m_scene.Permissions.CanSellGroupObject(client.AgentId, part.GroupID))
-                {
-                    client.SendAgentAlertMessage("You don't have permission to set group-owned objects on sale", false);
-                    return;
-                }
+                client.SendAgentAlertMessage("You don't have permission to set object on sale", false);
+                return;
             }
 
-            part = part.ParentGroup.RootPart;
+            part = sog.RootPart;
 
             part.ObjectSaleType = saleType;
             part.SalePrice = salePrice;
 
-            part.ParentGroup.HasGroupChanged = true;
+            sog.HasGroupChanged = true;
 
             part.SendPropertiesToClient(client);
         }

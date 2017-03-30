@@ -47,6 +47,8 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool TransferObjectHandler(UUID objectID, UUID recipient);
     public delegate bool TakeObjectHandler(SceneObjectGroup sog, ScenePresence sp);
     public delegate bool SellGroupObjectHandler(UUID userID, UUID groupID);
+    public delegate bool SellObjectHandlerByUserID(SceneObjectGroup sog, UUID userID, byte saleType);
+    public delegate bool SellObjectHandler(SceneObjectGroup sog, ScenePresence sp, byte saleType);
     public delegate bool TakeCopyObjectHandler(SceneObjectGroup sog, ScenePresence sp);
     public delegate bool DuplicateObjectHandler(SceneObjectGroup sog, ScenePresence sp);
     public delegate bool EditObjectByIDsHandler(UUID objectID, UUID editorID);
@@ -121,7 +123,11 @@ namespace OpenSim.Region.Framework.Scenes
         public event DeleteObjectHandler OnDeleteObject;
         public event TransferObjectHandler OnTransferObject;
         public event TakeObjectHandler OnTakeObject;
+
         public event SellGroupObjectHandler OnSellGroupObject;
+        public event SellObjectHandlerByUserID OnSellObjectByUserID;
+        public event SellObjectHandler OnSellObject;
+
         public event TakeCopyObjectHandler OnTakeCopyObject;
         public event DuplicateObjectHandler OnDuplicateObject;
         public event EditObjectByIDsHandler OnEditObjectByIDs;
@@ -281,14 +287,11 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-
             return result;
         }
 
         public bool CanDeleteObject(SceneObjectGroup sog, IClientAPI client)
         {
-            bool result = true;
-
             DeleteObjectHandler handler = OnDeleteObject;
             if (handler != null)
             {
@@ -301,20 +304,15 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (DeleteObjectHandler h in list)
                 {
                     if (h(sog, sp) == false)
-                    {
-                        result = false;
-                        break;
-                    }
+                        return false;
                 }
             }
 
-            return result;
+            return true;
         }
 
         public bool CanTransferObject(UUID objectID, UUID recipient)
         {
-            bool result = true;
-
             TransferObjectHandler handler = OnTransferObject;
             if (handler != null)
             {
@@ -322,14 +320,10 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (TransferObjectHandler h in list)
                 {
                     if (h(objectID, recipient) == false)
-                    {
-                        result = false;
-                        break;
-                    }
+                        return false;
                 }
             }
-
-            return result;
+            return true;
         }
 
         #endregion
@@ -337,8 +331,6 @@ namespace OpenSim.Region.Framework.Scenes
         #region TAKE OBJECT
         public bool CanTakeObject(SceneObjectGroup sog, ScenePresence sp)
         {
-            bool result = true;
-
             TakeObjectHandler handler = OnTakeObject;
             if (handler != null)
             {
@@ -349,18 +341,13 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (TakeObjectHandler h in list)
                 {
                     if (h(sog, sp) == false)
-                    {
-                        result = false;
-                        break;
-                    }
+                        return false;
                 }
             }
-
 //            m_log.DebugFormat(
 //                "[SCENE PERMISSIONS]: CanTakeObject() fired for object {0}, taker {1}, result {2}",
 //                objectID, AvatarTakingUUID, result);
-
-            return result;
+            return true;
         }
 
         #endregion
@@ -368,8 +355,6 @@ namespace OpenSim.Region.Framework.Scenes
         #region SELL GROUP OBJECT
         public bool CanSellGroupObject(UUID userID, UUID groupID)
         {
-            bool result = true;
-
             SellGroupObjectHandler handler = OnSellGroupObject;
             if (handler != null)
             {
@@ -377,18 +362,52 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (SellGroupObjectHandler h in list)
                 {
                     if (h(userID, groupID) == false)
-                    {
-                        result = false;
-                        break;
-                    }
+                        return false;
                 }
             }
-
             //m_log.DebugFormat(
             //    "[SCENE PERMISSIONS]: CanSellGroupObject() fired for user {0}, group {1}, result {2}",
             //    userID, groupID, result);
+            return true;
+        }
 
-            return result;
+        #endregion
+
+        #region SELL OBJECT
+        public bool CanSellObject(IClientAPI client, SceneObjectGroup sog, byte saleType)
+        {
+            SellObjectHandler handler = OnSellObject;
+            if (handler != null)
+            {
+                if(sog == null || client == null || client.SceneAgent == null)
+                    return false;
+
+                ScenePresence sp = client.SceneAgent as ScenePresence;
+                Delegate[] list = handler.GetInvocationList();
+                foreach (SellObjectHandler h in list)
+                {
+                    if (h(sog, sp, saleType) == false)
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public bool CanSellObject(UUID userID, SceneObjectGroup sog, byte saleType)
+        {
+            SellObjectHandlerByUserID handler = OnSellObjectByUserID;
+            if (handler != null)
+            {
+                if(sog == null)
+                    return false;
+                Delegate[] list = handler.GetInvocationList();
+                foreach (SellObjectHandlerByUserID h in list)
+                {
+                    if (h(sog, userID, saleType) == false)
+                        return false;
+                }
+            }
+            return true;
         }
 
         #endregion
@@ -397,8 +416,6 @@ namespace OpenSim.Region.Framework.Scenes
         #region TAKE COPY OBJECT
         public bool CanTakeCopyObject(SceneObjectGroup sog, ScenePresence sp)
         {
-            bool result = true;
-
             TakeCopyObjectHandler handler = OnTakeCopyObject;
             if (handler != null)
             {
@@ -408,18 +425,13 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (TakeCopyObjectHandler h in list)
                 {
                     if (h(sog, sp) == false)
-                    {
-                        result = false;
-                        break;
-                    }
+                        return false;
                 }
             }
-
 //            m_log.DebugFormat(
 //                "[SCENE PERMISSIONS]: CanTakeCopyObject() fired for object {0}, user {1}, result {2}",
 //                objectID, userID, result);
-
-            return result;
+            return true;
         }
 
         #endregion
@@ -558,8 +570,6 @@ namespace OpenSim.Region.Framework.Scenes
         #region RETURN OBJECT
         public bool CanReturnObjects(ILandObject land, IClientAPI client, List<SceneObjectGroup> objects)
         {
-            bool result = true;
-
             ReturnObjectsHandler handler = OnReturnObjects;
             if (handler != null)
             {
@@ -574,18 +584,14 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (ReturnObjectsHandler h in list)
                 {
                     if (h(land, sp, objects) == false)
-                    {
-                        result = false;
-                        break;
-                    }
+                        return false;
                 }
             }
-
 //            m_log.DebugFormat(
 //                "[SCENE PERMISSIONS]: CanReturnObjects() fired for user {0} for {1} objects on {2}, result {3}",
 //                user, objects.Count, land.LandData.Name, result);
 
-            return result;
+            return true;
         }
 
         #endregion
