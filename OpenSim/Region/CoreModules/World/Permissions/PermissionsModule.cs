@@ -2033,7 +2033,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
             // A god is a god is a god
-            if (IsAdministrator(user))
+            if (IsAdministrator(userID))
                 return true;
 
             if (objectID == UUID.Zero) // User inventory
@@ -2126,7 +2126,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
             // A god is a god is a god
-            if (IsAdministrator(user))
+            if (IsAdministrator(userID))
                 return true;
 
             if (objectID == UUID.Zero) // User inventory
