@@ -155,6 +155,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         VehicleRotationParam,
         VehicleFlags,
         SetVehicle,
+        SetInertia,
 
         Null             //keep this last used do dim the methods array. does nothing but pulsing the prim
     }
@@ -502,7 +503,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             d.WorldSetGravity(world, gravityx, gravityy, gravityz);
 
-            d.WorldSetLinearDamping(world, 0.002f);
+            d.WorldSetLinearDamping(world, 0.001f);
             d.WorldSetAngularDamping(world, 0.002f);
             d.WorldSetAngularDampingThreshold(world, 0f);
             d.WorldSetLinearDampingThreshold(world, 0f);
