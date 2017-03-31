@@ -374,7 +374,7 @@ namespace OpenSim.Region.CoreModules.World.Region
                 {
                     foreach (ScenePresence sp in s.GetScenePresences())
                     {
-                        if (!sp.IsChildAgent)
+                        if (!sp.IsChildAgent && !sp.IsNPC)
                             agents++;
                     }
                 }
@@ -383,7 +383,7 @@ namespace OpenSim.Region.CoreModules.World.Region
             {
                 foreach (ScenePresence sp in m_Scene.GetScenePresences())
                 {
-                    if (!sp.IsChildAgent)
+                    if (!sp.IsChildAgent && !sp.IsNPC)
                         agents++;
                 }
             }
