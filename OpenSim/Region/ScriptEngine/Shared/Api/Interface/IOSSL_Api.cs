@@ -38,6 +38,7 @@ using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 
+
 namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 {
     /// <summary>
@@ -486,6 +487,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_String osRequestURL(LSL_List options);
         LSL_String osRequestSecureURL(LSL_List options);
         void osCollisionSound(string impact_sound, double impact_volume);
+
         void osVolumeDetect(int detect);
+
+        LSL_List osGetInertiaData();
+        void osClearInertia();
+        void osSetInertiaAsBox(LSL_Float mass, vector boxSize, vector centerOfMass, rotation rot);
+        void osSetInertiaAsSphere(LSL_Float mass,  LSL_Float radius, vector centerOfMass);
+        void osSetInertiaAsCylinder(LSL_Float mass,  LSL_Float radius, LSL_Float lenght, vector centerOfMass,rotation lslrot);
     }
 }

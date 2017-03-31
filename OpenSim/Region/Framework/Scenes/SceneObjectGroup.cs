@@ -5010,6 +5010,47 @@ namespace OpenSim.Region.Framework.Scenes
             return Ptot;
         }
 
+        public void GetInertiaData(out float TotalMass, out Vector3 CenterOfMass, out Vector3 Inertia, out Vector4 aux )
+        {
+            PhysicsActor pa = RootPart.PhysActor;
+
+            if(((RootPart.Flags & PrimFlags.Physics) !=0) && pa !=null)
+            {
+                PhysicsInertiaData inertia;
+
+                inertia = pa.GetInertiaData();
+
+                TotalMass = inertia.TotalMass;
+                CenterOfMass = inertia.CenterOfMass;
+                Inertia = inertia.Inertia;
+                aux = inertia.InertiaRotation;
+
+                return;
+            }
+
+            TotalMass = GetMass();
+            CenterOfMass = GetCenterOfMass() - AbsolutePosition;
+            CenterOfMass *= Quaternion.Conjugate(RootPart.RotationOffset);
+            Inertia = Vector3.Zero;
+            aux =  Vector4.Zero;
+        }
+
+        public void SetInertiaData(float TotalMass, Vector3 CenterOfMass, Vector3 Inertia, Vector4 aux )
+        {
+            PhysicsActor pa = RootPart.PhysActor;
+
+            if(pa !=null)
+            {
+                PhysicsInertiaData inertia = new PhysicsInertiaData();
+                inertia.TotalMass = TotalMass;
+                inertia.CenterOfMass = CenterOfMass;
+                inertia.Inertia = Inertia;
+                inertia.InertiaRotation = aux;
+                pa.SetInertiaData(inertia);
+            }
+        }
+
+
         /// <summary>
         /// Set the user group to which this scene object belongs.
         /// </summary>

@@ -1114,5 +1114,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_OSSL_Functions.osVolumeDetect(detect);
         }
+
+        public LSL_List osGetInertiaData()
+        {
+            return m_OSSL_Functions.osGetInertiaData();
+        }
+
+        public void osSetInertiaAsBox(LSL_Float mass, vector boxSize, vector centerOfMass, rotation rot)
+        {
+            m_OSSL_Functions.osSetInertiaAsBox(mass, boxSize, centerOfMass, rot);
+        }
+
+        public void osSetInertiaAsSphere(LSL_Float mass,  LSL_Float radius, vector centerOfMass)
+        {
+            m_OSSL_Functions.osSetInertiaAsSphere(mass, radius, centerOfMass);
+        }
+
+        public void osSetInertiaAsCylinder(LSL_Float mass,  LSL_Float radius, LSL_Float lenght, vector centerOfMass,rotation lslrot)
+        {
+            m_OSSL_Functions.osSetInertiaAsCylinder( mass, radius, lenght, centerOfMass, lslrot);
+        }
+
+        public void osClearInertia()
+        {
+            m_OSSL_Functions.osClearInertia();
+        }
+
     }
 }
