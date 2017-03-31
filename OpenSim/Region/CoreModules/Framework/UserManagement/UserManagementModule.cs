@@ -957,9 +957,14 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public virtual bool IsLocalGridUser(UUID uuid)
         {
-            UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, uuid);
-            if (account == null || (account != null && !account.LocalToGrid))
-                return false;
+            lock (m_Scenes)
+            {
+                if (m_Scenes.Count == 0)
+                    return true;
+                UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, uuid);
+                if (account == null || (account != null && !account.LocalToGrid))
+                    return false;
+            }
 
             return true;
         }
