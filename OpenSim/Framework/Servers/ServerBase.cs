@@ -57,6 +57,7 @@ namespace OpenSim.Framework.Servers
 
         protected OpenSimAppender m_consoleAppender;
         protected FileAppender m_logFileAppender;
+        protected FileAppender m_statsLogFileAppender;
 
         protected DateTime m_startuptime;
         protected string m_startupDirectory = Environment.CurrentDirectory;
@@ -156,6 +157,10 @@ namespace OpenSim.Framework.Servers
                 {
                     m_logFileAppender = (FileAppender)appender;
                 }
+                else if (appender.Name == "StatsLogFileAppender")
+                {
+                    m_statsLogFileAppender = (FileAppender)appender;
+                }
             }
 
             if (null == m_consoleAppender)
@@ -184,6 +189,18 @@ namespace OpenSim.Framework.Servers
                 }
 
                 m_log.InfoFormat("[SERVER BASE]: Logging started to file {0}", m_logFileAppender.File);
+            }
+
+            if (m_statsLogFileAppender != null && startupConfig != null)
+            {
+                string cfgStatsFileName = startupConfig.GetString("StatsLogFile", null);
+                if (cfgStatsFileName != null)
+                {
+                    m_statsLogFileAppender.File = cfgStatsFileName;
+                    m_statsLogFileAppender.ActivateOptions();
+                }
+
+                m_log.InfoFormat("[SERVER BASE]: Stats Logging started to file {0}", m_statsLogFileAppender.File);
             }
         }
 

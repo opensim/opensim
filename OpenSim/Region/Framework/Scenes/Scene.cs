@@ -540,6 +540,9 @@ namespace OpenSim.Region.Framework.Scenes
         private Timer m_mapGenerationTimer = new Timer();
         private bool m_generateMaptiles;
 
+        protected int m_lastHealth = -1;
+        protected int m_lastUsers = -1;
+
         #endregion Fields
 
         #region Properties
@@ -1212,6 +1215,30 @@ namespace OpenSim.Region.Framework.Scenes
             StatsReporter.OnSendStatsResult += SendSimStatsPackets;
             StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
 
+            IConfig restartConfig = config.Configs["RestartModule"];
+            if (restartConfig != null)
+            {
+                string markerPath = restartConfig.GetString("MarkerPath", String.Empty);
+
+                if (markerPath != String.Empty)
+                {
+                    string path = Path.Combine(markerPath, RegionInfo.RegionID.ToString() + ".started");
+                    try
+                    {
+                        string pidstring = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
+                        FileStream fs = File.Create(path);
+                        System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+                        Byte[] buf = enc.GetBytes(pidstring);
+                        fs.Write(buf, 0, buf.Length);
+                        fs.Close();
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+            }
+
+            StartTimerWatchdog();
         }
 
         public Scene(RegionInfo regInfo)
@@ -1482,6 +1509,14 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
+            IEtcdModule etcd = RequestModuleInterface<IEtcdModule>();
+            if (etcd != null)
+            {
+                etcd.Delete("Health");
+                etcd.Delete("HealthFlags");
+                etcd.Delete("RootAgents");
+            }
+
             m_log.InfoFormat("[SCENE]: Closing down the single simulator: {0}", RegionInfo.RegionName);
 
 
@@ -1519,6 +1554,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_log.Debug("[SCENE]: Persisting changed objects");
             Backup(true);
+
+            m_log.Debug("[SCENE]: Closing scene");
 
             m_sceneGraph.Close();
 
@@ -3989,7 +4026,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (!LoginsEnabled)
             {
-                reason = "Logins Disabled";
+                reason = "Logins to this region are disabled";
                 return false;
             }
 
@@ -5512,23 +5549,24 @@ Label_GroupsDone:
                 return 0;
             }
 
-            if ((Util.EnvironmentTickCountSubtract(m_lastFrameTick)) < 1000)
+            if ((Util.EnvironmentTickCountSubtract(m_lastFrameTick)) < 2000)
             {
                 health+=1;
                 flags |= 1;
             }
 
-            if (Util.EnvironmentTickCountSubtract(m_lastIncoming) < 1000)
+            if (Util.EnvironmentTickCountSubtract(m_lastIncoming) < 2000)
             {
                 health+=1;
                 flags |= 2;
             }
 
-            if (Util.EnvironmentTickCountSubtract(m_lastOutgoing) < 1000)
+            if (Util.EnvironmentTickCountSubtract(m_lastOutgoing) < 2000)
             {
                 health+=1;
                 flags |= 4;
             }
+            /*
             else
             {
 int pid = System.Diagnostics.Process.GetCurrentProcess().Id;
@@ -5541,6 +5579,7 @@ proc.WaitForExit();
 Thread.Sleep(1000);
 Environment.Exit(1);
             }
+            */
 
             if (flags != 7)
                 return health;
@@ -6305,6 +6344,32 @@ Environment.Exit(1);
         public void TimerWatchdog(object sender, ElapsedEventArgs e)
         {
             CheckHeartbeat();
+
+            IEtcdModule etcd = RequestModuleInterface<IEtcdModule>();
+            int flags;
+            string message;
+            if (etcd != null)
+            {
+                int health = GetHealth(out flags, out message);
+                if (health != m_lastHealth)
+                {
+                    m_lastHealth = health;
+
+                    etcd.Store("Health", health.ToString(), 300000);
+                    etcd.Store("HealthFlags", flags.ToString(), 300000);
+                }
+
+                int roots = 0;
+                foreach (ScenePresence sp in GetScenePresences())
+                    if (!sp.IsChildAgent && !sp.IsNPC)
+                        roots++;
+
+                if (m_lastUsers != roots)
+                {
+                    m_lastUsers = roots;
+                    etcd.Store("RootAgents", roots.ToString(), 300000);
+                }
+            }
         }
 
         /// This method deals with movement when an avatar is automatically moving (but this is distinct from the

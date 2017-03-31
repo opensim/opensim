@@ -36,7 +36,7 @@ using MySql.Data.MySqlClient;
 namespace OpenSim.Data.MySQL
 {
     /// <summary>
-    /// A database interface class to a user profile storage system
+    /// Common code for a number of database modules
     /// </summary>
     public class MySqlFramework
     {
@@ -44,12 +44,22 @@ namespace OpenSim.Data.MySQL
                 log4net.LogManager.GetLogger(
                 System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected string m_connectionString;
-        protected object m_dbLock = new object();
+        protected string m_connectionString = String.Empty;
+        protected MySqlTransaction m_trans = null;
 
+        // Constructor using a connection string. Instances constructed
+        // this way will open a new connection for each call.
         protected MySqlFramework(string connectionString)
         {
             m_connectionString = connectionString;
+        }
+
+        // Constructor using a connection object. Instances constructed
+        // this way will use the connection object and never create
+        // new connections.
+        protected MySqlFramework(MySqlTransaction trans)
+        {
+            m_trans = trans;
         }
 
         //////////////////////////////////////////////////////////////
@@ -59,32 +69,47 @@ namespace OpenSim.Data.MySQL
         //
         protected int ExecuteNonQuery(MySqlCommand cmd)
         {
-            lock (m_dbLock)
+            if (m_trans == null)
             {
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
-                    try
-                    {
-                        dbcon.Open();
-                        cmd.Connection = dbcon;
-
-                        try
-                        {
-                            return cmd.ExecuteNonQuery();
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.Error(e.Message, e);
-                            m_log.Error(Environment.StackTrace.ToString());
-                            return 0;
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.Error(e.Message, e);
-                        return 0;
-                    }
+                    dbcon.Open();
+                    return ExecuteNonQueryWithConnection(cmd, dbcon);
                 }
+            }
+            else
+            {
+                return ExecuteNonQueryWithTransaction(cmd, m_trans);
+            }
+        }
+
+        private int ExecuteNonQueryWithTransaction(MySqlCommand cmd, MySqlTransaction trans)
+        {
+            cmd.Transaction = trans;
+            return ExecuteNonQueryWithConnection(cmd, trans.Connection);
+        }
+
+        private int ExecuteNonQueryWithConnection(MySqlCommand cmd, MySqlConnection dbcon)
+        {
+            try
+            {
+                cmd.Connection = dbcon;
+
+                try
+                {
+                    return cmd.ExecuteNonQuery();
+                }
+                catch (Exception e)
+                {
+                    m_log.Error(e.Message, e);
+                    m_log.Error(Environment.StackTrace.ToString());
+                    return 0;
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.Error(e.Message, e);
+                return 0;
             }
         }
     }

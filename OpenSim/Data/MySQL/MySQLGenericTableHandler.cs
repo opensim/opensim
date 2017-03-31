@@ -53,14 +53,27 @@ namespace OpenSim.Data.MySQL
             get { return GetType().Assembly; }
         }
 
+        public MySQLGenericTableHandler(MySqlTransaction trans,
+                string realm, string storeName) : base(trans)
+        {
+            m_Realm = realm;
+
+            CommonConstruct(storeName);
+        }
+
         public MySQLGenericTableHandler(string connectionString,
                 string realm, string storeName) : base(connectionString)
         {
             m_Realm = realm;
-            m_connectionString = connectionString;
 
+            CommonConstruct(storeName);
+        }
+
+        protected void CommonConstruct(string storeName)
+        {
             if (storeName != String.Empty)
             {
+                // We always use a new connection for any Migrations
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
                     dbcon.Open();
@@ -111,6 +124,11 @@ namespace OpenSim.Data.MySQL
 
         public virtual T[] Get(string[] fields, string[] keys)
         {
+            return Get(fields, keys, String.Empty);
+        }
+
+        public virtual T[] Get(string[] fields, string[] keys, string options)
+        {
             if (fields.Length != keys.Length)
                 return new T[0];
 
@@ -126,8 +144,8 @@ namespace OpenSim.Data.MySQL
 
                 string where = String.Join(" and ", terms.ToArray());
 
-                string query = String.Format("select * from {0} where {1}",
-                                             m_Realm, where);
+                string query = String.Format("select * from {0} where {1} {2}",
+                                             m_Realm, where, options);
 
                 cmd.CommandText = query;
 
@@ -137,72 +155,92 @@ namespace OpenSim.Data.MySQL
 
         protected T[] DoQuery(MySqlCommand cmd)
         {
+            if (m_trans == null)
+            {
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                {
+                    dbcon.Open();
+
+                    return DoQueryWithConnection(cmd, dbcon);
+                }
+            }
+            else
+            {
+                return DoQueryWithTransaction(cmd, m_trans);
+            }
+        }
+
+        protected T[] DoQueryWithTransaction(MySqlCommand cmd, MySqlTransaction trans)
+        {
+            cmd.Transaction = trans;
+
+            return DoQueryWithConnection(cmd, trans.Connection);
+        }
+
+        protected T[] DoQueryWithConnection(MySqlCommand cmd, MySqlConnection dbcon)
+        {
             List<T> result = new List<T>();
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            cmd.Connection = dbcon;
+
+            using (IDataReader reader = cmd.ExecuteReader())
             {
-                dbcon.Open();
-                cmd.Connection = dbcon;
+                if (reader == null)
+                    return new T[0];
 
-                using (IDataReader reader = cmd.ExecuteReader())
+                CheckColumnNames(reader);
+
+                while (reader.Read())
                 {
-                    if (reader == null)
-                        return new T[0];
+                    T row = new T();
 
-                    CheckColumnNames(reader);
-
-                    while (reader.Read())
+                    foreach (string name in m_Fields.Keys)
                     {
-                        T row = new T();
-
-                        foreach (string name in m_Fields.Keys)
+                        if (reader[name] is DBNull)
                         {
-                            if (reader[name] is DBNull)
-                            {
-                                continue;
-                            }
-                            if (m_Fields[name].FieldType == typeof(bool))
-                            {
-                                int v = Convert.ToInt32(reader[name]);
-                                m_Fields[name].SetValue(row, v != 0 ? true : false);
-                            }
-                            else if (m_Fields[name].FieldType == typeof(UUID))
-                            {
-                                m_Fields[name].SetValue(row, DBGuid.FromDB(reader[name]));
-                            }
-                            else if (m_Fields[name].FieldType == typeof(int))
-                            {
-                                int v = Convert.ToInt32(reader[name]);
-                                m_Fields[name].SetValue(row, v);
-                            }
-                            else if (m_Fields[name].FieldType == typeof(uint))
-                            {
-                                uint v = Convert.ToUInt32(reader[name]);
-                                m_Fields[name].SetValue(row, v);
-                            }
-                            else
-                            {
-                                m_Fields[name].SetValue(row, reader[name]);
-                            }
+                            continue;
                         }
-
-                        if (m_DataField != null)
+                        if (m_Fields[name].FieldType == typeof(bool))
                         {
-                            Dictionary<string, string> data =
-                                new Dictionary<string, string>();
-
-                            foreach (string col in m_ColumnNames)
-                            {
-                                data[col] = reader[col].ToString();
-                                if (data[col] == null)
-                                    data[col] = String.Empty;
-                            }
-
-                            m_DataField.SetValue(row, data);
+                            int v = Convert.ToInt32(reader[name]);
+                            m_Fields[name].SetValue(row, v != 0 ? true : false);
                         }
-
-                        result.Add(row);
+                        else if (m_Fields[name].FieldType == typeof(UUID))
+                        {
+                            m_Fields[name].SetValue(row, DBGuid.FromDB(reader[name]));
+                        }
+                        else if (m_Fields[name].FieldType == typeof(int))
+                        {
+                            int v = Convert.ToInt32(reader[name]);
+                            m_Fields[name].SetValue(row, v);
+                        }
+                        else if (m_Fields[name].FieldType == typeof(uint))
+                        {
+                            uint v = Convert.ToUInt32(reader[name]);
+                            m_Fields[name].SetValue(row, v);
+                        }
+                        else
+                        {
+                            m_Fields[name].SetValue(row, reader[name]);
+                        }
                     }
+
+                    if (m_DataField != null)
+                    {
+                        Dictionary<string, string> data =
+                            new Dictionary<string, string>();
+
+                        foreach (string col in m_ColumnNames)
+                        {
+                            data[col] = reader[col].ToString();
+                            if (data[col] == null)
+                                data[col] = String.Empty;
+                        }
+
+                        m_DataField.SetValue(row, data);
+                    }
+
+                    result.Add(row);
                 }
             }
 
@@ -357,14 +395,23 @@ namespace OpenSim.Data.MySQL
 
         public object DoQueryScalar(MySqlCommand cmd)
         {
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            if (m_trans == null)
             {
-                dbcon.Open();
-                cmd.Connection = dbcon;
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                {
+                    dbcon.Open();
+                    cmd.Connection = dbcon;
+
+                    return cmd.ExecuteScalar();
+                }
+            }
+            else
+            {
+                cmd.Connection = m_trans.Connection;
+                cmd.Transaction = m_trans;
 
                 return cmd.ExecuteScalar();
             }
         }
-
     }
 }
