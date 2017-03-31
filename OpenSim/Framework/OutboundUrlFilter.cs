@@ -212,7 +212,17 @@ namespace OpenSim.Framework
             // Check that we are permitted to make calls to this endpoint.
             bool foundIpv4Address = false;
 
-            IPAddress[] addresses = Dns.GetHostAddresses(url.Host);
+            IPAddress[] addresses = null;
+            
+            try
+            {
+                addresses = Dns.GetHostAddresses(url.Host);
+            }
+            catch
+            {
+                // If there is a DNS error, we can't stop the script!
+                return true;
+            }
 
             foreach (IPAddress addr in addresses)
             {
