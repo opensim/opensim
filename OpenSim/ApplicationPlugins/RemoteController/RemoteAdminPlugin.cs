@@ -370,7 +370,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         {
                             foreach (ScenePresence sp in s.GetScenePresences())
                             {
-                                if (!sp.IsChildAgent)
+                                if (!sp.IsChildAgent && !sp.IsNPC)
                                     agents++;
                             }
                         }
@@ -379,7 +379,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     {
                         foreach (ScenePresence sp in rebootedScene.GetScenePresences())
                         {
-                            if (!sp.IsChildAgent)
+                            if (!sp.IsChildAgent && !sp.IsNPC)
                                 agents++;
                         }
                     }
