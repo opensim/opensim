@@ -1465,6 +1465,7 @@
       <Reference name="OpenMetaverse.StructuredData" path="../../../bin/"/>
       <Reference name="OpenMetaverse" path="../../../bin/"/>
       <Reference name="Mono.Data.SqliteClient" path="../../../bin/"/>
+      <Reference name="netcd" path="../../../bin/"/>
       <Reference name="OpenSim.Capabilities"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data"/>
