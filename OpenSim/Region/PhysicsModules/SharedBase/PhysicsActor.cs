@@ -55,28 +55,6 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         Absolute
     }
 
-    public class PhysicsInertiaData
-    {
-        public float TotalMass; // the total mass of a linkset
-        public Vector3 CenterOfMass;  // the center of mass position relative to root part position
-        public Vector3 Inertia; //  (Ixx, Iyy, Izz) moment of inertia relative to center of mass and principal axis in local coords
-        public Vector4 InertiaRotation; // if principal axis don't match local axis, the principal axis rotation
-                                        // or the upper triangle of the inertia tensor 
-                                        // Ixy (= Iyx), Ixz (= Izx), Iyz (= Izy))
-
-        public PhysicsInertiaData()
-        {
-        }
-
-        public PhysicsInertiaData(PhysicsInertiaData source)
-        {
-           TotalMass = source.TotalMass;
-           CenterOfMass = source.CenterOfMass;
-           Inertia = source.Inertia;
-           InertiaRotation = source.InertiaRotation;
-        }
-    }
-
     public struct CameraData
     {
         public Quaternion CameraRotation;

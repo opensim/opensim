@@ -406,6 +406,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         private SOPVehicle m_vehicleParams = null;
 
+        private PhysicsInertiaData m_physicsInertia;
+
         public KeyframeMotion KeyframeMotion
         {
             get; set;
@@ -3548,6 +3550,18 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             Force = force;
         }
 
+        public PhysicsInertiaData PhysicsInertia
+        {
+            get
+            {
+                return m_physicsInertia;
+            }
+            set
+            {
+                m_physicsInertia = value;
+            }
+        }
+
         public SOPVehicle VehicleParams
         {
             get
@@ -4748,8 +4762,13 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
                 if (VolumeDetectActive) // change if not the default only
                     pa.SetVolumeDetect(1);
+ 
+                bool isroot = (m_localId == ParentGroup.RootPart.LocalId);
 
-                if (m_vehicleParams != null && m_localId == ParentGroup.RootPart.LocalId)
+                if(isroot && m_physicsInertia != null)
+                    pa.SetInertiaData(m_physicsInertia);
+
+                if (isroot && m_vehicleParams != null )
                 {
                     m_vehicleParams.SetVehicle(pa);
                     if(isPhysical && !isPhantom && m_vehicleParams.CameraDecoupled)

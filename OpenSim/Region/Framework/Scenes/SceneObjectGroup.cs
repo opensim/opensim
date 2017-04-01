@@ -5037,19 +5037,21 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetInertiaData(float TotalMass, Vector3 CenterOfMass, Vector3 Inertia, Vector4 aux )
         {
+            PhysicsInertiaData inertia = new PhysicsInertiaData();
+            inertia.TotalMass = TotalMass;
+            inertia.CenterOfMass = CenterOfMass;
+            inertia.Inertia = Inertia;
+            inertia.InertiaRotation = aux;
+
+            if(TotalMass < 0)
+                RootPart.PhysicsInertia = null;
+            else
+                RootPart.PhysicsInertia = new PhysicsInertiaData(inertia);
+
             PhysicsActor pa = RootPart.PhysActor;
-
             if(pa !=null)
-            {
-                PhysicsInertiaData inertia = new PhysicsInertiaData();
-                inertia.TotalMass = TotalMass;
-                inertia.CenterOfMass = CenterOfMass;
-                inertia.Inertia = Inertia;
-                inertia.InertiaRotation = aux;
                 pa.SetInertiaData(inertia);
-            }
         }
-
 
         /// <summary>
         /// Set the user group to which this scene object belongs.

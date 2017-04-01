@@ -568,9 +568,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             get
             {
-                if(!childPrim && m_fakeInertiaOverride != null)
-                    return m_fakeInertiaOverride.CenterOfMass;
-
                 lock (_parent_scene.OdeLock)
                 {
                     d.AllocateODEDataForThread(0);

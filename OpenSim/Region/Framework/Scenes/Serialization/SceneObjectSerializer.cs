@@ -453,8 +453,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("Torque", ProcessTorque);
             m_SOPXmlProcessors.Add("VolumeDetectActive", ProcessVolumeDetectActive);
 
-
             m_SOPXmlProcessors.Add("Vehicle", ProcessVehicle);
+
+            m_SOPXmlProcessors.Add("PhysicsInertia", ProcessPhysicsInertia);
 
             m_SOPXmlProcessors.Add("RotationAxisLocks", ProcessRotationAxisLocks);
             m_SOPXmlProcessors.Add("PhysicsShapeType", ProcessPhysicsShapeType);
@@ -778,6 +779,23 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             else
             {
                 obj.VehicleParams = vehicle;
+            }
+        }
+
+        private static void ProcessPhysicsInertia(SceneObjectPart obj, XmlReader reader)
+        {
+            PhysicsInertiaData pdata = PhysicsInertiaData.FromXml2(reader);
+
+            if (pdata == null)
+            {
+                obj.PhysicsInertia = null;
+                m_log.DebugFormat(
+                    "[SceneObjectSerializer]: Parsing PhysicsInertiaData for object part {0} {1} encountered errors.  Please see earlier log entries.",
+                    obj.Name, obj.UUID);
+            }
+            else
+            {
+                obj.PhysicsInertia = pdata;
             }
         }
 
@@ -1497,6 +1515,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             if (sop.VehicleParams != null)
                 sop.VehicleParams.ToXml2(writer);
+
+            if (sop.PhysicsInertia != null)
+                sop.PhysicsInertia.ToXml2(writer);
 
             if(sop.RotationAxisLocks != 0)
                 writer.WriteElementString("RotationAxisLocks", sop.RotationAxisLocks.ToString().ToLower());

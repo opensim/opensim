@@ -187,7 +187,7 @@ namespace OpenSim.Data.MySQL
                                     "LinkNumber, MediaURL, KeyframeMotion, AttachedPosX, " +
                                     "AttachedPosY, AttachedPosZ, " +
                                     "PhysicsShapeType, Density, GravityModifier, " +
-                                    "Friction, Restitution, Vehicle, DynAttrs, " +
+                                    "Friction, Restitution, Vehicle, PhysInertia, DynAttrs, " +
                                     "RotationAxisLocks" +
                                     ") values (" + "?UUID, " +
                                     "?CreationDate, ?Name, ?Text, " +
@@ -224,7 +224,7 @@ namespace OpenSim.Data.MySQL
                                     "?LinkNumber, ?MediaURL, ?KeyframeMotion, ?AttachedPosX, " +
                                     "?AttachedPosY, ?AttachedPosZ, " +
                                     "?PhysicsShapeType, ?Density, ?GravityModifier, " +
-                                    "?Friction, ?Restitution, ?Vehicle, ?DynAttrs," +
+                                    "?Friction, ?Restitution, ?Vehicle, ?PhysInertia, ?DynAttrs," +
                                     "?RotationAxisLocks)";
 
                             FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
@@ -1452,6 +1452,14 @@ namespace OpenSim.Data.MySQL
                     prim.VehicleParams = vehicle;
             }
 
+            PhysicsInertiaData pdata;
+            if (row["PhysInertia"].ToString() != String.Empty)
+            {
+                pdata = PhysicsInertiaData.FromXml2(row["PhysInertia"].ToString());
+                if (pdata != null)
+                    prim.PhysicsInertia = pdata;
+            }
+
             return prim;
         }
 
@@ -1809,6 +1817,11 @@ namespace OpenSim.Data.MySQL
                 cmd.Parameters.AddWithValue("KeyframeMotion", prim.KeyframeMotion.Serialize());
             else
                 cmd.Parameters.AddWithValue("KeyframeMotion", new Byte[0]);
+
+            if (prim.PhysicsInertia != null)
+                cmd.Parameters.AddWithValue("PhysInertia", prim.PhysicsInertia.ToXml2());
+            else
+                cmd.Parameters.AddWithValue("PhysInertia", String.Empty);
 
             if (prim.VehicleParams != null)
                 cmd.Parameters.AddWithValue("Vehicle", prim.VehicleParams.ToXml2());
