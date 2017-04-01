@@ -1452,13 +1452,10 @@ namespace OpenSim.Data.MySQL
                     prim.VehicleParams = vehicle;
             }
 
-            PhysicsInertiaData pdata;
+            PhysicsInertiaData pdata = null;
             if (row["PhysInertia"].ToString() != String.Empty)
-            {
                 pdata = PhysicsInertiaData.FromXml2(row["PhysInertia"].ToString());
-                if (pdata != null)
-                    prim.PhysicsInertia = pdata;
-            }
+            prim.PhysicsInertia = pdata;
 
             return prim;
         }
