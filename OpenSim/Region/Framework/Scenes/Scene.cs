@@ -2985,12 +2985,12 @@ namespace OpenSim.Region.Framework.Scenes
         // Return 'true' if position inside region.
         public bool PositionIsInCurrentRegion(Vector3 pos)
         {
-            int xx = (int)pos.X;
-            if (xx < 0 || xx >= RegionInfo.RegionSizeX)
+            float t = pos.X;
+            if (t < 0 || t >= RegionInfo.RegionSizeX)
                 return false;
 
-            int yy = (int)pos.Y;
-            if (yy < 0 || yy >= RegionInfo.RegionSizeY)
+            t = pos.Y;
+            if (t < 0 || t >= RegionInfo.RegionSizeY)
                 return false;
 
             return true;
