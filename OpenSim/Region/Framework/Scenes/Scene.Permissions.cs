@@ -56,6 +56,7 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool EditObjectInventoryHandler(UUID objectID, UUID editorID);
     public delegate bool MoveObjectHandler(SceneObjectGroup sog, ScenePresence sp);
     public delegate bool ObjectEntryHandler(SceneObjectGroup sog, bool enteringRegion, Vector3 newPoint);
+    public delegate bool ObjectEnterWithScriptsHandler(SceneObjectGroup sog, ILandObject land);
     public delegate bool ReturnObjectsHandler(ILandObject land, ScenePresence sp, List<SceneObjectGroup> objects);
     public delegate bool InstantMessageHandler(UUID user, UUID target);
     public delegate bool InventoryTransferHandler(UUID user, UUID target);
@@ -135,6 +136,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event EditObjectInventoryHandler OnEditObjectInventory;
         public event MoveObjectHandler OnMoveObject;
         public event ObjectEntryHandler OnObjectEntry;
+        public event ObjectEnterWithScriptsHandler OnObjectEnterWithScripts;
         public event ReturnObjectsHandler OnReturnObjects;
         public event InstantMessageHandler OnInstantMessage;
         public event InventoryTransferHandler OnInventoryTransfer;
@@ -559,6 +561,21 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (ObjectEntryHandler h in list)
                 {
                     if (h(sog, enteringRegion, newPoint) == false)
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public bool CanObjectEnterWithScripts(SceneObjectGroup sog, ILandObject land)
+        {
+            ObjectEnterWithScriptsHandler handler =  OnObjectEnterWithScripts;
+            if (handler != null)
+            {
+                Delegate[] list = handler.GetInvocationList();
+                foreach (ObjectEnterWithScriptsHandler h in list)
+                {
+                    if (h(sog, land) == false)
                         return false;
                 }
             }

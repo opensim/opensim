@@ -286,6 +286,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             scenePermissions.OnRezObject += CanRezObject;
             scenePermissions.OnObjectEntry += CanObjectEntry;
+            scenePermissions.OnObjectEnterWithScripts += OnObjectEnterWithScripts;
 
             scenePermissions.OnDuplicateObject += CanDuplicateObject;
             scenePermissions.OnDeleteObjectByIDs += CanDeleteObjectByIDs;
@@ -381,6 +382,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             scenePermissions.OnRezObject -= CanRezObject;
             scenePermissions.OnObjectEntry -= CanObjectEntry;
+            scenePermissions.OnObjectEnterWithScripts -= OnObjectEnterWithScripts;
+
             scenePermissions.OnReturnObjects -= CanReturnObjects;
 
             scenePermissions.OnDuplicateObject -= CanDuplicateObject;
@@ -1626,6 +1629,55 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             //Otherwise, false!
             return false;
         }
+
+        private bool OnObjectEnterWithScripts(SceneObjectGroup sog, ILandObject parcel)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+
+            if(sog == null || sog.IsDeleted)
+                return false;
+
+            if (m_bypassPermissions)
+                return m_bypassPermissionsValue;
+
+            if (parcel == null)
+                return true;
+
+            int checkflags = ((int)ParcelFlags.AllowAPrimitiveEntry);
+            bool scripts = (sog.ScriptCount() > 0);
+            if(scripts)
+                checkflags |= ((int)ParcelFlags.AllowOtherScripts);
+
+            if ((parcel.LandData.Flags & checkflags) == checkflags)
+                return true;
+
+            UUID userID = sog.OwnerID;
+            LandData landdata = parcel.LandData;
+
+            if (landdata.OwnerID == userID)
+                return true;
+
+            if (IsAdministrator(userID))
+                return true;
+
+            UUID landGroupID = landdata.GroupID;
+            if (landGroupID != UUID.Zero)
+            {
+                checkflags = (int)ParcelFlags.AllowGroupObjectEntry;
+                if(scripts)
+                    checkflags |= ((int)ParcelFlags.AllowGroupScripts);
+
+                if ((parcel.LandData.Flags & checkflags) == checkflags)
+                    return IsGroupMember(landGroupID, userID, 0);
+
+                 if (landdata.IsGroupOwned && IsGroupMember(landGroupID, userID, (ulong)GroupPowers.AllowRez))
+                    return true;
+            }
+
+            //Otherwise, false!
+            return false;
+        }
+
 
         private bool CanReturnObjects(ILandObject land, ScenePresence sp, List<SceneObjectGroup> objects)
         {
