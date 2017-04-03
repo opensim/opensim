@@ -4418,6 +4418,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </returns> 
         public LSL_List osGetInertiaData()
         {
+            m_host.AddScriptLPS(1);
+
             LSL_List result = new LSL_List();
             float TotalMass;
             Vector3 CenterOfMass;
@@ -4463,6 +4465,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osSetInertia(LSL_Float mass, LSL_Vector centerOfMass, LSL_Vector principalInertiaScaled,  LSL_Rotation lslrot)
         {
+            m_host.AddScriptLPS(1);
             SceneObjectGroup sog = m_host.ParentGroup;
             if(sog== null || sog.IsDeleted)
                 return;
@@ -4499,6 +4502,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </remarks>
         public void osSetInertiaAsBox(LSL_Float mass, LSL_Vector boxSize, LSL_Vector centerOfMass, LSL_Rotation lslrot)
         {
+            m_host.AddScriptLPS(1);
+
             SceneObjectGroup sog = m_host.ParentGroup;
             if(sog== null || sog.IsDeleted)
                 return;
@@ -4538,6 +4543,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </remarks>
         public void osSetInertiaAsSphere(LSL_Float mass,  LSL_Float radius, LSL_Vector centerOfMass)
         {
+            m_host.AddScriptLPS(1);
             SceneObjectGroup sog = m_host.ParentGroup;
             if(sog== null || sog.IsDeleted)
                 return;
@@ -4575,6 +4581,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </remarks>
         public void osSetInertiaAsCylinder(LSL_Float mass,  LSL_Float radius, LSL_Float lenght, LSL_Vector centerOfMass, LSL_Rotation lslrot)
         {
+            m_host.AddScriptLPS(1);
             SceneObjectGroup sog = m_host.ParentGroup;
             if(sog== null || sog.IsDeleted)
                 return;
@@ -4611,11 +4618,50 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         public void osClearInertia()
         {
+            m_host.AddScriptLPS(1);
             SceneObjectGroup sog = m_host.ParentGroup;
             if(sog== null || sog.IsDeleted)
                 return;
 
             sog.SetInertiaData(-1, Vector3.Zero, Vector3.Zero, Vector4.Zero );
+        }
+
+       /// <summary>
+        /// teleports a object (full linkset)
+        /// </summary>
+        /// <param name="objectUUID">the id of the linkset to teleport</param>
+        /// <param name="targetPos">target position</param>
+        /// <param name="rotation"> a rotation to apply</param>
+        /// <param name="stop">if TRUE (!=0) stop at destination</param>
+        /// <remarks>
+        /// only does teleport local to region
+        /// object owner must have rights to run scripts on target location
+        /// object owner must have rights to enter ojects on target location
+        /// target location parcel must have enought free prims capacity for the linkset prims
+        /// all avatars siting on the object must have access to target location
+        /// has a cool down time. retries before expire reset it
+        /// fail conditions are silent ignored
+        /// </remarks>
+        public void osObjectTeleport(LSL_Key objectUUID, LSL_Vector targetPos, LSL_Rotation rotation, LSL_Integer stop)
+        {
+            CheckThreatLevel(ThreatLevel.Severe, "osTeleportAgent");
+            m_host.AddScriptLPS(1);
+
+            UUID objUUID;
+            if (!UUID.TryParse(objectUUID, out objUUID))
+            {
+                OSSLShoutError("osObjectTeleport() invalid object Key");
+                return;
+            }
+
+            SceneObjectGroup sog = World.GetSceneObjectGroup(objUUID);
+            if(sog== null || sog.IsDeleted)
+                return;
+
+            UUID myid = m_host.ParentGroup.UUID;
+
+            sog.ObjectTeleport(myid, targetPos, rotation, stop != 0);
+            // a delay here may break vehicles
         }
     }
 }

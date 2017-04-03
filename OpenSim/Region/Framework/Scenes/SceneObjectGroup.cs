@@ -853,6 +853,91 @@ namespace OpenSim.Region.Framework.Scenes
             m_log.DebugFormat("[SCENE OBJECT]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
         }
 */
+        public void ObjectTeleport(UUID sourceID, Vector3 targetPosition, Quaternion rotation, bool stop)
+        {
+            if(inTransit || IsDeleted || IsAttachmentCheckFull() || IsSelected || Scene == null)
+                return;
+
+            inTransit = true;
+            
+            PhysicsActor pa = RootPart.PhysActor;
+            if(pa == null  || RootPart.KeyframeMotion != null /*|| m_sittingAvatars.Count == 0*/)
+            {
+                inTransit = false;
+                return;
+            }
+
+            if(Scene.PositionIsInCurrentRegion(targetPosition))
+            {
+                if(Scene.InTeleportTargetsCoolDown(UUID, sourceID, 1.0)) 
+                {
+                    inTransit = false;
+                    return;
+                }
+
+                Vector3 curPos = AbsolutePosition;
+                ILandObject curLand = Scene.LandChannel.GetLandObject(curPos.X, curPos.Y);
+                float posX = targetPosition.X;
+                float posY = targetPosition.Y;
+                ILandObject land = Scene.LandChannel.GetLandObject(posX, posY);
+                if(land != null && land != curLand)
+                {
+                    if(!Scene.Permissions.CanObjectEnterWithScripts(this, land))
+                    {
+                        inTransit = false;
+                        return;
+                    }
+
+                    UUID agentID;
+                    foreach (ScenePresence av in m_sittingAvatars)
+                    {
+                        agentID = av.UUID;
+                        if(land.IsRestrictedFromLand(agentID) || land.IsBannedFromLand(agentID))
+                        {
+                            inTransit = false;
+                            return;
+                        }
+                    }
+                }
+
+                if(stop)
+                    RootPart.Stop();
+                else
+                {
+                    rotation.Normalize();
+                    if(Math.Abs(rotation.W) < 0.999)
+                    {
+                        Quaternion rot = RootPart.RotationOffset;
+                        Vector3 vel = RootPart.Velocity;
+                        Vector3 avel = RootPart.AngularVelocity;
+                        Vector3 acc = RootPart.Acceleration;
+                        
+                        rot *= rotation;
+                        vel *= rotation;
+                        avel *= rotation;
+                        acc *= rotation;
+
+                        RootPart.RotationOffset = rot;
+                        RootPart.Velocity = vel;
+                        RootPart.AngularVelocity = avel;
+                        RootPart.Acceleration = acc;
+                    }
+                }
+
+                Vector3 s = RootPart.Scale * RootPart.RotationOffset;
+                float h = Scene.GetGroundHeight(posX, posY) + 0.5f * (float)Math.Abs(s.Z) + 0.01f;
+                if(targetPosition.Z < h)
+                    targetPosition.Z = h;
+
+                inTransit = false;
+                AbsolutePosition = targetPosition;
+                RootPart.ScheduleTerseUpdate();
+                return;
+            }
+
+            inTransit = false;
+        }
+
         public override Vector3 Velocity
         {
             get { return RootPart.Velocity; }

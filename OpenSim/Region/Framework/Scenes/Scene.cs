@@ -808,6 +808,8 @@ namespace OpenSim.Region.Framework.Scenes
         private float m_minReprioritizationDistance = 32f;
         public bool ObjectsCullingByDistance = false;
 
+        private ExpiringCache<UUID, UUID> TeleportTargetsCoolDown = new ExpiringCache<UUID, UUID>();
+
         public AgentCircuitManager AuthenticateHandler
         {
             get { return m_authenticateHandler; }
@@ -2983,15 +2985,14 @@ namespace OpenSim.Region.Framework.Scenes
         // Return 'true' if position inside region.
         public bool PositionIsInCurrentRegion(Vector3 pos)
         {
-            bool ret = false;
-            int xx = (int)Math.Floor(pos.X);
-            int yy = (int)Math.Floor(pos.Y);
-            if (xx < 0 || yy < 0)
+            int xx = (int)pos.X;
+            if (xx < 0 || xx >= RegionInfo.RegionSizeX)
                 return false;
 
-            if (xx < RegionInfo.RegionSizeX && yy < RegionInfo.RegionSizeY )
-                ret = true;
-            return ret;
+            int yy = (int)pos.Y;
+            if (yy < 0 || yy >= RegionInfo.RegionSizeX)
+                return false;
+            return true;
         }
 
         /// <summary>
@@ -6525,6 +6526,22 @@ Environment.Exit(1);
             m_SimulationDataService.RemoveExtra(RegionInfo.RegionID, name);
 
             m_eventManager.TriggerExtraSettingChanged(this, name, String.Empty);
+        }
+
+        public bool InTeleportTargetsCoolDown(UUID sourceID, UUID targetID, double timeout)
+        {
+            lock(TeleportTargetsCoolDown)
+            {
+                UUID lastSource = UUID.Zero;
+                TeleportTargetsCoolDown.TryGetValue(targetID, out lastSource);
+                if(lastSource == UUID.Zero)
+                {
+                    TeleportTargetsCoolDown.Add(targetID, sourceID, timeout);
+                    return false;
+                }
+                TeleportTargetsCoolDown.AddOrUpdate(targetID, sourceID, timeout);
+                return lastSource == sourceID;
+            }
         }
     }
 }
