@@ -2990,8 +2990,9 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
 
             int yy = (int)pos.Y;
-            if (yy < 0 || yy >= RegionInfo.RegionSizeX)
+            if (yy < 0 || yy >= RegionInfo.RegionSizeY)
                 return false;
+
             return true;
         }
 
