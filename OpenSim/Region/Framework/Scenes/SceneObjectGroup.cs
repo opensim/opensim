@@ -900,11 +900,19 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
+                rotation.Normalize();
                 if(stop)
+                {
                     RootPart.Stop();
+                    if(Math.Abs(rotation.W) < 0.999)
+                    {
+                        Quaternion rot = RootPart.RotationOffset;
+                        rot *= rotation;
+                        RootPart.RotationOffset = rot;
+                    }
+                }
                 else
                 {
-                    rotation.Normalize();
                     if(Math.Abs(rotation.W) < 0.999)
                     {
                         Quaternion rot = RootPart.RotationOffset;
