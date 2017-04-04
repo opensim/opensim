@@ -5340,7 +5340,9 @@ namespace OpenSim.Region.Framework.Scenes
             m_partsNameToLinkMap.Clear();
         }
 
-        Dictionary<string,int> m_partsNameToLinkMap = new Dictionary<string, int>();
+        private Dictionary<string,int> m_partsNameToLinkMap = new Dictionary<string, int>();
+        private string GetLinkNumber_lastname;
+        private int GetLinkNumber_lastnumber;
 
         // this scales bad but so does GetLinkNumPart
         public int GetLinkNumber(string name)
@@ -5352,6 +5354,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if(m_partsNameToLinkMap.Count == 0)
                 {
+                    GetLinkNumber_lastname = String.Empty;
+                    GetLinkNumber_lastnumber = -1;
                     SceneObjectPart[] parts = m_parts.GetArray();
                     for (int i = 0; i < parts.Length; i++)
                     {
@@ -5370,20 +5374,33 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
+                if(name == GetLinkNumber_lastname)
+                    return GetLinkNumber_lastnumber;
+
                 if(m_partsNameToLinkMap.ContainsKey(name))
-                    return m_partsNameToLinkMap[name];
-            }
+                {
+                    lock(m_partsNameToLinkMap)
+                    {
+                        GetLinkNumber_lastname = name;
+                        GetLinkNumber_lastnumber = m_partsNameToLinkMap[name];
+                        return GetLinkNumber_lastnumber;
+                    }
+                }
+            }        
 
             if(m_sittingAvatars.Count > 0)
             {
-                int j = m_parts.Count;
-                if(j > 1)
-                    j++;
+                int j = m_parts.Count + 1;
+
                 ScenePresence[] avs = m_sittingAvatars.ToArray();
                 for (int i = 0; i < avs.Length; i++, j++)
                 {
                     if (avs[i].Name == name)
-                        return j;
+                    {
+                    GetLinkNumber_lastname = name;
+                    GetLinkNumber_lastnumber = j;
+                    return j;
+                    }
                 }
             }
 
@@ -5393,7 +5410,11 @@ namespace OpenSim.Region.Framework.Scenes
         public void InvalidatePartsLinkMaps()
         {
             lock(m_partsNameToLinkMap)
+            {
                 m_partsNameToLinkMap.Clear();
+                GetLinkNumber_lastname = String.Empty;
+                GetLinkNumber_lastnumber = -1;
+            }
         }
 
         #endregion

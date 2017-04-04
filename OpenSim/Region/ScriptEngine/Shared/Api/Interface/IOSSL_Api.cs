@@ -497,5 +497,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osSetInertiaAsCylinder(LSL_Float mass,  LSL_Float radius, LSL_Float lenght, vector centerOfMass,rotation lslrot);
 
         void osTeleportObject(LSL_Key objectUUID, vector targetPos, rotation targetrotation, LSL_Integer flags);
+        LSL_Integer osGetLinkNumber(LSL_String name);
     }
 }
