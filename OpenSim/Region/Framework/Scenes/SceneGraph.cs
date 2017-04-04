@@ -1985,6 +1985,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         newRoot.TriggerScriptChangedEvent(Changed.LINK);
                         newRoot.ParentGroup.HasGroupChanged = true;
+                        newRoot.ParentGroup.InvalidatePartsLinkMaps();
                         newRoot.ParentGroup.ScheduleGroupForFullUpdate();
                     }
                 }
@@ -2001,6 +2002,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // from the database. They will be rewritten immediately,
                     // minus the rows for the unlinked child prims.
                     m_parentScene.SimulationDataService.RemoveObject(g.UUID, m_parentScene.RegionInfo.RegionID);
+                    g.InvalidatePartsLinkMaps();
                     g.TriggerScriptChangedEvent(Changed.LINK);
                     g.HasGroupChanged = true; // Persist
                     g.ScheduleGroupForFullUpdate();

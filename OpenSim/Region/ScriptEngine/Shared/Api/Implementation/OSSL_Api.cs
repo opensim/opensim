@@ -4663,5 +4663,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             sog.TeleportObject(myid, targetPos, rotation, flags);
             // a delay here may break vehicles
         }
+
+        public LSL_Integer osGetLinkNumber(LSL_String name)
+        {
+            m_host.AddScriptLPS(1);
+            SceneObjectGroup sog = m_host.ParentGroup;
+            if(sog== null || sog.IsDeleted)
+                return -1;
+            return sog.GetLinkNumber(name);
+        }
     }
 }

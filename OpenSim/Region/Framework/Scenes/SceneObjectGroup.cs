@@ -2004,6 +2004,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (part.LinkNum == 2)
                 RootPart.LinkNum = 1;
+            InvalidatePartsLinkMaps();
         }
 
         /// <summary>
@@ -2560,6 +2561,7 @@ namespace OpenSim.Region.Framework.Scenes
                 dupe.ScheduleGroupForFullUpdate();
             }
 
+            dupe.InvalidatePartsLinkMaps();
             m_dupeInProgress = false;
             return dupe;
         }
@@ -3321,6 +3323,7 @@ namespace OpenSim.Region.Framework.Scenes
             ResetChildPrimPhysicsPositions();
 
             InvalidBoundsRadius();
+            InvalidatePartsLinkMaps();
 
             if (m_rootPart.PhysActor != null)
                 m_rootPart.PhysActor.Building = false;
@@ -3477,6 +3480,7 @@ namespace OpenSim.Region.Framework.Scenes
             objectGroup.HasGroupChangedDueToDelink = true;
 
             InvalidBoundsRadius();
+            InvalidatePartsLinkMaps();
             objectGroup.AggregatePerms();
 
             if (sendEvents)
@@ -5333,6 +5337,63 @@ namespace OpenSim.Region.Framework.Scenes
             m_PlaySoundSlavePrims.Clear();
             m_LoopSoundMasterPrim = null;
             m_targets.Clear();
+            m_partsNameToLinkMap.Clear();
+        }
+
+        Dictionary<string,int> m_partsNameToLinkMap = new Dictionary<string, int>();
+
+        // this scales bad but so does GetLinkNumPart
+        public int GetLinkNumber(string name)
+        {
+            if(String.IsNullOrEmpty(name) || name == "Object")
+                return -1;
+
+            lock(m_partsNameToLinkMap)
+            {
+                if(m_partsNameToLinkMap.Count == 0)
+                {
+                    SceneObjectPart[] parts = m_parts.GetArray();
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        string s = parts[i].Name;
+                        if(String.IsNullOrEmpty(s) || s == "Object" || s == "Primitive")
+                            continue;
+
+                        if(m_partsNameToLinkMap.ContainsKey(s))
+                        {
+                            int ol = parts[i].LinkNum;
+                            if(ol < m_partsNameToLinkMap[s])
+                                m_partsNameToLinkMap[s] = ol;
+                        }
+                        else
+                            m_partsNameToLinkMap[s] = parts[i].LinkNum;
+                    }
+                }
+
+                if(m_partsNameToLinkMap.ContainsKey(name))
+                    return m_partsNameToLinkMap[name];
+            }
+
+            if(m_sittingAvatars.Count > 0)
+            {
+                int j = m_parts.Count;
+                if(j > 1)
+                    j++;
+                ScenePresence[] avs = m_sittingAvatars.ToArray();
+                for (int i = 0; i < avs.Length; i++, j++)
+                {
+                    if (avs[i].Name == name)
+                        return j;
+                }
+            }
+
+            return -1;
+        }
+
+        public void InvalidatePartsLinkMaps()
+        {
+            lock(m_partsNameToLinkMap)
+                m_partsNameToLinkMap.Clear();
         }
 
         #endregion
