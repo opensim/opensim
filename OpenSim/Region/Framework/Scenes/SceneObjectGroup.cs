@@ -853,7 +853,13 @@ namespace OpenSim.Region.Framework.Scenes
             m_log.DebugFormat("[SCENE OBJECT]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
         }
 */
-        public void ObjectTeleport(UUID sourceID, Vector3 targetPosition, Quaternion rotation, bool stop)
+
+        // copy from LSL_constants.cs
+        const int OSTPOBJ_STOPATTARRGET  = 0x1; // stops at destination
+        const int OSTPOBJ_STOPONFAIL     = 0x2; // stops at start if tp fails
+        const int OSTPOBJ_SETROT         = 0x4; // the rotation is the final rotation, otherwise is a added rotation
+
+        public void TeleportObject(UUID sourceID, Vector3 targetPosition, Quaternion rotation, int flags)
         {
             if(inTransit || IsDeleted || IsAttachmentCheckFull() || IsSelected || Scene == null)
                 return;
@@ -900,36 +906,42 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
+                bool stop = (flags & OSTPOBJ_STOPATTARRGET) != 0;
+                bool setrot = (flags & OSTPOBJ_SETROT) != 0;
+
                 rotation.Normalize();
+                bool dorot = (Math.Abs(rotation.W) < 0.999);
+                
+                Quaternion currentRot = RootPart.RotationOffset;
+                if(dorot && setrot)
+                    rotation = rotation * Quaternion.Conjugate(currentRot);
+
                 if(stop)
                 {
                     RootPart.Stop();
-                    if(Math.Abs(rotation.W) < 0.999)
-                    {
-                        Quaternion rot = RootPart.RotationOffset;
-                        rot *= rotation;
-                        RootPart.RotationOffset = rot;
-                    }
                 }
                 else
                 {
-                    if(Math.Abs(rotation.W) < 0.999)
+                    if(dorot)
                     {
-                        Quaternion rot = RootPart.RotationOffset;
                         Vector3 vel = RootPart.Velocity;
                         Vector3 avel = RootPart.AngularVelocity;
                         Vector3 acc = RootPart.Acceleration;
                         
-                        rot *= rotation;
                         vel *= rotation;
                         avel *= rotation;
                         acc *= rotation;
 
-                        RootPart.RotationOffset = rot;
                         RootPart.Velocity = vel;
                         RootPart.AngularVelocity = avel;
                         RootPart.Acceleration = acc;
                     }
+                }
+
+                if(dorot)
+                {
+                    currentRot *= rotation;
+                    RootPart.RotationOffset = currentRot;
                 }
 
                 Vector3 s = RootPart.Scale * RootPart.RotationOffset;

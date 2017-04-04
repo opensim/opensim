@@ -4632,17 +4632,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <param name="objectUUID">the id of the linkset to teleport</param>
         /// <param name="targetPos">target position</param>
         /// <param name="rotation"> a rotation to apply</param>
-        /// <param name="stop">if TRUE (!=0) stop at destination</param>
+        /// <param name="flags">several flags/param>
         /// <remarks>
         /// only does teleport local to region
-        /// object owner must have rights to run scripts on target location
+        /// if object has scripts, owner must have rights to run scripts on target location
         /// object owner must have rights to enter ojects on target location
         /// target location parcel must have enought free prims capacity for the linkset prims
         /// all avatars siting on the object must have access to target location
         /// has a cool down time. retries before expire reset it
         /// fail conditions are silent ignored
         /// </remarks>
-        public void osObjectTeleport(LSL_Key objectUUID, LSL_Vector targetPos, LSL_Rotation rotation, LSL_Integer stop)
+        public void osTeleportObject(LSL_Key objectUUID, LSL_Vector targetPos, LSL_Rotation rotation, LSL_Integer flags)
         {
             CheckThreatLevel(ThreatLevel.Severe, "osTeleportAgent");
             m_host.AddScriptLPS(1);
@@ -4660,7 +4660,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             UUID myid = m_host.ParentGroup.UUID;
 
-            sog.ObjectTeleport(myid, targetPos, rotation, stop != 0);
+            sog.TeleportObject(myid, targetPos, rotation, flags);
             // a delay here may break vehicles
         }
     }

@@ -1140,9 +1140,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osClearInertia();
         }
 
-        public void osObjectTeleport(LSL_Key objectUUID, vector targetPos, rotation targetrotation, LSL_Integer stop)
+        public void osTeleportObject(LSL_Key objectUUID, vector targetPos, rotation targetrotation, LSL_Integer flags)
         {
-            m_OSSL_Functions.osObjectTeleport(objectUUID, targetPos, targetrotation, stop);
+            m_OSSL_Functions.osTeleportObject(objectUUID, targetPos, targetrotation, flags);
         }
     }
 }
