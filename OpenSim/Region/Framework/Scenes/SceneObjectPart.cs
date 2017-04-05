@@ -638,6 +638,8 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 m_name = value;
+                if(ParentGroup != null)
+                    ParentGroup.InvalidatePartsLinkMaps();
 
                 PhysicsActor pa = PhysActor;
 
