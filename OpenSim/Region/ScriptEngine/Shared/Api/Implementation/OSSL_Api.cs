@@ -260,7 +260,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             wComm.DeliverMessage(ChatTypeEnum.Shout, ScriptBaseClass.DEBUG_CHANNEL, m_host.Name, m_host.UUID, message);
         }
 
-        // Returns of the function is allowed. Throws a script exception if not allowed.
+        // Returns if OSSL is enabled. Throws a script exception if OSSL is not allowed..
+        // for safe funtions always active 
+        public void CheckThreatLevel()
+        {
+            if (!m_OSFunctionsEnabled)
+                OSSLError(String.Format("{0} permission denied.  All OS functions are disabled.")); // throws
+        }
+
+        // Returns if the function is allowed. Throws a script exception if not allowed.
         public void CheckThreatLevel(ThreatLevel level, string function)
         {
             if (!m_OSFunctionsEnabled)
@@ -1716,7 +1724,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer osCheckODE()
         {
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
+
             LSL_Integer ret = 0;    // false
             if (m_ScriptEngine.World.PhysicsScene != null)
             {
@@ -1757,10 +1767,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osGetPhysicsEngineName()
         {
-            // not doing security checks
-            // this whould limit the use of this
-
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
+
             string ret = "NoEngine";
             if (m_ScriptEngine.World.PhysicsScene != null)
             {
@@ -1771,6 +1780,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             return ret;
         }
+
         public string osGetSimulatorVersion()
         {
             // High because it can be used to target attacks to known weaknesses
@@ -4364,6 +4374,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osCollisionSound(string impact_sound, double impact_volume)
         {
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
 
             if(impact_sound == "")
@@ -4396,6 +4407,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         // still not very usefull, detector is lost on rez, restarts, etc
         public void osVolumeDetect(int detect)
         {
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
 
             if (m_host.ParentGroup == null || m_host.ParentGroup.IsDeleted || m_host.ParentGroup.IsAttachment)
@@ -4418,6 +4430,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </returns> 
         public LSL_List osGetInertiaData()
         {
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
 
             LSL_List result = new LSL_List();
@@ -4465,7 +4478,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osSetInertia(LSL_Float mass, LSL_Vector centerOfMass, LSL_Vector principalInertiaScaled,  LSL_Rotation lslrot)
         {
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
+
             SceneObjectGroup sog = m_host.ParentGroup;
             if(sog== null || sog.IsDeleted)
                 return;
@@ -4502,6 +4517,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </remarks>
         public void osSetInertiaAsBox(LSL_Float mass, LSL_Vector boxSize, LSL_Vector centerOfMass, LSL_Rotation lslrot)
         {
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
 
             SceneObjectGroup sog = m_host.ParentGroup;
@@ -4543,7 +4559,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </remarks>
         public void osSetInertiaAsSphere(LSL_Float mass,  LSL_Float radius, LSL_Vector centerOfMass)
         {
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
+
             SceneObjectGroup sog = m_host.ParentGroup;
             if(sog== null || sog.IsDeleted)
                 return;
@@ -4581,7 +4599,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </remarks>
         public void osSetInertiaAsCylinder(LSL_Float mass,  LSL_Float radius, LSL_Float lenght, LSL_Vector centerOfMass, LSL_Rotation lslrot)
         {
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
+
             SceneObjectGroup sog = m_host.ParentGroup;
             if(sog== null || sog.IsDeleted)
                 return;
@@ -4618,7 +4638,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         public void osClearInertia()
         {
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
+
             SceneObjectGroup sog = m_host.ParentGroup;
             if(sog== null || sog.IsDeleted)
                 return;
@@ -4666,7 +4688,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer osGetLinkNumber(LSL_String name)
         {
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
+
             SceneObjectGroup sog = m_host.ParentGroup;
             if(sog== null || sog.IsDeleted)
                 return -1;
