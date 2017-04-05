@@ -4644,13 +4644,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </remarks>
         public void osTeleportObject(LSL_Key objectUUID, LSL_Vector targetPos, LSL_Rotation rotation, LSL_Integer flags)
         {
-            CheckThreatLevel(ThreatLevel.Severe, "osTeleportAgent");
+            CheckThreatLevel(ThreatLevel.Severe, "osTeleportObject");
             m_host.AddScriptLPS(1);
 
             UUID objUUID;
             if (!UUID.TryParse(objectUUID, out objUUID))
             {
-                OSSLShoutError("osObjectTeleport() invalid object Key");
+                OSSLShoutError("osTeleportObject() invalid object Key");
                 return;
             }
 
