@@ -910,11 +910,12 @@ namespace OpenSim.Region.Framework.Scenes
                 bool setrot = (flags & OSTPOBJ_SETROT) != 0;
 
                 rotation.Normalize();
-                bool dorot = (Math.Abs(rotation.W) < 0.999);
-                
                 Quaternion currentRot = RootPart.RotationOffset;
-                if(dorot && setrot)
-                    rotation = rotation * Quaternion.Conjugate(currentRot);
+
+                if(setrot)
+                    rotation = Quaternion.Conjugate(currentRot) * rotation;
+
+                bool dorot = setrot | (Math.Abs(rotation.W) < 0.999);
 
                 if(stop)
                 {
