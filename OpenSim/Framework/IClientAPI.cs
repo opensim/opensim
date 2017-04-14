@@ -685,9 +685,10 @@ namespace OpenSim.Framework
         ExtraData = 1 << 20,
         Sound = 1 << 21,
         Joint = 1 << 22,
-        FullUpdate = 0x3fffffff,
-        CancelKill = 0x7fffffff,
-        Kill = 0x80000000
+        FullUpdate = 0x0fffffff,
+        SendInTransit = 1 << 30, 
+        CancelKill = 0x4fffffff, // 1 << 31 
+        Kill = 0x80000000 // 1 << 32
     }
 
 /* included in .net 4.0
@@ -1187,7 +1188,8 @@ namespace OpenSim.Framework
         void SetAgentThrottleSilent(int throttle, int setting);
         int GetAgentThrottleSilent(int throttle);
 
-        void SendAvatarDataImmediate(ISceneEntity avatar);
+        void SendEntityFullUpdateImmediate(ISceneEntity entity);
+        void SendEntityTerseUpdateImmediate(ISceneEntity entity);
 
         /// <summary>
         /// Send a positional, velocity, etc. update to the viewer for a given entity.

@@ -1097,7 +1097,12 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         }
 
-        public void SendAvatarDataImmediate(ISceneEntity avatar)
+        public void SendEntityFullUpdateImmediate(ISceneEntity ent)
+        {
+
+        }
+
+        public void SendEntityTerseUpdateImmediate(ISceneEntity ent)
         {
 
         }

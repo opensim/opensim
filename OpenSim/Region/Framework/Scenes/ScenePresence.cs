@@ -1778,6 +1778,20 @@ namespace OpenSim.Region.Framework.Scenes
 
         private Dictionary<ulong, spRegionSizeInfo> m_knownChildRegionsSizeInfo = new Dictionary<ulong, spRegionSizeInfo>();
 
+        public void AddNeighbourRegion(GridRegion region, string capsPath)
+        {
+            lock (m_knownChildRegions)
+            {
+                ulong regionHandle = region.RegionHandle;
+                m_knownChildRegions.Add(regionHandle,capsPath);
+
+                spRegionSizeInfo sizeInfo = new spRegionSizeInfo();
+                sizeInfo.sizeX = region.RegionSizeX;
+                sizeInfo.sizeY = region.RegionSizeY;
+                m_knownChildRegionsSizeInfo[regionHandle] = sizeInfo;
+            }
+        }
+
         public void AddNeighbourRegionSizeInfo(GridRegion region)
         {
             lock (m_knownChildRegions)
@@ -1824,6 +1838,12 @@ namespace OpenSim.Region.Framework.Scenes
                 m_knownChildRegions.Remove(regionHandle);
                 m_knownChildRegionsSizeInfo.Remove(regionHandle);
             }
+        }
+
+        public bool knowsNeighbourRegion(ulong regionHandle)
+        {
+            lock (m_knownChildRegions)
+                return m_knownChildRegions.ContainsKey(regionHandle);
         }
 
         public void DropOldNeighbours(List<ulong> oldRegions)
@@ -2010,6 +2030,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 }
 
+
                 m_log.DebugFormat("[CompleteMovement] MakeRootAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 if(!haveGroupInformation && !IsChildAgent && !IsNPC)
@@ -2069,6 +2090,16 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (!IsChildAgent)
                 {
+                    if( ParentPart != null && !IsNPC && (crossingFlags & 0x08) != 0)
+                    {
+
+//                      SceneObjectPart root = ParentPart.ParentGroup.RootPart;
+//                      if(root.LocalId != ParentPart.LocalId)
+//                          ControllingClient.SendEntityTerseUpdateImmediate(root);
+//                      ControllingClient.SendEntityTerseUpdateImmediate(ParentPart);
+                        ParentPart.ParentGroup.SendFullUpdateToClient(ControllingClient);
+                    }
+
                     // verify baked textures and cache
                     bool cachedbaked = false;
 
@@ -2130,6 +2161,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // send avatar object to all presences including us, so they cross it into region
                     // then hide if necessary
+
                     SendInitialAvatarDataToAllAgents(allpresences);
 
                     // send this look
@@ -2237,13 +2269,18 @@ namespace OpenSim.Region.Framework.Scenes
                     m_lastChildAgentUpdateDrawDistance = DrawDistance;
                     m_lastChildAgentUpdatePosition = AbsolutePosition;
                     m_childUpdatesBusy = false; // allow them
+
+
                 }
 
                 m_log.DebugFormat("[CompleteMovement] openChildAgents: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
+
+
                 // send the rest of the world
                 if (m_teleportFlags > 0 && !IsNPC || m_currentParcelHide)
                     SendInitialDataToMe();
+                
 
                 // priority uses avatar position only
 //                m_reprioritizationLastPosition = AbsolutePosition;
@@ -3979,7 +4016,7 @@ namespace OpenSim.Region.Framework.Scenes
             int count = 0;
             foreach (ScenePresence p in presences)
             {
-                p.ControllingClient.SendAvatarDataImmediate(this);
+                p.ControllingClient.SendEntityFullUpdateImmediate(this);
                 if (p != this && ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                     // either just kill the object
                     // p.ControllingClient.SendKillObject(new List<uint> {LocalId});
@@ -3992,7 +4029,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendInitialAvatarDataToAgent(ScenePresence p)
         {
-            p.ControllingClient.SendAvatarDataImmediate(this);
+            p.ControllingClient.SendEntityFullUpdateImmediate(this);
             if (p != this && ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                     // either just kill the object
                     // p.ControllingClient.SendKillObject(new List<uint> {LocalId});
@@ -4009,12 +4046,12 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.DebugFormat("[SCENE PRESENCE] SendAvatarDataToAgent from {0} ({1}) to {2} ({3})", Name, UUID, avatar.Name, avatar.UUID);
             if (ParcelHideThisAvatar && currentParcelUUID != avatar.currentParcelUUID && !avatar.IsViewerUIGod)
                 return;
-            avatar.ControllingClient.SendAvatarDataImmediate(this);
+            avatar.ControllingClient.SendEntityFullUpdateImmediate(this);
         }
 
         public void SendAvatarDataToAgentNF(ScenePresence avatar)
         {
-             avatar.ControllingClient.SendAvatarDataImmediate(this);
+             avatar.ControllingClient.SendEntityFullUpdateImmediate(this);
         }
 
         /// <summary>

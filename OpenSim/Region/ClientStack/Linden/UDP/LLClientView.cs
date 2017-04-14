@@ -3950,24 +3950,68 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// Send an ObjectUpdate packet with information about an avatar
         /// </summary>
-        public void SendAvatarDataImmediate(ISceneEntity avatar)
+        public void SendEntityFullUpdateImmediate(ISceneEntity ent)
         {
 //            m_log.DebugFormat(
 //                "[LLCLIENTVIEW]: Sending immediate object update for avatar {0} {1} to {2} {3}",
 //                avatar.Name, avatar.UUID, Name, AgentId);
 
-            ScenePresence presence = avatar as ScenePresence;
-            if (presence == null)
+            if (ent == null)
                 return;
 
             ObjectUpdatePacket objupdate = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
             objupdate.Header.Zerocoded = true;
 
-            objupdate.RegionData.RegionHandle = presence.RegionHandle;
-//            objupdate.RegionData.TimeDilation = ushort.MaxValue;
             objupdate.RegionData.TimeDilation = Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);
             objupdate.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
-            objupdate.ObjectData[0] = CreateAvatarUpdateBlock(presence);
+
+            if(ent is ScenePresence)
+            {
+                ScenePresence presence = ent as ScenePresence;
+                objupdate.RegionData.RegionHandle = presence.RegionHandle;
+                objupdate.ObjectData[0] = CreateAvatarUpdateBlock(presence);
+            }
+            else if(ent is SceneObjectPart)
+            {
+                SceneObjectPart part = ent  as SceneObjectPart;
+                objupdate.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
+                objupdate.ObjectData[0] = CreatePrimUpdateBlock(part,  (ScenePresence)SceneAgent);
+            }
+
+            OutPacket(objupdate, ThrottleOutPacketType.Task | ThrottleOutPacketType.HighPriority);
+
+            // We need to record the avatar local id since the root prim of an attachment points to this.
+//            m_attachmentsSent.Add(avatar.LocalId);
+        }
+
+        public void SendEntityTerseUpdateImmediate(ISceneEntity ent)
+        {
+//            m_log.DebugFormat(
+//                "[LLCLIENTVIEW]: Sending immediate object update for avatar {0} {1} to {2} {3}",
+//                avatar.Name, avatar.UUID, Name, AgentId);
+
+            if (ent == null)
+                return;
+
+            ImprovedTerseObjectUpdatePacket objupdate =
+                (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
+            objupdate.Header.Zerocoded = true;
+
+            objupdate.RegionData.TimeDilation = Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);
+            objupdate.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
+
+            if(ent is ScenePresence)
+            {
+                ScenePresence presence = ent as ScenePresence;
+                objupdate.RegionData.RegionHandle = presence.RegionHandle;
+                objupdate.ObjectData[0] = CreateImprovedTerseBlock(ent, false);
+            }
+            else if(ent is SceneObjectPart)
+            {
+                SceneObjectPart part = ent  as SceneObjectPart;
+                objupdate.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
+                objupdate.ObjectData[0] = CreateImprovedTerseBlock(ent, false);
+            }
 
             OutPacket(objupdate, ThrottleOutPacketType.Task | ThrottleOutPacketType.HighPriority);
 
@@ -4020,7 +4064,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         #endregion Avatar Packet/Data Sending Methods
 
         #region Primitive Packet/Data Sending Methods
-
 
         /// <summary>
         /// Generate one of the object update packets based on PrimUpdateFlags
@@ -4157,8 +4200,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     SceneObjectPart part = (SceneObjectPart)update.Entity;
                     SceneObjectGroup grp = part.ParentGroup;
-                    if (grp.inTransit)
+                    if (grp.inTransit && !update.Flags.HasFlag(PrimUpdateFlags.SendInTransit))
                         continue;
+                    if (update.Flags.HasFlag(PrimUpdateFlags.SendInTransit))
+                    {
+
+
+                    }
 
                     if (grp.IsDeleted)
                     {
