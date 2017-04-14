@@ -256,6 +256,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         /// </summary>
         public string SOPName;
 
+        public virtual void CrossingStart() { }
         public abstract void CrossingFailure();
 
         public abstract void link(PhysicsActor obj);
@@ -462,6 +463,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public abstract bool SubscribedEvents();
 
         public virtual void AddCollisionEvent(uint CollidedWith, ContactPoint contact) { }
+        public virtual void AddVDTCCollisionEvent(uint CollidedWith, ContactPoint contact) { }
 
         public virtual PhysicsInertiaData GetInertiaData()
         {
@@ -476,6 +478,8 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public virtual void SetInertiaData(PhysicsInertiaData inertia)
         {
         }
+
+        public virtual float SimulationSuspended { get; set; }
 
         // Warning in a parent part it returns itself, not null
         public virtual PhysicsActor ParentActor { get { return this; } }

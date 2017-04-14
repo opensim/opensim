@@ -186,7 +186,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         float frictionMovementMult = 0.8f;
 
-        float TerrainBounce = 0.1f;
+        float TerrainBounce = 0.001f;
         float TerrainFriction = 0.3f;
 
         public float AvatarFriction = 0;// 0.9f * 0.5f;
@@ -1083,9 +1083,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         case ActorTypes.Prim:
                             if (p2events)
                             {
-                                AddCollisionEventReporting(p2);
+                                //AddCollisionEventReporting(p2);
                                 p2.AddCollisionEvent(p1.ParentActor.LocalID, contact);
                             }
+                            else if(p1.IsVolumeDtc)
+                                p2.AddVDTCCollisionEvent(p1.ParentActor.LocalID, contact);
+
                             obj2LocalID = p2.ParentActor.LocalID;
                             break;
 
@@ -1099,8 +1102,15 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     {
                         contact.SurfaceNormal = -contact.SurfaceNormal;
                         contact.RelativeSpeed = -contact.RelativeSpeed;
-                        AddCollisionEventReporting(p1);
+                        //AddCollisionEventReporting(p1);
                         p1.AddCollisionEvent(obj2LocalID, contact);
+                    }
+                    else if(p2.IsVolumeDtc)
+                    {
+                        contact.SurfaceNormal = -contact.SurfaceNormal;
+                        contact.RelativeSpeed = -contact.RelativeSpeed;
+                        //AddCollisionEventReporting(p1);
+                        p1.AddVDTCCollisionEvent(obj2LocalID, contact);
                     }
                     break;
                 }
@@ -1110,7 +1120,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     if (p2events && !p2.IsVolumeDtc)
                     {
-                        AddCollisionEventReporting(p2);
+                        //AddCollisionEventReporting(p2);
                         p2.AddCollisionEvent(0, contact);
                     }
                     break;
