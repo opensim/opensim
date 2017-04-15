@@ -153,7 +153,7 @@ namespace OpenSim.Region.Framework.Scenes
                     timeLastChanged = DateTime.UtcNow.Ticks;
                     if (!m_hasGroupChanged)
                         timeFirstChanged = DateTime.UtcNow.Ticks;
-                    if (m_rootPart != null && m_rootPart.UUID != null && m_scene != null)
+                    if (m_rootPart != null && m_scene != null)
                     {
 /*
                         if (m_rand == null)

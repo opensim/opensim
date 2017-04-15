@@ -6488,7 +6488,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (check)
             {
                 // check is relative to current parcel only
-                if (currentParcelUUID == null || oldhide == currentParcelHide)
+                if (oldhide == currentParcelHide)
                     return;
 
                 allpresences = m_scene.GetScenePresences();
