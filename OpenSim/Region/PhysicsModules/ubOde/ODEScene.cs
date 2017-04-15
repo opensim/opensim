@@ -1668,11 +1668,15 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
 //                d.WorldSetQuickStepNumIterations(world, curphysiteractions);
 
-                int loopstartMS = Util.EnvironmentTickCount();
-                int looptimeMS = 0;
-                int changestimeMS = 0;
-                int maxChangestime = (int)(reqTimeStep * 500f); // half the time
-                int maxLoopTime = (int)(reqTimeStep * 1200f); // 1.2 the time
+                double loopstartMS = Util.GetTimeStampMS();
+                double looptimeMS = 0;
+                double changestimeMS = 0;
+                double maxChangestime = (int)(reqTimeStep * 500f); // half the time
+                double maxLoopTime = (int)(reqTimeStep * 1200f); // 1.2 the time
+
+//                double collisionTime = 0;
+//                double qstepTIme = 0;
+//                double tmpTime = 0;
 
                 d.AllocateODEDataForThread(~0U);
 
@@ -1695,7 +1699,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                     item.actor.Name, item.what.ToString());
                             }
                         }
-                        changestimeMS = Util.EnvironmentTickCountSubtract(loopstartMS);
+                        changestimeMS = Util.GetTimeStampMS() - loopstartMS;
                         if (changestimeMS > maxChangestime)
                             break;
                     }
@@ -1740,9 +1744,19 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                         m_rayCastManager.ProcessQueuedRequests();
 
+//                        tmpTime =  Util.GetTimeStampMS();
                         collision_optimized();
-                        List<OdePrim> sleepers = new List<OdePrim>();
+//                        collisionTime += Util.GetTimeStampMS() - tmpTime;
 
+                        lock(_collisionEventPrimRemove)
+                        {
+                            foreach (PhysicsActor obj in _collisionEventPrimRemove)
+                                _collisionEventPrim.Remove(obj);
+
+                            _collisionEventPrimRemove.Clear();
+                        }
+
+                        List<OdePrim> sleepers = new List<OdePrim>();
                         foreach (PhysicsActor obj in _collisionEventPrim)
                         {
                             if (obj == null)
@@ -1772,18 +1786,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         foreach(OdePrim prm in sleepers)
                             prm.SleeperAddCollisionEvents();
                         sleepers.Clear();
-
-                        lock(_collisionEventPrimRemove)
-                        {
-                            foreach (PhysicsActor obj in _collisionEventPrimRemove)
-                                _collisionEventPrim.Remove(obj);
-
-                            _collisionEventPrimRemove.Clear();
-                        }
-
+ 
                         // do a ode simulation step
+//                        tmpTime =  Util.GetTimeStampMS();
                         d.WorldQuickStep(world, ODE_STEPSIZE);
                         d.JointGroupEmpty(contactgroup);
+//                        qstepTIme += Util.GetTimeStampMS() - tmpTime;
 
                         // update managed ideia of physical data and do updates to core
         /*
@@ -1824,7 +1832,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     step_time -= ODE_STEPSIZE;
                     nodeframes++;
 
-                    looptimeMS = Util.EnvironmentTickCountSubtract(loopstartMS);
+                    looptimeMS = Util.GetTimeStampMS() - loopstartMS;
                     if (looptimeMS > maxLoopTime)
                         break;
                 }
@@ -1892,6 +1900,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 int totgeoms = nstaticgeoms + nactivegeoms + ngroundgeoms + 1; // one ray
                 int nbodies = d.NTotalBodies;
                 int ngeoms = d.NTotalGeoms;
+*/
+/*
+                looptimeMS /= nodeframes;
+                if(looptimeMS > 0.080)
+                {
+                    collisionTime /= nodeframes;
+                    qstepTIme /= nodeframes;    
+                }
 */
                 // Finished with all sim stepping. If requested, dump world state to file for debugging.
                 // TODO: This call to the export function is already inside lock (OdeLock) - but is an extra lock needed?

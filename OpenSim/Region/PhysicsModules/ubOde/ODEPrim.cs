@@ -1210,13 +1210,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (m_cureventsubscription < 50000)
                 m_cureventsubscription += timestep;
 
+            if(CollisionVDTCEventsThisFrame != null && CollisionVDTCEventsThisFrame.Count >0 && (Body == IntPtr.Zero || d.BodyIsEnabled(Body)))
+                CollisionVDTCEventsThisFrame.Clear();
+
+            if (m_cureventsubscription < m_eventsubscription)
+                return;
+
             if (CollisionEventsThisFrame == null)
                 return;
 
             int ncolisions = CollisionEventsThisFrame.m_objCollisionList.Count;
-
-            if (m_cureventsubscription < m_eventsubscription)
-                return;
 
             if (!SentEmptyCollisionsEvent || ncolisions > 0)
             {
@@ -1234,8 +1237,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     CollisionEventsThisFrame.Clear();
                 }
             }
-            if(CollisionVDTCEventsThisFrame != null && (Body == IntPtr.Zero || d.BodyIsEnabled(Body)))
-                CollisionVDTCEventsThisFrame.Clear();
         }
 
         public override bool SubscribedEvents()
@@ -2938,7 +2939,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     {
                         d.GeomSetPosition(prim_geom, newPos.X, newPos.Y, newPos.Z);
                         _position = newPos;
-                        m_bodyMoveCoolDown = -5;
+                        if (Body != IntPtr.Zero && !m_disabled)
+                            m_bodyMoveCoolDown = -5;
                     }
                     if (Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
                     {
