@@ -4664,7 +4664,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// has a cool down time. retries before expire reset it
         /// fail conditions are silent ignored
         /// </remarks>
-        public void osTeleportObject(LSL_Key objectUUID, LSL_Vector targetPos, LSL_Rotation rotation, LSL_Integer flags)
+        public LSL_Integer osTeleportObject(LSL_Key objectUUID, LSL_Vector targetPos, LSL_Rotation rotation, LSL_Integer flags)
         {
             CheckThreatLevel(ThreatLevel.Severe, "osTeleportObject");
             m_host.AddScriptLPS(1);
@@ -4673,16 +4673,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (!UUID.TryParse(objectUUID, out objUUID))
             {
                 OSSLShoutError("osTeleportObject() invalid object Key");
-                return;
+                return -1;
             }
 
             SceneObjectGroup sog = World.GetSceneObjectGroup(objUUID);
             if(sog== null || sog.IsDeleted)
-                return;
+                return -1;
 
             UUID myid = m_host.ParentGroup.UUID;
 
-            sog.TeleportObject(myid, targetPos, rotation, flags);
+            return sog.TeleportObject(myid, targetPos, rotation, flags);
             // a delay here may break vehicles
         }
 

@@ -1066,7 +1066,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_angularVelocity = value;
 
                 PhysicsActor actor = PhysActor;
-                if ((actor != null) && actor.IsPhysical && ParentGroup.RootPart == this && VehicleType == (int)Vehicle.TYPE_NONE)
+                if ((actor != null) && actor.IsPhysical && ParentGroup.RootPart == this)
                 {
                     actor.RotationalVelocity = m_angularVelocity;
                 }
@@ -1092,6 +1092,12 @@ namespace OpenSim.Region.Framework.Scenes
                     m_acceleration = Vector3.Zero;
                 else
                     m_acceleration = value;
+
+                PhysicsActor actor = PhysActor;
+                if ((actor != null) && actor.IsPhysical && ParentGroup.RootPart == this)
+                {
+                   actor.Acceleration = m_acceleration;
+                }
             }
         }
 
@@ -2016,7 +2022,7 @@ namespace OpenSim.Region.Framework.Scenes
         //      SetVelocity for LSL llSetVelocity..  may need revision if having other uses in future
         public void SetVelocity(Vector3 pVel, bool localGlobalTF)
         {
-            if (ParentGroup == null || ParentGroup.IsDeleted)
+            if (ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
                 return;
 
             if (ParentGroup.IsAttachment)
@@ -2043,7 +2049,7 @@ namespace OpenSim.Region.Framework.Scenes
         //      SetAngularVelocity for LSL llSetAngularVelocity..  may need revision if having other uses in future
         public void SetAngularVelocity(Vector3 pAngVel, bool localGlobalTF)
         {
-            if (ParentGroup == null || ParentGroup.IsDeleted)
+            if (ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
                 return;
 
             if (ParentGroup.IsAttachment)
@@ -2077,6 +2083,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="localGlobalTF">true for the local frame, false for the global frame</param>
         public void ApplyAngularImpulse(Vector3 impulsei, bool localGlobalTF)
         {
+           if (ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
+                return;
+
             Vector3 impulse = impulsei;
 
             if (localGlobalTF)
@@ -3376,25 +3385,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
         /// <param name="remoteClient"></param>
         public void SendFullUpdateToClient(IClientAPI remoteClient)
         {
-            SendFullUpdateToClient(remoteClient, OffsetPosition);
-        }
-
-        /// <summary>
-        /// Sends a full update to the client
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="lPos"></param>
-        public void SendFullUpdateToClient(IClientAPI remoteClient, Vector3 lPos)
-        {
-            if (ParentGroup == null)
-                return;
-
-            // Suppress full updates during attachment editing
-            // sl Does send them
- //           if (ParentGroup.IsSelected && ParentGroup.IsAttachment)
- //               return;
-
-            if (ParentGroup.IsDeleted)
+             if (ParentGroup == null || ParentGroup.IsDeleted)
                 return;
 
             if (ParentGroup.IsAttachment

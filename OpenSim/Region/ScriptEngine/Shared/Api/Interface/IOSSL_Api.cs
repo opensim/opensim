@@ -51,7 +51,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
     /// </summary>
     public enum ThreatLevel
     {
-        // Not documented, presumably means permanently disabled ?
         NoAccess = -1,
 
         /// <summary>
@@ -496,7 +495,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osSetInertiaAsSphere(LSL_Float mass,  LSL_Float radius, vector centerOfMass);
         void osSetInertiaAsCylinder(LSL_Float mass,  LSL_Float radius, LSL_Float lenght, vector centerOfMass,rotation lslrot);
 
-        void osTeleportObject(LSL_Key objectUUID, vector targetPos, rotation targetrotation, LSL_Integer flags);
+        LSL_Integer osTeleportObject(LSL_Key objectUUID, vector targetPos, rotation targetrotation, LSL_Integer flags);
         LSL_Integer osGetLinkNumber(LSL_String name);
     }
 }

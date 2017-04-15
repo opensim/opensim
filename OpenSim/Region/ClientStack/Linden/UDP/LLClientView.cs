@@ -4087,10 +4087,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 */
             if (entity is SceneObjectPart)
             {
-                SceneObjectPart e = (SceneObjectPart)entity;
-                SceneObjectGroup g = e.ParentGroup;
+                SceneObjectPart p = (SceneObjectPart)entity;
+                SceneObjectGroup g = p.ParentGroup;
                 if (g.HasPrivateAttachmentPoint && g.OwnerID != AgentId)
                     return; // Don't send updates for other people's HUDs
+                
+                if((updateFlags ^ PrimUpdateFlags.SendInTransit) == 0)
+                {
+                    List<uint> partIDs = (new List<uint> {p.LocalId});
+                    lock (m_entityProps.SyncRoot)
+                        m_entityProps.Remove(partIDs);
+                    lock (m_entityUpdates.SyncRoot)
+                        m_entityUpdates.Remove(partIDs);
+                    return;
+                }
             }
 
             //double priority = m_prioritizer.GetUpdatePriority(this, entity);

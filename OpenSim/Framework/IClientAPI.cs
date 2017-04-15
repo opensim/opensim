@@ -685,10 +685,10 @@ namespace OpenSim.Framework
         ExtraData = 1 << 20,
         Sound = 1 << 21,
         Joint = 1 << 22,
-        FullUpdate = 0x0fffffff,
-        SendInTransit = 1 << 30, 
-        CancelKill = 0x4fffffff, // 1 << 31 
-        Kill = 0x80000000 // 1 << 32
+        FullUpdate =    0x0fffffff,
+        SendInTransit = 0x20000000, 
+        CancelKill =    0x4fffffff, // 1 << 30 
+        Kill =          0x80000000 // 1 << 31
     }
 
 /* included in .net 4.0

@@ -856,7 +856,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
         // for osTeleportObject
         public const int OSTPOBJ_NONE           = 0x0;
-        public const int OSTPOBJ_STOPATTARRGET  = 0x1; // stops at destination
+        public const int OSTPOBJ_STOPATTARGET   = 0x1; // stops at destination
         public const int OSTPOBJ_STOPONFAIL     = 0x2; // stops at jump point if tp fails
         public const int OSTPOBJ_SETROT         = 0x4; // the rotation is the final rotation, otherwise is a added rotation
 

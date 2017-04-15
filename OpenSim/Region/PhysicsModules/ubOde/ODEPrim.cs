@@ -85,7 +85,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private Vector3 m_lastposition;
         private Vector3 m_rotationalVelocity;
         private Vector3 _size;
-        private Vector3 _acceleration;
+        private Vector3 m_acceleration;
         private IntPtr Amotor;
 
         internal Vector3 m_force;
@@ -746,8 +746,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public override Vector3 Acceleration
         {
-            get { return _acceleration; }
-            set { }
+            get { return m_acceleration; }
+            set
+            {
+                if(m_outbounds)
+                    m_acceleration = value;
+            }
         }
 
         public override Vector3 RotationalVelocity
@@ -767,7 +771,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 if (value.IsFinite())
                 {
-                    AddChange(changes.AngVelocity, value);
+                    if(m_outbounds)
+                        m_rotationalVelocity = value;
+                    else
+                        AddChange(changes.AngVelocity, value);
                 }
                 else
                 {
@@ -941,7 +948,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         }
         public void SetAcceleration(Vector3 accel)
         {
-            _acceleration = accel;
+            m_acceleration = accel;
         }
 
         public override void AddForce(Vector3 force, bool pushforce)
@@ -2748,7 +2755,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 m_angularForceacc = Vector3.Zero;
 //                m_torque = Vector3.Zero;
                 _velocity = Vector3.Zero;
-                _acceleration = Vector3.Zero;
+                m_acceleration = Vector3.Zero;
                 m_rotationalVelocity = Vector3.Zero;
                 _target_velocity = Vector3.Zero;
                 if (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE)
@@ -3784,9 +3791,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         m_outbounds = true;
 
                         lpos.Z = Util.Clip(lpos.Z, -100f, 100000f);
-                        _acceleration.X = 0;
-                        _acceleration.Y = 0;
-                        _acceleration.Z = 0;
+                        m_acceleration.X = 0;
+                        m_acceleration.Y = 0;
+                        m_acceleration.Z = 0;
 
                         _velocity.X = 0;
                         _velocity.Y = 0;
@@ -3915,12 +3922,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         _orientation.W = ori.W;
                     }
 
-                    // update velocities and aceleration
+                    // update velocities and acceleration
                     if (_zeroFlag || lastZeroFlag)
                     {
                          // disable interpolators
                         _velocity = Vector3.Zero;
-                        _acceleration = Vector3.Zero;
+                        m_acceleration = Vector3.Zero;
                          m_rotationalVelocity = Vector3.Zero;
                     }
                     else
@@ -3929,7 +3936,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         {
                             d.Vector3 vel = d.BodyGetLinearVel(Body);
 
-                            _acceleration = _velocity;
+                            m_acceleration = _velocity;
 
                             if ((Math.Abs(vel.X) < 0.005f) &&
                                 (Math.Abs(vel.Y) < 0.005f) &&
@@ -3937,21 +3944,21 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             {
                                 _velocity = Vector3.Zero;
                                 float t = -m_invTimeStep;
-                                _acceleration = _acceleration * t;
+                                m_acceleration = m_acceleration * t;
                             }
                             else
                             {
                                 _velocity.X = vel.X;
                                 _velocity.Y = vel.Y;
                                 _velocity.Z = vel.Z;
-                                _acceleration = (_velocity - _acceleration) * m_invTimeStep;
+                                m_acceleration = (_velocity - m_acceleration) * m_invTimeStep;
                             }
 
-                            if ((Math.Abs(_acceleration.X) < 0.01f) &&
-                                (Math.Abs(_acceleration.Y) < 0.01f) &&
-                                (Math.Abs(_acceleration.Z) < 0.01f))
+                            if ((Math.Abs(m_acceleration.X) < 0.01f) &&
+                                (Math.Abs(m_acceleration.Y) < 0.01f) &&
+                                (Math.Abs(m_acceleration.Z) < 0.01f))
                             {
-                                _acceleration = Vector3.Zero;
+                                m_acceleration = Vector3.Zero;
                             }
 
                             vel = d.BodyGetAngularVel(Body);
