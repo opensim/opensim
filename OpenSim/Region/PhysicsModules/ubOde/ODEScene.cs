@@ -1172,6 +1172,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     aprim.CollisionScore = 0;
                     aprim.IsColliding = false;
+                    if(!aprim.m_outbounds && d.BodyIsEnabled(aprim.Body))
+                        aprim.clearSleeperCollisions();
                 }
             }
             lock (_activegroups)

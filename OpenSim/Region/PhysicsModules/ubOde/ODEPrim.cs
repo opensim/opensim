@@ -1205,13 +1205,17 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
         }
 
+        internal void clearSleeperCollisions()
+        {
+            if(CollisionVDTCEventsThisFrame != null && CollisionVDTCEventsThisFrame.Count >0 )
+                CollisionVDTCEventsThisFrame.Clear();
+        }
+
         public void SendCollisions(int timestep)
         {
             if (m_cureventsubscription < 50000)
                 m_cureventsubscription += timestep;
 
-            if(CollisionVDTCEventsThisFrame != null && CollisionVDTCEventsThisFrame.Count >0 && (Body == IntPtr.Zero || d.BodyIsEnabled(Body)))
-                CollisionVDTCEventsThisFrame.Clear();
 
             if (m_cureventsubscription < m_eventsubscription)
                 return;
