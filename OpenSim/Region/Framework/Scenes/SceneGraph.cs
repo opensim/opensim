@@ -549,6 +549,8 @@ namespace OpenSim.Region.Framework.Scenes
                 // that are part of the Scene Object being removed
                 m_numTotalPrim -= grp.PrimCount;
 
+                bool isPh = (grp.RootPart.Flags & PrimFlags.Physics) == PrimFlags.Physics;
+                int nphysparts = 0;
                 // Go through all parts (primitives and meshes) of this Scene Object
                 foreach (SceneObjectPart part in grp.Parts)
                 {
@@ -559,10 +561,13 @@ namespace OpenSim.Region.Framework.Scenes
                         m_numMesh--;
                     else
                         m_numPrim--;
+
+                    if(isPh && part.PhysicsShapeType != (byte)PhysShapeType.none)
+                        nphysparts++;
                 }
 
-                if ((grp.RootPart.Flags & PrimFlags.Physics) == PrimFlags.Physics)
-                    RemovePhysicalPrim(grp.PrimCount);
+                if (nphysparts > 0 )
+                    RemovePhysicalPrim(nphysparts);
             }
 
             bool ret = Entities.Remove(uuid);
