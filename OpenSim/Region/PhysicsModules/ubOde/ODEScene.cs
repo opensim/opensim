@@ -727,8 +727,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if (g1 == g2)
                     return; // Can't collide with yourself
 
-                if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
-                    return;
+//                if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
+//                    return;
                 /*
                 // debug
                                 PhysicsActor dp2;
@@ -1176,6 +1176,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         aprim.clearSleeperCollisions();
                 }
             }
+
             lock (_activegroups)
             {
                 try

@@ -3380,6 +3380,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         enableBodySoft();
                     else if (!d.BodyIsEnabled(Body))
                         d.BodyEnable(Body);
+                    d.BodySetLinearVel(Body, newVel.X, newVel.Y, newVel.Z);
                 }
                 //resetCollisionAccounting();
             }
@@ -3403,6 +3404,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         enableBodySoft();
                     else if (!d.BodyIsEnabled(Body))
                         d.BodyEnable(Body);
+                    d.BodySetAngularVel(Body, newAngVel.X, newAngVel.Y, newAngVel.Z);
                 }
                 //resetCollisionAccounting();
             }
