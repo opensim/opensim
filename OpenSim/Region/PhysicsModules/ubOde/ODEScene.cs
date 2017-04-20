@@ -529,6 +529,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             SharedTmpcontact.surface.mode = comumContactFlags;
             SharedTmpcontact.surface.mu = 0;
             SharedTmpcontact.surface.bounce = 0;
+            SharedTmpcontact.surface.bounce_vel = 1.5f;
             SharedTmpcontact.surface.soft_cfm = comumContactCFM;
             SharedTmpcontact.surface.soft_erp = comumContactERP;
             SharedTmpcontact.surface.slip1 = comumContactSLIP;
