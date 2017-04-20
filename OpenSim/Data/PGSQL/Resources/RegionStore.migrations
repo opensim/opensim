@@ -1204,3 +1204,10 @@ ALTER TABLE prims ADD "RezzerID" uuid NULL;
 
 COMMIT;
 
+:VERSION 46 #---- Add physics inertia data to table prims
+
+BEGIN TRANSACTION;
+
+ALTER TABLE prims ADD "PhysInertia" TEXT;
+
+COMMIT;
