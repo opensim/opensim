@@ -494,12 +494,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             UUID item;
 
-            m_host.AddScriptLPS(1);
-
-            if ((item = GetScriptByName(name)) != UUID.Zero)
-                m_ScriptEngine.ResetScript(item);
-            else
+            if ((item = GetScriptByName(name)) == UUID.Zero)
+            {
+                m_host.AddScriptLPS(1);
                 Error("llResetOtherScript", "Can't find script '" + name + "'");
+                return;
+            }
+            if(item == m_item.ItemID)
+                llResetScript();
+            else
+            {
+                m_host.AddScriptLPS(1);
+                m_ScriptEngine.ResetScript(item);
+            }
         }
 
         public LSL_Integer llGetScriptState(string name)
@@ -2725,9 +2732,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <param name="adjust">if TRUE, will cap the distance to 10m.</param>
         protected void SetPos(SceneObjectPart part, LSL_Vector targetPos, bool adjust)
         {
-            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted || part.ParentGroup.inTransit)
                 return;
 
+            
             LSL_Vector currentPos = GetPartLocalPos(part);
             LSL_Vector toPos = GetSetPosTarget(part, targetPos, currentPos, adjust);
 
@@ -5751,29 +5759,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             if (index < 0)
-            {
                 index = src.Length + index;
-            }
+
             if (index >= src.Length || index < 0)
-            {
                 return 0;
-            }
+
+            object item = src.Data[index];
 
             // Vectors & Rotations always return zero in SL, but
             //  keys don't always return zero, it seems to be a bit complex.
-            else if (src.Data[index] is LSL_Vector ||
-                    src.Data[index] is LSL_Rotation)
-            {
+            if (item is LSL_Vector || item is LSL_Rotation)
                 return 0;
-            }
+
             try
             {
-
-                if (src.Data[index] is LSL_Integer)
-                    return (LSL_Integer)src.Data[index];
-                else if (src.Data[index] is LSL_Float)
-                    return Convert.ToInt32(((LSL_Float)src.Data[index]).value);
-                return new LSL_Integer(src.Data[index].ToString());
+                if (item is LSL_Integer)
+                    return (LSL_Integer)item;
+                else if (item is LSL_Float)
+                    return Convert.ToInt32(((LSL_Float)item).value);;
+                return new LSL_Integer(item.ToString());
             }
             catch (FormatException)
             {
@@ -5785,38 +5789,37 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             if (index < 0)
-            {
                 index = src.Length + index;
-            }
+
             if (index >= src.Length || index < 0)
-            {
-                return 0.0;
-            }
+                return 0;
+
+            object item = src.Data[index];
 
             // Vectors & Rotations always return zero in SL
-            else if (src.Data[index] is LSL_Vector ||
-                    src.Data[index] is LSL_Rotation)
-            {
+            if(item is LSL_Vector || item is LSL_Rotation)
                 return 0;
-            }
+
             // valid keys seem to get parsed as integers then converted to floats
-            else
+            if (item is LSL_Key)
             {
                 UUID uuidt;
-                if (src.Data[index] is LSL_Key && UUID.TryParse(src.Data[index].ToString(), out uuidt))
-                {
-                    return Convert.ToDouble(new LSL_Integer(src.Data[index].ToString()).value);
-                }
+                string s = item.ToString();
+                if(UUID.TryParse(s, out uuidt))
+                    return Convert.ToDouble(new LSL_Integer(s).value);
+                else
+                    return 0;
             }
+
             try
             {
-                if (src.Data[index] is LSL_Integer)
-                    return Convert.ToDouble(((LSL_Integer)src.Data[index]).value);
-                else if (src.Data[index] is LSL_Float)
-                    return Convert.ToDouble(((LSL_Float)src.Data[index]).value);
-                else if (src.Data[index] is LSL_String)
+               if (item is LSL_Integer)
+                    return Convert.ToDouble(((LSL_Integer)item).value);
+                else if (item is LSL_Float)
+                    return Convert.ToDouble(((LSL_Float)item).value);
+                else if (item is LSL_String)
                 {
-                    string str = ((LSL_String) src.Data[index]).m_string;
+                    string str = ((LSL_String)item).m_string;
                     Match m = Regex.Match(str, "^\\s*(-?\\+?[,0-9]+\\.?[0-9]*)");
                     if (m != Match.Empty)
                     {
@@ -5824,12 +5827,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         double d = 0.0;
                         if (!Double.TryParse(str, out d))
                             return 0.0;
-
                         return d;
                     }
                     return 0.0;
                 }
-                return Convert.ToDouble(src.Data[index]);
+                return Convert.ToDouble(item);
             }
             catch (FormatException)
             {
@@ -5841,13 +5843,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             if (index < 0)
-            {
                 index = src.Length + index;
-            }
+
             if (index >= src.Length || index < 0)
-            {
                 return String.Empty;
-            }
+
             return src.Data[index].ToString();
         }
 
@@ -5855,14 +5855,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             if (index < 0)
-            {
                 index = src.Length + index;
-            }
 
             if (index >= src.Length || index < 0)
-            {
-                return "";
-            }
+                return String.Empty;
+
+            object item = src.Data[index];
 
             // SL spits out an empty string for types other than key & string
             // At the time of patching, LSL_Key is currently LSL_String,
@@ -5871,31 +5869,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // as it's own struct
             // NOTE: 3rd case is needed because a NULL_KEY comes through as
             // type 'obj' and wrongly returns ""
-            else if (!(src.Data[index] is LSL_String ||
-                       src.Data[index] is LSL_Key ||
-                       src.Data[index].ToString() == "00000000-0000-0000-0000-000000000000"))
+            if (!(item is LSL_String ||
+                       item is LSL_Key ||
+                       item.ToString() == "00000000-0000-0000-0000-000000000000"))
             {
-                return "";
+                return String.Empty;
             }
 
-            return src.Data[index].ToString();
+            return item.ToString();
         }
 
         public LSL_Vector llList2Vector(LSL_List src, int index)
         {
             m_host.AddScriptLPS(1);
             if (index < 0)
-            {
                 index = src.Length + index;
-            }
+
             if (index >= src.Length || index < 0)
-            {
                 return new LSL_Vector(0, 0, 0);
-            }
-            if (src.Data[index].GetType() == typeof(LSL_Vector))
-            {
-                return (LSL_Vector)src.Data[index];
-            }
+
+            object item = src.Data[index];
+
+            if (item.GetType() == typeof(LSL_Vector))
+                return (LSL_Vector)item;
 
             // SL spits always out ZERO_VECTOR for anything other than
             // strings or vectors. Although keys always return ZERO_VECTOR,
@@ -5903,28 +5899,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // a string, a key as string and a string that by coincidence
             // is a string, so we're going to leave that up to the
             // LSL_Vector constructor.
-            else if (!(src.Data[index] is LSL_String ||
-                    src.Data[index] is LSL_Vector))
-            {
-                return new LSL_Vector(0, 0, 0);
-            }
-            else
-            {
-                return new LSL_Vector(src.Data[index].ToString());
-            }
+            if(item is LSL_Vector)      
+                return (LSL_Vector) item;
+
+            if (item is LSL_String)
+                return new LSL_Vector(item.ToString());
+
+            return new LSL_Vector(0, 0, 0);
         }
 
         public LSL_Rotation llList2Rot(LSL_List src, int index)
         {
             m_host.AddScriptLPS(1);
             if (index < 0)
-            {
                 index = src.Length + index;
-            }
+
             if (index >= src.Length || index < 0)
-            {
                 return new LSL_Rotation(0, 0, 0, 1);
-            }
+
+            object item = src.Data[index];
 
             // SL spits always out ZERO_ROTATION for anything other than
             // strings or vectors. Although keys always return ZERO_ROTATION,
@@ -5932,19 +5925,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // a string, a key as string and a string that by coincidence
             // is a string, so we're going to leave that up to the
             // LSL_Rotation constructor.
-            else if (!(src.Data[index] is LSL_String ||
-                    src.Data[index] is LSL_Rotation))
-            {
-                return new LSL_Rotation(0, 0, 0, 1);
-            }
-            else if (src.Data[index].GetType() == typeof(LSL_Rotation))
-            {
-                return (LSL_Rotation)src.Data[index];
-            }
-            else
-            {
+            
+            if (item.GetType() == typeof(LSL_Rotation))
+                return (LSL_Rotation)item;
+
+            if (item is LSL_String)
                 return new LSL_Rotation(src.Data[index].ToString());
-            }
+
+            return new LSL_Rotation(0, 0, 0, 1);
         }
 
         public LSL_List llList2List(LSL_List src, int start, int end)
