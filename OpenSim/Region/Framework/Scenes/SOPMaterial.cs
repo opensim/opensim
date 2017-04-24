@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 
 namespace OpenSim.Region.Framework.Scenes
@@ -90,6 +91,87 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 return 0;
         }
+    }
 
+    public class FaceMaterial
+    {
+        public UUID     ID;
+        public UUID     NormalMapID = UUID.Zero;
+        public float    NormalOffsetX = 1.0f;
+	    public float    NormalOffsetY = 1.0f;
+	    public float	NormalRepeatX = 0.0f;
+	    public float	NormalRepeatY = 0.0f;
+	    public float	NormalRotation = 0.0f;
+
+	    public UUID     SpecularMapID = UUID.Zero;
+    	public float	SpecularOffsetX = 1.0f;
+    	public float	SpecularOffsetY = 1.0f;
+    	public float	SpecularRepeatX = 0.0f;
+    	public float	SpecularRepeatY = 0.0f;
+    	public float	SpecularRotation = 0.0f;
+
+	    public Color4	SpecularLightColor = new Color4(255,255,255,255);
+    	public Byte		SpecularLightExponent = 51;
+	    public Byte		EnvironmentIntensity = 0;
+	    public Byte		DiffuseAlphaMode = 1;
+	    public Byte		AlphaMaskCutoff = 0;
+
+        public FaceMaterial()
+        { }
+
+        public FaceMaterial(UUID pID, OSDMap mat)
+        {
+            ID = pID;
+            if(mat == null)
+                return;
+            float scale = 0.0001f;
+            NormalMapID = mat["NormMap"].AsUUID();
+            NormalOffsetX = scale * (float)mat["NormOffsetX"].AsReal();
+	        NormalOffsetY = scale * (float)mat["NormOffsetY"].AsReal();
+	        NormalRepeatX = scale * (float)mat["NormRepeatX"].AsReal();
+	        NormalRepeatY = scale * (float)mat["NormRepeatY"].AsReal();
+	        NormalRotation = scale * (float)mat["NormRotation"].AsReal();
+
+	        SpecularMapID = mat["SpecMap"].AsUUID();
+    	    SpecularOffsetX = scale * (float)mat["SpecOffsetX"].AsReal();
+    	    SpecularOffsetY = scale * (float)mat["SpecOffsetY"].AsReal();
+    	    SpecularRepeatX = scale * (float)mat["SpecRepeatX"].AsReal();
+    	    SpecularRepeatY = scale * (float)mat["SpecRepeatY"].AsReal();
+    	    SpecularRotation = scale * (float)mat["SpecRotation"].AsReal();
+
+	        SpecularLightColor = mat["SpecColor"].AsColor4();
+    	    SpecularLightExponent = (Byte)mat["SpecExp"].AsUInteger();
+	        EnvironmentIntensity = (Byte)mat["EnvIntensity"].AsUInteger();
+	        DiffuseAlphaMode = (Byte)mat["DiffuseAlphaMode"].AsUInteger();
+	        AlphaMaskCutoff = (Byte)mat["AlphaMaskCutoff"].AsUInteger();
+        }
+
+        public OSDMap toOSD()
+        {
+            OSDMap mat = new OSDMap();
+            float scale = 10000f;
+
+            mat["NormMap"] = NormalMapID;
+            mat["NormOffsetX"] = (int) (scale * NormalOffsetX);
+	        mat["NormOffsetY"] = (int) (scale * NormalOffsetY);
+	        mat["NormRepeatX"] = (int) (scale * NormalRepeatX);
+	        mat["NormRepeatY"] = (int) (scale * NormalRepeatY);
+	        mat["NormRotation"] = (int) (scale * NormalRotation);
+
+	        mat["SpecMap"] = SpecularMapID;
+    	    mat["SpecOffsetX"] = (int) (scale * SpecularOffsetX);
+    	    mat["SpecOffsetY"] = (int) (scale * SpecularOffsetY);
+    	    mat["SpecRepeatX"] = (int) (scale * SpecularRepeatX);
+    	    mat["SpecRepeatY"] = (int) (scale * SpecularRepeatY);
+    	    mat["SpecRotation"] = (int) (scale * SpecularRotation);
+
+            mat["SpecColor"] = SpecularLightColor;
+    	    mat["SpecExp"] = SpecularLightExponent;
+	        mat["EnvIntensity"] = EnvironmentIntensity;
+	        mat["DiffuseAlphaMode"] = DiffuseAlphaMode;
+	        mat["AlphaMaskCutoff"] = AlphaMaskCutoff;
+
+            return mat;
+        }
     }
 }

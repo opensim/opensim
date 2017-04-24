@@ -11298,6 +11298,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
+                    case (int)ScriptBaseClass.PRIM_NORMAL:
+                    case (int)ScriptBaseClass.PRIM_SPECULAR:
+                    case (int)ScriptBaseClass.PRIM_ALPHA_MODE:
+                        if (remain < 1)
+                            return new LSL_List();
+
+                        face = (int)rules.GetLSLIntegerItem(idx++);
+                        tex = part.Shape.Textures;
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < GetNumberOfSides(part); face++)
+                            {
+                                Primitive.TextureEntryFace texface = tex.GetFace((uint)face);
+                                getLSLFaceMaterial(ref res, code, texface);
+                            }
+                        }
+                        else
+                        {
+                            if (face >= 0 && face < GetNumberOfSides(part))
+                            {
+                                Primitive.TextureEntryFace texface = tex.GetFace((uint)face);
+                                getLSLFaceMaterial(ref res, code, texface);
+                            }
+                        }
+                        break;
+
                     case (int)ScriptBaseClass.PRIM_LINK_TARGET:
 
                         // TODO: Should be issuing a runtime script warning in this case.
@@ -11311,6 +11337,68 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_List();
         }
 
+        private void getLSLFaceMaterial(ref LSL_List res, int code, Primitive.TextureEntryFace texface)
+        {
+            UUID matID = texface.MaterialID;
+            if(matID != UUID.Zero)
+            {
+                AssetBase MatAsset = World.AssetService.Get(matID.ToString());
+                if(MatAsset != null)
+                {
+                    Byte[] data = MatAsset.Data;
+                    OSDMap osdmat = (OSDMap)OSDParser.DeserializeLLSDXml(data);
+                    if(osdmat != null && osdmat.ContainsKey("NormMap"))
+                    {
+                        FaceMaterial mat = new FaceMaterial(matID, osdmat);
+                        if(code == ScriptBaseClass.PRIM_NORMAL)
+                        {
+                            res.Add(new LSL_String(mat.NormalMapID.ToString()));
+                            res.Add(new LSL_Vector(mat.NormalOffsetX, mat.NormalOffsetY, 0));
+                            res.Add(new LSL_Vector(mat.NormalRepeatX, mat.NormalRepeatY, 0));
+                            res.Add(new LSL_Float(mat.NormalRotation));
+                        }
+                        else if(code == ScriptBaseClass.PRIM_SPECULAR )
+                        {
+                            res.Add(new LSL_String(mat.SpecularMapID.ToString()));
+                            res.Add(new LSL_Vector(mat.SpecularOffsetX, mat.SpecularOffsetY, 0));
+                            res.Add(new LSL_Vector(mat.SpecularRepeatX, mat.SpecularRepeatY, 0));
+                            res.Add(new LSL_Vector(mat.SpecularLightColor.R, mat.SpecularLightColor.G, mat.SpecularLightColor.B));
+                            res.Add(new LSL_Integer(mat.SpecularLightExponent));
+                            res.Add(new LSL_Integer(mat.EnvironmentIntensity));
+                        }
+                        else if(code == ScriptBaseClass.PRIM_ALPHA_MODE)
+                        {
+                            res.Add(new LSL_Integer(mat.DiffuseAlphaMode));
+                            res.Add(new LSL_Integer(mat.AlphaMaskCutoff));
+                        }
+                        return;
+                    }
+                }
+                matID = UUID.Zero;
+            }
+            if(matID == UUID.Zero)
+            {
+                if(code == (int)ScriptBaseClass.PRIM_NORMAL || code == (int)ScriptBaseClass.PRIM_SPECULAR )
+                {
+                    res.Add(new LSL_String(UUID.Zero.ToString()));
+                    res.Add(new LSL_Vector(1.0, 1.0, 0));
+                    res.Add(new LSL_Vector(0, 0, 0));
+                    res.Add(new LSL_Float(0));
+                
+                    if(code == (int)ScriptBaseClass.PRIM_SPECULAR)
+                    {
+                        res.Add(new LSL_Vector(1.0, 1.0, 1.0));
+                        res.Add(new LSL_Integer(51));
+                        res.Add(new LSL_Integer(0));
+                    }
+                }
+                else if(code == (int)ScriptBaseClass.PRIM_ALPHA_MODE)
+                {
+                    res.Add(new LSL_Integer(1));
+                    res.Add(new LSL_Integer(0));
+                }
+            }
+        }
 
         public LSL_List llGetPrimMediaParams(int face, LSL_List rules)
         {
