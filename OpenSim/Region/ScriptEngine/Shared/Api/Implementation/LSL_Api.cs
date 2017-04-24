@@ -5807,8 +5807,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 string s = item.ToString();
                 if(UUID.TryParse(s, out uuidt))
                     return Convert.ToDouble(new LSL_Integer(s).value);
-                else
-                    return 0;
+// we can't do this because a string is also a LSL_Key for now :(
+//                else
+//                    return 0;
             }
 
             try
