@@ -11311,7 +11311,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             for (face = 0; face < GetNumberOfSides(part); face++)
                             {
                                 Primitive.TextureEntryFace texface = tex.GetFace((uint)face);
-                                getLSLFaceMaterial(ref res, code, texface);
+                                getLSLFaceMaterial(ref res, code, part, texface);
                             }
                         }
                         else
@@ -11319,7 +11319,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             if (face >= 0 && face < GetNumberOfSides(part))
                             {
                                 Primitive.TextureEntryFace texface = tex.GetFace((uint)face);
-                                getLSLFaceMaterial(ref res, code, texface);
+                                getLSLFaceMaterial(ref res, code, part, texface);
                             }
                         }
                         break;
@@ -11337,7 +11337,38 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_List();
         }
 
-        private void getLSLFaceMaterial(ref LSL_List res, int code, Primitive.TextureEntryFace texface)
+/*
+        private string filterTextureUUIDbyRights(UUID origID, SceneObjectPart part, bool checkTaskInventory, bool returnInvName)
+        {
+            if(checkTaskInventory)
+            {
+                lock (part.TaskInventory)
+                {
+                    foreach (KeyValuePair<UUID, TaskInventoryItem> inv in part.TaskInventory)
+                    {
+                        if (inv.Value.AssetID == origID)
+                        {
+                            if(inv.Value.InvType == (int)InventoryType.Texture)
+                            {
+                                if(returnInvName)
+                                    return inv.Value.Name;
+                                else
+                                    return origID.ToString();
+                            }
+                            else
+                                return UUID.Zero.ToString();
+                        }
+                    }
+                }
+            }
+
+            if(World.Permissions.CanEditObject(m_host.ParentGroup.UUID, m_host.ParentGroup.RootPart.OwnerID))
+                return origID.ToString();
+
+            return UUID.Zero.ToString();
+        }
+*/
+        private void getLSLFaceMaterial(ref LSL_List res, int code, SceneObjectPart part, Primitive.TextureEntryFace texface)
         {
             UUID matID = texface.MaterialID;
             if(matID != UUID.Zero)
@@ -11349,20 +11380,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     OSDMap osdmat = (OSDMap)OSDParser.DeserializeLLSDXml(data);
                     if(osdmat != null && osdmat.ContainsKey("NormMap"))
                     {
+                        string mapIDstr;
                         FaceMaterial mat = new FaceMaterial(matID, osdmat);
                         if(code == ScriptBaseClass.PRIM_NORMAL)
                         {
-                            res.Add(new LSL_String(mat.NormalMapID.ToString()));
-                            res.Add(new LSL_Vector(mat.NormalOffsetX, mat.NormalOffsetY, 0));
+//                            mapIDstr = filterTextureUUIDbyRights(mat.NormalMapID, part, true, false);
+                            mapIDstr = mat.NormalMapID.ToString();
+                            res.Add(new LSL_String(mapIDstr));
                             res.Add(new LSL_Vector(mat.NormalRepeatX, mat.NormalRepeatY, 0));
+                            res.Add(new LSL_Vector(mat.NormalOffsetX, mat.NormalOffsetY, 0));
                             res.Add(new LSL_Float(mat.NormalRotation));
                         }
                         else if(code == ScriptBaseClass.PRIM_SPECULAR )
                         {
-                            res.Add(new LSL_String(mat.SpecularMapID.ToString()));
-                            res.Add(new LSL_Vector(mat.SpecularOffsetX, mat.SpecularOffsetY, 0));
+//                            mapIDstr = filterTextureUUIDbyRights(mat.SpecularMapID, part, true, false);
+                            const float colorScale = 1.0f/255f;
+                            mapIDstr = mat.SpecularMapID.ToString();
+                            res.Add(new LSL_String(mapIDstr));
                             res.Add(new LSL_Vector(mat.SpecularRepeatX, mat.SpecularRepeatY, 0));
-                            res.Add(new LSL_Vector(mat.SpecularLightColor.R, mat.SpecularLightColor.G, mat.SpecularLightColor.B));
+                            res.Add(new LSL_Vector(mat.SpecularOffsetX, mat.SpecularOffsetY, 0));
+                            res.Add(new LSL_Float(mat.SpecularRotation));
+                            res.Add(new LSL_Vector(mat.SpecularLightColor.R * colorScale,
+                                    mat.SpecularLightColor.G * colorScale,
+                                    mat.SpecularLightColor.B  * colorScale));
                             res.Add(new LSL_Integer(mat.SpecularLightExponent));
                             res.Add(new LSL_Integer(mat.EnvironmentIntensity));
                         }

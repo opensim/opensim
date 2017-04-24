@@ -97,17 +97,17 @@ namespace OpenSim.Region.Framework.Scenes
     {
         public UUID     ID;
         public UUID     NormalMapID = UUID.Zero;
-        public float    NormalOffsetX = 1.0f;
-	    public float    NormalOffsetY = 1.0f;
-	    public float	NormalRepeatX = 0.0f;
-	    public float	NormalRepeatY = 0.0f;
+        public float    NormalOffsetX = 0.0f;
+	    public float    NormalOffsetY = 0.0f;
+	    public float	NormalRepeatX = 1.0f;
+	    public float	NormalRepeatY = 1.0f;
 	    public float	NormalRotation = 0.0f;
 
 	    public UUID     SpecularMapID = UUID.Zero;
-    	public float	SpecularOffsetX = 1.0f;
-    	public float	SpecularOffsetY = 1.0f;
-    	public float	SpecularRepeatX = 0.0f;
-    	public float	SpecularRepeatY = 0.0f;
+    	public float	SpecularOffsetX = 0.0f;
+    	public float	SpecularOffsetY = 0.0f;
+    	public float	SpecularRepeatX = 1.0f;
+    	public float	SpecularRepeatY = 1.0f;
     	public float	SpecularRotation = 0.0f;
 
 	    public Color4	SpecularLightColor = new Color4(255,255,255,255);
