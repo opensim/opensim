@@ -328,6 +328,70 @@ namespace OpenSim.Framework
             return shape;
         }
 
+        public static PrimitiveBaseShape CreateMesh(int numberOfFaces, UUID meshAssetID)
+        {
+            PrimitiveBaseShape shape = new PrimitiveBaseShape();
+
+            shape._pathScaleX = 100;
+            shape._pathScaleY = 100;
+
+            if(numberOfFaces <= 0) // oops ?
+                numberOfFaces = 1;
+
+            switch(numberOfFaces)
+            {
+                case 1: // torus 
+                    shape.ProfileCurve = (byte)ProfileShape.Circle | (byte)HollowShape.Triangle;
+                    shape.PathCurve = (byte)Extrusion.Curve1;
+                    break;
+
+                case 2: // torus with hollow (a sl viewer whould see 4 faces on a hollow sphere)
+                    shape.ProfileCurve = (byte)ProfileShape.Circle | (byte)HollowShape.Triangle;
+                    shape.PathCurve = (byte)Extrusion.Curve1;
+                    shape.ProfileHollow = 1;
+                    break;
+
+                case 3: // cylinder
+                    shape.ProfileCurve = (byte)ProfileShape.Circle | (byte)HollowShape.Triangle;
+                    shape.PathCurve = (byte)Extrusion.Straight;
+                    break;
+
+                case 4: // cylinder with hollow
+                    shape.ProfileCurve = (byte)ProfileShape.Circle | (byte)HollowShape.Triangle;
+                    shape.PathCurve = (byte)Extrusion.Straight;
+                    shape.ProfileHollow = 1;
+                    break;
+
+                case 5: // prism
+                    shape.ProfileCurve = (byte)ProfileShape.EquilateralTriangle | (byte)HollowShape.Triangle;
+                    shape.PathCurve = (byte)Extrusion.Straight;
+                    break;
+
+                case 6: // box
+                    shape.ProfileCurve = (byte)ProfileShape.Square  | (byte)HollowShape.Triangle;
+                    shape.PathCurve = (byte)Extrusion.Straight;
+                    break;
+
+                case 7: // box with hollow
+                    shape.ProfileCurve = (byte)ProfileShape.Square | (byte)HollowShape.Triangle;
+                    shape.PathCurve = (byte)Extrusion.Straight;
+                    shape.ProfileHollow = 1;
+                    break;
+
+                default: // 8 faces  box with cut
+                    shape.ProfileCurve = (byte)ProfileShape.Square | (byte)HollowShape.Triangle;
+                    shape.PathCurve = (byte)Extrusion.Straight;
+                    shape.ProfileBegin = 1;
+                    break;
+            }
+
+            shape.SculptEntry = true;
+            shape.SculptType = (byte)OpenMetaverse.SculptType.Mesh;
+            shape.SculptTexture = meshAssetID;
+
+            return shape;
+        }
+
         public void SetScale(float side)
         {
             _scale = new Vector3(side, side, side);

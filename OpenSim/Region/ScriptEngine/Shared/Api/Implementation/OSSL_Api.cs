@@ -260,7 +260,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             wComm.DeliverMessage(ChatTypeEnum.Shout, ScriptBaseClass.DEBUG_CHANNEL, m_host.Name, m_host.UUID, message);
         }
 
-        // Returns of the function is allowed. Throws a script exception if not allowed.
+        // Returns if OSSL is enabled. Throws a script exception if OSSL is not allowed..
+        // for safe funtions always active 
+        public void CheckThreatLevel()
+        {
+            if (!m_OSFunctionsEnabled)
+                OSSLError(String.Format("{0} permission denied.  All OS functions are disabled.")); // throws
+        }
+
+        // Returns if the function is allowed. Throws a script exception if not allowed.
         public void CheckThreatLevel(ThreatLevel level, string function)
         {
             if (!m_OSFunctionsEnabled)
@@ -1716,7 +1724,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer osCheckODE()
         {
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
+
             LSL_Integer ret = 0;    // false
             if (m_ScriptEngine.World.PhysicsScene != null)
             {
@@ -1757,10 +1767,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osGetPhysicsEngineName()
         {
-            // not doing security checks
-            // this whould limit the use of this
-
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
+
             string ret = "NoEngine";
             if (m_ScriptEngine.World.PhysicsScene != null)
             {
@@ -1771,6 +1780,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             return ret;
         }
+
         public string osGetSimulatorVersion()
         {
             // High because it can be used to target attacks to known weaknesses
@@ -2038,6 +2048,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_host.Inventory.AddInventoryItemExclusive(taskItem, false);
             else
                 m_host.Inventory.AddInventoryItem(taskItem, false);
+            m_host.ParentGroup.AggregatePerms();
 
             return taskItem;
         }
@@ -3537,7 +3548,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             LSL_Float health = new LSL_Float(-1);
             ScenePresence presence = World.GetScenePresence(new UUID(avatar));
-            if (presence != null) health = presence.Health;
+            if (presence != null)
+                health = presence.Health;
             return health;
         }
 
@@ -3577,7 +3589,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID avatarId = new UUID(avatar);
             ScenePresence presence = World.GetScenePresence(avatarId);
 
-            if (presence != null && World.ScriptDanger(m_host.LocalId, m_host.GetWorldPosition()))
+            if (presence != null)
             {
                 float health = presence.Health;
                 health += (float)healing;
@@ -3597,7 +3609,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID avatarId = new UUID(avatar);
             ScenePresence presence = World.GetScenePresence(avatarId);
 
-            if (presence != null && World.ScriptDanger(m_host.LocalId, m_host.GetWorldPosition()))
+            if (presence != null)
             {
                 if (health > 100.0)
                     health = 100.0;
@@ -3616,7 +3628,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID avatarId = new UUID(avatar);
             ScenePresence presence = World.GetScenePresence(avatarId);
 
-            if (presence != null && World.ScriptDanger(m_host.LocalId, m_host.GetWorldPosition()))
+            if (presence != null)
                  presence.HealRate = (float)healrate;
         }
 
@@ -4362,6 +4374,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osCollisionSound(string impact_sound, double impact_volume)
         {
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
 
             if(impact_sound == "")
@@ -4394,6 +4407,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         // still not very usefull, detector is lost on rez, restarts, etc
         public void osVolumeDetect(int detect)
         {
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
 
             if (m_host.ParentGroup == null || m_host.ParentGroup.IsDeleted || m_host.ParentGroup.IsAttachment)
@@ -4402,5 +4416,285 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.ScriptSetVolumeDetect(detect != 0);
         }
 
+        /// <summary>
+        /// Get inertial data
+        /// </summary>
+        /// <remarks>
+        /// </remarks>
+        /// <returns>
+        /// a LSL list with contents:
+        ///     LSL_Float mass,  the total mass of a linkset
+        ///     LSL_Vector CenterOfMass, center mass relative to root prim
+        ///     LSL_Vector Inertia, elements of diagonal of inertia Ixx,Iyy,Izz divided by total mass
+        ///     LSL_Vector aux, elements of upper triagle of inertia Ixy (= Iyx), Ixz (= Izx), Iyz(= Izy) divided by total mass
+        /// </returns> 
+        public LSL_List osGetInertiaData()
+        {
+            CheckThreatLevel();
+            m_host.AddScriptLPS(1);
+
+            LSL_List result = new LSL_List();
+            float TotalMass;
+            Vector3 CenterOfMass;
+            Vector3 Inertia;
+            Vector4 aux;
+
+            SceneObjectGroup sog = m_host.ParentGroup;
+            if(sog== null || sog.IsDeleted)
+                return result;          
+            
+            sog.GetInertiaData(out TotalMass, out CenterOfMass, out Inertia, out aux );
+            if(TotalMass > 0)
+            {
+                float t = 1.0f/TotalMass;
+                Inertia.X *= t;
+                Inertia.Y *= t;
+                Inertia.Z *= t;
+
+                aux.X *= t;
+                aux.Y *= t;
+                aux.Z *= t;
+            }
+
+            result.Add(new LSL_Float(TotalMass));
+            result.Add(new LSL_Vector(CenterOfMass.X, CenterOfMass.Y, CenterOfMass.Z));
+            result.Add(new LSL_Vector(Inertia.X, Inertia.Y, Inertia.Z));
+            result.Add(new LSL_Vector(aux.X, aux.Y, aux.Z));
+            return result;
+        }
+
+        /// <summary>
+        /// set inertial data
+        /// replaces the automatic calculation of mass, center of mass and inertia
+        /// 
+        /// </summary>
+        /// <param name="Mass">total mass of linkset</param>
+        /// <param name="centerOfMass">location of center of mass relative to root prim in local coords</param>
+        /// <param name="principalInertiaScaled">moment of inertia relative to principal axis and center of mass,Ixx, Iyy, Izz divided by mass</param>
+        /// <param name="lslrot">rotation of the inertia, relative to local axis</param>
+        /// <remarks>
+        /// the inertia argument is is inertia divided by mass, so corresponds only to the geometric distribution of mass and both can be changed independently.
+        /// </remarks>
+
+        public void osSetInertia(LSL_Float mass, LSL_Vector centerOfMass, LSL_Vector principalInertiaScaled,  LSL_Rotation lslrot)
+        {
+            CheckThreatLevel();
+            m_host.AddScriptLPS(1);
+
+            SceneObjectGroup sog = m_host.ParentGroup;
+            if(sog== null || sog.IsDeleted)
+                return;
+
+            if(mass < 0 || principalInertiaScaled.x < 0 || principalInertiaScaled.y < 0 || principalInertiaScaled.z < 0)
+                return;
+
+            // need more checks
+
+            Vector3 CenterOfMass = new Vector3((float)centerOfMass.x,(float)centerOfMass.y,(float)centerOfMass.z);
+            Vector3 Inertia;          
+            float m = (float)mass;
+
+            Inertia.X = m * (float)principalInertiaScaled.x;
+            Inertia.Y = m * (float)principalInertiaScaled.y;
+            Inertia.Z = m * (float)principalInertiaScaled.z;
+
+            Vector4 rot = new Vector4((float)lslrot.x, (float)lslrot.y, (float)lslrot.y, (float)lslrot.s);
+            rot.Normalize();
+
+            sog.SetInertiaData(m, CenterOfMass, Inertia, rot );
+        }
+
+        /// <summary>
+        /// set inertial data as a sphere
+        /// replaces the automatic calculation of mass, center of mass and inertia
+        /// 
+        /// </summary>
+        /// <param name="Mass">total mass of linkset</param>
+        /// <param name="boxsize">size of the Box</param>
+        /// <param name="centerOfMass">location of center of mass relative to root prim in local coords</param>
+        /// <param name="lslrot">rotation of the box, and so inertia, relative to local axis</param>
+        /// <remarks>
+        /// </remarks>
+        public void osSetInertiaAsBox(LSL_Float mass, LSL_Vector boxSize, LSL_Vector centerOfMass, LSL_Rotation lslrot)
+        {
+            CheckThreatLevel();
+            m_host.AddScriptLPS(1);
+
+            SceneObjectGroup sog = m_host.ParentGroup;
+            if(sog== null || sog.IsDeleted)
+                return;
+
+            if(mass < 0)
+                return;
+
+            // need more checks
+
+            Vector3 CenterOfMass = new Vector3((float)centerOfMass.x,(float)centerOfMass.y,(float)centerOfMass.z);
+            Vector3 Inertia;          
+            float lx = (float)boxSize.x;
+            float ly = (float)boxSize.y;
+            float lz = (float)boxSize.z;
+            float m = (float)mass;
+            float t = m / 12.0f;
+
+            Inertia.X = t * (ly*ly + lz*lz);
+            Inertia.Y = t * (lx*lx + lz*lz);
+            Inertia.Z = t * (lx*lx + ly*ly);
+
+            Vector4 rot = new Vector4((float)lslrot.x, (float)lslrot.y, (float)lslrot.z, (float)lslrot.s);
+            rot.Normalize();
+
+            sog.SetInertiaData(m, CenterOfMass, Inertia, rot );
+        }
+
+        /// <summary>
+        /// set inertial data as a sphere
+        /// replaces the automatic calculation of mass, center of mass and inertia
+        /// 
+        /// </summary>
+        /// <param name="Mass">total mass of linkset</param>
+        /// <param name="radius">radius of the sphere</param>
+        /// <param name="centerOfMass">location of center of mass relative to root prim in local coords</param>
+        /// <remarks>
+        /// </remarks>
+        public void osSetInertiaAsSphere(LSL_Float mass,  LSL_Float radius, LSL_Vector centerOfMass)
+        {
+            CheckThreatLevel();
+            m_host.AddScriptLPS(1);
+
+            SceneObjectGroup sog = m_host.ParentGroup;
+            if(sog== null || sog.IsDeleted)
+                return;
+
+            if(mass < 0)
+                return;
+
+            // need more checks
+            
+            Vector3 CenterOfMass = new Vector3((float)centerOfMass.x,(float)centerOfMass.y,(float)centerOfMass.z);
+            Vector3 Inertia;          
+            float r = (float)radius;
+            float m = (float)mass;
+            float t = 0.4f * m * r * r;
+
+            Inertia.X = t;
+            Inertia.Y = t;
+            Inertia.Z = t;
+
+            sog.SetInertiaData(m, CenterOfMass, Inertia, new Vector4(0f, 0f, 0f,1.0f));
+        }
+
+        /// <summary>
+        /// set inertial data as a cylinder
+        /// replaces the automatic calculation of mass, center of mass and inertia
+        /// 
+        /// </summary>
+        /// <param name="Mass">total mass of linkset</param>
+        /// <param name="radius">radius of the cylinder</param>
+        /// <param name="lenght">lenght of the cylinder</param>
+        /// <param name="centerOfMass">location of center of mass relative to root prim in local coords</param>
+        /// <param name="lslrot">rotation of the cylinder, and so inertia, relative to local axis</param>
+        /// <remarks>
+        /// cylinder axis aligned with Z axis. For other orientations provide the rotation.
+        /// </remarks>
+        public void osSetInertiaAsCylinder(LSL_Float mass,  LSL_Float radius, LSL_Float lenght, LSL_Vector centerOfMass, LSL_Rotation lslrot)
+        {
+            CheckThreatLevel();
+            m_host.AddScriptLPS(1);
+
+            SceneObjectGroup sog = m_host.ParentGroup;
+            if(sog== null || sog.IsDeleted)
+                return;
+
+            if(mass < 0)
+                return;
+
+            // need more checks
+            
+            Vector3 CenterOfMass = new Vector3((float)centerOfMass.x,(float)centerOfMass.y,(float)centerOfMass.z);
+            Vector3 Inertia;          
+            float m = (float)mass;
+            float r = (float)radius;
+            r *= r;
+            Inertia.Z = 0.5f * m * r;
+            float t = (float)lenght;
+            t *= t;
+            t += 3.0f * r;
+            t *= 8.333333e-2f * m;
+
+            Inertia.X = t;
+            Inertia.Y = t;
+
+            Vector4 rot = new Vector4((float)lslrot.x, (float)lslrot.y, (float)lslrot.z, (float)lslrot.s);
+            rot.Normalize();
+
+            sog.SetInertiaData(m, CenterOfMass, Inertia, rot);
+        }
+
+        /// <summary>
+        /// removes inertial data manual override
+        /// default automatic calculation is used again
+        /// 
+        /// </summary>
+        public void osClearInertia()
+        {
+            CheckThreatLevel();
+            m_host.AddScriptLPS(1);
+
+            SceneObjectGroup sog = m_host.ParentGroup;
+            if(sog== null || sog.IsDeleted)
+                return;
+
+            sog.SetInertiaData(-1, Vector3.Zero, Vector3.Zero, Vector4.Zero );
+        }
+
+       /// <summary>
+        /// teleports a object (full linkset)
+        /// </summary>
+        /// <param name="objectUUID">the id of the linkset to teleport</param>
+        /// <param name="targetPos">target position</param>
+        /// <param name="rotation"> a rotation to apply</param>
+        /// <param name="flags">several flags/param>
+        /// <remarks>
+        /// only does teleport local to region
+        /// if object has scripts, owner must have rights to run scripts on target location
+        /// object owner must have rights to enter ojects on target location
+        /// target location parcel must have enought free prims capacity for the linkset prims
+        /// all avatars siting on the object must have access to target location
+        /// has a cool down time. retries before expire reset it
+        /// fail conditions are silent ignored
+        /// </remarks>
+        public LSL_Integer osTeleportObject(LSL_Key objectUUID, LSL_Vector targetPos, LSL_Rotation rotation, LSL_Integer flags)
+        {
+            CheckThreatLevel(ThreatLevel.Severe, "osTeleportObject");
+            m_host.AddScriptLPS(1);
+
+            UUID objUUID;
+            if (!UUID.TryParse(objectUUID, out objUUID))
+            {
+                OSSLShoutError("osTeleportObject() invalid object Key");
+                return -1;
+            }
+
+            SceneObjectGroup sog = World.GetSceneObjectGroup(objUUID);
+            if(sog== null || sog.IsDeleted)
+                return -1;
+
+            UUID myid = m_host.ParentGroup.UUID;
+
+            return sog.TeleportObject(myid, targetPos, rotation, flags);
+            // a delay here may break vehicles
+        }
+
+        public LSL_Integer osGetLinkNumber(LSL_String name)
+        {
+            CheckThreatLevel();
+            m_host.AddScriptLPS(1);
+
+            SceneObjectGroup sog = m_host.ParentGroup;
+            if(sog== null || sog.IsDeleted)
+                return -1;
+            return sog.GetLinkNumber(name);
+        }
     }
 }

@@ -63,22 +63,34 @@ namespace OpenSim.Framework
         None = 0,
 
         // folded perms
-        foldedTransfer = 1,
-        foldedModify = 1 << 1,
-        foldedCopy = 1 << 2,
+        FoldedTransfer = 1,
+        FoldedModify = 1 << 1,
+        FoldedCopy = 1 << 2,
+        FoldedExport = 1 << 3,
 
-        foldedMask = 0x07,
+        // DO NOT USE THIS FOR NEW WORK. IT IS DEPRECATED AND
+        // EXISTS ONLY TO REACT TO EXISTING OBJECTS HAVING IT.
+        // NEW CODE SHOULD NEVER SET THIS BIT!
+        // Use InventoryItemFlags.ObjectSlamPerm in the Flags field of
+        // this legacy slam bit. It comes from prior incomplete
+        // understanding of the code and the prohibition on
+        // reading viewer code that used to be in place.
+        Slam = (1 << 4),
+
+        FoldedMask = 0x0f,
 
         //
-        Transfer = 1 << 13,
-        Modify = 1 << 14,
-        Copy = 1 << 15,
-        Export = 1 << 16,
-        Move = 1 << 19,
-        Damage = 1 << 20,
+        Transfer = 1 << 13, // 0x02000
+        Modify = 1 << 14,   // 0x04000
+        Copy = 1 << 15,     // 0x08000
+        Export = 1 << 16,   // 0x10000
+        Move = 1 << 19,     // 0x80000
+        Damage = 1 << 20,   // 0x100000 does not seem to be in use
         // All does not contain Export, which is special and must be
         // explicitly given
-        All = (1 << 13) | (1 << 14) | (1 << 15) | (1 << 19)
+        All = 0x8e000,
+        AllAndExport = 0x9e000,
+        AllEffective = 0x9e000
     }
 
     /// <summary>
@@ -1180,13 +1192,26 @@ namespace OpenSim.Framework
         {
             foreach (IAppender appender in LogManager.GetRepository().GetAppenders())
             {
-                if (appender is FileAppender)
+                if (appender is FileAppender && appender.Name == "LogFileAppender")
                 {
                     return ((FileAppender)appender).File;
                 }
             }
 
             return "./OpenSim.log";
+        }
+
+        public static string statsLogFile()
+        {
+            foreach (IAppender appender in LogManager.GetRepository().GetAppenders())
+            {
+                if (appender is FileAppender && appender.Name == "StatsLogFileAppender")
+                {
+                    return ((FileAppender)appender).File;
+                }
+            }
+
+            return "./OpenSimStats.log";
         }
 
         public static string logDir()

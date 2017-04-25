@@ -111,7 +111,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="item">The user inventory item being added.</param>
         /// <param name="copyItemID">The item UUID that should be used by the new item.</param>
         /// <returns></returns>
-        public bool AddInventoryItem(UUID agentID, uint localID, InventoryItemBase item, UUID copyItemID)
+        public bool AddInventoryItem(UUID agentID, uint localID, InventoryItemBase item, UUID copyItemID, bool withModRights = true)
         {
 //            m_log.DebugFormat(
 //                "[PRIM INVENTORY]: Adding inventory item {0} from {1} to part with local ID {2}",
@@ -120,69 +120,72 @@ namespace OpenSim.Region.Framework.Scenes
             UUID newItemId = (copyItemID != UUID.Zero) ? copyItemID : item.ID;
 
             SceneObjectPart part = GetPart(localID);
-            if (part != null)
-            {
-                TaskInventoryItem taskItem = new TaskInventoryItem();
-
-                taskItem.ItemID = newItemId;
-                taskItem.AssetID = item.AssetID;
-                taskItem.Name = item.Name;
-                taskItem.Description = item.Description;
-                taskItem.OwnerID = part.OwnerID; // Transfer ownership
-                taskItem.CreatorID = item.CreatorIdAsUuid;
-                taskItem.Type = item.AssetType;
-                taskItem.InvType = item.InvType;
-
-                if (agentID != part.OwnerID && m_scene.Permissions.PropagatePermissions())
-                {
-                    taskItem.BasePermissions = item.BasePermissions &
-                            item.NextPermissions;
-                    taskItem.CurrentPermissions = item.CurrentPermissions &
-                            item.NextPermissions;
-                    taskItem.EveryonePermissions = item.EveryOnePermissions &
-                            item.NextPermissions;
-                    taskItem.GroupPermissions = item.GroupPermissions &
-                            item.NextPermissions;
-                    taskItem.NextPermissions = item.NextPermissions;
-                    // We're adding this to a prim we don't own. Force
-                    // owner change
-                    taskItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
-                }
-                else
-                {
-                    taskItem.BasePermissions = item.BasePermissions;
-                    taskItem.CurrentPermissions = item.CurrentPermissions;
-                    taskItem.EveryonePermissions = item.EveryOnePermissions;
-                    taskItem.GroupPermissions = item.GroupPermissions;
-                    taskItem.NextPermissions = item.NextPermissions;
-                }
-
-                taskItem.Flags = item.Flags;
-
-//                m_log.DebugFormat(
-//                    "[PRIM INVENTORY]: Flags are 0x{0:X} for item {1} added to part {2} by {3}",
-//                    taskItem.Flags, taskItem.Name, localID, remoteClient.Name);
-
-                // TODO: These are pending addition of those fields to TaskInventoryItem
-//                taskItem.SalePrice = item.SalePrice;
-//                taskItem.SaleType = item.SaleType;
-                taskItem.CreationDate = (uint)item.CreationDate;
-
-                bool addFromAllowedDrop = agentID != part.OwnerID;
-
-                part.Inventory.AddInventoryItem(taskItem, addFromAllowedDrop);
-
-                return true;
-            }
-            else
+            if (part == null)
             {
                 m_log.ErrorFormat(
                     "[PRIM INVENTORY]: " +
                     "Couldn't find prim local ID {0} in group {1}, {2} to add inventory item ID {3}",
                     localID, Name, UUID, newItemId);
+                return false;
             }
 
-            return false;
+            TaskInventoryItem taskItem = new TaskInventoryItem();
+
+            taskItem.ItemID = newItemId;
+            taskItem.AssetID = item.AssetID;
+            taskItem.Name = item.Name;
+            taskItem.Description = item.Description;
+            taskItem.OwnerID = part.OwnerID; // Transfer ownership
+            taskItem.CreatorID = item.CreatorIdAsUuid;
+            taskItem.Type = item.AssetType;
+            taskItem.InvType = item.InvType;
+
+            if (agentID != part.OwnerID && m_scene.Permissions.PropagatePermissions())
+            {
+                taskItem.BasePermissions = item.BasePermissions &
+                        item.NextPermissions;
+                taskItem.CurrentPermissions = item.CurrentPermissions &
+                        item.NextPermissions;
+                taskItem.EveryonePermissions = item.EveryOnePermissions &
+                        item.NextPermissions;
+                taskItem.GroupPermissions = item.GroupPermissions &
+                        item.NextPermissions;
+                taskItem.NextPermissions = item.NextPermissions;
+                // We're adding this to a prim we don't own. Force
+                // owner change
+                taskItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
+
+            }
+            else
+            {
+                taskItem.BasePermissions = item.BasePermissions;
+                taskItem.CurrentPermissions = item.CurrentPermissions;
+                taskItem.EveryonePermissions = item.EveryOnePermissions;
+                taskItem.GroupPermissions = item.GroupPermissions;
+                taskItem.NextPermissions = item.NextPermissions;
+            }
+
+            taskItem.Flags = item.Flags;
+
+//                m_log.DebugFormat(
+//                    "[PRIM INVENTORY]: Flags are 0x{0:X} for item {1} added to part {2} by {3}",
+//                    taskItem.Flags, taskItem.Name, localID, remoteClient.Name);
+
+            // TODO: These are pending addition of those fields to TaskInventoryItem
+//                taskItem.SalePrice = item.SalePrice;
+//                taskItem.SaleType = item.SaleType;
+            taskItem.CreationDate = (uint)item.CreationDate;
+                
+            bool addFromAllowedDrop;
+            if(withModRights)
+                addFromAllowedDrop = false;
+            else
+                addFromAllowedDrop = (part.ParentGroup.RootPart.GetEffectiveObjectFlags() & (uint)PrimFlags.AllowInventoryDrop) != 0;
+
+            part.Inventory.AddInventoryItem(taskItem, addFromAllowedDrop);
+            part.ParentGroup.AggregatePerms();
+            return true;
+
         }
 
         /// <summary>
@@ -246,6 +249,194 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             return -1;
+        }
+
+        // new test code, to place in better place later
+        private object PermissionsLock = new object();
+
+        private uint m_EffectiveEveryOnePerms;
+        public uint EffectiveEveryOnePerms
+        {
+            get
+            {
+                // this can't be done here but on every place where a change may happen (rez, (de)link, contents , perms,  etc)
+                // bc this is on heavy duty code paths
+                // but for now we need to test the concept
+//                AggregateDeepPerms();
+                return m_EffectiveEveryOnePerms;
+            }
+        }
+
+        private uint m_EffectiveGroupPerms;
+        public uint EffectiveGroupPerms
+        {
+            get
+            {
+                // this can't be done here but on every place where a change may happen (rez, (de)link, contents , perms,  etc)
+                // bc this is on heavy duty code paths
+                // but for now we need to test the concept
+//                AggregateDeepPerms();
+                return m_EffectiveGroupPerms;
+            }
+        }
+
+        private uint m_EffectiveGroupOrEveryOnePerms;
+        public uint EffectiveGroupOrEveryOnePerms
+        {
+            get
+            {
+                // this can't be done here but on every place where a change may happen (rez, (de)link, contents , perms,  etc)
+                // bc this is on heavy duty code paths
+                // but for now we need to test the concept
+//                AggregateDeepPerms();
+                return m_EffectiveGroupOrEveryOnePerms;
+            }
+        }
+
+        private uint m_EffectiveOwnerPerms;
+        public uint EffectiveOwnerPerms
+        {
+            get
+            {
+                // this can't be done here but on every place where a change may happen (rez, (de)link, contents , perms,  etc)
+                // bc this is on heavy duty code paths
+                // but for now we need to test the concept
+ //               AggregateDeepPerms();
+                return m_EffectiveOwnerPerms;
+            }
+        }
+
+        // aggregates perms scanning parts and their contents
+        // AggregatePerms does same using cached parts content perms
+        public void AggregateDeepPerms()
+        {
+            lock(PermissionsLock)
+            {
+                // aux
+                const uint allmask = (uint)PermissionMask.AllEffective;
+                const uint movemodmask = (uint)(PermissionMask.Move | PermissionMask.Modify);
+                const uint copytransfermast = (uint)(PermissionMask.Copy | PermissionMask.Transfer);
+
+                uint basePerms = (RootPart.BaseMask & allmask) | (uint)PermissionMask.Move;
+                bool noBaseTransfer = (basePerms & (uint)PermissionMask.Transfer) == 0;
+
+                uint rootOwnerPerms = RootPart.OwnerMask;
+                uint owner = rootOwnerPerms;
+                uint rootGroupPerms = RootPart.GroupMask;
+                uint group = rootGroupPerms;
+                uint rootEveryonePerms = RootPart.EveryoneMask;
+                uint everyone = rootEveryonePerms;
+
+                SceneObjectPart[] parts = m_parts.GetArray();
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    SceneObjectPart part = parts[i];
+                    part.AggregateInnerPerms();
+                    owner &= part.AggregatedInnerOwnerPerms; 
+                    group &= part.AggregatedInnerGroupPerms;
+                    everyone &= part.AggregatedInnerEveryonePerms;
+                }
+                // recover modify and move
+                rootOwnerPerms &= movemodmask;
+                owner |= rootOwnerPerms;
+                if((owner & copytransfermast) == 0)
+                    owner |= (uint)PermissionMask.Transfer;
+
+                owner &= basePerms;
+                m_EffectiveOwnerPerms = owner;
+                uint ownertransfermask = owner & (uint)PermissionMask.Transfer;
+
+                // recover modify and move
+                rootGroupPerms &= movemodmask;
+                group |= rootGroupPerms;
+                if(noBaseTransfer)
+                    group &=~(uint)PermissionMask.Copy;
+                else
+                    group |= ownertransfermask;
+
+                uint groupOrEveryone = group;
+                m_EffectiveGroupPerms = group & owner;
+
+                // recover move
+                rootEveryonePerms &= (uint)PermissionMask.Move;
+                everyone |= rootEveryonePerms;
+                everyone &= ~(uint)PermissionMask.Modify;
+                if(noBaseTransfer)
+                    everyone &=~(uint)PermissionMask.Copy;
+                else
+                    everyone |= ownertransfermask;
+
+                groupOrEveryone |= everyone;
+
+                m_EffectiveEveryOnePerms = everyone  & owner;
+                m_EffectiveGroupOrEveryOnePerms = groupOrEveryone  & owner;
+            }
+        }
+
+        // aggregates perms scanning parts, assuming their contents was already aggregated and cached
+        // ie is AggregateDeepPerms without the part.AggregateInnerPerms() call on parts loop
+        public void AggregatePerms()
+        {
+            lock(PermissionsLock)
+            {
+                // aux
+                const uint allmask = (uint)PermissionMask.AllEffective;
+                const uint movemodmask = (uint)(PermissionMask.Move | PermissionMask.Modify);
+                const uint copytransfermast = (uint)(PermissionMask.Copy | PermissionMask.Transfer);
+
+                uint basePerms = (RootPart.BaseMask & allmask) | (uint)PermissionMask.Move;
+                bool noBaseTransfer = (basePerms & (uint)PermissionMask.Transfer) == 0;
+
+                uint rootOwnerPerms = RootPart.OwnerMask;
+                uint owner = rootOwnerPerms;
+                uint rootGroupPerms = RootPart.GroupMask;
+                uint group = rootGroupPerms;
+                uint rootEveryonePerms = RootPart.EveryoneMask;
+                uint everyone = rootEveryonePerms;
+
+                SceneObjectPart[] parts = m_parts.GetArray();
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    SceneObjectPart part = parts[i];
+                    owner &= part.AggregatedInnerOwnerPerms; 
+                    group &= part.AggregatedInnerGroupPerms;
+                    everyone &= part.AggregatedInnerEveryonePerms;
+                }
+                // recover modify and move
+                rootOwnerPerms &= movemodmask;
+                owner |= rootOwnerPerms;
+                if((owner & copytransfermast) == 0)
+                    owner |= (uint)PermissionMask.Transfer;
+
+                owner &= basePerms;
+                m_EffectiveOwnerPerms = owner;
+                uint ownertransfermask = owner & (uint)PermissionMask.Transfer;
+
+                // recover modify and move
+                rootGroupPerms &= movemodmask;
+                group |= rootGroupPerms;
+                if(noBaseTransfer)
+                    group &=~(uint)PermissionMask.Copy;
+                else
+                    group |= ownertransfermask;
+
+                uint groupOrEveryone = group;
+                m_EffectiveGroupPerms = group & owner;
+
+                // recover move
+                rootEveryonePerms &= (uint)PermissionMask.Move;
+                everyone |= rootEveryonePerms;
+                everyone &= ~(uint)PermissionMask.Modify;
+                if(noBaseTransfer)
+                    everyone &=~(uint)PermissionMask.Copy;
+                else
+                    everyone |= ownertransfermask;
+
+                groupOrEveryone |= everyone;
+
+                m_EffectiveEveryOnePerms = everyone  & owner;
+                m_EffectiveGroupOrEveryOnePerms = groupOrEveryone  & owner;
+            }
         }
 
         public uint GetEffectivePermissions()

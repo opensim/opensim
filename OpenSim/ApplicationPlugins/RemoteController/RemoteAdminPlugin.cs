@@ -359,6 +359,42 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     notice = false;
                 }
 
+                if (startupConfig.GetBoolean("SkipDelayOnEmptyRegion", false))
+                {
+                    m_log.Info("[RADMIN]: Counting affected avatars");
+                    int agents = 0;
+
+                    if (restartAll)
+                    {
+                        foreach (Scene s in m_application.SceneManager.Scenes)
+                        {
+                            foreach (ScenePresence sp in s.GetScenePresences())
+                            {
+                                if (!sp.IsChildAgent && !sp.IsNPC)
+                                    agents++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (ScenePresence sp in rebootedScene.GetScenePresences())
+                        {
+                            if (!sp.IsChildAgent && !sp.IsNPC)
+                                agents++;
+                        }
+                    }
+
+                    m_log.InfoFormat("[RADMIN]: Avatars in region: {0}", agents);
+
+                    if (agents == 0)
+                    {
+                        m_log.Info("[RADMIN]: No avatars detected, shutting down without delay");
+
+                        times.Clear();
+                        times.Add(0);
+                    }
+                }
+
                 List<Scene> restartList;
 
                 if (restartAll)
@@ -376,10 +412,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             }
             catch (Exception e)
             {
-//                m_log.ErrorFormat("[RADMIN]: Restart region: failed: {0} {1}", e.Message, e.StackTrace);
+                m_log.ErrorFormat("[RADMIN]: Restart region: failed: {0} {1}", e.Message, e.StackTrace);
                 responseData["rebooting"] = false;
 
-                throw e;
+                throw;
             }
 
             m_log.Info("[RADMIN]: Restart Region request complete");

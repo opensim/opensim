@@ -427,20 +427,14 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 originalRotations[objectGroup.UUID] = inventoryStoredRotation;
 
                 // Restore attachment data after trip through the sim
-                if (objectGroup.RootPart.AttachPoint > 0)
+                if (objectGroup.AttachmentPoint > 0)
                 {
                     inventoryStoredPosition = objectGroup.RootPart.AttachedPos;
                     inventoryStoredRotation = objectGroup.RootPart.AttachRotation;
-                }
+                    if (objectGroup.RootPart.Shape.PCode != (byte) PCode.Tree &&
+                            objectGroup.RootPart.Shape.PCode != (byte) PCode.NewTree)
+                        objectGroup.RootPart.Shape.LastAttachPoint = (byte)objectGroup.AttachmentPoint;
 
-                // Trees could be attached and it's been done, but it makes
-                // no sense. State must be preserved because it's the tree type
-                if (objectGroup.RootPart.Shape.PCode != (byte) PCode.Tree &&
-                    objectGroup.RootPart.Shape.PCode != (byte) PCode.NewTree)
-                {
-                    objectGroup.RootPart.Shape.State = objectGroup.RootPart.AttachPoint;
-                    if (objectGroup.RootPart.AttachPoint > 0)
-                        objectGroup.RootPart.Shape.LastAttachPoint = objectGroup.RootPart.AttachPoint;
                 }
 
                 objectGroup.AbsolutePosition = inventoryStoredPosition;
@@ -605,15 +599,18 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     perms &= ~(uint)PermissionMask.Transfer;
                 if ((nextPerms & (uint)PermissionMask.Modify) == 0)
                     perms &= ~(uint)PermissionMask.Modify;
-
-                item.BasePermissions = perms & so.RootPart.NextOwnerMask;
+                
+//                item.BasePermissions = perms & so.RootPart.NextOwnerMask;
+                
+                uint nextp = so.RootPart.NextOwnerMask | (uint)PermissionMask.FoldedMask;
+                item.BasePermissions = perms & nextp;
                 item.CurrentPermissions = item.BasePermissions;
                 item.NextPermissions = perms & so.RootPart.NextOwnerMask;
                 item.EveryOnePermissions = so.RootPart.EveryoneMask & so.RootPart.NextOwnerMask;
                 item.GroupPermissions = so.RootPart.GroupMask & so.RootPart.NextOwnerMask;
 
                 // apply next owner perms on rez
-                item.CurrentPermissions |= SceneObjectGroup.SLAM;
+                item.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
             }
             else
             {
@@ -1124,7 +1121,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 //                    rootPart.OwnerID, item.Owner, item.CurrentPermissions);
 
                 if ((rootPart.OwnerID != item.Owner) ||
-                    (item.CurrentPermissions & 16) != 0 ||
+                    (item.CurrentPermissions & (uint)PermissionMask.Slam) != 0 ||
                     (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0)
                 {
                     //Need to kill the for sale here
@@ -1136,32 +1133,48 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         foreach (SceneObjectPart part in so.Parts)
                         {
                             part.GroupMask = 0; // DO NOT propagate here
-
-                            part.LastOwnerID = part.OwnerID;
+                            if( part.OwnerID != part.GroupID)
+                                part.LastOwnerID = part.OwnerID;
                             part.OwnerID = item.Owner;
                             part.RezzerID = item.Owner;
                             part.Inventory.ChangeInventoryOwner(item.Owner);
 
-                            // This applies the base mask from the item as the next
-                            // permissions for the object. This is correct because the
-                            // giver's base mask was masked by the giver's next owner
-                            // mask, so the base mask equals the original next owner mask.
-                            part.NextOwnerMask = item.BasePermissions;
+                            // Reconstruct the original item's base permissions. They
+                            // can be found in the lower (folded) bits.
+                            if ((item.BasePermissions & (uint)PermissionMask.FoldedMask) != 0)
+                            {
+                                // We have permissions stored there so use them
+                                part.NextOwnerMask = ((item.BasePermissions & 7) << 13);
+                                if ((item.BasePermissions & (uint)PermissionMask.FoldedExport) != 0)
+                                    part.NextOwnerMask |= (uint)PermissionMask.Export;
+                                part.NextOwnerMask |= (uint)PermissionMask.Move;
+                            }
+                            else
+                            {
+                                // This is a legacy object and we can't avoid the issues that
+                                // caused perms loss or escalation before, treat it the legacy
+                                // way.
+                                part.NextOwnerMask = item.NextPermissions;
+                            }
                         }
 
                         so.ApplyNextOwnerPermissions();
 
                         // In case the user has changed flags on a received item
                         // we have to apply those changes after the slam. Else we
-                        // get a net loss of permissions
+                        // get a net loss of permissions.
+                        // On legacy objects, this opts for a loss of permissions rather
+                        // than the previous handling that allowed escalation.
                         foreach (SceneObjectPart part in so.Parts)
                         {
                             if ((item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
                             {
+                                part.GroupMask = item.GroupPermissions & part.BaseMask;
                                 part.EveryoneMask = item.EveryOnePermissions & part.BaseMask;
                                 part.NextOwnerMask = item.NextPermissions & part.BaseMask;
                             }
                         }
+
                     }
                 }
                 else
@@ -1180,6 +1193,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
 
                 rootPart.TrimPermissions();
+                so.AggregateDeepPerms();
 
                 if (isAttachment)
                     so.FromItemID = item.ID;

@@ -3161,7 +3161,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (Action<Scene> d in handler.GetInvocationList())
                 {
-                    m_log.InfoFormat("[EVENT MANAGER]: TriggerSceneShuttingDown invoque {0}", d.Method.Name.ToString());
+                    m_log.InfoFormat("[EVENT MANAGER]: TriggerSceneShuttingDown invoke {0}", d.Method.Name.ToString());
                     try
                     {
                         d(s);

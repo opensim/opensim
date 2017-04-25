@@ -211,6 +211,7 @@ namespace OpenSim
             if (managedStatsURI != String.Empty)
             {
                 string urlBase = String.Format("/{0}/", managedStatsURI);
+                StatsManager.StatsPassword = managedStatsPassword;
                 MainServer.Instance.AddHTTPHandler(urlBase, StatsManager.HandleStatsRequest);
                 m_log.InfoFormat("[OPENSIM] Enabling remote managed stats fetch. URL = {0}", urlBase);
             }

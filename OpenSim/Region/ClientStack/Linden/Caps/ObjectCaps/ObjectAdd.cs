@@ -121,6 +121,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
 
             OSD r = OSDParser.DeserializeLLSDXml((string)request["requestbody"]);
+            if (r.Type != OSDType.Map) // not a proper req
+                return responsedata;
+
             //UUID session_id = UUID.Zero;
             bool bypass_raycast = false;
             uint everyone_mask = 0;
@@ -156,9 +159,6 @@ namespace OpenSim.Region.ClientStack.Linden
             Vector3 scale = Vector3.Zero;
             int state = 0;
             int lastattach = 0;
-
-            if (r.Type != OSDType.Map) // not a proper req
-                return responsedata;
 
             OSDMap rm = (OSDMap)r;
 
@@ -307,8 +307,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 }
             }
 
-
-
             Vector3 pos = m_scene.GetNewRezLocation(ray_start, ray_end, ray_target_id, rotation, (bypass_raycast) ? (byte)1 : (byte)0, (ray_end_is_intersection) ? (byte)1 : (byte)0, true, scale, false);
 
             PrimitiveBaseShape pbs = PrimitiveBaseShape.CreateBox();
@@ -358,6 +356,8 @@ namespace OpenSim.Region.ClientStack.Linden
             rootpart.GroupMask = group_mask;
             rootpart.NextOwnerMask = next_owner_mask;
             rootpart.Material = (byte)material;
+
+            obj.AggregatePerms();
 
             m_scene.PhysicsScene.AddPhysicsActorTaint(rootpart.PhysActor);
 

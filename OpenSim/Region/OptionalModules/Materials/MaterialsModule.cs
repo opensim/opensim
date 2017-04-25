@@ -329,7 +329,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                 AssetBase matAsset = m_scene.AssetService.Get(id.ToString());
                 if (matAsset == null || matAsset.Data == null || matAsset.Data.Length == 0 )
                 {
-                    m_log.WarnFormat("[Materials]: Prim \"{0}\" ({1}) contains unknown material ID {2}", part.Name, part.UUID, id);
+                    //m_log.WarnFormat("[Materials]: Prim \"{0}\" ({1}) contains unknown material ID {2}", part.Name, part.UUID, id);
                     return;
                 }
 

@@ -360,7 +360,7 @@ namespace OpenSim.Region.Framework.Scenes
 //             m_log.DebugFormat("[PRIM INVENTORY]: Starting script {0} {1} in prim {2} {3} in {4}",
 //                 item.Name, item.ItemID, m_part.Name, m_part.UUID, m_part.ParentGroup.Scene.RegionInfo.RegionName);
 
-            if (!m_part.ParentGroup.Scene.Permissions.CanRunScript(item.ItemID, m_part.UUID, item.OwnerID))
+            if (!m_part.ParentGroup.Scene.Permissions.CanRunScript(item, m_part))
             {
                 StoreScriptError(item.ItemID, "no permission");
                 return false;
@@ -807,6 +807,7 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                     m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
 
+            m_part.AggregateInnerPerms();
             m_inventorySerial++;
             //m_inventorySerial += 2;
             HasInventoryChanged = true;
@@ -829,7 +830,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
             }
             m_items.LockItemsForWrite(false);
-
+            m_part.AggregateInnerPerms();
             m_inventorySerial++;
         }
 
@@ -943,8 +944,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 group.SetGroup(m_part.GroupID, null);
 
-                // TODO: Remove magic number badness
-                if ((rootPart.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0) // Magic number
+                if ((rootPart.OwnerID != item.OwnerID) || (item.CurrentPermissions & (uint)PermissionMask.Slam) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0)
                 {
                     if (m_part.ParentGroup.Scene.Permissions.PropagatePermissions())
                     {
@@ -964,10 +964,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 foreach (SceneObjectPart part in partList)
                 {
-                    // TODO: Remove magic number badness
-                    if ((part.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0) // Magic number
+                    if ((part.OwnerID != item.OwnerID) || (item.CurrentPermissions & (uint)PermissionMask.Slam) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0)
                     {
-                        part.LastOwnerID = part.OwnerID;
+                        if(part.GroupID != part.OwnerID)
+                            part.LastOwnerID = part.OwnerID;
                         part.OwnerID = item.OwnerID;
                         part.Inventory.ChangeInventoryOwner(item.OwnerID);
                     }
@@ -981,6 +981,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 // old code end
                 rootPart.TrimPermissions();
+                group.AggregateDeepPerms();
             }
 
             return true;
@@ -1022,16 +1023,20 @@ namespace OpenSim.Region.Framework.Scenes
                     item.AssetID = m_items[item.ItemID].AssetID;
 
                 m_items[item.ItemID] = item;
+
                 m_inventorySerial++;
                 if (fireScriptEvents)
                     m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
 
                 if (considerChanged)
                 {
+                    m_part.AggregateInnerPerms();
+                    m_part.ParentGroup.AggregatePerms();
                     HasInventoryChanged = true;
                     m_part.ParentGroup.HasGroupChanged = true;
                 }
                 m_items.LockItemsForWrite(false);
+
                 return true;
             }
             else
@@ -1068,6 +1073,10 @@ namespace OpenSim.Region.Framework.Scenes
                 m_items.LockItemsForWrite(true);
                 m_items.Remove(itemID);
                 m_items.LockItemsForWrite(false);
+
+                m_part.AggregateInnerPerms();
+                m_part.ParentGroup.AggregatePerms();
+
                 m_inventorySerial++;
                 m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
 
@@ -1170,7 +1179,7 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (TaskInventoryItem item in m_items.Values)
                 {
                     UUID ownerID = item.OwnerID;
-                    uint everyoneMask = 0;
+                    uint everyoneMask = item.EveryonePermissions;
                     uint baseMask = item.BasePermissions;
                     uint ownerMask = item.CurrentPermissions;
                     uint groupMask = item.GroupPermissions;
@@ -1316,6 +1325,16 @@ namespace OpenSim.Region.Framework.Scenes
 
             public void Close()
             {
+            }
+        }
+
+        public void AggregateInnerPerms(ref uint owner, ref uint group, ref uint everyone)
+        {
+            foreach (TaskInventoryItem item in m_items.Values)
+            {
+                owner &= item.CurrentPermissions;
+                group &= item.GroupPermissions;
+                everyone &= item.EveryonePermissions;
             }
         }
 

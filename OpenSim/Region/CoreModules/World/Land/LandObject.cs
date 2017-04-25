@@ -356,6 +356,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
         }
 
+        // the total prims a parcel owner can have on a region
         public int GetSimulatorMaxPrimCount()
         {
             if (overrideSimulatorMaxPrimCount != null)
@@ -370,7 +371,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                                     * (double)m_scene.RegionInfo.RegionSettings.ObjectBonus
                                     / (long)(m_scene.RegionInfo.RegionSizeX * m_scene.RegionInfo.RegionSizeY)
                                     +0.5 );
-
+                // sanity check
                 if(simMax > m_scene.RegionInfo.ObjectCapacity)
                     simMax = m_scene.RegionInfo.ObjectCapacity;
                  //m_log.DebugFormat("Simwide Area: {0}, Capacity {1}, SimMax {2}, SimWidePrims {3}",
@@ -1043,7 +1044,8 @@ namespace OpenSim.Region.CoreModules.World.Land
             else
                 LandData.AABBMax = new Vector3(tx, ty, (float)m_scene.Heightmap[tx - 1, ty - 1]);
 
-            LandData.Area = tempArea * landUnit * landUnit;
+            tempArea *= landUnit * landUnit;
+            LandData.Area = tempArea;
         }
 
         #endregion
@@ -1647,8 +1649,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 foreach (SceneObjectGroup obj in primsOverMe)
                 {
-                    if (obj.OwnerID == previousOwner && obj.GroupID == UUID.Zero &&
-                        (obj.GetEffectivePermissions() & (uint)(OpenSim.Framework.PermissionMask.Transfer)) != 0)
+                    if(m_scene.Permissions.CanSellObject(previousOwner,obj, (byte)SaleType.Original))
                         m_BuySellModule.BuyObject(sp.ControllingClient, UUID.Zero, obj.LocalId, 1, 0);
                 }
             }
@@ -1662,7 +1663,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             SceneObjectGroup[] objs = new SceneObjectGroup[1];
             objs[0] = obj;
-            m_scene.returnObjects(objs, obj.OwnerID);
+            m_scene.returnObjects(objs, null);
         }
 
         public void ReturnLandObjects(uint type, UUID[] owners, UUID[] tasks, IClientAPI remote_client)
@@ -1693,6 +1694,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (obj.GroupID == LandData.GroupID)
                         {
+                            if (obj.OwnerID == LandData.OwnerID)
+                                continue;
                             if (!returns.ContainsKey(obj.OwnerID))
                                 returns[obj.OwnerID] =
                                         new List<SceneObjectGroup>();
@@ -1734,8 +1737,8 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             foreach (List<SceneObjectGroup> ol in returns.Values)
             {
-                if (m_scene.Permissions.CanReturnObjects(this, remote_client.AgentId, ol))
-                    m_scene.returnObjects(ol.ToArray(), remote_client.AgentId);
+                if (m_scene.Permissions.CanReturnObjects(this, remote_client, ol))
+                    m_scene.returnObjects(ol.ToArray(), remote_client);
             }
         }
 

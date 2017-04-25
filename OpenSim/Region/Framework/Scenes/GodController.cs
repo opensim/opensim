@@ -246,17 +246,14 @@ namespace OpenSim.Region.Framework.Scenes
         {
             bool newstate = false;
             if(m_forceGodModeAlwaysOn)
-                newstate = true;
-            else
+                newstate = m_viewergodlevel >= 200;
+            if(state != null)
             {
-                if(state != null)
-                {
-                    OSDMap s = (OSDMap)state;
+                OSDMap s = (OSDMap)state;
 
-                    if (s.ContainsKey("ViewerUiIsGod"))
-                        newstate = s["ViewerUiIsGod"].AsBoolean();
-                    m_lastLevelToViewer = m_viewergodlevel; // we are not changing viewer level by default
-                }
+                if (s.ContainsKey("ViewerUiIsGod"))
+                    newstate = s["ViewerUiIsGod"].AsBoolean();
+                m_lastLevelToViewer = m_viewergodlevel; // we are not changing viewer level by default
             }       
             UpdateGodLevels(newstate);
         }
@@ -264,6 +261,11 @@ namespace OpenSim.Region.Framework.Scenes
         public void HasMovedAway()
         {
             m_lastLevelToViewer = 0;
+            if(m_forceGodModeAlwaysOn)
+            {
+                m_viewergodlevel = m_rightsGodLevel;
+                m_godlevel = m_rightsGodLevel;
+            }
         }
 
         public int UserLevel

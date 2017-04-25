@@ -243,8 +243,12 @@ namespace OpenSim.Services.Connectors
             string uri = MapServer(id) + "/assets/" + id;
 
             AssetBase asset = null;
+
             if (m_Cache != null)
-                asset = m_Cache.Get(id);
+            {
+                if (!m_Cache.Get(id, out asset))
+                    return null;
+            }
 
             if (asset == null || asset.Data == null || asset.Data.Length == 0)
             {
@@ -275,17 +279,22 @@ namespace OpenSim.Services.Connectors
         {
 //            m_log.DebugFormat("[ASSET SERVICE CONNECTOR]: Cache request for {0}", id);
 
+            AssetBase asset = null;
             if (m_Cache != null)
-                return m_Cache.Get(id);
+            {
+                m_Cache.Get(id, out asset);
+            }
 
-            return null;
+            return asset;
         }
 
         public AssetMetadata GetMetadata(string id)
         {
             if (m_Cache != null)
             {
-                AssetBase fullAsset = m_Cache.Get(id);
+                AssetBase fullAsset;
+                if (!m_Cache.Get(id, out fullAsset))
+                    return null;
 
                 if (fullAsset != null)
                     return fullAsset.Metadata;
@@ -301,7 +310,9 @@ namespace OpenSim.Services.Connectors
         {
             if (m_Cache != null)
             {
-                AssetBase fullAsset = m_Cache.Get(id);
+                AssetBase fullAsset;
+                if (!m_Cache.Get(id, out fullAsset))
+                    return null;
 
                 if (fullAsset != null)
                     return fullAsset.Data;
@@ -389,7 +400,10 @@ namespace OpenSim.Services.Connectors
 
             AssetBase asset = null;
             if (m_Cache != null)
-                asset = m_Cache.Get(id);
+            {
+                if (!m_Cache.Get(id, out asset))
+                    return false;
+            }
 
             if (asset == null || asset.Data == null || asset.Data.Length == 0)
             {
@@ -590,7 +604,7 @@ namespace OpenSim.Services.Connectors
             AssetBase asset = null;
 
             if (m_Cache != null)
-                asset = m_Cache.Get(id);
+                m_Cache.Get(id, out asset);
 
             if (asset == null)
             {

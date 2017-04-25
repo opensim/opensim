@@ -244,11 +244,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public uint TimeStampTerse;
 
-        // The following two are to hold the attachment data
-        // while an object is inworld
-        [XmlIgnore]
-        public byte AttachPoint = 0;
-
         [XmlIgnore]
         public Quaternion AttachRotation = Quaternion.Identity;
 
@@ -277,7 +272,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         public scriptEvents AggregateScriptEvents;
 
-        public Vector3 AttachedPos;
+        public Vector3 AttachedPos
+        {
+            get;
+            set;
+        }
 
         // rotation locks on local X,Y and or Z axis bit flags
         // bits are as in llSetStatus defined in SceneObjectGroup.axisSelect enum
@@ -407,6 +406,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         private SOPVehicle m_vehicleParams = null;
 
+        private PhysicsInertiaData m_physicsInertia;
+
         public KeyframeMotion KeyframeMotion
         {
             get; set;
@@ -476,8 +477,8 @@ namespace OpenSim.Region.Framework.Scenes
             APIDActive = false;
             Flags = 0;
             CreateSelected = true;
-
             TrimPermissions();
+            AggregateInnerPerms();
         }
 
         #endregion Constructors
@@ -637,6 +638,8 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 m_name = value;
+                if(ParentGroup != null)
+                    ParentGroup.InvalidatePartsLinkMaps();
 
                 PhysicsActor pa = PhysActor;
 
@@ -1063,7 +1066,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_angularVelocity = value;
 
                 PhysicsActor actor = PhysActor;
-                if ((actor != null) && actor.IsPhysical && ParentGroup.RootPart == this && VehicleType == (int)Vehicle.TYPE_NONE)
+                if ((actor != null) && actor.IsPhysical && ParentGroup.RootPart == this)
                 {
                     actor.RotationalVelocity = m_angularVelocity;
                 }
@@ -1089,6 +1092,12 @@ namespace OpenSim.Region.Framework.Scenes
                     m_acceleration = Vector3.Zero;
                 else
                     m_acceleration = value;
+
+                PhysicsActor actor = PhysActor;
+                if ((actor != null) && actor.IsPhysical && ParentGroup.RootPart == this)
+                {
+                   actor.Acceleration = m_acceleration;
+                }
             }
         }
 
@@ -2013,7 +2022,7 @@ namespace OpenSim.Region.Framework.Scenes
         //      SetVelocity for LSL llSetVelocity..  may need revision if having other uses in future
         public void SetVelocity(Vector3 pVel, bool localGlobalTF)
         {
-            if (ParentGroup == null || ParentGroup.IsDeleted)
+            if (ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
                 return;
 
             if (ParentGroup.IsAttachment)
@@ -2040,7 +2049,7 @@ namespace OpenSim.Region.Framework.Scenes
         //      SetAngularVelocity for LSL llSetAngularVelocity..  may need revision if having other uses in future
         public void SetAngularVelocity(Vector3 pAngVel, bool localGlobalTF)
         {
-            if (ParentGroup == null || ParentGroup.IsDeleted)
+            if (ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
                 return;
 
             if (ParentGroup.IsAttachment)
@@ -2074,6 +2083,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="localGlobalTF">true for the local frame, false for the global frame</param>
         public void ApplyAngularImpulse(Vector3 impulsei, bool localGlobalTF)
         {
+           if (ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
+                return;
+
             Vector3 impulse = impulsei;
 
             if (localGlobalTF)
@@ -2228,7 +2240,11 @@ namespace OpenSim.Region.Framework.Scenes
             dupe.LocalId = plocalID;
 
             // This may be wrong...    it might have to be applied in SceneObjectGroup to the object that's being duplicated.
-            dupe.LastOwnerID = OwnerID;
+            if(OwnerID != GroupID)
+                dupe.LastOwnerID = OwnerID;
+            else
+                dupe.LastOwnerID = LastOwnerID; // redundant ?
+
             dupe.RezzerID = RezzerID;
 
             byte[] extraP = new byte[Shape.ExtraParams.Length];
@@ -2535,6 +2551,35 @@ namespace OpenSim.Region.Framework.Scenes
 //                f &= ~(PrimFlags.Touch | PrimFlags.Money);
 
             return (uint)Flags | (uint)LocalFlags;
+        }
+
+        // some of this lines need be moved to other place later
+
+        // effective permitions considering only this part inventory contents perms
+        public uint AggregatedInnerOwnerPerms {get; private set; }
+        public uint AggregatedInnerGroupPerms {get; private set; }
+        public uint AggregatedInnerEveryonePerms {get; private set; }
+        private object InnerPermsLock = new object();
+
+        public void AggregateInnerPerms()
+        {
+            // assuming child prims permissions masks are irrelevant on a linkset
+            // root part is handle at SOG since its masks are the sog masks
+            const uint mask = (uint)PermissionMask.AllEffective;
+
+            uint owner = mask;
+            uint group = mask;
+            uint everyone = mask;
+
+            lock(InnerPermsLock) // do we really need this?
+            {
+                if(Inventory != null)
+                    Inventory.AggregateInnerPerms(ref owner, ref group, ref everyone);
+            
+                AggregatedInnerOwnerPerms = owner & mask;
+                AggregatedInnerGroupPerms = group & mask;
+                AggregatedInnerEveryonePerms = everyone & mask;
+            }
         }
 
         public Vector3 GetGeometricCenter()
@@ -3340,25 +3385,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
         /// <param name="remoteClient"></param>
         public void SendFullUpdateToClient(IClientAPI remoteClient)
         {
-            SendFullUpdateToClient(remoteClient, OffsetPosition);
-        }
-
-        /// <summary>
-        /// Sends a full update to the client
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="lPos"></param>
-        public void SendFullUpdateToClient(IClientAPI remoteClient, Vector3 lPos)
-        {
-            if (ParentGroup == null)
-                return;
-
-            // Suppress full updates during attachment editing
-            // sl Does send them
- //           if (ParentGroup.IsSelected && ParentGroup.IsAttachment)
- //               return;
-
-            if (ParentGroup.IsDeleted)
+             if (ParentGroup == null || ParentGroup.IsDeleted)
                 return;
 
             if (ParentGroup.IsAttachment
@@ -3514,6 +3541,18 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
         public void SetForce(Vector3 force)
         {
             Force = force;
+        }
+
+        public PhysicsInertiaData PhysicsInertia
+        {
+            get
+            {
+                return m_physicsInertia;
+            }
+            set
+            {
+                m_physicsInertia = value;
+            }
         }
 
         public SOPVehicle VehicleParams
@@ -3689,7 +3728,18 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             bool hasDimple;
             bool hasProfileCut;
 
-            PrimType primType = GetPrimType();
+            if(Shape.SculptEntry)
+            {
+                if (Shape.SculptType != (byte)SculptType.Mesh)
+                    return 1; // sculp
+
+                //hack to detect new upload with faces data enconded on pbs              
+                if ((Shape.ProfileCurve & 0xf0) != (byte)HollowShape.Triangle)
+                    // old broken upload TODO
+                    return 8;
+            }
+
+            PrimType primType = GetPrimType(true);
             HasCutHollowDimpleProfileCut(primType, Shape, out hasCut, out hasHollow, out hasDimple, out hasProfileCut);
 
             switch (primType)
@@ -3733,13 +3783,6 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                     if (hasProfileCut) ret += 2;
                     if (hasHollow) ret += 1;
                     break;
-                case PrimType.SCULPT:
-                    // Special mesh handling
-                    if (Shape.SculptType == (byte)SculptType.Mesh)
-                        ret = 8; // if it's a mesh then max 8 faces
-                    else
-                        ret = 1; // if it's a sculpt then max 1 face
-                    break;
             }
 
             return ret;
@@ -3750,9 +3793,9 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
         /// </summary>
         /// <param name="primShape"></param>
         /// <returns></returns>
-        public PrimType GetPrimType()
+        public PrimType GetPrimType(bool ignoreSculpt = false)
         {
-            if (Shape.SculptEntry)
+            if (Shape.SculptEntry && !ignoreSculpt)
                 return PrimType.SCULPT;
 
             if ((Shape.ProfileCurve & 0x07) == (byte)ProfileShape.Square)
@@ -4464,7 +4507,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
                         break;
                 }
-
+                AggregateInnerPerms();
                 SendFullUpdateToAllClients();
             }
         }
@@ -4480,6 +4523,8 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             GroupMask = source.GroupMask & BaseMask;
             EveryoneMask = source.EveryoneMask & BaseMask;
             NextOwnerMask = source.NextOwnerMask & BaseMask;
+
+            AggregateInnerPerms();
 
             if (OwnerMask != prevOwnerMask ||
                 GroupMask != prevGroupMask ||
@@ -4714,8 +4759,13 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
                 if (VolumeDetectActive) // change if not the default only
                     pa.SetVolumeDetect(1);
+ 
+                bool isroot = (m_localId == ParentGroup.RootPart.LocalId);
 
-                if (m_vehicleParams != null && m_localId == ParentGroup.RootPart.LocalId)
+                if(isroot && m_physicsInertia != null)
+                    pa.SetInertiaData(m_physicsInertia);
+
+                if (isroot && m_vehicleParams != null )
                 {
                     m_vehicleParams.SetVehicle(pa);
                     if(isPhysical && !isPhantom && m_vehicleParams.CameraDecoupled)
@@ -5181,7 +5231,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
         /// <param name="scene">The scene the prim is being rezzed into</param>
         public void ApplyPermissionsOnRez(InventoryItemBase item, bool userInventory, Scene scene)
         {
-            if ((OwnerID != item.Owner) || ((item.CurrentPermissions & SceneObjectGroup.SLAM) != 0) || ((item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0))
+            if ((OwnerID != item.Owner) || ((item.CurrentPermissions & (uint)PermissionMask.Slam) != 0) || ((item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0))
             {
                 if (scene.Permissions.PropagatePermissions())
                 {
@@ -5212,16 +5262,13 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
 
             if (OwnerID != item.Owner)
             {
-                //LogPermissions("Before ApplyNextOwnerPermissions");
+                if(OwnerID != GroupID)
+                    LastOwnerID = OwnerID;
+                OwnerID = item.Owner;
+                Inventory.ChangeInventoryOwner(item.Owner);
 
                 if (scene.Permissions.PropagatePermissions())
                     ApplyNextOwnerPermissions();
-
-                //LogPermissions("After ApplyNextOwnerPermissions");
-
-                LastOwnerID = OwnerID;
-                OwnerID = item.Owner;
-                Inventory.ChangeInventoryOwner(item.Owner);
             }
         }
 
@@ -5245,6 +5292,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             GroupMask = 0; // Giving an object zaps group permissions
 
             Inventory.ApplyNextOwnerPermissions();
+            AggregateInnerPerms();
         }
 
         public void UpdateLookAt()
@@ -5306,6 +5354,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                 item.OwnerChanged = false;
                 Inventory.UpdateInventoryItem(item, false, false);
             }
+            AggregateInnerPerms();
         }
 
         /// <summary>

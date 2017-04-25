@@ -278,6 +278,8 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="datastore"></param>
         void ProcessInventoryBackup(ISimulationDataService datastore);
 
+        void AggregateInnerPerms(ref uint owner, ref uint group, ref uint everyone);
+
         uint MaskEffectivePermissions();
 
         void ApplyNextOwnerPermissions();

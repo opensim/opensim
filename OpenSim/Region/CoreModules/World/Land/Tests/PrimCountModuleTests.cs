@@ -151,7 +151,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
 
             SceneObjectGroup sog = SceneHelpers.CreateSceneObject(3, m_userId, "a", 0x01);
             m_scene.AddNewSceneObject(sog, false);
-            m_scene.SceneGraph.DuplicateObject(sog.LocalId, Vector3.Zero, 0, m_userId, UUID.Zero, Quaternion.Identity);
+            m_scene.SceneGraph.DuplicateObject(sog.LocalId, Vector3.Zero, m_userId, UUID.Zero, Quaternion.Identity, false);
 
             Assert.That(pc.Owner, Is.EqualTo(6));
             Assert.That(pc.Group, Is.EqualTo(0));

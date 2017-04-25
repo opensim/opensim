@@ -37,52 +37,60 @@ using OpenSim.Region.Framework.Interfaces;
 namespace OpenSim.Region.Framework.Scenes
 {
     #region Delegates
-    public delegate uint GenerateClientFlagsHandler(UUID userID, UUID objectID);
+    public delegate uint GenerateClientFlagsHandler(SceneObjectPart part, ScenePresence sp, uint curEffectivePerms);
     public delegate void SetBypassPermissionsHandler(bool value);
     public delegate bool BypassPermissionsHandler();
     public delegate bool PropagatePermissionsHandler();
-    public delegate bool RezObjectHandler(int objectCount, UUID owner, Vector3 objectPosition, Scene scene);
-    public delegate bool DeleteObjectHandler(UUID objectID, UUID deleter, Scene scene);
-    public delegate bool TransferObjectHandler(UUID objectID, UUID recipient, Scene scene);
-    public delegate bool TakeObjectHandler(UUID objectID, UUID stealer, Scene scene);
-    public delegate bool SellGroupObjectHandler(UUID userID, UUID groupID, Scene scene);
-    public delegate bool TakeCopyObjectHandler(UUID objectID, UUID userID, Scene inScene);
-    public delegate bool DuplicateObjectHandler(int objectCount, UUID objectID, UUID owner, Scene scene, Vector3 objectPosition);
-    public delegate bool EditObjectHandler(UUID objectID, UUID editorID, Scene scene);
-    public delegate bool EditObjectInventoryHandler(UUID objectID, UUID editorID, Scene scene);
-    public delegate bool MoveObjectHandler(UUID objectID, UUID moverID, Scene scene);
-    public delegate bool ObjectEntryHandler(UUID objectID, bool enteringRegion, Vector3 newPoint, Scene scene);
-    public delegate bool ReturnObjectsHandler(ILandObject land, UUID user, List<SceneObjectGroup> objects, Scene scene);
-    public delegate bool InstantMessageHandler(UUID user, UUID target, Scene startScene);
-    public delegate bool InventoryTransferHandler(UUID user, UUID target, Scene startScene);
-    public delegate bool ViewScriptHandler(UUID script, UUID objectID, UUID user, Scene scene);
-    public delegate bool ViewNotecardHandler(UUID script, UUID objectID, UUID user, Scene scene);
-    public delegate bool EditScriptHandler(UUID script, UUID objectID, UUID user, Scene scene);
-    public delegate bool EditNotecardHandler(UUID notecard, UUID objectID, UUID user, Scene scene);
-    public delegate bool RunScriptHandler(UUID script, UUID objectID, UUID user, Scene scene);
-    public delegate bool CompileScriptHandler(UUID ownerUUID, int scriptType, Scene scene);
-    public delegate bool StartScriptHandler(UUID script, UUID user, Scene scene);
-    public delegate bool StopScriptHandler(UUID script, UUID user, Scene scene);
-    public delegate bool ResetScriptHandler(UUID prim, UUID script, UUID user, Scene scene);
-    public delegate bool TerraformLandHandler(UUID user, Vector3 position, Scene requestFromScene);
-    public delegate bool RunConsoleCommandHandler(UUID user, Scene requestFromScene);
-    public delegate bool IssueEstateCommandHandler(UUID user, Scene requestFromScene, bool ownerCommand);
-    public delegate bool IsGodHandler(UUID user, Scene requestFromScene);
-    public delegate bool IsGridGodHandler(UUID user, Scene requestFromScene);
+    public delegate bool RezObjectHandler(int objectCount, UUID owner, Vector3 objectPosition);
+    public delegate bool DeleteObjectHandlerByIDs(UUID objectID, UUID deleter);
+    public delegate bool DeleteObjectHandler(SceneObjectGroup sog, ScenePresence sp);  
+    public delegate bool TransferObjectHandler(UUID objectID, UUID recipient);
+    public delegate bool TakeObjectHandler(SceneObjectGroup sog, ScenePresence sp);
+    public delegate bool SellGroupObjectHandler(UUID userID, UUID groupID);
+    public delegate bool SellObjectHandlerByUserID(SceneObjectGroup sog, UUID userID, byte saleType);
+    public delegate bool SellObjectHandler(SceneObjectGroup sog, ScenePresence sp, byte saleType);
+    public delegate bool TakeCopyObjectHandler(SceneObjectGroup sog, ScenePresence sp);
+    public delegate bool DuplicateObjectHandler(SceneObjectGroup sog, ScenePresence sp);
+    public delegate bool EditObjectByIDsHandler(UUID objectID, UUID editorID);
+    public delegate bool EditObjectHandler(SceneObjectGroup sog, ScenePresence sp);
+    public delegate bool EditObjectInventoryHandler(UUID objectID, UUID editorID);
+    public delegate bool MoveObjectHandler(SceneObjectGroup sog, ScenePresence sp);
+    public delegate bool ObjectEntryHandler(SceneObjectGroup sog, bool enteringRegion, Vector3 newPoint);
+    public delegate bool ObjectEnterWithScriptsHandler(SceneObjectGroup sog, ILandObject land);
+    public delegate bool ReturnObjectsHandler(ILandObject land, ScenePresence sp, List<SceneObjectGroup> objects);
+    public delegate bool InstantMessageHandler(UUID user, UUID target);
+    public delegate bool InventoryTransferHandler(UUID user, UUID target);
+    public delegate bool ViewScriptHandler(UUID script, UUID objectID, UUID user);
+    public delegate bool ViewNotecardHandler(UUID script, UUID objectID, UUID user);
+    public delegate bool EditScriptHandler(UUID script, UUID objectID, UUID user);
+    public delegate bool EditNotecardHandler(UUID notecard, UUID objectID, UUID user);
+    public delegate bool RunScriptHandlerByIDs(UUID script, UUID objectID, UUID user);
+    public delegate bool RunScriptHandler(TaskInventoryItem item, SceneObjectPart part);
+    public delegate bool CompileScriptHandler(UUID ownerUUID, int scriptType);
+    public delegate bool StartScriptHandler(UUID script, UUID user);
+    public delegate bool StopScriptHandler(UUID script, UUID user);
+    public delegate bool ResetScriptHandler(UUID prim, UUID script, UUID user);
+    public delegate bool TerraformLandHandler(UUID user, Vector3 position);
+    public delegate bool RunConsoleCommandHandler(UUID user);
+    public delegate bool IssueEstateCommandHandler(UUID user, bool ownerCommand);
+    public delegate bool IsGodHandler(UUID user);
+    public delegate bool IsGridGodHandler(UUID user);
     public delegate bool IsAdministratorHandler(UUID user);
     public delegate bool IsEstateManagerHandler(UUID user);
-    public delegate bool EditParcelHandler(UUID user, ILandObject parcel, Scene scene);
-    public delegate bool EditParcelPropertiesHandler(UUID user, ILandObject parcel, GroupPowers p, Scene scene, bool allowManager);
-    public delegate bool SellParcelHandler(UUID user, ILandObject parcel, Scene scene);
-    public delegate bool AbandonParcelHandler(UUID user, ILandObject parcel, Scene scene);
-    public delegate bool ReclaimParcelHandler(UUID user, ILandObject parcel, Scene scene);
-    public delegate bool DeedParcelHandler(UUID user, ILandObject parcel, Scene scene);
-    public delegate bool DeedObjectHandler(UUID user, UUID group, Scene scene);
-    public delegate bool BuyLandHandler(UUID user, ILandObject parcel, Scene scene);
+    public delegate bool EditParcelHandler(UUID user, ILandObject parcel);
+    public delegate bool EditParcelPropertiesHandler(UUID user, ILandObject parcel, GroupPowers p, bool allowManager);
+    public delegate bool SellParcelHandler(UUID user, ILandObject parcel);
+    public delegate bool AbandonParcelHandler(UUID user, ILandObject parcel);
+    public delegate bool ReclaimParcelHandler(UUID user, ILandObject parcel);
+    public delegate bool DeedParcelHandler(UUID user, ILandObject parcel);
+    public delegate bool DeedObjectHandler(ScenePresence sp, SceneObjectGroup sog, UUID targetGroupID);
+    public delegate bool BuyLandHandler(UUID user, ILandObject parcel);
     public delegate bool LinkObjectHandler(UUID user, UUID objectID);
     public delegate bool DelinkObjectHandler(UUID user, UUID objectID);
     public delegate bool CreateObjectInventoryHandler(int invType, UUID objectID, UUID userID);
     public delegate bool CopyObjectInventoryHandler(UUID itemID, UUID objectID, UUID userID);
+    public delegate bool DoObjectInvToObjectInv(TaskInventoryItem item, SceneObjectPart sourcePart, SceneObjectPart destPart);
+    public delegate bool DoDropInObjectInv(InventoryItemBase item, ScenePresence sp, SceneObjectPart destPart);
     public delegate bool DeleteObjectInventoryHandler(UUID itemID, UUID objectID, UUID userID);
     public delegate bool TransferObjectInventoryHandler(UUID itemID, UUID objectID, UUID userID);
     public delegate bool CreateUserInventoryHandler(int invType, UUID userID);
@@ -112,16 +120,23 @@ namespace OpenSim.Region.Framework.Scenes
         public event BypassPermissionsHandler OnBypassPermissions;
         public event PropagatePermissionsHandler OnPropagatePermissions;
         public event RezObjectHandler OnRezObject;
+        public event DeleteObjectHandlerByIDs OnDeleteObjectByIDs;
         public event DeleteObjectHandler OnDeleteObject;
         public event TransferObjectHandler OnTransferObject;
         public event TakeObjectHandler OnTakeObject;
+
         public event SellGroupObjectHandler OnSellGroupObject;
+        public event SellObjectHandlerByUserID OnSellObjectByUserID;
+        public event SellObjectHandler OnSellObject;
+
         public event TakeCopyObjectHandler OnTakeCopyObject;
         public event DuplicateObjectHandler OnDuplicateObject;
+        public event EditObjectByIDsHandler OnEditObjectByIDs;
         public event EditObjectHandler OnEditObject;
         public event EditObjectInventoryHandler OnEditObjectInventory;
         public event MoveObjectHandler OnMoveObject;
         public event ObjectEntryHandler OnObjectEntry;
+        public event ObjectEnterWithScriptsHandler OnObjectEnterWithScripts;
         public event ReturnObjectsHandler OnReturnObjects;
         public event InstantMessageHandler OnInstantMessage;
         public event InventoryTransferHandler OnInventoryTransfer;
@@ -129,6 +144,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event ViewNotecardHandler OnViewNotecard;
         public event EditScriptHandler OnEditScript;
         public event EditNotecardHandler OnEditNotecard;
+        public event RunScriptHandlerByIDs OnRunScriptByIDs;
         public event RunScriptHandler OnRunScript;
         public event CompileScriptHandler OnCompileScript;
         public event StartScriptHandler OnStartScript;
@@ -137,7 +153,6 @@ namespace OpenSim.Region.Framework.Scenes
         public event TerraformLandHandler OnTerraformLand;
         public event RunConsoleCommandHandler OnRunConsoleCommand;
         public event IssueEstateCommandHandler OnIssueEstateCommand;
-        public event IsGodHandler OnIsGod;
         public event IsGridGodHandler OnIsGridGod;
         public event IsAdministratorHandler OnIsAdministrator;
         public event IsEstateManagerHandler OnIsEstateManager;
@@ -153,6 +168,8 @@ namespace OpenSim.Region.Framework.Scenes
         public event DelinkObjectHandler OnDelinkObject;
         public event CreateObjectInventoryHandler OnCreateObjectInventory;
         public event CopyObjectInventoryHandler OnCopyObjectInventory;
+        public event DoObjectInvToObjectInv OnDoObjectInvToObjectInv;
+        public event DoDropInObjectInv OnDropInObjectInv;
         public event DeleteObjectInventoryHandler OnDeleteObjectInventory;
         public event TransferObjectInventoryHandler OnTransferObjectInventory;
         public event CreateUserInventoryHandler OnCreateUserInventory;
@@ -167,7 +184,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Object Permission Checks
 
-        public uint GenerateClientFlags(UUID userID, UUID objectID)
+        public uint GenerateClientFlags( SceneObjectPart part, ScenePresence sp)
         {
             // libomv will moan about PrimFlags.ObjectYouOfficer being
             // obsolete...
@@ -179,11 +196,8 @@ namespace OpenSim.Region.Framework.Scenes
                 PrimFlags.ObjectTransfer |
                 PrimFlags.ObjectYouOwner |
                 PrimFlags.ObjectAnyOwner |
-                PrimFlags.ObjectOwnerModify |
-                PrimFlags.ObjectYouOfficer;
+                PrimFlags.ObjectOwnerModify;
 #pragma warning restore 0612
-
-            SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
 
             if (part == null)
                 return 0;
@@ -196,7 +210,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handlerGenerateClientFlags.GetInvocationList();
                 foreach (GenerateClientFlagsHandler check in list)
                 {
-                    perms &= check(userID, objectID);
+                    perms &= check(part, sp, perms);
                 }
             }
             return perms;
@@ -248,7 +262,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (RezObjectHandler h in list)
                 {
-                    if (h(objectCount, owner,objectPosition, m_scene) == false)
+                    if (h(objectCount, owner,objectPosition) == false)
                         return false;
                 }
             }
@@ -262,141 +276,52 @@ namespace OpenSim.Region.Framework.Scenes
         {
             bool result = true;
 
-            DeleteObjectHandler handler = OnDeleteObject;
+            DeleteObjectHandlerByIDs handler = OnDeleteObjectByIDs;
             if (handler != null)
             {
                 Delegate[] list = handler.GetInvocationList();
-                foreach (DeleteObjectHandler h in list)
+                foreach (DeleteObjectHandlerByIDs h in list)
                 {
-                    if (h(objectID, deleter, m_scene) == false)
+                    if (h(objectID, deleter) == false)
                     {
                         result = false;
                         break;
                     }
                 }
             }
-
             return result;
+        }
+
+        public bool CanDeleteObject(SceneObjectGroup sog, IClientAPI client)
+        {
+            DeleteObjectHandler handler = OnDeleteObject;
+            if (handler != null)
+            {
+               if(sog == null || client == null || client.SceneAgent == null)
+                    return false;
+
+                ScenePresence sp = client.SceneAgent as ScenePresence;
+
+                Delegate[] list = handler.GetInvocationList();
+                foreach (DeleteObjectHandler h in list)
+                {
+                    if (h(sog, sp) == false)
+                        return false;
+                }
+            }
+
+            return true;
         }
 
         public bool CanTransferObject(UUID objectID, UUID recipient)
         {
-            bool result = true;
-
             TransferObjectHandler handler = OnTransferObject;
             if (handler != null)
             {
                 Delegate[] list = handler.GetInvocationList();
                 foreach (TransferObjectHandler h in list)
                 {
-                    if (h(objectID, recipient, m_scene) == false)
-                    {
-                        result = false;
-                        break;
-                    }
-                }
-            }
-
-            return result;
-        }
-
-        #endregion
-
-        #region TAKE OBJECT
-        public bool CanTakeObject(UUID objectID, UUID AvatarTakingUUID)
-        {
-            bool result = true;
-
-            TakeObjectHandler handler = OnTakeObject;
-            if (handler != null)
-            {
-                Delegate[] list = handler.GetInvocationList();
-                foreach (TakeObjectHandler h in list)
-                {
-                    if (h(objectID, AvatarTakingUUID, m_scene) == false)
-                    {
-                        result = false;
-                        break;
-                    }
-                }
-            }
-
-//            m_log.DebugFormat(
-//                "[SCENE PERMISSIONS]: CanTakeObject() fired for object {0}, taker {1}, result {2}",
-//                objectID, AvatarTakingUUID, result);
-
-            return result;
-        }
-
-        #endregion
-
-        #region SELL GROUP OBJECT
-        public bool CanSellGroupObject(UUID userID, UUID groupID, Scene scene)
-        {
-            bool result = true;
-
-            SellGroupObjectHandler handler = OnSellGroupObject;
-            if (handler != null)
-            {
-                Delegate[] list = handler.GetInvocationList();
-                foreach (SellGroupObjectHandler h in list)
-                {
-                    if (h(userID, groupID, scene) == false)
-                    {
-                        result = false;
-                        break;
-                    }
-                }
-            }
-
-            //m_log.DebugFormat(
-            //    "[SCENE PERMISSIONS]: CanSellGroupObject() fired for user {0}, group {1}, result {2}",
-            //    userID, groupID, result);
-
-            return result;
-        }
-
-        #endregion
-
-
-        #region TAKE COPY OBJECT
-        public bool CanTakeCopyObject(UUID objectID, UUID userID)
-        {
-            bool result = true;
-
-            TakeCopyObjectHandler handler = OnTakeCopyObject;
-            if (handler != null)
-            {
-                Delegate[] list = handler.GetInvocationList();
-                foreach (TakeCopyObjectHandler h in list)
-                {
-                    if (h(objectID, userID, m_scene) == false)
-                    {
-                        result = false;
-                        break;
-                    }
-                }
-            }
-
-//            m_log.DebugFormat(
-//                "[SCENE PERMISSIONS]: CanTakeCopyObject() fired for object {0}, user {1}, result {2}",
-//                objectID, userID, result);
-
-            return result;
-        }
-
-        #endregion
-
-        #region DUPLICATE OBJECT
-        public bool CanDuplicateObject(int objectCount, UUID objectID, UUID owner, Vector3 objectPosition)
-        {
-            DuplicateObjectHandler handler = OnDuplicateObject;
-            if (handler != null)
-            {
-                Delegate[] list = handler.GetInvocationList();
-                foreach (DuplicateObjectHandler h in list)
-                {
-                    if (h(objectCount, objectID, owner, m_scene, objectPosition) == false)
+                    if (h(objectID, recipient) == false)
                         return false;
                 }
             }
@@ -405,16 +330,181 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
+        #region TAKE OBJECT
+        public bool CanTakeObject(SceneObjectGroup sog, ScenePresence sp)
+        {
+            TakeObjectHandler handler = OnTakeObject;
+            if (handler != null)
+            {
+                if(sog == null || sp == null)
+                    return false;
+
+                Delegate[] list = handler.GetInvocationList();
+                foreach (TakeObjectHandler h in list)
+                {
+                    if (h(sog, sp) == false)
+                        return false;
+                }
+            }
+//            m_log.DebugFormat(
+//                "[SCENE PERMISSIONS]: CanTakeObject() fired for object {0}, taker {1}, result {2}",
+//                objectID, AvatarTakingUUID, result);
+            return true;
+        }
+
+        #endregion
+
+        #region SELL GROUP OBJECT
+        public bool CanSellGroupObject(UUID userID, UUID groupID)
+        {
+            SellGroupObjectHandler handler = OnSellGroupObject;
+            if (handler != null)
+            {
+                Delegate[] list = handler.GetInvocationList();
+                foreach (SellGroupObjectHandler h in list)
+                {
+                    if (h(userID, groupID) == false)
+                        return false;
+                }
+            }
+            //m_log.DebugFormat(
+            //    "[SCENE PERMISSIONS]: CanSellGroupObject() fired for user {0}, group {1}, result {2}",
+            //    userID, groupID, result);
+            return true;
+        }
+
+        #endregion
+
+        #region SELL OBJECT
+        public bool CanSellObject(IClientAPI client, SceneObjectGroup sog, byte saleType)
+        {
+            SellObjectHandler handler = OnSellObject;
+            if (handler != null)
+            {
+                if(sog == null || client == null || client.SceneAgent == null)
+                    return false;
+
+                ScenePresence sp = client.SceneAgent as ScenePresence;
+                Delegate[] list = handler.GetInvocationList();
+                foreach (SellObjectHandler h in list)
+                {
+                    if (h(sog, sp, saleType) == false)
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public bool CanSellObject(UUID userID, SceneObjectGroup sog, byte saleType)
+        {
+            SellObjectHandlerByUserID handler = OnSellObjectByUserID;
+            if (handler != null)
+            {
+                if(sog == null)
+                    return false;
+                Delegate[] list = handler.GetInvocationList();
+                foreach (SellObjectHandlerByUserID h in list)
+                {
+                    if (h(sog, userID, saleType) == false)
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        #endregion
+
+
+        #region TAKE COPY OBJECT
+        public bool CanTakeCopyObject(SceneObjectGroup sog, ScenePresence sp)
+        {
+            TakeCopyObjectHandler handler = OnTakeCopyObject;
+            if (handler != null)
+            {
+                if(sog == null || sp == null)
+                    return false;
+                Delegate[] list = handler.GetInvocationList();
+                foreach (TakeCopyObjectHandler h in list)
+                {
+                    if (h(sog, sp) == false)
+                        return false;
+                }
+            }
+//            m_log.DebugFormat(
+//                "[SCENE PERMISSIONS]: CanTakeCopyObject() fired for object {0}, user {1}, result {2}",
+//                objectID, userID, result);
+            return true;
+        }
+
+        #endregion
+
+        #region DUPLICATE OBJECT
+        public bool CanDuplicateObject(SceneObjectGroup sog, UUID agentID)
+        {
+            DuplicateObjectHandler handler = OnDuplicateObject;
+            if (handler != null)
+            {
+                if(sog == null || sog.IsDeleted)
+                    return false;
+                ScenePresence sp = m_scene.GetScenePresence(agentID);
+                if(sp == null || sp.IsDeleted)
+                    return false;
+                Delegate[] list = handler.GetInvocationList();
+                foreach (DuplicateObjectHandler h in list)
+                {
+                    if (h(sog, sp) == false)
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        #endregion
+
+        #region persence EDIT or MOVE OBJECT
+        private  const uint CANSELECTMASK = (uint)(
+            PrimFlags.ObjectMove |
+            PrimFlags.ObjectModify |
+            PrimFlags.ObjectOwnerModify
+            );
+
+        public bool CanChangeSelectedState(SceneObjectPart part, ScenePresence sp)
+        {
+            uint perms = GenerateClientFlags(part, sp);
+            return (perms & CANSELECTMASK) != 0;
+        }
+
+        #endregion
         #region EDIT OBJECT
         public bool CanEditObject(UUID objectID, UUID editorID)
+        {
+            EditObjectByIDsHandler handler = OnEditObjectByIDs;
+            if (handler != null)
+            {
+                Delegate[] list = handler.GetInvocationList();
+                foreach (EditObjectByIDsHandler h in list)
+                {
+                    if (h(objectID, editorID) == false)
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public bool CanEditObject(SceneObjectGroup sog, IClientAPI client)
         {
             EditObjectHandler handler = OnEditObject;
             if (handler != null)
             {
+                if(sog == null || client == null || client.SceneAgent == null)
+                    return false;
+
+                ScenePresence sp = client.SceneAgent as ScenePresence;
+
                 Delegate[] list = handler.GetInvocationList();
                 foreach (EditObjectHandler h in list)
                 {
-                    if (h(objectID, editorID, m_scene) == false)
+                    if (h(sog, sp) == false)
                         return false;
                 }
             }
@@ -429,7 +519,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (EditObjectInventoryHandler h in list)
                 {
-                    if (h(objectID, editorID, m_scene) == false)
+                    if (h(objectID, editorID) == false)
                         return false;
                 }
             }
@@ -439,15 +529,20 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region MOVE OBJECT
-        public bool CanMoveObject(UUID objectID, UUID moverID)
+        public bool CanMoveObject(SceneObjectGroup sog, IClientAPI client)
         {
             MoveObjectHandler handler = OnMoveObject;
             if (handler != null)
             {
+                if(sog == null || client == null || client.SceneAgent == null)
+                    return false;
+
+                ScenePresence sp = client.SceneAgent as ScenePresence;
+
                 Delegate[] list = handler.GetInvocationList();
                 foreach (MoveObjectHandler h in list)
                 {
-                    if (h(objectID, moverID, m_scene) == false)
+                    if (h(sog, sp) == false)
                         return false;
                 }
             }
@@ -457,7 +552,7 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region OBJECT ENTRY
-        public bool CanObjectEntry(UUID objectID, bool enteringRegion, Vector3 newPoint)
+        public bool CanObjectEntry(SceneObjectGroup sog, bool enteringRegion, Vector3 newPoint)
         {
             ObjectEntryHandler handler = OnObjectEntry;
             if (handler != null)
@@ -465,7 +560,22 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (ObjectEntryHandler h in list)
                 {
-                    if (h(objectID, enteringRegion, newPoint, m_scene) == false)
+                    if (h(sog, enteringRegion, newPoint) == false)
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public bool CanObjectEnterWithScripts(SceneObjectGroup sog, ILandObject land)
+        {
+            ObjectEnterWithScriptsHandler handler =  OnObjectEnterWithScripts;
+            if (handler != null)
+            {
+                Delegate[] list = handler.GetInvocationList();
+                foreach (ObjectEnterWithScriptsHandler h in list)
+                {
+                    if (h(sog, land) == false)
                         return false;
                 }
             }
@@ -475,29 +585,30 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region RETURN OBJECT
-        public bool CanReturnObjects(ILandObject land, UUID user, List<SceneObjectGroup> objects)
+        public bool CanReturnObjects(ILandObject land, IClientAPI client, List<SceneObjectGroup> objects)
         {
-            bool result = true;
-
             ReturnObjectsHandler handler = OnReturnObjects;
             if (handler != null)
             {
+                if(objects == null)
+                    return false;
+                
+                ScenePresence sp = null;
+                if(client != null && client.SceneAgent != null)
+                    sp = client.SceneAgent as ScenePresence;
+
                 Delegate[] list = handler.GetInvocationList();
                 foreach (ReturnObjectsHandler h in list)
                 {
-                    if (h(land, user, objects, m_scene) == false)
-                    {
-                        result = false;
-                        break;
-                    }
+                    if (h(land, sp, objects) == false)
+                        return false;
                 }
             }
-
 //            m_log.DebugFormat(
 //                "[SCENE PERMISSIONS]: CanReturnObjects() fired for user {0} for {1} objects on {2}, result {3}",
 //                user, objects.Count, land.LandData.Name, result);
 
-            return result;
+            return true;
         }
 
         #endregion
@@ -511,7 +622,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (InstantMessageHandler h in list)
                 {
-                    if (h(user, target, m_scene) == false)
+                    if (h(user, target) == false)
                         return false;
                 }
             }
@@ -529,7 +640,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (InventoryTransferHandler h in list)
                 {
-                    if (h(user, target, m_scene) == false)
+                    if (h(user, target) == false)
                         return false;
                 }
             }
@@ -547,7 +658,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (ViewScriptHandler h in list)
                 {
-                    if (h(script, objectID, user, m_scene) == false)
+                    if (h(script, objectID, user) == false)
                         return false;
                 }
             }
@@ -562,7 +673,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (ViewNotecardHandler h in list)
                 {
-                    if (h(script, objectID, user, m_scene) == false)
+                    if (h(script, objectID, user) == false)
                         return false;
                 }
             }
@@ -580,7 +691,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (EditScriptHandler h in list)
                 {
-                    if (h(script, objectID, user, m_scene) == false)
+                    if (h(script, objectID, user) == false)
                         return false;
                 }
             }
@@ -595,7 +706,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (EditNotecardHandler h in list)
                 {
-                    if (h(script, objectID, user, m_scene) == false)
+                    if (h(script, objectID, user) == false)
                         return false;
                 }
             }
@@ -607,18 +718,36 @@ namespace OpenSim.Region.Framework.Scenes
         #region RUN SCRIPT (When Script Placed in Object)
         public bool CanRunScript(UUID script, UUID objectID, UUID user)
         {
-            RunScriptHandler handler = OnRunScript;
+            RunScriptHandlerByIDs handler = OnRunScriptByIDs;
             if (handler != null)
             {
                 Delegate[] list = handler.GetInvocationList();
-                foreach (RunScriptHandler h in list)
+                foreach (RunScriptHandlerByIDs h in list)
                 {
-                    if (h(script, objectID, user, m_scene) == false)
+                    if (h(script, objectID, user) == false)
                         return false;
                 }
             }
             return true;
         }
+
+        public bool CanRunScript(TaskInventoryItem item, SceneObjectPart part)
+        {
+            RunScriptHandler handler = OnRunScript;
+            if (handler != null)
+            {
+                if(item == null || part == null)
+                    return false;
+                Delegate[] list = handler.GetInvocationList();
+                foreach (RunScriptHandler h in list)
+                {
+                    if (h(item, part) == false)
+                        return false;
+                }
+            }
+            return true;
+        }
+
 
         #endregion
 
@@ -631,7 +760,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (CompileScriptHandler h in list)
                 {
-                    if (h(ownerUUID, scriptType, m_scene) == false)
+                    if (h(ownerUUID, scriptType) == false)
                         return false;
                 }
             }
@@ -649,7 +778,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (StartScriptHandler h in list)
                 {
-                    if (h(script, user, m_scene) == false)
+                    if (h(script, user) == false)
                         return false;
                 }
             }
@@ -667,7 +796,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (StopScriptHandler h in list)
                 {
-                    if (h(script, user, m_scene) == false)
+                    if (h(script, user) == false)
                         return false;
                 }
             }
@@ -685,7 +814,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (ResetScriptHandler h in list)
                 {
-                    if (h(prim, script, user, m_scene) == false)
+                    if (h(prim, script, user) == false)
                         return false;
                 }
             }
@@ -703,7 +832,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (TerraformLandHandler h in list)
                 {
-                    if (h(user, pos, m_scene) == false)
+                    if (h(user, pos) == false)
                         return false;
                 }
             }
@@ -721,7 +850,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (RunConsoleCommandHandler h in list)
                 {
-                    if (h(user, m_scene) == false)
+                    if (h(user) == false)
                         return false;
                 }
             }
@@ -739,7 +868,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (IssueEstateCommandHandler h in list)
                 {
-                    if (h(user, m_scene, ownerCommand) == false)
+                    if (h(user, ownerCommand) == false)
                         return false;
                 }
             }
@@ -750,13 +879,13 @@ namespace OpenSim.Region.Framework.Scenes
         #region CAN BE GODLIKE
         public bool IsGod(UUID user)
         {
-            IsGodHandler handler = OnIsGod;
+            IsAdministratorHandler handler = OnIsAdministrator;
             if (handler != null)
             {
                 Delegate[] list = handler.GetInvocationList();
-                foreach (IsGodHandler h in list)
+                foreach (IsAdministratorHandler h in list)
                 {
-                    if (h(user, m_scene) == false)
+                    if (h(user) == false)
                         return false;
                 }
             }
@@ -771,7 +900,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (IsGridGodHandler h in list)
                 {
-                    if (h(user, m_scene) == false)
+                    if (h(user) == false)
                         return false;
                 }
             }
@@ -819,7 +948,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (EditParcelPropertiesHandler h in list)
                 {
-                    if (h(user, parcel, p, m_scene, allowManager) == false)
+                    if (h(user, parcel, p, allowManager) == false)
                         return false;
                 }
             }
@@ -836,7 +965,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (SellParcelHandler h in list)
                 {
-                    if (h(user, parcel, m_scene) == false)
+                    if (h(user, parcel) == false)
                         return false;
                 }
             }
@@ -853,7 +982,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (AbandonParcelHandler h in list)
                 {
-                    if (h(user, parcel, m_scene) == false)
+                    if (h(user, parcel) == false)
                         return false;
                 }
             }
@@ -869,7 +998,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (ReclaimParcelHandler h in list)
                 {
-                    if (h(user, parcel, m_scene) == false)
+                    if (h(user, parcel) == false)
                         return false;
                 }
             }
@@ -884,22 +1013,27 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (DeedParcelHandler h in list)
                 {
-                    if (h(user, parcel, m_scene) == false)
+                    if (h(user, parcel) == false)
                         return false;
                 }
             }
             return true;
         }
 
-        public bool CanDeedObject(UUID user, UUID group)
+        public bool CanDeedObject(IClientAPI client, SceneObjectGroup sog, UUID targetGroupID)
         {
             DeedObjectHandler handler = OnDeedObject;
             if (handler != null)
             {
+               if(sog == null || client == null || client.SceneAgent == null || targetGroupID == UUID.Zero)
+                    return false;
+
+                ScenePresence sp = client.SceneAgent as ScenePresence;
+
                 Delegate[] list = handler.GetInvocationList();
                 foreach (DeedObjectHandler h in list)
                 {
-                    if (h(user, group, m_scene) == false)
+                    if (h(sp, sog, targetGroupID) == false)
                         return false;
                 }
             }
@@ -914,7 +1048,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Delegate[] list = handler.GetInvocationList();
                 foreach (BuyLandHandler h in list)
                 {
-                    if (h(user, parcel, m_scene) == false)
+                    if (h(user, parcel) == false)
                         return false;
                 }
             }
@@ -984,6 +1118,45 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (CopyObjectInventoryHandler h in list)
                 {
                     if (h(itemID, objectID, userID) == false)
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public bool CanDoObjectInvToObjectInv(TaskInventoryItem item, SceneObjectPart sourcePart, SceneObjectPart destPart)
+        {
+            DoObjectInvToObjectInv handler = OnDoObjectInvToObjectInv;
+            if (handler != null)
+            {
+                if (sourcePart == null || destPart == null || item == null)
+                    return false;
+                Delegate[] list = handler.GetInvocationList();
+                foreach (DoObjectInvToObjectInv h in list)
+                {
+                    if (h(item, sourcePart, destPart) == false)
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public bool CanDropInObjectInv(InventoryItemBase item, IClientAPI client, SceneObjectPart destPart)
+        {
+            DoDropInObjectInv handler = OnDropInObjectInv;
+            if (handler != null)
+            {
+                if (client == null || client.SceneAgent == null|| destPart == null || item == null)
+                    return false;
+
+                ScenePresence sp = client.SceneAgent as ScenePresence;
+                if(sp == null || sp.IsDeleted)
+                    return false;
+
+                Delegate[] list = handler.GetInvocationList();
+                foreach (DoDropInObjectInv h in list)
+                {
+                    if (h(item, sp, destPart) == false)
                         return false;
                 }
             }

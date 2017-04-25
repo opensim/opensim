@@ -1703,11 +1703,81 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return agent;
         }
 
+        public bool CrossAgentCreateFarChild(ScenePresence agent, GridRegion neighbourRegion, Vector3 pos, EntityTransferContext ctx)
+        {
+            ulong regionhandler = neighbourRegion.RegionHandle;
+
+            if(agent.knowsNeighbourRegion(regionhandler))
+                return true;
+
+            string reason;
+            ulong currentRegionHandler = agent.Scene.RegionInfo.RegionHandle;
+            GridRegion source = new GridRegion(agent.Scene.RegionInfo);
+
+            AgentCircuitData currentAgentCircuit = 
+                    agent.Scene.AuthenticateHandler.GetAgentCircuitData(agent.ControllingClient.CircuitCode);
+            AgentCircuitData agentCircuit = agent.ControllingClient.RequestClientInfo();
+            agentCircuit.startpos = pos;
+            agentCircuit.child = true;
+
+            agentCircuit.Appearance = new AvatarAppearance();
+            agentCircuit.Appearance.AvatarHeight = agent.Appearance.AvatarHeight;
+
+            if (currentAgentCircuit != null)
+            {
+                agentCircuit.ServiceURLs = currentAgentCircuit.ServiceURLs;
+                agentCircuit.IPAddress = currentAgentCircuit.IPAddress;
+                agentCircuit.Viewer = currentAgentCircuit.Viewer;
+                agentCircuit.Channel = currentAgentCircuit.Channel;
+                agentCircuit.Mac = currentAgentCircuit.Mac;
+                agentCircuit.Id0 = currentAgentCircuit.Id0;
+            }
+
+            agentCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
+            agent.AddNeighbourRegion(neighbourRegion, agentCircuit.CapsPath);
+
+            IPEndPoint endPoint = neighbourRegion.ExternalEndPoint;
+            if (Scene.SimulationService.CreateAgent(source, neighbourRegion, agentCircuit, (int)TeleportFlags.Default, ctx, out reason))
+            {
+                string capsPath = neighbourRegion.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
+                int newSizeX = neighbourRegion.RegionSizeX;
+                int newSizeY = neighbourRegion.RegionSizeY;
+
+                if (m_eqModule != null)
+                {
+                    #region IP Translation for NAT
+                    IClientIPEndpoint ipepClient;
+                    if (agent.ClientView.TryGet(out ipepClient))
+                        endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
+
+                    m_log.DebugFormat("{0} {1} is sending {2} EnableSimulator for neighbour region {3}(loc=<{4},{5}>,siz=<{6},{7}>) " +
+                        "and EstablishAgentCommunication with seed cap {8}", LogHeader,
+                        source.RegionName, agent.Name,
+                        neighbourRegion.RegionName, neighbourRegion.RegionLocX, neighbourRegion.RegionLocY, newSizeX, newSizeY , capsPath);
+
+                    m_eqModule.EnableSimulator(regionhandler,
+                            endPoint, agent.UUID, newSizeX, newSizeY);
+                    m_eqModule.EstablishAgentCommunication(agent.UUID, endPoint, capsPath,
+                        regionhandler, newSizeX, newSizeY);
+                }
+                else
+                {
+                    agent.ControllingClient.InformClientOfNeighbour(regionhandler, endPoint);
+                }
+                return true;
+            }
+            agent.RemoveNeighbourRegion(regionhandler);
+            return false;
+        }
+
         public bool CrossAgentIntoNewRegionMain(ScenePresence agent, Vector3 pos, GridRegion neighbourRegion, bool isFlying, EntityTransferContext ctx)
         {
             int ts = Util.EnvironmentTickCount();
+            bool sucess = true;
+            string reason = String.Empty;
             try
             {
+
                 AgentData cAgent = new AgentData();
                 agent.CopyTo(cAgent,true);
 
@@ -1725,18 +1795,26 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // Beyond this point, extra cleanup is needed beyond removing transit state
                 m_entityTransferStateMachine.UpdateInTransit(agent.UUID, AgentTransferState.Transferring);
 
-                if (!agent.Scene.SimulationService.UpdateAgent(neighbourRegion, cAgent, ctx))
+                if (sucess && !agent.Scene.SimulationService.UpdateAgent(neighbourRegion, cAgent, ctx))
+                {
+                    sucess = false;
+                    reason = "agent update failed";
+                }
+
+                if(!sucess)
                 {
                     // region doesn't take it
                     m_entityTransferStateMachine.UpdateInTransit(agent.UUID, AgentTransferState.CleaningUp);
 
                     m_log.WarnFormat(
-                        "[ENTITY TRANSFER MODULE]: Region {0} would not accept update for agent {1} on cross attempt.  Returning to original region.",
-                        neighbourRegion.RegionName, agent.Name);
+                        "[ENTITY TRANSFER MODULE]: agent {0} crossing to {1} failed: {2}",
+                        agent.Name, neighbourRegion.RegionName, reason);
 
                     ReInstantiateScripts(agent);
                     if(agent.ParentID == 0 && agent.ParentUUID == UUID.Zero)
+                    {
                         agent.AddToPhysicalScene(isFlying);
+                    }
 
                     return false;
                 }
@@ -1777,7 +1855,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} to client {1}", capsPath, agent.UUID);
 
-            Vector3 vel2 = new Vector3(agent.Velocity.X, agent.Velocity.Y, 0);
+            Vector3 vel2 = Vector3.Zero;
+            if((agent.crossingFlags & 2) != 0)
+                vel2 = new Vector3(agent.Velocity.X, agent.Velocity.Y, 0);
 
             if (m_eqModule != null)
             {
@@ -1804,7 +1884,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // this may need the attachments
 
-            agent.HasMovedAway(true);
+            agent.HasMovedAway((agent.crossingFlags & 8) == 0);
 
             agent.MakeChildAgent(neighbourRegion.RegionHandle);
 
@@ -2135,7 +2215,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                 sp.Scene.RegionInfo.WorldLocY - neighbour.RegionLocY,
                                 0f);
         }
-
+        #endregion
 
         #region NotFoundLocationCache class
         // A collection of not found locations to make future lookups 'not found' lookups quick.
@@ -2620,7 +2700,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 // FIXME: It would be better to never add the scene object at all rather than add it and then delete
                 // it
-                if (!Scene.Permissions.CanObjectEntry(so.UUID, true, so.AbsolutePosition))
+                if (!Scene.Permissions.CanObjectEntry(so, true, so.AbsolutePosition))
                 {
                     // Deny non attachments based on parcel settings
                     //

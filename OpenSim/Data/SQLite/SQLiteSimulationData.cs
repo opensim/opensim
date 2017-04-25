@@ -1843,6 +1843,12 @@ namespace OpenSim.Data.SQLite
                 if (vehicle != null)
                     prim.VehicleParams = vehicle;
             }
+
+            PhysicsInertiaData pdata = null;
+            if (!(row["PhysInertia"] is DBNull) && row["PhysInertia"].ToString() != String.Empty)
+                pdata = PhysicsInertiaData.FromXml2(row["PhysInertia"].ToString());
+            prim.PhysicsInertia = pdata;
+
             return prim;
         }
 
@@ -2265,6 +2271,11 @@ namespace OpenSim.Data.SQLite
                 row["Vehicle"] = prim.VehicleParams.ToXml2();
             else
                 row["Vehicle"] = String.Empty;
+
+            if (prim.PhysicsInertia != null)
+                row["PhysInertia"] = prim.PhysicsInertia.ToXml2();
+            else
+                row["PhysInertia"] = String.Empty;
 
         }
 

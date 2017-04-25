@@ -495,6 +495,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_group.RootPart.Velocity = Vector3.Zero;
             m_group.RootPart.AngularVelocity = Vector3.Zero;
+            m_skippedUpdates = 1000;
             m_group.SendGroupRootTerseUpdate();
 //            m_group.RootPart.ScheduleTerseUpdate();
         }
@@ -517,6 +518,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 if (m_running && !m_waitingCrossing)
                     StartTimer();
+                m_skippedUpdates = 1000;
             }
         }
 
@@ -643,9 +645,14 @@ namespace OpenSim.Region.Framework.Scenes
             m_group.RootPart.Velocity = Vector3.Zero;
             m_group.RootPart.AngularVelocity = Vector3.Zero;
             m_group.SendGroupRootTerseUpdate();
-            //            m_group.RootPart.ScheduleTerseUpdate();
+ 
             m_frames.Clear();
         }
+
+        Vector3 m_lastPosUpdate;
+        Quaternion m_lastRotationUpdate;
+        Vector3 m_currentVel;
+        int m_skippedUpdates;
 
         private void DoOnTimer(double tickDuration)
         {
@@ -665,6 +672,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_group.RootPart.Velocity != Vector3.Zero)
                 {
                     m_group.RootPart.Velocity = Vector3.Zero;
+                    m_skippedUpdates = 1000;
                     m_group.SendGroupRootTerseUpdate();
                 }
                 return;
@@ -677,7 +685,9 @@ namespace OpenSim.Region.Framework.Scenes
                 // retry to set the position that evtually caused the outbound
                 // if still outside region this will call startCrossing below
                 m_isCrossing = false;
+                m_skippedUpdates = 1000;
                 m_group.AbsolutePosition = m_nextPosition;
+
                 if (!m_isCrossing)
                 {
                     StopTimer();
@@ -700,10 +710,12 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     m_currentFrame = m_frames[0];
-                    m_currentFrame.TimeMS += (int)tickDuration;
                 }
-                //force a update on a keyframe transition
                 m_nextPosition = m_group.AbsolutePosition;
+                m_currentVel = (Vector3)m_currentFrame.Position - m_nextPosition;
+                m_currentVel /= (m_currentFrame.TimeMS * 0.001f);
+
+                m_currentFrame.TimeMS += (int)tickDuration;
                 update = true;
             }
 
@@ -712,7 +724,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Do the frame processing
             double remainingSteps = (double)m_currentFrame.TimeMS / tickDuration;
 
-            if (remainingSteps <= 0.0)
+            if (remainingSteps <= 1.0)
             {
                 m_group.RootPart.Velocity = Vector3.Zero;
                 m_group.RootPart.AngularVelocity = Vector3.Zero;
@@ -720,92 +732,71 @@ namespace OpenSim.Region.Framework.Scenes
                 m_nextPosition = (Vector3)m_currentFrame.Position;
                 m_group.AbsolutePosition = m_nextPosition;
 
-                // we are sending imediate updates, no doing force a extra terseUpdate
-                // m_group.UpdateGroupRotationR((Quaternion)m_currentFrame.Rotation);
-
                 m_group.RootPart.RotationOffset = (Quaternion)m_currentFrame.Rotation;
 
                 lock (m_frames)
                 {
                     m_frames.RemoveAt(0);
                     if (m_frames.Count > 0)
+                    {
                         m_currentFrame = m_frames[0];
+                        m_currentVel = (Vector3)m_currentFrame.Position - m_nextPosition;
+                        m_currentVel /= (m_currentFrame.TimeMS * 0.001f);
+                        m_group.RootPart.Velocity = m_currentVel;
+                        m_currentFrame.TimeMS += (int)tickDuration;
+                    }
+                    else
+                        m_group.RootPart.Velocity = Vector3.Zero;
                 }
-
                 update = true;
             }
             else
             {
-                float completed = ((float)m_currentFrame.TimeTotal - (float)m_currentFrame.TimeMS) / (float)m_currentFrame.TimeTotal;
-                bool lastStep = m_currentFrame.TimeMS <= tickDuration;
+                bool lastSteps = remainingSteps < 4;
+                Vector3 currentPosition = m_group.AbsolutePosition;
+                Vector3 motionThisFrame = (Vector3)m_currentFrame.Position - currentPosition;
+                motionThisFrame /= (float)remainingSteps;
+ 
+                m_nextPosition = currentPosition + motionThisFrame;
 
-                Vector3 v = (Vector3)m_currentFrame.Position - m_group.AbsolutePosition;
-                Vector3 motionThisFrame = v / (float)remainingSteps;
-                v = v * 1000 / m_currentFrame.TimeMS;
-
-                m_nextPosition = m_group.AbsolutePosition + motionThisFrame;
-
-                if (Vector3.Mag(motionThisFrame) >= 0.05f)
-                    update = true;
-
-                //int totalSteps = m_currentFrame.TimeTotal / (int)tickDuration;
-                //m_log.DebugFormat("KeyframeMotion.OnTimer: step {0}/{1}, curPosition={2}, finalPosition={3}, motionThisStep={4} (scene {5})",
-                //    totalSteps - remainingSteps + 1, totalSteps, m_group.AbsolutePosition, m_currentFrame.Position, motionThisStep, m_scene.RegionInfo.RegionName);
-
-                if ((Quaternion)m_currentFrame.Rotation != m_group.GroupRotation)
+                Quaternion currentRotation = m_group.GroupRotation;
+                if ((Quaternion)m_currentFrame.Rotation != currentRotation)
                 {
-                    Quaternion current = m_group.GroupRotation;
-
+                    float completed = ((float)m_currentFrame.TimeTotal - (float)m_currentFrame.TimeMS) / (float)m_currentFrame.TimeTotal;
                     Quaternion step = Quaternion.Slerp(m_currentFrame.StartRotation, (Quaternion)m_currentFrame.Rotation, completed);
                     step.Normalize();
-                    /* use simpler change detection
-                    * float angle = 0;
-
-                                        float aa = current.X * current.X + current.Y * current.Y + current.Z * current.Z + current.W * current.W;
-                                        float bb = step.X * step.X + step.Y * step.Y + step.Z * step.Z + step.W * step.W;
-                                        float aa_bb = aa * bb;
-
-                                        if (aa_bb == 0)
-                                        {
-                                            angle = 0;
-                                        }
-                                        else
-                                        {
-                                            float ab = current.X * step.X +
-                                                       current.Y * step.Y +
-                                                       current.Z * step.Z +
-                                                       current.W * step.W;
-                                            float q = (ab * ab) / aa_bb;
-
-                                            if (q > 1.0f)
-                                            {
-                                                angle = 0;
-                                            }
-                                            else
-                                            {
-                                                angle = (float)Math.Acos(2 * q - 1);
-                                            }
-                                        }
-
-                                        if (angle > 0.01f)
-                    */
-                    if (Math.Abs(step.X - current.X) > 0.001f
-                        || Math.Abs(step.Y - current.Y) > 0.001f
-                        || Math.Abs(step.Z - current.Z) > 0.001f)
-                    // assuming w is a dependente var
-                    {
-//                                m_group.UpdateGroupRotationR(step);
-                        m_group.RootPart.RotationOffset = step;
-
-                        //m_group.RootPart.UpdateAngularVelocity(m_currentFrame.AngularVelocity / 2);
+                    m_group.RootPart.RotationOffset = step;
+                    if (Math.Abs(step.X - m_lastRotationUpdate.X) > 0.001f
+                        || Math.Abs(step.Y - m_lastRotationUpdate.Y) > 0.001f
+                        || Math.Abs(step.Z - m_lastRotationUpdate.Z) > 0.001f)
                         update = true;
-                    }
                 }
-            }
 
-            if (update)
-            {
                 m_group.AbsolutePosition = m_nextPosition;
+                if(lastSteps)
+                    m_group.RootPart.Velocity = Vector3.Zero;
+                else
+                    m_group.RootPart.Velocity = m_currentVel;
+
+                if(!update && (
+                    lastSteps ||
+                    m_skippedUpdates * tickDuration > 0.5 ||
+                    Math.Abs(m_nextPosition.X - currentPosition.X) > 5f ||
+                    Math.Abs(m_nextPosition.Y - currentPosition.Y) > 5f ||
+                    Math.Abs(m_nextPosition.Z - currentPosition.Z) > 5f
+                    ))
+                {
+                    update = true;
+                }
+                else
+                    m_skippedUpdates++;
+
+            }
+            if(update)
+            {
+                m_lastPosUpdate = m_nextPosition;
+                m_lastRotationUpdate = m_group.GroupRotation; 
+                m_skippedUpdates = 0;
                 m_group.SendGroupRootTerseUpdate();
             }
         }
@@ -850,6 +841,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_group.RootPart.Velocity != Vector3.Zero)
             {
                 m_group.RootPart.Velocity = Vector3.Zero;
+                m_skippedUpdates = 1000;
                 m_group.SendGroupRootTerseUpdate();
 //                m_group.RootPart.ScheduleTerseUpdate();
             }
@@ -862,6 +854,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_group != null)
             {
                 m_group.RootPart.Velocity = Vector3.Zero;
+                m_skippedUpdates = 1000;
                 m_group.SendGroupRootTerseUpdate();
 //                m_group.RootPart.ScheduleTerseUpdate();
 

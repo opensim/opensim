@@ -149,9 +149,11 @@ namespace OpenSim.Region.CoreModules.World.Land
             parcelInfoCache.Size = 30; // the number of different parcel requests in this region to cache
             parcelInfoCache.DefaultTTL = new TimeSpan(0, 5, 0);
 
+            m_scene.EventManager.OnObjectAddedToScene += EventManagerOnParcelPrimCountAdd;
             m_scene.EventManager.OnParcelPrimCountAdd += EventManagerOnParcelPrimCountAdd;
-            m_scene.EventManager.OnParcelPrimCountUpdate += EventManagerOnParcelPrimCountUpdate;
+
             m_scene.EventManager.OnObjectBeingRemovedFromScene += EventManagerOnObjectBeingRemovedFromScene;
+            m_scene.EventManager.OnParcelPrimCountUpdate += EventManagerOnParcelPrimCountUpdate;
             m_scene.EventManager.OnRequestParcelPrimCountUpdate += EventManagerOnRequestParcelPrimCountUpdate;
 
             m_scene.EventManager.OnAvatarEnteringNewParcel += EventManagerOnAvatarEnteringNewParcel;
@@ -287,8 +289,10 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             fullSimParcel.SetLandBitmap(fullSimParcel.GetSquareLandBitmap(0, 0,
                                             (int)m_scene.RegionInfo.RegionSizeX, (int)m_scene.RegionInfo.RegionSizeY));
-            fullSimParcel.LandData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
-            fullSimParcel.LandData.ClaimDate = Util.UnixTimeSinceEpoch();
+            LandData ldata = fullSimParcel.LandData;
+            ldata.SimwideArea = ldata.Area;
+            ldata.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+            ldata.ClaimDate = Util.UnixTimeSinceEpoch();
 
             return AddLandObject(fullSimParcel);
         }
@@ -813,6 +817,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                     throw new Exception("Error: Parcel not found at point " + x + ", " + y);
             }
 
+            if(m_landList.Count == 0  || m_landIDList == null)
+                return null;
+
             lock (m_landIDList)
             {
                 try
@@ -824,8 +831,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                         return null;
                 }
             }
-
-            return m_landList[m_landIDList[x / 4, y / 4]];
         }
 
         // Create a 'parcel is here' bitmap for the parcel identified by the passed landID
@@ -1576,6 +1581,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         }
                     }
                 }
+                FinalizeLandPrimCountUpdate(); // update simarea information
             }
         }
 
@@ -1640,9 +1646,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                 foreach (HashSet<SceneObjectGroup> objs in returns.Values)
                 {
                     List<SceneObjectGroup> objs2 = new List<SceneObjectGroup>(objs);
-                    if (m_scene.Permissions.CanReturnObjects(null, remoteClient.AgentId, objs2))
+                    if (m_scene.Permissions.CanReturnObjects(null, remoteClient, objs2))
                     {
-                        m_scene.returnObjects(objs2.ToArray(), remoteClient.AgentId);
+                        m_scene.returnObjects(objs2.ToArray(), remoteClient);
                     }
                     else
                     {
@@ -2035,7 +2041,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             SceneObjectGroup[] objs = new SceneObjectGroup[1];
             objs[0] = obj;
-            ((Scene)client.Scene).returnObjects(objs, client.AgentId);
+            ((Scene)client.Scene).returnObjects(objs, client);
         }
 
         Dictionary<UUID, System.Threading.Timer> Timers = new Dictionary<UUID, System.Threading.Timer>();

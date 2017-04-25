@@ -88,6 +88,7 @@ namespace OpenSim
 
         public string userStatsURI = String.Empty;
         public string managedStatsURI = String.Empty;
+        public string managedStatsPassword = String.Empty;
 
         protected bool m_autoCreateClientStack = true;
 
@@ -239,6 +240,7 @@ namespace OpenSim
                 m_permsModules = new List<string>(permissionModules.Split(','));
 
                 managedStatsURI = startupConfig.GetString("ManagedStatsRemoteFetchURI", String.Empty);
+                managedStatsPassword = startupConfig.GetString("ManagedStatsRemoteFetchPassword", String.Empty);
             }
 
             // Load the simulation data service
@@ -481,14 +483,13 @@ namespace OpenSim
             while (regionInfo.EstateSettings.EstateOwner == UUID.Zero && MainConsole.Instance != null)
                 SetUpEstateOwner(scene);
 
+            scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
+
             // Prims have to be loaded after module configuration since some modules may be invoked during the load
             scene.LoadPrimsFromStorage(regionInfo.originRegionID);
 
             // TODO : Try setting resource for region xstats here on scene
             MainServer.Instance.AddStreamHandler(new RegionStatsHandler(regionInfo));
-
-            scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
-            scene.EventManager.TriggerParcelPrimCountUpdate();
 
             if (scene.SnmpService != null)
             {

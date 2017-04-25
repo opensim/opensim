@@ -1778,6 +1778,20 @@ namespace OpenSim.Region.Framework.Scenes
 
         private Dictionary<ulong, spRegionSizeInfo> m_knownChildRegionsSizeInfo = new Dictionary<ulong, spRegionSizeInfo>();
 
+        public void AddNeighbourRegion(GridRegion region, string capsPath)
+        {
+            lock (m_knownChildRegions)
+            {
+                ulong regionHandle = region.RegionHandle;
+                m_knownChildRegions.Add(regionHandle,capsPath);
+
+                spRegionSizeInfo sizeInfo = new spRegionSizeInfo();
+                sizeInfo.sizeX = region.RegionSizeX;
+                sizeInfo.sizeY = region.RegionSizeY;
+                m_knownChildRegionsSizeInfo[regionHandle] = sizeInfo;
+            }
+        }
+
         public void AddNeighbourRegionSizeInfo(GridRegion region)
         {
             lock (m_knownChildRegions)
@@ -1824,6 +1838,12 @@ namespace OpenSim.Region.Framework.Scenes
                 m_knownChildRegions.Remove(regionHandle);
                 m_knownChildRegionsSizeInfo.Remove(regionHandle);
             }
+        }
+
+        public bool knowsNeighbourRegion(ulong regionHandle)
+        {
+            lock (m_knownChildRegions)
+                return m_knownChildRegions.ContainsKey(regionHandle);
         }
 
         public void DropOldNeighbours(List<ulong> oldRegions)
@@ -2010,6 +2030,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 }
 
+
                 m_log.DebugFormat("[CompleteMovement] MakeRootAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 if(!haveGroupInformation && !IsChildAgent && !IsNPC)
@@ -2028,11 +2049,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                     m_log.DebugFormat("[CompleteMovement]: Missing COF for {0} is {1}", client.AgentId, COF);
                 }
-
-                // Tell the client that we're totally ready
-                ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
-
-                m_log.DebugFormat("[CompleteMovement] MoveAgentIntoRegion: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 if (!string.IsNullOrEmpty(m_callbackURI))
                 {
@@ -2054,6 +2070,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     Scene.SimulationService.ReleaseAgent(originID, UUID, m_callbackURI);
                     m_callbackURI = null;
+                    m_log.DebugFormat("[CompleteMovement] ReleaseAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
                 }
 //            else
 //            {
@@ -2062,19 +2079,58 @@ namespace OpenSim.Region.Framework.Scenes
 //                    client.Name, client.AgentId, m_scene.RegionInfo.RegionName);
 //            }
 
-                m_log.DebugFormat("[CompleteMovement] ReleaseAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+
+                // Tell the client that we're totally ready
+                ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
+                m_log.DebugFormat("[CompleteMovement] MoveAgentIntoRegion: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+
+                bool isHGTP = (m_teleportFlags & TeleportFlags.ViaHGLogin) != 0;
+
+                int delayctnr = Util.EnvironmentTickCount();
+
+                if (!IsChildAgent)
+                {
+                    if( ParentPart != null && !IsNPC && (crossingFlags & 0x08) != 0)
+                    {
+
+//                      SceneObjectPart root = ParentPart.ParentGroup.RootPart;
+//                      if(root.LocalId != ParentPart.LocalId)
+//                          ControllingClient.SendEntityTerseUpdateImmediate(root);
+//                      ControllingClient.SendEntityTerseUpdateImmediate(ParentPart);
+                        ParentPart.ParentGroup.SendFullUpdateToClient(ControllingClient);
+                    }
+
+                    // verify baked textures and cache
+                    bool cachedbaked = false;
+
+                    if (IsNPC)
+                        cachedbaked = true;
+                    else
+                    {
+                        if (m_scene.AvatarFactory != null && !isHGTP)
+                            cachedbaked = m_scene.AvatarFactory.ValidateBakedTextureCache(this);
+
+                        // not sure we need this
+                        if (!cachedbaked)
+                        {
+                            if (m_scene.AvatarFactory != null)
+                                m_scene.AvatarFactory.QueueAppearanceSave(UUID);
+                        }
+                    }
+                    m_log.DebugFormat("[CompleteMovement] Baked check: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                }
 
                 if(m_teleportFlags > 0)
                 {
                     gotCrossUpdate = false; // sanity check
-                    Thread.Sleep(500);  // let viewers catch us
+                    if(Util.EnvironmentTickCountSubtract(delayctnr)< 500)
+                        Thread.Sleep(500);  // let viewers catch us
                 }
 
                 if(!gotCrossUpdate)
                     RotateToLookAt(look);
 
                 // HG
-                bool isHGTP = (m_teleportFlags & TeleportFlags.ViaHGLogin) != 0;
                 if(isHGTP)
                 {
 //                    ControllingClient.SendNameReply(m_uuid, Firstname, Lastname);
@@ -2101,28 +2157,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (!IsChildAgent)
                 {
-                    // verify baked textures and cache
-                    bool cachedbaked = false;
-
-                    if (IsNPC)
-                        cachedbaked = true;
-                    else
-                    {
-                        if (m_scene.AvatarFactory != null && !isHGTP)
-                            cachedbaked = m_scene.AvatarFactory.ValidateBakedTextureCache(this);
-
-                        // not sure we need this
-                        if (!cachedbaked)
-                        {
-                            if (m_scene.AvatarFactory != null)
-                                m_scene.AvatarFactory.QueueAppearanceSave(UUID);
-                        }
-                    }
-
                     List<ScenePresence> allpresences = m_scene.GetScenePresences();
 
                     // send avatar object to all presences including us, so they cross it into region
                     // then hide if necessary
+
                     SendInitialAvatarDataToAllAgents(allpresences);
 
                     // send this look
@@ -2230,13 +2269,18 @@ namespace OpenSim.Region.Framework.Scenes
                     m_lastChildAgentUpdateDrawDistance = DrawDistance;
                     m_lastChildAgentUpdatePosition = AbsolutePosition;
                     m_childUpdatesBusy = false; // allow them
+
+
                 }
 
                 m_log.DebugFormat("[CompleteMovement] openChildAgents: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
+
+
                 // send the rest of the world
                 if (m_teleportFlags > 0 && !IsNPC || m_currentParcelHide)
                     SendInitialDataToMe();
+                
 
                 // priority uses avatar position only
 //                m_reprioritizationLastPosition = AbsolutePosition;
@@ -3110,6 +3154,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 Vector3 standPos = sitPartWorldPosition + adjustmentForSitPose;
                 m_pos = standPos;
+
             }
 
             // We need to wait until we have calculated proper stand positions before sitting up the physical
@@ -3124,6 +3169,7 @@ namespace OpenSim.Region.Framework.Scenes
                 part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
 
                 SendAvatarDataToAllAgents();
+                m_scene.EventManager.TriggerParcelPrimCountTainted(); // update select/ sat on
             }
 
             // reset to default sitAnimation
@@ -3256,6 +3302,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // Moved here to avoid a race with default sit anim
                 // The script event needs to be raised after the default sit anim is set.
                 part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
+                m_scene.EventManager.TriggerParcelPrimCountTainted(); // update select/ sat on
             }
         }
 
@@ -3405,6 +3452,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             Animator.SetMovementAnimations("SIT");
             part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
+            m_scene.EventManager.TriggerParcelPrimCountTainted(); // update select/ sat on
         }
 
         public void HandleAgentSit(IClientAPI remoteClient, UUID agentID)
@@ -3968,7 +4016,7 @@ namespace OpenSim.Region.Framework.Scenes
             int count = 0;
             foreach (ScenePresence p in presences)
             {
-                p.ControllingClient.SendAvatarDataImmediate(this);
+                p.ControllingClient.SendEntityFullUpdateImmediate(this);
                 if (p != this && ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                     // either just kill the object
                     // p.ControllingClient.SendKillObject(new List<uint> {LocalId});
@@ -3981,7 +4029,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendInitialAvatarDataToAgent(ScenePresence p)
         {
-            p.ControllingClient.SendAvatarDataImmediate(this);
+            p.ControllingClient.SendEntityFullUpdateImmediate(this);
             if (p != this && ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                     // either just kill the object
                     // p.ControllingClient.SendKillObject(new List<uint> {LocalId});
@@ -3998,12 +4046,12 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.DebugFormat("[SCENE PRESENCE] SendAvatarDataToAgent from {0} ({1}) to {2} ({3})", Name, UUID, avatar.Name, avatar.UUID);
             if (ParcelHideThisAvatar && currentParcelUUID != avatar.currentParcelUUID && !avatar.IsViewerUIGod)
                 return;
-            avatar.ControllingClient.SendAvatarDataImmediate(this);
+            avatar.ControllingClient.SendEntityFullUpdateImmediate(this);
         }
 
         public void SendAvatarDataToAgentNF(ScenePresence avatar)
         {
-             avatar.ControllingClient.SendAvatarDataImmediate(this);
+             avatar.ControllingClient.SendEntityFullUpdateImmediate(this);
         }
 
         /// <summary>
@@ -6440,7 +6488,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (check)
             {
                 // check is relative to current parcel only
-                if (currentParcelUUID == null || oldhide == currentParcelHide)
+                if (oldhide == currentParcelHide)
                     return;
 
                 allpresences = m_scene.GetScenePresences();

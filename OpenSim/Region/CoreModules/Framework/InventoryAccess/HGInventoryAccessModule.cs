@@ -541,16 +541,17 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         #region Permissions
 
-        private bool CanTakeObject(UUID objectID, UUID stealer, Scene scene)
+        private bool CanTakeObject(SceneObjectGroup sog, ScenePresence sp)
         {
             if (m_bypassPermissions) return true;
 
-            if (!m_OutboundPermission && !UserManagementModule.IsLocalGridUser(stealer))
-            {
-                SceneObjectGroup sog = null;
-                if (m_Scene.TryGetSceneObjectGroup(objectID, out sog) && sog.OwnerID == stealer)
-                    return true;
+            if(sp == null || sog == null)
+                return false;
 
+            if (!m_OutboundPermission && !UserManagementModule.IsLocalGridUser(sp.UUID))
+            {
+                if (sog.OwnerID == sp.UUID)
+                    return true;
                 return false;
             }
 

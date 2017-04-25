@@ -52,6 +52,7 @@ namespace OpenSim.Region.OptionalModules
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private bool m_enabled;
 
+        private Scene m_scene;
         public string Name { get { return "PrimLimitsModule"; } }
 
         public Type ReplaceableInterface { get { return null; } }
@@ -77,11 +78,12 @@ namespace OpenSim.Region.OptionalModules
         public void AddRegion(Scene scene)
         {
             if (!m_enabled)
-            {
                 return;
-            }
+
+            m_scene = scene;
             scene.Permissions.OnRezObject += CanRezObject;
             scene.Permissions.OnObjectEntry += CanObjectEnter;
+            scene.Permissions.OnObjectEnterWithScripts += CanObjectEnterWithScripts;
             scene.Permissions.OnDuplicateObject += CanDuplicateObject;
 
             m_log.DebugFormat("[PRIM LIMITS]: Region {0} added", scene.RegionInfo.RegionName);
@@ -89,14 +91,13 @@ namespace OpenSim.Region.OptionalModules
 
         public void RemoveRegion(Scene scene)
         {
-            if (m_enabled)
-            {
+            if (!m_enabled)
                 return;
-            }
 
-            scene.Permissions.OnRezObject -= CanRezObject;
-            scene.Permissions.OnObjectEntry -= CanObjectEnter;
-            scene.Permissions.OnDuplicateObject -= CanDuplicateObject;
+            m_scene.Permissions.OnRezObject -= CanRezObject;
+            m_scene.Permissions.OnObjectEntry -= CanObjectEnter;
+            scene.Permissions.OnObjectEnterWithScripts -= CanObjectEnterWithScripts;
+            m_scene.Permissions.OnDuplicateObject -= CanDuplicateObject;
         }
 
         public void RegionLoaded(Scene scene)
@@ -104,11 +105,12 @@ namespace OpenSim.Region.OptionalModules
             m_dialogModule = scene.RequestModuleInterface<IDialogModule>();
         }
 
-        private bool CanRezObject(int objectCount, UUID ownerID, Vector3 objectPosition, Scene scene)
+        private bool CanRezObject(int objectCount, UUID ownerID, Vector3 objectPosition)
         {
-            ILandObject lo = scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
+            
+            ILandObject lo = m_scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
 
-            string response = DoCommonChecks(objectCount, ownerID, lo, scene);
+            string response = DoCommonChecks(objectCount, ownerID, lo);
 
             if (response != null)
             {
@@ -119,88 +121,99 @@ namespace OpenSim.Region.OptionalModules
         }
 
         //OnDuplicateObject
-        private bool CanDuplicateObject(int objectCount, UUID objectID, UUID ownerID, Scene scene, Vector3 objectPosition)
+        private bool CanDuplicateObject(SceneObjectGroup sog, ScenePresence sp)
         {
-            ILandObject lo = scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
+            Vector3 objectPosition = sog.AbsolutePosition;
+            ILandObject lo = m_scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
 
-            string response = DoCommonChecks(objectCount, ownerID, lo, scene);
+            string response = DoCommonChecks(sog.PrimCount, sp.UUID, lo);
 
             if (response != null)
             {
-                m_dialogModule.SendAlertToUser(ownerID, response);
+                m_dialogModule.SendAlertToUser(sp.UUID, response);
                 return false;
             }
             return true;
         }
 
-        private bool CanObjectEnter(UUID objectID, bool enteringRegion, Vector3 newPoint, Scene scene)
+        private bool CanObjectEnter(SceneObjectGroup sog, bool enteringRegion, Vector3 newPoint)
         {
-            if (newPoint.X < -1f || newPoint.X > (scene.RegionInfo.RegionSizeX + 1) ||
-                newPoint.Y < -1f || newPoint.Y > (scene.RegionInfo.RegionSizeY) )
+            float newX = newPoint.X;
+            float newY = newPoint.Y;
+            if (newX < -1.0f || newX > (m_scene.RegionInfo.RegionSizeX + 1.0f) ||
+                newY < -1.0f || newY > (m_scene.RegionInfo.RegionSizeY + 1.0f) )
                 return true;
 
-            SceneObjectPart obj = scene.GetSceneObjectPart(objectID);
-
-            if (obj == null)
+            if (sog == null)
                 return false;
 
-            // Prim counts are determined by the location of the root prim.  if we're
-            // moving a child prim, just let it pass
-            if (!obj.IsRoot)
-            {
-                return true;
-            }
-
-            ILandObject newParcel = scene.LandChannel.GetLandObject(newPoint.X, newPoint.Y);
+            ILandObject newParcel = m_scene.LandChannel.GetLandObject(newX, newY);
 
             if (newParcel == null)
                 return true;
 
-            Vector3 oldPoint = obj.GroupPosition;
-            ILandObject oldParcel = scene.LandChannel.GetLandObject(oldPoint.X, oldPoint.Y);
-
-            // The prim hasn't crossed a region boundry so we don't need to worry
-            // about prim counts here
-            if(oldParcel != null && oldParcel.Equals(newParcel))
+            if(!enteringRegion)
             {
-                return true;
+                Vector3 oldPoint = sog.AbsolutePosition;
+                ILandObject oldParcel = m_scene.LandChannel.GetLandObject(oldPoint.X, oldPoint.Y);
+                if(oldParcel != null && oldParcel.Equals(newParcel))
+                    return true;
             }
 
-            int objectCount = obj.ParentGroup.PrimCount;
-            int usedPrims = newParcel.PrimCounts.Total;
-            int simulatorCapacity = newParcel.GetSimulatorMaxPrimCount();
+            int objectCount = sog.PrimCount;
 
             // TODO: Add Special Case here for temporary prims
 
-            string response = DoCommonChecks(objectCount, obj.OwnerID, newParcel, scene);
+            string response = DoCommonChecks(objectCount, sog.OwnerID, newParcel);
 
             if (response != null)
             {
-                m_dialogModule.SendAlertToUser(obj.OwnerID, response);
+                if(m_dialogModule != null)
+                    m_dialogModule.SendAlertToUser(sog.OwnerID, response);
                 return false;
             }
             return true;
         }
 
-        private string DoCommonChecks(int objectCount, UUID ownerID, ILandObject lo, Scene scene)
+        private bool CanObjectEnterWithScripts(SceneObjectGroup sog, ILandObject newParcel)
+        {
+            if (sog == null)
+                return false;
+
+            if (newParcel == null)
+                return true;
+
+            int objectCount = sog.PrimCount;
+
+            // TODO: Add Special Case here for temporary prims
+
+            string response = DoCommonChecks(objectCount, sog.OwnerID, newParcel);
+
+            if (response != null)
+                return false;
+
+            return true;
+        }
+
+        private string DoCommonChecks(int objectCount, UUID ownerID, ILandObject lo)
         {
             string response = null;
 
             int OwnedParcelsCapacity = lo.GetSimulatorMaxPrimCount();
             if ((objectCount + lo.PrimCounts.Total) > OwnedParcelsCapacity)
             {
-                response = "Unable to rez object because the parcel is too full";
+                response = "Unable to rez object because the parcel is full";
             }
             else
             {
-                int maxPrimsPerUser = scene.RegionInfo.MaxPrimsPerUser;
+                int maxPrimsPerUser = m_scene.RegionInfo.MaxPrimsPerUser;
                 if (maxPrimsPerUser >= 0)
                 {
                     // per-user prim limit is set
                     if (ownerID != lo.LandData.OwnerID || lo.LandData.IsGroupOwned)
                     {
                         // caller is not the sole Parcel owner
-                        EstateSettings estateSettings = scene.RegionInfo.EstateSettings;
+                        EstateSettings estateSettings = m_scene.RegionInfo.EstateSettings;
                         if (ownerID != estateSettings.EstateOwner)
                         {
                             // caller is NOT the Estate owner

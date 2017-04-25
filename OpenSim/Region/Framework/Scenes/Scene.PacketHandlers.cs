@@ -183,11 +183,12 @@ namespace OpenSim.Region.Framework.Scenes
                     part.SendFullUpdate(remoteClient);
 
                 // A prim is only tainted if it's allowed to be edited by the person clicking it.
-                if (Permissions.CanEditObject(sog.UUID, remoteClient.AgentId)
-                    || Permissions.CanMoveObject(sog.UUID, remoteClient.AgentId))
+                if (Permissions.CanChangeSelectedState(part, (ScenePresence)remoteClient.SceneAgent))
                 {
+                    bool oldsel = part.IsSelected;
                     part.IsSelected = true;
-                    EventManager.TriggerParcelPrimCountTainted();
+                    if(!oldsel)
+                        EventManager.TriggerParcelPrimCountTainted();
                 }
 
                 part.SendPropertiesToClient(remoteClient);
@@ -229,6 +230,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (so.OwnerID == remoteClient.AgentId)
                 {
                     so.SetGroup(groupID, remoteClient);
+                    EventManager.TriggerParcelPrimCountTainted();
                 }
             }
         }
@@ -250,8 +252,7 @@ namespace OpenSim.Region.Framework.Scenes
             // handled by group, but by prim. Legacy cruft.
             // TODO: Make selection flagging per prim!
             //
-            if (Permissions.CanEditObject(part.ParentGroup.UUID, remoteClient.AgentId)
-                || Permissions.CanMoveObject(part.ParentGroup.UUID, remoteClient.AgentId))
+            if (Permissions.CanChangeSelectedState(part, (ScenePresence)remoteClient.SceneAgent))
             {
                 part.IsSelected = false;
                 if (!part.ParentGroup.IsAttachment && oldgprSelect != part.ParentGroup.IsSelected)
@@ -327,7 +328,7 @@ namespace OpenSim.Region.Framework.Scenes
             if(group == null || group.IsDeleted)
                 return;
 
-            if (Permissions.CanMoveObject(group.UUID, remoteClient.AgentId))// && PermissionsMngr.)
+            if (Permissions.CanMoveObject(group, remoteClient))// && PermissionsMngr.)
             {
                 group.GrabMovement(objectID, offset, pos, remoteClient);
             }
@@ -388,7 +389,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup group = GetGroupByPrim(objectID);
             if (group != null)
             {
-                if (Permissions.CanMoveObject(group.UUID, remoteClient.AgentId))// && PermissionsMngr.)
+                if (Permissions.CanMoveObject(group, remoteClient))// && PermissionsMngr.)
                 {
                     group.SpinStart(remoteClient);
                 }
@@ -406,7 +407,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup group = GetGroupByPrim(objectID);
             if (group != null)
             {
-                if (Permissions.CanMoveObject(group.UUID, remoteClient.AgentId))// && PermissionsMngr.)
+                if (Permissions.CanMoveObject(group, remoteClient))// && PermissionsMngr.)
                 {
                     group.SpinMovement(rotation, remoteClient);
                 }

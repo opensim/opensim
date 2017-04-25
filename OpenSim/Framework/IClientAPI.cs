@@ -107,7 +107,7 @@ namespace OpenSim.Framework
     public delegate void GenericCall4(Packet packet, IClientAPI remoteClient);
 
     public delegate void DeRezObject(
-        IClientAPI remoteClient, List<uint> localIDs, UUID groupID, DeRezAction action, UUID destinationID);
+        IClientAPI remoteClient, List<uint> localIDs, UUID groupID, DeRezAction action, UUID destinationID, bool AddToReturns = true);
 
     public delegate void GenericCall5(IClientAPI remoteClient, bool status);
 
@@ -685,9 +685,10 @@ namespace OpenSim.Framework
         ExtraData = 1 << 20,
         Sound = 1 << 21,
         Joint = 1 << 22,
-        FullUpdate = 0x3fffffff,
-        CancelKill = 0x7fffffff,
-        Kill = 0x80000000
+        FullUpdate =    0x0fffffff,
+        SendInTransit = 0x20000000, 
+        CancelKill =    0x4fffffff, // 1 << 30 
+        Kill =          0x80000000 // 1 << 31
     }
 
 /* included in .net 4.0
@@ -1112,7 +1113,7 @@ namespace OpenSim.Framework
         /// <param name="localID"></param>
         void SendKillObject(List<uint> localID);
 
-        void SendPartFullUpdate(ISceneEntity ent, uint? parentID);
+//        void SendPartFullUpdate(ISceneEntity ent, uint? parentID);
 
         void SendAnimations(UUID[] animID, int[] seqs, UUID sourceAgentId, UUID[] objectIDs);
         void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args);
@@ -1187,7 +1188,8 @@ namespace OpenSim.Framework
         void SetAgentThrottleSilent(int throttle, int setting);
         int GetAgentThrottleSilent(int throttle);
 
-        void SendAvatarDataImmediate(ISceneEntity avatar);
+        void SendEntityFullUpdateImmediate(ISceneEntity entity);
+        void SendEntityTerseUpdateImmediate(ISceneEntity entity);
 
         /// <summary>
         /// Send a positional, velocity, etc. update to the viewer for a given entity.

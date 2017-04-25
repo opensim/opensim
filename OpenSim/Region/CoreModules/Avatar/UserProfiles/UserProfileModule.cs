@@ -149,7 +149,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
             if (profileConfig == null)
             {
-                m_log.Debug("[PROFILES]: UserProfiles disabled, no configuration");
+                //m_log.Debug("[PROFILES]: UserProfiles disabled, no configuration");
                 Enabled = false;
                 return;
             }

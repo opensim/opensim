@@ -523,9 +523,9 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
 
             rootPart.AddFlag(PrimFlags.Phantom);
 
-            m_scene.AddNewSceneObject(sceneObject, true);
             sceneObject.SetGroup(groupID, null);
-
+            m_scene.AddNewSceneObject(sceneObject, true);
+            sceneObject.AggregatePerms();
             return sceneObject;
         }
 

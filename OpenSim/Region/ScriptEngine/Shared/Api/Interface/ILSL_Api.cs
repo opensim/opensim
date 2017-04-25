@@ -434,7 +434,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_String llXorBase64Strings(string str1, string str2);
         LSL_String llXorBase64StringsCorrect(string str1, string str2);
        LSL_Integer llGetLinkNumberOfSides(LSL_Integer link);
-              void llSetPhysicsMaterial(int material_bits, float material_gravity_modifier, float material_restitution, float material_friction, float material_density);
+              void llSetPhysicsMaterial(int material_bits, LSL_Float material_gravity_modifier, LSL_Float material_restitution, LSL_Float material_friction, LSL_Float material_density);
 
               void SetPrimitiveParamsEx(LSL_Key prim, LSL_List rules, string originFunc);
               void llSetKeyframedMotion(LSL_List frames, LSL_List options);

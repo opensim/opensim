@@ -540,6 +540,9 @@ namespace OpenSim.Region.Framework.Scenes
         private Timer m_mapGenerationTimer = new Timer();
         private bool m_generateMaptiles;
 
+        protected int m_lastHealth = -1;
+        protected int m_lastUsers = -1;
+
         #endregion Fields
 
         #region Properties
@@ -804,6 +807,8 @@ namespace OpenSim.Region.Framework.Scenes
         public float ReprioritizationDistance { get; set; }
         private float m_minReprioritizationDistance = 32f;
         public bool ObjectsCullingByDistance = false;
+
+        private ExpiringCache<UUID, UUID> TeleportTargetsCoolDown = new ExpiringCache<UUID, UUID>();
 
         public AgentCircuitManager AuthenticateHandler
         {
@@ -1212,6 +1217,30 @@ namespace OpenSim.Region.Framework.Scenes
             StatsReporter.OnSendStatsResult += SendSimStatsPackets;
             StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
 
+            IConfig restartConfig = config.Configs["RestartModule"];
+            if (restartConfig != null)
+            {
+                string markerPath = restartConfig.GetString("MarkerPath", String.Empty);
+
+                if (markerPath != String.Empty)
+                {
+                    string path = Path.Combine(markerPath, RegionInfo.RegionID.ToString() + ".started");
+                    try
+                    {
+                        string pidstring = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
+                        FileStream fs = File.Create(path);
+                        System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+                        Byte[] buf = enc.GetBytes(pidstring);
+                        fs.Write(buf, 0, buf.Length);
+                        fs.Close();
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+            }
+
+            StartTimerWatchdog();
         }
 
         public Scene(RegionInfo regInfo)
@@ -1482,6 +1511,14 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
+            IEtcdModule etcd = RequestModuleInterface<IEtcdModule>();
+            if (etcd != null)
+            {
+                etcd.Delete("Health");
+                etcd.Delete("HealthFlags");
+                etcd.Delete("RootAgents");
+            }
+
             m_log.InfoFormat("[SCENE]: Closing down the single simulator: {0}", RegionInfo.RegionName);
 
 
@@ -1519,6 +1556,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_log.Debug("[SCENE]: Persisting changed objects");
             Backup(true);
+
+            m_log.Debug("[SCENE]: Closing scene");
 
             m_sceneGraph.Close();
 
@@ -2351,6 +2390,7 @@ namespace OpenSim.Region.Framework.Scenes
                 EventManager.TriggerOnSceneObjectLoaded(group);
                 SceneObjectPart rootPart = group.GetPart(group.UUID);
                 rootPart.Flags &= ~PrimFlags.Scripted;
+                group.AggregateDeepPerms();
                 rootPart.TrimPermissions();
 
                 // Don't do this here - it will get done later on when sculpt data is loaded.
@@ -2603,8 +2643,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // Otherwise, use this default creation code;
                 sceneObject = new SceneObjectGroup(ownerID, pos, rot, shape);
-                AddNewSceneObject(sceneObject, true);
                 sceneObject.SetGroup(groupID, null);
+                AddNewSceneObject(sceneObject, true);
 
                 if (AgentPreferencesService != null) // This will override the brave new full perm world!
                 {
@@ -2622,6 +2662,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (UserManagementModule != null)
                 sceneObject.RootPart.CreatorIdentification = UserManagementModule.GetUserUUI(ownerID);
 
+            sceneObject.AggregateDeepPerms();
             sceneObject.ScheduleGroupForFullUpdate();
 
             return sceneObject;
@@ -2768,7 +2809,7 @@ namespace OpenSim.Region.Framework.Scenes
                         SceneObjectGroup sog = (SceneObjectGroup)e;
                         if (sog != null && !sog.IsAttachment)
                         {
-                            if (!exceptNoCopy || ((sog.GetEffectivePermissions() & (uint)PermissionMask.Copy) != 0))
+                            if (!exceptNoCopy || ((sog.EffectiveOwnerPerms & (uint)PermissionMask.Copy) != 0))
                             {
                                 DeleteSceneObject((SceneObjectGroup)e, false);
                             }
@@ -2782,7 +2823,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             if (toReturn.Count > 0)
             {
-                returnObjects(toReturn.ToArray(), UUID.Zero);
+                returnObjects(toReturn.ToArray(), null);
             }
         }
 
@@ -2944,15 +2985,15 @@ namespace OpenSim.Region.Framework.Scenes
         // Return 'true' if position inside region.
         public bool PositionIsInCurrentRegion(Vector3 pos)
         {
-            bool ret = false;
-            int xx = (int)Math.Floor(pos.X);
-            int yy = (int)Math.Floor(pos.Y);
-            if (xx < 0 || yy < 0)
+            float t = pos.X;
+            if (t < 0 || t >= RegionInfo.RegionSizeX)
                 return false;
 
-            if (xx < RegionInfo.RegionSizeX && yy < RegionInfo.RegionSizeY )
-                ret = true;
-            return ret;
+            t = pos.Y;
+            if (t < 0 || t >= RegionInfo.RegionSizeY)
+                return false;
+
+            return true;
         }
 
         /// <summary>
@@ -3603,7 +3644,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="GroupID">Group of new object</param>
         public void DuplicateObject(uint originalPrim, Vector3 offset, uint flags, UUID AgentID, UUID GroupID)
         {
-            SceneObjectGroup copy = SceneGraph.DuplicateObject(originalPrim, offset, flags, AgentID, GroupID, Quaternion.Identity);
+            bool createSelected = (flags & (uint)PrimFlags.CreateSelected) != 0;
+            SceneObjectGroup copy = SceneGraph.DuplicateObject(originalPrim, offset, AgentID,
+                    GroupID, Quaternion.Identity, createSelected);
             if (copy != null)
                 EventManager.TriggerObjectAddedToScene(copy);
         }
@@ -3632,6 +3675,8 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.Info("HITTARGET: " + RayTargetObj.ToString() + ", COPYTARGET: " + localID.ToString());
             SceneObjectPart target = GetSceneObjectPart(localID);
             SceneObjectPart target2 = GetSceneObjectPart(RayTargetObj);
+
+            bool createSelected = (dupeFlags & (uint)PrimFlags.CreateSelected) != 0;
 
             if (target != null && target2 != null)
             {
@@ -3674,13 +3719,13 @@ namespace OpenSim.Region.Framework.Scenes
                         Quaternion worldRot = target2.GetWorldRotation();
 
                         // SceneObjectGroup obj = m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, worldRot);
-                        copy = m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, worldRot);
+                        copy = m_sceneGraph.DuplicateObject(localID, pos, AgentID, GroupID, worldRot, createSelected);
                         //obj.Rotation = worldRot;
                         //obj.UpdateGroupRotationR(worldRot);
                     }
                     else
                     {
-                        copy = m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, Quaternion.Identity);
+                        copy = m_sceneGraph.DuplicateObject(localID, pos, AgentID, GroupID, Quaternion.Identity, createSelected);
                     }
 
                     if (copy != null)
@@ -3983,7 +4028,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (!LoginsEnabled)
             {
-                reason = "Logins Disabled";
+                reason = "Logins to this region are disabled";
                 return false;
             }
 
@@ -5077,65 +5122,59 @@ Label_GroupsDone:
         #endregion
 
         #region Script Engine
+        public bool LSLScriptDanger(SceneObjectPart part, Vector3 pos)
+        {
+
+            ILandObject parcel = LandChannel.GetLandObject(pos.X, pos.Y);
+            if (parcel == null)
+                return true;
+            
+            LandData ldata = parcel.LandData;
+            if (ldata == null)
+                return true;
+     
+            uint landflags = ldata.Flags;
+        
+            uint mask = (uint)(ParcelFlags.CreateObjects | ParcelFlags.AllowAPrimitiveEntry);
+            if((landflags & mask) != mask)
+                return true;
+ 
+            if((landflags & (uint)ParcelFlags.AllowOtherScripts) != 0)
+                return false;
+
+            if(part == null)
+                return true;
+            if(part.GroupID == ldata.GroupID && (landflags & (uint)ParcelFlags.AllowGroupScripts) != 0)
+                return false;
+
+            return true;
+        }
 
         private bool ScriptDanger(SceneObjectPart part, Vector3 pos)
         {
+            if (part == null)
+                return false;
+
             ILandObject parcel = LandChannel.GetLandObject(pos.X, pos.Y);
-            if (part != null)
+            if (parcel != null)
             {
-                if (parcel != null)
-                {
-                    if ((parcel.LandData.Flags & (uint)ParcelFlags.AllowOtherScripts) != 0)
-                    {
-                        return true;
-                    }
-                    else if ((part.OwnerID == parcel.LandData.OwnerID) || Permissions.IsGod(part.OwnerID))
-                    {
-                        return true;
-                    }
-                    else if (((parcel.LandData.Flags & (uint)ParcelFlags.AllowGroupScripts) != 0)
-                        && (parcel.LandData.GroupID != UUID.Zero) && (parcel.LandData.GroupID == part.GroupID))
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
+                if ((parcel.LandData.Flags & (uint)ParcelFlags.AllowOtherScripts) != 0)
+                    return true;
 
-                    if (pos.X > 0f && pos.X < RegionInfo.RegionSizeX && pos.Y > 0f && pos.Y < RegionInfo.RegionSizeY)
-                    {
-                        // The only time parcel != null when an object is inside a region is when
-                        // there is nothing behind the landchannel.  IE, no land plugin loaded.
-                        return true;
-                    }
-                    else
-                    {
-                        // The object is outside of this region.  Stop piping events to it.
-                        return false;
-                    }
-                }
+                if ((part.OwnerID == parcel.LandData.OwnerID) || Permissions.IsGod(part.OwnerID))
+                    return true;
+
+                if (((parcel.LandData.Flags & (uint)ParcelFlags.AllowGroupScripts) != 0)
+                    && (parcel.LandData.GroupID != UUID.Zero) && (parcel.LandData.GroupID == part.GroupID))
+                    return true;
             }
             else
             {
-                return false;
+                if (pos.X > 0f && pos.X < RegionInfo.RegionSizeX && pos.Y > 0f && pos.Y < RegionInfo.RegionSizeY)
+                    return true;
             }
-        }
 
-        public bool ScriptDanger(uint localID, Vector3 pos)
-        {
-            SceneObjectPart part = GetSceneObjectPart(localID);
-            if (part != null)
-            {
-                return ScriptDanger(part, pos);
-            }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
         public bool PipeEventsForScript(uint localID)
@@ -5512,23 +5551,24 @@ Label_GroupsDone:
                 return 0;
             }
 
-            if ((Util.EnvironmentTickCountSubtract(m_lastFrameTick)) < 1000)
+            if ((Util.EnvironmentTickCountSubtract(m_lastFrameTick)) < 2000)
             {
                 health+=1;
                 flags |= 1;
             }
 
-            if (Util.EnvironmentTickCountSubtract(m_lastIncoming) < 1000)
+            if (Util.EnvironmentTickCountSubtract(m_lastIncoming) < 2000)
             {
                 health+=1;
                 flags |= 2;
             }
 
-            if (Util.EnvironmentTickCountSubtract(m_lastOutgoing) < 1000)
+            if (Util.EnvironmentTickCountSubtract(m_lastOutgoing) < 2000)
             {
                 health+=1;
                 flags |= 4;
             }
+            /*
             else
             {
 int pid = System.Diagnostics.Process.GetCurrentProcess().Id;
@@ -5541,6 +5581,7 @@ proc.WaitForExit();
 Thread.Sleep(1000);
 Environment.Exit(1);
             }
+            */
 
             if (flags != 7)
                 return health;
@@ -6305,6 +6346,32 @@ Environment.Exit(1);
         public void TimerWatchdog(object sender, ElapsedEventArgs e)
         {
             CheckHeartbeat();
+
+            IEtcdModule etcd = RequestModuleInterface<IEtcdModule>();
+            int flags;
+            string message;
+            if (etcd != null)
+            {
+                int health = GetHealth(out flags, out message);
+                if (health != m_lastHealth)
+                {
+                    m_lastHealth = health;
+
+                    etcd.Store("Health", health.ToString(), 300000);
+                    etcd.Store("HealthFlags", flags.ToString(), 300000);
+                }
+
+                int roots = 0;
+                foreach (ScenePresence sp in GetScenePresences())
+                    if (!sp.IsChildAgent && !sp.IsNPC)
+                        roots++;
+
+                if (m_lastUsers != roots)
+                {
+                    m_lastUsers = roots;
+                    etcd.Store("RootAgents", roots.ToString(), 300000);
+                }
+            }
         }
 
         /// This method deals with movement when an avatar is automatically moving (but this is distinct from the
@@ -6460,6 +6527,22 @@ Environment.Exit(1);
             m_SimulationDataService.RemoveExtra(RegionInfo.RegionID, name);
 
             m_eventManager.TriggerExtraSettingChanged(this, name, String.Empty);
+        }
+
+        public bool InTeleportTargetsCoolDown(UUID sourceID, UUID targetID, double timeout)
+        {
+            lock(TeleportTargetsCoolDown)
+            {
+                UUID lastSource = UUID.Zero;
+                TeleportTargetsCoolDown.TryGetValue(targetID, out lastSource);
+                if(lastSource == UUID.Zero)
+                {
+                    TeleportTargetsCoolDown.Add(targetID, sourceID, timeout);
+                    return false;
+                }
+                TeleportTargetsCoolDown.AddOrUpdate(targetID, sourceID, timeout);
+                return lastSource == sourceID;
+            }
         }
     }
 }

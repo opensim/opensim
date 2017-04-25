@@ -260,10 +260,9 @@ namespace OpenSim.Region.CoreModules.Asset
         /// Cache doesn't guarantee in any situation that asset is stored to it.
         /// </para>
         /// </remarks>
-        public AssetBase Get(string id)
+        public bool Get(string id, out AssetBase assetBase)
         {
             m_getCount++;
-            AssetBase assetBase;
             if (m_cache.TryGetValue(id, out assetBase))
                 m_hitCount++;
 
@@ -284,7 +283,7 @@ namespace OpenSim.Region.CoreModules.Asset
 //            if (null == assetBase)
 //                m_log.DebugFormat("[CENOME ASSET CACHE]: Asset {0} not in cache", id);
 
-            return assetBase;
+            return true;
         }
 
         #endregion

@@ -481,14 +481,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 //                    "[ATTACHMENTS MODULE]: Attaching object {0} {1} to {2} point {3} from ground (silent = {4})",
 //                    group.Name, group.LocalId, sp.Name, attachmentPt, silent);
 
-            if (sp.GetAttachments().Contains(group))
-            {
-//                m_log.WarnFormat(
-//                    "[ATTACHMENTS MODULE]: Ignoring request to attach {0} {1} to {2} on {3} since it's already attached",
-//                    group.Name, group.LocalId, sp.Name, AttachmentPt);
-
-                return false;
-            }
 
             if (group.GetSittingAvatarsCount() != 0)
             {
@@ -496,6 +488,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     m_log.WarnFormat(
                         "[ATTACHMENTS MODULE]: Ignoring request to attach {0} {1} to {2} on {3} since {4} avatars are still sitting on it",
                         group.Name, group.LocalId, sp.Name, attachmentPt, group.GetSittingAvatarsCount());
+
+                return false;
+            }
+
+            List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
+            if (attachments.Contains(group))
+            {
+//                if (DebugLevel > 0)
+//                    m_log.WarnFormat(
+//                        "[ATTACHMENTS MODULE]: Ignoring request to attach {0} {1} to {2} on {3} since it's already attached",
+//                        group.Name, group.LocalId, sp.Name, attachmentPt);
 
                 return false;
             }
@@ -533,7 +536,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             {
                 attachmentPt = (uint)group.RootPart.Shape.LastAttachPoint;
                 attachPos = group.RootPart.AttachedPos;
-                group.HasGroupChanged = true;
             }
 
             // if we still didn't find a suitable attachment point.......
@@ -542,18 +544,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 // Stick it on left hand with Zero Offset from the attachment point.
                 attachmentPt = (uint)AttachmentPoint.LeftHand;
                 attachPos = Vector3.Zero;
-            }
-
-            List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
-
-            if (attachments.Contains(group))
-            {
-                if (DebugLevel > 0)
-                    m_log.WarnFormat(
-                        "[ATTACHMENTS MODULE]: Ignoring request to attach {0} {1} to {2} on {3} since it's already attached",
-                        group.Name, group.LocalId, sp.Name, attachmentPt);
-
-                return false;
             }
 
             // If we already have 5, remove the oldest until only 4 are left. Skip over temp ones
@@ -579,7 +569,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             lock (sp.AttachmentsSyncLock)
             {
                 group.AttachmentPoint = attachmentPt;
-                group.AbsolutePosition = attachPos;
+                group.RootPart.AttachedPos = attachPos;
 
                 if (addToInventory && sp.PresenceType != PresenceType.Npc)
                     UpdateUserInventoryWithAttachment(sp, group, attachmentPt, append);
@@ -956,7 +946,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             m_scene.DeleteFromStorage(so.UUID);
             m_scene.EventManager.TriggerParcelPrimCountTainted();
 
-            so.AttachedAvatar = sp.UUID;
 
             foreach (SceneObjectPart part in so.Parts)
             {
@@ -969,11 +958,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 }
             }
 
-            so.AbsolutePosition = attachOffset;
-            so.RootPart.AttachedPos = attachOffset;
-            so.IsAttachment = true;
             so.RootPart.SetParentLocalId(sp.LocalId);
+            so.AttachedAvatar = sp.UUID;
             so.AttachmentPoint = attachmentpoint;
+            so.RootPart.AttachedPos = attachOffset;
+            so.AbsolutePosition = attachOffset;
+            so.IsAttachment = true;
 
             sp.AddAttachment(so);
 
@@ -1322,7 +1312,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 if (part == null)
                     return;
 
-                if (!m_scene.Permissions.CanTakeObject(part.UUID, remoteClient.AgentId))
+                SceneObjectGroup group = part.ParentGroup;
+
+                if (!m_scene.Permissions.CanTakeObject(group, sp))
                 {
                     remoteClient.SendAgentAlertMessage(
                         "You don't have sufficient permissions to attach this object", false);
@@ -1334,7 +1326,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 AttachmentPt &= 0x7f;
 
                 // Calls attach with a Zero position
-                SceneObjectGroup group = part.ParentGroup;
                 if (AttachObject(sp, group , AttachmentPt, false, true, append))
                 {
                     if (DebugLevel > 0)

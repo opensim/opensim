@@ -371,3 +371,9 @@ BEGIN;
 ALTER TABLE `prims` ADD COLUMN `RezzerID` char(36) DEFAULT NULL;
 
 COMMIT;
+
+:VERSION 36         #----- Add physics inertia data
+
+BEGIN;
+ALTER TABLE `prims` ADD COLUMN `PhysInertia` TEXT default NULL;
+COMMIT;

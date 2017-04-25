@@ -335,6 +335,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 grp.AbsolutePosition = obj.Position;
                 prim.RotationOffset = obj.Rotation;
 
+
                 // Required for linking
                 grp.RootPart.ClearUpdateSchedule();
 
