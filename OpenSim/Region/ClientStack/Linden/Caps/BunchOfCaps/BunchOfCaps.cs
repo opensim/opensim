@@ -1011,36 +1011,49 @@ namespace OpenSim.Region.ClientStack.Linden
                         int nfaces = face_list.Count;
                         switch(nfaces)
                         {
-                            case 1:
-                            case 2:
-                                pbs.ProfileCurve = (byte)ProfileCurve.Circle | (byte)HollowShape.Triangle;
-                                pbs.PathCurve = (byte)PathCurve.Circle;
-                                if(nfaces == 2)
-                                    pbs.ProfileHollow = 1;
+                            case 0: // low oops case
+                            case 1: // torus 
+                                pbs.ProfileCurve = (byte)ProfileShape.Circle | (byte)HollowShape.Triangle;
+                                pbs.PathCurve = (byte)Extrusion.Curve1;
                                 break;
 
-                            case 3:
-                            case 4:
-                                pbs.ProfileCurve = (byte)ProfileCurve.Circle | (byte)HollowShape.Triangle;
-                                pbs.PathCurve = (byte)PathCurve.Line;
-                                if(nfaces == 4)
-                                    pbs.ProfileHollow = 1;
+                            case 2: // torus with hollow (a sl viewer whould see 4 faces on a hollow sphere)
+                                pbs.ProfileCurve = (byte)ProfileShape.Circle | (byte)HollowShape.Triangle;
+                                pbs.PathCurve = (byte)Extrusion.Curve1;
+                                pbs.ProfileHollow = 1;
                                 break;
 
-                            case 5:
-                                pbs.ProfileCurve = (byte)ProfileCurve.EqualTriangle | (byte)HollowShape.Triangle;
-                                pbs.PathCurve = (byte)PathCurve.Line;
+                            case 3: // cylinder
+                                pbs.ProfileCurve = (byte)ProfileShape.Circle | (byte)HollowShape.Triangle;
+                                pbs.PathCurve = (byte)Extrusion.Straight;
                                 break;
 
-                            default:
-                                // hack to flag that pbs does represent number of faces
-                                 //meshs where never uploaded with this 
+                            case 4: // cylinder with hollow
+                                pbs.ProfileCurve = (byte)ProfileShape.Circle | (byte)HollowShape.Triangle;
+                                pbs.PathCurve = (byte)Extrusion.Straight;
+                                pbs.ProfileHollow = 1;
+                                break;
+
+                            case 5: // prism
+                                pbs.ProfileCurve = (byte)ProfileShape.EquilateralTriangle | (byte)HollowShape.Triangle;
+                                pbs.PathCurve = (byte)Extrusion.Straight;
+                                break;
+
+                            case 6: // box
+                                pbs.ProfileCurve = (byte)ProfileShape.Square  | (byte)HollowShape.Triangle;
+                                pbs.PathCurve = (byte)Extrusion.Straight;
+                                break;
+
+                            case 7: // box with hollow
+                                pbs.ProfileCurve = (byte)ProfileShape.Square | (byte)HollowShape.Triangle;
+                                pbs.PathCurve = (byte)Extrusion.Straight;
+                                pbs.ProfileHollow = 1;
+                                break;
+
+                            default: // 8 faces  box with cut
                                 pbs.ProfileCurve = (byte)ProfileCurve.Square | (byte)HollowShape.Triangle;
-                                pbs.PathCurve = (byte)PathCurve.Line;
-                                if(nfaces == 7)
-                                    pbs.ProfileHollow = 1;
-                                else if(nfaces == 8)
-                                    pbs.ProfileBegin = 1;
+                                pbs.PathCurve = (byte)Extrusion.Straight;
+                                pbs.ProfileBegin = 1;
                                 break;
                         }
 
