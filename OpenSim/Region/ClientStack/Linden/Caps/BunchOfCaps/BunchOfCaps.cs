@@ -946,17 +946,26 @@ namespace OpenSim.Region.ClientStack.Linden
                             continue;
                         }
 
-                        PrimitiveBaseShape pbs = PrimitiveBaseShape.CreateBox();
+                        OSDArray face_list = (OSDArray)inner_instance_list["face_list"];
+
+                        PrimitiveBaseShape pbs = null;
+                        if (inner_instance_list.ContainsKey("mesh")) // seems to happen always but ...
+                        {
+                            int meshindx = inner_instance_list["mesh"].AsInteger();
+                            if (meshAssets.Count > meshindx)
+                                pbs = PrimitiveBaseShape.CreateMesh(face_list.Count, meshAssets[meshindx]);
+                        }
+                        if(pbs == null) // fallback
+                            pbs = PrimitiveBaseShape.CreateBox();
 
                         Primitive.TextureEntry textureEntry
                             = new Primitive.TextureEntry(Primitive.TextureEntry.WHITE_TEXTURE);
 
-
-                        OSDArray face_list = (OSDArray)inner_instance_list["face_list"];
                         for (uint face = 0; face < face_list.Count; face++)
                         {
                             OSDMap faceMap = (OSDMap)face_list[(int)face];
-                            Primitive.TextureEntryFace f = pbs.Textures.CreateFace(face);
+
+                            Primitive.TextureEntryFace f = textureEntry.CreateFace(face); //clone the default
                             if (faceMap.ContainsKey("fullbright"))
                                 f.Fullbright = faceMap["fullbright"].AsBoolean();
                             if (faceMap.ContainsKey("diffuse_color"))
@@ -986,76 +995,10 @@ namespace OpenSim.Region.ClientStack.Linden
 
                             if (textures.Count > textureNum)
                                 f.TextureID = textures[textureNum];
-                            else
-                                f.TextureID = Primitive.TextureEntry.WHITE_TEXTURE;
-
+ 
                             textureEntry.FaceTextures[face] = f;
                         }
-
                         pbs.TextureEntry = textureEntry.GetBytes();
-
-                        if (inner_instance_list.ContainsKey("mesh")) // seems to happen always but ...
-                        {
-                            int meshindx = inner_instance_list["mesh"].AsInteger();
-                            if (meshAssets.Count > meshindx)
-                            {
-                                pbs.SculptEntry = true;
-                                pbs.SculptType = (byte)SculptType.Mesh;
-                                pbs.SculptTexture = meshAssets[meshindx]; // actual asset UUID after meshs suport introduction
-                                // data will be requested from asset on rez (i hope)
-                            }
-                        }
-
-                        // faces number to pbs shape for viewers LOD
-                        // now extended to full faces equivalent
-                        int nfaces = face_list.Count;
-                        switch(nfaces)
-                        {
-                            case 0: // low oops case
-                            case 1: // torus 
-                                pbs.ProfileCurve = (byte)ProfileShape.Circle | (byte)HollowShape.Triangle;
-                                pbs.PathCurve = (byte)Extrusion.Curve1;
-                                break;
-
-                            case 2: // torus with hollow (a sl viewer whould see 4 faces on a hollow sphere)
-                                pbs.ProfileCurve = (byte)ProfileShape.Circle | (byte)HollowShape.Triangle;
-                                pbs.PathCurve = (byte)Extrusion.Curve1;
-                                pbs.ProfileHollow = 1;
-                                break;
-
-                            case 3: // cylinder
-                                pbs.ProfileCurve = (byte)ProfileShape.Circle | (byte)HollowShape.Triangle;
-                                pbs.PathCurve = (byte)Extrusion.Straight;
-                                break;
-
-                            case 4: // cylinder with hollow
-                                pbs.ProfileCurve = (byte)ProfileShape.Circle | (byte)HollowShape.Triangle;
-                                pbs.PathCurve = (byte)Extrusion.Straight;
-                                pbs.ProfileHollow = 1;
-                                break;
-
-                            case 5: // prism
-                                pbs.ProfileCurve = (byte)ProfileShape.EquilateralTriangle | (byte)HollowShape.Triangle;
-                                pbs.PathCurve = (byte)Extrusion.Straight;
-                                break;
-
-                            case 6: // box
-                                pbs.ProfileCurve = (byte)ProfileShape.Square  | (byte)HollowShape.Triangle;
-                                pbs.PathCurve = (byte)Extrusion.Straight;
-                                break;
-
-                            case 7: // box with hollow
-                                pbs.ProfileCurve = (byte)ProfileShape.Square | (byte)HollowShape.Triangle;
-                                pbs.PathCurve = (byte)Extrusion.Straight;
-                                pbs.ProfileHollow = 1;
-                                break;
-
-                            default: // 8 faces  box with cut
-                                pbs.ProfileCurve = (byte)ProfileCurve.Square | (byte)HollowShape.Triangle;
-                                pbs.PathCurve = (byte)Extrusion.Straight;
-                                pbs.ProfileBegin = 1;
-                                break;
-                        }
 
                         Vector3 position = inner_instance_list["position"].AsVector3();
                         Quaternion rotation = inner_instance_list["rotation"].AsQuaternion();
