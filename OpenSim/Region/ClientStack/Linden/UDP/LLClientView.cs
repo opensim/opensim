@@ -4212,12 +4212,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     SceneObjectGroup grp = part.ParentGroup;
                     if (grp.inTransit && !update.Flags.HasFlag(PrimUpdateFlags.SendInTransit))
                         continue;
+/* debug
                     if (update.Flags.HasFlag(PrimUpdateFlags.SendInTransit))
                     {
 
 
                     }
-
+*/
                     if (grp.IsDeleted)
                     {
                         // Don't send updates for objects that have been marked deleted.
@@ -4274,14 +4275,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         {
                             part.Shape.LightEntry = false;
                         }
-
-                        if (part.Shape != null && (part.Shape.SculptType == (byte)SculptType.Mesh))
-                        {
-                            // Ensure that mesh has at least 8 valid faces
-                            part.Shape.ProfileBegin = 12500;
-                            part.Shape.ProfileEnd = 0;
-                            part.Shape.ProfileHollow = 27500;
-                        }
                     }
 
                     if(doCulling && !grp.IsAttachment)
@@ -4308,14 +4301,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             GroupsNeedFullUpdate.Add(grp);
                             continue;
                         }
-                    }
-
-                    if (part.Shape != null && (part.Shape.SculptType == (byte)SculptType.Mesh))
-                    {
-                        // Ensure that mesh has at least 8 valid faces
-                        part.Shape.ProfileBegin = 12500;
-                        part.Shape.ProfileEnd = 0;
-                        part.Shape.ProfileHollow = 27500;
                     }
                 }
                 else if (update.Entity is ScenePresence)
@@ -5877,6 +5862,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             update.PCode = part.Shape.PCode;
             update.ProfileBegin = part.Shape.ProfileBegin;
             update.ProfileCurve = part.Shape.ProfileCurve;
+
+            if(part.Shape.SculptType == (byte)SculptType.Mesh) // filter out hack 
+                update.ProfileCurve = (byte)(part.Shape.ProfileCurve & 0x0f);
+            else
+                update.ProfileCurve = part.Shape.ProfileCurve;
+
             update.ProfileEnd = part.Shape.ProfileEnd;
             update.ProfileHollow = part.Shape.ProfileHollow;
             update.PSBlock = part.ParticleSystem ?? Utils.EmptyBytes;

@@ -1006,28 +1006,41 @@ namespace OpenSim.Region.ClientStack.Linden
                             }
                         }
 
-                        // faces number to pbs shape
-                        switch(face_list.Count)
+                        // faces number to pbs shape for viewers LOD
+                        // now extended to full faces equivalent
+                        int nfaces = face_list.Count;
+                        switch(nfaces)
                         {
                             case 1:
                             case 2:
-                                pbs.ProfileCurve = (byte)ProfileCurve.Circle;
+                                pbs.ProfileCurve = (byte)ProfileCurve.Circle | (byte)HollowShape.Triangle;
                                 pbs.PathCurve = (byte)PathCurve.Circle;
+                                if(nfaces == 2)
+                                    pbs.ProfileHollow = 1;
                                 break;
 
                             case 3:
                             case 4:
-                                pbs.ProfileCurve = (byte)ProfileCurve.Circle;
+                                pbs.ProfileCurve = (byte)ProfileCurve.Circle | (byte)HollowShape.Triangle;
                                 pbs.PathCurve = (byte)PathCurve.Line;
+                                if(nfaces == 4)
+                                    pbs.ProfileHollow = 1;
                                 break;
+
                             case 5:
-                                pbs.ProfileCurve = (byte)ProfileCurve.EqualTriangle;
+                                pbs.ProfileCurve = (byte)ProfileCurve.EqualTriangle | (byte)HollowShape.Triangle;
                                 pbs.PathCurve = (byte)PathCurve.Line;
                                 break;
 
                             default:
-                                pbs.ProfileCurve = (byte)ProfileCurve.Square;
+                                // hack to flag that pbs does represent number of faces
+                                 //meshs where never uploaded with this 
+                                pbs.ProfileCurve = (byte)ProfileCurve.Square | (byte)HollowShape.Triangle;
                                 pbs.PathCurve = (byte)PathCurve.Line;
+                                if(nfaces == 7)
+                                    pbs.ProfileHollow = 1;
+                                else if(nfaces == 8)
+                                    pbs.ProfileBegin = 1;
                                 break;
                         }
 
