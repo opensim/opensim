@@ -909,9 +909,9 @@ namespace OpenSim.Services.GridService
         private void OutputRegionsToConsoleSummary(List<RegionData> regions)
         {
             ConsoleDisplayTable dispTable = new ConsoleDisplayTable();
-            dispTable.AddColumn("Name", 44);
-            dispTable.AddColumn("ID", 36);
-            dispTable.AddColumn("Position", 11);
+            dispTable.AddColumn("Name", ConsoleDisplayUtil.RegionNameSize);
+            dispTable.AddColumn("ID", ConsoleDisplayUtil.UuidSize);
+            dispTable.AddColumn("Position", ConsoleDisplayUtil.CoordTupleSize);
             dispTable.AddColumn("Size", 11);
             dispTable.AddColumn("Flags", 60);
 
