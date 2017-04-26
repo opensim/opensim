@@ -2579,6 +2579,8 @@ namespace OpenSim.Region.Framework.Scenes
                 AggregatedInnerOwnerPerms = owner & mask;
                 AggregatedInnerGroupPerms = group & mask;
                 AggregatedInnerEveryonePerms = everyone & mask;
+                if(ParentGroup != null)
+                    ParentGroup.InvalidateEffectivePerms();
             }
         }
 

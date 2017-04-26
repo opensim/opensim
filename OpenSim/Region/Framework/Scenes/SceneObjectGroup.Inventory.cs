@@ -252,18 +252,26 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         // new test code, to place in better place later
-        private object PermissionsLock = new object();
+        private object m_PermissionsLock = new object();
+        private bool m_EffectivePermsInvalid = true;
+
+        public void InvalidateEffectivePerms()
+        {
+            lock(m_PermissionsLock)
+                m_EffectivePermsInvalid = true;
+        }
 
         private uint m_EffectiveEveryOnePerms;
         public uint EffectiveEveryOnePerms
         {
             get
             {
-                // this can't be done here but on every place where a change may happen (rez, (de)link, contents , perms,  etc)
-                // bc this is on heavy duty code paths
-                // but for now we need to test the concept
-//                AggregateDeepPerms();
-                return m_EffectiveEveryOnePerms;
+                lock(m_PermissionsLock)
+                {
+                    if(m_EffectivePermsInvalid)
+                        AggregatePerms();
+                    return m_EffectiveEveryOnePerms;
+                }
             }
         }
 
@@ -272,11 +280,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                // this can't be done here but on every place where a change may happen (rez, (de)link, contents , perms,  etc)
-                // bc this is on heavy duty code paths
-                // but for now we need to test the concept
-//                AggregateDeepPerms();
-                return m_EffectiveGroupPerms;
+                lock(m_PermissionsLock)
+                {
+                    if(m_EffectivePermsInvalid)
+                        AggregatePerms();
+                    return m_EffectiveGroupPerms;
+                }
             }
         }
 
@@ -285,11 +294,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                // this can't be done here but on every place where a change may happen (rez, (de)link, contents , perms,  etc)
-                // bc this is on heavy duty code paths
-                // but for now we need to test the concept
-//                AggregateDeepPerms();
-                return m_EffectiveGroupOrEveryOnePerms;
+                lock(m_PermissionsLock)
+                {
+                    if(m_EffectivePermsInvalid)
+                        AggregatePerms();
+                    return m_EffectiveGroupOrEveryOnePerms;
+                }
             }
         }
 
@@ -298,11 +308,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                // this can't be done here but on every place where a change may happen (rez, (de)link, contents , perms,  etc)
-                // bc this is on heavy duty code paths
-                // but for now we need to test the concept
- //               AggregateDeepPerms();
-                return m_EffectiveOwnerPerms;
+                lock(m_PermissionsLock)
+                {
+                    if(m_EffectivePermsInvalid)
+                        AggregatePerms();
+                    return m_EffectiveOwnerPerms;
+                }
             }
         }
 
@@ -310,7 +321,7 @@ namespace OpenSim.Region.Framework.Scenes
         // AggregatePerms does same using cached parts content perms
         public void AggregateDeepPerms()
         {
-            lock(PermissionsLock)
+            lock(m_PermissionsLock)
             {
                 // aux
                 const uint allmask = (uint)PermissionMask.AllEffective;
@@ -370,6 +381,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_EffectiveEveryOnePerms = everyone  & owner;
                 m_EffectiveGroupOrEveryOnePerms = groupOrEveryone  & owner;
+                m_EffectivePermsInvalid = false;
             }
         }
 
@@ -377,7 +389,7 @@ namespace OpenSim.Region.Framework.Scenes
         // ie is AggregateDeepPerms without the part.AggregateInnerPerms() call on parts loop
         public void AggregatePerms()
         {
-            lock(PermissionsLock)
+            lock(m_PermissionsLock)
             {
                 // aux
                 const uint allmask = (uint)PermissionMask.AllEffective;
@@ -394,6 +406,8 @@ namespace OpenSim.Region.Framework.Scenes
                 uint rootEveryonePerms = RootPart.EveryoneMask;
                 uint everyone = rootEveryonePerms;
 
+                bool needUpdate = false;
+
                 SceneObjectPart[] parts = m_parts.GetArray();
                 for (int i = 0; i < parts.Length; i++)
                 {
@@ -409,7 +423,12 @@ namespace OpenSim.Region.Framework.Scenes
                     owner |= (uint)PermissionMask.Transfer;
 
                 owner &= basePerms;
-                m_EffectiveOwnerPerms = owner;
+                if(owner != m_EffectiveOwnerPerms)
+                {
+                    needUpdate = true;
+                    m_EffectiveOwnerPerms = owner;
+                }
+
                 uint ownertransfermask = owner & (uint)PermissionMask.Transfer;
 
                 // recover modify and move
@@ -421,7 +440,12 @@ namespace OpenSim.Region.Framework.Scenes
                     group |= ownertransfermask;
 
                 uint groupOrEveryone = group;
-                m_EffectiveGroupPerms = group & owner;
+                uint tmpPerms = group & owner;
+                if(tmpPerms != m_EffectiveGroupPerms)
+                {
+                    needUpdate = true;
+                    m_EffectiveGroupPerms = tmpPerms;
+                }
 
                 // recover move
                 rootEveryonePerms &= (uint)PermissionMask.Move;
@@ -434,8 +458,24 @@ namespace OpenSim.Region.Framework.Scenes
 
                 groupOrEveryone |= everyone;
 
-                m_EffectiveEveryOnePerms = everyone  & owner;
-                m_EffectiveGroupOrEveryOnePerms = groupOrEveryone  & owner;
+                tmpPerms = everyone  & owner;
+                if(tmpPerms != m_EffectiveEveryOnePerms)
+                {
+                    needUpdate = true;
+                    m_EffectiveEveryOnePerms = tmpPerms;
+                }
+
+                tmpPerms = groupOrEveryone  & owner;
+                if(tmpPerms != m_EffectiveGroupOrEveryOnePerms)
+                {
+                    needUpdate = true;
+                    m_EffectiveGroupOrEveryOnePerms = tmpPerms;
+                }
+
+                m_EffectivePermsInvalid = false;
+              
+                if(needUpdate)
+                    RootPart.ScheduleFullUpdate();
             }
         }
 
