@@ -640,9 +640,11 @@ namespace OpenSim.Services.UserAccountService
             m_log.DebugFormat("[USER ACCOUNT SERVICE]: Creating default appearance items for {0}", principalID);
 
             InventoryFolderBase bodyPartsFolder = m_InventoryService.GetFolderForType(principalID, FolderType.BodyPart);
+            // Get Current Outfit folder
+            InventoryFolderBase currentOutfitFolder = m_InventoryService.GetFolderForType(principalID, FolderType.CurrentOutfit);
 
             InventoryItemBase eyes = new InventoryItemBase(UUID.Random(), principalID);
-            eyes.AssetID = new UUID("4bb6fa4d-1cd2-498a-a84c-95c1a0e745a7");
+            eyes.AssetID = AvatarWearable.DEFAULT_EYES_ASSET;
             eyes.Name = "Default Eyes";
             eyes.CreatorId = principalID.ToString();
             eyes.AssetType = (int)AssetType.Bodypart;
@@ -655,6 +657,7 @@ namespace OpenSim.Services.UserAccountService
             eyes.NextPermissions = (uint)PermissionMask.All;
             eyes.Flags = (uint)WearableType.Eyes;
             m_InventoryService.AddItem(eyes);
+            CreateCurrentOutfitLink((int)InventoryType.Wearable, (uint)WearableType.Eyes, eyes.Name, eyes.ID, principalID, currentOutfitFolder.ID);
 
             InventoryItemBase shape = new InventoryItemBase(UUID.Random(), principalID);
             shape.AssetID = AvatarWearable.DEFAULT_BODY_ASSET;
@@ -670,6 +673,7 @@ namespace OpenSim.Services.UserAccountService
             shape.NextPermissions = (uint)PermissionMask.All;
             shape.Flags = (uint)WearableType.Shape;
             m_InventoryService.AddItem(shape);
+            CreateCurrentOutfitLink((int)InventoryType.Wearable, (uint)WearableType.Shape, shape.Name, shape.ID, principalID, currentOutfitFolder.ID);
 
             InventoryItemBase skin = new InventoryItemBase(UUID.Random(), principalID);
             skin.AssetID = AvatarWearable.DEFAULT_SKIN_ASSET;
@@ -685,6 +689,7 @@ namespace OpenSim.Services.UserAccountService
             skin.NextPermissions = (uint)PermissionMask.All;
             skin.Flags = (uint)WearableType.Skin;
             m_InventoryService.AddItem(skin);
+            CreateCurrentOutfitLink((int)InventoryType.Wearable, (uint)WearableType.Skin, skin.Name, skin.ID, principalID, currentOutfitFolder.ID);
 
             InventoryItemBase hair = new InventoryItemBase(UUID.Random(), principalID);
             hair.AssetID = AvatarWearable.DEFAULT_HAIR_ASSET;
@@ -700,6 +705,7 @@ namespace OpenSim.Services.UserAccountService
             hair.NextPermissions = (uint)PermissionMask.All;
             hair.Flags = (uint)WearableType.Hair;
             m_InventoryService.AddItem(hair);
+            CreateCurrentOutfitLink((int)InventoryType.Wearable, (uint)WearableType.Hair, hair.Name, hair.ID, principalID, currentOutfitFolder.ID);
 
             InventoryFolderBase clothingFolder = m_InventoryService.GetFolderForType(principalID, FolderType.Clothing);
 
@@ -717,6 +723,7 @@ namespace OpenSim.Services.UserAccountService
             shirt.NextPermissions = (uint)PermissionMask.All;
             shirt.Flags = (uint)WearableType.Shirt;
             m_InventoryService.AddItem(shirt);
+            CreateCurrentOutfitLink((int)InventoryType.Wearable, (uint)WearableType.Shirt, shirt.Name, shirt.ID, principalID, currentOutfitFolder.ID);
 
             InventoryItemBase pants = new InventoryItemBase(UUID.Random(), principalID);
             pants.AssetID = AvatarWearable.DEFAULT_PANTS_ASSET;
@@ -732,6 +739,7 @@ namespace OpenSim.Services.UserAccountService
             pants.NextPermissions = (uint)PermissionMask.All;
             pants.Flags = (uint)WearableType.Pants;
             m_InventoryService.AddItem(pants);
+            CreateCurrentOutfitLink((int)InventoryType.Wearable, (uint)WearableType.Pants, pants.Name, pants.ID, principalID, currentOutfitFolder.ID);
 
             if (m_AvatarService != null)
             {
@@ -815,6 +823,8 @@ namespace OpenSim.Services.UserAccountService
         {
             // Get Clothing folder of receiver
             InventoryFolderBase destinationFolder = m_InventoryService.GetFolderForType(destination, FolderType.Clothing);
+            // Get Current Outfit folder
+            InventoryFolderBase currentOutfitFolder = m_InventoryService.GetFolderForType(destination, FolderType.CurrentOutfit);
 
             if (destinationFolder == null)
                 throw new Exception("Cannot locate folder(s)");
@@ -841,6 +851,7 @@ namespace OpenSim.Services.UserAccountService
             for (int i = 0; i < wearables.Length; i++)
             {
                 wearable = wearables[i];
+                m_log.DebugFormat("[XXX]: Getting item {0} from avie {1}", wearable[0].ItemID, source);
                 if (wearable[0].ItemID != UUID.Zero)
                 {
                     // Get inventory item and copy it
@@ -878,6 +889,9 @@ namespace OpenSim.Services.UserAccountService
                         AvatarWearable newWearable = new AvatarWearable();
                         newWearable.Wear(destinationItem.ID, wearable[0].AssetID);
                         avatarAppearance.SetWearable(i, newWearable);
+
+                        // Add to Current Outfit
+                        CreateCurrentOutfitLink((int)InventoryType.Wearable, item.Flags, item.Name, destinationItem.ID, destination, currentOutfitFolder.ID);
                     }
                     else
                     {
@@ -930,6 +944,9 @@ namespace OpenSim.Services.UserAccountService
                         // Attach item
                         avatarAppearance.SetAttachment(attachpoint, destinationItem.ID, destinationItem.AssetID);
                         m_log.DebugFormat("[USER ACCOUNT SERVICE]: Attached {0}", destinationItem.ID);
+
+                        // Add to Current Outfit
+                        CreateCurrentOutfitLink(destinationItem.InvType, item.Flags, item.Name, destinationItem.ID, destination, currentOutfitFolder.ID);
                     }
                     else
                     {
@@ -937,6 +954,30 @@ namespace OpenSim.Services.UserAccountService
                     }
                 }
             }
+        }
+
+        protected void CreateCurrentOutfitLink(int invType, uint itemType, string name, UUID itemID, UUID userID, UUID currentOutfitFolderUUID)
+        {
+            UUID LinkInvItem = UUID.Random();
+            InventoryItemBase itembase = new InventoryItemBase(LinkInvItem, userID)
+            {
+                AssetID = itemID,
+                AssetType = (int)AssetType.Link,
+                CreatorId = userID.ToString(),
+                InvType = invType,
+                Description = "",
+                //Folder = m_InventoryService.GetFolderForType(userID, FolderType.CurrentOutfit).ID,
+                Folder = currentOutfitFolderUUID,
+                Flags = itemType,
+                Name = name,
+                BasePermissions = (uint)PermissionMask.Copy,
+                CurrentPermissions = (uint)PermissionMask.Copy,
+                EveryOnePermissions = (uint)PermissionMask.Copy,
+                GroupPermissions = (uint)PermissionMask.Copy,
+                NextPermissions = (uint)PermissionMask.Copy
+            };
+
+            m_InventoryService.AddItem(itembase);
         }
 
         /// <summary>
