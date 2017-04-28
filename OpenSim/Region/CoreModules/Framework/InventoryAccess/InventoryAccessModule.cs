@@ -581,8 +581,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             foreach (SceneObjectGroup grp in objsForEffectivePermissions)
             {
                 uint groupPerms = grp.GetEffectivePermissions(true);
-                if ((grp.RootPart.BaseMask & (uint)PermissionMask.Modify) != 0)
-                    groupPerms |= (uint)PermissionMask.Modify;
+//                if ((grp.RootPart.BaseMask & (uint)PermissionMask.Modify) != 0)
+//                    groupPerms |= (uint)PermissionMask.Modify;
 
                 effectivePerms &= groupPerms;
             }
