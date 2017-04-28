@@ -574,8 +574,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             IClientAPI remoteClient)
         {
             uint effectivePerms = (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify | PermissionMask.Move | PermissionMask.Export) | 7;
-            uint allObjectsNextOwnerPerms = 0x7fffffff;
-
+ 
             // For the porposes of inventory, an object is modify if the prims
             // are modify. This allows renaming an object that contains no
             // mod items.
@@ -591,21 +590,27 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             if (remoteClient != null && (remoteClient.AgentId != so.RootPart.OwnerID) && m_Scene.Permissions.PropagatePermissions())
             {
-                uint perms = effectivePerms;
-                uint nextPerms = (perms & 7) << 13;
-                if ((nextPerms & (uint)PermissionMask.Copy) == 0)
-                    perms &= ~(uint)PermissionMask.Copy;
-                if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
-                    perms &= ~(uint)PermissionMask.Transfer;
-                if ((nextPerms & (uint)PermissionMask.Modify) == 0)
-                    perms &= ~(uint)PermissionMask.Modify;
+                if ((effectivePerms & (uint)PermissionMask.FoldedCopy) == 0)
+                    effectivePerms &= ~(uint)PermissionMask.Copy;
+                if ((effectivePerms & (uint)PermissionMask.FoldedTransfer) == 0)
+                    effectivePerms &= ~(uint)PermissionMask.Transfer;
+                if ((effectivePerms & (uint)PermissionMask.FoldedExport) == 0)
+                    effectivePerms &= ~(uint)PermissionMask.Export;
                 
-//                item.BasePermissions = perms & so.RootPart.NextOwnerMask;
+                uint basePerms = effectivePerms & so.RootPart.NextOwnerMask;
                 
-                uint nextp = so.RootPart.NextOwnerMask | (uint)PermissionMask.FoldedMask;
-                item.BasePermissions = perms & nextp;
+                if((basePerms & (uint)PermissionMask.Copy) == 0)
+                    basePerms |= (uint)PermissionMask.Transfer;
+
+                // unlock
+                basePerms |= (uint)PermissionMask.Move;
+
+                basePerms &= ~(uint)PermissionMask.FoldedMask;
+                basePerms |= ((basePerms >> (int)PermissionMask.FoldingShift) & (uint)PermissionMask.FoldedMask);
+               
+                item.BasePermissions = basePerms;               
                 item.CurrentPermissions = item.BasePermissions;
-                item.NextPermissions = perms & so.RootPart.NextOwnerMask;
+                item.NextPermissions = effectivePerms & so.RootPart.NextOwnerMask;
                 item.EveryOnePermissions = so.RootPart.EveryoneMask & so.RootPart.NextOwnerMask;
                 item.GroupPermissions = so.RootPart.GroupMask & so.RootPart.NextOwnerMask;
 
@@ -626,7 +631,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                          (uint)PermissionMask.Modify |
                          (uint)PermissionMask.Move |
                          (uint)PermissionMask.Export |
-                         7); // Preserve folded permissions
+                         (uint)PermissionMask.FoldedMask); // Preserve folded permissions ??
             }    
             
             return item;

@@ -326,7 +326,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // aux
                 const uint allmask = (uint)PermissionMask.AllEffective;
                 const uint movemodmask = (uint)(PermissionMask.Move | PermissionMask.Modify);
-                const uint copytransfermast = (uint)(PermissionMask.Copy | PermissionMask.Transfer);
+                const uint copytransfermask = (uint)(PermissionMask.Copy | PermissionMask.Transfer);
 
                 uint basePerms = (RootPart.BaseMask & allmask) | (uint)PermissionMask.Move;
                 bool noBaseTransfer = (basePerms & (uint)PermissionMask.Transfer) == 0;
@@ -350,7 +350,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // recover modify and move
                 rootOwnerPerms &= movemodmask;
                 owner |= rootOwnerPerms;
-                if((owner & copytransfermast) == 0)
+                if((owner & copytransfermask) == 0)
                     owner |= (uint)PermissionMask.Transfer;
 
                 owner &= basePerms;
@@ -479,17 +479,13 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public uint GetEffectivePermissions()
-        {
-            return GetEffectivePermissions(false);
-        }
-
         public uint GetEffectivePermissions(bool useBase)
         {
             uint perms=(uint)(PermissionMask.Modify |
                               PermissionMask.Copy |
                               PermissionMask.Move |
-                              PermissionMask.Transfer) | 7;
+                              PermissionMask.Transfer |
+                              PermissionMask.FoldedMask);
 
             uint ownerMask = 0x7fffffff;
 
@@ -512,17 +508,8 @@ namespace OpenSim.Region.Framework.Scenes
                 perms &= ~(uint)PermissionMask.Copy;
             if ((ownerMask & (uint)PermissionMask.Transfer) == 0)
                 perms &= ~(uint)PermissionMask.Transfer;
-
-            // If root prim permissions are applied here, this would screw
-            // with in-inventory manipulation of the next owner perms
-            // in a major way. So, let's move this to the give itself.
-            // Yes. I know. Evil.
-//            if ((ownerMask & RootPart.NextOwnerMask & (uint)PermissionMask.Modify) == 0)
-//                perms &= ~((uint)PermissionMask.Modify >> 13);
-//            if ((ownerMask & RootPart.NextOwnerMask & (uint)PermissionMask.Copy) == 0)
-//                perms &= ~((uint)PermissionMask.Copy >> 13);
-//            if ((ownerMask & RootPart.NextOwnerMask & (uint)PermissionMask.Transfer) == 0)
-//                perms &= ~((uint)PermissionMask.Transfer >> 13);
+            if ((ownerMask & (uint)PermissionMask.Export) == 0)
+                perms &= ~(uint)PermissionMask.Export;
 
             return perms;
         }

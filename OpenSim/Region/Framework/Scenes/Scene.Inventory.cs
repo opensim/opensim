@@ -682,19 +682,19 @@ namespace OpenSim.Region.Framework.Scenes
                 // These will be applied to the root prim at next rez.
                 // The legacy slam bit (bit 3) and folded permission (bits 0-2)
                 // are preserved due to the above mangling
-                ownerPerms &= nextPerms;
+//                ownerPerms &= nextPerms;
 
                 // Mask the base permissions. This is a conservative
                 // approach altering only the three main perms
-                basePerms &= nextPerms;
+//                basePerms &= nextPerms;
 
                 // Mask out the folded portion of the base mask.
                 // While the owner mask carries the actual folded
                 // permissions, the base mask carries the original
                 // base mask, before masking with the folded perms.
                 // We need this later for rezzing.
-                basePerms &= ~(uint)PermissionMask.FoldedMask;
-                basePerms |= ((basePerms >> 13) & 7) | (((basePerms & (uint)PermissionMask.Export) != 0) ? (uint)PermissionMask.FoldedExport : 0);
+//                basePerms &= ~(uint)PermissionMask.FoldedMask;
+//                basePerms |= ((basePerms >> 13) & 7) | (((basePerms & (uint)PermissionMask.Export) != 0) ? (uint)PermissionMask.FoldedExport : 0);
 
                 // If this is an object, root prim perms may be more
                 // permissive than folded perms. Use folded perms as
@@ -729,6 +729,11 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
+                // move here so nextperms are mandatory
+                ownerPerms &= nextPerms;
+                basePerms &= nextPerms;
+                basePerms &= ~(uint)PermissionMask.FoldedMask;
+                basePerms |= ((basePerms >> 13) & 7) | (((basePerms & (uint)PermissionMask.Export) != 0) ? (uint)PermissionMask.FoldedExport : 0);
                 // Assign to the actual item. Make sure the slam bit is
                 // set, if it wasn't set before.
                 itemCopy.BasePermissions = basePerms;

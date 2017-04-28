@@ -79,7 +79,9 @@ namespace OpenSim.Framework
 
         FoldedMask = 0x0f,
 
-        //
+        FoldingShift = 13 ,  // number of bit shifts from normal perm to folded or back (same as Transfer shift below)
+                             // when doing as a block
+
         Transfer = 1 << 13, // 0x02000
         Modify = 1 << 14,   // 0x04000
         Copy = 1 << 15,     // 0x08000
@@ -91,6 +93,7 @@ namespace OpenSim.Framework
         All = 0x8e000,
         AllAndExport = 0x9e000,
         AllEffective = 0x9e000
+
     }
 
     /// <summary>
