@@ -208,18 +208,20 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                 
                 perms = group.GetEffectivePermissions(false);
                
-                PermissionsUtil.ApplyFoldedPermissions(perms, ref perms);
+                PermissionsUtil.ApplyNoModFoldedPermissions(perms, ref perms);
 
                 perms &=  part.NextOwnerMask;
 
-                item.BasePermissions = PermissionsUtil.FixAndFoldPermissions(perms);
+                perms = PermissionsUtil.FixAndFoldPermissions(perms);
 
-                item.CurrentPermissions = item.BasePermissions;
-                item.NextPermissions = part.NextOwnerMask;
-                item.EveryOnePermissions = part.EveryoneMask &
-                                           part.NextOwnerMask;
-                item.GroupPermissions = part.GroupMask &
-                                           part.NextOwnerMask;
+                item.BasePermissions = perms;
+                item.CurrentPermissions = perms;
+
+                perms &= part.NextOwnerMask;
+                item.NextPermissions = perms;
+
+                item.EveryOnePermissions = part.EveryoneMask & perms;
+                item.GroupPermissions = part.GroupMask & perms;
                 item.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
                 item.CreationDate = Util.UnixTimeSinceEpoch();
 
