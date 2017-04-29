@@ -1267,29 +1267,27 @@ namespace OpenSim.Region.Framework.Scenes
             // TODO: Fix this after the inventory fixer exists and has beenr run
             if ((part.OwnerID != destAgent) && Permissions.PropagatePermissions())
             {
-                agentItem.BasePermissions = taskItem.BasePermissions & taskItem.NextPermissions;
+                uint perms = taskItem.BasePermissions & taskItem.NextPermissions;
                 if (taskItem.InvType == (int)InventoryType.Object)
                 {
-                    uint perms = agentItem.BasePermissions;
-                    PermissionsUtil.ApplyFoldedPermissions(taskItem.CurrentPermissions, ref perms );
-//                    perms |= (uint)PermissionMask.Move;
-//                    agentItem.BasePermissions = perms;
-                    agentItem.BasePermissions = PermissionsUtil.FixAndFoldPermissions(perms);
+                     PermissionsUtil.ApplyFoldedPermissions(taskItem.CurrentPermissions, ref perms );
+                     perms = PermissionsUtil.FixAndFoldPermissions(perms);
                 }
                 else
-                    agentItem.BasePermissions &= taskItem.CurrentPermissions;
+                    perms &= taskItem.CurrentPermissions;
 
                 // always unlock
-                agentItem.BasePermissions |= (uint)PermissionMask.Move;
+                perms |= (uint)PermissionMask.Move;
                             
-                agentItem.CurrentPermissions = agentItem.BasePermissions;
-
-                agentItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
-                agentItem.Flags &= ~(uint)(InventoryItemFlags.ObjectOverwriteBase | InventoryItemFlags.ObjectOverwriteOwner | InventoryItemFlags.ObjectOverwriteGroup | InventoryItemFlags.ObjectOverwriteEveryone | InventoryItemFlags.ObjectOverwriteNextOwner);
-                agentItem.NextPermissions = taskItem.NextPermissions;
-                agentItem.EveryOnePermissions = taskItem.EveryonePermissions & (taskItem.NextPermissions | (uint)PermissionMask.Move);
+                agentItem.BasePermissions = perms;
+                agentItem.CurrentPermissions = perms;
+                agentItem.NextPermissions = perms & taskItem.NextPermissions;
+                agentItem.EveryOnePermissions = perms & taskItem.EveryonePermissions;
                 // Group permissions make no sense here
                 agentItem.GroupPermissions = 0;
+ 
+                agentItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
+                agentItem.Flags &= ~(uint)(InventoryItemFlags.ObjectOverwriteBase | InventoryItemFlags.ObjectOverwriteOwner | InventoryItemFlags.ObjectOverwriteGroup | InventoryItemFlags.ObjectOverwriteEveryone | InventoryItemFlags.ObjectOverwriteNextOwner);
             }
             else
             {

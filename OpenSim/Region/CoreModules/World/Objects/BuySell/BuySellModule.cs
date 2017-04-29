@@ -216,12 +216,10 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
 
                 item.BasePermissions = perms;
                 item.CurrentPermissions = perms;
-
-                perms &= part.NextOwnerMask;
-                item.NextPermissions = perms;
-
+                item.NextPermissions = part.NextOwnerMask & perms;
                 item.EveryOnePermissions = part.EveryoneMask & perms;
                 item.GroupPermissions = part.GroupMask & perms;
+
                 item.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
                 item.CreationDate = Util.UnixTimeSinceEpoch();
 

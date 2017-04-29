@@ -597,10 +597,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 basePerms = PermissionsUtil.FixAndFoldPermissions(basePerms);
                
                 item.BasePermissions = basePerms;               
-                item.CurrentPermissions = item.BasePermissions;
-                item.NextPermissions = effectivePerms & so.RootPart.NextOwnerMask;
-                item.EveryOnePermissions = so.RootPart.EveryoneMask & so.RootPart.NextOwnerMask;
-                item.GroupPermissions = so.RootPart.GroupMask & so.RootPart.NextOwnerMask;
+                item.CurrentPermissions = basePerms;
+                item.NextPermissions = basePerms & so.RootPart.NextOwnerMask;
+                item.EveryOnePermissions = basePerms & so.RootPart.EveryoneMask;
+                item.GroupPermissions = basePerms & so.RootPart.GroupMask;
 
                 // apply next owner perms on rez
                 item.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
