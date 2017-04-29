@@ -1283,8 +1283,7 @@ namespace OpenSim.Region.Framework.Scenes
                 agentItem.CurrentPermissions = perms;
                 agentItem.NextPermissions = perms & taskItem.NextPermissions;
                 agentItem.EveryOnePermissions = perms & taskItem.EveryonePermissions;
-                // Group permissions make no sense here
-                agentItem.GroupPermissions = 0;
+                agentItem.GroupPermissions = perms & taskItem.GroupPermissions;
  
                 agentItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
                 agentItem.Flags &= ~(uint)(InventoryItemFlags.ObjectOverwriteBase | InventoryItemFlags.ObjectOverwriteOwner | InventoryItemFlags.ObjectOverwriteGroup | InventoryItemFlags.ObjectOverwriteEveryone | InventoryItemFlags.ObjectOverwriteNextOwner);
@@ -1295,7 +1294,7 @@ namespace OpenSim.Region.Framework.Scenes
                 agentItem.CurrentPermissions = taskItem.CurrentPermissions;
                 agentItem.NextPermissions = taskItem.NextPermissions;
                 agentItem.EveryOnePermissions = taskItem.EveryonePermissions;
-                agentItem.GroupPermissions = 0;
+                agentItem.GroupPermissions = taskItem.GroupPermissions;
             }
 
             message = null;
