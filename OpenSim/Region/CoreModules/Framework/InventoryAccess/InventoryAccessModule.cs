@@ -573,7 +573,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             InventoryItemBase item, SceneObjectGroup so, List<SceneObjectGroup> objsForEffectivePermissions,
             IClientAPI remoteClient)
         {
-            uint effectivePerms = (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify | PermissionMask.Move | PermissionMask.Export) | 7;
+            uint effectivePerms = (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify | PermissionMask.Move | PermissionMask.Export | PermissionMask.FoldedMask);
  
             // For the porposes of inventory, an object is modify if the prims
             // are modify. This allows renaming an object that contains no
@@ -586,19 +586,16 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                 effectivePerms &= groupPerms;
             }
-            effectivePerms |= (uint)PermissionMask.Move;
-
+ 
             if (remoteClient != null && (remoteClient.AgentId != so.RootPart.OwnerID) && m_Scene.Permissions.PropagatePermissions())
             {
-                if ((effectivePerms & (uint)PermissionMask.FoldedCopy) == 0)
-                    effectivePerms &= ~(uint)PermissionMask.Copy;
-                if ((effectivePerms & (uint)PermissionMask.FoldedTransfer) == 0)
-                    effectivePerms &= ~(uint)PermissionMask.Transfer;
-                if ((effectivePerms & (uint)PermissionMask.FoldedExport) == 0)
-                    effectivePerms &= ~(uint)PermissionMask.Export;
-                
+                PermissionsUtil.ApplyNoModFoldedPermissions(effectivePerms, ref effectivePerms);
+
                 uint basePerms = effectivePerms & so.RootPart.NextOwnerMask;
                 
+                // rebuild folded perms since we don't have then on inworld objects
+                // possible existent ones where already unfolded
+
                 if((basePerms & (uint)PermissionMask.Copy) == 0)
                     basePerms |= (uint)PermissionMask.Transfer;
 

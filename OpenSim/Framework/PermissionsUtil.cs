@@ -64,5 +64,37 @@ namespace OpenSim.Framework
                 str = ".";
             return str;
         }
+
+        public static void ApplyFoldedPermissions(uint source, ref uint target)
+        {
+            uint folded = source & (uint)PermissionMask.FoldedMask;
+            if(folded == 0) // invalid we need to ignore
+                return; 
+
+            folded <<= (int)PermissionMask.FoldingShift;
+            folded &= (uint)PermissionMask.UnfoldedMask; // not really necessary but well
+            folded |= ~(uint)PermissionMask.UnfoldedMask;
+
+            uint tmp = target;
+            tmp &= folded;
+            target = tmp;
+        }
+
+        // do not touch MOD
+        public static void ApplyNoModFoldedPermissions(uint source, ref uint target)
+        {
+            uint folded = source & (uint)PermissionMask.FoldedMask;
+            if(folded == 0) // invalid we need to ignore
+                return; 
+
+            folded <<= (int)PermissionMask.FoldingShift;
+            folded &= (uint)PermissionMask.UnfoldedMask; // not really necessary but well
+            folded |= (~(uint)PermissionMask.UnfoldedMask | (uint)PermissionMask.Modify);
+
+            uint tmp = target;
+            tmp &= folded;
+            target = tmp;
+        }
+
     }
 }

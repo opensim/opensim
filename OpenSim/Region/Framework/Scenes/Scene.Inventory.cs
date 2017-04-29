@@ -1267,17 +1267,19 @@ namespace OpenSim.Region.Framework.Scenes
             // TODO: Fix this after the inventory fixer exists and has beenr run
             if ((part.OwnerID != destAgent) && Permissions.PropagatePermissions())
             {
-                agentItem.BasePermissions = taskItem.BasePermissions & (taskItem.NextPermissions | (uint)PermissionMask.Move);
+                agentItem.BasePermissions = taskItem.BasePermissions & taskItem.NextPermissions;
                 if (taskItem.InvType == (int)InventoryType.Object)
                 {
-                    if((taskItem.CurrentPermissions & (uint)PermissionMask.FoldedMask) != 0)
-                        agentItem.BasePermissions &=
-                            (((taskItem.CurrentPermissions & (uint)PermissionMask.FoldedMask ) << (int)PermissionMask.FoldingShift) |
-                            (taskItem.CurrentPermissions & (uint)PermissionMask.Move));
+                    uint perms = agentItem.BasePermissions;
+                    PermissionsUtil.ApplyFoldedPermissions(taskItem.CurrentPermissions, ref perms );
+                    agentItem.BasePermissions = perms;
                 }
                 else
                     agentItem.BasePermissions &= taskItem.CurrentPermissions;
 
+                // always unlock
+                agentItem.BasePermissions |= (uint)PermissionMask.Move;
+                           
                 agentItem.CurrentPermissions = agentItem.BasePermissions;
 
                 agentItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
