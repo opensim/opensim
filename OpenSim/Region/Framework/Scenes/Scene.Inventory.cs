@@ -699,13 +699,9 @@ namespace OpenSim.Region.Framework.Scenes
                 // If this is an object, root prim perms may be more
                 // permissive than folded perms. Use folded perms as
                 // a mask
-                if (item.InvType == (int)InventoryType.Object)
+                uint foldedPerms = (item.CurrentPermissions & (uint)PermissionMask.FoldedMask) << (int)PermissionMask.FoldingShift;
+                if (foldedPerms != 0 && item.InvType == (int)InventoryType.Object)
                 {
-                    // Create a safe mask for the current perms
-                    uint foldedPerms = (item.CurrentPermissions & 7) << 13;
-                    if ((item.CurrentPermissions & (uint)PermissionMask.FoldedExport) != 0)
-                        foldedPerms |= (uint)PermissionMask.Export;
-
                     foldedPerms |= permsMask;
 
                     bool isRootMod = (item.CurrentPermissions &
