@@ -1272,14 +1272,16 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     uint perms = agentItem.BasePermissions;
                     PermissionsUtil.ApplyFoldedPermissions(taskItem.CurrentPermissions, ref perms );
-                    agentItem.BasePermissions = perms;
+//                    perms |= (uint)PermissionMask.Move;
+//                    agentItem.BasePermissions = perms;
+                    agentItem.BasePermissions = PermissionsUtil.FixAndFoldPermissions(perms);
                 }
                 else
                     agentItem.BasePermissions &= taskItem.CurrentPermissions;
 
                 // always unlock
                 agentItem.BasePermissions |= (uint)PermissionMask.Move;
-                           
+                            
                 agentItem.CurrentPermissions = agentItem.BasePermissions;
 
                 agentItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;

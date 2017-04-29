@@ -594,16 +594,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 uint basePerms = effectivePerms & so.RootPart.NextOwnerMask;
                 
                 // rebuild folded perms since we don't have then on inworld objects
-                // possible existent ones where already unfolded
-
-                if((basePerms & (uint)PermissionMask.Copy) == 0)
-                    basePerms |= (uint)PermissionMask.Transfer;
-
-                // unlock
-                basePerms |= (uint)PermissionMask.Move;
-
-                basePerms &= ~(uint)PermissionMask.FoldedMask;
-                basePerms |= ((basePerms >> (int)PermissionMask.FoldingShift) & (uint)PermissionMask.FoldedMask);
+                basePerms = PermissionsUtil.FixAndFoldPermissions(basePerms);
                
                 item.BasePermissions = basePerms;               
                 item.CurrentPermissions = item.BasePermissions;
@@ -1146,9 +1137,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                             if ((item.BasePermissions & (uint)PermissionMask.FoldedMask) != 0)
                             {
                                 // We have permissions stored there so use them
-                                part.NextOwnerMask = ((item.BasePermissions & 7) << 13);
-                                if ((item.BasePermissions & (uint)PermissionMask.FoldedExport) != 0)
-                                    part.NextOwnerMask |= (uint)PermissionMask.Export;
+                                part.NextOwnerMask = ((item.BasePermissions & (uint)PermissionMask.FoldedMask) << (int)PermissionMask.FoldingShift);
                                 part.NextOwnerMask |= (uint)PermissionMask.Move;
                             }
                             else

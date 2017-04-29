@@ -210,9 +210,9 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                
                 PermissionsUtil.ApplyFoldedPermissions(perms, ref perms);
 
-                item.BasePermissions = perms & part.NextOwnerMask;
+                perms &=  part.NextOwnerMask;
 
-// we need to rebuild folded here
+                item.BasePermissions = PermissionsUtil.FixAndFoldPermissions(perms);
 
                 item.CurrentPermissions = item.BasePermissions;
                 item.NextPermissions = part.NextOwnerMask;

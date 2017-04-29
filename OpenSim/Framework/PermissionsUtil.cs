@@ -65,9 +65,9 @@ namespace OpenSim.Framework
             return str;
         }
 
-        public static void ApplyFoldedPermissions(uint source, ref uint target)
+        public static void ApplyFoldedPermissions(uint foldedSourcePerms, ref uint targetPerms)
         {
-            uint folded = source & (uint)PermissionMask.FoldedMask;
+            uint folded = foldedSourcePerms & (uint)PermissionMask.FoldedMask;
             if(folded == 0) // invalid we need to ignore
                 return; 
 
@@ -75,15 +75,15 @@ namespace OpenSim.Framework
             folded &= (uint)PermissionMask.UnfoldedMask; // not really necessary but well
             folded |= ~(uint)PermissionMask.UnfoldedMask;
 
-            uint tmp = target;
+            uint tmp = targetPerms;
             tmp &= folded;
-            target = tmp;
+            targetPerms = tmp;
         }
 
         // do not touch MOD
-        public static void ApplyNoModFoldedPermissions(uint source, ref uint target)
+        public static void ApplyNoModFoldedPermissions(uint foldedSourcePerms, ref uint target)
         {
-            uint folded = source & (uint)PermissionMask.FoldedMask;
+            uint folded = foldedSourcePerms & (uint)PermissionMask.FoldedMask;
             if(folded == 0) // invalid we need to ignore
                 return; 
 
@@ -96,5 +96,21 @@ namespace OpenSim.Framework
             target = tmp;
         }
 
+        public static uint FixAndFoldPermissions(uint perms)
+        {
+            uint tmp = perms;
+
+            // C & T rule
+            if((tmp & (uint)(PermissionMask.Copy | PermissionMask.Transfer)) == 0)
+                tmp |= (uint)PermissionMask.Transfer;
+
+            // unlock
+            tmp |= (uint)PermissionMask.Move;
+
+            tmp &= ~(uint)PermissionMask.FoldedMask;
+            tmp |= ((tmp >> (int)PermissionMask.FoldingShift) & (uint)PermissionMask.FoldedMask);
+
+            return tmp;
+        }
     }
 }
