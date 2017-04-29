@@ -1273,11 +1273,16 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 agentItem.BasePermissions = taskItem.BasePermissions & (taskItem.NextPermissions | (uint)PermissionMask.Move);
                 if (taskItem.InvType == (int)InventoryType.Object)
-                    agentItem.CurrentPermissions = agentItem.BasePermissions & (((taskItem.CurrentPermissions & 7) << 13) | (taskItem.CurrentPermissions & (uint)PermissionMask.Move));
+                {
+                    if((taskItem.CurrentPermissions & (uint)PermissionMask.FoldedMask) != 0)
+                        agentItem.BasePermissions &=
+                            (((taskItem.CurrentPermissions & (uint)PermissionMask.FoldedMask ) << (int)PermissionMask.FoldingShift) |
+                            (taskItem.CurrentPermissions & (uint)PermissionMask.Move));
+                }
                 else
-                    agentItem.CurrentPermissions = agentItem.BasePermissions & taskItem.CurrentPermissions;
+                    agentItem.BasePermissions &= taskItem.CurrentPermissions;
 
-                agentItem.BasePermissions = agentItem.CurrentPermissions;
+                agentItem.CurrentPermissions = agentItem.BasePermissions;
 
                 agentItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
                 agentItem.Flags &= ~(uint)(InventoryItemFlags.ObjectOverwriteBase | InventoryItemFlags.ObjectOverwriteOwner | InventoryItemFlags.ObjectOverwriteGroup | InventoryItemFlags.ObjectOverwriteEveryone | InventoryItemFlags.ObjectOverwriteNextOwner);
