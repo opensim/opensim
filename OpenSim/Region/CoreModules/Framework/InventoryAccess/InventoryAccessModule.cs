@@ -212,6 +212,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (m_Scene.TryGetScenePresence(remoteClient.AgentId, out presence))
             {
                 byte[] data = null;
+                uint everyonemask = 0;
+                uint groupmask = 0;
 
                 if (invType == (sbyte)InventoryType.Landmark && presence != null)
                 {
@@ -220,6 +222,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     data = Encoding.ASCII.GetBytes(strdata);
                     name = prefix + name;
                     description += suffix;
+                    groupmask = (uint)PermissionMask.AllAndExport;
+                    everyonemask = (uint)(PermissionMask.AllAndExport & ~PermissionMask.Modify);                   
                 }
 
                 AssetBase asset = m_Scene.CreateAsset(name, description, assetType, data, remoteClient.AgentId);
@@ -227,9 +231,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 m_Scene.CreateNewInventoryItem(
                         remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
                         name, description, 0, callbackID, asset.FullID, asset.Type, invType,
-                        (uint)PermissionMask.All | (uint)PermissionMask.Export, // Base
-                        (uint)PermissionMask.All | (uint)PermissionMask.Export, // Current
-                        0, nextOwnerMask, 0, creationDate, false); // Data from viewer
+                        (uint)PermissionMask.AllAndExport, // Base
+                        (uint)PermissionMask.AllAndExport, // Current
+                        everyonemask,
+                        nextOwnerMask, groupmask, creationDate, false); // Data from viewer
             }
             else
             {
