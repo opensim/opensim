@@ -68,7 +68,7 @@ namespace OpenSim.Framework
         public static void ApplyFoldedPermissions(uint foldedSourcePerms, ref uint targetPerms)
         {
             uint folded = foldedSourcePerms & (uint)PermissionMask.FoldedMask;
-            if(folded == 0) // invalid we need to ignore
+            if(folded == 0 || folded == (uint)PermissionMask.FoldedMask) // invalid we need to ignore, or nothing to do
                 return; 
 
             folded <<= (int)PermissionMask.FoldingShift;
@@ -83,7 +83,7 @@ namespace OpenSim.Framework
         public static void ApplyNoModFoldedPermissions(uint foldedSourcePerms, ref uint target)
         {
             uint folded = foldedSourcePerms & (uint)PermissionMask.FoldedMask;
-            if(folded == 0) // invalid we need to ignore
+            if(folded == 0 || folded == (uint)PermissionMask.FoldedMask) // invalid we need to ignore, or nothing to do
                 return; 
 
             folded <<= (int)PermissionMask.FoldingShift;
