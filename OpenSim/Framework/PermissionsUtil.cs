@@ -72,7 +72,6 @@ namespace OpenSim.Framework
                 return; 
 
             folded <<= (int)PermissionMask.FoldingShift;
-            folded &= (uint)PermissionMask.UnfoldedMask; // not really necessary but well
             folded |= ~(uint)PermissionMask.UnfoldedMask;
 
             uint tmp = targetPerms;
@@ -88,7 +87,6 @@ namespace OpenSim.Framework
                 return; 
 
             folded <<= (int)PermissionMask.FoldingShift;
-            folded &= (uint)PermissionMask.UnfoldedMask; // not really necessary but well
             folded |= (~(uint)PermissionMask.UnfoldedMask | (uint)PermissionMask.Modify);
 
             uint tmp = target;
