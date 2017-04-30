@@ -60,6 +60,8 @@ namespace OpenSim.Framework
                 str += "C";
             if ((perms & (int)PermissionMask.Transfer) != 0)
                 str += "T";
+            if ((perms & (int)PermissionMask.Export) != 0)
+                str += "X";
             if (str == "")
                 str = ".";
             return str;
