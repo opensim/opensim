@@ -46,21 +46,7 @@ namespace OpenSim.Tests.Permissions
         [SetUp]
         public void SetUp()
         {
-            // Delete everything in A2 and A3's Objects folders from previous tests
-            for (int i = 1; i < 3; i++)
-            {
-                InventoryFolderBase objsFolder = UserInventoryHelpers.GetInventoryFolder(Common.TheScene.InventoryService, Common.TheAvatars[i].UUID, "Objects");
-                Assert.That(objsFolder, Is.Not.Null);
-
-                List<InventoryItemBase> items = Common.TheScene.InventoryService.GetFolderItems(Common.TheAvatars[i].UUID, objsFolder.ID);
-                List<UUID> ids = new List<UUID>();
-                foreach (InventoryItemBase it in items)
-                    ids.Add(it.ID);
-
-                Common.TheScene.InventoryService.DeleteItems(Common.TheAvatars[i].UUID, ids);
-                items = Common.TheScene.InventoryService.GetFolderItems(Common.TheAvatars[i].UUID, objsFolder.ID);
-                Assert.That(items.Count, Is.EqualTo(0), "A" + (i+1));
-            }
+            Common.TheInstance.DeleteObjectsFolders();
         }
 
         /// <summary>

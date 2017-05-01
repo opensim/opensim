@@ -44,6 +44,7 @@ namespace OpenSim.Tests.Permissions
         [SetUp]
         public void SetUp()
         {
+            Common.TheInstance.DeleteObjectsFolders();
         }
 
         /// <summary>
