@@ -118,6 +118,11 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                 return false;
 
             SceneObjectGroup group = part.ParentGroup;
+            if(group == null || group.IsDeleted || group.inTransit)
+                return false;
+
+            // make sure we are not buying a child part
+            part = group.RootPart;            
 
             switch (saleType)
             {
@@ -157,18 +162,6 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                 break;
 
             case 2: // Sell a copy
-                Vector3 inventoryStoredPosition = new Vector3(
-                        Math.Min(group.AbsolutePosition.X, m_scene.RegionInfo.RegionSizeX - 6),
-                        Math.Min(group.AbsolutePosition.Y, m_scene.RegionInfo.RegionSizeY - 6),
-                        group.AbsolutePosition.Z);
-
-                Vector3 originalPosition = group.AbsolutePosition;
-
-                group.AbsolutePosition = inventoryStoredPosition;
-
-                string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(group);
-                group.AbsolutePosition = originalPosition;
-
                 uint perms = group.EffectiveOwnerPerms;
 
                 if ((perms & (uint)PermissionMask.Transfer) == 0)
@@ -184,6 +177,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                         m_dialogModule.SendAlertToUser(remoteClient, "This sale has been blocked by the permissions system");
                     return false;
                 }
+
+                string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(group);
 
                 AssetBase asset = m_scene.CreateAsset(
                     group.GetPartName(localID),
