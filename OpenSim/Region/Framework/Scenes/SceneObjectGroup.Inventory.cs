@@ -338,6 +338,8 @@ namespace OpenSim.Region.Framework.Scenes
                 uint rootEveryonePerms = RootPart.EveryoneMask;
                 uint everyone = rootEveryonePerms;
 
+                // date is time of writing april 30th 2017
+                bool newObject = (RootPart.CreationDate == 0 || RootPart.CreationDate > 1493574994);
                 SceneObjectPart[] parts = m_parts.GetArray();
                 for (int i = 0; i < parts.Length; i++)
                 {
@@ -345,7 +347,8 @@ namespace OpenSim.Region.Framework.Scenes
                     part.AggregateInnerPerms();
                     owner &= part.AggregatedInnerOwnerPerms; 
                     group &= part.AggregatedInnerGroupPerms;
-                    everyone &= part.AggregatedInnerEveryonePerms;
+                    if(newObject)
+                        everyone &= part.AggregatedInnerEveryonePerms;
                 }
                 // recover modify and move
                 rootOwnerPerms &= movemodmask;
@@ -407,14 +410,16 @@ namespace OpenSim.Region.Framework.Scenes
                 uint everyone = rootEveryonePerms;
 
                 bool needUpdate = false;
-
+                // date is time of writing april 30th 2017
+                bool newObject = (RootPart.CreationDate == 0 || RootPart.CreationDate > 1493574994);
                 SceneObjectPart[] parts = m_parts.GetArray();
                 for (int i = 0; i < parts.Length; i++)
                 {
                     SceneObjectPart part = parts[i];
                     owner &= part.AggregatedInnerOwnerPerms; 
                     group &= part.AggregatedInnerGroupPerms;
-                    everyone &= part.AggregatedInnerEveryonePerms;
+                    if(newObject)
+                        everyone &= part.AggregatedInnerEveryonePerms;
                 }
                 // recover modify and move
                 rootOwnerPerms &= movemodmask;
@@ -479,7 +484,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public uint GetEffectivePermissions(bool useBase)
+        public uint CurrentAndFoldedNextPermissions()
         {
             uint perms=(uint)(PermissionMask.Modify |
                               PermissionMask.Copy |
@@ -487,18 +492,13 @@ namespace OpenSim.Region.Framework.Scenes
                               PermissionMask.Transfer |
                               PermissionMask.FoldedMask);
 
-            uint ownerMask = 0x7fffffff;
+            uint ownerMask = RootPart.OwnerMask;
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
-
-                if (useBase)
-                    ownerMask &= part.BaseMask;
-                else
-                    ownerMask &= part.OwnerMask;
-
+                ownerMask &= part.BaseMask;
                 perms &= part.Inventory.MaskEffectivePermissions();
             }
 
