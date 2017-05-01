@@ -484,7 +484,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public uint GetEffectivePermissions(bool useBase)
+        public uint CurrentAndFoldedNextPermissions()
         {
             uint perms=(uint)(PermissionMask.Modify |
                               PermissionMask.Copy |
@@ -492,18 +492,13 @@ namespace OpenSim.Region.Framework.Scenes
                               PermissionMask.Transfer |
                               PermissionMask.FoldedMask);
 
-            uint ownerMask = 0x7fffffff;
+            uint ownerMask = RootPart.OwnerMask;
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
-
-                if (useBase)
-                    ownerMask &= part.BaseMask;
-                else
-                    ownerMask &= part.OwnerMask;
-
+                ownerMask &= part.BaseMask;
                 perms &= part.Inventory.MaskEffectivePermissions();
             }
 

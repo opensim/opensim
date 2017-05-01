@@ -579,26 +579,19 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             IClientAPI remoteClient)
         {
             uint effectivePerms = (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify | PermissionMask.Move | PermissionMask.Export | PermissionMask.FoldedMask);
- 
-            // For the porposes of inventory, an object is modify if the prims
-            // are modify. This allows renaming an object that contains no
-            // mod items.
+       
             foreach (SceneObjectGroup grp in objsForEffectivePermissions)
             {
-                uint groupPerms = grp.GetEffectivePermissions(true);
-//                if ((grp.RootPart.BaseMask & (uint)PermissionMask.Modify) != 0)
-//                    groupPerms |= (uint)PermissionMask.Modify;
-
-                effectivePerms &= groupPerms;
+                effectivePerms &= grp.CurrentAndFoldedNextPermissions();
             }
  
             if (remoteClient != null && (remoteClient.AgentId != so.RootPart.OwnerID) && m_Scene.Permissions.PropagatePermissions())
             {
+                // apply parts inventory items next owner
                 PermissionsUtil.ApplyNoModFoldedPermissions(effectivePerms, ref effectivePerms);
-
+                // change to next owner
                 uint basePerms = effectivePerms & so.RootPart.NextOwnerMask;
-                
-                // rebuild folded perms since we don't have then on inworld objects
+                // fix and update folded
                 basePerms = PermissionsUtil.FixAndFoldPermissions(basePerms);
                
                 item.BasePermissions = basePerms;               

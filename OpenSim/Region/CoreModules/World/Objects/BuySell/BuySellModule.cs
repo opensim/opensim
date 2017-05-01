@@ -206,12 +206,12 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                 item.InvType = (int)InventoryType.Object;
                 item.Folder = categoryID;
                 
-                perms = group.GetEffectivePermissions(false);
-               
+                perms = group.CurrentAndFoldedNextPermissions();
+                // apply parts inventory next perms            
                 PermissionsUtil.ApplyNoModFoldedPermissions(perms, ref perms);
-
-                perms &=  part.NextOwnerMask;
-
+                // change to next owner perms
+                perms &=  part.NextOwnerMask; 
+                // update folded
                 perms = PermissionsUtil.FixAndFoldPermissions(perms);
 
                 item.BasePermissions = perms;
