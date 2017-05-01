@@ -1351,19 +1351,26 @@ namespace OpenSim.Region.Framework.Scenes
                 if(item.InvType == (sbyte)InventoryType.Landmark)
                     continue;
 
-                if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Copy) == 0)
-                    mask &= ~((uint)PermissionMask.FoldedCopy);
-                if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Transfer) == 0)
+                // apply current to normal permission bits
+                uint newperms = item.CurrentPermissions;
+
+                if ((newperms & (uint)PermissionMask.Copy) == 0)
+                    mask &= ~(uint)PermissionMask.Copy;
+                if ((newperms & (uint)PermissionMask.Transfer) == 0)
+                    mask &= ~(uint)PermissionMask.Transfer;
+                if ((newperms & (uint)PermissionMask.Export) == 0)
+                    mask &= ~((uint)PermissionMask.Export);
+               
+                // apply next owner restricted by current to folded bits 
+                newperms &= item.NextPermissions;
+
+                if ((newperms & (uint)PermissionMask.Copy) == 0)
+                   mask &= ~((uint)PermissionMask.FoldedCopy);
+                if ((newperms & (uint)PermissionMask.Transfer) == 0)
                     mask &= ~((uint)PermissionMask.FoldedTransfer);
-                if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Export) == 0)
+                if ((newperms & (uint)PermissionMask.Export) == 0)
                     mask &= ~((uint)PermissionMask.FoldedExport);
 
-                if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
-                    mask &= ~(uint)PermissionMask.Copy;
-                if ((item.CurrentPermissions & (uint)PermissionMask.Transfer) == 0)
-                    mask &= ~(uint)PermissionMask.Transfer;
-                if ((item.CurrentPermissions & (uint)PermissionMask.Export) == 0)
-                    mask &= ~((uint)PermissionMask.Export);
             }
             return mask;
         }
