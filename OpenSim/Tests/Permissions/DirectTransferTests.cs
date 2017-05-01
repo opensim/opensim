@@ -48,205 +48,65 @@ namespace OpenSim.Tests.Permissions
     /// Basic scene object tests (create, read and delete but not update).
     /// </summary>
     [TestFixture]
-    public class DirectTransferTests : OpenSimTestCase
+    public class DirectTransferTests 
     {
-        private static string Perms = "Owner: {0}; Group: {1}; Everyone: {2}; Next: {3}";
-        protected TestScene m_Scene;
-        private ScenePresence[] m_Avatars = new ScenePresence[3];
 
         [SetUp]
-        public override void SetUp()
+        public void SetUp()
         {
-            base.SetUp();
-            TestHelpers.EnableLogging();
-
-            IConfigSource config = new IniConfigSource();
-            config.AddConfig("Messaging");
-            config.Configs["Messaging"].Set("InventoryTransferModule", "InventoryTransferModule");
-            config.AddConfig("Modules");
-            config.Configs["Modules"].Set("InventoryAccessModule", "BasicInventoryAccessModule");
-            config.AddConfig("InventoryService");
-            config.Configs["InventoryService"].Set("LocalServiceModule", "OpenSim.Services.InventoryService.dll:XInventoryService");
-            config.Configs["InventoryService"].Set("StorageProvider", "OpenSim.Tests.Common.dll:TestXInventoryDataPlugin");
-
-            m_Scene = new SceneHelpers().SetupScene("Test", UUID.Random(), 1000, 1000, config);
-            // Add modules
-            SceneHelpers.SetupSceneModules(m_Scene, config, new DefaultPermissionsModule(), new InventoryTransferModule(), new BasicInventoryAccessModule());
-
-            // Add 3 avatars
-            for (int i = 0; i < 3; i++)
-            {
-                UUID id = TestHelpers.ParseTail(i+1);
-
-                m_Avatars[i] = AddScenePresence("Bot", "Bot_" + i, id);
-                Assert.That(m_Avatars[i], Is.Not.Null);
-                Assert.That(m_Avatars[i].IsChildAgent, Is.False);
-                Assert.That(m_Avatars[i].UUID, Is.EqualTo(id));
-
-                Assert.That(m_Scene.GetScenePresences().Count, Is.EqualTo(i+1));
-            }
         }
 
         /// <summary>
-        /// Test adding an object to a scene.
+        /// Test giving a C object.
         /// </summary>
         [Test]
         public void TestGiveCBox()
         {
             TestHelpers.InMethod();
 
-            // Create a C Box
-            SceneObjectGroup boxC = AddSceneObject("Box C", 10, 1, m_Avatars[0].UUID);
+            // C, CT, MC, MCT, MT, T
+            string[] names = new string[6] { "Box C", "Box CT", "Box MC", "Box MCT", "Box MT", "Box T"};
+            PermissionMask[] perms = new PermissionMask[6] {
+                    PermissionMask.Copy,
+                    PermissionMask.Copy | PermissionMask.Transfer,
+                    PermissionMask.Modify | PermissionMask.Copy,
+                    PermissionMask.Modify | PermissionMask.Copy | PermissionMask.Transfer,
+                    PermissionMask.Modify | PermissionMask.Transfer,
+                    PermissionMask.Transfer
+            };
 
-            // field = 16 is NextOwner 
-            // set = 1 means add the permission; set = 0 means remove permission
-            m_Scene.HandleObjectPermissionsUpdate((IClientAPI)m_Avatars[0].ClientView, m_Avatars[0].UUID,
-                ((IClientAPI)(m_Avatars[0].ClientView)).SessionId, 16, boxC.LocalId, (uint)PermissionMask.Copy, 1);
+            for (int i = 0; i < 6; i++)
+                TestOneBox(names[i], perms[i]);
+        }
 
-            m_Scene.HandleObjectPermissionsUpdate((IClientAPI)m_Avatars[0].ClientView, m_Avatars[0].UUID,
-                ((IClientAPI)(m_Avatars[0].ClientView)).SessionId, 16, boxC.LocalId, (uint)PermissionMask.Transfer, 0);
-            PrintPerms(boxC);
+        private void TestOneBox(string name, PermissionMask mask)
+        {
+            InventoryItemBase item = Common.TheInstance.GetItemFromInventory(Common.TheAvatars[0].UUID, "Objects", name);
 
-            Assert.True((boxC.RootPart.NextOwnerMask & (int)PermissionMask.Copy) != 0);
-            Assert.True((boxC.RootPart.NextOwnerMask & (int)PermissionMask.Modify) == 0);
-            Assert.True((boxC.RootPart.NextOwnerMask & (int)PermissionMask.Transfer) == 0);
+            Common.TheInstance.GiveInventoryItem(item.ID, Common.TheAvatars[0], Common.TheAvatars[1]);
 
-            InventoryItemBase item = TakeCopyToInventory(boxC);
-
-            GiveInventoryItem(item.ID, m_Avatars[0], m_Avatars[1]);
-
-            item = GetItemFromInventory(m_Avatars[1].UUID, "Objects", "Box C");
+            item = Common.TheInstance.GetItemFromInventory(Common.TheAvatars[1].UUID, "Objects", name);
 
             // Check the receiver
-            PrintPerms(item);
-            Assert.True((item.BasePermissions & (int)PermissionMask.Copy) != 0);
-            Assert.True((item.BasePermissions & (int)PermissionMask.Modify) == 0);
-            Assert.True((item.BasePermissions & (int)PermissionMask.Transfer) == 0);
+            Common.TheInstance.PrintPerms(item);
+            Common.TheInstance.AssertPermissions(mask, (PermissionMask)item.BasePermissions, item.Owner.ToString().Substring(34) + " : " + item.Name);
 
+            int nObjects = Common.TheScene.GetSceneObjectGroups().Count;
             // Rez it and check perms in scene too
-            m_Scene.RezObject(m_Avatars[1].ControllingClient, item.ID, UUID.Zero, Vector3.One, Vector3.Zero, UUID.Zero, 0, false, false, false, UUID.Zero);
-            Assert.That(m_Scene.GetSceneObjectGroups().Count, Is.EqualTo(2));
-            SceneObjectGroup copyBoxC = m_Scene.GetSceneObjectGroups().Find(sog => sog.OwnerID == m_Avatars[1].UUID);
-            PrintPerms(copyBoxC);
-            Assert.That(copyBoxC, Is.Not.Null);
+            Common.TheScene.RezObject(Common.TheAvatars[1].ControllingClient, item.ID, UUID.Zero, Vector3.One, Vector3.Zero, UUID.Zero, 0, false, false, false, UUID.Zero);
+            Assert.That(Common.TheScene.GetSceneObjectGroups().Count, Is.EqualTo(nObjects + 1));
+
+            SceneObjectGroup box = Common.TheScene.GetSceneObjectGroups().Find(sog => sog.OwnerID == Common.TheAvatars[1].UUID && sog.Name == name);
+            Common.TheInstance.PrintPerms(box);
+            Assert.That(box, Is.Not.Null);
+
+            // Check Owner permissions
+            Common.TheInstance.AssertPermissions(mask, (PermissionMask)box.EffectiveOwnerPerms, box.OwnerID.ToString().Substring(34) + " : " + box.Name);
+
+            // Check Next Owner permissions
+            Common.TheInstance.AssertPermissions(mask, (PermissionMask)box.RootPart.NextOwnerMask, box.OwnerID.ToString().Substring(34) + " : " + box.Name);
 
         }
 
-        #region Helper Functions
-
-        private void PrintPerms(SceneObjectGroup sog)
-        {
-            Console.WriteLine("SOG " + sog.Name + ": " + String.Format(Perms, (PermissionMask)sog.EffectiveOwnerPerms,
-                 (PermissionMask)sog.EffectiveGroupPerms, (PermissionMask)sog.EffectiveEveryOnePerms, (PermissionMask)sog.RootPart.NextOwnerMask));
-
-        }
-
-        private void PrintPerms(InventoryItemBase item)
-        {
-            Console.WriteLine("Inv " + item.Name + ": " + String.Format(Perms, (PermissionMask)item.BasePermissions,
-                 (PermissionMask)item.GroupPermissions, (PermissionMask)item.EveryOnePermissions, (PermissionMask)item.NextPermissions));
-
-        }
-
-        private ScenePresence AddScenePresence(string first, string last, UUID id)
-        {
-            UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(m_Scene, first, last, id, "pw");
-            ScenePresence sp = SceneHelpers.AddScenePresence(m_Scene, id);
-            Assert.That(m_Scene.AuthenticateHandler.GetAgentCircuitData(id), Is.Not.Null);
-
-            return sp;
-        }
-
-        private SceneObjectGroup AddSceneObject(string name, int suffix, int partsToTestCount, UUID ownerID)
-        {
-            TestHelpers.InMethod();
-
-            SceneObjectGroup so = SceneHelpers.CreateSceneObject(partsToTestCount, ownerID, name, suffix);
-            so.Name = name;
-            so.Description = name;
-
-            Assert.That(m_Scene.AddNewSceneObject(so, false), Is.True);
-            SceneObjectGroup retrievedSo = m_Scene.GetSceneObjectGroup(so.UUID);
-
-            // If the parts have the same UUID then we will consider them as one and the same
-            Assert.That(retrievedSo.PrimCount, Is.EqualTo(partsToTestCount));
-
-            return so;
-        }
-
-        private InventoryItemBase TakeCopyToInventory(SceneObjectGroup sog)
-        {
-            InventoryFolderBase objsFolder = UserInventoryHelpers.GetInventoryFolder(m_Scene.InventoryService, sog.OwnerID, "Objects");
-            Assert.That(objsFolder, Is.Not.Null);
-
-            List<uint> localIds = new List<uint>(); localIds.Add(sog.LocalId);
-            m_Scene.DeRezObjects((IClientAPI)m_Avatars[0].ClientView, localIds, sog.UUID, DeRezAction.TakeCopy, objsFolder.ID);
-            Thread.Sleep(5000);
-
-            List<InventoryItemBase> items = m_Scene.InventoryService.GetFolderItems(sog.OwnerID, objsFolder.ID);
-            InventoryItemBase item = items.Find(i => i.Name == sog.Name);
-            Assert.That(item, Is.Not.Null);
-
-            return item;
-
-        }
-
-        private InventoryItemBase GetItemFromInventory(UUID userID, string folderName, string itemName)
-        {
-            InventoryFolderBase objsFolder = UserInventoryHelpers.GetInventoryFolder(m_Scene.InventoryService, userID, folderName);
-            Assert.That(objsFolder, Is.Not.Null);
-            List<InventoryItemBase> items = m_Scene.InventoryService.GetFolderItems(userID, objsFolder.ID);
-            InventoryItemBase item = items.Find(i => i.Name == itemName);
-            Assert.That(item, Is.Not.Null);
-
-            return item;
-        }
-
-        private void GiveInventoryItem(UUID itemId, ScenePresence giverSp, ScenePresence receiverSp)
-        {
-            TestClient giverClient = (TestClient)giverSp.ControllingClient;
-            TestClient receiverClient = (TestClient)receiverSp.ControllingClient;
-
-            UUID initialSessionId = TestHelpers.ParseTail(0x10);
-            byte[] giveImBinaryBucket = new byte[17];
-            byte[] itemIdBytes = itemId.GetBytes();
-            Array.Copy(itemIdBytes, 0, giveImBinaryBucket, 1, itemIdBytes.Length);
-
-            GridInstantMessage giveIm
-                = new GridInstantMessage(
-                    m_Scene,
-                    giverSp.UUID,
-                    giverSp.Name,
-                    receiverSp.UUID,
-                    (byte)InstantMessageDialog.InventoryOffered,
-                    false,
-                    "inventory offered msg",
-                    initialSessionId,
-                    false,
-                    Vector3.Zero,
-                    giveImBinaryBucket,
-                    true);
-
-            giverClient.HandleImprovedInstantMessage(giveIm);
-
-            // These details might not all be correct.
-            GridInstantMessage acceptIm
-                = new GridInstantMessage(
-                    m_Scene,
-                    receiverSp.UUID,
-                    receiverSp.Name,
-                    giverSp.UUID,
-                    (byte)InstantMessageDialog.InventoryAccepted,
-                    false,
-                    "inventory accepted msg",
-                    initialSessionId,
-                    false,
-                    Vector3.Zero,
-                    null,
-                    true);
-
-            receiverClient.HandleImprovedInstantMessage(acceptIm);
-        }
-        #endregion
     }
 }
