@@ -48,7 +48,7 @@ namespace OpenSim.Tests.Permissions
     /// Basic scene object tests (create, read and delete but not update).
     /// </summary>
     [TestFixture]
-    public class DirectTransferTests 
+    public class DirectTransferTests
     {
 
         [SetUp]
@@ -57,15 +57,15 @@ namespace OpenSim.Tests.Permissions
         }
 
         /// <summary>
-        /// Test giving a C object.
+        /// Test giving simple objecta with various combinations of next owner perms.
         /// </summary>
         [Test]
-        public void TestGiveCBox()
+        public void TestGiveBox()
         {
             TestHelpers.InMethod();
 
             // C, CT, MC, MCT, MT, T
-            string[] names = new string[6] { "Box C", "Box CT", "Box MC", "Box MCT", "Box MT", "Box T"};
+            string[] names = new string[6] { "Box C", "Box CT", "Box MC", "Box MCT", "Box MT", "Box T" };
             PermissionMask[] perms = new PermissionMask[6] {
                     PermissionMask.Copy,
                     PermissionMask.Copy | PermissionMask.Transfer,
@@ -108,5 +108,48 @@ namespace OpenSim.Tests.Permissions
 
         }
 
+        /// <summary>
+        /// Test giving simple objecta with variour combinations of next owner perms.
+        /// </summary>
+        [Test]
+        public void TestDoubleGiveWithChange()
+        {
+            TestHelpers.InMethod();
+
+            string name = "Box MCT-C";
+            InventoryItemBase item = Common.TheInstance.GetItemFromInventory(Common.TheAvatars[0].UUID, "Objects", name);
+
+            // Now give the item to A2. We give the original item, not a clone. 
+            // The giving methods are supposed to duplicate it.
+            Common.TheInstance.GiveInventoryItem(item.ID, Common.TheAvatars[0], Common.TheAvatars[1]);
+
+            item = Common.TheInstance.GetItemFromInventory(Common.TheAvatars[1].UUID, "Objects", name);
+
+            // Check the receiver
+            Common.TheInstance.PrintPerms(item);
+            Common.TheInstance.AssertPermissions(PermissionMask.Modify | PermissionMask.Transfer,
+                (PermissionMask)item.BasePermissions, Common.TheInstance.IdStr(item));
+
+            // ---------------------------
+            // Second transfer
+            //----------------------------
+
+            // A2 revokes M
+            Common.TheInstance.RevokePermission(1, name, PermissionMask.Modify);
+
+            item = Common.TheInstance.GetItemFromInventory(Common.TheAvatars[1].UUID, "Objects", name);
+
+            // Now give the item to A3. We give the original item, not a clone. 
+            // The giving methods are supposed to duplicate it.
+            Common.TheInstance.GiveInventoryItem(item.ID, Common.TheAvatars[1], Common.TheAvatars[2]);
+
+            item = Common.TheInstance.GetItemFromInventory(Common.TheAvatars[2].UUID, "Objects", name);
+
+            // Check the receiver
+            Common.TheInstance.PrintPerms(item);
+            Common.TheInstance.AssertPermissions(PermissionMask.Transfer,
+                (PermissionMask)item.BasePermissions, Common.TheInstance.IdStr(item));
+
+        }
     }
 }

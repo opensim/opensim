@@ -93,11 +93,16 @@ namespace OpenSim.Tests.Permissions
             AddA1Object("Box MT", 14, PermissionMask.Modify | PermissionMask.Transfer);
             AddA1Object("Box T", 15, PermissionMask.Transfer);
 
+            // MCT-C
+            AddA1Object("Box MCT-C", 16, PermissionMask.Modify | PermissionMask.Copy | PermissionMask.Transfer);
+
             Thread.Sleep(5000);
 
             InventoryFolderBase objsFolder = UserInventoryHelpers.GetInventoryFolder(m_Scene.InventoryService, m_Avatars[0].UUID, "Objects");
             List<InventoryItemBase> items = m_Scene.InventoryService.GetFolderItems(m_Avatars[0].UUID, objsFolder.ID);
-            Assert.That(items.Count, Is.EqualTo(6));
+            Assert.That(items.Count, Is.EqualTo(7));
+
+            RevokePermission(0, "Box MCT-C", PermissionMask.Copy);
         }
 
         private ScenePresence AddScenePresence(string first, string last, UUID id)
@@ -136,6 +141,30 @@ namespace OpenSim.Tests.Permissions
             AssertPermissions(nextOwnerPerms, (PermissionMask)box.RootPart.NextOwnerMask, box.OwnerID.ToString().Substring(34) + " : " + box.Name);
 
             TakeCopyToInventory(box);
+
+        }
+
+        public void RevokePermission(int ownerIndex, string name, PermissionMask perm)
+        {
+            InventoryItemBase item = Common.TheInstance.GetItemFromInventory(m_Avatars[ownerIndex].UUID, "Objects", name);
+            Assert.That(item, Is.Not.Null);
+
+            // Clone it, so to avoid aliasing -- just like the viewer does.
+            InventoryItemBase clone = Common.TheInstance.CloneInventoryItem(item);
+            // Revoke the permission in this copy
+            clone.NextPermissions &= ~(uint)perm;
+            Common.TheInstance.AssertPermissions((PermissionMask)clone.NextPermissions & ~perm,
+                (PermissionMask)clone.NextPermissions, Common.TheInstance.IdStr(clone));
+            Assert.That(clone.ID == item.ID);
+
+            // Update properties of the item in inventory. This should affect the original item above.
+            Common.TheScene.UpdateInventoryItemAsset(m_Avatars[ownerIndex].ControllingClient, UUID.Zero, clone.ID, clone);
+
+            item = Common.TheInstance.GetItemFromInventory(m_Avatars[ownerIndex].UUID, "Objects", name);
+            Assert.That(item, Is.Not.Null);
+            Common.TheInstance.PrintPerms(item);
+            Common.TheInstance.AssertPermissions((PermissionMask)item.NextPermissions & ~perm,
+                (PermissionMask)item.NextPermissions, Common.TheInstance.IdStr(item));
 
         }
 
@@ -208,6 +237,39 @@ namespace OpenSim.Tests.Permissions
             Assert.That(item, Is.Not.Null);
 
             return item;
+        }
+
+        public InventoryItemBase CloneInventoryItem(InventoryItemBase item)
+        {
+            InventoryItemBase clone = new InventoryItemBase(item.ID);
+            clone.Name = item.Name;
+            clone.Description = item.Description;
+            clone.AssetID = item.AssetID;
+            clone.AssetType = item.AssetType;
+            clone.BasePermissions = item.BasePermissions;
+            clone.CreatorId = item.CreatorId;
+            clone.CurrentPermissions = item.CurrentPermissions;
+            clone.EveryOnePermissions = item.EveryOnePermissions;
+            clone.Flags = item.Flags;
+            clone.Folder = item.Folder;
+            clone.GroupID = item.GroupID;
+            clone.GroupOwned = item.GroupOwned;
+            clone.GroupPermissions = item.GroupPermissions;
+            clone.InvType = item.InvType;
+            clone.NextPermissions = item.NextPermissions;
+            clone.Owner = item.Owner;
+
+            return clone;
+        }
+
+        public string IdStr(InventoryItemBase item)
+        {
+            return item.Owner.ToString().Substring(34) + " : " + item.Name;
+        }
+
+        public string IdStr(SceneObjectGroup sog)
+        {
+            return sog.OwnerID.ToString().Substring(34) + " : " + sog.Name;
         }
 
         public void GiveInventoryItem(UUID itemId, ScenePresence giverSp, ScenePresence receiverSp)
