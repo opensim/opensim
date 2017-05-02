@@ -1,6 +1,31 @@
-﻿using System;
+﻿/*
+ * Copyright (c) Contributors, http://opensimulator.org/
+ * See CONTRIBUTORS.TXT for a full list of copyright holders.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the OpenSimulator Project nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading;
 using Nini.Config;
 using NUnit.Framework;
@@ -10,7 +35,6 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.CoreModules.World.Permissions;
 using OpenSim.Region.CoreModules.Avatar.Inventory.Transfer;
 using OpenSim.Region.CoreModules.Framework.InventoryAccess;
-using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
 using PermissionMask = OpenSim.Framework.PermissionMask;
@@ -67,7 +91,7 @@ namespace OpenSim.Tests.Permissions
         /// - 6 simple boxes inworld belonging to A0 and with Next Owner perms:
         ///   C, CT, MC, MCT, MT, T
         /// - Copies of all of these boxes in A0's inventory in the Objects folder
-        /// - One additional box in A0's inventory which is a copy of MCT, but 
+        /// - One additional box inworld and in A0's inventory which is a copy of MCT, but 
         ///   with C removed in inventory. This one is called MCT-C
         /// </summary>
         private void SetUpBasicEnvironment()
@@ -140,7 +164,7 @@ namespace OpenSim.Tests.Permissions
             PrintPerms(box);
             AssertPermissions(nextOwnerPerms, (PermissionMask)box.RootPart.NextOwnerMask, box.OwnerID.ToString().Substring(34) + " : " + box.Name);
 
-            TakeCopyToInventory(box);
+            TakeCopyToInventory(0, box);
 
         }
 
@@ -218,14 +242,14 @@ namespace OpenSim.Tests.Permissions
             return so;
         }
 
-        public void TakeCopyToInventory(SceneObjectGroup sog)
+        public void TakeCopyToInventory(int userIndex, SceneObjectGroup sog)
         {
-            InventoryFolderBase objsFolder = UserInventoryHelpers.GetInventoryFolder(m_Scene.InventoryService, sog.OwnerID, "Objects");
+            InventoryFolderBase objsFolder = UserInventoryHelpers.GetInventoryFolder(m_Scene.InventoryService, m_Avatars[userIndex].UUID, "Objects");
             Assert.That(objsFolder, Is.Not.Null);
 
             List<uint> localIds = new List<uint>(); localIds.Add(sog.LocalId);
             // This is an async operation
-            m_Scene.DeRezObjects((IClientAPI)m_Avatars[0].ClientView, localIds, sog.UUID, DeRezAction.TakeCopy, objsFolder.ID);
+            m_Scene.DeRezObjects((IClientAPI)m_Avatars[userIndex].ClientView, localIds, m_Avatars[userIndex].UUID, DeRezAction.TakeCopy, objsFolder.ID);
         }
 
         public InventoryItemBase GetItemFromInventory(UUID userID, string folderName, string itemName)
@@ -260,6 +284,26 @@ namespace OpenSim.Tests.Permissions
             clone.Owner = item.Owner;
 
             return clone;
+        }
+
+        public void DeleteObjectsFolders()
+        {
+            // Delete everything in A2 and A3's Objects folders, so we can restart
+            for (int i = 1; i < 3; i++)
+            {
+                InventoryFolderBase objsFolder = UserInventoryHelpers.GetInventoryFolder(Common.TheScene.InventoryService, Common.TheAvatars[i].UUID, "Objects");
+                Assert.That(objsFolder, Is.Not.Null);
+
+                List<InventoryItemBase> items = Common.TheScene.InventoryService.GetFolderItems(Common.TheAvatars[i].UUID, objsFolder.ID);
+                List<UUID> ids = new List<UUID>();
+                foreach (InventoryItemBase it in items)
+                    ids.Add(it.ID);
+
+                Common.TheScene.InventoryService.DeleteItems(Common.TheAvatars[i].UUID, ids);
+                items = Common.TheScene.InventoryService.GetFolderItems(Common.TheAvatars[i].UUID, objsFolder.ID);
+                Assert.That(items.Count, Is.EqualTo(0), "A" + (i + 1));
+            }
+
         }
 
         public string IdStr(InventoryItemBase item)
