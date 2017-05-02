@@ -87,17 +87,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             uint port = 9999;
             MainServer.RemoveHttpServer(port);
 
+            m_engine = new MockScriptEngine();
+            m_urlModule = new UrlModule();
+
+            IConfigSource config = new IniConfigSource();
+            config.AddConfig("Network");
+            config.Configs["Network"].Set("ExternalHostNameForLSL", "127.0.0.1");
+            m_scene = new SceneHelpers().SetupScene();
+
             BaseHttpServer server = new BaseHttpServer(port, false, 0, "");
             MainServer.AddHttpServer(server);
             MainServer.Instance = server;
 
             server.Start();
 
-            m_engine = new MockScriptEngine();
-            m_urlModule = new UrlModule();
-
-            m_scene = new SceneHelpers().SetupScene();
-            SceneHelpers.SetupSceneModules(m_scene, new IniConfigSource(), m_engine, m_urlModule);
+            SceneHelpers.SetupSceneModules(m_scene, config, m_engine, m_urlModule);
 
             SceneObjectGroup so = SceneHelpers.AddSceneObject(m_scene);
             m_scriptItem = TaskInventoryHelpers.AddScript(m_scene.AssetService, so.RootPart);
