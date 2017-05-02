@@ -237,7 +237,7 @@ namespace OpenSim
                 string permissionModules = Util.GetConfigVarFromSections<string>(Config, "permissionmodules",
                     new string[] { "Startup", "Permissions" }, "DefaultPermissionsModule");
 
-                m_permsModules = new List<string>(permissionModules.Split(','));
+                m_permsModules =  new List<string>(permissionModules.Split(',').Select(m => m.Trim()));
 
                 managedStatsURI = startupConfig.GetString("ManagedStatsRemoteFetchURI", String.Empty);
                 managedStatsPassword = startupConfig.GetString("ManagedStatsRemoteFetchPassword", String.Empty);
