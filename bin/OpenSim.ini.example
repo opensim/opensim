@@ -52,8 +52,11 @@
     ; name and use default public port 9000. The private port is not used
     ; in the configuration for a standalone.
 
-    ;# {BaseURL} {} {BaseURL} {"http://example.com" "http://127.0.0.1"} "http://127.0.0.1"
-    BaseURL = http://127.0.0.1
+    ;# {BaseHostname} {} {BaseHostname} {"example.com" "127.0.0.1"} "127.0.0.1"
+    BaseHostname = "127.0.0.1"
+    
+    ;# {BaseURL} {} {BaseURL} {"http://${Const|BaseHostname} https://${Const|BaseHostname}} "http://${Const|BaseHostname}"
+    BaseURL = http://${Const|BaseHostname}
     
     ;# {PublicPort} {} {PublicPort} {8002 9000} "8002"
     PublicPort = "8002"
@@ -525,10 +528,9 @@
 
     ;# {ExternalHostNameForLSL} {} {Hostname to use for HTTP-IN URLs. This should be reachable from the internet.} {}
     ;; Hostname to use in llRequestURL/llRequestSecureURL
-    ;; if not defined - default machine name is being used
-    ;; (on Windows this mean NETBIOS name - useably only inside local network)
-    ; ExternalHostNameForLSL = "127.0.0.1"
-
+    ;; if not defined - llRequestURL/llRequestSecureURL are disabled
+    ExternalHostNameForLSL = ${Const|BaseHostname}
+    
     ;# {shard} {} {Name to use for X-Secondlife-Shard header? (press enter if unsure)} {} OpenSim
     ;; What is reported as the "X-Secondlife-Shard"
     ;; Defaults to the user server url if not set
