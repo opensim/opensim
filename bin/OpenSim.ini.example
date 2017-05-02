@@ -55,7 +55,7 @@
     ;# {BaseHostname} {} {BaseHostname} {"example.com" "127.0.0.1"} "127.0.0.1"
     BaseHostname = "127.0.0.1"
     
-    ;# {BaseURL} {} {BaseURL} {"http://${Const|BaseHostname} https://${Const|BaseHostname}} "http://${Const|BaseHostname}"
+    ;# {BaseURL} {} {BaseURL} {"http://${Const|BaseHostname}} "http://${Const|BaseHostname}"
     BaseURL = http://${Const|BaseHostname}
     
     ;# {PublicPort} {} {PublicPort} {8002 9000} "8002"
