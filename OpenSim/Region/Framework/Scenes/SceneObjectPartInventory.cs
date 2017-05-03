@@ -1199,15 +1199,20 @@ namespace OpenSim.Region.Framework.Scenes
                     invString.AddNameValueLine("next_owner_mask", Utils.UIntToHexString(item.NextPermissions));
 
                     invString.AddNameValueLine("creator_id", item.CreatorID.ToString());
-                    invString.AddNameValueLine("owner_id", ownerID.ToString());
 
                     invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
 
                     invString.AddNameValueLine("group_id",groupID.ToString());
                     if(groupID != UUID.Zero && ownerID == groupID)
+                    {
+                        invString.AddNameValueLine("owner_id", UUID.Zero.ToString());
                         invString.AddNameValueLine("group_owned","1");
+                    }
                     else
+                    {
+                        invString.AddNameValueLine("owner_id", ownerID.ToString());
                         invString.AddNameValueLine("group_owned","0");
+                    }
 
                     invString.AddSectionEnd();
 
