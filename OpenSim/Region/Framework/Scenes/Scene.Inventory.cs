@@ -1738,7 +1738,24 @@ namespace OpenSim.Region.Framework.Scenes
                 // Check if we're allowed to mess with permissions
                 if (!Permissions.IsGod(remoteClient.AgentId)) // Not a god
                 {
+                    bool noChange;
                     if (remoteClient.AgentId != part.OwnerID) // Not owner
+                    {
+                        noChange = true;
+                        if(itemInfo.OwnerID == UUID.Zero && itemInfo.GroupID != UUID.Zero)
+                        {
+                            if(remoteClient.IsGroupMember(itemInfo.GroupID))
+                            {
+                                ulong powers = remoteClient.GetGroupPowers(itemInfo.GroupID);
+                                if((powers & (ulong)GroupPowers.ObjectManipulate) != 0)
+                                    noChange = false;
+                            }
+                        }
+                    }
+                    else
+                        noChange = false;
+
+                    if(noChange)
                     {
                         // Friends and group members can't change any perms
                         itemInfo.BasePermissions = currentItem.BasePermissions;
