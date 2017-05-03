@@ -236,10 +236,7 @@ namespace OpenSim.Region.Framework.Scenes
             IList<TaskInventoryItem> items = new List<TaskInventoryItem>(Items.Values);
             foreach (TaskInventoryItem item in items)
             {
-                if (groupID != item.GroupID)
-                {
-                    item.GroupID = groupID;
-                }
+                item.GroupID = groupID;
             }
             m_items.LockItemsForWrite(false);
         }
@@ -1019,6 +1016,9 @@ namespace OpenSim.Region.Framework.Scenes
                 // changed since permissions were last set.
                 if (item.GroupPermissions != (uint)PermissionMask.None)
                     item.GroupID = m_part.GroupID;
+
+                if(item.OwnerID == UUID.Zero) // viewer to internal enconding of group owned
+                    item.OwnerID = item.GroupID; 
 
                 if (item.AssetID == UUID.Zero)
                     item.AssetID = m_items[item.ItemID].AssetID;
