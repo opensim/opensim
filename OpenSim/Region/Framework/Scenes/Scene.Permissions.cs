@@ -53,6 +53,7 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool DuplicateObjectHandler(SceneObjectGroup sog, ScenePresence sp);
     public delegate bool EditObjectByIDsHandler(UUID objectID, UUID editorID);
     public delegate bool EditObjectHandler(SceneObjectGroup sog, ScenePresence sp);
+    public delegate bool EditObjectPermsHandler(SceneObjectGroup sog, UUID editorID);
     public delegate bool EditObjectInventoryHandler(UUID objectID, UUID editorID);
     public delegate bool MoveObjectHandler(SceneObjectGroup sog, ScenePresence sp);
     public delegate bool ObjectEntryHandler(SceneObjectGroup sog, bool enteringRegion, Vector3 newPoint);
@@ -133,6 +134,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event DuplicateObjectHandler OnDuplicateObject;
         public event EditObjectByIDsHandler OnEditObjectByIDs;
         public event EditObjectHandler OnEditObject;
+        public event EditObjectPermsHandler OnEditObjectPerms;
         public event EditObjectInventoryHandler OnEditObjectInventory;
         public event MoveObjectHandler OnMoveObject;
         public event ObjectEntryHandler OnObjectEntry;
@@ -510,6 +512,24 @@ namespace OpenSim.Region.Framework.Scenes
             }
             return true;
         }
+
+        public bool CanEditObjectPermissions(SceneObjectGroup sog, UUID editorID)
+        {
+            EditObjectPermsHandler handler = OnEditObjectPerms;
+            if (handler != null)
+            {
+                if(sog == null)
+                    return false;
+                Delegate[] list = handler.GetInvocationList();
+                foreach (EditObjectPermsHandler h in list)
+                {
+                    if (h(sog, editorID) == false)
+                        return false;
+                }
+            }
+            return true;
+        }
+
 
         public bool CanEditObjectInventory(UUID objectID, UUID editorID)
         {
