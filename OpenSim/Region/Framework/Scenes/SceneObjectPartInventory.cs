@@ -207,6 +207,7 @@ namespace OpenSim.Region.Framework.Scenes
                 item.PermsGranter = UUID.Zero;
                 item.OwnerChanged = true;
             }
+            m_inventorySerial++;
             m_items.LockItemsForWrite(false);
         }
 
@@ -222,7 +223,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_items.LockItemsForWrite(false);
                 return;
             }
-
+            m_inventorySerial++;
             // Don't let this set the HasGroupChanged flag for attachments
             // as this happens during rez and we don't want a new asset
             // for each attachment each time
@@ -1179,6 +1180,7 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (TaskInventoryItem item in m_items.Values)
                 {
                     UUID ownerID = item.OwnerID;
+                    UUID groupID = item.GroupID;
                     uint everyoneMask = item.EveryonePermissions;
                     uint baseMask = item.BasePermissions;
                     uint ownerMask = item.CurrentPermissions;
@@ -1201,7 +1203,12 @@ namespace OpenSim.Region.Framework.Scenes
 
                     invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
 
-                    invString.AddNameValueLine("group_id", item.GroupID.ToString());
+                    invString.AddNameValueLine("group_id",groupID.ToString());
+                    if(groupID != UUID.Zero && ownerID == groupID)
+                        invString.AddNameValueLine("group_owned","1");
+                    else
+                        invString.AddNameValueLine("group_owned","0");
+
                     invString.AddSectionEnd();
 
                     if (includeAssets)
