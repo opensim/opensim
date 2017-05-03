@@ -118,6 +118,11 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                 return false;
 
             SceneObjectGroup group = part.ParentGroup;
+            if(group == null || group.IsDeleted || group.inTransit)
+                return false;
+
+            // make sure we are not buying a child part
+            part = group.RootPart;            
 
             switch (saleType)
             {
@@ -157,18 +162,6 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                 break;
 
             case 2: // Sell a copy
-                Vector3 inventoryStoredPosition = new Vector3(
-                        Math.Min(group.AbsolutePosition.X, m_scene.RegionInfo.RegionSizeX - 6),
-                        Math.Min(group.AbsolutePosition.Y, m_scene.RegionInfo.RegionSizeY - 6),
-                        group.AbsolutePosition.Z);
-
-                Vector3 originalPosition = group.AbsolutePosition;
-
-                group.AbsolutePosition = inventoryStoredPosition;
-
-                string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(group);
-                group.AbsolutePosition = originalPosition;
-
                 uint perms = group.EffectiveOwnerPerms;
 
                 if ((perms & (uint)PermissionMask.Transfer) == 0)
@@ -184,6 +177,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                         m_dialogModule.SendAlertToUser(remoteClient, "This sale has been blocked by the permissions system");
                     return false;
                 }
+
+                string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(group);
 
                 AssetBase asset = m_scene.CreateAsset(
                     group.GetPartName(localID),
@@ -205,22 +200,21 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                 item.AssetType = asset.Type;
                 item.InvType = (int)InventoryType.Object;
                 item.Folder = categoryID;
+                
+                perms = group.CurrentAndFoldedNextPermissions();
+                // apply parts inventory next perms            
+                PermissionsUtil.ApplyNoModFoldedPermissions(perms, ref perms);
+                // change to next owner perms
+                perms &=  part.NextOwnerMask; 
+                // update folded
+                perms = PermissionsUtil.FixAndFoldPermissions(perms);
 
-                uint nextPerms=(perms & 7) << 13;
-                if ((nextPerms & (uint)PermissionMask.Copy) == 0)
-                    perms &= ~(uint)PermissionMask.Copy;
-                if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
-                    perms &= ~(uint)PermissionMask.Transfer;
-                if ((nextPerms & (uint)PermissionMask.Modify) == 0)
-                    perms &= ~(uint)PermissionMask.Modify;
+                item.BasePermissions = perms;
+                item.CurrentPermissions = perms;
+                item.NextPermissions = part.NextOwnerMask & perms;
+                item.EveryOnePermissions = part.EveryoneMask & perms;
+                item.GroupPermissions = part.GroupMask & perms;
 
-                item.BasePermissions = perms & part.NextOwnerMask;
-                item.CurrentPermissions = perms & part.NextOwnerMask;
-                item.NextPermissions = part.NextOwnerMask;
-                item.EveryOnePermissions = part.EveryoneMask &
-                                           part.NextOwnerMask;
-                item.GroupPermissions = part.GroupMask &
-                                           part.NextOwnerMask;
                 item.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
                 item.CreationDate = Util.UnixTimeSinceEpoch();
 

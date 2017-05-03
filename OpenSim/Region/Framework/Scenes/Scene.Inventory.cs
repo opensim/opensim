@@ -682,30 +682,26 @@ namespace OpenSim.Region.Framework.Scenes
                 // These will be applied to the root prim at next rez.
                 // The legacy slam bit (bit 3) and folded permission (bits 0-2)
                 // are preserved due to the above mangling
-                ownerPerms &= nextPerms;
+//                ownerPerms &= nextPerms;
 
                 // Mask the base permissions. This is a conservative
                 // approach altering only the three main perms
-                basePerms &= nextPerms;
+//                basePerms &= nextPerms;
 
                 // Mask out the folded portion of the base mask.
                 // While the owner mask carries the actual folded
                 // permissions, the base mask carries the original
                 // base mask, before masking with the folded perms.
                 // We need this later for rezzing.
-                basePerms &= ~(uint)PermissionMask.FoldedMask;
-                basePerms |= ((basePerms >> 13) & 7) | (((basePerms & (uint)PermissionMask.Export) != 0) ? (uint)PermissionMask.FoldedExport : 0);
+//                basePerms &= ~(uint)PermissionMask.FoldedMask;
+//                basePerms |= ((basePerms >> 13) & 7) | (((basePerms & (uint)PermissionMask.Export) != 0) ? (uint)PermissionMask.FoldedExport : 0);
 
                 // If this is an object, root prim perms may be more
                 // permissive than folded perms. Use folded perms as
                 // a mask
-                if (item.InvType == (int)InventoryType.Object)
+                uint foldedPerms = (item.CurrentPermissions & (uint)PermissionMask.FoldedMask) << (int)PermissionMask.FoldingShift;
+                if (foldedPerms != 0 && item.InvType == (int)InventoryType.Object)
                 {
-                    // Create a safe mask for the current perms
-                    uint foldedPerms = (item.CurrentPermissions & 7) << 13;
-                    if ((item.CurrentPermissions & (uint)PermissionMask.FoldedExport) != 0)
-                        foldedPerms |= (uint)PermissionMask.Export;
-
                     foldedPerms |= permsMask;
 
                     bool isRootMod = (item.CurrentPermissions &
@@ -729,6 +725,11 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
+                // move here so nextperms are mandatory
+                ownerPerms &= nextPerms;
+                basePerms &= nextPerms;
+                basePerms &= ~(uint)PermissionMask.FoldedMask;
+                basePerms |= ((basePerms >> 13) & 7) | (((basePerms & (uint)PermissionMask.Export) != 0) ? (uint)PermissionMask.FoldedExport : 0);
                 // Assign to the actual item. Make sure the slam bit is
                 // set, if it wasn't set before.
                 itemCopy.BasePermissions = basePerms;
@@ -1266,20 +1267,26 @@ namespace OpenSim.Region.Framework.Scenes
             // TODO: Fix this after the inventory fixer exists and has beenr run
             if ((part.OwnerID != destAgent) && Permissions.PropagatePermissions())
             {
-                agentItem.BasePermissions = taskItem.BasePermissions & (taskItem.NextPermissions | (uint)PermissionMask.Move);
+                uint perms = taskItem.BasePermissions & taskItem.NextPermissions;
                 if (taskItem.InvType == (int)InventoryType.Object)
-                    agentItem.CurrentPermissions = agentItem.BasePermissions & (((taskItem.CurrentPermissions & 7) << 13) | (taskItem.CurrentPermissions & (uint)PermissionMask.Move));
+                {
+                     PermissionsUtil.ApplyFoldedPermissions(taskItem.CurrentPermissions, ref perms );
+                     perms = PermissionsUtil.FixAndFoldPermissions(perms);
+                }
                 else
-                    agentItem.CurrentPermissions = agentItem.BasePermissions & taskItem.CurrentPermissions;
+                    perms &= taskItem.CurrentPermissions;
 
-                agentItem.BasePermissions = agentItem.CurrentPermissions;
-
+                // always unlock
+                perms |= (uint)PermissionMask.Move;
+                            
+                agentItem.BasePermissions = perms;
+                agentItem.CurrentPermissions = perms;
+                agentItem.NextPermissions = perms & taskItem.NextPermissions;
+                agentItem.EveryOnePermissions = perms & taskItem.EveryonePermissions;
+                agentItem.GroupPermissions = perms & taskItem.GroupPermissions;
+ 
                 agentItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
                 agentItem.Flags &= ~(uint)(InventoryItemFlags.ObjectOverwriteBase | InventoryItemFlags.ObjectOverwriteOwner | InventoryItemFlags.ObjectOverwriteGroup | InventoryItemFlags.ObjectOverwriteEveryone | InventoryItemFlags.ObjectOverwriteNextOwner);
-                agentItem.NextPermissions = taskItem.NextPermissions;
-                agentItem.EveryOnePermissions = taskItem.EveryonePermissions & (taskItem.NextPermissions | (uint)PermissionMask.Move);
-                // Group permissions make no sense here
-                agentItem.GroupPermissions = 0;
             }
             else
             {
@@ -1287,7 +1294,7 @@ namespace OpenSim.Region.Framework.Scenes
                 agentItem.CurrentPermissions = taskItem.CurrentPermissions;
                 agentItem.NextPermissions = taskItem.NextPermissions;
                 agentItem.EveryOnePermissions = taskItem.EveryonePermissions;
-                agentItem.GroupPermissions = 0;
+                agentItem.GroupPermissions = taskItem.GroupPermissions;
             }
 
             message = null;

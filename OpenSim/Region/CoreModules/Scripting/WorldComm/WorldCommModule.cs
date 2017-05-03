@@ -113,7 +113,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             // wrap this in a try block so that defaults will work if
             // the config file doesn't specify otherwise.
             int maxlisteners = 1000;
-            int maxhandles = 64;
+            int maxhandles = 65;
             try
             {
                 m_whisperdistance = config.Configs["Chat"].GetInt(
@@ -130,8 +130,15 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             catch (Exception)
             {
             }
-            if (maxlisteners < 1) maxlisteners = int.MaxValue;
-            if (maxhandles < 1) maxhandles = int.MaxValue;
+
+            if (maxlisteners < 1)
+                maxlisteners = int.MaxValue;
+            if (maxhandles < 1)
+                maxhandles = int.MaxValue;
+
+            if (maxlisteners < maxhandles)
+                maxlisteners = maxhandles;
+
             m_listenerManager = new ListenerManager(maxlisteners, maxhandles);
             m_pendingQ = new Queue();
             m_pending = Queue.Synchronized(m_pendingQ);
@@ -605,11 +612,9 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                                 li.GetHandle().Equals(handle))
                         {
                             lis.Value.Remove(li);
+                            m_curlisteners--;
                             if (lis.Value.Count == 0)
-                            {
-                                m_listeners.Remove(lis.Key);
-                                m_curlisteners--;
-                            }
+                                m_listeners.Remove(lis.Key); // bailing of loop so this does not smoke
                             // there should be only one, so we bail out early
                             return;
                         }
@@ -717,6 +722,9 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                         handles.Add(li.GetHandle());
                 }
             }
+
+            if(handles.Count >= m_maxhandles)
+                return -1;
 
             // Note: 0 is NOT a valid handle for llListen() to return
             for (int i = 1; i <= m_maxhandles; i++)

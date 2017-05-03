@@ -3300,7 +3300,46 @@
       </Files>
     </Project>
 
-  <?include file="addon-modules/*/prebuild*.xml" ?>
+    <Project frameworkVersion="v4_0" name="OpenSim.Tests.Permissions" path="OpenSim/Tests/Permissions" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Core"/>
+      <Reference name="System.Xml"/>
+      <Reference name="Mono.Addins" path="../../../bin/"/>
+      <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
+      <Reference name="OpenMetaverse" path="../../../bin/"/>
+      <Reference name="OpenSim"/>
+      <Reference name="OpenSim.ApplicationPlugins.RegionModulesController"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Region.Framework"/>
+      <Reference name="OpenSim.Region.CoreModules"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
+
+      <!-- Unit tests -->
+      <!-- <Reference name="OpenSim.Tests.Common"/> -->
+      <Reference name="OpenSim.Tests.Common"/>
+      <Reference name="Nini" path="../../../bin/"/>
+      <Reference name="nunit.framework" path="../../../bin/"/>
+
+      <Reference name="log4net" path="../../../bin/"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="false"/>
+      </Files>
+    </Project>
+
+    <?include file="addon-modules/*/prebuild*.xml" ?>
 
   </Solution>
 

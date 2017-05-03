@@ -13405,6 +13405,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             List<string> param = new List<string>();
             bool  ok;
             Int32 flag;
+            int nCustomHeaders = 0;
 
             for (int i = 0; i < parameters.Data.Length; i += 2)
             {
@@ -13431,6 +13432,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     //Second Life documentation for llHTTPRequest.
                     for (int count = 1; count <= 8; ++count)
                     {
+                        if(nCustomHeaders >= 8)
+                        {
+                            Error("llHTTPRequest", "Max number of custom headers is 8, excess ignored");
+                            break;
+                        }
+
                         //Enough parameters remaining for (another) header?
                         if (parameters.Data.Length - i < 2)
                         {
@@ -13445,15 +13452,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         param.Add(parameters.Data[i].ToString());
                         param.Add(parameters.Data[i+1].ToString());
+                        nCustomHeaders++;
 
                         //Have we reached the end of the list of headers?
                         //End is marked by a string with a single digit.
-                        if (i+2 >= parameters.Data.Length ||
-                            Char.IsDigit(parameters.Data[i].ToString()[0]))
+                        if (i + 2 >= parameters.Data.Length ||
+                            Char.IsDigit(parameters.Data[i + 2].ToString()[0]))
                         {
                             break;
                         }
-
                         i += 2;
                     }
                 }

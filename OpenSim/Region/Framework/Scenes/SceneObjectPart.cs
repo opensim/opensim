@@ -2579,6 +2579,8 @@ namespace OpenSim.Region.Framework.Scenes
                 AggregatedInnerOwnerPerms = owner & mask;
                 AggregatedInnerGroupPerms = group & mask;
                 AggregatedInnerEveryonePerms = everyone & mask;
+                if(ParentGroup != null)
+                    ParentGroup.InvalidateEffectivePerms();
             }
         }
 
@@ -5286,9 +5288,9 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             // Export needs to be preserved in the base and everyone
             // mask, but removed in the owner mask as a next owner
             // can never change the export status
-            BaseMask &= NextOwnerMask | (uint)PermissionMask.Export;
+            BaseMask &= (NextOwnerMask | (uint)PermissionMask.Export);
             OwnerMask &= NextOwnerMask;
-            EveryoneMask &= NextOwnerMask | (uint)PermissionMask.Export;
+            EveryoneMask &= (NextOwnerMask | (uint)PermissionMask.Export);
             GroupMask = 0; // Giving an object zaps group permissions
 
             Inventory.ApplyNextOwnerPermissions();

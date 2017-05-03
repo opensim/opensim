@@ -223,20 +223,16 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                                 if (parms.Length - i < 2)
                                     break;
 
-                                //Have we reached the end of the list of headers?
-                                //End is marked by a string with a single digit.
-                                //We already know we have at least one parameter
-                                //so it is safe to do this check at top of loop.
-                                if (Char.IsDigit(parms[i][0]))
-                                    break;
-
                                 if (htc.HttpCustomHeaders == null)
                                     htc.HttpCustomHeaders = new List<string>();
 
                                 htc.HttpCustomHeaders.Add(parms[i]);
                                 htc.HttpCustomHeaders.Add(parms[i+1]);
+                                int nexti = i + 2;
+                                if (nexti >= parms.Length || Char.IsDigit(parms[nexti][0]))
+                                    break;
 
-                                i += 2;
+                                i = nexti;
                             }
                             break;
 

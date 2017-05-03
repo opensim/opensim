@@ -2022,7 +2022,10 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             uint perms = GetObjectPermissions(sp, sog, true);
             if((perms & (uint)PermissionMask.Copy) == 0)
+            {
+                sp.ControllingClient.SendAgentAlertMessage("Copying this item has been denied by the permissions system", false);
                 return false;
+            }
 
             if(sog.OwnerID != sp.UUID && (perms & (uint)PermissionMask.Transfer) == 0)
                  return false;

@@ -1332,6 +1332,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             foreach (TaskInventoryItem item in m_items.Values)
             {
+                if(item.InvType == (sbyte)InventoryType.Landmark)
+                    continue;
                 owner &= item.CurrentPermissions;
                 group &= item.GroupPermissions;
                 everyone &= item.EveryonePermissions;
@@ -1340,33 +1342,35 @@ namespace OpenSim.Region.Framework.Scenes
 
         public uint MaskEffectivePermissions()
         {
+            // used to propagate permissions restrictions outwards
+            // Modify does not propagate outwards. 
             uint mask=0x7fffffff;
-
+            
             foreach (TaskInventoryItem item in m_items.Values)
             {
-                if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Copy) == 0)
-                    mask &= ~((uint)PermissionMask.Copy >> 13);
-                if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Transfer) == 0)
-                    mask &= ~((uint)PermissionMask.Transfer >> 13);
-                if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Modify) == 0)
-                    mask &= ~((uint)PermissionMask.Modify >> 13);
+                if(item.InvType == (sbyte)InventoryType.Landmark)
+                    continue;
 
-                if (item.InvType == (int)InventoryType.Object)
-                {
-                    if ((item.CurrentPermissions & ((uint)PermissionMask.Copy >> 13)) == 0)
-                        mask &= ~((uint)PermissionMask.Copy >> 13);
-                    if ((item.CurrentPermissions & ((uint)PermissionMask.Transfer >> 13)) == 0)
-                        mask &= ~((uint)PermissionMask.Transfer >> 13);
-                    if ((item.CurrentPermissions & ((uint)PermissionMask.Modify >> 13)) == 0)
-                        mask &= ~((uint)PermissionMask.Modify >> 13);
-                }
+                // apply current to normal permission bits
+                uint newperms = item.CurrentPermissions;
 
-                if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
+                if ((newperms & (uint)PermissionMask.Copy) == 0)
                     mask &= ~(uint)PermissionMask.Copy;
-                if ((item.CurrentPermissions & (uint)PermissionMask.Transfer) == 0)
+                if ((newperms & (uint)PermissionMask.Transfer) == 0)
                     mask &= ~(uint)PermissionMask.Transfer;
-                if ((item.CurrentPermissions & (uint)PermissionMask.Modify) == 0)
-                    mask &= ~(uint)PermissionMask.Modify;
+                if ((newperms & (uint)PermissionMask.Export) == 0)
+                    mask &= ~((uint)PermissionMask.Export);
+               
+                // apply next owner restricted by current to folded bits 
+                newperms &= item.NextPermissions;
+
+                if ((newperms & (uint)PermissionMask.Copy) == 0)
+                   mask &= ~((uint)PermissionMask.FoldedCopy);
+                if ((newperms & (uint)PermissionMask.Transfer) == 0)
+                    mask &= ~((uint)PermissionMask.FoldedTransfer);
+                if ((newperms & (uint)PermissionMask.Export) == 0)
+                    mask &= ~((uint)PermissionMask.FoldedExport);
+
             }
             return mask;
         }
@@ -1375,19 +1379,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             foreach (TaskInventoryItem item in m_items.Values)
             {
-                if (item.InvType == (int)InventoryType.Object && (item.CurrentPermissions & 7) != 0)
-                {
-//                    m_log.DebugFormat (
-//                        "[SCENE OBJECT PART INVENTORY]: Applying next permissions {0} to {1} in {2} with current {3}, base {4}, everyone {5}",
-//                        item.NextPermissions, item.Name, m_part.Name, item.CurrentPermissions, item.BasePermissions, item.EveryonePermissions);
-
-                    if ((item.CurrentPermissions & ((uint)PermissionMask.Copy >> 13)) == 0)
-                        item.CurrentPermissions &= ~(uint)PermissionMask.Copy;
-                    if ((item.CurrentPermissions & ((uint)PermissionMask.Transfer >> 13)) == 0)
-                        item.CurrentPermissions &= ~(uint)PermissionMask.Transfer;
-                    if ((item.CurrentPermissions & ((uint)PermissionMask.Modify >> 13)) == 0)
-                        item.CurrentPermissions &= ~(uint)PermissionMask.Modify;
-                }
                 item.CurrentPermissions &= item.NextPermissions;
                 item.BasePermissions &= item.NextPermissions;
                 item.EveryonePermissions &= item.NextPermissions;
