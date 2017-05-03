@@ -1678,7 +1678,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return false;
         }
 
-
         private bool CanReturnObjects(ILandObject land, ScenePresence sp, List<SceneObjectGroup> objects)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
@@ -2289,23 +2288,31 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (sog == null)
                 return false;
 
-            uint perms = GetObjectPermissions(userID, sog, true);
-            if((perms & (uint)PermissionMask.Modify) == 0)
+            if(sog.OwnerID == userID || IsAdministrator(userID))
+                return true;
+ 
+            if(sog.IsAttachment)
+                return false;
+
+            UUID sogGroupID = sog.GroupID;
+
+            if(sogGroupID == UUID.Zero || sogGroupID != sog.OwnerID)
                 return false;
 
             TaskInventoryItem ti = part.Inventory.GetInventoryItem(itemID);
             if(ti == null)
                 return false;
 
-            uint itperms = GetObjectItemPermissions(userID, ti);
+            ulong powers = 0;
+            if(GroupMemberPowers(sogGroupID, userID, ref powers))
+            {
+                if(powers == (ulong)GroupPowers.ObjectManipulate)
+                    return true;
 
-            if((itperms & (uint)PermissionMask.Copy) == 0)
-                return false;
-
-            if(sog.OwnerID != userID && (itperms & (uint)PermissionMask.Transfer) == 0)
-                return false;
-
-            return true;
+                if((ti.EveryonePermissions & (uint)PermissionMask.Copy) != 0)
+                        return true;
+            }
+            return false;
         }
 
         // object inventory to object inventory item drag and drop

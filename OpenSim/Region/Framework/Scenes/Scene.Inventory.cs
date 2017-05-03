@@ -1388,11 +1388,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             if (!Permissions.CanCopyObjectInventory(itemId, part.UUID, remoteClient.AgentId))
-            {
-                // check also if we can delete the no copy item
-                if(!Permissions.CanEditObject(part.UUID, remoteClient.AgentId))
-                    return;
-            }
+                return;
 
             string message;
             InventoryItemBase item = MoveTaskInventoryItem(remoteClient, folderId, part, itemId, out message);
@@ -1769,7 +1765,6 @@ namespace OpenSim.Region.Framework.Scenes
                         itemInfo.CurrentPermissions &= currentItem.BasePermissions;
                         itemInfo.NextPermissions &= currentItem.BasePermissions;
                     }
-
                 }
                 else
                 {
