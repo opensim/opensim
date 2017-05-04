@@ -146,7 +146,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                         child.TriggerScriptChangedEvent(Changed.OWNER);
                         child.ApplyNextOwnerPermissions();
                     }
-                    group.AggregatePerms();
+                    group.InvalidateDeepEffectivePerms();
                 }
 
                 part.ObjectSaleType = 0;

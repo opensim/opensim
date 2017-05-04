@@ -2094,7 +2094,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 child.TriggerScriptChangedEvent(Changed.OWNER);
                                 child.ApplyNextOwnerPermissions();
                             }
-                            copy.AggregatePerms();
+                            copy.InvalidateEffectivePerms();
                         }
                     }
 

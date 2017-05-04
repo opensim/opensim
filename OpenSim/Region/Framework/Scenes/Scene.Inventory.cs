@@ -338,7 +338,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Update item with new asset
             item.AssetID = asset.FullID;
             group.UpdateInventoryItem(item);
-            group.AggregatePerms();
+            group.InvalidateEffectivePerms();
 
             part.SendPropertiesToClient(remoteClient);
 
@@ -1216,7 +1216,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     group.RemoveInventoryItem(localID, itemID);
-                    group.AggregatePerms();
+                    group.InvalidateEffectivePerms();
                 }
 
                 part.SendPropertiesToClient(remoteClient);
@@ -1967,7 +1967,7 @@ namespace OpenSim.Region.Framework.Scenes
             part.Inventory.AddInventoryItem(taskItem, false);
             part.Inventory.CreateScriptInstance(taskItem, 0, false, DefaultScriptEngine, 0);
 
-            part.ParentGroup.AggregatePerms();
+            part.ParentGroup.InvalidateEffectivePerms();
 
             // tell anyone managing scripts that a new script exists
             EventManager.TriggerNewScript(agentID, part, taskItem.ItemID);
@@ -2655,7 +2655,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // We can only call this after adding the scene object, since the scene object references the scene
                 // to find out if scripts should be activated at all.
-                group.AggregatePerms();
+                group.InvalidateEffectivePerms();
                 group.CreateScriptInstances(param, true, DefaultScriptEngine, 3);
 
                 group.ScheduleGroupForFullUpdate();
@@ -2752,7 +2752,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // and with this comented code, if user does not set next permissions on the object
                     // and on ALL contents of ALL prims, he may loose rights, making the object useless
                     sog.ApplyNextOwnerPermissions();
-                    sog.AggregatePerms();
+                    sog.InvalidateEffectivePerms();
 
                     sog.ScheduleGroupForFullUpdate();
 

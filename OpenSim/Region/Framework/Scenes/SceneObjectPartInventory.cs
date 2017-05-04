@@ -1031,8 +1031,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (considerChanged)
                 {
-                    m_part.AggregateInnerPerms();
-                    m_part.ParentGroup.AggregatePerms();
+                    m_part.ParentGroup.InvalidateDeepEffectivePerms();
                     HasInventoryChanged = true;
                     m_part.ParentGroup.HasGroupChanged = true;
                 }
@@ -1075,8 +1074,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_items.Remove(itemID);
                 m_items.LockItemsForWrite(false);
 
-                m_part.AggregateInnerPerms();
-                m_part.ParentGroup.AggregatePerms();
+                m_part.ParentGroup.InvalidateDeepEffectivePerms();
 
                 m_inventorySerial++;
                 m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
