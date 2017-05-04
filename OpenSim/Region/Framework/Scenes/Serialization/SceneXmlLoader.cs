@@ -70,7 +70,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     //obj.RegenerateFullIDs();
 
                     scene.AddNewSceneObject(obj, true);
-                    obj.AggregateDeepPerms();
+                    obj.InvalidateDeepEffectivePerms();
                 }
             }
             else

@@ -2048,7 +2048,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_host.Inventory.AddInventoryItemExclusive(taskItem, false);
             else
                 m_host.Inventory.AddInventoryItem(taskItem, false);
-            m_host.ParentGroup.AggregatePerms();
+            m_host.ParentGroup.InvalidateDeepEffectivePerms();
 
             return taskItem;
         }

@@ -236,11 +236,8 @@ namespace OpenSim.Region.Framework.Scenes
             IList<TaskInventoryItem> items = new List<TaskInventoryItem>(Items.Values);
             foreach (TaskInventoryItem item in items)
             {
-                if (groupID != item.GroupID)
-                {
                     item.GroupID = groupID;
                 }
-            }
             m_items.LockItemsForWrite(false);
         }
 
@@ -982,7 +979,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 // old code end
                 rootPart.TrimPermissions();
-                group.AggregateDeepPerms();
+                group.InvalidateDeepEffectivePerms();
             }
 
             return true;
@@ -1020,6 +1017,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (item.GroupPermissions != (uint)PermissionMask.None)
                     item.GroupID = m_part.GroupID;
 
+                if(item.OwnerID == UUID.Zero) // viewer to internal enconding of group owned
+                    item.OwnerID = item.GroupID; 
+
                 if (item.AssetID == UUID.Zero)
                     item.AssetID = m_items[item.ItemID].AssetID;
 
@@ -1031,8 +1031,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (considerChanged)
                 {
-                    m_part.AggregateInnerPerms();
-                    m_part.ParentGroup.AggregatePerms();
+                    m_part.ParentGroup.InvalidateDeepEffectivePerms();
                     HasInventoryChanged = true;
                     m_part.ParentGroup.HasGroupChanged = true;
                 }
@@ -1075,8 +1074,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_items.Remove(itemID);
                 m_items.LockItemsForWrite(false);
 
-                m_part.AggregateInnerPerms();
-                m_part.ParentGroup.AggregatePerms();
+                m_part.ParentGroup.InvalidateDeepEffectivePerms();
 
                 m_inventorySerial++;
                 m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
@@ -1199,15 +1197,20 @@ namespace OpenSim.Region.Framework.Scenes
                     invString.AddNameValueLine("next_owner_mask", Utils.UIntToHexString(item.NextPermissions));
 
                     invString.AddNameValueLine("creator_id", item.CreatorID.ToString());
-                    invString.AddNameValueLine("owner_id", ownerID.ToString());
 
                     invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
 
                     invString.AddNameValueLine("group_id",groupID.ToString());
                     if(groupID != UUID.Zero && ownerID == groupID)
+                    {
+                        invString.AddNameValueLine("owner_id", UUID.Zero.ToString());
                         invString.AddNameValueLine("group_owned","1");
+                    }
                     else
+                    {
+                        invString.AddNameValueLine("owner_id", ownerID.ToString());
                         invString.AddNameValueLine("group_owned","0");
+                    }
 
                     invString.AddSectionEnd();
 

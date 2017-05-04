@@ -2677,7 +2677,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (dupe.m_rootPart.PhysActor != null)
                     dupe.m_rootPart.PhysActor.Building = false; // tell physics to finish building
 
-                dupe.AggregateDeepPerms();
+                dupe.InvalidateDeepEffectivePerms();
 
                 dupe.HasGroupChanged = true;
                 dupe.AttachToBackup();
@@ -2943,7 +2943,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!m_scene.Permissions.BypassPermissions())
                 {
                     ApplyNextOwnerPermissions();
-                    AggregatePerms();
+                    InvalidateEffectivePerms();
                 }
             }
 
@@ -3605,7 +3605,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             InvalidBoundsRadius();
             InvalidatePartsLinkMaps();
-            objectGroup.AggregatePerms();
+            objectGroup.InvalidateEffectivePerms();
 
             if (sendEvents)
                 linkPart.TriggerScriptChangedEvent(Changed.LINK);
@@ -4163,7 +4163,7 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat(
 //                "[SCENE OBJECT GROUP]: RootPart.OwnerMask now {0} for {1} in {2}",
 //                (OpenMetaverse.PermissionMask)RootPart.OwnerMask, Name, Scene.Name);
-            AggregatePerms();
+            InvalidateEffectivePerms();
             RootPart.ScheduleFullUpdate();
         }
 
@@ -4188,7 +4188,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (SceneObjectPart part in Parts)
                     part.Inventory.ApplyGodPermissions(RootPart.BaseMask);
-                AggregatePerms();
+                InvalidateEffectivePerms();
             }
 
             HasGroupChanged = true;
@@ -5447,7 +5447,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 part.ResetOwnerChangeFlag();
             });
-            AggregatePerms();
+            InvalidateEffectivePerms();
         }
 
         // clear some references to easy cg

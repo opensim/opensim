@@ -1182,7 +1182,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
 
                 rootPart.TrimPermissions();
-                so.AggregateDeepPerms();
+                so.InvalidateDeepEffectivePerms();
 
                 if (isAttachment)
                     so.FromItemID = item.ID;
