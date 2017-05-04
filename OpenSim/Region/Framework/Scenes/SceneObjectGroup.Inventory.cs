@@ -350,9 +350,8 @@ namespace OpenSim.Region.Framework.Scenes
                 uint everyone = rootEveryonePerms;
 
                 bool needUpdate = false;
-                bool propGroupOut = Scene.PropagateGroupShareOutwards;
                 // date is time of writing april 30th 2017
-                bool propAnyOut = Scene.PropagateAnyOneOutwards & (RootPart.CreationDate == 0 || RootPart.CreationDate > 1493574994);
+                bool newobj = (RootPart.CreationDate == 0 || RootPart.CreationDate > 1493574994);
                 SceneObjectPart[] parts = m_parts.GetArray();
                 for (int i = 0; i < parts.Length; i++)
                 {
@@ -363,9 +362,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                     owner &= part.AggregatedInnerOwnerPerms; 
                     group &= part.AggregatedInnerGroupPerms;
-                    if(propGroupOut)
+                    if(newobj)
                         group &= part.AggregatedInnerGroupPerms;
-                    if(propAnyOut)
+                    if(newobj)
                         everyone &= part.AggregatedInnerEveryonePerms;
                 }
                 // recover modify and move

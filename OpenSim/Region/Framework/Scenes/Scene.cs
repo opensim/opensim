@@ -239,16 +239,6 @@ namespace OpenSim.Region.Framework.Scenes
         public bool LegacySitOffsets = true;
 
         /// <summary>
-        /// set false to not propagare group rights outwards as legacy did
-        /// </summary>
-        public bool PropagateGroupShareOutwards = true;
-
-        /// <summary>
-        /// set false to not propagare Everyone rights outwards as legacy did
-        /// </summary>
-        public bool PropagateAnyOneOutwards = true;
-
-        /// <summary>
         /// Can avatars cross from and to this region?
         /// </summary>
         public bool AllowAvatarCrossing { get; set; }
@@ -990,8 +980,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // old versions compatibility
                 LegacySitOffsets = startupConfig.GetBoolean("LegacySitOffsets", LegacySitOffsets);
-                PropagateGroupShareOutwards = startupConfig.GetBoolean("PropagateGroupShareOutwards", PropagateGroupShareOutwards);
-                PropagateAnyOneOutwards = startupConfig.GetBoolean("PropagateAnyOneOutwards", PropagateAnyOneOutwards);
 
                 if (m_defaultDrawDistance > m_maxDrawDistance)
                     m_defaultDrawDistance = m_maxDrawDistance;
