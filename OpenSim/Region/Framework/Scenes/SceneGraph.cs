@@ -343,7 +343,7 @@ namespace OpenSim.Region.Framework.Scenes
                 sceneObject.ForceInventoryPersistence();
                 sceneObject.HasGroupChanged = true;
             }
-            sceneObject.AggregateDeepPerms();
+            sceneObject.InvalidateDeepEffectivePerms();
             return ret;
         }
 

@@ -979,7 +979,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 // old code end
                 rootPart.TrimPermissions();
-                group.AggregateDeepPerms();
+                group.InvalidateDeepEffectivePerms();
             }
 
             return true;

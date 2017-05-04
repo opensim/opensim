@@ -2677,7 +2677,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (dupe.m_rootPart.PhysActor != null)
                     dupe.m_rootPart.PhysActor.Building = false; // tell physics to finish building
 
-                dupe.AggregateDeepPerms();
+                dupe.InvalidateDeepEffectivePerms();
 
                 dupe.HasGroupChanged = true;
                 dupe.AttachToBackup();

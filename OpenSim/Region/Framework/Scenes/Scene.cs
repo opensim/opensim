@@ -239,6 +239,16 @@ namespace OpenSim.Region.Framework.Scenes
         public bool LegacySitOffsets = true;
 
         /// <summary>
+        /// set false to not propagare group rights outwards as legacy did
+        /// </summary>
+        public bool PropagateGroupShareOutwards = true;
+
+        /// <summary>
+        /// set false to not propagare Everyone rights outwards as legacy did
+        /// </summary>
+        public bool PropagateAnyOneOutwards = true;
+
+        /// <summary>
         /// Can avatars cross from and to this region?
         /// </summary>
         public bool AllowAvatarCrossing { get; set; }
@@ -978,7 +988,10 @@ namespace OpenSim.Region.Framework.Scenes
                 m_maxDrawDistance = startupConfig.GetFloat("MaxDrawDistance", m_maxDrawDistance);
                 m_maxRegionViewDistance = startupConfig.GetFloat("MaxRegionsViewDistance", m_maxRegionViewDistance);
 
+                // old versions compatibility
                 LegacySitOffsets = startupConfig.GetBoolean("LegacySitOffsets", LegacySitOffsets);
+                PropagateGroupShareOutwards = startupConfig.GetBoolean("PropagateGroupShareOutwards", PropagateGroupShareOutwards);
+                PropagateAnyOneOutwards = startupConfig.GetBoolean("PropagateAnyOneOutwards", PropagateAnyOneOutwards);
 
                 if (m_defaultDrawDistance > m_maxDrawDistance)
                     m_defaultDrawDistance = m_maxDrawDistance;
@@ -2390,8 +2403,9 @@ namespace OpenSim.Region.Framework.Scenes
                 EventManager.TriggerOnSceneObjectLoaded(group);
                 SceneObjectPart rootPart = group.GetPart(group.UUID);
                 rootPart.Flags &= ~PrimFlags.Scripted;
-                group.AggregateDeepPerms();
+
                 rootPart.TrimPermissions();
+                group.InvalidateDeepEffectivePerms();
 
                 // Don't do this here - it will get done later on when sculpt data is loaded.
                 //                group.CheckSculptAndLoad();
@@ -2662,7 +2676,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (UserManagementModule != null)
                 sceneObject.RootPart.CreatorIdentification = UserManagementModule.GetUserUUI(ownerID);
 
-            sceneObject.AggregateDeepPerms();
+            sceneObject.InvalidateDeepEffectivePerms();;
             sceneObject.ScheduleGroupForFullUpdate();
 
             return sceneObject;
