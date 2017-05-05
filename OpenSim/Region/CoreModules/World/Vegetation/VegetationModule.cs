@@ -107,7 +107,7 @@ namespace OpenSim.Region.CoreModules.World.Vegetation
 
             sceneObject.SetGroup(groupID, null);
             m_scene.AddNewSceneObject(sceneObject, true);
-            sceneObject.AggregatePerms();
+            sceneObject.InvalidateDeepEffectivePerms();
 
             return sceneObject;
         }

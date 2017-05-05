@@ -293,6 +293,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             scenePermissions.OnDeleteObject += CanDeleteObject;
             scenePermissions.OnEditObjectByIDs += CanEditObjectByIDs;
             scenePermissions.OnEditObject += CanEditObject;
+            scenePermissions.OnEditObjectPerms += CanEditObjectPerms;
             scenePermissions.OnInventoryTransfer += CanInventoryTransfer;
             scenePermissions.OnMoveObject += CanMoveObject;
             scenePermissions.OnTakeObject += CanTakeObject;
@@ -391,6 +392,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             scenePermissions.OnDeleteObject -= CanDeleteObject;
             scenePermissions.OnEditObjectByIDs -= CanEditObjectByIDs;
             scenePermissions.OnEditObject -= CanEditObject;
+            scenePermissions.OnEditObjectPerms -= CanEditObjectPerms;
             scenePermissions.OnInventoryTransfer -= CanInventoryTransfer;
             scenePermissions.OnMoveObject -= CanMoveObject;
             scenePermissions.OnTakeObject -= CanTakeObject;
@@ -1387,6 +1389,35 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return true;
         }
 
+        private bool CanEditObjectPerms(SceneObjectGroup sog, UUID userID)
+        {
+            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+            if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            if (sog == null)
+                return false;
+
+            if(sog.OwnerID == userID || IsAdministrator(userID))
+                return true;
+
+            UUID sogGroupID = sog.GroupID;
+            if(sogGroupID == UUID.Zero || sogGroupID != sog.OwnerID)
+                return false;
+
+            uint perms = sog.EffectiveOwnerPerms;
+            if((perms & (uint)PermissionMask.Modify) == 0)
+                return false;
+
+            ulong powers = 0;
+            if(GroupMemberPowers(sogGroupID, userID, ref powers))
+            {
+                if((powers & (ulong)GroupPowers.ObjectManipulate) != 0)
+                    return true;
+            }
+
+            return false;
+        }
+
         private bool CanEditObjectInventory(UUID objectID, UUID userID)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
@@ -1677,7 +1708,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             //Otherwise, false!
             return false;
         }
-
 
         private bool CanReturnObjects(ILandObject land, ScenePresence sp, List<SceneObjectGroup> objects)
         {
@@ -2289,23 +2319,31 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (sog == null)
                 return false;
 
-            uint perms = GetObjectPermissions(userID, sog, true);
-            if((perms & (uint)PermissionMask.Modify) == 0)
+            if(sog.OwnerID == userID || IsAdministrator(userID))
+                return true;
+ 
+            if(sog.IsAttachment)
+                return false;
+
+            UUID sogGroupID = sog.GroupID;
+
+            if(sogGroupID == UUID.Zero || sogGroupID != sog.OwnerID)
                 return false;
 
             TaskInventoryItem ti = part.Inventory.GetInventoryItem(itemID);
             if(ti == null)
                 return false;
 
-            uint itperms = GetObjectItemPermissions(userID, ti);
+            ulong powers = 0;
+            if(GroupMemberPowers(sogGroupID, userID, ref powers))
+            {
+                if((powers & (ulong)GroupPowers.ObjectManipulate) != 0)
+                    return true;
 
-            if((itperms & (uint)PermissionMask.Copy) == 0)
-                return false;
-
-            if(sog.OwnerID != userID && (itperms & (uint)PermissionMask.Transfer) == 0)
-                return false;
-
-            return true;
+                if((ti.EveryonePermissions & (uint)PermissionMask.Copy) != 0)
+                        return true;
+            }
+            return false;
         }
 
         // object inventory to object inventory item drag and drop

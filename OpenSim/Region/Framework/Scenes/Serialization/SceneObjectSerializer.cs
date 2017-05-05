@@ -114,7 +114,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             // Script state may, or may not, exist. Not having any, is NOT
             // ever a problem.
             sceneObject.LoadScriptState(reader);
-            sceneObject.AggregateDeepPerms();
+            sceneObject.InvalidateDeepEffectivePerms();
             return sceneObject;
         }
 
@@ -278,7 +278,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 // Script state may, or may not, exist. Not having any, is NOT
                 // ever a problem.
                 sceneObject.LoadScriptState(doc);
-                sceneObject.AggregatePerms();
+//                sceneObject.AggregatePerms();
                 return sceneObject;
             }
             catch (Exception e)

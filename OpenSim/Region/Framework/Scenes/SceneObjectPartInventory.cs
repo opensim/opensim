@@ -207,6 +207,7 @@ namespace OpenSim.Region.Framework.Scenes
                 item.PermsGranter = UUID.Zero;
                 item.OwnerChanged = true;
             }
+            m_inventorySerial++;
             m_items.LockItemsForWrite(false);
         }
 
@@ -222,7 +223,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_items.LockItemsForWrite(false);
                 return;
             }
-
+            m_inventorySerial++;
             // Don't let this set the HasGroupChanged flag for attachments
             // as this happens during rez and we don't want a new asset
             // for each attachment each time
@@ -235,10 +236,7 @@ namespace OpenSim.Region.Framework.Scenes
             IList<TaskInventoryItem> items = new List<TaskInventoryItem>(Items.Values);
             foreach (TaskInventoryItem item in items)
             {
-                if (groupID != item.GroupID)
-                {
-                    item.GroupID = groupID;
-                }
+                item.GroupID = groupID;
             }
             m_items.LockItemsForWrite(false);
         }
@@ -981,7 +979,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 // old code end
                 rootPart.TrimPermissions();
-                group.AggregateDeepPerms();
+                group.InvalidateDeepEffectivePerms();
             }
 
             return true;
@@ -1019,6 +1017,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (item.GroupPermissions != (uint)PermissionMask.None)
                     item.GroupID = m_part.GroupID;
 
+                if(item.OwnerID == UUID.Zero) // viewer to internal enconding of group owned
+                    item.OwnerID = item.GroupID; 
+
                 if (item.AssetID == UUID.Zero)
                     item.AssetID = m_items[item.ItemID].AssetID;
 
@@ -1030,8 +1031,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (considerChanged)
                 {
-                    m_part.AggregateInnerPerms();
-                    m_part.ParentGroup.AggregatePerms();
+                    m_part.ParentGroup.InvalidateDeepEffectivePerms();
                     HasInventoryChanged = true;
                     m_part.ParentGroup.HasGroupChanged = true;
                 }
@@ -1074,8 +1074,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_items.Remove(itemID);
                 m_items.LockItemsForWrite(false);
 
-                m_part.AggregateInnerPerms();
-                m_part.ParentGroup.AggregatePerms();
+                m_part.ParentGroup.InvalidateDeepEffectivePerms();
 
                 m_inventorySerial++;
                 m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
@@ -1179,6 +1178,7 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (TaskInventoryItem item in m_items.Values)
                 {
                     UUID ownerID = item.OwnerID;
+                    UUID groupID = item.GroupID;
                     uint everyoneMask = item.EveryonePermissions;
                     uint baseMask = item.BasePermissions;
                     uint ownerMask = item.CurrentPermissions;
@@ -1197,11 +1197,21 @@ namespace OpenSim.Region.Framework.Scenes
                     invString.AddNameValueLine("next_owner_mask", Utils.UIntToHexString(item.NextPermissions));
 
                     invString.AddNameValueLine("creator_id", item.CreatorID.ToString());
-                    invString.AddNameValueLine("owner_id", ownerID.ToString());
 
                     invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
 
-                    invString.AddNameValueLine("group_id", item.GroupID.ToString());
+                    invString.AddNameValueLine("group_id",groupID.ToString());
+                    if(groupID != UUID.Zero && ownerID == groupID)
+                    {
+                        invString.AddNameValueLine("owner_id", UUID.Zero.ToString());
+                        invString.AddNameValueLine("group_owned","1");
+                    }
+                    else
+                    {
+                        invString.AddNameValueLine("owner_id", ownerID.ToString());
+                        invString.AddNameValueLine("group_owned","0");
+                    }
+
                     invString.AddSectionEnd();
 
                     if (includeAssets)
@@ -1351,19 +1361,26 @@ namespace OpenSim.Region.Framework.Scenes
                 if(item.InvType == (sbyte)InventoryType.Landmark)
                     continue;
 
-                if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Copy) == 0)
-                    mask &= ~((uint)PermissionMask.FoldedCopy);
-                if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Transfer) == 0)
+                // apply current to normal permission bits
+                uint newperms = item.CurrentPermissions;
+
+                if ((newperms & (uint)PermissionMask.Copy) == 0)
+                    mask &= ~(uint)PermissionMask.Copy;
+                if ((newperms & (uint)PermissionMask.Transfer) == 0)
+                    mask &= ~(uint)PermissionMask.Transfer;
+                if ((newperms & (uint)PermissionMask.Export) == 0)
+                    mask &= ~((uint)PermissionMask.Export);
+               
+                // apply next owner restricted by current to folded bits 
+                newperms &= item.NextPermissions;
+
+                if ((newperms & (uint)PermissionMask.Copy) == 0)
+                   mask &= ~((uint)PermissionMask.FoldedCopy);
+                if ((newperms & (uint)PermissionMask.Transfer) == 0)
                     mask &= ~((uint)PermissionMask.FoldedTransfer);
-                if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Export) == 0)
+                if ((newperms & (uint)PermissionMask.Export) == 0)
                     mask &= ~((uint)PermissionMask.FoldedExport);
 
-                if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
-                    mask &= ~(uint)PermissionMask.Copy;
-                if ((item.CurrentPermissions & (uint)PermissionMask.Transfer) == 0)
-                    mask &= ~(uint)PermissionMask.Transfer;
-                if ((item.CurrentPermissions & (uint)PermissionMask.Export) == 0)
-                    mask &= ~((uint)PermissionMask.Export);
             }
             return mask;
         }

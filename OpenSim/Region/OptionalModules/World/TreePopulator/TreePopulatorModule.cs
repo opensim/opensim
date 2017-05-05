@@ -525,7 +525,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
 
             sceneObject.SetGroup(groupID, null);
             m_scene.AddNewSceneObject(sceneObject, true);
-            sceneObject.AggregatePerms();
+            sceneObject.InvalidateEffectivePerms();
             return sceneObject;
         }
 
