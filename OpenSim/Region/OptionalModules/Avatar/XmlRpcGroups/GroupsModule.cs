@@ -1520,12 +1520,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     lastname, activeGroupPowers, activeGroupName,
                     activeGroupTitle);
 
-            ScenePresence sp = (ScenePresence)remoteClient.SceneAgent;
-            if (sp != null)
-                sp.Grouptitle = activeGroupTitle;
 
             if (tellOthers)
                 SendScenePresenceUpdate(agentID, activeGroupTitle);
+
+            ScenePresence sp = (ScenePresence)remoteClient.SceneAgent;
+            if (sp != null)
+                sp.Grouptitle = activeGroupTitle;
         }
 
         #endregion
