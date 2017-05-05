@@ -72,11 +72,20 @@ namespace OpenSim.Tests.Permissions
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Messaging");
             config.Configs["Messaging"].Set("InventoryTransferModule", "InventoryTransferModule");
+
             config.AddConfig("Modules");
             config.Configs["Modules"].Set("InventoryAccessModule", "BasicInventoryAccessModule");
+
             config.AddConfig("InventoryService");
             config.Configs["InventoryService"].Set("LocalServiceModule", "OpenSim.Services.InventoryService.dll:XInventoryService");
             config.Configs["InventoryService"].Set("StorageProvider", "OpenSim.Tests.Common.dll:TestXInventoryDataPlugin");
+
+            config.AddConfig("Groups");
+            config.Configs["Groups"].Set("Enabled", "true");
+            config.Configs["Groups"].Set("Module", "Groups Module V2");
+            config.Configs["Groups"].Set("StorageProvider", "OpenSim.Tests.Common.dll:TestGroupsDataPlugin");
+            config.Configs["Groups"].Set("ServicesConnectorModule", "Groups Local Service Connector");
+            config.Configs["Groups"].Set("LocalService", "local");
 
             m_Scene = new SceneHelpers().SetupScene("Test", UUID.Random(), 1000, 1000, config);
             // Add modules
