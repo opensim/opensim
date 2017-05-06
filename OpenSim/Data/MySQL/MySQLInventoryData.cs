@@ -504,8 +504,6 @@ namespace OpenSim.Data.MySQL
                         result.Dispose();
                     }
 
-                    dbcon.Close();
-
                     using (MySqlCommand result = new MySqlCommand("update inventoryfolders set version=version+1 where folderID = ?folderID", dbcon))
                     {
                         result.Parameters.AddWithValue("?folderID", item.Folder.ToString());
@@ -513,6 +511,7 @@ namespace OpenSim.Data.MySQL
                         lock (m_dbLock)
                             result.ExecuteNonQuery();
                     }
+                    dbcon.Close();
                 }
             }
             catch (MySqlException e)
