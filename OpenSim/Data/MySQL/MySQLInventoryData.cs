@@ -131,10 +131,10 @@ namespace OpenSim.Data.MySQL
                                         items.Add(item);
                                 }
 
+                                dbcon.Close();
                                 return items;
                             }
                         }
-                        dbcon.Close();
                     }
                 }
             }
@@ -172,10 +172,10 @@ namespace OpenSim.Data.MySQL
                                 while (reader.Read())
                                     items.Add(readInventoryFolder(reader));
 
+                                dbcon.Close();
                                 return items;
                             }
                         }
-                        dbcon.Close();
                     }
                 }
             }
@@ -224,10 +224,10 @@ namespace OpenSim.Data.MySQL
                                 if (items.Count > 0)
                                     rootFolder = items[0];
 
+                                dbcon.Close();
                                 return rootFolder;
                             }
                         }
-                        dbcon.Close();
                     }
                 }
             }
@@ -265,10 +265,10 @@ namespace OpenSim.Data.MySQL
                                 while (reader.Read())
                                     items.Add(readInventoryFolder(reader));
 
+                                dbcon.Close();
                                 return items;
                             }
                         }
-                        dbcon.Close();
                     }
                 }
             }
@@ -357,10 +357,10 @@ namespace OpenSim.Data.MySQL
                                 if (reader.Read())
                                     item = readInventoryItem(reader);
 
+                                dbcon.Close();
                                 return item;
                             }
                         }
-                        dbcon.Close();
                     }
                 }
             }
@@ -423,10 +423,10 @@ namespace OpenSim.Data.MySQL
                                 if (reader.Read())
                                     folder = readInventoryFolder(reader);
 
+                                dbcon.Close();
                                 return folder;
                             }
                         }
-                        dbcon.Close();
                     }
                 }
             }
@@ -899,10 +899,10 @@ namespace OpenSim.Data.MySQL
                                     if (item != null)
                                         list.Add(item);
                                 }
+                                dbcon.Close();
                                 return list;
                             }
                         }
-                        dbcon.Close();
                     }
                 }
                 catch (Exception e)
