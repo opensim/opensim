@@ -97,6 +97,7 @@ namespace OpenSim.Data.MySQL
                 dbcon.Open();
                 Migration m = new Migration(dbcon, Assembly, "XAssetStore");
                 m.Update();
+                dbcon.Close();
             }
         }
 
@@ -184,6 +185,7 @@ namespace OpenSim.Data.MySQL
                         m_log.Error(string.Format("[MYSQL XASSET DATA]: Failure fetching asset {0}", assetID), e);
                     }
                 }
+                dbcon.Close();
             }
 
             return asset;
@@ -303,6 +305,7 @@ namespace OpenSim.Data.MySQL
 
                     transaction.Commit();
                 }
+                dbcon.Close();
             }
         }
 
@@ -344,6 +347,7 @@ namespace OpenSim.Data.MySQL
                         "[XASSET MYSQL DB]: Failure updating access_time for asset {0} with name {1}",
                         assetMetadata.ID, assetMetadata.Name);
                 }
+                dbcon.Close();
             }
         }
 
@@ -474,6 +478,7 @@ namespace OpenSim.Data.MySQL
                         m_log.Error("[XASSETS DB]: MySql failure fetching asset set" + Environment.NewLine + e.ToString());
                     }
                 }
+                dbcon.Close();
             }
 
             return retList;
@@ -492,9 +497,9 @@ namespace OpenSim.Data.MySQL
                     cmd.Parameters.AddWithValue("?ID", id);
                     cmd.ExecuteNonQuery();
                 }
-
                 // TODO: How do we deal with data from deleted assets?  Probably not easily reapable unless we
                 // keep a reference count (?)
+                dbcon.Close();
             }
 
             return true;

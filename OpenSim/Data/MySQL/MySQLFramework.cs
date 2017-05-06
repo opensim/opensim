@@ -74,7 +74,9 @@ namespace OpenSim.Data.MySQL
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
                     dbcon.Open();
-                    return ExecuteNonQueryWithConnection(cmd, dbcon);
+                    int ret = ExecuteNonQueryWithConnection(cmd, dbcon);
+                    dbcon.Close();
+                    return ret;
                 }
             }
             else
@@ -97,12 +99,15 @@ namespace OpenSim.Data.MySQL
 
                 try
                 {
-                    return cmd.ExecuteNonQuery();
+                    int ret = cmd.ExecuteNonQuery();
+                    cmd.Connection = null;
+                    return ret;
                 }
                 catch (Exception e)
                 {
                     m_log.Error(e.Message, e);
                     m_log.Error(Environment.StackTrace.ToString());
+                    cmd.Connection = null;
                     return 0;
                 }
             }

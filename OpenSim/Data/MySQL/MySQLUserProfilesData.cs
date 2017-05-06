@@ -69,6 +69,7 @@ namespace OpenSim.Data.MySQL
 
                 Migration m = new Migration(dbcon, Assembly, "UserProfiles");
                 m.Update();
+                dbcon.Close();
             }
         }
         #endregion Member Functions
@@ -121,6 +122,7 @@ namespace OpenSim.Data.MySQL
                         }
                     }
                 }
+                dbcon.Close();
             }
             return data;
         }
@@ -228,6 +230,7 @@ namespace OpenSim.Data.MySQL
 
                         cmd.ExecuteNonQuery();
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
@@ -258,6 +261,7 @@ namespace OpenSim.Data.MySQL
                         cmd.Parameters.AddWithValue("?recordId", recordId.ToString());
                         cmd.ExecuteNonQuery();
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
@@ -352,6 +356,7 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
@@ -474,6 +479,7 @@ namespace OpenSim.Data.MySQL
 
                         cmd.ExecuteNonQuery();
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
@@ -504,6 +510,7 @@ namespace OpenSim.Data.MySQL
 
                         cmd.ExecuteNonQuery();
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
@@ -548,6 +555,7 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
@@ -596,6 +604,7 @@ namespace OpenSim.Data.MySQL
 
                         cmd.ExecuteNonQuery();
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
@@ -719,6 +728,7 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
@@ -759,6 +769,7 @@ namespace OpenSim.Data.MySQL
 
                         cmd.ExecuteNonQuery();
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
@@ -884,6 +895,7 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
@@ -939,6 +951,7 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
@@ -975,6 +988,7 @@ namespace OpenSim.Data.MySQL
 
                         cmd.ExecuteNonQuery();
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
@@ -1035,6 +1049,7 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
@@ -1072,6 +1087,7 @@ namespace OpenSim.Data.MySQL
 
                         cmd.ExecuteNonQuery();
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)

@@ -75,6 +75,7 @@ namespace OpenSim.Data.MySQL
                 dbcon.Open();
                 Migration m = new Migration(dbcon, Assembly, "AssetStore");
                 m.Update();
+                dbcon.Close();
             }
         }
 
@@ -144,6 +145,7 @@ namespace OpenSim.Data.MySQL
                             string.Format("[ASSETS DB]: MySql failure fetching asset {0}.  Exception  ", assetID), e);
                     }
                 }
+                dbcon.Close();
             }
 
             return asset;
@@ -209,6 +211,7 @@ namespace OpenSim.Data.MySQL
                         return false;
                     }
                 }
+                dbcon.Close();
             }
         }
 
@@ -238,6 +241,7 @@ namespace OpenSim.Data.MySQL
                             e);
                     }
                 }
+                dbcon.Close();
             }
         }
 
@@ -270,6 +274,7 @@ namespace OpenSim.Data.MySQL
                         }
                     }
                 }
+                dbcon.Close();
             }
 
             bool[] results = new bool[uuids.Length];
@@ -334,6 +339,7 @@ namespace OpenSim.Data.MySQL
                             e);
                     }
                 }
+                dbcon.Close();
             }
 
             return retList;
@@ -350,6 +356,7 @@ namespace OpenSim.Data.MySQL
                     cmd.Parameters.AddWithValue("?id", id);
                     cmd.ExecuteNonQuery();
                 }
+                dbcon.Close();
             }
 
             return true;

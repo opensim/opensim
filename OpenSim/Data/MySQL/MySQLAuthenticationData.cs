@@ -59,6 +59,7 @@ namespace OpenSim.Data.MySQL
                 dbcon.Open();
                 Migration m = new Migration(dbcon, Assembly, "AuthStore");
                 m.Update();
+                dbcon.Close();
             }
         }
 
@@ -99,6 +100,7 @@ namespace OpenSim.Data.MySQL
                         return null;
                     }
                 }
+                dbcon.Close();
             }
         }
 

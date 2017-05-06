@@ -121,9 +121,13 @@ namespace OpenSim.Data.MySQL
                 }
                 catch (MySqlException e)
                 {
+                    cmd.Connection = null;
+                    conn.Close();
                     m_log.ErrorFormat("[FSASSETS]: Query {0} failed with {1}", cmd.CommandText, e.ToString());
                     return false;
                 }
+                cmd.Connection = null;
+                conn.Close();
             }
 
             return true;
@@ -175,7 +179,7 @@ namespace OpenSim.Data.MySQL
                         UpdateAccessTime(id, AccessTime);
                     }
                 }
-
+                conn.Close();
             }
 
             return meta;
@@ -206,6 +210,7 @@ namespace OpenSim.Data.MySQL
                     cmd.Parameters.AddWithValue("?id", AssetID);
                     cmd.ExecuteNonQuery();
                 }
+                conn.Close();
             }
         }
 
@@ -299,6 +304,7 @@ namespace OpenSim.Data.MySQL
                         }
                     }
                 }
+                conn.Close();
             }
 
             for (int i = 0; i < uuids.Length; i++)
@@ -333,6 +339,7 @@ namespace OpenSim.Data.MySQL
                         count = Convert.ToInt32(reader["count"]);
                     }
                 }
+                conn.Close();
             }
 
             return count;
@@ -413,8 +420,8 @@ namespace OpenSim.Data.MySQL
                             imported++;
                         }
                     }
-
                 }
+                importConn.Close();
             }
 
             MainConsole.Instance.Output(String.Format("Import done, {0} assets imported", imported));

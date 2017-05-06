@@ -88,6 +88,7 @@ namespace OpenSim.Data.MySQL
                 //
                 Migration m = new Migration(dbcon, Assembly, "RegionStore");
                 m.Update();
+                dbcon.Close();
             }
         }
 
@@ -334,6 +335,7 @@ namespace OpenSim.Data.MySQL
 
                         ExecuteNonQuery(cmd);
                     }
+                    dbcon.Close();
                 }
             }
         }
@@ -372,6 +374,7 @@ namespace OpenSim.Data.MySQL
 
                         ExecuteNonQuery(cmd);
                     }
+                    dbcon.Close();
                 }
             }
         }
@@ -411,6 +414,7 @@ namespace OpenSim.Data.MySQL
 
                         ExecuteNonQuery(cmd);
                     }
+                    dbcon.Close();
                 }
             }
         }
@@ -460,6 +464,7 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
+                    dbcon.Close();
                 }
             }
 
@@ -535,6 +540,7 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
+                    dbcon.Close();
                 }
             }
 
@@ -580,6 +586,7 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
+                    dbcon.Close();
                 }
 
                 prim.Inventory.RestoreInventoryItems(inventory);
@@ -634,6 +641,7 @@ namespace OpenSim.Data.MySQL
                                 }
                             }
                         }
+                        dbcon.Close();
                     }
                 }
             });
@@ -681,6 +689,7 @@ namespace OpenSim.Data.MySQL
                                 }
                             }
                         }
+                        dbcon.Close();
                     }
                 }
             });
@@ -727,6 +736,7 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
+                    dbcon.Close();
                 }
             }
 
@@ -762,6 +772,7 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
+                    dbcon.Close();
                 }
             }
 
@@ -783,6 +794,7 @@ namespace OpenSim.Data.MySQL
 
                         ExecuteNonQuery(cmd);
                     }
+                    dbcon.Close();
                 }
             }
         }
@@ -842,6 +854,7 @@ namespace OpenSim.Data.MySQL
                             cmd.Parameters.Clear();
                         }
                     }
+                    dbcon.Close();
                 }
             }
         }
@@ -939,6 +952,7 @@ namespace OpenSim.Data.MySQL
                         nWP.valid = true;
                     }
                 }
+                dbcon.Close();
             }
 
             return nWP;
@@ -976,6 +990,7 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
+                    dbcon.Close();
                 }
             }
 
@@ -1084,6 +1099,7 @@ namespace OpenSim.Data.MySQL
 
                     ExecuteNonQuery(cmd);
                 }
+                dbcon.Close();
             }
         }
 
@@ -1099,6 +1115,7 @@ namespace OpenSim.Data.MySQL
                     cmd.Parameters.AddWithValue("?regionID", regionID.ToString());
                     ExecuteNonQuery(cmd);
                 }
+                dbcon.Close();
             }
         }
 
@@ -1127,6 +1144,7 @@ namespace OpenSim.Data.MySQL
                         return Convert.ToString(result["llsd_settings"]);
                     }
                 }
+                dbcon.Close();
             }
         }
 
@@ -1145,6 +1163,7 @@ namespace OpenSim.Data.MySQL
 
                     ExecuteNonQuery(cmd);
                 }
+                dbcon.Close();
             }
         }
 
@@ -1160,6 +1179,7 @@ namespace OpenSim.Data.MySQL
                     cmd.Parameters.AddWithValue("?region_id", regionUUID.ToString());
                     ExecuteNonQuery(cmd);
                 }
+                dbcon.Close();
             }
         }
         #endregion
@@ -1212,7 +1232,7 @@ namespace OpenSim.Data.MySQL
                     FillRegionSettingsCommand(cmd, rs);
                     ExecuteNonQuery(cmd);
                 }
-
+                dbcon.Close();
                 SaveSpawnPoints(rs);
             }
         }
@@ -1259,6 +1279,7 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
+                    dbcon.Close();
                 }
             }
 
@@ -2123,6 +2144,7 @@ namespace OpenSim.Data.MySQL
                             ExecuteNonQuery(cmd);
                         }
                     }
+                    dbcon.Close();
                 }
             }
         }
@@ -2152,6 +2174,7 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
+                    dbcon.Close();
                 }
             }
 
@@ -2187,6 +2210,7 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
+                    dbcon.Close();
                 }
             }
         }
@@ -2221,6 +2245,7 @@ namespace OpenSim.Data.MySQL
                             cmd.Parameters.Clear();
                         }
                     }
+                    dbcon.Close();
                 }
             }
         }
@@ -2240,6 +2265,7 @@ namespace OpenSim.Data.MySQL
 
                     cmd.ExecuteNonQuery();
                 }
+                dbcon.Close();
             }
         }
 
@@ -2257,6 +2283,7 @@ namespace OpenSim.Data.MySQL
 
                     cmd.ExecuteNonQuery();
                 }
+                dbcon.Close();
             }
         }
 
@@ -2280,6 +2307,7 @@ namespace OpenSim.Data.MySQL
                         }
                     }
                 }
+                dbcon.Close();
             }
 
             return ret;

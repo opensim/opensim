@@ -171,12 +171,13 @@ namespace OpenSim.Data.MySQL
                         }
                     }
                 }
-
                 if (!found && create)
                 {
                     DoCreate(es);
                     LinkRegion(regionID, (int)es.EstateID);
                 }
+                cmd.Connection = null;
+                dbcon.Close();
             }
 
             LoadBanList(es);
@@ -231,6 +232,7 @@ namespace OpenSim.Data.MySQL
 
                     es.Save();
                 }
+                dbcon.Close();
             }
         }
 
@@ -263,6 +265,7 @@ namespace OpenSim.Data.MySQL
 
                     cmd.ExecuteNonQuery();
                 }
+                dbcon.Close();
             }
 
             SaveBanList(es);
@@ -300,6 +303,7 @@ namespace OpenSim.Data.MySQL
                         }
                     }
                 }
+                dbcon.Close();
             }
         }
 
@@ -329,6 +333,7 @@ namespace OpenSim.Data.MySQL
                         cmd.Parameters.Clear();
                     }
                 }
+                dbcon.Close();
             }
         }
 
@@ -358,6 +363,7 @@ namespace OpenSim.Data.MySQL
                         cmd.Parameters.Clear();
                     }
                 }
+                dbcon.Close();
             }
         }
 
@@ -383,6 +389,7 @@ namespace OpenSim.Data.MySQL
                         }
                     }
                 }
+                dbcon.Close();
             }
 
             return uuids.ToArray();
@@ -437,7 +444,6 @@ namespace OpenSim.Data.MySQL
                         reader.Close();
                     }
                 }
-
                 dbcon.Close();
             }
 
@@ -466,7 +472,6 @@ namespace OpenSim.Data.MySQL
                         reader.Close();
                     }
                 }
-
                 dbcon.Close();
             }
 
