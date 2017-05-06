@@ -158,28 +158,27 @@ namespace OpenSim.Data.MySQL
         /// <remarks>On failure : Throw an exception and attempt to reconnect to database</remarks>
         override public bool StoreAsset(AssetBase asset)
         {
+            string assetName = asset.Name;
+            if (asset.Name.Length > AssetBase.MAX_ASSET_NAME)
+            {
+                assetName = asset.Name.Substring(0, AssetBase.MAX_ASSET_NAME);
+                m_log.WarnFormat(
+                    "[ASSET DB]: Name '{0}' for asset {1} truncated from {2} to {3} characters on add",
+                    asset.Name, asset.ID, asset.Name.Length, assetName.Length);
+            }
+
+            string assetDescription = asset.Description;
+            if (asset.Description.Length > AssetBase.MAX_ASSET_DESC)
+            {
+                assetDescription = asset.Description.Substring(0, AssetBase.MAX_ASSET_DESC);
+                m_log.WarnFormat(
+                    "[ASSET DB]: Description '{0}' for asset {1} truncated from {2} to {3} characters on add",
+                    asset.Description, asset.ID, asset.Description.Length, assetDescription.Length);
+            }
+
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
                 dbcon.Open();
-
-                string assetName = asset.Name;
-                if (asset.Name.Length > AssetBase.MAX_ASSET_NAME)
-                {
-                    assetName = asset.Name.Substring(0, AssetBase.MAX_ASSET_NAME);
-                    m_log.WarnFormat(
-                        "[ASSET DB]: Name '{0}' for asset {1} truncated from {2} to {3} characters on add",
-                        asset.Name, asset.ID, asset.Name.Length, assetName.Length);
-                }
-
-                string assetDescription = asset.Description;
-                if (asset.Description.Length > AssetBase.MAX_ASSET_DESC)
-                {
-                    assetDescription = asset.Description.Substring(0, AssetBase.MAX_ASSET_DESC);
-                    m_log.WarnFormat(
-                        "[ASSET DB]: Description '{0}' for asset {1} truncated from {2} to {3} characters on add",
-                        asset.Description, asset.ID, asset.Description.Length, assetDescription.Length);
-                }
-
                 using (MySqlCommand cmd =
                     new MySqlCommand(
                         "replace INTO assets(id, name, description, assetType, local, temporary, create_time, access_time, asset_flags, CreatorID, data)" +
@@ -202,16 +201,17 @@ namespace OpenSim.Data.MySQL
                         cmd.Parameters.AddWithValue("?asset_flags", (int)asset.Flags);
                         cmd.Parameters.AddWithValue("?data", asset.Data);
                         cmd.ExecuteNonQuery();
+                        dbcon.Close();
                         return true;
                     }
                     catch (Exception e)
                     {
                         m_log.ErrorFormat("[ASSET DB]: MySQL failure creating asset {0} with name \"{1}\". Error: {2}",
                             asset.FullID, asset.Name, e.Message);
+                        dbcon.Close();
                         return false;
                     }
-                }
-                dbcon.Close();
+                }               
             }
         }
 
