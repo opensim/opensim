@@ -183,8 +183,8 @@ namespace OpenSim.Services.Connectors
                     {
                         using (StreamReader sr = new StreamReader(s))
                         {
+                            sr.ReadToEnd(); // just try to read
                             //reply = sr.ReadToEnd().Trim();
-                            sr.ReadToEnd().Trim();
                             //m_log.InfoFormat("[REST COMMS]: DoHelloNeighbourCall reply was {0} ", reply);
                         }
                     }

@@ -82,11 +82,11 @@ namespace OpenSim.Server.Handlers.Authentication
                 switch (p[0])
                 {
                 case "plain":
-                    StreamReader sr = new StreamReader(request);
-                    string body = sr.ReadToEnd();
-                    sr.Close();
-
+                    string body;
+                    using(StreamReader sr = new StreamReader(request))
+                        body = sr.ReadToEnd();
                     return DoPlainMethods(body);
+
                 case "crypt":
                     byte[] buffer = new byte[request.Length];
                     long length = request.Length;

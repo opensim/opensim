@@ -104,9 +104,9 @@ namespace OpenSim.Server.Handlers.MapImage
         protected override byte[] ProcessRequest(string path, Stream requestData, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
 //            m_log.DebugFormat("[MAP SERVICE IMAGE HANDLER]: Received {0}", path);
-            StreamReader sr = new StreamReader(requestData);
-            string body = sr.ReadToEnd();
-            sr.Close();
+            string body;
+            using(StreamReader sr = new StreamReader(requestData))
+                body = sr.ReadToEnd();
             body = body.Trim();
 
             try

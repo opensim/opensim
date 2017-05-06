@@ -282,9 +282,10 @@ namespace OpenSim.Server.Handlers
                 // /estates/estate/?eid=int&region=uuid
                 if ("estate".Equals(resource))
                 {
-                    StreamReader sr = new StreamReader(request);
-                    string body = sr.ReadToEnd();
-                    sr.Close();
+                    string body;
+                    using(StreamReader sr = new StreamReader(request))
+                        body = sr.ReadToEnd();
+
                     body = body.Trim();
 
                     Dictionary<string, object> requestData = ServerUtils.ParseQueryString(body);
