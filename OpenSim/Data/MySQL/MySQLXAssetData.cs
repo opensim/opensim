@@ -163,13 +163,15 @@ namespace OpenSim.Data.MySQL
 
                                 if (m_enableCompression)
                                 {
-                                    using (GZipStream decompressionStream = new GZipStream(new MemoryStream(asset.Data), CompressionMode.Decompress))
+                                    using(GZipStream decompressionStream = new GZipStream(new MemoryStream(asset.Data),
+                                            CompressionMode.Decompress))
                                     {
-                                        MemoryStream outputStream = new MemoryStream();
-                                        WebUtil.CopyStream(decompressionStream, outputStream, int.MaxValue);
-//                                        int compressedLength = asset.Data.Length;
-                                        asset.Data = outputStream.ToArray();
-
+                                        using(MemoryStream outputStream = new MemoryStream())
+                                        {
+                                            WebUtil.CopyStream(decompressionStream, outputStream, int.MaxValue);
+//                                               int compressedLength = asset.Data.Length;
+                                                asset.Data = outputStream.ToArray();
+                                        }
 //                                        m_log.DebugFormat(
 //                                            "[XASSET DB]: Decompressed {0} {1} to {2} bytes from {3}",
 //                                            asset.ID, asset.Name, asset.Data.Length, compressedLength);
