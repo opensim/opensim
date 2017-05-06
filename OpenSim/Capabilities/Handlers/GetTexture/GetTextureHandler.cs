@@ -362,8 +362,6 @@ namespace OpenSim.Capabilities.Handlers
             {
                 // Taking our jpeg2000 data, decoding it, then saving it to a byte array with regular data
 
-                imgstream = new MemoryStream();
-
                 // Decode image to System.Drawing.Image
                 if (OpenJPEG.DecodeToImage(texture.Data, out managedImage, out image) && image != null)
                 {
@@ -404,10 +402,7 @@ namespace OpenSim.Capabilities.Handlers
                 if(managedImage != null)
                     managedImage.Clear();
                 if (imgstream != null)
-                {
-                    imgstream.Close();
                     imgstream.Dispose();
-                }
             }
 
             return data;

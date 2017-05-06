@@ -215,13 +215,16 @@ namespace OpenSim.Server.Handlers.MapImage
 
         private byte[] DocToBytes(XmlDocument doc)
         {
-            MemoryStream ms = new MemoryStream();
-            XmlTextWriter xw = new XmlTextWriter(ms, null);
-            xw.Formatting = Formatting.Indented;
-            doc.WriteTo(xw);
-            xw.Flush();
-
+            using(MemoryStream ms = new MemoryStream())
+            {
+                using(XmlTextWriter xw = new XmlTextWriter(ms,null))
+                {
+                    xw.Formatting = Formatting.Indented;
+                    doc.WriteTo(xw);
+                    xw.Flush();
+                }
             return ms.ToArray();
+            }
         }
 
         private System.Net.IPAddress GetCallerIP(IOSHttpRequest request)
