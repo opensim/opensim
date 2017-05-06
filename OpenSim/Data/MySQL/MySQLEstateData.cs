@@ -82,6 +82,7 @@ namespace OpenSim.Data.MySQL
 
                 Migration m = new Migration(dbcon, Assembly, "EstateStore");
                 m.Update();
+                dbcon.Close();
 
                 Type t = typeof(EstateSettings);
                 m_Fields = t.GetFields(BindingFlags.NonPublic |
@@ -143,7 +144,6 @@ namespace OpenSim.Data.MySQL
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
                 dbcon.Open();
-
                 cmd.Connection = dbcon;
 
                 bool found = false;
@@ -171,13 +171,14 @@ namespace OpenSim.Data.MySQL
                         }
                     }
                 }
+                dbcon.Close();
+                cmd.Connection = null;
+
                 if (!found && create)
                 {
                     DoCreate(es);
                     LinkRegion(regionID, (int)es.EstateID);
                 }
-                cmd.Connection = null;
-                dbcon.Close();
             }
 
             LoadBanList(es);

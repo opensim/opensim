@@ -78,6 +78,7 @@ namespace OpenSim.Data.MySQL
                     conn.Open();
                     Migration m = new Migration(conn, Assembly, "FSAssetStore");
                     m.Update();
+                    conn.Close();
                 }
             }
             catch (MySqlException e)
@@ -126,8 +127,8 @@ namespace OpenSim.Data.MySQL
                     m_log.ErrorFormat("[FSASSETS]: Query {0} failed with {1}", cmd.CommandText, e.ToString());
                     return false;
                 }
-                cmd.Connection = null;
                 conn.Close();
+                cmd.Connection = null;
             }
 
             return true;
