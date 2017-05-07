@@ -18,7 +18,7 @@ CREATE TABLE `os_groups_groups` (
   PRIMARY KEY  (`GroupID`),
   UNIQUE KEY `Name` (`Name`),
   FULLTEXT KEY `Name_2` (`Name`)
-) ENGINE=InnoDB;
+) ENGINE=MyISAM;
 
 
 CREATE TABLE `os_groups_membership` (

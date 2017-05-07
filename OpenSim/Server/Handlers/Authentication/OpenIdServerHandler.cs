@@ -222,7 +222,10 @@ For more information, see <a href='http://openid.net/'>http://openid.net/</a>.
 
             try
             {
-                NameValueCollection postQuery = HttpUtility.ParseQueryString(new StreamReader(httpRequest.InputStream).ReadToEnd());
+                string forPost;
+                using(StreamReader sr = new StreamReader(httpRequest.InputStream))
+                    forPost = sr.ReadToEnd();
+                NameValueCollection postQuery = HttpUtility.ParseQueryString(forPost);
                 NameValueCollection getQuery = HttpUtility.ParseQueryString(httpRequest.Url.Query);
                 NameValueCollection openIdQuery = (postQuery.GetValues("openid.mode") != null ? postQuery : getQuery);
 

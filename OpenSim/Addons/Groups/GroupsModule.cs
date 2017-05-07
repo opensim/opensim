@@ -787,7 +787,7 @@ namespace OpenSim.Groups
                 remoteClient.SendCreateGroupReply(groupID, true, "Group created successfully");
 
                 // Update the founder with new group information.
-                SendAgentGroupDataUpdate(remoteClient, false);
+                SendAgentGroupDataUpdate(remoteClient, true);
             }
             else
                 remoteClient.SendCreateGroupReply(groupID, false, reason);

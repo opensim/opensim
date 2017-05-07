@@ -160,8 +160,9 @@ namespace OpenSim.Data.MySQL
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
                     dbcon.Open();
-
-                    return DoQueryWithConnection(cmd, dbcon);
+                    T[] ret = DoQueryWithConnection(cmd, dbcon);
+                    dbcon.Close();
+                    return ret;
                 }
             }
             else
@@ -243,7 +244,7 @@ namespace OpenSim.Data.MySQL
                     result.Add(row);
                 }
             }
-
+            cmd.Connection = null;
             return result.ToArray();
         }
 
@@ -402,7 +403,10 @@ namespace OpenSim.Data.MySQL
                     dbcon.Open();
                     cmd.Connection = dbcon;
 
-                    return cmd.ExecuteScalar();
+                    Object ret = cmd.ExecuteScalar();
+                    cmd.Connection = null;
+                    dbcon.Close();
+                    return ret;
                 }
             }
             else

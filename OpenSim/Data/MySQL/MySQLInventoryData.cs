@@ -78,6 +78,7 @@ namespace OpenSim.Data.MySQL
                 dbcon.Open();
                 Migration m = new Migration(dbcon, assem, "InventoryStore");
                 m.Update();
+                dbcon.Close();
             }
         }
 
@@ -130,6 +131,7 @@ namespace OpenSim.Data.MySQL
                                         items.Add(item);
                                 }
 
+                                dbcon.Close();
                                 return items;
                             }
                         }
@@ -170,6 +172,7 @@ namespace OpenSim.Data.MySQL
                                 while (reader.Read())
                                     items.Add(readInventoryFolder(reader));
 
+                                dbcon.Close();
                                 return items;
                             }
                         }
@@ -221,6 +224,7 @@ namespace OpenSim.Data.MySQL
                                 if (items.Count > 0)
                                     rootFolder = items[0];
 
+                                dbcon.Close();
                                 return rootFolder;
                             }
                         }
@@ -261,6 +265,7 @@ namespace OpenSim.Data.MySQL
                                 while (reader.Read())
                                     items.Add(readInventoryFolder(reader));
 
+                                dbcon.Close();
                                 return items;
                             }
                         }
@@ -352,6 +357,7 @@ namespace OpenSim.Data.MySQL
                                 if (reader.Read())
                                     item = readInventoryItem(reader);
 
+                                dbcon.Close();
                                 return item;
                             }
                         }
@@ -417,6 +423,7 @@ namespace OpenSim.Data.MySQL
                                 if (reader.Read())
                                     folder = readInventoryFolder(reader);
 
+                                dbcon.Close();
                                 return folder;
                             }
                         }
@@ -504,6 +511,7 @@ namespace OpenSim.Data.MySQL
                         lock (m_dbLock)
                             result.ExecuteNonQuery();
                     }
+                    dbcon.Close();
                 }
             }
             catch (MySqlException e)
@@ -540,6 +548,7 @@ namespace OpenSim.Data.MySQL
                         lock (m_dbLock)
                             cmd.ExecuteNonQuery();
                     }
+                    dbcon.Close();
                 }
             }
             catch (MySqlException e)
@@ -600,6 +609,7 @@ namespace OpenSim.Data.MySQL
                         m_log.Error(e.ToString());
                     }
                 }
+                dbcon.Close();
             }
         }
 
@@ -643,6 +653,7 @@ namespace OpenSim.Data.MySQL
                         m_log.Error(e.ToString());
                     }
                 }
+                dbcon.Close();
             }
         }
 
@@ -806,6 +817,7 @@ namespace OpenSim.Data.MySQL
                         lock (m_dbLock)
                             cmd.ExecuteNonQuery();
                     }
+                    dbcon.Close();
                 }
             }
             catch (MySqlException e)
@@ -833,6 +845,7 @@ namespace OpenSim.Data.MySQL
                         lock (m_dbLock)
                             cmd.ExecuteNonQuery();
                     }
+                    dbcon.Close();
                 }
             }
             catch (MySqlException e)
@@ -886,6 +899,7 @@ namespace OpenSim.Data.MySQL
                                     if (item != null)
                                         list.Add(item);
                                 }
+                                dbcon.Close();
                                 return list;
                             }
                         }

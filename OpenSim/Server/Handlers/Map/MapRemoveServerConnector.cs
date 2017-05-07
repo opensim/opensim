@@ -102,9 +102,9 @@ namespace OpenSim.Server.Handlers.MapImage
         public override byte[] Handle(string path, Stream requestData, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
 //            m_log.DebugFormat("[MAP SERVICE IMAGE HANDLER]: Received {0}", path);
-            StreamReader sr = new StreamReader(requestData);
-            string body = sr.ReadToEnd();
-            sr.Close();
+            string body;
+            using(StreamReader sr = new StreamReader(requestData))
+                body = sr.ReadToEnd();
             body = body.Trim();
 
             try
@@ -215,13 +215,16 @@ namespace OpenSim.Server.Handlers.MapImage
 
         private byte[] DocToBytes(XmlDocument doc)
         {
-            MemoryStream ms = new MemoryStream();
-            XmlTextWriter xw = new XmlTextWriter(ms, null);
-            xw.Formatting = Formatting.Indented;
-            doc.WriteTo(xw);
-            xw.Flush();
-
+            using(MemoryStream ms = new MemoryStream())
+            {
+                using(XmlTextWriter xw = new XmlTextWriter(ms,null))
+                {
+                    xw.Formatting = Formatting.Indented;
+                    doc.WriteTo(xw);
+                    xw.Flush();
+                }
             return ms.ToArray();
+            }
         }
 
         private System.Net.IPAddress GetCallerIP(IOSHttpRequest request)

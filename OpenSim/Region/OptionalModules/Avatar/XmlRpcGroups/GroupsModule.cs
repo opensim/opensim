@@ -901,7 +901,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             remoteClient.SendCreateGroupReply(groupID, true, "Group created successfully");
 
             // Update the founder with new group information.
-            SendAgentGroupDataUpdate(remoteClient, false);
+            SendAgentGroupDataUpdate(remoteClient, true);
 
             return groupID;
         }
@@ -1519,6 +1519,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             remoteClient.SendAgentDataUpdate(agentID, activeGroupID, firstname,
                     lastname, activeGroupPowers, activeGroupName,
                     activeGroupTitle);
+
 
             if (tellOthers)
                 SendScenePresenceUpdate(agentID, activeGroupTitle);

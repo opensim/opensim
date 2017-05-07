@@ -460,9 +460,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
 
                         if (resp.ContentLength > 0)
                         {
-                            StreamReader content = new StreamReader(resp.GetResponseStream());
-                            m_log.ErrorFormat("[Concierge] response from {0} content:     {1}", bs.Uri, content.ReadToEnd());
-                            content.Close();
+                            using(StreamReader content = new StreamReader(resp.GetResponseStream()))
+                                m_log.ErrorFormat("[Concierge] response from {0} content:     {1}", bs.Uri, content.ReadToEnd());
                         }
                     }
                 }

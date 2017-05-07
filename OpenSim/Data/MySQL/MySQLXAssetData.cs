@@ -97,6 +97,7 @@ namespace OpenSim.Data.MySQL
                 dbcon.Open();
                 Migration m = new Migration(dbcon, Assembly, "XAssetStore");
                 m.Update();
+                dbcon.Close();
             }
         }
 
@@ -130,6 +131,7 @@ namespace OpenSim.Data.MySQL
 //            m_log.DebugFormat("[MYSQL XASSET DATA]: Looking for asset {0}", assetID);
 
             AssetBase asset = null;
+            int accessTime = 0;
 
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
@@ -140,7 +142,6 @@ namespace OpenSim.Data.MySQL
                     dbcon))
                 {
                     cmd.Parameters.AddWithValue("?ID", assetID.ToString());
-
                     try
                     {
                         using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
@@ -159,23 +160,7 @@ namespace OpenSim.Data.MySQL
 
                                 asset.Temporary = Convert.ToBoolean(dbReader["Temporary"]);
                                 asset.Flags = (AssetFlags)Convert.ToInt32(dbReader["AssetFlags"]);
-
-                                if (m_enableCompression)
-                                {
-                                    using (GZipStream decompressionStream = new GZipStream(new MemoryStream(asset.Data), CompressionMode.Decompress))
-                                    {
-                                        MemoryStream outputStream = new MemoryStream();
-                                        WebUtil.CopyStream(decompressionStream, outputStream, int.MaxValue);
-//                                        int compressedLength = asset.Data.Length;
-                                        asset.Data = outputStream.ToArray();
-
-//                                        m_log.DebugFormat(
-//                                            "[XASSET DB]: Decompressed {0} {1} to {2} bytes from {3}",
-//                                            asset.ID, asset.Name, asset.Data.Length, compressedLength);
-                                    }
-                                }
-
-                                UpdateAccessTime(asset.Metadata, (int)dbReader["AccessTime"]);
+                                accessTime = (int)dbReader["AccessTime"];
                             }
                         }
                     }
@@ -184,9 +169,38 @@ namespace OpenSim.Data.MySQL
                         m_log.Error(string.Format("[MYSQL XASSET DATA]: Failure fetching asset {0}", assetID), e);
                     }
                 }
+                dbcon.Close();
             }
 
-            return asset;
+            if(asset == null)
+                return asset;
+
+            if(accessTime > 0)
+            {
+                try
+                {
+                    UpdateAccessTime(asset.Metadata, accessTime);
+                }
+                catch { }
+            }
+
+            if (m_enableCompression && asset.Data != null)
+            {
+                using(MemoryStream ms = new MemoryStream(asset.Data))
+                using(GZipStream decompressionStream = new GZipStream(ms, CompressionMode.Decompress))
+                {
+                    using(MemoryStream outputStream = new MemoryStream())
+                    {
+                        decompressionStream.CopyTo(outputStream, int.MaxValue);
+//                                               int compressedLength = asset.Data.Length;
+                        asset.Data = outputStream.ToArray();
+                    }
+//                                        m_log.DebugFormat(
+//                                            "[XASSET DB]: Decompressed {0} {1} to {2} bytes from {3}",
+//                                            asset.ID, asset.Name, asset.Data.Length, compressedLength);
+                }                             
+            }
+        return asset;
         }
 
         /// <summary>
@@ -303,6 +317,7 @@ namespace OpenSim.Data.MySQL
 
                     transaction.Commit();
                 }
+                dbcon.Close();
             }
         }
 
@@ -344,6 +359,7 @@ namespace OpenSim.Data.MySQL
                         "[XASSET MYSQL DB]: Failure updating access_time for asset {0} with name {1}",
                         assetMetadata.ID, assetMetadata.Name);
                 }
+                dbcon.Close();
             }
         }
 
@@ -474,6 +490,7 @@ namespace OpenSim.Data.MySQL
                         m_log.Error("[XASSETS DB]: MySql failure fetching asset set" + Environment.NewLine + e.ToString());
                     }
                 }
+                dbcon.Close();
             }
 
             return retList;
@@ -492,9 +509,9 @@ namespace OpenSim.Data.MySQL
                     cmd.Parameters.AddWithValue("?ID", id);
                     cmd.ExecuteNonQuery();
                 }
-
                 // TODO: How do we deal with data from deleted assets?  Probably not easily reapable unless we
                 // keep a reference count (?)
+                dbcon.Close();
             }
 
             return true;

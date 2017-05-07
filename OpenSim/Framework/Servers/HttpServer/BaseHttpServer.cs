@@ -529,7 +529,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     if (psEvArgs.Request != null)
                     {
                         OSHttpRequest req = new OSHttpRequest(context, request);
-                        string requestBody = String.Empty;
+                        string requestBody;
                         Encoding encoding = Encoding.UTF8;
                         using(StreamReader reader = new StreamReader(req.InputStream, encoding))
                             requestBody = reader.ReadToEnd();
@@ -695,7 +695,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                     {
                         //m_log.Debug("[BASE HTTP SERVER]: Found Caps based HTTP Handler");
                         IGenericHTTPHandler HTTPRequestHandler = requestHandler as IGenericHTTPHandler;
-                        string requestBody = String.Empty;
+
+                        string requestBody;
                         Encoding encoding = Encoding.UTF8;
                         using(StreamReader reader = new StreamReader(request.InputStream, encoding))
                             requestBody = reader.ReadToEnd();
@@ -813,6 +814,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                             break;
                     }
                 }
+
+                request.InputStream.Dispose();
 
                 if (buffer != null)
                 {
@@ -1119,7 +1122,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             String requestBody;
 
-            Stream requestStream = request.InputStream;
+            Stream requestStream = Util.Copy(request.InputStream);
             Stream innerStream = null;
             try
             {
@@ -1130,10 +1133,9 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
 
                 using (StreamReader reader = new StreamReader(requestStream, Encoding.UTF8))
-                {
                     requestBody = reader.ReadToEnd();
+
                 }
-            }
             finally
             {
                 if (innerStream != null && innerStream.CanRead)
@@ -1396,13 +1398,10 @@ namespace OpenSim.Framework.Servers.HttpServer
             //m_log.Warn("[BASE HTTP SERVER]: We've figured out it's a LLSD Request");
             Stream requestStream = request.InputStream;
 
-            string requestBody = string.Empty;
+            string requestBody;
             Encoding encoding = Encoding.UTF8;
-            using(StreamReader reader = new StreamReader(requestStream,encoding))
-                requestBody = reader.ReadToEnd();
-
-            if(requestStream.CanRead)            
-                requestStream.Close();
+            using(StreamReader reader = new StreamReader(requestStream, encoding))
+                requestBody= reader.ReadToEnd();
 
             //m_log.DebugFormat("[OGP]: {0}:{1}", request.RawUrl, requestBody);
 
@@ -1725,12 +1724,10 @@ namespace OpenSim.Framework.Servers.HttpServer
             byte[] buffer;
 
             Stream requestStream = request.InputStream;
-            string requestBody = string.Empty;
+            string requestBody;
             Encoding encoding = Encoding.UTF8;
-            using(StreamReader reader = new StreamReader(requestStream,encoding))
+            using(StreamReader reader = new StreamReader(requestStream, encoding))
                 requestBody = reader.ReadToEnd();
-            if(requestStream.CanRead)
-                requestStream.Close();
 
             Hashtable keysvals = new Hashtable();
             Hashtable headervals = new Hashtable();
@@ -2269,7 +2266,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             string file = Path.Combine(".", "http_500.html");
             if (!File.Exists(file))
                 return getDefaultHTTP500();
-            string result = string.Empty;
+            string result;
             using(StreamReader sr = File.OpenText(file))
                 result = sr.ReadToEnd();
             return result;

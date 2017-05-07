@@ -59,6 +59,7 @@ namespace OpenSim.Data.MySQL
                 dbcon.Open();
                 Migration m = new Migration(dbcon, Assembly, "AuthStore");
                 m.Update();
+                dbcon.Close();
             }
         }
 
@@ -76,27 +77,30 @@ namespace OpenSim.Data.MySQL
                 {
                     cmd.Parameters.AddWithValue("?principalID", principalID.ToString());
 
-                    IDataReader result = cmd.ExecuteReader();
-
-                    if (result.Read())
+                    using(IDataReader result = cmd.ExecuteReader())
                     {
-                        ret.PrincipalID = principalID;
-
-                        CheckColumnNames(result);
-
-                        foreach (string s in m_ColumnNames)
+                         if(result.Read())
                         {
-                            if (s == "UUID")
-                                continue;
+                            ret.PrincipalID = principalID;
 
-                            ret.Data[s] = result[s].ToString();
+                            CheckColumnNames(result);
+
+                            foreach(string s in m_ColumnNames)
+                            {
+                                if(s == "UUID")
+                                    continue;
+
+                                ret.Data[s] = result[s].ToString();
+                            }
+
+                            dbcon.Close();
+                            return ret;
                         }
-
-                        return ret;
-                    }
-                    else
-                    {
-                        return null;
+                        else
+                        {
+                            dbcon.Close();
+                            return null;
+                        }
                     }
                 }
             }

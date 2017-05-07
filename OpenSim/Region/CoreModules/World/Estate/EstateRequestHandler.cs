@@ -60,9 +60,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
         protected override byte[] ProcessRequest(string path, Stream requestData,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            StreamReader sr = new StreamReader(requestData);
-            string body = sr.ReadToEnd();
-            sr.Close();
+            string body;
+            using(StreamReader sr = new StreamReader(requestData))
+                body = sr.ReadToEnd();
+
             body = body.Trim();
 
             // m_log.DebugFormat("[XESTATE HANDLER]: query String: {0}", body);
