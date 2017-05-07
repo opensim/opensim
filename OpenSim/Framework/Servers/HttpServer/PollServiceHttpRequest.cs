@@ -82,6 +82,9 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             byte[] buffer = server.DoHTTPGruntWork(responsedata, response);
 
+            if(Request.Body.CanRead)
+                Request.Body.Dispose();
+
             response.SendChunked = false;
             response.ContentLength64 = buffer.Length;
             response.ContentEncoding = Encoding.UTF8;
@@ -106,6 +109,9 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             OSHttpResponse response
                 = new OSHttpResponse(new HttpResponse(HttpContext, Request), HttpContext);
+
+            if(Request.Body.CanRead)
+                Request.Body.Dispose();
 
             response.SendChunked = false;
             response.ContentLength64 = 0;
