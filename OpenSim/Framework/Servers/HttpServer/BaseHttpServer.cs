@@ -815,7 +815,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                     }
                 }
 
-                request.InputStream.Dispose();
+                if(request.InputStream.CanRead)
+                    request.InputStream.Dispose();
 
                 if (buffer != null)
                 {
