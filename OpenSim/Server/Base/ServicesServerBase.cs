@@ -61,8 +61,9 @@ namespace OpenSim.Server.Base
         //
         private bool m_Running = true;
 
+#if (_MONO)
         private static Mono.Unix.UnixSignal[] signals;
-
+#endif
 
         // Handle all the automagical stuff
         //
@@ -186,6 +187,7 @@ namespace OpenSim.Server.Base
             RegisterCommonCommands();
             RegisterCommonComponents(Config);
 
+#if (_MONO)
             Thread signal_thread = new Thread (delegate ()
             {
                 while (true)
@@ -218,6 +220,7 @@ namespace OpenSim.Server.Base
                     m_log.Debug("Exception was: ", e);
                 }
             }
+#endif
 
             // Allow derived classes to perform initialization that
             // needs to be done after the console has opened

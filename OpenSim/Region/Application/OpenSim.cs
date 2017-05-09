@@ -126,6 +126,7 @@ namespace OpenSim
             m_log.Info("[OPENSIM MAIN]: Using async_call_method " + Util.FireAndForgetMethod);
         }
 
+#if (_MONO)
         private static Mono.Unix.UnixSignal[] signals;
 
 
@@ -140,6 +141,7 @@ namespace OpenSim
                 MainConsole.Instance.RunCommand("shutdown");
             }
         });
+#endif
 
         /// <summary>
         /// Performs initialisation of the scene, such as loading configuration from disk.
@@ -150,6 +152,7 @@ namespace OpenSim
             m_log.Info("========================= STARTING OPENSIM =========================");
             m_log.Info("====================================================================");
 
+#if (_MONO)
             if(!Util.IsWindows())
             {
                 try
@@ -168,6 +171,7 @@ namespace OpenSim
                     m_log.Debug("Exception was: ", e);
                 }
             }
+#endif
             //m_log.InfoFormat("[OPENSIM MAIN]: GC Is Server GC: {0}", GCSettings.IsServerGC.ToString());
             // http://msdn.microsoft.com/en-us/library/bb384202.aspx
             //GCSettings.LatencyMode = GCLatencyMode.Batch;
