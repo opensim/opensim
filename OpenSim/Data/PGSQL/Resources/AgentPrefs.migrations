@@ -1,0 +1,19 @@
+:VERSION 1
+
+BEGIN TRANSACTION;
+
+CREATE TABLE IF NOT EXISTS "public"."agentprefs" (
+	"PrincipalID" uuid NOT NULL,
+	"AccessPrefs" char(2) NOT NULL DEFAULT 'M'::bpchar COLLATE "default",
+	"HoverHeight" float8 NOT NULL DEFAULT 0,
+	"Language" char(5) NOT NULL DEFAULT 'en-us'::bpchar COLLATE "default",
+	"LanguageIsPublic" bool NOT NULL DEFAULT true,
+	"PermEveryone" int4 NOT NULL DEFAULT 0,
+	"PermGroup" int4 NOT NULL DEFAULT 0,
+	"PermNextOwner" int4 NOT NULL DEFAULT 532480
+)
+WITH (OIDS=FALSE);
+
+ALTER TABLE "public"."agentprefs" ADD PRIMARY KEY ("PrincipalID") NOT DEFERRABLE INITIALLY IMMEDIATE;
+
+COMMIT;

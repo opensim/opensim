@@ -607,6 +607,10 @@ namespace OpenSim.Data.MySQL
             {
                 m_log.Info("[REGION DB]: Storing terrain");
 
+                int terrainDBRevision;
+                Array terrainDBblob;
+                terrData.GetDatabaseBlob(out terrainDBRevision, out terrainDBblob);
+
                 lock (m_dbLock)
                 {
                     using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
@@ -625,10 +629,6 @@ namespace OpenSim.Data.MySQL
                                     cmd2.CommandText = "insert into terrain (RegionUUID, " +
                                             "Revision, Heightfield) values (?RegionUUID, " +
                                             "?Revision, ?Heightfield)";
-
-                                    int terrainDBRevision;
-                                    Array terrainDBblob;
-                                    terrData.GetDatabaseBlob(out terrainDBRevision, out terrainDBblob);
 
                                     cmd2.Parameters.AddWithValue("RegionUUID", regionID.ToString());
                                     cmd2.Parameters.AddWithValue("Revision", terrainDBRevision);
@@ -655,6 +655,10 @@ namespace OpenSim.Data.MySQL
             {
                 m_log.Info("[REGION DB]: Storing Baked terrain");
 
+                int terrainDBRevision;
+                Array terrainDBblob;
+                terrData.GetDatabaseBlob(out terrainDBRevision, out terrainDBblob);
+
                 lock (m_dbLock)
                 {
                     using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
@@ -673,10 +677,6 @@ namespace OpenSim.Data.MySQL
                                     cmd2.CommandText = "insert into bakedterrain (RegionUUID, " +
                                             "Revision, Heightfield) values (?RegionUUID, " +
                                             "?Revision, ?Heightfield)";
-
-                                    int terrainDBRevision;
-                                    Array terrainDBblob;
-                                    terrData.GetDatabaseBlob(out terrainDBRevision, out terrainDBblob);
 
                                     cmd2.Parameters.AddWithValue("RegionUUID", regionID.ToString());
                                     cmd2.Parameters.AddWithValue("Revision", terrainDBRevision);
@@ -711,9 +711,12 @@ namespace OpenSim.Data.MySQL
         public TerrainData LoadTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
         {
             TerrainData terrData = null;
+            byte[] blob = null;
+            int rev = 0;
 
             lock (m_dbLock)
             {
+
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
                     dbcon.Open();
@@ -729,11 +732,10 @@ namespace OpenSim.Data.MySQL
                         {
                             while (reader.Read())
                             {
-                                int rev = Convert.ToInt32(reader["Revision"]);
+                                rev = Convert.ToInt32(reader["Revision"]);
                                 if ((reader["Heightfield"] != DBNull.Value))
                                 {
-                                    byte[] blob = (byte[])reader["Heightfield"];
-                                    terrData = TerrainData.CreateFromDatabaseBlobFactory(pSizeX, pSizeY, pSizeZ, rev, blob);
+                                    blob = (byte[])reader["Heightfield"];
                                 }
                             }
                         }
@@ -742,12 +744,17 @@ namespace OpenSim.Data.MySQL
                 }
             }
 
+            if(blob != null)
+                terrData = TerrainData.CreateFromDatabaseBlobFactory(pSizeX, pSizeY, pSizeZ, rev, blob);
+
             return terrData;
         }
 
         public TerrainData LoadBakedTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
         {
             TerrainData terrData = null;
+            byte[] blob = null;
+            int rev = 0;
 
             lock (m_dbLock)
             {
@@ -765,11 +772,10 @@ namespace OpenSim.Data.MySQL
                         {
                             while (reader.Read())
                             {
-                                int rev = Convert.ToInt32(reader["Revision"]);
+                                rev = Convert.ToInt32(reader["Revision"]);
                                 if ((reader["Heightfield"] != DBNull.Value))
                                 {
-                                    byte[] blob = (byte[])reader["Heightfield"];
-                                    terrData = TerrainData.CreateFromDatabaseBlobFactory(pSizeX, pSizeY, pSizeZ, rev, blob);
+                                    blob = (byte[])reader["Heightfield"];
                                 }
                             }
                         }
@@ -777,6 +783,8 @@ namespace OpenSim.Data.MySQL
                     dbcon.Close();
                 }
             }
+            if(blob != null)
+                terrData = TerrainData.CreateFromDatabaseBlobFactory(pSizeX, pSizeY, pSizeZ, rev, blob);
 
             return terrData;
         }
