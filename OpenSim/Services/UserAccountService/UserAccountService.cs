@@ -43,6 +43,7 @@ namespace OpenSim.Services.UserAccountService
     public class UserAccountService : UserAccountServiceBase, IUserAccountService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly UUID UUID_GRID_GOD = new UUID("6571e388-6218-4574-87db-f9379718315e");
         private static UserAccountService m_RootInstance;
 
         /// <summary>
@@ -85,38 +86,63 @@ namespace OpenSim.Services.UserAccountService
 
             m_CreateDefaultAvatarEntries = userConfig.GetBoolean("CreateDefaultAvatarEntries", false);
 
-            // In case there are several instances of this class in the same process,
-            // the console commands are only registered for the root instance
-            if (m_RootInstance == null && MainConsole.Instance != null)
+                //  create a system grid god account
+            UserAccount ggod = GetUserAccount(UUID.Zero, UUID_GRID_GOD);
+            if(ggod == null)
+            {
+                UserAccountData d = new UserAccountData();
+
+                d.FirstName = "GRID";
+                d.LastName = "SERVICES";
+                d.PrincipalID = UUID_GRID_GOD;
+                d.ScopeID = UUID.Zero;
+                d.Data = new Dictionary<string, string>();
+                d.Data["Email"] = string.Empty;
+                d.Data["Created"] = Util.UnixTimeSinceEpoch().ToString();
+                d.Data["UserLevel"] = "240";
+                d.Data["UserFlags"] = "0";
+                d.Data["ServiceURLs"] = string.Empty;
+
+                m_Database.Store(d);
+            }
+
+            if (m_RootInstance == null)
             {
                 m_RootInstance = this;
-                MainConsole.Instance.Commands.AddCommand("Users", false,
-                        "create user",
-                        "create user [<first> [<last> [<pass> [<email> [<user id> [<model>]]]]]]",
-                        "Create a new user", HandleCreateUser);
 
-                MainConsole.Instance.Commands.AddCommand("Users", false,
-                        "reset user password",
-                        "reset user password [<first> [<last> [<password>]]]",
-                    "Reset a user password", HandleResetUserPassword);
+                // In case there are several instances of this class in the same process,
+                // the console commands are only registered for the root instance
+                if (MainConsole.Instance != null)
+                {
+               
+                    MainConsole.Instance.Commands.AddCommand("Users", false,
+                            "create user",
+                            "create user [<first> [<last> [<pass> [<email> [<user id> [<model>]]]]]]",
+                            "Create a new user", HandleCreateUser);
 
-                MainConsole.Instance.Commands.AddCommand("Users", false,
-                    "reset user email",
-                    "reset user email [<first> [<last> [<email>]]]",
-                    "Reset a user email address", HandleResetUserEmail);
+                    MainConsole.Instance.Commands.AddCommand("Users", false,
+                            "reset user password",
+                            "reset user password [<first> [<last> [<password>]]]",
+                        "Reset a user password", HandleResetUserPassword);
 
-                MainConsole.Instance.Commands.AddCommand("Users", false,
-                        "set user level",
-                        "set user level [<first> [<last> [<level>]]]",
-                        "Set user level. If >= 200 and 'allow_grid_gods = true' in OpenSim.ini, "
-                            + "this account will be treated as god-moded. "
-                            + "It will also affect the 'login level' command. ",
-                        HandleSetUserLevel);
+                    MainConsole.Instance.Commands.AddCommand("Users", false,
+                        "reset user email",
+                        "reset user email [<first> [<last> [<email>]]]",
+                        "Reset a user email address", HandleResetUserEmail);
 
-                MainConsole.Instance.Commands.AddCommand("Users", false,
-                        "show account",
-                        "show account <first> <last>",
-                        "Show account details for the given user", HandleShowAccount);
+                    MainConsole.Instance.Commands.AddCommand("Users", false,
+                            "set user level",
+                            "set user level [<first> [<last> [<level>]]]",
+                            "Set user level. If >= 200 and 'allow_grid_gods = true' in OpenSim.ini, "
+                                + "this account will be treated as god-moded. "
+                                + "It will also affect the 'login level' command. ",
+                            HandleSetUserLevel);
+
+                    MainConsole.Instance.Commands.AddCommand("Users", false,
+                            "show account",
+                            "show account <first> <last>",
+                            "Show account details for the given user", HandleShowAccount);
+                }
             }
         }
 
