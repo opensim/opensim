@@ -287,8 +287,7 @@
 [GridService]
     LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
 
-    ; Realm = "regions"
-    // do not set this to TRUE unless you understand it
+    ; Realm = "regions"   
     ; AllowDuplicateNames = ""
 
     ;; Perform distance check for the creation of a linked region
