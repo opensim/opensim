@@ -40,6 +40,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Server.Base;
+using OpenSim.Services.Connectors.InstantMessage;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
@@ -89,6 +90,7 @@ namespace OpenSim.Services.LLLoginService
         protected string m_DeniedClients;
         protected string m_MessageUrl;
         protected string m_DSTZone;
+        protected bool m_allowDuplicatePresences = false;
 
         IConfig m_LoginServerConfig;
 //        IConfig m_ClientsConfig;
@@ -140,6 +142,11 @@ namespace OpenSim.Services.LLLoginService
             if (groupConfig != null)
                 m_MaxAgentGroups = groupConfig.GetInt("MaxAgentGroups", 42);
 
+            IConfig presenceConfig = config.Configs["PresenceService"];
+            if (presenceConfig != null)
+            {
+                m_allowDuplicatePresences = presenceConfig.GetBoolean("AllowDuplicatePresences", m_allowDuplicatePresences);
+            }
 
             // Clean up some of these vars
             if (m_MapTileURL != String.Empty)
@@ -370,6 +377,29 @@ namespace OpenSim.Services.LLLoginService
                     return LLFailedLoginResponse.UserProblem;
                 }
 
+                if(account.PrincipalID == new UUID("6571e388-6218-4574-87db-f9379718315e"))
+                {
+                    // really?
+                    return LLFailedLoginResponse.UserProblem;
+                }
+
+                string PrincipalIDstr = account.PrincipalID.ToString();
+                GridUserInfo guinfo = m_GridUserService.GetGridUserInfo(PrincipalIDstr);
+
+                if(!m_allowDuplicatePresences)
+                {
+                    if(guinfo != null && guinfo.Online && guinfo.LastRegionID != UUID.Zero)
+                    {
+                        if(SendAgentGodKillToRegion(scopeID, account.PrincipalID, guinfo))
+                        {
+                            m_log.InfoFormat(
+                                "[LLOGIN SERVICE]: Login failed for {0} {1}, reason: already logged in",
+                                firstName, lastName);
+                            return LLFailedLoginResponse.AlreadyLoggedInProblem;
+                        }
+                    }
+                }
+
                 //
                 // Get the user's inventory
                 //
@@ -406,7 +436,7 @@ namespace OpenSim.Services.LLLoginService
                 //
                 if (m_PresenceService != null)
                 {
-                    success = m_PresenceService.LoginAgent(account.PrincipalID.ToString(), session, secureSession);
+                    success = m_PresenceService.LoginAgent(PrincipalIDstr, session, secureSession);
 
                     if (!success)
                     {
@@ -421,7 +451,6 @@ namespace OpenSim.Services.LLLoginService
                 // Change Online status and get the home region
                 //
                 GridRegion home = null;
-                GridUserInfo guinfo = m_GridUserService.LoggedIn(account.PrincipalID.ToString());
 
                 // We are only going to complain about no home if the user actually tries to login there, to avoid
                 // spamming the console.
@@ -504,6 +533,10 @@ namespace OpenSim.Services.LLLoginService
                     return new LLFailedLoginResponse("key", reason, "false");
 
                 }
+
+                // only now we can assume a login
+                guinfo = m_GridUserService.LoggedIn(PrincipalIDstr);
+
                 // Get Friends list
                 FriendInfo[] friendsList = new FriendInfo[0];
                 if (m_FriendsService != null)
@@ -1079,6 +1112,41 @@ namespace OpenSim.Services.LLLoginService
                     }
                     break;
             }
+        }
+
+        private bool SendAgentGodKillToRegion(UUID scopeID, UUID agentID , GridUserInfo guinfo)
+        {
+            UUID regionID = guinfo.LastRegionID;
+            GridRegion regInfo = m_GridService.GetRegionByUUID(scopeID, regionID);
+            if(regInfo == null)
+                return false;
+
+            string regURL = regInfo.ServerURI;
+            if(String.IsNullOrEmpty(regURL))
+                return false;
+            
+            UUID guuid = new UUID("6571e388-6218-4574-87db-f9379718315e");
+
+            GridInstantMessage msg = new GridInstantMessage();
+            msg.imSessionID = UUID.Zero.Guid;
+            msg.fromAgentID = guuid.Guid;
+            msg.toAgentID = agentID.Guid;
+            msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
+            msg.fromAgentName = "GRID";
+            msg.message = string.Format("New login detected");
+            msg.dialog = 250; // God kick
+            msg.fromGroup = false;
+            msg.offline = (byte)0;
+            msg.ParentEstateID = 0;
+            msg.Position = Vector3.Zero;
+            msg.RegionID = scopeID.Guid;
+            msg.binaryBucket = new byte[1] {0};
+            InstantMessageServiceConnector.SendInstantMessage(regURL,msg);
+
+            m_GridUserService.LoggedOut(agentID.ToString(),
+                UUID.Zero, guinfo.LastRegionID, guinfo.LastPosition, guinfo.LastLookAt);
+
+            return true;
         }
     }
 
