@@ -35,8 +35,8 @@ using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenSim.Server.Base;
+using OpenSim.Services.Connectors.InstantMessage;
 using OpenSim.Services.Connectors.Hypergrid;
-
 using OpenMetaverse;
 
 using Nini.Config;
@@ -71,6 +71,7 @@ namespace OpenSim.Services.HypergridService
         private static string m_ExternalName;
         private static Uri m_Uri;
         private static GridRegion m_DefaultGatewayRegion;
+        private bool m_allowDuplicatePresences = false;
 
         public GatekeeperService(IConfigSource config, ISimulationService simService)
         {
@@ -143,6 +144,12 @@ namespace OpenSim.Services.HypergridService
 
                 if (m_GridService == null || m_PresenceService == null || m_SimulationService == null)
                     throw new Exception("Unable to load a required plugin, Gatekeeper Service cannot function.");
+
+                IConfig presenceConfig = config.Configs["PresenceService"];
+                if (presenceConfig != null)
+                {
+                    m_allowDuplicatePresences = presenceConfig.GetBoolean("AllowDuplicatePresences", m_allowDuplicatePresences);
+                }
 
                 m_log.Debug("[GATEKEEPER SERVICE]: Starting...");
             }
@@ -369,6 +376,36 @@ namespace OpenSim.Services.HypergridService
                 return false;
             }
 
+            if(account.PrincipalID == new UUID("6571e388-6218-4574-87db-f9379718315e"))
+            {
+                // really?
+                reason = "Invalid account ID";
+                return false;
+            }
+
+            if(m_GridUserService != null)
+            {
+                string PrincipalIDstr = account.PrincipalID.ToString();
+                GridUserInfo guinfo = m_GridUserService.GetGridUserInfo(PrincipalIDstr);
+
+                if(!m_allowDuplicatePresences)
+                {
+                    if(guinfo != null && guinfo.Online && guinfo.LastRegionID != UUID.Zero)
+                    {
+                        if(SendAgentGodKillToRegion(UUID.Zero, account.PrincipalID, guinfo))
+                        {
+                            m_log.InfoFormat(
+                                "[GATEKEEPER SERVICE]: Login failed for {0} {1}, reason: already logged in",
+                                account.FirstName, account.LastName);
+                            reason = "You appear to be already logged in on destiny grid " +
+                                    "Please wait a a minute or two and retry. " +
+                                    "If this takes longer than a few minutes please contact the grid owner. ";
+                            return false;
+                        }
+                    }
+                }
+            }
+
             m_log.DebugFormat("[GATEKEEPER SERVICE]: User {0} is ok", aCircuit.Name);
 
             bool isFirstLogin = false;
@@ -389,26 +426,6 @@ namespace OpenSim.Services.HypergridService
                     return false;
                 }
 
-                m_log.DebugFormat("[GATEKEEPER SERVICE]: Login presence {0} is ok", aCircuit.Name);
-
-                // Also login foreigners with GridUser service
-                if (m_GridUserService != null && account == null)
-                {
-                    string userId = aCircuit.AgentID.ToString();
-                    string first = aCircuit.firstname, last = aCircuit.lastname;
-                    if (last.StartsWith("@"))
-                    {
-                        string[] parts = aCircuit.firstname.Split('.');
-                        if (parts.Length >= 2)
-                        {
-                            first = parts[0];
-                            last = parts[1];
-                        }
-                    }
-
-                    userId += ";" + aCircuit.ServiceURLs["HomeURI"] + ";" + first + " " + last;
-                    m_GridUserService.LoggedIn(userId);
-                }
             }
 
             //
@@ -465,7 +482,33 @@ namespace OpenSim.Services.HypergridService
                 true, aCircuit.startpos, new List<UUID>(), ctx, out reason))
                 return false;
 
-            return m_SimulationService.CreateAgent(source, destination, aCircuit, (uint)loginFlag, ctx, out reason);
+            bool didit = m_SimulationService.CreateAgent(source, destination, aCircuit, (uint)loginFlag, ctx, out reason);
+
+            if(didit)
+            {
+                m_log.DebugFormat("[GATEKEEPER SERVICE]: Login presence {0} is ok", aCircuit.Name);
+
+                if(!isFirstLogin && m_GridUserService != null && account == null) 
+                {
+                    // Also login foreigners with GridUser service
+                    string userId = aCircuit.AgentID.ToString();
+                    string first = aCircuit.firstname, last = aCircuit.lastname;
+                    if (last.StartsWith("@"))
+                    {
+                        string[] parts = aCircuit.firstname.Split('.');
+                        if (parts.Length >= 2)
+                        {
+                            first = parts[0];
+                            last = parts[1];
+                        }
+                    }
+
+                    userId += ";" + aCircuit.ServiceURLs["HomeURI"] + ";" + first + " " + last;
+                    m_GridUserService.LoggedIn(userId);
+                }
+            }
+
+            return didit;
         }
 
         protected bool Authenticate(AgentCircuitData aCircuit)
@@ -563,6 +606,40 @@ namespace OpenSim.Services.HypergridService
             return exception;
         }
 
+        private bool SendAgentGodKillToRegion(UUID scopeID, UUID agentID , GridUserInfo guinfo)
+        {
+            UUID regionID = guinfo.LastRegionID;
+            GridRegion regInfo = m_GridService.GetRegionByUUID(scopeID, regionID);
+            if(regInfo == null)
+                return false;
+
+            string regURL = regInfo.ServerURI;
+            if(String.IsNullOrEmpty(regURL))
+                return false;
+            
+            UUID guuid = new UUID("6571e388-6218-4574-87db-f9379718315e");
+
+            GridInstantMessage msg = new GridInstantMessage();
+            msg.imSessionID = UUID.Zero.Guid;
+            msg.fromAgentID = guuid.Guid;
+            msg.toAgentID = agentID.Guid;
+            msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
+            msg.fromAgentName = "GRID";
+            msg.message = string.Format("New login detected");
+            msg.dialog = 250; // God kick
+            msg.fromGroup = false;
+            msg.offline = (byte)0;
+            msg.ParentEstateID = 0;
+            msg.Position = Vector3.Zero;
+            msg.RegionID = scopeID.Guid;
+            msg.binaryBucket = new byte[1] {0};
+            InstantMessageServiceConnector.SendInstantMessage(regURL,msg);
+
+            m_GridUserService.LoggedOut(agentID.ToString(),
+                UUID.Zero, guinfo.LastRegionID, guinfo.LastPosition, guinfo.LastLookAt);
+
+            return true;
+        }
         #endregion
     }
 }
