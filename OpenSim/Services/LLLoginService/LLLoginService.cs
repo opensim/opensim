@@ -865,6 +865,9 @@ namespace OpenSim.Services.LLLoginService
             reason = string.Empty;
             uint circuitCode = 0;
             AgentCircuitData aCircuit = null;
+            dest = null;
+
+            bool success = false;
 
             if (m_UserAgentService == null)
             {
@@ -875,28 +878,14 @@ namespace OpenSim.Services.LLLoginService
                     simConnector = m_LocalSimulationService;
                 else if (m_RemoteSimulationService != null)
                     simConnector = m_RemoteSimulationService;
-            }
-            else // User Agent Service is on
-            {
-                if (gatekeeper == null) // login to local grid
-                {
-                    if (hostName == string.Empty)
-                        SetHostAndPort(m_GatekeeperURL);
 
-                    gatekeeper = new GridRegion(destination);
-                    gatekeeper.ExternalHostName = hostName;
-                    gatekeeper.HttpPort = (uint)port;
-                    gatekeeper.ServerURI = m_GatekeeperURL;
-                }
-                m_log.Debug("[LLLOGIN SERVICE]: no gatekeeper detected..... using " + m_GatekeeperURL);
-            }
+                if(simConnector == null)
+                    return null;
 
-            bool success = false;
-
-            if (m_UserAgentService == null && simConnector != null)
-            {
                 circuitCode = (uint)Util.RandomClass.Next(); ;
-                aCircuit = MakeAgent(destination, account, avatar, session, secureSession, circuitCode, position, clientIP.Address.ToString(), viewer, channel, mac, id0);
+                aCircuit = MakeAgent(destination, account, avatar, session, secureSession, circuitCode, position,
+                    clientIP.Address.ToString(), viewer, channel, mac, id0);
+
                 success = LaunchAgentDirectly(simConnector, destination, aCircuit, flags, out reason);
                 if (!success && m_GridService != null)
                 {
@@ -918,10 +907,22 @@ namespace OpenSim.Services.LLLoginService
                 }
             }
 
-            if (m_UserAgentService != null)
+            else
             {
+                if (gatekeeper == null) // login to local grid
+                {
+                    if (hostName == string.Empty)
+                        SetHostAndPort(m_GatekeeperURL);
+
+                    gatekeeper = new GridRegion(destination);
+                    gatekeeper.ExternalHostName = hostName;
+                    gatekeeper.HttpPort = (uint)port;
+                    gatekeeper.ServerURI = m_GatekeeperURL;
+                }
                 circuitCode = (uint)Util.RandomClass.Next(); ;
-                aCircuit = MakeAgent(destination, account, avatar, session, secureSession, circuitCode, position, clientIP.Address.ToString(), viewer, channel, mac, id0);
+                aCircuit = MakeAgent(destination, account, avatar, session, secureSession, circuitCode, position,
+                        clientIP.Address.ToString(), viewer, channel, mac, id0);
+
                 aCircuit.teleportFlags |= (uint)flags;
                 success = LaunchAgentIndirectly(gatekeeper, destination, aCircuit, clientIP, out reason);
                 if (!success && m_GridService != null)
