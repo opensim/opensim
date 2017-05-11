@@ -295,8 +295,8 @@
 [GridService]
     LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
 
-    ; Realm = "regions"
-    ; AllowDuplicateNames = "True"
+    ; Realm = "regions"   
+    ; AllowDuplicateNames = ""
 
     ;; Perform distance check for the creation of a linked region
     ; Check4096 = "True"
@@ -451,10 +451,6 @@
 [PresenceService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.PresenceService.dll:PresenceService"
-
-    ; Set this to true to allow the use of advanced web services and multiple
-    ; bots using one account
-    AllowDuplicatePresences = false;
 
 [AvatarService]
     ; for the server connector
