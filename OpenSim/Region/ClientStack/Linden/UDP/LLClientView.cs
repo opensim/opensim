@@ -12569,11 +12569,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             int maxWearablesLoop = cachedtex.WearableData.Length;
-            if (maxWearablesLoop > cacheItems.Length)
-                maxWearablesLoop = cacheItems.Length;
 
             if (cacheItems != null)
             {
+                if (maxWearablesLoop > cacheItems.Length)
+                    maxWearablesLoop = cacheItems.Length;
                 for (int i = 0; i < maxWearablesLoop; i++)
                 {
                     int idx = cachedtex.WearableData[i].TextureIndex;
