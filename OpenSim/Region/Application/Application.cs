@@ -74,11 +74,12 @@ namespace OpenSim
             AppDomain.CurrentDomain.UnhandledException +=
                 new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
-            if(!Util.IsWindows())
-                ServicePointManager.DefaultConnectionLimit = 12;
-            else
+            if(Util.IsWindows())
                 ServicePointManager.DefaultConnectionLimit = 32;
+            else
+                ServicePointManager.DefaultConnectionLimit = 12;
 
+            ServicePointManager.Expect100Continue = false;
             ServicePointManager.UseNagleAlgorithm = false;
 
             // Add the arguments supplied when running the application to the configuration

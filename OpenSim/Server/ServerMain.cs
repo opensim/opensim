@@ -55,6 +55,7 @@ namespace OpenSim.Server
         public static int Main(string[] args)
         {
             ServicePointManager.DefaultConnectionLimit = 64;
+            ServicePointManager.Expect100Continue = false;
             ServicePointManager.UseNagleAlgorithm = false;
 
             m_Server = new HttpServerBase("R.O.B.U.S.T.", args);
