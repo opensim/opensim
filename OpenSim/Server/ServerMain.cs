@@ -54,8 +54,7 @@ namespace OpenSim.Server
 
         public static int Main(string[] args)
         {
-            // Make sure we don't get outbound connections queueing
-            ServicePointManager.DefaultConnectionLimit = 50;
+            ServicePointManager.DefaultConnectionLimit = 4096;
             ServicePointManager.UseNagleAlgorithm = false;
 
             m_Server = new HttpServerBase("R.O.B.U.S.T.", args);
