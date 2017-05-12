@@ -376,7 +376,8 @@ namespace OpenSim.Services.HypergridService
                 return false;
             }
 
-            if(aCircuit.AgentID == new UUID("6571e388-6218-4574-87db-f9379718315e"))
+            UUID agentID = aCircuit.AgentID;
+            if(agentID == new UUID("6571e388-6218-4574-87db-f9379718315e"))
             {
                 // really?
                 reason = "Invalid account ID";
@@ -385,14 +386,14 @@ namespace OpenSim.Services.HypergridService
 
             if(m_GridUserService != null)
             {
-                string PrincipalIDstr = account.PrincipalID.ToString();
+                string PrincipalIDstr = agentID.ToString();
                 GridUserInfo guinfo = m_GridUserService.GetGridUserInfo(PrincipalIDstr);
 
                 if(!m_allowDuplicatePresences)
                 {
                     if(guinfo != null && guinfo.Online && guinfo.LastRegionID != UUID.Zero)
                     {
-                        if(SendAgentGodKillToRegion(UUID.Zero, account.PrincipalID, guinfo))
+                        if(SendAgentGodKillToRegion(UUID.Zero, agentID, guinfo))
                         {
                             m_log.InfoFormat(
                                 "[GATEKEEPER SERVICE]: Login failed for {0} {1}, reason: already logged in",
