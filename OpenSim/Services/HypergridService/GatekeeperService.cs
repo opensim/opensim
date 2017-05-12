@@ -397,9 +397,9 @@ namespace OpenSim.Services.HypergridService
                             m_log.InfoFormat(
                                 "[GATEKEEPER SERVICE]: Login failed for {0} {1}, reason: already logged in",
                                 account.FirstName, account.LastName);
-                            reason = "You appear to be already logged in on destiny grid " +
+                            reason = "You appear to be already logged in on the destination grid " +
                                     "Please wait a a minute or two and retry. " +
-                                    "If this takes longer than a few minutes please contact the grid owner. ";
+                                    "If this takes longer than a few minutes please contact the grid owner.";
                             return false;
                         }
                     }
