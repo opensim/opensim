@@ -376,7 +376,7 @@ namespace OpenSim.Services.HypergridService
                 return false;
             }
 
-            if(account.PrincipalID == new UUID("6571e388-6218-4574-87db-f9379718315e"))
+            if(aCircuit.AgentID == new UUID("6571e388-6218-4574-87db-f9379718315e"))
             {
                 // really?
                 reason = "Invalid account ID";
