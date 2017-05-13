@@ -485,7 +485,7 @@ namespace OpenSim.Framework
                     try {}
                     finally
                     {
-                        rwLock.EnterUpgradeableReadLock();
+                        rwLock.EnterWriteLock();
                         gotWriteLock = true;
                     }
 
