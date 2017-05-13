@@ -2222,9 +2222,9 @@ namespace OpenSim.Data.PGSQL
                 parameters.Add(_Database.CreateParameter("PassTouches", false));
 
             if (prim.PassCollisions)
-                parameters.Add(_Database.CreateParameter("PassCollisions", false));
-            else
                 parameters.Add(_Database.CreateParameter("PassCollisions", true));
+            else
+                parameters.Add(_Database.CreateParameter("PassCollisions", false));
 
             parameters.Add(_Database.CreateParameter("LinkNumber", prim.LinkNum));
             parameters.Add(_Database.CreateParameter("MediaURL", prim.MediaUrl));
