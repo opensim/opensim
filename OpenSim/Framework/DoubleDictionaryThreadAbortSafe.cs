@@ -74,21 +74,19 @@ namespace OpenSim.Framework
                 {
                     rwLock.EnterWriteLock();
                     gotLock = true;
+                    if (Dictionary1.ContainsKey(key1))
+                    {
+                        if (!Dictionary2.ContainsKey(key2))
+                            throw new ArgumentException("key1 exists in the dictionary but not key2");
+                    }
+                    else if (Dictionary2.ContainsKey(key2))
+                    {
+                        if (!Dictionary1.ContainsKey(key1))
+                            throw new ArgumentException("key2 exists in the dictionary but not key1");
+                    }
+                    Dictionary1[key1] = value;
+                    Dictionary2[key2] = value;
                 }
-
-                if (Dictionary1.ContainsKey(key1))
-                {
-                    if (!Dictionary2.ContainsKey(key2))
-                        throw new ArgumentException("key1 exists in the dictionary but not key2");
-                }
-                else if (Dictionary2.ContainsKey(key2))
-                {
-                    if (!Dictionary1.ContainsKey(key1))
-                        throw new ArgumentException("key2 exists in the dictionary but not key1");
-                }
-
-                Dictionary1[key1] = value;
-                Dictionary2[key2] = value;
             }
             finally
             {
@@ -112,10 +110,9 @@ namespace OpenSim.Framework
                 {
                     rwLock.EnterWriteLock();
                     gotLock = true;
+                    Dictionary1.Remove(key1);
+                    success = Dictionary2.Remove(key2);
                 }
-
-                Dictionary1.Remove(key1);
-                success = Dictionary2.Remove(key2);
             }
             finally
             {
@@ -151,8 +148,12 @@ namespace OpenSim.Framework
                     {
                         if (kvp.Value.Equals(value))
                         {
-                            Dictionary1.Remove(key1);
-                            Dictionary2.Remove(kvp.Key);
+                            try { }
+                            finally
+                            {
+                                Dictionary1.Remove(key1);
+                                Dictionary2.Remove(kvp.Key);
+                            }
                             found = true;
                             break;
                         }
@@ -193,8 +194,12 @@ namespace OpenSim.Framework
                     {
                         if (kvp.Value.Equals(value))
                         {
-                            Dictionary2.Remove(key2);
-                            Dictionary1.Remove(kvp.Key);
+                            try { }
+                            finally
+                            {
+                                Dictionary2.Remove(key2);
+                                Dictionary1.Remove(kvp.Key);
+                            }
                             found = true;
                             break;
                         }
@@ -224,10 +229,9 @@ namespace OpenSim.Framework
                 {
                     rwLock.EnterWriteLock();
                     gotLock = true;
+                    Dictionary1.Clear();
+                    Dictionary2.Clear();
                 }
-
-                Dictionary1.Clear();
-                Dictionary2.Clear();
             }
             finally
             {
@@ -487,13 +491,13 @@ namespace OpenSim.Framework
                     {
                         rwLock.EnterWriteLock();
                         gotWriteLock = true;
+
+                        for (int i = 0; i < list.Count; i++)
+                            Dictionary1.Remove(list[i]);
+
+                        for (int i = 0; i < list2.Count; i++)
+                            Dictionary2.Remove(list2[i]);
                     }
-
-                    for (int i = 0; i < list.Count; i++)
-                        Dictionary1.Remove(list[i]);
-
-                    for (int i = 0; i < list2.Count; i++)
-                        Dictionary2.Remove(list2[i]);
                 }
                 finally
                 {
