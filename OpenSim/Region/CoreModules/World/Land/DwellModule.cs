@@ -120,6 +120,9 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public int GetDwell(UUID parcelID)
         {
+            ILandObject parcel = m_scene.LandChannel.GetLandObject(parcelID);
+            if (parcel != null && parcel.LandData != null)
+               return (int)parcel.LandData.Dwell;
             return 0;
         }
     }

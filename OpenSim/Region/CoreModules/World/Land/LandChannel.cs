@@ -106,6 +106,15 @@ namespace OpenSim.Region.CoreModules.World.Land
             return null;
         }
 
+        public ILandObject GetLandObject(UUID GlobalID)
+        {
+            if (m_landManagementModule != null)
+            {
+                return m_landManagementModule.GetLandObject(GlobalID);
+            }
+            return null;
+        }
+
         public ILandObject GetLandObject(Vector3 position)
         {
             return GetLandObject(position.X, position.Y);

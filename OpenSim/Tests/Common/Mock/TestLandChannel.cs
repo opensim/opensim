@@ -96,6 +96,11 @@ namespace OpenSim.Tests.Common
             return GetNoLand();
         }
 
+        public ILandObject GetLandObject(UUID ID)
+        {
+            return GetNoLand();
+        }
+
         public ILandObject GetLandObject(float x, float y)
         {
             return GetNoLand();

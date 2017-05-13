@@ -76,6 +76,8 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <returns></returns>
         ILandObject GetLandObject(int localID);
 
+        ILandObject GetLandObject(UUID GlobalID);
+
         /// <summary>
         /// Clear the land channel of all parcels.
         /// </summary>
