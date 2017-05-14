@@ -76,8 +76,8 @@ namespace OpenSim.Server
 
         public static int Main(string[] args)
         {
-            // Make sure we don't get outbound connections queueing
-            ServicePointManager.DefaultConnectionLimit = 50;
+            ServicePointManager.DefaultConnectionLimit = 64;
+            ServicePointManager.Expect100Continue = false;
             ServicePointManager.UseNagleAlgorithm = false;
             ServicePointManager.ServerCertificateValidationCallback = ValidateServerCertificate;
 

@@ -85,6 +85,7 @@ namespace OpenSim.Server.Handlers.Land
                 hash["SnapshotID"] = landData.SnapshotID.ToString();
                 hash["UserLocation"] = landData.UserLocation.ToString();
                 hash["RegionAccess"] = regionAccess.ToString();
+                hash["Dwell"] = landData.Dwell.ToString();
             }
 
             XmlRpcResponse response = new XmlRpcResponse();

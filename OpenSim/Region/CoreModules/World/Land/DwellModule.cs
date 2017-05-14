@@ -53,7 +53,7 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 namespace OpenSim.Region.CoreModules.World.Land
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "DefaultDwellModule")]
-    public class DefaultDwellModule : IDwellModule, INonSharedRegionModule
+    public class DefaultDwellModule : INonSharedRegionModule, IDwellModule
     {
         private Scene m_scene;
         private IConfigSource m_Config;
@@ -88,16 +88,21 @@ namespace OpenSim.Region.CoreModules.World.Land
                 return;
 
             m_scene = scene;
-
-            m_scene.EventManager.OnNewClient += OnNewClient;
+            m_scene.RegisterModuleInterface<IDwellModule>(this);
         }
 
         public void RegionLoaded(Scene scene)
         {
+            if (!m_Enabled)
+                return;
+            m_scene.EventManager.OnNewClient += OnNewClient;
         }
 
         public void RemoveRegion(Scene scene)
         {
+            if (!m_Enabled)
+                return;
+            m_scene.EventManager.OnNewClient -= OnNewClient;
         }
 
         public void Close()
@@ -115,12 +120,26 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (parcel == null)
                 return;
 
-            client.SendParcelDwellReply(localID, parcel.LandData.GlobalID, parcel.LandData.Dwell);
+            LandData land = parcel.LandData;
+            if(land!= null)
+                client.SendParcelDwellReply(localID, land.GlobalID, land.Dwell);
         }
+
 
         public int GetDwell(UUID parcelID)
         {
+            ILandObject parcel = m_scene.LandChannel.GetLandObject(parcelID);
+            if (parcel != null && parcel.LandData != null)
+               return (int)(parcel.LandData.Dwell);
             return 0;
         }
+
+        public int GetDwell(LandData land)
+        {
+            if (land != null)
+               return (int)(land.Dwell);
+            return 0;
+        }
+
     }
 }

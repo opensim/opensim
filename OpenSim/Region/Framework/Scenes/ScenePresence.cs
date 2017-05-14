@@ -170,6 +170,7 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_previusParcelHide = false;
         private bool m_currentParcelHide = false;
         private object parcelLock = new Object();
+        public double ParcelDwellTickMS;
 
         public UUID currentParcelUUID
         {
@@ -182,6 +183,7 @@ namespace OpenSim.Region.Framework.Scenes
                     bool checksame = true;
                     if (value != m_currentParcelUUID)
                     {
+                        ParcelDwellTickMS = Util.GetTimeStampMS();
                         m_previusParcelHide = m_currentParcelHide;
                         m_previusParcelUUID = m_currentParcelUUID;
                         checksame = false;
@@ -2141,6 +2143,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_previusParcelUUID = UUID.Zero;
                 m_currentParcelHide = false;
                 m_currentParcelUUID = UUID.Zero;
+                ParcelDwellTickMS = Util.GetTimeStampMS();
 
                 if(!IsNPC)
                 {

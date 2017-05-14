@@ -1789,6 +1789,7 @@ namespace OpenSim.Data.PGSQL
             prim.CollisionSoundVolume = Convert.ToSingle(primRow["CollisionSoundVolume"]);
 
             prim.PassTouches = (bool)primRow["PassTouches"];
+            prim.PassCollisions = (bool)primRow["PassCollisions"];
 
             if (!(primRow["MediaURL"] is System.DBNull))
                 prim.MediaUrl = (string)primRow["MediaURL"];
@@ -2212,7 +2213,7 @@ namespace OpenSim.Data.PGSQL
             parameters.Add(_Database.CreateParameter("CollisionSoundVolume", prim.CollisionSoundVolume));
 
             parameters.Add(_Database.CreateParameter("PassTouches", (bool)prim.PassTouches));
-            parameters.Add(_Database.CreateParameter("PassCollisions", prim.PassCollisions));
+            parameters.Add(_Database.CreateParameter("PassCollisions", (bool)prim.PassCollisions));
             
             
             if (prim.PassTouches)
@@ -2221,9 +2222,9 @@ namespace OpenSim.Data.PGSQL
                 parameters.Add(_Database.CreateParameter("PassTouches", false));
 
             if (prim.PassCollisions)
-                parameters.Add(_Database.CreateParameter("PassCollisions", 1));
+                parameters.Add(_Database.CreateParameter("PassCollisions", true));
             else
-                parameters.Add(_Database.CreateParameter("PassCollisions", 0));
+                parameters.Add(_Database.CreateParameter("PassCollisions", false));
 
             parameters.Add(_Database.CreateParameter("LinkNumber", prim.LinkNum));
             parameters.Add(_Database.CreateParameter("MediaURL", prim.MediaUrl));

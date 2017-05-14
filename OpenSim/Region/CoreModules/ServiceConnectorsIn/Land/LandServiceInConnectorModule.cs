@@ -151,7 +151,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Land
                     x = rx - s.RegionInfo.WorldLocX;
                     y = ry - s.RegionInfo.WorldLocY;
                     regionAccess = s.RegionInfo.AccessLevel;
-                    return s.GetLandData(x, y);
+                    LandData land = s.GetLandData(x, y);
+                    IDwellModule dwellModule = s.RequestModuleInterface<IDwellModule>();
+                    if (dwellModule != null)
+                        land.Dwell = dwellModule.GetDwell(land);
+                    return land; 
                 }
             }
             m_log.DebugFormat("[LAND IN CONNECTOR]: region handle {0} not found", regionHandle);
