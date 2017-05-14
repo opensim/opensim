@@ -3114,7 +3114,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             float dwell = 0.0f;
             IDwellModule dwellModule = m_scene.RequestModuleInterface<IDwellModule>();
             if (dwellModule != null)
-                dwell = dwellModule.GetDwell(land.GlobalID);
+                dwell = dwellModule.GetDwell(land);
             ParcelInfoReplyPacket reply = (ParcelInfoReplyPacket)PacketPool.Instance.GetPacket(PacketType.ParcelInfoReply);
             reply.AgentData.AgentID = m_agentId;
             reply.Data.ParcelID = parcelID;

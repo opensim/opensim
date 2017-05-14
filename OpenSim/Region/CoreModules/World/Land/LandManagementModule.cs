@@ -439,15 +439,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                 if (parcelAvatarIsEntering != null &&
                     avatar.currentParcelUUID != parcelAvatarIsEntering.LandData.GlobalID)
                 {
-                    if(!avatar.IsNPC && avatar.currentParcelUUID != UUID.Zero)
-                    {
-                        ILandObject last = GetLandObject(avatar.currentParcelUUID);
-                        if(last != null)
-                        {
-
-                        }
-                    }
-
                     SendLandUpdate(avatar, parcelAvatarIsEntering);
                     avatar.currentParcelUUID = parcelAvatarIsEntering.LandData.GlobalID;
                     EnforceBans(parcelAvatarIsEntering, avatar);
@@ -602,10 +593,8 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// The land object being added.
         /// Will return null if this overlaps with an existing parcel that has not had its bitmap adjusted.
         /// </param>
-        public ILandObject AddLandObject(ILandObject land)
+        public ILandObject AddLandObject(ILandObject new_land)
         {
-            ILandObject new_land = land.Copy();
-
             // Only now can we add the prim counts to the land object - we rely on the global ID which is generated
             // as a random UUID inside LandData initialization
             if (m_primCountModule != null)
@@ -1621,8 +1610,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private void IncomingLandObjectFromStorage(LandData data)
         {
-            ILandObject new_land = new LandObject(data.OwnerID, data.IsGroupOwned, m_scene);
-            new_land.LandData = data.Copy();
+            ILandObject new_land = new LandObject(data.OwnerID, data.IsGroupOwned, m_scene, data);
 
             new_land.SetLandBitmapFromByteArray();
             AddLandObject(new_land);

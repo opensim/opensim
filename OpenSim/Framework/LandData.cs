@@ -97,7 +97,9 @@ namespace OpenSim.Framework
         private bool _mediaLoop = false;
         private bool _obscureMusic = false;
         private bool _obscureMedia = false;
-        private float _dwell = 0;
+
+        private float m_dwell = 0;
+        public double LastDwellTimeMS;
 
         public bool SeeAVs { get; set; }
         public bool AnyAVSounds { get; set; }
@@ -111,11 +113,12 @@ namespace OpenSim.Framework
         {
             get
             {
-                return _dwell;
+                return m_dwell;
             }
             set
             {
-                _dwell = value;
+                m_dwell = value;
+                LastDwellTimeMS = Util.GetTimeStampMS();
             }
         }
 
@@ -735,6 +738,7 @@ namespace OpenSim.Framework
             SeeAVs = true;
             AnyAVSounds = true;
             GroupAVSounds = true;
+            LastDwellTimeMS = Util.GetTimeStampMS();
         }
 
         /// <summary>
@@ -784,7 +788,7 @@ namespace OpenSim.Framework
             landData._obscureMedia = _obscureMedia;
             landData._simwideArea = _simwideArea;
             landData._simwidePrims = _simwidePrims;
-            landData._dwell = _dwell;
+            landData.m_dwell = m_dwell;
             landData.SeeAVs = SeeAVs;
             landData.AnyAVSounds = AnyAVSounds;
             landData.GroupAVSounds = GroupAVSounds;

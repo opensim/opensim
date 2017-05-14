@@ -270,7 +270,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_scene = scene;
         }
 
-        public LandObject(UUID owner_id, bool is_group_owned, Scene scene)
+        public LandObject(UUID owner_id, bool is_group_owned, Scene scene, LandData data = null)
         {
             m_scene = scene;
             if (m_scene == null)
@@ -278,12 +278,17 @@ namespace OpenSim.Region.CoreModules.World.Land
             else
                 LandBitmap = new bool[m_scene.RegionInfo.RegionSizeX / landUnit, m_scene.RegionInfo.RegionSizeY / landUnit];
 
-            LandData = new LandData();
+            if(data == null)
+                LandData = new LandData();
+            else
+                LandData = data;
+
             LandData.OwnerID = owner_id;
             if (is_group_owned)
                 LandData.GroupID = owner_id;
             else
                 LandData.GroupID = UUID.Zero;
+            
             LandData.IsGroupOwned = is_group_owned;
 
             m_scene.EventManager.OnFrame += OnFrame;
@@ -1811,6 +1816,37 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 ExpireAccessList();
                 m_expiryCounter = 0;
+            }
+
+            // need to update dwell here bc landdata has no parent info
+            if(LandData != null)
+            {
+                double now = Util.GetTimeStampMS();
+                double elapsed = now - LandData.LastDwellTimeMS;
+                if(elapsed > 150000) //2.5 minutes resolution / throttle
+                {
+                    float dwell = LandData.Dwell;
+                    double cur = dwell * 60000.0;
+                    double decay = 1.5e-8 * cur * elapsed;
+                    cur -= decay;
+                    if(cur < 0)
+                        cur = 0;
+
+                    UUID lgid = LandData.GlobalID;
+                    m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
+                    {
+                        if(sp.IsNPC || sp.IsLoggingIn || sp.IsDeleted || sp.currentParcelUUID != lgid)
+                            return;
+                        cur += (now - sp.ParcelDwellTickMS);
+                        sp.ParcelDwellTickMS = now;
+                    });
+                
+                    float newdwell = (float)(cur * 1.666666666667e-5); 
+                    LandData.Dwell = newdwell;
+
+                    if(Math.Abs(newdwell - dwell) > 1.0)
+                        m_scene.EventManager.TriggerLandObjectAdded(this);
+                }
             }
         }
 
