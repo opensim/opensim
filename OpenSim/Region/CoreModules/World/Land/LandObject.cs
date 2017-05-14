@@ -1849,7 +1849,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     float newdwell = (float)(cur * 1.666666666667e-5); 
                     LandData.Dwell = newdwell;
 
-                    if(Math.Abs(newdwell - dwell) > 1.0)
+                    if(Math.Abs(newdwell - dwell) >= 0.9)
                         m_scene.EventManager.TriggerLandObjectAdded(this);
                 }
             }
