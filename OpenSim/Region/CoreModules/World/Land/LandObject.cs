@@ -58,6 +58,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         protected ExpiringCache<UUID, bool> m_groupMemberCache = new ExpiringCache<UUID, bool>();
         protected TimeSpan m_groupMemberCacheTimeout = TimeSpan.FromSeconds(30);  // cache invalidation after 30 seconds
+        IDwellModule m_dwellModule;
 
         private bool[,] m_landBitmap;
         public bool[,] LandBitmap
@@ -268,6 +269,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             LandData = landData.Copy();
             m_scene = scene;
+            m_dwellModule = m_scene.RequestModuleInterface<IDwellModule>();
         }
 
         public LandObject(UUID owner_id, bool is_group_owned, Scene scene, LandData data = null)
@@ -276,7 +278,10 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (m_scene == null)
                 LandBitmap = new bool[Constants.RegionSize / landUnit, Constants.RegionSize / landUnit];
             else
+            {
                 LandBitmap = new bool[m_scene.RegionInfo.RegionSizeX / landUnit, m_scene.RegionInfo.RegionSizeY / landUnit];
+                m_dwellModule = m_scene.RequestModuleInterface<IDwellModule>();
+            }
 
             if(data == null)
                 LandData = new LandData();
@@ -1819,7 +1824,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
 
             // need to update dwell here bc landdata has no parent info
-            if(LandData != null)
+            if(LandData != null && m_dwellModule != null)
             {
                 double now = Util.GetTimeStampMS();
                 double elapsed = now - LandData.LastDwellTimeMS;
