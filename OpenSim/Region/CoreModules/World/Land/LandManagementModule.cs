@@ -274,6 +274,9 @@ namespace OpenSim.Region.CoreModules.World.Land
             //Remove all the land objects in the sim and add a blank, full sim land object set to public
             lock (m_landList)
             {
+                foreach(ILandObject parcel in m_landList.Values)
+                    parcel.Clear();
+
                 m_landList.Clear();
                 m_landUUIDList.Clear();
                 m_lastLandLocalID = LandChannel.START_LAND_LOCAL_ID - 1;
@@ -696,6 +699,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 m_landList.Remove(local_id);
                 if(land.LandData != null)
                     m_landUUIDList.Remove(land.LandData.GlobalID);
+                land.Clear();
             }
 
             m_scene.EventManager.TriggerLandObjectRemoved(land.LandData.GlobalID);
@@ -746,7 +750,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     }
                 }
             }
-
+            master.LandData.Dwell += slave.LandData.Dwell;
             removeLandObject(slave.LandData.LocalID);
             UpdateLandObject(master.LandData.LocalID, master.LandData);
         }

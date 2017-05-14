@@ -269,6 +269,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             LandData = landData.Copy();
             m_scene = scene;
+            m_scene.EventManager.OnFrame += OnFrame;
             m_dwellModule = m_scene.RequestModuleInterface<IDwellModule>();
         }
 
@@ -296,8 +297,19 @@ namespace OpenSim.Region.CoreModules.World.Land
             
             LandData.IsGroupOwned = is_group_owned;
 
+            if(m_dwellModule == null)
+                LandData.Dwell = 0;
+
             m_scene.EventManager.OnFrame += OnFrame;
         }
+
+        public void Clear()
+        {
+            if(m_scene != null)
+                 m_scene.EventManager.OnFrame -= OnFrame;
+            LandData = null;     
+        }
+
 
         #endregion
 
