@@ -143,6 +143,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Land
                 {
                     LandData land = s.GetLandData(x, y);
                     regionAccess = s.RegionInfo.AccessLevel;
+                    IDwellModule dwellModule = s.RequestModuleInterface<IDwellModule>();
+                    if (dwellModule != null)
+                        land.Dwell = dwellModule.GetDwell(land);
+
                     return land;
                 }
             }

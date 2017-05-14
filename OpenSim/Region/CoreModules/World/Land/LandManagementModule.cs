@@ -1948,6 +1948,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                 if (data.RegionHandle == m_scene.RegionInfo.RegionHandle)
                 {
                     info = new GridRegion(m_scene.RegionInfo);
+                    IDwellModule dwellModule = m_scene.RequestModuleInterface<IDwellModule>();
+                    if (dwellModule != null)
+                        data.LandData.Dwell = dwellModule.GetDwell(data.LandData);
                 }
                 else
                 {
