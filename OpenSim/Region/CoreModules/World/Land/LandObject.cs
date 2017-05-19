@@ -292,8 +292,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             LandData.OwnerID = owner_id;
             if (is_group_owned)
                 LandData.GroupID = owner_id;
-            else
-                LandData.GroupID = UUID.Zero;
             
             LandData.IsGroupOwned = is_group_owned;
 
