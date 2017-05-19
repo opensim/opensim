@@ -29,6 +29,7 @@ using System;
 using vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 using rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using LSLInteger = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
+using LSLString = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 
 namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
@@ -834,15 +835,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int KFM_CMD_STOP = 1;
         public const int KFM_CMD_PAUSE = 2;
 
-        public const string JSON_ARRAY = "JSON_ARRAY";
-        public const string JSON_OBJECT = "JSON_OBJECT";
-        public const string JSON_INVALID = "JSON_INVALID";
-        public const string JSON_NUMBER = "JSON_NUMBER";
-        public const string JSON_STRING = "JSON_STRING";
-        public const string JSON_TRUE = "JSON_TRUE";
-        public const string JSON_FALSE = "JSON_FALSE";
-        public const string JSON_NULL = "JSON_NULL";
-        public const string JSON_APPEND = "JSON_APPEND";
+        public const string JSON_INVALID = "\uFDD0";
+        public const string JSON_OBJECT = "\uFDD1";
+        public const string JSON_ARRAY = "\uFDD2";
+        public const string JSON_NUMBER = "\uFDD3";
+        public const string JSON_STRING = "\uFDD4";
+        public const string JSON_NULL = "\uFDD5";
+        public const string JSON_TRUE = "\uFDD6";
+        public const string JSON_FALSE = "\uFDD7";
+        public const string JSON_DELETE = "\uFDD8";
+        public const string JSON_APPEND = "-1";
 
         /// <summary>
         /// process name parameter as regex

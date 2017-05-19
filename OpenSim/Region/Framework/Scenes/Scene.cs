@@ -5446,7 +5446,7 @@ Label_GroupsDone:
         /// <param name="action"></param>
         public void ForEachClient(Action<IClientAPI> action)
         {
-            m_clientManager.ForEachSync(action);
+            m_clientManager.ForEach(action);
         }
 
         public int GetNumberOfClients()
