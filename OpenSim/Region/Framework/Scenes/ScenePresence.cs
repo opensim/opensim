@@ -4880,6 +4880,7 @@ namespace OpenSim.Region.Framework.Scenes
             PhysicsActor.OnOutOfBounds += OutOfBoundsCall; // Called for PhysicsActors when there's something wrong
             PhysicsActor.SubscribeEvents(100);
             PhysicsActor.LocalID = LocalId;
+            PhysicsActor.SetAlwaysRun = m_setAlwaysRun;
         }
 
         private void OutOfBoundsCall(Vector3 pos)

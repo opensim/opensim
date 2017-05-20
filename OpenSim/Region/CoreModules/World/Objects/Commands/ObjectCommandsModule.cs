@@ -123,8 +123,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 "Objects",
                 false,
                 "delete object pos",
-                "delete object pos <start-coord> to <end-coord>",
-                "Delete scene objects within the given area.",
+                "delete object pos <start x, start y , start z> <end x, end y, end z>",
+                "Delete scene objects within the given volume.",
                 ConsoleUtil.CoordHelp,
                 HandleDeleteObject);
 
@@ -162,8 +162,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 "Objects",
                 false,
                 "show object pos",
-                "show object pos [--full] <start-coord> to <end-coord>",
-                "Show details of scene objects within the given area.",
+                "show object pos [--full] <start x, start y , start z> <end x, end y, end z>",
+                "Show details of scene objects within give volume",
                 "The --full option will print out information on all the parts of the object.\n"
                     + "For yet more detailed part information, use the \"show part\" commands.\n"
                     + ConsoleUtil.CoordHelp,
@@ -189,8 +189,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 "Objects",
                 false,
                 "show part pos",
-                "show part pos <start-coord> to <end-coord>",
-                "Show details of scene object parts within the given area.",
+                "show part pos <start x, start y , start z> <end x, end y, end z>",
+                "Show details of scene object parts within the given volume.",
                 ConsoleUtil.CoordHelp,
                 HandleShowPartByPos);
 

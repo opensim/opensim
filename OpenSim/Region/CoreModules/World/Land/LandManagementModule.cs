@@ -679,6 +679,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         public void removeLandObject(int local_id)
         {
             ILandObject land;
+            UUID landGlobalID = UUID.Zero;
             lock (m_landList)
             {
                 for (int x = 0; x < m_landIDList.GetLength(0); x++)
@@ -697,12 +698,18 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                 land = m_landList[local_id];
                 m_landList.Remove(local_id);
-                if(land.LandData != null)
-                    m_landUUIDList.Remove(land.LandData.GlobalID);
-                land.Clear();
+                if(land != null && land.LandData != null)
+                {
+                    landGlobalID = land.LandData.GlobalID;
+                    m_landUUIDList.Remove(landGlobalID);
+                }
             }
 
-            m_scene.EventManager.TriggerLandObjectRemoved(land.LandData.GlobalID);
+            if(landGlobalID != UUID.Zero)
+            {
+                m_scene.EventManager.TriggerLandObjectRemoved(landGlobalID);
+                land.Clear();
+            }
         }
 
         /// <summary>
