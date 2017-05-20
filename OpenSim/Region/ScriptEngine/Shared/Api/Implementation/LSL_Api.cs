@@ -16756,7 +16756,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     retl.Add((LSL_String)((bool)elem ? ScriptBaseClass.JSON_TRUE : ScriptBaseClass.JSON_FALSE));
                     return retl;
                 case LitJson.JsonType.Double:
-                    retl.Add(new LSL_Float((float)elem));
+                    retl.Add(new LSL_Float((double)elem));
                     return retl;
                 case LitJson.JsonType.None:
                     retl.Add((LSL_String)ScriptBaseClass.JSON_NULL);
