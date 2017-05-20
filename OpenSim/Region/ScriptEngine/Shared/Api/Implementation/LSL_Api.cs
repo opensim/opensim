@@ -16794,7 +16794,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 case LitJson.JsonType.Boolean:
                     return ((bool)elem ? (LSL_String)ScriptBaseClass.JSON_TRUE : (LSL_String)ScriptBaseClass.JSON_FALSE);
                 case LitJson.JsonType.Double:
-                    return (new LSL_Float((float)elem));
+                    return (new LSL_Float((double)elem));
                 case LitJson.JsonType.None:
                     return ((LSL_String)ScriptBaseClass.JSON_NULL);
                 case LitJson.JsonType.String:
@@ -16804,7 +16804,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     string s = LitJson.JsonMapper.ToJson(elem);
                     return (LSL_String)s;
                 default:
-                throw new Exception(ScriptBaseClass.JSON_INVALID);
+                    throw new Exception(ScriptBaseClass.JSON_INVALID);
             }
         }
 
@@ -16879,9 +16879,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return i.ToString();
             }
             if (o is LSL_Rotation)
-                return ((LSL_Rotation)o).ToString();
+            {
+                StringBuilder sb = new StringBuilder(128);
+                sb.Append("\"");
+                LSL_Rotation r = (LSL_Rotation)o;
+                sb.Append(r.ToString());
+                sb.Append("\"");
+                return sb.ToString();
+            }
             if (o is LSL_Vector)
-                return ((LSL_Vector)o).ToString();
+            {
+                StringBuilder sb = new StringBuilder(128);
+                sb.Append("\"");
+                LSL_Vector v = (LSL_Vector)o;
+                sb.Append(v.ToString());
+                sb.Append("\"");
+                return sb.ToString();
+            }
             if (o is LSL_String || o is string)
             {
                 string str;
