@@ -663,12 +663,6 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                     Status = (int)OSHttpStatusCode.ClientErrorJoker;
                     ResponseBody = e.Message;
                 }
-
-                if (ResponseBody == null)
-                    ResponseBody = String.Empty;
-
-                _finished = true;
-                return;
             }
             catch (Exception e)
             {
@@ -727,13 +721,10 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 else
                 {
                     _finished = true;
+                    if (ResponseBody == null)
+                        ResponseBody = String.Empty;
                 }
             }
-
-            if (ResponseBody == null)
-                ResponseBody = String.Empty;
-
-            _finished = true;
         }
 
         public void Stop()
