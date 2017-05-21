@@ -243,6 +243,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         internal void ProcessFloatVehicleParam(Vehicle pParam, float pValue)
         {
             float len;
+            if(float.IsNaN(pValue) || float.IsInfinity(pValue))
+                return;
 
             switch (pParam)
             {
@@ -374,6 +376,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         internal void ProcessVectorVehicleParam(Vehicle pParam, Vector3 pValue)
         {
             float len;
+            if(!pValue.IsFinite())
+                return;
 
             switch (pParam)
             {
