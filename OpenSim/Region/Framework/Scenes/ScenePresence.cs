@@ -2456,7 +2456,9 @@ namespace OpenSim.Region.Framework.Scenes
             // This is irritating.  Really.
             if (!AbsolutePosition.IsFinite())
             {
-                RemoveFromPhysicalScene();
+                bool isphysical = PhysicsActor != null;
+                if(isphysical)
+                    RemoveFromPhysicalScene();
                 m_log.Error("[AVATAR]: NonFinite Avatar position detected... Reset Position. Mantis this please. Error #9999902");
 
                 m_pos = m_LastFinitePos;
@@ -2468,7 +2470,8 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.Error("[AVATAR]: NonFinite Avatar position detected... Reset Position. Mantis this please. Error #9999903");
                 }
 
-                AddToPhysicalScene(false);
+                if(isphysical)
+                    AddToPhysicalScene(false);
             }
             else
             {
