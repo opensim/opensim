@@ -277,7 +277,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                             try
                             {
                                 req.DoHTTPGruntWork(m_server, responsedata);
-                                byContextDequeue(req);
+                                if(req.HttpContext.CanSend() && req.PollServiceArgs.Type == PollServiceEventArgs.EventType.Poll
+                                        && (Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
+                                    ReQueueEvent(req);
+                                else
+                                    byContextDequeue(req);
                             }
                             catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
                             {
