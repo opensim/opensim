@@ -538,6 +538,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             {
                 Request = (HttpWebRequest)WebRequest.Create(Url);
                 Request.AllowAutoRedirect = false;
+                Request.KeepAlive = false;
 
                 //This works around some buggy HTTP Servers like Lighttpd
                 Request.ServicePoint.Expect100Continue = false;
