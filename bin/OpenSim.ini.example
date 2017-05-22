@@ -141,7 +141,7 @@
     ;; The XML here has the same format as it does on the filesystem
     ;; (including the <Root> tag), except that everything is also enclosed
     ;; in a <Regions> tag.
-    ; regionload_webserver_url = "http://example.com/regions.xml";
+    ; regionload_webserver_url = "http://example.com/regions.xml"
 
     ;# {allow_regionless} {} {Allow simulator to start up with no regions configured.} {true false} false
     ;; Allow the simulator to start up if there are no region configuration available
@@ -289,8 +289,8 @@
     ;; SpawnPointRouting adjusts the landing for incoming avatars.
     ;; "closest" will place the avatar at the SpawnPoint located in the closest
     ;; available spot to the destination (typically map click/landmark).
-    ;; "random" will place the avatar on a randomly selected spawnpoint;
-    ;; "sequence" will place the avatar on the next sequential SpawnPoint
+    ;; "random" will place the avatar on a randomly selected spawnpoint.
+    ;; "sequence" will place the avatar on the next sequential SpawnPoint.
     ; SpawnPointRouting = closest
 
     ;# {TelehubAllowLandmark} {} {Allow users with landmarks to override telehub routing} {true false} false
@@ -367,8 +367,8 @@
     ; TexturePrimSize = 48
 
     ;# {RenderMeshes} {} {Render meshes and sculpties on map tiles?} {true false} false
-    ;; Attempt to render meshes and sculpties on the map
-    ; RenderMeshes = false;
+    ;; Attempt to render meshes and sculpties on the map.
+    ; RenderMeshes = false
 
 
 [Permissions]
@@ -550,7 +550,7 @@
     ;; web server
     ; user_agent = "OpenSim LSL (Mozilla Compatible)"
 
-    ;; The follow 3 variables are for HTTP Basic Authentication for the Robust services.
+    ;; The following 3 variables are for HTTP Basic Authentication for the Robust services.
     ;; Use this if your central services in port 8003 need to be accessible on the Internet
     ;; but you want to protect them from unauthorized access. The username and password
     ;; here need to match the ones in the Robust service configuration.
@@ -615,7 +615,6 @@
 
 
 [SimulatorFeatures]
-
     ;# {SearchServerURI} {} {URL of the search server} {}
     ;; Optional. If given this serves the same purpose as the grid wide
     ;; [LoginServices] SearchURL setting and will override that where
@@ -672,7 +671,7 @@
     ;; For standalones, this is the storage dll.
     ; StorageProvider = OpenSim.Data.MySQL.dll
 
-    ;# {MuteListModule} {OfflineMessageModule:OfflineMessageModule} {} {} MuteListModule
+    ;# {MuteListModule} {OfflineMessageModule:OfflineMessageModule} {} {} None
     ;; Mute list handler (not yet implemented). MUST BE SET to allow offline
     ;; messages to work
     ; MuteListModule = MuteListModule
@@ -1128,7 +1127,7 @@
 [MediaOnAPrim]
     ;# {Enabled} {} {Enable Media-on-a-Prim (MOAP)} {true false} true
     ;; Enable media on a prim facilities
-    ; Enabled = true;
+    ; Enabled = true
 
 
 [NPC]
