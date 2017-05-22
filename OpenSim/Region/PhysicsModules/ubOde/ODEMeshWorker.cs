@@ -936,7 +936,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         repData.actor.Name, asset.ID.ToString());
             }
             else
-                m_log.WarnFormat("[PHYSICS]: asset provider returned null asset fo mesh of prim {0}.",
+                m_log.WarnFormat("[PHYSICS]: asset provider returned null asset for mesh of prim {0}.",
                     repData.actor.Name);
         }
     }
