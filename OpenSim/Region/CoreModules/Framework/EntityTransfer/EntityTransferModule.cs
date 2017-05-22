@@ -813,8 +813,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 agentCircuit.Id0 = currentAgentCircuit.Id0;
             }
 
-            IClientIPEndpoint ipepClient;
-
             uint newRegionX, newRegionY, oldRegionX, oldRegionY;
             Util.RegionHandleToRegionLoc(destinationHandle, out newRegionX, out newRegionY);
             Util.RegionHandleToRegionLoc(sourceRegion.RegionHandle, out oldRegionX, out oldRegionY);
@@ -834,11 +832,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Creating agent...");
                 #region IP Translation for NAT
-                // Uses ipepClient above
-                if (sp.ClientView.TryGet(out ipepClient))
-                {
-                    endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
-                }
+                IPEndPoint clientEP = sp.ControllingClient.RemoteEndPoint;
+                if (clientEP != null && clientEP.Address != null)
+                    endPoint.Address = NetworkUtil.GetIPFor(clientEP.Address, endPoint.Address);
+
                 #endregion
                 agentCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
             }
@@ -1746,10 +1743,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (m_eqModule != null)
                 {
                     #region IP Translation for NAT
-                    IClientIPEndpoint ipepClient;
-                    if (agent.ClientView.TryGet(out ipepClient))
-                        endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
-
+                    IPEndPoint clientEP = agent.ControllingClient.RemoteEndPoint;
+                    if (clientEP != null && clientEP.Address != null)
+                        endPoint.Address = NetworkUtil.GetIPFor(clientEP.Address, endPoint.Address);
+                
                     m_log.DebugFormat("{0} {1} is sending {2} EnableSimulator for neighbour region {3}(loc=<{4},{5}>,siz=<{6},{7}>) " +
                         "and EstablishAgentCommunication with seed cap {8}", LogHeader,
                         source.RegionName, agent.Name,
@@ -2402,11 +2399,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         if(sp == null || sp.IsDeleted || sp.ClientView == null) // something bad already happened
                             return;
 
-                        IClientIPEndpoint ipepClient;
-                        if (sp.ClientView.TryGet(out ipepClient))
-                        {
-                            endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
-                        }
+                        IPEndPoint clientEP = sp.ControllingClient.RemoteEndPoint;
+                        if (clientEP != null && clientEP.Address != null)
+                            endPoint.Address = NetworkUtil.GetIPFor(clientEP.Address, endPoint.Address);
                         #endregion
 
                         m_log.DebugFormat("{0} {1} is sending {2} EnableSimulator for neighbour region {3}(loc=<{4},{5}>,siz=<{6},{7}>) " +
