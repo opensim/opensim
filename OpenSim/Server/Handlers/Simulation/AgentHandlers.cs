@@ -531,11 +531,11 @@ namespace OpenSim.Server.Handlers.Simulation
 
                 if (!headers.ContainsKey(xff) || headers[xff] == null)
                 {
-                    m_log.WarnFormat("[AGENT HANDLER]: No XFF header");
+//                    m_log.WarnFormat("[AGENT HANDLER]: No XFF header");
                     return Util.GetCallerIP(request);
                 }
 
-                m_log.DebugFormat("[AGENT HANDLER]: XFF is {0}", headers[xff]);
+//                m_log.DebugFormat("[AGENT HANDLER]: XFF is {0}", headers[xff]);
 
                 IPEndPoint ep = Util.GetClientIPFromXFF((string)headers[xff]);
                 if (ep != null)
