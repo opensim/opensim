@@ -55,6 +55,7 @@ namespace OpenSim.Server
         public static int Main(string[] args)
         {
             ServicePointManager.DefaultConnectionLimit = 64;
+            ServicePointManager.DnsRefreshTimeout = 120000; //  just is case mono decides to have it infinity
             ServicePointManager.Expect100Continue = false;
             ServicePointManager.UseNagleAlgorithm = false;
 
