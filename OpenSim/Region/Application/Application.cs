@@ -79,7 +79,8 @@ namespace OpenSim
             else
             {
                 ServicePointManager.DefaultConnectionLimit = 12;
-                ServicePointManager.DnsRefreshTimeout = 120000; //  just is case crazy mono decides to have it infinity
+                try { ServicePointManager.DnsRefreshTimeout = 120000; } //  just is case crazy some mono decides to have it infinity
+                catch { }
             }
 
             ServicePointManager.Expect100Continue = false;
