@@ -244,11 +244,13 @@ namespace OpenSim.Framework.Servers.HttpServer
                                 try
                                 {
                                     req.DoHTTPGruntWork(m_server, responsedata);
-                                    byContextDequeue(req);
                                 }
-                                catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
+                                catch (ObjectDisposedException)
                                 {
-                                    // Ignore it, no need to reply
+                                }
+                                finally
+                                {
+                                    byContextDequeue(req);
                                 }
                                 return null;
                             }, null);
@@ -263,11 +265,14 @@ namespace OpenSim.Framework.Servers.HttpServer
                                     {
                                         req.DoHTTPGruntWork(m_server,
                                             req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
-                                        byContextDequeue(req);
                                     }
                                     catch (ObjectDisposedException)
                                     {
                                     // Ignore it, no need to reply
+                                    }
+                                    finally
+                                    {
+                                        byContextDequeue(req);
                                     }
                                     return null;
                                 }, null);
