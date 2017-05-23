@@ -550,7 +550,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         private void RecordMaterialAssetUuids(AssetBase materialAsset)
         {
-            OSDMap mat = (OSDMap)OSDParser.DeserializeLLSDXml(materialAsset.Data);
+            OSDMap mat;
+            try
+            {
+                mat = (OSDMap)OSDParser.DeserializeLLSDXml(materialAsset.Data);
+            }
+            catch (Exception e)
+            {
+               m_log.WarnFormat("[Materials]: cannot decode material asset {0}: {1}", materialAsset.ID, e.Message);
+               return;
+            }
 
             UUID normMap = mat["NormMap"].AsUUID();
             if (normMap != UUID.Zero)
