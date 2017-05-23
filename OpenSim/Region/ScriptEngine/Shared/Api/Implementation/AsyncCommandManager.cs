@@ -197,20 +197,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         ~AsyncCommandManager()
         {
             // Shut down thread
-//            try
-//            {
-//                if (cmdHandlerThread != null)
-//                {
-//                    if (cmdHandlerThread.IsAlive == true)
-//                    {
-//                        cmdHandlerThread.Abort();
-//                        //cmdHandlerThread.Join();
-//                    }
-//                }
-//            }
-//            catch
-//            {
-//            }
+            try
+            {
+                if (cmdHandlerThread != null)
+                {
+                    if (cmdHandlerThread.IsAlive == true)
+                    {
+                        cmdHandlerThread.Abort();
+                        //cmdHandlerThread.Join();
+                    }
+                }
+            }
+            catch
+            {
+            }
         }
 
         /// <summary>
@@ -386,8 +386,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return null;
             }
         }
-
-
 
         public static Object[] GetSerializationData(IScriptEngine engine, UUID itemID)
         {
