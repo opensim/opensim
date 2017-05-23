@@ -182,9 +182,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (cmdHandlerThread == null)
             {
                 // Start the thread that will be doing the work
-                cmdHandlerThread
-                    = WorkManager.StartThread(
+                lock (staticLock)
+                {
+                    cmdHandlerThread = WorkManager.StartThread(
                         CmdHandlerThreadLoop, "AsyncLSLCmdHandlerThread", ThreadPriority.Normal, true, true);
+                }
             }
         }
 
@@ -210,7 +212,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (cmdHandlerThread.IsAlive == true)
                         {
                             cmdHandlerThread.Abort();
-                        //cmdHandlerThread.Join();
+                            //cmdHandlerThread.Join();
+                            cmdHandlerThread = null;
                         }
                     }
                 }
