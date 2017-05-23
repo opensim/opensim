@@ -51,7 +51,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private static Thread cmdHandlerThread;
         private static int cmdHandlerThreadCycleSleepms;
-
+        private static int numInstances;
         /// <summary>
         /// Lock for reading/writing static components of AsyncCommandManager.
         /// </summary>
@@ -172,6 +172,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!m_XmlRequest.ContainsKey(m_ScriptEngine))
                     m_XmlRequest[m_ScriptEngine] = new XmlRequest(this);
 
+                numInstances++;
                 StartThread();
             }
         }
@@ -199,12 +200,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // Shut down thread
             try
             {
-                if (cmdHandlerThread != null)
+                lock (staticLock)
                 {
-                    if (cmdHandlerThread.IsAlive == true)
+                    numInstances--;
+                    if(numInstances > 0)
+                        return;
+                    if (cmdHandlerThread != null)
                     {
-                        cmdHandlerThread.Abort();
+                        if (cmdHandlerThread.IsAlive == true)
+                        {
+                            cmdHandlerThread.Abort();
                         //cmdHandlerThread.Join();
+                        }
                     }
                 }
             }
