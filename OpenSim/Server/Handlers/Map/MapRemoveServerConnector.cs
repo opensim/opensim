@@ -229,8 +229,8 @@ namespace OpenSim.Server.Handlers.MapImage
 
         private System.Net.IPAddress GetCallerIP(IOSHttpRequest request)
         {
-            if (!m_Proxy)
-                return request.RemoteIPEndPoint.Address;
+//            if (!m_Proxy)
+//                return request.RemoteIPEndPoint.Address;
 
             // We're behind a proxy
             string xff = "X-Forwarded-For";
@@ -240,7 +240,7 @@ namespace OpenSim.Server.Handlers.MapImage
 
             if (xffValue == null || (xffValue != null && xffValue == string.Empty))
             {
-                m_log.WarnFormat("[MAP IMAGE HANDLER]: No XFF header");
+//                m_log.WarnFormat("[MAP IMAGE HANDLER]: No XFF header");
                 return request.RemoteIPEndPoint.Address;
             }
 

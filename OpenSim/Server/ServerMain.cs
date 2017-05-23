@@ -81,6 +81,9 @@ namespace OpenSim.Server
             ServicePointManager.UseNagleAlgorithm = false;
             ServicePointManager.ServerCertificateValidationCallback = ValidateServerCertificate;
 
+            try {  ServicePointManager.DnsRefreshTimeout = 120000; } //  just is case some  mono decides to have it infinity
+            catch { }
+
             m_Server = new HttpServerBase("R.O.B.U.S.T.", args);
 
             string registryLocation;

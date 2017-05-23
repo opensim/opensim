@@ -82,6 +82,11 @@ namespace OpenSim.Framework.Monitoring
                 HandleControlCommand);
         }
 
+        public static void Stop()
+        {
+            JobEngine.Stop();
+        }
+
         /// <summary>
         /// Start a new long-lived thread.
         /// </summary>
@@ -130,7 +135,6 @@ namespace OpenSim.Framework.Monitoring
             Watchdog.AddThread(twi, name, log:log);
 
             thread.Start();
-
 
             return thread;
         }

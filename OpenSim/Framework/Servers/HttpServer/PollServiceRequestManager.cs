@@ -194,10 +194,12 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             m_running = false;
 
-            Thread.Sleep(1000); // let the world move
+            Thread.Sleep(100); // let the world move
 
             foreach (Thread t in m_workerThreads)
                 Watchdog.AbortThread(t.ManagedThreadId);
+
+            m_threadPool.Shutdown();
 
             // any entry in m_bycontext should have a active request on the other queues
             // so just delete contents to easy GC
@@ -205,6 +207,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 qu.Clear();
             m_bycontext.Clear();
 
+/*
             try
             {
                 foreach (PollServiceHttpRequest req in m_retryRequests)
@@ -217,8 +220,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
 
             PollServiceHttpRequest wreq;
+*/
             m_retryRequests.Clear();
-
+/*
             while (m_requests.Count() > 0)
             {
                 try
@@ -231,7 +235,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                 }
             }
-
+*/
             m_requests.Clear();
         }
 
@@ -242,7 +246,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             while (m_running)
             {
                 PollServiceHttpRequest req = m_requests.Dequeue(5000);
-
                 Watchdog.UpdateThread();
                 if(req == null)
                     continue;
@@ -277,15 +280,15 @@ namespace OpenSim.Framework.Servers.HttpServer
                             try
                             {
                                 req.DoHTTPGruntWork(m_server, responsedata);
+                            }
+                            catch (ObjectDisposedException) { }
+                            finally
+                            {
                                 if(req.HttpContext.CanSend() && req.PollServiceArgs.Type == PollServiceEventArgs.EventType.Poll
                                         && (Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
                                     ReQueueEvent(req);
                                 else
                                     byContextDequeue(req);
-                            }
-                            catch (ObjectDisposedException) // Browser aborted before we could read body, server closed the stream
-                            {
-                                // Ignore it, no need to reply
                             }
                             return null;
                         }, null);
@@ -300,11 +303,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                                 {
                                     req.DoHTTPGruntWork(m_server,
                                             req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
-                                    byContextDequeue(req);
                                 }
-                                catch (ObjectDisposedException)
+                                catch (ObjectDisposedException) {}
+                                finally
                                 {
-                                    // Ignore it, no need to reply
+                                    byContextDequeue(req);
                                 }
                                 return null;
                             }, null);

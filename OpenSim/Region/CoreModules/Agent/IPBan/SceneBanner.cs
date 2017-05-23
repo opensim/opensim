@@ -53,9 +53,9 @@ namespace OpenSim.Region.CoreModules.Agent.IPBan
             if (bans.Count > 0)
             {
                 IClientIPEndpoint ipEndpoint;
-                if (client.TryGet(out ipEndpoint))
+                if (client.TryGet(out ipEndpoint) && ipEndpoint.RemoteEndPoint != null)
                 {
-                    IPAddress end = ipEndpoint.EndPoint;
+                    IPAddress end = ipEndpoint.RemoteEndPoint.Address;
 
                     try
                     {

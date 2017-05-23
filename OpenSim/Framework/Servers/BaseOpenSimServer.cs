@@ -136,11 +136,18 @@ namespace OpenSim.Framework.Servers
 
         protected override void ShutdownSpecific()
         {
-            m_log.Info("[SHUTDOWN]: Shutdown processing on main thread complete.  Exiting...");
 
-            RemovePIDFile();
 
             base.ShutdownSpecific();
+
+            MainServer.Stop();
+
+            Thread.Sleep(5000);
+
+            WorkManager.Stop();
+
+            RemovePIDFile();
+            m_log.Info("[SHUTDOWN]: Shutdown processing on main thread complete.  Exiting...");
 
             if (!SuppressExit)
                 Environment.Exit(0);

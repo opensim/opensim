@@ -51,7 +51,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private static Thread cmdHandlerThread;
         private static int cmdHandlerThreadCycleSleepms;
-
+        private static int numInstances;
         /// <summary>
         /// Lock for reading/writing static components of AsyncCommandManager.
         /// </summary>
@@ -172,18 +172,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!m_XmlRequest.ContainsKey(m_ScriptEngine))
                     m_XmlRequest[m_ScriptEngine] = new XmlRequest(this);
 
-                StartThread();
-            }
-        }
-
-        private static void StartThread()
-        {
-            if (cmdHandlerThread == null)
-            {
-                // Start the thread that will be doing the work
-                cmdHandlerThread
-                    = WorkManager.StartThread(
+                numInstances++;
+                if (cmdHandlerThread == null)
+                {
+                    cmdHandlerThread = WorkManager.StartThread(
                         CmdHandlerThreadLoop, "AsyncLSLCmdHandlerThread", ThreadPriority.Normal, true, true);
+                }
             }
         }
 
@@ -197,20 +191,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         ~AsyncCommandManager()
         {
             // Shut down thread
-//            try
-//            {
-//                if (cmdHandlerThread != null)
-//                {
-//                    if (cmdHandlerThread.IsAlive == true)
-//                    {
-//                        cmdHandlerThread.Abort();
-//                        //cmdHandlerThread.Join();
-//                    }
-//                }
-//            }
-//            catch
-//            {
-//            }
+            try
+            {
+                lock (staticLock)
+                {
+                    numInstances--;
+                    if(numInstances > 0)
+                        return;
+                    if (cmdHandlerThread != null)
+                    {
+                        if (cmdHandlerThread.IsAlive == true)
+                        {
+                            cmdHandlerThread.Abort();
+                            //cmdHandlerThread.Join();
+                            cmdHandlerThread = null;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+            }
         }
 
         /// <summary>
@@ -240,24 +241,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             lock (staticLock)
             {
                 // Check HttpRequests
-                m_HttpRequest[m_ScriptEngines[0]].CheckHttpRequests();
+                try { m_HttpRequest[m_ScriptEngines[0]].CheckHttpRequests(); } catch {}
 
                 // Check XMLRPCRequests
-                m_XmlRequest[m_ScriptEngines[0]].CheckXMLRPCRequests();
+                try { m_XmlRequest[m_ScriptEngines[0]].CheckXMLRPCRequests(); } catch {}
 
                 foreach (IScriptEngine s in m_ScriptEngines)
                 {
                     // Check Listeners
-                    m_Listener[s].CheckListeners();
+                    try { m_Listener[s].CheckListeners(); } catch {}
+                    
 
                     // Check timers
-                    m_Timer[s].CheckTimerEvents();
+                    try { m_Timer[s].CheckTimerEvents(); } catch {}
 
                     // Check Sensors
-                    m_SensorRepeat[s].CheckSenseRepeaterEvents();
+                    try { m_SensorRepeat[s].CheckSenseRepeaterEvents(); } catch {}
 
                     // Check dataserver
-                    m_Dataserver[s].ExpireRequests();
+                    try { m_Dataserver[s].ExpireRequests(); } catch {}
                 }
             }
         }
@@ -386,8 +388,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return null;
             }
         }
-
-
 
         public static Object[] GetSerializationData(IScriptEngine engine, UUID itemID)
         {

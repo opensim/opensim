@@ -4687,7 +4687,10 @@ namespace OpenSim.Region.Framework.Scenes
                 cAgent.agentCOF = COF;
                 cAgent.ActiveGroupID = ControllingClient.ActiveGroupId;
                 cAgent.ActiveGroupName = ControllingClient.ActiveGroupName;
-                cAgent.ActiveGroupTitle = Grouptitle;
+                if(Grouptitle == null)
+                    cAgent.ActiveGroupTitle = String.Empty;
+                else
+                    cAgent.ActiveGroupTitle = Grouptitle;
             }
         }
 
