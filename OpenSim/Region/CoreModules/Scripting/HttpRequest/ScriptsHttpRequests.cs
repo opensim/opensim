@@ -415,6 +415,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
         public void Close()
         {
+            ThreadPool.Shutdown();
         }
 
         public string Name

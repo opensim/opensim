@@ -215,6 +215,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             m_scene.EventManager.OnNewClient -= OnNewClient;
             m_scene.EventManager.OnRegisterCaps -= OnRegisterCaps;
 
+            m_scene.UnregisterModuleInterface<IWorldMapModule>(this);
+
             string regionimage = "regionImage" + m_scene.RegionInfo.RegionID.ToString();
             regionimage = regionimage.Replace("-", "");
             MainServer.Instance.RemoveLLSDHandler("/MAP/MapItems/" + m_scene.RegionInfo.RegionHandle.ToString(),
@@ -1148,7 +1150,12 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             List<MapBlockRequestData> thisRunData = new List<MapBlockRequestData>();
             while (true)
             {
-                m_mapBlockRequestEvent.WaitOne();
+                while(!m_mapBlockRequestEvent.WaitOne(4900))
+                {
+                    if(m_scene == null)
+                        return;
+                }
+
                 lock (m_mapBlockRequestEvent)
                 {
                     int total = 0;

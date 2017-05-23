@@ -353,5 +353,17 @@ namespace OpenSim.Framework.Servers
                 return m_Servers[port];
             }
         }
+
+        public static void Stop()
+        {
+            lock (m_Servers)
+            {
+                foreach (BaseHttpServer httpServer in m_Servers.Values)
+                {
+                    httpServer.Stop();
+                }
+            }
+        }
+
     }
 }

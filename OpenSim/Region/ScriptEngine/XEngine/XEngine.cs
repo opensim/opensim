@@ -827,6 +827,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 if (m_ScriptEngines.Contains(this))
                     m_ScriptEngines.Remove(this);
             }
+
+            lock(m_Scripts)
+                m_ThreadPool.Shutdown();
         }
 
         public object DoBackup(object o)
