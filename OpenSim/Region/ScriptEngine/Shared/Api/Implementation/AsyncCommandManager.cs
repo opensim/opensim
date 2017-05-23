@@ -173,16 +173,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     m_XmlRequest[m_ScriptEngine] = new XmlRequest(this);
 
                 numInstances++;
-                StartThread();
-            }
-        }
-
-        private static void StartThread()
-        {
-            if (cmdHandlerThread == null)
-            {
-                // Start the thread that will be doing the work
-                lock (staticLock)
+                if (cmdHandlerThread == null)
                 {
                     cmdHandlerThread = WorkManager.StartThread(
                         CmdHandlerThreadLoop, "AsyncLSLCmdHandlerThread", ThreadPriority.Normal, true, true);
