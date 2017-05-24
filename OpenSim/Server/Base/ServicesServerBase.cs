@@ -249,6 +249,9 @@ namespace OpenSim.Server.Base
                 }
             }
 
+            MemoryWatchdog.Enabled = false;
+            Watchdog.Enabled = false;
+
             RemovePIDFile();
 
             return 0;

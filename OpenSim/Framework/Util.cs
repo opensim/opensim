@@ -2852,6 +2852,16 @@ namespace OpenSim.Framework
             return stpi;
         }
 
+        public static void StopThreadPool()
+        {
+            if (m_ThreadPool == null)
+                return;
+            SmartThreadPool pool = m_ThreadPool;
+            m_ThreadPool = null;
+
+            try { pool.Shutdown(); } catch {}          
+        }
+
         #endregion FireAndForget Threading Pattern
 
         /// <summary>
