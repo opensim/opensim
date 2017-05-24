@@ -188,9 +188,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             cmdHandlerThreadCycleSleepms = 100;
         }
 
+/*
         ~AsyncCommandManager()
         {
             // Shut down thread
+
             try
             {
                 lock (staticLock)
@@ -213,7 +215,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
             }
         }
-
+*/
         /// <summary>
         /// Main loop for the manager thread
         /// </summary>
