@@ -226,9 +226,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 try
                 {
                     Thread.Sleep(cmdHandlerThreadCycleSleepms);
-
+                    Watchdog.UpdateThread();
                     DoOneCmdHandlerPass();
-
                     Watchdog.UpdateThread();
                 }
                 catch ( System.Threading.ThreadAbortException) { }
