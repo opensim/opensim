@@ -91,7 +91,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         PoolWorkerJob,
                         string.Format("PollServiceWorkerThread {0}:{1}", i, m_server.Port),
                         ThreadPriority.Normal,
-                        false,
+                        true,
                         false,
                         null,
                         int.MaxValue);
@@ -101,7 +101,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 this.CheckRetries,
                 string.Format("PollServiceWatcherThread:{0}", m_server.Port),
                 ThreadPriority.Normal,
-                false,
+                true,
                 true,
                 null,
                 1000 * 60 * 10);

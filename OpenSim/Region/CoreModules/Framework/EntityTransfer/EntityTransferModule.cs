@@ -527,15 +527,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 string homeURI = Scene.GetAgentHomeURI(sp.ControllingClient.AgentId);
 
-                string message;
-                finalDestination = GetFinalDestination(reg, sp.ControllingClient.AgentId, homeURI, out message);
+                string reason = String.Empty;
+                finalDestination = GetFinalDestination(reg, sp.ControllingClient.AgentId, homeURI, out reason);
 
                 if (finalDestination == null)
                 {
                     m_log.WarnFormat( "{0} Final destination is having problems. Unable to teleport {1} {2}: {3}",
-                                            LogHeader, sp.Name, sp.UUID, message);
+                                            LogHeader, sp.Name, sp.UUID, reason);
 
-                    sp.ControllingClient.SendTeleportFailed(message);
+                    sp.ControllingClient.SendTeleportFailed(reason);
                     return;
                 }
 
@@ -548,16 +548,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     return;
                 }
 
-                // Validate assorted conditions
-                string reason = string.Empty;
                 if (!ValidateGenericConditions(sp, reg, finalDestination, teleportFlags, out reason))
                 {
                     sp.ControllingClient.SendTeleportFailed(reason);
                     return;
                 }
-
-                if (message != null)
-                    sp.ControllingClient.SendAgentAlertMessage(message, true);
 
                 //
                 // This is it
@@ -735,8 +730,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             IPEndPoint endPoint = finalDestination.ExternalEndPoint;
             if (endPoint == null || endPoint.Address == null)
             {
-                sp.ControllingClient.SendTeleportFailed("Remote Region appears to be down");
-
+                sp.ControllingClient.SendTeleportFailed("Could not resolve destination Address");
                 return;
             }
 
@@ -784,22 +778,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // At least on LL 3.3.4, this is not strictly necessary - a teleport will succeed without sending this to
             // the viewer.  However, it might mean that the viewer does not see the black teleport screen (untested).
             sp.ControllingClient.SendTeleportStart(teleportFlags);
-
-            // the avatar.Close below will clear the child region list. We need this below for (possibly)
-            // closing the child agents, so save it here (we need a copy as it is Clear()-ed).
-            //List<ulong> childRegions = avatar.KnownRegionHandles;
-            // Compared to ScenePresence.CrossToNewRegion(), there's no obvious code to handle a teleport
-            // failure at this point (unlike a border crossing failure).  So perhaps this can never fail
-            // once we reach here...
-            //avatar.Scene.RemoveCapsHandler(avatar.UUID);
-
+  
             AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
             AgentCircuitData agentCircuit = sp.ControllingClient.RequestClientInfo();
             agentCircuit.startpos = position;
             agentCircuit.child = true;
 
-//            agentCircuit.Appearance = sp.Appearance;
-//            agentCircuit.Appearance = new AvatarAppearance(sp.Appearance, true, false);
             agentCircuit.Appearance = new AvatarAppearance();
             agentCircuit.Appearance.AvatarHeight = sp.Appearance.AvatarHeight;
 
@@ -1673,6 +1657,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     return agent;
                 }
 
+                IPEndPoint endpoint = neighbourRegion.ExternalEndPoint;
+                if(endpoint == null)
+                {
+                    m_log.DebugFormat("{0}: CrossAgentToNewRegionAsync: failed to resolve neighbour address {0} ",neighbourRegion.ExternalHostName);
+                    return agent;
+                }
+
                 m_entityTransferStateMachine.SetInTransit(agent.UUID);
                 agent.RemoveFromPhysicalScene();
 
@@ -1683,7 +1674,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     return agent;
                 }
 
-                CrossAgentToNewRegionPost(agent, pos, neighbourRegion, isFlying, ctx);
+                CrossAgentToNewRegionPost(agent, pos, neighbourRegion, endpoint, isFlying, ctx);
             }
             catch (Exception e)
             {
@@ -1727,6 +1718,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             agent.AddNeighbourRegion(neighbourRegion, agentCircuit.CapsPath);
 
             IPEndPoint endPoint = neighbourRegion.ExternalEndPoint;
+            if(endPoint == null)
+            {
+                m_log.DebugFormat("CrossAgentCreateFarChild failed to resolve neighbour address {0}", neighbourRegion.ExternalHostName);
+                return false;
+            }
             if (Scene.SimulationService.CreateAgent(source, neighbourRegion, agentCircuit, (int)TeleportFlags.Default, ctx, out reason))
             {
                 string capsPath = neighbourRegion.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
@@ -1821,7 +1817,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         }
 
         public void CrossAgentToNewRegionPost(ScenePresence agent, Vector3 pos, GridRegion neighbourRegion,
-            bool isFlying, EntityTransferContext ctx)
+            IPEndPoint endpoint, bool isFlying, EntityTransferContext ctx)
         {
 
             string agentcaps;
@@ -1848,15 +1844,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 m_eqModule.CrossRegion(
                     neighbourRegion.RegionHandle, pos, vel2 /* agent.Velocity */,
-                    neighbourRegion.ExternalEndPoint,
-                    capsPath, agent.UUID, agent.ControllingClient.SessionId,
+                    endpoint, capsPath, agent.UUID, agent.ControllingClient.SessionId,
                     neighbourRegion.RegionSizeX, neighbourRegion.RegionSizeY);
             }
             else
             {
                 m_log.ErrorFormat("{0} Using old CrossRegion packet. Varregion will not work!!", LogHeader);
-                agent.ControllingClient.CrossRegion(neighbourRegion.RegionHandle, pos, agent.Velocity, neighbourRegion.ExternalEndPoint,
-                                            capsPath);
+                agent.ControllingClient.CrossRegion(neighbourRegion.RegionHandle, pos, agent.Velocity,
+                        endpoint,capsPath);
             }
 
             // SUCCESS!
@@ -1952,7 +1947,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             agent.CapsPath = CapsUtil.GetRandomCapsObjectPath();
 
             seeds.Add(regionhandler, agent.CapsPath);
-
 
 //            agent.ChildrenCapSeeds = new Dictionary<ulong, string>(seeds);
             agent.ChildrenCapSeeds = null;

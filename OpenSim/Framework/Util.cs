@@ -2579,7 +2579,6 @@ namespace OpenSim.Framework
                     }
                     catch (ThreadAbortException e)
                     {
-                        m_log.Error(string.Format("Aborted threadfunc {0} ", threadFuncNum), e);
                     }
                     catch (Exception e)
                     {
@@ -2850,6 +2849,16 @@ namespace OpenSim.Framework
             stpi.MaxConcurrentWorkItems = m_ThreadPool.Concurrency;
 
             return stpi;
+        }
+
+        public static void StopThreadPool()
+        {
+            if (m_ThreadPool == null)
+                return;
+            SmartThreadPool pool = m_ThreadPool;
+            m_ThreadPool = null;
+
+            try { pool.Shutdown(); } catch {}          
         }
 
         #endregion FireAndForget Threading Pattern

@@ -33,6 +33,7 @@ using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Collections.Generic;
+using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Base;
@@ -187,6 +188,11 @@ namespace OpenSim.Server
             loader = new PluginLoader(m_Server.Config, registryLocation);
 
             int res = m_Server.Run();
+
+            if(m_Server != null)
+                m_Server.Shutdown();
+
+            Util.StopThreadPool();
 
             Environment.Exit(res);
 

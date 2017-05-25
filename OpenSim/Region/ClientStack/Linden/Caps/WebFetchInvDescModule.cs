@@ -206,7 +206,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     m_workerThreads[i] = WorkManager.StartThread(DoInventoryRequests,
                             String.Format("InventoryWorkerThread{0}", i),
                             ThreadPriority.Normal,
-                            false,
+                            true,
                             true,
                             null,
                             int.MaxValue);

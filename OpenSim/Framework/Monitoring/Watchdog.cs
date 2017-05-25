@@ -180,6 +180,30 @@ namespace OpenSim.Framework.Monitoring
             m_watchdogTimer.Elapsed += WatchdogTimerElapsed;
         }
 
+        public static void Stop()
+        {
+            if(m_threads == null)
+                return;
+
+            lock(m_threads)
+            {
+                m_enabled = false;            
+                if(m_watchdogTimer != null)
+                {
+                    m_watchdogTimer.Dispose();
+                    m_watchdogTimer = null;
+                }
+            
+                foreach(ThreadWatchdogInfo twi in m_threads.Values)
+                {
+                    Thread t = twi.Thread;
+                    if(t.IsAlive)
+                        t.Abort();
+                }
+                m_threads.Clear();
+            }
+        }
+
         /// <summary>
         /// Add a thread to the watchdog tracker.
         /// </summary>

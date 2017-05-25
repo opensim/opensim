@@ -271,31 +271,6 @@ namespace OpenSim.Services.Interfaces
             m_serverURI = string.Empty;
         }
 
-        /*
-        public GridRegion(int regionLocX, int regionLocY, IPEndPoint internalEndPoint, string externalUri)
-        {
-            m_regionLocX = regionLocX;
-            m_regionLocY = regionLocY;
-            RegionSizeX = (int)Constants.RegionSize;
-            RegionSizeY = (int)Constants.RegionSize;
-
-            m_internalEndPoint = internalEndPoint;
-            m_externalHostName = externalUri;
-        }
-
-        public GridRegion(int regionLocX, int regionLocY, string externalUri, uint port)
-        {
-            m_regionLocX = regionLocX;
-            m_regionLocY = regionLocY;
-            RegionSizeX = (int)Constants.RegionSize;
-            RegionSizeY = (int)Constants.RegionSize;
-
-            m_externalHostName = externalUri;
-
-            m_internalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), (int)port);
-        }
-         */
-
         public GridRegion(uint xcell, uint ycell)
         {
             m_regionLocX = (int)Util.RegionToWorldLoc(xcell);
@@ -489,14 +464,16 @@ namespace OpenSim.Services.Interfaces
         {
             get
             {
-                // Old one defaults to IPv6
-                //return new IPEndPoint(Dns.GetHostAddresses(m_externalHostName)[0], m_internalEndPoint.Port);
-
                 IPAddress ia = null;
                 // If it is already an IP, don't resolve it - just return directly
+                // we should not need this
                 if (IPAddress.TryParse(m_externalHostName, out ia))
+                {
+                    if (ia.Equals(IPAddress.Any) || ia.Equals(IPAddress.IPv6Any))
+                        return null;
                     return new IPEndPoint(ia, m_internalEndPoint.Port);
-
+                }
+                    
                 // Reset for next check
                 ia = null;
                 try
@@ -513,7 +490,7 @@ namespace OpenSim.Services.Interfaces
                         }
                     }
                 }
-                catch (SocketException e)
+                catch // (SocketException e)
                 {
                     /*throw new Exception(
                         "Unable to resolve local hostname " + m_externalHostName + " innerException of type '" +
@@ -523,6 +500,9 @@ namespace OpenSim.Services.Interfaces
                     // resolving and thus make surrounding regions crash out with this exception.
                     return null;
                 }
+
+                if(ia == null)
+                    return null;
 
                 return new IPEndPoint(ia, m_internalEndPoint.Port);
             }

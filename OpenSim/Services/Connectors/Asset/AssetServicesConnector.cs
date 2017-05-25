@@ -135,8 +135,7 @@ namespace OpenSim.Services.Connectors
 
             for (int i = 0 ; i < 2 ; i++)
             {
-                m_fetchThreads[i] = new Thread(AssetRequestProcessor);
-                m_fetchThreads[i].Start();
+                Util.FireAndForget(delegate { AssetRequestProcessor();});
             }
         }
 
@@ -349,8 +348,8 @@ namespace OpenSim.Services.Connectors
             public string id;
         }
 
-        private OpenMetaverse.BlockingQueue<QueuedAssetRequest> m_requestQueue =
-                new OpenMetaverse.BlockingQueue<QueuedAssetRequest>();
+        private OpenSim.Framework.BlockingQueue<QueuedAssetRequest> m_requestQueue =
+                new OpenSim.Framework.BlockingQueue<QueuedAssetRequest>();
 
         private void AssetRequestProcessor()
         {
@@ -358,8 +357,9 @@ namespace OpenSim.Services.Connectors
 
             while (true)
             {
-                r = m_requestQueue.Dequeue();
-
+                r = m_requestQueue.Dequeue(2000);
+                if(r== null)
+                    continue;
                 string uri = r.uri;
                 string id = r.id;
 
