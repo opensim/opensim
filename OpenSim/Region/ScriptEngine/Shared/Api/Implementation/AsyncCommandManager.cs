@@ -231,6 +231,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     Watchdog.UpdateThread();
                 }
+                catch ( System.Threading.ThreadAbortException) { }
                 catch (Exception e)
                 {
                     m_log.Error("[ASYNC COMMAND MANAGER]: Exception in command handler pass: ", e);

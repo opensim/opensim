@@ -85,6 +85,7 @@ namespace OpenSim.Framework.Monitoring
         public static void Stop()
         {
             JobEngine.Stop();
+            Watchdog.Stop();
         }
 
         /// <summary>

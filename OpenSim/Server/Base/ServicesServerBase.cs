@@ -252,7 +252,7 @@ namespace OpenSim.Server.Base
 
             MemoryWatchdog.Enabled = false;
             Watchdog.Enabled = false;
-
+            WorkManager.Stop();
             RemovePIDFile();
 
             return 0;
