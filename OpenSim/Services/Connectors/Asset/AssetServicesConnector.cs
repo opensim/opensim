@@ -359,8 +359,9 @@ namespace OpenSim.Services.Connectors
 
             while (true)
             {
-                r = m_requestQueue.Dequeue();
-
+                r = m_requestQueue.Dequeue(2000);
+                if(r== null)
+                    continue;
                 string uri = r.uri;
                 string id = r.id;
 

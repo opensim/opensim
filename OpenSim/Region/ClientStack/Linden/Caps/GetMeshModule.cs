@@ -204,9 +204,12 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             while(true)
             {
-                aPollRequest poolreq = m_queue.Dequeue();
+                aPollRequest poolreq = m_queue.Dequeue(1000);
+                if(m_NumberScenes <= 0)
+                    return;
                 Watchdog.UpdateThread();
-                poolreq.thepoll.Process(poolreq);
+                if(poolreq.reqID != UUID.Zero)
+                    poolreq.thepoll.Process(poolreq);
             }
         }
 
