@@ -349,8 +349,8 @@ namespace OpenSim.Services.Connectors
             public string id;
         }
 
-        private OpenMetaverse.BlockingQueue<QueuedAssetRequest> m_requestQueue =
-                new OpenMetaverse.BlockingQueue<QueuedAssetRequest>();
+        private OpenSim.Framework.BlockingQueue<QueuedAssetRequest> m_requestQueue =
+                new OpenSim.Framework.BlockingQueue<QueuedAssetRequest>();
 
         private void AssetRequestProcessor()
         {

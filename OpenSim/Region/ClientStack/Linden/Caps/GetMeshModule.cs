@@ -89,8 +89,8 @@ namespace OpenSim.Region.ClientStack.Linden
         private Dictionary<UUID, string> m_capsDict = new Dictionary<UUID, string>();
         private static Thread[] m_workerThreads = null;
         private static int m_NumberScenes = 0;
-        private static OpenMetaverse.BlockingQueue<aPollRequest> m_queue =
-                new OpenMetaverse.BlockingQueue<aPollRequest>();
+        private static OpenSim.Framework.BlockingQueue<aPollRequest> m_queue =
+                new OpenSim.Framework.BlockingQueue<aPollRequest>();
 
         private Dictionary<UUID, PollServiceMeshEventArgs> m_pollservices = new Dictionary<UUID, PollServiceMeshEventArgs>();
 
