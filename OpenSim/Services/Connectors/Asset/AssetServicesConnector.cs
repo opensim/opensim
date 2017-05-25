@@ -136,6 +136,7 @@ namespace OpenSim.Services.Connectors
             for (int i = 0 ; i < 2 ; i++)
             {
                 m_fetchThreads[i] = new Thread(AssetRequestProcessor);
+                m_fetchThreads[i].IsBackground = true;
                 m_fetchThreads[i].Start();
             }
         }

@@ -171,7 +171,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     m_workerThreads[i] = WorkManager.StartThread(DoMeshRequests,
                             String.Format("GetMeshWorker{0}", i),
                             ThreadPriority.Normal,
-                            false,
+                            true,
                             false,
                             null,
                             int.MaxValue);

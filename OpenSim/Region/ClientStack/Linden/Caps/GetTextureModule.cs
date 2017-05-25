@@ -139,7 +139,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     m_workerThreads[i] = WorkManager.StartThread(DoTextureRequests,
                             String.Format("GetTextureWorker{0}", i),
                             ThreadPriority.Normal,
-                            false,
+                            true,
                             false,
                             null,
                             int.MaxValue);
