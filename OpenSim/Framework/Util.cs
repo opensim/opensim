@@ -2579,7 +2579,6 @@ namespace OpenSim.Framework
                     }
                     catch (ThreadAbortException e)
                     {
-                        m_log.Error(string.Format("Aborted threadfunc {0} ", threadFuncNum), e);
                     }
                     catch (Exception e)
                     {
