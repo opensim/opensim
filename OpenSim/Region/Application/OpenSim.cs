@@ -143,7 +143,7 @@ namespace OpenSim
                 //Mono.Unix.Native.Signum signal = signals [index].Signum;
                 MainConsole.Instance.RunCommand("shutdown");
             }
-        });
+        });       
 #endif
 
         /// <summary>
@@ -165,6 +165,7 @@ namespace OpenSim
                     {
                         new Mono.Unix.UnixSignal(Mono.Unix.Native.Signum.SIGTERM)
                     };
+                    signal_thread.IsBackground = true;
                     signal_thread.Start();
                 }
                 catch (Exception e)
@@ -483,6 +484,12 @@ namespace OpenSim
             if (m_shutdownCommandsFile != String.Empty)
             {
                 RunCommandScript(m_shutdownCommandsFile);
+            }
+
+            if (m_timedScript != "disabled")
+            {
+                m_scriptTimer.Dispose();
+                m_timedScript = "disabled";
             }
 
             base.ShutdownSpecific();

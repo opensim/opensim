@@ -211,6 +211,7 @@ namespace OpenSim.Server.Base
                     {
                         new Mono.Unix.UnixSignal(Mono.Unix.Native.Signum.SIGTERM)
                     };
+                    ignal_thread.IsBackground = true;
                     signal_thread.Start();
                 }
                 catch (Exception e)
