@@ -478,17 +478,22 @@ namespace OpenSim.Server.Base
 
             XmlDocument doc = new XmlDocument();
 
-            doc.LoadXml(data);
+            try
+            {
+                doc.LoadXml(data);
+                XmlNodeList rootL = doc.GetElementsByTagName("ServerResponse");
 
-            XmlNodeList rootL = doc.GetElementsByTagName("ServerResponse");
+                if (rootL.Count != 1)
+                    return ret;
 
-            if (rootL.Count != 1)
-                return ret;
+                XmlNode rootNode = rootL[0];
 
-            XmlNode rootNode = rootL[0];
-
-            ret = ParseElement(rootNode);
-
+                ret = ParseElement(rootNode);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[serverUtils.ParseXmlResponse]: failed error: {0} \n --- string: {1} - ",e.Message, data);
+            }
             return ret;
         }
 

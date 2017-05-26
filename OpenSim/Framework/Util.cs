@@ -429,6 +429,65 @@ namespace OpenSim.Framework
             return regionCoord << 8;
         }
 
+        public static IPEndPoint getEndPoint(IPAddress ia, int port)
+        {
+            if(ia == null)
+                return null;
+
+            IPEndPoint newEP = null;
+            try
+            {
+                newEP = new IPEndPoint(ia, port);
+            }
+            catch
+            {
+                newEP = null;
+            }
+            return newEP;
+        }
+
+        public static IPEndPoint getEndPoint(string hostname, int port)
+        {
+            IPAddress ia = null;
+            // If it is already an IP, don't resolve it - just return directly
+            // we should not need this
+            if (IPAddress.TryParse(hostname, out ia))
+            {
+                if (ia.Equals(IPAddress.Any) || ia.Equals(IPAddress.IPv6Any))
+                    return null;
+                return getEndPoint(ia, port);
+            }
+                    
+            // Reset for next check
+            ia = null;
+            try
+            {
+                foreach (IPAddress Adr in Dns.GetHostAddresses(hostname))
+                {
+                    if (ia == null)
+                        ia = Adr;
+
+                    if (Adr.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        ia = Adr;
+                        break;
+                    }
+                }
+            }
+            catch // (SocketException e)
+            {
+                /*throw new Exception(
+                    "Unable to resolve local hostname " + m_externalHostName + " innerException of type '" +
+                    e + "' attached to this exception", e);*/
+                // Don't throw a fatal exception here, instead, return Null and handle it in the caller.
+                // Reason is, on systems such as OSgrid it has occured that known hostnames stop
+                // resolving and thus make surrounding regions crash out with this exception.
+                return null;
+            }
+
+            return getEndPoint(ia,port);
+        }
+
         public static bool checkServiceURI(string uristr, out string serviceURI)
         {
             serviceURI = string.Empty;
