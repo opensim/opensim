@@ -259,6 +259,10 @@
 	;; alternative OpenDynamicsEngine engine. ubODEMeshmerizer meshing above MUST be selected also
 	; physics = ubODE
 
+    ; ubODE and  OpenDynamicsEngine does allocate a lot of memory on stack. On linux you may need to increase its limit
+    ; script opensim-ode-sh starts opensim setting that limit. You may need to increase it even more on large regions
+    ; edit the line ulimit -s 262144, and change this last value
+    
     ;# {DefaultScriptEngine} {} {Default script engine} {XEngine} XEngine
     ;; Default script engine to use. Currently, we only have XEngine
     ; DefaultScriptEngine = "XEngine"
