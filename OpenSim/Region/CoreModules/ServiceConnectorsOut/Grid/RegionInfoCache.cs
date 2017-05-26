@@ -385,7 +385,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             storage[handle] = region;
             byname[region.RegionName] = handle;
             byuuid[region.RegionID] = handle;
-
         }
 
         public void Remove(GridRegion region)
@@ -400,7 +399,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             ulong handle = region.RegionHandle & HANDLEMASK;
             if(storage != null)
-               storage.Remove(handle);
+            {
+                if(storage.ContainsKey(handle))
+                {
+                    storage[handle] = null;
+                    storage.Remove(handle);
+                }
+            }
             removeFromInner(region);
             if(expires != null)
             {
@@ -610,8 +615,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                         if(byuuid != null)
                             byuuid.Remove(r.RegionID);
                         removeFromInner(r);
+
+                        storage[h] = null;
+                        storage.Remove(h);
                     }
-                   storage.Remove(h);
                 }
                 if(expires != null)
                    expires.Remove(h);
@@ -693,7 +700,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
     public class RegionsExpiringCache
     {
-        const double CACHE_PURGE_HZ = 60; // seconds
+        const double CACHE_PURGE_TIME = 60000; // milliseconds
         const int MAX_LOCK_WAIT = 10000; // milliseconds
 
         /// <summary>For thread safety</summary>
@@ -702,7 +709,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         object isPurging = new object();
 
         Dictionary<UUID, RegionInfoForScope> InfobyScope = new Dictionary<UUID, RegionInfoForScope>();
-        private System.Timers.Timer timer = new System.Timers.Timer(TimeSpan.FromSeconds(CACHE_PURGE_HZ).TotalMilliseconds);
+        private System.Timers.Timer timer = new System.Timers.Timer(CACHE_PURGE_TIME);
 
         public RegionsExpiringCache()
         {
