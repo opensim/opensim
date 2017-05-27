@@ -295,7 +295,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 foreach(string ip in m_certIPs)
                 {
-                    if (String.Compare(hostname, ip, true, CultureInfo.InvariantCulture) != 0)
+                    if (String.Compare(hostname, ip, true, CultureInfo.InvariantCulture) == 0)
                         return true;
                 }               
             }
