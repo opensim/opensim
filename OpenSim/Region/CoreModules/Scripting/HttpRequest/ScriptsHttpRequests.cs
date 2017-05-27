@@ -110,7 +110,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
         public HttpRequestModule()
         {
-            ServicePointManager.ServerCertificateValidationCallback +=ValidateServerCertificate;
+//            ServicePointManager.ServerCertificateValidationCallback +=ValidateServerCertificate;
         }
 
         public static bool ValidateServerCertificate(
