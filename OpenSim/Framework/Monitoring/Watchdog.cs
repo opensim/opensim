@@ -193,7 +193,7 @@ namespace OpenSim.Framework.Monitoring
                     m_watchdogTimer.Dispose();
                     m_watchdogTimer = null;
                 }
-            
+                
                 foreach(ThreadWatchdogInfo twi in m_threads.Values)
                 {
                     Thread t = twi.Thread;
@@ -341,6 +341,8 @@ namespace OpenSim.Framework.Monitoring
         /// <param name="e"></param>
         private static void WatchdogTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
+            if(!m_enabled)
+                return;
             int now = Environment.TickCount & Int32.MaxValue;
             int msElapsed = now - LastWatchdogThreadTick;
 
@@ -358,21 +360,26 @@ namespace OpenSim.Framework.Monitoring
                 List<ThreadWatchdogInfo> callbackInfos = null;
                 List<ThreadWatchdogInfo> threadsToRemove = null;
 
+                const ThreadState thgone = ThreadState.Stopped | ThreadState.Aborted | ThreadState.AbortRequested;
+
                 lock (m_threads)
                 {
                     foreach(ThreadWatchdogInfo threadInfo in m_threads.Values)
                     {
-                        if(threadInfo.Thread.ThreadState == ThreadState.Stopped)
+                        if(!m_enabled)
+                            return;
+                        if(!threadInfo.Thread.IsAlive || (threadInfo.Thread.ThreadState & thgone) != 0)
                         {
                             if(threadsToRemove == null)
                                 threadsToRemove = new List<ThreadWatchdogInfo>();
 
                             threadsToRemove.Add(threadInfo);
-
+/*
                             if(callbackInfos == null)
                                 callbackInfos = new List<ThreadWatchdogInfo>();
 
                             callbackInfos.Add(threadInfo);
+*/
                         }
                         else if(!threadInfo.IsTimedOut && now - threadInfo.LastTick >= threadInfo.Timeout)
                         {

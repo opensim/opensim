@@ -2149,10 +2149,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             string fn = Path.GetFileName(assemName);
 
             string assem = String.Empty;
+            string assemNameText = assemName + ".text";
 
-            if (File.Exists(assemName + ".text"))
+            if (File.Exists(assemNameText))
             {
-                FileInfo tfi = new FileInfo(assemName + ".text");
+                FileInfo tfi = new FileInfo(assemNameText);
 
                 if (tfi != null)
                 {
@@ -2160,7 +2161,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                     try
                     {
-                        using (FileStream tfs = File.Open(assemName + ".text",
+                        using (FileStream tfs = File.Open(assemNameText,
                                 FileMode.Open, FileAccess.Read))
                         {
                             tfs.Read(tdata, 0, tdata.Length);

@@ -462,50 +462,7 @@ namespace OpenSim.Services.Interfaces
         /// </value>
         public IPEndPoint ExternalEndPoint
         {
-            get
-            {
-                IPAddress ia = null;
-                // If it is already an IP, don't resolve it - just return directly
-                // we should not need this
-                if (IPAddress.TryParse(m_externalHostName, out ia))
-                {
-                    if (ia.Equals(IPAddress.Any) || ia.Equals(IPAddress.IPv6Any))
-                        return null;
-                    return new IPEndPoint(ia, m_internalEndPoint.Port);
-                }
-                    
-                // Reset for next check
-                ia = null;
-                try
-                {
-                    foreach (IPAddress Adr in Dns.GetHostAddresses(m_externalHostName))
-                    {
-                        if (ia == null)
-                            ia = Adr;
-
-                        if (Adr.AddressFamily == AddressFamily.InterNetwork)
-                        {
-                            ia = Adr;
-                            break;
-                        }
-                    }
-                }
-                catch // (SocketException e)
-                {
-                    /*throw new Exception(
-                        "Unable to resolve local hostname " + m_externalHostName + " innerException of type '" +
-                        e + "' attached to this exception", e);*/
-                    // Don't throw a fatal exception here, instead, return Null and handle it in the caller.
-                    // Reason is, on systems such as OSgrid it has occured that known hostnames stop
-                    // resolving and thus make surrounding regions crash out with this exception.
-                    return null;
-                }
-
-                if(ia == null)
-                    return null;
-
-                return new IPEndPoint(ia, m_internalEndPoint.Port);
-            }
+            get { return Util.getEndPoint(m_externalHostName, m_internalEndPoint.Port); }
         }
 
         public string ExternalHostName
