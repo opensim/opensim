@@ -98,7 +98,7 @@ namespace OpenSim
                 server.Start(false, false);
 
             MainServer.AddHttpServer(server);
-            MainServer.ÚnSecureInstance = server;
+            MainServer.UnSecureInstance = server;
 
             MainServer.Instance = m_httpServer;
 

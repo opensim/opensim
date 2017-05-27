@@ -95,7 +95,7 @@ namespace OpenSim.Framework.Servers
         }
 
         
-        public static BaseHttpServer ÚnSecureInstance
+        public static BaseHttpServer UnSecureInstance
         {
             get { return unsecureinstance; }
 
