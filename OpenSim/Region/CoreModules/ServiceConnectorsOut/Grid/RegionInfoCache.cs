@@ -635,6 +635,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 return 0;
             }
 
+            expiresCount = expires.Count;
             if(expiresCount == 0)
             {
                 byname = null;
