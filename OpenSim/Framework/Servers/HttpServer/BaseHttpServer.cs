@@ -180,6 +180,21 @@ namespace OpenSim.Framework.Servers.HttpServer
                             m_certNames.Add(parts[1]);
                         else if(entryName == "IPAddress")
                             m_certIPs.Add(parts[1]);
+                        else if(entryName == "Unknown(135)") // stupid mono
+                        {
+                            try
+                            {
+                                if(parts[1].Length == 8)
+                                {
+                                    long tmp = long.Parse(parts[1], NumberStyles.AllowHexSpecifier);
+                                    tmp = IPAddress.HostToNetworkOrder(tmp);
+                                    tmp = (long)((ulong) tmp >> 32);
+                                    IPAddress ia = new IPAddress(tmp);     
+                                    m_certIPs.Add(ia.ToString());
+                                }
+                            }
+                            catch {}
+                        }
                     }
                 }
                 m_certCN = m_cert.GetNameInfo(X509NameType.SimpleName, false);
@@ -2160,7 +2175,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             try
             {
-                PollServiceRequestManager.Stop();
+                if(PollServiceRequestManager != null)
+                    PollServiceRequestManager.Stop();
 
                 m_httpListener2.ExceptionThrown -= httpServerException;
                 //m_httpListener2.DisconnectHandler = null;
