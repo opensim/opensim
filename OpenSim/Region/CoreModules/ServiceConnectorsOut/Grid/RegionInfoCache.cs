@@ -429,6 +429,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     if(byuuid != null)
                         byuuid.Remove(r.RegionID);
                     removeFromInner(r);
+                    storage[handle] = null;
                 }
                 storage.Remove(handle);
             }
@@ -586,27 +587,32 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         {
             if(expires == null || expires.Count == 0)
                 return 0;
-
+            
+            int expiresCount = expires.Count;
             List<ulong> toexpire = new List<ulong>();
+
             foreach(KeyValuePair<ulong, DateTime> kvp in expires)
             {
                 if(kvp.Value < now)
                     toexpire.Add(kvp.Key);
             }
 
-            if(toexpire.Count == 0)
-                return expires.Count;
+            int toexpireCount = toexpire.Count;
+            if(toexpireCount == 0)
+                return expiresCount;
 
-            if(toexpire.Count == expires.Count)
+            if(toexpireCount == expiresCount)
             {
                 Clear();
                 return 0;
             }
 
-            foreach(ulong h in toexpire)
+            if(storage != null)
             {
-                if(storage != null)
+                ulong h;
+                for(int i = 0; i < toexpireCount; i++)
                 {
+                    h = toexpire[i];
                     if(storage.ContainsKey(h))
                     {
                         GridRegion r = storage[h];
@@ -619,12 +625,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                         storage[h] = null;
                         storage.Remove(h);
                     }
+                    if(expires != null)
+                       expires.Remove(h);
                 }
-                if(expires != null)
-                   expires.Remove(h);
+            }
+            else
+            {
+                Clear();
+                return 0;
             }
 
-            if(expires.Count == 0)
+            if(expiresCount == 0)
             {
                 byname = null;
                 byuuid = null;
@@ -633,7 +644,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 return 0;
             }
 
-            return expires.Count;
+            return expiresCount;
         }
 
         public int Count()
@@ -972,7 +983,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     if (expiredscopes.Count > 0)
                     {
                         foreach (UUID sid in expiredscopes)
+                        {
+                            InfobyScope[sid] = null;
                             InfobyScope.Remove(sid);
+                        }
                     }
                 }
                 finally { Monitor.Exit(syncRoot); }
