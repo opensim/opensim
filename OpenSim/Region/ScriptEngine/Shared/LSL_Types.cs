@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
 using OpenSim.Framework;
 
@@ -1152,34 +1153,35 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public string ToCSV()
             {
-                string ret = "";
-                foreach (object o in this.Data)
+                if(m_data == null || m_data.Length == 0)
+                    return String.Empty;
+
+                Object o = m_data[0];
+                int len = m_data.Length;
+                if(len == 1)
+                    return o.ToString();
+
+                StringBuilder sb = new StringBuilder(1024);
+                sb.Append(o.ToString());
+                for(int i = 1 ; i < len; i++)
                 {
-                    if (ret == "")
-                    {
-                        ret = o.ToString();
-                    }
-                    else
-                    {
-                        ret = ret + ", " + o.ToString();
-                    }
+                    sb.Append(",");
+                    sb.Append(o.ToString());
                 }
-                return ret;
+                return sb.ToString();
             }
 
             private string ToSoup()
             {
-                string output;
-                output = String.Empty;
-                if (Data.Length == 0)
-                {
+                if(m_data == null || m_data.Length == 0)
                     return String.Empty;
-                }
-                foreach (object o in Data)
+
+                StringBuilder sb = new StringBuilder(1024);
+                foreach (object o in m_data)
                 {
-                    output = output + o.ToString();
+                    sb.Append(o.ToString());
                 }
-                return output;
+                return sb.ToString();
             }
 
             public static explicit operator String(list l)
@@ -1369,26 +1371,33 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public string ToPrettyString()
             {
-                string output;
-                if (Data.Length == 0)
-                {
+                if(m_data == null || m_data.Length == 0)
                     return "[]";
-                }
-                output = "[";
-                foreach (object o in Data)
+
+                StringBuilder sb = new StringBuilder(1024);
+                int len = m_data.Length;
+                int last = len - 1;
+                object o;
+
+                sb.Append("[");
+                for(int i = 0; i < len; i++ )
                 {
+                    o = m_data[i];
                     if (o is String)
                     {
-                        output = output + "\"" + o + "\", ";
+                        sb.Append("\"");
+                        sb.Append((String)o);
+                        sb.Append("\"");
                     }
                     else
                     {
-                        output = output + o.ToString() + ", ";
+                        sb.Append(o.ToString());
                     }
+                    if(i < last)
+                        sb.Append(",");
                 }
-                output = output.Substring(0, output.Length - 2);
-                output = output + "]";
-                return output;
+                sb.Append("]");
+                return sb.ToString();
             }
 
             public class AlphaCompare : IComparer
