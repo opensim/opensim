@@ -525,7 +525,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
         }
 
         [Serializable]
-        public struct list
+        public class list
         {
             private object[] m_data;
 
