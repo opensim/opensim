@@ -417,12 +417,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
             catch (Exception e)
             {
+                
                 m_log.ErrorFormat(
                     "[ENTITY TRANSFER MODULE]: Exception on teleport of {0} from {1}@{2} to {3}@{4}: {5}{6}",
                     sp.Name, sp.AbsolutePosition, sp.Scene.RegionInfo.RegionName, position, destinationRegionName,
                     e.Message, e.StackTrace);
-
-                sp.ControllingClient.SendTeleportFailed("Internal error");
+                if(sp != null && sp.ControllingClient != null && !sp.IsDeleted)
+                    sp.ControllingClient.SendTeleportFailed("Internal error");
             }
             finally
             {
@@ -1216,7 +1217,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // DECREASING THE WAIT TIME HERE WILL EITHER RESULT IN A VIEWER CRASH OR
                 // IN THE AVIE BEING PLACED IN INFINITY FOR A COUPLE OF SECONDS.
 
-                Thread.Sleep(15000);
+                Thread.Sleep(25000);
 //                if (m_eqModule != null && !sp.DoNotCloseAfterTeleport)
 //                    m_eqModule.DisableSimulator(sourceRegionHandle,sp.UUID);
 //                Thread.Sleep(1000);
