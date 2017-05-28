@@ -2017,7 +2017,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             try
             {
-                PollServiceRequestManager.Stop();
+                if(PollServiceRequestManager != null)
+                    PollServiceRequestManager.Stop();
 
                 m_httpListener2.ExceptionThrown -= httpServerException;
                 //m_httpListener2.DisconnectHandler = null;
