@@ -157,7 +157,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     m_idCache = new ExpiringCache<ulong, DateTime>();
                     m_bannedRegions.Add(pAgentID, m_idCache, TimeSpan.FromSeconds(newTime));
                 }
-                m_idCache.Add(pRegionHandle, DateTime.UtcNow + TimeSpan.FromSeconds(extendTime), TimeSpan.FromSeconds(extendTime));
+                m_idCache.Add(pRegionHandle, DateTime.UtcNow + TimeSpan.FromSeconds(extendTime), extendTime);
             }
 
             // Remove the agent from the region's banned list
@@ -1488,13 +1488,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                 Math.Max(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY));
 
             if (neighbourRegion == null)
-            {
-                failureReason = "no region found"; // debug -> to remove
                 return null;
-            }
+
             if (m_bannedRegionCache.IfBanned(neighbourRegion.RegionHandle, agentID))
             {
-                failureReason = "Access Denied";
+                failureReason = "Access Denied or Temporary not possible";
                 return null;
             }
 
@@ -1506,14 +1504,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                       pos.Z);
 
             string homeURI = scene.GetAgentHomeURI(agentID);
-
+           
             if (!scene.SimulationService.QueryAccess(
                     neighbourRegion, agentID, homeURI, false, newpos,
                     scene.GetFormatsOffered(), ctx, out failureReason))
             {
                 // remember the fail
                 m_bannedRegionCache.Add(neighbourRegion.RegionHandle, agentID);
-                failureReason = "Access Denied";
+                if(String.IsNullOrWhiteSpace(failureReason))
+                    failureReason = "Access Denied";
                 return null;
             }
 
@@ -2171,7 +2170,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                     InformClientOfNeighbourAsync(sp, cagents[count], neighbour, ipe, true);
                                 else
                                 {
-                                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: DNS for neighbour {0} lost", neighbour.ExternalHostName);
+                                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]:  lost DNS resolution for neighbour {0}", neighbour.ExternalHostName);
                                 }
                                 count++;
                             }

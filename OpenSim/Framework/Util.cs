@@ -1009,6 +1009,9 @@ namespace OpenSim.Framework
         public static IPAddress GetHostFromDNS(string dnsAddress)
         {
             // If it is already an IP, avoid possible broken mono from seeing it 
+            if(String.IsNullOrWhiteSpace(dnsAddress))
+                return null;
+
             IPAddress ia = null;
             if (IPAddress.TryParse(dnsAddress, out ia) && ia != null)
             {
@@ -1016,31 +1019,31 @@ namespace OpenSim.Framework
                     return null;
                 return ia;
             }
-            // Reset for next check
-            ia = null;
+
+            IPHostEntry IPH;
             try
             {
-                foreach (IPAddress Adr in Dns.GetHostAddresses(dnsAddress))
-                {
-                    if (ia == null)
-                        ia = Adr;
-
-                    if (Adr.AddressFamily == AddressFamily.InterNetwork)
-                    {
-                        ia = Adr;
-                        break;
-                    }
-                }
+                IPH = Dns.GetHostEntry(dnsAddress);
             }
             catch // (SocketException e)
             {
-                /*throw new Exception(
-                    "Unable to resolve local hostname " + m_externalHostName + " innerException of type '" +
-                    e + "' attached to this exception", e);*/
-                // Don't throw a fatal exception here, instead, return Null and handle it in the caller.
-                // Reason is, on systems such as OSgrid it has occured that known hostnames stop
-                // resolving and thus make surrounding regions crash out with this exception.
+                    return null;
+            }
+
+            if(IPH == null || IPH.AddressList.Length == 0)
                 return null;
+
+            ia = null;
+            foreach (IPAddress Adr in IPH.AddressList)
+            {
+                if (ia == null)
+                    ia = Adr;
+
+                if (Adr.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    ia = Adr;
+                    break;
+                }
             }
             return ia;
         }
@@ -1075,26 +1078,31 @@ namespace OpenSim.Framework
                     return null;
                 return getEndPoint(ia, port);
             }
-                    
-            // Reset for next check
-            ia = null;
+            
+            IPHostEntry IPH;
             try
             {
-                foreach (IPAddress Adr in Dns.GetHostAddresses(hostname))
-                {
-                    if (ia == null)
-                        ia = Adr;
-
-                    if (Adr.AddressFamily == AddressFamily.InterNetwork)
-                    {
-                        ia = Adr;
-                        break;
-                    }
-                }
+                IPH = Dns.GetHostEntry(hostname);
             }
             catch // (SocketException e)
             {
-                    ia = null;
+                    return null;
+            }
+
+            if(IPH == null || IPH.AddressList.Length == 0)
+                return null;
+
+            ia = null;
+            foreach (IPAddress Adr in IPH.AddressList)
+            {
+                if (ia == null)
+                    ia = Adr;
+
+                if (Adr.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    ia = Adr;
+                    break;
+                }
             }
 
             return getEndPoint(ia,port);
