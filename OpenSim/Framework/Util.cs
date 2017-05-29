@@ -1078,31 +1078,25 @@ namespace OpenSim.Framework
                     
             // Reset for next check
             ia = null;
-#if (_MONO)
-            // mono is a TOTAL CRAP
-            int retry = 3;
-            while(ia == null && retry--  >= 0)
-#endif
+            try
             {
-                try
+                foreach (IPAddress Adr in Dns.GetHostAddresses(hostname))
                 {
-                    foreach (IPAddress Adr in Dns.GetHostAddresses(hostname))
-                    {
-                        if (ia == null)
-                            ia = Adr;
+                    if (ia == null)
+                        ia = Adr;
 
-                        if (Adr.AddressFamily == AddressFamily.InterNetwork)
-                        {
-                            ia = Adr;
-                            break;
-                        }
+                    if (Adr.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        ia = Adr;
+                        break;
                     }
                 }
-                catch // (SocketException e)
-                {
-                     ia = null;
-                }
             }
+            catch // (SocketException e)
+            {
+                    ia = null;
+            }
+
             return getEndPoint(ia,port);
         }
 

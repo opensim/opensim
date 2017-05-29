@@ -2171,7 +2171,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                     InformClientOfNeighbourAsync(sp, cagents[count], neighbour, ipe, true);
                                 else
                                 {
-                                    m_log.Debug("[ENTITY TRANSFER MODULE]: DNS for neighbour lost");
+                                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: DNS for neighbour {0} lost", neighbour.ExternalHostName);
                                 }
                                 count++;
                             }
