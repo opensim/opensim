@@ -1489,10 +1489,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (neighbourRegion == null)
             {
+                failureReason = "no region found"; // debug -> to remove
                 return null;
             }
             if (m_bannedRegionCache.IfBanned(neighbourRegion.RegionHandle, agentID))
             {
+                failureReason = "Access Denied";
                 return null;
             }
 
@@ -1511,6 +1513,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 // remember the fail
                 m_bannedRegionCache.Add(neighbourRegion.RegionHandle, agentID);
+                failureReason = "Access Denied";
                 return null;
             }
 
