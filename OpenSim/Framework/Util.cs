@@ -991,6 +991,8 @@ namespace OpenSim.Framework
             return output.ToString();
         }
 
+        static ExpiringCache<string,IPAddress> dnscache = new ExpiringCache<string, IPAddress>();
+
         /// <summary>
         /// Converts a URL to a IPAddress
         /// </summary>
@@ -1008,15 +1010,20 @@ namespace OpenSim.Framework
         /// <returns>An IP address, or null</returns>
         public static IPAddress GetHostFromDNS(string dnsAddress)
         {
-            // If it is already an IP, avoid possible broken mono from seeing it 
             if(String.IsNullOrWhiteSpace(dnsAddress))
                 return null;
 
             IPAddress ia = null;
+            if(dnscache.TryGetValue(dnsAddress, out ia) && ia != null)
+                return ia;
+
+            ia = null;
+            // If it is already an IP, don't let GetHostEntry see it
             if (IPAddress.TryParse(dnsAddress, out ia) && ia != null)
             {
                 if (ia.Equals(IPAddress.Any) || ia.Equals(IPAddress.IPv6Any))
                     return null;
+                dnscache.AddOrUpdate(dnsAddress, ia, 300);
                 return ia;
             }
 
@@ -1027,7 +1034,7 @@ namespace OpenSim.Framework
             }
             catch // (SocketException e)
             {
-                    return null;
+                return null;
             }
 
             if(IPH == null || IPH.AddressList.Length == 0)
@@ -1045,6 +1052,8 @@ namespace OpenSim.Framework
                     break;
                 }
             }
+            if(ia != null)
+                dnscache.AddOrUpdate(dnsAddress, ia, 300);
             return ia;
         }
 
@@ -1071,14 +1080,22 @@ namespace OpenSim.Framework
                 return null;
             
             IPAddress ia = null;
-            // If it is already an IP, avoid possible broken mono from seeing it 
+            if(dnscache.TryGetValue(hostname, out ia) && ia != null)
+                return getEndPoint(ia, port);
+
+            ia = null;
+
+            // If it is already an IP, don't let GetHostEntry see it
             if (IPAddress.TryParse(hostname, out ia) && ia != null)
             {
                 if (ia.Equals(IPAddress.Any) || ia.Equals(IPAddress.IPv6Any))
                     return null;
+
+                dnscache.AddOrUpdate(hostname, ia, 300);
                 return getEndPoint(ia, port);
             }
-            
+
+
             IPHostEntry IPH;
             try
             {
@@ -1086,7 +1103,7 @@ namespace OpenSim.Framework
             }
             catch // (SocketException e)
             {
-                    return null;
+                return null;
             }
 
             if(IPH == null || IPH.AddressList.Length == 0)
@@ -1104,6 +1121,9 @@ namespace OpenSim.Framework
                     break;
                 }
             }
+
+            if(ia != null)
+                dnscache.AddOrUpdate(hostname, ia, 300);
 
             return getEndPoint(ia,port);
         }
