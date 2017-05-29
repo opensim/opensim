@@ -1064,6 +1064,9 @@ namespace OpenSim.Framework
 
         public static IPEndPoint getEndPoint(string hostname, int port)
         {
+            if(String.IsNullOrWhiteSpace(hostname))
+                return null;
+            
             IPAddress ia = null;
             // If it is already an IP, avoid possible broken mono from seeing it 
             if (IPAddress.TryParse(hostname, out ia) && ia != null)
@@ -1075,31 +1078,31 @@ namespace OpenSim.Framework
                     
             // Reset for next check
             ia = null;
-            try
+#if (_MONO)
+            // mono is a TOTAL CRAP
+            int retry = 3;
+            while(ia == null && retry--  >= 0)
+#endif
             {
-                foreach (IPAddress Adr in Dns.GetHostAddresses(hostname))
+                try
                 {
-                    if (ia == null)
-                        ia = Adr;
-
-                    if (Adr.AddressFamily == AddressFamily.InterNetwork)
+                    foreach (IPAddress Adr in Dns.GetHostAddresses(hostname))
                     {
-                        ia = Adr;
-                        break;
+                        if (ia == null)
+                            ia = Adr;
+
+                        if (Adr.AddressFamily == AddressFamily.InterNetwork)
+                        {
+                            ia = Adr;
+                            break;
+                        }
                     }
                 }
+                catch // (SocketException e)
+                {
+                     ia = null;
+                }
             }
-            catch // (SocketException e)
-            {
-                /*throw new Exception(
-                    "Unable to resolve local hostname " + m_externalHostName + " innerException of type '" +
-                    e + "' attached to this exception", e);*/
-                // Don't throw a fatal exception here, instead, return Null and handle it in the caller.
-                // Reason is, on systems such as OSgrid it has occured that known hostnames stop
-                // resolving and thus make surrounding regions crash out with this exception.
-                return null;
-            }
-
             return getEndPoint(ia,port);
         }
 

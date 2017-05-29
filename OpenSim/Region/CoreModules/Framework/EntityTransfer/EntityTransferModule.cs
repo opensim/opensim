@@ -2157,6 +2157,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     Thread.Sleep(200);  // the original delay that was at InformClientOfNeighbourAsync start
                     int count = 0;
+                    IPEndPoint ipe;
 
                     foreach (GridRegion neighbour in neighbours)
                     {
@@ -2165,8 +2166,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         {
                             if (newneighbours.Contains(handler))
                             {
-                                InformClientOfNeighbourAsync(sp, cagents[count], neighbour,
-                                    neighbour.ExternalEndPoint, true);
+                                ipe = neighbour.ExternalEndPoint;
+                                if (ipe != null)
+                                    InformClientOfNeighbourAsync(sp, cagents[count], neighbour, ipe, true);
+                                else
+                                {
+                                    m_log.Debug("[ENTITY TRANSFER MODULE]: DNS for neighbour lost");
+                                }
                                 count++;
                             }
                             else if (!previousRegionNeighbourHandles.Contains(handler))

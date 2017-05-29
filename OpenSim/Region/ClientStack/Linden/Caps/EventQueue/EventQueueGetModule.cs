@@ -512,11 +512,6 @@ namespace OpenSim.Region.ClientStack.Linden
             if (DebugLevel > 0)
                 m_log.DebugFormat("{0} EnableSimulator. handle={1}, endPoint={2}, avatarID={3}",
                     LogHeader, handle, endPoint, avatarID, regionSizeX, regionSizeY);
-//debug
-            if(endPoint == null)
-                m_log.DebugFormat("EnableSimulator null endpoint");
-            if(endPoint.Address == null)
-                m_log.DebugFormat("EnableSimulator null endpoint address");
 
             OSD item = EventQueueHelper.EnableSimulator(handle, endPoint, regionSizeX, regionSizeY);
             Enqueue(item, avatarID);
