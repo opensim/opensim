@@ -59,8 +59,7 @@ namespace OpenSim.Server
             ServicePointManager.Expect100Continue = false;
             ServicePointManager.UseNagleAlgorithm = false;
 
-            try {  ServicePointManager.DnsRefreshTimeout = 120000; } //  just is case some  mono decides to have it infinity
-            catch { }
+            try { ServicePointManager.DnsRefreshTimeout = 300000; } catch { }
 
             m_Server = new HttpServerBase("R.O.B.U.S.T.", args);
 

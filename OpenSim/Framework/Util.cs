@@ -991,7 +991,7 @@ namespace OpenSim.Framework
             return output.ToString();
         }
 
-        static ExpiringCache<string,IPAddress> dnscache = new ExpiringCache<string, IPAddress>();
+        private static ExpiringCache<string,IPAddress> dnscache = new ExpiringCache<string, IPAddress>();
 
         /// <summary>
         /// Converts a URL to a IPAddress
@@ -1015,7 +1015,10 @@ namespace OpenSim.Framework
 
             IPAddress ia = null;
             if(dnscache.TryGetValue(dnsAddress, out ia) && ia != null)
+            {
+                dnscache.AddOrUpdate(dnsAddress, ia, 300);
                 return ia;
+            }
 
             ia = null;
             // If it is already an IP, don't let GetHostEntry see it
@@ -1081,7 +1084,10 @@ namespace OpenSim.Framework
             
             IPAddress ia = null;
             if(dnscache.TryGetValue(hostname, out ia) && ia != null)
+            {
+                dnscache.AddOrUpdate(hostname, ia, 300);
                 return getEndPoint(ia, port);
+            }
 
             ia = null;
 
