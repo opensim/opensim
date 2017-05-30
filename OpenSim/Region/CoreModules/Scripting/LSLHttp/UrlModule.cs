@@ -35,6 +35,7 @@ using log4net;
 using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
@@ -146,23 +147,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             }
 
             IPAddress ia = null;
-            try
-            {
-                foreach (IPAddress Adr in Dns.GetHostAddresses(ExternalHostNameForLSL))
-                {
-                    if (Adr.AddressFamily == AddressFamily.InterNetwork ||
-                        Adr.AddressFamily == AddressFamily.InterNetworkV6) // ipv6 will most likely smoke
-                    {
-                        ia = Adr;
-                        break;
-                    }
-                }
-            }
-            catch
-            {
-                ia = null;
-            }
-
+            ia = Util.GetHostFromDNS(ExternalHostNameForLSL);
             if (ia == null)
             {
                 m_ErrorStr = "Could not resolve ExternalHostNameForLSL, HTTP listener for LSL disabled";
