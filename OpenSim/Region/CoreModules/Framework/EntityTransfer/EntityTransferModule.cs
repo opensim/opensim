@@ -1532,13 +1532,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             CrossAsyncDelegate icon = (CrossAsyncDelegate)iar.AsyncState;
             ScenePresence agent = icon.EndInvoke(iar);
 
-            m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
 
             if(!agent.IsChildAgent)
             {
                 // crossing failed
                 agent.CrossToNewRegionFail();
             }
+            else
+                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
+
             agent.IsInTransit = false;
         }
 
@@ -2287,9 +2289,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected GridRegion GetRegionContainingWorldLocation(IGridService pGridService, UUID pScopeID,
                             double px, double py, uint pSizeHint)
         {
-            m_log.DebugFormat("{0} GetRegionContainingWorldLocation: call, XY=<{1},{2}>", LogHeader, px, py);
+//            m_log.DebugFormat("{0} GetRegionContainingWorldLocation: call, XY=<{1},{2}>", LogHeader, px, py);
             GridRegion ret = null;
-            const double fudge = 2.0;
 
             if (m_notFoundLocationCache.Contains(px, py))
             {
