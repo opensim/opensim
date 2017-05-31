@@ -39,7 +39,7 @@ namespace OpenSim.Region.Framework.Interfaces
         bool Enqueue(OSD o, UUID avatarID);
 
         // These are required to decouple Scenes from EventQueueHelper
-        void DisableSimulator(ulong handle, UUID avatarID);
+//        void DisableSimulator(ulong handle, UUID avatarID);
         void EnableSimulator(ulong handle, IPEndPoint endPoint, UUID avatarID, int regionSizeX, int regionSizeY);
         void EstablishAgentCommunication(UUID avatarID, IPEndPoint endPoint,
                                          string capsPath, ulong regionHandle, int regionSizeX, int regionSizeY);

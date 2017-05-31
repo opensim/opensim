@@ -1884,7 +1884,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                return new List<ulong>(KnownRegions.Keys);
+                lock (m_knownChildRegions)
+                    return new List<ulong>(m_knownChildRegions.Keys);
             }
         }
 
@@ -4407,26 +4408,15 @@ namespace OpenSim.Region.Framework.Scenes
 
         }
 
-        /* useless. Either use MakeChild or delete the presence
-                public void Reset()
-                {
-        //            m_log.DebugFormat("[SCENE PRESENCE]: Resetting {0} in {1}", Name, Scene.RegionInfo.RegionName);
-
-                    // Put the child agent back at the center
-                    AbsolutePosition
-                        = new Vector3(((float)m_scene.RegionInfo.RegionSizeX * 0.5f), ((float)m_scene.RegionInfo.RegionSizeY * 0.5f), 70);
-
-                    Animator.ResetAnimations();
-                }
-        */
         /// <summary>
         /// Computes which child agents to close when the scene presence moves to another region.
         /// Removes those regions from m_knownRegions.
         /// </summary>
-        /// <param name="newRegionX">The new region's x on the map</param>
-        /// <param name="newRegionY">The new region's y on the map</param>
+        /// <param name="newRegionHandle">The new region's handle</param>
+        /// <param name="newRegionSizeX">The new region's size x</param>
+        /// <param name="newRegionSizeY">The new region's size y</param>
         /// <returns></returns>
-        public void CloseChildAgents(bool logout, ulong newRegionHandle, int newRegionSizeX, int newRegionSizeY)
+        public List<ulong> GetChildAgentsToClose(ulong newRegionHandle, int newRegionSizeX, int newRegionSizeY)
         {
             uint newRegionX, newRegionY;
             List<ulong> byebyeRegions = new List<ulong>();
@@ -4442,37 +4432,37 @@ namespace OpenSim.Region.Framework.Scenes
 
             foreach (ulong handle in knownRegions)
             {
-                // Don't close the agent on this region yet
-                if (handle != Scene.RegionInfo.RegionHandle)
+                if(newRegionY == 0) // HG
+                    byebyeRegions.Add(handle);
+                else
                 {
-                    if (logout)
-                        byebyeRegions.Add(handle);
+                    Util.RegionHandleToRegionLoc(handle, out x, out y);
+                    if (m_knownChildRegionsSizeInfo.TryGetValue(handle, out regInfo))
+                    {
+//                            if (Util.IsOutsideView(RegionViewDistance, x, newRegionX, y, newRegionY,
+                        // for now need to close all but first order bc RegionViewDistance it the target value not ours
+                        if (Util.IsOutsideView(255, x, newRegionX, y, newRegionY,
+                            regInfo.sizeX, regInfo.sizeY, newRegionSizeX, newRegionSizeY))
+                        {
+                            byebyeRegions.Add(handle);
+                        }
+                    }
                     else
                     {
-                        Util.RegionHandleToRegionLoc(handle, out x, out y);
-                        if (m_knownChildRegionsSizeInfo.TryGetValue(handle, out regInfo))
+                        if (Util.IsOutsideView(RegionViewDistance, x, newRegionX, y, newRegionY,
+                            (int)Constants.RegionSize, (int)Constants.RegionSize, newRegionSizeX, newRegionSizeY))
                         {
-                            if (Util.IsOutsideView(RegionViewDistance, x, newRegionX, y, newRegionY,
-                                regInfo.sizeX, regInfo.sizeY, newRegionSizeX, newRegionSizeY))
-                            {
-                                byebyeRegions.Add(handle);
-                            }
-                        }
-                        else
-                        {
-                            if (Util.IsOutsideView(RegionViewDistance, x, newRegionX, y, newRegionY,
-                                (int)Constants.RegionSize, (int)Constants.RegionSize, newRegionSizeX, newRegionSizeY))
-                            {
-                                byebyeRegions.Add(handle);
-                                // this should not be here
-//                                if(eventQueue != null)
-//                                    eventQueue.DisableSimulator(handle,UUID);
-                            }
+                            byebyeRegions.Add(handle);
                         }
                     }
                 }
             }
+            return byebyeRegions;
+        }
 
+        public void CloseChildAgents(List<ulong> byebyeRegions)
+        {
+            byebyeRegions.Remove(Scene.RegionInfo.RegionHandle);
             if (byebyeRegions.Count > 0)
             {
                 m_log.Debug("[SCENE PRESENCE]: Closing " + byebyeRegions.Count + " child agents");

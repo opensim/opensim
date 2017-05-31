@@ -90,7 +90,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             return BuildEvent("EnableSimulator", llsdBody);
         }
-
+/*
         public static OSD DisableSimulator(ulong handle)
         {
             //OSDMap llsdSimInfo = new OSDMap(1);
@@ -105,7 +105,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             return BuildEvent("DisableSimulator", llsdBody);
         }
-
+*/
         public static OSD CrossRegion(ulong handle, Vector3 pos, Vector3 lookAt,
                                       IPEndPoint newRegionExternalEndPoint,
                                       string capsURL, UUID agentID, UUID sessionID,
