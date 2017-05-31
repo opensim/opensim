@@ -385,7 +385,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
             List<UUID> missing = new List<UUID>();
 
-            bool haveSkirt = (wearableCache[19].TextureAsset != null);
+            bool haveSkirt = (wearableCache[19].TextureID != UUID.Zero);
             bool haveNewSkirt = false;
 
             // Process received baked textures
