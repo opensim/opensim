@@ -111,7 +111,7 @@ namespace OpenSim.Capabilities.Handlers
             asset = new AssetBase(assetID, "Baked Texture", (sbyte)AssetType.Texture, m_HostCapsObj.AgentID.ToString());
             asset.Data = data;
             asset.Temporary = true;
-            asset.Local = false;
+            asset.Local = true;
             m_assetService.Store(asset);
         }
     }
