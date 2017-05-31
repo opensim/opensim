@@ -844,9 +844,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             string capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
             List<ulong> childRegionsToClose = sp.GetChildAgentsToClose(destinationHandle, finalDestination.RegionSizeX, finalDestination.RegionSizeY);
-            foreach(ulong handler in childRegionsToClose)
+            if(agentCircuit.ChildrenCapSeeds != null)
             {
-                agentCircuit.ChildrenCapSeeds.Remove(handler);
+                foreach(ulong handler in childRegionsToClose)
+                {
+                    agentCircuit.ChildrenCapSeeds.Remove(handler);
+                }
             }
 
             // Let's create an agent there if one doesn't exist yet.
@@ -1084,9 +1087,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             ulong destinationHandle = finalDestination.RegionHandle;
 
             List<ulong> childRegionsToClose = sp.GetChildAgentsToClose(destinationHandle, finalDestination.RegionSizeX, finalDestination.RegionSizeY);
-            foreach(ulong handler in childRegionsToClose)
+            
+            if(agentCircuit.ChildrenCapSeeds != null)
             {
-                agentCircuit.ChildrenCapSeeds.Remove(handler);
+                foreach(ulong handler in childRegionsToClose)
+                {
+                    agentCircuit.ChildrenCapSeeds.Remove(handler);
+                }
             }
 
             string capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);;
@@ -1763,8 +1770,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 cAgent.ChildrenCapSeeds = agent.KnownRegions;
 
                 childRegionsToClose = agent.GetChildAgentsToClose(neighbourRegion.RegionHandle, neighbourRegion.RegionSizeX, neighbourRegion.RegionSizeY);
-                foreach(ulong regh in childRegionsToClose)
-                    cAgent.ChildrenCapSeeds.Remove(regh);
+                if(cAgent.ChildrenCapSeeds != null)
+                {
+                    foreach(ulong regh in childRegionsToClose)
+                        cAgent.ChildrenCapSeeds.Remove(regh);
+                }
 
                 if (isFlying)
                     cAgent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
