@@ -25,43 +25,31 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Reflection;
 using log4net;
 using Mono.Addins;
+using System;
+using System.Reflection;
+using System.Collections.Generic;
 using Nini.Config;
-using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Server.Base;
+using OpenSim.Services.Connectors;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
+
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LocalNeighbourServicesConnector")]
-    public class LocalNeighbourServicesConnector :
-            ISharedRegionModule, INeighbourService
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "NeighbourServicesOutConnector")]
+    public class NeighbourServicesOutConnector :
+            NeighbourServicesConnector, ISharedRegionModule, INeighbourService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private List<Scene> m_Scenes = new List<Scene>();
-
         private bool m_Enabled = false;
-
-        public LocalNeighbourServicesConnector()
-        {
-        }
-
-        public LocalNeighbourServicesConnector(List<Scene> scenes)
-        {
-            m_Scenes = scenes;
-        }
-
-        #region ISharedRegionModule
 
         public Type ReplaceableInterface
         {
@@ -70,7 +58,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour
 
         public string Name
         {
-            get { return "LocalNeighbourServicesConnector"; }
+            get { return "NeighbourServicesOutConnector"; }
         }
 
         public void Initialise(IConfigSource source)
@@ -78,14 +66,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour
             IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
             {
-                string name = moduleConfig.GetString("NeighbourServices", this.Name);
+                string name = moduleConfig.GetString("NeighbourServices");
                 if (name == Name)
                 {
-                    // m_Enabled rules whether this module registers as INeighbourService or not
                     m_Enabled = true;
-                    m_log.Info("[NEIGHBOUR CONNECTOR]: Local neighbour connector enabled");
+                    m_log.Info("[NEIGHBOUR CONNECTOR]: Neighbour out connector enabled");
                 }
             }
+        }
+
+        public void PostInitialise()
+        {
         }
 
         public void Close()
@@ -94,21 +85,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour
 
         public void AddRegion(Scene scene)
         {
-            m_Scenes.Add(scene);
-
             if (!m_Enabled)
                 return;
 
+            m_Scenes.Add(scene);
             scene.RegisterModuleInterface<INeighbourService>(this);
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-            m_log.Info("[NEIGHBOUR CONNECTOR]: Local neighbour connector enabled for region " + scene.RegionInfo.RegionName);
-        }
-
-        public void PostInitialise()
-        {
         }
 
         public void RemoveRegion(Scene scene)
@@ -118,28 +99,36 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour
                 m_Scenes.Remove(scene);
         }
 
-        #endregion ISharedRegionModule
+        public void RegionLoaded(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            m_GridService = scene.GridService;
+            m_log.InfoFormat("[NEIGHBOUR CONNECTOR]: Enabled out neighbours for region {0}", scene.RegionInfo.RegionName);
+
+        }
 
         #region INeighbourService
 
-        public OpenSim.Services.Interfaces.GridRegion HelloNeighbour(ulong regionHandle, RegionInfo thisRegion)
+        public override GridRegion HelloNeighbour(ulong regionHandle, RegionInfo thisRegion)
         {
-            uint x, y;
-            Util.RegionHandleToRegionLoc(regionHandle, out x, out y);
+            if (!m_Enabled)
+                return null;
 
             foreach (Scene s in m_Scenes)
             {
                 if (s.RegionInfo.RegionHandle == regionHandle)
                 {
-                    m_log.DebugFormat("[LOCAL NEIGHBOUR SERVICE CONNECTOR]: HelloNeighbour from region {0} to neighbour {1} at {2}-{3}",
-                                                thisRegion.RegionName, s.Name, x, y );
-
-                    //m_log.Debug("[NEIGHBOUR CONNECTOR]: Found region to SendHelloNeighbour");
+//                    uint x, y;
+//                    Util.RegionHandleToRegionLoc(regionHandle, out x, out y);
+//                    m_log.DebugFormat("[NEIGHBOUR SERVICE OUT CONNECTOR]: HelloNeighbour from region {0} to neighbour {1} at {2}-{3}",
+//                                                thisRegion.RegionName, s.Name, x, y );
                     return s.IncomingHelloNeighbour(thisRegion);
                 }
             }
-            //m_log.DebugFormat("[NEIGHBOUR CONNECTOR]: region handle {0} not found", regionHandle);
-            return null;
+
+            return base.HelloNeighbour(regionHandle, thisRegion);
         }
 
         #endregion INeighbourService
