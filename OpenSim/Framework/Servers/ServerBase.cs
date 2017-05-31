@@ -275,18 +275,6 @@ namespace OpenSim.Framework.Servers
                 (string module, string[] args) => Notice(GetThreadsReport()));
 
             m_console.Commands.AddCommand (
-                "Debug", false, "debug comms set",
-                "debug comms set serialosdreq true|false",
-                "Set comms parameters.  For debug purposes.",
-                HandleDebugCommsSet);
-
-            m_console.Commands.AddCommand (
-                "Debug", false, "debug comms status",
-                "debug comms status",
-                "Show current debug comms parameters.",
-                HandleDebugCommsStatus);
-
-            m_console.Commands.AddCommand (
                 "Debug", false, "debug threadpool set",
                 "debug threadpool set worker|iocp min|max <n>",
                 "Set threadpool parameters.  For debug purposes.",
@@ -343,45 +331,11 @@ namespace OpenSim.Framework.Servers
 
         public void RegisterCommonComponents(IConfigSource configSource)
         {
-            IConfig networkConfig = configSource.Configs["Network"];
-
-            if (networkConfig != null)
-            {
-                WebUtil.SerializeOSDRequestsPerEndpoint = networkConfig.GetBoolean("SerializeOSDRequests", false);
-            }
+//            IConfig networkConfig = configSource.Configs["Network"];
 
             m_serverStatsCollector = new ServerStatsCollector();
             m_serverStatsCollector.Initialise(configSource);
             m_serverStatsCollector.Start();
-        }
-
-        private void HandleDebugCommsStatus(string module, string[] args)
-        {
-            Notice("serialosdreq is {0}", WebUtil.SerializeOSDRequestsPerEndpoint);
-        }
-
-        private void HandleDebugCommsSet(string module, string[] args)
-        {
-            if (args.Length != 5)
-            {
-                Notice("Usage: debug comms set serialosdreq true|false");
-                return;
-            }
-
-            if (args[3] != "serialosdreq")
-            {
-                Notice("Usage: debug comms set serialosdreq true|false");
-                return;
-            }
-
-            bool setSerializeOsdRequests;
-
-            if (!ConsoleUtil.TryParseConsoleBool(m_console, args[4], out setSerializeOsdRequests))
-                return;
-
-            WebUtil.SerializeOSDRequestsPerEndpoint = setSerializeOsdRequests;
-
-            Notice("serialosdreq is now {0}", setSerializeOsdRequests);
         }
 
         private void HandleShowThreadpoolCallsActive(string module, string[] args)

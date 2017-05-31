@@ -157,7 +157,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     m_idCache = new ExpiringCache<ulong, DateTime>();
                     m_bannedRegions.Add(pAgentID, m_idCache, TimeSpan.FromSeconds(newTime));
                 }
-                m_idCache.Add(pRegionHandle, DateTime.UtcNow + TimeSpan.FromSeconds(extendTime), TimeSpan.FromSeconds(extendTime));
+                m_idCache.Add(pRegionHandle, DateTime.UtcNow + TimeSpan.FromSeconds(extendTime), extendTime);
             }
 
             // Remove the agent from the region's banned list
@@ -417,12 +417,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
             catch (Exception e)
             {
+                
                 m_log.ErrorFormat(
                     "[ENTITY TRANSFER MODULE]: Exception on teleport of {0} from {1}@{2} to {3}@{4}: {5}{6}",
                     sp.Name, sp.AbsolutePosition, sp.Scene.RegionInfo.RegionName, position, destinationRegionName,
                     e.Message, e.StackTrace);
-
-                sp.ControllingClient.SendTeleportFailed("Internal error");
+                if(sp != null && sp.ControllingClient != null && !sp.IsDeleted)
+                    sp.ControllingClient.SendTeleportFailed("Internal error");
             }
             finally
             {
@@ -1216,7 +1217,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // DECREASING THE WAIT TIME HERE WILL EITHER RESULT IN A VIEWER CRASH OR
                 // IN THE AVIE BEING PLACED IN INFINITY FOR A COUPLE OF SECONDS.
 
-                Thread.Sleep(15000);
+                Thread.Sleep(25000);
 //                if (m_eqModule != null && !sp.DoNotCloseAfterTeleport)
 //                    m_eqModule.DisableSimulator(sourceRegionHandle,sp.UUID);
 //                Thread.Sleep(1000);
@@ -1487,11 +1488,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                 Math.Max(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY));
 
             if (neighbourRegion == null)
-            {
                 return null;
-            }
+
             if (m_bannedRegionCache.IfBanned(neighbourRegion.RegionHandle, agentID))
             {
+                failureReason = "Access Denied or Temporary not possible";
                 return null;
             }
 
@@ -1503,13 +1504,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                       pos.Z);
 
             string homeURI = scene.GetAgentHomeURI(agentID);
-
+           
             if (!scene.SimulationService.QueryAccess(
                     neighbourRegion, agentID, homeURI, false, newpos,
                     scene.GetFormatsOffered(), ctx, out failureReason))
             {
                 // remember the fail
                 m_bannedRegionCache.Add(neighbourRegion.RegionHandle, agentID);
+                if(String.IsNullOrWhiteSpace(failureReason))
+                    failureReason = "Access Denied";
                 return null;
             }
 
@@ -1529,13 +1532,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             CrossAsyncDelegate icon = (CrossAsyncDelegate)iar.AsyncState;
             ScenePresence agent = icon.EndInvoke(iar);
 
-            m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
 
             if(!agent.IsChildAgent)
             {
                 // crossing failed
                 agent.CrossToNewRegionFail();
             }
+            else
+                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
+
             agent.IsInTransit = false;
         }
 
@@ -2153,6 +2158,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     Thread.Sleep(200);  // the original delay that was at InformClientOfNeighbourAsync start
                     int count = 0;
+                    IPEndPoint ipe;
 
                     foreach (GridRegion neighbour in neighbours)
                     {
@@ -2161,8 +2167,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         {
                             if (newneighbours.Contains(handler))
                             {
-                                InformClientOfNeighbourAsync(sp, cagents[count], neighbour,
-                                    neighbour.ExternalEndPoint, true);
+                                ipe = neighbour.ExternalEndPoint;
+                                if (ipe != null)
+                                    InformClientOfNeighbourAsync(sp, cagents[count], neighbour, ipe, true);
+                                else
+                                {
+                                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]:  lost DNS resolution for neighbour {0}", neighbour.ExternalHostName);
+                                }
                                 count++;
                             }
                             else if (!previousRegionNeighbourHandles.Contains(handler))
@@ -2278,9 +2289,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected GridRegion GetRegionContainingWorldLocation(IGridService pGridService, UUID pScopeID,
                             double px, double py, uint pSizeHint)
         {
-            m_log.DebugFormat("{0} GetRegionContainingWorldLocation: call, XY=<{1},{2}>", LogHeader, px, py);
+//            m_log.DebugFormat("{0} GetRegionContainingWorldLocation: call, XY=<{1},{2}>", LogHeader, px, py);
             GridRegion ret = null;
-            const double fudge = 2.0;
 
             if (m_notFoundLocationCache.Contains(px, py))
             {

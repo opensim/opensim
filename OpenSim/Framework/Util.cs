@@ -429,64 +429,6 @@ namespace OpenSim.Framework
             return regionCoord << 8;
         }
 
-        public static IPEndPoint getEndPoint(IPAddress ia, int port)
-        {
-            if(ia == null)
-                return null;
-
-            IPEndPoint newEP = null;
-            try
-            {
-                newEP = new IPEndPoint(ia, port);
-            }
-            catch
-            {
-                newEP = null;
-            }
-            return newEP;
-        }
-
-        public static IPEndPoint getEndPoint(string hostname, int port)
-        {
-            IPAddress ia = null;
-            // If it is already an IP, don't resolve it - just return directly
-            // we should not need this
-            if (IPAddress.TryParse(hostname, out ia))
-            {
-                if (ia.Equals(IPAddress.Any) || ia.Equals(IPAddress.IPv6Any))
-                    return null;
-                return getEndPoint(ia, port);
-            }
-                    
-            // Reset for next check
-            ia = null;
-            try
-            {
-                foreach (IPAddress Adr in Dns.GetHostAddresses(hostname))
-                {
-                    if (ia == null)
-                        ia = Adr;
-
-                    if (Adr.AddressFamily == AddressFamily.InterNetwork)
-                    {
-                        ia = Adr;
-                        break;
-                    }
-                }
-            }
-            catch // (SocketException e)
-            {
-                /*throw new Exception(
-                    "Unable to resolve local hostname " + m_externalHostName + " innerException of type '" +
-                    e + "' attached to this exception", e);*/
-                // Don't throw a fatal exception here, instead, return Null and handle it in the caller.
-                // Reason is, on systems such as OSgrid it has occured that known hostnames stop
-                // resolving and thus make surrounding regions crash out with this exception.
-                return null;
-            }
-
-            return getEndPoint(ia,port);
-        }
 
         public static bool checkServiceURI(string uristr, out string serviceURI)
         {
@@ -1049,6 +991,8 @@ namespace OpenSim.Framework
             return output.ToString();
         }
 
+        private static ExpiringCache<string,IPAddress> dnscache = new ExpiringCache<string, IPAddress>();
+
         /// <summary>
         /// Converts a URL to a IPAddress
         /// </summary>
@@ -1066,38 +1010,128 @@ namespace OpenSim.Framework
         /// <returns>An IP address, or null</returns>
         public static IPAddress GetHostFromDNS(string dnsAddress)
         {
-            // Is it already a valid IP? No need to look it up.
-            IPAddress ipa;
-            if (IPAddress.TryParse(dnsAddress, out ipa))
-                return ipa;
+            if(String.IsNullOrWhiteSpace(dnsAddress))
+                return null;
 
-            IPAddress[] hosts = null;
+            IPAddress ia = null;
+            if(dnscache.TryGetValue(dnsAddress, out ia) && ia != null)
+            {
+                dnscache.AddOrUpdate(dnsAddress, ia, 300);
+                return ia;
+            }
 
-            // Not an IP, lookup required
+            ia = null;
+            // If it is already an IP, don't let GetHostEntry see it
+            if (IPAddress.TryParse(dnsAddress, out ia) && ia != null)
+            {
+                if (ia.Equals(IPAddress.Any) || ia.Equals(IPAddress.IPv6Any))
+                    return null;
+                dnscache.AddOrUpdate(dnsAddress, ia, 300);
+                return ia;
+            }
+
+            IPHostEntry IPH;
             try
             {
-                hosts = Dns.GetHostEntry(dnsAddress).AddressList;
+                IPH = Dns.GetHostEntry(dnsAddress);
             }
-            catch (Exception e)
+            catch // (SocketException e)
             {
-                m_log.WarnFormat("[UTIL]: An error occurred while resolving host name {0}, {1}", dnsAddress, e);
-
-                // Still going to throw the exception on for now, since this was what was happening in the first place
-                throw e;
+                return null;
             }
 
-            foreach (IPAddress host in hosts)
+            if(IPH == null || IPH.AddressList.Length == 0)
+                return null;
+
+            ia = null;
+            foreach (IPAddress Adr in IPH.AddressList)
             {
-                if (host.AddressFamily == AddressFamily.InterNetwork)
+                if (ia == null)
+                    ia = Adr;
+
+                if (Adr.AddressFamily == AddressFamily.InterNetwork)
                 {
-                    return host;
+                    ia = Adr;
+                    break;
+                }
+            }
+            if(ia != null)
+                dnscache.AddOrUpdate(dnsAddress, ia, 300);
+            return ia;
+        }
+
+        public static IPEndPoint getEndPoint(IPAddress ia, int port)
+        {
+            if(ia == null)
+                return null;
+
+            IPEndPoint newEP = null;
+            try
+            {
+                newEP = new IPEndPoint(ia, port);
+            }
+            catch
+            {
+                newEP = null;
+            }
+            return newEP;
+        }
+
+        public static IPEndPoint getEndPoint(string hostname, int port)
+        {
+            if(String.IsNullOrWhiteSpace(hostname))
+                return null;
+            
+            IPAddress ia = null;
+            if(dnscache.TryGetValue(hostname, out ia) && ia != null)
+            {
+                dnscache.AddOrUpdate(hostname, ia, 300);
+                return getEndPoint(ia, port);
+            }
+
+            ia = null;
+
+            // If it is already an IP, don't let GetHostEntry see it
+            if (IPAddress.TryParse(hostname, out ia) && ia != null)
+            {
+                if (ia.Equals(IPAddress.Any) || ia.Equals(IPAddress.IPv6Any))
+                    return null;
+
+                dnscache.AddOrUpdate(hostname, ia, 300);
+                return getEndPoint(ia, port);
+            }
+
+
+            IPHostEntry IPH;
+            try
+            {
+                IPH = Dns.GetHostEntry(hostname);
+            }
+            catch // (SocketException e)
+            {
+                return null;
+            }
+
+            if(IPH == null || IPH.AddressList.Length == 0)
+                return null;
+
+            ia = null;
+            foreach (IPAddress Adr in IPH.AddressList)
+            {
+                if (ia == null)
+                    ia = Adr;
+
+                if (Adr.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    ia = Adr;
+                    break;
                 }
             }
 
-            if (hosts.Length > 0)
-                return hosts[0];
+            if(ia != null)
+                dnscache.AddOrUpdate(hostname, ia, 300);
 
-            return null;
+            return getEndPoint(ia,port);
         }
 
         public static Uri GetURI(string protocol, string hostname, int port, string path)

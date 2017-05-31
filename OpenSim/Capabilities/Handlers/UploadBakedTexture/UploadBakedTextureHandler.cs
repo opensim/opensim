@@ -26,24 +26,12 @@
  */
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Reflection;
-using System.IO;
-using System.Web;
 using log4net;
-using Nini.Config;
 using OpenMetaverse;
-using OpenMetaverse.StructuredData;
-using OpenMetaverse.Imaging;
 using OpenSim.Framework;
 using OpenSim.Framework.Capabilities;
-using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 
@@ -56,13 +44,11 @@ namespace OpenSim.Capabilities.Handlers
 
         private Caps m_HostCapsObj;
         private IAssetService m_assetService;
-        private bool m_persistBakedTextures;
 
-        public UploadBakedTextureHandler(Caps caps, IAssetService assetService, bool persistBakedTextures)
+        public UploadBakedTextureHandler(Caps caps, IAssetService assetService)
         {
             m_HostCapsObj = caps;
             m_assetService = assetService;
-            m_persistBakedTextures = persistBakedTextures;
         }
 
         /// <summary>
@@ -125,9 +111,8 @@ namespace OpenSim.Capabilities.Handlers
             asset = new AssetBase(assetID, "Baked Texture", (sbyte)AssetType.Texture, m_HostCapsObj.AgentID.ToString());
             asset.Data = data;
             asset.Temporary = true;
-            asset.Local = !m_persistBakedTextures; // Local assets aren't persisted, non-local are
+            asset.Local = true;
             m_assetService.Store(asset);
-
         }
     }
 
@@ -150,8 +135,6 @@ namespace OpenSim.Capabilities.Handlers
             AgentId = uUID;
             //                m_log.InfoFormat("[CAPS] baked texture upload starting for {0}",newAssetID);
         }
-
-
 
         /// <summary>
         /// Handle raw uploaded baked texture data.

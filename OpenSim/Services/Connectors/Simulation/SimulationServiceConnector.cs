@@ -295,9 +295,6 @@ namespace OpenSim.Services.Connectors.Simulation
 
             // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess start, position={0}", position);
 
-            IPEndPoint ext = destination.ExternalEndPoint;
-            if (ext == null) return false;
-
             // Eventually, we want to use a caps url instead of the agentID
             string uri = destination.ServerURI + AgentPath() + agentID + "/" + destination.RegionID.ToString() + "/";
 

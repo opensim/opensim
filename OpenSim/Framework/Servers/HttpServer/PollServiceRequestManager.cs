@@ -207,7 +207,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                 qu.Clear();
             m_bycontext.Clear();
 
-/*
             try
             {
                 foreach (PollServiceHttpRequest req in m_retryRequests)
@@ -220,22 +219,21 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
 
             PollServiceHttpRequest wreq;
-*/
+
             m_retryRequests.Clear();
-/*
+
             while (m_requests.Count() > 0)
             {
                 try
                 {
                     wreq = m_requests.Dequeue(0);
                     wreq.DoHTTPstop(m_server);
-
                 }
                 catch
                 {
                 }
             }
-*/
+
             m_requests.Clear();
         }
 
@@ -245,7 +243,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             while (m_running)
             {
-                PollServiceHttpRequest req = m_requests.Dequeue(5000);
+                PollServiceHttpRequest req = m_requests.Dequeue(4500);
                 Watchdog.UpdateThread();
                 if(req == null)
                     continue;

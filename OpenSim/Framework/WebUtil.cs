@@ -72,11 +72,6 @@ namespace OpenSim.Framework
         public static int RequestNumber { get; set; }
 
         /// <summary>
-        /// Control where OSD requests should be serialized per endpoint.
-        /// </summary>
-        public static bool SerializeOSDRequestsPerEndpoint { get; set; }
-
-        /// <summary>
         /// this is the header field used to communicate the local request id
         /// used for performance and debugging
         /// </summary>
@@ -97,31 +92,6 @@ namespace OpenSim.Framework
         /// This is also used to truncate messages when using DebugLevel 5.
         /// </remarks>
         public const int MaxRequestDiagLength = 200;
-
-        /// <summary>
-        /// Dictionary of end points
-        /// </summary>
-        private static Dictionary<string,object> m_endpointSerializer = new Dictionary<string,object>();
-
-        private static object EndPointLock(string url)
-        {
-            System.Uri uri = new System.Uri(url);
-            string endpoint = string.Format("{0}:{1}",uri.Host,uri.Port);
-
-            lock (m_endpointSerializer)
-            {
-                object eplock = null;
-
-                if (! m_endpointSerializer.TryGetValue(endpoint,out eplock))
-                {
-                    eplock = new object();
-                    m_endpointSerializer.Add(endpoint,eplock);
-                    // m_log.WarnFormat("[WEB UTIL] add a new host to end point serializer {0}",endpoint);
-                }
-
-                return eplock;
-            }
-        }
 
         #region JSONRequest
 
@@ -152,21 +122,6 @@ namespace OpenSim.Framework
         public static OSDMap GetFromService(string url, int timeout)
         {
             return ServiceOSDRequest(url, null, "GET", timeout, false, false);
-        }
-
-        public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout, bool compressed, bool rpc)
-        {
-            if (SerializeOSDRequestsPerEndpoint)
-            {
-                lock (EndPointLock(url))
-                {
-                    return ServiceOSDRequestWorker(url, data, method, timeout, compressed, rpc);
-                }
-            }
-            else
-            {
-                return ServiceOSDRequestWorker(url, data, method, timeout, compressed, rpc);
-            }
         }
 
         public static void LogOutgoingDetail(Stream outputStream)
@@ -222,7 +177,7 @@ namespace OpenSim.Framework
             LogOutgoingDetail(string.Format("RESPONSE {0}: ", reqnum), input);
         }
 
-        private static OSDMap ServiceOSDRequestWorker(string url, OSDMap data, string method, int timeout, bool compressed, bool rpc)
+        public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout, bool compressed, bool rpc)
         {
             int reqnum = RequestNumber++;
 
@@ -421,14 +376,6 @@ namespace OpenSim.Framework
         }
 
         public static OSDMap ServiceFormRequest(string url, NameValueCollection data, int timeout)
-        {
-            lock (EndPointLock(url))
-            {
-                return ServiceFormRequestWorker(url,data,timeout);
-            }
-        }
-
-        private static OSDMap ServiceFormRequestWorker(string url, NameValueCollection data, int timeout)
         {
             int reqnum = RequestNumber++;
             string method = (data != null && data["RequestMethod"] != null) ? data["RequestMethod"] : "unknown";
