@@ -494,16 +494,17 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             else
                 m_log.DebugFormat("[UpdateBakedCache] cache hits: {0} changed entries: {1} rebakes {2}",
                         hits.ToString(), validDirtyBakes.ToString(), missing.Count);
-/*
+
             for (int iter = 0; iter < AvatarAppearance.BAKE_INDICES.Length; iter++)
             {
                 int j = AvatarAppearance.BAKE_INDICES[iter];
-                m_log.Debug("[UpdateBCache] {" + iter + "/" +
-                                    sp.Appearance.WearableCacheItems[j].TextureIndex + "}: c-" +
-                                    sp.Appearance.WearableCacheItems[j].CacheId + ", t-" +
-                                    sp.Appearance.WearableCacheItems[j].TextureID);
+                sp.Appearance.WearableCacheItems[j].TextureAsset = null;
+//                m_log.Debug("[UpdateBCache] {" + iter + "/" +
+//                                    sp.Appearance.WearableCacheItems[j].TextureIndex + "}: c-" +
+//                                    sp.Appearance.WearableCacheItems[j].CacheId + ", t-" +
+//                                    sp.Appearance.WearableCacheItems[j].TextureID);
             }
-*/
+
             return (hits == cacheItems.Length);
         }
 
@@ -583,6 +584,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                                     wearableCache[idx].TextureAsset.Temporary = true;
                                     wearableCache[idx].TextureAsset.Local = true;
                                     cache.Cache(wearableCache[idx].TextureAsset);
+                                    wearableCache[idx].TextureAsset = null;
                                     continue;
                                 }
                                 
@@ -683,6 +685,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
                             face.TextureID = wearableCache[idx].TextureID;
                             hits++;
+                            wearableCache[idx].TextureAsset = null;
                         }
                     }
                 }
