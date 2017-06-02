@@ -500,13 +500,13 @@ namespace OpenSim.Region.ClientStack.Linden
             responsedata["http_protocol_version"] = "HTTP/1.0";
             return responsedata;
         }
-
+/* this is not a event message
         public void DisableSimulator(ulong handle, UUID avatarID)
         {
             OSD item = EventQueueHelper.DisableSimulator(handle);
             Enqueue(item, avatarID);
         }
-
+*/
         public virtual void EnableSimulator(ulong handle, IPEndPoint endPoint, UUID avatarID, int regionSizeX, int regionSizeY)
         {
             if (DebugLevel > 0)
