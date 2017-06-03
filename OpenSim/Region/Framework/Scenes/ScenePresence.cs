@@ -4668,6 +4668,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 cAgent.CrossingFlags = crossingFlags;
                 cAgent.CrossingFlags |= 1;
+                cAgent.CrossExtraFlags = 0;
+                if((LastCommands & ScriptControlled.CONTROL_LBUTTON) != 0)
+                    cAgent.CrossExtraFlags |= 1;
+                if((LastCommands & ScriptControlled.CONTROL_ML_LBUTTON) != 0)
+                    cAgent.CrossExtraFlags |= 2;
             }
             else
                  cAgent.CrossingFlags = 0;
@@ -4782,6 +4787,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             crossingFlags = cAgent.CrossingFlags;
             gotCrossUpdate = (crossingFlags != 0);
+            if(gotCrossUpdate)
+            {
+                LastCommands &= ~(ScriptControlled.CONTROL_LBUTTON | ScriptControlled.CONTROL_ML_LBUTTON);
+                if((cAgent.CrossExtraFlags & 1) != 0)
+                    LastCommands |= ScriptControlled.CONTROL_LBUTTON;
+                if((cAgent.CrossExtraFlags & 2) != 0)
+                    LastCommands |= ScriptControlled.CONTROL_ML_LBUTTON;
+                MouseDown = (cAgent.CrossExtraFlags & 3) != 0;
+            }
 
             haveGroupInformation = false;
             // using this as protocol detection don't want to mess with the numbers for now
