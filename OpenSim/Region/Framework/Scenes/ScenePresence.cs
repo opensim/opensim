@@ -5751,29 +5751,21 @@ namespace OpenSim.Region.Framework.Scenes
                 if (scriptedcontrols.Count <= 0)
                     return;
 
-                ScriptControlled allflags = ScriptControlled.CONTROL_ZERO;
-
-                if (MouseDown)
+                ScriptControlled allflags;
+                // convert mouse from edge to level
+                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_UP) != 0 ||
+                            (flags & unchecked((uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_UP)) != 0)
                 {
-                    allflags = LastCommands & (ScriptControlled.CONTROL_ML_LBUTTON | ScriptControlled.CONTROL_LBUTTON);
-                    if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_UP) != 0 || (flags & unchecked((uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_UP)) != 0)
-                    {
-                        allflags = ScriptControlled.CONTROL_ZERO;
-                        MouseDown = true;
-                    }
+                    allflags = ScriptControlled.CONTROL_ZERO;
                 }
+                else // recover last state of mouse
+                    allflags = LastCommands & (ScriptControlled.CONTROL_ML_LBUTTON | ScriptControlled.CONTROL_LBUTTON);
 
                 if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_DOWN) != 0)
-                {
                     allflags |= ScriptControlled.CONTROL_ML_LBUTTON;
-                    MouseDown = true;
-                }
 
                 if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0)
-                {
                     allflags |= ScriptControlled.CONTROL_LBUTTON;
-                    MouseDown = true;
-                }
 
                 // find all activated controls, whether the scripts are interested in them or not
                 if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS) != 0)
@@ -5837,6 +5829,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 LastCommands = allflags;
+                MouseDown = (allflags & (ScriptControlled.CONTROL_ML_LBUTTON | ScriptControlled.CONTROL_LBUTTON)) != 0;
             }
         }
 
