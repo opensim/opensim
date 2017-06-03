@@ -2120,7 +2120,6 @@ namespace OpenSim.Region.Framework.Scenes
             lock (m_returns)
             {
                 EventManager.TriggerOnBackup(SimulationDataService, forced);
-                m_backingup = false;
 
                 foreach (KeyValuePair<UUID, ReturnInfo> ret in m_returns)
                 {
@@ -2151,6 +2150,7 @@ namespace OpenSim.Region.Framework.Scenes
                         tr.SendInstantMessage(msg, delegate(bool success) { });
                 }
                 m_returns.Clear();
+                m_backingup = false;
             }
         }
 

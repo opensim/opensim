@@ -364,6 +364,7 @@ namespace OpenSim.Region.Framework.Scenes
         //PauPaw:Proper PID Controler for autopilot************
         public bool MovingToTarget { get; private set; }
         public Vector3 MoveToPositionTarget { get; private set; }
+        private double m_delayedStop = -1.0;
 
         /// <summary>
         /// Controls whether an avatar automatically moving to a target will land when it gets there (if flying).
@@ -2732,7 +2733,6 @@ namespace OpenSim.Region.Framework.Scenes
                     agent_control_v3.Z = 0;
 //                else if(AgentControlStopActive %% Velocity.Z <0.01f)
 
-
 //                m_log.DebugFormat("[SCENE PRESENCE]: MovementFlag {0} for {1}", MovementFlag, Name);
 
                 // If the agent update does move the avatar, then calculate the force ready for the velocity update,
@@ -2741,6 +2741,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // held down AGENT_CONTROL_STOP whilst normal walking/running).  However, we do not want to update
                 // if the user rotated whilst holding down AGENT_CONTROL_STOP when already still (which locks the
                 // avatar location in place).
+
                 if (update_movementflag
                     || (update_rotation && DCFlagKeyPressed && (!AgentControlStopActive || MovementFlag != 0)))
                 {
@@ -2757,12 +2758,22 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else
                     {
-                        AddNewMovement(agent_control_v3);
+                        if(MovingToTarget ||
+                                 (Animator.currentControlState != ScenePresenceAnimator.motionControlStates.flying &&
+                                    Animator.currentControlState != ScenePresenceAnimator.motionControlStates.onsurface)
+                                 )
+                            AddNewMovement(agent_control_v3);
+                        else
+                        {
+                            if (MovementFlag != 0)
+                                AddNewMovement(agent_control_v3);
+                            else
+                                m_delayedStop = Util.GetTimeStampMS() + 200.0;
+                        }
                     }
-
                 }
 
-                if (update_movementflag && ParentID == 0)
+                if (update_movementflag && ParentID == 0 && m_delayedStop < 0)
                 {
 //                    m_log.DebugFormat("[SCENE PRESENCE]: Updating movement animations for {0}", Name);
                     Animator.UpdateMovementAnimations();
@@ -3016,6 +3027,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </param>
         public void MoveToTarget(Vector3 pos, bool noFly, bool landAtTarget)
         {
+            m_delayedStop = -1;
+
             if (SitGround)
                 StandUp();
 
@@ -3671,7 +3684,7 @@ namespace OpenSim.Region.Framework.Scenes
             //            m_log.DebugFormat(
             //                "[SCENE PRESENCE]: Adding new movement {0} with rotation {1}, thisAddSpeedModifier {2} for {3}",
             //                vec, Rotation, thisAddSpeedModifier, Name);
-
+            m_delayedStop = -1;
             // rotate from avatar coord space to world
             Quaternion rot = Rotation;
             if (!Flying && PresenceType != PresenceType.Npc)
@@ -3689,7 +3702,7 @@ namespace OpenSim.Region.Framework.Scenes
                 direc.Z = 0f; // Prevent camera WASD up.
 
             // odd rescalings
-            direc *= 0.03f * 128f * SpeedModifier * thisAddSpeedModifier;
+            direc *= 0.032f * 128f * SpeedModifier * thisAddSpeedModifier;
 
             //            m_log.DebugFormat("[SCENE PRESENCE]: Force to apply before modification was {0} for {1}", direc, Name);
 
@@ -3754,9 +3767,18 @@ namespace OpenSim.Region.Framework.Scenes
 
             if(MovingToTarget)
             {
+                m_delayedStop = -1;
                 Vector3 control = Vector3.Zero;
                 if(HandleMoveToTargetUpdate(1f, ref control))
                     AddNewMovement(control);
+            }
+            else if(m_delayedStop > 0)
+            {
+                if(IsSatOnObject)
+                    m_delayedStop = -1;  
+                else
+                if(Util.GetTimeStampMS() > m_delayedStop)
+                    AddNewMovement(Vector3.Zero);
             }
 
             if (Appearance.AvatarSize != m_lastSize)
@@ -4668,6 +4690,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 cAgent.CrossingFlags = crossingFlags;
                 cAgent.CrossingFlags |= 1;
+                cAgent.CrossExtraFlags = 0;
+                if((LastCommands & ScriptControlled.CONTROL_LBUTTON) != 0)
+                    cAgent.CrossExtraFlags |= 1;
+                if((LastCommands & ScriptControlled.CONTROL_ML_LBUTTON) != 0)
+                    cAgent.CrossExtraFlags |= 2;
             }
             else
                  cAgent.CrossingFlags = 0;
@@ -4782,6 +4809,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             crossingFlags = cAgent.CrossingFlags;
             gotCrossUpdate = (crossingFlags != 0);
+            if(gotCrossUpdate)
+            {
+                LastCommands &= ~(ScriptControlled.CONTROL_LBUTTON | ScriptControlled.CONTROL_ML_LBUTTON);
+                if((cAgent.CrossExtraFlags & 1) != 0)
+                    LastCommands |= ScriptControlled.CONTROL_LBUTTON;
+                if((cAgent.CrossExtraFlags & 2) != 0)
+                    LastCommands |= ScriptControlled.CONTROL_ML_LBUTTON;
+                MouseDown = (cAgent.CrossExtraFlags & 3) != 0;
+            }
 
             haveGroupInformation = false;
             // using this as protocol detection don't want to mess with the numbers for now
@@ -5751,29 +5787,21 @@ namespace OpenSim.Region.Framework.Scenes
                 if (scriptedcontrols.Count <= 0)
                     return;
 
-                ScriptControlled allflags = ScriptControlled.CONTROL_ZERO;
-
-                if (MouseDown)
+                ScriptControlled allflags;
+                // convert mouse from edge to level
+                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_UP) != 0 ||
+                            (flags & unchecked((uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_UP)) != 0)
                 {
-                    allflags = LastCommands & (ScriptControlled.CONTROL_ML_LBUTTON | ScriptControlled.CONTROL_LBUTTON);
-                    if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_UP) != 0 || (flags & unchecked((uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_UP)) != 0)
-                    {
-                        allflags = ScriptControlled.CONTROL_ZERO;
-                        MouseDown = true;
-                    }
+                    allflags = ScriptControlled.CONTROL_ZERO;
                 }
+                else // recover last state of mouse
+                    allflags = LastCommands & (ScriptControlled.CONTROL_ML_LBUTTON | ScriptControlled.CONTROL_LBUTTON);
 
                 if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_DOWN) != 0)
-                {
                     allflags |= ScriptControlled.CONTROL_ML_LBUTTON;
-                    MouseDown = true;
-                }
 
                 if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0)
-                {
                     allflags |= ScriptControlled.CONTROL_LBUTTON;
-                    MouseDown = true;
-                }
 
                 // find all activated controls, whether the scripts are interested in them or not
                 if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS) != 0)
@@ -5837,6 +5865,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 LastCommands = allflags;
+                MouseDown = (allflags & (ScriptControlled.CONTROL_ML_LBUTTON | ScriptControlled.CONTROL_LBUTTON)) != 0;
             }
         }
 
