@@ -2772,13 +2772,13 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 }
-
+/*
                 if (update_movementflag && ParentID == 0 && m_delayedStop < 0)
                 {
 //                    m_log.DebugFormat("[SCENE PRESENCE]: Updating movement animations for {0}", Name);
                     Animator.UpdateMovementAnimations();
                 }
-
+*/
                 SendControlsToScripts(flagsForScripts);
             }
 
