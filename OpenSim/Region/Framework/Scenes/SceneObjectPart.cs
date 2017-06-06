@@ -941,20 +941,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // If this is a root of a linkset, the real rotation is what the physics engine thinks.
                 // If not a root prim, the offset rotation is computed by SOG and is relative to the root.
                 if (ParentID == 0 && (Shape.PCode != 9 || Shape.State == 0) && actor != null)
-                {
-                    if (actor.Orientation.X != 0f || actor.Orientation.Y != 0f
-                        || actor.Orientation.Z != 0f || actor.Orientation.W != 0f)
-                    {
-                        m_rotationOffset = actor.Orientation;
-                    }
-                }
-
-//                float roll, pitch, yaw = 0;
-//                m_rotationOffset.GetEulerAngles(out roll, out pitch, out yaw);
-//
-//                m_log.DebugFormat(
-//                    "[SCENE OBJECT PART]: Got euler {0} for RotationOffset on {1} {2}",
-//                    new Vector3(roll, pitch, yaw), Name, LocalId);
+                    m_rotationOffset = actor.Orientation;
 
                 return m_rotationOffset;
             }
