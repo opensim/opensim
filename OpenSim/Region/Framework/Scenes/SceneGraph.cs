@@ -388,18 +388,18 @@ namespace OpenSim.Region.Framework.Scenes
         public bool AddNewSceneObject(
             SceneObjectGroup sceneObject, bool attachToBackup, Vector3? pos, Quaternion? rot, Vector3 vel)
         {
-            AddNewSceneObject(sceneObject, attachToBackup, false);
-
             if (pos != null)
                 sceneObject.AbsolutePosition = (Vector3)pos;
+
+            if (rot != null)
+                sceneObject.UpdateGroupRotationR((Quaternion)rot);
+
+            AddNewSceneObject(sceneObject, attachToBackup, false);
 
             if (sceneObject.RootPart.Shape.PCode == (byte)PCode.Prim)
             {
                 sceneObject.ClearPartAttachmentData();
             }
-
-            if (rot != null)
-                sceneObject.UpdateGroupRotationR((Quaternion)rot);
 
             PhysicsActor pa = sceneObject.RootPart.PhysActor;
             if (pa != null && pa.IsPhysical && vel != Vector3.Zero)
