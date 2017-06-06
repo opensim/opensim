@@ -1935,19 +1935,12 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 response.ProtocolVersion = (string)responsedata["http_protocol_version"];
             }
-/*
+
             if (responsedata.ContainsKey("keepalive"))
             {
                 bool keepalive = (bool)responsedata["keepalive"];
                 response.KeepAlive = keepalive;
             }
-
-            if (responsedata.ContainsKey("reusecontext"))
-                response.ReuseContext = (bool) responsedata["reusecontext"];
-*/
-            // disable this things
-            response.KeepAlive = false;
- //           response.ReuseContext = false;
 
             // Cross-Origin Resource Sharing with simple requests
             if (responsedata.ContainsKey("access_control_allow_origin"))
@@ -1961,10 +1954,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 contentType = "text/html";
             }
 
-
-
             // The client ignores anything but 200 here for web login, so ensure that this is 200 for that
-
 
             response.StatusCode = responsecode;
 
@@ -1975,7 +1965,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
 
             response.AddHeader("Content-Type", contentType);
-
             if (responsedata.ContainsKey("headers"))
             {
                 Hashtable headerdata = (Hashtable)responsedata["headers"];

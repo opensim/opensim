@@ -1719,26 +1719,23 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private void EventManagerOnRegisterCaps(UUID agentID, Caps caps)
         {
-            //string capsBase = "/CAPS/" + UUID.Random();
-            string capsBase = "/CAPS/" + caps.CapsObjectPath;
+            string cap = "/CAPS/" + UUID.Random();
             caps.RegisterHandler(
                 "RemoteParcelRequest",
                 new RestStreamHandler(
-                    "POST",
-                    capsBase,
+                    "POST", cap,
                     (request, path, param, httpRequest, httpResponse)
                         => RemoteParcelRequest(request, path, param, agentID, caps),
                     "RemoteParcelRequest",
                     agentID.ToString()));
 
-            UUID parcelCapID = UUID.Random();
+            cap = "/CAPS/" + UUID.Random();
             caps.RegisterHandler(
                 "ParcelPropertiesUpdate",
                 new RestStreamHandler(
-                    "POST",
-                    "/CAPS/" + parcelCapID,
-                        (request, path, param, httpRequest, httpResponse)
-                            => ProcessPropertiesUpdate(request, path, param, agentID, caps),
+                    "POST", cap,
+                    (request, path, param, httpRequest, httpResponse)
+                        => ProcessPropertiesUpdate(request, path, param, agentID, caps),
                     "ParcelPropertiesUpdate",
                     agentID.ToString()));
         }

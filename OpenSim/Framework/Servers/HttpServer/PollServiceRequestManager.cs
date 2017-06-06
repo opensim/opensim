@@ -271,22 +271,17 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                     if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id))
                     {
-                        Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id);
-
                         m_threadPool.QueueWorkItem(x =>
                         {
                             try
                             {
+                                Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id);
                                 req.DoHTTPGruntWork(m_server, responsedata);
                             }
                             catch (ObjectDisposedException) { }
                             finally
                             {
-                                if(req.HttpContext.CanSend() && req.PollServiceArgs.Type == PollServiceEventArgs.EventType.Poll
-                                        && (Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
-                                    ReQueueEvent(req);
-                                else
-                                    byContextDequeue(req);
+                                byContextDequeue(req);
                             }
                             return null;
                         }, null);
