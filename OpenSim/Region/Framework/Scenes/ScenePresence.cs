@@ -1819,6 +1819,7 @@ namespace OpenSim.Region.Framework.Scenes
             lock (m_knownChildRegions)
             {
                 m_knownChildRegionsSizeInfo.Clear();
+
                 foreach (GridRegion region in regionsList)
                 {
                     spRegionSizeInfo sizeInfo = new spRegionSizeInfo();
@@ -4440,15 +4441,19 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public List<ulong> GetChildAgentsToClose(ulong newRegionHandle, int newRegionSizeX, int newRegionSizeY)
         {
-            uint newRegionX, newRegionY;
+            ulong curRegionHandle = m_scene.RegionInfo.RegionHandle;
             List<ulong> byebyeRegions = new List<ulong>();
+
+            if(newRegionHandle == curRegionHandle) //??
+                return byebyeRegions;
+
+            uint newRegionX, newRegionY;
             List<ulong> knownRegions = KnownRegionHandles;
             m_log.DebugFormat(
                 "[SCENE PRESENCE]: Closing child agents. Checking {0} regions in {1}",
                 knownRegions.Count, Scene.RegionInfo.RegionName);
 
             Util.RegionHandleToRegionLoc(newRegionHandle, out newRegionX, out newRegionY);
-
             uint x, y;
             spRegionSizeInfo regInfo;
 
@@ -4456,7 +4461,16 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if(newRegionY == 0) // HG
                     byebyeRegions.Add(handle);
-                else
+                else if(handle == curRegionHandle)
+                {
+                    RegionInfo curreg = m_scene.RegionInfo;
+                    if (Util.IsOutsideView(255, curreg.RegionLocX, newRegionX, curreg.RegionLocY, newRegionY,
+                            (int)curreg.RegionSizeX, (int)curreg.RegionSizeX, newRegionSizeX, newRegionSizeY))
+                    {
+                        byebyeRegions.Add(handle);
+                    }
+                }
+                else    
                 {
                     Util.RegionHandleToRegionLoc(handle, out x, out y);
                     if (m_knownChildRegionsSizeInfo.TryGetValue(handle, out regInfo))
@@ -4471,7 +4485,8 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else
                     {
-                        if (Util.IsOutsideView(RegionViewDistance, x, newRegionX, y, newRegionY,
+//                        if (Util.IsOutsideView(RegionViewDistance, x, newRegionX, y, newRegionY,
+                        if (Util.IsOutsideView(255, x, newRegionX, y, newRegionY,
                             (int)Constants.RegionSize, (int)Constants.RegionSize, newRegionSizeX, newRegionSizeY))
                         {
                             byebyeRegions.Add(handle);
