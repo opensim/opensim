@@ -379,7 +379,7 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_update_terrain = 1000;
         private int m_update_land = 10;
 
-        private int m_update_coarse_locations = 50;
+        private int m_update_coarse_locations = 5;
         private int m_update_temp_cleaning = 180;
 
         private float agentMS;
@@ -1640,8 +1640,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (runs >= 0)
                 endRun = MaintenanceRun + runs;
 
-            List<Vector3> coarseLocations;
-            List<UUID> avatarUUIDs;
 
             while (!m_shuttingDown && ((endRun == null && Active) || MaintenanceRun < endRun))
             {
@@ -1650,33 +1648,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // m_log.DebugFormat("[SCENE]: Maintenance run {0} in {1}", MaintenanceRun, Name);
 
-                // Coarse locations relate to positions of green dots on the mini-map (on a SecondLife client)
-                if (MaintenanceRun % (m_update_coarse_locations / 10) == 0)
-                {
-                    SceneGraph.GetCoarseLocations(out coarseLocations, out avatarUUIDs, 60);
-                    // Send coarse locations to clients
-                    ForEachScenePresence(delegate(ScenePresence presence)
-                    {
-                        presence.SendCoarseLocations(coarseLocations, avatarUUIDs);
-                    });
-                }
-
-/* this is done on heartbeat
-                // Delete temp-on-rez stuff
-                if (MaintenanceRun % m_update_temp_cleaning == 0 && !m_cleaningTemps)
-                {
-                    // m_log.DebugFormat("[SCENE]: Running temp-on-rez cleaning in {0}", Name);
-                    tmpMS = Util.EnvironmentTickCount();
-                    m_cleaningTemps = true;
-
-                    WorkManager.RunInThread(
-                        delegate { CleanTempObjects(); m_cleaningTemps = false; },
-                        null,
-                        string.Format("CleanTempObjects ({0})", Name));
-
-                    tempOnRezMS = Util.EnvironmentTickCountSubtract(tmpMS);
-                }
-*/
                 Watchdog.UpdateThread();
 
                 previousMaintenanceTick = m_lastMaintenanceTick;
@@ -1759,6 +1730,18 @@ namespace OpenSim.Region.Framework.Scenes
                     if (Frame % m_update_entitymovement == 0)
                         m_sceneGraph.UpdateScenePresenceMovement();
 
+                    if (Frame % (m_update_coarse_locations) == 0)
+                    {
+                        List<Vector3> coarseLocations;
+                        List<UUID> avatarUUIDs;
+
+                        SceneGraph.GetCoarseLocations(out coarseLocations, out avatarUUIDs, 60);
+                        // Send coarse locations to clients
+                        ForEachScenePresence(delegate(ScenePresence presence)
+                        {
+                            presence.SendCoarseLocations(coarseLocations, avatarUUIDs);
+                        });
+                    }
                     // Get the simulation frame time that the avatar force input
                     // took
                     tmpMS2 = Util.GetTimeStampMS();
