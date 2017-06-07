@@ -257,37 +257,7 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_useFlySlow;
         public bool m_useTrashOnDelete = true;
 
-        /// <summary>
-        /// Temporarily setting to trigger appearance resends at 60 second intervals.
-        /// </summary>
-        public bool SendPeriodicAppearanceUpdates { get; set; }
-
-        /// <summary>
-        /// How much a root agent has to change position before updates are sent to viewers.
-        /// </summary>
-        public float RootPositionUpdateTolerance { get; set; }
-
-        /// <summary>
-        /// How much a root agent has to rotate before updates are sent to viewers.
-        /// </summary>
-        public float RootRotationUpdateTolerance { get; set; }
-
-        /// <summary>
-        /// How much a root agent has to change velocity before updates are sent to viewers.
-        /// </summary>
-        public float RootVelocityUpdateTolerance { get; set; }
-
-        /// <summary>
-        /// If greater than 1, we only send terse updates to other root agents on every n updates.
-        /// </summary>
-        public int RootTerseUpdatePeriod { get; set; }
-
-        /// <summary>
-        /// If greater than 1, we only send terse updates to child agents on every n updates.
-        /// </summary>
-        public int ChildTerseUpdatePeriod { get; set; }
-
-        protected float m_defaultDrawDistance = 255f;
+         protected float m_defaultDrawDistance = 255f;
         protected float m_defaultCullingDrawDistance = 16f;
         public float DefaultDrawDistance
         {
@@ -376,11 +346,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Current maintenance run number
-        /// </summary>
-        public uint MaintenanceRun { get; private set; }
-
-        /// <summary>
         /// Frame time
         /// </remarks>
         public float FrameTime { get; private set; }
@@ -391,14 +356,6 @@ namespace OpenSim.Region.Framework.Scenes
         // see SimStatsReporter.cs
         public bool Normalized55FPS { get; private set; }
 
-        /// <summary>
-        /// The minimum length of time in seconds that will be taken for a scene frame.
-        /// </summary>
-        /// <remarks>
-        /// Always derived from MinFrameTicks.
-        /// </remarks>
-        public float MinMaintenanceTime { get; private set; }
-
         private int m_update_physics = 1;
         private int m_update_entitymovement = 1;
         private int m_update_objects = 1;
@@ -407,9 +364,8 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_update_backup = 200;
 
         private int m_update_terrain = 1000;
-        private int m_update_land = 10;
 
-        private int m_update_coarse_locations = 50;
+        private int m_update_coarse_locations = 5;
         private int m_update_temp_cleaning = 180;
 
         private float agentMS;
@@ -429,11 +385,6 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_lastFrameTick;
 
         /// <summary>
-        /// Tick at which the last maintenance run occurred.
-        /// </summary>
-        private int m_lastMaintenanceTick;
-
-        /// <summary>
         /// Total script execution time (in Stopwatch Ticks) since the last frame
         /// </summary>
         private long m_scriptExecutionTime = 0;
@@ -448,11 +399,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// Used to control main scene thread looping time when not updating via timer.
         /// </summary>
         private ManualResetEvent m_updateWaitEvent = new ManualResetEvent(false);
-
-        /// <summary>
-        /// Used to control maintenance thread runs.
-        /// </summary>
-        private ManualResetEvent m_maintenanceWaitEvent = new ManualResetEvent(false);
 
         // TODO: Possibly stop other classes being able to manipulate this directly.
         private SceneGraph m_sceneGraph;
@@ -497,7 +443,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Is the scene active?
         /// </summary>
         /// <remarks>
-        /// If false, maintenance and update loops are not being run, though after setting to false update may still
+        /// If false, update loop is not being run, though after setting to false update may still
         /// be active for a period (and IsRunning will still be true).  Updates can still be triggered manually if
         /// the scene is not active.
         /// </remarks>
@@ -527,7 +473,6 @@ namespace OpenSim.Region.Framework.Scenes
         public bool IsRunning { get { return m_isRunning; } }
         private volatile bool m_isRunning;
 
-//        private int m_lastUpdate;
         private bool m_firstHeartbeat = true;
 
 //        private UpdatePrioritizationSchemes m_priorityScheme = UpdatePrioritizationSchemes.Time;
@@ -883,7 +828,6 @@ namespace OpenSim.Region.Framework.Scenes
             FrameTimeWarnPercent = 60;
             FrameTimeCritPercent = 40;
             Normalized55FPS = true;
-            MinMaintenanceTime = 1;
             SeeIntoRegion = true;
 
             Random random = new Random();
@@ -1147,17 +1091,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             }
 
-
-            // FIXME: Ultimately this should be in a module.
-            SendPeriodicAppearanceUpdates = false;
-
-            IConfig appearanceConfig = m_config.Configs["Appearance"];
-            if (appearanceConfig != null)
-            {
-                SendPeriodicAppearanceUpdates
-                    = appearanceConfig.GetBoolean("ResendAppearanceUpdates", SendPeriodicAppearanceUpdates);
-            }
-
             #endregion Region Config
 
             IConfig entityTransferConfig = m_config.Configs["EntityTransfer"];
@@ -1197,16 +1130,6 @@ namespace OpenSim.Region.Framework.Scenes
                 ObjectsCullingByDistance
                     = interestConfig.GetBoolean("ObjectsCullingByDistance", ObjectsCullingByDistance);
 
-
-                RootTerseUpdatePeriod = interestConfig.GetInt("RootTerseUpdatePeriod", RootTerseUpdatePeriod);
-                ChildTerseUpdatePeriod = interestConfig.GetInt("ChildTerseUpdatePeriod", ChildTerseUpdatePeriod);
-
-                RootPositionUpdateTolerance
-                    = interestConfig.GetFloat("RootPositionUpdateTolerance", RootPositionUpdateTolerance);
-                RootRotationUpdateTolerance
-                    = interestConfig.GetFloat("RootRotationUpdateTolerance", RootRotationUpdateTolerance);
-                RootVelocityUpdateTolerance
-                    = interestConfig.GetFloat("RootVelocityUpdateTolerance", RootVelocityUpdateTolerance);
             }
 
             m_log.DebugFormat("[SCENE]: Using the {0} prioritization scheme", UpdatePrioritizationScheme);
@@ -1275,9 +1198,6 @@ namespace OpenSim.Region.Framework.Scenes
             UpdatePrioritizationScheme = UpdatePrioritizationSchemes.Time;
             ReprioritizationInterval = 5000;
 
-            RootRotationUpdateTolerance = 0.1f;
-            RootVelocityUpdateTolerance = 0.001f;
-            RootPositionUpdateTolerance = 0.05f;
             ReprioritizationDistance = m_minReprioritizationDistance;
 
             m_eventManager = new EventManager();
@@ -1668,98 +1588,10 @@ namespace OpenSim.Region.Framework.Scenes
             // alarms for scenes with many objects.
             Update(1);
 
-            WorkManager.StartThread(
-                Maintenance, string.Format("Maintenance ({0})", RegionInfo.RegionName), ThreadPriority.Normal, false, true);
-
             Watchdog.GetCurrentThreadInfo().AlarmIfTimeout = true;
             m_lastFrameTick = Util.EnvironmentTickCount();
             Update(-1);
-
             Watchdog.RemoveThread();
-        }
-
-        private void Maintenance()
-        {
-            DoMaintenance(-1);
-
-            Watchdog.RemoveThread();
-        }
-
-        public void DoMaintenance(int runs)
-        {
-            long? endRun = null;
-            int runtc, tmpMS;
-            int previousMaintenanceTick;
-
-            if (runs >= 0)
-                endRun = MaintenanceRun + runs;
-
-            List<Vector3> coarseLocations;
-            List<UUID> avatarUUIDs;
-
-            while (!m_shuttingDown && ((endRun == null && Active) || MaintenanceRun < endRun))
-            {
-                runtc = Util.EnvironmentTickCount();
-                ++MaintenanceRun;
-
-                // m_log.DebugFormat("[SCENE]: Maintenance run {0} in {1}", MaintenanceRun, Name);
-
-                // Coarse locations relate to positions of green dots on the mini-map (on a SecondLife client)
-                if (MaintenanceRun % (m_update_coarse_locations / 10) == 0)
-                {
-                    SceneGraph.GetCoarseLocations(out coarseLocations, out avatarUUIDs, 60);
-                    // Send coarse locations to clients
-                    ForEachScenePresence(delegate(ScenePresence presence)
-                    {
-                        presence.SendCoarseLocations(coarseLocations, avatarUUIDs);
-                    });
-                }
-
-                if (SendPeriodicAppearanceUpdates && MaintenanceRun % 60 == 0)
-                {
-                    // m_log.DebugFormat("[SCENE]: Sending periodic appearance updates");
-
-                    if (AvatarFactory != null)
-                    {
-                        ForEachRootScenePresence(sp => AvatarFactory.SendAppearance(sp.UUID));
-                    }
-                }
-
-                // Delete temp-on-rez stuff
-                if (MaintenanceRun % m_update_temp_cleaning == 0 && !m_cleaningTemps)
-                {
-                    // m_log.DebugFormat("[SCENE]: Running temp-on-rez cleaning in {0}", Name);
-                    tmpMS = Util.EnvironmentTickCount();
-                    m_cleaningTemps = true;
-
-                    WorkManager.RunInThread(
-                        delegate { CleanTempObjects(); m_cleaningTemps = false; },
-                        null,
-                        string.Format("CleanTempObjects ({0})", Name));
-
-                    tempOnRezMS = Util.EnvironmentTickCountSubtract(tmpMS);
-                }
-
-                Watchdog.UpdateThread();
-
-                previousMaintenanceTick = m_lastMaintenanceTick;
-                m_lastMaintenanceTick = Util.EnvironmentTickCount();
-                runtc = Util.EnvironmentTickCountSubtract(m_lastMaintenanceTick, runtc);
-                runtc = (int)(MinMaintenanceTime * 1000) - runtc;
-
-                if (runtc > 0)
-                    m_maintenanceWaitEvent.WaitOne(runtc);
-
-                // Optionally warn if a frame takes double the amount of time that it should.
-                if (DebugUpdates
-                     && Util.EnvironmentTickCountSubtract(
-                         m_lastMaintenanceTick, previousMaintenanceTick) > (int)(MinMaintenanceTime * 1000 * 2))
-                    m_log.WarnFormat(
-                        "[SCENE]: Maintenance took {0} ms (desired max {1} ms) in {2}",
-                        Util.EnvironmentTickCountSubtract(m_lastMaintenanceTick, previousMaintenanceTick),
-                        MinMaintenanceTime * 1000,
-                        RegionInfo.RegionName);
-            }
         }
 
         public override void Update(int frames)
@@ -1822,6 +1654,18 @@ namespace OpenSim.Region.Framework.Scenes
                     if (Frame % m_update_entitymovement == 0)
                         m_sceneGraph.UpdateScenePresenceMovement();
 
+                    if (Frame % (m_update_coarse_locations) == 0)
+                    {
+                        List<Vector3> coarseLocations;
+                        List<UUID> avatarUUIDs;
+
+                        SceneGraph.GetCoarseLocations(out coarseLocations, out avatarUUIDs, 60);
+                        // Send coarse locations to clients
+                        ForEachScenePresence(delegate(ScenePresence presence)
+                        {
+                            presence.SendCoarseLocations(coarseLocations, avatarUUIDs);
+                        });
+                    }
                     // Get the simulation frame time that the avatar force input
                     // took
                     tmpMS2 = Util.GetTimeStampMS();
@@ -1864,7 +1708,8 @@ namespace OpenSim.Region.Framework.Scenes
                     if (Frame % m_update_temp_cleaning == 0 && !m_cleaningTemps)
                     {
                         m_cleaningTemps = true;
-                        Util.FireAndForget(delegate { CleanTempObjects(); m_cleaningTemps = false;  });
+                        WorkManager.RunInThread(
+                            delegate { CleanTempObjects(); m_cleaningTemps = false; }, null, string.Format("CleanTempObjects ({0})", Name));
                         tmpMS2 = Util.GetTimeStampMS();
                         tempOnRezMS = (float)(tmpMS2 - tmpMS); // bad.. counts the FireAndForget, not CleanTempObjects
                         tmpMS = tmpMS2;
@@ -2091,7 +1936,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!m_backingup)
             {
                 m_backingup = true;
-                WorkManager.RunInThread(o => Backup(false), null, string.Format("BackupWaitCallback ({0})", Name));
+                WorkManager.RunInThread(o => Backup(false), null, string.Format("BackupWorker ({0})", Name));
             }
         }
 
