@@ -258,11 +258,6 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_useTrashOnDelete = true;
 
         /// <summary>
-        /// Temporarily setting to trigger appearance resends at 60 second intervals.
-        /// </summary>
-        public bool SendPeriodicAppearanceUpdates { get; set; }
-
-        /// <summary>
         /// How much a root agent has to change position before updates are sent to viewers.
         /// </summary>
         public float RootPositionUpdateTolerance { get; set; }
@@ -1147,17 +1142,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             }
 
-
-            // FIXME: Ultimately this should be in a module.
-            SendPeriodicAppearanceUpdates = false;
-
-            IConfig appearanceConfig = m_config.Configs["Appearance"];
-            if (appearanceConfig != null)
-            {
-                SendPeriodicAppearanceUpdates
-                    = appearanceConfig.GetBoolean("ResendAppearanceUpdates", SendPeriodicAppearanceUpdates);
-            }
-
             #endregion Region Config
 
             IConfig entityTransferConfig = m_config.Configs["EntityTransfer"];
@@ -1715,16 +1699,7 @@ namespace OpenSim.Region.Framework.Scenes
                     });
                 }
 
-                if (SendPeriodicAppearanceUpdates && MaintenanceRun % 60 == 0)
-                {
-                    // m_log.DebugFormat("[SCENE]: Sending periodic appearance updates");
-
-                    if (AvatarFactory != null)
-                    {
-                        ForEachRootScenePresence(sp => AvatarFactory.SendAppearance(sp.UUID));
-                    }
-                }
-
+/* this is done on heartbeat
                 // Delete temp-on-rez stuff
                 if (MaintenanceRun % m_update_temp_cleaning == 0 && !m_cleaningTemps)
                 {
@@ -1739,7 +1714,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     tempOnRezMS = Util.EnvironmentTickCountSubtract(tmpMS);
                 }
-
+*/
                 Watchdog.UpdateThread();
 
                 previousMaintenanceTick = m_lastMaintenanceTick;
@@ -1864,7 +1839,8 @@ namespace OpenSim.Region.Framework.Scenes
                     if (Frame % m_update_temp_cleaning == 0 && !m_cleaningTemps)
                     {
                         m_cleaningTemps = true;
-                        Util.FireAndForget(delegate { CleanTempObjects(); m_cleaningTemps = false;  });
+                        WorkManager.RunInThread(
+                            delegate { CleanTempObjects(); m_cleaningTemps = false; }, null, string.Format("CleanTempObjects ({0})", Name));
                         tmpMS2 = Util.GetTimeStampMS();
                         tempOnRezMS = (float)(tmpMS2 - tmpMS); // bad.. counts the FireAndForget, not CleanTempObjects
                         tmpMS = tmpMS2;
@@ -2091,7 +2067,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!m_backingup)
             {
                 m_backingup = true;
-                WorkManager.RunInThread(o => Backup(false), null, string.Format("BackupWaitCallback ({0})", Name));
+                WorkManager.RunInThread(o => Backup(false), null, string.Format("BackupWorker ({0})", Name));
             }
         }
 
