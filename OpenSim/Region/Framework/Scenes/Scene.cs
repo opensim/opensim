@@ -257,32 +257,7 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_useFlySlow;
         public bool m_useTrashOnDelete = true;
 
-        /// <summary>
-        /// How much a root agent has to change position before updates are sent to viewers.
-        /// </summary>
-        public float RootPositionUpdateTolerance { get; set; }
-
-        /// <summary>
-        /// How much a root agent has to rotate before updates are sent to viewers.
-        /// </summary>
-        public float RootRotationUpdateTolerance { get; set; }
-
-        /// <summary>
-        /// How much a root agent has to change velocity before updates are sent to viewers.
-        /// </summary>
-        public float RootVelocityUpdateTolerance { get; set; }
-
-        /// <summary>
-        /// If greater than 1, we only send terse updates to other root agents on every n updates.
-        /// </summary>
-        public int RootTerseUpdatePeriod { get; set; }
-
-        /// <summary>
-        /// If greater than 1, we only send terse updates to child agents on every n updates.
-        /// </summary>
-        public int ChildTerseUpdatePeriod { get; set; }
-
-        protected float m_defaultDrawDistance = 255f;
+         protected float m_defaultDrawDistance = 255f;
         protected float m_defaultCullingDrawDistance = 16f;
         public float DefaultDrawDistance
         {
@@ -1181,16 +1156,6 @@ namespace OpenSim.Region.Framework.Scenes
                 ObjectsCullingByDistance
                     = interestConfig.GetBoolean("ObjectsCullingByDistance", ObjectsCullingByDistance);
 
-
-                RootTerseUpdatePeriod = interestConfig.GetInt("RootTerseUpdatePeriod", RootTerseUpdatePeriod);
-                ChildTerseUpdatePeriod = interestConfig.GetInt("ChildTerseUpdatePeriod", ChildTerseUpdatePeriod);
-
-                RootPositionUpdateTolerance
-                    = interestConfig.GetFloat("RootPositionUpdateTolerance", RootPositionUpdateTolerance);
-                RootRotationUpdateTolerance
-                    = interestConfig.GetFloat("RootRotationUpdateTolerance", RootRotationUpdateTolerance);
-                RootVelocityUpdateTolerance
-                    = interestConfig.GetFloat("RootVelocityUpdateTolerance", RootVelocityUpdateTolerance);
             }
 
             m_log.DebugFormat("[SCENE]: Using the {0} prioritization scheme", UpdatePrioritizationScheme);
@@ -1259,9 +1224,6 @@ namespace OpenSim.Region.Framework.Scenes
             UpdatePrioritizationScheme = UpdatePrioritizationSchemes.Time;
             ReprioritizationInterval = 5000;
 
-            RootRotationUpdateTolerance = 0.1f;
-            RootVelocityUpdateTolerance = 0.001f;
-            RootPositionUpdateTolerance = 0.05f;
             ReprioritizationDistance = m_minReprioritizationDistance;
 
             m_eventManager = new EventManager();
