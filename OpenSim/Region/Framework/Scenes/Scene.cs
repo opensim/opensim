@@ -346,11 +346,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Current maintenance run number
-        /// </summary>
-        public uint MaintenanceRun { get; private set; }
-
-        /// <summary>
         /// Frame time
         /// </remarks>
         public float FrameTime { get; private set; }
@@ -361,14 +356,6 @@ namespace OpenSim.Region.Framework.Scenes
         // see SimStatsReporter.cs
         public bool Normalized55FPS { get; private set; }
 
-        /// <summary>
-        /// The minimum length of time in seconds that will be taken for a scene frame.
-        /// </summary>
-        /// <remarks>
-        /// Always derived from MinFrameTicks.
-        /// </remarks>
-        public float MinMaintenanceTime { get; private set; }
-
         private int m_update_physics = 1;
         private int m_update_entitymovement = 1;
         private int m_update_objects = 1;
@@ -377,7 +364,6 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_update_backup = 200;
 
         private int m_update_terrain = 1000;
-        private int m_update_land = 10;
 
         private int m_update_coarse_locations = 5;
         private int m_update_temp_cleaning = 180;
@@ -399,11 +385,6 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_lastFrameTick;
 
         /// <summary>
-        /// Tick at which the last maintenance run occurred.
-        /// </summary>
-        private int m_lastMaintenanceTick;
-
-        /// <summary>
         /// Total script execution time (in Stopwatch Ticks) since the last frame
         /// </summary>
         private long m_scriptExecutionTime = 0;
@@ -418,11 +399,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// Used to control main scene thread looping time when not updating via timer.
         /// </summary>
         private ManualResetEvent m_updateWaitEvent = new ManualResetEvent(false);
-
-        /// <summary>
-        /// Used to control maintenance thread runs.
-        /// </summary>
-        private ManualResetEvent m_maintenanceWaitEvent = new ManualResetEvent(false);
 
         // TODO: Possibly stop other classes being able to manipulate this directly.
         private SceneGraph m_sceneGraph;
@@ -467,7 +443,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Is the scene active?
         /// </summary>
         /// <remarks>
-        /// If false, maintenance and update loops are not being run, though after setting to false update may still
+        /// If false, update loop is not being run, though after setting to false update may still
         /// be active for a period (and IsRunning will still be true).  Updates can still be triggered manually if
         /// the scene is not active.
         /// </remarks>
@@ -497,7 +473,6 @@ namespace OpenSim.Region.Framework.Scenes
         public bool IsRunning { get { return m_isRunning; } }
         private volatile bool m_isRunning;
 
-//        private int m_lastUpdate;
         private bool m_firstHeartbeat = true;
 
 //        private UpdatePrioritizationSchemes m_priorityScheme = UpdatePrioritizationSchemes.Time;
@@ -853,7 +828,6 @@ namespace OpenSim.Region.Framework.Scenes
             FrameTimeWarnPercent = 60;
             FrameTimeCritPercent = 40;
             Normalized55FPS = true;
-            MinMaintenanceTime = 1;
             SeeIntoRegion = true;
 
             Random random = new Random();
@@ -1614,60 +1588,10 @@ namespace OpenSim.Region.Framework.Scenes
             // alarms for scenes with many objects.
             Update(1);
 
-            WorkManager.StartThread(
-                Maintenance, string.Format("Maintenance ({0})", RegionInfo.RegionName), ThreadPriority.Normal, false, true);
-
             Watchdog.GetCurrentThreadInfo().AlarmIfTimeout = true;
             m_lastFrameTick = Util.EnvironmentTickCount();
             Update(-1);
-
             Watchdog.RemoveThread();
-        }
-
-        private void Maintenance()
-        {
-            DoMaintenance(-1);
-
-            Watchdog.RemoveThread();
-        }
-
-        public void DoMaintenance(int runs)
-        {
-            long? endRun = null;
-            int runtc, tmpMS;
-            int previousMaintenanceTick;
-
-            if (runs >= 0)
-                endRun = MaintenanceRun + runs;
-
-
-            while (!m_shuttingDown && ((endRun == null && Active) || MaintenanceRun < endRun))
-            {
-                runtc = Util.EnvironmentTickCount();
-                ++MaintenanceRun;
-
-                // m_log.DebugFormat("[SCENE]: Maintenance run {0} in {1}", MaintenanceRun, Name);
-
-                Watchdog.UpdateThread();
-
-                previousMaintenanceTick = m_lastMaintenanceTick;
-                m_lastMaintenanceTick = Util.EnvironmentTickCount();
-                runtc = Util.EnvironmentTickCountSubtract(m_lastMaintenanceTick, runtc);
-                runtc = (int)(MinMaintenanceTime * 1000) - runtc;
-
-                if (runtc > 0)
-                    m_maintenanceWaitEvent.WaitOne(runtc);
-
-                // Optionally warn if a frame takes double the amount of time that it should.
-                if (DebugUpdates
-                     && Util.EnvironmentTickCountSubtract(
-                         m_lastMaintenanceTick, previousMaintenanceTick) > (int)(MinMaintenanceTime * 1000 * 2))
-                    m_log.WarnFormat(
-                        "[SCENE]: Maintenance took {0} ms (desired max {1} ms) in {2}",
-                        Util.EnvironmentTickCountSubtract(m_lastMaintenanceTick, previousMaintenanceTick),
-                        MinMaintenanceTime * 1000,
-                        RegionInfo.RegionName);
-            }
         }
 
         public override void Update(int frames)
