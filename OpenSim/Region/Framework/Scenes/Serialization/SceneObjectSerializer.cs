@@ -1361,8 +1361,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessShpMedia(PrimitiveBaseShape shp, XmlReader reader)
         {
-            // Get inner XML and pass to MediaList parser
-            string value = reader.ReadInnerXml();
+            string value = reader.ReadElementContentAsString("Media", String.Empty);
             shp.Media = PrimitiveBaseShape.MediaList.FromXml(value);
         }
 
