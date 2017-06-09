@@ -971,6 +971,10 @@ namespace OpenSim.Region.Framework.Scenes
                 m_inTransit = value;
             }
         }
+        // this is is only valid if IsInTransit is true
+        // only false on HG tps
+        // used work arounf viewers asking source region about destination user
+        public bool IsInLocalTransit {get; set; }
 
 
         /// <summary>
@@ -1040,6 +1044,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_uuid = client.AgentId;
             LocalId = m_scene.AllocateLocalId();
             LegacySitOffsets = m_scene.LegacySitOffsets;
+            IsInLocalTransit = true;
 
             UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, m_uuid);
             if (account != null)

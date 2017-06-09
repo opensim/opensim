@@ -1577,7 +1577,10 @@ namespace OpenSim.Region.ClientStack.Linden
                     break;
 
                 m_Scene.TryGetScenePresence(m_AgentID, out sp);
-                if(sp == null || sp.IsChildAgent || sp.IsDeleted || sp.IsInTransit)
+                if(sp == null || sp.IsChildAgent || sp.IsDeleted)
+                    break;
+
+                if(sp.IsInTransit && !sp.IsInLocalTransit)
                     break;
 
                 client = sp.ControllingClient;
@@ -1699,7 +1702,10 @@ namespace OpenSim.Region.ClientStack.Linden
                     break;
 
                 m_Scene.TryGetScenePresence(m_AgentID, out sp);
-                if(sp == null || sp.IsChildAgent || sp.IsDeleted || sp.IsInTransit)
+                if(sp == null || sp.IsChildAgent || sp.IsDeleted)
+                    break;
+                
+                if(sp.IsInTransit && !sp.IsInLocalTransit)
                     break;
 
                 client = sp.ControllingClient;
@@ -1807,7 +1813,7 @@ namespace OpenSim.Region.ClientStack.Linden
             if(sp == null || sp.IsDeleted)
                 return "";
 
-            if(sp.IsInTransit)
+            if(sp.IsInTransit && !sp.IsInLocalTransit)
             {
                 httpResponse.StatusCode = (int)System.Net.HttpStatusCode.ServiceUnavailable;
                 httpResponse.AddHeader("Retry-After","30");
@@ -1816,7 +1822,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
             NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
             string[] ids = query.GetValues("ids");
-
 
             Dictionary<UUID,string> names = m_UserManager.GetUsersNames(ids);
 
@@ -1833,12 +1838,18 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 string[] parts = kvp.Value.Split(new char[] {' '});
                 OSDMap osdname = new OSDMap();
+
+                // dont tell about unknown users, we can't send them back on Bad either
+                if(parts[0] == "Unknown")
+                     continue;
+/*
                 if(parts[0] == "Unknown")
                 {
                     osdname["display_name_next_update"] = OSD.FromDate(DateTime.UtcNow.AddHours(1));
                     osdname["display_name_expires"] = OSD.FromDate(DateTime.UtcNow.AddHours(2));
                 }
                 else
+*/
                 {
                     osdname["display_name_next_update"] = OSD.FromDate(DateTime.UtcNow.AddDays(8));
                     osdname["display_name_expires"] = OSD.FromDate(DateTime.UtcNow.AddMonths(1));
