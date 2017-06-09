@@ -1361,7 +1361,28 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessShpMedia(PrimitiveBaseShape shp, XmlReader reader)
         {
-            string value = reader.ReadElementContentAsString("Media", String.Empty);
+            string value = String.Empty;
+            try
+            {
+                // The prominant format for MOAP is escaped XML (with &gt; etc).
+                // This is read as a string and passed to PrimitiveBaseShape which requires
+                //     its XML as a string (which it parses with its own XmlReader).
+                value = reader.ReadElementContentAsString("Media", String.Empty);
+            }
+            catch (XmlException e)
+            {
+                // There are versions of OAR files that contain unquoted XML.
+                try
+                {
+                    m_log.WarnFormat("[SERIALIZER] MOAP specification in non-escaped XML format. Recovering.");
+                    value = reader.ReadInnerXml();
+                }
+                catch (Exception ee)
+                {
+                    m_log.ErrorFormat("[SERIALIZER] Failed parsing of MOAP information");
+                    throw new XmlException("Failed parsing of MOAP media XML element");
+                }
+            }
             shp.Media = PrimitiveBaseShape.MediaList.FromXml(value);
         }
 
