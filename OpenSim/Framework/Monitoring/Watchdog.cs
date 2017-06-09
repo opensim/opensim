@@ -254,14 +254,12 @@ namespace OpenSim.Framework.Monitoring
 
                     twi.Cleanup();
                     m_threads.Remove(threadID);
-
                     return true;
                 }
                 else
                 {
                     m_log.WarnFormat(
                         "[WATCHDOG]: Requested to remove thread with ID {0} but this is not being monitored", threadID);
-
                     return false;
                 }
             }
@@ -360,7 +358,7 @@ namespace OpenSim.Framework.Monitoring
                 List<ThreadWatchdogInfo> callbackInfos = null;
                 List<ThreadWatchdogInfo> threadsToRemove = null;
 
-                const ThreadState thgone = ThreadState.Stopped | ThreadState.Aborted | ThreadState.AbortRequested;
+                const ThreadState thgone = ThreadState.Stopped;
 
                 lock (m_threads)
                 {
@@ -368,7 +366,7 @@ namespace OpenSim.Framework.Monitoring
                     {
                         if(!m_enabled)
                             return;
-                        if(!threadInfo.Thread.IsAlive || (threadInfo.Thread.ThreadState & thgone) != 0)
+                        if((threadInfo.Thread.ThreadState & thgone) != 0)
                         {
                             if(threadsToRemove == null)
                                 threadsToRemove = new List<ThreadWatchdogInfo>();
