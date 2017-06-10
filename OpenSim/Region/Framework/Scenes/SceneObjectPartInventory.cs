@@ -91,7 +91,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </value>
         protected internal TaskInventoryDictionary Items
         {
-            get {
+            get
+            {
                 return m_items;
             }
             set
@@ -141,45 +142,53 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public void ResetInventoryIDs()
         {
-            if (null == m_part)
-            m_items.LockItemsForWrite(true);
+            if (m_part == null)
+                return;
 
-            if (Items.Count == 0)
+            m_items.LockItemsForWrite(true);
+            if (m_items.Count == 0)
             {
                 m_items.LockItemsForWrite(false);
                 return;
             }
 
-            IList<TaskInventoryItem> items = new List<TaskInventoryItem>(Items.Values);
-            Items.Clear();
+            UUID partID = m_part.UUID;
+            IList<TaskInventoryItem> items = new List<TaskInventoryItem>(m_items.Values);
+            m_items.Clear();
 
             foreach (TaskInventoryItem item in items)
             {
-                item.ResetIDs(m_part.UUID);
-                Items.Add(item.ItemID, item);
+                item.ResetIDs(partID);
+                m_items.Add(item.ItemID, item);
             }
+            m_inventorySerial++;
             m_items.LockItemsForWrite(false);
         }
 
         public void ResetObjectID()
         {
+            if (m_part == null)
+                return;
+
             m_items.LockItemsForWrite(true);
 
-            if (Items.Count == 0)
+            if (m_items.Count == 0)
             {
                 m_items.LockItemsForWrite(false);
                 return;
             }
 
-            IList<TaskInventoryItem> items = new List<TaskInventoryItem>(Items.Values);
-            Items.Clear();
+            IList<TaskInventoryItem> items = new List<TaskInventoryItem>(m_items.Values);
+            m_items.Clear();
 
+            UUID partID = m_part.UUID;
             foreach (TaskInventoryItem item in items)
             {
-                item.ParentPartID = m_part.UUID;
-                item.ParentID = m_part.UUID;
-                Items.Add(item.ItemID, item);
+                item.ParentPartID = partID;
+                item.ParentID = partID;
+                m_items.Add(item.ItemID, item);
             }
+            m_inventorySerial++;
             m_items.LockItemsForWrite(false);
         }
 
@@ -189,15 +198,17 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="ownerId"></param>
         public void ChangeInventoryOwner(UUID ownerId)
         {
-            List<TaskInventoryItem> items = GetInventoryItems();
-
-            if (items.Count == 0)
+            if(m_part == null)
                 return;
 
             m_items.LockItemsForWrite(true);
-            HasInventoryChanged = true;
-            m_part.ParentGroup.HasGroupChanged = true;
-            foreach (TaskInventoryItem item in items)
+            if (m_items.Count == 0)
+            {
+                m_items.LockItemsForWrite(false);
+                return;
+            }
+
+            foreach (TaskInventoryItem item in m_items.Values)
             {
                 if (ownerId != item.OwnerID)
                     item.LastOwnerID = item.OwnerID;
@@ -207,6 +218,8 @@ namespace OpenSim.Region.Framework.Scenes
                 item.PermsGranter = UUID.Zero;
                 item.OwnerChanged = true;
             }
+            HasInventoryChanged = true;
+            m_part.ParentGroup.HasGroupChanged = true;
             m_inventorySerial++;
             m_items.LockItemsForWrite(false);
         }
@@ -217,8 +230,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="groupID"></param>
         public void ChangeInventoryGroup(UUID groupID)
         {
+            if(m_part == null)
+                return;
+
             m_items.LockItemsForWrite(true);
-            if (0 == Items.Count)
+            if (m_items.Count == 0)
             {
                 m_items.LockItemsForWrite(false);
                 return;
@@ -233,11 +249,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_part.ParentGroup.HasGroupChanged = true;
             }
 
-            IList<TaskInventoryItem> items = new List<TaskInventoryItem>(Items.Values);
-            foreach (TaskInventoryItem item in items)
-            {
+            foreach (TaskInventoryItem item in m_items.Values)
                     item.GroupID = groupID;
-                }
+
             m_items.LockItemsForWrite(false);
         }
 
@@ -246,8 +260,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_part == null || m_part.ParentGroup == null || m_part.ParentGroup.Scene == null)
                 return;
 
-            Items.LockItemsForRead(true);
-            foreach (TaskInventoryItem item in Items.Values)
+            m_items.LockItemsForRead(true);
+            foreach (TaskInventoryItem item in m_items.Values)
             {
                 if (item.InvType == (int)InventoryType.LSL)
                 {
@@ -257,7 +271,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            Items.LockItemsForRead(false);
+            m_items.LockItemsForRead(false);
         }
 
         public bool TryGetScriptInstanceRunning(UUID itemId, out bool running)
@@ -345,7 +359,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void StopScriptInstances()
         {
-            GetInventoryItems(InventoryType.LSL).ForEach(i => StopScriptInstance(i));
+            List<TaskInventoryItem> scripts = GetInventoryItems(InventoryType.LSL);
+            foreach (TaskInventoryItem item in scripts)
+                StopScriptInstance(item);
         }
 
         /// <summary>
@@ -807,7 +823,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_part.AggregateInnerPerms();
             m_inventorySerial++;
-            //m_inventorySerial += 2;
             HasInventoryChanged = true;
             m_part.ParentGroup.HasGroupChanged = true;
         }
@@ -1126,18 +1141,18 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 bool changed = false;
 
-                Items.LockItemsForRead(true);
+                m_items.LockItemsForRead(true);
 
                 if (m_inventorySerial == 0) // No inventory
                 {
-                    Items.LockItemsForRead(false);
+                    m_items.LockItemsForRead(false);
                     client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
                     return;
                 }
 
                 if (m_items.Count == 0) // No inventory
                 {
-                    Items.LockItemsForRead(false);
+                    m_items.LockItemsForRead(false);
                     client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
                     return;
                 }
@@ -1148,7 +1163,7 @@ namespace OpenSim.Region.Framework.Scenes
                     changed = true;
                 }
 
-                Items.LockItemsForRead(false);
+                m_items.LockItemsForRead(false);
 
                 if (m_inventoryFileData.Length < 2)
                     changed = true;
@@ -1173,7 +1188,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 InventoryStringBuilder invString = new InventoryStringBuilder(m_part.UUID, UUID.Zero);
 
-                Items.LockItemsForRead(true);
+                m_items.LockItemsForRead(true);
 
                 foreach (TaskInventoryItem item in m_items.Values)
                 {
@@ -1234,7 +1249,7 @@ namespace OpenSim.Region.Framework.Scenes
                     invString.AddSectionEnd();
                 }
 
-                Items.LockItemsForRead(false);
+                m_items.LockItemsForRead(false);
 
                 m_inventoryFileData = Utils.StringToBytes(invString.GetString());
 
@@ -1264,10 +1279,10 @@ namespace OpenSim.Region.Framework.Scenes
 // of prim inventory loss.
 //            if (HasInventoryChanged)
 //            {
-                Items.LockItemsForRead(true);
-                ICollection<TaskInventoryItem> itemsvalues = Items.Values;
+                m_items.LockItemsForRead(true);
+                ICollection<TaskInventoryItem> itemsvalues = m_items.Values;
                 HasInventoryChanged = false;
-                Items.LockItemsForRead(false);
+                m_items.LockItemsForRead(false);
                 try
                 {
                     datastore.StorePrimInventory(m_part.UUID, itemsvalues);
@@ -1434,15 +1449,13 @@ namespace OpenSim.Region.Framework.Scenes
         public int ScriptCount()
         {
             int count = 0;
-            Items.LockItemsForRead(true);
+            m_items.LockItemsForRead(true);
             foreach (TaskInventoryItem item in m_items.Values)
             {
                 if (item.InvType == (int)InventoryType.LSL)
-                {
                     count++;
                 }
-            }
-            Items.LockItemsForRead(false);
+            m_items.LockItemsForRead(false);
             return count;
         }
         /// <summary>
@@ -1465,48 +1478,44 @@ namespace OpenSim.Region.Framework.Scenes
                     if (engine != null)
                     {
                         if (engine.GetScriptState(item.ItemID))
-                        {
                             count++;
                         }
                     }
                 }
-            }
             return count;
         }
 
         public List<UUID> GetInventoryList()
         {
-            List<UUID> ret = new List<UUID>();
+            m_items.LockItemsForRead(true);
 
+            List<UUID> ret = new List<UUID>(m_items.Count);
             foreach (TaskInventoryItem item in m_items.Values)
                 ret.Add(item.ItemID);
 
+            m_items.LockItemsForRead(false);
             return ret;
         }
 
         public List<TaskInventoryItem> GetInventoryItems()
         {
-            List<TaskInventoryItem> ret = new List<TaskInventoryItem>();
-
-            Items.LockItemsForRead(true);
-            ret = new List<TaskInventoryItem>(m_items.Values);
-            Items.LockItemsForRead(false);
+            m_items.LockItemsForRead(true);
+            List<TaskInventoryItem> ret = new List<TaskInventoryItem>(m_items.Values);
+            m_items.LockItemsForRead(false);
 
             return ret;
         }
 
         public List<TaskInventoryItem> GetInventoryItems(InventoryType type)
         {
-            List<TaskInventoryItem> ret = new List<TaskInventoryItem>();
+            m_items.LockItemsForRead(true);
 
-            Items.LockItemsForRead(true);
-
+            List<TaskInventoryItem> ret = new List<TaskInventoryItem>(m_items.Count);
             foreach (TaskInventoryItem item in m_items.Values)
                 if (item.InvType == (int)type)
                     ret.Add(item);
 
-            Items.LockItemsForRead(false);
-
+            m_items.LockItemsForRead(false);
             return ret;
         }
 

@@ -1168,7 +1168,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
                         con.Output("FloatSam Ensuring assets are cached for all scenes.");
 
-                        WorkManager.RunInThread(delegate
+                        WorkManager.RunInThreadPool(delegate
                         {
                             bool wasRunning= false;
                             lock(timerLock)

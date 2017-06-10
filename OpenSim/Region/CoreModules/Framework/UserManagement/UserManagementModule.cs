@@ -175,6 +175,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         {
             client.OnNameFromUUIDRequest -= new UUIDNameRequest(HandleUUIDNameRequest);
             client.OnAvatarPickerRequest -= new AvatarPickerRequest(HandleAvatarPickerRequest);
+            client.OnConnectionClosed -= new Action<IClientAPI>(HandleConnectionClosed);
         }
 
         protected virtual void HandleUUIDNameRequest(UUID uuid, IClientAPI client)

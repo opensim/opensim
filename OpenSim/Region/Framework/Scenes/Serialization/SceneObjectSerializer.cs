@@ -1361,9 +1361,27 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessShpMedia(PrimitiveBaseShape shp, XmlReader reader)
         {
-            // Get inner XML and pass to MediaList parser
-            string value = reader.ReadInnerXml();
-            shp.Media = PrimitiveBaseShape.MediaList.FromXml(value);
+            string value = String.Empty;
+            try
+            {
+                // The STANDARD content of Media elemet is escaped XML string (with &gt; etc).
+                value = reader.ReadElementContentAsString("Media", String.Empty);
+                shp.Media = PrimitiveBaseShape.MediaList.FromXml(value);
+            }
+            catch (XmlException e)
+            {
+                // There are versions of OAR files that contain unquoted XML.
+                // ie ONE comercial fork that never wanted their oars to be read by our code
+                try
+                {
+                    value = reader.ReadInnerXml();
+                    shp.Media = PrimitiveBaseShape.MediaList.FromXml(value);
+                }
+                catch
+                {
+                    m_log.ErrorFormat("[SERIALIZER] Failed parsing halcyon MOAP information");
+                }
+            }
         }
 
         #endregion

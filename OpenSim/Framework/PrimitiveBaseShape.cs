@@ -1580,34 +1580,47 @@ namespace OpenSim.Framework
             {
                 MediaList ml = new MediaList();
                 ml.ReadXml(rawXml);
+                if(ml.Count == 0)
+                    return null;
                 return ml;
             }
 
             public void ReadXml(string rawXml)
             {
-                using (StringReader sr = new StringReader(rawXml))
+                try
                 {
-                    using (XmlTextReader xtr = new XmlTextReader(sr))
+                    using (StringReader sr = new StringReader(rawXml))
                     {
-                        xtr.MoveToContent();
-
-                        string type = xtr.GetAttribute("type");
-                        //m_log.DebugFormat("[MOAP]: Loaded media texture entry with type {0}", type);
-
-                        if (type != MEDIA_TEXTURE_TYPE)
-                            return;
-
-                        xtr.ReadStartElement("OSMedia");
-
-                        OSDArray osdMeArray = (OSDArray)OSDParser.DeserializeLLSDXml(xtr.ReadInnerXml());
-                        foreach (OSD osdMe in osdMeArray)
+                        using (XmlTextReader xtr = new XmlTextReader(sr))
                         {
-                            MediaEntry me = (osdMe is OSDMap ? MediaEntry.FromOSD(osdMe) : new MediaEntry());
-                            Add(me);
-                        }
+                            xtr.MoveToContent();
 
-                        xtr.ReadEndElement();
+                            string type = xtr.GetAttribute("type");
+                            //m_log.DebugFormat("[MOAP]: Loaded media texture entry with type {0}", type);
+
+                            if (type != MEDIA_TEXTURE_TYPE)
+                                return;
+
+                            xtr.ReadStartElement("OSMedia");
+                            OSD osdp = OSDParser.DeserializeLLSDXml(xtr.ReadInnerXml());
+                            if(osdp == null || !(osdp is OSDArray))
+                                return;
+
+                            OSDArray osdMeArray = osdp as OSDArray;
+                            if(osdMeArray.Count == 0)
+                                return;
+
+                            foreach (OSD osdMe in osdMeArray)
+                            {
+                                MediaEntry me = (osdMe is OSDMap ? MediaEntry.FromOSD(osdMe) : new MediaEntry());
+                                Add(me);
+                            }
+                        }
                     }
+                }
+                catch
+                {
+                    m_log.Debug("PrimitiveBaseShape] error decoding MOAP xml" );
                 }
             }
 

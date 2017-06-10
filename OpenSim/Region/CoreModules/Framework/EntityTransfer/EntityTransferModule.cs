@@ -771,7 +771,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             else if (sp.Flying)
                 teleportFlags |= (uint)TeleportFlags.IsFlying;
 
+            sp.IsInLocalTransit = finalDestination.RegionLocY != 0; // HG
             sp.IsInTransit = true;
+
 
             if (DisableInterRegionTeleportCancellation)
                 teleportFlags |= (uint)TeleportFlags.DisableCancel;
@@ -1524,6 +1526,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public bool Cross(ScenePresence agent, bool isFlying)
         {
+            agent.IsInLocalTransit = true;
             agent.IsInTransit = true;
             CrossAsyncDelegate d = CrossAsync;
             d.BeginInvoke(agent, isFlying, CrossCompleted, d);

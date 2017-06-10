@@ -6473,8 +6473,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool HandleUUIDGroupNameRequest(IClientAPI sender, Packet Pack)
         {
-            UUIDGroupNameRequestPacket upack = (UUIDGroupNameRequestPacket)Pack;
+            ScenePresence sp = (ScenePresence)SceneAgent;
+            if(sp == null || sp.IsDeleted || (sp.IsInTransit && !sp.IsInLocalTransit))
+                return true;
 
+            UUIDGroupNameRequestPacket upack = (UUIDGroupNameRequestPacket)Pack;
 
             for (int i = 0; i < upack.UUIDNameBlock.Length; i++)
             {
@@ -7493,7 +7496,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 SendUserInfoReply(false, true, "");
             }
             return true;
-
         }
 
         private bool HandleUpdateUserInfo(IClientAPI sender, Packet Pack)
@@ -9648,6 +9650,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool HandleUUIDNameRequest(IClientAPI sender, Packet Pack)
         {
+            ScenePresence sp = (ScenePresence)SceneAgent;
+            if(sp == null || sp.IsDeleted || (sp.IsInTransit && !sp.IsInLocalTransit))
+                return true;
+
             UUIDNameRequestPacket incoming = (UUIDNameRequestPacket)Pack;
 
             foreach (UUIDNameRequestPacket.UUIDNameBlockBlock UUIDBlock in incoming.UUIDNameBlock)

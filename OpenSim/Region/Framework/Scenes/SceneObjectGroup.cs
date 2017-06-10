@@ -807,6 +807,7 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (avtocrossInfo avinfo in avsToCross)
                 {
                     ScenePresence av = avinfo.av;
+                    av.IsInLocalTransit = true;
                     av.IsInTransit = true;
                     m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar {0} to {1}", av.Name, val);
 

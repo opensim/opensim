@@ -394,6 +394,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// asynchronously from the update loop.
         /// </summary>
         private bool m_cleaningTemps = false;
+        private bool m_sendingCoarseLocations = false; // same for async course locations sending
 
         /// <summary>
         /// Used to control main scene thread looping time when not updating via timer.
@@ -1654,18 +1655,24 @@ namespace OpenSim.Region.Framework.Scenes
                     if (Frame % m_update_entitymovement == 0)
                         m_sceneGraph.UpdateScenePresenceMovement();
 
-                    if (Frame % (m_update_coarse_locations) == 0)
+                    if (Frame % (m_update_coarse_locations) == 0 && !m_sendingCoarseLocations)
                     {
-                        List<Vector3> coarseLocations;
-                        List<UUID> avatarUUIDs;
-
-                        SceneGraph.GetCoarseLocations(out coarseLocations, out avatarUUIDs, 60);
-                        // Send coarse locations to clients
-                        ForEachScenePresence(delegate(ScenePresence presence)
-                        {
-                            presence.SendCoarseLocations(coarseLocations, avatarUUIDs);
-                        });
+                        m_sendingCoarseLocations = true;
+                        WorkManager.RunInThreadPool(
+                            delegate
+                            {
+                                List<Vector3> coarseLocations;
+                                List<UUID> avatarUUIDs;
+                                SceneGraph.GetCoarseLocations(out coarseLocations, out avatarUUIDs, 60);
+                                // Send coarse locations to clients
+                                ForEachScenePresence(delegate(ScenePresence presence)
+                                {
+                                    presence.SendCoarseLocations(coarseLocations, avatarUUIDs);
+                                });
+                                m_sendingCoarseLocations = false; 
+                            }, null, string.Format("SendCoarseLocations ({0})", Name));
                     }
+
                     // Get the simulation frame time that the avatar force input
                     // took
                     tmpMS2 = Util.GetTimeStampMS();
@@ -1708,7 +1715,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (Frame % m_update_temp_cleaning == 0 && !m_cleaningTemps)
                     {
                         m_cleaningTemps = true;
-                        WorkManager.RunInThread(
+                        WorkManager.RunInThreadPool(
                             delegate { CleanTempObjects(); m_cleaningTemps = false; }, null, string.Format("CleanTempObjects ({0})", Name));
                         tmpMS2 = Util.GetTimeStampMS();
                         tempOnRezMS = (float)(tmpMS2 - tmpMS); // bad.. counts the FireAndForget, not CleanTempObjects
@@ -1936,7 +1943,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!m_backingup)
             {
                 m_backingup = true;
-                WorkManager.RunInThread(o => Backup(false), null, string.Format("BackupWorker ({0})", Name));
+                WorkManager.RunInThreadPool(o => Backup(false), null, string.Format("BackupWorker ({0})", Name));
             }
         }
 
