@@ -1661,8 +1661,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (wantedPhys != group.UsesPhysics && remoteClient != null)
                     {
-                        remoteClient.SendAlertMessage("Object physics canceled because exceeds the limit of " +
-                            m_parentScene.m_linksetPhysCapacity + " physical prims with shape type not set to None");
+                        if(m_parentScene.m_linksetPhysCapacity != 0)
+                            remoteClient.SendAlertMessage("Object physics canceled because exceeds limits for physical prims, either size or number of primswith shape type not set to None");
+                        else
+                            remoteClient.SendAlertMessage("Object physics canceled because exceeds size limits for physical prims");
+                        
                         group.RootPart.ScheduleFullUpdate();
                     }
                 }
