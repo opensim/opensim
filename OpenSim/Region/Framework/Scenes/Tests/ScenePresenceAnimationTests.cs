@@ -60,7 +60,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestScene scene = new SceneHelpers().SetupScene();
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
             sp.Flying = true;
-            sp.PhysicsCollisionUpdate(new CollisionEventUpdate());
+            sp.Animator.UpdateMovementAnimations();
 
             Assert.That(sp.Animator.CurrentMovementAnimation, Is.EqualTo("HOVER"));
         }
