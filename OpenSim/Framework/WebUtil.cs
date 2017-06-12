@@ -1262,18 +1262,24 @@ namespace OpenSim.Framework
                         {
                             if (hwr.StatusCode == HttpStatusCode.NotFound)
                                 return deserial;
+
                             if (hwr.StatusCode == HttpStatusCode.Unauthorized)
                             {
-                                m_log.Error(string.Format(
-                                    "[SynchronousRestObjectRequester]: Web request {0} requires authentication ",
-                                    requestUrl));
-                                return deserial;
+                                m_log.ErrorFormat("[SynchronousRestObjectRequester]: Web request {0} requires authentication",
+                                    requestUrl);
+                            }
+                            else
+                            {
+                                m_log.WarnFormat("[SynchronousRestObjectRequester]: Web request {0} returned error: {1}",
+                                    requestUrl, hwr.StatusCode);
                             }
                         }
                         else
-                            m_log.Error(string.Format(
-                                "[SynchronousRestObjectRequester]: WebException for {0} {1} {2} ",
-                                verb, requestUrl, typeof(TResponse).ToString()), e);
+                            m_log.ErrorFormat(
+                                "[SynchronousRestObjectRequester]: WebException for {0} {1} {2} {3}",
+                                verb, requestUrl, typeof(TResponse).ToString(), e.Message);
+
+                       return deserial;
                     }
                 }
                 catch (System.InvalidOperationException)
