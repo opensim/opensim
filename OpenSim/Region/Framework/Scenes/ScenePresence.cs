@@ -4970,8 +4970,8 @@ namespace OpenSim.Region.Framework.Scenes
 
 //                if (m_updateCount > 0)
 //                {
-            if (Animator != null && Animator.UpdateMovementAnimations())
-                TriggerScenePresenceUpdated();
+//            if (Animator != null && Animator.UpdateMovementAnimations())
+//                TriggerScenePresenceUpdated();
 //                    m_updateCount--;
 //                }
 
