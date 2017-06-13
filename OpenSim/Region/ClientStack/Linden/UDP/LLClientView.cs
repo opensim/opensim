@@ -6036,8 +6036,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.ObjectExtraParams, HandleObjectExtraParams);
             AddLocalPacketHandler(PacketType.ObjectDuplicate, HandleObjectDuplicate);
             AddLocalPacketHandler(PacketType.RequestMultipleObjects, HandleRequestMultipleObjects);
-            AddLocalPacketHandler(PacketType.ObjectSelect, HandleObjectSelect);
-            AddLocalPacketHandler(PacketType.ObjectDeselect, HandleObjectDeselect);
+            AddLocalPacketHandler(PacketType.ObjectSelect, HandleObjectSelect, true, true);
+            AddLocalPacketHandler(PacketType.ObjectDeselect, HandleObjectDeselect, true, true);
             AddLocalPacketHandler(PacketType.ObjectPosition, HandleObjectPosition);
             AddLocalPacketHandler(PacketType.ObjectScale, HandleObjectScale);
             AddLocalPacketHandler(PacketType.ObjectRotation, HandleObjectRotation);

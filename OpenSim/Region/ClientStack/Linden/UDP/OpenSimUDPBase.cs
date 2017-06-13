@@ -487,7 +487,7 @@ namespace OpenMetaverse
                 }
                 catch (SocketException) { }
                 catch (ObjectDisposedException) { }
-//            }
+ //           }
         }
 
         void AsyncEndSend(IAsyncResult result)
@@ -500,6 +500,26 @@ namespace OpenMetaverse
                 UdpSends++;
             }
             catch (SocketException) { }
+            catch (ObjectDisposedException) { }
+        }
+
+        public void SyncSend(UDPPacketBuffer buf)
+        {
+            try
+            {
+                m_udpSocket.SendTo(
+                    buf.Data,
+                    0,
+                    buf.DataLength,
+                    SocketFlags.None,
+                    buf.RemoteEndPoint
+                    );
+                 UdpSends++;
+            }
+            catch (SocketException e)
+            {
+                m_log.Warn("[UDPBASE]: sync send SocketException {0} " + e.Message);
+            }
             catch (ObjectDisposedException) { }
         }
     }
