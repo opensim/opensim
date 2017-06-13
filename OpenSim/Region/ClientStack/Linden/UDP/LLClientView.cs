@@ -8030,19 +8030,43 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return true;
         }
 
+        Dictionary<uint, uint> objImageSeqs = null;
+        double lastobjImageSeqsMS = 0.0;
+
         private bool HandleObjectImage(IClientAPI sender, Packet Pack)
         {
             ObjectImagePacket imagePack = (ObjectImagePacket)Pack;
 
-            UpdatePrimTexture handlerUpdatePrimTexture = null;
+            UpdatePrimTexture handlerUpdatePrimTexture = OnUpdatePrimTexture;
+            if (handlerUpdatePrimTexture == null)
+                return true;
+
+            double now = Util.GetTimeStampMS();
+            if(objImageSeqs == null)
+                objImageSeqs = new Dictionary<uint, uint>(16);
+            else
+            {
+                if ( now - lastobjImageSeqsMS > 30000.0)
+                    objImageSeqs.Clear();
+            }
+
+            lastobjImageSeqsMS = now;
+            uint seq = Pack.Header.Sequence;
+            uint id;
+            uint lastseq;
+
+            ObjectImagePacket.ObjectDataBlock o;
             for (int i = 0; i < imagePack.ObjectData.Length; i++)
             {
-                handlerUpdatePrimTexture = OnUpdatePrimTexture;
-                if (handlerUpdatePrimTexture != null)
-                {
-                    handlerUpdatePrimTexture(imagePack.ObjectData[i].ObjectLocalID,
-                                             imagePack.ObjectData[i].TextureEntry, this);
-                }
+                    o = imagePack.ObjectData[i];
+                    id = o.ObjectLocalID;
+                    if(objImageSeqs.TryGetValue(id, out lastseq))
+                    {
+                        if(seq <= lastseq)
+                            continue;
+                    }
+                    objImageSeqs[id] = seq;
+                    handlerUpdatePrimTexture(id, o.TextureEntry, this);
             }
             return true;
         }
