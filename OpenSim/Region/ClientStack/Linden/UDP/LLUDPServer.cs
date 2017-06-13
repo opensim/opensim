@@ -312,9 +312,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// stack. Use zero to leave this value as the default</summary>
         protected int m_recvBufferSize;
 
-        /// <summary>Flag to process packets asynchronously or synchronously</summary>
-        protected bool m_asyncPacketHandling;
-
         /// <summary>Tracks whether or not a packet was sent each round so we know
         /// whether or not to sleep</summary>
         protected bool m_packetSent;
@@ -473,7 +470,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             IConfig config = configSource.Configs["ClientStack.LindenUDP"];
             if (config != null)
             {
-                m_asyncPacketHandling = config.GetBoolean("async_packet_handling", true);
                 m_recvBufferSize = config.GetInt("client_socket_rcvbuf_size", 0);
                 sceneThrottleBps = config.GetInt("scene_throttle_max_bps", 0);
 
@@ -540,10 +536,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void StartInbound()
         {
             m_log.InfoFormat(
-                "[LLUDPSERVER]: Starting inbound packet processing for the LLUDP server in {0} mode with UsePools = {1}",
-                m_asyncPacketHandling ? "asynchronous" : "synchronous", UsePools);
+                "[LLUDPSERVER]: Starting inbound packet processing for the LLUDP server");
 
-            base.StartInbound(m_recvBufferSize, m_asyncPacketHandling);
+            base.StartInbound(m_recvBufferSize);
 
             // This thread will process the packets received that are placed on the packetInbox
             WorkManager.StartThread(

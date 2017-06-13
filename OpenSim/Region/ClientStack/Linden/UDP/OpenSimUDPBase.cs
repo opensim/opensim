@@ -57,9 +57,6 @@ namespace OpenMetaverse
         /// <summary>UDP socket, used in either client or server mode</summary>
         private Socket m_udpSocket;
 
-        /// <summary>Flag to process packets asynchronously or synchronously</summary>
-        private bool m_asyncPacketHandling;
-
         /// <summary>
         /// Are we to use object pool(s) to reduce memory churn when receiving data?
         /// </summary>
@@ -205,10 +202,8 @@ namespace OpenMetaverse
         /// manner (not throwing an exception when the remote side resets the
         /// connection). This call is ignored on Mono where the flag is not
         /// necessary</remarks>
-        public virtual void StartInbound(int recvBufferSize, bool asyncPacketHandling)
+        public virtual void StartInbound(int recvBufferSize)
         {
-            m_asyncPacketHandling = asyncPacketHandling;
-
             if (!IsRunningInbound)
             {
                 m_log.DebugFormat("[UDPBASE]: Starting inbound UDP loop");
@@ -407,12 +402,7 @@ namespace OpenMetaverse
             if (IsRunningInbound)
             {
                 UdpReceives++;
-
-                // Asynchronous mode will start another receive before the
-                // callback for this packet is even fired. Very parallel :-)
-                if (m_asyncPacketHandling)
-                    AsyncBeginReceive();
-
+ 
                 try
                 {
                     // get the buffer that was created in AsyncBeginReceive
@@ -469,10 +459,7 @@ namespace OpenMetaverse
 //                    if (UsePools)
 //                        Pool.ReturnObject(buffer);
 
-                    // Synchronous mode waits until the packet callback completes
-                    // before starting the receive to fetch another packet
-                    if (!m_asyncPacketHandling)
-                        AsyncBeginReceive();
+                    AsyncBeginReceive();
                 }
             }
         }
