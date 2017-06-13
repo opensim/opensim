@@ -182,9 +182,9 @@ namespace OpenSim.Framework.Monitoring
         /// <param name="callback"></param>
         /// <param name="obj"></param>
         /// <param name="name">The name of the job.  This is used in monitoring and debugging.</param>
-        public static void RunInThreadPool(System.Threading.WaitCallback callback, object obj, string name)
+        public static void RunInThreadPool(System.Threading.WaitCallback callback, object obj, string name, bool timeout = true)
         {
-            Util.FireAndForget(callback, obj, name);
+            Util.FireAndForget(callback, obj, name, timeout);
         }
 
         /// <summary>
@@ -231,10 +231,8 @@ namespace OpenSim.Framework.Monitoring
                 JobEngine.QueueJob(name, () => callback(obj));
             else if (canRunInThisThread)
                 callback(obj);
-            else if (mustNotTimeout)
-                RunInThread(callback, obj, name, log);
             else
-                Util.FireAndForget(callback, obj, name);
+                Util.FireAndForget(callback, obj, name, !mustNotTimeout);
         }
 
         private static void HandleControlCommand(string module, string[] args)

@@ -2492,8 +2492,9 @@ namespace OpenSim.Framework
             public bool Running { get; set; }
             public bool Aborted { get; set; }
             private int started;
+            public bool DoTimeout;
 
-            public ThreadInfo(long threadFuncNum, string context)
+            public ThreadInfo(long threadFuncNum, string context, bool dotimeout = true)
             {
                 ThreadFuncNum = threadFuncNum;
                 this.context = context;
@@ -2501,6 +2502,7 @@ namespace OpenSim.Framework
                 Thread = null;
                 Running = false;
                 Aborted = false;
+                DoTimeout = dotimeout;
             }
 
             public void Started()
@@ -2571,7 +2573,7 @@ namespace OpenSim.Framework
             foreach (KeyValuePair<long, ThreadInfo> entry in activeThreads)
             {
                 ThreadInfo t = entry.Value;
-                if (t.Running && !t.Aborted && (t.Elapsed() >= THREAD_TIMEOUT))
+                if (t.DoTimeout && t.Running && !t.Aborted && (t.Elapsed() >= THREAD_TIMEOUT))
                 {
                     m_log.WarnFormat("Timeout in threadfunc {0} ({1}) {2}", t.ThreadFuncNum, t.Thread.Name, t.GetStackTrace());
                     t.Abort();
@@ -2612,7 +2614,7 @@ namespace OpenSim.Framework
             FireAndForget(callback, obj, null);
         }
 
-        public static void FireAndForget(System.Threading.WaitCallback callback, object obj, string context)
+        public static void FireAndForget(System.Threading.WaitCallback callback, object obj, string context, bool dotimeout = true)
         {
             Interlocked.Increment(ref numTotalThreadFuncsCalled);
 
@@ -2634,7 +2636,7 @@ namespace OpenSim.Framework
             bool loggingEnabled = LogThreadPool > 0;
 
             long threadFuncNum = Interlocked.Increment(ref nextThreadFuncNum);
-            ThreadInfo threadInfo = new ThreadInfo(threadFuncNum, context);
+            ThreadInfo threadInfo = new ThreadInfo(threadFuncNum, context, dotimeout);
 
             if (FireAndForgetMethod == FireAndForgetMethod.RegressionTest)
             {
