@@ -57,7 +57,7 @@ namespace OpenSim.Framework.Monitoring
 
         static WorkManager()
         {
-            JobEngine = new JobEngine("Non-blocking non-critical job engine", "JOB ENGINE");
+            JobEngine = new JobEngine("Non-blocking non-critical job engine", "JOB ENGINE", 30000);
 
             StatsManager.RegisterStat(
                 new Stat(
