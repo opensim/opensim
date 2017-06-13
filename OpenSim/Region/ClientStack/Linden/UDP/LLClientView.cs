@@ -8042,12 +8042,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return true;
 
             double now = Util.GetTimeStampMS();
-            if(objImageSeqs == null)
-                objImageSeqs = new Dictionary<uint, uint>(16);
-            else
+            if(objImageSeqs == null || ( now - lastobjImageSeqsMS > 30000.0))
             {
-                if ( now - lastobjImageSeqsMS > 30000.0)
-                    objImageSeqs.Clear();
+                objImageSeqs = null; // yeah i know superstition...
+                objImageSeqs = new Dictionary<uint, uint>(16);
             }
 
             lastobjImageSeqsMS = now;
