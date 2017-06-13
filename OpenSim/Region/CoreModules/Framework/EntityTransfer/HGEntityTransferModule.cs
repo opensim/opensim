@@ -163,7 +163,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 m_incomingSceneObjectEngine
                     = new JobEngine(
                         string.Format("HG Incoming Scene Object Engine ({0})", scene.Name),
-                        "HG INCOMING SCENE OBJECT ENGINE");
+                        "HG INCOMING SCENE OBJECT ENGINE", 30000);
 
                 StatsManager.RegisterStat(
                     new Stat(
