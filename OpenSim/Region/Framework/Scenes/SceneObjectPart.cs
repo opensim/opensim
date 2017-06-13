@@ -5016,6 +5016,9 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                 if (newTex.FaceTextures[i] != null)
                     newFace = newTex.FaceTextures[i];
 
+                if (oldFace.TextureID != newFace.TextureID)
+                    changeFlags |= Changed.TEXTURE;
+
                 Color4 oldRGBA = oldFace.RGBA;
                 Color4 newRGBA = newFace.RGBA;
 
@@ -5024,9 +5027,6 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                     oldRGBA.B != newRGBA.B ||
                     oldRGBA.A != newRGBA.A)
                     changeFlags |= Changed.COLOR;
-
-                if (oldFace.TextureID != newFace.TextureID)
-                    changeFlags |= Changed.TEXTURE;
 
                 // Max change, skip the rest of testing
                 if (changeFlags == (Changed.TEXTURE | Changed.COLOR))
@@ -5053,16 +5053,10 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                 m_shape.TextureEntry = newTex.GetBytes();
                 if (changeFlags != 0)
                     TriggerScriptChangedEvent(changeFlags);
-                UpdateFlag = UpdateRequired.FULL;
                 ParentGroup.HasGroupChanged = true;
-
-                //This is madness..
-                //ParentGroup.ScheduleGroupForFullUpdate();
-                //This is sparta
                 ScheduleFullUpdate();
             }
         }
-
 
         internal void UpdatePhysicsSubscribedEvents()
         {

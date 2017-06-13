@@ -2280,18 +2280,13 @@ namespace OpenSim.Region.Framework.Scenes
                     m_lastChildAgentUpdateDrawDistance = DrawDistance;
                     m_lastChildAgentUpdatePosition = AbsolutePosition;
                     m_childUpdatesBusy = false; // allow them
-
-
                 }
 
                 m_log.DebugFormat("[CompleteMovement] openChildAgents: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
-
-
                 // send the rest of the world
                 if (m_teleportFlags > 0 && !IsNPC || m_currentParcelHide)
                     SendInitialDataToMe();
-                
 
                 // priority uses avatar position only
 //                m_reprioritizationLastPosition = AbsolutePosition;
@@ -2958,31 +2953,32 @@ namespace OpenSim.Region.Framework.Scenes
                         Dir_ControlFlags.DIR_CONTROL_FLAG_DOWN));
 
                     MovementFlag &= noMovFlagsMask;
-                    AgentControlFlags &= noMovFlagsMask;
+                    uint tmpAgentControlFlags = (uint)m_AgentControlFlags;
+                    tmpAgentControlFlags &= noMovFlagsMask;
 
                     if (LocalVectorToTarget3D.X < 0) //MoveBack
                     {
                         MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
-                        AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
+                        tmpAgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
                         updated = true;
                     }
                     else if (LocalVectorToTarget3D.X > 0) //Move Forward
                     {
                         MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
-                        AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
+                        tmpAgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
                         updated = true;
                     }
 
                     if (LocalVectorToTarget3D.Y > 0) //MoveLeft
                     {
                         MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
-                        AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
+                        tmpAgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
                         updated = true;
                     }
                     else if (LocalVectorToTarget3D.Y < 0) //MoveRight
                     {
                         MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
-                        AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
+                        tmpAgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
                         updated = true;
                     }
 
@@ -3006,6 +3002,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                            "[SCENE PRESENCE]: HandleMoveToTargetUpdate adding {0} to move vector {1} for {2}",
 //                            LocalVectorToTarget3D, agent_control_v3, Name);
 
+                    m_AgentControlFlags = (AgentManager.ControlFlags) tmpAgentControlFlags;
                     agent_control_v3 += LocalVectorToTarget3D;
                 }
                 catch (Exception e)

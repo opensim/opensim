@@ -1604,13 +1604,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         protected internal void UpdatePrimTexture(uint localID, byte[] texture, IClientAPI remoteClient)
         {
-            SceneObjectGroup group = GetGroupByPrim(localID);
+            SceneObjectPart part = GetSceneObjectPart(localID);
+            if(part == null)
+                return;
 
-            if (group != null)
+            SceneObjectGroup group = part.ParentGroup;
+            if (group != null && !group.IsDeleted)
             {
                 if (m_parentScene.Permissions.CanEditObject(group, remoteClient))
                 {
-                    group.UpdateTextureEntry(localID, texture);
+                    part.UpdateTextureEntry(texture);
                 }
             }
         }

@@ -4129,20 +4129,6 @@ namespace OpenSim.Region.Framework.Scenes
             return Parts.Count();
         }
 
-        /// <summary>
-        /// Update the texture entry for this part
-        /// </summary>
-        /// <param name="localID"></param>
-        /// <param name="textureEntry"></param>
-        public void UpdateTextureEntry(uint localID, byte[] textureEntry)
-        {
-            SceneObjectPart part = GetPart(localID);
-            if (part != null)
-            {
-                part.UpdateTextureEntry(textureEntry);
-            }
-        }
-
         public void AdjustChildPrimPermissions(bool forceTaskInventoryPermissive)
         {
             uint newOwnerMask = (uint)(PermissionMask.All | PermissionMask.Export) & 0xfffffff0; // Mask folded bits
