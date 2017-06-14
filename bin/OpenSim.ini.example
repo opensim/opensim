@@ -930,17 +930,6 @@
     ;; it is more usefull if there are no previously compiled scripts DLLs (as with DeleteScriptsOnStartup = true)
     ;CompactMemOnLoad = false
     
-    ;# {DefaultCompileLanguage} {Enabled:true} {Default script language?} {lsl vb cs} lsl
-    ;; Default language for scripts
-    ; DefaultCompileLanguage = "lsl"
-
-    ;# {AllowedCompilers} {Enabled:true} {Languages to allow (comma separated)?} {} lsl
-    ;; List of allowed languages (lsl,vb,cs)
-    ;; AllowedCompilers=lsl,cs,vb
-    ;; *warning*, non lsl languages have access to static methods such as
-    ;; System.IO.File.  Enable at your own risk.
-    ; AllowedCompilers = "lsl"
-
     ;; Compile debug info (line numbers) into the script assemblies
     ; CompileWithDebugInformation = true
 
