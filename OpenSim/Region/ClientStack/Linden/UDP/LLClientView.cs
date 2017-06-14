@@ -325,6 +325,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public LLImageManager ImageManager { get; private set; }
 
+        public JobEngine m_asyncPacketProcess;
         private readonly LLUDPServer m_udpServer;
         private readonly LLUDPClient m_udpClient;
         private readonly UUID m_sessionId;
@@ -378,7 +379,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected Scene m_scene;
         protected string m_firstName;
         protected string m_lastName;
-        protected Thread m_clientThread;
         protected Vector3 m_startpos;
         protected UUID m_activeGroupID;
         protected string m_activeGroupName = String.Empty;
@@ -529,7 +529,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_prioritizer = new Prioritizer(m_scene);
 
             RegisterLocalPacketHandlers();
-
+            string name = string.Format("AsyncInUDP-{0}",m_agentId.ToString());
+            m_asyncPacketProcess = new JobEngine(name, name, 10000);
             IsActive = true;
         }
 
@@ -592,6 +593,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (OnConnectionClosed != null)
                 OnConnectionClosed(this);
 
+            m_asyncPacketProcess.Stop();
 
             // Flush all of the packets out of the UDP server for this client
             if (m_udpServer != null)
@@ -778,12 +780,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     cinfo.AsyncRequests[packet.Type.ToString()]++;
 
                     object obj = new AsyncPacketProcess(this, pprocessor.method, packet);
-
+/*
                     if (pprocessor.InEngine)
                         m_udpServer.IpahEngine.QueueJob(packet.Type.ToString(), () => ProcessSpecificPacketAsync(obj));
                     else
                         Util.FireAndForget(ProcessSpecificPacketAsync, obj, packet.Type.ToString());
-
+*/
+                    m_asyncPacketProcess.QueueJob(packet.Type.ToString(), () => ProcessSpecificPacketAsync(obj));
                     result = true;
                 }
                 else
@@ -841,6 +844,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public virtual void Start()
         {
+            m_asyncPacketProcess.Start();
             m_scene.AddNewAgent(this, PresenceType.User);
 
 //            RefreshGroupMembership();
@@ -6036,8 +6040,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.ObjectExtraParams, HandleObjectExtraParams);
             AddLocalPacketHandler(PacketType.ObjectDuplicate, HandleObjectDuplicate);
             AddLocalPacketHandler(PacketType.RequestMultipleObjects, HandleRequestMultipleObjects);
-            AddLocalPacketHandler(PacketType.ObjectSelect, HandleObjectSelect);
-            AddLocalPacketHandler(PacketType.ObjectDeselect, HandleObjectDeselect);
+            AddLocalPacketHandler(PacketType.ObjectSelect, HandleObjectSelect, true, true);
+            AddLocalPacketHandler(PacketType.ObjectDeselect, HandleObjectDeselect, true, true);
             AddLocalPacketHandler(PacketType.ObjectPosition, HandleObjectPosition);
             AddLocalPacketHandler(PacketType.ObjectScale, HandleObjectScale);
             AddLocalPacketHandler(PacketType.ObjectRotation, HandleObjectRotation);
@@ -8030,19 +8034,41 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return true;
         }
 
+        Dictionary<uint, uint> objImageSeqs = null;
+        double lastobjImageSeqsMS = 0.0;
+
         private bool HandleObjectImage(IClientAPI sender, Packet Pack)
         {
             ObjectImagePacket imagePack = (ObjectImagePacket)Pack;
 
-            UpdatePrimTexture handlerUpdatePrimTexture = null;
+            UpdatePrimTexture handlerUpdatePrimTexture = OnUpdatePrimTexture;
+            if (handlerUpdatePrimTexture == null)
+                return true;
+
+            double now = Util.GetTimeStampMS();
+            if(objImageSeqs == null || ( now - lastobjImageSeqsMS > 30000.0))
+            {
+                objImageSeqs = null; // yeah i know superstition...
+                objImageSeqs = new Dictionary<uint, uint>(16);
+            }
+
+            lastobjImageSeqsMS = now;
+            uint seq = Pack.Header.Sequence;
+            uint id;
+            uint lastseq;
+
+            ObjectImagePacket.ObjectDataBlock o;
             for (int i = 0; i < imagePack.ObjectData.Length; i++)
             {
-                handlerUpdatePrimTexture = OnUpdatePrimTexture;
-                if (handlerUpdatePrimTexture != null)
-                {
-                    handlerUpdatePrimTexture(imagePack.ObjectData[i].ObjectLocalID,
-                                             imagePack.ObjectData[i].TextureEntry, this);
-                }
+                    o = imagePack.ObjectData[i];
+                    id = o.ObjectLocalID;
+                    if(objImageSeqs.TryGetValue(id, out lastseq))
+                    {
+                        if(seq <= lastseq)
+                            continue;
+                    }
+                    objImageSeqs[id] = seq;
+                    handlerUpdatePrimTexture(id, o.TextureEntry, this);
             }
             return true;
         }

@@ -165,6 +165,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private float m_density;
         private byte m_shapetype;
+        private byte m_fakeShapetype;
         public bool _zeroFlag;
         private bool m_lastUpdateSent;
 
@@ -420,7 +421,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 if (value.IsFinite())
                 {
-                     _parent_scene.m_meshWorker.ChangeActorPhysRep(this, _pbs, value, m_shapetype);
+                     _parent_scene.m_meshWorker.ChangeActorPhysRep(this, _pbs, value, m_fakeShapetype);
                 }
                 else
                 {
@@ -630,7 +631,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             set
             {
 //                AddChange(changes.Shape, value);
-                _parent_scene.m_meshWorker.ChangeActorPhysRep(this, value, _size, m_shapetype);
+                _parent_scene.m_meshWorker.ChangeActorPhysRep(this, value, _size, m_fakeShapetype);
             }
         }
 
@@ -638,11 +639,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             get
             {
-                return m_shapetype;
+                return m_fakeShapetype;
             }
             set
             {
-                m_shapetype = value;
+                m_fakeShapetype = value;
                _parent_scene.m_meshWorker.ChangeActorPhysRep(this, _pbs, _size, value);
             }
         }
@@ -1329,7 +1330,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             _triMeshData = IntPtr.Zero;
 
-            m_shapetype = _shapeType;
+            m_fakeShapetype = _shapeType;
 
             m_lastdoneSelected = false;
             m_isSelected = false;
@@ -1346,7 +1347,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             AddChange(changes.Add, null);
 
             // get basic mass parameters
-            ODEPhysRepData repData = _parent_scene.m_meshWorker.NewActorPhysRep(this, _pbs, _size, m_shapetype);
+            ODEPhysRepData repData = _parent_scene.m_meshWorker.NewActorPhysRep(this, _pbs, _size, _shapeType);
 
             primVolume = repData.volume;
             m_OBB = repData.OBB;
@@ -3161,7 +3162,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             _size = repData.size; //??
             _pbs = repData.pbs;
-            m_shapetype = repData.shapetype;
 
             m_mesh = repData.mesh;
 
@@ -3200,9 +3200,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 repData.size = _size;
                 repData.pbs = _pbs;
-                repData.shapetype = m_shapetype;
+                repData.shapetype = m_fakeShapetype;
                 _parent_scene.m_meshWorker.RequestMesh(repData);
             }
+            else
+                m_shapetype = repData.shapetype;
         }
 
         private void changePhysRepData(ODEPhysRepData repData)
@@ -3236,7 +3238,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             _size = repData.size;
             _pbs = repData.pbs;
-            m_shapetype = repData.shapetype;
 
             m_mesh = repData.mesh;
 
@@ -3287,9 +3288,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 repData.size = _size;
                 repData.pbs = _pbs;
-                repData.shapetype = m_shapetype;
+                repData.shapetype = m_fakeShapetype;
                 _parent_scene.m_meshWorker.RequestMesh(repData);
             }
+            else
+                m_shapetype = repData.shapetype;
         }
 
         private void changeFloatOnWater(bool newval)

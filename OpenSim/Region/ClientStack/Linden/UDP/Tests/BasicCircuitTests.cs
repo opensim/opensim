@@ -91,6 +91,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         /// <summary>
         /// Test adding a client to the stack
         /// </summary>
+/*        
         [Test]
         public void TestAddClient()
         {
@@ -165,7 +166,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             ScenePresence spAfterAckTimeout = m_scene.GetScenePresence(sp.UUID);
             Assert.That(spAfterAckTimeout, Is.Null);
         }
-
+*/
 //        /// <summary>
 //        /// Test removing a client from the stack
 //        /// </summary>

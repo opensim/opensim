@@ -80,7 +80,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public float MeshSculptphysicalLOD = 32;
 
 
-        private OpenSim.Framework.BlockingQueue<ODEPhysRepData> createqueue = new OpenSim.Framework.BlockingQueue<ODEPhysRepData>();
+        private OpenSim.Framework.BlockingQueue<ODEPhysRepData> workQueue = new OpenSim.Framework.BlockingQueue<ODEPhysRepData>();
         private bool m_running;
 
         private Thread m_thread;
@@ -110,7 +110,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             while(m_running)
             {
-                 ODEPhysRepData nextRep = createqueue.Dequeue();
+                 ODEPhysRepData nextRep = workQueue.Dequeue();
                 if(!m_running)
                     return;
                 if (nextRep == null)
@@ -139,7 +139,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             try
             {
                 m_thread.Abort();
-                createqueue.Clear();
+                workQueue.Clear();
             }
             catch
             {
@@ -196,7 +196,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 repData.meshState = MeshState.loadingAsset;
 
                 repData.comand = meshWorkerCmnds.getmesh;
-                createqueue.Enqueue(repData);
+                workQueue.Enqueue(repData);
             }
         }
 
@@ -242,7 +242,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if (needsMeshing(repData)) // no need for pbs now?
                 {
                     repData.comand = meshWorkerCmnds.changefull;
-                    createqueue.Enqueue(repData);
+                    workQueue.Enqueue(repData);
                 }
             }
             else

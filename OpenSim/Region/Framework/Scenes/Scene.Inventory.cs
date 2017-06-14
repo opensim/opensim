@@ -2865,7 +2865,7 @@ namespace OpenSim.Region.Framework.Scenes
                 root.SendPropertiesToClient(sp.ControllingClient);
                 if (oldUsePhysics && (root.Flags & PrimFlags.Physics) == 0)
                 {
-                    sp.ControllingClient.SendAlertMessage("Object physics canceled");
+                    sp.ControllingClient.SendAlertMessage("Object physics cancelled");
                 }
             }
         }
