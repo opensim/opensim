@@ -247,11 +247,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         {
             FriendInfo[] friends = GetFriendsFromCache(principalID);
             FriendInfo finfo = GetFriend(friends, friendID);
-            if (finfo != null)
+            if (finfo != null && finfo.TheirFlags != -1)
             {
                 return finfo.TheirFlags;
             }
-
             return 0;
         }
 
@@ -756,7 +755,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (friend == null)
                 return;
 
-            if((friend.TheirFlags & (int)FriendRights.CanSeeOnMap) == 0)
+            if(friend.TheirFlags == -1 || (friend.TheirFlags & (int)FriendRights.CanSeeOnMap) == 0)
                 return;
 
             Scene hunterScene = (Scene)remoteClient.Scene;

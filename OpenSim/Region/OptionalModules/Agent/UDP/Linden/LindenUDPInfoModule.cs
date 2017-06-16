@@ -124,15 +124,6 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
                 "Without the 'full' option, only root agents are shown."
                   + "  With the 'full' option child agents are also shown.",
                 (mod, cmd) => MainConsole.Instance.Output(GetThrottlesReport(cmd)));
-
-            scene.AddCommand(
-                "Comms", this, "show client stats",
-                "show client stats [first_name last_name]",
-                "Show client request stats",
-                "Without the 'first_name last_name' option, all clients are shown."
-                  + "  With the 'first_name last_name' option only a specific client is shown.",
-                (mod, cmd) => MainConsole.Instance.Output(HandleClientStatsReport(cmd)));
-
         }
 
         public void RemoveRegion(Scene scene)
@@ -538,107 +529,6 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
             }
 
             return report.ToString();
-        }
-
-        /// <summary>
-        /// Show client stats data
-        /// </summary>
-        /// <param name="showParams"></param>
-        /// <returns></returns>
-        protected string HandleClientStatsReport(string[] showParams)
-        {
-            // NOTE: This writes to m_log on purpose. We want to store this information
-            // in case we need to analyze it later.
-            //
-            if (showParams.Length <= 4)
-            {
-                m_log.InfoFormat("[INFO]: {0,-12} {1,-20} {2,-6} {3,-11} {4,-11} {5,-16}", "Region", "Name", "Root", "Time", "Reqs/min", "AgentUpdates");
-                foreach (Scene scene in m_scenes.Values)
-                {
-                    scene.ForEachClient(
-                        delegate(IClientAPI client)
-                        {
-                            if (client is LLClientView)
-                            {
-                                LLClientView llClient = client as LLClientView;
-                                ClientInfo cinfo = llClient.UDPClient.GetClientInfo();
-                                int avg_reqs = cinfo.AsyncRequests.Values.Sum() + cinfo.GenericRequests.Values.Sum() + cinfo.SyncRequests.Values.Sum();
-                                avg_reqs = avg_reqs / ((DateTime.Now - cinfo.StartedTime).Minutes + 1);
-
-                                string childAgentStatus;
-
-                                if (llClient.SceneAgent != null)
-                                    childAgentStatus = llClient.SceneAgent.IsChildAgent ? "N" : "Y";
-                                else
-                                    childAgentStatus = "Off!";
-
-                                m_log.InfoFormat("[INFO]: {0,-12} {1,-20} {2,-6} {3,-11} {4,-11} {5,-16}",
-                                    scene.RegionInfo.RegionName, llClient.Name,
-                                         childAgentStatus,
-                                         (DateTime.Now - cinfo.StartedTime).Minutes,
-                                         avg_reqs,
-                                         string.Format(
-                                            "{0} ({1:0.00}%)",
-                                            llClient.TotalAgentUpdates,
-                                            cinfo.SyncRequests.ContainsKey("AgentUpdate")
-                                                ? (float)cinfo.SyncRequests["AgentUpdate"] / llClient.TotalAgentUpdates * 100
-                                                : 0));
-                            }
-                        });
-                }
-                return string.Empty;
-            }
-
-            string fname = "", lname = "";
-
-            if (showParams.Length > 3)
-                fname = showParams[3];
-            if (showParams.Length > 4)
-                lname = showParams[4];
-
-            foreach (Scene scene in m_scenes.Values)
-            {
-                scene.ForEachClient(
-                    delegate(IClientAPI client)
-                    {
-                        if (client is LLClientView)
-                        {
-                            LLClientView llClient = client as LLClientView;
-
-                            if (llClient.Name == fname + " " + lname)
-                            {
-
-                                ClientInfo cinfo = llClient.GetClientInfo();
-                                AgentCircuitData aCircuit = scene.AuthenticateHandler.GetAgentCircuitData(llClient.CircuitCode);
-                                if (aCircuit == null) // create a dummy one
-                                    aCircuit = new AgentCircuitData();
-
-                                if (!llClient.SceneAgent.IsChildAgent)
-                                    m_log.InfoFormat("[INFO]: {0} # {1} # {2}", llClient.Name, Util.GetViewerName(aCircuit), aCircuit.Id0);
-
-                                int avg_reqs = cinfo.AsyncRequests.Values.Sum() + cinfo.GenericRequests.Values.Sum() + cinfo.SyncRequests.Values.Sum();
-                                avg_reqs = avg_reqs / ((DateTime.Now - cinfo.StartedTime).Minutes + 1);
-
-                                m_log.InfoFormat("[INFO]:");
-                                m_log.InfoFormat("[INFO]: {0} # {1} # Time: {2}min # Avg Reqs/min: {3}", scene.RegionInfo.RegionName,
-                                    (llClient.SceneAgent.IsChildAgent ? "Child" : "Root"), (DateTime.Now - cinfo.StartedTime).Minutes, avg_reqs);
-
-                                Dictionary<string, int> sortedDict = (from entry in cinfo.AsyncRequests orderby entry.Value descending select entry)
-                                        .ToDictionary(pair => pair.Key, pair => pair.Value);
-                                PrintRequests("TOP ASYNC", sortedDict, cinfo.AsyncRequests.Values.Sum());
-
-                                sortedDict = (from entry in cinfo.SyncRequests orderby entry.Value descending select entry)
-                                        .ToDictionary(pair => pair.Key, pair => pair.Value);
-                                PrintRequests("TOP SYNC", sortedDict, cinfo.SyncRequests.Values.Sum());
-
-                                sortedDict = (from entry in cinfo.GenericRequests orderby entry.Value descending select entry)
-                                        .ToDictionary(pair => pair.Key, pair => pair.Value);
-                                PrintRequests("TOP GENERIC", sortedDict, cinfo.GenericRequests.Values.Sum());
-                            }
-                        }
-                    });
-            }
-            return string.Empty;
         }
 
         private void PrintRequests(string type, Dictionary<string, int> sortedDict, int sum)

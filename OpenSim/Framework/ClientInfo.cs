@@ -36,14 +36,8 @@ namespace OpenSim.Framework
         public readonly DateTime StartedTime = DateTime.Now;
         public AgentCircuitData agentcircuit = null;
 
-        public Dictionary<uint, byte[]> needAck;
-
-        public List<byte[]> out_packets = new List<byte[]>();
-        public Dictionary<uint, uint> pendingAcks = new Dictionary<uint,uint>();
         public EndPoint proxyEP;
 
-        public uint sequence;
-        public byte[] usecircuit;
         public EndPoint userEP;
 
         public int resendThrottle;
@@ -59,9 +53,5 @@ namespace OpenSim.Framework
         public int targetThrottle;
 
         public int maxThrottle;
-
-        public Dictionary<string, int> SyncRequests = new Dictionary<string,int>();
-        public Dictionary<string, int> AsyncRequests = new Dictionary<string,int>();
-        public Dictionary<string, int> GenericRequests = new Dictionary<string,int>();
     }
 }

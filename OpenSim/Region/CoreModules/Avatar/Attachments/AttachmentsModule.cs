@@ -42,6 +42,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Services.Interfaces;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.CoreModules.Avatar.Attachments
 {
@@ -896,6 +897,30 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
                 if (item != null)
                 {
+                    // attach is rez, need to update permissions
+                    item.Flags &= ~(uint)(InventoryItemFlags.ObjectSlamPerm | InventoryItemFlags.ObjectOverwriteBase |
+                            InventoryItemFlags.ObjectOverwriteOwner | InventoryItemFlags.ObjectOverwriteGroup |
+                            InventoryItemFlags.ObjectOverwriteEveryone | InventoryItemFlags.ObjectOverwriteNextOwner);
+
+                    uint permsBase = (uint)(PermissionMask.Copy | PermissionMask.Transfer |
+                                 PermissionMask.Modify | PermissionMask.Move |
+                                 PermissionMask.Export | PermissionMask.FoldedMask);
+                    
+                    permsBase &= grp.CurrentAndFoldedNextPermissions();
+                    permsBase |= (uint)PermissionMask.Move;
+                    item.BasePermissions = permsBase;
+                    item.CurrentPermissions = permsBase;
+                    item.NextPermissions = permsBase & grp.RootPart.NextOwnerMask | (uint)PermissionMask.Move;
+                    item.EveryOnePermissions = permsBase & grp.RootPart.EveryoneMask;
+                    item.GroupPermissions = permsBase & grp.RootPart.GroupMask;
+                    item.CurrentPermissions &=
+                        ((uint)PermissionMask.Copy |
+                         (uint)PermissionMask.Transfer |
+                         (uint)PermissionMask.Modify |
+                         (uint)PermissionMask.Move |
+                         (uint)PermissionMask.Export |
+                         (uint)PermissionMask.FoldedMask); // Preserve folded permissions ??
+
                     AssetBase asset = m_scene.CreateAsset(
                         grp.GetPartName(grp.LocalId),
                         grp.GetPartDescription(grp.LocalId),

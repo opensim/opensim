@@ -214,7 +214,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                         FriendInfo[] friends = GetFriendsFromCache(client.AgentId);
                         foreach (FriendInfo f in friends)
                         {
-                            client.SendChangeUserRights(new UUID(f.Friend), client.AgentId, f.TheirFlags);
+                            int rights = f.TheirFlags;
+                            if(rights != -1 )
+                                client.SendChangeUserRights(new UUID(f.Friend), client.AgentId, rights);
                         }
                     }
                 }

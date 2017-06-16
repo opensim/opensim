@@ -2617,7 +2617,7 @@ namespace OpenSim.Framework
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj, string context, bool dotimeout = true)
         {
             Interlocked.Increment(ref numTotalThreadFuncsCalled);
-
+/*
             if (context != null)
             {
                 if (!m_fireAndForgetCallsMade.ContainsKey(context))
@@ -2630,7 +2630,7 @@ namespace OpenSim.Framework
                 else
                     m_fireAndForgetCallsInProgress[context]++;
             }
-
+*/
             WaitCallback realCallback;
 
             bool loggingEnabled = LogThreadPool > 0;
@@ -2647,8 +2647,8 @@ namespace OpenSim.Framework
                         Culture.SetCurrentCulture();
                         callback(o);
 
-                        if (context != null)
-                            m_fireAndForgetCallsInProgress[context]--;
+//                        if (context != null)
+//                            m_fireAndForgetCallsInProgress[context]--;
                     };
             }
             else
@@ -2688,8 +2688,8 @@ namespace OpenSim.Framework
                         if ((loggingEnabled || (threadFuncOverloadMode == 1)) && threadInfo.LogThread)
                             m_log.DebugFormat("Exit threadfunc {0} ({1})", threadFuncNum, FormatDuration(threadInfo.Elapsed()));
 
-                        if (context != null)
-                            m_fireAndForgetCallsInProgress[context]--;
+//                        if (context != null)
+//                            m_fireAndForgetCallsInProgress[context]--;
                     }
                 };
             }
@@ -2967,7 +2967,8 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public static Int32 EnvironmentTickCount()
         {
-            return Environment.TickCount & EnvironmentTickCountMask;
+            double now = GetTimeStampMS();
+            return (int)now;
         }
         const Int32 EnvironmentTickCountMask = 0x3fffffff;
 
@@ -2993,7 +2994,8 @@ namespace OpenSim.Framework
         /// <returns>subtraction of passed prevValue from current Environment.TickCount</returns>
         public static Int32 EnvironmentTickCountSubtract(Int32 prevValue)
         {
-            return EnvironmentTickCountSubtract(EnvironmentTickCount(), prevValue);
+            double now = GetTimeStampMS();
+            return EnvironmentTickCountSubtract((int)now, prevValue);
         }
 
         // Returns value of Tick Count A - TickCount B accounting for wrapping of TickCount
