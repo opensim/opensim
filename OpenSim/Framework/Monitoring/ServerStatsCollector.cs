@@ -88,7 +88,7 @@ namespace OpenSim.Framework.Monitoring
             IConfig cfg = source.Configs["Monitoring"];
 
             if (cfg != null)
-                Enabled = cfg.GetBoolean("ServerStatsEnabled", true);
+                Enabled = cfg.GetBoolean("ServerStatsEnabled", false);
 
             if (Enabled)
             {
@@ -98,12 +98,18 @@ namespace OpenSim.Framework.Monitoring
 
         public void Start()
         {
+            if(!Enabled)
+                return;
+
             if (RegisteredStats.Count == 0)
                 RegisterServerStats();
         }
 
         public void Close()
         {
+            if(!Enabled)
+                return;
+
             if (RegisteredStats.Count > 0)
             {
                 foreach (Stat stat in RegisteredStats.Values)

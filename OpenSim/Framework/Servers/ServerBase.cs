@@ -882,16 +882,12 @@ namespace OpenSim.Framework.Servers
                 sb.Append("\n");
             }
 
-            sb.Append("\n");
+            sb.Append(GetThreadPoolReport());
 
-            // For some reason mono 2.6.7 returns an empty threads set!  Not going to confuse people by reporting
-            // zero active threads.
+            sb.Append("\n");
             int totalThreads = Process.GetCurrentProcess().Threads.Count;
             if (totalThreads > 0)
-                sb.AppendFormat("Total threads active: {0}\n\n", totalThreads);
-
-            sb.Append("Main threadpool (excluding script engine pools)\n");
-            sb.Append(GetThreadPoolReport());
+                sb.AppendFormat("Total process threads active: {0}\n\n", totalThreads);
 
             return sb.ToString();
         }
@@ -902,15 +898,46 @@ namespace OpenSim.Framework.Servers
         /// <returns></returns>
         public static string GetThreadPoolReport()
         {
+
+            StringBuilder sb = new StringBuilder();
+
+            // framework pool is alwasy active
+            int maxWorkers;
+            int minWorkers;
+            int curWorkers;
+            int maxComp;
+            int minComp;
+            int curComp;
+
+            try
+            {
+                ThreadPool.GetMaxThreads(out maxWorkers, out maxComp);
+                ThreadPool.GetMinThreads(out minWorkers, out minComp);
+                ThreadPool.GetAvailableThreads(out curWorkers, out curComp);
+                curWorkers = maxWorkers - curWorkers;
+                curComp = maxComp - curComp;
+
+                sb.Append("\nFramework main threadpool \n");
+                sb.AppendFormat("workers:    {0} ({1} / {2})\n", curWorkers, maxWorkers, minWorkers);
+                sb.AppendFormat("Completion: {0} ({1} / {2})\n", curComp, maxComp, minComp);
+            }
+            catch { }
+
+            if (
+                Util.FireAndForgetMethod == FireAndForgetMethod.QueueUserWorkItem
+                    || Util.FireAndForgetMethod == FireAndForgetMethod.UnsafeQueueUserWorkItem)
+            {
+                sb.AppendFormat("\nThread pool used: Framework main threadpool\n");
+                return sb.ToString();
+            }
+
             string threadPoolUsed = null;
             int maxThreads = 0;
             int minThreads = 0;
             int allocatedThreads = 0;
             int inUseThreads = 0;
             int waitingCallbacks = 0;
-            int completionPortThreads = 0;
 
-            StringBuilder sb = new StringBuilder();
             if (Util.FireAndForgetMethod == FireAndForgetMethod.SmartThreadPool)
             {
                 STPInfo stpi = Util.GetSmartThreadPoolInfo();
@@ -926,22 +953,10 @@ namespace OpenSim.Framework.Servers
                     waitingCallbacks = stpi.WaitingCallbacks;
                 }
             }
-            else if (
-                Util.FireAndForgetMethod == FireAndForgetMethod.QueueUserWorkItem
-                    || Util.FireAndForgetMethod == FireAndForgetMethod.UnsafeQueueUserWorkItem)
-            {
-                threadPoolUsed = "BuiltInThreadPool";
-                ThreadPool.GetMaxThreads(out maxThreads, out completionPortThreads);
-                ThreadPool.GetMinThreads(out minThreads, out completionPortThreads);
-                int availableThreads;
-                ThreadPool.GetAvailableThreads(out availableThreads, out completionPortThreads);
-                inUseThreads = maxThreads - availableThreads;
-                allocatedThreads = -1;
-                waitingCallbacks = -1;
-            }
-
+ 
             if (threadPoolUsed != null)
             {
+                sb.Append("\nThreadpool (excluding script engine pools)\n");
                 sb.AppendFormat("Thread pool used           : {0}\n", threadPoolUsed);
                 sb.AppendFormat("Max threads                : {0}\n", maxThreads);
                 sb.AppendFormat("Min threads                : {0}\n", minThreads);
