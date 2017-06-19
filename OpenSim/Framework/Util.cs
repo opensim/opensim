@@ -2967,9 +2967,9 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public static Int32 EnvironmentTickCount()
         {
-            double now = GetTimeStampMS();
-            return (int)now;
+            return Environment.TickCount & EnvironmentTickCountMask;
         }
+
         const Int32 EnvironmentTickCountMask = 0x3fffffff;
 
         /// <summary>
@@ -2994,8 +2994,7 @@ namespace OpenSim.Framework
         /// <returns>subtraction of passed prevValue from current Environment.TickCount</returns>
         public static Int32 EnvironmentTickCountSubtract(Int32 prevValue)
         {
-            double now = GetTimeStampMS();
-            return EnvironmentTickCountSubtract((int)now, prevValue);
+            return EnvironmentTickCountSubtract(EnvironmentTickCount(), prevValue);
         }
 
         // Returns value of Tick Count A - TickCount B accounting for wrapping of TickCount

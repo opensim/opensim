@@ -221,7 +221,7 @@ namespace OpenSim.Region.ClientStack.Linden
             PollServiceMeshEventArgs args;
             if (m_pollservices.TryGetValue(user, out args))
             {
-                args.UpdateThrottle(imagethrottle, p);
+                args.UpdateThrottle(imagethrottle);
             }
         }
 
@@ -238,14 +238,13 @@ namespace OpenSim.Region.ClientStack.Linden
                 base(null, uri, null, null, null, pId, int.MaxValue)
             {
                 m_scene = scene;
-                m_throttler = new MeshCapsDataThrottler(100000, 1400000, 10000, scene, pId);
+                m_throttler = new MeshCapsDataThrottler(100000);
                 // x is request id, y is userid
                 HasEvents = (x, y) =>
                 {
                     lock (responses)
                     {
                         bool ret = m_throttler.hasEvents(x, responses);
-                        m_throttler.ProcessTime();
                         return ret;
 
                     }
@@ -260,8 +259,8 @@ namespace OpenSim.Region.ClientStack.Linden
                         }
                         finally
                         {
-                            m_throttler.ProcessTime();
                             responses.Remove(x);
+                            m_throttler.PassTime();
                         }
                     }
                 };
@@ -274,6 +273,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     reqinfo.request = y;
 
                     m_queue.Enqueue(reqinfo);
+                    m_throttler.PassTime();
                 };
 
                 // this should never happen except possible on shutdown
@@ -335,12 +335,15 @@ namespace OpenSim.Region.ClientStack.Linden
                     };
 
                 }
-                m_throttler.ProcessTime();
+                m_throttler.PassTime();
             }
 
-            internal void UpdateThrottle(int pimagethrottle, ScenePresence p)
+            internal void UpdateThrottle(int pthrottle)
             {
-                m_throttler.UpdateThrottle(pimagethrottle, p);
+                int tmp = 2 * pthrottle;
+                if(tmp < 10000)
+                    tmp = 10000;
+                m_throttler.ThrottleBytes = tmp;
             }
         }
 
@@ -394,25 +397,15 @@ namespace OpenSim.Region.ClientStack.Linden
 
         internal sealed class MeshCapsDataThrottler
         {
+            private double lastTimeElapsed = 0;
+            private double BytesSent = 0;
 
-            private volatile int currenttime = 0;
-            private volatile int lastTimeElapsed = 0;
-            private volatile int BytesSent = 0;
-            private int CapSetThrottle = 0;
-            private float CapThrottleDistributon = 0.30f;
-            private readonly Scene m_scene;
-            private ThrottleOutPacketType Throttle;
-            private readonly UUID User;
-
-            public MeshCapsDataThrottler(int pBytes, int max, int min, Scene pScene, UUID puser)
+            public MeshCapsDataThrottler(int pBytes)
             {
+                if(pBytes < 10000)
+                    pBytes = 10000;
                 ThrottleBytes = pBytes;
-                if(ThrottleBytes < 10000)
-                    ThrottleBytes = 10000;
-                lastTimeElapsed = Util.EnvironmentTickCount();
-                Throttle = ThrottleOutPacketType.Asset;
-                m_scene = pScene;
-                User = puser;
+                lastTimeElapsed = Util.GetTimeStampMS();
             }
 
             public bool hasEvents(UUID key, Dictionary<UUID, aPollResponse> responses)
@@ -442,46 +435,22 @@ namespace OpenSim.Region.ClientStack.Linden
                 return haskey;
             }
 
-            public void ProcessTime()
+            public void PassTime()
             {
-                PassTime();
-            }
-
-            private void PassTime()
-            {
-                currenttime = Util.EnvironmentTickCount();
-                int timeElapsed = Util.EnvironmentTickCountSubtract(currenttime, lastTimeElapsed);
-                if (timeElapsed >= 100)
+                double currenttime = Util.GetTimeStampMS();
+                double timeElapsed = currenttime - lastTimeElapsed;
+                if(timeElapsed < 50.0)
+                    return;
+                int add = (int)(ThrottleBytes * timeElapsed * 0.001);
+                if (add >= 1000)
                 {
                     lastTimeElapsed = currenttime;
-                    BytesSent -= (ThrottleBytes * timeElapsed / 1000);
+                    BytesSent -= add;
                     if (BytesSent < 0) BytesSent = 0;
                 }
             }
 
-            private void AlterThrottle(int setting, ScenePresence p)
-            {
-                p.ControllingClient.SetAgentThrottleSilent((int)Throttle,setting);
-            }
-
-            public int ThrottleBytes
-            {
-                get { return CapSetThrottle; }
-                set
-                {
-                    if (value > 10000)
-                        CapSetThrottle = value;
-                    else
-                        CapSetThrottle = 10000;
-                }
-            }
-
-            internal void UpdateThrottle(int pimagethrottle, ScenePresence p)
-            {
-                // Client set throttle !
-                CapSetThrottle = 2 * pimagethrottle;
-                ProcessTime();
-            }
+            public int ThrottleBytes;
         }
     }
 }
