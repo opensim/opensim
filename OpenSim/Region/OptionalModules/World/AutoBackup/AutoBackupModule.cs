@@ -59,23 +59,20 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
     /// </summary>
     /// <remarks>
     /// Config Settings Documentation.
-    /// Each configuration setting can be specified in two places: OpenSim.ini or Regions.ini.
-    /// If specified in Regions.ini, the settings should be within the region's section name.
-    /// If specified in OpenSim.ini, the settings should be within the [AutoBackupModule] section.
-    /// Region-specific settings take precedence.
+    /// Configuration setting can be specified in two places: OpenSim.ini and/or Regions.ini.
     ///
-    /// AutoBackupModuleEnabled: True/False. Default: False. If True, use the auto backup module. This setting does not support per-region basis.
-    ///     All other settings under [AutoBackupModule] are ignored if AutoBackupModuleEnabled is false, even per-region settings!
-    /// AutoBackup: True/False. Default: False. If True, activate auto backup functionality.
-    /// 	This is the only required option for enabling auto-backup; the other options have sane defaults.
-    /// 	If False for a particular region, the auto-backup module becomes a no-op for the region, and all other AutoBackup* settings are ignored.
-    /// 	If False globally (the default), only regions that specifically override it in Regions.ini will get AutoBackup functionality.
+    /// OpenSim.ini only settings section [AutoBackupModule]
+    /// AutoBackupModuleEnabled: True/False. Default: False. If True, use the auto backup module.
+    ///     if false module is disable and all rest is ignored
     /// AutoBackupInterval: Double, non-negative value. Default: 720 (12 hours).
     /// 	The number of minutes between each backup attempt.
-    /// 	If a negative or zero value is given, it is equivalent to setting AutoBackup = False.
-    /// AutoBackupBusyCheck: True/False. Default: True.
-    /// 	If True, we will only take an auto-backup if a set of conditions are met.
-    /// 	These conditions are heuristics to try and avoid taking a backup when the sim is busy.
+    ///
+    /// Next can be set on OpenSim.ini, as default, and or per region in Regions.ini
+    /// Region-specific settings take precedence.
+    /// 
+    /// AutoBackup: True/False. Default: False. If True, activate auto backup functionality.
+    ///     controls backup per region, with default optionaly set on OpenSim.ini
+    
     /// AutoBackupSkipAssets
     ///     If true, assets are not saved to the oar file. Considerably reduces impact on simulator when backing up. Intended for when assets db is backed up separately
     /// AutoBackupKeepFilesForDays
@@ -93,36 +90,22 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
     ///  "Overwrite": Always save to file named "${AutoBackupDir}/RegionName.oar", even if we have to overwrite an existing file.
     /// AutoBackupDir: String. Default: "." (the current directory).
     /// 	A directory (absolute or relative) where backups should be saved.
-    /// AutoBackupDilationThreshold: float. Default: 0.5. Lower bound on time dilation required for BusyCheck heuristics to pass.
-    ///  If the time dilation is below this value, don't take a backup right now.
-    /// AutoBackupAgentThreshold: int. Default: 10. Upper bound on # of agents in region required for BusyCheck heuristics to pass.
-    ///  If the number of agents is greater than this value, don't take a backup right now
-    /// Save memory by setting low initial capacities. Minimizes impact in common cases of all regions using same interval, and instances hosting 1 ~ 4 regions.
-    /// Also helps if you don't want AutoBackup at all.
     /// </remarks>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "AutoBackupModule")]
     public class AutoBackupModule : ISharedRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private readonly Dictionary<Guid, IScene> m_pendingSaves = new Dictionary<Guid, IScene>(1);
         private readonly AutoBackupModuleState m_defaultState = new AutoBackupModuleState();
         private readonly Dictionary<IScene, AutoBackupModuleState> m_states =
             new Dictionary<IScene, AutoBackupModuleState>(1);
-        private readonly Dictionary<Timer, List<IScene>> m_timerMap =
-            new Dictionary<Timer, List<IScene>>(1);
-        private readonly Dictionary<double, Timer> m_timers = new Dictionary<double, Timer>(1);
 
         private delegate T DefaultGetter<T>(string settingName, T defaultValue);
         private bool m_enabled;
         private ICommandConsole m_console;
         private List<Scene> m_Scenes = new List<Scene> ();
-
-
-        /// <summary>
-        /// Whether the shared module should be enabled at all. NOT the same as m_Enabled in AutoBackupModuleState!
-        /// </summary>
-        private bool m_closed;
+        private Timer m_masterTimer;
+        private bool m_busy;
 
         private IConfigSource m_configSource;
 
@@ -159,36 +142,34 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         void IRegionModuleBase.Initialise(IConfigSource source)
         {
             // Determine if we have been enabled at all in OpenSim.ini -- this is part and parcel of being an optional module
-            this.m_configSource = source;
+            m_configSource = source;
             IConfig moduleConfig = source.Configs["AutoBackupModule"];
             if (moduleConfig == null)
             {
-                this.m_enabled = false;
+                m_enabled = false;
                 return;
             }
-            else
-            {
-                this.m_enabled = moduleConfig.GetBoolean("AutoBackupModuleEnabled", false);
-                if (this.m_enabled)
-                {
-                    m_log.Info("[AUTO BACKUP]: AutoBackupModule enabled");
-                }
-                else
-                {
-                    return;
-                }
-            }
 
-            Timer defTimer = new Timer(43200000);
-            this.m_defaultState.Timer = defTimer;
-            this.m_timers.Add(43200000, defTimer);
-            defTimer.Elapsed += this.HandleElapsed;
-            defTimer.AutoReset = true;
-            defTimer.Start();
+            m_enabled = moduleConfig.GetBoolean("AutoBackupModuleEnabled", false);
+            if(!m_enabled)
+                return;
 
-            AutoBackupModuleState abms = this.ParseConfig(null, true);
-            m_log.Debug("[AUTO BACKUP]: Here is the default config:");
-            m_log.Debug(abms.ToString());
+            m_log.Info("[AUTO BACKUP]: AutoBackupModule enabled");
+            m_masterTimer = new Timer(43200000);
+            m_masterTimer.Elapsed += HandleElapsed;
+            m_masterTimer.AutoReset = false;
+
+            ParseDefaultConfig();
+            m_log.Debug("[AUTO BACKUP]: Default config:");
+            m_log.Debug(m_defaultState.ToString());
+
+            m_console = MainConsole.Instance;
+
+            m_console.Commands.AddCommand (
+                        "AutoBackup", true, "dooarbackup",
+                        "dooarbackup <regionName>",
+                        "do single region backup into a oar. Identical to save oar but using AutoBackup settings for name etc", DoBackup);
+            m_busy = true;            
         }
 
         /// <summary>
@@ -196,13 +177,11 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         /// </summary>
         void IRegionModuleBase.Close()
         {
-            if (!this.m_enabled)
-            {
+            if (!m_enabled)
                 return;
-            }
 
             // We don't want any timers firing while the sim's coming down; strange things may happen.
-            this.StopAllTimers();
+            m_masterTimer.Dispose();
         }
 
         /// <summary>
@@ -211,18 +190,11 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         /// <param name="scene"></param>
         void IRegionModuleBase.AddRegion (Scene scene)
         {
-            if (!this.m_enabled) {
+            if (!m_enabled)
                 return;
-            }
-            lock (m_Scenes) {
-                m_Scenes.Add (scene);
-            }
-            m_console = MainConsole.Instance;
 
-            m_console.Commands.AddCommand (
-                "AutoBackup", false, "dobackup",
-                "dobackup",
-                "do backup.", DoBackup);
+            lock (m_Scenes)
+                m_Scenes.Add (scene);
         }
 
         /// <summary>
@@ -231,28 +203,14 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         /// <param name="scene">The scene (region) to stop performing AutoBackup on.</param>
         void IRegionModuleBase.RemoveRegion(Scene scene)
         {
-            if (!this.m_enabled)
-            {
+            if (m_enabled)
                 return;
-            }
-            m_Scenes.Remove (scene);
-            if (this.m_states.ContainsKey(scene))
+
+            lock(m_Scenes)
             {
-                AutoBackupModuleState abms = this.m_states[scene];
-
-                // Remove this scene out of the timer map list
-                Timer timer = abms.Timer;
-                List<IScene> list = this.m_timerMap[timer];
-                list.Remove(scene);
-
-                // Shut down the timer if this was the last scene for the timer
-                if (list.Count == 0)
-                {
-                    this.m_timerMap.Remove(timer);
-                    this.m_timers.Remove(timer.Interval);
-                    timer.Close();
-                }
-                this.m_states.Remove(scene);
+                if (m_states.ContainsKey(scene))
+                    m_states.Remove(scene);
+                m_Scenes.Remove(scene);
             }
         }
 
@@ -263,22 +221,29 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         /// <param name="scene">The scene to (possibly) perform AutoBackup on.</param>
         void IRegionModuleBase.RegionLoaded(Scene scene)
         {
-            if (!this.m_enabled)
-            {
+            if (!m_enabled)
                 return;
-            }
 
             // This really ought not to happen, but just in case, let's pretend it didn't...
             if (scene == null)
-            {
                 return;
+
+            AutoBackupModuleState abms = ParseConfig(scene);
+            if(abms == null)
+            {
+                m_log.Debug("[AUTO BACKUP]: Config for " + scene.RegionInfo.RegionName);
+                m_log.Debug("DEFAULT");
+                abms = new AutoBackupModuleState(m_defaultState);
+            }
+            else
+            {
+                m_log.Debug("[AUTO BACKUP]: Config for " + scene.RegionInfo.RegionName);
+                m_log.Debug(abms.ToString());
             }
 
-            AutoBackupModuleState abms = this.ParseConfig(scene, false);
-            m_log.Debug("[AUTO BACKUP]: Config for " + scene.RegionInfo.RegionName);
-            m_log.Debug((abms == null ? "DEFAULT" : abms.ToString()));
-
             m_states.Add(scene, abms);
+            m_busy = false;
+            m_masterTimer.Start();
         }
 
         /// <summary>
@@ -286,30 +251,116 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         /// </summary>
         void ISharedRegionModule.PostInitialise()
         {
+           
         }
 
         #endregion
 
         private void DoBackup (string module, string[] args)
         {
-            if (args.Length != 2) {
-                MainConsole.Instance.OutputFormat ("Usage: dobackup <regionname>");
+            if (!m_enabled)
+                return;
+
+            if(m_busy)
+            {
+                MainConsole.Instance.OutputFormat ("Already doing a backup, please try later");
                 return;
             }
+
+            if (args.Length != 2)
+            {
+                MainConsole.Instance.OutputFormat ("Usage: dooarbackup <regionname>");
+                return;
+            }
+
+            m_busy = true;    
+
             bool found = false;
             string name = args [1];
-            lock (m_Scenes) {
-                foreach (Scene s in m_Scenes) {
-                    string test = s.Name.ToString ();
-                    if (test == name) {
+            Scene[] scenes;
+            lock (m_Scenes)
+                scenes = m_Scenes.ToArray();
+
+            if(scenes == null)
+                return;
+
+            Scene s;
+            try
+            {
+                for(int i = 0; i < scenes.Length; i++)
+                {
+                    s = scenes[i];
+                    if (s.Name == name)
+                    {
                         found = true;
-                        DoRegionBackup (s);
+                        m_masterTimer.Stop();
+                        DoRegionBackup(s);
+                        break;
                     }
                 }
-                if (!found) {
+            } catch { }
+
+            if (!found)
                     MainConsole.Instance.OutputFormat ("No such region {0}. Nothing to backup", name);
+            m_busy = false;    
+        }
+
+        private void ParseDefaultConfig()
+        {
+            IConfig config = m_configSource.Configs["AutoBackupModule"];
+            if (config == null)
+                return;
+
+            // Borrow an existing timer if one exists for the same interval; otherwise, make a new one.
+            double interval = config.GetDouble("AutoBackupInterval", 720);
+            interval *= 60000.0;
+            m_masterTimer.Interval = interval;
+
+            m_defaultState.Enabled = config.GetBoolean("AutoBackup", m_defaultState.Enabled);
+
+            // Included Option To Skip Assets
+            m_defaultState.SkipAssets = config.GetBoolean("AutoBackupSkipAssets",m_defaultState.SkipAssets);
+
+            // How long to keep backup files in days, 0 Disables this feature
+            m_defaultState.KeepFilesForDays = config.GetInt("AutoBackupKeepFilesForDays",m_defaultState.KeepFilesForDays);
+
+            // Set file naming algorithm
+            string stmpNamingType = config.GetString("AutoBackupNaming", m_defaultState.NamingType.ToString());
+            NamingType tmpNamingType;
+            if (stmpNamingType.Equals("Time", StringComparison.CurrentCultureIgnoreCase))
+                tmpNamingType = NamingType.Time;
+            else if (stmpNamingType.Equals("Sequential", StringComparison.CurrentCultureIgnoreCase))
+                tmpNamingType = NamingType.Sequential;
+            else if (stmpNamingType.Equals("Overwrite", StringComparison.CurrentCultureIgnoreCase))
+                tmpNamingType = NamingType.Overwrite;
+            else
+            {
+                m_log.Warn("Unknown naming type specified for Default");
+                tmpNamingType = NamingType.Time;
+            }
+            m_defaultState.NamingType = tmpNamingType;
+
+            m_defaultState.Script = config.GetString("AutoBackupScript", m_defaultState.Script);
+
+            string backupDir = config.GetString("AutoBackupDir", ".");
+            if (backupDir != ".")
+            {
+                try
+                {
+                DirectoryInfo dirinfo = new DirectoryInfo(backupDir);
+                if (!dirinfo.Exists)
+                    dirinfo.Create();
+                }
+                catch (Exception e)
+                {
+                    m_log.Warn(
+                            "[AUTO BACKUP]: BAD NEWS. You won't be able to save backups to directory " +
+                            backupDir +
+                            " because it doesn't exist or there's a permissions issue with it. Here's the exception.",
+                            e);
                 }
             }
+            m_defaultState.BackupDir = backupDir;
         }
 
         /// <summary>
@@ -319,247 +370,74 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         /// <param name="scene">The scene to look at.</param>
         /// <param name="parseDefault">Whether this call is intended to figure out what we consider the "default" config (applied to all regions unless overridden by per-region settings).</param>
         /// <returns>An AutoBackupModuleState contains most information you should need to know relevant to auto-backup, as applicable to a single region.</returns>
-        private AutoBackupModuleState ParseConfig(IScene scene, bool parseDefault)
+        private AutoBackupModuleState ParseConfig(IScene scene)
         {
+            if(scene == null)
+                return null;
+
             string sRegionName;
             string sRegionLabel;
-//            string prepend;
-            AutoBackupModuleState state;
+            AutoBackupModuleState state = null;
 
-            if (parseDefault)
-            {
-                sRegionName = null;
-                sRegionLabel = "DEFAULT";
-//                prepend = "";
-                state = this.m_defaultState;
-            }
-            else
-            {
-                sRegionName = scene.RegionInfo.RegionName;
-                sRegionLabel = sRegionName;
-//                prepend = sRegionName + ".";
-                state = null;
-            }
+            sRegionName = scene.RegionInfo.RegionName;
+            sRegionLabel = sRegionName;
 
             // Read the config settings and set variables.
-            IConfig regionConfig = (scene != null ? scene.Config.Configs[sRegionName] : null);
-            IConfig config = this.m_configSource.Configs["AutoBackupModule"];
-            if (config == null)
-            {
-                // defaultState would be disabled too if the section doesn't exist.
-                state = this.m_defaultState;
-                return state;
-            }
+            IConfig regionConfig = scene.Config.Configs[sRegionName];
+            if (regionConfig == null)
+                return null;
 
-            bool tmpEnabled = ResolveBoolean("AutoBackup", this.m_defaultState.Enabled, config, regionConfig);
-            if (state == null && tmpEnabled != this.m_defaultState.Enabled)
-                //Varies from default state
-            {
-                state = new AutoBackupModuleState();
-            }
+            state = new AutoBackupModuleState();
 
-            if (state != null)
-            {
-                state.Enabled = tmpEnabled;
-            }
-
-            // If you don't want AutoBackup, we stop.
-            if ((state == null && !this.m_defaultState.Enabled) || (state != null && !state.Enabled))
-            {
-                return state;
-            }
-            else
-            {
-                m_log.Info("[AUTO BACKUP]: Region " + sRegionLabel + " is AutoBackup ENABLED.");
-            }
-
-            // Borrow an existing timer if one exists for the same interval; otherwise, make a new one.
-            double interval =
-                this.ResolveDouble("AutoBackupInterval", this.m_defaultState.IntervalMinutes,
-                 config, regionConfig) * 60000.0;
-            if (state == null && interval != this.m_defaultState.IntervalMinutes * 60000.0)
-            {
-                state = new AutoBackupModuleState();
-            }
-
-            if (this.m_timers.ContainsKey(interval))
-            {
-                if (state != null)
-                {
-                    state.Timer = this.m_timers[interval];
-                }
-                m_log.Debug("[AUTO BACKUP]: Reusing timer for " + interval + " msec for region " +
-                            sRegionLabel);
-            }
-            else
-            {
-                // 0 or negative interval == do nothing.
-                if (interval <= 0.0 && state != null)
-                {
-                    state.Enabled = false;
-                    return state;
-                }
-                if (state == null)
-                {
-                    state = new AutoBackupModuleState();
-                }
-                Timer tim = new Timer(interval);
-                state.Timer = tim;
-                //Milliseconds -> minutes
-                this.m_timers.Add(interval, tim);
-                tim.Elapsed += this.HandleElapsed;
-                tim.AutoReset = true;
-                tim.Start();
-            }
-
-            // Add the current region to the list of regions tied to this timer.
-            if (scene != null)
-            {
-                if (state != null)
-                {
-                    if (this.m_timerMap.ContainsKey(state.Timer))
-                    {
-                        this.m_timerMap[state.Timer].Add(scene);
-                    }
-                    else
-                    {
-                        List<IScene> scns = new List<IScene>(1);
-                        scns.Add(scene);
-                        this.m_timerMap.Add(state.Timer, scns);
-                    }
-                }
-                else
-                {
-                    if (this.m_timerMap.ContainsKey(this.m_defaultState.Timer))
-                    {
-                        this.m_timerMap[this.m_defaultState.Timer].Add(scene);
-                    }
-                    else
-                    {
-                        List<IScene> scns = new List<IScene>(1);
-                        scns.Add(scene);
-                        this.m_timerMap.Add(this.m_defaultState.Timer, scns);
-                    }
-                }
-            }
-
-            bool tmpBusyCheck = ResolveBoolean("AutoBackupBusyCheck",
-                                                  this.m_defaultState.BusyCheck, config, regionConfig);
-            if (state == null && tmpBusyCheck != this.m_defaultState.BusyCheck)
-            {
-                state = new AutoBackupModuleState();
-            }
-
-            if (state != null)
-            {
-                state.BusyCheck = tmpBusyCheck;
-            }
+            state.Enabled = regionConfig.GetBoolean("AutoBackup", m_defaultState.Enabled);
 
             // Included Option To Skip Assets
-            bool tmpSkipAssets = ResolveBoolean("AutoBackupSkipAssets",
-                                                  this.m_defaultState.SkipAssets, config, regionConfig);
-            if (state == null && tmpSkipAssets != this.m_defaultState.SkipAssets)
-            {
-                state = new AutoBackupModuleState();
-            }
-
-            if (state != null)
-            {
-                state.SkipAssets = tmpSkipAssets;
-            }
+            state.SkipAssets = regionConfig.GetBoolean("AutoBackupSkipAssets", m_defaultState.SkipAssets);
 
             // How long to keep backup files in days, 0 Disables this feature
-            int tmpKeepFilesForDays = ResolveInt("AutoBackupKeepFilesForDays",
-                                                  this.m_defaultState.KeepFilesForDays, config, regionConfig);
-            if (state == null && tmpKeepFilesForDays != this.m_defaultState.KeepFilesForDays)
-            {
-                state = new AutoBackupModuleState();
-            }
-
-            if (state != null)
-            {
-                state.KeepFilesForDays = tmpKeepFilesForDays;
-            }
+            state.KeepFilesForDays = regionConfig.GetInt("AutoBackupKeepFilesForDays", m_defaultState.KeepFilesForDays);
 
             // Set file naming algorithm
-            string stmpNamingType = ResolveString("AutoBackupNaming",
-                                                     this.m_defaultState.NamingType.ToString(), config, regionConfig);
+            string stmpNamingType = regionConfig.GetString("AutoBackupNaming", m_defaultState.NamingType.ToString());
             NamingType tmpNamingType;
             if (stmpNamingType.Equals("Time", StringComparison.CurrentCultureIgnoreCase))
-            {
                 tmpNamingType = NamingType.Time;
-            }
             else if (stmpNamingType.Equals("Sequential", StringComparison.CurrentCultureIgnoreCase))
-            {
                 tmpNamingType = NamingType.Sequential;
-            }
             else if (stmpNamingType.Equals("Overwrite", StringComparison.CurrentCultureIgnoreCase))
-            {
                 tmpNamingType = NamingType.Overwrite;
-            }
             else
             {
                 m_log.Warn("Unknown naming type specified for region " + sRegionLabel + ": " +
                            stmpNamingType);
                 tmpNamingType = NamingType.Time;
             }
+            m_defaultState.NamingType = tmpNamingType;
 
-            if (state == null && tmpNamingType != this.m_defaultState.NamingType)
-            {
-                state = new AutoBackupModuleState();
-            }
+            state.Script = regionConfig.GetString("AutoBackupScript", m_defaultState.Script);
 
-            if (state != null)
+            string tmpBackupDir = regionConfig.GetString("AutoBackupDir", ".");
+            // Let's give the user some convenience and auto-mkdir
+            if (tmpBackupDir != "." && tmpBackupDir != m_defaultState.BackupDir)
             {
-                state.NamingType = tmpNamingType;
-            }
-
-            string tmpScript = ResolveString("AutoBackupScript",
-                                                this.m_defaultState.Script, config, regionConfig);
-            if (state == null && tmpScript != this.m_defaultState.Script)
-            {
-                state = new AutoBackupModuleState();
-            }
-
-            if (state != null)
-            {
-                state.Script = tmpScript;
-            }
-
-            string tmpBackupDir = ResolveString("AutoBackupDir", ".", config, regionConfig);
-            if (state == null && tmpBackupDir != this.m_defaultState.BackupDir)
-            {
-                state = new AutoBackupModuleState();
-            }
-
-            if (state != null)
-            {
-                state.BackupDir = tmpBackupDir;
-                // Let's give the user some convenience and auto-mkdir
-                if (state.BackupDir != ".")
+                try
                 {
-                    try
+                    DirectoryInfo dirinfo = new DirectoryInfo(state.BackupDir);
+                    if (!dirinfo.Exists)
                     {
-                        DirectoryInfo dirinfo = new DirectoryInfo(state.BackupDir);
-                        if (!dirinfo.Exists)
-                        {
-                            dirinfo.Create();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.Warn(
-                            "[AUTO BACKUP]: BAD NEWS. You won't be able to save backups to directory " +
-                            state.BackupDir +
-                            " because it doesn't exist or there's a permissions issue with it. Here's the exception.",
-                            e);
+                        dirinfo.Create();
                     }
                 }
+                catch (Exception e)
+                {
+                    m_log.Warn(
+                        "[AUTO BACKUP]: BAD NEWS. You won't be able to save backups to directory " +
+                        state.BackupDir +
+                        " because it doesn't exist or there's a permissions issue with it:",
+                        e);
+                }
             }
-
-            if(state == null)
-                return m_defaultState;
-
+            state.BackupDir = tmpBackupDir;
             return state;
         }
 
@@ -584,128 +462,27 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         }
 
         /// <summary>
-        /// Helper function for ParseConfig.
-        /// </summary>
-        /// <param name="settingName"></param>
-        /// <param name="defaultValue"></param>
-        /// <param name="global"></param>
-        /// <param name="local"></param>
-        /// <returns></returns>
-        private double ResolveDouble(string settingName, double defaultValue, IConfig global, IConfig local)
-        {
-            if (local != null)
-            {
-                return local.GetDouble(settingName, global.GetDouble(settingName, defaultValue));
-            }
-            else
-            {
-                return global.GetDouble(settingName, defaultValue);
-            }
-        }
-
-        /// <summary>
-        /// Helper function for ParseConfig.
-        /// </summary>
-        /// <param name="settingName"></param>
-        /// <param name="defaultValue"></param>
-        /// <param name="global"></param>
-        /// <param name="local"></param>
-        /// <returns></returns>
-        private int ResolveInt(string settingName, int defaultValue, IConfig global, IConfig local)
-        {
-            if (local != null)
-            {
-                return local.GetInt(settingName, global.GetInt(settingName, defaultValue));
-            }
-            else
-            {
-                return global.GetInt(settingName, defaultValue);
-            }
-        }
-
-        /// <summary>
-        /// Helper function for ParseConfig.
-        /// </summary>
-        /// <param name="settingName"></param>
-        /// <param name="defaultValue"></param>
-        /// <param name="global"></param>
-        /// <param name="local"></param>
-        /// <returns></returns>
-        private string ResolveString(string settingName, string defaultValue, IConfig global, IConfig local)
-        {
-            if (local != null)
-            {
-                return local.GetString(settingName, global.GetString(settingName, defaultValue));
-            }
-            else
-            {
-                return global.GetString(settingName, defaultValue);
-            }
-        }
-
-        /// <summary>
         /// Called when any auto-backup timer expires. This starts the code path for actually performing a backup.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void HandleElapsed(object sender, ElapsedEventArgs e)
         {
-            // TODO: heuristic thresholds are per-region, so we should probably run heuristics once per region
-            // XXX: Running heuristics once per region could add undue performance penalty for something that's supposed to
-            // check whether the region is too busy! Especially on sims with LOTS of regions.
-            // Alternative: make heuristics thresholds global to the module rather than per-region. Less flexible,
-            //  but would allow us to be semantically correct while being easier on perf.
-            // Alternative 2: Run heuristics once per unique set of heuristics threshold parameters! Ay yi yi...
-            // Alternative 3: Don't support per-region heuristics at all; just accept them as a global only parameter.
-            // Since this is pretty experimental, I haven't decided which alternative makes the most sense.
-            if (this.m_closed)
-            {
+            if (!m_enabled || m_busy)
                 return;
-            }
-            bool heuristicsRun = false;
-            bool heuristicsPassed = false;
-            if (!this.m_timerMap.ContainsKey((Timer) sender))
+
+            m_busy = true;
+            foreach (IScene scene in m_Scenes)
             {
-                m_log.Debug("[AUTO BACKUP]: Code-up error: timerMap doesn't contain timer " + sender);
+                if (!m_enabled)
+                    return;
+                DoRegionBackup(scene);
             }
 
-            List<IScene> tmap = this.m_timerMap[(Timer) sender];
-            if (tmap != null && tmap.Count > 0)
+            if (m_enabled)
             {
-                foreach (IScene scene in tmap)
-                {
-                    AutoBackupModuleState state = this.m_states[scene];
-                    bool heuristics = state.BusyCheck;
-
-                    // Fast path: heuristics are on; already ran em; and sim is fine; OR, no heuristics for the region.
-                    if ((heuristics && heuristicsRun && heuristicsPassed) || !heuristics)
-                    {
-                        this.DoRegionBackup(scene);
-                        // Heuristics are on; ran but we're too busy -- keep going. Maybe another region will have heuristics off!
-                    }
-                    else if (heuristicsRun)
-                    {
-                        m_log.Info("[AUTO BACKUP]: Heuristics: too busy to backup " +
-                                   scene.RegionInfo.RegionName + " right now.");
-                        continue;
-                        // Logical Deduction: heuristics are on but haven't been run
-                    }
-                    else
-                    {
-                        heuristicsPassed = this.RunHeuristics(scene);
-                        heuristicsRun = true;
-                        if (!heuristicsPassed)
-                        {
-                            m_log.Info("[AUTO BACKUP]: Heuristics: too busy to backup " +
-                                       scene.RegionInfo.RegionName + " right now.");
-                            continue;
-                        }
-                        this.DoRegionBackup(scene);
-                    }
-
-                    // Remove Old Backups
-                    this.RemoveOldFiles(state);
-                }
+                m_masterTimer.Start();
+                m_busy = false;
             }
         }
 
@@ -723,8 +500,19 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
                 return;
             }
 
-            AutoBackupModuleState state = this.m_states[scene];
+            m_busy = true;
+
+            AutoBackupModuleState state;
+            if(!m_states.TryGetValue(scene, out state))
+                return;
+
+            if(state == null || !state.Enabled)
+                return;
+
             IRegionArchiverModule iram = scene.RequestModuleInterface<IRegionArchiverModule>();
+            if(iram == null)
+                return;
+
             string savePath = BuildOarPath(scene.RegionInfo.RegionName,
                                                 state.BackupDir,
                                                 state.NamingType);
@@ -733,11 +521,8 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
                 m_log.Warn("[AUTO BACKUP]: savePath is null in HandleElapsed");
                 return;
             }
-            Guid guid = Guid.NewGuid();
-            m_pendingSaves.Add(guid, scene);
-            state.LiveRequests.Add(guid, savePath);
-            ((Scene) scene).EventManager.OnOarFileSaved += new EventManager.OarFileSaved(EventManager_OnOarFileSaved);
 
+            Guid guid = Guid.NewGuid();
             m_log.Info("[AUTO BACKUP]: Backing up region " + scene.RegionInfo.RegionName);
 
             // Must pass options, even if dictionary is empty!
@@ -747,6 +532,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
                 options["noassets"] = true;
 
             iram.ArchiveRegion(savePath, guid, options);
+            ExecuteScript(state.Script, savePath);
         }
 
         // For the given state, remove backup files older than the states KeepFilesForDays property
@@ -774,23 +560,6 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             }
         }
 
-        /// <summary>
-        /// Called by the Event Manager when the OnOarFileSaved event is fired.
-        /// </summary>
-        /// <param name="guid"></param>
-        /// <param name="message"></param>
-        void EventManager_OnOarFileSaved(Guid guid, string message)
-        {
-            // Ignore if the OAR save is being done by some other part of the system
-            if (m_pendingSaves.ContainsKey(guid))
-            {
-                AutoBackupModuleState abms = m_states[(m_pendingSaves[guid])];
-                ExecuteScript(abms.Script, abms.LiveRequests[guid]);
-                m_pendingSaves.Remove(guid);
-                abms.LiveRequests.Remove(guid);
-            }
-        }
-
         /// <summary>This format may turn out to be too unwieldy to keep...
         /// Besides, that's what ctimes are for. But then how do I name each file uniquely without using a GUID?
         /// Sequential numbers, right? We support those, too!</summary>
@@ -815,63 +584,6 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             string output = sw.ToString();
             sw.Close();
             return output;
-        }
-
-        /// <summary>Return value of true ==> not too busy; false ==> too busy to backup an OAR right now, or error.</summary>
-        private bool RunHeuristics(IScene region)
-        {
-            try
-            {
-                return this.RunTimeDilationHeuristic(region) && this.RunAgentLimitHeuristic(region);
-            }
-            catch (Exception e)
-            {
-                m_log.Warn("[AUTO BACKUP]: Exception in RunHeuristics", e);
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// If the time dilation right at this instant is less than the threshold specified in AutoBackupDilationThreshold (default 0.5),
-        /// then we return false and trip the busy heuristic's "too busy" path (i.e. don't save an OAR).
-        /// AutoBackupDilationThreshold is a _LOWER BOUND_. Lower Time Dilation is bad, so if you go lower than our threshold, it's "too busy".
-        /// </summary>
-        /// <param name="region"></param>
-        /// <returns>Returns true if we're not too busy; false means we've got worse time dilation than the threshold.</returns>
-        private bool RunTimeDilationHeuristic(IScene region)
-        {
-            string regionName = region.RegionInfo.RegionName;
-            return region.TimeDilation >=
-                   this.m_configSource.Configs["AutoBackupModule"].GetFloat(
-                       regionName + ".AutoBackupDilationThreshold", 0.5f);
-        }
-
-        /// <summary>
-        /// If the root agent count right at this instant is less than the threshold specified in AutoBackupAgentThreshold (default 10),
-        /// then we return false and trip the busy heuristic's "too busy" path (i.e., don't save an OAR).
-        /// AutoBackupAgentThreshold is an _UPPER BOUND_. Higher Agent Count is bad, so if you go higher than our threshold, it's "too busy".
-        /// </summary>
-        /// <param name="region"></param>
-        /// <returns>Returns true if we're not too busy; false means we've got more agents on the sim than the threshold.</returns>
-        private bool RunAgentLimitHeuristic(IScene region)
-        {
-            string regionName = region.RegionInfo.RegionName;
-            try
-            {
-                Scene scene = (Scene) region;
-                // TODO: Why isn't GetRootAgentCount() a method in the IScene interface? Seems generally useful...
-                return scene.GetRootAgentCount() <=
-                       this.m_configSource.Configs["AutoBackupModule"].GetInt(
-                           regionName + ".AutoBackupAgentThreshold", 10);
-            }
-            catch (InvalidCastException ice)
-            {
-                m_log.Debug(
-                    "[AUTO BACKUP]: I NEED MAINTENANCE: IScene is not a Scene; can't get root agent count!",
-                    ice);
-                return true;
-                // Non-obstructionist safest answer...
-            }
         }
 
         /// <summary>
@@ -917,18 +629,6 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         {
             m_log.Warn("ExecuteScript hook " + ((Process) sender).ProcessName +
                        " is yacking on stderr: " + e.Data);
-        }
-
-        /// <summary>
-        /// Quickly stop all timers from firing.
-        /// </summary>
-        private void StopAllTimers()
-        {
-            foreach (Timer t in this.m_timerMap.Keys)
-            {
-                t.Close();
-            }
-            this.m_closed = true;
         }
 
         /// <summary>
@@ -1033,5 +733,3 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         }
     }
 }
-
-
