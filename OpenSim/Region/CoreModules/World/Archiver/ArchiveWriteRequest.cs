@@ -195,14 +195,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     m_log.DebugFormat("[ARCHIVER]: Saving {0} assets", assetUuids.Count);
 
                     // Asynchronously request all the assets required to perform this archive operation
-                    AssetsRequest ar
-                        = new AssetsRequest(
+                    AssetsRequest ar = new AssetsRequest(
                             new AssetsArchiver(m_archiveWriter), assetUuids,
                             m_rootScene.AssetService, m_rootScene.UserAccountService,
                             m_rootScene.RegionInfo.ScopeID, options, ReceivedAllAssets);
 
-                    WorkManager.RunInThread(o => ar.Execute(), null, "Archive Assets Request");
-
+//                    WorkManager.RunInThread(o => ar.Execute(), null, "Archive Assets Request");
+                    ar.Execute();
                     // CloseArchive() will be called from ReceivedAllAssets()
                 }
                 else

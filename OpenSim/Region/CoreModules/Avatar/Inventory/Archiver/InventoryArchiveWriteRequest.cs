@@ -423,14 +423,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     m_log.DebugFormat(
                         "[INVENTORY ARCHIVER]: Saving {0} assets for items", m_assetGatherer.GatheredUuids.Count);
 
-                    AssetsRequest ar
-                        = new AssetsRequest(
+                    AssetsRequest ar = new AssetsRequest(
                             new AssetsArchiver(m_archiveWriter),
                             m_assetGatherer.GatheredUuids, m_scene.AssetService,
                             m_scene.UserAccountService, m_scene.RegionInfo.ScopeID,
                             options, ReceivedAllAssets);
-
-                    WorkManager.RunInThread(o => ar.Execute(), null, string.Format("AssetsRequest ({0})", m_scene.Name));
+                   ar.Execute();
                 }
                 else
                 {
