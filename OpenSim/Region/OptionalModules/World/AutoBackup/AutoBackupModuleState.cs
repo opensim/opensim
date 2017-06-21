@@ -41,21 +41,17 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         public AutoBackupModuleState()
         {
             Enabled = false;
-            BackupDir = ".";
             SkipAssets = false;
             NamingType = NamingType.Time;
             Script = null;
-            KeepFilesForDays = 0;
         }
 
         public AutoBackupModuleState(AutoBackupModuleState copyFrom)
         {
             Enabled = copyFrom.Enabled;
-            BackupDir = copyFrom.BackupDir;
             SkipAssets = copyFrom.SkipAssets;
             NamingType = copyFrom.NamingType;
             Script = copyFrom.Script;
-            KeepFilesForDays = copyFrom.KeepFilesForDays;
         }
 
         public bool Enabled
@@ -76,19 +72,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             set;
         }
 
-        public string BackupDir
-        {
-            get;
-            set;
-        }
-
         public NamingType NamingType
-        {
-            get;
-            set;
-        }
-
-        public int KeepFilesForDays
         {
             get;
             set;
@@ -99,7 +83,6 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             string retval = "";
             retval += "[AUTO BACKUP]: AutoBackup: " + (Enabled ? "ENABLED" : "DISABLED") + "\n";
             retval += "[AUTO BACKUP]: Naming Type: " + NamingType.ToString() + "\n";
-            retval += "[AUTO BACKUP]: Backup Dir: " + BackupDir + "\n";
             retval += "[AUTO BACKUP]: Script: " + Script + "\n";
             return retval;
         }
