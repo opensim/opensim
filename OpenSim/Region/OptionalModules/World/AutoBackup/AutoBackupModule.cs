@@ -167,8 +167,8 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 
             m_console.Commands.AddCommand (
                         "AutoBackup", true, "dooarbackup",
-                        "dooarbackup <regionName>",
-                        "do single region backup into a oar. Identical to save oar but using AutoBackup settings for name etc", DoBackup);
+                        "dooarbackup <regionName> | ALL",
+                        "saves the single region <regionName> to a oar or ALL regions in instance to oars, using same settings as AutoBackup. Note it restarts time interval", DoBackup);
             m_busy = true;            
         }
 
@@ -287,6 +287,18 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             Scene s;
             try
             {
+                if(name == "ALL")
+                {
+                    m_masterTimer.Stop();
+                    for(int i = 0; i < scenes.Length; i++)
+                    {
+                        s = scenes[i];
+                        DoRegionBackup(s);
+                    }
+                    m_busy = false;    
+                    return;
+                }
+
                 for(int i = 0; i < scenes.Length; i++)
                 {
                     s = scenes[i];
