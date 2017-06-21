@@ -193,22 +193,20 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 if (SaveAssets)
                 {
                     m_log.DebugFormat("[ARCHIVER]: Saving {0} assets", assetUuids.Count);
-
-                    // Asynchronously request all the assets required to perform this archive operation
+                    
                     AssetsRequest ar = new AssetsRequest(
                             new AssetsArchiver(m_archiveWriter), assetUuids,
                             m_rootScene.AssetService, m_rootScene.UserAccountService,
-                            m_rootScene.RegionInfo.ScopeID, options, ReceivedAllAssets);
-
-//                    WorkManager.RunInThread(o => ar.Execute(), null, "Archive Assets Request");
+                            m_rootScene.RegionInfo.ScopeID, options, null);
                     ar.Execute();
-                    // CloseArchive() will be called from ReceivedAllAssets()
+                    assetUuids = null;
                 }
                 else
                 {
                     m_log.DebugFormat("[ARCHIVER]: Not saving assets since --noassets was specified");
-                    CloseArchive(string.Empty);
+//                    CloseArchive(string.Empty);
                 }
+                CloseArchive(string.Empty);
             }
             catch (Exception e)
             {
@@ -236,7 +234,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 {
                     SceneObjectGroup sceneObject = (SceneObjectGroup)entity;
 
-                    if (!sceneObject.IsDeleted && !sceneObject.IsAttachment)
+                    if (!sceneObject.IsDeleted && !sceneObject.IsAttachment && !sceneObject.IsTemporary && !sceneObject.inTransit)
                     {
                         if (!CanUserArchiveObject(scene.RegionInfo.EstateSettings.EstateOwner, sceneObject, FilterContent, permissionsModule))
                         {
@@ -571,7 +569,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             foreach (SceneObjectGroup sceneObject in sceneObjects)
             {
                 //m_log.DebugFormat("[ARCHIVER]: Saving {0} {1}, {2}", entity.Name, entity.UUID, entity.GetType());
-
+                if(sceneObject.IsDeleted || sceneObject.inTransit)
+                    continue;
                 string serializedObject = serializer.SerializeGroupToXml2(sceneObject, m_options);
                 string objectPath = string.Format("{0}{1}", regionDir, ArchiveHelpers.CreateObjectPath(sceneObject));
                 m_archiveWriter.WriteFile(objectPath, serializedObject);
