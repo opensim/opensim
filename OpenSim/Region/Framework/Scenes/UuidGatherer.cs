@@ -142,6 +142,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //            m_log.DebugFormat(
             //                "[ASSET GATHERER]: Getting assets for object {0}, {1}", sceneObject.Name, sceneObject.UUID);
+            if(sceneObject.IsDeleted)
+                return;
 
             SceneObjectPart[] parts = sceneObject.Parts;
             for (int i = 0; i < parts.Length; i++)
@@ -489,6 +491,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="sceneObjectAsset"></param>
         private void RecordSceneObjectAssetUuids(AssetBase sceneObjectAsset)
         {
+            if(sceneObjectAsset.Data == null || sceneObjectAsset.Data.Length == 0)
+            {
+                m_log.WarnFormat("[UUIDgatherer] Error: object asset '{0}' id: {1} has no data",
+                    sceneObjectAsset.Name,sceneObjectAsset.ID.ToString());
+                return;
+            }
+
             string xml = Utils.BytesToString(sceneObjectAsset.Data);
 
             CoalescedSceneObjects coa;

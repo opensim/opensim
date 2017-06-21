@@ -381,6 +381,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     string errorMessage = string.Format("Aborted save.  Could not find inventory path {0}", m_invPath);
                     Exception e = new InventoryArchiverException(errorMessage);
                     m_module.TriggerInventoryArchiveSaved(m_id, false, m_userInfo, m_invPath, m_saveStream, e, 0, 0);
+                    if(m_saveStream != null && m_saveStream.CanWrite)
+                       m_saveStream.Close(); 
                     throw e;
                 }
 

@@ -218,7 +218,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 //                    {
                         try
                         {
-                            new InventoryArchiveWriteRequest(id, this, m_aScene, userInfo, invPath, saveStream).Execute(options, UserAccountService);
+                            InventoryArchiveWriteRequest iarReq = new InventoryArchiveWriteRequest(id, this, m_aScene, userInfo, invPath, saveStream);
+                            iarReq.Execute(options, UserAccountService);
                         }
                         catch (EntryPointNotFoundException e)
                         {
@@ -261,7 +262,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 //                    {
                         try
                         {
-                            new InventoryArchiveWriteRequest(id, this, m_aScene, userInfo, invPath, savePath).Execute(options, UserAccountService);
+                            InventoryArchiveWriteRequest iarReq  = new InventoryArchiveWriteRequest(id, this, m_aScene, userInfo, invPath, savePath);
+                            iarReq.Execute(options, UserAccountService);
                         }
                         catch (EntryPointNotFoundException e)
                         {
