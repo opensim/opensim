@@ -262,6 +262,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 m_log.DebugFormat(
                     "[ARCHIVER]: {0} scene objects to serialize requiring save of {1} assets",
                     sceneObjects.Count, assetUuids.Count - prevAssets);
+                int errors = assetGatherer.FailedUUIDs.Count;
+                if(errors > 0)
+                    m_log.DebugFormat("[ARCHIVER]: {0} assets have problems and will be ignored", errors);
             }
 
             if (numObjectsSkippedPermissions > 0)
