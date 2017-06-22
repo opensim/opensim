@@ -264,7 +264,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     sceneObjects.Count, assetUuids.Count - prevAssets);
                 int errors = assetGatherer.FailedUUIDs.Count;
                 if(errors > 0)
-                    m_log.DebugFormat("[ARCHIVER]: {0} assets have problems and will be ignored", errors);
+                    m_log.DebugFormat("[ARCHIVER]: aditional {0} assets have problems and will be ignored", errors);
             }
 
             if (numObjectsSkippedPermissions > 0)

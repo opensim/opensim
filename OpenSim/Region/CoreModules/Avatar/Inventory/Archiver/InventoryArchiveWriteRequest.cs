@@ -424,6 +424,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                     m_log.DebugFormat(
                         "[INVENTORY ARCHIVER]: Saving {0} assets for items", m_assetGatherer.GatheredUuids.Count);
+                    int errors = m_assetGatherer.FailedUUIDs.Count;
+                    if(errors > 0)
+                        m_log.DebugFormat("[INVENTORY ARCHIVER]: aditional {0} assets have problems and will be ignored", errors);
 
                     AssetsRequest ar = new AssetsRequest(
                             new AssetsArchiver(m_archiveWriter),
