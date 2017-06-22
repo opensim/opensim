@@ -284,45 +284,58 @@ namespace OpenSim.Region.Framework.Scenes
             if (GatheredUuids.ContainsKey(assetUuid))
                 return;
 
+            AssetBase assetBase;
             try
             {
-                AssetBase assetBase = GetAsset(assetUuid);
+                assetBase = GetAsset(assetUuid);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[UUID GATHERER]: Failed to get asset id {0} : {1}", assetUuid, e.Message);
+                GatheredUuids.Remove(assetUuid);
+                return;
+            }
 
-                if (null != assetBase)
+            if(assetBase == null)
+            {
+                m_log.ErrorFormat("[UUID GATHERER]: asset id {0} not found", assetUuid);
+                GatheredUuids.Remove(assetUuid);
+                return;
+            }
+
+            sbyte assetType = assetBase.Type;
+            GatheredUuids[assetUuid] = assetType;
+
+            try
+            {
+                if ((sbyte)AssetType.Bodypart == assetType || (sbyte)AssetType.Clothing == assetType)
                 {
-                    sbyte assetType = assetBase.Type;
-                    GatheredUuids[assetUuid] = assetType;
-
-                    if ((sbyte)AssetType.Bodypart == assetType || (sbyte)AssetType.Clothing == assetType)
-                    {
-                        RecordWearableAssetUuids(assetBase);
-                    }
-                    else if ((sbyte)AssetType.Gesture == assetType)
-                    {
-                        RecordGestureAssetUuids(assetBase);
-                    }
-                    else if ((sbyte)AssetType.Notecard == assetType)
-                    {
-                        RecordTextEmbeddedAssetUuids(assetBase);
-                    }
-                    else if ((sbyte)AssetType.LSLText == assetType)
-                    {
-                        RecordTextEmbeddedAssetUuids(assetBase);
-                    }
-                    else if ((sbyte)OpenSimAssetType.Material == assetType)
-                    {
-                        RecordMaterialAssetUuids(assetBase);
-                    }
-                    else if ((sbyte)AssetType.Object == assetType)
-                    {
-                        RecordSceneObjectAssetUuids(assetBase);
-                    }
+                    RecordWearableAssetUuids(assetBase);
+                }
+                else if ((sbyte)AssetType.Gesture == assetType)
+                {
+                    RecordGestureAssetUuids(assetBase);
+                }
+                else if ((sbyte)AssetType.Notecard == assetType)
+                {
+                    RecordTextEmbeddedAssetUuids(assetBase);
+                }
+                else if ((sbyte)AssetType.LSLText == assetType)
+                {
+                    RecordTextEmbeddedAssetUuids(assetBase);
+                }
+                else if ((sbyte)OpenSimAssetType.Material == assetType)
+                {
+                    RecordMaterialAssetUuids(assetBase);
+                }
+                else if ((sbyte)AssetType.Object == assetType)
+                {
+                    RecordSceneObjectAssetUuids(assetBase);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                m_log.ErrorFormat("[UUID GATHERER]: Failed to gather uuids for asset id {0}", assetUuid);
-                throw;
+                m_log.ErrorFormat("[UUID GATHERER]: Failed to  uuids for asset id {0} type {1}: {2}", assetUuid, assetType, e.Message);
             }
         }
 
