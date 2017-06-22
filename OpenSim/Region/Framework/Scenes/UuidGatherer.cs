@@ -65,6 +65,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <value>The gathered uuids.</value>
         public IDictionary<UUID, sbyte> GatheredUuids { get; private set; }
+        public HashSet<UUID> FailedUUIDs { get; private set; }
 
         /// <summary>
         /// Gets the next UUID to inspect.
@@ -111,6 +112,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // FIXME: Not efficient for searching, can improve.
             m_assetUuidsToInspect = new Queue<UUID>();
+            FailedUUIDs = new HashSet<UUID>();
         }
 
         /// <summary>
@@ -120,6 +122,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="uuid">UUID.</param>
         public bool AddForInspection(UUID uuid)
         {
+            if(FailedUUIDs.Contains(uuid))
+                return false;           
+            if(GatheredUuids.ContainsKey(uuid))
+                return false;
             if (m_assetUuidsToInspect.Contains(uuid))
                 return false;
 
@@ -209,9 +215,7 @@ namespace OpenSim.Region.Framework.Scenes
                         //                        m_log.DebugFormat(
                         //                            "[ARCHIVER]: Analysing item {0} asset type {1} in {2} {3}",
                         //                            tii.Name, tii.Type, part.Name, part.UUID);
-
-                        if (!GatheredUuids.ContainsKey(tii.AssetID))
-                            AddForInspection(tii.AssetID, (sbyte)tii.Type);
+                        AddForInspection(tii.AssetID, (sbyte)tii.Type);
                     }
 
                     // FIXME: We need to make gathering modular but we cannot yet, since gatherers are not guaranteed
@@ -280,9 +284,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="assetUuid">The uuid of the asset for which to gather referenced assets</param>
         private void GetAssetUuids(UUID assetUuid)
         {
+            if(FailedUUIDs.Contains(assetUuid))
+                return;
+
             // avoid infinite loops
             if (GatheredUuids.ContainsKey(assetUuid))
+            {
+                FailedUUIDs.Add(assetUuid);
                 return;
+            }
 
             AssetBase assetBase;
             try
@@ -291,21 +301,28 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[UUID GATHERER]: Failed to get asset id {0} : {1}", assetUuid, e.Message);
-                GatheredUuids.Remove(assetUuid);
+                m_log.ErrorFormat("[UUID GATHERER]: Failed to get asset with id {0} : {1}", assetUuid, e.Message);
+                FailedUUIDs.Add(assetUuid);
                 return;
             }
 
             if(assetBase == null)
             {
-                m_log.ErrorFormat("[UUID GATHERER]: asset id {0} not found", assetUuid);
-                GatheredUuids.Remove(assetUuid);
+                m_log.ErrorFormat("[UUID GATHERER]: asset with id {0} not found", assetUuid);
+                FailedUUIDs.Add(assetUuid);
                 return;
             }
 
             sbyte assetType = assetBase.Type;
-            GatheredUuids[assetUuid] = assetType;
 
+            if(assetBase.Data == null || assetBase.Data.Length == 0)
+            {
+                m_log.ErrorFormat("[UUID GATHERER]: asset with id {0} type {1} has no data", assetUuid, assetType);
+                FailedUUIDs.Add(assetUuid);
+                return;
+            }
+
+            GatheredUuids[assetUuid] = assetType;
             try
             {
                 if ((sbyte)AssetType.Bodypart == assetType || (sbyte)AssetType.Clothing == assetType)
@@ -335,13 +352,19 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[UUID GATHERER]: Failed to  uuids for asset id {0} type {1}: {2}", assetUuid, assetType, e.Message);
+                m_log.ErrorFormat("[UUID GATHERER]: Failed to gather uuids for asset with id {0} type {1}: {2}", assetUuid, assetType, e.Message);
+                GatheredUuids.Remove(assetUuid);
+                FailedUUIDs.Add(assetUuid);
             }
         }
 
         private void AddForInspection(UUID assetUuid, sbyte assetType)
         {
             // Here, we want to collect uuids which require further asset fetches but mark the others as gathered
+            if(FailedUUIDs.Contains(assetUuid))
+                return;
+            if(GatheredUuids.ContainsKey(assetUuid))
+                return;
             try
             {
                 if ((sbyte)AssetType.Bodypart == assetType
@@ -504,13 +527,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="sceneObjectAsset"></param>
         private void RecordSceneObjectAssetUuids(AssetBase sceneObjectAsset)
         {
-            if(sceneObjectAsset.Data == null || sceneObjectAsset.Data.Length == 0)
-            {
-                m_log.WarnFormat("[UUIDgatherer] Error: object asset '{0}' id: {1} has no data",
-                    sceneObjectAsset.Name,sceneObjectAsset.ID.ToString());
-                return;
-            }
-
             string xml = Utils.BytesToString(sceneObjectAsset.Data);
 
             CoalescedSceneObjects coa;
