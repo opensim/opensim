@@ -65,6 +65,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// uuids to request
         /// </value>
         protected IDictionary<UUID, sbyte> m_uuids;
+        private int m_previusErrorsCount;
 
         /// <value>
         /// Callback used when all the assets requested have been received.
@@ -102,12 +103,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         protected internal AssetsRequest(
             AssetsArchiver assetsArchiver, IDictionary<UUID, sbyte> uuids,
+            int previusErrorsCount,
             IAssetService assetService, IUserAccountService userService,
             UUID scope, Dictionary<string, object> options,
             AssetsRequestCallback assetsRequestCallback)
         {
             m_assetsArchiver = assetsArchiver;
             m_uuids = uuids;
+            m_previusErrorsCount = previusErrorsCount;
             m_assetsRequestCallback = assetsRequestCallback;
             m_assetService = assetService;
             m_userAccountService = userService;
@@ -119,8 +122,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         protected internal void Execute()
         {
             Culture.SetCurrentCulture();
-            m_log.DebugFormat("[ARCHIVER]: AssetsRequest executed looking for {0} possible assets", m_repliesRequired);
-
             // We can stop here if there are no assets to fetch
             if (m_repliesRequired == 0)
             {
@@ -169,19 +170,20 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
 
             m_timeOutTimer.Dispose();
+            int totalerrors = m_notFoundAssetUuids.Count + m_previusErrorsCount;
 
             if(m_timeout)
                 m_log.DebugFormat("[ARCHIVER]: Aborted because AssetService request timeout. Successfully added {0} assets", m_foundAssetUuids.Count);
-            else if(m_notFoundAssetUuids.Count == 0)
+            else if(totalerrors == 0)
                 m_log.DebugFormat("[ARCHIVER]: Successfully added all {0} assets", m_foundAssetUuids.Count);
             else
-                m_log.DebugFormat("[ARCHIVER]: Successfully added {0} assets ({1} assets not found)",
-                            m_foundAssetUuids.Count, m_notFoundAssetUuids.Count);
+                m_log.DebugFormat("[ARCHIVER]: Successfully added {0} assets ({1} assets of total request where not found or are damaged",
+                            m_foundAssetUuids.Count, totalerrors);
 
             PerformAssetsRequestCallback(m_timeout);
         }
   
-        void OnTimeout(object source, ElapsedEventArgs args)
+        private void OnTimeout(object source, ElapsedEventArgs args)
         {
             m_timeout = true;
         }
@@ -189,7 +191,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <summary>
         /// Perform the callback on the original requester of the assets
         /// </summary>
-        protected void PerformAssetsRequestCallback(object o)
+        private void PerformAssetsRequestCallback(object o)
         {
             if(m_assetsRequestCallback == null)
                 return;
@@ -208,7 +210,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
         }
 
-        protected AssetBase PostProcess(AssetBase asset)
+        private AssetBase PostProcess(AssetBase asset)
         {
             if (asset.Type == (sbyte)AssetType.Object && asset.Data != null && m_options.ContainsKey("home"))
             {

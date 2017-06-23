@@ -422,15 +422,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 {
                     m_assetGatherer.GatherAll();
 
-                    m_log.DebugFormat(
-                        "[INVENTORY ARCHIVER]: Saving {0} assets for items", m_assetGatherer.GatheredUuids.Count);
                     int errors = m_assetGatherer.FailedUUIDs.Count;
+
+                    m_log.DebugFormat(
+                        "[INVENTORY ARCHIVER]: The items to save reference {0} assets", m_assetGatherer.GatheredUuids.Count + errors);
                     if(errors > 0)
-                        m_log.DebugFormat("[INVENTORY ARCHIVER]: aditional {0} assets have problems and will be ignored", errors);
+                        m_log.DebugFormat("[INVENTORY ARCHIVER]: {0} of this assets have problems and will be ignored", errors);
 
                     AssetsRequest ar = new AssetsRequest(
                             new AssetsArchiver(m_archiveWriter),
-                            m_assetGatherer.GatheredUuids, m_scene.AssetService,
+                            m_assetGatherer.GatheredUuids, m_assetGatherer.FailedUUIDs.Count,
+                            m_scene.AssetService,
                             m_scene.UserAccountService, m_scene.RegionInfo.ScopeID,
                             options, ReceivedAllAssets);
                    ar.Execute();

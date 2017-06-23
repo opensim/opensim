@@ -181,11 +181,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 // Archive the regions
 
                 Dictionary<UUID, sbyte> assetUuids = new Dictionary<UUID, sbyte>();
+                HashSet<UUID> failedIDs = new HashSet<UUID>();
 
                 scenesGroup.ForEachScene(delegate(Scene scene)
                 {
                     string regionDir = MultiRegionFormat ? scenesGroup.GetRegionDir(scene.RegionInfo.RegionID) : "";
-                    ArchiveOneRegion(scene, regionDir, assetUuids);
+                    ArchiveOneRegion(scene, regionDir, assetUuids, failedIDs);
                 });
 
                 // Archive the assets
@@ -196,6 +197,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     
                     AssetsRequest ar = new AssetsRequest(
                             new AssetsArchiver(m_archiveWriter), assetUuids,
+                            failedIDs.Count,
                             m_rootScene.AssetService, m_rootScene.UserAccountService,
                             m_rootScene.RegionInfo.ScopeID, options, null);
                     ar.Execute();
@@ -215,7 +217,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
         }
 
-        private void ArchiveOneRegion(Scene scene, string regionDir, Dictionary<UUID, sbyte> assetUuids)
+        private void ArchiveOneRegion(Scene scene, string regionDir, Dictionary<UUID, sbyte> assetUuids, HashSet<UUID> failedIDs)
         {
             m_log.InfoFormat("[ARCHIVER]: Writing region {0}", scene.Name);
 
@@ -251,7 +253,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             if (SaveAssets)
             {
-                UuidGatherer assetGatherer = new UuidGatherer(scene.AssetService, assetUuids);
+                UuidGatherer assetGatherer = new UuidGatherer(scene.AssetService, assetUuids, failedIDs);
                 int prevAssets = assetUuids.Count;
 
                 foreach (SceneObjectGroup sceneObject in sceneObjects)
@@ -259,12 +261,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 assetGatherer.GatherAll();
 
-                m_log.DebugFormat(
-                    "[ARCHIVER]: {0} scene objects to serialize requiring save of {1} assets",
-                    sceneObjects.Count, assetUuids.Count - prevAssets);
                 int errors = assetGatherer.FailedUUIDs.Count;
+                m_log.DebugFormat(
+                    "[ARCHIVER]: {0} region scene objects to save reference {1} assets",
+                    sceneObjects.Count, assetUuids.Count - prevAssets + errors);
                 if(errors > 0)
-                    m_log.DebugFormat("[ARCHIVER]: aditional {0} assets have problems and will be ignored", errors);
+                    m_log.DebugFormat("[ARCHIVER]: {0} of this assets have problems and will be ignored", errors);
             }
 
             if (numObjectsSkippedPermissions > 0)

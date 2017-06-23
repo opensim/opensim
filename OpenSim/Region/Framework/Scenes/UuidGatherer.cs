@@ -93,7 +93,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="assetService">
         /// Asset service.
         /// </param>
-        public UuidGatherer(IAssetService assetService) : this(assetService, new Dictionary<UUID, sbyte>()) {}
+        public UuidGatherer(IAssetService assetService) : this(assetService, new Dictionary<UUID, sbyte>(), new HashSet <UUID>()) {}
+        public UuidGatherer(IAssetService assetService, IDictionary<UUID, sbyte> collector) : this(assetService, collector, new HashSet <UUID>()) {}
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenSim.Region.Framework.Scenes.UuidGatherer"/> class.
@@ -105,14 +106,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// Gathered UUIDs will be collected in this dictinaory.
         /// It can be pre-populated if you want to stop the gatherer from analyzing assets that have already been fetched and inspected.
         /// </param>
-        public UuidGatherer(IAssetService assetService, IDictionary<UUID, sbyte> collector)
+        public UuidGatherer(IAssetService assetService, IDictionary<UUID, sbyte> collector, HashSet <UUID> failedIDs)
         {
             m_assetService = assetService;
             GatheredUuids = collector;
 
             // FIXME: Not efficient for searching, can improve.
             m_assetUuidsToInspect = new Queue<UUID>();
-            FailedUUIDs = new HashSet<UUID>();
+            FailedUUIDs = failedIDs;
         }
 
         /// <summary>
@@ -301,14 +302,14 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[UUID GATHERER]: Failed to get asset with id {0} : {1}", assetUuid, e.Message);
+                m_log.ErrorFormat("[UUID GATHERER]: Failed to get asset {0} : {1}", assetUuid, e.Message);
                 FailedUUIDs.Add(assetUuid);
                 return;
             }
 
             if(assetBase == null)
             {
-                m_log.ErrorFormat("[UUID GATHERER]: asset with id {0} not found", assetUuid);
+                m_log.ErrorFormat("[UUID GATHERER]: asset {0} not found", assetUuid);
                 FailedUUIDs.Add(assetUuid);
                 return;
             }
@@ -317,7 +318,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if(assetBase.Data == null || assetBase.Data.Length == 0)
             {
-                m_log.ErrorFormat("[UUID GATHERER]: asset with id {0} type {1} has no data", assetUuid, assetType);
+                m_log.ErrorFormat("[UUID GATHERER]: asset {0}, type {1} has no data", assetUuid, assetType);
                 FailedUUIDs.Add(assetUuid);
                 return;
             }

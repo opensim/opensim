@@ -46,7 +46,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <value>
         /// Post a message to the log every x assets as a progress bar
         /// </value>
-        protected static int LOG_ASSET_LOAD_NOTIFICATION_INTERVAL = 50;
+        protected static int LOG_ASSET_LOAD_NOTIFICATION_INTERVAL = 100;
 
         /// <value>
         /// Keep a count of the number of assets written so that we can provide status updates
