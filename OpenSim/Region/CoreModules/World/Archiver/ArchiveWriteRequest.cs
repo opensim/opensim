@@ -264,12 +264,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     curErrorCntr =  assetGatherer.ErrorCount - curErrorCntr;
                     if(curErrorCntr > 1)
                     {
-                        m_log.WarnFormat("[INVENTORY ARCHIVER]: object {0} '{1}', at {2}, contains at least {3} references to missing or damaged assets",
+                        m_log.WarnFormat("[ARCHIVER Warning]: object {0} '{1}', at {2}, contains {3} references to possible missing or damaged assets",
                             sceneObject.UUID, sceneObject.Name ,sceneObject.AbsolutePosition.ToString(), curErrorCntr);
                     }
                     else if(curErrorCntr == 1)
                         {
-                        m_log.WarnFormat("[INVENTORY ARCHIVER]: object {0} '{1}', at {2}, contains at least 1 reference to a missing or damaged asset",
+                        m_log.WarnFormat("[ARCHIVER Warning]: object {0} '{1}', at {2}, contains a reference to a possible missing or damaged assets",
                             sceneObject.UUID, sceneObject.Name, sceneObject.AbsolutePosition.ToString());
                     }
                 }
@@ -278,10 +278,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 int errors = assetGatherer.FailedUUIDs.Count;
                 m_log.DebugFormat(
-                    "[ARCHIVER]: {0} region scene objects to save reference {1} assets",
+                    "[ARCHIVER]: {0} region scene objects to save reference {1} possible assets",
                     sceneObjects.Count, assetUuids.Count - prevAssets + errors);
                 if(errors > 0)
-                    m_log.DebugFormat("[ARCHIVER]: {0} of these assets have problems and will be ignored", errors);
+                    m_log.DebugFormat("[ARCHIVER]: {0} of these have problems or are not assets and will be ignored", errors);
             }
 
             if (numObjectsSkippedPermissions > 0)

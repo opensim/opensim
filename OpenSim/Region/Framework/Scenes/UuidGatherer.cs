@@ -149,7 +149,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void AddForInspection(SceneObjectGroup sceneObject)
         {
             //            m_log.DebugFormat(
-            //                "[ASSET GATHERER]: Getting assets for object {0}, {1}", sceneObject.Name, sceneObject.UUID);
+            //                "[UUID GATHERER]: Getting assets for object {0}, {1}", sceneObject.Name, sceneObject.UUID);
             if(sceneObject.IsDeleted)
                 return;
 
@@ -159,7 +159,7 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectPart part = parts[i];
 
                 //                m_log.DebugFormat(
-                //                    "[ARCHIVER]: Getting part {0}, {1} for object {2}", part.Name, part.UUID, sceneObject.UUID);
+                //                    "[UUID GATHERER]: Getting part {0}, {1} for object {2}", part.Name, part.UUID, sceneObject.UUID);
 
                 try
                 {

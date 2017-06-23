@@ -237,12 +237,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                     if(curErrorCntr > 1)
                     {
-                        m_log.WarnFormat("[INVENTORY ARCHIVER]: item {0} '{1}', type {2}, in '{3}', contains at least {4} references to missing or damaged assets",
+                        m_log.WarnFormat("[INVENTORY ARCHIVER Warning]: item {0} '{1}', type {2}, in '{3}', contains {4} references to possible missing or damaged assets )",
                             inventoryItem.ID, inventoryItem.Name, itemAssetType.ToString(), spath, curErrorCntr);
                     }
                     else if(curErrorCntr == 1)
                         {
-                        m_log.WarnFormat("[INVENTORY ARCHIVER]: item {0} '{1}', type {2}, in '{3}', contains at least 1 reference to a missing or damaged asset",
+                        m_log.WarnFormat("[INVENTORY ARCHIVER Warning]: item {0} '{1}', type {2}, in '{3}', contains a reference to a possible missing or damaged asset)",
                             inventoryItem.ID, inventoryItem.Name, itemAssetType.ToString(), spath);
                     }
                 }
@@ -450,9 +450,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     int errors = m_assetGatherer.FailedUUIDs.Count;
 
                     m_log.DebugFormat(
-                        "[INVENTORY ARCHIVER]: The items to save reference {0} assets", m_assetGatherer.GatheredUuids.Count + errors);
+                        "[INVENTORY ARCHIVER]: The items to save reference {0} possible assets", m_assetGatherer.GatheredUuids.Count + errors);
                     if(errors > 0)
-                        m_log.DebugFormat("[INVENTORY ARCHIVER]: {0} of these assets have problems and will be ignored", errors);
+                        m_log.DebugFormat("[INVENTORY ARCHIVER]: {0} of these have problems or are not assets and will be ignored", errors);
 
                     AssetsRequest ar = new AssetsRequest(
                             new AssetsArchiver(m_archiveWriter),

@@ -65,7 +65,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// uuids to request
         /// </value>
         protected IDictionary<UUID, sbyte> m_uuids;
-        private int m_previusErrorsCount;
+        private int m_previousErrorsCount;
 
         /// <value>
         /// Callback used when all the assets requested have been received.
@@ -103,14 +103,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         protected internal AssetsRequest(
             AssetsArchiver assetsArchiver, IDictionary<UUID, sbyte> uuids,
-            int previusErrorsCount,
+            int previousErrorsCount,
             IAssetService assetService, IUserAccountService userService,
             UUID scope, Dictionary<string, object> options,
             AssetsRequestCallback assetsRequestCallback)
         {
             m_assetsArchiver = assetsArchiver;
             m_uuids = uuids;
-            m_previusErrorsCount = previusErrorsCount;
+            m_previousErrorsCount = previousErrorsCount;
             m_assetsRequestCallback = assetsRequestCallback;
             m_assetService = assetService;
             m_userAccountService = userService;
@@ -170,14 +170,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
 
             m_timeOutTimer.Dispose();
-            int totalerrors = m_notFoundAssetUuids.Count + m_previusErrorsCount;
+            int totalerrors = m_notFoundAssetUuids.Count + m_previousErrorsCount;
 
             if(m_timeout)
                 m_log.DebugFormat("[ARCHIVER]: Aborted because AssetService request timeout. Successfully added {0} assets", m_foundAssetUuids.Count);
             else if(totalerrors == 0)
                 m_log.DebugFormat("[ARCHIVER]: Successfully added all {0} assets", m_foundAssetUuids.Count);
             else
-                m_log.DebugFormat("[ARCHIVER]: Successfully added {0} assets ({1} assets of total request where not found or are damaged",
+                m_log.DebugFormat("[ARCHIVER]: Successfully added {0} assets ({1} of total possible assets requested where not found, where damaged or where not assets",
                             m_foundAssetUuids.Count, totalerrors);
 
             PerformAssetsRequestCallback(m_timeout);
