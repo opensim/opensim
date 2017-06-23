@@ -218,10 +218,35 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             // Count inventory items (different to asset count)
             CountItems++;
-
+            
             // Don't chase down link asset items as they actually point to their target item IDs rather than an asset
             if (SaveAssets && itemAssetType != AssetType.Link && itemAssetType != AssetType.LinkFolder)
+            {
+                int curErrorCntr = m_assetGatherer.ErrorCount;
                 m_assetGatherer.AddForInspection(inventoryItem.AssetID);
+                m_assetGatherer.GatherAll();
+                curErrorCntr =  m_assetGatherer.ErrorCount - curErrorCntr;
+                if(curErrorCntr > 0)
+                {
+                    string spath;
+                    int indx = path.IndexOf("__");
+                    if(indx > 0)
+                         spath = path.Substring(0,indx);
+                    else
+                        spath = path;
+
+                    if(curErrorCntr > 1)
+                    {
+                        m_log.WarnFormat("[INVENTORY ARCHIVER]: item {0} '{1}', type {2}, in '{3}', contains at least {4} references to missing or damaged assets",
+                            inventoryItem.ID, inventoryItem.Name, itemAssetType.ToString(), spath, curErrorCntr);
+                    }
+                    else if(curErrorCntr == 1)
+                        {
+                        m_log.WarnFormat("[INVENTORY ARCHIVER]: item {0} '{1}', type {2}, in '{3}', contains at least 1 reference to a missing or damaged asset",
+                            inventoryItem.ID, inventoryItem.Name, itemAssetType.ToString(), spath);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -427,7 +452,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     m_log.DebugFormat(
                         "[INVENTORY ARCHIVER]: The items to save reference {0} assets", m_assetGatherer.GatheredUuids.Count + errors);
                     if(errors > 0)
-                        m_log.DebugFormat("[INVENTORY ARCHIVER]: {0} of this assets have problems and will be ignored", errors);
+                        m_log.DebugFormat("[INVENTORY ARCHIVER]: {0} of these assets have problems and will be ignored", errors);
 
                     AssetsRequest ar = new AssetsRequest(
                             new AssetsArchiver(m_archiveWriter),

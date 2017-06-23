@@ -66,7 +66,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <value>The gathered uuids.</value>
         public IDictionary<UUID, sbyte> GatheredUuids { get; private set; }
         public HashSet<UUID> FailedUUIDs { get; private set; }
-
+        public int ErrorCount { get; private set; }
         /// <summary>
         /// Gets the next UUID to inspect.
         /// </summary>
@@ -103,7 +103,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Asset service.
         /// </param>
         /// <param name="collector">
-        /// Gathered UUIDs will be collected in this dictinaory.
+        /// Gathered UUIDs will be collected in this dictionary.
         /// It can be pre-populated if you want to stop the gatherer from analyzing assets that have already been fetched and inspected.
         /// </param>
         public UuidGatherer(IAssetService assetService, IDictionary<UUID, sbyte> collector, HashSet <UUID> failedIDs)
@@ -114,6 +114,7 @@ namespace OpenSim.Region.Framework.Scenes
             // FIXME: Not efficient for searching, can improve.
             m_assetUuidsToInspect = new Queue<UUID>();
             FailedUUIDs = failedIDs;
+            ErrorCount = 0;
         }
 
         /// <summary>
@@ -232,9 +233,6 @@ namespace OpenSim.Region.Framework.Scenes
                 catch (Exception e)
                 {
                     m_log.ErrorFormat("[UUID GATHERER]: Failed to get part - {0}", e);
-                    m_log.DebugFormat(
-                        "[UUID GATHERER]: Texture entry length for prim was {0} (min is 46)",
-                        part.Shape.TextureEntry.Length);
                 }
             }
         }
@@ -286,14 +284,14 @@ namespace OpenSim.Region.Framework.Scenes
         private void GetAssetUuids(UUID assetUuid)
         {
             if(FailedUUIDs.Contains(assetUuid))
+            {
+                ErrorCount++;
                 return;
+            }
 
             // avoid infinite loops
             if (GatheredUuids.ContainsKey(assetUuid))
-            {
-                FailedUUIDs.Add(assetUuid);
                 return;
-            }
 
             AssetBase assetBase;
             try
@@ -303,13 +301,15 @@ namespace OpenSim.Region.Framework.Scenes
             catch (Exception e)
             {
                 m_log.ErrorFormat("[UUID GATHERER]: Failed to get asset {0} : {1}", assetUuid, e.Message);
+                ErrorCount++;
                 FailedUUIDs.Add(assetUuid);
                 return;
             }
 
             if(assetBase == null)
             {
-                m_log.ErrorFormat("[UUID GATHERER]: asset {0} not found", assetUuid);
+//                m_log.ErrorFormat("[UUID GATHERER]: asset {0} not found", assetUuid);
+                ErrorCount++;
                 FailedUUIDs.Add(assetUuid);
                 return;
             }
@@ -318,7 +318,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if(assetBase.Data == null || assetBase.Data.Length == 0)
             {
-                m_log.ErrorFormat("[UUID GATHERER]: asset {0}, type {1} has no data", assetUuid, assetType);
+//                m_log.ErrorFormat("[UUID GATHERER]: asset {0}, type {1} has no data", assetUuid, assetType);
+                ErrorCount++;
                 FailedUUIDs.Add(assetUuid);
                 return;
             }
@@ -355,6 +356,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.ErrorFormat("[UUID GATHERER]: Failed to gather uuids for asset with id {0} type {1}: {2}", assetUuid, assetType, e.Message);
                 GatheredUuids.Remove(assetUuid);
+                ErrorCount++;
                 FailedUUIDs.Add(assetUuid);
             }
         }
@@ -363,7 +365,10 @@ namespace OpenSim.Region.Framework.Scenes
         {
             // Here, we want to collect uuids which require further asset fetches but mark the others as gathered
             if(FailedUUIDs.Contains(assetUuid))
+            {
+                ErrorCount++;
                 return;
+            }
             if(GatheredUuids.ContainsKey(assetUuid))
                 return;
             try
