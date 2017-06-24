@@ -736,6 +736,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public string osSetDynamicTextureData(string dynamicID, string contentType, string data, string extraParams,
                                            int timer)
         {
+            return osSetDynamicTextureDataFace(dynamicID, contentType, data, extraParams, timer, -1);
+        }
+
+        public string osSetDynamicTextureDataFace(string dynamicID, string contentType, string data, string extraParams,
+                                           int timer, int face)
+        {
             CheckThreatLevel(ThreatLevel.VeryLow, "osSetDynamicTextureData");
 
             m_host.AddScriptLPS(1);
@@ -750,7 +756,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                     UUID createdTexture =
                         textureManager.AddDynamicTextureData(World.RegionInfo.RegionID, m_host.UUID, contentType, data,
-                                                            extraParams, timer);
+                                                            extraParams, timer, false, 3, 255, face);
+
                     return createdTexture.ToString();
                 }
             }
