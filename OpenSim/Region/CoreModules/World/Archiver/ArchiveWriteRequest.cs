@@ -182,11 +182,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 Dictionary<UUID, sbyte> assetUuids = new Dictionary<UUID, sbyte>();
                 HashSet<UUID> failedIDs = new HashSet<UUID>();
+                HashSet<UUID> uncertainAssetsUUIDs = new HashSet<UUID>();
 
                 scenesGroup.ForEachScene(delegate(Scene scene)
                 {
                     string regionDir = MultiRegionFormat ? scenesGroup.GetRegionDir(scene.RegionInfo.RegionID) : "";
-                    ArchiveOneRegion(scene, regionDir, assetUuids, failedIDs);
+                    ArchiveOneRegion(scene, regionDir, assetUuids, failedIDs, uncertainAssetsUUIDs);
                 });
 
                 // Archive the assets
@@ -217,7 +218,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
         }
 
-        private void ArchiveOneRegion(Scene scene, string regionDir, Dictionary<UUID, sbyte> assetUuids, HashSet<UUID> failedIDs)
+        private void ArchiveOneRegion(Scene scene, string regionDir, Dictionary<UUID, sbyte> assetUuids,
+            HashSet<UUID> failedIDs, HashSet<UUID>  uncertainAssetsUUIDs)
         {
             m_log.InfoFormat("[ARCHIVER]: Writing region {0}", scene.Name);
 
@@ -253,24 +255,28 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             if (SaveAssets)
             {
-                UuidGatherer assetGatherer = new UuidGatherer(scene.AssetService, assetUuids, failedIDs);
+                UuidGatherer assetGatherer = new UuidGatherer(scene.AssetService, assetUuids, failedIDs, uncertainAssetsUUIDs);
                 int prevAssets = assetUuids.Count;
 
                 foreach (SceneObjectGroup sceneObject in sceneObjects)
                 {
                     int curErrorCntr = assetGatherer.ErrorCount;
+                    int possible = assetGatherer.possibleNotAssetCount;
                     assetGatherer.AddForInspection(sceneObject);
                     assetGatherer.GatherAll();
                     curErrorCntr =  assetGatherer.ErrorCount - curErrorCntr;
-                    if(curErrorCntr > 1)
+                    possible = assetGatherer.possibleNotAssetCount - possible;
+                    if(curErrorCntr > 0)
                     {
-                        m_log.WarnFormat("[ARCHIVER Warning]: object {0} '{1}', at {2}, contains {3} references to possible missing or damaged assets",
+                        m_log.ErrorFormat("[ARCHIVER]: object {0} '{1}', at {2}, contains {3} references to missing or damaged assets",
                             sceneObject.UUID, sceneObject.Name ,sceneObject.AbsolutePosition.ToString(), curErrorCntr);
+                        if(possible > 0)
+                            m_log.WarnFormat("[ARCHIVER Warning]: object also contains {0} references that may be to missing or damaged assets or not a problem", possible);
                     }
-                    else if(curErrorCntr == 1)
-                        {
-                        m_log.WarnFormat("[ARCHIVER Warning]: object {0} '{1}', at {2}, contains a reference to a possible missing or damaged assets",
-                            sceneObject.UUID, sceneObject.Name, sceneObject.AbsolutePosition.ToString());
+                    else if(possible > 0)
+                    {
+                        m_log.WarnFormat("[ARCHIVER Warning]: object {0} '{1}', at {2}, contains {3} references that may be to missing or damaged assets or not a problem",
+                            sceneObject.UUID, sceneObject.Name ,sceneObject.AbsolutePosition.ToString(), possible);
                     }
                 }
 

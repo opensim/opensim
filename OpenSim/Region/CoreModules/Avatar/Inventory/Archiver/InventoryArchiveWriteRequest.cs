@@ -223,10 +223,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             if (SaveAssets && itemAssetType != AssetType.Link && itemAssetType != AssetType.LinkFolder)
             {
                 int curErrorCntr = m_assetGatherer.ErrorCount;
+                int possible = m_assetGatherer.possibleNotAssetCount;
                 m_assetGatherer.AddForInspection(inventoryItem.AssetID);
                 m_assetGatherer.GatherAll();
                 curErrorCntr =  m_assetGatherer.ErrorCount - curErrorCntr;
-                if(curErrorCntr > 0)
+                possible = m_assetGatherer.possibleNotAssetCount - possible;
+
+                if(curErrorCntr > 0 || possible > 0)
                 {
                     string spath;
                     int indx = path.IndexOf("__");
@@ -235,15 +238,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     else
                         spath = path;
 
-                    if(curErrorCntr > 1)
+                    if(curErrorCntr > 0)
                     {
-                        m_log.WarnFormat("[INVENTORY ARCHIVER Warning]: item {0} '{1}', type {2}, in '{3}', contains {4} references to possible missing or damaged assets )",
+                        m_log.ErrorFormat("[INVENTORY ARCHIVER Warning]: item {0} '{1}', type {2}, in '{3}', contains {4} references to  missing or damaged assets",
                             inventoryItem.ID, inventoryItem.Name, itemAssetType.ToString(), spath, curErrorCntr);
+                        if(possible > 0)
+                            m_log.WarnFormat("[INVENTORY ARCHIVER Warning]: item also contains {0} references that may be to missing or damaged assets or not a problem", possible);
                     }
-                    else if(curErrorCntr == 1)
-                        {
-                        m_log.WarnFormat("[INVENTORY ARCHIVER Warning]: item {0} '{1}', type {2}, in '{3}', contains a reference to a possible missing or damaged asset)",
-                            inventoryItem.ID, inventoryItem.Name, itemAssetType.ToString(), spath);
+                    else if(possible > 0)
+                    {
+                        m_log.WarnFormat("[INVENTORY ARCHIVER Warning]: item {0} '{1}', type {2}, in '{3}', contains {4} references that may be to missing or damaged assets or not a problem", inventoryItem.ID, inventoryItem.Name, itemAssetType.ToString(), spath, possible);
                     }
                 }
             }

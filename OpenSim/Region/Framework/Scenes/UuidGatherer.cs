@@ -66,6 +66,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <value>The gathered uuids.</value>
         public IDictionary<UUID, sbyte> GatheredUuids { get; private set; }
         public HashSet<UUID> FailedUUIDs { get; private set; }
+        public HashSet<UUID> UncertainAssetsUUIDs { get; private set; }
+        public int possibleNotAssetCount { get; set; }
         public int ErrorCount { get; private set; }
         /// <summary>
         /// Gets the next UUID to inspect.
@@ -93,8 +95,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="assetService">
         /// Asset service.
         /// </param>
-        public UuidGatherer(IAssetService assetService) : this(assetService, new Dictionary<UUID, sbyte>(), new HashSet <UUID>()) {}
-        public UuidGatherer(IAssetService assetService, IDictionary<UUID, sbyte> collector) : this(assetService, collector, new HashSet <UUID>()) {}
+        public UuidGatherer(IAssetService assetService) : this(assetService, new Dictionary<UUID, sbyte>(),
+                new HashSet <UUID>(),new HashSet <UUID>()) {}
+        public UuidGatherer(IAssetService assetService, IDictionary<UUID, sbyte> collector) : this(assetService, collector,
+            new HashSet <UUID>(), new HashSet <UUID>()) {}
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenSim.Region.Framework.Scenes.UuidGatherer"/> class.
@@ -106,7 +110,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Gathered UUIDs will be collected in this dictionary.
         /// It can be pre-populated if you want to stop the gatherer from analyzing assets that have already been fetched and inspected.
         /// </param>
-        public UuidGatherer(IAssetService assetService, IDictionary<UUID, sbyte> collector, HashSet <UUID> failedIDs)
+        public UuidGatherer(IAssetService assetService, IDictionary<UUID, sbyte> collector, HashSet <UUID> failedIDs, HashSet <UUID> uncertainAssetsUUIDs)
         {
             m_assetService = assetService;
             GatheredUuids = collector;
@@ -114,7 +118,9 @@ namespace OpenSim.Region.Framework.Scenes
             // FIXME: Not efficient for searching, can improve.
             m_assetUuidsToInspect = new Queue<UUID>();
             FailedUUIDs = failedIDs;
+            UncertainAssetsUUIDs = uncertainAssetsUUIDs;
             ErrorCount = 0;
+            possibleNotAssetCount = 0;
         }
 
         /// <summary>
@@ -124,8 +130,17 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="uuid">UUID.</param>
         public bool AddForInspection(UUID uuid)
         {
+            if(uuid == UUID.Zero)
+                return false;
+
             if(FailedUUIDs.Contains(uuid))
-                return false;           
+            {
+                if(UncertainAssetsUUIDs.Contains(uuid))
+                    possibleNotAssetCount++;
+                else
+                    ErrorCount++;
+                return false;
+            }
             if(GatheredUuids.ContainsKey(uuid))
                 return false;
             if (m_assetUuidsToInspect.Contains(uuid))
@@ -283,9 +298,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="assetUuid">The uuid of the asset for which to gather referenced assets</param>
         private void GetAssetUuids(UUID assetUuid)
         {
+            if(assetUuid == UUID.Zero)
+                return;
+
             if(FailedUUIDs.Contains(assetUuid))
             {
-                ErrorCount++;
+                if(UncertainAssetsUUIDs.Contains(assetUuid))
+                    possibleNotAssetCount++;
+                else
+                    ErrorCount++;
                 return;
             }
 
@@ -309,10 +330,16 @@ namespace OpenSim.Region.Framework.Scenes
             if(assetBase == null)
             {
 //                m_log.ErrorFormat("[UUID GATHERER]: asset {0} not found", assetUuid);
-                ErrorCount++;
                 FailedUUIDs.Add(assetUuid);
+                if(UncertainAssetsUUIDs.Contains(assetUuid))
+                    possibleNotAssetCount++;
+                else
+                    ErrorCount++;
                 return;
             }
+
+            if(UncertainAssetsUUIDs.Contains(assetUuid))
+                UncertainAssetsUUIDs.Remove(assetUuid);
 
             sbyte assetType = assetBase.Type;
 
@@ -363,10 +390,16 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void AddForInspection(UUID assetUuid, sbyte assetType)
         {
+            if(assetUuid == UUID.Zero)
+                return;
+
             // Here, we want to collect uuids which require further asset fetches but mark the others as gathered
             if(FailedUUIDs.Contains(assetUuid))
             {
-                ErrorCount++;
+                if(UncertainAssetsUUIDs.Contains(assetUuid))
+                    possibleNotAssetCount++;
+                else
+                    ErrorCount++;
                 return;
             }
             if(GatheredUuids.ContainsKey(assetUuid))
@@ -502,8 +535,11 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (Match uuidMatch in uuidMatches)
             {
                 UUID uuid = new UUID(uuidMatch.Value);
+                if(uuid == UUID.Zero)
+                    continue;
 //                m_log.DebugFormat("[UUID GATHERER]: Recording {0} in text", uuid);
-
+                if(!UncertainAssetsUUIDs.Contains(uuid))
+                    UncertainAssetsUUIDs.Add(uuid);
                 AddForInspection(uuid);
             }
         }
