@@ -801,7 +801,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public string osSetDynamicTextureDataBlendFace(string dynamicID, string contentType, string data, string extraParams,
                                           bool blend, int disp, int timer, int alpha, int face)
         {
-            CheckThreatLevel(ThreatLevel.VeryLow, "osSetDynamicTextureDataBlendFace");
+            CheckThreatLevel(ThreatLevel.VeryHigh , "osSetDynamicTextureDataBlendFace");
 
             m_host.AddScriptLPS(1);
             if (dynamicID == String.Empty)
