@@ -511,8 +511,25 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
 //                    m_log.DebugFormat("[VECTOR RENDER MODULE]: Processing line '{0}'", nextLine);
 
+                    if (nextLine.StartsWith("ResetTransf"))
+                    {
+                        graph.ResetTransform();
+                    }
+                    else if (nextLine.StartsWith("TransTransf"))
+                    {
+                        float x = 0;
+                        float y = 0;
+                        GetParams(partsDelimiter, ref nextLine, 11, ref x, ref y);
+                        graph.TranslateTransform(x, y);
+                    }
+                    else if (nextLine.StartsWith("RotTransf"))
+                    {
+                        float x = 0;
+                        GetParams(partsDelimiter, ref nextLine, 9, ref x);
+                        graph.RotateTransform(x);
+                    }
                     //replace with switch, or even better, do some proper parsing
-                    if (nextLine.StartsWith("MoveTo"))
+                    else if (nextLine.StartsWith("MoveTo"))
                     {
                         float x = 0;
                         float y = 0;
@@ -790,6 +807,17 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
                 if (myBrush != null)
                     myBrush.Dispose();
+            }
+        }
+
+        private static void GetParams(char[] partsDelimiter, ref string line, int startLength, ref float x)
+        {
+            line = line.Remove(0, startLength);
+            string[] parts = line.Split(partsDelimiter);
+            if (parts.Length > 0)
+            {
+                string xVal = parts[0].Trim();
+                x = Convert.ToSingle(xVal, CultureInfo.InvariantCulture);
             }
         }
 
