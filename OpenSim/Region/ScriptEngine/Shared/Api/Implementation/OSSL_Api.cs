@@ -1191,6 +1191,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return drawList;
         }
 
+        public string osDrawFilledEllipse(string drawList, int width, int height)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osDrawFilledEllipse");
+
+            m_host.AddScriptLPS(1);
+            drawList += "FillEllipse " + width + "," + height + "; ";
+            return drawList;
+        }
+
         public string osDrawRectangle(string drawList, int width, int height)
         {
             CheckThreatLevel(ThreatLevel.None, "osDrawRectangle");

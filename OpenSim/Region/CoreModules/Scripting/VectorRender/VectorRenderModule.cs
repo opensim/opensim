@@ -625,6 +625,17 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                         startPoint.X += endPoint.X;
                         startPoint.Y += endPoint.Y;
                     }
+                    else if (nextLine.StartsWith("FillEllipse"))
+                    {
+                        float x = 0;
+                        float y = 0;
+                        GetParams(partsDelimiter, ref nextLine, 11, ref x, ref y);
+                        endPoint.X = (int)x;
+                        endPoint.Y = (int)y;
+                        graph.FillEllipse(myBrush, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
+                        startPoint.X += endPoint.X;
+                        startPoint.Y += endPoint.Y;
+                    }
                     else if (nextLine.StartsWith("FontSize"))
                     {
                         nextLine = nextLine.Remove(0, 8);

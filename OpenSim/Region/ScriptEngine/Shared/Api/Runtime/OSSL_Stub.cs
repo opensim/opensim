@@ -355,6 +355,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osDrawEllipse(drawList, width, height);
         }
 
+        public string osDrawFilledEllipse(string drawList, int width, int height)
+        {
+            return m_OSSL_Functions.osDrawFilledEllipse(drawList, width, height);
+        }
+
         public string osDrawRectangle(string drawList, int width, int height)
         {
             return m_OSSL_Functions.osDrawRectangle(drawList, width, height);

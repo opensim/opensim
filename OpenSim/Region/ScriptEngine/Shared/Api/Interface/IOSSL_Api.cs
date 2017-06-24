@@ -222,6 +222,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         string osDrawLine(string drawList, int endX, int endY);
         string osDrawText(string drawList, string text);
         string osDrawEllipse(string drawList, int width, int height);
+        string osDrawFilledEllipse(string drawList, int width, int height);
         string osDrawRectangle(string drawList, int width, int height);
         string osDrawFilledRectangle(string drawList, int width, int height);
         string osDrawPolygon(string drawList, LSL_List x, LSL_List y);
