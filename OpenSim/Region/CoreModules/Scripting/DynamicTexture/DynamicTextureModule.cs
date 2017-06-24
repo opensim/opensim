@@ -135,16 +135,15 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                         m_reuseableDynamicTextures.Store(
                             GenerateReusableTextureKey(texture.InputCommands, texture.InputParams), newTextureID);
                     }
+                    updater.newTextureID = newTextureID;
                 }
-            }
 
-            if (updater.UpdateTimer == 0)
-            {
-                lock (Updaters)
+                if (updater.UpdateTimer == 0)
                 {
-                    if (!Updaters.ContainsKey(updater.UpdaterID))
+                    lock (Updaters)
                     {
-                        Updaters.Remove(updater.UpdaterID);
+                        if (Updaters.ContainsKey(updater.UpdaterID))
+                            Updaters.Remove(updater.UpdaterID);
                     }
                 }
             }
@@ -213,7 +212,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 }
 
                 RenderPlugins[contentType].AsyncConvertUrl(updater.UpdaterID, url, extraParams);
-                return updater.UpdaterID;
+                return updater.newTextureID;
             }
             return UUID.Zero;
         }
@@ -314,7 +313,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 updater.UpdatePart(part, (UUID)objReusableTextureUUID);
             }
 
-            return updater.UpdaterID;
+            return updater.newTextureID;
         }
 
         private string GenerateReusableTextureKey(string data, string extraParams)
@@ -411,6 +410,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
             public int Face;
             public int Disp;
             public string Url;
+            public UUID newTextureID;
 
             public DynamicTextureUpdater()
             {
@@ -445,7 +445,14 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                     {
                         try
                         {
-                            Primitive.TextureEntryFace texface = tmptex.CreateFace((uint)Face);
+                            Primitive.TextureEntryFace texface = tmptex.GetFace((uint)Face);
+                            if(texface == null)
+                                tmptex.GetFace((uint)Face);
+                            else
+                            {
+                                if(texface.TextureID != null && texface.TextureID != UUID.Zero)
+                                    oldID = texface.TextureID;
+                            }
                             texface.TextureID = textureID;
                             tmptex.FaceTextures[Face] = texface;
                         }
