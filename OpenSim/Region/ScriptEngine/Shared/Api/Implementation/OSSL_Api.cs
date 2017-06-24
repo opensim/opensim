@@ -678,7 +678,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
                 UUID createdTexture =
                     textureManager.AddDynamicTextureURL(World.RegionInfo.RegionID, m_host.UUID, contentType, url,
-                                                        extraParams, timer);
+                                                        extraParams);
                 return createdTexture.ToString();
             }
             else
@@ -700,7 +700,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
                 UUID createdTexture =
                     textureManager.AddDynamicTextureURL(World.RegionInfo.RegionID, m_host.UUID, contentType, url,
-                                                        extraParams, timer, true, (byte) alpha);
+                                                        extraParams, true, (byte) alpha);
                 return createdTexture.ToString();
             }
             else
@@ -722,7 +722,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
                 UUID createdTexture =
                     textureManager.AddDynamicTextureURL(World.RegionInfo.RegionID, m_host.UUID, contentType, url,
-                                                        extraParams, timer, blend, disp, (byte) alpha, face);
+                                                        extraParams, blend, disp, (byte) alpha, face);
                 return createdTexture.ToString();
             }
             else
@@ -756,7 +756,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                     UUID createdTexture =
                         textureManager.AddDynamicTextureData(World.RegionInfo.RegionID, m_host.UUID, contentType, data,
-                                                            extraParams, timer, false, 3, 255, face);
+                                                            extraParams, false, 3, 255, face);
 
                     return createdTexture.ToString();
                 }
@@ -786,7 +786,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                     UUID createdTexture =
                         textureManager.AddDynamicTextureData(World.RegionInfo.RegionID, m_host.UUID, contentType, data,
-                                                            extraParams, timer, true, (byte) alpha);
+                                                            extraParams, true, (byte) alpha);
                     return createdTexture.ToString();
                 }
             }
@@ -801,7 +801,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public string osSetDynamicTextureDataBlendFace(string dynamicID, string contentType, string data, string extraParams,
                                           bool blend, int disp, int timer, int alpha, int face)
         {
-            CheckThreatLevel(ThreatLevel.VeryHigh , "osSetDynamicTextureDataBlendFace");
+            CheckThreatLevel(ThreatLevel.VeryLow , "osSetDynamicTextureDataBlendFace");
 
             m_host.AddScriptLPS(1);
             if (dynamicID == String.Empty)
@@ -815,7 +815,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                     UUID createdTexture =
                         textureManager.AddDynamicTextureData(World.RegionInfo.RegionID, m_host.UUID, contentType, data,
-                                                            extraParams, timer, blend, disp, (byte) alpha, face);
+                                                            extraParams, blend, disp, (byte) alpha, face);
                     return createdTexture.ToString();
                 }
             }
