@@ -355,30 +355,22 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                 lock (this)
                 {
                     if (alpha == 256)
-                        bitmap = new Bitmap(width, height, PixelFormat.Format32bppRgb);
-                    else
-                        bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-
-                    graph = Graphics.FromImage(bitmap);
-
-                    // this is really just to save people filling the
-                    // background color in their scripts, only do when fully opaque
-                    if (alpha >= 255)
                     {
+                        bitmap = new Bitmap(width, height, PixelFormat.Format32bppRgb);
+                        graph = Graphics.FromImage(bitmap);
                         using (SolidBrush bgFillBrush = new SolidBrush(bgColor))
                         {
                             graph.FillRectangle(bgFillBrush, 0, 0, width, height);
                         }
-                    }
-
-                    for (int w = 0; w < bitmap.Width; w++)
+                    }                   
+                    else
                     {
-                        if (alpha <= 255)
+                        bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+                        graph = Graphics.FromImage(bitmap);
+                        Color newbg = Color.FromArgb(alpha,bgColor);
+                        using (SolidBrush bgFillBrush = new SolidBrush(newbg))
                         {
-                            for (int h = 0; h < bitmap.Height; h++)
-                            {
-                                bitmap.SetPixel(w, h, Color.FromArgb(alpha, bitmap.GetPixel(w, h)));
-                            }
+                            graph.FillRectangle(bgFillBrush, 0, 0, width, height);
                         }
                     }
 
