@@ -1153,9 +1153,35 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         //Texture draw functions
+
+        public string osDrawTranslationTransform(string drawList, LSL_Float x, LSL_Float y)
+        {
+            CheckThreatLevel();
+
+            m_host.AddScriptLPS(1);
+            drawList += "TransTransf " + x + "," + y + ";";
+            return drawList;
+        }
+
+        public string osDrawRotationTransform(string drawList, LSL_Float x)
+        {
+            CheckThreatLevel();
+            m_host.AddScriptLPS(1);
+            drawList += "RotTransf " + x + ";";
+            return drawList;
+        }
+
+        public string osDrawResetTransform(string drawList)
+        {
+            CheckThreatLevel();
+            m_host.AddScriptLPS(1);
+            drawList += "ResetTransf;";
+            return drawList;
+        }
+
         public string osMovePen(string drawList, int x, int y)
         {
-            CheckThreatLevel(ThreatLevel.None, "osMovePen");
+            CheckThreatLevel();
 
             m_host.AddScriptLPS(1);
             drawList += "MoveTo " + x + "," + y + ";";
@@ -1164,7 +1190,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osDrawLine(string drawList, int startX, int startY, int endX, int endY)
         {
-            CheckThreatLevel(ThreatLevel.None, "osDrawLine");
+            CheckThreatLevel();
 
             m_host.AddScriptLPS(1);
             drawList += "MoveTo "+ startX+","+ startY +"; LineTo "+endX +","+endY +"; ";
@@ -1173,7 +1199,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osDrawLine(string drawList, int endX, int endY)
         {
-            CheckThreatLevel(ThreatLevel.None, "osDrawLine");
+            CheckThreatLevel();
 
             m_host.AddScriptLPS(1);
             drawList += "LineTo " + endX + "," + endY + "; ";
@@ -1191,7 +1217,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osDrawEllipse(string drawList, int width, int height)
         {
-            CheckThreatLevel(ThreatLevel.None, "osDrawEllipse");
+            CheckThreatLevel();
 
             m_host.AddScriptLPS(1);
             drawList += "Ellipse " + width + "," + height + "; ";
@@ -1200,7 +1226,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osDrawFilledEllipse(string drawList, int width, int height)
         {
-            CheckThreatLevel(ThreatLevel.None, "osDrawFilledEllipse");
+            CheckThreatLevel();
 
             m_host.AddScriptLPS(1);
             drawList += "FillEllipse " + width + "," + height + "; ";
@@ -1209,7 +1235,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osDrawRectangle(string drawList, int width, int height)
         {
-            CheckThreatLevel(ThreatLevel.None, "osDrawRectangle");
+            CheckThreatLevel();
 
             m_host.AddScriptLPS(1);
             drawList += "Rectangle " + width + "," + height + "; ";
@@ -1218,7 +1244,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osDrawFilledRectangle(string drawList, int width, int height)
         {
-            CheckThreatLevel(ThreatLevel.None, "osDrawFilledRectangle");
+            CheckThreatLevel();
 
             m_host.AddScriptLPS(1);
             drawList += "FillRectangle " + width + "," + height + "; ";
@@ -1227,7 +1253,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osDrawFilledPolygon(string drawList, LSL_List x, LSL_List y)
         {
-            CheckThreatLevel(ThreatLevel.None, "osDrawFilledPolygon");
+            CheckThreatLevel();
 
             m_host.AddScriptLPS(1);
 
@@ -1246,7 +1272,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osDrawPolygon(string drawList, LSL_List x, LSL_List y)
         {
-            CheckThreatLevel(ThreatLevel.None, "osDrawPolygon");
+            CheckThreatLevel();
 
             m_host.AddScriptLPS(1);
 
@@ -1265,7 +1291,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osSetFontSize(string drawList, int fontSize)
         {
-            CheckThreatLevel(ThreatLevel.None, "osSetFontSize");
+            CheckThreatLevel();
 
             m_host.AddScriptLPS(1);
             drawList += "FontSize "+ fontSize +"; ";
@@ -1274,7 +1300,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osSetFontName(string drawList, string fontName)
         {
-            CheckThreatLevel(ThreatLevel.None, "osSetFontName");
+            CheckThreatLevel();
 
             m_host.AddScriptLPS(1);
             drawList += "FontName "+ fontName +"; ";
@@ -1283,7 +1309,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osSetPenSize(string drawList, int penSize)
         {
-            CheckThreatLevel(ThreatLevel.None, "osSetPenSize");
+            CheckThreatLevel();
 
             m_host.AddScriptLPS(1);
             drawList += "PenSize " + penSize + "; ";
@@ -1292,7 +1318,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osSetPenColor(string drawList, string color)
         {
-            CheckThreatLevel(ThreatLevel.None, "osSetPenColor");
+            CheckThreatLevel();
 
             m_host.AddScriptLPS(1);
             drawList += "PenColor " + color + "; ";
@@ -1302,7 +1328,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         // Deprecated
         public string osSetPenColour(string drawList, string colour)
         {
-            CheckThreatLevel(ThreatLevel.None, "osSetPenColour");
+            CheckThreatLevel();
             OSSLDeprecated("osSetPenColour", "osSetPenColor");
 
             m_host.AddScriptLPS(1);
@@ -1312,7 +1338,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osSetPenCap(string drawList, string direction, string type)
         {
-            CheckThreatLevel(ThreatLevel.None, "osSetPenCap");
+            CheckThreatLevel();
 
             m_host.AddScriptLPS(1);
             drawList += "PenCap " + direction + "," + type + "; ";
@@ -1321,7 +1347,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osDrawImage(string drawList, int width, int height, string imageUrl)
         {
-            CheckThreatLevel(ThreatLevel.None, "osDrawImage");
+            CheckThreatLevel();
 
             m_host.AddScriptLPS(1);
             drawList +="Image " +width + "," + height+ ","+ imageUrl +"; " ;

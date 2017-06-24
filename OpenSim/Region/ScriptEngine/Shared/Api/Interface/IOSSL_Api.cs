@@ -228,6 +228,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         string osDrawFilledRectangle(string drawList, int width, int height);
         string osDrawPolygon(string drawList, LSL_List x, LSL_List y);
         string osDrawFilledPolygon(string drawList, LSL_List x, LSL_List y);
+        string osDrawTranslationTransform(string drawList, LSL_Float x, LSL_Float y);
+        string osDrawRotationTransform(string drawList, LSL_Float x);
+        string osDrawResetTransform(string drawList);
         string osSetFontName(string drawList, string fontName);
         string osSetFontSize(string drawList, int fontSize);
         string osSetPenSize(string drawList, int penSize);
