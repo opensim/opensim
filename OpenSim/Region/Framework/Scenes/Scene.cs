@@ -4824,16 +4824,34 @@ Label_GroupsDone:
         public void RequestTeleportLocation(IClientAPI remoteClient, string regionName, Vector3 position,
                                             Vector3 lookat, uint teleportFlags)
         {
-            GridRegion region = GridService.GetRegionByName(RegionInfo.ScopeID, regionName);
+            if (EntityTransferModule == null)
+            {
+                m_log.DebugFormat("[SCENE]: Unable to perform teleports: no AgentTransferModule is active");
+                return;
+            }
 
-            if (region == null)
+            ScenePresence sp = GetScenePresence(remoteClient.AgentId);
+            if (sp == null || sp.IsDeleted || sp.IsInTransit)
+                return;
+
+            ulong regionHandle = 0;
+            if(regionName == RegionInfo.RegionName)
+                regionHandle = RegionInfo.RegionHandle;
+            else
+            {
+                GridRegion region = GridService.GetRegionByName(RegionInfo.ScopeID, regionName);
+                if (region != null)
+                    regionHandle = region.RegionHandle;
+            }
+
+            if(regionHandle == 0)
             {
                 // can't find the region: Tell viewer and abort
                 remoteClient.SendTeleportFailed("The region '" + regionName + "' could not be found.");
                 return;
             }
 
-            RequestTeleportLocation(remoteClient, region.RegionHandle, position, lookat, teleportFlags);
+            EntityTransferModule.Teleport(sp, regionHandle, position, lookat, teleportFlags);
         }
 
         /// <summary>
@@ -4847,19 +4865,17 @@ Label_GroupsDone:
         public void RequestTeleportLocation(IClientAPI remoteClient, ulong regionHandle, Vector3 position,
                                             Vector3 lookAt, uint teleportFlags)
         {
-            ScenePresence sp = GetScenePresence(remoteClient.AgentId);
-            if (sp != null)
+            if (EntityTransferModule == null)
             {
-                if (EntityTransferModule != null)
-                {
-                    EntityTransferModule.Teleport(sp, regionHandle, position, lookAt, teleportFlags);
-                }
-                else
-                {
-                    m_log.DebugFormat("[SCENE]: Unable to perform teleports: no AgentTransferModule is active");
-                    sp.ControllingClient.SendTeleportFailed("Unable to perform teleports on this simulator.");
-                }
+                m_log.DebugFormat("[SCENE]: Unable to perform teleports: no AgentTransferModule is active");
+                return;
             }
+
+            ScenePresence sp = GetScenePresence(remoteClient.AgentId);
+            if (sp == null || sp.IsDeleted || sp.IsInTransit)
+                return;
+
+            EntityTransferModule.Teleport(sp, regionHandle, position, lookAt, teleportFlags);
         }
 
         public bool CrossAgentToNewRegion(ScenePresence agent, bool isFlying)

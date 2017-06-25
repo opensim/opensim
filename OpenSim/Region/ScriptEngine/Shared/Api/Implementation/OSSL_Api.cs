@@ -859,41 +859,40 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //
             CheckThreatLevel(ThreatLevel.Severe, "osTeleportAgent");
 
-            TeleportAgent(agent, regionName, position, lookat, false);
+            TeleportAgent(agent, regionName, position, lookat);
         }
 
         private void TeleportAgent(string agent, string regionName,
-            LSL_Types.Vector3 position, LSL_Types.Vector3 lookat, bool relaxRestrictions)
+            LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
             m_host.AddScriptLPS(1);
-            UUID agentId = new UUID();
+            if(String.IsNullOrWhiteSpace(regionName))
+                return;
+
+            UUID agentId;
             if (UUID.TryParse(agent, out agentId))
             {
                 ScenePresence presence = World.GetScenePresence(agentId);
-                if (presence != null)
+                if (presence == null || presence.IsDeleted || presence.IsInTransit)
+                    return;
+
+                if(regionName == World.RegionInfo.RegionName)
                 {
-                    // For osTeleportAgent, agent must be over owners land to avoid abuse
-                    // For osTeleportOwner, this restriction isn't necessary
-
-                    // commented out because its redundant and uneeded please remove eventually.
-                    // if (relaxRestrictions ||
-                    //    m_host.OwnerID
-                    //    == World.LandChannel.GetLandObject(
-                    //        presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
-                    // {
-
-                        // We will launch the teleport on a new thread so that when the script threads are terminated
-                        // before teleport in ScriptInstance.GetXMLState(), we don't end up aborting the one doing the teleporting.
-                        Util.FireAndForget(
-                            o => World.RequestTeleportLocation(
-                                presence.ControllingClient, regionName, position,
-                                lookat, (uint)TPFlags.ViaLocation),
-                            null, "OSSL_Api.TeleportAgentByRegionCoords");
-
-                        ScriptSleep(5000);
-
-                    // }
-
+                    // should be faster than going to threadpool
+                    World.RequestTeleportLocation(presence.ControllingClient, regionName, position,
+                        lookat, (uint)TPFlags.ViaLocation);
+                    ScriptSleep(500);
+                }
+                else
+                {
+                // We will launch the teleport on a new thread so that when the script threads are terminated
+                // before teleport in ScriptInstance.GetXMLState(), we don't end up aborting the one doing the teleporting.
+                Util.FireAndForget(
+                    o => World.RequestTeleportLocation(
+                        presence.ControllingClient, regionName, position,
+                        lookat, (uint)TPFlags.ViaLocation),
+                    null, "OSSL_Api.TeleportAgentByRegionCoords");
+                ScriptSleep(5000);
                 }
             }
         }
@@ -913,41 +912,38 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ulong regionHandle = Util.RegionGridLocToHandle((uint)regionGridX, (uint)regionGridY);
 
             m_host.AddScriptLPS(1);
-            UUID agentId = new UUID();
+            UUID agentId;
             if (UUID.TryParse(agent, out agentId))
             {
                 ScenePresence presence = World.GetScenePresence(agentId);
-                if (presence != null)
-                {
-                    // For osTeleportAgent, agent must be over owners land to avoid abuse
-                    // For osTeleportOwner, this restriction isn't necessary
+                if (presence == null || presence.IsDeleted || presence.IsInTransit)
+                    return;
 
-                    // commented out because its redundant and uneeded please remove eventually.
-                    // if (relaxRestrictions ||
-                    //    m_host.OwnerID
-                    //    == World.LandChannel.GetLandObject(
-                    //        presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
-                    // {
+                Util.FireAndForget(
+                    o => World.RequestTeleportLocation(
+                        presence.ControllingClient, regionHandle,
+                        position, lookat, (uint)TPFlags.ViaLocation),
+                    null, "OSSL_Api.TeleportAgentByRegionName");
 
-                        // We will launch the teleport on a new thread so that when the script threads are terminated
-                        // before teleport in ScriptInstance.GetXMLState(), we don't end up aborting the one doing the teleporting.
-                        Util.FireAndForget(
-                            o => World.RequestTeleportLocation(
-                                presence.ControllingClient, regionHandle,
-                                position, lookat, (uint)TPFlags.ViaLocation),
-                            null, "OSSL_Api.TeleportAgentByRegionName");
-
-                        ScriptSleep(5000);
-
-                   //  }
-
-                }
+                ScriptSleep(5000);
             }
         }
 
         public void osTeleportAgent(string agent, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
-            osTeleportAgent(agent, World.RegionInfo.RegionName, position, lookat);
+            m_host.AddScriptLPS(1);
+
+            UUID agentId;
+            if (UUID.TryParse(agent, out agentId))
+            {
+                ScenePresence presence = World.GetScenePresence(agentId);
+                if (presence == null || presence.IsDeleted || presence.IsInTransit)
+                    return;
+
+                World.RequestTeleportLocation(presence.ControllingClient, World.RegionInfo.RegionName, position,
+                    lookat, (uint)TPFlags.ViaLocation);
+                ScriptSleep(500);
+            }
         }
 
         public void osTeleportOwner(string regionName, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
@@ -955,12 +951,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // Threat level None because this is what can already be done with the World Map in the viewer
             CheckThreatLevel(ThreatLevel.None, "osTeleportOwner");
 
-            TeleportAgent(m_host.OwnerID.ToString(), regionName, position, lookat, true);
+            TeleportAgent(m_host.OwnerID.ToString(), regionName, position, lookat);
         }
 
         public void osTeleportOwner(LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
-            osTeleportOwner(World.RegionInfo.RegionName, position, lookat);
+            osTeleportAgent(m_host.OwnerID.ToString(), position, lookat);
         }
 
         public void osTeleportOwner(int regionGridX, int regionGridY, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
