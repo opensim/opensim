@@ -386,9 +386,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osDrawFilledPolygon(drawList, x, y);
         }
 
-        public string osDrawTranslationTransform(string drawList, LSL_Float x, LSL_Float y)
+        public string osDrawResetTransform(string drawList)
         {
-            return m_OSSL_Functions.osDrawTranslationTransform(drawList, x, y);
+            return m_OSSL_Functions.osDrawResetTransform(drawList);
         }
 
         public string osDrawRotationTransform(string drawList, LSL_Float x)
@@ -396,9 +396,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osDrawRotationTransform(drawList, x);
         }
 
-        public string osDrawResetTransform(string drawList)
+        public string osDrawScaleTransform(string drawList, LSL_Float x, LSL_Float y)
         {
-            return m_OSSL_Functions.osDrawResetTransform(drawList);
+            return m_OSSL_Functions.osDrawScaleTransform(drawList, x, y);
+        }
+
+        public string osDrawTranslationTransform(string drawList, LSL_Float x, LSL_Float y)
+        {
+            return m_OSSL_Functions.osDrawTranslationTransform(drawList, x, y);
         }
 
         public string osSetFontSize(string drawList, int fontSize)

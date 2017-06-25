@@ -1154,12 +1154,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         //Texture draw functions
 
-        public string osDrawTranslationTransform(string drawList, LSL_Float x, LSL_Float y)
+        public string osDrawResetTransform(string drawList)
         {
             CheckThreatLevel();
-
             m_host.AddScriptLPS(1);
-            drawList += "TransTransf " + x + "," + y + ";";
+            drawList += "ResetTransf;";
             return drawList;
         }
 
@@ -1171,11 +1170,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return drawList;
         }
 
-        public string osDrawResetTransform(string drawList)
+        public string osDrawScaleTransform(string drawList, LSL_Float x, LSL_Float y)
         {
             CheckThreatLevel();
+
             m_host.AddScriptLPS(1);
-            drawList += "ResetTransf;";
+            drawList += "ScaleTransf " + x + "," + y + ";";
+            return drawList;
+        }
+
+        public string osDrawTranslationTransform(string drawList, LSL_Float x, LSL_Float y)
+        {
+            CheckThreatLevel();
+
+            m_host.AddScriptLPS(1);
+            drawList += "TransTransf " + x + "," + y + ";";
             return drawList;
         }
 
