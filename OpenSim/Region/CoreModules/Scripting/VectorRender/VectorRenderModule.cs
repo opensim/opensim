@@ -522,6 +522,13 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                         GetParams(partsDelimiter, ref nextLine, 11, ref x, ref y);
                         graph.TranslateTransform(x, y);
                     }
+                    else if (nextLine.StartsWith("ScaleTransf"))
+                    {
+                        float x = 0;
+                        float y = 0;
+                        GetParams(partsDelimiter, ref nextLine, 11, ref x, ref y);
+                        graph.ScaleTransform(x, y);
+                    }
                     else if (nextLine.StartsWith("RotTransf"))
                     {
                         float x = 0;
