@@ -854,6 +854,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private bool checkAllowAgentTPbyLandOwner(UUID agentId, Vector3 pos)
         {
+            UUID hostOwner = m_host.OwnerID;
+
+            if(hostOwner == agentId)
+                return true;
+
             if (m_item.PermsGranter == agentId)
             {
                 if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TELEPORT) != 0)
@@ -867,8 +872,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             LandData landdata = land.LandData;
             if(landdata == null)
                 return true;
-
-            UUID hostOwner = m_host.OwnerID;
 
             if(landdata.OwnerID == hostOwner)
                 return true;
@@ -896,11 +899,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //
             CheckThreatLevel(ThreatLevel.Severe, "osTeleportAgent");
 
-            TeleportAgent(agent, regionName, position, lookat, true);
+            TeleportAgent(agent, regionName, position, lookat);
         }
 
         private void TeleportAgent(string agent, string regionName,
-            LSL_Types.Vector3 position, LSL_Types.Vector3 lookat, bool isNotOwner)
+            LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
             m_host.AddScriptLPS(1);
             if(String.IsNullOrEmpty(regionName))
@@ -914,7 +917,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
 
                 Vector3 pos = presence.AbsolutePosition;
-                if(isNotOwner && !checkAllowAgentTPbyLandOwner(agentId, pos))
+                if(!checkAllowAgentTPbyLandOwner(agentId, pos))
                 {
                     ScriptSleep(500);
                     return;
@@ -947,11 +950,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //
             CheckThreatLevel(ThreatLevel.Severe, "osTeleportAgent");
 
-            TeleportAgent(agent, regionGridX, regionGridY, position, lookat, true);
+            TeleportAgent(agent, regionGridX, regionGridY, position, lookat);
         }
 
         private void TeleportAgent(string agent, int regionGridX, int regionGridY,
-            LSL_Types.Vector3 position, LSL_Types.Vector3 lookat, bool isNotOwner)
+            LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
             m_host.AddScriptLPS(1);
 
@@ -965,7 +968,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
 
                 Vector3 pos = presence.AbsolutePosition;
-                if(isNotOwner && !checkAllowAgentTPbyLandOwner(agentId, pos))
+                if(!checkAllowAgentTPbyLandOwner(agentId, pos))
                 {
                     ScriptSleep(500);
                     return;
@@ -983,11 +986,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osTeleportAgent(string agent, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
-            TeleportAgent(agent, position, lookat, true);
-        }
-
-        private void TeleportAgent(string agent, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat, bool isNotOwner)
-        {
             m_host.AddScriptLPS(1);
             UUID agentId;
             if (UUID.TryParse(agent, out agentId))
@@ -997,7 +995,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
 
                 Vector3 pos = presence.AbsolutePosition;
-                if(isNotOwner && !checkAllowAgentTPbyLandOwner(agentId, pos))
+                if(!checkAllowAgentTPbyLandOwner(agentId, pos))
                 {
                     ScriptSleep(500);
                     return;
@@ -1014,19 +1012,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // Threat level None because this is what can already be done with the World Map in the viewer
             CheckThreatLevel(ThreatLevel.None, "osTeleportOwner");
 
-            TeleportAgent(m_host.OwnerID.ToString(), regionName, position, lookat, false);
+            TeleportAgent(m_host.OwnerID.ToString(), regionName, position, lookat);
         }
 
         public void osTeleportOwner(int regionGridX, int regionGridY, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
             CheckThreatLevel(ThreatLevel.None, "osTeleportOwner");
 
-            TeleportAgent(m_host.OwnerID.ToString(), regionGridX, regionGridY, position, lookat, false);
+            TeleportAgent(m_host.OwnerID.ToString(), regionGridX, regionGridY, position, lookat);
         }
 
         public void osTeleportOwner(LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
-            TeleportAgent(m_host.OwnerID.ToString(), position, lookat, false);
+            osTeleportAgent(m_host.OwnerID.ToString(), position, lookat);
         }
 
         ///<summary>
