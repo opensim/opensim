@@ -3843,7 +3843,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             LSL_List result = new LSL_List();
             World.ForEachRootScenePresence(delegate (ScenePresence avatar)
             {
-                if (avatar != null && avatar.IsNPC)
+                // npcs are not childagents but that is now.
+                if (avatar != null && avatar.IsNPC && !avatar.IsDeleted && !avatar.IsChildAgent)
                 {
                     result.Add(new LSL_String(avatar.UUID.ToString()));
                     result.Add(new LSL_Vector(avatar.AbsolutePosition));
