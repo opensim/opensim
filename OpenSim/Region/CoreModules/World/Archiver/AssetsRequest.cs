@@ -177,7 +177,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             else if(totalerrors == 0)
                 m_log.DebugFormat("[ARCHIVER]: Successfully added all {0} assets", m_foundAssetUuids.Count);
             else
-                m_log.DebugFormat("[ARCHIVER]: Successfully added {0} assets ({1} of total possible assets requested where not found, where damaged or where not assets",
+                m_log.DebugFormat("[ARCHIVER]: Successfully added {0} assets ({1} of total possible assets requested were not found, were damaged or were not assets",
                             m_foundAssetUuids.Count, totalerrors);
 
             PerformAssetsRequestCallback(m_timeout);
