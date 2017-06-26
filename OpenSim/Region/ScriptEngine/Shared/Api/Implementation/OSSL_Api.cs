@@ -876,7 +876,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(landdata.OwnerID == hostOwner)
                 return true;
 
-            if(World.RegionInfo.EstateSettings != null && World.RegionInfo.EstateSettings.IsEstateManagerOrOwner(hostOwner))
+            EstateSettings es = World.RegionInfo.EstateSettings;
+            if(es != null && es.IsEstateManagerOrOwner(hostOwner))
                 return true;
 
             if(!landdata.IsGroupOwned)
@@ -4756,6 +4757,37 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             sog.SetInertiaData(-1, Vector3.Zero, Vector3.Zero, Vector4.Zero );
         }
 
+        private bool checkAllowObjectTPbyLandOwner(Vector3 pos)
+        {
+            ILandObject land = World.LandChannel.GetLandObject(pos);
+            if(land == null)
+                return true;
+
+            LandData landdata = land.LandData;
+            if(landdata == null)
+                return true;
+
+            UUID hostOwner = m_host.OwnerID;
+            if(landdata.OwnerID == hostOwner)
+                return true;
+
+            EstateSettings es = World.RegionInfo.EstateSettings;
+            if(es != null && es.IsEstateManagerOrOwner(hostOwner))
+                return true;
+
+            if(!landdata.IsGroupOwned)
+                return false;
+
+            UUID landGroup = landdata.GroupID;
+            if(landGroup == UUID.Zero)
+                return false;
+
+            if(landGroup == m_host.GroupID)
+                return true;
+
+            return false;
+        }
+
        /// <summary>
         /// teleports a object (full linkset)
         /// </summary>
@@ -4785,8 +4817,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             SceneObjectGroup sog = World.GetSceneObjectGroup(objUUID);
-            if(sog== null || sog.IsDeleted)
+            if(sog== null || sog.IsDeleted || sog.inTransit)
                 return -1;
+
+            if(sog.OwnerID != m_host.OwnerID)
+            {
+                Vector3 pos = sog.AbsolutePosition;
+                if(!checkAllowObjectTPbyLandOwner(pos))
+                    return -1;
+            }
 
             UUID myid = m_host.ParentGroup.UUID;
 
