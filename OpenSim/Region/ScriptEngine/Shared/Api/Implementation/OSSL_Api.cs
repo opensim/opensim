@@ -517,13 +517,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Float osGetTerrainHeight(int x, int y)
         {
-            CheckThreatLevel(ThreatLevel.None, "osGetTerrainHeight");
+            CheckThreatLevel();
             return GetTerrainHeight(x, y);
         }
 
         public LSL_Float osTerrainGetHeight(int x, int y)
         {
-            CheckThreatLevel(ThreatLevel.None, "osTerrainGetHeight");
+            CheckThreatLevel();
             OSSLDeprecated("osTerrainGetHeight", "osGetTerrainHeight");
             return GetTerrainHeight(x, y);
         }
@@ -1518,7 +1518,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <returns></returns>
         public double osGetCurrentSunHour()
         {
-            CheckThreatLevel(ThreatLevel.None, "osGetCurrentSunHour");
+            CheckThreatLevel();
 
             m_host.AddScriptLPS(1);
 
@@ -1544,7 +1544,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public double osGetSunParam(string param)
         {
-            CheckThreatLevel(ThreatLevel.None, "osGetSunParam");
+            CheckThreatLevel();
             return GetSunParam(param);
         }
 
@@ -1743,7 +1743,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // is not allowed to contain any.
             // This really should be removed.
             //
-            CheckThreatLevel(ThreatLevel.None, "osList2Double");
+            CheckThreatLevel();
 
             m_host.AddScriptLPS(1);
             if (index < 0)
@@ -2818,7 +2818,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer osIsNpc(LSL_Key npc)
         {
-            CheckThreatLevel(ThreatLevel.None, "osIsNpc");
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
@@ -3539,7 +3539,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <returns></returns>
         public LSL_Key osGetMapTexture()
         {
-            CheckThreatLevel(ThreatLevel.None, "osGetMapTexture");
+//            CheckThreatLevel(ThreatLevel.None, "osGetMapTexture");
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
 
             return m_ScriptEngine.World.RegionInfo.RegionSettings.TerrainImageID.ToString();
@@ -3597,7 +3598,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Vector osGetRegionSize()
         {
-            CheckThreatLevel(ThreatLevel.None, "osGetRegionSize");
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
 
             Scene scene = m_ScriptEngine.World;
@@ -3859,6 +3860,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <returns>Item description</returns>
         public LSL_String osGetInventoryDesc(string item)
         {
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
 
             lock (m_host.TaskInventory)
@@ -4239,7 +4241,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <returns>1 if thing is a valid UUID, 0 otherwise</returns>
         public LSL_Integer osIsUUID(string thing)
         {
-            CheckThreatLevel(ThreatLevel.None, "osIsUUID");
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
 
             UUID test;
@@ -4254,7 +4256,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <returns></returns>
         public LSL_Float osMin(double a, double b)
         {
-            CheckThreatLevel(ThreatLevel.None, "osMin");
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
 
             return Math.Min(a, b);
@@ -4268,7 +4270,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <returns></returns>
         public LSL_Float osMax(double a, double b)
         {
-            CheckThreatLevel(ThreatLevel.None, "osMax");
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
 
             return Math.Max(a, b);
