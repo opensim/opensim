@@ -3835,6 +3835,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return result;
         }
 
+        public LSL_List osGetNPCList()
+        {
+            CheckThreatLevel(ThreatLevel.None, "osGetNPCList");
+            m_host.AddScriptLPS(1);
+
+            LSL_List result = new LSL_List();
+            World.ForEachRootScenePresence(delegate (ScenePresence avatar)
+            {
+                if (avatar != null && avatar.IsNPC)
+                {
+                    result.Add(new LSL_String(avatar.UUID.ToString()));
+                    result.Add(new LSL_Vector(avatar.AbsolutePosition));
+                    result.Add(new LSL_String(avatar.Name));
+                }
+            });
+
+            return result;
+        }
+
         /// <summary>
         /// Convert a unix time to a llGetTimestamp() like string
         /// </summary>

@@ -395,6 +395,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osSetProjectionParams(LSL_Key prim, bool projection, LSL_Key texture, double fov, double focus, double amb);
 
         LSL_List osGetAvatarList();
+        LSL_List osGetNPCList();
 
         LSL_String osUnixTimeToTimestamp(long time);
 

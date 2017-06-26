@@ -1041,6 +1041,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetAvatarList();
         }
 
+        public LSL_List osGetNPCList()
+        {
+            return m_OSSL_Functions.osGetNPCList();
+        }
+
         public LSL_String osUnixTimeToTimestamp(long time)
         {
             return m_OSSL_Functions.osUnixTimeToTimestamp(time);
