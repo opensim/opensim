@@ -277,12 +277,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osTeleportOwner(position, lookat);
         }
 
-        // Avatar info functions
-        public string osGetAgentIP(string agent)
-        {
-            return m_OSSL_Functions.osGetAgentIP(agent);
-        }
-
         public LSL_List osGetAgents()
         {
             return m_OSSL_Functions.osGetAgents();
@@ -430,6 +424,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osSetPenColor(drawList, color);
         }
+
         // Deprecated
         public string osSetPenColour(string drawList, string colour)
         {

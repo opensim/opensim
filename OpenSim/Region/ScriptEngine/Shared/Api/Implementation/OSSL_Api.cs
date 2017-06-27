@@ -1080,31 +1080,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     targetID,
                     part.SitTargetPosition);
         }
-
-        // Functions that get information from the agent itself.
-        //
-        // osGetAgentIP - this is used to determine the IP address of
-        //the client.  This is needed to help configure other in world
-        //resources based on the IP address of the clients connected.
-        //I think High is a good risk level for this, as it is an
-        //information leak.
-        public string osGetAgentIP(string agent)
-        {
-            CheckThreatLevel(ThreatLevel.High, "osGetAgentIP");
-
-            UUID avatarID = (UUID)agent;
-
-            m_host.AddScriptLPS(1);
-            if (World.Entities.ContainsKey((UUID)agent) && World.Entities[avatarID] is ScenePresence)
-            {
-                ScenePresence target = (ScenePresence)World.Entities[avatarID];
-                return target.ControllingClient.RemoteEndPoint.Address.ToString();
-            }
-
-            // fall through case, just return nothing
-            return "";
-        }
-
+ 
         // Get a list of all the avatars/agents in the region
         public LSL_List osGetAgents()
         {
