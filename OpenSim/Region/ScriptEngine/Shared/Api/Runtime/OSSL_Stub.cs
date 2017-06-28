@@ -282,6 +282,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetAgents();
         }
 
+        public string osGetAgentIP(string agent)
+        {
+            return m_OSSL_Functions.osGetAgentIP(agent);
+        }
+
         // Animation Functions
 
         public void osAvatarPlayAnimation(string avatar, string animation)

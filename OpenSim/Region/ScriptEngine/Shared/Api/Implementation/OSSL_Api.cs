@@ -1097,6 +1097,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return result;
         }
 
+        public string osGetAgentIP(string agent)
+        {
+            CheckThreatLevel(); // user god is the restriction
+            if(!(World.Permissions.IsGod(m_host.OwnerID)))
+                return "";
+
+            UUID avatarID = (UUID)agent;
+
+            m_host.AddScriptLPS(1);
+            if (World.Entities.ContainsKey((UUID)agent) && World.Entities[avatarID] is ScenePresence)
+            {
+                ScenePresence target = (ScenePresence)World.Entities[avatarID];
+                return target.ControllingClient.RemoteEndPoint.Address.ToString();
+            }
+
+            // fall through case, just return nothing
+            return "";
+        }
         // Adam's super super custom animation functions
         public void osAvatarPlayAnimation(string avatar, string animation)
         {
