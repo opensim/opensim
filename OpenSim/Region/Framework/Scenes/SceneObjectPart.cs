@@ -1103,8 +1103,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if (m_text.Length > 255)
-                    return m_text.Substring(0, 254);
+                if (m_text.Length > 256) // yes > 254
+                    return m_text.Substring(0, 256);
                 return m_text;
             }
             set { m_text = value; }
@@ -1379,7 +1379,8 @@ namespace OpenSim.Region.Framework.Scenes
         public UUID LastOwnerID
         {
             get { return _lastOwnerID; }
-            set { _lastOwnerID = value; }
+            set {
+             _lastOwnerID = value; }
         }
 
         public UUID RezzerID

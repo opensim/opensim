@@ -5753,7 +5753,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //update.JointPivot = Vector3.Zero;
             //update.JointType = 0;
             update.Material = part.Material;
-            update.MediaURL = Utils.EmptyBytes; // FIXME: Support this in OpenSim
 /*
             if (data.ParentGroup.IsAttachment)
             {
@@ -5832,8 +5831,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             update.TextureAnim = part.TextureAnimation ?? Utils.EmptyBytes;
             update.TextureEntry = part.Shape.TextureEntry ?? Utils.EmptyBytes;
             update.Scale = part.Shape.Scale;
-            update.Text = Util.StringToBytes256(part.Text);
-            update.MediaURL = Util.StringToBytes256(part.MediaUrl);
+            update.Text = Util.StringToBytes(part.Text, 255);
+            update.MediaURL = Util.StringToBytes(part.MediaUrl, 255);
 
             #region PrimFlags
 

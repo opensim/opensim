@@ -2221,9 +2221,9 @@ namespace OpenSim.Framework
             // might have gotten an oversized array even after the string trim
             byte[] data = UTF8.GetBytes(str);
 
-            if (data.Length > 256)
+            if (data.Length > 255) //play safe
             {
-                int cut = 255;
+                int cut = 254;
                 if((data[cut] & 0x80 ) != 0 )
                     {
                     while(cut > 0 && (data[cut] & 0xc0) != 0xc0)
@@ -2325,7 +2325,7 @@ namespace OpenSim.Framework
 
             if (data.Length > MaxLength)
             {
-                int cut = MaxLength -1 ;
+                int cut = MaxLength - 1 ;
                 if((data[cut] & 0x80 ) != 0 )
                     {
                     while(cut > 0 && (data[cut] & 0xc0) != 0xc0)
