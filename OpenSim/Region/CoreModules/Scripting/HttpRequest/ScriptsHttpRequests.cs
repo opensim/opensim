@@ -379,9 +379,9 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             if (ThreadPool == null)
             {
                 STPStartInfo startInfo = new STPStartInfo();
-                startInfo.IdleTimeout = 20000;
+                startInfo.IdleTimeout = 2000;
                 startInfo.MaxWorkerThreads = maxThreads;
-                startInfo.MinWorkerThreads = 1;
+                startInfo.MinWorkerThreads = 0;
                 startInfo.ThreadPriority = ThreadPriority.BelowNormal;
                 startInfo.StartSuspended = true;
                 startInfo.ThreadPoolName = "ScriptsHttpReq";
