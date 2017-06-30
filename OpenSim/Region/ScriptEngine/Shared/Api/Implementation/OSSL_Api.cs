@@ -452,7 +452,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                     }
 
-
                     if (!m_FunctionPerms[function].AllowedCreators.Contains(m_item.CreatorID))
                         return(
                             String.Format("{0} permission denied. Script creator is not in the list of users allowed to execute this function and prim owner also has no permission.",
@@ -1099,8 +1098,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osGetAgentIP(string agent)
         {
-            CheckThreatLevel(); // user god is the restriction
-            if(!(World.Permissions.IsGod(m_host.OwnerID)))
+            CheckThreatLevel(ThreatLevel.Severe, "osGetAgentIP"); 
+            if(!(World.Permissions.IsGod(m_host.OwnerID))) // user god always needed
                 return "";
 
             UUID avatarID = (UUID)agent;
@@ -1115,6 +1114,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // fall through case, just return nothing
             return "";
         }
+
         // Adam's super super custom animation functions
         public void osAvatarPlayAnimation(string avatar, string animation)
         {
@@ -1131,13 +1131,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(!UUID.TryParse(avatar, out avatarID))
                 return;
 
-            if(!World.Entities.ContainsKey(avatarID))
-                return;
-
-            ScenePresence target = null;
-            if ((World.Entities[avatarID] is ScenePresence))
-                target = (ScenePresence)World.Entities[avatarID];
-
+            ScenePresence target = World.GetScenePresence(avatarID);
             if (target == null)
                 return;
 
@@ -1417,7 +1411,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Vector osGetDrawStringSize(string contentType, string text, string fontName, int fontSize)
         {
-            CheckThreatLevel(ThreatLevel.VeryLow, "osGetDrawStringSize");
+            CheckThreatLevel();
             m_host.AddScriptLPS(1);
 
             LSL_Vector vec = new LSL_Vector(0,0,0);
