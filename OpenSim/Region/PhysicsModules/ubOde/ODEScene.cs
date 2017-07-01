@@ -951,8 +951,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             SharedTmpcontact.surface.mu = mu;
             SharedTmpcontact.surface.bounce = bounce;
 
-            d.ContactGeom altContact = new d.ContactGeom();
-            bool useAltcontact = false;
             bool noskip = true;
 
             if(dop1ava || dop2ava)
@@ -961,11 +959,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             while (true)
             {
                 noskip = true;
-                useAltcontact = false;
 
                 if (dop1ava)
                 {
-                    if ((((OdeCharacter)p1).Collide(g1, g2, false, ref curContact, ref altContact , ref useAltcontact, ref FeetCollision)))
+                    if ((((OdeCharacter)p1).Collide(g1, g2, false, ref curContact, ref FeetCollision)))
                     {
                         if (p2.PhysicsActorType == (int)ActorTypes.Agent)
                         {
@@ -980,7 +977,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
                 else if (dop2ava)
                 {
-                if ((((OdeCharacter)p2).Collide(g2, g1, true, ref curContact, ref altContact , ref useAltcontact, ref FeetCollision)))
+                if ((((OdeCharacter)p2).Collide(g2, g1, true, ref curContact, ref FeetCollision)))
                     {
                     if (p1.PhysicsActorType == (int)ActorTypes.Agent)
                         {
@@ -996,10 +993,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 if (noskip)
                 {
-                    if(useAltcontact)
-                        Joint = CreateContacJoint(ref altContact,smoothMesh);
-                    else
-                        Joint = CreateContacJoint(ref curContact,smoothMesh);
+                    Joint = CreateContacJoint(ref curContact,smoothMesh);
 
                     if (Joint == IntPtr.Zero)
                         break;
