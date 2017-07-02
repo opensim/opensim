@@ -899,10 +899,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             y = tx * sin + y * cos;
         }
 
-        public bool Collide(IntPtr me, IntPtr other, bool reverse, ref d.ContactGeom contact,
-                ref bool feetcollision)
-        {
+            public bool Collide(IntPtr me, IntPtr other, bool reverse, ref d.ContactGeom contact,
+                ref d.ContactGeom altContact , ref bool useAltcontact, ref bool feetcollision)
+            {
             feetcollision = false;
+            useAltcontact = false;
 
             if (me == capsule)
             {
@@ -962,6 +963,18 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if(m_flying)
                     return true;
 
+                feetcollision = true;
+                if (h < boneOff)
+                {
+                    m_collideNormal.X = contact.normal.X;
+                    m_collideNormal.Y = contact.normal.Y;
+                    m_collideNormal.Z = contact.normal.Z;
+                    IsColliding = true;
+                }
+
+                altContact = contact;
+                useAltcontact = true;
+
                 offset.Z -= 0.2f;
 
                 offset.Normalize();
@@ -980,28 +993,19 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if (tdp > 0.25f)
                     tdp = 0.25f;
 
-                contact.depth = tdp;
+                altContact.depth = tdp;
 
                 if (reverse)
                 {
-                    contact.normal.X = offset.X;
-                    contact.normal.Y = offset.Y;
-                    contact.normal.Z = offset.Z;
+                    altContact.normal.X = offset.X;
+                    altContact.normal.Y = offset.Y;
+                    altContact.normal.Z = offset.Z;
                 }
                 else
                 {
-                    contact.normal.X = -offset.X;
-                    contact.normal.Y = -offset.Y;
-                    contact.normal.Z = -offset.Z;
-                }
-
-                feetcollision = true;
-                if (h < boneOff)
-                {
-                    m_collideNormal.X = contact.normal.X;
-                    m_collideNormal.Y = contact.normal.Y;
-                    m_collideNormal.Z = contact.normal.Z;
-                    IsColliding = true;
+                    altContact.normal.X = -offset.X;
+                    altContact.normal.Y = -offset.Y;
+                    altContact.normal.Z = -offset.Z;
                 }
                 return true;
             }
