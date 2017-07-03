@@ -944,6 +944,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     return true;
                 }
 
+                if (gtype == d.GeomClassID.SphereClass)
+                {
+                    if(d.GeomSphereGetRadius(other) < 0.5)
+                        return true;
+                }
+
                 if (offset.Z > 0 || contact.normal.Z > 0.35f)
                 {
                     if (offset.Z <= 0)
@@ -980,12 +986,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 offset.Normalize();
 
                 float tdp = contact.depth;
-                float t = contact.normal.Z * contact.normal.Z;
+                float t = offset.X;
                 t = Math.Abs(t);
                 if(t > 1e-6)
                 {
                    tdp /= t;
-                   tdp *= offset.Z * offset.Z;
+                   tdp *= contact.normal.X;
                 }
                 else
                     tdp *= 10;
