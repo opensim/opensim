@@ -944,7 +944,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     return true;
                 }
 
-                if (gtype == d.GeomClassID.SphereClass)
+                if (gtype == d.GeomClassID.SphereClass && d.GeomGetBody(other) != IntPtr.Zero)
                 {
                     if(d.GeomSphereGetRadius(other) < 0.5)
                         return true;
