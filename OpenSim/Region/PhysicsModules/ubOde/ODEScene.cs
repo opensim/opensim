@@ -481,7 +481,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     contactsPerCollision = physicsconfig.GetInt("contacts_per_collision", contactsPerCollision);
 
                     geomDefaultDensity = physicsconfig.GetFloat("geometry_default_density", geomDefaultDensity);
-                    bodyFramesAutoDisable = physicsconfig.GetInt("body_frames_auto_disable", bodyFramesAutoDisable);
+//                    bodyFramesAutoDisable = physicsconfig.GetInt("body_frames_auto_disable", bodyFramesAutoDisable);
 
                     physics_logging = physicsconfig.GetBoolean("physics_logging", false);
                     physics_logging_interval = physicsconfig.GetInt("physics_logging_interval", 0);
