@@ -428,12 +428,16 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                     // FIXME: Need to return the appropriate ID if only a single face is replaced.
                     oldID = tmptex.DefaultTexture.TextureID;
 
+                    // not using parts number of faces because that fails on old meshs
                     if (Face == ALL_SIDES)
                     {
                         oldID = tmptex.DefaultTexture.TextureID;
                         tmptex.DefaultTexture.TextureID = textureID;
                         for(int i = 0; i < tmptex.FaceTextures.Length; i++)
-                            tmptex.FaceTextures[i] = null;
+                        {
+                            if(tmptex.FaceTextures[i] != null)
+                                tmptex.FaceTextures[i].TextureID = textureID;
+                        }
                     }
                     else
                     {
