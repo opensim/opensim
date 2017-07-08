@@ -1259,6 +1259,8 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_LoopSoundSlavePrims = value; }
         }
 
+        private double m_lastCollisionSoundMS;
+        
         /// <summary>
         /// The UUID for the region this object is in.
         /// </summary>
@@ -1336,7 +1338,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public SceneObjectGroup()
         {
-
+            m_lastCollisionSoundMS = Util.GetTimeStampMS() + 1000.0;
         }
 
         /// <summary>
@@ -5528,7 +5530,33 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public bool CollisionSoundThrootled(int collisionSoundType)
+        {
+            double time = m_lastCollisionSoundMS;
+//            m_lastCollisionSoundMS = Util.GetTimeStampMS();
+//            time = m_lastCollisionSoundMS - time;
+            double now  = Util.GetTimeStampMS();
+            time = now - time;
+            switch (collisionSoundType)
+            {
+                case 0: // default sounds
+                case 2: // default sounds with volume set by script
+                    if(time < 300.0)                    
+                        return true;
+                    break;
+                case 1: // selected sound
+                    if(time < 200.0)                    
+                        return true;
+                    break;
+                default:
+                    break;
+            }
+            m_lastCollisionSoundMS = now;
+            return false;
+        }
+
         #endregion
     }
+
 
 }

@@ -116,16 +116,20 @@ namespace OpenSim.Region.Framework.Scenes
 
         public static void PartCollisionSound(SceneObjectPart part, List<CollisionForSoundInfo> collidersinfolist)
         {
+            if (part.CollisionSoundType < 0)
+                return;
+
             if (collidersinfolist.Count == 0 || part == null)
                 return;
 
             if (part.VolumeDetectActive || (part.Flags & PrimFlags.Physics) == 0)
                 return;
 
-            if (part.ParentGroup == null)
+            SceneObjectGroup sog = part.ParentGroup;
+            if (sog == null || sog.IsDeleted || sog.inTransit)
                 return;
 
-            if (part.CollisionSoundType < 0)
+            if(sog.CollisionSoundThrootled(part.CollisionSoundType))
                 return;
 
             float volume = part.CollisionSoundVolume;
@@ -189,15 +193,23 @@ namespace OpenSim.Region.Framework.Scenes
                         continue;
                     }
 
-                SceneObjectPart otherPart = part.ParentGroup.Scene.GetSceneObjectPart(id);
+                SceneObjectPart otherPart = sog.Scene.GetSceneObjectPart(id);
                 if (otherPart != null)
                 {
-                    if (otherPart.CollisionSoundType < 0 || otherPart.VolumeDetectActive)
+                    SceneObjectGroup othersog = otherPart.ParentGroup;
+                    if(othersog == null || othersog.IsDeleted || othersog.inTransit)
+                        continue;
+
+                    int otherType = otherPart.CollisionSoundType;
+                    if (otherType < 0 || otherPart.VolumeDetectActive)
                         continue;
 
                     if (!HaveSound)
                     {
-                        if (otherPart.CollisionSoundType == 1)
+                        if(othersog.CollisionSoundThrootled(otherType))
+                            continue;
+
+                        if (otherType == 1)
                         {
                             soundID = otherPart.CollisionSound;
                             volume = otherPart.CollisionSoundVolume;
@@ -206,7 +218,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         else
                         {
-                            if (otherPart.CollisionSoundType == 2)
+                            if (otherType == 2)
                             {
                                 volume = otherPart.CollisionSoundVolume;
                                 if (volume == 0.0f)
