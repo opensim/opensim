@@ -3789,17 +3789,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Send terse position update if not sitting and position, velocity, or rotation
             //      has changed significantly from last sent update
-            if (!IsSatOnObject && (
-                        !Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE)
-                        || !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE)
-                        || !m_pos.ApproxEquals(m_lastPosition, POSITION_LARGETOLERANCE)
-                        // if velocity is zero and it wasn't zero last time, send the update
-                        || (Velocity == Vector3.Zero && m_lastVelocity != Vector3.Zero)
-                        // if position has moved just a little and velocity is very low, send  the update
-                        || (!m_pos.ApproxEquals(m_lastPosition, POSITION_SMALLTOLERANCE) && Velocity.LengthSquared() < LOWVELOCITYSQ )
-                ) )
-            {
-/*
             if (!IsSatOnObject)
             {
                 // this does need to be more complex later
@@ -3813,6 +3802,7 @@ namespace OpenSim.Region.Framework.Scenes
                         Math.Abs(m_bodyRot.Y - m_lastRotation.Y) > ROTATION_TOLERANCE ||
                         Math.Abs(m_bodyRot.Z - m_lastRotation.Z) > ROTATION_TOLERANCE ||
 
+                        (vel ==  Vector3.Zero && m_lastVelocity != Vector3.Zero) ||
                         Math.Abs(dpos.X) > POSITION_LARGETOLERANCE ||
                         Math.Abs(dpos.Y) > POSITION_LARGETOLERANCE ||
                         Math.Abs(dpos.Z) > POSITION_LARGETOLERANCE ||
@@ -3823,9 +3813,8 @@ namespace OpenSim.Region.Framework.Scenes
                             && vel.LengthSquared() < LOWVELOCITYSQ
                         ))
                 {
-*/
                     SendTerseUpdateToAllClients();
-//                }
+                }
             }
             CheckForSignificantMovement();
         }

@@ -369,9 +369,9 @@ namespace OpenSim.Region.Framework.Scenes
         protected Vector3 m_lastPosition;
         protected Quaternion m_lastRotation;
         protected Vector3 m_lastVelocity;
-        protected Vector3 m_lastAcceleration;
+        protected Vector3 m_lastAcceleration; // acceleration is a derived var with high noise
         protected Vector3 m_lastAngularVelocity;
-        protected int m_lastUpdateSentTime;
+        protected double m_lastUpdateSentTime;
         protected float m_buoyancy = 0.0f;
         protected Vector3 m_force;
         protected Vector3 m_torque;
@@ -2875,7 +2875,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void PhysicsCollision(EventArgs e)
         {
-            if (ParentGroup.Scene == null || ParentGroup.IsDeleted)
+            if (ParentGroup.Scene == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
                 return;
 
             // this a thread from physics ( heartbeat )
@@ -3331,7 +3331,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             m_lastVelocity = Velocity;
             m_lastAcceleration = Acceleration;
             m_lastAngularVelocity = AngularVelocity;
-            m_lastUpdateSentTime = Environment.TickCount;
+            m_lastUpdateSentTime = Util.GetTimeStampMS();
 
             ParentGroup.Scene.ForEachScenePresence(delegate(ScenePresence avatar)
             {
@@ -3350,7 +3350,7 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             m_lastVelocity = Velocity;
             m_lastAcceleration = Acceleration;
             m_lastAngularVelocity = AngularVelocity;
-            m_lastUpdateSentTime = Environment.TickCount;
+            m_lastUpdateSentTime = Util.GetTimeStampMS();
 
             if (ParentGroup.IsAttachment)
             {
@@ -3396,31 +3396,122 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             ParentGroup.Scene.StatsReporter.AddObjectUpdates(1);
         }
 
+        
         /// <summary>
         /// Tell all the prims which have had updates scheduled
         /// </summary>
         public void SendScheduledUpdates()
         {
             const float ROTATION_TOLERANCE = 0.01f;
-            const float VELOCITY_TOLERANCE = 0.001f;
+            const float VELOCITY_TOLERANCE = 0.1f; // terse update vel has low resolution
             const float POSITION_TOLERANCE = 0.05f; // I don't like this, but I suppose it's necessary
-            const int TIME_MS_TOLERANCE = 200; //llSetPos has a 200ms delay. This should NOT be 3 seconds.
-
+            const double TIME_MS_TOLERANCE = 200f; //llSetPos has a 200ms delay. This should NOT be 3 seconds.
+            
             switch (UpdateFlag)
             {
+                // this is wrong we need to get back to this
                 case UpdateRequired.TERSE:
                 {
                     ClearUpdateSchedule();
-                    // Throw away duplicate or insignificant updates
-                    if (!RotationOffset.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
-                        !Acceleration.Equals(m_lastAcceleration) ||
-                        !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
-                        Velocity.ApproxEquals(Vector3.Zero, VELOCITY_TOLERANCE) ||
-                        !AngularVelocity.ApproxEquals(m_lastAngularVelocity, VELOCITY_TOLERANCE) ||
-                        !OffsetPosition.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
-                        Environment.TickCount - m_lastUpdateSentTime > TIME_MS_TOLERANCE)
+
+                    bool needupdate = true;
+                    double now = Util.GetTimeStampMS();
+                    Vector3 curvel = Velocity;
+                    Vector3 curacc = Acceleration;
+                    Vector3 angvel = AngularVelocity;
+
+                    while(true) // just to avoid ugly goto
                     {
-                        SendTerseUpdateToAllClientsInternal();
+                        double elapsed = now - m_lastUpdateSentTime;
+
+                        // minimal rate also for the other things on terse updates
+                        if (elapsed > TIME_MS_TOLERANCE)
+                            break;
+
+                        if( Math.Abs(curacc.X - m_lastAcceleration.X) >  VELOCITY_TOLERANCE ||
+                            Math.Abs(curacc.Y - m_lastAcceleration.Y) >  VELOCITY_TOLERANCE ||
+                            Math.Abs(curacc.Z - m_lastAcceleration.Z) >  VELOCITY_TOLERANCE)
+                            break;
+
+                        // velocity change is also direction not only norm)
+                        if( Math.Abs(curvel.X - m_lastVelocity.X) >  VELOCITY_TOLERANCE ||
+                            Math.Abs(curvel.Y - m_lastVelocity.Y) >  VELOCITY_TOLERANCE ||
+                            Math.Abs(curvel.Z - m_lastVelocity.Z) >  VELOCITY_TOLERANCE)
+                            break;
+                        
+                        float vx = Math.Abs(curvel.X);
+                        if(vx > 128.0)
+                            break;
+                        float vy = Math.Abs(curvel.Y);
+                        if(vy > 128.0)
+                            break;
+                        float vz = Math.Abs(curvel.Z);
+                        if(vz > 128.0)
+                            break;
+
+                        if (
+                            vx <  VELOCITY_TOLERANCE &&
+                            vy <  VELOCITY_TOLERANCE &&
+                            vz <  VELOCITY_TOLERANCE
+                            )
+                        {
+                            if(!OffsetPosition.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
+                                break;
+                            
+                            if (vx <  1e-4 &&
+                                vy <  1e-4 &&
+                                vz <  1e-4 &&
+                                (
+                                    Math.Abs(m_lastVelocity.X) > 1e-4 ||
+                                    Math.Abs(m_lastVelocity.Y) > 1e-4 ||
+                                    Math.Abs(m_lastVelocity.Z) > 1e-4
+                                ))
+                                break;
+                        }
+
+                        if( Math.Abs(angvel.X - m_lastAngularVelocity.X) >  VELOCITY_TOLERANCE ||
+                            Math.Abs(angvel.Y - m_lastAngularVelocity.Y) >  VELOCITY_TOLERANCE ||
+                            Math.Abs(angvel.Z - m_lastAngularVelocity.Z) >  VELOCITY_TOLERANCE)
+                            break;
+
+                        // viewer interpolators have a limit of 128m/s
+                        float ax = Math.Abs(angvel.X);
+                        if(ax > 64.0)
+                            break;
+                        float ay = Math.Abs(angvel.Y);
+                        if(ay > 64.0)
+                            break;
+                        float az = Math.Abs(angvel.Z);
+                        if(az > 64.0)
+                            break;
+
+                        if (
+                            ax <  VELOCITY_TOLERANCE &&
+                            ay <  VELOCITY_TOLERANCE &&
+                            az <  VELOCITY_TOLERANCE &&
+                            !RotationOffset.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE)
+                            )
+                          break;
+
+                        needupdate = false;
+                        break;
+                    }
+
+                    if(needupdate)
+                    {
+
+                        // Update the "last" values
+                        m_lastPosition = OffsetPosition;
+                        m_lastRotation = RotationOffset;
+                        m_lastVelocity = curvel;
+                        m_lastAcceleration = curacc;
+                        m_lastAngularVelocity = angvel;
+                        m_lastUpdateSentTime = now;
+
+                        ParentGroup.Scene.ForEachClient(delegate(IClientAPI client)
+                        {
+                            SendTerseUpdateToClient(client);
+                        });
                     }
                     break;
                 }
@@ -3442,13 +3533,15 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             if (ParentGroup == null || ParentGroup.Scene == null)
                 return;
 
+            ClearUpdateSchedule();
+
             // Update the "last" values
             m_lastPosition = OffsetPosition;
             m_lastRotation = RotationOffset;
             m_lastVelocity = Velocity;
             m_lastAcceleration = Acceleration;
             m_lastAngularVelocity = AngularVelocity;
-            m_lastUpdateSentTime = Environment.TickCount;
+            m_lastUpdateSentTime = Util.GetTimeStampMS();
 
             ParentGroup.Scene.ForEachClient(delegate(IClientAPI client)
             {
@@ -3461,13 +3554,15 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             if (ParentGroup == null || ParentGroup.Scene == null)
                 return;
 
+            ClearUpdateSchedule();
+
             // Update the "last" values
             m_lastPosition = OffsetPosition;
             m_lastRotation = RotationOffset;
             m_lastVelocity = Velocity;
             m_lastAcceleration = Acceleration;
             m_lastAngularVelocity = AngularVelocity;
-            m_lastUpdateSentTime = Environment.TickCount;
+            m_lastUpdateSentTime = Util.GetTimeStampMS();
 
             if (ParentGroup.IsAttachment)
             {
