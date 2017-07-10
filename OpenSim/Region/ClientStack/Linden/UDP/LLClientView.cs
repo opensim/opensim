@@ -4137,6 +4137,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Vector3 mypos = Vector3.Zero;
             ScenePresence mysp = (ScenePresence)SceneAgent;
 
+            bool orderedDequeue = m_scene.UpdatePrioritizationScheme  == UpdatePrioritizationSchemes.SimpleAngularDistance;
             // we should have a presence
             if(mysp == null)
                 return;
@@ -4151,8 +4152,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             while (maxUpdatesBytes > 0)
             {
                 lock (m_entityUpdates.SyncRoot)
-                    if (!m_entityUpdates.TryDequeue(out update, out timeinqueue))
-                        break;
+                {
+                    if(orderedDequeue)
+                    {
+                        if (!m_entityUpdates.TryOrderedDequeue(out update, out timeinqueue))
+                            break;
+                    }
+                    else
+                    {
+                        if (!m_entityUpdates.TryDequeue(out update, out timeinqueue))
+                            break;
+                    }
+                }
 
                 PrimUpdateFlags updateFlags = (PrimUpdateFlags)update.Flags;
 
@@ -4850,6 +4861,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //            OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>> propertyUpdates =
 //                new OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>>();
 
+            bool orderedDequeue = m_scene.UpdatePrioritizationScheme  == UpdatePrioritizationSchemes.SimpleAngularDistance;
 
             EntityUpdate iupdate;
             Int32 timeinqueue; // this is just debugging code & can be dropped later
@@ -4857,8 +4869,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             while (maxUpdateBytes > 0)
             {
                 lock (m_entityProps.SyncRoot)
-                    if (!m_entityProps.TryDequeue(out iupdate, out timeinqueue))
-                        break;
+                {
+                    if(orderedDequeue)
+                    {
+                        if (!m_entityProps.TryOrderedDequeue(out iupdate, out timeinqueue))
+                            break;
+                    }
+                    else
+                    {
+                        if (!m_entityProps.TryDequeue(out iupdate, out timeinqueue))
+                            break;
+                    }
+                }
 
                 ObjectPropertyUpdate update = (ObjectPropertyUpdate)iupdate;
                 if (update.SendFamilyProps)
