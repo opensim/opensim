@@ -3237,7 +3237,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <summary>
         /// Schedule a terse update for this prim.  Terse updates only send position,
-        /// rotation, velocity and rotational velocity information.
+        /// rotation, velocity and rotational velocity information. WRONG!!!!
         /// </summary>
         public void ScheduleTerseUpdate()
         {
@@ -3296,21 +3296,6 @@ namespace OpenSim.Region.Framework.Scenes
                     sp.SendAttachmentUpdate(this, UpdateRequired.FULL);
                 }
             }
-
-/* this does nothing
-SendFullUpdateToClient(remoteClient, Position) ignores position parameter
-            if (IsRoot)
-            {
-                if (ParentGroup.IsAttachment)
-                {
-                    SendFullUpdateToClient(remoteClient, AttachedPos);
-                }
-                else
-                {
-                    SendFullUpdateToClient(remoteClient, AbsolutePosition);
-                }
-            }
-*/
             else
             {
                 SendFullUpdateToClient(remoteClient);
@@ -3396,24 +3381,26 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
             ParentGroup.Scene.StatsReporter.AddObjectUpdates(1);
         }
 
+
+        private const float ROTATION_TOLERANCE = 0.01f;
+        private const float VELOCITY_TOLERANCE = 0.1f; // terse update vel has low resolution
+        private const float POSITION_TOLERANCE = 0.05f; // I don't like this, but I suppose it's necessary
+        private const double TIME_MS_TOLERANCE = 200f; //llSetPos has a 200ms delay. This should NOT be 3 seconds.
         
         /// <summary>
         /// Tell all the prims which have had updates scheduled
         /// </summary>
         public void SendScheduledUpdates()
-        {
-            const float ROTATION_TOLERANCE = 0.01f;
-            const float VELOCITY_TOLERANCE = 0.1f; // terse update vel has low resolution
-            const float POSITION_TOLERANCE = 0.05f; // I don't like this, but I suppose it's necessary
-            const double TIME_MS_TOLERANCE = 200f; //llSetPos has a 200ms delay. This should NOT be 3 seconds.
-            
+        {           
             switch (UpdateFlag)
             {
-                // this is wrong we need to get back to this
-                case UpdateRequired.TERSE:
-                {
+                case UpdateRequired.NONE:
                     ClearUpdateSchedule();
+                    break;
 
+                case UpdateRequired.TERSE:
+
+                    ClearUpdateSchedule();
                     bool needupdate = true;
                     double now = Util.GetTimeStampMS();
                     Vector3 curvel = Velocity;
@@ -3423,8 +3410,6 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                     while(true) // just to avoid ugly goto
                     {
                         double elapsed = now - m_lastUpdateSentTime;
-
-                        // minimal rate also for the other things on terse updates
                         if (elapsed > TIME_MS_TOLERANCE)
                             break;
 
@@ -3514,13 +3499,11 @@ SendFullUpdateToClient(remoteClient, Position) ignores position parameter
                         });
                     }
                     break;
-                }
+
                 case UpdateRequired.FULL:
-                {
                     ClearUpdateSchedule();
                     SendFullUpdateToAllClientsInternal();
                     break;
-                }
             }
         }
 

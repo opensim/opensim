@@ -279,8 +279,11 @@ namespace OpenSim.Region.Framework.Scenes
         private bool MouseDown = false;
         public Vector3 lastKnownAllowedPosition;
         public bool sentMessageAboutRestrictedParcelFlyingDown;
+
         public Vector4 CollisionPlane = Vector4.UnitW;
 
+        public Vector4 m_lastCollisionPlane = Vector4.UnitW;
+        private byte m_lastState;
         private Vector3 m_lastPosition;
         private Quaternion m_lastRotation;
         private Vector3 m_lastVelocity;
@@ -2818,16 +2821,13 @@ namespace OpenSim.Region.Framework.Scenes
             CameraAtAxis = agentData.CameraAtAxis;
             CameraLeftAxis = agentData.CameraLeftAxis;
             CameraUpAxis = agentData.CameraUpAxis;
-            Quaternion camRot = Util.Axes2Rot(CameraAtAxis, CameraLeftAxis, CameraUpAxis);
-            CameraRotation = camRot;
-
-            // The Agent's Draw distance setting
-            // When we get to the point of re-computing neighbors everytime this
-            // changes, then start using the agent's drawdistance rather than the
-            // region's draw distance.
-
             DrawDistance = agentData.Far;
 
+            CameraAtAxis.Normalize();
+            CameraLeftAxis.Normalize();
+            CameraUpAxis.Normalize();
+            Quaternion camRot = Util.Axes2Rot(CameraAtAxis, CameraLeftAxis, CameraUpAxis);
+            CameraRotation = camRot;
 
             // Check if Client has camera in 'follow cam' or 'build' mode.
 //            Vector3 camdif = (Vector3.One * Rotation - Vector3.One * CameraRotation);
@@ -3794,15 +3794,17 @@ namespace OpenSim.Region.Framework.Scenes
                 // this does need to be more complex later
                 Vector3 vel = Velocity;
                 Vector3 dpos = m_pos - m_lastPosition;
-                if(     Math.Abs(vel.X - m_lastVelocity.X) > VELOCITY_TOLERANCE ||
+                if(     State != m_lastState ||
+                        Math.Abs(vel.X - m_lastVelocity.X) > VELOCITY_TOLERANCE ||
                         Math.Abs(vel.Y - m_lastVelocity.Y) > VELOCITY_TOLERANCE ||
                         Math.Abs(vel.Z - m_lastVelocity.Z) > VELOCITY_TOLERANCE ||
 
                         Math.Abs(m_bodyRot.X - m_lastRotation.X) > ROTATION_TOLERANCE ||
                         Math.Abs(m_bodyRot.Y - m_lastRotation.Y) > ROTATION_TOLERANCE ||
                         Math.Abs(m_bodyRot.Z - m_lastRotation.Z) > ROTATION_TOLERANCE ||
-
+                       
                         (vel ==  Vector3.Zero && m_lastVelocity != Vector3.Zero) ||
+
                         Math.Abs(dpos.X) > POSITION_LARGETOLERANCE ||
                         Math.Abs(dpos.Y) > POSITION_LARGETOLERANCE ||
                         Math.Abs(dpos.Z) > POSITION_LARGETOLERANCE ||
@@ -3811,7 +3813,12 @@ namespace OpenSim.Region.Framework.Scenes
                             Math.Abs(dpos.Y) > POSITION_SMALLTOLERANCE ||
                             Math.Abs(dpos.Z) > POSITION_SMALLTOLERANCE)
                             && vel.LengthSquared() < LOWVELOCITYSQ
-                        ))
+                        ) ||
+
+                        Math.Abs(CollisionPlane.X - m_lastCollisionPlane.X) > POSITION_SMALLTOLERANCE ||
+                        Math.Abs(CollisionPlane.Y - m_lastCollisionPlane.Y) > POSITION_SMALLTOLERANCE ||
+                        Math.Abs(CollisionPlane.W - m_lastCollisionPlane.W) > POSITION_SMALLTOLERANCE
+                        )
                 {
                     SendTerseUpdateToAllClients();
                 }
@@ -3910,11 +3917,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SendTerseUpdateToAllClients()
         {
-            m_scene.ForEachScenePresence(SendTerseUpdateToAgent);
-            // Update the "last" values
+            m_lastState = State;
             m_lastPosition = m_pos;
             m_lastRotation = m_bodyRot;
             m_lastVelocity = Velocity;
+            m_lastCollisionPlane = CollisionPlane;
+
+            m_scene.ForEachScenePresence(SendTerseUpdateToAgent);
+            // Update the "last" values
             TriggerScenePresenceUpdated();
         }
 
