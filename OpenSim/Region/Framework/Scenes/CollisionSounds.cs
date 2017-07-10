@@ -129,7 +129,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (sog == null || sog.IsDeleted || sog.inTransit)
                 return;
 
-            if(sog.CollisionSoundThrootled(part.CollisionSoundType))
+            if(sog.CollisionSoundThrottled(part.CollisionSoundType))
                 return;
 
             float volume = part.CollisionSoundVolume;
@@ -206,7 +206,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (!HaveSound)
                     {
-                        if(othersog.CollisionSoundThrootled(otherType))
+                        if(othersog.CollisionSoundThrottled(otherType))
                             continue;
 
                         if (otherType == 1)

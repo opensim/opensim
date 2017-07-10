@@ -5530,7 +5530,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public bool CollisionSoundThrootled(int collisionSoundType)
+        public bool CollisionSoundThrottled(int collisionSoundType)
         {
             double time = m_lastCollisionSoundMS;
 //            m_lastCollisionSoundMS = Util.GetTimeStampMS();
