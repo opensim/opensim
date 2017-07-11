@@ -3598,9 +3598,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                         }
                     }
-                    // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
-                }
-
+                 }
             }, null, "LSL_Api.doObjectRez");
 
             //ScriptSleep((int)((groupmass * velmag) / 10));
