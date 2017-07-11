@@ -3534,32 +3534,34 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void doObjectRez(string inventory, LSL_Vector pos, LSL_Vector vel, LSL_Rotation rot, int param, bool atRoot)
         {
             m_host.AddScriptLPS(1);
+            if (Double.IsNaN(rot.x) || Double.IsNaN(rot.y) || Double.IsNaN(rot.z) || Double.IsNaN(rot.s))
+                return;
+
+            float dist = (float)llVecDist(llGetPos(), pos);
+
+            if (dist > m_ScriptDistanceFactor * 10.0f)
+                return;
+
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(inventory);
+
+            if (item == null)
+            {
+               Error("llRez(AtRoot/Object)", "Can't find object '" + inventory + "'");
+               return;
+            }
+
+            if (item.InvType != (int)InventoryType.Object)
+            {
+               Error("llRez(AtRoot/Object)", "Can't create requested object; object is missing from database");
+               return;
+            }
 
             Util.FireAndForget(x =>
             {
-                if (Double.IsNaN(rot.x) || Double.IsNaN(rot.y) || Double.IsNaN(rot.z) || Double.IsNaN(rot.s))
-                    return;
 
-                float dist = (float)llVecDist(llGetPos(), pos);
-
-                if (dist > m_ScriptDistanceFactor * 10.0f)
-                    return;
-
-                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(inventory);
-
-                if (item == null)
-                {
-                    Error("llRez(AtRoot/Object)", "Can't find object '" + inventory + "'");
-                    return;
-                }
-
-                if (item.InvType != (int)InventoryType.Object)
-                {
-                    Error("llRez(AtRoot/Object)", "Can't create requested object; object is missing from database");
-                    return;
-                }
-
-                List<SceneObjectGroup> new_groups = World.RezObject(m_host, item, pos, rot, vel, param, atRoot);
+                Quaternion wrot = rot;
+                wrot.Normalize();
+                List<SceneObjectGroup> new_groups = World.RezObject(m_host, item, pos, wrot, vel, param, atRoot);
 
                 // If either of these are null, then there was an unknown error.
                 if (new_groups == null)
