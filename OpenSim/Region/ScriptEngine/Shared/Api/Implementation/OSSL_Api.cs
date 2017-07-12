@@ -1606,13 +1606,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!World.Permissions.CanEditParcelProperties(m_host.OwnerID, startLandObject, GroupPowers.LandOptions, false))
             {
-                OSSLShoutError("You do not have permission to modify the parcel");
+                OSSLShoutError("script owner does not have permission to modify the parcel");
                 return;
             }
 
             // Create a new land data object we can modify
             LandData newLand = startLandObject.LandData.Copy();
             UUID uuid;
+            EstateSettings es = World.RegionInfo.EstateSettings;
+
+            bool changed = false;
 
             // Process the rules, not sure what the impact would be of changing owner or group
             for (int idx = 0; idx < rules.Length;)
@@ -1622,35 +1625,115 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 switch (code)
                 {
                     case ScriptBaseClass.PARCEL_DETAILS_NAME:
-                        newLand.Name = arg;
+                        if(newLand.Name != arg)
+                        {
+                            newLand.Name = arg;
+                            changed = true;
+                        }
                         break;
 
                     case ScriptBaseClass.PARCEL_DETAILS_DESC:
-                        newLand.Description = arg;
+                        if(newLand.Description != arg)
+                        {
+                            newLand.Description = arg;
+                            changed = true;
+                        }
                         break;
 
                     case ScriptBaseClass.PARCEL_DETAILS_OWNER:
-                        CheckThreatLevel(ThreatLevel.VeryHigh, functionName);
-                        if (UUID.TryParse(arg, out uuid))
-                            newLand.OwnerID = uuid;
+                        if(es != null && !es.IsEstateManagerOrOwner(m_host.OwnerID))
+                        {
+                            OSSLError("script owner does not have permission to modify the parcel owner");
+                        }
+                        else
+                        {
+                            if (UUID.TryParse(arg, out uuid))
+                            {   
+                                if(newLand.OwnerID != uuid)
+                                {
+                                    changed = true;
+                                    newLand.OwnerID = uuid;
+                                    newLand.GroupID = UUID.Zero;
+                                }
+                            }
+                        }
                         break;
 
                     case ScriptBaseClass.PARCEL_DETAILS_GROUP:
-                        CheckThreatLevel(ThreatLevel.VeryHigh, functionName);
-                        if (UUID.TryParse(arg, out uuid))
-                            newLand.GroupID = uuid;
+                        if(m_host.OwnerID == newLand.OwnerID || es == null || es.IsEstateManagerOrOwner(m_host.OwnerID))
+                        {
+                            if (UUID.TryParse(arg, out uuid))
+                            {
+                                if(newLand.GroupID != uuid)
+                                {
+                                    IGroupsModule groupsModule = m_ScriptEngine.World.RequestModuleInterface<IGroupsModule>();
+                                    GroupMembershipData member = null;
+                                    if (groupsModule != null)
+                                        member = groupsModule.GetMembershipData(uuid, newLand.OwnerID);
+                                    if (member == null)
+                                        OSSLError(string.Format("land owner is not member of the new group for parcel"));
+                                    else
+                                    {
+                                        changed = true;
+                                        newLand.GroupID = uuid;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            OSSLError("script owner does not have permission to modify the parcel group");
+                        }
                         break;
 
                     case ScriptBaseClass.PARCEL_DETAILS_CLAIMDATE:
-                        CheckThreatLevel(ThreatLevel.VeryHigh, functionName);
-                        newLand.ClaimDate = Convert.ToInt32(arg);
-                        if (newLand.ClaimDate == 0)
-                            newLand.ClaimDate = Util.UnixTimeSinceEpoch();
+                        if(es != null && !es.IsEstateManagerOrOwner(m_host.OwnerID))
+                        {
+                            OSSLError("script owner does not have permission to modify the parcel CLAIM DATE");
+                        }
+                        else
+                        {
+                            int date =  Convert.ToInt32(arg);
+                            if (date == 0)
+                                date = Util.UnixTimeSinceEpoch();
+                            if(newLand.ClaimDate != date)
+                            {
+                                changed = true;
+                                newLand.ClaimDate = date;
+                            }
+                        }
                         break;
-                 }
-             }
 
-            World.LandChannel.UpdateLandObject(newLand.LocalID,newLand);
+                    case ScriptBaseClass.PARCEL_DETAILS_SEE_AVATARS:
+                        bool newavs = (Convert.ToInt32(arg) != 0);
+                        if(newLand.SeeAVs != newavs)
+                        {
+                            changed = true;
+                            newLand.SeeAVs = newavs;
+                        }
+                        break;
+
+                    case ScriptBaseClass.PARCEL_DETAILS_ANY_AVATAR_SOUNDS:
+                        bool newavsounds = (Convert.ToInt32(arg) != 0);
+                        if(newLand.AnyAVSounds != newavsounds)
+                        {
+                            changed = true;
+                            newLand.AnyAVSounds = newavsounds;
+                        }
+                        break;
+
+                    case ScriptBaseClass.PARCEL_DETAILS_GROUP_SOUNDS:
+                        bool newgrpsounds = (Convert.ToInt32(arg) != 0);
+                        if(newLand.GroupAVSounds != newgrpsounds)
+                        {
+                            changed = true;
+                            newLand.GroupAVSounds = newgrpsounds;
+                        }
+                        break;
+                    }
+            }
+            if(changed)
+                World.LandChannel.UpdateLandObject(newLand.LocalID,newLand);
         }
 
         public double osList2Double(LSL_Types.list src, int index)

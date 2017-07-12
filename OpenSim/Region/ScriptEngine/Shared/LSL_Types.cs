@@ -39,7 +39,6 @@ using OMV_Quaternion = OpenMetaverse.Quaternion;
 
 namespace OpenSim.Region.ScriptEngine.Shared
 {
-    [Serializable]
     public partial class LSL_Types
     {
         // Types are kept is separate .dll to avoid having to add whatever .dll it is in it to script AppDomain
@@ -526,7 +525,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
         }
 
         [Serializable]
-        public class list
+        public class list: MarshalByRefObject
         {
             private object[] m_data;
 
