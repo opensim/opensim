@@ -1666,16 +1666,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             {
                                 if(newLand.GroupID != uuid)
                                 {
-                                    IGroupsModule groupsModule = m_ScriptEngine.World.RequestModuleInterface<IGroupsModule>();
-                                    GroupMembershipData member = null;
-                                    if (groupsModule != null)
-                                        member = groupsModule.GetMembershipData(uuid, newLand.OwnerID);
-                                    if (member == null)
-                                        OSSLError(string.Format("land owner is not member of the new group for parcel"));
-                                    else
+                                    if(uuid == UUID.Zero)
                                     {
                                         changed = true;
                                         newLand.GroupID = uuid;
+                                    }
+                                    else
+                                    {
+                                        IGroupsModule groupsModule = m_ScriptEngine.World.RequestModuleInterface<IGroupsModule>();
+                                        GroupMembershipData member = null;
+                                        if (groupsModule != null)
+                                            member = groupsModule.GetMembershipData(uuid, newLand.OwnerID);
+                                        if (member == null)
+                                            OSSLError(string.Format("land owner is not member of the new group for parcel"));
+                                        else
+                                        {
+                                            changed = true;
+                                            newLand.GroupID = uuid;
+                                        }
                                     }
                                 }
                             }
