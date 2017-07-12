@@ -88,6 +88,7 @@ namespace OpenSim.Region.Framework.Interfaces
 
         bool IsForcefulBansAllowed();
         void UpdateLandObject(int localID, LandData data);
+        void SendParcelsOverlay(IClientAPI client);
         void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient);
         void setParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel);
         void setSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel);

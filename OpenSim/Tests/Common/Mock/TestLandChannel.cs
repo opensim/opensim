@@ -109,6 +109,7 @@ namespace OpenSim.Tests.Common
         public bool IsLandPrimCountTainted() { return false; }
         public bool IsForcefulBansAllowed() { return false; }
         public void UpdateLandObject(int localID, LandData data) {}
+        public void SendParcelsOverlay(IClientAPI client) {}
         public void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient) {}
         public void setParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel) {}
         public void setSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel) {}

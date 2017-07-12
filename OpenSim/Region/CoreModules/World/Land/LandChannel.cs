@@ -176,6 +176,14 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
         }
 
+        public void SendParcelsOverlay(IClientAPI client)
+        {
+            if (m_landManagementModule != null)
+            {
+                m_landManagementModule.SendParcelOverlay(client);
+            }
+        }
+
         public void Join(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
         {
             if (m_landManagementModule != null)

@@ -1617,6 +1617,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             bool changed = false;
             bool changedSeeAvs = false;
+            bool changedoverlay = false;
+            bool changedneedupdate = false;
 
             // Process the rules, not sure what the impact would be of changing owner or group
             for (int idx = 0; idx < rules.Length;)
@@ -1719,6 +1721,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         {
                             changed = true;
                             changedSeeAvs = true;
+                            changedoverlay = true;
+                            changedneedupdate = true;
                             newLand.SeeAVs = newavs;
                         }
                         break;
@@ -1744,19 +1748,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             if(changed)
             {
-                World.LandChannel.UpdateLandObject(newLand.LocalID,newLand);
+                World.LandChannel.UpdateLandObject(newLand.LocalID, newLand);
 
-                if(changedSeeAvs)
+                if(changedneedupdate)
                 {
                     UUID parcelID= newLand.GlobalID;
-                    World.ForEachScenePresence(delegate (ScenePresence avatar)
+                    World.ForEachRootScenePresence(delegate (ScenePresence avatar)
                     {
-                        if (avatar != null && !avatar.IsDeleted && avatar.currentParcelUUID == parcelID )
+                        if (avatar == null || avatar.IsDeleted || avatar.IsInTransit)
+                            return;
+
+                        if(changedSeeAvs && avatar.currentParcelUUID == parcelID )
                             avatar.currentParcelUUID = parcelID; // force parcel flags review
+                        
+                        if(avatar.ControllingClient == null)
+                            return;
+
+                        // this will be needed for some things like damage etc
+//                        if(avatar.currentParcelUUID == parcelID)
+//                            startLandObject.SendLandUpdateToClient(avatar.ControllingClient);
+
+                        if(changedoverlay && !avatar.IsNPC)
+                            World.LandChannel.SendParcelsOverlay(avatar.ControllingClient);
                     });
                 }
             }
-
         }
 
         public double osList2Double(LSL_Types.list src, int index)
