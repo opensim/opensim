@@ -1616,6 +1616,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             EstateSettings es = World.RegionInfo.EstateSettings;
 
             bool changed = false;
+            bool changedSeeAvs = false;
 
             // Process the rules, not sure what the impact would be of changing owner or group
             for (int idx = 0; idx < rules.Length;)
@@ -1717,6 +1718,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if(newLand.SeeAVs != newavs)
                         {
                             changed = true;
+                            changedSeeAvs = true;
                             newLand.SeeAVs = newavs;
                         }
                         break;
@@ -1741,7 +1743,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
             }
             if(changed)
+            {
                 World.LandChannel.UpdateLandObject(newLand.LocalID,newLand);
+
+                if(changedSeeAvs)
+                {
+                    UUID parcelID= newLand.GlobalID;
+                    World.ForEachScenePresence(delegate (ScenePresence avatar)
+                    {
+                        if (avatar != null && !avatar.IsDeleted && avatar.currentParcelUUID == parcelID )
+                            avatar.currentParcelUUID = parcelID; // force parcel flags review
+                    });
+                }
+            }
+
         }
 
         public double osList2Double(LSL_Types.list src, int index)
