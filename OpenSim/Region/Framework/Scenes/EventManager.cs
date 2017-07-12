@@ -855,7 +855,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <see cref="Scene.DeleteSceneObject"/>,
         /// <see cref="Scene.SelectPrim"/>,
         /// <see cref="Scene.DeselectPrim"/>,
-        /// <see cref="SceneObjectGroup.UpdatePrimFlags"/>,
+        /// <see cref="SceneObjectGroup.UpdateFlags"/>,
         /// <see cref="SceneObjectGroup.AbsolutePosition"/>
         /// </remarks>
         public event ParcelPrimCountTainted OnParcelPrimCountTainted;
