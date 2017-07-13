@@ -86,9 +86,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
                     writer.WriteStartElement("CoalescedObject");
 
-                    writer.WriteAttributeString("x", size.X.ToString());
-                    writer.WriteAttributeString("y", size.Y.ToString());
-                    writer.WriteAttributeString("z", size.Z.ToString());
+                    writer.WriteAttributeString("x", size.X.ToString(Utils.EnUsCulture));
+                    writer.WriteAttributeString("y", size.Y.ToString(Utils.EnUsCulture));
+                    writer.WriteAttributeString("z", size.Z.ToString(Utils.EnUsCulture));
 
                     // Embed the offsets into the group XML
                     for (int i = 0; i < coaObjects.Count; i++)
@@ -100,9 +100,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 //                            i, obj.Name);
 
                         writer.WriteStartElement("SceneObjectGroup");
-                        writer.WriteAttributeString("offsetx", offsets[i].X.ToString());
-                        writer.WriteAttributeString("offsety", offsets[i].Y.ToString());
-                        writer.WriteAttributeString("offsetz", offsets[i].Z.ToString());
+                        writer.WriteAttributeString("offsetx", offsets[i].X.ToString(Utils.EnUsCulture));
+                        writer.WriteAttributeString("offsety", offsets[i].Y.ToString(Utils.EnUsCulture));
+                        writer.WriteAttributeString("offsetz", offsets[i].Z.ToString(Utils.EnUsCulture));
 
                         SceneObjectSerializer.ToOriginalXmlFormat(obj, writer, doScriptStates);
 
