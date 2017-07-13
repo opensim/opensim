@@ -1240,7 +1240,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     SentEmptyCollisionsEvent = true;
 //                    _parent_scene.RemoveCollisionEventReporting(this);
                 }
-                else if(Body == IntPtr.Zero || d.BodyIsEnabled(Body))
+                else if(Body == IntPtr.Zero || (d.BodyIsEnabled(Body) && m_bodydisablecontrol >= 0 ))
                 {
                     SentEmptyCollisionsEvent = false;
                     CollisionEventsThisFrame.Clear();
@@ -3595,7 +3595,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     _zeroFlag = true;
                     d.BodySetAutoDisableSteps(Body, 1);
                     d.BodyEnable(Body);
-                    m_bodydisablecontrol = -4;
+                    m_bodydisablecontrol = -3;
                 }
 
                 if(m_bodydisablecontrol < 0)

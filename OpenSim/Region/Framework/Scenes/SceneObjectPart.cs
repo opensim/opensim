@@ -329,7 +329,8 @@ namespace OpenSim.Region.Framework.Scenes
         private byte[] m_TextureAnimation;
         private byte m_clickAction;
         private Color m_color = Color.Black;
-        private readonly List<uint> m_lastColliders = new List<uint>();
+        private List<uint> m_lastColliders = new List<uint>();
+        private bool m_lastLandCollide;
         private int m_linkNum;
 
         private int m_scriptAccessPin;
@@ -2789,12 +2790,13 @@ namespace OpenSim.Region.Framework.Scenes
         {
             ColliderArgs colliderArgs = new ColliderArgs();
             List<DetectedObject> colliding = new List<DetectedObject>();
+            Scene parentScene = ParentGroup.Scene;
             foreach (uint localId in colliders)
             {
                 if (localId == 0)
                     continue;
 
-                SceneObjectPart obj = ParentGroup.Scene.GetSceneObjectPart(localId);
+                SceneObjectPart obj = parentScene.GetSceneObjectPart(localId);
                 if (obj != null)
                 {
                     if (!dest.CollisionFilteredOut(obj.UUID, obj.Name))
@@ -2802,7 +2804,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    ScenePresence av = ParentGroup.Scene.GetScenePresence(localId);
+                    ScenePresence av = parentScene.GetScenePresence(localId);
                     if (av != null && (!av.IsChildAgent))
                     {
                         if (!dest.CollisionFilteredOut(av.UUID, av.Name))
@@ -2879,6 +2881,9 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             // this a thread from physics ( heartbeat )
+            bool thisHitLand = false;
+            bool startLand = false;
+            bool endedLand = false;
 
             CollisionEventUpdate a = (CollisionEventUpdate)e;
             Dictionary<uint, ContactPoint> collissionswith = a.m_objCollisionList;
@@ -2888,13 +2893,17 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (collissionswith.Count == 0)
             {
-                if (m_lastColliders.Count == 0)
+                if (m_lastColliders.Count == 0 && !m_lastLandCollide)
                     return; // nothing to do
+
+                endedLand = m_lastLandCollide;
+                m_lastLandCollide = false;
 
                 foreach (uint localID in m_lastColliders)
                 {
                     endedColliders.Add(localID);
                 }
+
                 m_lastColliders.Clear();
             }
             else
@@ -2910,19 +2919,39 @@ namespace OpenSim.Region.Framework.Scenes
 
                     foreach (uint id in collissionswith.Keys)
                     {
-                        thisHitColliders.Add(id);
-                        if (!m_lastColliders.Contains(id))
+                        if(id == 0)
                         {
-                            startedColliders.Add(id);
-
-                            curcontact = collissionswith[id];
-                            if (Math.Abs(curcontact.RelativeSpeed) > 0.2)
+                            thisHitLand = true;
+                            if (!m_lastLandCollide)
                             {
-                                soundinfo = new CollisionForSoundInfo();
-                                soundinfo.colliderID = id;
-                                soundinfo.position = curcontact.Position;
-                                soundinfo.relativeVel = curcontact.RelativeSpeed;
-                                soundinfolist.Add(soundinfo);
+                                startLand = true;
+                                curcontact = collissionswith[id];
+                                if (Math.Abs(curcontact.RelativeSpeed) > 0.2)
+                                {
+                                    soundinfo = new CollisionForSoundInfo();
+                                    soundinfo.colliderID = id;
+                                    soundinfo.position = curcontact.Position;
+                                    soundinfo.relativeVel = curcontact.RelativeSpeed;
+                                    soundinfolist.Add(soundinfo);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            thisHitColliders.Add(id);
+                            if (!m_lastColliders.Contains(id))
+                            {
+                                startedColliders.Add(id);
+
+                                curcontact = collissionswith[id];
+                                if (Math.Abs(curcontact.RelativeSpeed) > 0.2)
+                                {
+                                    soundinfo = new CollisionForSoundInfo();
+                                    soundinfo.colliderID = id;
+                                    soundinfo.position = curcontact.Position;
+                                    soundinfo.relativeVel = curcontact.RelativeSpeed;
+                                    soundinfolist.Add(soundinfo);
+                                }
                             }
                         }
                     }
@@ -2931,9 +2960,18 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     foreach (uint id in collissionswith.Keys)
                     {
-                        thisHitColliders.Add(id);
-                        if (!m_lastColliders.Contains(id))
-                            startedColliders.Add(id);
+                        if(id == 0)
+                        {
+                            thisHitLand = true;
+                            if (!m_lastLandCollide)
+                                startLand = true;
+                        }
+                        else
+                        {
+                            thisHitColliders.Add(id);
+                            if (!m_lastColliders.Contains(id))
+                                startedColliders.Add(id);
+                        }
                     }
                 }
 
@@ -2952,22 +2990,32 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (uint localID in endedColliders)
                     m_lastColliders.Remove(localID);
 
+                if(m_lastLandCollide && !thisHitLand)
+                    endedLand = true;
+
+                m_lastLandCollide = thisHitLand;
+
                 // play sounds.
                 if (soundinfolist.Count > 0)
                     CollisionSounds.PartCollisionSound(this, soundinfolist);
             }
+            
+            EventManager eventmanager = ParentGroup.Scene.EventManager;
 
-            SendCollisionEvent(scriptEvents.collision_start, startedColliders, ParentGroup.Scene.EventManager.TriggerScriptCollidingStart);
+            SendCollisionEvent(scriptEvents.collision_start, startedColliders, eventmanager.TriggerScriptCollidingStart);
             if (!VolumeDetectActive)
-                SendCollisionEvent(scriptEvents.collision  , m_lastColliders , ParentGroup.Scene.EventManager.TriggerScriptColliding);
-            SendCollisionEvent(scriptEvents.collision_end  , endedColliders  , ParentGroup.Scene.EventManager.TriggerScriptCollidingEnd);
+                SendCollisionEvent(scriptEvents.collision  , m_lastColliders , eventmanager.TriggerScriptColliding);
+            SendCollisionEvent(scriptEvents.collision_end  , endedColliders  , eventmanager.TriggerScriptCollidingEnd);
 
-            if (startedColliders.Contains(0))
-                SendLandCollisionEvent(scriptEvents.land_collision_start, ParentGroup.Scene.EventManager.TriggerScriptLandCollidingStart);
-            if (m_lastColliders.Contains(0))
-                SendLandCollisionEvent(scriptEvents.land_collision, ParentGroup.Scene.EventManager.TriggerScriptLandColliding);
-            if (endedColliders.Contains(0))
-                SendLandCollisionEvent(scriptEvents.land_collision_end, ParentGroup.Scene.EventManager.TriggerScriptLandCollidingEnd);
+            if (!VolumeDetectActive)
+            {
+                if (startLand)
+                    SendLandCollisionEvent(scriptEvents.land_collision_start, eventmanager.TriggerScriptLandCollidingStart);
+                if (m_lastLandCollide)
+                    SendLandCollisionEvent(scriptEvents.land_collision, eventmanager.TriggerScriptLandColliding);
+                if (endedLand)
+                    SendLandCollisionEvent(scriptEvents.land_collision_end, eventmanager.TriggerScriptLandCollidingEnd);
+            }
         }
 
         // The Collision sounds code calls this
@@ -2986,7 +3034,7 @@ namespace OpenSim.Region.Framework.Scenes
                 volume = 0;
 
             int now = Util.EnvironmentTickCount();
-            if(Util.EnvironmentTickCountSubtract(now,LastColSoundSentTime) <200)
+            if(Util.EnvironmentTickCountSubtract(now, LastColSoundSentTime) < 200)
                 return;
 
             LastColSoundSentTime = now;

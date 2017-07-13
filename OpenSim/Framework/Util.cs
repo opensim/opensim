@@ -156,12 +156,14 @@ namespace OpenSim.Framework
         public static readonly int MAX_THREADPOOL_LEVEL = 3;
 
         public static double TimeStampClockPeriodMS;
+        public static double TimeStampClockPeriod;
 
         static Util()
         {
             LogThreadPool = 0;
             LogOverloads = true;
-            TimeStampClockPeriodMS = 1000.0D / (double)Stopwatch.Frequency;
+            TimeStampClockPeriod = 1.0D/ (double)Stopwatch.Frequency;
+            TimeStampClockPeriodMS = 1e3 * TimeStampClockPeriod;
             m_log.InfoFormat("[UTIL] TimeStamp clock with period of {0}ms", Math.Round(TimeStampClockPeriodMS,6,MidpointRounding.AwayFromZero));
         }
 
@@ -3016,6 +3018,11 @@ namespace OpenSim.Framework
 
         // returns a timestamp in ms as double
         // using the time resolution avaiable to StopWatch
+        public static double GetTimeStamp()
+        {
+            return (double)Stopwatch.GetTimestamp() * TimeStampClockPeriod;
+        }
+
         public static double GetTimeStampMS()
         {
             return (double)Stopwatch.GetTimestamp() * TimeStampClockPeriodMS;
