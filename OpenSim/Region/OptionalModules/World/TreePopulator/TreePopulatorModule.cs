@@ -282,54 +282,57 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
             string copsename = ((string)args[0]).Trim();
             Boolean freezeState = (Boolean) args[1];
 
-            foreach (Copse cp in m_copses)
+            lock(mylock)
             {
-                if (cp.m_name == copsename)
-                    continue;
-
-                if(!cp.m_frozen && freezeState || cp.m_frozen && !freezeState)
+                foreach (Copse cp in m_copses)
                 {
-                    cp.m_frozen = freezeState;
-                    List<UUID> losttrees = new List<UUID>();
-                    foreach (UUID tree in cp.m_trees)
+                    if (cp.m_name != copsename)
+                        continue;
+
+                    if(!cp.m_frozen && freezeState || cp.m_frozen && !freezeState)
                     {
-                        SceneObjectGroup sog = m_scene.GetSceneObjectGroup(tree);
-                        if(sog != null && !sog.IsDeleted)
+                        cp.m_frozen = freezeState;
+                        List<UUID> losttrees = new List<UUID>();
+                        foreach (UUID tree in cp.m_trees)
                         {
-                            SceneObjectPart sop = sog.RootPart;
-                            string name = sop.Name;
-                            if(freezeState)
+                            SceneObjectGroup sog = m_scene.GetSceneObjectGroup(tree);
+                            if(sog != null && !sog.IsDeleted)
                             {
-                                if(name.StartsWith("FTPM"))
-                                    continue;
-                                if(!name.StartsWith("ATPM"))
-                                    continue;
-                                sop.Name = sop.Name.Replace("ATPM", "FTPM");
+                                SceneObjectPart sop = sog.RootPart;
+                                string name = sop.Name;
+                                if(freezeState)
+                                {
+                                    if(name.StartsWith("FTPM"))
+                                        continue;
+                                    if(!name.StartsWith("ATPM"))
+                                        continue;
+                                    sop.Name = sop.Name.Replace("ATPM", "FTPM");
+                                }
+                                else
+                                {
+                                    if(name.StartsWith("ATPM"))
+                                        continue;
+                                    if(!name.StartsWith("FTPM"))
+                                        continue;
+                                    sop.Name = sop.Name.Replace("FTPM", "ATPM");
+                                }
+                                sop.ParentGroup.HasGroupChanged = true;
+                                sog.ScheduleGroupForFullUpdate();
                             }
                             else
-                            {
-                                if(name.StartsWith("ATPM"))
-                                    continue;
-                                if(!name.StartsWith("FTPM"))
-                                    continue;
-                                sop.Name = sop.Name.Replace("FTPM", "ATPM");
-                            }
-                            sop.ParentGroup.HasGroupChanged = true;
-                            sog.ScheduleGroupForFullUpdate();
+                               losttrees.Add(tree);
                         }
-                        else
-                           losttrees.Add(tree);
-                    }
-                    foreach (UUID tree in losttrees)
-                        cp.m_trees.Remove(tree);
+                        foreach (UUID tree in losttrees)
+                            cp.m_trees.Remove(tree);
 
-                    m_log.InfoFormat("[TREES]: Activity for copse {0} is frozen {1}", copsename, freezeState);
-                    return;
-                }
-                else
-                {
-                    m_log.InfoFormat("[TREES]: Copse {0} is already in the requested freeze state", copsename);
-                    return;
+                        m_log.InfoFormat("[TREES]: Activity for copse {0} is frozen {1}", copsename, freezeState);
+                        return;
+                    }
+                    else
+                    {
+                        m_log.InfoFormat("[TREES]: Copse {0} is already in the requested freeze state", copsename);
+                        return;
+                    }
                 }
             }
             m_log.InfoFormat("[TREES]: Copse {0} was not found - command failed", copsename);
@@ -382,6 +385,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
                         else
                         {
                             m_log.InfoFormat("[TREES]: Copse {0} has already been planted", copsename);
+                            return;
                         }
                     }
                 }
@@ -465,10 +469,11 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
 
         private void HandleTreeStatistics(Object[] args)
         {
-            m_log.InfoFormat("[TREES]: Activity State: {0};  Update Rate: {1}", m_active_trees, m_update_ms);
+            m_log.InfoFormat("[TREES]: region {0}:", m_scene.Name);
+            m_log.InfoFormat("[TREES]:    Activity State: {0};  Update Rate: {1}", m_active_trees, m_update_ms);
             foreach (Copse cp in m_copses)
             {
-                m_log.InfoFormat("[TREES]: Copse {0}; {1} trees; frozen {2}", cp.m_name, cp.m_trees.Count, cp.m_frozen);
+                m_log.InfoFormat("[TREES]:    Copse {0}; {1} trees; frozen {2}", cp.m_name, cp.m_trees.Count, cp.m_frozen);
             }
         }
 
@@ -909,9 +914,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
                         killTrees();
                     }
                 }
-                catch(Exception ex)
-                {
-                }
+                catch { }
                 if(CalculateTrees != null)
                     CalculateTrees.Start();
                 Monitor.Exit(mylock);
