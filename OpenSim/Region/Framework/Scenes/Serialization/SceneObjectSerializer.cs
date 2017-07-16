@@ -110,9 +110,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     }
                 }
                 while (reader.ReadToNextSibling("Part"));
-            }
-
             reader.ReadEndElement();
+            }
 
             if (reader.Name == "KeyframeMotion" && reader.NodeType == XmlNodeType.Element)
             {
