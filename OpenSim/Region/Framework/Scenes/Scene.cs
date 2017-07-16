@@ -1651,10 +1651,11 @@ namespace OpenSim.Region.Framework.Scenes
                     physicsMS2 = (float)(tmpMS2 - tmpMS);
                     tmpMS = tmpMS2;
 
+/*
                     // Apply any pending avatar force input to the avatar's velocity
                     if (Frame % m_update_entitymovement == 0)
                         m_sceneGraph.UpdateScenePresenceMovement();
-
+*/
                     if (Frame % (m_update_coarse_locations) == 0 && !m_sendingCoarseLocations)
                     {
                         m_sendingCoarseLocations = true;

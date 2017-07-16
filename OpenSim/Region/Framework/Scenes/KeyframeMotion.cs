@@ -755,7 +755,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                bool lastSteps = remainingSteps < 4;
+//                bool lastSteps = remainingSteps < 4;
+        
                 Vector3 currentPosition = m_group.AbsolutePosition;
                 Vector3 motionThisFrame = (Vector3)m_currentFrame.Position - currentPosition;
                 motionThisFrame /= (float)remainingSteps;
@@ -776,13 +777,13 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_group.AbsolutePosition = m_nextPosition;
-                if(lastSteps)
-                    m_group.RootPart.Velocity = Vector3.Zero;
-                else
+//                if(lastSteps)
+//                    m_group.RootPart.Velocity = Vector3.Zero;
+//                else
                     m_group.RootPart.Velocity = m_currentVel;
 
                 if(!update && (
-                    lastSteps ||
+//                    lastSteps ||
                     m_skippedUpdates * tickDuration > 0.5 ||
                     Math.Abs(m_nextPosition.X - currentPosition.X) > 5f ||
                     Math.Abs(m_nextPosition.Y - currentPosition.Y) > 5f ||

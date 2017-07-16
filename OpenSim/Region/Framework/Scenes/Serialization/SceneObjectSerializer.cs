@@ -112,9 +112,22 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 while (reader.ReadToNextSibling("Part"));
             }
 
+            reader.ReadEndElement();
+
+            if (reader.Name == "KeyframeMotion" && reader.NodeType == XmlNodeType.Element)
+            {
+
+                string innerkeytxt = reader.ReadElementContentAsString();
+                sceneObject.RootPart.KeyframeMotion = 
+                    KeyframeMotion.FromData(sceneObject, Convert.FromBase64String(innerkeytxt));
+            }
+            else
+                sceneObject.RootPart.KeyframeMotion = null;
+
             // Script state may, or may not, exist. Not having any, is NOT
             // ever a problem.
             sceneObject.LoadScriptState(reader);
+
             sceneObject.InvalidateDeepEffectivePerms();
             return sceneObject;
         }
@@ -211,8 +224,18 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             writer.WriteEndElement(); // OtherParts
 
+            if (sceneObject.RootPart.KeyframeMotion != null)
+            {
+                Byte[] data = sceneObject.RootPart.KeyframeMotion.Serialize();
+
+                writer.WriteStartElement(String.Empty, "KeyframeMotion", String.Empty);
+                writer.WriteBase64(data, 0, data.Length);
+                writer.WriteEndElement();
+            }
+
             if (doScriptStates)
                 sceneObject.SaveScriptedState(writer);
+
 
             if (!noRootElement)
                 writer.WriteEndElement(); // SceneObjectGroup

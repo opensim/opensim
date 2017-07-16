@@ -657,6 +657,9 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            if(!m_scene.IsRunning)
+                return sog;
+
             if (root.KeyframeMotion != null)
                 root.KeyframeMotion.StartCrossingCheck();
 
