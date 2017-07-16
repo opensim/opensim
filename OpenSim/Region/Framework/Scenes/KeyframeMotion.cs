@@ -295,6 +295,7 @@ namespace OpenSim.Region.Framework.Scenes
             lock (m_frames)
             {
                 KeyframeTimer.Add(this);
+                m_lasttickMS = Util.GetTimeStampMS();
                 m_timerStopped = false;
             }
         }
@@ -651,10 +652,11 @@ namespace OpenSim.Region.Framework.Scenes
             m_frames.Clear();
         }
 
-        Vector3 m_lastPosUpdate;
-        Quaternion m_lastRotationUpdate;
-        Vector3 m_currentVel;
-        int m_skippedUpdates;
+        [NonSerialized()] Vector3 m_lastPosUpdate;
+        [NonSerialized()] Quaternion m_lastRotationUpdate;
+        [NonSerialized()] Vector3 m_currentVel;
+        [NonSerialized()] int m_skippedUpdates;
+        [NonSerialized()] double m_lasttickMS;
 
         private void DoOnTimer(double tickDuration)
         {
@@ -699,6 +701,8 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
+            double nowMS = Util.GetTimeStampMS();
+
             if (m_frames.Count == 0)
             {
                 lock (m_frames)
@@ -719,10 +723,16 @@ namespace OpenSim.Region.Framework.Scenes
                 m_currentVel /= (m_currentFrame.TimeMS * 0.001f);
 
                 m_currentFrame.TimeMS += (int)tickDuration;
+                m_lasttickMS = nowMS - 50f;
                 update = true;
             }
 
-            m_currentFrame.TimeMS -= (int)tickDuration;
+            int elapsed = (int)(nowMS - m_lasttickMS);
+            if( elapsed > 3 * tickDuration)
+                elapsed = (int)tickDuration;
+
+            m_currentFrame.TimeMS -= elapsed;
+            m_lasttickMS = nowMS;
 
             // Do the frame processing
             double remainingSteps = (double)m_currentFrame.TimeMS / tickDuration;
@@ -770,10 +780,12 @@ namespace OpenSim.Region.Framework.Scenes
                     Quaternion step = Quaternion.Slerp(m_currentFrame.StartRotation, (Quaternion)m_currentFrame.Rotation, completed);
                     step.Normalize();
                     m_group.RootPart.RotationOffset = step;
+/*
                     if (Math.Abs(step.X - m_lastRotationUpdate.X) > 0.001f
                         || Math.Abs(step.Y - m_lastRotationUpdate.Y) > 0.001f
                         || Math.Abs(step.Z - m_lastRotationUpdate.Z) > 0.001f)
                         update = true;
+*/
                 }
 
                 m_group.AbsolutePosition = m_nextPosition;
@@ -781,7 +793,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                    m_group.RootPart.Velocity = Vector3.Zero;
 //                else
                     m_group.RootPart.Velocity = m_currentVel;
-
+/*
                 if(!update && (
 //                    lastSteps ||
                     m_skippedUpdates * tickDuration > 0.5 ||
@@ -794,16 +806,16 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                     m_skippedUpdates++;
-
+*/
             }
-            if(update)
-            {
-                m_lastPosUpdate = m_nextPosition;
-                m_lastRotationUpdate = m_group.GroupRotation; 
-                m_skippedUpdates = 0;
+//            if(update)
+//            {
+//                m_lastPosUpdate = m_nextPosition;
+//                m_lastRotationUpdate = m_group.GroupRotation; 
+//                m_skippedUpdates = 0;
 //                m_group.SendGroupRootTerseUpdate();
                 m_group.RootPart.ScheduleTerseUpdate();
-            }
+//            }
         }
 
         public Byte[] Serialize()
