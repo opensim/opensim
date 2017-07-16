@@ -1043,7 +1043,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     d.BodySetLinearVel(Body, 0, 0, 0); // stop it
                     d.BodySetAngularVel(Body, 0, 0, 0);
                 }
-                d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                if(prim_geom != IntPtr.Zero)
+                    d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                 disableBodySoft(); // stop collisions
                 UnSubscribeEvents();
             }
