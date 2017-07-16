@@ -326,8 +326,8 @@ namespace OpenSim.Region.Framework.Scenes
                         newMotion.m_selected = true;
                 }
 
-                newMotion.m_timerStopped = false;
-                newMotion.m_running = true;
+//                newMotion.m_timerStopped = false;
+//                newMotion.m_running = true;
                 newMotion.m_isCrossing = false;
                 newMotion.m_waitingCrossing = false;
             }
