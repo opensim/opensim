@@ -810,7 +810,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // If this is a linkset, we don't want the physics engine mucking up our group position here.
                 PhysicsActor actor = PhysActor;
-                if (ParentID == 0)
+                if (_parentID == 0)
                 {
                     if (actor != null)
                         m_groupPosition = actor.Position;
@@ -839,7 +839,7 @@ namespace OpenSim.Region.Framework.Scenes
                     try
                     {
                         // Root prim actually goes at Position
-                        if (ParentID == 0)
+                        if (_parentID == 0)
                         {
                             actor.Position = value;
                         }
@@ -881,7 +881,7 @@ namespace OpenSim.Region.Framework.Scenes
                         ParentGroup.InvalidBoundsRadius();
 
                     PhysicsActor actor = PhysActor;
-                    if (ParentID != 0 && actor != null)
+                    if (_parentID != 0 && actor != null)
                     {
                         actor.Position = GetWorldPosition();
                         actor.Orientation = GetWorldRotation();
@@ -941,7 +941,7 @@ namespace OpenSim.Region.Framework.Scenes
                 PhysicsActor actor = PhysActor;
                 // If this is a root of a linkset, the real rotation is what the physics engine thinks.
                 // If not a root prim, the offset rotation is computed by SOG and is relative to the root.
-                if (ParentID == 0 && (Shape.PCode != 9 || Shape.State == 0) && actor != null)
+                if (_parentID == 0 && (Shape.PCode != 9 || Shape.State == 0) && actor != null)
                     m_rotationOffset = actor.Orientation;
 
                 return m_rotationOffset;
@@ -958,7 +958,7 @@ namespace OpenSim.Region.Framework.Scenes
                     try
                     {
                         // Root prim gets value directly
-                        if (ParentID == 0)
+                        if (_parentID == 0)
                         {
                             actor.Orientation = value;
                             //m_log.Info("[PART]: RO1:" + actor.Orientation.ToString());
@@ -1259,6 +1259,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
+                if (_parentID == 0)
+                    return GroupPosition;
+
                 return GroupPosition + (m_offsetPosition * ParentGroup.RootPart.RotationOffset);
             }
         }
@@ -2424,7 +2427,7 @@ namespace OpenSim.Region.Framework.Scenes
                             PhysActor.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
                             PhysActor.OnOutOfBounds += PhysicsOutOfBounds;
 
-                            if (ParentID != 0 && ParentID != LocalId)
+                            if (_parentID != 0 && _parentID != LocalId)
                             {
                                 PhysicsActor parentPa = ParentGroup.RootPart.PhysActor;
 
@@ -3075,7 +3078,7 @@ namespace OpenSim.Region.Framework.Scenes
                 //ParentGroup.RootPart.m_groupPosition = newpos;
             }
 /*
-            if (pa != null && ParentID != 0 && ParentGroup != null)
+            if (pa != null && _parentID != 0 && ParentGroup != null)
             {
                 // Special case where a child object is requesting property updates.
                 // This happens when linksets are modified to use flexible links rather than
@@ -3359,7 +3362,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             // Update the "last" values
-            m_lastPosition = OffsetPosition;
+            m_lastPosition = AbsolutePosition;
             m_lastRotation = RotationOffset;
             m_lastVelocity = Velocity;
             m_lastAcceleration = Acceleration;
@@ -3378,7 +3381,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             // Update the "last" values
-            m_lastPosition = OffsetPosition;
+            m_lastPosition = AbsolutePosition;
             m_lastRotation = RotationOffset;
             m_lastVelocity = Velocity;
             m_lastAcceleration = Acceleration;
@@ -3488,7 +3491,7 @@ namespace OpenSim.Region.Framework.Scenes
                             vz <  VELOCITY_TOLERANCE
                             )
                         {
-                            if(!OffsetPosition.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
+                            if(!AbsolutePosition.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
                                 break;
                             
                             if (vx <  1e-4 &&
@@ -3534,7 +3537,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
 
                         // Update the "last" values
-                        m_lastPosition = OffsetPosition;
+                        m_lastPosition = AbsolutePosition;
                         m_lastRotation = RotationOffset;
                         m_lastVelocity = curvel;
                         m_lastAcceleration = curacc;
@@ -3567,7 +3570,7 @@ namespace OpenSim.Region.Framework.Scenes
             ClearUpdateSchedule();
 
             // Update the "last" values
-            m_lastPosition = OffsetPosition;
+            m_lastPosition = AbsolutePosition;
             m_lastRotation = RotationOffset;
             m_lastVelocity = Velocity;
             m_lastAcceleration = Acceleration;
@@ -3588,7 +3591,7 @@ namespace OpenSim.Region.Framework.Scenes
             ClearUpdateSchedule();
 
             // Update the "last" values
-            m_lastPosition = OffsetPosition;
+            m_lastPosition = AbsolutePosition;
             m_lastRotation = RotationOffset;
             m_lastVelocity = Velocity;
             m_lastAcceleration = Acceleration;
@@ -4910,7 +4913,7 @@ namespace OpenSim.Region.Framework.Scenes
                     pa.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
                     pa.OnOutOfBounds += PhysicsOutOfBounds;
 
-                    if (ParentID != 0 && ParentID != LocalId)
+                    if (_parentID != 0 && _parentID != LocalId)
                     {
                         PhysicsActor parentPa = ParentGroup.RootPart.PhysActor;
 
