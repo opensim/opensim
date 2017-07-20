@@ -412,7 +412,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             Dictionary<UUID, Vector3> originalPositions = new Dictionary<UUID, Vector3>();
             Dictionary<UUID, Quaternion> originalRotations = new Dictionary<UUID, Quaternion>();
             // this possible is not needed if keyframes are saved
-            Dictionary<UUID, KeyframeMotion> originalKeyframes = new Dictionary<UUID, KeyframeMotion>();
+//            Dictionary<UUID, KeyframeMotion> originalKeyframes = new Dictionary<UUID, KeyframeMotion>();
 
             foreach (SceneObjectGroup objectGroup in objlist)
             {
@@ -423,8 +423,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 objectGroup.RootPart.SetForce(Vector3.Zero);
                 objectGroup.RootPart.SetAngularImpulse(Vector3.Zero, false);
 
-                originalKeyframes[objectGroup.UUID] = objectGroup.RootPart.KeyframeMotion;
-                objectGroup.RootPart.KeyframeMotion = null;
+//                originalKeyframes[objectGroup.UUID] = objectGroup.RootPart.KeyframeMotion;
+//                objectGroup.RootPart.KeyframeMotion = null;
 
                 Vector3 inventoryStoredPosition = objectGroup.AbsolutePosition;
                 originalPositions[objectGroup.UUID] = inventoryStoredPosition;
@@ -476,7 +476,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             {
                 objectGroup.AbsolutePosition = originalPositions[objectGroup.UUID];
                 objectGroup.RootPart.RotationOffset = originalRotations[objectGroup.UUID];
-                objectGroup.RootPart.KeyframeMotion = originalKeyframes[objectGroup.UUID];
+//                objectGroup.RootPart.KeyframeMotion = originalKeyframes[objectGroup.UUID];
                 if (objectGroup.RootPart.KeyframeMotion != null)
                     objectGroup.RootPart.KeyframeMotion.Resume();
             }
@@ -989,11 +989,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 // one full update during the attachment
                 // process causes some clients to fail to display the
                 // attachment properly.
-                m_Scene.AddNewSceneObject(group, true, false);
 
                 if (!attachment)
                 {
                     group.AbsolutePosition = pos + veclist[i];
+                    m_Scene.AddNewSceneObject(group, true, false);
 
                     // Fire on_rez
                     group.CreateScriptInstances(0, true, m_Scene.DefaultScriptEngine, 1);
@@ -1001,6 +1001,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                     group.ScheduleGroupForFullUpdate();
                 }
+                else
+                    m_Scene.AddNewSceneObject(group, true, false);
+
 
 //                m_log.DebugFormat(
 //                    "[INVENTORY ACCESS MODULE]:  Rezzed {0} {1} {2} ownermask={3:X} nextownermask={4:X} groupmask={5:X} everyonemask={6:X} for {7}",

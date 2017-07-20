@@ -65,7 +65,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             {
                 using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment }))
                 {
-                    try {
+                    try
+                    {
                         return FromOriginalXmlFormat(reader);
                     }
                     catch (Exception e)
@@ -109,11 +110,23 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     }
                 }
                 while (reader.ReadToNextSibling("Part"));
+            reader.ReadEndElement();
             }
+
+            if (reader.Name == "KeyframeMotion" && reader.NodeType == XmlNodeType.Element)
+            {
+
+                string innerkeytxt = reader.ReadElementContentAsString();
+                sceneObject.RootPart.KeyframeMotion = 
+                    KeyframeMotion.FromData(sceneObject, Convert.FromBase64String(innerkeytxt));
+            }
+            else
+                sceneObject.RootPart.KeyframeMotion = null;
 
             // Script state may, or may not, exist. Not having any, is NOT
             // ever a problem.
             sceneObject.LoadScriptState(reader);
+
             sceneObject.InvalidateDeepEffectivePerms();
             return sceneObject;
         }
@@ -210,8 +223,18 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             writer.WriteEndElement(); // OtherParts
 
+            if (sceneObject.RootPart.KeyframeMotion != null)
+            {
+                Byte[] data = sceneObject.RootPart.KeyframeMotion.Serialize();
+
+                writer.WriteStartElement(String.Empty, "KeyframeMotion", String.Empty);
+                writer.WriteBase64(data, 0, data.Length);
+                writer.WriteEndElement();
+            }
+
             if (doScriptStates)
                 sceneObject.SaveScriptedState(writer);
+
 
             if (!noRootElement)
                 writer.WriteEndElement(); // SceneObjectGroup
@@ -1459,10 +1482,10 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("Description", sop.Description);
 
             writer.WriteStartElement("Color");
-            writer.WriteElementString("R", sop.Color.R.ToString(Utils.EnUsCulture));
-            writer.WriteElementString("G", sop.Color.G.ToString(Utils.EnUsCulture));
-            writer.WriteElementString("B", sop.Color.B.ToString(Utils.EnUsCulture));
-            writer.WriteElementString("A", sop.Color.A.ToString(Utils.EnUsCulture));
+            writer.WriteElementString("R", sop.Color.R.ToString(Culture.FormatProvider));
+            writer.WriteElementString("G", sop.Color.G.ToString(Culture.FormatProvider));
+            writer.WriteElementString("B", sop.Color.B.ToString(Culture.FormatProvider));
+            writer.WriteElementString("A", sop.Color.A.ToString(Culture.FormatProvider));
             writer.WriteEndElement();
 
             writer.WriteElementString("Text", sop.Text);
@@ -1505,7 +1528,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("NextOwnerMask", sop.NextOwnerMask.ToString());
             WriteFlags(writer, "Flags", sop.Flags.ToString(), options);
             WriteUUID(writer, "CollisionSound", sop.CollisionSound, options);
-            writer.WriteElementString("CollisionSoundVolume", sop.CollisionSoundVolume.ToString());
+            writer.WriteElementString("CollisionSoundVolume", sop.CollisionSoundVolume.ToString(Culture.FormatProvider));
             if (sop.MediaUrl != null)
                 writer.WriteElementString("MediaUrl", sop.MediaUrl.ToString());
             WriteVector(writer, "AttachedPos", sop.AttachedPos);
@@ -1525,7 +1548,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("PayPrice3", sop.PayPrice[3].ToString());
             writer.WriteElementString("PayPrice4", sop.PayPrice[4].ToString());
 
-            writer.WriteElementString("Buoyancy", sop.Buoyancy.ToString());
+            writer.WriteElementString("Buoyancy", sop.Buoyancy.ToString(Culture.FormatProvider));
 
             WriteVector(writer, "Force", sop.Force);
             WriteVector(writer, "Torque", sop.Torque);
@@ -1542,22 +1565,22 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 writer.WriteElementString("RotationAxisLocks", sop.RotationAxisLocks.ToString().ToLower());
             writer.WriteElementString("PhysicsShapeType", sop.PhysicsShapeType.ToString().ToLower());
             if (sop.Density != 1000.0f)
-                writer.WriteElementString("Density", sop.Density.ToString().ToLower());
+                writer.WriteElementString("Density", sop.Density.ToString(Culture.FormatProvider));
             if (sop.Friction != 0.6f)
-                writer.WriteElementString("Friction", sop.Friction.ToString().ToLower());
+                writer.WriteElementString("Friction", sop.Friction.ToString(Culture.FormatProvider));
             if (sop.Restitution != 0.5f)
-                writer.WriteElementString("Bounce", sop.Restitution.ToString().ToLower());
+                writer.WriteElementString("Bounce", sop.Restitution.ToString(Culture.FormatProvider));
             if (sop.GravityModifier != 1.0f)
-                writer.WriteElementString("GravityModifier", sop.GravityModifier.ToString().ToLower());
+                writer.WriteElementString("GravityModifier", sop.GravityModifier.ToString(Culture.FormatProvider));
             WriteVector(writer, "CameraEyeOffset", sop.GetCameraEyeOffset());
             WriteVector(writer, "CameraAtOffset", sop.GetCameraAtOffset());
 
  //           if (sop.Sound != UUID.Zero)  force it till sop crossing does clear it on child prim
             {
                 WriteUUID(writer, "SoundID", sop.Sound, options);
-                writer.WriteElementString("SoundGain", sop.SoundGain.ToString().ToLower());
+                writer.WriteElementString("SoundGain", sop.SoundGain.ToString(Culture.FormatProvider));
                 writer.WriteElementString("SoundFlags", sop.SoundFlags.ToString().ToLower());
-                writer.WriteElementString("SoundRadius", sop.SoundRadius.ToString().ToLower());
+                writer.WriteElementString("SoundRadius", sop.SoundRadius.ToString(Culture.FormatProvider));
             }
             writer.WriteElementString("SoundQueueing", sop.SoundQueueing.ToString().ToLower());
 
@@ -1577,19 +1600,19 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         static void WriteVector(XmlTextWriter writer, string name, Vector3 vec)
         {
             writer.WriteStartElement(name);
-            writer.WriteElementString("X", vec.X.ToString(Utils.EnUsCulture));
-            writer.WriteElementString("Y", vec.Y.ToString(Utils.EnUsCulture));
-            writer.WriteElementString("Z", vec.Z.ToString(Utils.EnUsCulture));
+            writer.WriteElementString("X", vec.X.ToString(Culture.FormatProvider));
+            writer.WriteElementString("Y", vec.Y.ToString(Culture.FormatProvider));
+            writer.WriteElementString("Z", vec.Z.ToString(Culture.FormatProvider));
             writer.WriteEndElement();
         }
 
         static void WriteQuaternion(XmlTextWriter writer, string name, Quaternion quat)
         {
             writer.WriteStartElement(name);
-            writer.WriteElementString("X", quat.X.ToString(Utils.EnUsCulture));
-            writer.WriteElementString("Y", quat.Y.ToString(Utils.EnUsCulture));
-            writer.WriteElementString("Z", quat.Z.ToString(Utils.EnUsCulture));
-            writer.WriteElementString("W", quat.W.ToString(Utils.EnUsCulture));
+            writer.WriteElementString("X", quat.X.ToString(Culture.FormatProvider));
+            writer.WriteElementString("Y", quat.Y.ToString(Culture.FormatProvider));
+            writer.WriteElementString("Z", quat.Z.ToString(Culture.FormatProvider));
+            writer.WriteElementString("W", quat.W.ToString(Culture.FormatProvider));
             writer.WriteEndElement();
         }
 
@@ -1731,22 +1754,22 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 // Don't serialize SculptData. It's just a copy of the asset, which can be loaded separately using 'SculptTexture'.
 
                 writer.WriteElementString("FlexiSoftness", shp.FlexiSoftness.ToString());
-                writer.WriteElementString("FlexiTension", shp.FlexiTension.ToString());
-                writer.WriteElementString("FlexiDrag", shp.FlexiDrag.ToString());
-                writer.WriteElementString("FlexiGravity", shp.FlexiGravity.ToString());
-                writer.WriteElementString("FlexiWind", shp.FlexiWind.ToString());
-                writer.WriteElementString("FlexiForceX", shp.FlexiForceX.ToString());
-                writer.WriteElementString("FlexiForceY", shp.FlexiForceY.ToString());
-                writer.WriteElementString("FlexiForceZ", shp.FlexiForceZ.ToString());
+                writer.WriteElementString("FlexiTension", shp.FlexiTension.ToString(Culture.FormatProvider));
+                writer.WriteElementString("FlexiDrag", shp.FlexiDrag.ToString(Culture.FormatProvider));
+                writer.WriteElementString("FlexiGravity", shp.FlexiGravity.ToString(Culture.FormatProvider));
+                writer.WriteElementString("FlexiWind", shp.FlexiWind.ToString(Culture.FormatProvider));
+                writer.WriteElementString("FlexiForceX", shp.FlexiForceX.ToString(Culture.FormatProvider));
+                writer.WriteElementString("FlexiForceY", shp.FlexiForceY.ToString(Culture.FormatProvider));
+                writer.WriteElementString("FlexiForceZ", shp.FlexiForceZ.ToString(Culture.FormatProvider));
 
-                writer.WriteElementString("LightColorR", shp.LightColorR.ToString());
-                writer.WriteElementString("LightColorG", shp.LightColorG.ToString());
-                writer.WriteElementString("LightColorB", shp.LightColorB.ToString());
-                writer.WriteElementString("LightColorA", shp.LightColorA.ToString());
-                writer.WriteElementString("LightRadius", shp.LightRadius.ToString());
-                writer.WriteElementString("LightCutoff", shp.LightCutoff.ToString());
-                writer.WriteElementString("LightFalloff", shp.LightFalloff.ToString());
-                writer.WriteElementString("LightIntensity", shp.LightIntensity.ToString());
+                writer.WriteElementString("LightColorR", shp.LightColorR.ToString(Culture.FormatProvider));
+                writer.WriteElementString("LightColorG", shp.LightColorG.ToString(Culture.FormatProvider));
+                writer.WriteElementString("LightColorB", shp.LightColorB.ToString(Culture.FormatProvider));
+                writer.WriteElementString("LightColorA", shp.LightColorA.ToString(Culture.FormatProvider));
+                writer.WriteElementString("LightRadius", shp.LightRadius.ToString(Culture.FormatProvider));
+                writer.WriteElementString("LightCutoff", shp.LightCutoff.ToString(Culture.FormatProvider));
+                writer.WriteElementString("LightFalloff", shp.LightFalloff.ToString(Culture.FormatProvider));
+                writer.WriteElementString("LightIntensity", shp.LightIntensity.ToString(Culture.FormatProvider));
 
                 writer.WriteElementString("FlexiEntry", shp.FlexiEntry.ToString().ToLower());
                 writer.WriteElementString("LightEntry", shp.LightEntry.ToString().ToLower());

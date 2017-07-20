@@ -203,8 +203,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private float metersInSpace = 25.6f;
         private float m_timeDilation = 1.0f;
 
-        private DateTime m_lastframe;
-        private DateTime m_lastMeshExpire;
+        private double m_lastframe;
+        private double m_lastMeshExpire;
 
         public float gravityx = 0f;
         public float gravityy = 0f;
@@ -481,7 +481,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     contactsPerCollision = physicsconfig.GetInt("contacts_per_collision", contactsPerCollision);
 
                     geomDefaultDensity = physicsconfig.GetFloat("geometry_default_density", geomDefaultDensity);
-                    bodyFramesAutoDisable = physicsconfig.GetInt("body_frames_auto_disable", bodyFramesAutoDisable);
+//                    bodyFramesAutoDisable = physicsconfig.GetInt("body_frames_auto_disable", bodyFramesAutoDisable);
 
                     physics_logging = physicsconfig.GetBoolean("physics_logging", false);
                     physics_logging_interval = physicsconfig.GetInt("physics_logging_interval", 0);
@@ -629,8 +629,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 staticPrimspaceOffRegion[i] = newspace;
             }
 
-            m_lastframe = DateTime.UtcNow;
+            m_lastframe = Util.GetTimeStamp();
             m_lastMeshExpire = m_lastframe;
+            step_time = -1;
         }
 
         internal void waitForSpaceUnlock(IntPtr space)
@@ -952,8 +953,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             SharedTmpcontact.surface.bounce = bounce;
 
             d.ContactGeom altContact = new d.ContactGeom();
-            bool useAltcontact = false;
-            bool noskip = true;
+            bool useAltcontact;
+            bool noskip;
 
             if(dop1ava || dop2ava)
                 smoothMesh = false;
@@ -1000,7 +1001,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         Joint = CreateContacJoint(ref altContact,smoothMesh);
                     else
                         Joint = CreateContacJoint(ref curContact,smoothMesh);
-
                     if (Joint == IntPtr.Zero)
                         break;
 
@@ -1626,6 +1626,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
                 m_log.InfoFormat("[ubOde] {0} prim actors loaded",_prims.Count);
             }
+            m_lastframe = Util.GetTimeStamp() + 0.5;
+            step_time = -0.5f;
         }
 
         /// <summary>
@@ -1639,13 +1641,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// <returns></returns>
         public override float Simulate(float reqTimeStep)
         {
-            DateTime now = DateTime.UtcNow;
-            TimeSpan timedif = now - m_lastframe;
-            float timeStep = (float)timedif.TotalSeconds;
+            double now = Util.GetTimeStamp();
+            double timeStep = now - m_lastframe;
             m_lastframe = now;
 
             // acumulate time so we can reduce error
-            step_time += timeStep;
+            step_time += (float)timeStep;
 
             if (step_time < HalfOdeStep)
                 return 0;
@@ -1854,14 +1855,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     }
                 }
 
-                timedif = now - m_lastMeshExpire;
-
-                if (timedif.Seconds > 10)
-                {
-                    mesher.ExpireReleaseMeshs();
-                    m_lastMeshExpire = now;
-                }
-
 // information block for in debug breakpoint only
 /*
                 int ntopactivegeoms = d.SpaceGetNumGeoms(ActiveSpace);
@@ -1941,7 +1934,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     // if we lag too much skip frames
                     m_timeDilation = 0.0f;
                     step_time = 0;
-                    m_lastframe = DateTime.UtcNow; // skip also the time lost
+                    m_lastframe = Util.GetTimeStamp(); // skip also the time lost
                 }
                 else
                 {
@@ -1949,6 +1942,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (m_timeDilation > 1)
                         m_timeDilation = 1;
                 }
+
+                if (m_timeDilation == 1 && now - m_lastMeshExpire > 30)
+                {
+                    mesher.ExpireReleaseMeshs();
+                    m_lastMeshExpire = now;
+                }
+
+
             }
 
             return fps;

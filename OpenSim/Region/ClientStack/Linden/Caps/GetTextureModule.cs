@@ -221,7 +221,7 @@ namespace OpenSim.Region.ClientStack.Linden
             private HashSet<UUID> dropedResponses = new HashSet<UUID>();
 
             private Scene m_scene;
-            private CapsDataThrottler m_throttler = new CapsDataThrottler(100000, 1400000,10000);
+            private CapsDataThrottler m_throttler = new CapsDataThrottler(100000);
             public PollServiceTextureEventArgs(UUID pId, Scene scene) :
                     base(null, "", null, null, null, null, pId, int.MaxValue)              
             {
@@ -232,7 +232,6 @@ namespace OpenSim.Region.ClientStack.Linden
                     lock (responses)
                     {
                         bool ret = m_throttler.hasEvents(x, responses);
-                        m_throttler.ProcessTime();
                         return ret;
 
                     }
@@ -258,6 +257,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         finally
                         {
                             responses.Remove(x);
+                            m_throttler.PassTime();
                         }
                     }
                 };
@@ -282,6 +282,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         }
                     }
                     m_queue.Enqueue(reqinfo);
+                    m_throttler.PassTime();
                 };
 
                 // this should never happen except possible on shutdown
@@ -381,14 +382,15 @@ namespace OpenSim.Region.ClientStack.Linden
                             response = response
                         };
                 } 
-                m_throttler.ProcessTime();
+                m_throttler.PassTime();
             }
 
             internal void UpdateThrottle(int pimagethrottle)
             {
-                m_throttler.ThrottleBytes = 2 * pimagethrottle;
-                if(m_throttler.ThrottleBytes < 10000)
-                    m_throttler.ThrottleBytes = 10000;
+                int tmp = 2 * pimagethrottle;
+                if(tmp < 10000)
+                    tmp = 10000;
+                m_throttler.ThrottleBytes = tmp;
             }
         }
 
@@ -456,15 +458,14 @@ namespace OpenSim.Region.ClientStack.Linden
 
         internal sealed class CapsDataThrottler
         {
-            private volatile int currenttime = 0;
-            private volatile int lastTimeElapsed = 0;
+            private double lastTimeElapsed = 0;
             private volatile int BytesSent = 0;
-            public CapsDataThrottler(int pBytes, int max, int min)
+            public CapsDataThrottler(int pBytes)
             {
+                if(pBytes < 10000)
+                    pBytes = 10000;
                 ThrottleBytes = pBytes;
-                if(ThrottleBytes < 10000)
-                    ThrottleBytes = 10000;
-                lastTimeElapsed = Util.EnvironmentTickCount();
+                lastTimeElapsed = Util.GetTimeStampMS();
             }
             public bool hasEvents(UUID key, Dictionary<UUID, GetTextureModule.aPollResponse> responses)
             {
@@ -497,20 +498,17 @@ namespace OpenSim.Region.ClientStack.Linden
                 return haskey;
             }
 
-            public void ProcessTime()
+            public void PassTime()
             {
-                PassTime();
-            }
-
-            private void PassTime()
+                double currenttime = Util.GetTimeStampMS();
+                double timeElapsed = currenttime - lastTimeElapsed;
+                if(timeElapsed < 50.0)
+                    return;
+                int add = (int)(ThrottleBytes * timeElapsed * 0.001);
+                if (add >= 1000)
             {
-                currenttime = Util.EnvironmentTickCount();
-                int timeElapsed = Util.EnvironmentTickCountSubtract(currenttime, lastTimeElapsed);
-                //processTimeBasedActions(responses);
-                if (timeElapsed >= 100)
-                {
                     lastTimeElapsed = currenttime;
-                    BytesSent -= (ThrottleBytes * timeElapsed / 1000);
+                    BytesSent -= add;
                     if (BytesSent < 0) BytesSent = 0;
                 }
             }

@@ -1043,7 +1043,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     d.BodySetLinearVel(Body, 0, 0, 0); // stop it
                     d.BodySetAngularVel(Body, 0, 0, 0);
                 }
-                d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                if(prim_geom != IntPtr.Zero)
+                    d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                 disableBodySoft(); // stop collisions
                 UnSubscribeEvents();
             }
@@ -1240,7 +1241,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     SentEmptyCollisionsEvent = true;
 //                    _parent_scene.RemoveCollisionEventReporting(this);
                 }
-                else if(Body == IntPtr.Zero || d.BodyIsEnabled(Body))
+                else if(Body == IntPtr.Zero || (d.BodyIsEnabled(Body) && m_bodydisablecontrol >= 0 ))
                 {
                     SentEmptyCollisionsEvent = false;
                     CollisionEventsThisFrame.Clear();
@@ -1847,8 +1848,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     ApplyCollisionCatFlags();
 
                     _zeroFlag = true;
+                    d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                     d.BodyEnable(Body);
-
                 }
             }
             resetCollisionAccounting();
@@ -2900,6 +2901,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (Body != IntPtr.Zero && !m_disabled)
                     {
                         _zeroFlag = true;
+                        d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                         d.BodyEnable(Body);
                     }
                 }
@@ -2933,6 +2935,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         if (!d.BodyIsEnabled(Body))
                         {
                             _zeroFlag = true;
+                            d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                             d.BodyEnable(Body);
                         }
                     }
@@ -2947,6 +2950,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
                     {
                         _zeroFlag = true;
+                        d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                         d.BodyEnable(Body);
                     }
                 }
@@ -3012,6 +3016,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
                     {
                         _zeroFlag = true;
+                        d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                         d.BodyEnable(Body);
                     }
                 }
@@ -3070,6 +3075,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
                     {
                         _zeroFlag = true;
+                        d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                         d.BodyEnable(Body);
                     }
                 }
@@ -3312,8 +3318,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (m_disabled)
                         enableBodySoft();
                     else if (!d.BodyIsEnabled(Body))
+                    {
+                        d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                         d.BodyEnable(Body);
-
+                    }
                 }
                 m_torque = newtorque;
             }
@@ -3323,7 +3331,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             m_force = force;
             if (!m_isSelected && !m_outbounds && Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
+            {
+                d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                 d.BodyEnable(Body);
+            }
         }
 
         private void changeAddForce(Vector3 theforce)
@@ -3339,7 +3350,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         if (m_disabled)
                             enableBodySoft();
                         else if (!d.BodyIsEnabled(Body))
+                        {
+                            d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                             d.BodyEnable(Body);
+                        }
                     }
                 }
                 m_collisionscore = 0;
@@ -3359,7 +3373,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         if (m_disabled)
                             enableBodySoft();
                         else if (!d.BodyIsEnabled(Body))
+                        {
+                            d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                             d.BodyEnable(Body);
+                        }                            
                     }
                 }
                 m_collisionscore = 0;
@@ -3382,7 +3399,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (m_disabled)
                         enableBodySoft();
                     else if (!d.BodyIsEnabled(Body))
+                    {
+                        d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                         d.BodyEnable(Body);
+                    }
                     d.BodySetLinearVel(Body, newVel.X, newVel.Y, newVel.Z);
                 }
                 //resetCollisionAccounting();
@@ -3406,7 +3426,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (m_disabled)
                         enableBodySoft();
                     else if (!d.BodyIsEnabled(Body))
+                    {
+                        d.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                         d.BodyEnable(Body);
+                    }
                     d.BodySetAngularVel(Body, newAngVel.X, newAngVel.Y, newAngVel.Z);
                 }
                 //resetCollisionAccounting();
@@ -3571,12 +3594,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     d.BodySetAngularVel(Body,0f,0f,0f);
                     d.BodySetLinearVel(Body,0f,0f,0f);
                     _zeroFlag = true;
+                    d.BodySetAutoDisableSteps(Body, 1);
                     d.BodyEnable(Body);
-                    m_bodydisablecontrol = -4;
+                    m_bodydisablecontrol = -3;
                 }
 
                 if(m_bodydisablecontrol < 0)
-                    m_bodydisablecontrol ++;
+                    m_bodydisablecontrol++;
 
                 d.Vector3 lpos = d.GeomGetPosition(prim_geom); // root position that is seem by rest of simulator
 
@@ -3741,13 +3765,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public void UpdatePositionAndVelocity(int frame)
         {
-            if (_parent == null && !m_disabled && !m_building && !m_outbounds && Body != IntPtr.Zero)
+            if (_parent == null && !m_isSelected && !m_disabled && !m_building && !m_outbounds && Body != IntPtr.Zero)
             {
-                bool bodyenabled = d.BodyIsEnabled(Body);
-
                 if(m_bodydisablecontrol < 0)
                     return;
 
+                bool bodyenabled = d.BodyIsEnabled(Body);
                 if (bodyenabled || !_zeroFlag)
                 {
                     bool lastZeroFlag = _zeroFlag;
@@ -3891,7 +3914,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                          // disable interpolators
                         _velocity = Vector3.Zero;
                         m_acceleration = Vector3.Zero;
-                         m_rotationalVelocity = Vector3.Zero;
+                        m_rotationalVelocity = Vector3.Zero;
                     }
                     else
                     {

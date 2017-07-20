@@ -1259,6 +1259,8 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_LoopSoundSlavePrims = value; }
         }
 
+        private double m_lastCollisionSoundMS;
+        
         /// <summary>
         /// The UUID for the region this object is in.
         /// </summary>
@@ -1336,7 +1338,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public SceneObjectGroup()
         {
-
+            m_lastCollisionSoundMS = Util.GetTimeStampMS() + 1000.0;
         }
 
         /// <summary>
@@ -2716,35 +2718,22 @@ namespace OpenSim.Region.Framework.Scenes
                     RootPart.KeyframeMotion.Stop();
                 RootPart.KeyframeMotion = null;
             }
-            UpdatePrimFlags(RootPart.LocalId, usePhysics, IsTemporary, IsPhantom, IsVolumeDetect);
+            UpdateFlags(usePhysics, IsTemporary, IsPhantom, IsVolumeDetect);
         }
 
         public void ScriptSetTemporaryStatus(bool makeTemporary)
         {
-            UpdatePrimFlags(RootPart.LocalId, UsesPhysics, makeTemporary, IsPhantom, IsVolumeDetect);
+            UpdateFlags(UsesPhysics, makeTemporary, IsPhantom, IsVolumeDetect);
         }
 
         public void ScriptSetPhantomStatus(bool makePhantom)
         {
-            UpdatePrimFlags(RootPart.LocalId, UsesPhysics, IsTemporary, makePhantom, IsVolumeDetect);
+            UpdateFlags(UsesPhysics, IsTemporary, makePhantom, IsVolumeDetect);
         }
 
         public void ScriptSetVolumeDetect(bool makeVolumeDetect)
         {
-            UpdatePrimFlags(RootPart.LocalId, UsesPhysics, IsTemporary, IsPhantom, makeVolumeDetect);
-
-            /*
-            ScriptSetPhantomStatus(false);  // What ever it was before, now it's not phantom anymore
-
-            if (PhysActor != null) // Should always be the case now
-            {
-                PhysActor.SetVolumeDetect(param);
-            }
-            if (param != 0)
-                AddFlag(PrimFlags.Phantom);
-
-            ScheduleFullUpdate();
-            */
+            UpdateFlags(UsesPhysics, IsTemporary, IsPhantom, makeVolumeDetect);
         }
 
         public void applyImpulse(Vector3 impulse)
@@ -4029,84 +4018,80 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="SetTemporary"></param>
         /// <param name="SetPhantom"></param>
         /// <param name="SetVolumeDetect"></param>
-        public void UpdatePrimFlags(uint localID, bool UsePhysics, bool SetTemporary, bool SetPhantom, bool SetVolumeDetect)
+        public void UpdateFlags(bool UsePhysics, bool SetTemporary, bool SetPhantom, bool SetVolumeDetect)
         {
+            if (m_scene == null || IsDeleted)
+                return;
+
             HasGroupChanged = true;
 
-            SceneObjectPart selectionPart = GetPart(localID);
-
-            if (Scene != null)
+            if (SetTemporary)
             {
-                if (SetTemporary)
-                {
-                    DetachFromBackup();
-                    // Remove from database and parcel prim count
-                    //
-                    m_scene.DeleteFromStorage(UUID);
-                }
-                else if (!Backup)
-                {
-                    // Previously been temporary now switching back so make it
-                    // available for persisting again
-                    AttachToBackup();
-                }
-
-                m_scene.EventManager.TriggerParcelPrimCountTainted();
+                DetachFromBackup();
+                // Remove from database and parcel prim count
+                //
+                m_scene.DeleteFromStorage(UUID);
+            }
+            else if (!Backup)
+            {
+                // Previously been temporary now switching back so make it
+                // available for persisting again
+                AttachToBackup();
             }
 
-            if (selectionPart != null)
+
+            SceneObjectPart[] parts = m_parts.GetArray();
+
+            if (UsePhysics)
             {
-                SceneObjectPart[] parts = m_parts.GetArray();
+                int maxprims = m_scene.m_linksetPhysCapacity;
+                bool checkShape = (maxprims > 0 &&
+                            parts.Length > maxprims);
 
-                if (Scene != null && UsePhysics)
+                for (int i = 0; i < parts.Length; i++)
                 {
-                    int maxprims = m_scene.m_linksetPhysCapacity;
-                    bool checkShape = (maxprims > 0 &&
-                             parts.Length > maxprims);
+                    SceneObjectPart part = parts[i];
 
-                    for (int i = 0; i < parts.Length; i++)
+                    if(part.PhysicsShapeType == (byte)PhysicsShapeType.None)
+                        continue; // assuming root type was checked elsewhere
+
+                    if (checkShape)
                     {
-                        SceneObjectPart part = parts[i];
-
-                        if(part.PhysicsShapeType == (byte)PhysicsShapeType.None)
-                            continue; // assuming root type was checked elsewhere
-
-                        if (checkShape)
+                        if (--maxprims < 0)
                         {
-                            if (--maxprims < 0)
-                            {
-                                UsePhysics = false;
-                                break;
-                            }
-                        }
-
-                        if (part.Scale.X > m_scene.m_maxPhys ||
-                            part.Scale.Y > m_scene.m_maxPhys ||
-                            part.Scale.Z > m_scene.m_maxPhys )
-                        {
-                            UsePhysics = false; // Reset physics
+                            UsePhysics = false;
                             break;
                         }
                     }
-                }
 
-                if (parts.Length > 1)
-                {
-                    m_rootPart.UpdatePrimFlags(UsePhysics, SetTemporary, SetPhantom, SetVolumeDetect, true);
-
-                    for (int i = 0; i < parts.Length; i++)
+                    if (part.Scale.X > m_scene.m_maxPhys ||
+                        part.Scale.Y > m_scene.m_maxPhys ||
+                        part.Scale.Z > m_scene.m_maxPhys )
                     {
-
-                        if (parts[i].UUID != m_rootPart.UUID)
-                            parts[i].UpdatePrimFlags(UsePhysics, SetTemporary, SetPhantom, SetVolumeDetect, true);
+                        UsePhysics = false; // Reset physics
+                        break;
                     }
-
-                    if (m_rootPart.PhysActor != null)
-                        m_rootPart.PhysActor.Building = false;
                 }
-                else
-                    m_rootPart.UpdatePrimFlags(UsePhysics, SetTemporary, SetPhantom, SetVolumeDetect, false);
             }
+
+            if (parts.Length > 1)
+            {
+                m_rootPart.UpdatePrimFlags(UsePhysics, SetTemporary, SetPhantom, SetVolumeDetect, true);
+
+                for (int i = 0; i < parts.Length; i++)
+                {
+
+                    if (parts[i].UUID != m_rootPart.UUID)
+                        parts[i].UpdatePrimFlags(UsePhysics, SetTemporary, SetPhantom, SetVolumeDetect, true);
+                }
+
+                if (m_rootPart.PhysActor != null)
+                    m_rootPart.PhysActor.Building = false;
+            }
+            else
+                m_rootPart.UpdatePrimFlags(UsePhysics, SetTemporary, SetPhantom, SetVolumeDetect, false);
+
+            m_scene.EventManager.TriggerParcelPrimCountTainted();
         }
 
         public void UpdateExtraParam(uint localID, ushort type, bool inUse, byte[] data)
@@ -5528,7 +5513,33 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public bool CollisionSoundThrottled(int collisionSoundType)
+        {
+            double time = m_lastCollisionSoundMS;
+//            m_lastCollisionSoundMS = Util.GetTimeStampMS();
+//            time = m_lastCollisionSoundMS - time;
+            double now  = Util.GetTimeStampMS();
+            time = now - time;
+            switch (collisionSoundType)
+            {
+                case 0: // default sounds
+                case 2: // default sounds with volume set by script
+                    if(time < 300.0)                    
+                        return true;
+                    break;
+                case 1: // selected sound
+                    if(time < 200.0)                    
+                        return true;
+                    break;
+                default:
+                    break;
+            }
+            m_lastCollisionSoundMS = now;
+            return false;
+        }
+
         #endregion
     }
+
 
 }

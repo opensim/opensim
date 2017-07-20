@@ -156,12 +156,14 @@ namespace OpenSim.Framework
         public static readonly int MAX_THREADPOOL_LEVEL = 3;
 
         public static double TimeStampClockPeriodMS;
+        public static double TimeStampClockPeriod;
 
         static Util()
         {
             LogThreadPool = 0;
             LogOverloads = true;
-            TimeStampClockPeriodMS = 1000.0D / (double)Stopwatch.Frequency;
+            TimeStampClockPeriod = 1.0D/ (double)Stopwatch.Frequency;
+            TimeStampClockPeriodMS = 1e3 * TimeStampClockPeriod;
             m_log.InfoFormat("[UTIL] TimeStamp clock with period of {0}ms", Math.Round(TimeStampClockPeriodMS,6,MidpointRounding.AwayFromZero));
         }
 
@@ -2221,9 +2223,9 @@ namespace OpenSim.Framework
             // might have gotten an oversized array even after the string trim
             byte[] data = UTF8.GetBytes(str);
 
-            if (data.Length > 256)
+            if (data.Length > 255) //play safe
             {
-                int cut = 255;
+                int cut = 254;
                 if((data[cut] & 0x80 ) != 0 )
                     {
                     while(cut > 0 && (data[cut] & 0xc0) != 0xc0)
@@ -2325,7 +2327,7 @@ namespace OpenSim.Framework
 
             if (data.Length > MaxLength)
             {
-                int cut = MaxLength -1 ;
+                int cut = MaxLength - 1 ;
                 if((data[cut] & 0x80 ) != 0 )
                     {
                     while(cut > 0 && (data[cut] & 0xc0) != 0xc0)
@@ -2967,9 +2969,9 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public static Int32 EnvironmentTickCount()
         {
-            double now = GetTimeStampMS();
-            return (int)now;
+            return Environment.TickCount & EnvironmentTickCountMask;
         }
+
         const Int32 EnvironmentTickCountMask = 0x3fffffff;
 
         /// <summary>
@@ -2994,8 +2996,7 @@ namespace OpenSim.Framework
         /// <returns>subtraction of passed prevValue from current Environment.TickCount</returns>
         public static Int32 EnvironmentTickCountSubtract(Int32 prevValue)
         {
-            double now = GetTimeStampMS();
-            return EnvironmentTickCountSubtract((int)now, prevValue);
+            return EnvironmentTickCountSubtract(EnvironmentTickCount(), prevValue);
         }
 
         // Returns value of Tick Count A - TickCount B accounting for wrapping of TickCount
@@ -3017,6 +3018,11 @@ namespace OpenSim.Framework
 
         // returns a timestamp in ms as double
         // using the time resolution avaiable to StopWatch
+        public static double GetTimeStamp()
+        {
+            return (double)Stopwatch.GetTimestamp() * TimeStampClockPeriod;
+        }
+
         public static double GetTimeStampMS()
         {
             return (double)Stopwatch.GetTimestamp() * TimeStampClockPeriodMS;

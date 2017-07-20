@@ -1651,10 +1651,11 @@ namespace OpenSim.Region.Framework.Scenes
                     physicsMS2 = (float)(tmpMS2 - tmpMS);
                     tmpMS = tmpMS2;
 
+/*
                     // Apply any pending avatar force input to the avatar's velocity
                     if (Frame % m_update_entitymovement == 0)
                         m_sceneGraph.UpdateScenePresenceMovement();
-
+*/
                     if (Frame % (m_update_coarse_locations) == 0 && !m_sendingCoarseLocations)
                     {
                         m_sendingCoarseLocations = true;
@@ -1942,7 +1943,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (!m_backingup)
             {
-                m_backingup = true;
                 WorkManager.RunInThreadPool(o => Backup(false), null, string.Format("BackupWorker ({0})", Name));
             }
         }
@@ -1971,38 +1971,58 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (m_returns)
             {
-                EventManager.TriggerOnBackup(SimulationDataService, forced);
-
-                foreach (KeyValuePair<UUID, ReturnInfo> ret in m_returns)
+                if(m_backingup)
                 {
-                    UUID transaction = UUID.Random();
+                    m_log.WarnFormat("[Scene] Backup of {0} already running. New call skipped", RegionInfo.RegionName);
+                    return;
+                }
 
-                    GridInstantMessage msg = new GridInstantMessage();
-                    msg.fromAgentID = new Guid(UUID.Zero.ToString()); // From server
-                    msg.toAgentID = new Guid(ret.Key.ToString());
-                    msg.imSessionID = new Guid(transaction.ToString());
-                    msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
-                    msg.fromAgentName = "Server";
-                    msg.dialog = (byte)19; // Object msg
-                    msg.fromGroup = false;
-                    msg.offline = (byte)1;
-                    msg.ParentEstateID = RegionInfo.EstateSettings.ParentEstateID;
-                    msg.Position = Vector3.Zero;
-                    msg.RegionID = RegionInfo.RegionID.Guid;
+                m_backingup = true;
+                try
+                {
+                    EventManager.TriggerOnBackup(SimulationDataService, forced);
 
-                    // We must fill in a null-terminated 'empty' string here since bytes[0] will crash viewer 3.
-                    msg.binaryBucket = Util.StringToBytes256("\0");
-                    if (ret.Value.count > 1)
-                        msg.message = string.Format("Your {0} objects were returned from {1} in region {2} due to {3}", ret.Value.count, ret.Value.location.ToString(), RegionInfo.RegionName, ret.Value.reason);
-                    else
-                        msg.message = string.Format("Your object {0} was returned from {1} in region {2} due to {3}", ret.Value.objectName, ret.Value.location.ToString(), RegionInfo.RegionName, ret.Value.reason);
+                    if(m_returns.Count == 0)
+                        return;
 
                     IMessageTransferModule tr = RequestModuleInterface<IMessageTransferModule>();
-                    if (tr != null)
+                    if (tr == null)
+                        return;
+
+                    uint unixtime = (uint)Util.UnixTimeSinceEpoch();
+                    uint estateid =  RegionInfo.EstateSettings.ParentEstateID;
+                    Guid regionguid = RegionInfo.RegionID.Guid;
+ 
+                    foreach (KeyValuePair<UUID, ReturnInfo> ret in m_returns)
+                    {
+                        GridInstantMessage msg = new GridInstantMessage();
+                        msg.fromAgentID = Guid.Empty; // From server
+                        msg.toAgentID = ret.Key.Guid;
+                        msg.imSessionID = Guid.NewGuid();
+                        msg.timestamp = unixtime;
+                        msg.fromAgentName = "Server";
+                        msg.dialog = 19; // Object msg
+                        msg.fromGroup = false;
+                        msg.offline = 1;
+                        msg.ParentEstateID = estateid;
+                        msg.Position = Vector3.Zero;
+                        msg.RegionID = regionguid;
+
+                        // We must fill in a null-terminated 'empty' string here since bytes[0] will crash viewer 3.
+                        msg.binaryBucket = new Byte[1] {0};
+                        if (ret.Value.count > 1)
+                            msg.message = string.Format("Your {0} objects were returned from {1} in region {2} due to {3}", ret.Value.count, ret.Value.location.ToString(), RegionInfo.RegionName, ret.Value.reason);
+                        else
+                            msg.message = string.Format("Your object {0} was returned from {1} in region {2} due to {3}", ret.Value.objectName, ret.Value.location.ToString(), RegionInfo.RegionName, ret.Value.reason);
+
                         tr.SendInstantMessage(msg, delegate(bool success) { });
+                    }
+                    m_returns.Clear();
                 }
-                m_returns.Clear();
-                m_backingup = false;
+                finally
+                {
+                    m_backingup = false;
+                }
             }
         }
 
@@ -4805,16 +4825,34 @@ Label_GroupsDone:
         public void RequestTeleportLocation(IClientAPI remoteClient, string regionName, Vector3 position,
                                             Vector3 lookat, uint teleportFlags)
         {
-            GridRegion region = GridService.GetRegionByName(RegionInfo.ScopeID, regionName);
+            if (EntityTransferModule == null)
+            {
+                m_log.DebugFormat("[SCENE]: Unable to perform teleports: no AgentTransferModule is active");
+                return;
+            }
 
-            if (region == null)
+            ScenePresence sp = GetScenePresence(remoteClient.AgentId);
+            if (sp == null || sp.IsDeleted || sp.IsInTransit)
+                return;
+
+            ulong regionHandle = 0;
+            if(regionName == RegionInfo.RegionName)
+                regionHandle = RegionInfo.RegionHandle;
+            else
+            {
+                GridRegion region = GridService.GetRegionByName(RegionInfo.ScopeID, regionName);
+                if (region != null)
+                    regionHandle = region.RegionHandle;
+            }
+
+            if(regionHandle == 0)
             {
                 // can't find the region: Tell viewer and abort
                 remoteClient.SendTeleportFailed("The region '" + regionName + "' could not be found.");
                 return;
             }
 
-            RequestTeleportLocation(remoteClient, region.RegionHandle, position, lookat, teleportFlags);
+            EntityTransferModule.Teleport(sp, regionHandle, position, lookat, teleportFlags);
         }
 
         /// <summary>
@@ -4828,19 +4866,17 @@ Label_GroupsDone:
         public void RequestTeleportLocation(IClientAPI remoteClient, ulong regionHandle, Vector3 position,
                                             Vector3 lookAt, uint teleportFlags)
         {
-            ScenePresence sp = GetScenePresence(remoteClient.AgentId);
-            if (sp != null)
+            if (EntityTransferModule == null)
             {
-                if (EntityTransferModule != null)
-                {
-                    EntityTransferModule.Teleport(sp, regionHandle, position, lookAt, teleportFlags);
-                }
-                else
-                {
-                    m_log.DebugFormat("[SCENE]: Unable to perform teleports: no AgentTransferModule is active");
-                    sp.ControllingClient.SendTeleportFailed("Unable to perform teleports on this simulator.");
-                }
+                m_log.DebugFormat("[SCENE]: Unable to perform teleports: no AgentTransferModule is active");
+                return;
             }
+
+            ScenePresence sp = GetScenePresence(remoteClient.AgentId);
+            if (sp == null || sp.IsDeleted || sp.IsInTransit)
+                return;
+
+            EntityTransferModule.Teleport(sp, regionHandle, position, lookAt, teleportFlags);
         }
 
         public bool CrossAgentToNewRegion(ScenePresence agent, bool isFlying)

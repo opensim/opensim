@@ -123,6 +123,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         string osSetDynamicTextureURLBlendFace(string dynamicID, string contentType, string url, string extraParams,
                                            bool blend, int disp, int timer, int alpha, int face);
         string osSetDynamicTextureData(string dynamicID, string contentType, string data, string extraParams, int timer);
+        string osSetDynamicTextureDataFace(string dynamicID, string contentType, string data, string extraParams, int timer, int face);
         string osSetDynamicTextureDataBlend(string dynamicID, string contentType, string data, string extraParams,
                                             int timer, int alpha);
         string osSetDynamicTextureDataBlendFace(string dynamicID, string contentType, string data, string extraParams,
@@ -143,8 +144,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osSetParcelSIPAddress(string SIPAddress);
 
         // Avatar Info Commands
-        string osGetAgentIP(string agent);
         LSL_List osGetAgents();
+        string osGetAgentIP(string agent);
 
         // Teleport commands
         void osTeleportAgent(string agent, string regionName, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat);
@@ -222,10 +223,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         string osDrawLine(string drawList, int endX, int endY);
         string osDrawText(string drawList, string text);
         string osDrawEllipse(string drawList, int width, int height);
+        string osDrawFilledEllipse(string drawList, int width, int height);
         string osDrawRectangle(string drawList, int width, int height);
         string osDrawFilledRectangle(string drawList, int width, int height);
         string osDrawPolygon(string drawList, LSL_List x, LSL_List y);
         string osDrawFilledPolygon(string drawList, LSL_List x, LSL_List y);
+        string osDrawResetTransform(string drawList);
+        string osDrawRotationTransform(string drawList, LSL_Float x);
+        string osDrawScaleTransform(string drawList, LSL_Float x, LSL_Float y);
+        string osDrawTranslationTransform(string drawList, LSL_Float x, LSL_Float y);
         string osSetFontName(string drawList, string fontName);
         string osSetFontSize(string drawList, int fontSize);
         string osSetPenSize(string drawList, int penSize);
@@ -389,6 +395,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osSetProjectionParams(LSL_Key prim, bool projection, LSL_Key texture, double fov, double focus, double amb);
 
         LSL_List osGetAvatarList();
+        LSL_List osGetNPCList();
 
         LSL_String osUnixTimeToTimestamp(long time);
 

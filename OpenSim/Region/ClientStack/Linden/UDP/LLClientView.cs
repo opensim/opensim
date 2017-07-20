@@ -4137,6 +4137,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Vector3 mypos = Vector3.Zero;
             ScenePresence mysp = (ScenePresence)SceneAgent;
 
+            bool orderedDequeue = m_scene.UpdatePrioritizationScheme  == UpdatePrioritizationSchemes.SimpleAngularDistance;
             // we should have a presence
             if(mysp == null)
                 return;
@@ -4151,8 +4152,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             while (maxUpdatesBytes > 0)
             {
                 lock (m_entityUpdates.SyncRoot)
-                    if (!m_entityUpdates.TryDequeue(out update, out timeinqueue))
-                        break;
+                {
+                    if(orderedDequeue)
+                    {
+                        if (!m_entityUpdates.TryOrderedDequeue(out update, out timeinqueue))
+                            break;
+                    }
+                    else
+                    {
+                        if (!m_entityUpdates.TryDequeue(out update, out timeinqueue))
+                            break;
+                    }
+                }
 
                 PrimUpdateFlags updateFlags = (PrimUpdateFlags)update.Flags;
 
@@ -4850,6 +4861,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //            OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>> propertyUpdates =
 //                new OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>>();
 
+            bool orderedDequeue = m_scene.UpdatePrioritizationScheme  == UpdatePrioritizationSchemes.SimpleAngularDistance;
 
             EntityUpdate iupdate;
             Int32 timeinqueue; // this is just debugging code & can be dropped later
@@ -4857,8 +4869,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             while (maxUpdateBytes > 0)
             {
                 lock (m_entityProps.SyncRoot)
-                    if (!m_entityProps.TryDequeue(out iupdate, out timeinqueue))
-                        break;
+                {
+                    if(orderedDequeue)
+                    {
+                        if (!m_entityProps.TryOrderedDequeue(out iupdate, out timeinqueue))
+                            break;
+                    }
+                    else
+                    {
+                        if (!m_entityProps.TryDequeue(out iupdate, out timeinqueue))
+                            break;
+                    }
+                }
 
                 ObjectPropertyUpdate update = (ObjectPropertyUpdate)iupdate;
                 if (update.SendFamilyProps)
@@ -5526,6 +5548,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         #endregion
 
         #region Helper Methods
+        private void ClampVectorForUint(ref Vector3 v, float max)
+        {
+            float a,b;
+
+            a = Math.Abs(v.X);
+            b = Math.Abs(v.Y);
+            if(b > a)
+                a = b;
+            b= Math.Abs(v.Z);
+            if(b > a)
+                a = b;
+
+            if (a > max)
+            {
+                a = max / a;
+                v.X *= a;
+                v.Y *= a;
+                v.Z *= a;
+            }
+        }
 
         protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateImprovedTerseBlock(ISceneEntity entity, bool sendTexture)
         {
@@ -5616,11 +5658,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             pos += 12;
 
             // Velocity
+            ClampVectorForUint(ref velocity, 128f);
             Utils.UInt16ToBytes(Utils.FloatToUInt16(velocity.X, -128.0f, 128.0f), data, pos); pos += 2;
             Utils.UInt16ToBytes(Utils.FloatToUInt16(velocity.Y, -128.0f, 128.0f), data, pos); pos += 2;
             Utils.UInt16ToBytes(Utils.FloatToUInt16(velocity.Z, -128.0f, 128.0f), data, pos); pos += 2;
 
             // Acceleration
+            ClampVectorForUint(ref acceleration, 64f);
             Utils.UInt16ToBytes(Utils.FloatToUInt16(acceleration.X, -64.0f, 64.0f), data, pos); pos += 2;
             Utils.UInt16ToBytes(Utils.FloatToUInt16(acceleration.Y, -64.0f, 64.0f), data, pos); pos += 2;
             Utils.UInt16ToBytes(Utils.FloatToUInt16(acceleration.Z, -64.0f, 64.0f), data, pos); pos += 2;
@@ -5632,6 +5676,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Utils.UInt16ToBytes(Utils.FloatToUInt16(rotation.W, -1.0f, 1.0f), data, pos); pos += 2;
 
             // Angular Velocity
+            ClampVectorForUint(ref angularVelocity, 64f);
             Utils.UInt16ToBytes(Utils.FloatToUInt16(angularVelocity.X, -64.0f, 64.0f), data, pos); pos += 2;
             Utils.UInt16ToBytes(Utils.FloatToUInt16(angularVelocity.Y, -64.0f, 64.0f), data, pos); pos += 2;
             Utils.UInt16ToBytes(Utils.FloatToUInt16(angularVelocity.Z, -64.0f, 64.0f), data, pos); pos += 2;
@@ -5753,7 +5798,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //update.JointPivot = Vector3.Zero;
             //update.JointType = 0;
             update.Material = part.Material;
-            update.MediaURL = Utils.EmptyBytes; // FIXME: Support this in OpenSim
 /*
             if (data.ParentGroup.IsAttachment)
             {
@@ -5832,8 +5876,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             update.TextureAnim = part.TextureAnimation ?? Utils.EmptyBytes;
             update.TextureEntry = part.Shape.TextureEntry ?? Utils.EmptyBytes;
             update.Scale = part.Shape.Scale;
-            update.Text = Util.StringToBytes256(part.Text);
-            update.MediaURL = Util.StringToBytes256(part.MediaUrl);
+            update.Text = Util.StringToBytes(part.Text, 255);
+            update.MediaURL = Util.StringToBytes(part.MediaUrl, 255);
 
             #region PrimFlags
 
@@ -6234,20 +6278,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name='x'></param>
         private bool CheckAgentCameraUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
         {
-            float vdelta = Vector3.Distance(x.CameraAtAxis, m_thisAgentUpdateArgs.CameraAtAxis);
-            if((vdelta > VDELTA))
-                return true;
+            if(Math.Abs(x.CameraCenter.X - m_thisAgentUpdateArgs.CameraCenter.X) > VDELTA ||
+               Math.Abs(x.CameraCenter.Y - m_thisAgentUpdateArgs.CameraCenter.Y) > VDELTA ||
+               Math.Abs(x.CameraCenter.Z - m_thisAgentUpdateArgs.CameraCenter.Z) > VDELTA ||
 
-            vdelta = Vector3.Distance(x.CameraCenter, m_thisAgentUpdateArgs.CameraCenter);
-            if((vdelta > VDELTA))
-                return true;
+               Math.Abs(x.CameraAtAxis.X - m_thisAgentUpdateArgs.CameraAtAxis.X) > VDELTA ||
+               Math.Abs(x.CameraAtAxis.Y - m_thisAgentUpdateArgs.CameraAtAxis.Y) > VDELTA ||
+//               Math.Abs(x.CameraAtAxis.Z - m_thisAgentUpdateArgs.CameraAtAxis.Z) > VDELTA ||
 
-            vdelta = Vector3.Distance(x.CameraLeftAxis, m_thisAgentUpdateArgs.CameraLeftAxis);
-            if((vdelta > VDELTA))
-                return true;
+               Math.Abs(x.CameraLeftAxis.X - m_thisAgentUpdateArgs.CameraLeftAxis.X) > VDELTA ||
+               Math.Abs(x.CameraLeftAxis.Y - m_thisAgentUpdateArgs.CameraLeftAxis.Y) > VDELTA ||
+//               Math.Abs(x.CameraLeftAxis.Z - m_thisAgentUpdateArgs.CameraLeftAxis.Z) > VDELTA ||
 
-            vdelta = Vector3.Distance(x.CameraUpAxis, m_thisAgentUpdateArgs.CameraUpAxis);
-            if((vdelta > VDELTA))
+               Math.Abs(x.CameraUpAxis.X - m_thisAgentUpdateArgs.CameraUpAxis.X) > VDELTA ||
+               Math.Abs(x.CameraUpAxis.Y - m_thisAgentUpdateArgs.CameraUpAxis.Y) > VDELTA
+//               Math.Abs(x.CameraLeftAxis.Z - m_thisAgentUpdateArgs.CameraLeftAxis.Z) > VDELTA ||
+            )
                 return true;
 
             return false;

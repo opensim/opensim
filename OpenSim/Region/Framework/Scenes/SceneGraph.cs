@@ -1649,7 +1649,7 @@ namespace OpenSim.Region.Framework.Scenes
                         else // else turn it off
                             vdtc = false;
 
-                        group.UpdatePrimFlags(localID, UsePhysics, SetTemporary, SetPhantom, vdtc);
+                        group.UpdateFlags(UsePhysics, SetTemporary, SetPhantom, vdtc);
                     }
                     else
                     {

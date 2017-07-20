@@ -44,14 +44,13 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name='isReuseable'></param>
         void ReturnData(UUID id, IDynamicTexture texture);
 
+        UUID AddDynamicTextureURL(UUID simID, UUID primID, string contentType, string url, string extraParams);
         UUID AddDynamicTextureURL(UUID simID, UUID primID, string contentType, string url, string extraParams,
-                                    int updateTimer);
+                                bool SetBlending, byte AlphaValue);
         UUID AddDynamicTextureURL(UUID simID, UUID primID, string contentType, string url, string extraParams,
-                                   int updateTimer, bool SetBlending, byte AlphaValue);
-        UUID AddDynamicTextureURL(UUID simID, UUID primID, string contentType, string url, string extraParams,
-                                   int updateTimer, bool SetBlending, int disp, byte AlphaValue, int face);
-        UUID AddDynamicTextureData(UUID simID, UUID primID, string contentType, string data, string extraParams,
-                                     int updateTimer);
+                                bool SetBlending, int disp, byte AlphaValue, int face);
+
+        UUID AddDynamicTextureData(UUID simID, UUID primID, string contentType, string data, string extraParams);
 
         /// Apply a dynamically generated texture to all sides of the given prim.  The texture is not persisted to the
         /// asset service.
@@ -62,8 +61,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// based texture or "image" to create a texture from an image at a particular URL</param>
         /// <param name="data">The data for the generator</param>
         /// <param name="extraParams">Parameters for the generator that don't form part of the main data.</param>
-        /// <param name="updateTimer">If zero, the image is never updated after the first generation.  If positive
-        /// the image is updated at the given interval.  Not implemented for </param>
         /// <param name="SetBlending">
         /// If true, the newly generated texture is blended with the appropriate existing ones on the prim
         /// </param>
@@ -76,7 +73,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// can be obtained as SceneObjectPart.Shape.Textures.DefaultTexture.TextureID
         /// </returns>
         UUID AddDynamicTextureData(UUID simID, UUID primID, string contentType, string data, string extraParams,
-                                    int updateTimer, bool SetBlending, byte AlphaValue);
+                                    bool SetBlending, byte AlphaValue);
 
         /// <summary>
         /// Apply a dynamically generated texture to the given prim.
@@ -87,8 +84,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// based texture or "image" to create a texture from an image at a particular URL</param>
         /// <param name="data">The data for the generator</param>
         /// <param name="extraParams">Parameters for the generator that don't form part of the main data.</param>
-        /// <param name="updateTimer">If zero, the image is never updated after the first generation.  If positive
-        /// the image is updated at the given interval.  Not implemented for </param>
         /// <param name="SetBlending">
         /// If true, the newly generated texture is blended with the appropriate existing ones on the prim
         /// </param>
@@ -109,9 +104,8 @@ namespace OpenSim.Region.Framework.Interfaces
         /// to obtain it directly from the SceneObjectPart.  For instance, if ALL_SIDES is set then this texture
         /// can be obtained as SceneObjectPart.Shape.Textures.DefaultTexture.TextureID
         /// </returns>
-        UUID AddDynamicTextureData(
-            UUID simID, UUID primID, string contentType, string data, string extraParams,
-            int updateTimer, bool SetBlending, int disp, byte AlphaValue, int face);
+        UUID AddDynamicTextureData(UUID simID, UUID primID, string contentType, string data, string extraParams,
+                    bool SetBlending, int disp, byte AlphaValue, int face);
 
         void GetDrawStringSize(string contentType, string text, string fontName, int fontSize,
                                out double xSize, out double ySize);

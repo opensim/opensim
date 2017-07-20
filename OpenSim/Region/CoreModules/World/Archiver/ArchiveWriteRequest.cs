@@ -181,11 +181,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 // Archive the regions
 
                 Dictionary<UUID, sbyte> assetUuids = new Dictionary<UUID, sbyte>();
+                HashSet<UUID> failedIDs = new HashSet<UUID>();
+                HashSet<UUID> uncertainAssetsUUIDs = new HashSet<UUID>();
 
                 scenesGroup.ForEachScene(delegate(Scene scene)
                 {
                     string regionDir = MultiRegionFormat ? scenesGroup.GetRegionDir(scene.RegionInfo.RegionID) : "";
-                    ArchiveOneRegion(scene, regionDir, assetUuids);
+                    ArchiveOneRegion(scene, regionDir, assetUuids, failedIDs, uncertainAssetsUUIDs);
                 });
 
                 // Archive the assets
@@ -193,23 +195,21 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 if (SaveAssets)
                 {
                     m_log.DebugFormat("[ARCHIVER]: Saving {0} assets", assetUuids.Count);
-
-                    // Asynchronously request all the assets required to perform this archive operation
-                    AssetsRequest ar
-                        = new AssetsRequest(
+                    
+                    AssetsRequest ar = new AssetsRequest(
                             new AssetsArchiver(m_archiveWriter), assetUuids,
+                            failedIDs.Count,
                             m_rootScene.AssetService, m_rootScene.UserAccountService,
-                            m_rootScene.RegionInfo.ScopeID, options, ReceivedAllAssets);
-
-                    WorkManager.RunInThread(o => ar.Execute(), null, "Archive Assets Request");
-
-                    // CloseArchive() will be called from ReceivedAllAssets()
+                            m_rootScene.RegionInfo.ScopeID, options, null);
+                    ar.Execute();
+                    assetUuids = null;
                 }
                 else
                 {
                     m_log.DebugFormat("[ARCHIVER]: Not saving assets since --noassets was specified");
-                    CloseArchive(string.Empty);
+//                    CloseArchive(string.Empty);
                 }
+                CloseArchive(string.Empty);
             }
             catch (Exception e)
             {
@@ -218,7 +218,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
         }
 
-        private void ArchiveOneRegion(Scene scene, string regionDir, Dictionary<UUID, sbyte> assetUuids)
+        private void ArchiveOneRegion(Scene scene, string regionDir, Dictionary<UUID, sbyte> assetUuids,
+            HashSet<UUID> failedIDs, HashSet<UUID>  uncertainAssetsUUIDs)
         {
             m_log.InfoFormat("[ARCHIVER]: Writing region {0}", scene.Name);
 
@@ -237,7 +238,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 {
                     SceneObjectGroup sceneObject = (SceneObjectGroup)entity;
 
-                    if (!sceneObject.IsDeleted && !sceneObject.IsAttachment)
+                    if (!sceneObject.IsDeleted && !sceneObject.IsAttachment && !sceneObject.IsTemporary && !sceneObject.inTransit)
                     {
                         if (!CanUserArchiveObject(scene.RegionInfo.EstateSettings.EstateOwner, sceneObject, FilterContent, permissionsModule))
                         {
@@ -254,17 +255,39 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             if (SaveAssets)
             {
-                UuidGatherer assetGatherer = new UuidGatherer(scene.AssetService, assetUuids);
+                UuidGatherer assetGatherer = new UuidGatherer(scene.AssetService, assetUuids, failedIDs, uncertainAssetsUUIDs);
                 int prevAssets = assetUuids.Count;
 
                 foreach (SceneObjectGroup sceneObject in sceneObjects)
+                {
+                    int curErrorCntr = assetGatherer.ErrorCount;
+                    int possible = assetGatherer.possibleNotAssetCount;
                     assetGatherer.AddForInspection(sceneObject);
+                    assetGatherer.GatherAll();
+                    curErrorCntr =  assetGatherer.ErrorCount - curErrorCntr;
+                    possible = assetGatherer.possibleNotAssetCount - possible;
+                    if(curErrorCntr > 0)
+                    {
+                        m_log.ErrorFormat("[ARCHIVER]: object {0} '{1}', at {2}, contains {3} references to missing or damaged assets",
+                            sceneObject.UUID, sceneObject.Name ,sceneObject.AbsolutePosition.ToString(), curErrorCntr);
+                        if(possible > 0)
+                            m_log.WarnFormat("[ARCHIVER Warning]: object also contains {0} references that may be to missing or damaged assets or not a problem", possible);
+                    }
+                    else if(possible > 0)
+                    {
+                        m_log.WarnFormat("[ARCHIVER Warning]: object {0} '{1}', at {2}, contains {3} references that may be to missing or damaged assets or not a problem",
+                            sceneObject.UUID, sceneObject.Name ,sceneObject.AbsolutePosition.ToString(), possible);
+                    }
+                }
 
                 assetGatherer.GatherAll();
 
+                int errors = assetGatherer.FailedUUIDs.Count;
                 m_log.DebugFormat(
-                    "[ARCHIVER]: {0} scene objects to serialize requiring save of {1} assets",
-                    sceneObjects.Count, assetUuids.Count - prevAssets);
+                    "[ARCHIVER]: {0} region scene objects to save reference {1} possible assets",
+                    sceneObjects.Count, assetUuids.Count - prevAssets + errors);
+                if(errors > 0)
+                    m_log.DebugFormat("[ARCHIVER]: {0} of these have problems or are not assets and will be ignored", errors);
             }
 
             if (numObjectsSkippedPermissions > 0)
@@ -572,7 +595,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             foreach (SceneObjectGroup sceneObject in sceneObjects)
             {
                 //m_log.DebugFormat("[ARCHIVER]: Saving {0} {1}, {2}", entity.Name, entity.UUID, entity.GetType());
-
+                if(sceneObject.IsDeleted || sceneObject.inTransit)
+                    continue;
                 string serializedObject = serializer.SerializeGroupToXml2(sceneObject, m_options);
                 string objectPath = string.Format("{0}{1}", regionDir, ArchiveHelpers.CreateObjectPath(sceneObject));
                 m_archiveWriter.WriteFile(objectPath, serializedObject);

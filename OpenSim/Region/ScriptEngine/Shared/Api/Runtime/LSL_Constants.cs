@@ -697,7 +697,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PARCEL_DETAILS_GROUP = 3;
         public const int PARCEL_DETAILS_AREA = 4;
         public const int PARCEL_DETAILS_ID = 5;
-        public const int PARCEL_DETAILS_SEE_AVATARS = 6; // not implemented
+        public const int PARCEL_DETAILS_SEE_AVATARS = 6;
+        public const int PARCEL_DETAILS_ANY_AVATAR_SOUNDS = 7;
+        public const int PARCEL_DETAILS_GROUP_SOUNDS = 8;
 
         //osSetParcelDetails
         public const int PARCEL_DETAILS_CLAIMDATE = 10;

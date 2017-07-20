@@ -355,30 +355,22 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                 lock (this)
                 {
                     if (alpha == 256)
-                        bitmap = new Bitmap(width, height, PixelFormat.Format32bppRgb);
-                    else
-                        bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-
-                    graph = Graphics.FromImage(bitmap);
-
-                    // this is really just to save people filling the
-                    // background color in their scripts, only do when fully opaque
-                    if (alpha >= 255)
                     {
+                        bitmap = new Bitmap(width, height, PixelFormat.Format32bppRgb);
+                        graph = Graphics.FromImage(bitmap);
                         using (SolidBrush bgFillBrush = new SolidBrush(bgColor))
                         {
                             graph.FillRectangle(bgFillBrush, 0, 0, width, height);
                         }
-                    }
-
-                    for (int w = 0; w < bitmap.Width; w++)
+                    }                   
+                    else
                     {
-                        if (alpha <= 255)
+                        bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+                        graph = Graphics.FromImage(bitmap);
+                        Color newbg = Color.FromArgb(alpha,bgColor);
+                        using (SolidBrush bgFillBrush = new SolidBrush(newbg))
                         {
-                            for (int h = 0; h < bitmap.Height; h++)
-                            {
-                                bitmap.SetPixel(w, h, Color.FromArgb(alpha, bitmap.GetPixel(w, h)));
-                            }
+                            graph.FillRectangle(bgFillBrush, 0, 0, width, height);
                         }
                     }
 
@@ -519,8 +511,32 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
 //                    m_log.DebugFormat("[VECTOR RENDER MODULE]: Processing line '{0}'", nextLine);
 
+                    if (nextLine.StartsWith("ResetTransf"))
+                    {
+                        graph.ResetTransform();
+                    }
+                    else if (nextLine.StartsWith("TransTransf"))
+                    {
+                        float x = 0;
+                        float y = 0;
+                        GetParams(partsDelimiter, ref nextLine, 11, ref x, ref y);
+                        graph.TranslateTransform(x, y);
+                    }
+                    else if (nextLine.StartsWith("ScaleTransf"))
+                    {
+                        float x = 0;
+                        float y = 0;
+                        GetParams(partsDelimiter, ref nextLine, 11, ref x, ref y);
+                        graph.ScaleTransform(x, y);
+                    }
+                    else if (nextLine.StartsWith("RotTransf"))
+                    {
+                        float x = 0;
+                        GetParams(partsDelimiter, ref nextLine, 9, ref x);
+                        graph.RotateTransform(x);
+                    }
                     //replace with switch, or even better, do some proper parsing
-                    if (nextLine.StartsWith("MoveTo"))
+                    else if (nextLine.StartsWith("MoveTo"))
                     {
                         float x = 0;
                         float y = 0;
@@ -622,6 +638,17 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                         endPoint.X = (int)x;
                         endPoint.Y = (int)y;
                         graph.DrawEllipse(drawPen, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
+                        startPoint.X += endPoint.X;
+                        startPoint.Y += endPoint.Y;
+                    }
+                    else if (nextLine.StartsWith("FillEllipse"))
+                    {
+                        float x = 0;
+                        float y = 0;
+                        GetParams(partsDelimiter, ref nextLine, 11, ref x, ref y);
+                        endPoint.X = (int)x;
+                        endPoint.Y = (int)y;
+                        graph.FillEllipse(myBrush, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
                         startPoint.X += endPoint.X;
                         startPoint.Y += endPoint.Y;
                     }
@@ -787,6 +814,17 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
                 if (myBrush != null)
                     myBrush.Dispose();
+            }
+        }
+
+        private static void GetParams(char[] partsDelimiter, ref string line, int startLength, ref float x)
+        {
+            line = line.Remove(0, startLength);
+            string[] parts = line.Split(partsDelimiter);
+            if (parts.Length > 0)
+            {
+                string xVal = parts[0].Trim();
+                x = Convert.ToSingle(xVal, CultureInfo.InvariantCulture);
             }
         }
 

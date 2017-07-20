@@ -103,7 +103,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public float walkDivisor = 1.3f;
         public float runDivisor = 0.8f;
-        private bool flying = false;
+        private bool m_flying = false;
         private bool m_iscolliding = false;
         private bool m_iscollidingGround = false;
         private bool m_iscollidingObj = false;
@@ -298,10 +298,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public override bool Flying
         {
-            get { return flying; }
+            get { return m_flying; }
             set
             {
-                flying = value;
+                m_flying = value;
 //                m_log.DebugFormat("[PHYSICS]: Set OdeCharacter Flying to {0}", flying);
             }
         }
@@ -899,9 +899,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             y = tx * sin + y * cos;
         }
 
-        public bool Collide(IntPtr me, IntPtr other, bool reverse, ref d.ContactGeom contact,
+            public bool Collide(IntPtr me, IntPtr other, bool reverse, ref d.ContactGeom contact,
                 ref d.ContactGeom altContact , ref bool useAltcontact, ref bool feetcollision)
-        {
+            {
             feetcollision = false;
             useAltcontact = false;
 
@@ -943,12 +943,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     }
                     return true;
                 }
-/*
-                d.AABB aabb;
-                d.GeomGetAABB(other,out aabb);
-                float othertop = aabb.MaxZ - _position.Z;
-*/
-//                if (offset.Z > 0 || othertop > -feetOff || contact.normal.Z > 0.35f)
+
+                if (gtype == d.GeomClassID.SphereClass && d.GeomGetBody(other) != IntPtr.Zero)
+                {
+                    if(d.GeomSphereGetRadius(other) < 0.5)
+                        return true;
+                }
+
                 if (offset.Z > 0 || contact.normal.Z > 0.35f)
                 {
                     if (offset.Z <= 0)
@@ -965,6 +966,18 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     return true;
                 }
 
+                if(m_flying)
+                    return true;
+
+                feetcollision = true;
+                if (h < boneOff)
+                {
+                    m_collideNormal.X = contact.normal.X;
+                    m_collideNormal.Y = contact.normal.Y;
+                    m_collideNormal.Z = contact.normal.Z;
+                    IsColliding = true;
+                }
+
                 altContact = contact;
                 useAltcontact = true;
 
@@ -972,8 +985,21 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 offset.Normalize();
 
-                if (contact.depth > 0.1f)
-                    contact.depth = 0.1f;
+                float tdp = contact.depth;
+                float t = offset.X;
+                t = Math.Abs(t);
+                if(t > 1e-6)
+                {
+                   tdp /= t;
+                   tdp *= contact.normal.X;
+                }
+                else
+                    tdp *= 10;
+
+                if (tdp > 0.25f)
+                    tdp = 0.25f;
+
+                altContact.depth = tdp;
 
                 if (reverse)
                 {
@@ -986,15 +1012,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     altContact.normal.X = -offset.X;
                     altContact.normal.Y = -offset.Y;
                     altContact.normal.Z = -offset.Z;
-                }
-
-                feetcollision = true;
-                if (h < boneOff)
-                {
-                    m_collideNormal.X = contact.normal.X;
-                    m_collideNormal.Y = contact.normal.Y;
-                    m_collideNormal.Z = contact.normal.Z;
-                    IsColliding = true;
                 }
                 return true;
             }
@@ -1098,7 +1115,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             float ftmp;
 
-            if (flying)
+            if (m_flying)
             {
                 ftmp = timeStep;
                 posch.X += vel.X * ftmp;
@@ -1122,7 +1139,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 vec.Z = depth * PID_P * 50;
 
-                if (!flying)
+                if (!m_flying)
                 {
                     vec.Z += -vel.Z * PID_D;
                     if(n.Z < 0.4f)
@@ -1259,7 +1276,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 // movement relative to surface if moving on it
                 // dont disturbe vertical movement, ie jumps
-                if (m_iscolliding && !flying && ctz.Z == 0 && m_collideNormal.Z > 0.2f && m_collideNormal.Z < 0.94f)
+                if (m_iscolliding && !m_flying && ctz.Z == 0 && m_collideNormal.Z > 0.2f && m_collideNormal.Z < 0.94f)
                 {
                     float p = ctz.X * m_collideNormal.X + ctz.Y * m_collideNormal.Y;
                     ctz.X *= (float)Math.Sqrt(1 - m_collideNormal.X * m_collideNormal.X);
@@ -1276,7 +1293,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
 
                 //  if velocity is zero, use position control; otherwise, velocity control
-                if (tviszero && m_iscolliding && !flying)
+                if (tviszero && m_iscolliding && !m_flying)
                 {
                     //  keep track of where we stopped.  No more slippin' & slidin'
                     if (!_zeroFlag)
@@ -1313,7 +1330,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                     if (m_iscolliding)
                     {
-                        if (!flying)
+                        if (!m_flying)
                         {
                             // we are on a surface
                             if (ctz.Z > 0f)
@@ -1361,7 +1378,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     }
                     else // ie not colliding
                     {
-                        if (flying || hoverPIDActive) //(!m_iscolliding && flying)
+                        if (m_flying || hoverPIDActive) //(!m_iscolliding && flying)
                         {
                             // we're in mid air suspended
                             vec.X += (ctz.X - vel.X) * (PID_D);
@@ -1397,13 +1414,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 breakfactor = m_mass;
                 vec.X -= breakfactor * vel.X;
                 vec.Y -= breakfactor * vel.Y;
-                if (flying)
+                if (m_flying)
                     vec.Z -= 0.5f * breakfactor * vel.Z;
                 else
                     vec.Z -= .16f* m_mass * vel.Z;
             }
 
-            if (flying || hoverPIDActive)
+            if (m_flying || hoverPIDActive)
             {
                 vec.Z -= m_parent_scene.gravityz * m_mass;
 

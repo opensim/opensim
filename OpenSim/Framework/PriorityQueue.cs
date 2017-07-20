@@ -216,6 +216,27 @@ namespace OpenSim.Framework
             return false;
         }
 
+        public bool TryOrderedDequeue(out EntityUpdate value, out Int32 timeinqueue)
+        {
+            // If there is anything in imediate queues, return it first no
+            // matter what else. Breaks fairness. But very useful.
+            for (int iq = 0; iq < NumberOfQueues; iq++)
+            {
+                if (m_heaps[iq].Count > 0)
+                {
+                    MinHeapItem item = m_heaps[iq].RemoveMin();
+                    m_lookupTable.Remove(item.Value.Entity.LocalId);
+                    timeinqueue = Util.EnvironmentTickCountSubtract(item.EntryTime);
+                    value = item.Value;
+                    return true;
+                }
+            }
+
+            timeinqueue = 0;
+            value = default(EntityUpdate);
+            return false;
+        }
+
         /// <summary>
         /// Reapply the prioritization function to each of the updates currently
         /// stored in the priority queues.

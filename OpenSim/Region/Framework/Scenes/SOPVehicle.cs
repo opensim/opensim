@@ -425,25 +425,25 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void XWfloat(string name, float f)
         {
-            writer.WriteElementString(name, f.ToString(Utils.EnUsCulture));
+            writer.WriteElementString(name, f.ToString(Culture.FormatProvider));
         }
 
         private void XWVector(string name, Vector3 vec)
         {
             writer.WriteStartElement(name);
-            writer.WriteElementString("X", vec.X.ToString(Utils.EnUsCulture));
-            writer.WriteElementString("Y", vec.Y.ToString(Utils.EnUsCulture));
-            writer.WriteElementString("Z", vec.Z.ToString(Utils.EnUsCulture));
+            writer.WriteElementString("X", vec.X.ToString(Culture.FormatProvider));
+            writer.WriteElementString("Y", vec.Y.ToString(Culture.FormatProvider));
+            writer.WriteElementString("Z", vec.Z.ToString(Culture.FormatProvider));
             writer.WriteEndElement();
         }
 
         private void XWQuat(string name, Quaternion quat)
         {
             writer.WriteStartElement(name);
-            writer.WriteElementString("X", quat.X.ToString(Utils.EnUsCulture));
-            writer.WriteElementString("Y", quat.Y.ToString(Utils.EnUsCulture));
-            writer.WriteElementString("Z", quat.Z.ToString(Utils.EnUsCulture));
-            writer.WriteElementString("W", quat.W.ToString(Utils.EnUsCulture));
+            writer.WriteElementString("X", quat.X.ToString(Culture.FormatProvider));
+            writer.WriteElementString("Y", quat.Y.ToString(Culture.FormatProvider));
+            writer.WriteElementString("Z", quat.Z.ToString(Culture.FormatProvider));
+            writer.WriteElementString("W", quat.W.ToString(Culture.FormatProvider));
             writer.WriteEndElement();
         }
 
