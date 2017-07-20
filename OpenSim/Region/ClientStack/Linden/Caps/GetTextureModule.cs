@@ -146,39 +146,13 @@ namespace OpenSim.Region.ClientStack.Linden
                 }
             }
         }
-        private int ExtractImageThrottle(byte[] pthrottles)
-        {
-
-            byte[] adjData;
-            int pos = 0;
-
-            if (!BitConverter.IsLittleEndian)
-            {
-                byte[] newData = new byte[7 * 4];
-                Buffer.BlockCopy(pthrottles, 0, newData, 0, 7 * 4);
-
-                for (int i = 0; i < 7; i++)
-                    Array.Reverse(newData, i * 4, 4);
-
-                adjData = newData;
-            }
-            else
-            {
-                adjData = pthrottles;
-            }
-
-            pos = pos + 20;
-            int texture = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); //pos += 4;
-            //int asset = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f);
-            return texture;
-        }
-
+ 
         // Now we know when the throttle is changed by the client in the case of a root agent or by a neighbor region in the case of a child agent.
         public void ThrottleUpdate(ScenePresence p)
         {
             byte[] throttles = p.ControllingClient.GetThrottlesPacked(1);
             UUID user = p.UUID;
-            int imagethrottle = ExtractImageThrottle(throttles);
+            int imagethrottle = p.ControllingClient.GetAgentThrottleSilent((int)ThrottleOutPacketType.Texture);
             PollServiceTextureEventArgs args;
             if (m_pollservices.TryGetValue(user,out args))
             {
@@ -221,11 +195,12 @@ namespace OpenSim.Region.ClientStack.Linden
             private HashSet<UUID> dropedResponses = new HashSet<UUID>();
 
             private Scene m_scene;
-            private CapsDataThrottler m_throttler = new CapsDataThrottler(100000);
+            private CapsDataThrottler m_throttler;
             public PollServiceTextureEventArgs(UUID pId, Scene scene) :
                     base(null, "", null, null, null, null, pId, int.MaxValue)              
             {
                 m_scene = scene;
+                m_throttler = new CapsDataThrottler(100000);
                 // x is request id, y is userid
                 HasEvents = (x, y) =>
                 {
@@ -372,7 +347,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         if(dropedResponses.Contains(requestID))
                         {
                             dropedResponses.Remove(requestID);
-                            m_throttler.ProcessTime();
+                            m_throttler.PassTime();
                             return;
                         }
                     }
