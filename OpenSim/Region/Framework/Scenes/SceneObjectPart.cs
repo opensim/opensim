@@ -1675,7 +1675,7 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 byte pst = PhysicsShapeType;
-                if(pst == (byte) PhysShapeType.none || pst == (byte) PhysShapeType.convex || HasMesh())
+                if(pst == (byte) PhysShapeType.none || HasMesh())
                     return true;
                 return false;
             }
