@@ -425,17 +425,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             Vector3 size = repData.size;
 
             int clod = (int)LevelOfDetail.High;
-            bool convex;
             byte shapetype = repData.shapetype;
-            if (shapetype == 0)
-                convex = false;
-            else
-            {
-                convex = true;
-                // sculpts pseudo convex
-                if (pbs.SculptEntry && pbs.SculptType != (byte)SculptType.Mesh)
-                    clod = (int)LevelOfDetail.Low;
-            }
+            bool convex = shapetype == 2;
 
             mesh = m_mesher.GetMesh(actor.Name, pbs, size, clod, true, convex);
 
