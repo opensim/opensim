@@ -43,8 +43,6 @@ using log4net;
 using Nini.Config;
 using System.Reflection;
 using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 
 using Mono.Addins;
 
@@ -72,6 +70,8 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         private const string baseDir = null; //"rawFiles";
 
         private bool useMeshiesPhysicsMesh = false;
+        private bool doConvexPrims = true;
+        private bool doConvexSculpts = true;
 
         private float minSizeForComplexMesh = 0.2f; // prims with all dimensions smaller than this will have a bounding box mesh
 
@@ -103,18 +103,14 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                 if (mesh_config != null)
                 {
                     useMeshiesPhysicsMesh = mesh_config.GetBoolean("UseMeshiesPhysicsMesh", useMeshiesPhysicsMesh);
-                    if (useMeshiesPhysicsMesh)
-                    {
-                        doMeshFileCache = mesh_config.GetBoolean("MeshFileCache", doMeshFileCache);
-                        cachePath = mesh_config.GetString("MeshFileCachePath", cachePath);
-                        fcache = mesh_config.GetFloat("MeshFileCacheExpireHours", fcache);
-                        doCacheExpire = mesh_config.GetBoolean("MeshFileCacheDoExpire", doCacheExpire);
-                    }
-                    else
-                    {
-                        doMeshFileCache = false;
-                        doCacheExpire = false;
-                    }
+
+                    doConvexPrims = mesh_config.GetBoolean("ConvexPrims",doConvexPrims);
+                    doConvexSculpts = mesh_config.GetBoolean("ConvexSculpts",doConvexPrims);
+
+                    doMeshFileCache = mesh_config.GetBoolean("MeshFileCache", doMeshFileCache);
+                    cachePath = mesh_config.GetString("MeshFileCachePath", cachePath);
+                    fcache = mesh_config.GetFloat("MeshFileCacheExpireHours", fcache);
+                    doCacheExpire = mesh_config.GetBoolean("MeshFileCacheDoExpire", doCacheExpire);
 
                     m_Enabled = true;
                 }
@@ -330,6 +326,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
             List<Coord> coords;
             List<Face> faces;
+            bool needsConvexProcessing = convex;
 
             if (primShape.SculptEntry)
             {
@@ -340,22 +337,48 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
                     if (!GenerateCoordsAndFacesFromPrimMeshData(primName, primShape, out coords, out faces, convex))
                         return null;
+                    needsConvexProcessing = false;
                 }
                 else
                 {
                     if (!GenerateCoordsAndFacesFromPrimSculptData(primName, primShape, lod, out coords, out faces))
                         return null;
+                    needsConvexProcessing &= doConvexSculpts;
                 }
             }
             else
             {
                 if (!GenerateCoordsAndFacesFromPrimShapeData(primName, primShape, lod, convex, out coords, out faces))
                     return null;
+                 needsConvexProcessing &= doConvexPrims;
             }
-
 
             int numCoords = coords.Count;
             int numFaces = faces.Count;
+
+            if(numCoords < 3 || (!needsConvexProcessing && numFaces < 1))
+            {
+                m_log.ErrorFormat("[MESH]: invalid degenerated mesh for prim {0} ignored", primName);
+                return null;
+            }
+
+            if(needsConvexProcessing)
+            {
+                List<Coord> convexcoords;
+                List<Face> convexfaces;
+                if(CreateHull(coords, out convexcoords, out convexfaces) && convexcoords != null && convexfaces != null)
+                {
+                    coords.Clear();
+                    coords = convexcoords;
+                    numCoords = coords.Count;
+
+                    faces.Clear();
+                    faces = convexfaces;
+                    numFaces = faces.Count;
+                }
+                else
+                     m_log.ErrorFormat("[ubMESH]: failed to create convex for {0} using normal mesh", primName);
+            }
 
             Mesh mesh = new Mesh(true);
             // Add the corresponding triangles to the mesh
@@ -371,10 +394,10 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             faces.Clear();
 
             if(mesh.numberVertices() < 3 || mesh.numberTriangles() < 1)
-                {
-                m_log.ErrorFormat("[MESH]: invalid degenerated mesh for prim " + primName + " ignored");
+            {
+                m_log.ErrorFormat("[MESH]: invalid degenerated mesh for prim {0} ignored", primName);
                 return null;
-                }
+            }
 
             primShape.SculptData = Utils.EmptyBytes;
 
@@ -1582,6 +1605,80 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                 }
                 catch { }
             }
+        }
+
+        public bool CreateHull(List<Coord> inputVertices, out List<Coord> convexcoords, out List<Face> newfaces)
+        {
+            convexcoords = null;
+            newfaces = null;
+            HullDesc desc = new HullDesc();
+            HullResult result = new HullResult();
+
+            int nInputVerts = inputVertices.Count;
+            int i;
+
+            List<float3> vs = new List<float3>(nInputVerts);
+            float3 f3;
+
+            //useless copy
+            for(i = 0 ; i < nInputVerts; i++)
+            {
+                f3 = new float3(inputVertices[i].X, inputVertices[i].Y, inputVertices[i].Z);
+                vs.Add(f3);
+            }
+
+            desc.Vertices = vs;
+            desc.Flags = HullFlag.QF_TRIANGLES;
+            desc.MaxVertices = 256;
+
+            try
+            {
+                HullError ret = HullUtils.CreateConvexHull(desc, ref result);
+                if (ret != HullError.QE_OK)
+                    return false;
+                int nverts = result.OutputVertices.Count;
+                int nindx = result.Indices.Count;
+                if(nverts < 3 || nindx< 3)
+                    return false;
+                if(nindx % 3 != 0)
+                    return false;
+
+                convexcoords = new List<Coord>(nverts);
+                Coord c;
+                vs = result.OutputVertices;
+
+                for(i = 0 ; i < nverts; i++)
+                {
+                    c = new Coord(vs[i].x, vs[i].y, vs[i].z);
+                    convexcoords.Add(c);
+                }
+
+                newfaces = new List<Face>(nindx / 3);
+                List<int> indxs = result.Indices;
+                int k, l, m;
+                Face f;
+                for(i = 0 ; i < nindx;)
+                {
+                    k = indxs[i++];
+                    l = indxs[i++];
+                    m = indxs[i++];
+                    if(k > nInputVerts)
+                        continue;
+                    if(l > nInputVerts)
+                        continue;
+                    if(m > nInputVerts)
+                        continue;
+                    f = new Face(k,l,m);
+                    newfaces.Add(f);
+                }
+                return true;
+            }
+            catch
+            {
+
+                return false;
+            }
+            return false;
         }
     }
 }
