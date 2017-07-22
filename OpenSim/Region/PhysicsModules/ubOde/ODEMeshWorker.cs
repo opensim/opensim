@@ -62,6 +62,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public byte shapetype;
         public bool hasOBB;
         public bool hasMeshVolume;
+        public bool isTooSmall;
         public MeshState meshState;
         public UUID? assetID;
         public meshWorkerCmnds comand;
@@ -69,16 +70,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
     public class ODEMeshWorker
     {
-
         private ILog m_log;
         private ODEScene m_scene;
         private IMesher m_mesher;
 
         public bool meshSculptedPrim = true;
-        public bool forceSimplePrimMeshing = false;
         public float meshSculptLOD = 32;
         public float MeshSculptphysicalLOD = 32;
-
+        public float MinSizeToMeshmerize = 0.1f;
 
         private OpenSim.Framework.BlockingQueue<ODEPhysRepData> workQueue = new OpenSim.Framework.BlockingQueue<ODEPhysRepData>();
         private bool m_running;
@@ -93,9 +92,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             if (pConfig != null)
             {
-                forceSimplePrimMeshing = pConfig.GetBoolean("force_simple_prim_meshing", forceSimplePrimMeshing);
                 meshSculptedPrim = pConfig.GetBoolean("mesh_sculpted_prim", meshSculptedPrim);
                 meshSculptLOD = pConfig.GetFloat("mesh_lod", meshSculptLOD);
+                MinSizeToMeshmerize =  pConfig.GetFloat("mesh_min_size", MinSizeToMeshmerize);
                 MeshSculptphysicalLOD = pConfig.GetFloat("mesh_physical_lod", MeshSculptphysicalLOD);
             }
             m_running = true;
@@ -288,6 +287,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             PrimitiveBaseShape pbs = repData.pbs;
             // check sculpts or meshs
+
+            Vector3 scale = pbs.Scale;
+            if(scale.X <= MinSizeToMeshmerize &&
+               scale.Y <= MinSizeToMeshmerize &&
+               scale.Z <= MinSizeToMeshmerize)
+            {
+                repData.isTooSmall = true;
+                return false;
+            }
+
             if (pbs.SculptEntry)
             {
                 if (meshSculptedPrim)
@@ -298,9 +307,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 return false;
             }
-
-            if (forceSimplePrimMeshing)
-                return true;
 
             // convex shapes have no holes
             ushort profilehollow = pbs.ProfileHollow;
@@ -554,10 +560,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private void CalculateBasicPrimVolume(ODEPhysRepData repData)
         {
-            PrimitiveBaseShape _pbs = repData.pbs;
             Vector3 _size = repData.size;
 
             float volume = _size.X * _size.Y * _size.Z; // default
+            if(repData.isTooSmall)
+            {
+                repData.volume = volume;
+                return;
+            }
+
+            PrimitiveBaseShape _pbs = repData.pbs;
             float tmp;
 
             float hollowAmount = (float)_pbs.ProfileHollow * 2.0e-5f;

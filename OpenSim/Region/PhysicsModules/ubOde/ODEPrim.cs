@@ -1733,7 +1733,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             return true;
         }
 
-        private void CreateGeom()
+        private void CreateGeom(bool OverrideToBox)
         {
             bool hasMesh = false;
 
@@ -1742,7 +1742,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if ((m_meshState & MeshState.MeshNoColide) != 0)
                 m_NoColide = true;
 
-            else if(m_mesh != null)
+            else if(!OverrideToBox && m_mesh != null)
             {
                 if (GetMeshGeom())
                     hasMesh = true;
@@ -1755,7 +1755,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 IntPtr geo = IntPtr.Zero;
 
-                if (_pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1
+                if (!OverrideToBox && _pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1
                     && _size.X == _size.Y && _size.Y == _size.Z)
                 { // it's a sphere
                     try
@@ -3180,7 +3180,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             primVolume = repData.volume;
 
-            CreateGeom();
+            CreateGeom(repData.isTooSmall);
 
             if (prim_geom != IntPtr.Zero)
             {
@@ -3256,7 +3256,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             primVolume = repData.volume;
 
-            CreateGeom();
+            CreateGeom(repData.isTooSmall);
 
             if (prim_geom != IntPtr.Zero)
             {
