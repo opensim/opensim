@@ -73,8 +73,6 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         private bool doConvexPrims = true;
         private bool doConvexSculpts = true;
 
-        private float minSizeForComplexMesh = 0.2f; // prims with all dimensions smaller than this will have a bounding box mesh
-
         private Dictionary<AMeshKey, Mesh> m_uniqueMeshes = new Dictionary<AMeshKey, Mesh>();
         private Dictionary<AMeshKey, Mesh> m_uniqueReleasedMeshes = new Dictionary<AMeshKey, Mesh>();
 
@@ -164,87 +162,6 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
         #endregion
 
-        /// <summary>
-        /// creates a simple box mesh of the specified size. This mesh is of very low vertex count and may
-        /// be useful as a backup proxy when level of detail is not needed or when more complex meshes fail
-        /// for some reason
-        /// </summary>
-        /// <param name="minX"></param>
-        /// <param name="maxX"></param>
-        /// <param name="minY"></param>
-        /// <param name="maxY"></param>
-        /// <param name="minZ"></param>
-        /// <param name="maxZ"></param>
-        /// <returns></returns>
-        private static Mesh CreateSimpleBoxMesh(float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
-        {
-            Mesh box = new Mesh(true);
-            List<Vertex> vertices = new List<Vertex>();
-            // bottom
-
-            vertices.Add(new Vertex(minX, maxY, minZ));
-            vertices.Add(new Vertex(maxX, maxY, minZ));
-            vertices.Add(new Vertex(maxX, minY, minZ));
-            vertices.Add(new Vertex(minX, minY, minZ));
-
-            box.Add(new Triangle(vertices[0], vertices[1], vertices[2]));
-            box.Add(new Triangle(vertices[0], vertices[2], vertices[3]));
-
-            // top
-
-            vertices.Add(new Vertex(maxX, maxY, maxZ));
-            vertices.Add(new Vertex(minX, maxY, maxZ));
-            vertices.Add(new Vertex(minX, minY, maxZ));
-            vertices.Add(new Vertex(maxX, minY, maxZ));
-
-            box.Add(new Triangle(vertices[4], vertices[5], vertices[6]));
-            box.Add(new Triangle(vertices[4], vertices[6], vertices[7]));
-
-            // sides
-
-            box.Add(new Triangle(vertices[5], vertices[0], vertices[3]));
-            box.Add(new Triangle(vertices[5], vertices[3], vertices[6]));
-
-            box.Add(new Triangle(vertices[1], vertices[0], vertices[5]));
-            box.Add(new Triangle(vertices[1], vertices[5], vertices[4]));
-
-            box.Add(new Triangle(vertices[7], vertices[1], vertices[4]));
-            box.Add(new Triangle(vertices[7], vertices[2], vertices[1]));
-
-            box.Add(new Triangle(vertices[3], vertices[2], vertices[7]));
-            box.Add(new Triangle(vertices[3], vertices[7], vertices[6]));
-
-            return box;
-        }
-
-        /// <summary>
-        /// Creates a simple bounding box mesh for a complex input mesh
-        /// </summary>
-        /// <param name="meshIn"></param>
-        /// <returns></returns>
-        private static Mesh CreateBoundingBoxMesh(Mesh meshIn)
-        {
-            float minX = float.MaxValue;
-            float maxX = float.MinValue;
-            float minY = float.MaxValue;
-            float maxY = float.MinValue;
-            float minZ = float.MaxValue;
-            float maxZ = float.MinValue;
-
-            foreach (Vector3 v in meshIn.getVertexList())
-            {
-                if (v.X < minX) minX = v.X;
-                if (v.Y < minY) minY = v.Y;
-                if (v.Z < minZ) minZ = v.Z;
-
-                if (v.X > maxX) maxX = v.X;
-                if (v.Y > maxY) maxY = v.Y;
-                if (v.Z > maxZ) maxZ = v.Z;
-            }
-
-            return CreateSimpleBoxMesh(minX, maxX, minY, maxY, minZ, maxZ);
-        }
-
         private void ReportPrimError(string message, string primName, PrimMesh primMesh)
         {
             m_log.Error(message);
@@ -261,7 +178,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         /// <param name="faces"></param>
         private void AddSubMesh(OSDMap subMeshData, List<Coord> coords, List<Face> faces)
         {
-    //                                    Console.WriteLine("subMeshMap for {0} - {1}", primName, Util.GetFormattedXml((OSD)subMeshMap));
+            // Console.WriteLine("subMeshMap for {0} - {1}", primName, Util.GetFormattedXml((OSD)subMeshMap));
 
             // As per http://wiki.secondlife.com/wiki/Mesh/Mesh_Asset_Format, some Mesh Level
             // of Detail Blocks (maps) contain just a NoGeometry key to signal there is no
