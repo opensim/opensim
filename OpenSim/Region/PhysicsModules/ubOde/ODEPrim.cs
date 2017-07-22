@@ -1755,7 +1755,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 IntPtr geo = IntPtr.Zero;
 
-                if (!OverrideToBox && _pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1
+                if (_pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1
                     && _size.X == _size.Y && _size.Y == _size.Z)
                 { // it's a sphere
                     try
