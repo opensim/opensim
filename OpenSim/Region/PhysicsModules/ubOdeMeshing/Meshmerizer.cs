@@ -36,7 +36,7 @@ using OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using System.Drawing;
-using System.Drawing.Imaging;
+using System.Threading;
 using System.IO.Compression;
 using PrimMesher;
 using log4net;
@@ -56,15 +56,15 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         // Setting baseDir to a path will enable the dumping of raw files
         // raw files can be imported by blender so a visual inspection of the results can be done
 
+        private static string cacheControlFilename = "cntr";
         private bool m_Enabled = false;
 
         public static object diskLock = new object();
 
         public bool doMeshFileCache = true;
-
+        public bool doCacheExpire = true;
         public string cachePath = "MeshCache";
         public TimeSpan CacheExpire;
-        public bool doCacheExpire = true;
 
 //        const string baseDir = "rawFiles";
         private const string baseDir = null; //"rawFiles";
@@ -101,10 +101,8 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                 if (mesh_config != null)
                 {
                     useMeshiesPhysicsMesh = mesh_config.GetBoolean("UseMeshiesPhysicsMesh", useMeshiesPhysicsMesh);
-
                     doConvexPrims = mesh_config.GetBoolean("ConvexPrims",doConvexPrims);
                     doConvexSculpts = mesh_config.GetBoolean("ConvexSculpts",doConvexPrims);
-
                     doMeshFileCache = mesh_config.GetBoolean("MeshFileCache", doMeshFileCache);
                     cachePath = mesh_config.GetString("MeshFileCachePath", cachePath);
                     fcache = mesh_config.GetFloat("MeshFileCacheExpireHours", fcache);
@@ -115,22 +113,19 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
                 CacheExpire = TimeSpan.FromHours(fcache);
 
-                lock (diskLock)
+                if(String.IsNullOrEmpty(cachePath))
+                    doMeshFileCache = false;
+
+                if(doMeshFileCache)
                 {
-                    if(doMeshFileCache && cachePath != "")
+                    if(!checkCache())
                     {
-                        try
-                        {
-                            if (!Directory.Exists(cachePath))
-                                Directory.CreateDirectory(cachePath);
-                        }
-                        catch
-                        {
-                            doMeshFileCache = false;
-                            doCacheExpire = false;
-                        }
+                        doMeshFileCache = false;
+                        doCacheExpire = false;
                     }
                 }
+                else
+                    doCacheExpire = false;
             }
         }
 
@@ -283,7 +278,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             {
                 List<Coord> convexcoords;
                 List<Face> convexfaces;
-                if(CreateHull(coords, out convexcoords, out convexfaces) && convexcoords != null && convexfaces != null)
+                if(CreateBoundingHull(coords, out convexcoords, out convexfaces) && convexcoords != null && convexfaces != null)
                 {
                     coords.Clear();
                     coords = convexcoords;
@@ -565,45 +560,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                                         vs.Clear();
                                         continue;
                                     }
-    /*
-                                    if (!HullUtils.ComputeHull(vs, ref hullr, 0, 0.0f))
-                                    {
-                                        vs.Clear();
-                                        continue;
-                                    }
 
-                                    nverts = hullr.Vertices.Count;
-                                    nindexs = hullr.Indices.Count;
-
-                                    if (nindexs % 3 != 0)
-                                    {
-                                        vs.Clear();
-                                        continue;
-                                    }
-
-                                    for (i = 0; i < nverts; i++)
-                                    {
-                                        c.X = hullr.Vertices[i].x;
-                                        c.Y = hullr.Vertices[i].y;
-                                        c.Z = hullr.Vertices[i].z;
-                                        coords.Add(c);
-                                    }
-
-                                    for (i = 0; i < nindexs; i += 3)
-                                    {
-                                        t1 = hullr.Indices[i];
-                                        if (t1 > nverts)
-                                            break;
-                                        t2 = hullr.Indices[i + 1];
-                                        if (t2 > nverts)
-                                            break;
-                                        t3 = hullr.Indices[i + 2];
-                                        if (t3 > nverts)
-                                            break;
-                                        f = new Face(vertsoffset + t1, vertsoffset + t2, vertsoffset + t3);
-                                        faces.Add(f);
-                                    }
-    */
                                     List<int> indices;
                                     if (!HullUtils.ComputeHull(vs, out indices))
                                     {
@@ -709,38 +666,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                             vs.Clear();
                             return true;
                         }
-/*
-                        if (!HullUtils.ComputeHull(vs, ref hullr, 0, 0.0f))
-                            return false;
 
-                        nverts = hullr.Vertices.Count;
-                        nindexs = hullr.Indices.Count;
-
-                        if (nindexs % 3 != 0)
-                            return false;
-
-                        for (i = 0; i < nverts; i++)
-                        {
-                            c.X = hullr.Vertices[i].x;
-                            c.Y = hullr.Vertices[i].y;
-                            c.Z = hullr.Vertices[i].z;
-                            coords.Add(c);
-                        }
-                        for (i = 0; i < nindexs; i += 3)
-                        {
-                            t1 = hullr.Indices[i];
-                            if (t1 > nverts)
-                                break;
-                            t2 = hullr.Indices[i + 1];
-                            if (t2 > nverts)
-                                break;
-                            t3 = hullr.Indices[i + 2];
-                            if (t3 > nverts)
-                                break;
-                            f = new Face(t1, t2, t3);
-                            faces.Add(f);
-                        }
-*/
                         List<int> indices;
                         if (!HullUtils.ComputeHull(vs, out indices))
                             return false;
@@ -1353,7 +1279,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             }
         }
 
-        public void FileNames(AMeshKey key, out string dir,out string fullFileName)
+        public void FileNames(AMeshKey key, out string dir, out string fullFileName)
         {
             string id = key.ToString();
             string init = id.Substring(0, 1);
@@ -1470,7 +1396,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             if (!doCacheExpire)
                 return;
 
-            string controlfile = System.IO.Path.Combine(cachePath, "cntr");
+            string controlfile = System.IO.Path.Combine(cachePath, cacheControlFilename);
 
             lock (diskLock)
             {
@@ -1524,7 +1450,81 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             }
         }
 
-        public bool CreateHull(List<Coord> inputVertices, out List<Coord> convexcoords, out List<Face> newfaces)
+        public bool checkCache()
+        {
+            string controlfile = System.IO.Path.Combine(cachePath, cacheControlFilename);
+            lock (diskLock)
+            {
+                try
+                {
+                    if (!Directory.Exists(cachePath))
+                    {
+                        Directory.CreateDirectory(cachePath);
+                        Thread.Sleep(100);
+                        FileStream fs = File.Create(controlfile, 4096, FileOptions.WriteThrough);
+                        fs.Close();
+                        return true;
+                    }
+                }
+                catch
+                {
+                    doMeshFileCache = false;
+                    doCacheExpire = false;
+                    return false;
+                }
+                finally {}
+
+                if (File.Exists(controlfile))
+                    return true;
+
+                try
+                {
+                    Directory.Delete(cachePath, true);
+                    while(Directory.Exists(cachePath))
+                        Thread.Sleep(100);
+                }
+                catch(Exception e)
+                {
+                    m_log.Error("[MESH CACHE]: failed to delete old version of the cache: " + e.Message);
+                    doMeshFileCache = false;
+                    doCacheExpire = false;
+                    return false;
+                } 
+                finally {}
+                try
+                {
+                    Directory.CreateDirectory(cachePath);
+                    while(!Directory.Exists(cachePath))
+                        Thread.Sleep(100);
+                }
+                catch(Exception e)
+                {
+                    m_log.Error("[MESH CACHE]: failed to create new cache folder: " + e.Message);
+                    doMeshFileCache = false;
+                    doCacheExpire = false;
+                    return false;
+                } 
+                finally {}
+
+                try
+                {
+                    FileStream fs = File.Create(controlfile, 4096, FileOptions.WriteThrough);
+                    fs.Close();
+                }
+                catch(Exception e)
+                {
+                    m_log.Error("[MESH CACHE]: failed to create new control file: " + e.Message);
+                    doMeshFileCache = false;
+                    doCacheExpire = false;
+                    return false;
+                } 
+                finally {}
+            
+                return true;
+            }
+        }
+
+        public bool CreateBoundingHull(List<Coord> inputVertices, out List<Coord> convexcoords, out List<Face> newfaces)
         {
             convexcoords = null;
             newfaces = null;
