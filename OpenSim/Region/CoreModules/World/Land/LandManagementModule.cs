@@ -1292,7 +1292,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (!temp.Contains(currentParcel))
                         {
-                            if (!currentParcel.IsEitherBannedOrRestricted(remote_client.AgentId))
+                            if (!currentParcel.IsBannedFromLand(remote_client.AgentId))
                             {
                                 currentParcel.ForceUpdateLandInfo();
                                 temp.Add(currentParcel);
