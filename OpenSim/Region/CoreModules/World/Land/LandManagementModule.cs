@@ -561,6 +561,12 @@ namespace OpenSim.Region.CoreModules.World.Land
             if(ldata.PassHours == 0)
                 return;
 
+            if(ldata.IsGroupOwned)
+            {
+                remote_client.SendAgentAlertMessage("pass to group owned parcel not suported", false);
+                return;
+            }
+
             if((ldata.Flags & (uint)ParcelFlags.UsePassList) == 0)
                 return;
 
@@ -607,7 +613,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         return;
                     }
 
-                    mm.ApplyCharge(remote_client.AgentId, cost, MoneyTransactionType.LandPassSale);
+                    mm.MoveMoney(remote_client.AgentId, ldata.OwnerID, cost, String.Format("Parcel '{0}' pass sell",ldata.Name));
 
                     if (idx != -1)
                         ldata.ParcelAccessList.RemoveAt(idx);
