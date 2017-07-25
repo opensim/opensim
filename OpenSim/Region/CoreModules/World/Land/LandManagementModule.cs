@@ -613,8 +613,12 @@ namespace OpenSim.Region.CoreModules.World.Land
                         return;
                     }
 
-                    mm.MoveMoney(remote_client.AgentId, ldata.OwnerID, cost, String.Format("Parcel '{0}' pass sell",ldata.Name));
+//                    mm.MoveMoney(remote_client.AgentId, ldata.OwnerID, cost, String.Format("Parcel '{0}' pass sell",ldata.Name));
+                    // lets try older method
+                    EventManager.MoneyTransferArgs args = new EventManager.MoneyTransferArgs(remote_client.AgentId,  ldata.OwnerID,
+                                cost,(int)MoneyTransactionType.LandPassSale , String.Format("Parcel '{0}' pass sell",ldata.Name));
 
+                    m_scene.EventManager.TriggerMoneyTransfer(this, args);
                     if (idx != -1)
                         ldata.ParcelAccessList.RemoveAt(idx);
                     ldata.ParcelAccessList.Add(entry);
