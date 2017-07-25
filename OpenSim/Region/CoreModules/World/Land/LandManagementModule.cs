@@ -41,6 +41,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -216,6 +217,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnParcelEjectUser += ClientOnParcelEjectUser;
             client.OnParcelFreezeUser += ClientOnParcelFreezeUser;
             client.OnSetStartLocationRequest += ClientOnSetHome;
+            client.OnParcelBuyPass += ClientParcelBuyPass;
         }
 
         public void EventMakeChildAgent(ScenePresence avatar)
@@ -534,6 +536,92 @@ namespace OpenSim.Region.CoreModules.World.Land
                     m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar,
                             newover.LandData.LocalID, m_scene.RegionInfo.RegionID);
                 }
+            }
+        }
+
+        public void ClientParcelBuyPass(IClientAPI remote_client, UUID targetID, int landLocalID)
+        {
+            ILandObject land;
+            lock (m_landList)
+            {
+                m_landList.TryGetValue(landLocalID, out land);
+            }
+            // trivial checks
+            if(land == null)
+                return;
+
+            LandData ldata = land.LandData;
+
+            if(ldata == null)
+                return;
+
+            if(ldata.OwnerID == targetID)
+                return;
+
+            if(ldata.PassHours == 0)
+                return;
+
+            if((ldata.Flags & (uint)ParcelFlags.UsePassList) == 0)
+                return;
+
+            int cost = ldata.PassPrice;
+
+            int idx = land.LandData.ParcelAccessList.FindIndex(
+                delegate(LandAccessEntry e)
+                {
+                    if (e.AgentID == targetID && e.Flags == AccessList.Access)
+                        return true;
+                    return false;
+                });
+
+            int expires = Util.UnixTimeSinceEpoch() + (int)(3600.0 * ldata.PassHours);
+            if (idx != -1)
+            {
+                if(ldata.ParcelAccessList[idx].Expires == 0)
+                {
+                    remote_client.SendAgentAlertMessage("You already have access to parcel", false);
+                    return;
+                }
+
+                if(expires < land.LandData.ParcelAccessList[idx].Expires - 300f)
+                {
+                    remote_client.SendAgentAlertMessage("Your pass to parcel is still valid for 5 minutes", false);
+                    return;
+                }
+            }
+            
+            LandAccessEntry entry = new LandAccessEntry();
+            entry.AgentID = targetID;
+            entry.Flags = AccessList.Access;
+            entry.Expires = expires;
+
+            IMoneyModule mm = m_scene.RequestModuleInterface<IMoneyModule>();
+            if(cost != 0 && mm != null)
+            {
+                WorkManager.RunInThreadPool(
+                delegate
+                {
+                    if (!mm.AmountCovered(remote_client.AgentId, cost))
+                    {
+                        remote_client.SendAgentAlertMessage("Insufficient funds", true); 
+                        return;
+                    }
+
+                    mm.ApplyCharge(remote_client.AgentId, cost, MoneyTransactionType.LandPassSale);
+
+                    if (idx != -1)
+                        ldata.ParcelAccessList.RemoveAt(idx);
+                    ldata.ParcelAccessList.Add(entry);
+                    m_scene.EventManager.TriggerLandObjectUpdated((uint)land.LandData.LocalID, land);
+                    return;
+                }, null, "ParcelBuyPass");
+            }
+            else
+            {
+                if (idx != -1)
+                    ldata.ParcelAccessList.RemoveAt(idx);
+                ldata.ParcelAccessList.Add(entry);
+                m_scene.EventManager.TriggerLandObjectUpdated((uint)land.LandData.LocalID, land);
             }
         }
 
@@ -1769,7 +1857,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             land_update.MusicURL = properties.MusicURL;
             land_update.Name = properties.Name;
             land_update.ParcelFlags = (uint) properties.ParcelFlags;
-            land_update.PassHours = (int) properties.PassHours;
+            land_update.PassHours = properties.PassHours;
             land_update.PassPrice = (int) properties.PassPrice;
             land_update.SalePrice = (int) properties.SalePrice;
             land_update.SnapshotID = properties.SnapshotID;
