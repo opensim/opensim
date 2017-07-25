@@ -6447,6 +6447,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             ParcelBuyPassPacket ParcelBuyPass =
                 (ParcelBuyPassPacket)Packet;
+           
+            if(SessionId != ParcelBuyPass.AgentData.SessionID)
+                return false;
 
             ParcelBuyPass ParcelBuyPassHandler = OnParcelBuyPass;
             if (ParcelBuyPassHandler != null)
