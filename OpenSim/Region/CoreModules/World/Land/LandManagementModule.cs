@@ -579,8 +579,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                         return true;
                     return false;
                 });
-
-            int expires = Util.UnixTimeSinceEpoch() + (int)(3600.0 * ldata.PassHours);
+            int now = Util.UnixTimeSinceEpoch();
+            int expires = (int)(3600.0 * ldata.PassHours + 0.5f);
+            int currenttime = -1;
             if (idx != -1)
             {
                 if(ldata.ParcelAccessList[idx].Expires == 0)
@@ -589,18 +590,17 @@ namespace OpenSim.Region.CoreModules.World.Land
                     return;
                 }
 
-                if(expires < land.LandData.ParcelAccessList[idx].Expires - 300f)
-                {
-                    remote_client.SendAgentAlertMessage("Your pass to parcel is still valid for 5 minutes", false);
-                    return;
-                }
+                currenttime = ldata.ParcelAccessList[idx].Expires - now;
+                if(currenttime > (int)(0.25f * expires + 0.5f))
+                    currenttime = (int)(0.25f * expires + 0.5f);
             }
             
             LandAccessEntry entry = new LandAccessEntry();
             entry.AgentID = targetID;
             entry.Flags = AccessList.Access;
-            entry.Expires = expires;
-
+            entry.Expires = now + expires;
+            if(currenttime > 0)
+                entry.Expires += currenttime;
             IMoneyModule mm = m_scene.RequestModuleInterface<IMoneyModule>();
             if(cost != 0 && mm != null)
             {
