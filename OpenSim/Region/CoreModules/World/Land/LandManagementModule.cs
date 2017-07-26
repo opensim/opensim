@@ -561,6 +561,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             if(ldata.PassHours == 0)
                 return;
 
+            // don't allow passes on group owned until we can give money to groups
             if(ldata.IsGroupOwned)
             {
                 remote_client.SendAgentAlertMessage("pass to group owned parcel not suported", false);
