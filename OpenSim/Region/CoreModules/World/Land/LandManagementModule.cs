@@ -617,12 +617,15 @@ namespace OpenSim.Region.CoreModules.World.Land
                         return;
                     }
 
-                    mm.MoveMoney(remote_client.AgentId, ldata.OwnerID, cost, String.Format("Parcel '{0}' pass sell",ldata.Name));
-                    // lets try older method
-//                    EventManager.MoneyTransferArgs args = new EventManager.MoneyTransferArgs(remote_client.AgentId,  ldata.OwnerID,
-//                                cost,(int)MoneyTransactionType.LandPassSale , String.Format("Parcel '{0}' pass sell",ldata.Name));
+                    string regionName = m_scene.RegionInfo.RegionName;
+                    string payDescription = String.Format("Parcel '{0}' at region '{1} {2:0.###} hours access pass", ldata.Name, regionName, ldata.PassHours);
 
-//                    m_scene.EventManager.TriggerMoneyTransfer(this, args);
+                    if(!mm.MoveMoney(remote_client.AgentId, ldata.OwnerID, cost,MoneyTransactionType.LandPassSale, payDescription))
+                    {
+                        remote_client.SendAgentAlertMessage("Sorry pass payment processing failed, please try again later", true); 
+                        return;
+                    }
+
                     if (idx != -1)
                         ldata.ParcelAccessList.RemoveAt(idx);
                     ldata.ParcelAccessList.Add(entry);
