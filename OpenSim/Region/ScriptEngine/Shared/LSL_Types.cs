@@ -525,7 +525,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
         }
 
         [Serializable]
-        public class list: MarshalByRefObject
+        public class list
         {
             private object[] m_data;
 
