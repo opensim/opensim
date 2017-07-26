@@ -540,7 +540,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         ParcelFlags.UseEstateVoiceChan);
             }
 
-            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId,this, GroupPowers.LandManagePasses, false))
+            if (!newData.IsGroupOwned && m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId,this, GroupPowers.LandManagePasses, false))
             {
                 newData.PassHours = args.PassHours;
                 newData.PassPrice = args.PassPrice;
