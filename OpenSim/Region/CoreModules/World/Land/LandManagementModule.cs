@@ -594,7 +594,15 @@ namespace OpenSim.Region.CoreModules.World.Land
                 currenttime = ldata.ParcelAccessList[idx].Expires - now;
                 if(currenttime > (int)(0.25f * expires + 0.5f))
                 {
-                    remote_client.SendAgentAlertMessage("You already have pass valid for " + string.Format("{0:0.##} minutes", currenttime/60.0f), false);
+                    if(currenttime > 3600)
+                        remote_client.SendAgentAlertMessage(string.Format("You already have a pass valid for {0:0.###} hours",
+                                    currenttime/3600f), false);
+                   else if(currenttime > 60)
+                        remote_client.SendAgentAlertMessage(string.Format("You already have a pass valid for {0:0.##} minutes",
+                                    currenttime/60f), false);
+                   else
+                        remote_client.SendAgentAlertMessage(string.Format("You already have a pass valid for {0:0.#} seconds",
+                                    currenttime), false);
                     return;
                 }
             }
