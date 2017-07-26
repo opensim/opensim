@@ -592,7 +592,10 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                 currenttime = ldata.ParcelAccessList[idx].Expires - now;
                 if(currenttime > (int)(0.25f * expires + 0.5f))
-                    currenttime = (int)(0.25f * expires + 0.5f);
+                {
+                    remote_client.SendAgentAlertMessage("You already have pass valid for " + string.Format("{0:0.##} minutes", currenttime/60.0f), false);
+                    return;
+                }
             }
             
             LandAccessEntry entry = new LandAccessEntry();
@@ -613,12 +616,12 @@ namespace OpenSim.Region.CoreModules.World.Land
                         return;
                     }
 
-//                    mm.MoveMoney(remote_client.AgentId, ldata.OwnerID, cost, String.Format("Parcel '{0}' pass sell",ldata.Name));
+                    mm.MoveMoney(remote_client.AgentId, ldata.OwnerID, cost, String.Format("Parcel '{0}' pass sell",ldata.Name));
                     // lets try older method
-                    EventManager.MoneyTransferArgs args = new EventManager.MoneyTransferArgs(remote_client.AgentId,  ldata.OwnerID,
-                                cost,(int)MoneyTransactionType.LandPassSale , String.Format("Parcel '{0}' pass sell",ldata.Name));
+//                    EventManager.MoneyTransferArgs args = new EventManager.MoneyTransferArgs(remote_client.AgentId,  ldata.OwnerID,
+//                                cost,(int)MoneyTransactionType.LandPassSale , String.Format("Parcel '{0}' pass sell",ldata.Name));
 
-                    m_scene.EventManager.TriggerMoneyTransfer(this, args);
+//                    m_scene.EventManager.TriggerMoneyTransfer(this, args);
                     if (idx != -1)
                         ldata.ParcelAccessList.RemoveAt(idx);
                     ldata.ParcelAccessList.Add(entry);
