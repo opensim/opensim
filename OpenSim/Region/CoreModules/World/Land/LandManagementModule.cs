@@ -611,13 +611,14 @@ namespace OpenSim.Region.CoreModules.World.Land
                 WorkManager.RunInThreadPool(
                 delegate
                 {
+                    string regionName = m_scene.RegionInfo.RegionName;
+
                     if (!mm.AmountCovered(remote_client.AgentId, cost))
                     {
-                        remote_client.SendAgentAlertMessage("Insufficient funds", true); 
+                        remote_client.SendAgentAlertMessage(String.Format("Insufficient funds in region '{0}' money system", regionName), true); 
                         return;
                     }
 
-                    string regionName = m_scene.RegionInfo.RegionName;
                     string payDescription = String.Format("Parcel '{0}' at region '{1} {2:0.###} hours access pass", ldata.Name, regionName, ldata.PassHours);
 
                     if(!mm.MoveMoney(remote_client.AgentId, ldata.OwnerID, cost,MoneyTransactionType.LandPassSale, payDescription))
