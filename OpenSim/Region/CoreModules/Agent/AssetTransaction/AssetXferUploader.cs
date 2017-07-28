@@ -420,7 +420,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             uint perms = ValidateAssets();
             if(perms == 0)
             {
-                string error = string.Format("Not enought permissions on asset(s) referenced by item '{0}', update failed", item.Name);
+                string error = string.Format("Not enough permissions on asset(s) referenced by item '{0}', update failed", item.Name);
                 ourClient.SendAlertMessage(error);
                 m_transactions.RemoveXferUploader(m_transactionID);
                 ourClient.SendBulkUpdateInventory(item); // invalid the change item on viewer cache
@@ -454,7 +454,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             if(ValidateAssets() == 0)
             {
                 m_transactions.RemoveXferUploader(m_transactionID);
-                string error = string.Format("Not enought permissions on asset(s) referenced by task item '{0}', update failed", taskItem.Name);
+                string error = string.Format("Not enough permissions on asset(s) referenced by task item '{0}', update failed", taskItem.Name);
                 ourClient.SendAlertMessage(error);
                 // force old asset to viewers ??
                 return false;
@@ -470,7 +470,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             if(ValidateAssets() == 0)
             {
                 m_transactions.RemoveXferUploader(m_transactionID);
-                string error = string.Format("Not enought permissions on asset(s) referenced by item '{0}', creation failed", m_name);
+                string error = string.Format("Not enough permissions on asset(s) referenced by item '{0}', creation failed", m_name);
                 ourClient.SendAlertMessage(error);
                 return false;
             }
