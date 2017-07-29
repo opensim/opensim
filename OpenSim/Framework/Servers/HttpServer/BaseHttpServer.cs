@@ -1827,7 +1827,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 Hashtable headerdata = (Hashtable)responsedata["headers"];
 
                 foreach (string header in headerdata.Keys)
-                    response.AddHeader(header, (string)headerdata[header]);
+                    response.AddHeader(header, headerdata[header].ToString());
             }
 
             byte[] buffer;
