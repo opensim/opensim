@@ -455,7 +455,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     catch (Exception e)
                     {
                         m_log.ErrorFormat(
-                            "[INVENTORY]: Failed to process queued inventory request {0} for {1}.  Exception {3}",
+                            "[INVENTORY]: Failed to process queued inventory request {0} for {1}.  Exception {2}",
                             poolreq.reqID, poolreq.presence != null ? poolreq.presence.Name : "unknown", e);
                     }
                 }
