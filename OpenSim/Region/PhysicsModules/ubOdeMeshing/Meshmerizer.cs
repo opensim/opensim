@@ -69,7 +69,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 //        const string baseDir = "rawFiles";
         private const string baseDir = null; //"rawFiles";
 
-        private bool useMeshiesPhysicsMesh = false;
+        private bool useMeshiesPhysicsMesh = true;
         private bool doConvexPrims = true;
         private bool doConvexSculpts = true;
 
