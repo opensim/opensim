@@ -250,7 +250,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                             if (inventoryURL != null && inventoryURL != string.Empty)
                             {
                                 inventoryURL = inventoryURL.Trim(new char[] { '/' });
-                                m_InventoryURLs[userID] = inventoryURL;
+                                lock (m_InventoryURLs)
+                                    m_InventoryURLs[userID] = inventoryURL;
                                 m_log.DebugFormat("[HG INVENTORY CONNECTOR]: Added {0} to the cache of inventory URLs", inventoryURL);
                                 return;
                             }
@@ -268,35 +269,42 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     if (!string.IsNullOrEmpty(inventoryURL))
                     {
                         inventoryURL = inventoryURL.Trim(new char[] { '/' });
-                        m_InventoryURLs.Add(userID, inventoryURL);
+                        lock (m_InventoryURLs)
+                            m_InventoryURLs[userID] = inventoryURL;
                         m_log.DebugFormat("[HG INVENTORY CONNECTOR]: Added {0} to the cache of inventory URLs", inventoryURL);
                     }
-
                 }
-
             }
         }
 
         private void DropInventoryServiceURL(UUID userID)
         {
             lock (m_InventoryURLs)
+            {
                 if (m_InventoryURLs.ContainsKey(userID))
                 {
                     string url = m_InventoryURLs[userID];
                     m_InventoryURLs.Remove(userID);
                     m_log.DebugFormat("[HG INVENTORY CONNECTOR]: Removed {0} from the cache of inventory URLs", url);
                 }
+            }
         }
 
         public string GetInventoryServiceURL(UUID userID)
         {
-            if (m_InventoryURLs.ContainsKey(userID))
-                return m_InventoryURLs[userID];
+            lock (m_InventoryURLs)
+            {
+                if (m_InventoryURLs.ContainsKey(userID))
+                    return m_InventoryURLs[userID];
+            }
 
             CacheInventoryServiceURL(userID);
 
-            if (m_InventoryURLs.ContainsKey(userID))
-                return m_InventoryURLs[userID];
+            lock (m_InventoryURLs)
+            {
+                if (m_InventoryURLs.ContainsKey(userID))
+                  return m_InventoryURLs[userID];
+            }
 
             return null; //it means that the methods should forward to local grid's inventory
 
