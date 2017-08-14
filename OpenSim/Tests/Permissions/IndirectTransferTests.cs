@@ -87,6 +87,7 @@ namespace OpenSim.Tests.Permissions
             // Try A2 takes copies of objects that can be copied. 
             for (int i = 0; i < 6; i++)
                 TakeOneBox(Common.TheScene.GetSceneObjectGroups(), names[i], perms[i]);
+            // Ad-hoc. Enough time to let the take work.
             Thread.Sleep(5000);
 
             items = Common.TheScene.InventoryService.GetFolderItems(Common.TheAvatars[1].UUID, objsFolder.ID);
