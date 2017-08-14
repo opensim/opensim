@@ -265,6 +265,11 @@
     <arg value="-xml=test-results/OpenSim.Services.InventoryService.Tests.dll-Results.xml" />
   </exec>
 
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.tests.permissions">
+    <arg value="./bin/OpenSim.Tests.Permissions.dll" />
+    <arg value="-xml=test-results/OpenSim.Tests.Permissions.dll-Results.xml" />
+  </exec>
+
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.servers.tests)==0}" /> 
