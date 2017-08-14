@@ -145,12 +145,10 @@
   </exec>
   <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.services.inventoryservice.tests)==0}" /> 
 
-<!-- This uses SetUpFixture, which older versions of nant don't seem to understand, so commenting for now
   <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.tests.permissions">
     <arg value="./bin/OpenSim.Tests.Permissions.dll" />
   </exec>
   <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.tests.permissions)==0}" /> 
--->
   
 <delete dir="%temp%"/>
 </target>
@@ -267,12 +265,10 @@
     <arg value="-xml=test-results/OpenSim.Services.InventoryService.Tests.dll-Results.xml" />
   </exec>
 
-<!--
  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.tests.permissions">
     <arg value="./bin/OpenSim.Tests.Permissions.dll" />
     <arg value="-xml=test-results/OpenSim.Tests.Permissions.dll-Results.xml" />
   </exec>
--->
   
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.tests)==0}" /> 
@@ -285,7 +281,7 @@
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.data.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.capabilities.handlers.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.services.inventoryservice.tests)==0}" /> 
-<!-- <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.tests.permissions)==0}" />  -->
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.tests.permissions)==0}" /> 
 </target>
 
 <target name="doxygen">
