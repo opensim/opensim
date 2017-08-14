@@ -49,8 +49,8 @@ namespace OpenSim.Tests.Permissions
             // In case we're dealing with some older version of nunit
             if (Common.TheInstance == null)
             {
-                Common c = new Common();
-                c.SetUp();
+                Common.TheInstance = new Common();
+                Common.TheInstance.SetUp();
             }
             Common.TheInstance.DeleteObjectsFolders();
         }
