@@ -60,10 +60,6 @@ namespace OpenSim.Tests.Permissions
         private TestScene m_Scene;
         private ScenePresence[] m_Avatars = new ScenePresence[3];
 
-        public Common()
-        {
-        }
-
         [SetUp]
         public override void SetUp()
         {
