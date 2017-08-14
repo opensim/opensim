@@ -103,6 +103,7 @@ namespace OpenSim.Tests.Permissions
 
         private void TakeOneBox(List<SceneObjectGroup> objs, string name, PermissionMask mask)
         {
+            // Find the object inworld
             SceneObjectGroup box = objs.Find(sog => sog.Name == name && sog.OwnerID == Common.TheAvatars[0].UUID);
             Assert.That(box, Is.Not.Null, name);
 
