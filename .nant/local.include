@@ -145,7 +145,12 @@
   </exec>
   <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.services.inventoryservice.tests)==0}" /> 
 
-  <delete dir="%temp%"/>
+  <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.tests.permissions">
+    <arg value="./bin/OpenSim.Tests.Permissions.dll" />
+  </exec>
+  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.tests.permissions)==0}" /> 
+
+<delete dir="%temp%"/>
 </target>
 
 <target name="test-stress" depends="build, find-nunit">
@@ -271,6 +276,7 @@
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.data.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.capabilities.handlers.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.services.inventoryservice.tests)==0}" /> 
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.tests.permissions)==0}" /> 
 </target>
 
 <target name="doxygen">
