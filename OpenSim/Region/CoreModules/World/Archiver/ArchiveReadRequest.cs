@@ -286,6 +286,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// </summary>
         public void DearchiveRegion()
         {
+            DearchiveRegion(true);
+        }
+
+        public void DearchiveRegion(bool shouldStartScripts)
+        {
             int successfulAssetRestores = 0;
             int failedAssetRestores = 0;
 
@@ -425,22 +430,25 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             // Start the scripts. We delayed this because we want the OAR to finish loading ASAP, so
             // that users can enter the scene. If we allow the scripts to start in the loop above
             // then they significantly increase the time until the OAR finishes loading.
-            WorkManager.RunInThread(o =>
+            if (shouldStartScripts)
             {
-                Thread.Sleep(15000);
-                m_log.Info("[ARCHIVER]: Starting scripts in scene objects");
-
-                foreach (DearchiveContext sceneContext in sceneContexts.Values)
+                WorkManager.RunInThread(o =>
                 {
-                    foreach (SceneObjectGroup sceneObject in sceneContext.SceneObjects)
-                    {
-                        sceneObject.CreateScriptInstances(0, false, sceneContext.Scene.DefaultScriptEngine, 0); // StateSource.RegionStart
-                        sceneObject.ResumeScripts();
-                    }
+                    Thread.Sleep(15000);
+                    m_log.Info("[ARCHIVER]: Starting scripts in scene objects");
 
-                    sceneContext.SceneObjects.Clear();
-                }
-            }, null, string.Format("ReadArchiveStartScripts (request {0})", m_requestId));
+                    foreach (DearchiveContext sceneContext in sceneContexts.Values)
+                    {
+                        foreach (SceneObjectGroup sceneObject in sceneContext.SceneObjects)
+                        {
+                            sceneObject.CreateScriptInstances(0, false, sceneContext.Scene.DefaultScriptEngine, 0); // StateSource.RegionStart
+                            sceneObject.ResumeScripts();
+                        }
+
+                        sceneContext.SceneObjects.Clear();
+                    }
+                }, null, string.Format("ReadArchiveStartScripts (request {0})", m_requestId));
+            }
 
             m_log.InfoFormat("[ARCHIVER]: Successfully loaded archive");
 
