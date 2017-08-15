@@ -163,8 +163,8 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
             float Yrise = (mapHeight2 - mapHeight1) * diffY;
 
             ret = mapHeight1 + ((Xrise + Yrise) / 2f);
-            m_physicsScene.DetailLog("{0},BSTerrainHeightMap,GetTerrainHeightAtXYZ,pos={1},{2}/{3}/{4}/{5},ret={6}",
-                    BSScene.DetailLogZero, pos, mapHeight1, mapHeight2, mapHeight3, mapHeight4, ret);
+            // m_physicsScene.DetailLog("{0},BSTerrainHeightMap,GetTerrainHeightAtXYZ,pos={1},{2}/{3}/{4}/{5},ret={6}",
+            //         BSScene.DetailLogZero, pos, mapHeight1, mapHeight2, mapHeight3, mapHeight4, ret);
         }
         catch
         {
