@@ -5527,20 +5527,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (Math.Abs(rot.s) > 1) // normalization needed
-                rot.Normalize();
+            rot.Normalize();
 
             double s = Math.Sqrt(1 - rot.s * rot.s);
-            if (s < 0.001)
-            {
-                return new LSL_Vector(1, 0, 0);
-            }
-            else
-            {
-                double invS = 1.0 / s;
-                if (rot.s < 0) invS = -invS;
-                return new LSL_Vector(rot.x * invS, rot.y * invS, rot.z * invS);
-            }
+            if (s < 1e-8)
+                return new LSL_Vector(0, 0, 0);
+
+            double invS = 1.0 / s;
+            if (rot.s < 0)
+                invS = -invS;
+            return new LSL_Vector(rot.x * invS, rot.y * invS, rot.z * invS);
         }
 
 
@@ -5549,8 +5545,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (Math.Abs(rot.s) > 1) // normalization needed
-                rot.Normalize();
+            rot.Normalize();
 
             double angle = 2 * Math.Acos(rot.s);
             if (angle > Math.PI)
