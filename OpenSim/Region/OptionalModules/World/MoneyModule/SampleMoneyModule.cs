@@ -844,8 +844,13 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                 module.BuyObject(remoteClient, categoryID, localID, saleType, salePrice);
         }
 
-        public void MoveMoney(UUID fromAgentID, UUID toAgentID, int amount, string text)
+        public void MoveMoney(UUID fromUser, UUID toUser, int amount, string text)
         {
+        }
+
+        public bool MoveMoney(UUID fromUser, UUID toUser, int amount, MoneyTransactionType type, string text)
+        {
+            return true;
         }
     }
 

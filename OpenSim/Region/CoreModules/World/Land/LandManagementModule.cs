@@ -41,6 +41,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -216,6 +217,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnParcelEjectUser += ClientOnParcelEjectUser;
             client.OnParcelFreezeUser += ClientOnParcelFreezeUser;
             client.OnSetStartLocationRequest += ClientOnSetHome;
+            client.OnParcelBuyPass += ClientParcelBuyPass;
         }
 
         public void EventMakeChildAgent(ScenePresence avatar)
@@ -534,6 +536,118 @@ namespace OpenSim.Region.CoreModules.World.Land
                     m_scene.EventManager.TriggerAvatarEnteringNewParcel(avatar,
                             newover.LandData.LocalID, m_scene.RegionInfo.RegionID);
                 }
+            }
+        }
+
+        public void ClientParcelBuyPass(IClientAPI remote_client, UUID targetID, int landLocalID)
+        {
+            ILandObject land;
+            lock (m_landList)
+            {
+                m_landList.TryGetValue(landLocalID, out land);
+            }
+            // trivial checks
+            if(land == null)
+                return;
+
+            LandData ldata = land.LandData;
+
+            if(ldata == null)
+                return;
+
+            if(ldata.OwnerID == targetID)
+                return;
+
+            if(ldata.PassHours == 0)
+                return;
+
+            // don't allow passes on group owned until we can give money to groups
+            if(ldata.IsGroupOwned)
+            {
+                remote_client.SendAgentAlertMessage("pass to group owned parcel not suported", false);
+                return;
+            }
+
+            if((ldata.Flags & (uint)ParcelFlags.UsePassList) == 0)
+                return;
+
+            int cost = ldata.PassPrice;
+
+            int idx = land.LandData.ParcelAccessList.FindIndex(
+                delegate(LandAccessEntry e)
+                {
+                    if (e.AgentID == targetID && e.Flags == AccessList.Access)
+                        return true;
+                    return false;
+                });
+            int now = Util.UnixTimeSinceEpoch();
+            int expires = (int)(3600.0 * ldata.PassHours + 0.5f);
+            int currenttime = -1;
+            if (idx != -1)
+            {
+                if(ldata.ParcelAccessList[idx].Expires == 0)
+                {
+                    remote_client.SendAgentAlertMessage("You already have access to parcel", false);
+                    return;
+                }
+
+                currenttime = ldata.ParcelAccessList[idx].Expires - now;
+                if(currenttime > (int)(0.25f * expires + 0.5f))
+                {
+                    if(currenttime > 3600)
+                        remote_client.SendAgentAlertMessage(string.Format("You already have a pass valid for {0:0.###} hours",
+                                    currenttime/3600f), false);
+                   else if(currenttime > 60)
+                        remote_client.SendAgentAlertMessage(string.Format("You already have a pass valid for {0:0.##} minutes",
+                                    currenttime/60f), false);
+                   else
+                        remote_client.SendAgentAlertMessage(string.Format("You already have a pass valid for {0:0.#} seconds",
+                                    currenttime), false);
+                    return;
+                }
+            }
+            
+            LandAccessEntry entry = new LandAccessEntry();
+            entry.AgentID = targetID;
+            entry.Flags = AccessList.Access;
+            entry.Expires = now + expires;
+            if(currenttime > 0)
+                entry.Expires += currenttime;
+            IMoneyModule mm = m_scene.RequestModuleInterface<IMoneyModule>();
+            if(cost != 0 && mm != null)
+            {
+                WorkManager.RunInThreadPool(
+                delegate
+                {
+                    string regionName = m_scene.RegionInfo.RegionName;
+
+                    if (!mm.AmountCovered(remote_client.AgentId, cost))
+                    {
+                        remote_client.SendAgentAlertMessage(String.Format("Insufficient funds in region '{0}' money system", regionName), true); 
+                        return;
+                    }
+
+                    string payDescription = String.Format("Parcel '{0}' at region '{1} {2:0.###} hours access pass", ldata.Name, regionName, ldata.PassHours);
+
+                    if(!mm.MoveMoney(remote_client.AgentId, ldata.OwnerID, cost,MoneyTransactionType.LandPassSale, payDescription))
+                    {
+                        remote_client.SendAgentAlertMessage("Sorry pass payment processing failed, please try again later", true); 
+                        return;
+                    }
+
+                    if (idx != -1)
+                        ldata.ParcelAccessList.RemoveAt(idx);
+                    ldata.ParcelAccessList.Add(entry);
+                    m_scene.EventManager.TriggerLandObjectUpdated((uint)land.LandData.LocalID, land);
+                    return;
+                }, null, "ParcelBuyPass");
+            }
+            else
+            {
+                if (idx != -1)
+                    ldata.ParcelAccessList.RemoveAt(idx);
+                ldata.ParcelAccessList.Add(entry);
+                m_scene.EventManager.TriggerLandObjectUpdated((uint)land.LandData.LocalID, land);
             }
         }
 
@@ -1292,7 +1406,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (!temp.Contains(currentParcel))
                         {
-                            if (!currentParcel.IsEitherBannedOrRestricted(remote_client.AgentId))
+                            if (!currentParcel.IsBannedFromLand(remote_client.AgentId))
                             {
                                 currentParcel.ForceUpdateLandInfo();
                                 temp.Add(currentParcel);
@@ -1766,7 +1880,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             land_update.MusicURL = properties.MusicURL;
             land_update.Name = properties.Name;
             land_update.ParcelFlags = (uint) properties.ParcelFlags;
-            land_update.PassHours = (int) properties.PassHours;
+            land_update.PassHours = properties.PassHours;
             land_update.PassPrice = (int) properties.PassPrice;
             land_update.SalePrice = (int) properties.SalePrice;
             land_update.SnapshotID = properties.SnapshotID;

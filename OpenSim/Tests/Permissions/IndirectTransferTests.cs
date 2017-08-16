@@ -46,6 +46,12 @@ namespace OpenSim.Tests.Permissions
         [SetUp]
         public void SetUp()
         {
+            // In case we're dealing with some older version of nunit
+            if (Common.TheInstance == null)
+            {
+                Common.TheInstance = new Common();
+                Common.TheInstance.SetUp();
+            }
             Common.TheInstance.DeleteObjectsFolders();
         }
 
@@ -74,6 +80,7 @@ namespace OpenSim.Tests.Permissions
             // Try A2 takes copies of objects that cannot be copied. 
             for (int i = 0; i < 6; i++)
                 TakeOneBox(Common.TheScene.GetSceneObjectGroups(), names[i], perms[i]);
+            // Ad-hoc. Enough time to let the take work.
             Thread.Sleep(5000);
 
             List<InventoryItemBase> items = Common.TheScene.InventoryService.GetFolderItems(Common.TheAvatars[1].UUID, objsFolder.ID);
@@ -86,6 +93,7 @@ namespace OpenSim.Tests.Permissions
             // Try A2 takes copies of objects that can be copied. 
             for (int i = 0; i < 6; i++)
                 TakeOneBox(Common.TheScene.GetSceneObjectGroups(), names[i], perms[i]);
+            // Ad-hoc. Enough time to let the take work.
             Thread.Sleep(5000);
 
             items = Common.TheScene.InventoryService.GetFolderItems(Common.TheAvatars[1].UUID, objsFolder.ID);
@@ -101,6 +109,7 @@ namespace OpenSim.Tests.Permissions
 
         private void TakeOneBox(List<SceneObjectGroup> objs, string name, PermissionMask mask)
         {
+            // Find the object inworld
             SceneObjectGroup box = objs.Find(sog => sog.Name == name && sog.OwnerID == Common.TheAvatars[0].UUID);
             Assert.That(box, Is.Not.Null, name);
 

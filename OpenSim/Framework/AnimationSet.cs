@@ -31,7 +31,8 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
-    public delegate bool AnimationSetValidator(UUID animID);
+//    public delegate bool AnimationSetValidator(UUID animID);
+    public delegate uint AnimationSetValidator(UUID animID);
 
     public class AnimationSet
     {
@@ -141,7 +142,7 @@ namespace OpenSim.Framework
                 assetData += String.Format("{0} {1} {2}\n", kvp.Key, kvp.Value.Value.ToString(), kvp.Value.Key);
             return System.Text.Encoding.ASCII.GetBytes(assetData);
         }
-
+/*
         public bool Validate(AnimationSetValidator val)
         {
             if (m_parseError)
@@ -163,6 +164,23 @@ namespace OpenSim.Framework
                 m_animations.Remove(idx);
 
             return allOk;
+        }
+*/
+        public uint Validate(AnimationSetValidator val)
+        {
+            if (m_parseError)
+                return 0;
+
+            uint ret = 0x7fffffff;
+            uint t;
+            foreach (KeyValuePair<string, KeyValuePair<string, UUID>> kvp in m_animations)
+            {
+                t = val(kvp.Value.Value);
+                if (t == 0)
+                    return 0;
+                ret &= t;
+            }
+            return ret;
         }
     }
 }

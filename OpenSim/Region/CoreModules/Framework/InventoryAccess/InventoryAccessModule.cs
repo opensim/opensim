@@ -299,15 +299,18 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             else if ((CustomInventoryType)item.InvType == CustomInventoryType.AnimationSet)
             {
                 AnimationSet animSet = new AnimationSet(data);
-                if (!animSet.Validate(x => {
+                uint res = animSet.Validate(x => {
+                        const int required = (int)(PermissionMask.Transfer | PermissionMask.Copy);
                         int perms = m_Scene.InventoryService.GetAssetPermissions(remoteClient.AgentId, x);
-                        int required = (int)(PermissionMask.Transfer | PermissionMask.Copy);
+                        // enforce previus perm rule
                         if ((perms & required) != required)
-                            return false;
-                        return true;
-                    }))
+                            return 0;
+                        return (uint) perms;
+                    });
+                if(res == 0)
                 {
-                    data = animSet.ToBytes();
+                    remoteClient.SendAgentAlertMessage("Not enought permissions on asset(s) referenced by animation set '{0}', update failed", false);
+                    return UUID.Zero;
                 }
             }
 

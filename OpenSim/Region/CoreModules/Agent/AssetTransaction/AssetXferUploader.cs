@@ -258,24 +258,24 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             {
                 m_uploadState = UploadState.Complete;
 
-                ourClient.SendAssetUploadCompleteMessage(m_asset.Type, true, m_asset.FullID);
-
+                bool sucess = true;                
                 if (m_createItem)
                 {
-                    CompleteCreateItem(m_createItemCallback);
+                    sucess = CompleteCreateItem(m_createItemCallback);
                 }
                 else if (m_updateItem)
                 {
-                    CompleteItemUpdate(m_updateItemData);
+                    sucess = CompleteItemUpdate(m_updateItemData);
                 }
                 else if (m_updateTaskItem)
                 {
-                    CompleteTaskItemUpdate(m_updateTaskItemData);
+                    sucess = CompleteTaskItemUpdate(m_updateTaskItemData);
                 }
                 else if (m_asset.Local)
                 {
                     m_Scene.AssetService.Store(m_asset);
                 }
+                ourClient.SendAssetUploadCompleteMessage(m_asset.Type, sucess, m_asset.FullID);
             }
 
             m_log.DebugFormat(
@@ -411,46 +411,70 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         /// Store the asset for the given item when it has been uploaded.
         /// </summary>
         /// <param name="item"></param>
-        private void CompleteItemUpdate(InventoryItemBase item)
+        private bool CompleteItemUpdate(InventoryItemBase item)
         {
 //            m_log.DebugFormat(
 //                "[ASSET XFER UPLOADER]: Storing asset {0} for earlier item update for {1} for {2}",
 //                m_asset.FullID, item.Name, ourClient.Name);
 
-            ValidateAssets();
-            m_Scene.AssetService.Store(m_asset);
-            if (m_asset.FullID != UUID.Zero)
+            uint perms = ValidateAssets();
+            if(perms == 0)
             {
-                item.AssetID = m_asset.FullID;
-                m_Scene.InventoryService.UpdateItem(item);
+                string error = string.Format("Not enough permissions on asset(s) referenced by item '{0}', update failed", item.Name);
+                ourClient.SendAlertMessage(error);
+                m_transactions.RemoveXferUploader(m_transactionID);
+                ourClient.SendBulkUpdateInventory(item); // invalid the change item on viewer cache
+            }
+            else
+            {
+                m_Scene.AssetService.Store(m_asset);
+                if (m_asset.FullID != UUID.Zero)
+                {
+                    item.AssetID = m_asset.FullID;
+                    m_Scene.InventoryService.UpdateItem(item);
+                }
+                ourClient.SendInventoryItemCreateUpdate(item, m_transactionID, 0);           
+                m_transactions.RemoveXferUploader(m_transactionID);
+                m_Scene.EventManager.TriggerOnNewInventoryItemUploadComplete(item, 0);
             }
 
-            ourClient.SendInventoryItemCreateUpdate(item, m_transactionID, 0);
-
-            m_transactions.RemoveXferUploader(m_transactionID);
-
-            m_Scene.EventManager.TriggerOnNewInventoryItemUploadComplete(item, 0);
+            return perms != 0;
         }
 
         /// <summary>
         /// Store the asset for the given task item when it has been uploaded.
         /// </summary>
         /// <param name="taskItem"></param>
-        private void CompleteTaskItemUpdate(TaskInventoryItem taskItem)
+        private bool CompleteTaskItemUpdate(TaskInventoryItem taskItem)
         {
 //            m_log.DebugFormat(
 //                "[ASSET XFER UPLOADER]: Storing asset {0} for earlier task item update for {1} for {2}",
 //                m_asset.FullID, taskItem.Name, ourClient.Name);
 
-            ValidateAssets();
-            m_Scene.AssetService.Store(m_asset);
+            if(ValidateAssets() == 0)
+            {
+                m_transactions.RemoveXferUploader(m_transactionID);
+                string error = string.Format("Not enough permissions on asset(s) referenced by task item '{0}', update failed", taskItem.Name);
+                ourClient.SendAlertMessage(error);
+                // force old asset to viewers ??
+                return false;
+            }
 
+            m_Scene.AssetService.Store(m_asset);
             m_transactions.RemoveXferUploader(m_transactionID);
+            return true;
         }
 
-        private void CompleteCreateItem(uint callbackID)
+        private bool CompleteCreateItem(uint callbackID)
         {
-            ValidateAssets();
+            if(ValidateAssets() == 0)
+            {
+                m_transactions.RemoveXferUploader(m_transactionID);
+                string error = string.Format("Not enough permissions on asset(s) referenced by item '{0}', creation failed", m_name);
+                ourClient.SendAlertMessage(error);
+                return false;
+            }
+
             m_Scene.AssetService.Store(m_asset);
 
             InventoryItemBase item = new InventoryItemBase();
@@ -480,35 +504,40 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 ourClient.SendAlertMessage("Unable to create inventory item");
 
             m_transactions.RemoveXferUploader(m_transactionID);
+            return true;
         }
 
-
-        private void ValidateAssets()
+        private uint ValidateAssets()
         {
+            uint retPerms = 0x7fffffff;
+//            if(m_Scene.Permissions.BypassPermissions())
+//                return retPerms;
+
             if (m_asset.Type == (sbyte)CustomAssetType.AnimationSet)
             {
+
                 AnimationSet animSet = new AnimationSet(m_asset.Data);
 
-                bool allOk = animSet.Validate(x => {
-                    int perms = m_Scene.InventoryService.GetAssetPermissions(ourClient.AgentId, x);
-                    int required = (int)(PermissionMask.Transfer | PermissionMask.Copy);
+                retPerms &= animSet.Validate(x => {
+                    const uint required = (uint)(PermissionMask.Transfer | PermissionMask.Copy);
+                    uint perms = (uint)m_Scene.InventoryService.GetAssetPermissions(ourClient.AgentId, x);
+                    // currrent yes/no rule
                     if ((perms & required) != required)
-                        return false;
-                    return true;
+                        return 0;
+                    return perms;
                     });
 
-                if (!allOk)
-                    m_asset.Data = animSet.ToBytes();
+                return retPerms;
             }
 
             if (m_asset.Type == (sbyte)AssetType.Clothing ||
                 m_asset.Type == (sbyte)AssetType.Bodypart)
             {
+                const uint texturesfullPermMask = (uint)(PermissionMask.Modify | PermissionMask.Transfer | PermissionMask.Copy);
                 string content = System.Text.Encoding.ASCII.GetString(m_asset.Data);
                 string[] lines = content.Split(new char[] {'\n'});
 
-                List<string> validated = new List<string>();
-
+                // on current requiriment of full rigths assume old assets where accepted
                 Dictionary<int, UUID> allowed = ExtractTexturesFromOldData();
 
                 int textures = 0;
@@ -518,10 +547,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                     try
                     {
                         if (line.StartsWith("textures "))
-                        {
                             textures = Convert.ToInt32(line.Substring(9));
-                            validated.Add(line);
-                        }
+
                         else if (textures > 0)
                         {
                             string[] parts = line.Split(new char[] {' '});
@@ -532,28 +559,23 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                             if (defaultIDs.Contains(tx) || tx == UUID.Zero ||
                                 (allowed.ContainsKey(id) && allowed[id] == tx))
                             {
-                                validated.Add(parts[0] + " " + tx.ToString());
+                                continue;
                             }
                             else
                             {
-                                int perms = m_Scene.InventoryService.GetAssetPermissions(ourClient.AgentId, tx);
-                                int full = (int)(PermissionMask.Modify | PermissionMask.Transfer | PermissionMask.Copy);
+                                uint perms = (uint)m_Scene.InventoryService.GetAssetPermissions(ourClient.AgentId, tx);
 
-                                if ((perms & full) != full)
+                                if ((perms & texturesfullPermMask) != texturesfullPermMask)
                                 {
                                     m_log.ErrorFormat("[ASSET UPLOADER]: REJECTED update with texture {0} from {1} because they do not own the texture", tx, ourClient.AgentId);
-                                    validated.Add(parts[0] + " " + UUID.Zero.ToString());
+                                    return 0;
                                 }
                                 else
                                 {
-                                    validated.Add(line);
+                                    retPerms &= perms;
                                 }
                             }
                             textures--;
-                        }
-                        else
-                        {
-                            validated.Add(line);
                         }
                     }
                     catch
@@ -561,13 +583,11 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                         // If it's malformed, skip it
                     }
                 }
-
-                string final = String.Join("\n", validated.ToArray());
-
-                m_asset.Data = System.Text.Encoding.ASCII.GetBytes(final);
             }
+            return retPerms;
         }
 
+/* not in use
         /// <summary>
         /// Get the asset data uploaded in this transfer.
         /// </summary>
@@ -582,7 +602,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
             return null;
         }
-
+*/
         public void SetOldData(byte[] d)
         {
             m_oldData = d;

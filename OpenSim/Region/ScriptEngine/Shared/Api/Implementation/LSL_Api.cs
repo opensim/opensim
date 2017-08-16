@@ -7851,7 +7851,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID key;
             ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
 
-            if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageBanned, false))
+            if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManagePasses, false))
             {
                 int expires = 0;
                 if (hours != 0)
@@ -13073,7 +13073,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             UUID key;
             ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
-            if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageAllowed, false))
+            if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManagePasses, false))
             {
                 if (UUID.TryParse(avatar, out key))
                 {
