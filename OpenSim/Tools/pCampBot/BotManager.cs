@@ -302,7 +302,7 @@ namespace pCampBot
             {
                 lock (m_bots)
                 {
-                    string lastName = string.Format("{0}_{1}", m_lastNameStem, i + m_fromBotNumber);
+                    string lastName = string.Format("{0}{1}", m_lastNameStem, i + m_fromBotNumber);
 
                     CreateBot(
                         this,
@@ -958,7 +958,7 @@ namespace pCampBot
 
         private string GenerateBotNameFromNumber(int botNumber)
         {
-            return string.Format("{0} {1}_{2}", m_firstName, m_lastNameStem, botNumber);
+            return string.Format("{0} {1}{2}", m_firstName, m_lastNameStem, botNumber);
         }
 
         internal void Grid_GridRegion(object o, GridRegionEventArgs args)
