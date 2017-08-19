@@ -3042,11 +3042,14 @@ namespace OpenSim.Region.Framework.Scenes
             if (!IsSelected)
                 RootPart.UpdateLookAt();
 
+            double now = Util.GetTimeStampMS();
+            RootPart.SendScheduledUpdates(now);
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
-                part.SendScheduledUpdates();
+                if(part != RootPart)
+                    part.SendScheduledUpdates(now);
             }
         }
 
@@ -3113,7 +3116,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             RootPart.SendFullUpdateToAllClientsInternal();
-
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {

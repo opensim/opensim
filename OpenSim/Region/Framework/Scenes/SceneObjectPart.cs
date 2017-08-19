@@ -3256,10 +3256,16 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (ParentGroup == null)
                 return;
+            if (ParentGroup.Scene == null)
+                return;
+
+            if(ParentGroup.Scene.GetNumberOfClients() == 0)
+                return;
+
+            ParentGroup.QueueForUpdateCheck(); // just in case
 
             lock(UpdateFlagLock)
             {
-                ParentGroup.QueueForUpdateCheck(); // just in case
                 if(UpdateFlag != UpdateRequired.FULL)
                 {
                     UpdateFlag = UpdateRequired.FULL;
@@ -3268,10 +3274,9 @@ namespace OpenSim.Region.Framework.Scenes
                     //                "[SCENE OBJECT PART]: Scheduling full  update for {0}, {1} at {2}",
                     //                UUID, Name, TimeStampFull);
 
-                    if (ParentGroup.Scene != null)
-                        ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this, true);
                 }
             }
+            ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this, true);
         }
 
         /// <summary>
@@ -3281,6 +3286,13 @@ namespace OpenSim.Region.Framework.Scenes
         public void ScheduleTerseUpdate()
         {
             if (ParentGroup == null)
+                return;
+            if (ParentGroup.Scene == null)
+                return;
+
+            ParentGroup.HasGroupChanged = true;
+
+            if(ParentGroup.Scene.GetNumberOfClients() == 0)
                 return;
 
             // This was pulled from SceneViewer. Attachments always receive full updates.
@@ -3292,23 +3304,19 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
+            ParentGroup.QueueForUpdateCheck();
             lock(UpdateFlagLock)
             {
                 if (UpdateFlag == UpdateRequired.NONE)
                 {
-                    ParentGroup.HasGroupChanged = true;
-                    ParentGroup.QueueForUpdateCheck();
-
                     UpdateFlag = UpdateRequired.TERSE;
 
-                //                m_log.DebugFormat(
-                //                    "[SCENE OBJECT PART]: Scheduling terse update for {0}, {1} at {2}",
-                //                    UUID, Name, TimeStampTerse);
+                    //            m_log.DebugFormat(
+                    //                "[SCENE OBJECT PART]: Scheduling terse update for {0}, {1}",
+                    //                UUID, Name);
                 }
-
-                if (ParentGroup.Scene != null)
-                    ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this, false);
             }
+            ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this, false);
         }
 
         public void ScriptSetPhysicsStatus(bool UsePhysics)
@@ -3428,34 +3436,30 @@ namespace OpenSim.Region.Framework.Scenes
             ParentGroup.Scene.StatsReporter.AddObjectUpdates(1);
         }
 
-
         private const float ROTATION_TOLERANCE = 0.01f;
-        private const float VELOCITY_TOLERANCE = 0.1f; // terse update vel has low resolution
+        private const float VELOCITY_TOLERANCE = 0.1f;
+        private const float ANGVELOCITY_TOLERANCE = 0.005f;
         private const float POSITION_TOLERANCE = 0.05f; // I don't like this, but I suppose it's necessary
-        private const double TIME_MS_TOLERANCE = 200f; //llSetPos has a 200ms delay. This should NOT be 3 seconds.
+        private const double TIME_MS_TOLERANCE = 200.0; //llSetPos has a 200ms delay. This should NOT be 3 seconds.
         
         /// <summary>
         /// Tell all the prims which have had updates scheduled
         /// </summary>
-        public void SendScheduledUpdates()
+        public void SendScheduledUpdates(double now)
         {  
-            UpdateRequired currentUpdate;
+            bool sendterse = false;    
+            bool sendfull = false;    
+
             lock(UpdateFlagLock)
             {
-                currentUpdate = UpdateFlag;
-                ClearUpdateSchedule();
-            }
+                switch (UpdateFlag)
+                {
+                    case UpdateRequired.NONE:
+                        break;
 
-            switch (currentUpdate)
-            {
-                case UpdateRequired.NONE:
-                    break;
+                    case UpdateRequired.TERSE:
+                        sendterse = true;
 
-                case UpdateRequired.TERSE:
-                    bool needupdate = true;
-                    lock(UpdateFlagLock)
-                    {
-                        double now = Util.GetTimeStampMS();
                         Vector3 curvel = Velocity;
                         Vector3 curacc = Acceleration;
                         Vector3 angvel = AngularVelocity;
@@ -3470,8 +3474,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 Math.Abs(curacc.Y - m_lastAcceleration.Y) >  VELOCITY_TOLERANCE ||
                                 Math.Abs(curacc.Z - m_lastAcceleration.Z) >  VELOCITY_TOLERANCE)
                                 break;
-
-                            // velocity change is also direction not only norm)
+                          
                             if( Math.Abs(curvel.X - m_lastVelocity.X) >  VELOCITY_TOLERANCE ||
                                 Math.Abs(curvel.Y - m_lastVelocity.Y) >  VELOCITY_TOLERANCE ||
                                 Math.Abs(curvel.Z - m_lastVelocity.Z) >  VELOCITY_TOLERANCE)
@@ -3507,12 +3510,12 @@ namespace OpenSim.Region.Framework.Scenes
                                     break;
                             }
 
-                            if( Math.Abs(angvel.X - m_lastAngularVelocity.X) >  VELOCITY_TOLERANCE ||
-                                Math.Abs(angvel.Y - m_lastAngularVelocity.Y) >  VELOCITY_TOLERANCE ||
-                                Math.Abs(angvel.Z - m_lastAngularVelocity.Z) >  VELOCITY_TOLERANCE)
+                            if( Math.Abs(angvel.X - m_lastAngularVelocity.X) >  ANGVELOCITY_TOLERANCE ||
+                                Math.Abs(angvel.Y - m_lastAngularVelocity.Y) >  ANGVELOCITY_TOLERANCE ||
+                                Math.Abs(angvel.Z - m_lastAngularVelocity.Z) >  ANGVELOCITY_TOLERANCE)
                                 break;
 
-                            // viewer interpolators have a limit of 128m/s
+                            // viewer interpolators have a limit of 64rad/s
                             float ax = Math.Abs(angvel.X);
                             if(ax > 64.0)
                                 break;
@@ -3524,20 +3527,19 @@ namespace OpenSim.Region.Framework.Scenes
                                 break;
 
                             if (
-                                ax <  VELOCITY_TOLERANCE &&
-                                ay <  VELOCITY_TOLERANCE &&
-                                az <  VELOCITY_TOLERANCE &&
+                                ax <  ANGVELOCITY_TOLERANCE &&
+                                ay <  ANGVELOCITY_TOLERANCE &&
+                                az <  ANGVELOCITY_TOLERANCE &&
                                 !RotationOffset.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE)
                                 )
                                 break;
 
-                            needupdate = false;
+                            sendterse = false;
                             break;
                         }
 
-                        if(needupdate)
+                        if(sendterse)
                         {
-
                             // Update the "last" values
                             m_lastPosition = AbsolutePosition;
                             m_lastRotation = RotationOffset;
@@ -3545,24 +3547,37 @@ namespace OpenSim.Region.Framework.Scenes
                             m_lastAcceleration = curacc;
                             m_lastAngularVelocity = angvel;
                             m_lastUpdateSentTime = now;
+                            ClearUpdateSchedule();
                         }
-                    }
+                        break;
 
-                    if(needupdate)
-                    {
-                        ParentGroup.Scene.ForEachClient(delegate(IClientAPI client)
-                        {
-                            SendTerseUpdateToClient(client);
-                        });
-                    }
-                    break;
-
-                case UpdateRequired.FULL:
-                    SendFullUpdateToAllClientsInternal();
-                    break;
+                    case UpdateRequired.FULL:
+                        m_lastPosition = AbsolutePosition;
+                        m_lastRotation = RotationOffset;
+                        m_lastVelocity = Velocity;
+                        m_lastAcceleration = Acceleration;
+                        m_lastAngularVelocity = AngularVelocity;
+                        m_lastUpdateSentTime = now;
+                        ClearUpdateSchedule();
+                        sendfull = true;
+                        break;
+                }
+            }
+            if(sendterse)
+            {
+                ParentGroup.Scene.ForEachClient(delegate(IClientAPI client)
+                {
+                    SendTerseUpdateToClient(client);
+                });
+            }
+            else if(sendfull)
+            {
+                ParentGroup.Scene.ForEachScenePresence(delegate(ScenePresence avatar)
+                {
+                    SendFullUpdate(avatar.ControllingClient);
+                });
             }
         }
-
 
         /// <summary>
         /// Send a terse update to all clients
@@ -3571,7 +3586,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (ParentGroup == null || ParentGroup.Scene == null)
                 return;
-
             lock(UpdateFlagLock)
             {
                 if(UpdateFlag != UpdateRequired.NONE)
