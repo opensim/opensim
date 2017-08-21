@@ -179,12 +179,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
 //        const d.ContactFlags comumContactFlags = d.ContactFlags.SoftERP | d.ContactFlags.SoftCFM |d.ContactFlags.Approx1 | d.ContactFlags.Bounce;
 
-        const d.ContactFlags comumContactFlags = d.ContactFlags.Bounce | d.ContactFlags.Approx1 | d.ContactFlags.Slip1 | d.ContactFlags.Slip2;
+//        const d.ContactFlags comumContactFlags = d.ContactFlags.Bounce | d.ContactFlags.Approx1 | d.ContactFlags.Slip1 | d.ContactFlags.Slip2;
+        const d.ContactFlags comumContactFlags = d.ContactFlags.Bounce | d.ContactFlags.Approx1;
         const float comumContactERP = 0.75f;
         const float comumContactCFM = 0.0001f;
         const float comumContactSLIP = 0f;
 
-        float frictionMovementMult = 0.8f;
+//        float frictionMovementMult = 0.2f;
 
         float TerrainBounce = 0.001f;
         float TerrainFriction = 0.3f;
@@ -866,9 +867,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                 break;
 
                             case (int)ActorTypes.Prim:
-                                Vector3 relV = p1.rootVelocity - p2.rootVelocity;
-                                float relVlenSQ = relV.LengthSquared();
-                                if (relVlenSQ > 0.0001f)
+//                                Vector3 relV = p1.rootVelocity - p2.rootVelocity;
+//                                float relVlenSQ = relV.LengthSquared();
+//                                if (relVlenSQ > 0.0001f)
                                 {
                                     p1.CollidingObj = true;
                                     p2.CollidingObj = true;
@@ -878,8 +879,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                 bounce = contactdata1.bounce * contactdata2.bounce;
                                 mu = (float)Math.Sqrt(contactdata1.mu * contactdata2.mu);
 
-                                if (relVlenSQ > 0.01f)
-                                    mu *= frictionMovementMult;
+//                                if (relVlenSQ > 0.01f)
+//                                    mu *= frictionMovementMult;
 
                                 if(d.GeomGetClass(g2) == d.GeomClassID.TriMeshClass &&
                                     d.GeomGetClass(g1) == d.GeomClassID.TriMeshClass)
@@ -891,9 +892,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                 bounce = contactdata1.bounce * TerrainBounce;
                                 mu = (float)Math.Sqrt(contactdata1.mu * TerrainFriction);
 
-                                Vector3 v1 = p1.rootVelocity;
-                                if (Math.Abs(v1.X) > 0.1f || Math.Abs(v1.Y) > 0.1f)
-                                    mu *= frictionMovementMult;
+//                                Vector3 v1 = p1.rootVelocity;
+//                                if (Math.Abs(v1.X) > 0.1f || Math.Abs(v1.Y) > 0.1f)
+//                                    mu *= frictionMovementMult;
                                 p1.CollidingGround = true;
 
                                 if(d.GeomGetClass(g1) == d.GeomClassID.TriMeshClass)
@@ -918,9 +919,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
 //                        if (curContact.side1 > 0) // should be 2 ?
 //                            IgnoreNegSides = true;
-                        Vector3 v2 = p2.rootVelocity;
-                        if (Math.Abs(v2.X) > 0.1f || Math.Abs(v2.Y) > 0.1f)
-                            mu *= frictionMovementMult;
+//                        Vector3 v2 = p2.rootVelocity;
+//                        if (Math.Abs(v2.X) > 0.1f || Math.Abs(v2.Y) > 0.1f)
+//                            mu *= frictionMovementMult;
 
                         if(d.GeomGetClass(g2) == d.GeomClassID.TriMeshClass)
                             smoothMesh = true;
