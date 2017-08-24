@@ -6827,7 +6827,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (m_host.OwnerID == land.LandData.OwnerID)
                     {
                         Vector3 p = World.GetNearestAllowedPosition(presence, land);
-                        presence.TeleportWithMomentum(p, null);
+                        presence.TeleportOnEject(p);
                         presence.ControllingClient.SendAlertMessage("You have been ejected from this land");
                     }
                 }

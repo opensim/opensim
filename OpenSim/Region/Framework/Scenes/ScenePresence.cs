@@ -1619,7 +1619,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void TeleportWithMomentum(Vector3 pos, Vector3? v)
         {
-                if(!CheckLocalTPLandingPoint(ref pos))
+            if(!CheckLocalTPLandingPoint(ref pos))
                     return;
 
             if (ParentID != (uint)0)
