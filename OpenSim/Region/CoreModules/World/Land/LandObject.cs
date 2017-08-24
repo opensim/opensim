@@ -1886,7 +1886,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     if (land.LandData.LocalID == LandData.LocalID)
                     {
                         Vector3 pos = m_scene.GetNearestAllowedPosition(presence, land);
-                        presence.TeleportWithMomentum(pos, null);
+                        presence.TeleportOnEject(pos);
                         presence.ControllingClient.SendAlertMessage("You have been ejected from this land");
                     }
                 }

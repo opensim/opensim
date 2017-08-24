@@ -1620,7 +1620,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void TeleportWithMomentum(Vector3 pos, Vector3? v)
         {
             if(!CheckLocalTPLandingPoint(ref pos))
-                return;
+                    return;
 
             if (ParentID != (uint)0)
                 StandUp();
@@ -1639,6 +1639,20 @@ namespace OpenSim.Region.Framework.Scenes
                     PhysicsActor.SetMomentum(vel);
             }
 
+            SendTerseUpdateToAllClients();
+        }
+
+        public void TeleportOnEject(Vector3 pos)
+        {
+            if (ParentID != (uint)0)
+                StandUp();
+
+            bool isFlying = Flying;
+            RemoveFromPhysicalScene();
+
+            AbsolutePosition = pos;
+
+            AddToPhysicalScene(isFlying);
             SendTerseUpdateToAllClients();
         }
 
