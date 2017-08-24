@@ -371,7 +371,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 teleportFlags |= (uint)TeleportFlags.Godlike;
             }
 
-            if (!sp.Scene.Permissions.CanTeleport(sp.UUID))
+            else if (!sp.Scene.Permissions.CanTeleport(sp.UUID))
                 return;
 
             string destinationRegionName = "(not found)";
@@ -391,17 +391,27 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             try
             {
-                // Reset animations; the viewer does that in teleports.
-                sp.Animator.ResetAnimations();
 
                 if (regionHandle == sp.Scene.RegionInfo.RegionHandle)
                 {
+                    if(!sp.AllowMovement)
+                    {
+                        sp.ControllingClient.SendTeleportFailed("You are frozen");
+                        m_entityTransferStateMachine.ResetFromTransit(sp.UUID);
+                        return;
+                    }
+
+                    // Reset animations; the viewer does that in teleports.
+                    sp.Animator.ResetAnimations();
                     destinationRegionName = sp.Scene.RegionInfo.RegionName;
 
                     TeleportAgentWithinRegion(sp, position, lookAt, teleportFlags);
                 }
                 else // Another region possibly in another simulator
                 {
+                    // Reset animations; the viewer does that in teleports.
+                    sp.Animator.ResetAnimations();
+
                     GridRegion finalDestination = null;
                     try
                     {
