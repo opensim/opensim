@@ -290,8 +290,6 @@ namespace OpenSim.Region.Framework.Scenes
         private Vector3 m_lastSize = new Vector3(0.45f,0.6f,1.9f);
         private bool SentInitialData = false;
 
-        private bool m_followCamAuto = false;
-
         private int m_userFlags;
         public int UserFlags
         {
@@ -344,6 +342,11 @@ namespace OpenSim.Region.Framework.Scenes
         private Vector3 m_lastChildAgentUpdatePosition;
 //        private Vector3 m_lastChildAgentUpdateCamPosition;
 
+        private Vector3 m_lastCameraRayCastCam;
+        private Vector3 m_lastCameraRayCastPos;
+
+        private float m_FOV = 1.04f;
+
         private const int LAND_VELOCITYMAG_MAX = 12;
 
         private const float FLY_ROLL_MAX_RADIANS = 1.1f;
@@ -373,9 +376,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// Controls whether an avatar automatically moving to a target will land when it gets there (if flying).
         /// </summary>
         public bool LandAtTarget { get; private set; }
-
-        private int m_movementUpdateCount;
-        private const int NumMovementsBetweenRayCast = 5;
 
         private bool CameraConstraintActive;
 
@@ -1159,6 +1159,7 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.OnForceReleaseControls += HandleForceReleaseControls;
             ControllingClient.OnAutoPilotGo += MoveToTarget;
             ControllingClient.OnUpdateThrottles += RaiseUpdateThrottles;
+//            ControllingClient.OnAgentFOV += HandleAgentFOV;
 
             // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             // ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
@@ -1178,6 +1179,7 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.OnForceReleaseControls -= HandleForceReleaseControls;
             ControllingClient.OnAutoPilotGo -= MoveToTarget;
             ControllingClient.OnUpdateThrottles -= RaiseUpdateThrottles;
+//            ControllingClient.OnAgentFOV += HandleAgentFOV;
         }
 
         private void SetDirectionVectors()
@@ -2352,34 +2354,41 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void checkCameraCollision()
         {
-            if(!m_scene.PhysicsScene.SupportsRayCast())
+            if(m_doingCamRayCast || !m_scene.PhysicsScene.SupportsRayCast())
                 return;
 
-            ++m_movementUpdateCount;
-            if (m_movementUpdateCount < 1)
-                m_movementUpdateCount = 1;
-
-            if (m_doingCamRayCast || m_movementUpdateCount % NumMovementsBetweenRayCast != 0)
-                return;
-
-            if (m_followCamAuto && !m_mouseLook)
+            if(m_mouseLook || ParentID != 0)
             {
-                Vector3 posAdjusted = AbsolutePosition;
-//                    posAdjusted.Z += 0.5f * Appearance.AvatarSize.Z - 0.5f;
-                // not good for tiny or huge avatars
-                posAdjusted.Z += 1.0f; // viewer current camera focus point
-                Vector3 tocam = CameraPosition - posAdjusted;
-
-                float distTocamlen = tocam.LengthSquared();
-                if (distTocamlen > 0.01f && distTocamlen < 400)
+                if (CameraConstraintActive)
                 {
-                    distTocamlen = (float)Math.Sqrt(distTocamlen);
-                    tocam *= (1.0f / distTocamlen);
-
-                    m_doingCamRayCast = true;
-                    m_scene.PhysicsScene.RaycastWorld(posAdjusted, tocam, distTocamlen + 1.0f, RayCastCameraCallback);
-                    return;
+                    Vector4 plane = new Vector4(0.9f, 0.0f, 0.361f, -10000f); // not right...
+                    UpdateCameraCollisionPlane(plane);
+                    CameraConstraintActive = false;
                 }
+                return;
+            }
+           
+            Vector3 posAdjusted = AbsolutePosition;
+            posAdjusted.Z += 1.0f; // viewer current camera focus point
+
+            if(posAdjusted.ApproxEquals(m_lastCameraRayCastPos, 0.2f) &&
+                CameraPosition.ApproxEquals(m_lastCameraRayCastCam, 0.2f))
+                return;
+
+            m_lastCameraRayCastCam = CameraPosition;
+            m_lastCameraRayCastPos = posAdjusted;
+
+            Vector3 tocam = CameraPosition - posAdjusted;
+
+            float distTocamlen = tocam.LengthSquared();
+            if (distTocamlen > 0.01f && distTocamlen < 400)
+            {
+                distTocamlen = (float)Math.Sqrt(distTocamlen);
+                tocam *= (1.0f / distTocamlen);
+
+                m_doingCamRayCast = true;
+                m_scene.PhysicsScene.RaycastWorld(posAdjusted, tocam, distTocamlen + 1.0f, RayCastCameraCallback);
+                return;
             }
 
             if (CameraConstraintActive)
@@ -2401,9 +2410,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void RayCastCameraCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance, Vector3 pNormal)
         {
-//            const float POSITION_TOLERANCE = 0.02f;
-//            const float ROTATION_TOLERANCE = 0.02f;
-
             if (hitYN && localid != LocalId)
             {
                 if (localid != 0)
@@ -2441,8 +2447,6 @@ namespace OpenSim.Region.Framework.Scenes
                     UpdateCameraCollisionPlane(plane);
                 }
             }
-//            else if (!m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
-//                     !Rotation.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE))
             else if(CameraConstraintActive)
             {
                 Vector4 plane = new Vector4(0.9f, 0.0f, 0.361f, -9000f); // not right...
@@ -2538,7 +2542,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Raycast from the avatar's head to the camera to see if there's anything blocking the view
             // this exclude checks may not be complete
-            if(agentData.NeedsCameraCollision  && ParentID == 0) // condition parentID may be wrong
+            if(agentData.NeedsCameraCollision) // condition parentID may be wrong
                 checkCameraCollision();
 
             uint flagsForScripts = (uint)flags;
@@ -2807,6 +2811,10 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_scene.EventManager.TriggerOnClientMovement(this);
         }
 
+        private void HandleAgentFOV(IClientAPI remoteClient, float _fov)
+        {
+            m_FOV = _fov;
+        }
 
         /// <summary>
         /// This is the event handler for client cameras. If a client is moving, or moving the camera, this event is triggering.
@@ -2842,24 +2850,6 @@ namespace OpenSim.Region.Framework.Scenes
             CameraUpAxis.Normalize();
             Quaternion camRot = Util.Axes2Rot(CameraAtAxis, CameraLeftAxis, CameraUpAxis);
             CameraRotation = camRot;
-
-            // Check if Client has camera in 'follow cam' or 'build' mode.
-//            Vector3 camdif = (Vector3.One * Rotation - Vector3.One * CameraRotation);
-            m_followCamAuto = false;
-            if(!m_mouseLook)
-            {
-                if((CameraUpAxis.Z > 0.959f && CameraUpAxis.Z < 0.99f))
-                {
-                    Vector3 camdif = new Vector3(1f, 0f, 0f) * Rotation;
-                    float ftmp = camdif.X - CameraAtAxis.X;
-                    if(Math.Abs(ftmp) < 0.1f)
-                    {
-                        ftmp = camdif.Y - CameraAtAxis.Y;
-                        if(Math.Abs(ftmp) < 0.1f)
-                            m_followCamAuto = true;
-                    }
-                }
-            }
 
             if(agentData.NeedsCameraCollision)
                 checkCameraCollision();
