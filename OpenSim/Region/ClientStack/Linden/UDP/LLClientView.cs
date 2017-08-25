@@ -5589,6 +5589,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 velocity = presence.Velocity;
                 acceleration = Vector3.Zero;
                 rotation = presence.Rotation;
+                // tpvs can only see rotations around Z in some cases
+                if(!presence.Flying && !presence.IsSatOnObject)
+                {
+                    rotation.X = 0f;
+                    rotation.Y = 0f;
+                    rotation.Normalize();
+                }
                 angularVelocity = presence.AngularVelocity;
 
 //                m_log.DebugFormat(
@@ -5718,6 +5725,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             Vector3 velocity = new Vector3(0, 0, 0);
             Vector3 acceleration = new Vector3(0, 0, 0);
+            // tpvs can only see rotations around Z in some cases
+            if(!data.Flying && !data.IsSatOnObject)
+            {
+                rotation.X = 0f;
+                rotation.Y = 0f;
+            }
             rotation.Normalize();
 
             data.CollisionPlane.ToBytes(objectData, 0);
