@@ -29,6 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
+using System.Text;
 using log4net.Config;
 using Nini.Config;
 using NUnit.Framework;
@@ -125,7 +126,7 @@ namespace OpenSim.Region.ClientStack.Linden.Tests
             Hashtable eventsResponse = m_eqgMod.GetEvents(UUID.Zero, sp.UUID);
 
             // initial queue as null events
-            eventsResponse = m_eqgMod.GetEvents(UUID.Zero, sp.UUID);
+//            eventsResponse = m_eqgMod.GetEvents(UUID.Zero, sp.UUID);
             if((int)eventsResponse["int_response_code"] != (int)HttpStatusCode.OK)
             {
                 eventsResponse = m_eqgMod.GetEvents(UUID.Zero, sp.UUID);
@@ -136,8 +137,11 @@ namespace OpenSim.Region.ClientStack.Linden.Tests
             Assert.That((int)eventsResponse["int_response_code"], Is.EqualTo((int)HttpStatusCode.OK));
 
 //            Console.WriteLine("Response [{0}]", (string)eventsResponse["str_response_string"]);
+            string data = String.Empty;
+            if(eventsResponse["bin_response_data"] != null)
+                data = Encoding.UTF8.GetString((byte[])eventsResponse["bin_response_data"]);
 
-            OSDMap rawOsd = (OSDMap)OSDParser.DeserializeLLSDXml((string)eventsResponse["str_response_string"]);
+            OSDMap rawOsd = (OSDMap)OSDParser.DeserializeLLSDXml(data);
             OSDArray eventsOsd = (OSDArray)rawOsd["events"];
 
             bool foundUpdate = false;
