@@ -100,6 +100,7 @@ public class BulletBody
     }
 }
 
+// Handle to btCollisionObject - a shape that can be added to a btRidgidBody
 public class BulletShape
 {
     public BulletShape()

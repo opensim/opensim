@@ -75,7 +75,7 @@ public sealed class BSShapeCollection : IDisposable
     // Called at taint-time.
     public bool GetBodyAndShape(bool forceRebuild, BulletWorld sim, BSPhysObject prim, PhysicalDestructionCallback bodyCallback)
     {
-        m_physicsScene.AssertInTaintTime("BSShapeCollection.GetBodyAndShape");
+        m_physicsScene.AssertNotInSimulationTime("BSShapeCollection.GetBodyAndShape");
 
         bool ret = false;
 
@@ -344,7 +344,7 @@ public sealed class BSShapeCollection : IDisposable
         if (!body.HasPhysicalBody)
             return;
 
-        m_physicsScene.AssertInTaintTime("BSShapeCollection.DereferenceBody");
+        m_physicsScene.AssertNotInSimulationTime("BSShapeCollection.DereferenceBody");
 
         lock (m_collectionActivityLock)
         {
