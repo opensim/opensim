@@ -390,17 +390,21 @@ namespace OpenSim.Framework
 
             Object data = fetch(index);
 
-            if (data == null && (m_Flags & CacheFlags.CacheMissing) == 0)
-                return null;
-
-            lock (m_Index)
+            if (data == null)
             {
-               CacheItemBase missing = new CacheItemBase(index);
-               if (!m_Index.Contains(missing))
-               {
-                   m_Index.Add(missing);
-                   m_Lookup[index] = missing;
-               }
+                if((m_Flags & CacheFlags.CacheMissing) != 0)
+                {
+                    lock (m_Index)
+                    {
+                        CacheItemBase missing = new CacheItemBase(index);
+                        if (!m_Index.Contains(missing))
+                        {
+                            m_Index.Add(missing);
+                            m_Lookup[index] = missing;
+                        }
+                    }
+                }
+                return null;
             }
 
             Store(index, data);
