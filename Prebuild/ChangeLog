@@ -1,3 +1,6 @@
+2017, August Unit Umarov
+	* add Freak Tech patch for prefer32bit default to false
+
 2015, June	Fly-Man- <fly.man.opensim@gmail.com>
 	* V2.0.7	(WhiteCore Build)
 	* Added the VS2012/VS2013 targets so .Net 4.5 can be used for WhiteCore

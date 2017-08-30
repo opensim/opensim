@@ -68,7 +68,8 @@ using System.Resources;
                              "Rob Loach, " +
                              "David Hudson," +
                              "John Hurliman" +
-                             "WhiteCore Development")]
+                             "WhiteCore Development" +
+                             "OpenSimulator developers")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: NeutralResourcesLanguageAttribute("en-US")]

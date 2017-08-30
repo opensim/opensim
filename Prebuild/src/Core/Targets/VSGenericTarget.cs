@@ -235,7 +235,7 @@ namespace Prebuild.Core.Targets
 					ps.WriteLine("	  <ConfigurationOverrideFile>");
 					ps.WriteLine("	  </ConfigurationOverrideFile>");
 					ps.WriteLine("	  <DefineConstants>{0}</DefineConstants>",
-                        conf.Options["CompilerDefines"] == "" ? this.kernel.ForcedConditionals : conf.Options["CompilerDefines"] + ";" + kernel.ForcedConditionals);
+                        conf.Options["CompilerDefines"].ToString() == "" ? this.kernel.ForcedConditionals : conf.Options["CompilerDefines"] + ";" + kernel.ForcedConditionals);
 					ps.WriteLine("	  <DocumentationFile>{0}</DocumentationFile>", Helper.NormalizePath(conf.Options["XmlDocFile"].ToString()));
 					ps.WriteLine("	  <DebugSymbols>{0}</DebugSymbols>", conf.Options["DebugInformation"]);
 					ps.WriteLine("	  <FileAlignment>{0}</FileAlignment>", conf.Options["FileAlignment"]);
@@ -254,6 +254,7 @@ namespace Prebuild.Core.Targets
 					ps.WriteLine("	  <NoStdLib>{0}</NoStdLib>", conf.Options["NoStdLib"]);
 					ps.WriteLine("	  <NoWarn>{0}</NoWarn>", conf.Options["SuppressWarnings"]);
 					ps.WriteLine("	  <PlatformTarget>{0}</PlatformTarget>", conf.Platform);
+                    ps.WriteLine("    <Prefer32Bit>false</Prefer32Bit>");
 					ps.WriteLine("	</PropertyGroup>");
 				}
 
