@@ -89,6 +89,7 @@ namespace Prebuild.Core
 
 	    readonly List<SolutionNode> m_Solutions = new List<SolutionNode>();
         string m_Target;
+        bool cmdlineTargetFramework;
         FrameworkVersion m_TargetFramework; //Overrides all project settings
         string m_Conditionals; //Adds to all project settings
         public string ForcedConditionals { get { return m_Conditionals; } }
@@ -327,6 +328,7 @@ namespace Prebuild.Core
             m_Log.Write("C.J. Adams-Collier (cjac@colliertech.org),");
             m_Log.Write("John Hurliman (john.hurliman@intel.com),");
             m_Log.Write("WhiteCore build 2015 (greythane@gmail.com),");
+            m_Log.Write("OpenSim build 2017 Ubit Umarov,");
             m_Log.Write ("");
             m_Log.Write("See 'prebuild /usage' for help");
             m_Log.Write();
@@ -602,7 +604,7 @@ namespace Prebuild.Core
 					dataNode = preNode;
 
 				dataNode.Parent = parent;
-                if (dataNode is ProjectNode)
+                if (cmdlineTargetFramework && dataNode is ProjectNode)
                 {
                     ((ProjectNode)dataNode).FrameworkVersion = m_TargetFramework;
                 }
@@ -663,7 +665,10 @@ namespace Prebuild.Core
             m_Target = m_CommandLine["target"];
             m_Conditionals = m_CommandLine["conditionals"];
             if(m_CommandLine["targetframework"] != null)
+            {
                 m_TargetFramework = (FrameworkVersion)Enum.Parse (typeof (FrameworkVersion), m_CommandLine["targetframework"]);
+                cmdlineTargetFramework = true;
+            }
 			m_Clean = m_CommandLine["clean"];
 			string removeDirs = m_CommandLine["removedir"];
 			if(removeDirs != null && removeDirs.Length == 0) 
