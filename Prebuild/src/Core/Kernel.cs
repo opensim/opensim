@@ -328,7 +328,7 @@ namespace Prebuild.Core
             m_Log.Write("C.J. Adams-Collier (cjac@colliertech.org),");
             m_Log.Write("John Hurliman (john.hurliman@intel.com),");
             m_Log.Write("WhiteCore build 2015 (greythane@gmail.com),");
-            m_Log.Write("OpenSim build 2017 Ubit Umarov,");
+            m_Log.Write("OpenSimulator build 2017 Ubit Umarov,");
             m_Log.Write ("");
             m_Log.Write("See 'prebuild /usage' for help");
             m_Log.Write();

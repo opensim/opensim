@@ -40,7 +40,7 @@
 			<Author>C.J. Adams-Collier (cjac@colliertech.org)</Author>
 			<Author>John Hurliman (john.hurliman@intel.com)</Author>
 			<Author>WhiteCore build (2015) Rowan Deppeler (greythan@gmail.com)</Author>
-			<Author>OpenSim build (2017) AJLDuarte</Author>
+			<Author>OpenSimulator build (2017) AJLDuarte</Author>
 			<Description>The Prebuild project generator</Description>
 			<Configuration name="Debug">
 				<Options>
