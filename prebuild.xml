@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Prebuild version="1.10" xmlns="http://dnpb.sourceforge.net/schemas/prebuild-1.10.xsd">
   <Solution activeConfig="Debug" name="OpenSim" path="./" version="0.5.0-$Rev$">
-    <Configuration name="Debug">
+    <Configuration name="Debug" >
       <Options>
         <CompilerDefines>TRACE;DEBUG</CompilerDefines>
         <OptimizeCode>false</OptimizeCode>
@@ -29,9 +29,10 @@
         <DebugInformation>false</DebugInformation>
         <IncrementalBuild>true</IncrementalBuild>
         <NoStdLib>false</NoStdLib>
+		<Platform>x86</Platform>
       </Options>
     </Configuration>
-
+ 
     <!-- Core OpenSim Projects -->
 <!--
         <Project frameworkVersion="v4_0" name="OpenSim.Model" path="OpenSim/Model" type="Library">
@@ -200,6 +201,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
           <Exclude pattern="Tests"/>
 
           <!-- on temporary suspension -->
@@ -264,6 +266,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
           <Exclude name="Tests" pattern="Tests"/>
         </Match>
       </Files>
@@ -462,6 +465,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
           <Exclude name="Tests" pattern="Tests"/>
         </Match>
       </Files>
@@ -985,6 +989,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
           <Exclude name="Tests" pattern="Tests"/>
         </Match>
       </Files>
@@ -1162,6 +1167,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
           <Exclude pattern="Tests"/>
         </Match>
       </Files>
@@ -1203,6 +1209,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
           <Exclude pattern="Tests"/>
         </Match>
       </Files>
@@ -1317,6 +1324,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
           <Exclude name="Tests" pattern="Tests"/>
         </Match>
       </Files>
@@ -1366,6 +1374,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
           <Exclude name="Tests" pattern="Tests"/>
         </Match>
       </Files>
@@ -1433,6 +1442,7 @@
       <Files>
         <Match buildAction="EmbeddedResource" path="Resources" pattern="*.addin.xml" recurse="true"/>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
           <Exclude name="Tests" pattern="Tests"/>
         </Match>
         <Match buildAction="EmbeddedResource" path="Resources" pattern="*.addin.xml" recurse="true"/>
@@ -1493,6 +1503,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
           <Exclude name="Tests" pattern="Tests"/>
         </Match>
         <Match buildAction="EmbeddedResource" path="Resources" pattern="*.addin.xml" recurse="true"/>
@@ -1550,6 +1561,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
           <Exclude name="Tests" pattern="Tests"/>
         </Match>
       </Files>
@@ -1664,6 +1676,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
           <Exclude name="Tests" pattern="Tests"/>
         </Match>
       </Files>
@@ -1697,6 +1710,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
           <Exclude name="Tests" pattern="Tests"/>
         </Match>
       </Files>
@@ -1768,6 +1782,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
           <Exclude name="Tests" pattern="Tests"/>
         </Match>
       </Files>
@@ -1951,6 +1966,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
           <Exclude name="Tests" pattern="Tests"/>
         </Match>
         <Match buildAction="EmbeddedResource" path="Resources" pattern="*.sql"/>
@@ -2026,6 +2042,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
           <Exclude name="Tests" pattern="Tests"/>
         </Match>
         <Match buildAction="EmbeddedResource" path="Resources" pattern="*.sql"/>
@@ -2169,6 +2186,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
           <Exclude name="Tests" pattern="Tests"/>
         </Match>
       </Files>
@@ -2208,6 +2226,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
           <Exclude name="Tests" pattern="Tests"/>
         </Match>
       </Files>
@@ -2285,6 +2304,7 @@
       <Files>
         <Match buildAction="EmbeddedResource" path="Resources" pattern="*.addin.xml" recurse="true"/>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
           <Exclude name="Api"/>
           <Exclude name="Tests" pattern="Tests"/>
         </Match>
@@ -2334,6 +2354,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
           <Exclude pattern="Tests" />
         </Match>
         <Match buildAction="EmbeddedResource" path="Resources" pattern="*.migrations"/>
@@ -2382,6 +2403,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
           <Exclude pattern="Tests" />
         </Match>
         <Match buildAction="EmbeddedResource" path="Resources" pattern="*.migrations"/>
@@ -2610,6 +2632,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
         </Match>
       </Files>
     </Project>
@@ -2800,6 +2823,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
         </Match>
       </Files>
     </Project>
@@ -2830,6 +2854,7 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
+          <Exclude name="obj" pattern="obj"/>
         </Match>
       </Files>
     </Project>
