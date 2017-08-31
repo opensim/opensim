@@ -254,7 +254,7 @@ namespace Prebuild.Core.Targets
 					ps.WriteLine("	  <NoStdLib>{0}</NoStdLib>", conf.Options["NoStdLib"]);
 					ps.WriteLine("	  <NoWarn>{0}</NoWarn>", conf.Options["SuppressWarnings"]);
 					ps.WriteLine("	  <PlatformTarget>{0}</PlatformTarget>", conf.Platform);
-                    ps.WriteLine("    <Prefer32Bit>false</Prefer32Bit>");
+                    ps.WriteLine("	  <Prefer32Bit>{0}</Prefer32Bit>",conf.Options["Prefer32Bit"]);
 					ps.WriteLine("	</PropertyGroup>");
 				}
 

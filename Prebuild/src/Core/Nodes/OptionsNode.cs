@@ -277,6 +277,24 @@ namespace Prebuild.Core.Nodes
 				m_SuppressWarnings = value;
 			}
 		}
+
+		[OptionNode("Prefer32Bit")]
+		private bool m_Prefer32Bit;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public bool Prefer32Bit
+		{
+			get
+			{
+				return m_Prefer32Bit;
+			}
+			set
+			{
+				m_Prefer32Bit = value;
+			}
+		}
         
 		[OptionNode("OutputPath")]
 		private string m_OutputPath = "bin/";

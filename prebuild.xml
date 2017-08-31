@@ -14,6 +14,7 @@
         <DebugInformation>true</DebugInformation>
         <IncrementalBuild>true</IncrementalBuild>
         <NoStdLib>false</NoStdLib>
+		<Prefer32Bit>false</Prefer32Bit>
       </Options>
     </Configuration>
     <Configuration name="Release">
@@ -29,6 +30,7 @@
         <DebugInformation>false</DebugInformation>
         <IncrementalBuild>true</IncrementalBuild>
         <NoStdLib>false</NoStdLib>
+		<Prefer32Bit>false</Prefer32Bit>
       </Options>
     </Configuration>
  
