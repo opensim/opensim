@@ -496,8 +496,8 @@ public sealed class BSCharacter : BSPhysObject
     public override OMV.Vector3 ForceVelocity {
         get { return RawVelocity; }
         set {
-            PhysScene.AssertInTaintTime("BSCharacter.ForceVelocity");
-            DetailLog("{0}: BSCharacter.ForceVelocity.set = {1}", LocalID, value);
+            PhysScene.AssertNotInSimulationTime("BSCharacter.ForceVelocity");
+            DetailLog("{0},BSCharacter.ForceVelocity.set={1}", LocalID, value);
 
             RawVelocity = Util.ClampV(value, BSParam.MaxLinearVelocity);
             PhysScene.PE.SetLinearVelocity(PhysBody, RawVelocity);
@@ -638,7 +638,7 @@ public sealed class BSCharacter : BSPhysObject
     public override float ForceBuoyancy {
         get { return _buoyancy; }
         set {
-            PhysScene.AssertInTaintTime("BSCharacter.ForceBuoyancy");
+            PhysScene.AssertNotInSimulationTime("BSCharacter.ForceBuoyancy");
 
             _buoyancy = value;
             DetailLog("{0},BSCharacter.setForceBuoyancy,taint,buoy={1}", LocalID, _buoyancy);

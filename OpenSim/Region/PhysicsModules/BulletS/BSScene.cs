@@ -128,6 +128,9 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         // Not guaranteed to be correct all the time (don't depend on this) but good for debugging.
         public bool InTaintTime { get; private set; }
 
+        // Flag that is true when the simulator is active and shouldn't be touched
+        public bool InSimulationTime { get; private set; }
+
         // Pinned memory used to pass step information between managed and unmanaged
         internal int m_maxCollisionsPerFrame;
         internal CollisionDesc[] m_collisionArray;
@@ -344,6 +347,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             // Put some informational messages into the log file.
             m_log.InfoFormat("{0} Linksets implemented with {1}", LogHeader, (BSLinkset.LinksetImplementation)BSParam.LinksetImplementation);
 
+            InSimulationTime = false;
             InTaintTime = false;
             m_initialized = true;
 
@@ -658,21 +662,21 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             int beforeTime = Util.EnvironmentTickCount();
             int simTime = 0;
 
-            int numTaints = _taintOperations.Count;
-            InTaintTime = true; // Only used for debugging so locking is not necessary.
-
+            InTaintTime = true;
             // update the prim states while we know the physics engine is not busy
-            ProcessTaints();
+            int numTaints = ProcessTaints();
 
             // Some of the physical objects requre individual, pre-step calls
             //      (vehicles and avatar movement, in particular)
             TriggerPreStepEvent(timeStep);
 
             // the prestep actions might have added taints
-            numTaints += _taintOperations.Count;
-            ProcessTaints();
+            numTaints += ProcessTaints();
 
-            InTaintTime = false; // Only used for debugging so locking is not necessary.
+            lock (_taintLock)
+            {
+                InSimulationTime = true;
+            }
 
             // The following causes the unmanaged code to output ALL the values found in ALL the objects in the world.
             // Only enable this in a limited test world with few objects.
@@ -699,6 +703,18 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             // Make the physics engine dump useful statistics periodically
             if (PhysicsMetricDumpFrames != 0 && ((m_simulationStep % PhysicsMetricDumpFrames) == 0))
                 PE.DumpPhysicsStatistics(World);
+
+            lock (_taintLock)
+            {
+                InTaintTime = false;
+                InSimulationTime = false;
+            }
+
+            // Some actors want to know when the simulation step is complete.
+            TriggerPostStepEvent(timeStep);
+
+            // In case there were any parameter updates that happened during the simulation step
+            numTaints += ProcessTaints();
 
             // Get a value for 'now' so all the collision and update routines don't have to get their own.
             SimulationNowTime = Util.EnvironmentTickCount();
@@ -747,9 +763,6 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     }
                 }
             }
-
-            // Some actors want to know when the simulation step is complete.
-            TriggerPostStepEvent(timeStep);
 
             simTime = Util.EnvironmentTickCountSubtract(beforeTime);
             if (PhysicsLogging.Enabled)
@@ -1182,6 +1195,15 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         {
             if (!m_initialized) return;
 
+            lock (_taintLock) {
+                if (inTaintTime || !InSimulationTime) {
+                    pCallback();
+                }
+                else {
+                    _taintOperations.Add(new TaintCallbackEntry(pOriginator, pIdent, pCallback));
+                }
+            }
+            /*
             if (inTaintTime)
                 pCallback();
             else
@@ -1191,6 +1213,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     _taintOperations.Add(new TaintCallbackEntry(pOriginator, pIdent, pCallback));
                 }
             }
+            */
         }
 
         private void TriggerPreStepEvent(float timeStep)
@@ -1212,14 +1235,19 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         // When someone tries to change a property on a BSPrim or BSCharacter, the object queues
         // a callback into itself to do the actual property change. That callback is called
         // here just before the physics engine is called to step the simulation.
-        public void ProcessTaints()
+        // Returns the number of taints processed
+        public int ProcessTaints()
         {
-            ProcessRegularTaints();
-            ProcessPostTaintTaints();
+            int ret = 0;
+            ret += ProcessRegularTaints();
+            ret += ProcessPostTaintTaints();
+            return ret;
         }
 
-        private void ProcessRegularTaints()
+        // Returns the number of taints processed
+        private int ProcessRegularTaints()
         {
+            int ret = 0;
             if (m_initialized && _taintOperations.Count > 0)  // save allocating new list if there is nothing to process
             {
                 // swizzle a new list into the list location so we can process what's there
@@ -1236,6 +1264,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     {
                         DetailLog("{0},BSScene.ProcessTaints,doTaint,id={1}", tcbe.originator, tcbe.ident); // DEBUG DEBUG DEBUG
                         tcbe.callback();
+                        ret++;
                     }
                     catch (Exception e)
                     {
@@ -1244,6 +1273,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 }
                 oldList.Clear();
             }
+            return ret;
         }
 
         // Schedule an update to happen after all the regular taints are processed.
@@ -1262,8 +1292,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         }
 
         // Taints that happen after the normal taint processing but before the simulation step.
-        private void ProcessPostTaintTaints()
+        // Returns the number of taints processed
+        private int ProcessPostTaintTaints()
         {
+            int ret = 0;
             if (m_initialized && _postTaintOperations.Count > 0)
             {
                 Dictionary<string, TaintCallbackEntry> oldList;
@@ -1279,6 +1311,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     {
                         DetailLog("{0},BSScene.ProcessPostTaintTaints,doTaint,id={1}", DetailLogZero, kvp.Key); // DEBUG DEBUG DEBUG
                         kvp.Value.callback();
+                        ret++;
                     }
                     catch (Exception e)
                     {
@@ -1287,18 +1320,19 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 }
                 oldList.Clear();
             }
+            return ret;
         }
 
-        // Only used for debugging. Does not change state of anything so locking is not necessary.
-        public bool AssertInTaintTime(string whereFrom)
+        // Verify that things are being diddled when the physics engine is not running.
+        public bool AssertNotInSimulationTime(string whereFrom)
         {
-            if (!InTaintTime)
+            if (InSimulationTime)
             {
-                DetailLog("{0},BSScene.AssertInTaintTime,NOT IN TAINT TIME,Region={1},Where={2}", DetailLogZero, RegionName, whereFrom);
-                m_log.ErrorFormat("{0} NOT IN TAINT TIME!! Region={1}, Where={2}", LogHeader, RegionName, whereFrom);
+                DetailLog("{0},BSScene.AssertInTaintTime,IN SIMULATION TIME,Region={1},Where={2}", DetailLogZero, RegionName, whereFrom);
+                m_log.ErrorFormat("{0} IN SIMULATION TIME!! Region={1}, Where={2}", LogHeader, RegionName, whereFrom);
                 // Util.PrintCallStack(DetailLog);
             }
-            return InTaintTime;
+            return InSimulationTime;
         }
 
         #endregion // Taints
