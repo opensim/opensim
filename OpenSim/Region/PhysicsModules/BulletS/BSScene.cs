@@ -956,6 +956,98 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         #endregion // Terrain
 
+        #region Raycast
+
+        public override bool SupportsRayCast()
+        {
+            return BSParam.UseBulletRaycast;
+        }
+
+        public override bool SupportsRaycastWorldFiltered()
+        {
+            return BSParam.UseBulletRaycast;
+        }
+
+
+        /// <summary>
+        /// Queue a raycast against the physics scene.
+        /// The provided callback method will be called when the raycast is complete
+        ///
+        /// Many physics engines don't support collision testing at the same time as
+        /// manipulating the physics scene, so we queue the request up and callback
+        /// a custom method when the raycast is complete.
+        /// This allows physics engines that give an immediate result to callback immediately
+        /// and ones that don't, to callback when it gets a result back.
+        ///      public delegate void RayCallback(List<ContactResult> list);
+        ///
+        /// ODE for example will not allow you to change the scene while collision testing or
+        /// it asserts, 'opteration not valid for locked space'.  This includes adding a ray to the scene.
+        ///
+        /// This is named RayCastWorld to not conflict with modrex's Raycast method.
+        /// </summary>
+        /// <param name="position">Origin of the ray</param>
+        /// <param name="direction">Direction of the ray</param>
+        /// <param name="length">Length of ray in meters</param>
+        /// <param name="retMethod">Method to call when the raycast is complete</param>
+        public override void RaycastWorld(Vector3 position, Vector3 direction, float length, RaycastCallback retMethod)
+        {
+            if (retMethod != null)
+            {
+                if (BSParam.UseBulletRaycast)
+                {
+                    Vector3 posFrom = position;
+                    Vector3 posTo = Vector3.Normalize(direction) * length + position;
+
+                    TaintedObject(DetailLogZero, "BSScene.RaycastWorld1", delegate ()
+                    {
+                        RaycastHit hitInfo = PE.RayTest2(World, posFrom, posTo, 0xffff, 0xffff);
+                        retMethod(true, hitInfo.Point, hitInfo.ID, hitInfo.Fraction, hitInfo.Normal);
+                    });
+                }
+                else
+                {
+                    retMethod(false, Vector3.Zero, 0, 999999999999f, Vector3.Zero);
+                }
+            }
+        }
+
+        public override void RaycastWorld(Vector3 position, Vector3 direction, float length, int count, RayCallback retMethod)
+        {
+            if (retMethod != null)
+            {
+                if (BSParam.UseBulletRaycast)
+                {
+                    List<ContactResult> hitInfo = RaycastWorld(position, direction, length, count);
+                    retMethod(hitInfo);
+                }
+                else
+                {
+                    retMethod(new List<ContactResult>());
+                }
+            }
+        }
+
+        public override List<ContactResult> RaycastWorld(Vector3 position, Vector3 direction, float length, int Count)
+        {
+            List<ContactResult> ret = new List<ContactResult>();
+            if (BSParam.UseBulletRaycast)
+            {
+            }
+            return ret;
+        }
+
+        public override object RaycastWorld(Vector3 position, Vector3 direction, float length, int Count, RayFilterFlags filter)
+        {
+            object ret = null;
+            if (BSParam.UseBulletRaycast)
+            {
+            }
+            return ret;
+        }
+
+        #endregion Raycast
+
+
         public override Dictionary<uint, float> GetTopColliders()
         {
             Dictionary<uint, float> topColliders;

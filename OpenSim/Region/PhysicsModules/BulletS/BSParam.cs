@@ -230,6 +230,8 @@ public static class BSParam
     public static float LinkConstraintCFM { get; private set; }
     public static float LinkConstraintSolverIterations { get; private set; }
 
+    public static bool UseBulletRaycast { get; private set; }
+
     public static float PID_D { get; private set; }    // derivative
     public static float PID_P { get; private set; }    // proportional
 
@@ -822,6 +824,9 @@ public static class BSParam
             0.1f ),
         new ParameterDefn<float>("LinkConstraintSolverIterations", "Number of solver iterations when computing constraint. (0 = Bullet default)",
             40 ),
+
+        new ParameterDefn<bool>("UseBulletRaycast", "If 'true', use the raycast function of the Bullet physics engine",
+            true ),
 
         new ParameterDefn<float>("DebugNumber", "A console setable number sometimes used for debugging",
             1.0f ),

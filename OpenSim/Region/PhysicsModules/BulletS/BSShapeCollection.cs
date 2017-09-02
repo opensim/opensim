@@ -229,6 +229,8 @@ public sealed class BSShapeCollection : IDisposable
             ret = CreateGeomMeshOrHull(prim, shapeCallback);
         }
 
+        m_physicsScene.PE.ResetBroadphasePool(m_physicsScene.World);    // DEBUG DEBUG
+
         return ret;
     }
 
