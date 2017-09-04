@@ -121,6 +121,14 @@ public struct SweepHit
     public float Fraction;
     public Vector3 Normal;
     public Vector3 Point;
+
+    public bool hasHit()
+    {
+        float sum = Fraction
+                + Normal.X + Normal.Y + Normal.Z
+                + Point.X + Point.Y + Point.Z;
+        return (sum != 0) || (ID != 0);
+    }
 }
 [StructLayout(LayoutKind.Sequential)]
 public struct RaycastHit
@@ -129,6 +137,12 @@ public struct RaycastHit
     public float Fraction;
     public Vector3 Normal;
     public Vector3 Point;
+
+    public bool hasHit()
+    {
+        float sum = Normal.X + Normal.Y + Normal.Z + Point.X + Point.Y + Point.Z;
+        return (sum != 0);
+    }
 }
 [StructLayout(LayoutKind.Sequential)]
 public struct CollisionDesc

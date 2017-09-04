@@ -48,67 +48,76 @@ namespace OpenSim.Region.PhysicsModule.BulletS.Tests
         // Documentation on attributes: http://www.nunit.org/index.php?p=attributes&r=2.6.1
         // Documentation on assertions: http://www.nunit.org/index.php?p=assertions&r=2.6.1
 
-        BSScene PhysicsScene { get; set; }
-        BSPrim TargetSphere { get; set; }
-        Vector3 TargetSpherePosition { get; set; }
-        float simulationTimeStep = 0.089f;
+        BSScene _physicsScene { get; set; }
+        BSPrim _targetSphere { get; set; }
+        Vector3 _targetSpherePosition { get; set; }
+        float _simulationTimeStep = 0.089f;
+
+        uint _targetLocalID = 123;
 
         [TestFixtureSetUp]
         public void Init()
         {
             Dictionary<string, string> engineParams = new Dictionary<string, string>();
             engineParams.Add("UseBulletRaycast", "true");
-            PhysicsScene = BulletSimTestsUtil.CreateBasicPhysicsEngine(engineParams);
+            _physicsScene = BulletSimTestsUtil.CreateBasicPhysicsEngine(engineParams);
 
             PrimitiveBaseShape pbs = PrimitiveBaseShape.CreateSphere();
             Vector3 pos = new Vector3(100.0f, 100.0f, 50f);
-            pos.Z = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(pos) + 2f;
-            TargetSpherePosition = pos;
+            _targetSpherePosition = pos;
             Vector3 size = new Vector3(10f, 10f, 10f);
             pbs.Scale = size;
             Quaternion rot = Quaternion.Identity;
             bool isPhys = false;
-            uint localID = 123;
 
-            PhysicsScene.AddPrimShape("TargetSphere", pbs, pos, size, rot, isPhys, localID);
-            TargetSphere = (BSPrim)PhysicsScene.PhysObjects[localID];
+            _physicsScene.AddPrimShape("TargetSphere", pbs, pos, size, rot, isPhys, _targetLocalID);
+            _targetSphere = (BSPrim)_physicsScene.PhysObjects[_targetLocalID];
             // The actual prim shape creation happens at taint time
-            PhysicsScene.ProcessTaints();
+            _physicsScene.ProcessTaints();
 
         }
 
         [TestFixtureTearDown]
         public void TearDown()
         {
-            if (PhysicsScene != null)
+            if (_physicsScene != null)
             {
                 // The Dispose() will also free any physical objects in the scene
-                PhysicsScene.Dispose();
-                PhysicsScene = null;
+                _physicsScene.Dispose();
+                _physicsScene = null;
             }
         }
 
         // There is a 10x10x10 sphere at <100,100,50>
         // Shoot rays around the sphere and verify it hits and doesn't hit
         // TestCase parameters are <x,y,z> of start and <x,y,z> of end and expected result
-        [TestCase(20f, 20f, 50f, 50f, 50f, 50f, true)]      // in front to sphere
-        [TestCase(20f, 20f, 100f, 50f, 50f, 50f, true)]     // from above to sphere
-        [TestCase(50f, 50f, 50f, 150f, 150f, 50f, true)]    // through sphere
-        [TestCase(50f, 50f, 65f, 150f, 150f, 65f, false)]   // pass over sphere
-        public void RaycastAroundObject(float fromX, float fromY, float fromZ, float toX, float toY, float toZ, bool expected) {
+        [TestCase(100f, 50f, 50f, 100f, 150f, 50f, true, "Pass through sphere from front")]
+        [TestCase(50f, 100f, 50f, 150f, 100f, 50f, true, "Pass through sphere from side")]
+        [TestCase(50f, 50f, 50f, 150f, 150f, 50f, true, "Pass through sphere diaginally")]
+        [TestCase(100f, 100f, 100f, 100f, 100f, 20f, true, "Pass through sphere from above")]
+        [TestCase(20f, 20f, 50f, 80f, 80f, 50f, false, "Not reach sphere")]
+        [TestCase(50f, 50f, 65f, 150f, 150f, 65f, false, "Passed over sphere")]
+        public void RaycastAroundObject(float fromX, float fromY, float fromZ, float toX, float toY, float toZ, bool expected, string msg) {
             Vector3 fromPos = new Vector3(fromX, fromY, fromZ);
             Vector3 toPos = new Vector3(toX, toY, toZ);
             Vector3 direction = toPos - fromPos;
             float len = Vector3.Distance(fromPos, toPos);
 
-            List<ContactResult> results = PhysicsScene.RaycastWorld(fromPos, direction, len, 1);
+            List<ContactResult> results = _physicsScene.RaycastWorld(fromPos, direction, len, 1);
 
             if (expected) {
-                Assert.True(results.Count > 0);
+                // The  test coordinates should generate a hit
+                Assert.True(results.Count != 0, msg + ": Did not return a hit but expected to.");
+                Assert.True(results.Count == 1, msg + ": Raycast returned not just one hit result.");
+                Assert.True(results[0].ConsumerID == _targetLocalID, msg + ": Raycast returned a collision object other than the target");
             }
             else
             {
-                Assert.False(results.Count > 0);
+                // The test coordinates should not generate a hit
+                if (results.Count > 0)
+                {
+                    Assert.False(results.Count > 0, msg + ": Returned a hit at " + results[0].Pos.ToString());
+                }
             }
         }
     }

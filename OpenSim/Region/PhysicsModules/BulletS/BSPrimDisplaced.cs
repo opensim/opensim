@@ -81,7 +81,6 @@ public class BSPrimDisplaced : BSPrim
     // Called at taint time.
     public virtual Vector3 SetEffectiveCenterOfMassDisplacement(Vector3 centerOfMassDisplacement)
     {
-        PhysScene.AssertInTaintTime("BSPrimDisplaced.SetEffectiveCenterOfMassDisplacement");
         Vector3 comDisp;
         if (UserSetCenterOfMassDisplacement.HasValue)
             comDisp = (OMV.Vector3)UserSetCenterOfMassDisplacement;
