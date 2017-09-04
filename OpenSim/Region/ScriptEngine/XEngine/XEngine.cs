@@ -78,7 +78,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         /// A parameter to allow us to notify the log if at least one script has a compilation that is not compatible
         /// with ScriptStopStrategy.
         /// </summary>
-        public bool HaveNotifiedLogOfScriptStopMistmatch { get; private set; }
+        public bool HaveNotifiedLogOfScriptStopMismatch { get; private set; }
 
         private SmartThreadPool m_ThreadPool;
         private int m_MaxScriptQueue;
@@ -1480,7 +1480,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         }
                     }
 
-                    if (m_coopTermination != coopTerminationForThisScript && !HaveNotifiedLogOfScriptStopMistmatch)
+                    if (m_coopTermination != coopTerminationForThisScript && !HaveNotifiedLogOfScriptStopMismatch)
                     {
                         // Notify the log that there is at least one script compile that doesn't match the
                         // ScriptStopStrategy.  Operator has to manually delete old DLLs - we can't do this on Windows
@@ -1490,7 +1490,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             + "\nContinuing with script compiled strategy but to remove this message please set [XEngine] DeleteScriptsOnStartup = true for one simulator session to remove old script DLLs (script state will not be lost).",
                             World.Name, coopTerminationForThisScript ? "co-op" : "abort", m_coopTermination ? "co-op" : "abort");
 
-                        HaveNotifiedLogOfScriptStopMistmatch = true;
+                        HaveNotifiedLogOfScriptStopMismatch = true;
                     }
 
                     instance = new ScriptInstance(this, part,
