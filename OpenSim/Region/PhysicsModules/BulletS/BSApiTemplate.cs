@@ -121,6 +121,14 @@ public struct SweepHit
     public float Fraction;
     public Vector3 Normal;
     public Vector3 Point;
+
+    public bool hasHit()
+    {
+        float sum = Fraction
+                + Normal.X + Normal.Y + Normal.Z
+                + Point.X + Point.Y + Point.Z;
+        return (sum != 0) || (ID != 0);
+    }
 }
 [StructLayout(LayoutKind.Sequential)]
 public struct RaycastHit
@@ -128,6 +136,13 @@ public struct RaycastHit
     public UInt32 ID;
     public float Fraction;
     public Vector3 Normal;
+    public Vector3 Point;
+
+    public bool hasHit()
+    {
+        float sum = Normal.X + Normal.Y + Normal.Z + Point.X + Point.Y + Point.Z;
+        return (sum != 0);
+    }
 }
 [StructLayout(LayoutKind.Sequential)]
 public struct CollisionDesc
@@ -740,6 +755,12 @@ public abstract int GetShapeType(BulletShape shape);
 public abstract void SetMargin(BulletShape shape, float val);
 
 public abstract float GetMargin(BulletShape shape);
+
+// =====================================================================================
+// Raycast
+public abstract SweepHit ConvexSweepTest2(BulletWorld world, BulletBody obj, Vector3 from, Vector3 to, float margin);
+
+public abstract RaycastHit RayTest2(BulletWorld world, Vector3 from, Vector3 to, uint filterGroup, uint filterMask);
 
 // =====================================================================================
 // Debugging

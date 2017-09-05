@@ -790,8 +790,6 @@ public class BSPrim : BSPhysObject
     public override OMV.Vector3 ForceVelocity {
         get { return RawVelocity; }
         set {
-            PhysScene.AssertInTaintTime("BSPrim.ForceVelocity");
-
             RawVelocity = Util.ClampV(value, BSParam.MaxLinearVelocity);
             if (PhysBody.HasPhysicalBody)
             {

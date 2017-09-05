@@ -75,8 +75,6 @@ public sealed class BSShapeCollection : IDisposable
     // Called at taint-time.
     public bool GetBodyAndShape(bool forceRebuild, BulletWorld sim, BSPhysObject prim, PhysicalDestructionCallback bodyCallback)
     {
-        m_physicsScene.AssertInTaintTime("BSShapeCollection.GetBodyAndShape");
-
         bool ret = false;
 
         // This lock could probably be pushed down lower but building shouldn't take long
@@ -229,6 +227,8 @@ public sealed class BSShapeCollection : IDisposable
             ret = CreateGeomMeshOrHull(prim, shapeCallback);
         }
 
+        m_physicsScene.PE.ResetBroadphasePool(m_physicsScene.World);    // DEBUG DEBUG
+
         return ret;
     }
 
@@ -343,8 +343,6 @@ public sealed class BSShapeCollection : IDisposable
     {
         if (!body.HasPhysicalBody)
             return;
-
-        m_physicsScene.AssertInTaintTime("BSShapeCollection.DereferenceBody");
 
         lock (m_collectionActivityLock)
         {
