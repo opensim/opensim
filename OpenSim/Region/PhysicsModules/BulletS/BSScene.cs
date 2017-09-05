@@ -1044,8 +1044,40 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             List<ContactResult> ret = new List<ContactResult>();
             if (BSParam.UseBulletRaycast)
             {
-                DetailLog("{0},RaycastWorld,pos={1},dir={2},len={3},count={4},filter={5}",
-                        DetailLogZero, position, direction, length, count, filter);
+                uint collisionFilter = 0;
+                uint collisionMask = 0;
+                if ((filter & RayFilterFlags.land) != 0)
+                {
+                    collisionFilter |= BulletSimData.CollisionTypeMasks[CollisionType.Terrain].group;
+                    collisionMask |= BulletSimData.CollisionTypeMasks[CollisionType.Terrain].mask;
+                }
+                if ((filter & RayFilterFlags.agent) != 0)
+                {
+                    collisionFilter |= BulletSimData.CollisionTypeMasks[CollisionType.Avatar].group;
+                    collisionMask |= BulletSimData.CollisionTypeMasks[CollisionType.Avatar].mask;
+                }
+                if ((filter & RayFilterFlags.nonphysical) != 0)
+                {
+                    collisionFilter |= BulletSimData.CollisionTypeMasks[CollisionType.Static].group;
+                    collisionMask |= BulletSimData.CollisionTypeMasks[CollisionType.Static].mask;
+                }
+                if ((filter & RayFilterFlags.physical) != 0)
+                {
+                    collisionFilter |= BulletSimData.CollisionTypeMasks[CollisionType.Dynamic].group;
+                    collisionMask |= BulletSimData.CollisionTypeMasks[CollisionType.Dynamic].mask;
+                }
+                // if ((filter & RayFilterFlags.phantom) != 0)
+                // {
+                //     collisionFilter |= BulletSimData.CollisionTypeMasks[CollisionType.VolumeDetect].group;
+                //     collisionMask |= BulletSimData.CollisionTypeMasks[CollisionType.VolumeDetect].mask;
+                // }
+                if ((filter & RayFilterFlags.volumedtc) != 0)
+                {
+                    collisionFilter |= BulletSimData.CollisionTypeMasks[CollisionType.VolumeDetect].group;
+                    collisionMask |= BulletSimData.CollisionTypeMasks[CollisionType.VolumeDetect].mask;
+                }
+                DetailLog("{0},RaycastWorld,pos={1},dir={2},len={3},count={4},filter={5},filter={6},mask={7}",
+                        DetailLogZero, position, direction, length, count, filter, collisionFilter, collisionMask);
                 // NOTE: locking ensures the physics engine is not executing.
                 //    The caller might have to wait for the physics engine to finish.
                 lock (PhysicsEngineLock)
@@ -1054,7 +1086,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     Vector3 posTo = Vector3.Normalize(direction) * length + position;
                     DetailLog("{0},RaycastWorld,RayTest2,from={1},to={2}",
                                 DetailLogZero, posFrom, posTo);
-                    RaycastHit hitInfo = PE.RayTest2(World, posFrom, posTo, 0xffff, 0xffff);
+                    RaycastHit hitInfo = PE.RayTest2(World, posFrom, posTo, collisionFilter, collisionMask);
                     if (hitInfo.hasHit())
                     {
                         ContactResult result = new ContactResult();
