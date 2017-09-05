@@ -2459,6 +2459,14 @@ private sealed class BulletConstraintXNA : BulletConstraint
         }
         return false;
     }
+
+    public override SweepHit ConvexSweepTest2(BulletWorld world, BulletBody obj, Vector3 from, Vector3 to, float margin) {
+        return new SweepHit();
+    }
+
+    public override RaycastHit RayTest2(BulletWorld world, Vector3 from, Vector3 to, uint filterGroup, uint filterMask) {
+        return new RaycastHit();
+    }
 }
 
 

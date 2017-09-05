@@ -450,6 +450,7 @@ public sealed class BSLinksetCompound : BSLinkset
             m_physicsScene.PE.AddObjectToWorld(m_physicsScene.World, LinksetRoot.PhysBody);
             DetailLog("{0},BSLinksetCompound.RecomputeLinksetCompound,addBody,body={1},shape={2}",
                                         LinksetRoot.LocalID, LinksetRoot.PhysBody, linksetShape);
+            m_physicsScene.PE.ResetBroadphasePool(m_physicsScene.World);    // DEBUG DEBUG
 
             // With all of the linkset packed into the root prim, it has the mass of everyone.
             LinksetMass = ComputeLinksetMass();
