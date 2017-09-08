@@ -751,8 +751,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             m_parent_scene.waitForSpaceUnlock(m_parent_scene.CharsSpace);
 
-            collider = d.HashSpaceCreate(m_parent_scene.CharsSpace);
-            d.HashSpaceSetLevels(collider, -4, 3);
+            collider = d.SimpleSpaceCreate(m_parent_scene.CharsSpace);
             d.SpaceSetSublevel(collider, 3);
             d.SpaceSetCleanup(collider, false);
             d.GeomSetCategoryBits(collider, (uint)m_collisionCategories);

@@ -201,7 +201,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public float ODE_STEPSIZE = 0.020f;
         public float HalfOdeStep = 0.01f;
         public int odetimestepMS = 20; // rounded
-        private float metersInSpace = 25.6f;
         private float m_timeDilation = 1.0f;
 
         private double m_lastframe;
@@ -283,16 +282,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public IntPtr CharsSpace; // space for active prims
         public IntPtr StaticSpace; // space for the static things around
         public IntPtr GroundSpace; // space for ground
-
-        // some speedup variables
-        private int spaceGridMaxX;
-        private int spaceGridMaxY;
-        private float spacesPerMeterX;
-        private float spacesPerMeterY;
-
-        // split static geometry collision into a grid as before
-        private IntPtr[,] staticPrimspace;
-        private IntPtr[] staticPrimspaceOffRegion;
 
         public Object OdeLock;
         public static Object SimulationLock;
@@ -386,25 +375,29 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 try
                 {
                     world = d.WorldCreate();
-                    TopSpace = d.HashSpaceCreate(IntPtr.Zero);
-
-                    // now the major subspaces
-                    ActiveSpace = d.HashSpaceCreate(TopSpace);
-                    CharsSpace = d.HashSpaceCreate(TopSpace);
-                    StaticSpace = d.HashSpaceCreate(TopSpace);
-                    GroundSpace = d.HashSpaceCreate(TopSpace);
+                    TopSpace = d.SimpleSpaceCreate(IntPtr.Zero);
+                    ActiveSpace = d.SimpleSpaceCreate(TopSpace);
+                    CharsSpace = d.SimpleSpaceCreate(TopSpace);
+                    GroundSpace = d.SimpleSpaceCreate(TopSpace);
+                    float sx = WorldExtents.X + 16;
+                    float sy = WorldExtents.Y + 16;
+                    d.Vector3 ex =new d.Vector3(sx, sy, 0);
+                    d.Vector3 px =new d.Vector3(sx * 0.5f, sx  * 0.5f, 0);
+                    if(sx < sy)
+                        sx = sy;
+                    sx = (float)Math.Log(sx) * 1.442695f + 0.5f;
+                    int dp = (int)sx - 2;
+                    if(dp > 8)
+                        dp = 8;
+                    else if(dp < 4)
+                        dp = 4;
+                    StaticSpace = d.QuadTreeSpaceCreate(TopSpace, ref px, ref ex, dp);
                 }
                 catch
                 {
                     // i must RtC#FM
                     // i did!
                 }
-
-                d.HashSpaceSetLevels(TopSpace, -5, 12);
-                d.HashSpaceSetLevels(ActiveSpace, -5, 10);
-                d.HashSpaceSetLevels(CharsSpace, -4, 3);
-                d.HashSpaceSetLevels(StaticSpace, -5, 12);
-                d.HashSpaceSetLevels(GroundSpace, 0, 8);
 
                 // demote to second level
                 d.SpaceSetSublevel(ActiveSpace, 1);
@@ -468,8 +461,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     gravityx = physicsconfig.GetFloat("world_gravityx", gravityx);
                     gravityy = physicsconfig.GetFloat("world_gravityy", gravityy);
                     gravityz = physicsconfig.GetFloat("world_gravityz", gravityz);
-
-                    metersInSpace = physicsconfig.GetFloat("meters_in_small_space", metersInSpace);
 
                     //                    contactsurfacelayer = physicsconfig.GetFloat("world_contact_surface_layer", contactsurfacelayer);
 
@@ -559,76 +550,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             m_materialContactsData[(int)Material.light].mu = 0.0f;
             m_materialContactsData[(int)Material.light].bounce = 0.0f;
-
-
-            spacesPerMeterX = 1.0f / metersInSpace;
-            spacesPerMeterY = spacesPerMeterX;
-            spaceGridMaxX = (int)(WorldExtents.X * spacesPerMeterX);
-            spaceGridMaxY = (int)(WorldExtents.Y * spacesPerMeterY);
-
-            if (spaceGridMaxX > 24)
-            {
-                spaceGridMaxX = 24;
-                spacesPerMeterX = spaceGridMaxX / WorldExtents.X;
-            }
-
-            if (spaceGridMaxY > 24)
-            {
-                spaceGridMaxY = 24;
-                spacesPerMeterY = spaceGridMaxY / WorldExtents.Y;
-            }
-
-            staticPrimspace = new IntPtr[spaceGridMaxX, spaceGridMaxY];
-
-            // create all spaces now
-            int i, j;
-            IntPtr newspace;
-
-            for (i = 0; i < spaceGridMaxX; i++)
-                for (j = 0; j < spaceGridMaxY; j++)
-                {
-                    newspace = d.HashSpaceCreate(StaticSpace);
-                    d.GeomSetCategoryBits(newspace, (int)CollisionCategories.Space);
-                    waitForSpaceUnlock(newspace);
-                    d.SpaceSetSublevel(newspace, 2);
-                    d.HashSpaceSetLevels(newspace, -2, 8);
-                    d.GeomSetCategoryBits(newspace, (uint)(CollisionCategories.Space |
-                                        CollisionCategories.Geom |
-                                        CollisionCategories.Land |
-                                        CollisionCategories.Water |
-                                        CollisionCategories.Phantom |
-                                        CollisionCategories.VolumeDtc
-                                        ));
-                    d.GeomSetCollideBits(newspace, 0);
-
-                    staticPrimspace[i, j] = newspace;
-                }
-
-            // let this now be index limit
-            spaceGridMaxX--;
-            spaceGridMaxY--;
-
-            // create 4 off world spaces (x<0,x>max,y<0,y>max)
-            staticPrimspaceOffRegion = new IntPtr[4];
-
-            for (i = 0; i < 4; i++)
-            {
-                newspace = d.HashSpaceCreate(StaticSpace);
-                d.GeomSetCategoryBits(newspace, (int)CollisionCategories.Space);
-                waitForSpaceUnlock(newspace);
-                d.SpaceSetSublevel(newspace, 2);
-                d.HashSpaceSetLevels(newspace, -2, 8);
-                d.GeomSetCategoryBits(newspace, (uint)(CollisionCategories.Space |
-                                    CollisionCategories.Geom |
-                                    CollisionCategories.Land |
-                                    CollisionCategories.Water |
-                                    CollisionCategories.Phantom |
-                                    CollisionCategories.VolumeDtc
-                                    ));
-                d.GeomSetCollideBits(newspace, 0);
-
-                staticPrimspaceOffRegion[i] = newspace;
-            }
 
             m_lastframe = Util.GetTimeStamp();
             m_lastMeshExpire = m_lastframe;
@@ -757,7 +678,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                 }
                 //
                 */
-
 
                 if (d.GeomGetCategoryBits(g1) == (uint)CollisionCategories.VolumeDtc ||
                     d.GeomGetCategoryBits(g2) == (uint)CollisionCategories.VolumeDtc)
@@ -1307,6 +1227,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public override void RemoveAvatar(PhysicsActor actor)
         {
             //m_log.Debug("[PHYSICS]:ODELOCK");
+            if (world == IntPtr.Zero)
+                return;
+
             lock (OdeLock)
             {
                 d.AllocateODEDataForThread(0);
@@ -1461,27 +1384,23 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         /// <summary>
         /// Called when a static prim moves or becomes static
-        /// Places the prim in a space one the static sub-spaces grid
+        /// Places the prim in a space one the static space
         /// </summary>
         /// <param name="geom">the pointer to the geom that moved</param>
-        /// <param name="pos">the position that the geom moved to</param>
         /// <param name="currentspace">a pointer to the space it was in before it was moved.</param>
         /// <returns>a pointer to the new space it's in</returns>
-        public IntPtr MoveGeomToStaticSpace(IntPtr geom, Vector3 pos, IntPtr currentspace)
+        public IntPtr MoveGeomToStaticSpace(IntPtr geom, IntPtr currentspace)
         {
-            // moves a prim into another static sub-space or from another space into a static sub-space
+            // moves a prim into static sub-space
 
             // Called ODEPrim so
             // it's already in locked space.
 
             if (geom == IntPtr.Zero) // shouldn't happen
                 return IntPtr.Zero;
-
-            // get the static sub-space for current position
-            IntPtr newspace = calculateSpaceForGeom(pos);
-
-            if (newspace == currentspace) // if we are there all done
-                return newspace;
+            
+            if (StaticSpace == currentspace) // if we are there all done
+                return StaticSpace;
 
             // else remove it from its current space
             if (currentspace != IntPtr.Zero && d.SpaceQuery(currentspace, geom))
@@ -1516,44 +1435,17 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         {
                             d.SpaceDestroy(currentspace);
                         }
-
                     }
                 }
             }
 
             // put the geom in the newspace
-            waitForSpaceUnlock(newspace);
-            d.SpaceAdd(newspace, geom);
+            waitForSpaceUnlock(StaticSpace);
+            d.SpaceAdd(StaticSpace, geom);
 
-            // let caller know this newspace
-            return newspace;
+            return StaticSpace;
         }
 
-        /// <summary>
-        /// Calculates the space the prim should be in by its position
-        /// </summary>
-        /// <param name="pos"></param>
-        /// <returns>a pointer to the space. This could be a new space or reused space.</returns>
-        public IntPtr calculateSpaceForGeom(Vector3 pos)
-        {
-            int x, y;
-
-            if (pos.X < 0)
-                return staticPrimspaceOffRegion[0];
-
-            if (pos.Y < 0)
-                return staticPrimspaceOffRegion[2];
-
-            x = (int)(pos.X * spacesPerMeterX);
-            if (x > spaceGridMaxX)
-                return staticPrimspaceOffRegion[1];
-
-            y = (int)(pos.Y * spacesPerMeterY);
-            if (y > spaceGridMaxY)
-                return staticPrimspaceOffRegion[3];
-
-            return staticPrimspace[x, y];
-        }
 
         #endregion
 
@@ -1642,6 +1534,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// <returns></returns>
         public override float Simulate(float reqTimeStep)
         {
+            if (world == IntPtr.Zero)
+                return 0;
+
             double now = Util.GetTimeStamp();
             double timeStep = now - m_lastframe;
             m_lastframe = now;
@@ -1680,9 +1575,15 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 double maxChangestime = (int)(reqTimeStep * 500f); // half the time
                 double maxLoopTime = (int)(reqTimeStep * 1200f); // 1.2 the time
 
-//                double collisionTime = 0;
-//                double qstepTIme = 0;
-//                double tmpTime = 0;
+
+                double collisionTime = 0;
+                double qstepTIme = 0;
+                double tmpTime = 0;
+                double changestot = 0;
+                double collisonRepo = 0;
+                double updatesTime = 0;
+                double moveTime = 0;
+                double rayTime = 0;
 
                 d.AllocateODEDataForThread(~0U);
 
@@ -1720,6 +1621,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         m_global_contactcount = 0;
 
 
+                        tmpTime =  Util.GetTimeStampMS();
+
                         // Move characters
                         lock (_characters)
                         {
@@ -1747,13 +1650,17 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                 aprim.Move();
                             }
                         }
+                        moveTime += Util.GetTimeStampMS() - tmpTime;
 
+                        tmpTime =  Util.GetTimeStampMS();
                         m_rayCastManager.ProcessQueuedRequests();
+                        rayTime += Util.GetTimeStampMS() - tmpTime;
 
-//                        tmpTime =  Util.GetTimeStampMS();
+                        tmpTime =  Util.GetTimeStampMS();
                         collision_optimized();
-//                        collisionTime += Util.GetTimeStampMS() - tmpTime;
+                        collisionTime += Util.GetTimeStampMS() - tmpTime;
 
+                        tmpTime =  Util.GetTimeStampMS();
                         lock(_collisionEventPrimRemove)
                         {
                             foreach (PhysicsActor obj in _collisionEventPrimRemove)
@@ -1792,12 +1699,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         foreach(OdePrim prm in sleepers)
                             prm.SleeperAddCollisionEvents();
                         sleepers.Clear();
+                        collisonRepo += Util.GetTimeStampMS() - tmpTime;
+
  
                         // do a ode simulation step
-//                        tmpTime =  Util.GetTimeStampMS();
+                        tmpTime =  Util.GetTimeStampMS();
                         d.WorldQuickStep(world, ODE_STEPSIZE);
                         d.JointGroupEmpty(contactgroup);
-//                        qstepTIme += Util.GetTimeStampMS() - tmpTime;
+                        qstepTIme += Util.GetTimeStampMS() - tmpTime;
 
                         // update managed ideia of physical data and do updates to core
         /*
@@ -1815,7 +1724,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             }
                         }
         */
-
+//                        tmpTime =  Util.GetTimeStampMS();
                         lock (_activegroups)
                         {
                             {
@@ -1828,6 +1737,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                 }
                             }
                         }
+//                        updatesTime += Util.GetTimeStampMS() - tmpTime;
                     }
                     catch (Exception e)
                     {
@@ -1835,10 +1745,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 //                        ode.dunlock(world);
                     }
 
+
                     step_time -= ODE_STEPSIZE;
                     nodeframes++;
 
                     looptimeMS = Util.GetTimeStampMS() - loopstartMS;
+
                     if (looptimeMS > maxLoopTime)
                         break;
                 }
@@ -1855,9 +1767,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         _badCharacter.Clear();
                     }
                 }
-
-// information block for in debug breakpoint only
 /*
+// information block for in debug breakpoint only
+
                 int ntopactivegeoms = d.SpaceGetNumGeoms(ActiveSpace);
                 int ntopstaticgeoms = d.SpaceGetNumGeoms(StaticSpace);
                 int ngroundgeoms = d.SpaceGetNumGeoms(GroundSpace);
@@ -1899,14 +1811,23 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 int nbodies = d.NTotalBodies;
                 int ngeoms = d.NTotalGeoms;
 */
-/*
+
+
                 looptimeMS /= nodeframes;
-                if(looptimeMS > 0.080)
+                collisionTime /= nodeframes;
+                qstepTIme /= nodeframes;
+                changestot /= nodeframes; 
+                collisonRepo /= nodeframes;
+                updatesTime /= nodeframes;
+                moveTime /= nodeframes;
+                rayTime /= nodeframes;
+
+                if(looptimeMS > .05)
                 {
-                    collisionTime /= nodeframes;
-                    qstepTIme /= nodeframes;    
+
+
                 }
-*/
+/*
                 // Finished with all sim stepping. If requested, dump world state to file for debugging.
                 // TODO: This call to the export function is already inside lock (OdeLock) - but is an extra lock needed?
                 // TODO: This overwrites all dump files in-place. Should this be a growing logfile, or separate snapshots?
@@ -1925,7 +1846,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                     d.WorldExportDIF(world, fname, physics_logging_append_existing_logfile, prefix);
                 }
-
+*/
                 fps = (float)nodeframes * ODE_STEPSIZE / reqTimeStep;
 
                 if(step_time < HalfOdeStep)

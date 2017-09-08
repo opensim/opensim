@@ -196,8 +196,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private int m_eventsubscription;
         private int m_cureventsubscription;
-        private CollisionEventUpdate CollisionEventsThisFrame = null;
-        private CollisionEventUpdate CollisionVDTCEventsThisFrame = null;
+        private CollisionEventUpdate CollisionEvents = null;
+        private CollisionEventUpdate CollisionVDTCEvents = null;
         private bool SentEmptyCollisionsEvent;
 
         public volatile bool childPrim;
@@ -1138,24 +1138,24 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             m_eventsubscription = ms;
             m_cureventsubscription = 0;
-            if (CollisionEventsThisFrame == null)
-                CollisionEventsThisFrame = new CollisionEventUpdate();
-            if (CollisionVDTCEventsThisFrame == null)
-                CollisionVDTCEventsThisFrame = new CollisionEventUpdate();
+            if (CollisionEvents == null)
+                CollisionEvents = new CollisionEventUpdate();
+            if (CollisionVDTCEvents == null)
+                CollisionVDTCEvents = new CollisionEventUpdate();
             SentEmptyCollisionsEvent = false;
         }
 
         public override void UnSubscribeEvents()
         {
-            if (CollisionVDTCEventsThisFrame != null)
+            if (CollisionVDTCEvents != null)
             {
-                CollisionVDTCEventsThisFrame.Clear();
-                CollisionVDTCEventsThisFrame = null;
+                CollisionVDTCEvents.Clear();
+                CollisionVDTCEvents = null;
             }
-            if (CollisionEventsThisFrame != null)
+            if (CollisionEvents != null)
             {
-                CollisionEventsThisFrame.Clear();
-                CollisionEventsThisFrame = null;
+                CollisionEvents.Clear();
+                CollisionEvents = null;
             }
             m_eventsubscription = 0;
            _parent_scene.RemoveCollisionEventReporting(this);
@@ -1163,27 +1163,27 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public override void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
         {
-            if (CollisionEventsThisFrame == null)
-                CollisionEventsThisFrame = new CollisionEventUpdate();
+            if (CollisionEvents == null)
+                CollisionEvents = new CollisionEventUpdate();
 
-            CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
+            CollisionEvents.AddCollider(CollidedWith, contact);
             _parent_scene.AddCollisionEventReporting(this);
         }
 
         public override void AddVDTCCollisionEvent(uint CollidedWith, ContactPoint contact)
         {
-            if (CollisionVDTCEventsThisFrame == null)
-                CollisionVDTCEventsThisFrame = new CollisionEventUpdate();
+            if (CollisionVDTCEvents == null)
+                CollisionVDTCEvents = new CollisionEventUpdate();
 
-            CollisionVDTCEventsThisFrame.AddCollider(CollidedWith, contact);
+            CollisionVDTCEvents.AddCollider(CollidedWith, contact);
             _parent_scene.AddCollisionEventReporting(this);
         }
 
         internal void SleeperAddCollisionEvents()
         {
-            if(CollisionEventsThisFrame != null && CollisionEventsThisFrame.m_objCollisionList.Count != 0)
+            if(CollisionEvents != null && CollisionEvents.m_objCollisionList.Count != 0)
             {
-                foreach(KeyValuePair<uint,ContactPoint> kvp in CollisionEventsThisFrame.m_objCollisionList)
+                foreach(KeyValuePair<uint,ContactPoint> kvp in CollisionEvents.m_objCollisionList)
                 {
                     if(kvp.Key == 0)
                         continue;
@@ -1196,9 +1196,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     other.AddCollisionEvent(ParentActor.LocalID,cp);
                 }
             }
-            if(CollisionVDTCEventsThisFrame != null && CollisionVDTCEventsThisFrame.m_objCollisionList.Count != 0)
+            if(CollisionVDTCEvents != null && CollisionVDTCEvents.m_objCollisionList.Count != 0)
             {
-                foreach(KeyValuePair<uint,ContactPoint> kvp in CollisionVDTCEventsThisFrame.m_objCollisionList)
+                foreach(KeyValuePair<uint,ContactPoint> kvp in CollisionVDTCEvents.m_objCollisionList)
                 {
                     OdePrim other = _parent_scene.getPrim(kvp.Key);
                     if(other == null)
@@ -1213,8 +1213,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         internal void clearSleeperCollisions()
         {
-            if(CollisionVDTCEventsThisFrame != null && CollisionVDTCEventsThisFrame.Count >0 )
-                CollisionVDTCEventsThisFrame.Clear();
+            if(CollisionVDTCEvents != null && CollisionVDTCEvents.Count >0 )
+                CollisionVDTCEvents.Clear();
         }
 
         public void SendCollisions(int timestep)
@@ -1226,14 +1226,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (m_cureventsubscription < m_eventsubscription)
                 return;
 
-            if (CollisionEventsThisFrame == null)
+            if (CollisionEvents == null)
                 return;
 
-            int ncolisions = CollisionEventsThisFrame.m_objCollisionList.Count;
+            int ncolisions = CollisionEvents.m_objCollisionList.Count;
 
             if (!SentEmptyCollisionsEvent || ncolisions > 0)
             {
-                base.SendCollisionUpdate(CollisionEventsThisFrame);
+                base.SendCollisionUpdate(CollisionEvents);
                 m_cureventsubscription = 0;
 
                 if (ncolisions == 0)
@@ -1244,7 +1244,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 else if(Body == IntPtr.Zero || (d.BodyIsEnabled(Body) && m_bodydisablecontrol >= 0 ))
                 {
                     SentEmptyCollisionsEvent = false;
-                    CollisionEventsThisFrame.Clear();
+                    CollisionEvents.Clear();
                 }
             }
         }
@@ -1832,7 +1832,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         // should only be called for non physical prims unless they are becoming non physical
         private void SetInStaticSpace(OdePrim prim)
         {
-            IntPtr targetSpace = _parent_scene.MoveGeomToStaticSpace(prim.prim_geom, prim._position, prim.m_targetSpace);
+            IntPtr targetSpace = _parent_scene.MoveGeomToStaticSpace(prim.prim_geom, prim.m_targetSpace);
             prim.m_targetSpace = targetSpace;
             collide_geom = IntPtr.Zero;
         }
@@ -2069,8 +2069,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
             else
             {
-                m_targetSpace = d.HashSpaceCreate(_parent_scene.ActiveSpace);
-                d.HashSpaceSetLevels(m_targetSpace, -2, 8);
+                m_targetSpace = d.SimpleSpaceCreate(_parent_scene.ActiveSpace);
                 d.SpaceSetSublevel(m_targetSpace, 3);
                 d.SpaceSetCleanup(m_targetSpace, false);
 
@@ -2964,7 +2963,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         d.GeomSetPosition(prim_geom, newPos.X, newPos.Y, newPos.Z);
                         _position = newPos;
 
-                        m_targetSpace = _parent_scene.MoveGeomToStaticSpace(prim_geom, _position, m_targetSpace);
+                        m_targetSpace = _parent_scene.MoveGeomToStaticSpace(prim_geom, m_targetSpace);
                     }
                 }
             }
@@ -3103,7 +3102,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         d.GeomSetPosition(prim_geom, newPos.X, newPos.Y, newPos.Z);
                         _position = newPos;
 
-                        m_targetSpace = _parent_scene.MoveGeomToStaticSpace(prim_geom, _position, m_targetSpace);
+                        m_targetSpace = _parent_scene.MoveGeomToStaticSpace(prim_geom, m_targetSpace);
                     }
                 }
             }
