@@ -1575,7 +1575,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 double maxChangestime = (int)(reqTimeStep * 500f); // half the time
                 double maxLoopTime = (int)(reqTimeStep * 1200f); // 1.2 the time
 
-
+/*
                 double collisionTime = 0;
                 double qstepTIme = 0;
                 double tmpTime = 0;
@@ -1584,7 +1584,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 double updatesTime = 0;
                 double moveTime = 0;
                 double rayTime = 0;
-
+*/
                 d.AllocateODEDataForThread(~0U);
 
                 if (ChangesQueue.Count > 0)
@@ -1621,7 +1621,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         m_global_contactcount = 0;
 
 
-                        tmpTime =  Util.GetTimeStampMS();
+//                        tmpTime =  Util.GetTimeStampMS();
 
                         // Move characters
                         lock (_characters)
@@ -1650,17 +1650,17 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                 aprim.Move();
                             }
                         }
-                        moveTime += Util.GetTimeStampMS() - tmpTime;
+//                        moveTime += Util.GetTimeStampMS() - tmpTime;
 
-                        tmpTime =  Util.GetTimeStampMS();
+//                        tmpTime =  Util.GetTimeStampMS();
                         m_rayCastManager.ProcessQueuedRequests();
-                        rayTime += Util.GetTimeStampMS() - tmpTime;
+//                        rayTime += Util.GetTimeStampMS() - tmpTime;
 
-                        tmpTime =  Util.GetTimeStampMS();
+//                        tmpTime =  Util.GetTimeStampMS();
                         collision_optimized();
-                        collisionTime += Util.GetTimeStampMS() - tmpTime;
+//                        collisionTime += Util.GetTimeStampMS() - tmpTime;
 
-                        tmpTime =  Util.GetTimeStampMS();
+//                        tmpTime =  Util.GetTimeStampMS();
                         lock(_collisionEventPrimRemove)
                         {
                             foreach (PhysicsActor obj in _collisionEventPrimRemove)
@@ -1699,14 +1699,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         foreach(OdePrim prm in sleepers)
                             prm.SleeperAddCollisionEvents();
                         sleepers.Clear();
-                        collisonRepo += Util.GetTimeStampMS() - tmpTime;
+//                        collisonRepo += Util.GetTimeStampMS() - tmpTime;
 
  
                         // do a ode simulation step
-                        tmpTime =  Util.GetTimeStampMS();
+//                        tmpTime =  Util.GetTimeStampMS();
                         d.WorldQuickStep(world, ODE_STEPSIZE);
                         d.JointGroupEmpty(contactgroup);
-                        qstepTIme += Util.GetTimeStampMS() - tmpTime;
+//                        qstepTIme += Util.GetTimeStampMS() - tmpTime;
 
                         // update managed ideia of physical data and do updates to core
         /*
@@ -1812,7 +1812,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 int ngeoms = d.NTotalGeoms;
 */
 
-
+/*
                 looptimeMS /= nodeframes;
                 collisionTime /= nodeframes;
                 qstepTIme /= nodeframes;
@@ -1827,6 +1827,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
 
                 }
+*/
 /*
                 // Finished with all sim stepping. If requested, dump world state to file for debugging.
                 // TODO: This call to the export function is already inside lock (OdeLock) - but is an extra lock needed?
