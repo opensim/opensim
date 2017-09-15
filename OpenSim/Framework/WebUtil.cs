@@ -200,7 +200,7 @@ namespace OpenSim.Framework
                 request.Timeout = timeout;
                 request.KeepAlive = false;
                 request.MaximumAutomaticRedirections = 10;
-                request.ReadWriteTimeout = timeout / 4;
+                request.ReadWriteTimeout = timeout / 2;
                 request.Headers[OSHeaderRequestID] = reqnum.ToString();
 
                 // If there is some input, write it into the request
@@ -396,7 +396,7 @@ namespace OpenSim.Framework
                 request.Timeout = timeout;
                 request.KeepAlive = false;
                 request.MaximumAutomaticRedirections = 10;
-                request.ReadWriteTimeout = timeout / 4;
+                request.ReadWriteTimeout = timeout / 2;
                 request.Headers[OSHeaderRequestID] = reqnum.ToString();
 
                 if (data != null)
