@@ -348,7 +348,7 @@ namespace OpenSim.Framework
                 case 2: // torus with hollow (a sl viewer whould see 4 faces on a hollow sphere)
                     shape.ProfileCurve = (byte)ProfileShape.Circle | (byte)HollowShape.Triangle;
                     shape.PathCurve = (byte)Extrusion.Curve1;
-                    shape.ProfileHollow = 1;
+                    shape.ProfileHollow = 27500;
                     break;
 
                 case 3: // cylinder
@@ -359,7 +359,7 @@ namespace OpenSim.Framework
                 case 4: // cylinder with hollow
                     shape.ProfileCurve = (byte)ProfileShape.Circle | (byte)HollowShape.Triangle;
                     shape.PathCurve = (byte)Extrusion.Straight;
-                    shape.ProfileHollow = 1;
+                    shape.ProfileHollow = 27500;
                     break;
 
                 case 5: // prism
@@ -375,13 +375,13 @@ namespace OpenSim.Framework
                 case 7: // box with hollow
                     shape.ProfileCurve = (byte)ProfileShape.Square | (byte)HollowShape.Triangle;
                     shape.PathCurve = (byte)Extrusion.Straight;
-                    shape.ProfileHollow = 1;
+                    shape.ProfileHollow = 27500;
                     break;
 
                 default: // 8 faces  box with cut
                     shape.ProfileCurve = (byte)ProfileShape.Square | (byte)HollowShape.Triangle;
                     shape.PathCurve = (byte)Extrusion.Straight;
-                    shape.ProfileBegin = 1;
+                    shape.ProfileBegin = 12500;
                     break;
             }
 
