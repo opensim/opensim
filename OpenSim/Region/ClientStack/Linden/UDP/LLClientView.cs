@@ -5884,7 +5884,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 update.ProfileCurve = (byte)(part.Shape.ProfileCurve & 0x0f);
                 // fix old values that confused viewers
                 if(profileBegin == 1)
-                    profileBegin = 12500;
+                    profileBegin = 9375;
                 if(profileHollow == 1)
                     profileHollow = 27500;
             }

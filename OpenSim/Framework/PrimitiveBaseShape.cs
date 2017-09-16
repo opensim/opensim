@@ -381,7 +381,7 @@ namespace OpenSim.Framework
                 default: // 8 faces  box with cut
                     shape.ProfileCurve = (byte)ProfileShape.Square | (byte)HollowShape.Triangle;
                     shape.PathCurve = (byte)Extrusion.Straight;
-                    shape.ProfileBegin = 12500;
+                    shape.ProfileBegin = 9375;
                     break;
             }
 
