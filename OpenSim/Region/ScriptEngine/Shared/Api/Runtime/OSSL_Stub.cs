@@ -1156,6 +1156,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetInertiaData();
         }
 
+        public void osSetInertia(LSL_Float mass, vector centerOfMass, vector principalInertiaScaled,  rotation rot)
+        {
+            m_OSSL_Functions.osSetInertia(mass, centerOfMass, principalInertiaScaled, rot);
+        }
+
         public void osSetInertiaAsBox(LSL_Float mass, vector boxSize, vector centerOfMass, rotation rot)
         {
             m_OSSL_Functions.osSetInertiaAsBox(mass, boxSize, centerOfMass, rot);
