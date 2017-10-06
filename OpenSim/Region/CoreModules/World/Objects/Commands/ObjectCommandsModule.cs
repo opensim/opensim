@@ -903,7 +903,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
             Action<SceneObjectGroup> searchAction;
-            int refusedAttachments = 0;
+
             if (useRegex)
             {
                 Regex nameRegex = new Regex(name);
