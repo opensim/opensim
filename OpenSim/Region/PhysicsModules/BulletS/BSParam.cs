@@ -135,6 +135,7 @@ public static class BSParam
     public static bool AvatarToAvatarCollisionsByDefault { get; private set; }
     public static float AvatarFriction { get; private set; }
     public static float AvatarStandingFriction { get; private set; }
+    public static float AvatarWalkVelocityFactor { get; private set; }
     public static float AvatarAlwaysRunFactor { get; private set; }
     public static float AvatarDensity { get; private set; }
     public static float AvatarRestitution { get; private set; }
@@ -604,6 +605,8 @@ public static class BSParam
             0.2f ),
         new ParameterDefn<float>("AvatarStandingFriction", "Avatar friction when standing. Changed on avatar recreation.",
             0.95f ),
+        new ParameterDefn<float>("AvatarWalkVelocityFactor", "Speed multiplier if avatar is walking",
+            1.0f ),
         new ParameterDefn<float>("AvatarAlwaysRunFactor", "Speed multiplier if avatar is set to always run",
             1.3f ),
             // For historical reasons, density is reported  * 100

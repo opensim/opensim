@@ -803,12 +803,15 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                     else
                         so = m_scene.GetSceneObjectGroup(localId);
 
-                    if (so!= null && !so.IsAttachment)
-                       deletes.Add(so);
-
-        //                if (deletes.Count == 0)
-        //                    m_console.OutputFormat("No objects were found with uuid {0}", match);
-
+                    if (so!= null)
+                    {
+                        deletes.Add(so);
+                        if(so.IsAttachment)
+                        {
+                            requireConfirmation = true;
+                            m_console.OutputFormat("Warning: object with uuid {0} is a attachment", uuid);
+                        }
+                    }
                     break;
 
                 case "name":
@@ -904,11 +907,11 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             if (useRegex)
             {
                 Regex nameRegex = new Regex(name);
-                searchAction = so => { if (nameRegex.IsMatch(so.Name)) { sceneObjects.Add(so); }};
+                searchAction = so => { if (nameRegex.IsMatch(so.Name)) {if(!so.IsAttachment) sceneObjects.Add(so);}};
             }
             else
             {
-                searchAction = so => { if (so.Name == name) { sceneObjects.Add(so); }};
+                searchAction = so => { if (so.Name == name) {if(!so.IsAttachment) sceneObjects.Add(so);}};
             }
 
             m_scene.ForEachSOG(searchAction);
