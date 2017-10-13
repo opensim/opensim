@@ -460,13 +460,19 @@ public sealed class BSCharacter : BSPhysObject
         set
         {
             DetailLog("{0},BSCharacter.setTargetVelocity,call,vel={1}", LocalID, value);
-            base.m_targetVelocity = value;
             OMV.Vector3 targetVel = value;
-            if (_setAlwaysRun && !_flying)
-                targetVel *= new OMV.Vector3(BSParam.AvatarAlwaysRunFactor, BSParam.AvatarAlwaysRunFactor, 1f);
+            if (!_flying)
+            {
+                if (_setAlwaysRun)
+                    targetVel *= new OMV.Vector3(BSParam.AvatarAlwaysRunFactor, BSParam.AvatarAlwaysRunFactor, 1f);
+                else
+                    if (BSParam.AvatarWalkVelocityFactor != 1f)
+                        targetVel *= new OMV.Vector3(BSParam.AvatarWalkVelocityFactor, BSParam.AvatarWalkVelocityFactor, 1f);
+            }
+            base.m_targetVelocity = targetVel;
 
             if (m_moveActor != null)
-                m_moveActor.SetVelocityAndTarget(RawVelocity, targetVel, false /* inTaintTime */);
+                m_moveActor.SetVelocityAndTarget(RawVelocity, base.m_targetVelocity, false /* inTaintTime */);
         }
     }
     // Directly setting velocity means this is what the user really wants now.
