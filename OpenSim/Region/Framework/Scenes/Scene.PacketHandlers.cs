@@ -306,14 +306,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             // If the touched prim handles touches, deliver it
             if ((part.ScriptEvents & scriptEvents.touch_start) != 0)
-                EventManager.TriggerObjectGrab(part.LocalId, 0, part.OffsetPosition, remoteClient, surfaceArg);
+                EventManager.TriggerObjectGrab(part.LocalId, 0, offsetPos, remoteClient, surfaceArg);
 
             // Deliver to the root prim if the touched prim doesn't handle touches
             // or if we're meant to pass on touches anyway.
             if (((part.ScriptEvents & scriptEvents.touch_start) == 0) ||
                 (part.PassTouches && (part.LocalId != obj.RootPart.LocalId)))
             {
-                EventManager.TriggerObjectGrab(obj.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
+                EventManager.TriggerObjectGrab(obj.RootPart.LocalId, part.LocalId, offsetPos, remoteClient, surfaceArg);
             }
         }
 
@@ -343,15 +343,18 @@ namespace OpenSim.Region.Framework.Scenes
             if (surfaceArgs != null && surfaceArgs.Count > 0)
                 surfaceArg = surfaceArgs[0];
 
+            Vector3 grabOffset = pos - part.AbsolutePosition;
             // If the touched prim handles touches, deliver it
             if ((part.ScriptEvents & scriptEvents.touch) != 0)
-                EventManager.TriggerObjectGrabbing(part.LocalId, 0, part.OffsetPosition, remoteClient, surfaceArg);
+//                EventManager.TriggerObjectGrabbing(part.LocalId, 0, part.OffsetPosition, remoteClient, surfaceArg);
+                EventManager.TriggerObjectGrabbing(part.LocalId, 0, grabOffset, remoteClient, surfaceArg);
             // Deliver to the root prim if the touched prim doesn't handle touches
             // or if we're meant to pass on touches anyway.
             if (((part.ScriptEvents & scriptEvents.touch) == 0) ||
                 (part.PassTouches && (part.LocalId != group.RootPart.LocalId)))
             {
-                EventManager.TriggerObjectGrabbing(group.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
+//                EventManager.TriggerObjectGrabbing(group.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
+                EventManager.TriggerObjectGrabbing(group.RootPart.LocalId, part.LocalId, grabOffset, remoteClient, surfaceArg);
             }
         }
 
