@@ -958,12 +958,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
         /// <summary>
         /// Returns the amount of memory in use by the Simulator Daemon.
-        /// Amount in bytes - if >= 4GB, returns 4GB. (LSL is not 64-bit aware)
+        /// Amount in bytes - if >= 2GB, returns 2GB. (LSL is not 64-bit aware)
         /// </summary>
         /// <returns></returns>
         public LSL_Integer osGetSimulatorMemory()
         {
             return m_OSSL_Functions.osGetSimulatorMemory();
+        }
+
+        public LSL_Integer osGetSimulatorMemoryKB()
+        {
+            return m_OSSL_Functions.osGetSimulatorMemoryKB();
         }
 
         public void osKickAvatar(string FirstName,string SurName,string alert)
