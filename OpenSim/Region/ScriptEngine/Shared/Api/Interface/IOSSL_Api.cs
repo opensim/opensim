@@ -379,6 +379,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         vector osGetRegionSize();
 
         int osGetSimulatorMemory();
+        int osGetSimulatorMemoryKB();
         void osKickAvatar(string FirstName,string SurName,string alert);
         void osSetSpeed(string UUID, LSL_Float SpeedModifier);
         LSL_Float osGetHealth(string avatar);

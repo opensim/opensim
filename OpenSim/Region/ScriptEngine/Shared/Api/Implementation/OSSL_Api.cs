@@ -3591,6 +3591,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return (int)pws;
         }
 
+        public int osGetSimulatorMemoryKB()
+        {
+            CheckThreatLevel(ThreatLevel.Moderate, "osGetSimulatorMemory");
+
+            long pws = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
+
+            if((pws & 0x3FFL) != 0)
+                pws += 0x400L;
+            pws >>= 10;
+
+            if (pws > Int32.MaxValue)
+                return Int32.MaxValue;
+
+            return (int)pws;
+        }
+
         public void osSetSpeed(string UUID, LSL_Float SpeedModifier)
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osSetSpeed");
