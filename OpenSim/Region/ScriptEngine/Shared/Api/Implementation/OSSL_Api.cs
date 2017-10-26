@@ -261,7 +261,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         // Returns if OSSL is enabled. Throws a script exception if OSSL is not allowed..
-        // for safe funtions always active 
+        // for safe funtions always active
         public void CheckThreatLevel()
         {
             m_host.AddScriptLPS(1);
@@ -1056,7 +1056,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     targetID,
                     part.SitTargetPosition);
         }
- 
+
         // Get a list of all the avatars/agents in the region
         public LSL_List osGetAgents()
         {
@@ -1074,7 +1074,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osGetAgentIP(string agent)
         {
-            CheckThreatLevel(ThreatLevel.Severe, "osGetAgentIP"); 
+            CheckThreatLevel(ThreatLevel.Severe, "osGetAgentIP");
             if(!(World.Permissions.IsGod(m_host.OwnerID))) // user god always needed
                 return "";
 
@@ -1651,7 +1651,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         else
                         {
                             if (UUID.TryParse(arg, out uuid))
-                            {   
+                            {
                                 if(newLand.OwnerID != uuid)
                                 {
                                     changed = true;
@@ -1760,7 +1760,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         if(changedSeeAvs && avatar.currentParcelUUID == parcelID )
                             avatar.currentParcelUUID = parcelID; // force parcel flags review
-                        
+
                         if(avatar.ControllingClient == null)
                             return;
 
@@ -4500,7 +4500,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         ///     LSL_Vector CenterOfMass, center mass relative to root prim
         ///     LSL_Vector Inertia, elements of diagonal of inertia Ixx,Iyy,Izz divided by total mass
         ///     LSL_Vector aux, elements of upper triagle of inertia Ixy (= Iyx), Ixz (= Izx), Iyz(= Izy) divided by total mass
-        /// </returns> 
+        /// </returns>
         public LSL_List osGetInertiaData()
         {
             CheckThreatLevel();
@@ -4513,8 +4513,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             SceneObjectGroup sog = m_host.ParentGroup;
             if(sog== null || sog.IsDeleted)
-                return result;          
-            
+                return result;
+
             sog.GetInertiaData(out TotalMass, out CenterOfMass, out Inertia, out aux );
             if(TotalMass > 0)
             {
@@ -4538,7 +4538,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <summary>
         /// set inertial data
         /// replaces the automatic calculation of mass, center of mass and inertia
-        /// 
+        ///
         /// </summary>
         /// <param name="Mass">total mass of linkset</param>
         /// <param name="centerOfMass">location of center of mass relative to root prim in local coords</param>
@@ -4562,7 +4562,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // need more checks
 
             Vector3 CenterOfMass = new Vector3((float)centerOfMass.x,(float)centerOfMass.y,(float)centerOfMass.z);
-            Vector3 Inertia;          
+            Vector3 Inertia;
             float m = (float)mass;
 
             Inertia.X = m * (float)principalInertiaScaled.x;
@@ -4578,7 +4578,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <summary>
         /// set inertial data as a sphere
         /// replaces the automatic calculation of mass, center of mass and inertia
-        /// 
+        ///
         /// </summary>
         /// <param name="Mass">total mass of linkset</param>
         /// <param name="boxsize">size of the Box</param>
@@ -4600,7 +4600,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // need more checks
 
             Vector3 CenterOfMass = new Vector3((float)centerOfMass.x,(float)centerOfMass.y,(float)centerOfMass.z);
-            Vector3 Inertia;          
+            Vector3 Inertia;
             float lx = (float)boxSize.x;
             float ly = (float)boxSize.y;
             float lz = (float)boxSize.z;
@@ -4620,7 +4620,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <summary>
         /// set inertial data as a sphere
         /// replaces the automatic calculation of mass, center of mass and inertia
-        /// 
+        ///
         /// </summary>
         /// <param name="Mass">total mass of linkset</param>
         /// <param name="radius">radius of the sphere</param>
@@ -4639,9 +4639,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             // need more checks
-            
+
             Vector3 CenterOfMass = new Vector3((float)centerOfMass.x,(float)centerOfMass.y,(float)centerOfMass.z);
-            Vector3 Inertia;          
+            Vector3 Inertia;
             float r = (float)radius;
             float m = (float)mass;
             float t = 0.4f * m * r * r;
@@ -4656,7 +4656,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <summary>
         /// set inertial data as a cylinder
         /// replaces the automatic calculation of mass, center of mass and inertia
-        /// 
+        ///
         /// </summary>
         /// <param name="Mass">total mass of linkset</param>
         /// <param name="radius">radius of the cylinder</param>
@@ -4678,9 +4678,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             // need more checks
-            
+
             Vector3 CenterOfMass = new Vector3((float)centerOfMass.x,(float)centerOfMass.y,(float)centerOfMass.z);
-            Vector3 Inertia;          
+            Vector3 Inertia;
             float m = (float)mass;
             float r = (float)radius;
             r *= r;
@@ -4702,7 +4702,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <summary>
         /// removes inertial data manual override
         /// default automatic calculation is used again
-        /// 
+        ///
         /// </summary>
         public void osClearInertia()
         {
