@@ -3593,7 +3593,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public int osGetSimulatorMemoryKB()
         {
-            CheckThreatLevel(ThreatLevel.Moderate, "osGetSimulatorMemory");
+            CheckThreatLevel(ThreatLevel.Moderate, "osGetSimulatorMemoryKB");
 
             long pws = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
 
