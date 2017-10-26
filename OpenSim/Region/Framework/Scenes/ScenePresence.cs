@@ -457,6 +457,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         private object m_originRegionIDAccessLock = new object();
 
+
+        private AutoResetEvent m_updateAgentReceivedAfterTransferEvent = new AutoResetEvent(false);
+
         /// <summary>
         /// Used by the entity transfer module to signal when the presence should not be closed because a subsequent
         /// teleport is reusing the connection.
@@ -1950,30 +1953,32 @@ namespace OpenSim.Region.Framework.Scenes
             // (which triggers Scene.IncomingUpdateChildAgent(AgentData cAgentData) here in the destination,
             // m_originRegionID is UUID.Zero; after, it's non-Zero.  The CompleteMovement sequence initiated from the
             // viewer (in turn triggered by the source region sending it a TeleportFinish event) waits until it's non-zero
-//            m_updateAgentReceivedAfterTransferEvent.WaitOne(10000);
-            int count = 50;
-            UUID originID = UUID.Zero;
 
-            lock (m_originRegionIDAccessLock)
-                originID = m_originRegionID;
-
-            while (originID.Equals(UUID.Zero) && count-- > 0)
+            try
             {
-                lock (m_originRegionIDAccessLock)
-                    originID = m_originRegionID;
+                if(m_updateAgentReceivedAfterTransferEvent.WaitOne(10000))
+                {
+                    UUID originID = UUID.Zero;
 
-                m_log.DebugFormat("[SCENE PRESENCE]: Agent {0} waiting for update in {1}", client.Name, Scene.Name);
-                Thread.Sleep(200);
+                    lock (m_originRegionIDAccessLock)
+                        originID = m_originRegionID;
+                    if (originID.Equals(UUID.Zero))
+                    {
+                        // Movement into region will fail
+                        m_log.WarnFormat("[SCENE PRESENCE]: Update agent {0} at {1} got invalid origin region id ", client.Name, Scene.Name);
+                        return false;
+                    }
+                    return true;
+               }
+               else
+               {
+                   m_log.WarnFormat("[SCENE PRESENCE]: Update agent {0} at {1} did not receive agent update ", client.Name, Scene.Name);
+                   return false;
+               }
             }
+            catch { }
 
-            if (originID.Equals(UUID.Zero))
-            {
-                // Movement into region will fail
-                m_log.WarnFormat("[SCENE PRESENCE]: Update agent {0} never arrived in {1}", client.Name, Scene.Name);
-                return false;
-            }
-
-            return true;
+            return false;
         }
 
         public void RotateToLookAt(Vector3 lookAt)
@@ -2281,6 +2286,13 @@ namespace OpenSim.Region.Framework.Scenes
                                 SendAttachmentsToAgentNF(p);
                             }
                         }
+                    }
+
+                    if(gotCrossUpdate)
+                    {
+                        if(IgnoredControls != ScriptControlled.CONTROL_ZERO)
+                            ControllingClient.SendTakeControls((int)IgnoredControls, false, true);
+                            
                     }
 
                     m_log.DebugFormat("[CompleteMovement] attachments: {0}ms", Util.EnvironmentTickCountSubtract(ts));
@@ -4574,7 +4586,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             CopyFrom(cAgentData);
-
+            m_updateAgentReceivedAfterTransferEvent.Set();
         }
 
         private static Vector3 marker = new Vector3(-1f, -1f, -1f);
@@ -4787,6 +4799,10 @@ namespace OpenSim.Region.Framework.Scenes
                 AddToPhysicalScene(isFlying);
             }
 */
+
+            if (Scene.AttachmentsModule != null)
+                Scene.AttachmentsModule.CopyAttachments(cAgent, this);
+
             try
             {
                 lock (scriptedcontrols)
@@ -4794,6 +4810,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (cAgent.Controllers != null)
                     {
                         scriptedcontrols.Clear();
+                        IgnoredControls = ScriptControlled.CONTROL_ZERO;
 
                         foreach (ControllerData c in cAgent.Controllers)
                         {
@@ -4804,6 +4821,7 @@ namespace OpenSim.Region.Framework.Scenes
                             sc.eventControls = (ScriptControlled)c.EventControls;
 
                             scriptedcontrols[sc.itemID] = sc;
+                            IgnoredControls |= sc.ignoreControls; // this is not correct, aparently only last applied should count
                         }
                     }
                 }
@@ -4824,8 +4842,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (cAgent.MotionState != 0)
                 Animator.currentControlState = (ScenePresenceAnimator.motionControlStates) cAgent.MotionState;
 
-            if (Scene.AttachmentsModule != null)
-                Scene.AttachmentsModule.CopyAttachments(cAgent, this);
 
             crossingFlags = cAgent.CrossingFlags;
             gotCrossUpdate = (crossingFlags != 0);
@@ -5108,6 +5124,8 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient = null;
             LifecycleState = ScenePresenceState.Removed;
             IsDeleted = true;
+            m_updateAgentReceivedAfterTransferEvent.Dispose();
+            m_updateAgentReceivedAfterTransferEvent = null;
         }
 
         public void AddAttachment(SceneObjectGroup gobj)
