@@ -5887,6 +5887,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     profileBegin = 9375;
                 if(profileHollow == 1)
                     profileHollow = 27500;
+                // fix torus hole size Y that also confuse some viewers
+                if(update.ProfileCurve == (byte)ProfileShape.Circle && update.PathScaleY < 150)
+                       update.PathScaleY = 150;                    
             }
             else
             {

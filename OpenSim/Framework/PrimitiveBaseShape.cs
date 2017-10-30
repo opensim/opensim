@@ -343,12 +343,14 @@ namespace OpenSim.Framework
                 case 1: // torus 
                     shape.ProfileCurve = (byte)ProfileShape.Circle | (byte)HollowShape.Triangle;
                     shape.PathCurve = (byte)Extrusion.Curve1;
+                    shape._pathScaleY = 150;
                     break;
 
                 case 2: // torus with hollow (a sl viewer whould see 4 faces on a hollow sphere)
                     shape.ProfileCurve = (byte)ProfileShape.Circle | (byte)HollowShape.Triangle;
                     shape.PathCurve = (byte)Extrusion.Curve1;
                     shape.ProfileHollow = 27500;
+                    shape._pathScaleY = 150;
                     break;
 
                 case 3: // cylinder
