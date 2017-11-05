@@ -370,6 +370,21 @@
     ;; Attempt to render meshes and sculpties on the map.
     ; RenderMeshes = false
 
+    ;# {MapColorWater} {} {Water color for textured and shaded maps} {"#1D475F"}
+    ; MapColorWater = "#3399FF"
+
+    ;# {MapColor1} {} {Terrain color 1 for textured maps} {"#A58976"}
+    ; MapColor1 = "#A58976"
+
+    ;# {MapColor2} {} {Terrain color 2 for textured maps} {"#455931"}
+    ; MapColor2 = "#455931"
+
+    ;# {MapColor3} {} {Terrain color 3 for textured maps} {"#A29A8D"}
+    ; MapColor3 = "#A29A8D"
+
+    ;# {MapColor4} {} {Terrain color 4 for textured maps} {"#C8C8C8"}
+    ; MapColor4 = "#C8C8C8"
+
 
 [Permissions]
     ;# {permissionmodules} {} {Permission modules to use (may specify multiple modules, separated by comma} {} DefaultPermissionsModule

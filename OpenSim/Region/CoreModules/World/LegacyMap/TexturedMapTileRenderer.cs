@@ -130,21 +130,19 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
         // some hardcoded terrain UUIDs that work with SL 1.20 (the four default textures and "Blank").
         // The color-values were choosen because they "look right" (at least to me) ;-)
         private static readonly UUID defaultTerrainTexture1 = new UUID("0bc58228-74a0-7e83-89bc-5c23464bcec5");
-        private static readonly Color defaultColor1 = Color.FromArgb(165, 137, 118);
         private static readonly UUID defaultTerrainTexture2 = new UUID("63338ede-0037-c4fd-855b-015d77112fc8");
-        private static readonly Color defaultColor2 = Color.FromArgb(69, 89, 49);
         private static readonly UUID defaultTerrainTexture3 = new UUID("303cd381-8560-7579-23f1-f0a880799740");
-        private static readonly Color defaultColor3 = Color.FromArgb(162, 154, 141);
         private static readonly UUID defaultTerrainTexture4 = new UUID("53a2f406-4895-1d13-d541-d2e3b86bc19c");
-        private static readonly Color defaultColor4 = Color.FromArgb(200, 200, 200);
-
-        private static readonly Color WATER_COLOR = Color.FromArgb(29, 71, 95);
 
         #endregion
 
-
         private Scene m_scene;
-        // private IConfigSource m_config; // not used currently
+        private IConfigSource m_config;
+        private Color m_color_water;
+        private Color m_color_1;
+        private Color m_color_2;
+        private Color m_color_3;
+        private Color m_color_4;
 
         // mapping from texture UUIDs to averaged color. This will contain 5-9 values, in general; new values are only
         // added when the terrain textures are changed in the estate dialog and a new map is generated (and will stay in
@@ -156,12 +154,21 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
         public void Initialise(Scene scene, IConfigSource source)
         {
             m_scene = scene;
-            // m_config = source; // not used currently
+            m_config = source;
+
+            string[] configSections = new string[] { "Map", "Startup" };
+            
+            m_color_water = System.Drawing.ColorTranslator.FromHtml(Util.GetConfigVarFromSections<string>(m_config, "MapColorWater", configSections, "#1D475F"));
+            m_color_1 = System.Drawing.ColorTranslator.FromHtml(Util.GetConfigVarFromSections<string>(m_config, "MapColor1", configSections, "#A58976"));
+            m_color_2 = System.Drawing.ColorTranslator.FromHtml(Util.GetConfigVarFromSections<string>(m_config, "MapColor2", configSections, "#455931"));
+            m_color_3 = System.Drawing.ColorTranslator.FromHtml(Util.GetConfigVarFromSections<string>(m_config, "MapColor3", configSections, "#A29A8D"));
+            m_color_4 = System.Drawing.ColorTranslator.FromHtml(Util.GetConfigVarFromSections<string>(m_config, "MapColor4", configSections, "#C8C8C8"));
+
             m_mapping = new Dictionary<UUID,Color>();
-            m_mapping.Add(defaultTerrainTexture1, defaultColor1);
-            m_mapping.Add(defaultTerrainTexture2, defaultColor2);
-            m_mapping.Add(defaultTerrainTexture3, defaultColor3);
-            m_mapping.Add(defaultTerrainTexture4, defaultColor4);
+            m_mapping.Add(defaultTerrainTexture1, m_color_1);
+            m_mapping.Add(defaultTerrainTexture2, m_color_2);
+            m_mapping.Add(defaultTerrainTexture3, m_color_3);
+            m_mapping.Add(defaultTerrainTexture4, m_color_4);
             m_mapping.Add(Util.BLANK_TEXTURE_UUID, Color.White);
         }
 
@@ -298,10 +305,10 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             RegionSettings settings = m_scene.RegionInfo.RegionSettings;
 
             // the four terrain colors as HSVs for interpolation
-            HSV hsv1 = new HSV(computeAverageColor(settings.TerrainTexture1, defaultColor1));
-            HSV hsv2 = new HSV(computeAverageColor(settings.TerrainTexture2, defaultColor2));
-            HSV hsv3 = new HSV(computeAverageColor(settings.TerrainTexture3, defaultColor3));
-            HSV hsv4 = new HSV(computeAverageColor(settings.TerrainTexture4, defaultColor4));
+            HSV hsv1 = new HSV(computeAverageColor(settings.TerrainTexture1, m_color_1));
+            HSV hsv2 = new HSV(computeAverageColor(settings.TerrainTexture2, m_color_2));
+            HSV hsv3 = new HSV(computeAverageColor(settings.TerrainTexture3, m_color_3));
+            HSV hsv4 = new HSV(computeAverageColor(settings.TerrainTexture4, m_color_4));
 
             float levelNElow = (float)settings.Elevation1NE;
             float levelNEhigh = (float)settings.Elevation2NE;
@@ -417,7 +424,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 
                         heightvalue = 100f - (heightvalue * 100f) / 19f;  // 0 - 19 => 100 - 0
 
-                        mapbmp.SetPixel(x, yr, WATER_COLOR);
+                        mapbmp.SetPixel(x, yr, m_color_water);
                     }
                 }
             }
