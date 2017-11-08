@@ -2583,6 +2583,7 @@ namespace OpenSim.Region.Framework.Scenes
             if(ParentGroup != null)
                 ParentGroup.InvalidateEffectivePerms();
         }
+
         // same as above but called during group Effective Permission validation
         public void AggregatedInnerPermsForGroup()
         {
@@ -5227,9 +5228,10 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            if (changeFlags == 0)
+				return;
             m_shape.TextureEntry = newTex.GetBytes();
-            if (changeFlags != 0)
-                TriggerScriptChangedEvent(changeFlags);
+            TriggerScriptChangedEvent(changeFlags);
             ParentGroup.HasGroupChanged = true;
             ScheduleFullUpdate();
         }
