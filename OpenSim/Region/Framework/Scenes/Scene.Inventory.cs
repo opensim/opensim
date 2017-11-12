@@ -1209,10 +1209,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (group.GetInventoryItem(localID, itemID) != null)
                 {
-                    if (item.Type == 10)
+                    if (item.Type == (int)InventoryType.LSL)
                     {
                         part.RemoveScriptEvents(itemID);
-                        EventManager.TriggerRemoveScript(localID, itemID);
+                        part.ParentGroup.AddActiveScriptCount(-1);
                     }
 
                     group.RemoveInventoryItem(localID, itemID);
@@ -1317,7 +1317,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (taskItem.Type == (int)AssetType.LSLText)
                     {
                         part.RemoveScriptEvents(itemId);
-                        EventManager.TriggerRemoveScript(part.LocalId, itemId);
+                        part.ParentGroup.AddActiveScriptCount(-1);
                     }
 
                     part.Inventory.RemoveInventoryItem(itemId);

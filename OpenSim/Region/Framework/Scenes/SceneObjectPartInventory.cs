@@ -1081,7 +1081,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 int type = m_items[itemID].InvType;
                 m_items.LockItemsForRead(false);
-                if (type == 10) // Script
+                if (type == (int)InventoryType.LSL) // Script
                 {
                     m_part.ParentGroup.Scene.EventManager.TriggerRemoveScript(m_part.LocalId, itemID);
                 }
@@ -1101,7 +1101,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_items.LockItemsForRead(true);
                 foreach (TaskInventoryItem item in m_items.Values)
                 {
-                    if (item.Type == 10)
+                    if (item.Type == (int)InventoryType.LSL)
                     {
                         scriptcount++;
                     }

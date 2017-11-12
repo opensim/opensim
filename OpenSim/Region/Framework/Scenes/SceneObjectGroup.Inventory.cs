@@ -358,7 +358,7 @@ namespace OpenSim.Region.Framework.Scenes
                     SceneObjectPart part = parts[i];
 
                     if(m_DeepEffectivePermsInvalid)
-                        part.AggregateInnerPerms();
+                        part.AggregatedInnerPermsForGroup();
 
                     owner &= part.AggregatedInnerOwnerPerms; 
                     group &= part.AggregatedInnerGroupPerms;

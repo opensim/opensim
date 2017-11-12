@@ -114,7 +114,6 @@ namespace OpenSim.OfflineIM
             scene.ForEachClient(delegate(IClientAPI client)
             {
                 client.OnRetrieveInstantMessages -= RetrieveInstantMessages;
-                client.OnMuteListRequest -= OnMuteListRequest;
             });
         }
 
@@ -162,7 +161,6 @@ namespace OpenSim.OfflineIM
         private void OnNewClient(IClientAPI client)
         {
             client.OnRetrieveInstantMessages += RetrieveInstantMessages;
-            client.OnMuteListRequest += OnMuteListRequest;
         }
 
         private void RetrieveInstantMessages(IClientAPI client)
@@ -191,20 +189,6 @@ namespace OpenSim.OfflineIM
                     if (s != null)
                         s.EventManager.TriggerIncomingInstantMessage(im);
                 }
-            }
-        }
-
-        // Apparently this is needed in order for the viewer to request the IMs.
-        private void OnMuteListRequest(IClientAPI client, uint crc)
-        {
-            m_log.DebugFormat("[OfflineIM.V2] Got mute list request for crc {0}", crc);
-            string filename = "mutes" + client.AgentId.ToString();
-
-            IXfer xfer = client.Scene.RequestModuleInterface<IXfer>();
-            if (xfer != null)
-            {
-                xfer.AddNewFile(filename, new Byte[0]);
-                client.SendMuteListUpdate(filename);
             }
         }
 

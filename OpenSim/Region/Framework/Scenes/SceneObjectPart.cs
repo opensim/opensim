@@ -2579,8 +2579,30 @@ namespace OpenSim.Region.Framework.Scenes
                 AggregatedInnerOwnerPerms = owner & mask;
                 AggregatedInnerGroupPerms = group & mask;
                 AggregatedInnerEveryonePerms = everyone & mask;
-                if(ParentGroup != null)
-                    ParentGroup.InvalidateEffectivePerms();
+            }
+            if(ParentGroup != null)
+                ParentGroup.InvalidateEffectivePerms();
+        }
+
+        // same as above but called during group Effective Permission validation
+        public void AggregatedInnerPermsForGroup()
+        {
+            // assuming child prims permissions masks are irrelevant on a linkset
+            // root part is handle at SOG since its masks are the sog masks
+            const uint mask = (uint)PermissionMask.AllEffective;
+
+            uint owner = mask;
+            uint group = mask;
+            uint everyone = mask;
+
+            lock(InnerPermsLock) // do we really need this?
+            {
+                if(Inventory != null)
+                    Inventory.AggregateInnerPerms(ref owner, ref group, ref everyone);
+            
+                AggregatedInnerOwnerPerms = owner & mask;
+                AggregatedInnerGroupPerms = group & mask;
+                AggregatedInnerEveryonePerms = everyone & mask;
             }
         }
 
@@ -3817,7 +3839,8 @@ namespace OpenSim.Region.Framework.Scenes
             Byte[] buf = Shape.Textures.GetBytes();
             Primitive.TextureEntry tex = new Primitive.TextureEntry(buf, 0, buf.Length);
             Color4 texcolor;
-            if (face >= 0 && face < GetNumberOfSides())
+            int nsides = GetNumberOfSides();
+            if (face >= 0 && face < nsides)
             {
                 texcolor = tex.CreateFace((uint)face).RGBA;
                 texcolor.R = clippedColor.X;
@@ -3833,7 +3856,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else if (face == ALL_SIDES)
             {
-                for (uint i = 0; i < GetNumberOfSides(); i++)
+                for (uint i = 0; i < nsides; i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -5138,20 +5161,20 @@ namespace OpenSim.Region.Framework.Scenes
 
             Changed changeFlags = 0;
 
-            Primitive.TextureEntryFace fallbackNewFace = newTex.DefaultTexture;
-            Primitive.TextureEntryFace fallbackOldFace = oldTex.DefaultTexture;
+            Primitive.TextureEntryFace defaultNewFace = newTex.DefaultTexture;
+            Primitive.TextureEntryFace defaultOldFace = oldTex.DefaultTexture;
 
             // On Incoming packets, sometimes newText.DefaultTexture is null.  The assumption is that all
             // other prim-sides are set, but apparently that's not always the case.  Lets assume packet/data corruption at this point.
-            if (fallbackNewFace == null)
+            if (defaultNewFace == null)
             {
-                fallbackNewFace = new Primitive.TextureEntry(Util.BLANK_TEXTURE_UUID).CreateFace(0);
-                newTex.DefaultTexture = fallbackNewFace;
+                defaultNewFace = new Primitive.TextureEntry(Util.BLANK_TEXTURE_UUID).CreateFace(0);
+                newTex.DefaultTexture = defaultNewFace;
             }
-            if (fallbackOldFace == null)
+            if (defaultOldFace == null)
             {
-                fallbackOldFace = new Primitive.TextureEntry(Util.BLANK_TEXTURE_UUID).CreateFace(0);
-                oldTex.DefaultTexture = fallbackOldFace;
+                defaultOldFace = new Primitive.TextureEntry(Util.BLANK_TEXTURE_UUID).CreateFace(0);
+                oldTex.DefaultTexture = defaultOldFace;
             }
 
             // Materials capable viewers can send a ObjectImage packet
@@ -5161,13 +5184,11 @@ namespace OpenSim.Region.Framework.Scenes
             // we should ignore any changes and not update Shape.TextureEntry
 
             bool otherFieldsChanged = false;
-
-            for (int i = 0 ; i < GetNumberOfSides(); i++)
+            int nsides = GetNumberOfSides();
+            for (int i = 0 ; i < nsides; i++)
             {
-
-                Primitive.TextureEntryFace newFace = newTex.DefaultTexture;
-                Primitive.TextureEntryFace oldFace = oldTex.DefaultTexture;
-
+                Primitive.TextureEntryFace newFace = defaultNewFace;
+                Primitive.TextureEntryFace oldFace = defaultOldFace;
                 if (oldTex.FaceTextures[i] != null)
                     oldFace = oldTex.FaceTextures[i];
                 if (newTex.FaceTextures[i] != null)
@@ -5202,17 +5223,17 @@ namespace OpenSim.Region.Framework.Scenes
                     if (oldFace.Rotation != newFace.Rotation) otherFieldsChanged = true;
                     if (oldFace.Shiny != newFace.Shiny) otherFieldsChanged = true;
                     if (oldFace.TexMapType != newFace.TexMapType) otherFieldsChanged = true;
+                    if(otherFieldsChanged)
+                        changeFlags |= Changed.TEXTURE;
                 }
             }
 
-            if (changeFlags != 0 || otherFieldsChanged)
-            {
-                m_shape.TextureEntry = newTex.GetBytes();
-                if (changeFlags != 0)
-                    TriggerScriptChangedEvent(changeFlags);
-                ParentGroup.HasGroupChanged = true;
-                ScheduleFullUpdate();
-            }
+            if (changeFlags == 0)
+				return;
+            m_shape.TextureEntry = newTex.GetBytes();
+            TriggerScriptChangedEvent(changeFlags);
+            ParentGroup.HasGroupChanged = true;
+            ScheduleFullUpdate();
         }
 
         internal void UpdatePhysicsSubscribedEvents()
