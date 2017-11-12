@@ -1178,6 +1178,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 agent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
 
             agent.SenderWantsToWaitForRoot = true;
+
             //SetCallbackURL(agent, sp.Scene.RegionInfo);
 
             // Reset the do not close flag.  This must be done before the destination opens child connections (here
@@ -1877,7 +1878,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if(childRegionsToClose != null)
                 agent.CloseChildAgents(childRegionsToClose);
 
-            // this may need the attachments
+            if((agent.crossingFlags & 8) == 0)
+                agent.ClearControls(); // don't let attachments delete (called in HasMovedAway) disturb taken controls on viewers
 
             agent.HasMovedAway((agent.crossingFlags & 8) == 0);
 
