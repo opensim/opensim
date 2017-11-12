@@ -710,7 +710,9 @@
 	; the provided MuteListModule is just a Dummy
 	; you will need a external module for proper suport.
 	; if you keep both 2 following settings comment, viewers will use mutes in their caches
-	; if you uncoment both (url is ignored) the mutes will be deleted at login.
+	; if you uncoment both (url is ignored) the mutes will be deleted at login on this instance regions
+	; WARNING: viewers mutes cache seems to shared by all grids, including SL
+	; this may cause some confusion.
 	
     ;# {MuteListModule} {MuteListModule:MuteListModule} {} {} None
     ; MuteListModule = MuteListModule
