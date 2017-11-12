@@ -3,6 +3,16 @@
 BEGIN TRANSACTION;
 
 -- ----------------------------
+-- SEQUENCE estate_settings_id
+-- ----------------------------
+CREATE SEQUENCE IF NOT EXISTS "public"."estate_settings_id"
+  INCREMENT 100
+  MINVALUE 1
+  MAXVALUE 9223372036854775807
+  START 100
+  CACHE 1;
+
+-- ----------------------------
 --  Table structure for estate_groups
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS "public"."estate_groups" (
