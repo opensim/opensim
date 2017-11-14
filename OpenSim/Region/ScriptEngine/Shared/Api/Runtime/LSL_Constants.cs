@@ -660,6 +660,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int AGENT_LIST_PARCEL = 1;
         public const int AGENT_LIST_PARCEL_OWNER = 2;
         public const int AGENT_LIST_REGION = 4;
+        public const int AGENT_LIST_EXCLUDENPC = 0x4000000; // our flag, not SL and it is a bit mask
 
         // Can not be public const?
         public static readonly vector ZERO_VECTOR = new vector(0.0, 0.0, 0.0);
