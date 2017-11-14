@@ -1393,6 +1393,7 @@
       <Reference name="System.Xml.Linq"/>
       <Reference name="System.Drawing"/>
       <Reference name="System.Web"/>
+      <Reference name="System.Data"/>
       <Reference name="Microsoft.CSharp" />
       <Reference name="NDesk.Options" path="../../../bin/"/>
       <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
@@ -1402,6 +1403,7 @@
       <Reference name="Warp3D" path="../../../bin/"/>
       <Reference name="OpenSim.Capabilities"/>
       <Reference name="OpenSim.Data"/>
+      <Reference name="OpenSim.Data.MySQL"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Monitoring"/>
@@ -1417,6 +1419,7 @@
       <Reference name="OpenSim.Services.Base"/>
       <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="Ionic.Zip" path="../../../bin/"/>
+      <Reference name="MySql.Data" path="../../../bin/"/>
 
       <Reference name="GlynnTucker.Cache" path="../../../bin/"/>
 
