@@ -1402,8 +1402,6 @@
       <Reference name="CSJ2K" path="../../../bin/"/>
       <Reference name="Warp3D" path="../../../bin/"/>
       <Reference name="OpenSim.Capabilities"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Data.MySQL"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Monitoring"/>
@@ -1418,6 +1416,8 @@
       <Reference name="OpenSim.Services.Connectors"/>
       <Reference name="OpenSim.Services.Base"/>
       <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="OpenSim.Data"/>
+      <Reference name="OpenSim.Data.MySQL"/>
       <Reference name="Ionic.Zip" path="../../../bin/"/>
       <Reference name="MySql.Data" path="../../../bin/"/>
 
