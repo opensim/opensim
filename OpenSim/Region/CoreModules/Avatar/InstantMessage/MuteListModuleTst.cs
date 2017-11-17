@@ -44,13 +44,13 @@ using System.Security.Cryptography;
 
 namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "XMute")]
-    public class XMuteModule : ISharedRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "MuteListModuleTst")]
+    public class MuteModuleTst : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected bool m_Enabled = true;
+        protected bool m_Enabled = false;
         protected List<Scene> m_SceneList = new List<Scene>();
         protected MuteTableHandler m_MuteTable;
         protected string m_DatabaseConnect;
@@ -59,28 +59,29 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         {
             IConfig cnf = config.Configs["Messaging"];
             if (cnf == null)
-            {
-                m_Enabled = false;
                 return;
-            }
 
-            if (cnf.GetString("MuteListModule", "None") !=
-                    "XMute")
-            {
-                m_Enabled = false;
+            if (cnf.GetString("MuteListModule", "None") != "MuteListModuleTst")
                 return;
-            }
 
             m_DatabaseConnect = cnf.GetString("MuteDatabaseConnect", String.Empty);
             if (m_DatabaseConnect == String.Empty)
             {
-                m_log.Debug("[XMute]: MuteDatabaseConnect missing or empty");
-                m_Enabled = false;
+                m_log.Debug("[MuteModuleTst]: MuteDatabaseConnect missing or empty");
+                return;
+            }
+           
+            try
+            {
+                m_MuteTable = new MuteTableHandler(m_DatabaseConnect, "XMute", String.Empty);
+            }
+            catch
+            {
+                m_log.Error("[MuteListModuleTst]: Failed to open/create database table");
                 return;
             }
 
-            m_MuteTable = new MuteTableHandler(
-                    m_DatabaseConnect, "XMute", String.Empty);
+            m_Enabled = true;
         }
 
         public void AddRegion(Scene scene)
@@ -98,6 +99,12 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         public void RegionLoaded(Scene scene)
         {
+            if (!m_Enabled)
+                return;
+
+            IXfer xfer = scene.RequestModuleInterface<IXfer>();
+            if (xfer == null)
+                m_log.ErrorFormat("[MuteListModuleTst]: Xfer not availble in region {0}", scene.Name);
         }
 
         public void RemoveRegion(Scene scene)
@@ -116,12 +123,12 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             if (!m_Enabled)
                 return;
 
-            m_log.Debug("[XMute]: Mute list enabled");
+            m_log.Debug("[MuteListModuleTst]: Mute list enabled");
         }
 
         public string Name
         {
-            get { return "XMuteModule"; }
+            get { return "MuteListModuleTst"; }
         }
 
         public Type ReplaceableInterface
@@ -142,42 +149,51 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         private void OnMuteListRequest(IClientAPI client, uint crc)
         {
-            string filename = "mutes"+client.AgentId.ToString();
-
             IXfer xfer = client.Scene.RequestModuleInterface<IXfer>();
-            if (xfer != null)
+            if (xfer == null)
             {
-                MuteData[] data = m_MuteTable.Get("AgentID", client.AgentId.ToString());
-                if (data == null || data.Length == 0)
-                {
-                    xfer.AddNewFile(filename, new Byte[0]);
-                }
+                if(crc == 0)
+                    client.SendEmpytMuteList();
                 else
-                {
-                    StringBuilder sb = new StringBuilder(1024);
-
-                    foreach (MuteData d in data)
-                        sb.AppendFormat("{0} {1} {2}|{3}\n",
-                                d.MuteType,
-                                d.MuteID.ToString(),
-                                d.MuteName,
-                                d.MuteFlags);
-
-                    Byte[] filedata = Util.UTF8.GetBytes(sb.ToString());
-
-                    uint dataCrc = Crc32.Compute(filedata);
-
-                    if (dataCrc == crc)
-                    {
-                        client.SendUseCachedMuteList();
-                        return;
-                    }
-
-                    xfer.AddNewFile(filename, filedata);
-                }
-
-                client.SendMuteListUpdate(filename);
+                    client.SendUseCachedMuteList();
+                return;
             }
+
+            MuteData[] data = m_MuteTable.Get("AgentID", client.AgentId.ToString());
+            if (data == null || data.Length == 0)
+            {
+                if(crc == 0)
+                    client.SendEmpytMuteList();
+                else
+                    client.SendUseCachedMuteList();
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder(16384);
+
+            foreach (MuteData d in data)
+                sb.AppendFormat("{0} {1} {2}|{3}\n",
+                        d.MuteType,
+                        d.MuteID.ToString(),
+                        d.MuteName,
+                        d.MuteFlags);
+
+            Byte[] filedata = Util.UTF8.GetBytes(sb.ToString());
+
+            uint dataCrc = Crc32.Compute(filedata);
+
+            if (dataCrc == crc)
+            {
+                if(crc == 0)
+                    client.SendEmpytMuteList();
+                else
+                    client.SendUseCachedMuteList();
+                return;
+            }
+
+            string filename = "mutes"+client.AgentId.ToString();
+            xfer.AddNewFile(filename, filedata);
+            client.SendMuteListUpdate(filename);
         }
 
         private void OnUpdateMuteListEntry(IClientAPI client, UUID muteID, string muteName, int muteType, uint muteFlags)
@@ -202,40 +218,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                                new string[] { client.AgentId.ToString(),
                                               muteID.ToString(),
                                               muteName });
-        }
-    }
-
-    public class MuteTableHandler : MySQLGenericTableHandler<MuteData>
-    {
-        public MuteTableHandler(string conn, string realm, string m) : base(conn, realm, m)
-        {
-        }
-
-        public bool Delete(string[] fields, string[] val)
-        {
-            if (fields.Length != val.Length)
-                return false;
-
-            using (MySqlCommand cmd = new MySqlCommand())
-            {
-                string text = String.Format("delete from {0} where ", m_Realm);
-
-                List<string> terms = new List<string>();
-
-                for (int i = 0 ; i < fields.Length ; i++)
-                {
-                    terms.Add(String.Format("{0} = ?{0}", fields[i]));
-                    cmd.Parameters.AddWithValue("?" + fields[i], val[i]);
-                }
-
-                text += string.Join(" and ", terms.ToArray());
-
-                cmd.CommandText = text;
-
-                if (ExecuteNonQuery(cmd) > 0)
-                    return true;
-                return false;
-            }
         }
     }
 }
