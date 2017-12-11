@@ -32,15 +32,12 @@ using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Servers;
-using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Mono.Addins;
-using OpenSim.Data;
 using OpenSim.Data.MySQL;
 using MySql.Data.MySqlClient;
-using System.Security.Cryptography;
+
 
 namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 {

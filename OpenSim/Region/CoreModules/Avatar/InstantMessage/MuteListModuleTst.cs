@@ -37,23 +37,21 @@ using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Mono.Addins;
-using OpenSim.Data;
-using OpenSim.Data.MySQL;
-using MySql.Data.MySqlClient;
-using System.Security.Cryptography;
+
+using OpenSim.Server.Base;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "MuteListModuleTst")]
-    public class MuteModuleTst : ISharedRegionModule
+    public class MuteListModuleTst : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         protected bool m_Enabled = false;
         protected List<Scene> m_SceneList = new List<Scene>();
-        protected MuteTableHandler m_MuteTable;
-        protected string m_DatabaseConnect;
+        protected IMuteListService m_service = null;
 
         public void Initialise(IConfigSource config)
         {
@@ -64,37 +62,11 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             if (cnf.GetString("MuteListModule", "None") != "MuteListModuleTst")
                 return;
 
-            m_DatabaseConnect = cnf.GetString("MuteDatabaseConnect", String.Empty);
-            if (m_DatabaseConnect == String.Empty)
-            {
-                m_log.Debug("[MuteModuleTst]: MuteDatabaseConnect missing or empty");
-                return;
-            }
-           
-            try
-            {
-                m_MuteTable = new MuteTableHandler(m_DatabaseConnect, "XMute", String.Empty);
-            }
-            catch
-            {
-                m_log.Error("[MuteListModuleTst]: Failed to open/create database table");
-                return;
-            }
-
             m_Enabled = true;
         }
 
         public void AddRegion(Scene scene)
         {
-            if (!m_Enabled)
-                return;
-
-            lock (m_SceneList)
-            {
-                m_SceneList.Add(scene);
-
-                scene.EventManager.OnNewClient += OnNewClient;
-            }
         }
 
         public void RegionLoaded(Scene scene)
@@ -104,17 +76,37 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
             IXfer xfer = scene.RequestModuleInterface<IXfer>();
             if (xfer == null)
-                m_log.ErrorFormat("[MuteListModuleTst]: Xfer not availble in region {0}", scene.Name);
+            {
+                m_log.ErrorFormat("[MuteListModuleTst]: Xfer not availble in region {0}. Module Disabled", scene.Name);
+                m_Enabled = false;
+                return;
+            }
+
+            IMuteListService srv = scene.RequestModuleInterface<IMuteListService>();
+            if(srv == null)
+            {
+                m_log.ErrorFormat("[MuteListModuleTst]: MuteListService not availble in region {0}. Module Disabled", scene.Name);
+                m_Enabled = false;
+                return;
+            }
+            lock (m_SceneList)
+            {
+                if(m_service == null)
+                    m_service = srv;
+                m_SceneList.Add(scene);
+                scene.EventManager.OnNewClient += OnNewClient;
+            }
         }
 
         public void RemoveRegion(Scene scene)
         {
-            if (!m_Enabled)
-                return;
-
             lock (m_SceneList)
             {
-                m_SceneList.Remove(scene);
+                if(m_SceneList.Contains(scene))
+                {
+                    m_SceneList.Remove(scene);
+                    scene.EventManager.OnNewClient -= OnNewClient;
+                }
             }
         }
 
@@ -123,7 +115,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             if (!m_Enabled)
                 return;
 
-            m_log.Debug("[MuteListModuleTst]: Mute list enabled");
+            m_log.Debug("[MuteListModuleTst]: enabled");
         }
 
         public string Name
@@ -149,6 +141,15 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         private void OnMuteListRequest(IClientAPI client, uint crc)
         {
+            if (!m_Enabled)
+            {
+                if(crc == 0)
+                    client.SendEmpytMuteList();
+                else
+                    client.SendUseCachedMuteList();
+                return;
+            }
+
             IXfer xfer = client.Scene.RequestModuleInterface<IXfer>();
             if (xfer == null)
             {
@@ -159,8 +160,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 return;
             }
 
-            MuteData[] data = m_MuteTable.Get("AgentID", client.AgentId.ToString());
-            if (data == null || data.Length == 0)
+            Byte[] data = m_service.MuteListRequest(client.AgentId, crc);
+            if (data == null)
             {
                 if(crc == 0)
                     client.SendEmpytMuteList();
@@ -169,20 +170,13 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 return;
             }
 
-            StringBuilder sb = new StringBuilder(16384);
+            if (data.Length == 0)
+            {
+                client.SendEmpytMuteList();
+                return;
+            }
 
-            foreach (MuteData d in data)
-                sb.AppendFormat("{0} {1} {2}|{3}\n",
-                        d.MuteType,
-                        d.MuteID.ToString(),
-                        d.MuteName,
-                        d.MuteFlags);
-
-            Byte[] filedata = Util.UTF8.GetBytes(sb.ToString());
-
-            uint dataCrc = Crc32.Compute(filedata);
-
-            if (dataCrc == crc)
+            if (data.Length == 1)
             {
                 if(crc == 0)
                     client.SendEmpytMuteList();
@@ -191,33 +185,44 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 return;
             }
 
-            string filename = "mutes"+client.AgentId.ToString();
-            xfer.AddNewFile(filename, filedata);
+            string filename = "mutes" + client.AgentId.ToString();
+            xfer.AddNewFile(filename, data);
             client.SendMuteListUpdate(filename);
         }
 
         private void OnUpdateMuteListEntry(IClientAPI client, UUID muteID, string muteName, int muteType, uint muteFlags)
         {
-            MuteData mute = new MuteData();
+            if (!m_Enabled)
+                return;
 
-            mute.AgentID = client.AgentId;
+            UUID agentID = client.AgentId;
+            if(muteType == 1) // agent
+            {
+                if(agentID == muteID)
+                    return;
+                if(m_SceneList[0].Permissions.IsAdministrator(muteID))
+                {
+                    OnMuteListRequest(client, 0);
+                    return;
+                }
+            }
+
+            MuteData mute = new MuteData();
+            mute.AgentID = agentID;
             mute.MuteID = muteID;
             mute.MuteName = muteName;
             mute.MuteType = muteType;
             mute.MuteFlags = (int)muteFlags;
             mute.Stamp = Util.UnixTimeSinceEpoch();
 
-            m_MuteTable.Store(mute);
+            m_service.UpdateMute(mute);
         }
 
         private void OnRemoveMuteListEntry(IClientAPI client, UUID muteID, string muteName)
         {
-            m_MuteTable.Delete(new string[] { "AgentID",
-                                              "MuteID",
-                                              "MuteName" },
-                               new string[] { client.AgentId.ToString(),
-                                              muteID.ToString(),
-                                              muteName });
+            if (!m_Enabled)
+                return;
+            m_service.RemoveMute(client.AgentId, muteID, muteName);
         }
     }
 }
