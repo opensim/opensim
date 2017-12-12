@@ -38,18 +38,20 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 {
     public class ShadedMapTileRenderer : IMapTileTerrainRenderer
     {
-        private static readonly Color WATER_COLOR = Color.FromArgb(29, 71, 95);
-
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly string LogHeader = "[SHADED MAPTILE RENDERER]";
 
         private Scene m_scene;
-        //private IConfigSource m_config; // not used currently
+        private IConfigSource m_config;
+        private Color m_color_water;
 
         public void Initialise(Scene scene, IConfigSource config)
         {
             m_scene = scene;
-            // m_config = config; // not used currently
+            m_config = config;
+
+            string[] configSections = new string[] { "Map", "Startup" };
+            m_color_water = System.Drawing.ColorTranslator.FromHtml(Util.GetConfigVarFromSections<string>(m_config, "MapColorWater", configSections, "#1D475F"));
         }
 
         public void TerrainToBitmap(Bitmap mapbmp)
@@ -231,7 +233,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 
                         try
                         {
-                            mapbmp.SetPixel(x, yr, WATER_COLOR);
+                            mapbmp.SetPixel(x, yr, m_color_water);
                         }
                         catch (ArgumentException)
                         {

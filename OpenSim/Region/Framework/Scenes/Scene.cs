@@ -4632,10 +4632,10 @@ Label_GroupsDone:
         /// <param name='agentID'></param>
         protected virtual ScenePresence WaitGetScenePresence(UUID agentID)
         {
-            int ntimes = 30;
+            int ntimes = 120; // 30s
             ScenePresence sp = null;
             while ((sp = GetScenePresence(agentID)) == null && (ntimes-- > 0))
-                Thread.Sleep(1000);
+                Thread.Sleep(250);
 
             if (sp == null)
                 m_log.WarnFormat(

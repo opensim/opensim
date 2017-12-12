@@ -1485,7 +1485,7 @@ namespace OpenSim.Framework
         void SendUserInfoReply(bool imViaEmail, bool visible, string email);
 
         void SendUseCachedMuteList();
-
+        void SendEmpytMuteList();
         void SendMuteListUpdate(string filename);
 
         void SendGroupActiveProposals(UUID groupID, UUID transactionID, GroupActiveProposals[] Proposals);

@@ -1702,6 +1702,11 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         }
 
+        public void SendEmpytMuteList()
+        {
+
+        }
+
         public void SendMuteListUpdate(string filename)
         {
 
