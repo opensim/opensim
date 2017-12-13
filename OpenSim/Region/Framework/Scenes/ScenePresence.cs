@@ -2587,10 +2587,10 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 bool update_movementflag = false;
-
+                bool mvToTarget = MovingToTarget;
                 if (agentData.UseClientAgentPosition)
                 {
-                    MovingToTarget = (agentData.ClientAgentPosition - AbsolutePosition).Length() > 0.2f;
+                    MovingToTarget = (agentData.ClientAgentPosition - AbsolutePosition).LengthSquared() > 0.04f;
                     MoveToPositionTarget = agentData.ClientAgentPosition;
                 }
 
@@ -2604,6 +2604,8 @@ namespace OpenSim.Region.Framework.Scenes
                     newFlying = true;
                 else if (FlyDisabled)
                     newFlying = false;
+                else if(mvToTarget)
+                    newFlying = actor.Flying;
                 else
                     newFlying = ((flags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
 
@@ -3071,24 +3073,25 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[SCENE PRESENCE]: Avatar {0} set move to target {1} (terrain height {2}) in {3}",
 //                Name, pos, terrainHeight, m_scene.RegionInfo.RegionName);
 
+            bool shouldfly = Flying;
             if (noFly)
-                Flying = false;
+                shouldfly = false;
             else if (pos.Z > terrainHeight || Flying)
-                Flying = true;
+                shouldfly = true;
 
             LandAtTarget = landAtTarget;
             MovingToTarget = true;
             MoveToPositionTarget = pos;
+            Flying = shouldfly;
 
             // Rotate presence around the z-axis to point in same direction as movement.
             // Ignore z component of vector
             Vector3 localVectorToTarget3D = pos - AbsolutePosition;
-            Vector3 localVectorToTarget2D = new Vector3((float)(localVectorToTarget3D.X), (float)(localVectorToTarget3D.Y), 0f);
 
-//            m_log.DebugFormat("[SCENE PRESENCE]: Local vector to target is {0}", localVectorToTarget2D);
+//            m_log.DebugFormat("[SCENE PRESENCE]: Local vector to target is {0},[1}", localVectorToTarget3D.X,localVectorToTarget3D.Y);
 
             // Calculate the yaw.
-            Vector3 angle = new Vector3(0, 0, (float)(Math.Atan2(localVectorToTarget2D.Y, localVectorToTarget2D.X)));
+            Vector3 angle = new Vector3(0, 0, (float)(Math.Atan2(localVectorToTarget3D.Y, localVectorToTarget3D.X)));
 
 //            m_log.DebugFormat("[SCENE PRESENCE]: Angle is {0}", angle);
 
