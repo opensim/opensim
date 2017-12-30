@@ -39,7 +39,7 @@ using OpenMetaverse;
 using Mono.Addins;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Framework.Servers;
-
+using OpenMetaverse.StructuredData; // LitJson is hidden on this
 
 [assembly:AddinRoot("Robust", OpenSim.VersionInfo.VersionNumber)]
 namespace OpenSim.Server.Base
@@ -327,49 +327,62 @@ namespace OpenSim.Server.Base
 
         public static Dictionary<string, object> ParseQueryString(string query)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
             string[] terms = query.Split(new char[] {'&'});
 
-            if (terms.Length == 0)
-                return result;
+            int nterms = terms.Length;
+            if (nterms == 0)
+                return new Dictionary<string, object>();           
 
-            foreach (string t in terms)
+            Dictionary<string, object> result = new Dictionary<string, object>(nterms);
+            string name;
+
+            for(int i = 0; i < nterms; ++i)
             {
-                string[] elems = t.Split(new char[] {'='});
+                string[] elems = terms[i].Split(new char[] {'='});
+
                 if (elems.Length == 0)
                     continue;
 
-                string name = System.Web.HttpUtility.UrlDecode(elems[0]);
-                string value = String.Empty;
+                if(String.IsNullOrWhiteSpace(elems[0]))
+                    continue;
 
-                if (elems.Length > 1)
-                    value = System.Web.HttpUtility.UrlDecode(elems[1]);
+                name = System.Web.HttpUtility.UrlDecode(elems[0]);
 
                 if (name.EndsWith("[]"))
                 {
-                    string cleanName = name.Substring(0, name.Length - 2);
-                    if (result.ContainsKey(cleanName))
+                    name = name.Substring(0, name.Length - 2);
+                    if(String.IsNullOrWhiteSpace(name))
+                        continue;
+                    if (result.ContainsKey(name))
                     {
-                        if (!(result[cleanName] is List<string>))
+                        if (!(result[name] is List<string>))
                             continue;
 
-                        List<string> l = (List<string>)result[cleanName];
-
-                        l.Add(value);
+                        List<string> l = (List<string>)result[name];
+                        if (elems.Length > 1 && !String.IsNullOrWhiteSpace(elems[1]))
+                            l.Add(System.Web.HttpUtility.UrlDecode(elems[1]));
+                        else
+                            l.Add(String.Empty);
                     }
                     else
                     {
                         List<string> newList = new List<string>();
-
-                        newList.Add(value);
-
-                        result[cleanName] = newList;
+                        if (elems.Length > 1 && !String.IsNullOrWhiteSpace(elems[1]))
+                            newList.Add(System.Web.HttpUtility.UrlDecode(elems[1]));
+                        else
+                            newList.Add(String.Empty);
+                        result[name] = newList;
                     }
                 }
                 else
                 {
                     if (!result.ContainsKey(name))
-                        result[name] = value;
+                    {
+                        if (elems.Length > 1 && !String.IsNullOrWhiteSpace(elems[1]))
+                            result[name] = System.Web.HttpUtility.UrlDecode(elems[1]);
+                        else
+                            result[name] = String.Empty;
+                    }
                 }
             }
 
@@ -378,47 +391,70 @@ namespace OpenSim.Server.Base
 
         public static string BuildQueryString(Dictionary<string, object> data)
         {
-            string qstring = String.Empty;
+            // this is not conform to html url encoding
+            // can only be used on Body of POST or PUT
+            StringBuilder sb = new StringBuilder(4096);
 
-            string part;
+            string pvalue;
 
             foreach (KeyValuePair<string, object> kvp in data)
             {
                 if (kvp.Value is List<string>)
                 {
                     List<string> l = (List<String>)kvp.Value;
-
-                    foreach (string s in l)
+                    int llen = l.Count;
+                    string nkey = System.Web.HttpUtility.UrlEncode(kvp.Key);
+                    for(int i = 0; i < llen; ++i)
                     {
-                        part = System.Web.HttpUtility.UrlEncode(kvp.Key) +
-                                "[]=" + System.Web.HttpUtility.UrlEncode(s);
-
-                        if (qstring != String.Empty)
-                            qstring += "&";
-
-                        qstring += part;
+                        if (sb.Length != 0)
+                            sb.Append("&");
+                        sb.Append(nkey);
+                        sb.Append("[]=");
+                        sb.Append(System.Web.HttpUtility.UrlEncode(l[i]));
                     }
+                }
+                else if(kvp.Value is Dictionary<string, object>)
+                {
+                    // encode complex structures as JSON
+                    // needed for estate bans with the encoding used on xml
+                    // encode can be here because object does contain the structure information
+                    // but decode needs to be on estateSettings (or other user)
+                    string js;
+                    try
+                    {
+                        // bypass libovm, we dont need even more useless high level maps
+                        // this should only be called once.. but no problem, i hope
+                        // (other uses may need more..)
+                        LitJson.JsonMapper.RegisterExporter<UUID>((uuid, writer) => writer.Write(uuid.ToString()) );
+                        js = LitJson.JsonMapper.ToJson(kvp.Value);
+                    }
+ //                   catch(Exception e)
+                    catch
+                    {
+                        continue;
+                    }
+                    if (sb.Length != 0)
+                        sb.Append("&");
+                    sb.Append(System.Web.HttpUtility.UrlEncode(kvp.Key));
+                    sb.Append("=");
+                    sb.Append(System.Web.HttpUtility.UrlEncode(js));
                 }
                 else
                 {
-                    if (kvp.Value.ToString() != String.Empty)
+                    if (sb.Length != 0)
+                        sb.Append("&");
+                    sb.Append(System.Web.HttpUtility.UrlEncode(kvp.Key));
+ 
+                    pvalue = kvp.Value.ToString();
+                    if (!String.IsNullOrEmpty(pvalue))
                     {
-                        part = System.Web.HttpUtility.UrlEncode(kvp.Key) +
-                                "=" + System.Web.HttpUtility.UrlEncode(kvp.Value.ToString());
+                        sb.Append("=");
+                        sb.Append(System.Web.HttpUtility.UrlEncode(pvalue));
                     }
-                    else
-                    {
-                        part = System.Web.HttpUtility.UrlEncode(kvp.Key);
-                    }
-
-                    if (qstring != String.Empty)
-                        qstring += "&";
-
-                    qstring += part;
                 }
             }
 
-            return qstring;
+            return sb.ToString();
         }
 
         public static string BuildXmlResponse(Dictionary<string, object> data)
