@@ -572,14 +572,41 @@ namespace OpenSim.Framework
 
             // EstateBans are special
             if (map.ContainsKey("EstateBans"))
-            {
-                var banData = ((Dictionary<string, object>)map["EstateBans"]).Values;
-                EstateBan[] bans = new EstateBan[banData.Count];
-                int b = 0;
-                foreach (Dictionary<string, object> ban in banData)
-                    bans[b++] = new EstateBan(ban);
-                PropertyInfo bansProperty = this.GetType().GetProperty("EstateBans", BindingFlags.Public | BindingFlags.Instance);
-                bansProperty.SetValue(this, bans, null);
+            {               
+                if(map["EstateBans"] is string)
+                {
+                    // JSON encoded bans map
+                    Dictionary<string, EstateBan> bdata = new Dictionary<string, EstateBan>();
+                    try
+                    {
+                        // bypass libovm, we dont need even more useless high level maps
+                        // this should only be called once.. but no problem, i hope
+                        // (other uses may need more..)
+                        LitJson.JsonMapper.RegisterImporter<string, UUID>((input) => new UUID(input));
+                        bdata = LitJson.JsonMapper.ToObject<Dictionary<string,EstateBan>>((string)map["EstateBans"]);
+                    }
+ //                   catch(Exception e)
+                    catch
+                    {
+                        return;
+                    }
+                    EstateBan[] jbans = new EstateBan[bdata.Count];
+                    bdata.Values.CopyTo(jbans,0);
+
+                    PropertyInfo jbansProperty = this.GetType().GetProperty("EstateBans", BindingFlags.Public | BindingFlags.Instance);
+                    jbansProperty.SetValue(this, jbans, null);
+                }
+                else
+                {
+                    var banData = ((Dictionary<string, object>)map["EstateBans"]).Values;
+                    EstateBan[] bans = new EstateBan[banData.Count];
+
+                    int b = 0;
+                    foreach (Dictionary<string, object> ban in banData)
+                        bans[b++] = new EstateBan(ban);
+                    PropertyInfo bansProperty = this.GetType().GetProperty("EstateBans", BindingFlags.Public | BindingFlags.Instance);
+                    bansProperty.SetValue(this, bans, null);
+                 }
             }
         }
     }
