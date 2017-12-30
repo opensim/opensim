@@ -326,7 +326,7 @@ namespace OpenSim.Server.Base
         }
 
         public static Dictionary<string, object> ParseQueryString(string query)
-        {           
+        {
             string[] terms = query.Split(new char[] {'&'});
 
             int nterms = terms.Length;
