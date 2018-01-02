@@ -112,8 +112,7 @@ namespace OpenSim.Data.MySQL
                                 }
                                 catch (Exception e)
                                 {
-                                    m_log.ErrorFormat("[PROFILES_DATA]" +
-                                                     ": UserAccount exception {0}", e.Message);
+                                    m_log.ErrorFormat("[PROFILES_DATA] GetClassifiedRecords exception {0}", e.Message);
                                 }
                                 n.Add("classifieduuid", OSD.FromUUID(Id));
                                 n.Add("name", OSD.FromString(Name));
@@ -234,8 +233,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": ClassifiedesUpdate exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: UpdateClassifiedRecord exception {0}", e.Message);
                 result = e.Message;
                 return false;
             }
@@ -262,8 +260,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": DeleteClassifiedRecord exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: DeleteClassifiedRecord exception {0}", e.Message);
                 return false;
             }
             return true;
@@ -310,8 +307,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": GetPickInfo exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: GetClassifiedInfo exception {0}", e.Message);
             }
             return true;
         }
@@ -353,8 +349,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": GetAvatarPicks exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: GetAvatarPicks exception {0}", e.Message);
             }
             return data;
         }
@@ -407,8 +402,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": GetPickInfo exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: GetPickInfo exception {0}", e.Message);
             }
             return pick;
         }
@@ -472,8 +466,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": UpdateAvatarNotes exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: UpdatePicksRecord exception {0}", e.Message);
                 return false;
             }
             return true;
@@ -500,8 +493,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": DeleteUserPickRecord exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: DeletePicksRecord exception {0}", e.Message);
                 return false;
             }
             return true;
@@ -541,8 +533,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": GetAvatarNotes exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: GetAvatarNotes exception {0}", e.Message);
             }
             return true;
         }
@@ -589,8 +580,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": UpdateAvatarNotes exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: UpdateAvatarNotes exception {0}", e.Message);
                 return false;
             }
             return true;
@@ -711,8 +701,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": Requst properties exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: GetAvatarProperties exception {0}", e.Message);
                 result = e.Message;
                 return false;
             }
@@ -747,8 +736,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": AgentPropertiesUpdate exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: UpdateAvatarProperties exception {0}", e.Message);
 
                 return false;
             }
@@ -787,8 +775,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": AgentInterestsUpdate exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: UpdateAvatarInterests exception {0}", e.Message);
                 result = e.Message;
                 return false;
             }
@@ -870,8 +857,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                  ": GetAvatarNotes exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: GetUserImageAssets exception {0}", e.Message);
             }
             return data;
         }
@@ -921,8 +907,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": Get preferences exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: GetUserPreferences exception {0}", e.Message);
                 result = e.Message;
                 return false;
             }
@@ -954,8 +939,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                    ": UserPreferencesUpdate exception {0} {1}", e.Message, e.InnerException);
+                m_log.ErrorFormat("[PROFILES_DATA]: UpdateUserPreferences exception {0} {1}", e.Message, e.InnerException);
                 result = e.Message;
                 return false;
             }
@@ -1006,8 +990,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": Requst application data exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: GetUserAppData exception {0}", e.Message);
                 result = e.Message;
                 return false;
             }
@@ -1037,8 +1020,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": SetUserData exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: SetUserAppData exception {0}", e.Message);
                 return false;
             }
             return true;
