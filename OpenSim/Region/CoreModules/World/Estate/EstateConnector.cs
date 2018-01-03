@@ -192,12 +192,12 @@ namespace OpenSim.Region.CoreModules.World.Estate
             {
                 string url = "";
                 if(port != 0)
-                    url = "http://" + region.ExternalHostName + ":" + port;
+                    url = "http://" + region.ExternalHostName + ":" + port + "/";
                 else
                     url = region.ServerURI;
 
                 string reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        url + "/estate",
+                        url + "estate",
                         reqString);
                 if (reply != string.Empty)
                 {
