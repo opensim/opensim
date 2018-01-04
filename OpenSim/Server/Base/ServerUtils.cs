@@ -513,7 +513,7 @@ namespace OpenSim.Server.Base
             Dictionary<string, object> ret = new Dictionary<string, object>();
 
             XmlDocument doc = new XmlDocument();
-
+            doc.XmlResolver = null;
             try
             {
                 doc.LoadXml(data);

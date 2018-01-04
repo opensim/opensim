@@ -3138,6 +3138,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 if (File.Exists(defaultAppearanceFileName))
                 {
                     XmlDocument doc = new XmlDocument();
+                    doc.XmlResolver=null;
                     string name     = "*unknown*";
                     string email    = "anon@anon";
                     uint   regionXLocation     = 1000;
