@@ -93,7 +93,7 @@
     ;; Uncomment if you want to have centralized estate data
     ; EstateDataService = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:EstateDataRobustConnector"
 
-	MuteListConnector = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:MuteListServiceConnector"
+    MuteListConnector = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:MuteListServiceConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance, if none is specified above

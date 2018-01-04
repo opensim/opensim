@@ -246,4 +246,4 @@
     ;; SimulatorCapability = "00000000-0000-0000-0000-000000000000"
 
 [MuteListService]
-	MuteListServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+    MuteListServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
