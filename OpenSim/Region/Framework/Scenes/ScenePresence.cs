@@ -101,7 +101,8 @@ namespace OpenSim.Region.Framework.Scenes
         public bool IsGod { get; set; }
 
         private PresenceType m_presenceType;
-        public PresenceType PresenceType {
+        public PresenceType PresenceType
+        {
             get {return m_presenceType;}
             private set
             {
@@ -368,8 +369,28 @@ namespace OpenSim.Region.Framework.Scenes
         private Quaternion m_headrotation = Quaternion.Identity;
 
         //PauPaw:Proper PID Controler for autopilot************
-        public bool MovingToTarget { get; private set; }
-        public Vector3 MoveToPositionTarget { get; private set; }
+
+        private bool m_movingToTarget;
+        public bool MovingToTarget
+        {
+            get {return m_movingToTarget;}
+            private set {m_movingToTarget = value; }
+        }
+
+        private Vector3 m_moveToPositionTarget;
+        public Vector3 MoveToPositionTarget
+        {
+            get {return m_moveToPositionTarget;}
+            private set {m_moveToPositionTarget = value; }
+        }
+
+        private float m_moveToSpeed;
+        public float MoveToSpeed
+        {
+            get {return m_moveToSpeed;}
+            private set {m_moveToSpeed = value; }
+        }
+
         private double m_delayedStop = -1.0;
 
         /// <summary>
@@ -1160,7 +1181,7 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.OnStopAnim += HandleStopAnim;
             ControllingClient.OnChangeAnim += avnHandleChangeAnim;
             ControllingClient.OnForceReleaseControls += HandleForceReleaseControls;
-            ControllingClient.OnAutoPilotGo += MoveToTarget;
+            ControllingClient.OnAutoPilotGo += MoveToTargetHandle;
             ControllingClient.OnUpdateThrottles += RaiseUpdateThrottles;
 //            ControllingClient.OnAgentFOV += HandleAgentFOV;
 
@@ -1180,7 +1201,7 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.OnStopAnim -= HandleStopAnim;
             ControllingClient.OnChangeAnim -= avnHandleChangeAnim;
             ControllingClient.OnForceReleaseControls -= HandleForceReleaseControls;
-            ControllingClient.OnAutoPilotGo -= MoveToTarget;
+            ControllingClient.OnAutoPilotGo -= MoveToTargetHandle;
             ControllingClient.OnUpdateThrottles -= RaiseUpdateThrottles;
 //            ControllingClient.OnAgentFOV += HandleAgentFOV;
         }
@@ -2587,11 +2608,12 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 bool update_movementflag = false;
-                bool mvToTarget = MovingToTarget;
+                bool mvToTarget = m_movingToTarget;
                 if (agentData.UseClientAgentPosition)
                 {
-                    MovingToTarget = (agentData.ClientAgentPosition - AbsolutePosition).LengthSquared() > 0.04f;
-                    MoveToPositionTarget = agentData.ClientAgentPosition;
+                    m_movingToTarget = (agentData.ClientAgentPosition - AbsolutePosition).LengthSquared() > 0.04f;
+                    m_moveToPositionTarget = agentData.ClientAgentPosition;
+                    m_moveToSpeed = -1f;
                 }
 
                 int i = 0;
@@ -2686,7 +2708,7 @@ namespace OpenSim.Region.Framework.Scenes
                         update_movementflag = true;
                     }
 
-                    if (MovingToTarget)
+                    if (m_movingToTarget)
                     {
                         // If the user has pressed a key then we want to cancel any move to target.
                         if (DCFlagKeyPressed)
@@ -2787,7 +2809,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else
                     {
-                        if(MovingToTarget ||
+                        if(m_movingToTarget ||
                                  (Animator.currentControlState != ScenePresenceAnimator.motionControlStates.flying &&
                                     Animator.currentControlState != ScenePresenceAnimator.motionControlStates.onsurface)
                                  )
@@ -2878,7 +2900,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             bool updated = false;
 
-            Vector3 LocalVectorToTarget3D = MoveToPositionTarget - AbsolutePosition;
+            Vector3 LocalVectorToTarget3D = m_moveToPositionTarget - AbsolutePosition;
 
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: bAllowUpdateMoveToPosition {0}, m_moveToPositionInProgress {1}, m_autopilotMoving {2}",
@@ -2891,9 +2913,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                Vector3 hdist = LocalVectorToTarget3D;
-                hdist.Z = 0;
-                distanceToTarget = hdist.Length();
+                distanceToTarget = (float)Math.Sqrt(LocalVectorToTarget3D.X * LocalVectorToTarget3D.X +
+                     LocalVectorToTarget3D.Y * LocalVectorToTarget3D.Y);
             }
 
             // m_log.DebugFormat(
@@ -2905,128 +2926,126 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // We are close enough to the target
                 Velocity = Vector3.Zero;
-                AbsolutePosition = MoveToPositionTarget;
+                AbsolutePosition = m_moveToPositionTarget;
                 if (Flying)
                 {
-                if (LandAtTarget)
-                    Flying = false;
+                    if (LandAtTarget)
+                        Flying = false;
 
                 // A horrible hack to stop the avatar dead in its tracks rather than having them overshoot
                 // the target if flying.
                 // We really need to be more subtle (slow the avatar as it approaches the target) or at
                 // least be able to set collision status once, rather than 5 times to give it enough
                 // weighting so that that PhysicsActor thinks it really is colliding.
-                for (int i = 0; i < 5; i++)
-                    IsColliding = true;
+                    for (int i = 0; i < 5; i++)
+                        IsColliding = true;
                 }
                 ResetMoveToTarget();
                 return false;
             }
-            else
+
+            if(m_moveToSpeed > 0 && distanceToTarget <= m_moveToSpeed * Scene.FrameTime)
+                m_moveToSpeed = distanceToTarget / Scene.FrameTime;
+
+            try
             {
-                try
+                // move avatar in 3D towards target, in avatar coordinate frame.
+                // This movement vector gets added to the velocity through AddNewMovement().
+                // Theoretically we might need a more complex PID approach here if other
+                // unknown forces are acting on the avatar and we need to adaptively respond
+                // to such forces, but the following simple approach seems to works fine.
+
+                float angle = 0.5f * (float)Math.Atan2(LocalVectorToTarget3D.Y, LocalVectorToTarget3D.X);
+                Quaternion rot = new Quaternion(0,0, (float)Math.Sin(angle),(float)Math.Cos(angle));
+                Rotation = rot;
+                LocalVectorToTarget3D = LocalVectorToTarget3D * Quaternion.Inverse(rot); // change to avatar coords
+                LocalVectorToTarget3D.Normalize();
+
+                // update avatar movement flags. the avatar coordinate system is as follows:
+                //
+                //                        +X (forward)
+                //
+                //                        ^
+                //                        |
+                //                        |
+                //                        |
+                //                        |
+                //     (left) +Y <--------o--------> -Y
+                //                       avatar
+                //                        |
+                //                        |
+                //                        |
+                //                        |
+                //                        v
+                //                        -X
+                //
+
+                // based on the above avatar coordinate system, classify the movement into
+                // one of left/right/back/forward.
+
+                const uint noMovFlagsMask = (uint)(~(Dir_ControlFlags.DIR_CONTROL_FLAG_BACK |
+                    Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD | Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT |
+                    Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT | Dir_ControlFlags.DIR_CONTROL_FLAG_UP |
+                    Dir_ControlFlags.DIR_CONTROL_FLAG_DOWN));
+
+                MovementFlag &= noMovFlagsMask;
+                uint tmpAgentControlFlags = (uint)m_AgentControlFlags;
+                tmpAgentControlFlags &= noMovFlagsMask;
+
+                if (LocalVectorToTarget3D.X < 0) //MoveBack
                 {
-                    // move avatar in 3D at one meter/second towards target, in avatar coordinate frame.
-                    // This movement vector gets added to the velocity through AddNewMovement().
-                    // Theoretically we might need a more complex PID approach here if other
-                    // unknown forces are acting on the avatar and we need to adaptively respond
-                    // to such forces, but the following simple approach seems to works fine.
+                    MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
+                    tmpAgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
+                    updated = true;
+                }
+                else if (LocalVectorToTarget3D.X > 0) //Move Forward
+                {
+                    MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
+                    tmpAgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
+                    updated = true;
+                }
 
-                    LocalVectorToTarget3D = LocalVectorToTarget3D * Quaternion.Inverse(Rotation); // change to avatar coords
-
-                    LocalVectorToTarget3D.Normalize();
-
-                    // update avatar movement flags. the avatar coordinate system is as follows:
-                    //
-                    //                        +X (forward)
-                    //
-                    //                        ^
-                    //                        |
-                    //                        |
-                    //                        |
-                    //                        |
-                    //     (left) +Y <--------o--------> -Y
-                    //                       avatar
-                    //                        |
-                    //                        |
-                    //                        |
-                    //                        |
-                    //                        v
-                    //                        -X
-                    //
-
-                    // based on the above avatar coordinate system, classify the movement into
-                    // one of left/right/back/forward.
-
-                    const uint noMovFlagsMask = (uint)(~(Dir_ControlFlags.DIR_CONTROL_FLAG_BACK |
-                        Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD | Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT |
-                        Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT | Dir_ControlFlags.DIR_CONTROL_FLAG_UP |
-                        Dir_ControlFlags.DIR_CONTROL_FLAG_DOWN));
-
-                    MovementFlag &= noMovFlagsMask;
-                    uint tmpAgentControlFlags = (uint)m_AgentControlFlags;
-                    tmpAgentControlFlags &= noMovFlagsMask;
-
-                    if (LocalVectorToTarget3D.X < 0) //MoveBack
-                    {
-                        MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
-                        tmpAgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
-                        updated = true;
-                    }
-                    else if (LocalVectorToTarget3D.X > 0) //Move Forward
-                    {
-                        MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
-                        tmpAgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
-                        updated = true;
-                    }
-
-                    if (LocalVectorToTarget3D.Y > 0) //MoveLeft
-                    {
-                        MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
-                        tmpAgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
-                        updated = true;
-                    }
-                    else if (LocalVectorToTarget3D.Y < 0) //MoveRight
-                    {
-                        MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
-                        tmpAgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
-                        updated = true;
-                    }
-
-                    if (LocalVectorToTarget3D.Z > 0) //Up
-                    {
-                        // Don't set these flags for up or down - doing so will make the avatar crouch or
-                        // keep trying to jump even if walking along level ground
-                        //MovementFlag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_UP;
-                        //AgentControlFlags
-                        //AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_UP;
-                        updated = true;
-                    }
-                    else if (LocalVectorToTarget3D.Z < 0) //Down
-                    {
-                        //MovementFlag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_DOWN;
-                        //AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_DOWN;
-                        updated = true;
-                    }
-
+                if (LocalVectorToTarget3D.Y > 0) //MoveLeft
+                {
+                    MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
+                    tmpAgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
+                    updated = true;
+                }
+                else if (LocalVectorToTarget3D.Y < 0) //MoveRight
+                {
+                    MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
+                    tmpAgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
+                    updated = true;
+                }
+               
+                if (LocalVectorToTarget3D.Z > 0) //Up
+                     updated = true;
+ 
+                else if (LocalVectorToTarget3D.Z < 0) //Down
+                     updated = true;
+ 
 //                        m_log.DebugFormat(
 //                            "[SCENE PRESENCE]: HandleMoveToTargetUpdate adding {0} to move vector {1} for {2}",
 //                            LocalVectorToTarget3D, agent_control_v3, Name);
 
-                    m_AgentControlFlags = (AgentManager.ControlFlags) tmpAgentControlFlags;
+                m_AgentControlFlags = (AgentManager.ControlFlags) tmpAgentControlFlags;
+                if(updated)
                     agent_control_v3 += LocalVectorToTarget3D;
-                }
-                catch (Exception e)
-                {
-                    //Avoid system crash, can be slower but...
-                    m_log.DebugFormat("Crash! {0}", e.ToString());
-                }
+            }
+            catch (Exception e)
+            {
+                //Avoid system crash, can be slower but...
+                m_log.DebugFormat("Crash! {0}", e.ToString());
             }
 
             return updated;
 //                AddNewMovement(agent_control_v3);
         }
 
+        public void MoveToTargetHandle(Vector3 pos, bool noFly, bool landAtTarget)
+        {
+            MoveToTarget(pos, noFly, landAtTarget);
+        }
         /// <summary>
         /// Move to the given target over time.
         /// </summary>
@@ -3039,8 +3058,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="landAtTarget">
         /// If true and the avatar starts flying during the move then land at the target.
         /// </param>
-        public void MoveToTarget(Vector3 pos, bool noFly, bool landAtTarget)
-        {
+        public void MoveToTarget(Vector3 pos, bool noFly, bool landAtTarget, float tau = -1f)
+        { 
             m_delayedStop = -1;
 
             if (SitGround)
@@ -3073,30 +3092,36 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[SCENE PRESENCE]: Avatar {0} set move to target {1} (terrain height {2}) in {3}",
 //                Name, pos, terrainHeight, m_scene.RegionInfo.RegionName);
 
+            terrainHeight += Appearance.AvatarHeight; // so 1.5 * AvatarHeight above ground at target
             bool shouldfly = Flying;
             if (noFly)
                 shouldfly = false;
             else if (pos.Z > terrainHeight || Flying)
                 shouldfly = true;
 
-            LandAtTarget = landAtTarget;
-            MovingToTarget = true;
-            MoveToPositionTarget = pos;
-            Flying = shouldfly;
-
-            // Rotate presence around the z-axis to point in same direction as movement.
-            // Ignore z component of vector
             Vector3 localVectorToTarget3D = pos - AbsolutePosition;
 
 //            m_log.DebugFormat("[SCENE PRESENCE]: Local vector to target is {0},[1}", localVectorToTarget3D.X,localVectorToTarget3D.Y);
+ 
+            m_movingToTarget = true;
+            LandAtTarget = landAtTarget;
+            m_moveToPositionTarget = pos;
+            if(tau > 0)
+            {
+                if(tau < Scene.FrameTime)
+                    tau = Scene.FrameTime;
+                m_moveToSpeed = localVectorToTarget3D.Length() / tau;
+                if(m_moveToSpeed < 0.5f) //to tune
+                    m_moveToSpeed = 0.5f;
+                else if(m_moveToSpeed > 50f)
+                    m_moveToSpeed = 50f;
 
-            // Calculate the yaw.
-            Vector3 angle = new Vector3(0, 0, (float)(Math.Atan2(localVectorToTarget3D.Y, localVectorToTarget3D.X)));
+                SetAlwaysRun = false;
+            }
+            else
+                m_moveToSpeed = 4.096f * m_speedModifier;
 
-//            m_log.DebugFormat("[SCENE PRESENCE]: Angle is {0}", angle);
-
-            Rotation = Quaternion.CreateFromEulers(angle);
-//            m_log.DebugFormat("[SCENE PRESENCE]: Body rot for {0} set to {1}", Name, Rotation);
+            Flying = shouldfly;
 
             Vector3 control = Vector3.Zero;
             if(HandleMoveToTargetUpdate(1f, ref control))
@@ -3110,7 +3135,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
 //            m_log.DebugFormat("[SCENE PRESENCE]: Resetting move to target for {0}", Name);
 
-            MovingToTarget = false;
+            m_movingToTarget = false;
+            m_moveToSpeed = -1f;
 //            MoveToPositionTarget = Vector3.Zero;
 //            lock(m_forceToApplyLock)
 //               m_forceToApplyValid = false; // cancel possible last action
@@ -3294,7 +3320,7 @@ namespace OpenSim.Region.Framework.Scenes
                     RemoveFromPhysicalScene();
                 }
 
-                if (MovingToTarget)
+                if (m_movingToTarget)
                     ResetMoveToTarget();
 
                 Velocity = Vector3.Zero;
@@ -3436,7 +3462,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             RemoveFromPhysicalScene();
 
-            if (MovingToTarget)
+            if (m_movingToTarget)
                 ResetMoveToTarget();
 
             Velocity = Vector3.Zero;
@@ -3716,8 +3742,12 @@ namespace OpenSim.Region.Framework.Scenes
             if ((vec.Z == 0f) && !Flying)
                 direc.Z = 0f; // Prevent camera WASD up.
 
+            bool notmvtrgt = !m_movingToTarget || m_moveToSpeed <= 0;
             // odd rescalings
-            direc *= 0.032f * 128f * SpeedModifier * thisAddSpeedModifier;
+            if(notmvtrgt)
+                direc *= 4.096f * SpeedModifier * thisAddSpeedModifier;
+            else
+                direc *= m_moveToSpeed;
 
             //            m_log.DebugFormat("[SCENE PRESENCE]: Force to apply before modification was {0} for {1}", direc, Name);
 
@@ -3735,12 +3765,12 @@ namespace OpenSim.Region.Framework.Scenes
                     // landing situation, prevent avatar moving or it may fail to land
                     // animator will handle this condition and do the land
                     direc = Vector3.Zero;
-                else
+                else if(notmvtrgt)
                     direc *= 4.0f;
             }
             else if (IsColliding)
             {
-                if (direc.Z > 2.0f) // reinforce jumps
+                if (direc.Z > 2.0f && notmvtrgt) // reinforce jumps
                 {
                     direc.Z *= 2.6f;
                 }
@@ -3780,7 +3810,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsInTransit || IsLoggingIn)
                 return;
 
-            if(MovingToTarget)
+            if(m_movingToTarget)
             {
                 m_delayedStop = -1;
                 Vector3 control = Vector3.Zero;
