@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -24,35 +24,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-using log4net;
-using Mono.Addins;
-using Nini.Config;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using OpenSim.Framework;
-using OpenSim.Server.Base;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
+using OpenSim.Services.Connectors;
+
 using OpenMetaverse;
+using log4net;
+using Mono.Addins;
+using Nini.Config;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MuteList
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LocalMuteListServicesConnector")]
-    public class LocalMuteListServicesConnector : ISharedRegionModule, IMuteListService
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "RemoteMuteListServicesConnector")]
+    public class RemoteMuteListServicesConnector : ISharedRegionModule, IMuteListService
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private List<Scene> m_Scenes = new List<Scene>();
-        protected IMuteListService m_service = null;
+        #region ISharedRegionModule
 
         private bool m_Enabled = false;
 
-         #region ISharedRegionModule
+        private IMuteListService m_remoteConnector;
 
         public Type ReplaceableInterface
         {
@@ -61,63 +59,33 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MuteList
 
         public string Name
         {
-            get { return "LocalMuteListServicesConnector"; }
+            get { return "RemoteMuteListServicesConnector"; }
         }
 
         public void Initialise(IConfigSource source)
         {
-            // only active for core mute lists module
+           // only active for core mute lists module
             IConfig moduleConfig = source.Configs["Messaging"];
             if (moduleConfig == null)
                 return;
 
             if (moduleConfig.GetString("MuteListModule", "None") != "MuteListModuleTst")
                 return;
-
+            
             moduleConfig = source.Configs["Modules"];
-
-            if (moduleConfig == null)
-                return;
-
-            string name = moduleConfig.GetString("MuteListService", "");
-            if(name != Name)
-                return;
-
-            IConfig userConfig = source.Configs["MuteListService"];
-            if (userConfig == null)
+            if (moduleConfig != null)
             {
-                m_log.Error("[MuteList LOCALCONNECTOR]: MuteListService missing from configuration");
-                return;
+                string name = moduleConfig.GetString("MuteListService", "");
+                if (name == Name)
+                {
+                    m_remoteConnector = new MuteListServicesConnector(source);
+                    m_Enabled = true;
+                }
             }
+        }
 
-            string serviceDll = userConfig.GetString("LocalServiceModule",
-                    String.Empty);
-
-            if (serviceDll == String.Empty)
-            {
-                m_log.Error("[MuteList LOCALCONNECTOR]: No LocalServiceModule named in section MuteListService");
-                return;
-            }
-
-            Object[] args = new Object[] { source };
-            try
-            {
-                m_service = ServerUtils.LoadPlugin<IMuteListService>(serviceDll, args);
-            }
-            catch
-            {
-                m_log.Error("[MuteList LOCALCONNECTOR]: Failed to load mute service");
-                return;
-            }
-
-            if (m_service == null)
-            {
-                m_log.Error("[MuteList LOCALCONNECTOR]: Can't load MuteList service");
-                return;
-            }
-
-            m_Enabled = true;
-            m_log.Info("[MuteList LOCALCONNECTOR]: enabled");
+        public void PostInitialise()
+        {
         }
 
         public void Close()
@@ -129,60 +97,47 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MuteList
             if (!m_Enabled)
                 return;
 
-            lock(m_Scenes)
-            {
-                m_Scenes.Add(scene);
-                scene.RegisterModuleInterface<IMuteListService>(this);
-            }
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-        }
-
-        public void PostInitialise()
-        {
+            scene.RegisterModuleInterface<IMuteListService>(this);
+            m_log.InfoFormat("[MUTELIST CONNECTOR]: Enabled for region {0}", scene.RegionInfo.RegionName);
         }
 
         public void RemoveRegion(Scene scene)
         {
             if (!m_Enabled)
                 return;
-
-            lock(m_Scenes)
-            {
-                if (m_Scenes.Contains(scene))
-                {
-                    m_Scenes.Remove(scene);
-                    scene.UnregisterModuleInterface<IMuteListService>(this);
-                }
-            }
         }
 
-        #endregion ISharedRegionModule
+        public void RegionLoaded(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+        }
+
+        #endregion
 
         #region IMuteListService
         public Byte[] MuteListRequest(UUID agentID, uint crc)
         {
             if (!m_Enabled)
                 return null;
-            return m_service.MuteListRequest(agentID, crc);
+            return m_remoteConnector.MuteListRequest(agentID, crc);
         }
 
         public bool UpdateMute(MuteData mute)
         {
             if (!m_Enabled)
                 return false;
-            return m_service.UpdateMute(mute);
+            return m_remoteConnector.UpdateMute(mute);
         }
 
         public bool RemoveMute(UUID agentID, UUID muteID, string muteName)
         {
             if (!m_Enabled)
                 return false;
-            return m_service.RemoveMute(agentID, muteID, muteName);
+            return m_remoteConnector.RemoveMute(agentID, muteID, muteName);
         }
 
         #endregion IMuteListService
+
     }
 }
