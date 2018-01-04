@@ -102,6 +102,8 @@
     ;; Uncomment if you want to have centralized estate data
     ; EstateDataService = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:EstateDataRobustConnector"
 
+	MuteListConnector = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:MuteListServiceConnector"
+	
     ;; Additions for Hypergrid
 
     GatekeeperServiceInConnector = "${Const|PublicPort}/OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector"
@@ -807,3 +809,6 @@
     LocalServiceModule = "OpenSim.Server.Handlers.dll:XBakes"
     ;; This directory must be writable by the user ROBUST runs as. It will be created automatically.
     BaseDirectory = "./bakes"
+
+[MuteListService]	
+	LocalServiceModule = "OpenSim.Services.MuteListService.dll:MuteListService"
