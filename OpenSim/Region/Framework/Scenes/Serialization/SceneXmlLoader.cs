@@ -49,14 +49,19 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         public static void LoadPrimsFromXml(Scene scene, string fileName, bool newIDS, Vector3 loadOffset)
         {
             XmlDocument doc = new XmlDocument();
+            doc.XmlResolver=null;
             XmlNode rootNode;
 
             if (fileName.StartsWith("http:") || File.Exists(fileName))
             {
-                XmlTextReader reader = new XmlTextReader(fileName);
-                reader.WhitespaceHandling = WhitespaceHandling.None;
-                doc.Load(reader);
-                reader.Close();
+                using(XmlTextReader reader = new XmlTextReader(fileName))
+                {
+                    reader.WhitespaceHandling = WhitespaceHandling.None;
+                    reader.DtdProcessing = DtdProcessing.Prohibit;
+                    reader.XmlResolver = null;
+
+                    doc.Load(reader);
+                }
                 rootNode = doc.FirstChild;
                 foreach (XmlNode aPrimNode in rootNode.ChildNodes)
                 {

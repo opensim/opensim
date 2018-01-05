@@ -178,6 +178,8 @@ namespace OpenSim.Framework.Serialization.External
 
             using (XmlTextReader reader = new XmlTextReader(new StringReader(serializedLandData)))
             {
+                reader.DtdProcessing = DtdProcessing.Prohibit;
+                reader.XmlResolver = null;
                 reader.ReadStartElement("LandData");
 
                 ExternalRepresentationUtils.ExecuteReadProcessors<LandData>(landData, m_ldProcessors, reader);

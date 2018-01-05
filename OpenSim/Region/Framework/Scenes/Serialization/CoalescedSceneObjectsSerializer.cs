@@ -133,6 +133,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 {
                     using (XmlTextReader reader = new XmlTextReader(sr))
                     {
+                        reader.DtdProcessing = DtdProcessing.Prohibit;
+                        reader.XmlResolver = null;
+
                         reader.MoveToContent(); // skip possible xml declaration
 
                         if (reader.Name != "CoalescedObject")
