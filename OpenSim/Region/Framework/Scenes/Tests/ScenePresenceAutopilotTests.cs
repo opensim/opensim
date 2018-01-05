@@ -97,7 +97,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(sp.AbsolutePosition.Z, Is.EqualTo(startPos.Z));
             Assert.That(sp.AbsolutePosition.Z, Is.LessThan(targetPos.X));
 
-            m_scene.Update(10);
+            m_scene.Update(50);
 
             double distanceToTarget = Util.GetDistanceTo(sp.AbsolutePosition, targetPos);
             Assert.That(distanceToTarget, Is.LessThan(1), "Avatar not within 1 unit of target position on first move");
@@ -121,7 +121,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(sp.AbsolutePosition.Y, Is.EqualTo(startPos.Y));
             Assert.That(sp.AbsolutePosition.Z, Is.EqualTo(startPos.Z));
 
-            m_scene.Update(10);
+            m_scene.Update(50);
 
             distanceToTarget = Util.GetDistanceTo(sp.AbsolutePosition, targetPos);
             Assert.That(distanceToTarget, Is.LessThan(1), "Avatar not within 1 unit of target position on second move");
