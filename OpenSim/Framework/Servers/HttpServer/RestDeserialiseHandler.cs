@@ -54,6 +54,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             TRequest deserial;
             using (XmlTextReader xmlReader = new XmlTextReader(request))
             {
+                xmlReader.DtdProcessing = DtdProcessing.Prohibit;
+                xmlReader.XmlResolver = null;
+
                 XmlSerializer deserializer = new XmlSerializer(typeof (TRequest));
                 deserial = (TRequest) deserializer.Deserialize(xmlReader);
             }

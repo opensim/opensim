@@ -63,7 +63,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             String fixedData = ExternalRepresentationUtils.SanitizeXml(xmlData);
             using (XmlTextReader wrappedReader = new XmlTextReader(fixedData, XmlNodeType.Element, null))
             {
-                using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment }))
+                using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment, DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null }))
                 {
                     try
                     {
@@ -255,6 +255,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             try
             {
                 XmlDocument doc = new XmlDocument();
+                doc.XmlResolver=null;
                 doc.LoadXml(xmlData);
 
                 XmlNodeList parts = doc.GetElementsByTagName("SceneObjectPart");
@@ -266,18 +267,29 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     return null;
                 }
 
-                StringReader sr = new StringReader(parts[0].OuterXml);
-                XmlTextReader reader = new XmlTextReader(sr);
-                SceneObjectGroup sceneObject = new SceneObjectGroup(SceneObjectPart.FromXml(reader));
-                reader.Close();
-                sr.Close();
+                SceneObjectGroup sceneObject;
+                using(StringReader sr = new StringReader(parts[0].OuterXml))
+                {
+                    using(XmlTextReader reader = new XmlTextReader(sr))
+                    {
+                        reader.DtdProcessing = DtdProcessing.Prohibit;
+                        reader.XmlResolver = null;
+
+                        sceneObject = new SceneObjectGroup(SceneObjectPart.FromXml(reader));
+                    }
+                }
 
                 // Then deal with the rest
+                SceneObjectPart part;
                 for (int i = 1; i < parts.Count; i++)
                 {
-                    sr = new StringReader(parts[i].OuterXml);
-                    reader = new XmlTextReader(sr);
-                    SceneObjectPart part = SceneObjectPart.FromXml(reader);
+                    using(StringReader sr = new StringReader(parts[i].OuterXml))
+                    {
+                        using(XmlTextReader reader = new XmlTextReader(sr))
+                        {
+                            part = SceneObjectPart.FromXml(reader);
+                        }
+                    }
 
                     int originalLinkNum = part.LinkNum;
 
@@ -288,8 +300,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     if (originalLinkNum != 0)
                         part.LinkNum = originalLinkNum;
 
-                    reader.Close();
-                    sr.Close();
                 }
 
                 XmlNodeList keymotion = doc.GetElementsByTagName("KeyframeMotion");

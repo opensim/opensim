@@ -156,6 +156,7 @@ namespace OpenSim.Framework.Serialization.External
                 return xml;
 
             XmlDocument doc = new XmlDocument();
+            doc.XmlResolver=null;
             doc.LoadXml(xml);
             XmlNodeList sops = doc.GetElementsByTagName("SceneObjectPart");
 
@@ -220,7 +221,7 @@ namespace OpenSim.Framework.Serialization.External
             using (StringWriter sw = new StringWriter())
             using (XmlTextWriter writer = new XmlTextWriter(sw))
             using (XmlTextReader wrappedReader = new XmlTextReader(xmlData, XmlNodeType.Element, null))
-            using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment }))
+            using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment, DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null }))
             {
                 TransformXml(reader, writer, sceneName, homeURL, userService, scopeID);
 

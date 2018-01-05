@@ -187,16 +187,18 @@ namespace OpenSim.Framework
             if (text == String.Empty)
                 return null;
 
-            UTF8Encoding enc = new UTF8Encoding();
-            MemoryStream ms = new MemoryStream(enc.GetBytes(text));
-            XmlTextReader xreader = new XmlTextReader(ms);
-
-            PhysicsInertiaData v = new PhysicsInertiaData();
             bool error;
+            PhysicsInertiaData v;
+            UTF8Encoding enc = new UTF8Encoding();
+            using(MemoryStream ms = new MemoryStream(enc.GetBytes(text)))
+                using(XmlTextReader xreader = new XmlTextReader(ms))
+                {
+                    xreader.DtdProcessing = DtdProcessing.Prohibit;
+                    xreader.XmlResolver = null;
 
-            v.FromXml2(xreader, out error);
-
-            xreader.Close();
+                    v = new PhysicsInertiaData();
+                    v.FromXml2(xreader, out error);
+                }
 
             if (error)
                 return null;

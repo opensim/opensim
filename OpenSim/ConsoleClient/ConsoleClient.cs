@@ -110,6 +110,7 @@ namespace OpenSim.ConsoleClient
         public static void LoginReply(string requestUrl, string requestData, string replyData)
         {
             XmlDocument doc = new XmlDocument();
+            doc.XmlResolver=null;
 
             doc.LoadXml(replyData);
 
@@ -169,6 +170,7 @@ namespace OpenSim.ConsoleClient
         public static void ReadResponses(string requestUrl, string requestData, string replyData)
         {
             XmlDocument doc = new XmlDocument();
+            doc.XmlResolver=null;
 
             doc.LoadXml(replyData);
 

@@ -244,3 +244,6 @@
 
     ;; Capability assigned by the grid administrator for the simulator
     ;; SimulatorCapability = "00000000-0000-0000-0000-000000000000"
+
+[MuteListService]
+    MuteListServerURI = "${Const|BaseURL}:${Const|PrivatePort}"

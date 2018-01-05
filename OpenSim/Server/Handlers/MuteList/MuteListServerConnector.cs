@@ -35,30 +35,29 @@ using OpenSim.Server.Handlers.Base;
 
 namespace OpenSim.Server.Handlers.GridUser
 {
-    public class GridUserServiceConnector : ServiceConnector
+    public class MuteListServiceConnector : ServiceConnector
     {
-        private IGridUserService m_GridUserService;
-        private string m_ConfigName = "GridUserService";
+        private IMuteListService m_MuteListService;
+        private string m_ConfigName = "MuteListService";
 
-        public GridUserServiceConnector(IConfigSource config, IHttpServer server, string configName) :
+        public MuteListServiceConnector(IConfigSource config, IHttpServer server, string configName) :
                 base(config, server, configName)
         {
             IConfig serverConfig = config.Configs[m_ConfigName];
             if (serverConfig == null)
                 throw new Exception(String.Format("No section {0} in config file", m_ConfigName));
 
-            string service = serverConfig.GetString("LocalServiceModule",
-                    String.Empty);
+            string service = serverConfig.GetString("LocalServiceModule", String.Empty);
 
             if (service == String.Empty)
-                throw new Exception("No LocalServiceModule in config file");
+                throw new Exception("LocalServiceModule not present in MuteListService config file MuteListService section");
 
             Object[] args = new Object[] { config };
-            m_GridUserService = ServerUtils.LoadPlugin<IGridUserService>(service, args);
+            m_MuteListService = ServerUtils.LoadPlugin<IMuteListService>(service, args);
 
             IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName);
 
-            server.AddStreamHandler(new GridUserServerPostHandler(m_GridUserService, auth));
+            server.AddStreamHandler(new MuteListServerPostHandler(m_MuteListService, auth));
         }
     }
 }

@@ -671,6 +671,7 @@ namespace OpenSim.Framework
         public static string GetFormattedXml(string rawXml)
         {
             XmlDocument xd = new XmlDocument();
+            xd.XmlResolver=null;
             xd.LoadXml(rawXml);
 
             StringBuilder sb = new StringBuilder();

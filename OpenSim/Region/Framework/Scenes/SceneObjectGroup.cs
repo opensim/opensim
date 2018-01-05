@@ -1994,6 +1994,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SaveScriptedState(XmlTextWriter writer, bool oldIDs)
         {
             XmlDocument doc = new XmlDocument();
+            doc.XmlResolver=null;
             Dictionary<UUID,string> states = new Dictionary<UUID,string>();
 
             SceneObjectPart[] parts = m_parts.GetArray();
@@ -2782,7 +2783,7 @@ namespace OpenSim.Region.Framework.Scenes
             return RootPart.Torque;
         }
 
-         // This is used by both Double-Click Auto-Pilot and llMoveToTarget() in an attached object
+         // This is used by llMoveToTarget() in an attached object
         public void MoveToTarget(Vector3 target, float tau)
         {
             if (IsAttachment)
@@ -2790,7 +2791,7 @@ namespace OpenSim.Region.Framework.Scenes
                 ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
 
                 if (avatar != null)
-                    avatar.MoveToTarget(target, false, false);
+                    avatar.MoveToTarget(target, false, false, tau);
             }
             else
             {
