@@ -14,7 +14,7 @@
         <DebugInformation>true</DebugInformation>
         <IncrementalBuild>true</IncrementalBuild>
         <NoStdLib>false</NoStdLib>
-		<Prefer32Bit>false</Prefer32Bit>
+        <Prefer32Bit>false</Prefer32Bit>
       </Options>
     </Configuration>
     <Configuration name="Release">
@@ -52,7 +52,7 @@
           <Reference name="System"/>
           <Reference name="System.Xml"/>
           <Files>
-            <Match pattern="*.cs" recurse="true"/>
+            <Match pattern="*.cs" recurse="true">
           </Files>
         </Project>
 -->
@@ -75,7 +75,9 @@
       <Reference name="System.Data"/>
       <Reference name="System.Web"/>
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -115,8 +117,12 @@
       <Reference name="SmartThreadPool"/>
       <Files>
         <Match pattern="*.cs" recurse="false"/>
-        <Match path="Client" pattern="*.cs" recurse="true"/>
-        <Match path="ServiceAuth" pattern="*.cs" recurse="true"/>
+        <Match path="Client" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="ServiceAuth" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -145,7 +151,10 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+
       </Files>
     </Project>
 
@@ -172,7 +181,9 @@
       <Reference name="OpenSim.Framework"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -206,7 +217,6 @@
         <Match pattern="*.cs" recurse="true">
           <Exclude name="obj" pattern="obj"/>
           <Exclude pattern="Tests"/>
-
           <!-- on temporary suspension -->
           <Exclude pattern="OSHttpHandler\.cs"/>
           <Exclude pattern="OSHttpHttpHandler\.cs"/>
@@ -241,7 +251,9 @@
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -327,7 +339,9 @@
       <Reference name="Nini" path="../../../../bin/"/>
       <Reference name="log4net" path="../../../../bin/"/>
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -360,8 +374,7 @@
       <Reference name="Nini" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="false">
-        </Match>
+        <Match pattern="*.cs" recurse="false"/>
       </Files>
     </Project>
 
@@ -393,7 +406,8 @@
 
       <Files>
         <Match pattern="*.cs" recurse="false">
-          <Exclude name="Tests" pattern="Tests"/>
+         <Exclude name="obj" pattern="obj"/>
+         <Exclude name="Tests" pattern="Tests"/>
         </Match>
         <Match buildAction="EmbeddedResource" path="Resources" pattern="*.addin.xml" recurse="true"/>
       </Files>
@@ -508,7 +522,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -535,7 +551,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -566,7 +584,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -597,7 +617,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -638,7 +660,9 @@
       <Reference name="XMLRPC" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -672,7 +696,9 @@
       <Reference name="XMLRPC" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -704,7 +730,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -738,7 +766,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -769,7 +799,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -801,7 +833,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -834,7 +868,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -868,7 +904,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -897,7 +935,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -928,7 +968,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -959,7 +1001,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -1028,7 +1072,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -1067,7 +1113,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -1097,7 +1145,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -1125,9 +1175,12 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
+
     <Project frameworkVersion="v4_5" name="OpenSim.Services.UserProfilesService" path="OpenSim/Services/UserProfilesService" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -1159,7 +1212,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -1191,7 +1246,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -1309,7 +1366,8 @@
 
       <Files>
         <Match pattern="*.cs" recurse="false">
-          <Exclude pattern="Tests"/>
+         <Exclude name="obj" pattern="obj"/>
+         <Exclude pattern="Tests"/>
         </Match>
       </Files>
     </Project>
@@ -1342,7 +1400,8 @@
 
       <Files>
         <Match pattern="*.cs" recurse="false">
-          <Exclude pattern="Tests"/>
+         <Exclude name="obj" pattern="obj"/>
+         <Exclude pattern="Tests"/>
         </Match>
       </Files>
     </Project>
@@ -1391,8 +1450,6 @@
         </Match>
       </Files>
     </Project>
-
-
 
     <Project frameworkVersion="v4_5" name="OpenSim.Region.ClientStack.LindenCaps" path="OpenSim/Region/ClientStack/Linden/Caps" type="Library">
       <Configuration name="Debug">
@@ -1475,7 +1532,8 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
-          <Exclude name="Tests" pattern="Tests"/>
+         <Exclude name="obj" pattern="obj"/>
+         <Exclude name="Tests" pattern="Tests"/>
         </Match>
         <Match buildAction="EmbeddedResource" path="Resources" pattern="*.sql"/>
         <Match buildAction="EmbeddedResource" path="Resources" pattern="*.migrations"/>
@@ -1513,7 +1571,9 @@
       <Reference name="Npgsql" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
         <Match buildAction="EmbeddedResource" path="Resources" pattern="*.migrations"/>
         <Match buildAction="EmbeddedResource" path="Resources" pattern="*.addin.xml" recurse="true"/>
       </Files>
@@ -1550,7 +1610,8 @@
 
       <Files>
         <Match pattern="*.cs" recurse="true">
-          <Exclude name="Tests" pattern="Tests"/>
+         <Exclude name="obj" pattern="obj"/>
+         <Exclude name="Tests" pattern="Tests"/>
         </Match>
         <Match buildAction="EmbeddedResource" path="Resources" pattern="*.sql"/>
         <Match buildAction="EmbeddedResource" path="Resources" pattern="*.migrations"/>
@@ -1716,7 +1777,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -1776,7 +1839,9 @@
       <Reference name="log4net" path="../../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -1802,7 +1867,9 @@
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="Mono.Addins" path="../../../../bin/"/>
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -1827,7 +1894,9 @@
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="Mono.Addins" path="../../../../bin/"/>
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -1926,7 +1995,9 @@
       <Reference name="log4net" path="../../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -2009,7 +2080,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -2041,7 +2114,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
         <Match buildAction="EmbeddedResource" path="Resources" pattern="*.addin.xml" recurse="true"/>
       </Files>
     </Project>
@@ -2070,7 +2145,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
         <Match buildAction="EmbeddedResource" path="Resources" pattern="*.addin.xml" recurse="true"/>
       </Files>
     </Project>
@@ -2108,7 +2185,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
         <Match buildAction="EmbeddedResource" path="Resources" pattern="*.addin.xml" recurse="true"/>
       </Files>
     </Project>
@@ -2179,7 +2258,9 @@
       <Reference name="log4net" path="../../../../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="false"/>
+        <Match pattern="*.cs" recurse="false">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -2220,7 +2301,9 @@
       <Reference name="log4net" path="../../../../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -2324,7 +2407,9 @@
       <Reference name="log4net" path="../../../../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -2501,7 +2586,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -2528,7 +2615,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -2552,7 +2641,9 @@
       <Reference name="log4net" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -2580,7 +2671,9 @@
       <Reference name="log4net" path="../../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -2630,7 +2723,9 @@
       <Reference name="OpenSim.Services.Interfaces"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -2731,7 +2826,9 @@
       <Reference name="nunit.framework" path="../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -2781,8 +2878,12 @@
       -->
       <Files>
         <!-- SADLY the way this works means you need to keep adding these paths -->
-        <Match path="GetTexture/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="FetchInventory/Tests" pattern="*.cs" recurse="true"/>
+        <Match path="GetTexture/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="FetchInventory/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -2823,7 +2924,9 @@
       <Reference name="MySql.Data" path="../../../bin/"/>
       <Reference name="Mono.Data.Sqlite" path="../../../bin/"/>
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
         <Match buildAction="EmbeddedResource" path="Resources" pattern="*.ini"/>
       </Files>
     </Project>
@@ -2977,26 +3080,64 @@
       -->
       <Files>
         <!-- SADLY the way this works means you need to keep adding these paths -->
-        <Match path="Asset/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="Avatar/Attachments/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="Avatar/AvatarFactory/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="Avatar/Chat/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="Avatar/Friends/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="Avatar/Inventory/Archiver/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="Avatar/Inventory/Transfer/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="Framework/InventoryAccess/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="Framework/UserManagement/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="Scripting/HttpRequest/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="Scripting/VectorRender/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="World/Archiver/Tests" pattern="*.cs" recurse="true"/>
+        <Match path="Asset/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="Avatar/Attachments/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="Avatar/AvatarFactory/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="Avatar/Chat/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="Avatar/Friends/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="Avatar/Inventory/Archiver/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="Avatar/Inventory/Transfer/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="Framework/InventoryAccess/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="Framework/UserManagement/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="Scripting/HttpRequest/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="Scripting/VectorRender/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="World/Archiver/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
         <Match buildAction="EmbeddedResource" path="World/Archiver/Tests/Resources" pattern="*"/>
-        <Match path="World/Land/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="World/Media/Moap/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="World/Serialiser/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="World/Terrain/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="ServiceConnectorsOut/Asset/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="ServiceConnectorsOut/Grid/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="ServiceConnectorsOut/Presence/Tests" pattern="*.cs" recurse="true"/>
+        <Match path="World/Land/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="World/Media/Moap/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="World/Serialiser/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="World/Terrain/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="ServiceConnectorsOut/Asset/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="ServiceConnectorsOut/Grid/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="ServiceConnectorsOut/Presence/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -3185,10 +3326,18 @@
       -->
       <Files>
         <!-- SADLY the way this works means you need to keep adding these paths -->
-        <Match path="Shared/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="Shared/CodeTools/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="Shared/Instance/Tests" pattern="*.cs" recurse="true"/>
-        <Match path="XEngine/Tests" pattern="*.cs" recurse="true"/>
+        <Match path="Shared/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="Shared/CodeTools/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="Shared/Instance/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
+        <Match path="XEngine/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -3223,7 +3372,9 @@
       <Reference name="log4net" path="../../../../../bin/"/>
 
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
@@ -3303,7 +3454,9 @@
       -->
       <Files>
         <!-- SADLY the way this works means you need to keep adding these paths -->
-        <Match path="Asset/Tests" pattern="*.cs" recurse="true"/>
+        <Match path="Asset/Tests" pattern="*.cs" recurse="true">
+         <Exclude name="obj" pattern="obj"/>
+        </Match>
       </Files>
     </Project>
 
