@@ -1148,7 +1148,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                     using (Stream s = rsp.GetResponseStream())
                     using (XmlTextReader rdr = new XmlTextReader(s))
                     {
-                            rdr.DtdProcessing = DtdProcessing.Prohibit;
+                            rdr.ProhibitDtd = true;
                             rdr.XmlResolver = null;
                             doc.Load(rdr);
                     }

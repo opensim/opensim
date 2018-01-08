@@ -2389,7 +2389,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 using (XmlTextReader wrappedReader = new XmlTextReader(xmlData, XmlNodeType.Element, null))
                 {
-                    using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment, DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null }))
+                    using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment, ProhibitDtd = true, XmlResolver = null }))
                     {
                         reader.Read();
                         bool isSingleObject = reader.Name != "CoalescedObject";

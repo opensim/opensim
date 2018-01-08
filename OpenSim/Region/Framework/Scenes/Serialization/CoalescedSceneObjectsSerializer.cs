@@ -133,7 +133,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 {
                     using (XmlTextReader reader = new XmlTextReader(sr))
                     {
-                        reader.DtdProcessing = DtdProcessing.Prohibit;
+                        reader.ProhibitDtd = true;
                         reader.XmlResolver = null;
 
                         reader.MoveToContent(); // skip possible xml declaration
