@@ -58,7 +58,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 {
                     reader.WhitespaceHandling = WhitespaceHandling.None;
                     reader.ProhibitDtd = true;
-                    reader.XmlResolver = null;
 
                     doc.Load(reader);
                 }
