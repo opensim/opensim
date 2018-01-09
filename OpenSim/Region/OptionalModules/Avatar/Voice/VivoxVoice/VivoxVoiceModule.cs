@@ -1149,7 +1149,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                     using (XmlTextReader rdr = new XmlTextReader(s))
                     {
                             rdr.ProhibitDtd = true;
-                            rdr.XmlResolver = null;
                             doc.Load(rdr);
                     }
                 }

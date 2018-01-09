@@ -203,7 +203,6 @@ namespace OpenSim.Framework.Serialization.External
             using (XmlTextReader reader = new XmlTextReader(new StringReader(serialization)))
             {
                 reader.ProhibitDtd = true;
-                reader.XmlResolver = null;
 
                 reader.ReadStartElement("InventoryItem");
 

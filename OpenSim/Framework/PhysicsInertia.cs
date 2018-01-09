@@ -194,7 +194,6 @@ namespace OpenSim.Framework
                 using(XmlTextReader xreader = new XmlTextReader(ms))
                 {
                     xreader.ProhibitDtd = true;
-                    xreader.XmlResolver = null;
 
                     v = new PhysicsInertiaData();
                     v.FromXml2(xreader, out error);

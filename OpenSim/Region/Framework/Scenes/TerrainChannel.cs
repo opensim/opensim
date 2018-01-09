@@ -201,7 +201,7 @@ namespace OpenSim.Region.Framework.Scenes
                 using(XmlTextReader reader = new XmlTextReader(sr))
                 {
                     reader.ProhibitDtd = true;
-                    reader.XmlResolver = null;
+
                     ReadXml(reader);
                 }
             }

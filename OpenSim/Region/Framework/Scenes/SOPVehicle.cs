@@ -594,7 +594,6 @@ namespace OpenSim.Region.Framework.Scenes
             MemoryStream ms = new MemoryStream(enc.GetBytes(text));
             XmlTextReader xreader = new XmlTextReader(ms);
             xreader.ProhibitDtd = true;
-            xreader.XmlResolver = null;
 
             SOPVehicle v = new SOPVehicle();
             bool error;

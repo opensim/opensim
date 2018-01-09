@@ -84,7 +84,6 @@ namespace OpenSim.Framework.Capabilities
             using (XmlTextReader reader = new XmlTextReader(st))
             {
                 reader.ProhibitDtd = true;
-                reader.XmlResolver = null;
 
                 reader.Read();
                 SkipWS(reader);

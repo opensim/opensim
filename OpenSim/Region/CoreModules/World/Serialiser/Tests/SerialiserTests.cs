@@ -721,7 +721,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
 
             XmlTextReader xtr = new XmlTextReader(new StringReader(xml));
             xtr.ProhibitDtd = true;
-            xtr.XmlResolver = null;
+
             xtr.ReadStartElement("SceneObjectGroup");
             xtr.ReadStartElement("RootPart");
             xtr.ReadStartElement("SceneObjectPart");
@@ -834,7 +834,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
 
             XmlTextReader xtr = new XmlTextReader(new StringReader(xml2));
             xtr.ProhibitDtd = true;
-            xtr.XmlResolver = null;
+
             xtr.ReadStartElement("SceneObjectGroup");
             xtr.ReadStartElement("SceneObjectPart");
 
