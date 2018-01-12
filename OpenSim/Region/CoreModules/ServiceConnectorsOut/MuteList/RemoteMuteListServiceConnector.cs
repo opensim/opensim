@@ -69,7 +69,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MuteList
             if (moduleConfig == null)
                 return;
 
-            if (moduleConfig.GetString("MuteListModule", "None") != "MuteListModuleTst")
+            if (moduleConfig.GetString("MuteListModule", "None") != "MuteListModule")
                 return;
             
             moduleConfig = source.Configs["Modules"];
