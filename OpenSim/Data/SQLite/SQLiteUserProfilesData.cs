@@ -926,7 +926,7 @@ namespace OpenSim.Data.SQLite
             {
                 using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
                 {
-                    cmd.CommandText = query;
+                    cmd.CommandText = string.Format(query, "\"classifieds\"");
                     cmd.Parameters.AddWithValue(":Id", avatarId.ToString());
 
                     using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
@@ -940,7 +940,7 @@ namespace OpenSim.Data.SQLite
 
                 using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
                 {
-                    cmd.CommandText = query;
+                    cmd.CommandText = string.Format(query, "\"userpicks\"");
                     cmd.Parameters.AddWithValue(":Id", avatarId.ToString());
 
                     using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))

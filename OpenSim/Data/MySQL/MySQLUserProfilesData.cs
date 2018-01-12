@@ -836,7 +836,7 @@ namespace OpenSim.Data.MySQL
 
                     const string queryB = "SELECT `profileImage`, `profileFirstImage` FROM `userprofile` WHERE `useruuid` = ?Id";
 
-                    using (MySqlCommand cmd = new MySqlCommand(string.Format (queryB,"`userpicks`"), dbcon))
+                    using (MySqlCommand cmd = new MySqlCommand(queryB, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?Id", avatarId.ToString());
 

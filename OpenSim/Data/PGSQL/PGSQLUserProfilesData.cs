@@ -845,7 +845,7 @@ namespace OpenSim.Data.PGSQL
 
                     query = "SELECT \"profileImage\", \"profileFirstImage\" FROM \"userprofile\" WHERE \"useruuid\" = :Id";
 
-                    using (NpgsqlCommand cmd = new NpgsqlCommand(string.Format(query, "\"userpicks\""), dbcon))
+                    using (NpgsqlCommand cmd = new NpgsqlCommand(query, dbcon))
                     {
                         cmd.Parameters.Add(m_database.CreateParameter("Id", avatarId));
 
