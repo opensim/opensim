@@ -16965,7 +16965,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     default:
                         if (c < ' ')
                         {
-                            t = "000" + String.Format("X", c);
+                            t = "000" + String.Format("{0:X}", c);
                             sb.Append("\\u" + t.Substring(t.Length - 4));
                         }
                         else
