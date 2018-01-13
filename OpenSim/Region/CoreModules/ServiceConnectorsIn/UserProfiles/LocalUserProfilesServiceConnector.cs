@@ -163,7 +163,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Profile
 
         #region ISharedRegionModule implementation
 
-        void ISharedRegionModule.PostInitialise()
+        public void PostInitialise()
         {
             if(!Enabled)
                 return;
@@ -173,7 +173,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Profile
 
         #region IRegionModuleBase implementation
 
-        void IRegionModuleBase.Initialise(IConfigSource source)
+        public void Initialise(IConfigSource source)
         {
             IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
@@ -187,12 +187,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Profile
             }
         }
 
-        void IRegionModuleBase.Close()
+        public void Close()
         {
             return;
         }
 
-        void IRegionModuleBase.AddRegion(Scene scene)
+        public void AddRegion(Scene scene)
         {
             if (!Enabled)
                 return;
@@ -206,7 +206,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Profile
             }
         }
 
-        void IRegionModuleBase.RemoveRegion(Scene scene)
+        public void RemoveRegion(Scene scene)
         {
             if (!Enabled)
                 return;
@@ -218,7 +218,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Profile
             }
         }
 
-        void IRegionModuleBase.RegionLoaded(Scene scene)
+        public void RegionLoaded(Scene scene)
         {
             if (!Enabled)
                 return;

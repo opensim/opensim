@@ -127,7 +127,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         /// <summary>
         /// Identifies the module to the system.
         /// </summary>
-        string IRegionModuleBase.Name
+        public string  Name
         {
             get { return "AutoBackupModule"; }
         }
@@ -135,7 +135,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         /// <summary>
         /// We don't implement an interface, this is a single-use module.
         /// </summary>
-        Type IRegionModuleBase.ReplaceableInterface
+        public Type ReplaceableInterface
         {
             get { return null; }
         }
@@ -144,7 +144,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         /// Called once in the lifetime of the module at startup.
         /// </summary>
         /// <param name="source">The input config source for OpenSim.ini.</param>
-        void IRegionModuleBase.Initialise(IConfigSource source)
+        public void Initialise(IConfigSource source)
         {
             // Determine if we have been enabled at all in OpenSim.ini -- this is part and parcel of being an optional module
             m_configSource = source;
@@ -184,7 +184,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         /// <summary>
         /// Called once at de-init (sim shutting down).
         /// </summary>
-        void IRegionModuleBase.Close()
+        public void Close()
         {
             if (!m_enabled)
                 return;
@@ -197,7 +197,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         /// Currently a no-op for AutoBackup because we have to wait for region to be fully loaded.
         /// </summary>
         /// <param name="scene"></param>
-        void IRegionModuleBase.AddRegion (Scene scene)
+        public void AddRegion (Scene scene)
         {
             if (!m_enabled)
                 return;
@@ -210,7 +210,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         /// Here we just clean up some resources and stop the OAR backup (if any) for the given scene.
         /// </summary>
         /// <param name="scene">The scene (region) to stop performing AutoBackup on.</param>
-        void IRegionModuleBase.RemoveRegion(Scene scene)
+        public void RemoveRegion(Scene scene)
         {
             if (m_enabled)
                 return;
@@ -228,7 +228,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         /// We read lots of Nini config, maybe set a timer, add members to state tracking Dictionaries, etc.
         /// </summary>
         /// <param name="scene">The scene to (possibly) perform AutoBackup on.</param>
-        void IRegionModuleBase.RegionLoaded(Scene scene)
+        public void RegionLoaded(Scene scene)
         {
             if (!m_enabled)
                 return;
@@ -258,7 +258,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         /// <summary>
         /// Currently a no-op.
         /// </summary>
-        void ISharedRegionModule.PostInitialise()
+        public void PostInitialise()
         {
         }
 
