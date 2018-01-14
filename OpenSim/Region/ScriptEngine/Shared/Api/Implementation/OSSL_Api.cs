@@ -266,7 +266,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             if (!m_OSFunctionsEnabled)
-                OSSLError(String.Format("{0} permission denied.  All OS functions are disabled.")); // throws
+                OSSLError("permission denied.  All OS functions are disabled."); // throws
         }
 
         // Returns if the function is allowed. Throws a script exception if not allowed.
