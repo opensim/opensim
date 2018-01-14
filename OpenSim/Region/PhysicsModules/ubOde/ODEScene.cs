@@ -34,15 +34,10 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.IO;
-using System.Diagnostics;
 using log4net;
 using Nini.Config;
-using Mono.Addins;
-using OdeAPI;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenMetaverse;
 
@@ -180,7 +175,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 //        const d.ContactFlags comumContactFlags = d.ContactFlags.SoftERP | d.ContactFlags.SoftCFM |d.ContactFlags.Approx1 | d.ContactFlags.Bounce;
 
 //        const d.ContactFlags comumContactFlags = d.ContactFlags.Bounce | d.ContactFlags.Approx1 | d.ContactFlags.Slip1 | d.ContactFlags.Slip2;
-        const d.ContactFlags comumContactFlags = d.ContactFlags.Bounce | d.ContactFlags.Approx1;
+        const SafeNativeMethods.ContactFlags comumContactFlags = SafeNativeMethods.ContactFlags.Bounce | SafeNativeMethods.ContactFlags.Approx1;
         const float comumContactERP = 0.75f;
         const float comumContactCFM = 0.0001f;
         const float comumContactSLIP = 0f;
@@ -228,7 +223,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public int bodyFramesAutoDisable = 5;
 
-        private d.NearCallback nearCallback;
+        private SafeNativeMethods.NearCallback nearCallback;
 
         private Dictionary<uint,OdePrim> _prims = new Dictionary<uint,OdePrim>();
         private HashSet<OdeCharacter> _characters = new HashSet<OdeCharacter>();
@@ -251,7 +246,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private int contactsPerCollision = 80;
         internal IntPtr ContactgeomsArray = IntPtr.Zero;
         private IntPtr GlobalContactsArray = IntPtr.Zero;
-        private d.Contact SharedTmpcontact = new d.Contact();
+        private SafeNativeMethods.Contact SharedTmpcontact = new SafeNativeMethods.Contact();
 
         const int maxContactsbeforedeath = 6000;
         private volatile int m_global_contactcount = 0;
@@ -356,7 +351,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// </summary>
         private void Initialization()
         {
-            d.AllocateODEDataForThread(~0U);
+            SafeNativeMethods.AllocateODEDataForThread(~0U);
 
             SimulationLock = new Object();
 
@@ -374,15 +369,15 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 // Create the world and the first space
                 try
                 {
-                    world = d.WorldCreate();
-                    TopSpace = d.SimpleSpaceCreate(IntPtr.Zero);
-                    ActiveSpace = d.SimpleSpaceCreate(TopSpace);
-                    CharsSpace = d.SimpleSpaceCreate(TopSpace);
-                    GroundSpace = d.SimpleSpaceCreate(TopSpace);
+                    world = SafeNativeMethods.WorldCreate();
+                    TopSpace = SafeNativeMethods.SimpleSpaceCreate(IntPtr.Zero);
+                    ActiveSpace = SafeNativeMethods.SimpleSpaceCreate(TopSpace);
+                    CharsSpace = SafeNativeMethods.SimpleSpaceCreate(TopSpace);
+                    GroundSpace = SafeNativeMethods.SimpleSpaceCreate(TopSpace);
                     float sx = WorldExtents.X + 16;
                     float sy = WorldExtents.Y + 16;
-                    d.Vector3 ex =new d.Vector3(sx, sy, 0);
-                    d.Vector3 px =new d.Vector3(sx * 0.5f, sx  * 0.5f, 0);
+                    SafeNativeMethods.Vector3 ex =new SafeNativeMethods.Vector3(sx, sy, 0);
+                    SafeNativeMethods.Vector3 px =new SafeNativeMethods.Vector3(sx * 0.5f, sx  * 0.5f, 0);
                     if(sx < sy)
                         sx = sy;
                     sx = (float)Math.Log(sx) * 1.442695f + 0.5f;
@@ -391,7 +386,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         dp = 8;
                     else if(dp < 4)
                         dp = 4;
-                    StaticSpace = d.QuadTreeSpaceCreate(TopSpace, ref px, ref ex, dp);
+                    StaticSpace = SafeNativeMethods.QuadTreeSpaceCreate(TopSpace, ref px, ref ex, dp);
                 }
                 catch
                 {
@@ -400,47 +395,47 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
 
                 // demote to second level
-                d.SpaceSetSublevel(ActiveSpace, 1);
-                d.SpaceSetSublevel(CharsSpace, 1);
-                d.SpaceSetSublevel(StaticSpace, 1);
-                d.SpaceSetSublevel(GroundSpace, 1);
+                SafeNativeMethods.SpaceSetSublevel(ActiveSpace, 1);
+                SafeNativeMethods.SpaceSetSublevel(CharsSpace, 1);
+                SafeNativeMethods.SpaceSetSublevel(StaticSpace, 1);
+                SafeNativeMethods.SpaceSetSublevel(GroundSpace, 1);
 
-                d.GeomSetCategoryBits(ActiveSpace, (uint)(CollisionCategories.Space |
+                SafeNativeMethods.GeomSetCategoryBits(ActiveSpace, (uint)(CollisionCategories.Space |
                                                         CollisionCategories.Geom |
                                                         CollisionCategories.Character |
                                                         CollisionCategories.Phantom |
                                                         CollisionCategories.VolumeDtc
                                                         ));
-                d.GeomSetCollideBits(ActiveSpace, (uint)(CollisionCategories.Space |
+                SafeNativeMethods.GeomSetCollideBits(ActiveSpace, (uint)(CollisionCategories.Space |
                                                         CollisionCategories.Geom |
                                                         CollisionCategories.Character |
                                                         CollisionCategories.Phantom |
                                                         CollisionCategories.VolumeDtc
                                                         ));
-                d.GeomSetCategoryBits(CharsSpace, (uint)(CollisionCategories.Space |
+                SafeNativeMethods.GeomSetCategoryBits(CharsSpace, (uint)(CollisionCategories.Space |
                                         CollisionCategories.Geom |
                                         CollisionCategories.Character |
                                         CollisionCategories.Phantom |
                                         CollisionCategories.VolumeDtc
                                         ));
-                d.GeomSetCollideBits(CharsSpace, 0);
+                SafeNativeMethods.GeomSetCollideBits(CharsSpace, 0);
 
-                d.GeomSetCategoryBits(StaticSpace, (uint)(CollisionCategories.Space |
+                SafeNativeMethods.GeomSetCategoryBits(StaticSpace, (uint)(CollisionCategories.Space |
                                                         CollisionCategories.Geom |
                                                         //                                                        CollisionCategories.Land |
                                                         //                                                        CollisionCategories.Water |
                                                         CollisionCategories.Phantom |
                                                         CollisionCategories.VolumeDtc
                                                         ));
-                d.GeomSetCollideBits(StaticSpace, 0);
+                SafeNativeMethods.GeomSetCollideBits(StaticSpace, 0);
 
-                d.GeomSetCategoryBits(GroundSpace, (uint)(CollisionCategories.Land));
-                d.GeomSetCollideBits(GroundSpace, 0);
+                SafeNativeMethods.GeomSetCategoryBits(GroundSpace, (uint)(CollisionCategories.Land));
+                SafeNativeMethods.GeomSetCollideBits(GroundSpace, 0);
 
-                contactgroup = d.JointGroupCreate(maxContactsbeforedeath + 1);
+                contactgroup = SafeNativeMethods.JointGroupCreate(maxContactsbeforedeath + 1);
                 //contactgroup
 
-                d.WorldSetAutoDisableFlag(world, false);
+                SafeNativeMethods.WorldSetAutoDisableFlag(world, false);
             }
 
 
@@ -490,27 +485,27 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             maximumAngularVelocity = 0.49f * heartbeat *(float)Math.PI;
             maxAngVelocitySQ = maximumAngularVelocity * maximumAngularVelocity;
 
-            d.WorldSetCFM(world, comumContactCFM);
-            d.WorldSetERP(world, comumContactERP);
+            SafeNativeMethods.WorldSetCFM(world, comumContactCFM);
+            SafeNativeMethods.WorldSetERP(world, comumContactERP);
 
-            d.WorldSetGravity(world, gravityx, gravityy, gravityz);
+            SafeNativeMethods.WorldSetGravity(world, gravityx, gravityy, gravityz);
 
-            d.WorldSetLinearDamping(world, 0.001f);
-            d.WorldSetAngularDamping(world, 0.002f);
-            d.WorldSetAngularDampingThreshold(world, 0f);
-            d.WorldSetLinearDampingThreshold(world, 0f);
-            d.WorldSetMaxAngularSpeed(world, maximumAngularVelocity);
+            SafeNativeMethods.WorldSetLinearDamping(world, 0.001f);
+            SafeNativeMethods.WorldSetAngularDamping(world, 0.002f);
+            SafeNativeMethods.WorldSetAngularDampingThreshold(world, 0f);
+            SafeNativeMethods.WorldSetLinearDampingThreshold(world, 0f);
+            SafeNativeMethods.WorldSetMaxAngularSpeed(world, maximumAngularVelocity);
 
-            d.WorldSetQuickStepNumIterations(world, m_physicsiterations);
+            SafeNativeMethods.WorldSetQuickStepNumIterations(world, m_physicsiterations);
 
-            d.WorldSetContactSurfaceLayer(world, contactsurfacelayer);
-            d.WorldSetContactMaxCorrectingVel(world, 60.0f);
+            SafeNativeMethods.WorldSetContactSurfaceLayer(world, contactsurfacelayer);
+            SafeNativeMethods.WorldSetContactMaxCorrectingVel(world, 60.0f);
 
             HalfOdeStep = ODE_STEPSIZE * 0.5f;
             odetimestepMS = (int)(1000.0f * ODE_STEPSIZE + 0.5f);
 
-            ContactgeomsArray = Marshal.AllocHGlobal(contactsPerCollision * d.ContactGeom.unmanagedSizeOf);
-            GlobalContactsArray = Marshal.AllocHGlobal((maxContactsbeforedeath + 100) * d.Contact.unmanagedSizeOf);
+            ContactgeomsArray = Marshal.AllocHGlobal(contactsPerCollision * SafeNativeMethods.ContactGeom.unmanagedSizeOf);
+            GlobalContactsArray = Marshal.AllocHGlobal((maxContactsbeforedeath + 100) * SafeNativeMethods.Contact.unmanagedSizeOf);
 
             SharedTmpcontact.geom.g1 = IntPtr.Zero;
             SharedTmpcontact.geom.g2 = IntPtr.Zero;
@@ -565,7 +560,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         #region Collision Detection
 
         // sets a global contact for a joint for contactgeom , and base contact description)
-        private IntPtr CreateContacJoint(ref d.ContactGeom contactGeom,bool smooth)
+        private IntPtr CreateContacJoint(ref SafeNativeMethods.ContactGeom contactGeom,bool smooth)
         {
             if (m_global_contactcount >= maxContactsbeforedeath)
                 return IntPtr.Zero;
@@ -578,18 +573,18 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             SharedTmpcontact.geom.pos = contactGeom.pos;
             SharedTmpcontact.geom.normal = contactGeom.normal;
 
-            IntPtr contact = new IntPtr(GlobalContactsArray.ToInt64() + (Int64)(m_global_contactcount * d.Contact.unmanagedSizeOf));
+            IntPtr contact = new IntPtr(GlobalContactsArray.ToInt64() + (Int64)(m_global_contactcount * SafeNativeMethods.Contact.unmanagedSizeOf));
             Marshal.StructureToPtr(SharedTmpcontact, contact, true);
-            return d.JointCreateContactPtr(world, contactgroup, contact);
+            return SafeNativeMethods.JointCreateContactPtr(world, contactgroup, contact);
         }
 
-        private bool GetCurContactGeom(int index, ref d.ContactGeom newcontactgeom)
+        private bool GetCurContactGeom(int index, ref SafeNativeMethods.ContactGeom newcontactgeom)
         {
             if (ContactgeomsArray == IntPtr.Zero || index >= contactsPerCollision)
                 return false;
 
-            IntPtr contactptr = new IntPtr(ContactgeomsArray.ToInt64() + (Int64)(index * d.ContactGeom.unmanagedSizeOf));
-            newcontactgeom = (d.ContactGeom)Marshal.PtrToStructure(contactptr, typeof(d.ContactGeom));
+            IntPtr contactptr = new IntPtr(ContactgeomsArray.ToInt64() + (Int64)(index * SafeNativeMethods.ContactGeom.unmanagedSizeOf));
+            newcontactgeom = (SafeNativeMethods.ContactGeom)Marshal.PtrToStructure(contactptr, typeof(SafeNativeMethods.ContactGeom));
             return true;
         }
 
@@ -614,14 +609,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (g1 == IntPtr.Zero || g2 == IntPtr.Zero)
                 return;
 
-            if (d.GeomIsSpace(g1) || d.GeomIsSpace(g2))
+            if (SafeNativeMethods.GeomIsSpace(g1) || SafeNativeMethods.GeomIsSpace(g2))
             {
                 // We'll be calling near recursivly if one
                 // of them is a space to find all of the
                 // contact points in the space
                 try
                 {
-                    d.SpaceCollide2(g1, g2, IntPtr.Zero, nearCallback);
+                    SafeNativeMethods.SpaceCollide2(g1, g2, IntPtr.Zero, nearCallback);
                 }
                 catch (AccessViolationException)
                 {
@@ -636,8 +631,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             // get geom bodies to check if we already a joint contact
             // guess this shouldn't happen now
-            IntPtr b1 = d.GeomGetBody(g1);
-            IntPtr b2 = d.GeomGetBody(g2);
+            IntPtr b1 = SafeNativeMethods.GeomGetBody(g1);
+            IntPtr b2 = SafeNativeMethods.GeomGetBody(g2);
 
             // d.GeomClassID id = d.GeomGetClass(g1);
 
@@ -679,18 +674,18 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 //
                 */
 
-                if (d.GeomGetCategoryBits(g1) == (uint)CollisionCategories.VolumeDtc ||
-                    d.GeomGetCategoryBits(g2) == (uint)CollisionCategories.VolumeDtc)
+                if (SafeNativeMethods.GeomGetCategoryBits(g1) == (uint)CollisionCategories.VolumeDtc ||
+                    SafeNativeMethods.GeomGetCategoryBits(g2) == (uint)CollisionCategories.VolumeDtc)
                 {
                     int cflags;
                     unchecked
                     {
-                        cflags = (int)(1 | d.CONTACTS_UNIMPORTANT);
+                        cflags = (int)(1 | SafeNativeMethods.CONTACTS_UNIMPORTANT);
                     }
-                    count = d.CollidePtr(g1, g2, cflags, ContactgeomsArray, d.ContactGeom.unmanagedSizeOf);
+                    count = SafeNativeMethods.CollidePtr(g1, g2, cflags, ContactgeomsArray, SafeNativeMethods.ContactGeom.unmanagedSizeOf);
                 }
                 else
-                    count = d.CollidePtr(g1, g2, (contactsPerCollision & 0xffff), ContactgeomsArray, d.ContactGeom.unmanagedSizeOf);
+                    count = SafeNativeMethods.CollidePtr(g1, g2, (contactsPerCollision & 0xffff), ContactgeomsArray, SafeNativeMethods.ContactGeom.unmanagedSizeOf);
             }
             catch (SEHException)
             {
@@ -726,7 +721,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
 
             // get first contact
-            d.ContactGeom curContact = new d.ContactGeom();
+            SafeNativeMethods.ContactGeom curContact = new SafeNativeMethods.ContactGeom();
 
             if (!GetCurContactGeom(0, ref curContact))
                 return;
@@ -802,8 +797,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 //                                if (relVlenSQ > 0.01f)
 //                                    mu *= frictionMovementMult;
 
-                                if(d.GeomGetClass(g2) == d.GeomClassID.TriMeshClass &&
-                                    d.GeomGetClass(g1) == d.GeomClassID.TriMeshClass)
+                                if(SafeNativeMethods.GeomGetClass(g2) == SafeNativeMethods.GeomClassID.TriMeshClass &&
+                                    SafeNativeMethods.GeomGetClass(g1) == SafeNativeMethods.GeomClassID.TriMeshClass)
                                     smoothMesh = true;
                                 break;
 
@@ -817,7 +812,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 //                                    mu *= frictionMovementMult;
                                 p1.CollidingGround = true;
 
-                                if(d.GeomGetClass(g1) == d.GeomClassID.TriMeshClass)
+                                if(SafeNativeMethods.GeomGetClass(g1) == SafeNativeMethods.GeomClassID.TriMeshClass)
                                     smoothMesh = true;
                                 break;
 
@@ -843,7 +838,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 //                        if (Math.Abs(v2.X) > 0.1f || Math.Abs(v2.Y) > 0.1f)
 //                            mu *= frictionMovementMult;
 
-                        if(d.GeomGetClass(g2) == d.GeomClassID.TriMeshClass)
+                        if(SafeNativeMethods.GeomGetClass(g2) == SafeNativeMethods.GeomClassID.TriMeshClass)
                             smoothMesh = true;
                     }
                     else
@@ -873,7 +868,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             SharedTmpcontact.surface.mu = mu;
             SharedTmpcontact.surface.bounce = bounce;
 
-            d.ContactGeom altContact = new d.ContactGeom();
+            SafeNativeMethods.ContactGeom altContact = new SafeNativeMethods.ContactGeom();
             bool useAltcontact;
             bool noskip;
 
@@ -925,7 +920,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (Joint == IntPtr.Zero)
                         break;
 
-                    d.JointAttach(Joint, b1, b2);
+                    SafeNativeMethods.JointAttach(Joint, b1, b2);
 
                     ncontacts++;
 
@@ -1073,12 +1068,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             continue;
 
                         // do colisions with static space
-                        d.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, nearCallback);
+                        SafeNativeMethods.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, nearCallback);
 
                         // no coll with gnd
                     }
                     // chars with chars
-                    d.SpaceCollide(CharsSpace, IntPtr.Zero, nearCallback);
+                    SafeNativeMethods.SpaceCollide(CharsSpace, IntPtr.Zero, nearCallback);
 
                 }
                 catch (AccessViolationException)
@@ -1094,7 +1089,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     aprim.CollisionScore = 0;
                     aprim.IsColliding = false;
-                    if(!aprim.m_outbounds && d.BodyIsEnabled(aprim.Body))
+                    if(!aprim.m_outbounds && SafeNativeMethods.BodyIsEnabled(aprim.Body))
                         aprim.clearSleeperCollisions();
                 }
             }
@@ -1105,11 +1100,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     foreach (OdePrim aprim in _activegroups)
                     {
-                        if(!aprim.m_outbounds && d.BodyIsEnabled(aprim.Body) &&
+                        if(!aprim.m_outbounds && SafeNativeMethods.BodyIsEnabled(aprim.Body) &&
                                 aprim.collide_geom != IntPtr.Zero)
                         {
-                            d.SpaceCollide2(StaticSpace, aprim.collide_geom, IntPtr.Zero, nearCallback);
-                            d.SpaceCollide2(GroundSpace, aprim.collide_geom, IntPtr.Zero, nearCallback);
+                            SafeNativeMethods.SpaceCollide2(StaticSpace, aprim.collide_geom, IntPtr.Zero, nearCallback);
+                            SafeNativeMethods.SpaceCollide2(GroundSpace, aprim.collide_geom, IntPtr.Zero, nearCallback);
                         }
                     }
                 }
@@ -1122,7 +1117,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             // colide active amoung them
             try
             {
-                d.SpaceCollide(ActiveSpace, IntPtr.Zero, nearCallback);
+                SafeNativeMethods.SpaceCollide(ActiveSpace, IntPtr.Zero, nearCallback);
             }
             catch (Exception e)
             {
@@ -1132,7 +1127,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             // and with chars
             try
             {
-                d.SpaceCollide2(CharsSpace,ActiveSpace, IntPtr.Zero, nearCallback);
+                SafeNativeMethods.SpaceCollide2(CharsSpace,ActiveSpace, IntPtr.Zero, nearCallback);
             }
             catch (Exception e)
             {
@@ -1232,7 +1227,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             lock (OdeLock)
             {
-                d.AllocateODEDataForThread(0);
+                SafeNativeMethods.AllocateODEDataForThread(0);
                 ((OdeCharacter) actor).Destroy();
             }
         }
@@ -1403,16 +1398,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 return StaticSpace;
 
             // else remove it from its current space
-            if (currentspace != IntPtr.Zero && d.SpaceQuery(currentspace, geom))
+            if (currentspace != IntPtr.Zero && SafeNativeMethods.SpaceQuery(currentspace, geom))
             {
-                if (d.GeomIsSpace(currentspace))
+                if (SafeNativeMethods.GeomIsSpace(currentspace))
                 {
                     waitForSpaceUnlock(currentspace);
-                    d.SpaceRemove(currentspace, geom);
+                    SafeNativeMethods.SpaceRemove(currentspace, geom);
 
-                    if (d.SpaceGetSublevel(currentspace) > 2 && d.SpaceGetNumGeoms(currentspace) == 0)
+                    if (SafeNativeMethods.SpaceGetSublevel(currentspace) > 2 && SafeNativeMethods.SpaceGetNumGeoms(currentspace) == 0)
                     {
-                        d.SpaceDestroy(currentspace);
+                        SafeNativeMethods.SpaceDestroy(currentspace);
                     }
                 }
                 else
@@ -1421,19 +1416,19 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                    " Geom:" + geom);
                 }
             }
-            else // odd currentspace is null or doesn't contain the geom? lets try the geom ideia of current space
+            else
             {
-                currentspace = d.GeomGetSpace(geom);
+                currentspace = SafeNativeMethods.GeomGetSpace(geom);
                 if (currentspace != IntPtr.Zero)
                 {
-                    if (d.GeomIsSpace(currentspace))
+                    if (SafeNativeMethods.GeomIsSpace(currentspace))
                     {
                         waitForSpaceUnlock(currentspace);
-                        d.SpaceRemove(currentspace, geom);
+                        SafeNativeMethods.SpaceRemove(currentspace, geom);
 
-                        if (d.SpaceGetSublevel(currentspace) > 2 && d.SpaceGetNumGeoms(currentspace) == 0)
+                        if (SafeNativeMethods.SpaceGetSublevel(currentspace) > 2 && SafeNativeMethods.SpaceGetNumGeoms(currentspace) == 0)
                         {
-                            d.SpaceDestroy(currentspace);
+                            SafeNativeMethods.SpaceDestroy(currentspace);
                         }
                     }
                 }
@@ -1441,12 +1436,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             // put the geom in the newspace
             waitForSpaceUnlock(StaticSpace);
-            d.SpaceAdd(StaticSpace, geom);
+            if(SafeNativeMethods.SpaceQuery(StaticSpace, geom))
+                m_log.Info("[Physics]: 'MoveGeomToStaticSpace' geom already in static space:" + geom);
+            else
+                SafeNativeMethods.SpaceAdd(StaticSpace, geom);
 
             return StaticSpace;
         }
-
-
         #endregion
 
 
@@ -1485,7 +1481,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     return;
                 }
 
-                d.AllocateODEDataForThread(~0U);
+                SafeNativeMethods.AllocateODEDataForThread(~0U);
 
                 ODEchangeitem item;
 
@@ -1585,7 +1581,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 double moveTime = 0;
                 double rayTime = 0;
 */
-                d.AllocateODEDataForThread(~0U);
+                SafeNativeMethods.AllocateODEDataForThread(~0U);
 
                 if (ChangesQueue.Count > 0)
                 {
@@ -1689,7 +1685,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                         pobj.SendCollisions((int)(odetimestepMS));
                                         if(pobj.Body != IntPtr.Zero && !pobj.m_isSelected &&
                                             !pobj.m_disabled && !pobj.m_building &&
-                                            !d.BodyIsEnabled(pobj.Body))
+                                            !SafeNativeMethods.BodyIsEnabled(pobj.Body))
                                         sleepers.Add(pobj);
                                     }
                                     break;
@@ -1704,8 +1700,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
  
                         // do a ode simulation step
 //                        tmpTime =  Util.GetTimeStampMS();
-                        d.WorldQuickStep(world, ODE_STEPSIZE);
-                        d.JointGroupEmpty(contactgroup);
+                        SafeNativeMethods.WorldQuickStep(world, ODE_STEPSIZE);
+                        SafeNativeMethods.JointGroupEmpty(contactgroup);
 //                        qstepTIme += Util.GetTimeStampMS() - tmpTime;
 
                         // update managed ideia of physical data and do updates to core
@@ -1826,26 +1822,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
 
 
-                }
-*/
-/*
-                // Finished with all sim stepping. If requested, dump world state to file for debugging.
-                // TODO: This call to the export function is already inside lock (OdeLock) - but is an extra lock needed?
-                // TODO: This overwrites all dump files in-place. Should this be a growing logfile, or separate snapshots?
-                if (physics_logging && (physics_logging_interval > 0) && (framecount % physics_logging_interval == 0))
-                {
-                    string fname = "state-" + world.ToString() + ".DIF"; // give each physics world a separate filename
-                    string prefix = "world" + world.ToString(); // prefix for variable names in exported .DIF file
-
-                    if (physics_logging_append_existing_logfile)
-                    {
-                        string header = "-------------- START OF PHYSICS FRAME " + framecount.ToString() + " --------------";
-                        TextWriter fwriter = File.AppendText(fname);
-                        fwriter.WriteLine(header);
-                        fwriter.Close();
-                    }
-
-                    d.WorldExportDIF(world, fname, physics_logging_append_existing_logfile, prefix);
                 }
 */
                 fps = (float)nodeframes * ODE_STEPSIZE / reqTimeStep;
@@ -2208,35 +2184,35 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             lock (OdeLock)
             {
-                d.AllocateODEDataForThread(~0U);
+                SafeNativeMethods.AllocateODEDataForThread(~0U);
 
                 if (TerrainGeom != IntPtr.Zero)
                 {
                     actor_name_map.Remove(TerrainGeom);
-                    d.GeomDestroy(TerrainGeom);
+                    SafeNativeMethods.GeomDestroy(TerrainGeom);
 
                 }
 
                 if (TerrainHeightFieldHeightsHandler.IsAllocated)
                     TerrainHeightFieldHeightsHandler.Free();
 
-                IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
+                IntPtr HeightmapData = SafeNativeMethods.GeomHeightfieldDataCreate();
 
                 TerrainHeightFieldHeightsHandler = GCHandle.Alloc(_heightmap, GCHandleType.Pinned);
 
-                d.GeomHeightfieldDataBuildSingle(HeightmapData, TerrainHeightFieldHeightsHandler.AddrOfPinnedObject(), 0,
+                SafeNativeMethods.GeomHeightfieldDataBuildSingle(HeightmapData, TerrainHeightFieldHeightsHandler.AddrOfPinnedObject(), 0,
                                                 heightmapHeight, heightmapWidth ,
                                                  (int)heightmapHeightSamples, (int)heightmapWidthSamples, scale,
                                                 offset, thickness, wrap);
 
-                d.GeomHeightfieldDataSetBounds(HeightmapData, hfmin - 1, hfmax + 1);
+                SafeNativeMethods.GeomHeightfieldDataSetBounds(HeightmapData, hfmin - 1, hfmax + 1);
 
-                TerrainGeom = d.CreateHeightfield(GroundSpace, HeightmapData, 1);
+                TerrainGeom = SafeNativeMethods.CreateHeightfield(GroundSpace, HeightmapData, 1);
 
                 if (TerrainGeom != IntPtr.Zero)
                 {
-                    d.GeomSetCategoryBits(TerrainGeom, (uint)(CollisionCategories.Land));
-                    d.GeomSetCollideBits(TerrainGeom, 0);
+                    SafeNativeMethods.GeomSetCategoryBits(TerrainGeom, (uint)(CollisionCategories.Land));
+                    SafeNativeMethods.GeomSetCollideBits(TerrainGeom, 0);
 
                     PhysicsActor pa = new NullPhysicsActor();
                     pa.Name = "Terrain";
@@ -2245,14 +2221,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
 //                    geom_name_map[GroundGeom] = "Terrain";
 
-                    d.Quaternion q = new d.Quaternion();
+                    SafeNativeMethods.Quaternion q = new SafeNativeMethods.Quaternion();
                     q.X = 0.5f;
                     q.Y = 0.5f;
                     q.Z = 0.5f;
                     q.W = 0.5f;
 
-                    d.GeomSetQuaternion(TerrainGeom, ref q);
-                    d.GeomSetPosition(TerrainGeom, m_regionWidth * 0.5f, m_regionHeight * 0.5f, 0.0f);
+                    SafeNativeMethods.GeomSetQuaternion(TerrainGeom, ref q);
+                    SafeNativeMethods.GeomSetPosition(TerrainGeom, m_regionWidth * 0.5f, m_regionHeight * 0.5f, 0.0f);
                     TerrainHeightFieldHeight = _heightmap;
                 }
                 else
@@ -2320,7 +2296,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if (TerrainGeom != IntPtr.Zero)
                 {
                     actor_name_map.Remove(TerrainGeom);
-                    d.GeomDestroy(TerrainGeom);
+                    SafeNativeMethods.GeomDestroy(TerrainGeom);
                 }
 
                 if (TerrainHeightFieldHeightsHandler.IsAllocated)
@@ -2328,7 +2304,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 TerrainHeightFieldHeight = null;
 
-                IntPtr HeightmapData = d.GeomOSTerrainDataCreate();
+                IntPtr HeightmapData = SafeNativeMethods.GeomOSTerrainDataCreate();
 
                 const int wrap = 0;
                 float thickness = hfmin;
@@ -2337,16 +2313,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 TerrainHeightFieldHeightsHandler = GCHandle.Alloc(_heightmap, GCHandleType.Pinned);
 
-                d.GeomOSTerrainDataBuild(HeightmapData, TerrainHeightFieldHeightsHandler.AddrOfPinnedObject(), 0, 1.0f,
+                SafeNativeMethods.GeomOSTerrainDataBuild(HeightmapData, TerrainHeightFieldHeightsHandler.AddrOfPinnedObject(), 0, 1.0f,
                                                  (int)heightmapWidthSamples, (int)heightmapHeightSamples,
                                                  thickness, wrap);
 
 //                d.GeomOSTerrainDataSetBounds(HeightmapData, hfmin - 1, hfmax + 1);
-                TerrainGeom = d.CreateOSTerrain(GroundSpace, HeightmapData, 1);
+                TerrainGeom = SafeNativeMethods.CreateOSTerrain(GroundSpace, HeightmapData, 1);
                 if (TerrainGeom != IntPtr.Zero)
                 {
-                    d.GeomSetCategoryBits(TerrainGeom, (uint)(CollisionCategories.Land));
-                    d.GeomSetCollideBits(TerrainGeom, 0);
+                    SafeNativeMethods.GeomSetCategoryBits(TerrainGeom, (uint)(CollisionCategories.Land));
+                    SafeNativeMethods.GeomSetCollideBits(TerrainGeom, 0);
 
                     PhysicsActor pa = new NullPhysicsActor();
                     pa.Name = "Terrain";
@@ -2355,7 +2331,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
 //                    geom_name_map[GroundGeom] = "Terrain";
 
-                    d.GeomSetPosition(TerrainGeom, m_regionWidth * 0.5f, m_regionHeight * 0.5f, 0.0f);
+                    SafeNativeMethods.GeomSetPosition(TerrainGeom, m_regionWidth * 0.5f, m_regionHeight * 0.5f, 0.0f);
                     TerrainHeightFieldHeight = _heightmap;
                  }
                  else
@@ -2385,7 +2361,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if (world == IntPtr.Zero)
                     return;
 
-                d.AllocateODEDataForThread(~0U);
+                SafeNativeMethods.AllocateODEDataForThread(~0U);
 
                 if (m_meshWorker != null)
                     m_meshWorker.Stop();
@@ -2419,7 +2395,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     ch.DoAChange(changes.Remove, null);
 
                 if (TerrainGeom != IntPtr.Zero)
-                        d.GeomDestroy(TerrainGeom);
+                        SafeNativeMethods.GeomDestroy(TerrainGeom);
                 TerrainGeom = IntPtr.Zero;
 
                 if (TerrainHeightFieldHeightsHandler.IsAllocated)
@@ -2438,7 +2414,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     GlobalContactsArray = IntPtr.Zero;
                 }
 
-                d.WorldDestroy(world);
+                SafeNativeMethods.WorldDestroy(world);
                 world = IntPtr.Zero;
                 //d.CloseODE();
             }

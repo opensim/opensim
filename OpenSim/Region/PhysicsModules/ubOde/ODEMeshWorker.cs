@@ -4,14 +4,8 @@
 
 using System;
 using System.Threading;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
 using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
-using OdeAPI;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;

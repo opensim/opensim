@@ -41,13 +41,7 @@
 // Extensive change Ubit 2012
 
 using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using log4net;
 using OpenMetaverse;
-using OdeAPI;
-using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
 
 namespace OpenSim.Region.PhysicsModule.ubOde
@@ -342,9 +336,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     m_amEfect = 1.0f ; // turn it on
                     m_amDecay = 1.0f - 1.0f / m_angularMotorDecayTimescale;
 
-                    if (rootPrim.Body != IntPtr.Zero && !d.BodyIsEnabled(rootPrim.Body)
+                    if (rootPrim.Body != IntPtr.Zero && !SafeNativeMethods.BodyIsEnabled(rootPrim.Body)
                             && !rootPrim.m_isSelected && !rootPrim.m_disabled)
-                        d.BodyEnable(rootPrim.Body);
+                        SafeNativeMethods.BodyEnable(rootPrim.Body);
 
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
@@ -361,9 +355,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     m_lmEfect = 1.0f; // turn it on
 
                     m_ffactor = 0.0f;
-                    if (rootPrim.Body != IntPtr.Zero && !d.BodyIsEnabled(rootPrim.Body)
+                    if (rootPrim.Body != IntPtr.Zero && !SafeNativeMethods.BodyIsEnabled(rootPrim.Body)
                             && !rootPrim.m_isSelected && !rootPrim.m_disabled)
-                        d.BodyEnable(rootPrim.Body);
+                        SafeNativeMethods.BodyEnable(rootPrim.Body);
                     break;
                 case Vehicle.LINEAR_MOTOR_OFFSET:
                     m_linearMotorOffset = new Vector3(pValue, pValue, pValue);
@@ -399,9 +393,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     m_amEfect = 1.0f; // turn it on
                     m_amDecay = 1.0f - 1.0f / m_angularMotorDecayTimescale;
 
-                    if (rootPrim.Body != IntPtr.Zero && !d.BodyIsEnabled(rootPrim.Body)
+                    if (rootPrim.Body != IntPtr.Zero && !SafeNativeMethods.BodyIsEnabled(rootPrim.Body)
                             && !rootPrim.m_isSelected && !rootPrim.m_disabled)
-                        d.BodyEnable(rootPrim.Body);
+                        SafeNativeMethods.BodyEnable(rootPrim.Body);
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
                     if (pValue.X < m_timestep) pValue.X = m_timestep;
@@ -419,9 +413,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     m_lmDecay = 1.0f - 1.0f / m_linearMotorDecayTimescale;
 
                     m_ffactor = 0.0f;
-                    if (rootPrim.Body != IntPtr.Zero && !d.BodyIsEnabled(rootPrim.Body)
+                    if (rootPrim.Body != IntPtr.Zero && !SafeNativeMethods.BodyIsEnabled(rootPrim.Body)
                             && !rootPrim.m_isSelected && !rootPrim.m_disabled)
-                        d.BodyEnable(rootPrim.Body);
+                        SafeNativeMethods.BodyEnable(rootPrim.Body);
                     break;
                 case Vehicle.LINEAR_MOTOR_OFFSET:
                     m_linearMotorOffset = new Vector3(pValue.X, pValue.Y, pValue.Z);
@@ -772,30 +766,30 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             IntPtr Body = rootPrim.Body;
 
-            d.Mass dmass;
-            d.BodyGetMass(Body, out dmass);
+            SafeNativeMethods.Mass dmass;
+            SafeNativeMethods.BodyGetMass(Body, out dmass);
 
-            d.Quaternion rot = d.BodyGetQuaternion(Body);
+            SafeNativeMethods.Quaternion rot = SafeNativeMethods.BodyGetQuaternion(Body);
             Quaternion objrotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);    // rotq = rotation of object
             Quaternion rotq = objrotq;    // rotq = rotation of object
             rotq *= m_referenceFrame; // rotq is now rotation in vehicle reference frame
             Quaternion irotq = Quaternion.Inverse(rotq);
 
-            d.Vector3 dvtmp;
+            SafeNativeMethods.Vector3 dvtmp;
             Vector3 tmpV;
             Vector3 curVel; // velocity in world
             Vector3 curAngVel; // angular velocity in world
             Vector3 force = Vector3.Zero; // actually linear aceleration until mult by mass in world frame
             Vector3 torque = Vector3.Zero;// actually angular aceleration until mult by Inertia in vehicle frame
-            d.Vector3 dtorque = new d.Vector3();
+            SafeNativeMethods.Vector3 dtorque = new SafeNativeMethods.Vector3();
 
-            dvtmp = d.BodyGetLinearVel(Body);
+            dvtmp = SafeNativeMethods.BodyGetLinearVel(Body);
             curVel.X = dvtmp.X;
             curVel.Y = dvtmp.Y;
             curVel.Z = dvtmp.Z;
             Vector3 curLocalVel = curVel * irotq; // current velocity in  local
 
-            dvtmp = d.BodyGetAngularVel(Body);
+            dvtmp = SafeNativeMethods.BodyGetAngularVel(Body);
             curAngVel.X = dvtmp.X;
             curAngVel.Y = dvtmp.Y;
             curAngVel.Z = dvtmp.Z;
@@ -839,7 +833,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     // have offset, do it now
                     tmpV *= dmass.mass;
-                    d.BodyAddForceAtRelPos(Body, tmpV.X, tmpV.Y, tmpV.Z, m_linearMotorOffset.X, m_linearMotorOffset.Y, m_linearMotorOffset.Z);
+                    SafeNativeMethods.BodyAddForceAtRelPos(Body, tmpV.X, tmpV.Y, tmpV.Z, m_linearMotorOffset.X, m_linearMotorOffset.Y, m_linearMotorOffset.Z);
                 }
                 else
                 {
@@ -862,7 +856,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (m_VhoverTimescale < 300 && rootPrim.prim_geom != IntPtr.Zero)
             {
                 //                d.Vector3 pos = d.BodyGetPosition(Body);
-                d.Vector3 pos = d.GeomGetPosition(rootPrim.prim_geom);
+                SafeNativeMethods.Vector3 pos = SafeNativeMethods.GeomGetPosition(rootPrim.prim_geom);
                 pos.Z -= 0.21f; // minor offset that seems to be always there in sl
 
                 float t = _pParentScene.GetTerrainHeightAtXY(pos.X, pos.Y);
@@ -1181,7 +1175,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             if (force.X != 0 || force.Y != 0 || force.Z != 0)
             {
-                d.BodyAddForce(Body, force.X, force.Y, force.Z);
+                SafeNativeMethods.BodyAddForce(Body, force.X, force.Y, force.Z);
             }
 
             if (torque.X != 0 || torque.Y != 0 || torque.Z != 0)
@@ -1191,15 +1185,15 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 dtorque.Y = torque.Y;
                 dtorque.Z = torque.Z;
 
-                d.MultiplyM3V3(out dvtmp, ref dmass.I, ref dtorque);
-                d.BodyAddRelTorque(Body, dvtmp.X, dvtmp.Y, dvtmp.Z); // add torque in object frame
+                SafeNativeMethods.MultiplyM3V3(out dvtmp, ref dmass.I, ref dtorque);
+                SafeNativeMethods.BodyAddRelTorque(Body, dvtmp.X, dvtmp.Y, dvtmp.Z); // add torque in object frame
             }
 
             torque = rootPrim.m_torque;
             torque += rootPrim.m_angularForceacc;
             rootPrim.m_angularForceacc = Vector3.Zero;
             if (torque.X != 0 || torque.Y != 0 || torque.Z != 0)
-                d.BodyAddTorque(Body,torque.X, torque.Y, torque.Z);
+                SafeNativeMethods.BodyAddTorque(Body,torque.X, torque.Y, torque.Z);
         }
     }
 }
