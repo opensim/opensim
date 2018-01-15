@@ -1396,9 +1396,9 @@ namespace OpenSim.Region.CoreModules.World.Land
             byte[] tempConvertArr = new byte[LandBitmap.GetLength(0) * LandBitmap.GetLength(1) / 8];
 
             int tempByte = 0;
-            int i, byteNum = 0;
+            int byteNum = 0;
             int mask = 1;
-            i = 0;
+
             for (int y = 0; y < LandBitmap.GetLength(1); y++)
             {
                 for (int x = 0; x < LandBitmap.GetLength(0); x++)

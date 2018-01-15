@@ -497,7 +497,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_group.RootPart.Velocity = Vector3.Zero;
             m_group.RootPart.AngularVelocity = Vector3.Zero;
-            m_skippedUpdates = 1000;
+//            m_skippedUpdates = 1000;
 //            m_group.SendGroupRootTerseUpdate();
             m_group.RootPart.ScheduleTerseUpdate();
             m_group.Scene.EventManager.TriggerMovingEndEvent(m_group.RootPart.LocalId);
@@ -521,7 +521,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 if (m_running && !m_waitingCrossing)
                     StartTimer();
-                m_skippedUpdates = 1000;
+//                m_skippedUpdates = 1000;
             }
         }
 
@@ -652,10 +652,10 @@ namespace OpenSim.Region.Framework.Scenes
             m_frames.Clear();
         }
 
-        [NonSerialized()] Vector3 m_lastPosUpdate;
-        [NonSerialized()] Quaternion m_lastRotationUpdate;
+//        [NonSerialized()] Vector3 m_lastPosUpdate;
+//        [NonSerialized()] Quaternion m_lastRotationUpdate;
         [NonSerialized()] Vector3 m_currentVel;
-        [NonSerialized()] int m_skippedUpdates;
+//        [NonSerialized()] int m_skippedUpdates;
         [NonSerialized()] double m_lasttickMS;
 
         private void DoOnTimer(double tickDuration)
@@ -669,14 +669,14 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_group == null)
                 return;
 
-            bool update = false;
+//            bool update = false;
 
             if (m_selected)
             {
                 if (m_group.RootPart.Velocity != Vector3.Zero)
                 {
                     m_group.RootPart.Velocity = Vector3.Zero;
-                    m_skippedUpdates = 1000;
+//                    m_skippedUpdates = 1000;
 //                    m_group.SendGroupRootTerseUpdate();
                     m_group.RootPart.ScheduleTerseUpdate();
                 }
@@ -690,7 +690,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // retry to set the position that evtually caused the outbound
                 // if still outside region this will call startCrossing below
                 m_isCrossing = false;
-                m_skippedUpdates = 1000;
+//                m_skippedUpdates = 1000;
                 m_group.AbsolutePosition = m_nextPosition;
 
                 if (!m_isCrossing)
@@ -724,7 +724,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_currentFrame.TimeMS += (int)tickDuration;
                 m_lasttickMS = nowMS - 50f;
-                update = true;
+//                update = true;
             }
 
             int elapsed = (int)(nowMS - m_lasttickMS);
@@ -761,7 +761,7 @@ namespace OpenSim.Region.Framework.Scenes
                     else
                         m_group.RootPart.Velocity = Vector3.Zero;
                 }
-                update = true;
+//                update = true;
             }
             else
             {
@@ -858,7 +858,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_group.RootPart.Velocity != Vector3.Zero)
             {
                 m_group.RootPart.Velocity = Vector3.Zero;
-                m_skippedUpdates = 1000;
+//                m_skippedUpdates = 1000;
 //                m_group.SendGroupRootTerseUpdate();
                 m_group.RootPart.ScheduleTerseUpdate();
             }
@@ -871,7 +871,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_group != null)
             {
                 m_group.RootPart.Velocity = Vector3.Zero;
-                m_skippedUpdates = 1000;
+//                m_skippedUpdates = 1000;
 //                m_group.SendGroupRootTerseUpdate();
                 m_group.RootPart.ScheduleTerseUpdate();
 

@@ -92,6 +92,7 @@ public sealed class BSCharacter : BSPhysObject
         Density = BSParam.AvatarDensity;
         _isPhysical = true;
 
+        _footOffset = footOffset;
         // Adjustments for zero X and Y made in Size()
         // This also computes avatar scale, volume, and mass
         SetAvatarSize(size, footOffset, true /* initializing */);
