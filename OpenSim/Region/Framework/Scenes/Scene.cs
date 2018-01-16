@@ -1943,7 +1943,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (!m_backingup)
             {
-                WorkManager.RunInThreadPool(o => Backup(false), null, string.Format("BackupWorker ({0})", Name));
+                WorkManager.RunInThreadPool(o => Backup(false), null, string.Format("BackupWorker ({0})", Name, false));
             }
         }
 

@@ -1595,8 +1595,7 @@ namespace OpenSim.Framework
                     {
                         using (XmlTextReader xtr = new XmlTextReader(sr))
                         {
-                            xtr.DtdProcessing = DtdProcessing.Prohibit;
-                            xtr.XmlResolver = null;
+                            xtr.ProhibitDtd = true;
 
                             xtr.MoveToContent();
 

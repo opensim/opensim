@@ -93,8 +93,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             StringReader sr = new StringReader(xml);
             XmlTextReader reader = new XmlTextReader(sr);
-            reader.DtdProcessing = DtdProcessing.Prohibit;
-            reader.XmlResolver = null;
+            reader.ProhibitDtd = true;
 
             reader.ReadStartElement("assets");
             reader.Read();

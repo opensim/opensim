@@ -124,8 +124,8 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
                     {
                         using(XmlTextReader sr = new XmlTextReader(s))
                         {
-                            sr.DtdProcessing = DtdProcessing.Prohibit;
-                            sr.XmlResolver = null;
+                            sr.ProhibitDtd = true;
+
                             sr.ReadStartElement("BakedAppearance");
                             while(sr.LocalName == "BakedTexture")
                             {

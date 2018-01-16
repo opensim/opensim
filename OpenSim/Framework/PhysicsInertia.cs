@@ -193,8 +193,7 @@ namespace OpenSim.Framework
             using(MemoryStream ms = new MemoryStream(enc.GetBytes(text)))
                 using(XmlTextReader xreader = new XmlTextReader(ms))
                 {
-                    xreader.DtdProcessing = DtdProcessing.Prohibit;
-                    xreader.XmlResolver = null;
+                    xreader.ProhibitDtd = true;
 
                     v = new PhysicsInertiaData();
                     v.FromXml2(xreader, out error);
