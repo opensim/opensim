@@ -306,7 +306,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 m_log.DebugFormat("[ATTACHMENTS MODULE]: Rezzing any attachments for {0} from simulator-side", sp.Name);
 
             XmlDocument doc = new XmlDocument();
-            doc.XmlResolver=null;
             string stateData = String.Empty;
 
             IAttachmentsService attServ = m_scene.RequestModuleInterface<IAttachmentsService>();
@@ -369,11 +368,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 {
                     string xmlData;
                     XmlDocument d = null;
-                    UUID asset;
+
                     if (itemData.TryGetValue(attach.ItemID, out xmlData))
                     {
                         d = new XmlDocument();
-                        d.XmlResolver=null;
                         d.LoadXml(xmlData);
                         m_log.InfoFormat("[ATTACHMENT]: Found saved state for item {0}, loading it", attach.ItemID);
                     }

@@ -335,7 +335,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private readonly byte[] m_channelVersion = Utils.EmptyBytes;
         private readonly IGroupsModule m_GroupsModule;
 
-        private int m_cachedTextureSerial;
+//        private int m_cachedTextureSerial;
         private PriorityQueue m_entityUpdates;
         private PriorityQueue m_entityProps;
         private Prioritizer m_prioritizer;
@@ -11039,9 +11039,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                  if(muteListRequest.MuteData.MuteCRC == 0)
                     SendEmpytMuteList();
                 else
-                    SendUseCachedMuteList();
+                SendUseCachedMuteList();
             }
-            return true;           
+            return true;
         }
 
         private bool HandleUpdateMuteListEntry(IClientAPI client, Packet Packet)

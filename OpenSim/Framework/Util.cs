@@ -2675,7 +2675,7 @@ namespace OpenSim.Framework
 
                         callback(o);
                     }
-                    catch (ThreadAbortException e)
+                    catch (ThreadAbortException)
                     {
                     }
                     catch (Exception e)

@@ -503,7 +503,6 @@ namespace OpenSim.Region.ClientStack.Linden
                         errorResponse.state = "error";
                         errorResponse.error = resperror;
                         return errorResponse;
-                        break;
                     case FileAgentInventoryState.waitUpload:
                         // todo stop current uploader server
                         break;
