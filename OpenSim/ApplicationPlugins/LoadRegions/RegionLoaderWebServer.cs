@@ -93,7 +93,6 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                             m_log.Debug("[WEBLOADER]: Done downloading region information from server. Total Bytes: " +
                                         xmlSource.Length);
                             XmlDocument xmlDoc = new XmlDocument();
-                            xmlDoc.XmlResolver = null;
                             xmlDoc.LoadXml(xmlSource);
                             if (xmlDoc.FirstChild.Name == "Nini")
                             {

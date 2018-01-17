@@ -156,7 +156,7 @@ namespace OpenSim.Framework.Serialization.External
                 return xml;
 
             XmlDocument doc = new XmlDocument();
-            doc.XmlResolver=null;
+
             doc.LoadXml(xml);
             XmlNodeList sops = doc.GetElementsByTagName("SceneObjectPart");
 

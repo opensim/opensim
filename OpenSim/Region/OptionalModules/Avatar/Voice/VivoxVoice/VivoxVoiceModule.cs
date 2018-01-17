@@ -1125,7 +1125,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 return null;
 
             doc = new XmlDocument();
-            doc.XmlResolver = null;
 
             // Let's serialize all calls to Vivox. Most of these are driven by
             // the clients (CAPs), when the user arrives at the region. We don't

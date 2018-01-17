@@ -455,7 +455,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_part.ParentGroup.m_savedScriptState.ContainsKey(stateID))
             {
                 XmlDocument doc = new XmlDocument();
-                doc.XmlResolver=null;
                 doc.LoadXml(m_part.ParentGroup.m_savedScriptState[stateID]);
 
                 ////////// CRUFT WARNING ///////////////////////////////////

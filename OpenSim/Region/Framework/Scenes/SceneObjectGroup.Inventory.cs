@@ -505,7 +505,6 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (KeyValuePair<UUID, string> state in states)
             {
                 XmlDocument sdoc = new XmlDocument();
-                sdoc.XmlResolver=null;
                 sdoc.LoadXml(state.Value);
                 XmlNodeList rootL = sdoc.GetElementsByTagName("State");
                 XmlNode rootNode = rootL[0];
@@ -541,7 +540,6 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             XmlDocument doc = new XmlDocument();
-            doc.XmlResolver=null;
             try
             {
                 doc.LoadXml(objXMLData);

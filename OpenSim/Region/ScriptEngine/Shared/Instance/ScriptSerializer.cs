@@ -207,7 +207,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         public static void Deserialize(string xml, ScriptInstance instance)
         {
             XmlDocument doc = new XmlDocument();
-            doc.XmlResolver=null;
 
             Dictionary<string, object> vars = instance.GetVars();
 

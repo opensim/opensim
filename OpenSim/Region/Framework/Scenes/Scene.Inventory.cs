@@ -2420,7 +2420,6 @@ namespace OpenSim.Region.Framework.Scenes
                         else
                         {
                             XmlDocument doc = new XmlDocument();
-                            doc.XmlResolver=null;
                             doc.LoadXml(xmlData);
                             XmlElement e = (XmlElement)doc.SelectSingleNode("/CoalescedObject");
                             XmlElement coll = (XmlElement)e;

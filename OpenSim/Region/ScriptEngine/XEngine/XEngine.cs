@@ -2098,7 +2098,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             string xml = instance.GetXMLState();
 
             XmlDocument sdoc = new XmlDocument();
-            sdoc.XmlResolver=null;
+
             bool loadedState = true;
             try
             {
@@ -2254,7 +2254,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return false;
 
             XmlDocument doc = new XmlDocument();
-            doc.XmlResolver=null;
 
             try
             {

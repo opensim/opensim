@@ -93,7 +93,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             Assert.AreEqual(foreignUrl, ncAssetGet.CreatorID);
             string xmlData = Utils.BytesToString(ncAssetGet.Data);
             XmlDocument ncAssetGetXmlDoc = new XmlDocument();
-            ncAssetGetXmlDoc.XmlResolver=null;
             ncAssetGetXmlDoc.LoadXml(xmlData);
 
 //            Console.WriteLine(ncAssetGetXmlDoc.OuterXml);

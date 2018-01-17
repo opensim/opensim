@@ -255,7 +255,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             try
             {
                 XmlDocument doc = new XmlDocument();
-                doc.XmlResolver=null;
                 doc.LoadXml(xmlData);
 
                 XmlNodeList parts = doc.GetElementsByTagName("SceneObjectPart");
