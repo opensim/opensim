@@ -247,7 +247,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
                             if(!ConvertAndUploadMaptile(scene, subMapTile,
                                                     scene.RegionInfo.RegionLocX + (xx / Constants.RegionSize),
                                                     scene.RegionInfo.RegionLocY + (yy / Constants.RegionSize),
-                                                    scene.Name));
+                                                    scene.Name))
                             {
                                 m_log.DebugFormat("{0} Upload maptileS for {1} aborted!", LogHeader, scene.Name);
                                 return; // abort rest;
