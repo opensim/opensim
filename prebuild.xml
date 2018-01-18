@@ -102,8 +102,7 @@
       <Reference name="System.Drawing"/>
       <Reference name="System.Web"/>
       <Reference name="System.Security"/>
-      <Reference name="System.Security.Cryptography"/>
-      <Reference name="OpenMetaverseTypes" path="../../bin/"/>
+       <Reference name="OpenMetaverseTypes" path="../../bin/"/>
       <Reference name="OpenMetaverse" path="../../bin/"/>
       <Reference name="OpenMetaverse.StructuredData" path="../../bin/"/>
       <Reference name="XMLRPC" path="../../bin/"/>
