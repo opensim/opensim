@@ -1471,11 +1471,8 @@
       <Reference name="OpenMetaverse" path="../../../../../bin/"/>
       <Reference name="OpenMetaverseTypes" path="../../../../../bin/"/>
       <Reference name="OpenMetaverse.StructuredData" path="../../../../../bin/"/>
-
-      <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Region.Framework.Interfaces"/>
-      <Reference name="OpenSim.Region.Framework.Scenes"/>
       <Reference name="OpenSim.Capabilities"/>
+      <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Capabilities.Handlers"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Monitoring"/>
@@ -1716,18 +1713,16 @@
       <Reference name="OpenMetaverse" path="../../../bin/"/>
       <Reference name="Mono.Data.SqliteClient" path="../../../bin/"/>
       <Reference name="netcd" path="../../../bin/"/>
-      <Reference name="OpenSim.Capabilities"/>
       <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Capabilities"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Monitoring"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.ClientStack.LindenUDP"/>
-      <Reference name="OpenSim.Region.Framework.Interfaces"/>
-      <Reference name="OpenSim.Region.Framework.Scenes"/>
-      <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
       <Reference name="OpenSim.Server.Base"/>
       <Reference name="OpenSim.Server.Handlers"/>
