@@ -157,7 +157,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
                     using (HttpWebResponse webResponse = (HttpWebResponse)webRequest.GetResponse())
                     {}
                 }
-                catch (WebException e)
+                catch (WebException)
                 {
 //                    using (HttpWebResponse response = (HttpWebResponse)e.Response)
 //                        gotExpectedException = response.StatusCode == HttpStatusCode.NotFound;
