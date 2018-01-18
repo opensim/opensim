@@ -2858,6 +2858,12 @@ namespace OpenSim.Framework
         /// <returns>The stack trace, or null if failed to get it</returns>
         private static StackTrace GetStackTrace(Thread targetThread)
         {
+
+            return null;
+/*
+        not only this does not work on mono but it is not longer recomended on windows.
+        can cause deadlocks etc.
+
             if (IsPlatformMono)
             {
                 // This doesn't work in Mono
@@ -2920,6 +2926,7 @@ namespace OpenSim.Framework
                 // Signal the fallack-thread to stop
                 exitedSafely.Set();
             }
+*/
         }
 #pragma warning restore 0618
 
