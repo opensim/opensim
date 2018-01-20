@@ -898,7 +898,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (packet.Type == PacketType.CoarseLocationUpdate && allowSplitting)
                 allowSplitting = false;
 
-            bool packetQueued = false;
+//            bool packetQueued = false;
 
             if (allowSplitting && packet.HasVariableBlocks)
             {
@@ -911,15 +911,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int i = 0; i < packetCount; i++)
                 {
                     byte[] data = datas[i];
-                    if (!SendPacketData(udpClient, data, packet.Type, category, method))
-                        packetQueued = true;
+//                    if (!SendPacketData(udpClient, data, packet.Type, category, method))
+//                        packetQueued = true;
+                    SendPacketData(udpClient, data, packet.Type, category, method);
                 }
             }
             else
             {
                 byte[] data = packet.ToBytes();
-                if (!SendPacketData(udpClient, data, packet.Type, category, method))
-                    packetQueued = true;
+//                if (!SendPacketData(udpClient, data, packet.Type, category, method))
+//                    packetQueued = true;
+                SendPacketData(udpClient, data, packet.Type, category, method);
             }
 
             PacketPool.Instance.ReturnPacket(packet);

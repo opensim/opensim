@@ -54,6 +54,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
     using dReal = System.Single;
 //#endif
 
+    [SuppressUnmanagedCodeSecurityAttribute]
     internal static class SafeNativeMethods
     {
         internal static dReal Infinity = dReal.MaxValue;

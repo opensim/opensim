@@ -120,10 +120,6 @@ namespace OpenSim.Capabilities.Handlers
                 {
                     LLSDInventoryFolderContents thiscontents = contentsToLLSD(icoll.Collection, icoll.Descendents);
                     inventoryitemstr = LLSDHelpers.SerialiseLLSDReply(thiscontents);
-//                    inventoryitemstr = inventoryitemstr.Replace("<llsd>", "");
-//                    inventoryitemstr = inventoryitemstr.Replace("</llsd>", "");
-//                    inventoryitemstr = inventoryitemstr.Substring(6,inventoryitemstr.Length - 13);
-//                    tmpresponse.Append(inventoryitemstr);
                     tmpresponse.Append(inventoryitemstr.Substring(6,inventoryitemstr.Length - 13));
                 }
 
