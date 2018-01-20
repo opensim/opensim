@@ -52,6 +52,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         protected bool m_Enabled = false;
         protected List<Scene> m_SceneList = new List<Scene>();
         protected IMuteListService m_service = null;
+        private IUserManagement m_userManagementModule;
 
         public void Initialise(IConfigSource config)
         {
@@ -89,10 +90,13 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 m_Enabled = false;
                 return;
             }
+
             lock (m_SceneList)
             {
                 if(m_service == null)
                     m_service = srv;
+                if(m_userManagementModule == null)
+                     m_userManagementModule = scene.RequestModuleInterface<IUserManagement>();
                 m_SceneList.Add(scene);
                 scene.EventManager.OnNewClient += OnNewClient;
             }
@@ -131,7 +135,15 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         public void Close()
         {
         }
-       
+
+        private bool IsForeign(IClientAPI client)
+        {
+            if(m_userManagementModule == null)
+                return false; // we can't check
+
+            return !m_userManagementModule.IsLocalGridUser(client.AgentId);
+        }
+
         private void OnNewClient(IClientAPI client)
         {
             client.OnMuteListRequest += OnMuteListRequest;
@@ -141,7 +153,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         private void OnMuteListRequest(IClientAPI client, uint crc)
         {
-            if (!m_Enabled)
+            if (!m_Enabled || IsForeign(client))
             {
                 if(crc == 0)
                     client.SendEmpytMuteList();
@@ -192,7 +204,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         private void OnUpdateMuteListEntry(IClientAPI client, UUID muteID, string muteName, int muteType, uint muteFlags)
         {
-            if (!m_Enabled)
+            if (!m_Enabled || IsForeign(client))
                 return;
 
             UUID agentID = client.AgentId;
@@ -220,7 +232,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         private void OnRemoveMuteListEntry(IClientAPI client, UUID muteID, string muteName)
         {
-            if (!m_Enabled)
+            if (!m_Enabled || IsForeign(client))
                 return;
             m_service.RemoveMute(client.AgentId, muteID, muteName);
         }

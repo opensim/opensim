@@ -522,7 +522,7 @@
 
     ; If you run this login server behind a proxy, set this to true
     ; HasProxy = false
-    
+
     ; Defaults for the users, if none is specified in the useraccounts table entry (ServiceURLs)
     ;; If you have GatekeeperURI set under [Hypergrid], no need to set it here, leave it commented
     ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
