@@ -30,6 +30,7 @@ using System.Collections;
 using System.IO;
 using System.Reflection;
 using System.Xml;
+using OpenMetaverse;
 
 namespace OpenSim.Framework.Capabilities
 {
@@ -160,7 +161,18 @@ namespace OpenSim.Framework.Capabilities
                                 else if(enumerator.Value is Boolean && field.FieldType == typeof(int) )
                                 {
                                     int i = (bool)enumerator.Value ? 1 : 0;
-                                    field.SetValue(obj, (object)i);
+                                    field.SetValue(obj, i);
+                                }
+                                else if(field.FieldType == typeof(bool) &&  enumerator.Value is int)
+                                {
+                                    bool b = (int)enumerator.Value != 0;
+                                    field.SetValue(obj, b);
+                                }
+                                else if(field.FieldType == typeof(UUID) &&  enumerator.Value is string)
+                                {
+                                    UUID u;
+                                    UUID.TryParse((string)enumerator.Value, out u);
+                                    field.SetValue(obj, u);
                                 }
                                 else
                                 {

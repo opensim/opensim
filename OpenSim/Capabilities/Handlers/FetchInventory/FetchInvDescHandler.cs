@@ -64,22 +64,7 @@ namespace OpenSim.Capabilities.Handlers
         public string FetchInventoryDescendentsRequest(string request, string path, string param, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             //m_log.DebugFormat("[XXX]: FetchInventoryDescendentsRequest in {0}, {1}", (m_Scene == null) ? "none" : m_Scene.Name, request);
-
-            // nasty temporary hack here, the linden client falsely
-            // identifies the uuid 00000000-0000-0000-0000-000000000000
-            // as a string which breaks us
-            //
-            // correctly mark it as a uuid
-            //
-            request = request.Replace("<string>00000000-0000-0000-0000-000000000000</string>", "<uuid>00000000-0000-0000-0000-000000000000</uuid>");
-
-            // another hack <integer>1</integer> results in a
-            // System.ArgumentException: Object type System.Int32 cannot
-            // be converted to target type: System.Boolean
-            //
-            request = request.Replace("<key>fetch_folders</key><integer>0</integer>", "<key>fetch_folders</key><boolean>0</boolean>");
-            request = request.Replace("<key>fetch_folders</key><integer>1</integer>", "<key>fetch_folders</key><boolean>1</boolean>");
-
+ 
             Hashtable hash = new Hashtable();
             try
             {
