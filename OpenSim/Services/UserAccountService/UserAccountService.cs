@@ -86,29 +86,28 @@ namespace OpenSim.Services.UserAccountService
 
             m_CreateDefaultAvatarEntries = userConfig.GetBoolean("CreateDefaultAvatarEntries", false);
 
-                //  create a system grid god account
-            UserAccount ggod = GetUserAccount(UUID.Zero, UUID_GRID_GOD);
-            if(ggod == null)
-            {
-                UserAccountData d = new UserAccountData();
-
-                d.FirstName = "GRID";
-                d.LastName = "SERVICES";
-                d.PrincipalID = UUID_GRID_GOD;
-                d.ScopeID = UUID.Zero;
-                d.Data = new Dictionary<string, string>();
-                d.Data["Email"] = string.Empty;
-                d.Data["Created"] = Util.UnixTimeSinceEpoch().ToString();
-                d.Data["UserLevel"] = "240";
-                d.Data["UserFlags"] = "0";
-                d.Data["ServiceURLs"] = string.Empty;
-
-                m_Database.Store(d);
-            }
-
             if (m_RootInstance == null)
             {
                 m_RootInstance = this;
+
+                //  create a system grid god account
+                UserAccount ggod = GetUserAccount(UUID.Zero, UUID_GRID_GOD);
+                if(ggod == null)
+                {
+                    UserAccountData d = new UserAccountData();
+                    d.FirstName = "GRID";
+                    d.LastName = "SERVICES";
+                    d.PrincipalID = UUID_GRID_GOD;
+                    d.ScopeID = UUID.Zero;
+                    d.Data = new Dictionary<string, string>();
+                    d.Data["Email"] = string.Empty;
+                    d.Data["Created"] = Util.UnixTimeSinceEpoch().ToString();
+                    d.Data["UserLevel"] = "240";
+                    d.Data["UserFlags"] = "0";
+                    d.Data["ServiceURLs"] = string.Empty;
+
+                    m_Database.Store(d);
+                }
 
                 // In case there are several instances of this class in the same process,
                 // the console commands are only registered for the root instance
