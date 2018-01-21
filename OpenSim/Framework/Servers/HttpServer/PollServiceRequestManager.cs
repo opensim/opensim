@@ -30,13 +30,10 @@ using System.Collections;
 using System.Threading;
 using System.Reflection;
 using log4net;
-using HttpServer;
-using OpenSim.Framework;
 using OpenSim.Framework.Monitoring;
 using Amib.Threading;
-using System.IO;
-using System.Text;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
@@ -48,7 +45,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private Dictionary<PollServiceHttpRequest, Queue<PollServiceHttpRequest>> m_bycontext;
         private BlockingQueue<PollServiceHttpRequest> m_requests = new BlockingQueue<PollServiceHttpRequest>();
-        private static Queue<PollServiceHttpRequest> m_retryRequests = new Queue<PollServiceHttpRequest>();
+        private static ConcurrentQueue<PollServiceHttpRequest> m_retryRequests = new ConcurrentQueue<PollServiceHttpRequest>();
 
         private uint m_WorkerThreadCount = 0;
         private Thread[] m_workerThreads;
@@ -112,10 +109,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         private void ReQueueEvent(PollServiceHttpRequest req)
         {
             if (m_running)
-            {
-                lock (m_retryRequests)
-                    m_retryRequests.Enqueue(req);
-            }
+                m_retryRequests.Enqueue(req);
         }
 
         public void Enqueue(PollServiceHttpRequest req)
@@ -177,16 +171,13 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private void CheckRetries()
         {
+            PollServiceHttpRequest preq;
             while (m_running)
-
             {
-                Thread.Sleep(100); // let the world move  .. back to faster rate
+                Thread.Sleep(100);
                 Watchdog.UpdateThread();
-                lock (m_retryRequests)
-                {
-                    while (m_retryRequests.Count > 0 && m_running)
-                        m_requests.Enqueue(m_retryRequests.Dequeue());
-                }
+                while (m_running && m_retryRequests.TryDequeue(out preq))
+                    m_requests.Enqueue(preq);
             }
         }
 
@@ -209,18 +200,15 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             try
             {
-                foreach (PollServiceHttpRequest req in m_retryRequests)
-                {
+                PollServiceHttpRequest req;
+                while(m_retryRequests.TryDequeue(out req))
                     req.DoHTTPstop(m_server);
-                }
             }
             catch
             {
             }
 
             PollServiceHttpRequest wreq;
-
-            m_retryRequests.Clear();
 
             while (m_requests.Count() > 0)
             {
