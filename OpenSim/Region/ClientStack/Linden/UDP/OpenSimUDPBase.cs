@@ -228,14 +228,23 @@ namespace OpenMetaverse
                 {
                     m_log.Debug("[UDPBASE]: Failed to increase default TTL");
                 }
+
                 try
                 {
                     // This udp socket flag is not supported under mono,
                     // so we'll catch the exception and continue
-                    m_udpSocket.IOControl(SIO_UDP_CONNRESET, new byte[] { 0 }, null);
-                    m_log.Debug("[UDPBASE]: SIO_UDP_CONNRESET flag set");
+                    // Try does not protect some mono versions on mac
+                    if(Util.IsWindows())
+                    {
+                        m_udpSocket.IOControl(SIO_UDP_CONNRESET, new byte[] { 0 }, null);
+                        m_log.Debug("[UDPBASE]: SIO_UDP_CONNRESET flag set");
+                    }               
+                    else
+                    {
+                        m_log.Debug("[UDPBASE]: SIO_UDP_CONNRESET flag not supported on this platform, ignoring");
+                    }
                 }
-                catch (SocketException)
+                catch
                 {
                     m_log.Debug("[UDPBASE]: SIO_UDP_CONNRESET flag not supported on this platform, ignoring");
                 }
