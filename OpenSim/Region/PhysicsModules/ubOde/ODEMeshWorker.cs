@@ -3,6 +3,7 @@
  */
 
 using System;
+using System.Collections.Concurrent;
 using System.Threading;
 using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
@@ -73,7 +74,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public float MeshSculptphysicalLOD = 32;
         public float MinSizeToMeshmerize = 0.1f;
 
-        private OpenSim.Framework.BlockingQueue<ODEPhysRepData> workQueue = new OpenSim.Framework.BlockingQueue<ODEPhysRepData>();
+        private BlockingCollection<ODEPhysRepData> workQueue = new BlockingCollection<ODEPhysRepData>();
         private bool m_running;
 
         private Thread m_thread;
@@ -100,10 +101,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private void DoWork()
         {
             m_mesher.ExpireFileCache();
+            ODEPhysRepData nextRep;
 
             while(m_running)
             {
-                 ODEPhysRepData nextRep = workQueue.Dequeue();
+                workQueue.TryTake(out nextRep, -1);
                 if(!m_running)
                     return;
                 if (nextRep == null)
@@ -132,7 +134,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             try
             {
                 m_thread.Abort();
-                workQueue.Clear();
+ //               workQueue.Dispose();
             }
             catch
             {
@@ -189,7 +191,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 repData.meshState = MeshState.loadingAsset;
 
                 repData.comand = meshWorkerCmnds.getmesh;
-                workQueue.Enqueue(repData);
+                workQueue.Add(repData);
             }
         }
 
@@ -235,7 +237,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if (needsMeshing(repData)) // no need for pbs now?
                 {
                     repData.comand = meshWorkerCmnds.changefull;
-                    workQueue.Enqueue(repData);
+                    workQueue.Add(repData);
                 }
             }
             else

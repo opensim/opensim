@@ -26,7 +26,7 @@
  */
 
 using System;
-using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -668,7 +668,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             public UUID user;
         }
 
-        private OpenSim.Framework.BlockingQueue<EstateAccessDeltaRequest> deltaRequests = new OpenSim.Framework.BlockingQueue<EstateAccessDeltaRequest>();
+        private BlockingCollection<EstateAccessDeltaRequest> deltaRequests = new BlockingCollection<EstateAccessDeltaRequest>();
 
         private void handleEstateAccessDeltaRequest(IClientAPI _remote_client, UUID _invoice, int _estateAccessType, UUID _user)
         {
@@ -683,7 +683,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             newreq.estateAccessType = _estateAccessType;
             newreq.user = _user;
 
-            deltaRequests.Enqueue(newreq);
+            deltaRequests.Add(newreq);
 
             lock(deltareqLock)
             {
@@ -713,9 +713,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
             bool sentGroupsFull = false;
             bool sentManagersFull = false;
 
+            EstateAccessDeltaRequest req;
             while(Scene.IsRunning)
             {
-                EstateAccessDeltaRequest req = deltaRequests.Dequeue(500);
+                req = null;
+                deltaRequests.TryTake(out req, 500);
 
                 if(!Scene.IsRunning)
                     break;
@@ -757,7 +759,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     changed.Clear();
                     lock(deltareqLock)
                     {
-                        if(deltaRequests.Count() != 0)
+                        if(deltaRequests.Count != 0)
                             continue;
                         runnigDeltaExec = false;
                         return;

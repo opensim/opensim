@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -67,7 +68,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         private static readonly string DEFAULT_WORLD_MAP_EXPORT_PATH = "exportmap.jpg";
         private static readonly UUID STOP_UUID = UUID.Random();
 
-        private OpenSim.Framework.BlockingQueue<MapRequestState> requests = new OpenSim.Framework.BlockingQueue<MapRequestState>();
+        private BlockingCollection<MapRequestState> requests = new BlockingCollection<MapRequestState>();
 
         private ManualResetEvent m_mapBlockRequestEvent = new ManualResetEvent(false);
         private Dictionary<UUID, Queue<MapBlockRequestData>> m_mapBlockRequests = new Dictionary<UUID, Queue<MapBlockRequestData>>();
@@ -422,7 +423,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             st.itemtype = 0;
             st.regionhandle = 0;
 
-            requests.Enqueue(st);
+            requests.Add(st);
 
             MapBlockRequestData req = new MapBlockRequestData();
 
@@ -719,7 +720,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     av = null;
                     st = null;
 
-                    st = requests.Dequeue(4500);
+                    requests.TryTake(out st, 4500);
                     Watchdog.UpdateThread();
 
                     if (st == null || st.agentID == UUID.Zero)
@@ -795,8 +796,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         else
                         {
                             // request still beeing processed, enqueue it back
-                            requests.Enqueue(st);
-                            if (requests.Count() < 3)
+                            requests.Add(st);
+                            if (requests.Count < 3)
                                 Thread.Sleep(100);
                         }
                     }
@@ -839,7 +840,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             st.itemtype = itemtype;
             st.regionhandle = regionhandle;
 
-            requests.Enqueue(st);
+            requests.Add(st);
         }
 
         uint[] itemTypesForcedSend = new uint[] { 6, 1, 7, 10 }; // green dots, infohub, land sells
