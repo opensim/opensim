@@ -164,32 +164,7 @@ namespace OpenSim.Region.DataSnapshot
 
             m_log.DebugFormat("[DATASNAPSHOT]: Module added to Scene {0}.", scene.RegionInfo.RegionName);
 
-
             m_scenes.Add(scene);
-            m_snapStore.AddScene(scene);
-
-            Assembly currentasm = Assembly.GetExecutingAssembly();
-
-            foreach (Type pluginType in currentasm.GetTypes())
-            {
-                if (pluginType.IsPublic)
-                {
-                    if (!pluginType.IsAbstract)
-                    {
-                        if (pluginType.GetInterface("IDataSnapshotProvider") != null)
-                        {
-                            IDataSnapshotProvider module = (IDataSnapshotProvider)Activator.CreateInstance(pluginType);
-                            module.Initialize(scene, this);
-                            module.OnStale += MarkDataStale;
-
-                            m_dataproviders.Add(module);
-                            m_snapStore.AddProvider(module);
-
-                            m_log.Debug("[DATASNAPSHOT]: Added new data provider type: " + pluginType.Name);
-                        }
-                    }
-                }
-            }
 
         }
 
@@ -233,8 +208,6 @@ namespace OpenSim.Region.DataSnapshot
             if (!m_enabled)
                 return;
 
-            m_log.DebugFormat("[DATASNAPSHOT]: Marking scene {0} as stale.", scene.RegionInfo.RegionName);
-            m_snapStore.ForceSceneStale(scene);
 
             if (!m_servicesNotified)
             {
@@ -249,6 +222,34 @@ namespace OpenSim.Region.DataSnapshot
 
                 m_servicesNotified = true;
             }
+
+            m_snapStore.AddScene(scene);
+            m_log.DebugFormat("[DATASNAPSHOT]: Marking scene {0} as stale.", scene.RegionInfo.RegionName);
+            m_snapStore.ForceSceneStale(scene);
+
+            Assembly currentasm = Assembly.GetExecutingAssembly();
+
+            foreach (Type pluginType in currentasm.GetTypes())
+            {
+                if (pluginType.IsPublic)
+                {
+                    if (!pluginType.IsAbstract)
+                    {
+                        if (pluginType.GetInterface("IDataSnapshotProvider") != null)
+                        {
+                            IDataSnapshotProvider module = (IDataSnapshotProvider)Activator.CreateInstance(pluginType);
+                            module.Initialize(scene, this);
+                            module.OnStale += MarkDataStale;
+
+                            m_dataproviders.Add(module);
+                            m_snapStore.AddProvider(module);
+
+                            m_log.Debug("[DATASNAPSHOT]: Added new data provider type: " + pluginType.Name);
+                        }
+                    }
+                }
+            }
+
         }
 
         public void Close()
