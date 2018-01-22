@@ -321,6 +321,7 @@ namespace OpenSim.Region.DataSnapshot
         /**
          * Reply to the http request
          */
+
         public XmlDocument GetSnapshot(string regionName)
         {
             if(!Monitor.TryEnter(m_serializeGen,30000))

@@ -713,7 +713,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     scene.Name,
                     StatType.Pull,
                     MeasuresOfInterest.AverageChangeOverTime,
-                    stat => stat.Value = packetInbox.Count,
+                    stat => {try{stat.Value = packetInbox.Count;}catch{}},
                     StatVerbosity.Debug));
 
             // XXX: These stats are also pool stats but we register them separately since they are currently not
