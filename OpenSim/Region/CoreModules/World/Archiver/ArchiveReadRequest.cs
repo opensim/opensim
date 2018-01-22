@@ -435,7 +435,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 WorkManager.RunInThread(o =>
                 {
                     Thread.Sleep(15000);
-                    m_log.Info("[ARCHIVER]: Starting scripts in scene objects");
+                    m_log.Info("[ARCHIVER]: Starting scripts in scene objects...");
 
                     foreach (DearchiveContext sceneContext in sceneContexts.Values)
                     {
@@ -447,6 +447,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                         sceneContext.SceneObjects.Clear();
                     }
+                    m_log.Info("[ARCHIVER]: Start scripts done");
                 }, null, string.Format("ReadArchiveStartScripts (request {0})", m_requestId));
             }
 
@@ -945,10 +946,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (m_assetService.GetMetadata(uuid) != null)
             {
                 sbyte asype = ArchiveConstants.EXTENSION_TO_ASSET_TYPE[extension];
-                if(asype == -2)
-                {
-
-                }
 
                 // m_log.DebugFormat("[ARCHIVER]: found existing asset {0}",uuid);
                 return true;
@@ -958,10 +955,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 sbyte assetType = ArchiveConstants.EXTENSION_TO_ASSET_TYPE[extension];
 
-                if(assetType == -2)
-                {
-
-                }
                 if (assetType == (sbyte)AssetType.Unknown)
                 {
                     m_log.WarnFormat("[ARCHIVER]: Importing {0} byte asset {1} with unknown type", data.Length, uuid);

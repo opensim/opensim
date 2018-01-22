@@ -232,6 +232,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     m_workerThreads = null;
                 }
             }
+//            m_queue.Dispose();
         }
 
         public string Name { get { return "WebFetchInvDescModule"; } }

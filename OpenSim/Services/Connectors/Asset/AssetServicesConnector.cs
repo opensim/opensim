@@ -29,6 +29,7 @@ using log4net;
 using System;
 using System.Threading;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Reflection;
 using System.Timers;
@@ -352,8 +353,7 @@ namespace OpenSim.Services.Connectors
             public string id;
         }
 
-        private OpenSim.Framework.BlockingQueue<QueuedAssetRequest> m_requestQueue =
-                new OpenSim.Framework.BlockingQueue<QueuedAssetRequest>();
+        private BlockingCollection<QueuedAssetRequest> m_requestQueue = new BlockingCollection<QueuedAssetRequest>();
 
         private void AssetRequestProcessor()
         {
@@ -361,10 +361,13 @@ namespace OpenSim.Services.Connectors
 
             while (true)
             {
-                r = m_requestQueue.Dequeue(4500);
-                Watchdog.UpdateThread();
-                if(r== null)
+                if(!m_requestQueue.TryTake(out r, 4500) || r == null)
+                {
+                    Watchdog.UpdateThread();
                     continue;
+                }
+
+                Watchdog.UpdateThread();
                 string uri = r.uri;
                 string id = r.id;
 
@@ -432,7 +435,7 @@ namespace OpenSim.Services.Connectors
                     QueuedAssetRequest request = new QueuedAssetRequest();
                     request.id = id;
                     request.uri = uri;
-                    m_requestQueue.Enqueue(request);
+                    m_requestQueue.Add(request);
                 }
             }
             else
