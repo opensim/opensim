@@ -150,11 +150,8 @@ namespace OpenSim.Region.DataSnapshot
                         m_enabled = false;
                         return;
                     }
-
                 }
-
             }
-
         }
 
         public void AddRegion(Scene scene)
@@ -208,24 +205,16 @@ namespace OpenSim.Region.DataSnapshot
             if (!m_enabled)
                 return;
 
-
-            if (!m_servicesNotified)
+            if (m_snapStore == null)
             {
                 m_hostname = scene.RegionInfo.ExternalHostName;
                 m_snapStore = new SnapshotStore(m_snapsDir, m_gridinfo, m_listener_port, m_hostname);
 
                 //Hand it the first scene, assuming that all scenes have the same BaseHTTPServer
                 new DataRequestHandler(scene, this);
-
-                if (m_dataServices != "" && m_dataServices != "noservices")
-                    NotifyDataServices(m_dataServices, "online");
-
-                m_servicesNotified = true;
             }
 
             m_snapStore.AddScene(scene);
-            m_log.DebugFormat("[DATASNAPSHOT]: Marking scene {0} as stale.", scene.RegionInfo.RegionName);
-            m_snapStore.ForceSceneStale(scene);
 
             Assembly currentasm = Assembly.GetExecutingAssembly();
 
@@ -250,6 +239,13 @@ namespace OpenSim.Region.DataSnapshot
                 }
             }
 
+            if (!m_servicesNotified)
+            {
+                if (m_dataServices != "" && m_dataServices != "noservices")
+                    NotifyDataServices(m_dataServices, "online");
+
+                m_servicesNotified = true;
+            }
         }
 
         public void Close()
@@ -260,7 +256,6 @@ namespace OpenSim.Region.DataSnapshot
             if (m_enabled && m_dataServices != "" && m_dataServices != "noservices")
                 NotifyDataServices(m_dataServices, "offline");
         }
-
 
         public string Name
         {
