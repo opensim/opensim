@@ -28,14 +28,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Reflection;
 using System.Threading;
 using log4net;
 using Nini.Config;
 using Mono.Addins;
 using OpenMetaverse;
-using OpenSim.Framework;
-using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -55,7 +54,7 @@ namespace OpenSim.Region.ClientStack.Linden
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "WebFetchInvDescModule")]
     public class WebFetchInvDescModule : INonSharedRegionModule
     {
-        class aPollRequest
+        class APollRequest
         {
             public PollServiceInventoryEventArgs thepoll;
             public UUID reqID;
@@ -98,8 +97,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private static Thread[] m_workerThreads = null;
 
-        private static OpenSim.Framework.BlockingQueue<aPollRequest> m_queue =
-                new OpenSim.Framework.BlockingQueue<aPollRequest>();
+        private static BlockingCollection<APollRequest> m_queue = new BlockingCollection<APollRequest>();
 
         private static int m_NumberScenes = 0;
 
@@ -180,7 +178,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         "httpfetch",
                         StatType.Pull,
                         MeasuresOfInterest.AverageChangeOverTime,
-                        stat => { stat.Value = m_queue.Count(); },
+                        stat => { stat.Value = m_queue.Count; },
                         StatVerbosity.Debug);
 
             StatsManager.RegisterStat(s_processedRequestsStat);
@@ -290,7 +288,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     ScenePresence sp = m_module.Scene.GetScenePresence(Id);
 
-                    aPollRequest reqinfo = new aPollRequest();
+                    APollRequest reqinfo = new APollRequest();
                     reqinfo.thepoll = this;
                     reqinfo.reqID = x;
                     reqinfo.request = y;
@@ -347,7 +345,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         m_queue.PriorityEnqueue(reqinfo);
                     else
 */
-                        m_queue.Enqueue(reqinfo);
+                        m_queue.Add(reqinfo);
                 };
 
                 NoEvents = (x, y) =>
@@ -371,7 +369,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 };
             }
 
-            public void Process(aPollRequest requestinfo)
+            public void Process(APollRequest requestinfo)
             {
                 if(m_module == null || m_module.Scene == null || m_module.Scene.ShuttingDown)
                     return;
@@ -477,23 +475,26 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private static void DoInventoryRequests()
         {
+            APollRequest poolreq;
             while (true)
             {
-                aPollRequest poolreq = m_queue.Dequeue(4500);
-                Watchdog.UpdateThread();
-
-                if (poolreq != null && poolreq.thepoll != null)
+                if(!m_queue.TryTake(out poolreq, 4500) || poolreq == null || poolreq.thepoll == null)
                 {
-                    try
-                    {
-                        poolreq.thepoll.Process(poolreq);
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.ErrorFormat(
-                            "[INVENTORY]: Failed to process queued inventory request {0} for {1}.  Exception {2}",
-                            poolreq.reqID, poolreq.presence != null ? poolreq.presence.Name : "unknown", e);
-                    }
+                    Watchdog.UpdateThread();
+                    continue;
+                }
+
+                Watchdog.UpdateThread();
+                try
+                {
+                    APollRequest req = poolreq;
+                    req.thepoll.Process(req);
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat(
+                        "[INVENTORY]: Failed to process queued inventory request {0} for {1}.  Exception {2}",
+                        poolreq.reqID, poolreq.presence != null ? poolreq.presence.Name : "unknown", e);
                 }
             }
         }
