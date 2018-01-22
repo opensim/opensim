@@ -28,17 +28,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
+using System.Collections.Concurrent;
 using System.Reflection;
-using System.IO;
 using System.Threading;
-using System.Web;
 using Mono.Addins;
 using OpenSim.Framework.Monitoring;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
-using OpenMetaverse.StructuredData;
 using OpenSim.Capabilities.Handlers;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
@@ -57,7 +54,6 @@ namespace OpenSim.Region.ClientStack.Linden
 //            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_scene;
-        private IAssetService m_AssetService;
         private bool m_Enabled = true;
         private string m_URL;
 
@@ -65,19 +61,18 @@ namespace OpenSim.Region.ClientStack.Linden
         private string m_RedirectURL = null;
         private string m_RedirectURL2 = null;
 
-        struct aPollRequest
+        class APollRequest
         {
             public PollServiceMeshEventArgs thepoll;
             public UUID reqID;
             public Hashtable request;
         }
 
-        public class aPollResponse
+        public class APollResponse
         {
             public Hashtable response;
             public int bytes;
         }
-
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -88,8 +83,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private Dictionary<UUID, string> m_capsDict = new Dictionary<UUID, string>();
         private static Thread[] m_workerThreads = null;
         private static int m_NumberScenes = 0;
-        private static OpenSim.Framework.BlockingQueue<aPollRequest> m_queue =
-                new OpenSim.Framework.BlockingQueue<aPollRequest>();
+        private static BlockingCollection<APollRequest> m_queue = new BlockingCollection<APollRequest>();
 
         private Dictionary<UUID, PollServiceMeshEventArgs> m_pollservices = new Dictionary<UUID, PollServiceMeshEventArgs>();
 
@@ -131,33 +125,35 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
 
             m_scene = pScene;
-
-            m_assetService = pScene.AssetService;
         }
 
-        public void RemoveRegion(Scene scene)
+        public void RemoveRegion(Scene s)
         {
             if (!m_Enabled)
                 return;
 
-            m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
-            m_scene.EventManager.OnDeregisterCaps -= DeregisterCaps;
-            m_scene.EventManager.OnThrottleUpdate -= ThrottleUpdate;
+            s.EventManager.OnRegisterCaps -= RegisterCaps;
+            s.EventManager.OnDeregisterCaps -= DeregisterCaps;
+            s.EventManager.OnThrottleUpdate -= ThrottleUpdate;
             m_NumberScenes--;
             m_scene = null;
         }
 
-        public void RegionLoaded(Scene scene)
+        public void RegionLoaded(Scene s)
         {
             if (!m_Enabled)
                 return;
 
-            m_AssetService = m_scene.RequestModuleInterface<IAssetService>();
-            m_scene.EventManager.OnRegisterCaps += RegisterCaps;
-            // We'll reuse the same handler for all requests.
-            m_getMeshHandler = new GetMeshHandler(m_assetService);
-            m_scene.EventManager.OnDeregisterCaps += DeregisterCaps;
-            m_scene.EventManager.OnThrottleUpdate += ThrottleUpdate;
+            if(m_assetService == null)
+            {
+                m_assetService = m_scene.RequestModuleInterface<IAssetService>();
+                // We'll reuse the same handler for all requests.
+                m_getMeshHandler = new GetMeshHandler(m_assetService);
+            }
+
+            s.EventManager.OnRegisterCaps += RegisterCaps;          
+            s.EventManager.OnDeregisterCaps += DeregisterCaps;
+            s.EventManager.OnThrottleUpdate += ThrottleUpdate;
 
             m_NumberScenes++;
 
@@ -189,7 +185,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 // Prevent red ink.
                 try
                 {
-                    m_queue.Clear();
+                    m_queue.Dispose();
                 }
                 catch {}
             }
@@ -201,14 +197,18 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private static void DoMeshRequests()
         {
-            while(true)
+            while (m_NumberScenes > 0)
             {
-                aPollRequest poolreq = m_queue.Dequeue(4500);
-                Watchdog.UpdateThread();
-                if(m_NumberScenes <= 0)
-                    return;
-                if(poolreq.reqID != UUID.Zero)
-                    poolreq.thepoll.Process(poolreq);
+                APollRequest poolreq;
+                if(m_queue.TryTake(out poolreq, 4500))
+                {
+                    if(m_NumberScenes <= 0)
+                        break;
+          
+                    if(poolreq.reqID != UUID.Zero)
+                        poolreq.thepoll.Process(poolreq);
+                }
+                Watchdog.UpdateThread();               
             }
         }
 
@@ -228,8 +228,8 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             private List<Hashtable> requests =
                     new List<Hashtable>();
-            private Dictionary<UUID, aPollResponse> responses =
-                    new Dictionary<UUID, aPollResponse>();
+            private Dictionary<UUID, APollResponse> responses =
+                    new Dictionary<UUID, APollResponse>();
             private HashSet<UUID> dropedResponses = new HashSet<UUID>();
 
             private Scene m_scene;
@@ -278,12 +278,12 @@ namespace OpenSim.Region.ClientStack.Linden
                 // x is request id, y is request data hashtable
                 Request = (x, y) =>
                 {
-                    aPollRequest reqinfo = new aPollRequest();
+                    APollRequest reqinfo = new APollRequest();
                     reqinfo.thepoll = this;
                     reqinfo.reqID = x;
                     reqinfo.request = y;
 
-                    m_queue.Enqueue(reqinfo);
+                    m_queue.Add(reqinfo);
                     m_throttler.PassTime();
                 };
 
@@ -309,7 +309,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 };
             }
 
-            public void Process(aPollRequest requestinfo)
+            public void Process(APollRequest requestinfo)
             {
                 Hashtable response;
 
@@ -338,7 +338,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         response["str_response_string"] = "Script timeout";
                         response["content_type"] = "text/plain";
                         response["keepalive"] = false;
-                        responses[requestID] = new aPollResponse() { bytes = 0, response = response};
+                        responses[requestID] = new APollResponse() { bytes = 0, response = response};
 
                         return;
                     }
@@ -357,7 +357,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         }
                     }
 
-                    responses[requestID] = new aPollResponse()
+                    responses[requestID] = new APollResponse()
                     {
                         bytes = (int)response["int_bytes"],
                         response = response
@@ -437,7 +437,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 lastTimeElapsed = Util.GetTimeStampMS();
             }
 
-            public bool hasEvents(UUID key, Dictionary<UUID, aPollResponse> responses)
+            public bool hasEvents(UUID key, Dictionary<UUID, APollResponse> responses)
             {
                 PassTime();
                 // Note, this is called IN LOCK
@@ -447,7 +447,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     return false;
                 }
-                aPollResponse response;
+                APollResponse response;
                 if (responses.TryGetValue(key, out response))
                 {
                     // Normal
@@ -472,7 +472,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     return;
                 int add = (int)(ThrottleBytes * timeElapsed * 0.001);
                 if (add >= 1000)
-            {
+                {
                     lastTimeElapsed = currenttime;
                     BytesSent -= add;
                     if (BytesSent < 0) BytesSent = 0;
@@ -480,6 +480,6 @@ namespace OpenSim.Region.ClientStack.Linden
             }
 
             public int ThrottleBytes;
-            }
-                }
+        }
+    }
 }

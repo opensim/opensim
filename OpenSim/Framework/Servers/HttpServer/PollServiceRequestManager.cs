@@ -225,13 +225,16 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private void PoolWorkerJob()
         {
+            PollServiceHttpRequest req;
             while (m_running)
             {
-                PollServiceHttpRequest req;
-                m_requests.TryTake(out req, 4500);
-                Watchdog.UpdateThread();
-                if(req == null)
+                if(!m_requests.TryTake(out req, 4500) || req == null)
+                {
+                    Watchdog.UpdateThread();
                     continue;
+                }
+
+                Watchdog.UpdateThread();               
 
                 try
                 {
@@ -256,17 +259,18 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                     if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id))
                     {
+                        PollServiceHttpRequest nreq = req;
                         m_threadPool.QueueWorkItem(x =>
                         {
                             try
                             {
-                                Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id);
-                                req.DoHTTPGruntWork(m_server, responsedata);
+                                Hashtable responsedata = nreq.PollServiceArgs.GetEvents(nreq.RequestID, nreq.PollServiceArgs.Id);
+                                nreq.DoHTTPGruntWork(m_server, responsedata);
                             }
                             catch (ObjectDisposedException) { }
                             finally
                             {
-                                byContextDequeue(req);
+                                byContextDequeue(nreq);
                             }
                             return null;
                         }, null);
@@ -275,17 +279,18 @@ namespace OpenSim.Framework.Servers.HttpServer
                     {
                         if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
                         {
+                            PollServiceHttpRequest nreq = req;
                             m_threadPool.QueueWorkItem(x =>
                             {
                                 try
                                 {
-                                    req.DoHTTPGruntWork(m_server,
-                                            req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
+                                    nreq.DoHTTPGruntWork(m_server,
+                                            nreq.PollServiceArgs.NoEvents(nreq.RequestID, nreq.PollServiceArgs.Id));
                                 }
                                 catch (ObjectDisposedException) {}
                                 finally
                                 {
-                                    byContextDequeue(req);
+                                    byContextDequeue(nreq);
                                 }
                                 return null;
                             }, null);

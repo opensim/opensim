@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Reflection;
 using System.Threading;
 using log4net;
@@ -51,7 +52,7 @@ namespace OpenSim.Region.ClientStack.Linden
     public class GetTextureModule : INonSharedRegionModule
     {
 
-        struct aPollRequest
+        class APollRequest
         {
             public PollServiceTextureEventArgs thepoll;
             public UUID reqID;
@@ -59,7 +60,7 @@ namespace OpenSim.Region.ClientStack.Linden
             public bool send503;
         }
 
-        public class aPollResponse
+        public class APollResponse
         {
             public Hashtable response;
             public int bytes;
@@ -77,8 +78,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private Dictionary<UUID, string> m_capsDict = new Dictionary<UUID, string>();
         private static Thread[] m_workerThreads = null;
         private static int m_NumberScenes = 0;
-        private static OpenSim.Framework.BlockingQueue<aPollRequest> m_queue =
-                new OpenSim.Framework.BlockingQueue<aPollRequest>();
+        private static BlockingCollection<APollRequest> m_queue = new BlockingCollection<APollRequest>();
 
         private Dictionary<UUID,PollServiceTextureEventArgs> m_pollservices = new Dictionary<UUID,PollServiceTextureEventArgs>();
 
@@ -107,26 +107,29 @@ namespace OpenSim.Region.ClientStack.Linden
         public void AddRegion(Scene s)
         {
             m_scene = s;
-            m_assetService = s.AssetService;
         }
 
         public void RemoveRegion(Scene s)
         {
-            m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
-            m_scene.EventManager.OnDeregisterCaps -= DeregisterCaps;
-            m_scene.EventManager.OnThrottleUpdate -= ThrottleUpdate;
+            s.EventManager.OnRegisterCaps -= RegisterCaps;
+            s.EventManager.OnDeregisterCaps -= DeregisterCaps;
+            s.EventManager.OnThrottleUpdate -= ThrottleUpdate;
             m_NumberScenes--;
             m_scene = null;
         }
 
         public void RegionLoaded(Scene s)
         {
-            // We'll reuse the same handler for all requests.
-            m_getTextureHandler = new GetTextureHandler(m_assetService);
+            if(m_assetService == null)
+            {
+                m_assetService = s.RequestModuleInterface<IAssetService>();
+                // We'll reuse the same handler for all requests.
+                m_getTextureHandler = new GetTextureHandler(m_assetService);
+            }
 
-            m_scene.EventManager.OnRegisterCaps += RegisterCaps;
-            m_scene.EventManager.OnDeregisterCaps += DeregisterCaps;
-            m_scene.EventManager.OnThrottleUpdate += ThrottleUpdate;
+            s.EventManager.OnRegisterCaps += RegisterCaps;
+            s.EventManager.OnDeregisterCaps += DeregisterCaps;
+            s.EventManager.OnThrottleUpdate += ThrottleUpdate;
 
             m_NumberScenes++;
 
@@ -173,7 +176,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 foreach (Thread t in m_workerThreads)
                     Watchdog.AbortThread(t.ManagedThreadId);
 
-                m_queue.Clear();
+                m_queue.Dispose();
             }
         }
 
@@ -190,8 +193,8 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             private List<Hashtable> requests =
                     new List<Hashtable>();
-            private Dictionary<UUID, aPollResponse> responses =
-                    new Dictionary<UUID, aPollResponse>();
+            private Dictionary<UUID, APollResponse> responses =
+                    new Dictionary<UUID, APollResponse>();
             private HashSet<UUID> dropedResponses = new HashSet<UUID>();
 
             private Scene m_scene;
@@ -239,7 +242,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 // x is request id, y is request data hashtable
                 Request = (x, y) =>
                 {
-                    aPollRequest reqinfo = new aPollRequest();
+                    APollRequest reqinfo = new APollRequest();
                     reqinfo.thepoll = this;
                     reqinfo.reqID = x;
                     reqinfo.request = y;
@@ -249,14 +252,14 @@ namespace OpenSim.Region.ClientStack.Linden
                     {
                         if (responses.Count > 0)
                         {
-                            if (m_queue.Count() >= 4)
+                            if (m_queue.Count >= 4)
                             {
                                 // Never allow more than 4 fetches to wait
                                 reqinfo.send503 = true;
                             }
                         }
                     }
-                    m_queue.Enqueue(reqinfo);
+                    m_queue.Add(reqinfo);
                     m_throttler.PassTime();
                 };
 
@@ -282,7 +285,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 };
             }
 
-            public void Process(aPollRequest requestinfo)
+            public void Process(APollRequest requestinfo)
             {
                 Hashtable response;
 
@@ -316,7 +319,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         headers["Retry-After"] = 30;
                         response["headers"] = headers;
 
-                        responses[requestID] = new aPollResponse() {bytes = 0, response = response};
+                        responses[requestID] = new APollResponse() {bytes = 0, response = response};
 
                         return;
                     }
@@ -332,7 +335,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         response["keepalive"] = false;
                         response["reusecontext"] = false;
 
-                        responses[requestID] = new aPollResponse() {bytes = 0, response = response};
+                        responses[requestID] = new APollResponse() {bytes = 0, response = response};
 
                         return;
                     }
@@ -351,7 +354,7 @@ namespace OpenSim.Region.ClientStack.Linden
                             return;
                         }
                     }
-                    responses[requestID] = new aPollResponse()
+                    responses[requestID] = new APollResponse()
                         {
                             bytes = (int) response["int_bytes"],
                             response = response
@@ -420,12 +423,20 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private static void DoTextureRequests()
         {
-            while (true)
+            APollRequest poolreq;
+            while (m_NumberScenes > 0)
             {
-                aPollRequest poolreq = m_queue.Dequeue(4500);
-                Watchdog.UpdateThread();
+                poolreq = null;
+                if(!m_queue.TryTake(out poolreq, 4500) || poolreq == null)
+                {
+                    Watchdog.UpdateThread();
+                    continue;
+                }
+
                 if(m_NumberScenes <= 0)
-                    return;
+                   break;
+          
+                Watchdog.UpdateThread();
                 if(poolreq.reqID != UUID.Zero)
                     poolreq.thepoll.Process(poolreq);
             }
@@ -442,7 +453,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 ThrottleBytes = pBytes;
                 lastTimeElapsed = Util.GetTimeStampMS();
             }
-            public bool hasEvents(UUID key, Dictionary<UUID, GetTextureModule.aPollResponse> responses)
+            public bool hasEvents(UUID key, Dictionary<UUID, GetTextureModule.APollResponse> responses)
             {
                 PassTime();
                 // Note, this is called IN LOCK
@@ -451,7 +462,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     return false;
                 }
-                GetTextureModule.aPollResponse response;
+                GetTextureModule.APollResponse response;
                 if (responses.TryGetValue(key, out response))
                 {
                     // This is any error response
