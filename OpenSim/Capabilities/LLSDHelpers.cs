@@ -54,6 +54,19 @@ namespace OpenSim.Framework.Capabilities
             return sw.ToString();
         }
 
+        public static string SerialiseLLSDReplyNoHeader(object obj)
+        {
+            StringWriter sw = new StringWriter();
+            XmlTextWriter writer = new XmlTextWriter(sw);
+            writer.Formatting = Formatting.None;
+            SerializeOSDType(writer, obj);
+            writer.Close();
+
+            //m_log.DebugFormat("[LLSD Helpers]: Generated serialized LLSD reply {0}", sw.ToString());
+
+            return sw.ToString();
+        }
+
         private static void SerializeOSDType(XmlTextWriter writer, object obj)
         {
             Type myType = obj.GetType();

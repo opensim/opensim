@@ -77,10 +77,7 @@ namespace OpenSim.Capabilities.Handlers
             }
 
             ArrayList foldersrequested = (ArrayList)hash["folders"];
-
-            StringBuilder tmpresponse = new StringBuilder(1024);
-            StringBuilder tmpbadfolders = new StringBuilder(1024);
-
+ 
             List<LLSDFetchInventoryDescendents> folders = new List<LLSDFetchInventoryDescendents>();
             for (int i = 0; i < foldersrequested.Count; i++)
             {
@@ -101,6 +98,8 @@ namespace OpenSim.Capabilities.Handlers
                 folders.Add(llsdRequest);
             }
 
+            StringBuilder lastresponse = new StringBuilder(1024);
+            lastresponse.Append("<llsd>");
             if (folders.Count > 0)
             {
                 List<UUID> bad_folders = new List<UUID>();
@@ -115,43 +114,39 @@ namespace OpenSim.Capabilities.Handlers
 #pragma warning restore 0612
                 }
 
-                string inventoryitemstr = string.Empty;
-                foreach (InventoryCollectionWithDescendents icoll in invcollSet)
+                if(invcollSet.Count > 0)
                 {
-                    LLSDInventoryFolderContents thiscontents = contentsToLLSD(icoll.Collection, icoll.Descendents);
-                    inventoryitemstr = LLSDHelpers.SerialiseLLSDReply(thiscontents);
-                    tmpresponse.Append(inventoryitemstr.Substring(6,inventoryitemstr.Length - 13));
+                    lastresponse.Append("<map><key>folders</key><array>");
+                    foreach (InventoryCollectionWithDescendents icoll in invcollSet)
+                    {
+                        LLSDInventoryFolderContents thiscontents = contentsToLLSD(icoll.Collection, icoll.Descendents);
+                        lastresponse.Append(LLSDHelpers.SerialiseLLSDReplyNoHeader(thiscontents));
+                    }
+                    lastresponse.Append("</array></map>");
                 }
+                else
+                    lastresponse.Append("<map><key>folders</key><array /></map>");
 
                 //m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Bad folders {0}", string.Join(", ", bad_folders));
-                foreach (UUID bad in bad_folders)
+                if(bad_folders.Count > 0)
                 {
-                    tmpbadfolders.Append("<map><key>folder_id</key><uuid>");
-                    tmpbadfolders.Append(bad.ToString());
-                    tmpbadfolders.Append("</uuid><key>error</key><string>Unknown</string></map>");
+                    lastresponse.Append("<map><key>bad_folders</key><array>");
+                    foreach (UUID bad in bad_folders)
+                    {
+                        lastresponse.Append("<map><key>folder_id</key><uuid>");
+                        lastresponse.Append(bad.ToString());
+                        lastresponse.Append("</uuid><key>error</key><string>Unknown</string></map>");
+                    }
+                    lastresponse.Append("</array></map>");
                 }
-            }
-
-            StringBuilder lastresponse = new StringBuilder(1024);
-            lastresponse.Append("<llsd>");
-            if(tmpresponse.Length > 0)
-            {
-                lastresponse.Append("<map><key>folders</key><array>");
-                lastresponse.Append(tmpresponse.ToString());
-                lastresponse.Append("</array></map>");
+                lastresponse.Append("</llsd>");
             }
             else
-                lastresponse.Append("<map><key>folders</key><array /></map>");
-
-            if(tmpbadfolders.Length > 0)
             {
-                lastresponse.Append("<map><key>bad_folders</key><array>");
-                lastresponse.Append(tmpbadfolders.ToString());
-                lastresponse.Append("</array></map>");
+                lastresponse.Append("<map><key>folders</key><array /></map></llsd>");
             }
-            lastresponse.Append("</llsd>");
 
-            return lastresponse.ToString();
+            return lastresponse.ToString();;
         }
 
         /// <summary>
