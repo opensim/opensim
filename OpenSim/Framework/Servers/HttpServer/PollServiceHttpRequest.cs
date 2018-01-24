@@ -130,27 +130,9 @@ namespace OpenSim.Framework.Servers.HttpServer
                 response.OutputStream.Flush();
                 response.Send();
             }
-//            catch (Exception e)
             catch
             {
             }
-        }
-    }
-
-    class PollServiceHttpRequestComparer : IEqualityComparer<PollServiceHttpRequest>
-    {
-        public bool Equals(PollServiceHttpRequest b1, PollServiceHttpRequest b2)
-        {
-            if (b1.contextHash != b2.contextHash)
-                return false;
-//            bool b = Object.ReferenceEquals(b1.HttpContext, b2.HttpContext);
-//            return b;
-            return true;
-        }
-
-        public int GetHashCode(PollServiceHttpRequest b2)
-        {
-            return (int)b2.contextHash;
         }
     }
 }
