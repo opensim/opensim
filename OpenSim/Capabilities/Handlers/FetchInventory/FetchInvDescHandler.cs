@@ -98,53 +98,51 @@ namespace OpenSim.Capabilities.Handlers
                 folders.Add(llsdRequest);
             }
 
+            if(folders.Count == 0)
+                return "<llsd><map><key>folders</key><array /></map></llsd>";
+
+            List<UUID> bad_folders = new List<UUID>();
+
+            List<InventoryCollectionWithDescendents> invcollSet = Fetch(folders, bad_folders);
+            //m_log.DebugFormat("[XXX]: Got {0} folders from a request of {1}", invcollSet.Count, folders.Count);
+
+            if (invcollSet == null)
+            {
+                m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Multiple folder fetch failed. Trying old protocol.");
+#pragma warning disable 0612
+                return FetchInventoryDescendentsRequest(foldersrequested, httpRequest, httpResponse);
+#pragma warning restore 0612
+            }
+
             StringBuilder lastresponse = new StringBuilder(1024);
             lastresponse.Append("<llsd>");
-            if (folders.Count > 0)
+
+            if(invcollSet.Count > 0)
             {
-                List<UUID> bad_folders = new List<UUID>();
-                List<InventoryCollectionWithDescendents> invcollSet = Fetch(folders, bad_folders);
-                //m_log.DebugFormat("[XXX]: Got {0} folders from a request of {1}", invcollSet.Count, folders.Count);
-
-                if (invcollSet == null)
+                lastresponse.Append("<map><key>folders</key><array>");
+                foreach (InventoryCollectionWithDescendents icoll in invcollSet)
                 {
-                    m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Multiple folder fetch failed. Trying old protocol.");
-#pragma warning disable 0612
-                    return FetchInventoryDescendentsRequest(foldersrequested, httpRequest, httpResponse);
-#pragma warning restore 0612
+                    LLSDInventoryFolderContents thiscontents = contentsToLLSD(icoll.Collection, icoll.Descendents);
+                    lastresponse.Append(LLSDHelpers.SerialiseLLSDReplyNoHeader(thiscontents));
                 }
-
-                if(invcollSet.Count > 0)
-                {
-                    lastresponse.Append("<map><key>folders</key><array>");
-                    foreach (InventoryCollectionWithDescendents icoll in invcollSet)
-                    {
-                        LLSDInventoryFolderContents thiscontents = contentsToLLSD(icoll.Collection, icoll.Descendents);
-                        lastresponse.Append(LLSDHelpers.SerialiseLLSDReplyNoHeader(thiscontents));
-                    }
-                    lastresponse.Append("</array></map>");
-                }
-                else
-                    lastresponse.Append("<map><key>folders</key><array /></map>");
-
-                //m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Bad folders {0}", string.Join(", ", bad_folders));
-                if(bad_folders.Count > 0)
-                {
-                    lastresponse.Append("<map><key>bad_folders</key><array>");
-                    foreach (UUID bad in bad_folders)
-                    {
-                        lastresponse.Append("<map><key>folder_id</key><uuid>");
-                        lastresponse.Append(bad.ToString());
-                        lastresponse.Append("</uuid><key>error</key><string>Unknown</string></map>");
-                    }
-                    lastresponse.Append("</array></map>");
-                }
-                lastresponse.Append("</llsd>");
+                lastresponse.Append("</array></map>");
             }
             else
+                lastresponse.Append("<map><key>folders</key><array /></map>");
+
+            //m_log.DebugFormat("[WEB FETCH INV DESC HANDLER]: Bad folders {0}", string.Join(", ", bad_folders));
+            if(bad_folders.Count > 0)
             {
-                lastresponse.Append("<map><key>folders</key><array /></map></llsd>");
+                lastresponse.Append("<map><key>bad_folders</key><array>");
+                foreach (UUID bad in bad_folders)
+                {
+                    lastresponse.Append("<map><key>folder_id</key><uuid>");
+                    lastresponse.Append(bad.ToString());
+                    lastresponse.Append("</uuid><key>error</key><string>Unknown</string></map>");
+                }
+                lastresponse.Append("</array></map>");
             }
+            lastresponse.Append("</llsd>");
 
             return lastresponse.ToString();;
         }
@@ -436,9 +434,6 @@ namespace OpenSim.Capabilities.Handlers
             // FIXME MAYBE: We're not handling sortOrder!
 
             List<InventoryCollectionWithDescendents> result = new List<InventoryCollectionWithDescendents>();
-            if(fetchFolders.Count <= 0)
-                return result;
-
             List<LLSDFetchInventoryDescendents> libFolders = new List<LLSDFetchInventoryDescendents>();
             List<LLSDFetchInventoryDescendents> otherFolders = new List<LLSDFetchInventoryDescendents>();
             HashSet<UUID> libIDs = new HashSet<UUID>();
@@ -452,10 +447,14 @@ namespace OpenSim.Capabilities.Handlers
             // Filter folder Zero right here. Some viewers (Firestorm) send request for folder Zero, which doesn't make sense
             // and can kill the sim (all root folders have parent_id Zero)
             // send something.
+            bool doneZeroID = false;
             foreach(LLSDFetchInventoryDescendents f in fetchFolders)
             {
                 if (f.folder_id == UUID.Zero)
                 {
+                    if(doneZeroID)
+                        continue;
+                    doneZeroID = true;
                     InventoryCollectionWithDescendents zeroColl = new InventoryCollectionWithDescendents();
                     zeroColl.Collection = new InventoryCollection();
                     zeroColl.Collection.OwnerID = f.owner_id;
@@ -479,17 +478,13 @@ namespace OpenSim.Capabilities.Handlers
                 otherFolders.Add(f);
             }
 
-
             if(otherFolders.Count > 0)
             { 
-                UUID[] fids = new UUID[otherFolders.Count];
                 int i = 0;
-                foreach (LLSDFetchInventoryDescendents f in otherFolders)
-                    fids[i++] = f.folder_id;
 
                 //m_log.DebugFormat("[XXX]: {0}", string.Join(",", fids));
 
-                InventoryCollection[] fetchedContents = m_InventoryService.GetMultipleFoldersContent(otherFolders[0].owner_id, fids);
+                InventoryCollection[] fetchedContents = m_InventoryService.GetMultipleFoldersContent(otherFolders[0].owner_id, otherIDs.ToArray());
 
                 if (fetchedContents == null)
                      return null;
@@ -532,34 +527,29 @@ namespace OpenSim.Capabilities.Handlers
 
         private bool BadFolder(LLSDFetchInventoryDescendents freq, InventoryCollection contents, List<UUID> bad_folders)
         {
-            bool bad = false;
             if (contents == null)
             {
                 bad_folders.Add(freq.folder_id);
-                bad = true;
+                return true;
             }
 
             // The inventory server isn't sending FolderID in the collection...
             // Must fetch it individually
-            else if (contents.FolderID == UUID.Zero)
+            if (contents.FolderID == UUID.Zero)
             {
                 InventoryFolderBase containingFolder = m_InventoryService.GetFolder(freq.owner_id, freq.folder_id);
-
-                if (containingFolder != null)
-                {
-                    contents.FolderID = containingFolder.ID;
-                    contents.OwnerID = containingFolder.Owner;
-                    contents.Version = containingFolder.Version;
-                }
-                else
+                if (containingFolder == null)
                 {
                     m_log.WarnFormat("[WEB FETCH INV DESC HANDLER]: Unable to fetch folder {0}", freq.folder_id);
                     bad_folders.Add(freq.folder_id);
-                    bad = true;
+                    return true;
                 }
+                contents.FolderID = containingFolder.ID;
+                contents.OwnerID = containingFolder.Owner;
+                contents.Version = containingFolder.Version;
             }
 
-            return bad;
+            return false;
         }
 
         private void ProcessLinks(LLSDFetchInventoryDescendents freq, InventoryCollectionWithDescendents coll)
