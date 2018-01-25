@@ -159,10 +159,39 @@ namespace OpenSim.Region.DataSnapshot
             if (!m_enabled)
                 return;
 
-            m_log.DebugFormat("[DATASNAPSHOT]: Module added to Scene {0}.", scene.RegionInfo.RegionName);
-
             m_scenes.Add(scene);
 
+            if (m_snapStore == null)
+            {
+                m_hostname = scene.RegionInfo.ExternalHostName;
+                m_snapStore = new SnapshotStore(m_snapsDir, m_gridinfo, m_listener_port, m_hostname);
+            }
+
+            m_snapStore.AddScene(scene);
+
+            Assembly currentasm = Assembly.GetExecutingAssembly();
+
+            foreach (Type pluginType in currentasm.GetTypes())
+            {
+                if (pluginType.IsPublic)
+                {
+                    if (!pluginType.IsAbstract)
+                    {
+                        if (pluginType.GetInterface("IDataSnapshotProvider") != null)
+                        {
+                            IDataSnapshotProvider module = (IDataSnapshotProvider)Activator.CreateInstance(pluginType);
+                            module.Initialize(scene, this);
+                            module.OnStale += MarkDataStale;
+
+                            m_dataproviders.Add(module);
+                            m_snapStore.AddProvider(module);
+
+                            m_log.Debug("[DATASNAPSHOT]: Added new data provider type: " + pluginType.Name);
+                        }
+                    }
+                }
+            }
+            m_log.DebugFormat("[DATASNAPSHOT]: Module added to Scene {0}.", scene.RegionInfo.RegionName);
         }
 
         public void RemoveRegion(Scene scene)
@@ -205,42 +234,11 @@ namespace OpenSim.Region.DataSnapshot
             if (!m_enabled)
                 return;
 
-            if (m_snapStore == null)
-            {
-                m_hostname = scene.RegionInfo.ExternalHostName;
-                m_snapStore = new SnapshotStore(m_snapsDir, m_gridinfo, m_listener_port, m_hostname);
-
-                //Hand it the first scene, assuming that all scenes have the same BaseHTTPServer
-                new DataRequestHandler(scene, this);
-            }
-
-            m_snapStore.AddScene(scene);
-
-            Assembly currentasm = Assembly.GetExecutingAssembly();
-
-            foreach (Type pluginType in currentasm.GetTypes())
-            {
-                if (pluginType.IsPublic)
-                {
-                    if (!pluginType.IsAbstract)
-                    {
-                        if (pluginType.GetInterface("IDataSnapshotProvider") != null)
-                        {
-                            IDataSnapshotProvider module = (IDataSnapshotProvider)Activator.CreateInstance(pluginType);
-                            module.Initialize(scene, this);
-                            module.OnStale += MarkDataStale;
-
-                            m_dataproviders.Add(module);
-                            m_snapStore.AddProvider(module);
-
-                            m_log.Debug("[DATASNAPSHOT]: Added new data provider type: " + pluginType.Name);
-                        }
-                    }
-                }
-            }
-
             if (!m_servicesNotified)
             {
+                //Hand it the first scene, assuming that all scenes have the same BaseHTTPServer
+                new DataRequestHandler(scene, this);
+
                 if (m_dataServices != "" && m_dataServices != "noservices")
                     NotifyDataServices(m_dataServices, "online");
 
