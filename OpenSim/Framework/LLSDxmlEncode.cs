@@ -48,9 +48,26 @@ namespace OpenSim.Framework
                 sb.Append("<llsd>");
         }
 
+        // got tired of creating a stringbuilder all the time;
+        public static StringBuilder Start(int size = 256, bool addxmlversion = false)
+        {
+            StringBuilder sb = new StringBuilder(size);
+            if(addxmlversion)
+                sb.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?><llsd>"); // legacy llsd xml name still valid
+            else
+                sb.Append("<llsd>");
+            return sb;
+        }
+
         public static void AddEnd(StringBuilder sb)
         {
             sb.Append("</llsd>");
+        }
+
+        public static string End(StringBuilder sb)
+        {
+            sb.Append("</llsd>");
+            return sb.ToString();
         }
 
         // map == a list of key value pairs
@@ -452,7 +469,6 @@ namespace OpenSim.Framework
         {
             int i;
             char c;
-            String t;
             int len = s.Length;
 
             for (i = 0; i < len; i++)

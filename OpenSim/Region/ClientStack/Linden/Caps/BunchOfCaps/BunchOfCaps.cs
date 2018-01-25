@@ -1378,8 +1378,8 @@ namespace OpenSim.Region.ClientStack.Linden
             OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
             OSDArray object_ids = (OSDArray)req["object_ids"];
 
-            StringBuilder lsl = new StringBuilder(256);
-            LLSDxmlEncode.AddStart(lsl);
+            StringBuilder lsl = LLSDxmlEncode.Start();
+            
             if(object_ids.Count == 0)
                 LLSDxmlEncode.AddEmpyMap(lsl);
             else
@@ -1405,8 +1405,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 LLSDxmlEncode.AddEndMap(lsl);
                 }
             }
-            LLSDxmlEncode.AddEnd(lsl);
-            return lsl.ToString();
+            
+            return LLSDxmlEncode.End(lsl);
         }
 
         public string GetObjectCost(string request, string path,
@@ -1416,8 +1416,8 @@ namespace OpenSim.Region.ClientStack.Linden
             OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
             OSDArray object_ids = (OSDArray)req["object_ids"];
 
-            StringBuilder lsl = new StringBuilder(512);
-            LLSDxmlEncode.AddStart(lsl);
+            StringBuilder lsl = LLSDxmlEncode.Start(512);
+            
             if(object_ids.Count == 0)
                 LLSDxmlEncode.AddEmpyMap(lsl);
             else
@@ -1466,8 +1466,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 LLSDxmlEncode.AddEndMap(lsl);
             }
                 
-            LLSDxmlEncode.AddEnd(lsl);
-            return lsl.ToString();
+            return LLSDxmlEncode.End(lsl);
         }
 
         public string ResourceCostSelected(string request, string path,
@@ -1475,8 +1474,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 IOSHttpResponse httpResponse)
         {
             OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
-            OSDMap resp = new OSDMap();
-
 
             float phys=0;
             float stream=0;
@@ -1527,16 +1524,21 @@ namespace OpenSim.Region.ClientStack.Linden
                 }
             }
 
-            OSDMap object_data = new OSDMap();
+            StringBuilder lsl = LLSDxmlEncode.Start();
+            LLSDxmlEncode.AddMap(lsl);
 
-            object_data["physics"] = phys;
-            object_data["streaming"] = stream;
-            object_data["simulation"] = simul;
+            LLSDxmlEncode.AddMap("selected", lsl);
 
-            resp["selected"] = object_data;
+            LLSDxmlEncode.AddElem("physics", phys, lsl);
+            LLSDxmlEncode.AddElem("streaming", stream, lsl);
+            LLSDxmlEncode.AddElem("simulation", simul, lsl);
+
+            LLSDxmlEncode.AddEndMap(lsl);
+            LLSDxmlEncode.AddEndMap(lsl);
+          
 //            resp["transaction_id"] = "undef";
-            string response = OSDParser.SerializeLLSDXmlString(resp);
-            return response;
+            return LLSDxmlEncode.End(lsl);
+
         }
 
         public string UpdateAgentInformation(string request, string path,
@@ -1839,13 +1841,17 @@ namespace OpenSim.Region.ClientStack.Linden
                 return "";
             }
 
+            // Full content request
+            httpResponse.StatusCode = (int)System.Net.HttpStatusCode.OK;
+            //httpResponse.ContentLength = ??;
+            httpResponse.ContentType = "application/llsd+xml";
+
             NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
             string[] ids = query.GetValues("ids");
 
             Dictionary<UUID,string> names = m_UserManager.GetUsersNames(ids);
 
-            StringBuilder lsl = new StringBuilder(names.Count * 256 + 256);
-            LLSDxmlEncode.AddStart(lsl);
+            StringBuilder lsl = LLSDxmlEncode.Start(names.Count * 256 + 256);
             LLSDxmlEncode.AddMap(lsl);
             if(names.Count == 0)
                 LLSDxmlEncode.AddEmpyArray("agents", lsl);
@@ -1881,14 +1887,7 @@ namespace OpenSim.Region.ClientStack.Linden
             }
         
             LLSDxmlEncode.AddEndMap(lsl);
-            LLSDxmlEncode.AddEnd(lsl);
-
-            // Full content request
-            httpResponse.StatusCode = (int)System.Net.HttpStatusCode.OK;
-            //httpResponse.ContentLength = ??;
-            httpResponse.ContentType = "application/llsd+xml";
-
-            return lsl.ToString();
+            return LLSDxmlEncode.End(lsl);;
         }
     }
 
