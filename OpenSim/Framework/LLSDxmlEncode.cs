@@ -40,7 +40,7 @@ namespace OpenSim.Framework
     {
         static readonly  DateTime depoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-        public static void AddStartHeader(StringBuilder sb, bool addxmlversion = false)
+        public static void AddStart(StringBuilder sb, bool addxmlversion = false)
         {
             if(addxmlversion)
                 sb.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?><llsd>"); // legacy llsd xml name still valid
@@ -48,13 +48,13 @@ namespace OpenSim.Framework
                 sb.Append("<llsd>");
         }
 
-        public static void AddEndHeader(StringBuilder sb)
+        public static void AddEnd(StringBuilder sb)
         {
             sb.Append("</llsd>");
         }
 
         // map == a list of key value pairs
-        public static void AddStartMap(StringBuilder sb)
+        public static void AddMap(StringBuilder sb)
         {
             sb.Append("<map>");
         }
@@ -70,7 +70,7 @@ namespace OpenSim.Framework
         }
 
         // array == a list values
-        public static void AddStartArray(StringBuilder sb)
+        public static void AddArray(StringBuilder sb)
         {
             sb.Append("<array>");
         }
@@ -97,6 +97,18 @@ namespace OpenSim.Framework
                 sb.Append("<boolean>1</boolean>");
             else
                 sb.Append("<boolean />");
+        }
+
+        public static void AddElem(byte e, StringBuilder sb)
+        {
+            if(e == 0)
+                sb.Append("<integer />");
+            else
+            {
+                sb.Append("<integer>");
+                sb.Append(e.ToString());     
+                sb.Append("</integer>");
+            }
         }
 
         public static void AddElem(int e, StringBuilder sb)
@@ -171,7 +183,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public static void AddURIElem(Uri e, StringBuilder sb)
+        public static void AddElem(Uri e, StringBuilder sb)
         {
             if(e == null)
             {
@@ -218,7 +230,7 @@ namespace OpenSim.Framework
 //************ key value *******************
 // assumes name is a valid llsd key
 
-        public static void AddStartMap(string name, StringBuilder sb)
+        public static void AddMap(string name, StringBuilder sb)
         {
             sb.Append("<key>");
             sb.Append(name);
@@ -233,7 +245,7 @@ namespace OpenSim.Framework
         }
 
         // array == a list values
-        public static void AddStartArray(string name, StringBuilder sb)
+        public static void AddArray(string name, StringBuilder sb)
         {
             sb.Append("<key>");
             sb.Append(name);
@@ -265,6 +277,22 @@ namespace OpenSim.Framework
                 sb.Append("<boolean>1</boolean>");
             else
                 sb.Append("<boolean />");
+        }
+
+        public static void AddElem(string name, byte e, StringBuilder sb)
+        {
+            sb.Append("<key>");
+            sb.Append(name);
+            sb.Append("</key>");
+
+            if(e == 0)
+                sb.Append("<integer />");
+            else
+            {
+                sb.Append("<integer>");
+                sb.Append(e.ToString());     
+                sb.Append("</integer>");
+            }
         }
 
         public static void AddElem(string name, int e, StringBuilder sb)
@@ -363,7 +391,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public static void AddURIElem(string name, Uri e, StringBuilder sb)
+        public static void AddElem(string name, Uri e, StringBuilder sb)
         {
             sb.Append("<key>");
             sb.Append(name);
