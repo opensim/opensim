@@ -178,7 +178,7 @@ namespace OpenSim.Region.CoreModules.Framework.Library
                 InventoryArchiveReadRequest archread = new InventoryArchiveReadRequest(m_MockScene.InventoryService, m_MockScene.AssetService, m_MockScene.UserAccountService, uinfo, simpleName, iarFileName, false);
                 try
                 {
-                    HashSet<InventoryNodeBase> nodes = archread.Execute();
+                    Dictionary<UUID, InventoryNodeBase> nodes = archread.Execute();
                     if (nodes != null && nodes.Count == 0)
                     {
                         // didn't find the subfolder with the given name; place it on the top
@@ -188,7 +188,7 @@ namespace OpenSim.Region.CoreModules.Framework.Library
                         archread.Execute();
                     }
 
-                    foreach (InventoryNodeBase node in nodes)
+                    foreach (InventoryNodeBase node in nodes.Values)
                         FixPerms(node);
                 }
                 catch (Exception e)

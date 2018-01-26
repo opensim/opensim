@@ -109,7 +109,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <summary>
         /// Inventory nodes loaded from the iar.
         /// </summary>
-        protected HashSet<InventoryNodeBase> m_loadedNodes = new HashSet<InventoryNodeBase>();
+        protected Dictionary<UUID, InventoryNodeBase> m_loadedNodes = new Dictionary<UUID, InventoryNodeBase>();
 
         /// <summary>
         /// In order to load identically named folders, we need to keep track of the folders that we have already
@@ -122,6 +122,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// after OSP resolution (since OSP creators are only stored in the item
         /// </summary>
         protected Dictionary<UUID, UUID> m_creatorIdForAssetId = new Dictionary<UUID, UUID>();
+        protected Dictionary<UUID, UUID> m_itemIDs = new Dictionary<UUID, UUID>();
+        protected List<InventoryItemBase> m_invLinks = new List<InventoryItemBase>();
+        protected Dictionary<UUID, InventoryNodeBase> m_invLinksFolders = new Dictionary<UUID, InventoryNodeBase>();
 
         public InventoryArchiveReadRequest(
             IInventoryService inv, IAssetService assets, IUserAccountService uacc, UserAccount userInfo, string invPath, string loadPath, bool merge)
@@ -181,7 +184,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// returned
         /// </returns>
         /// <exception cref="System.Exception">Thrown if load fails.</exception>
-        public HashSet<InventoryNodeBase> Execute()
+        public Dictionary<UUID,InventoryNodeBase> Execute()
         {
             try
             {
@@ -223,6 +226,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 }
 
                 archive.Close();
+                LoadInventoryLinks();
 
                 m_log.DebugFormat(
                     "[INVENTORY ARCHIVER]: Successfully loaded {0} assets with {1} failures",
@@ -271,7 +275,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             string iarPath,
             InventoryFolderBase rootDestFolder,
             Dictionary <string, InventoryFolderBase> resolvedFolders,
-            HashSet<InventoryNodeBase> loadedNodes)
+            Dictionary<UUID, InventoryNodeBase> loadedNodes)
         {
             string iarPathExisting = iarPath;
 
@@ -392,7 +396,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             string iarPathExisting,
             string iarPathToReplicate,
             Dictionary <string, InventoryFolderBase> resolvedFolders,
-            HashSet<InventoryNodeBase> loadedNodes)
+            Dictionary<UUID, InventoryNodeBase> loadedNodes)
         {
             string[] rawDirsToCreate = iarPathToReplicate.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -424,7 +428,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 resolvedFolders[iarPathExisting] = destFolder;
 
                 if (0 == i)
-                    loadedNodes.Add(destFolder);
+                    loadedNodes[destFolder.ID] = destFolder;
             }
         }
 
@@ -439,8 +443,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             InventoryItemBase item = UserInventoryItemSerializer.Deserialize(data);
 
+            UUID oldID = item.ID;
             // Don't use the item ID that's in the file
             item.ID = UUID.Random();
+            m_itemIDs[oldID] = item.ID;
 
             UUID ospResolvedId = OspResolver.ResolveOspa(item.CreatorId, m_UserAccountService);
             if (UUID.Zero != ospResolvedId) // The user exists in this grid
@@ -457,7 +463,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             else if (string.IsNullOrEmpty(item.CreatorData))
             {
                 item.CreatorId = m_userInfo.PrincipalID.ToString();
-//                item.CreatorIdAsUuid = new UUID(item.CreatorId);
             }
 
             item.Owner = m_userInfo.PrincipalID;
@@ -470,10 +475,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             // FIXME: This relies on the items coming before the assets in the TAR file.  Need to create stronger
             // checks for this, and maybe even an external tool for creating OARs which enforces this, rather than
             // relying on native tar tools.
-            m_creatorIdForAssetId[item.AssetID] = item.CreatorIdAsUuid;
-
-            if (!m_InventoryService.AddItem(item))
-                m_log.WarnFormat("[INVENTORY ARCHIVER]: Unable to save item {0} in folder {1}", item.Name, item.Folder);
+            if(item.AssetType == (int)AssetType.Link)
+            {
+                m_invLinks.Add(item);
+                if(!m_loadedNodes.ContainsKey(item.Folder) && !m_invLinksFolders.ContainsKey(item.Folder))
+                    m_invLinksFolders[item.Folder] = loadFolder;
+                return null;
+            }
+            else
+            {
+                m_creatorIdForAssetId[item.AssetID] = item.CreatorIdAsUuid;
+                if (!m_InventoryService.AddItem(item))
+                    m_log.WarnFormat("[INVENTORY ARCHIVER]: Unable to save item {0} in folder {1}", item.Name, item.Folder);
+            }
 
             return item;
         }
@@ -504,56 +518,57 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             string rawUuid = filename.Remove(filename.Length - extension.Length);
             UUID assetId = new UUID(rawUuid);
 
-            if (ArchiveConstants.EXTENSION_TO_ASSET_TYPE.ContainsKey(extension))
-            {
-                sbyte assetType = ArchiveConstants.EXTENSION_TO_ASSET_TYPE[extension];
-
-                if (assetType == (sbyte)AssetType.Unknown)
-                {
-                    m_log.WarnFormat("[INVENTORY ARCHIVER]: Importing {0} byte asset {1} with unknown type", data.Length, assetId);
-                }
-                else if (assetType == (sbyte)AssetType.Object)
-                {
-                    if (m_creatorIdForAssetId.ContainsKey(assetId))
-                    {
-                        data = SceneObjectSerializer.ModifySerializedObject(assetId, data,
-                            sog => {
-                                bool modified = false;
-
-                                foreach (SceneObjectPart sop in sog.Parts)
-                                {
-                                    if (string.IsNullOrEmpty(sop.CreatorData))
-                                    {
-                                        sop.CreatorID = m_creatorIdForAssetId[assetId];
-                                        modified = true;
-                                    }
-                                }
-
-                                return modified;
-                            });
-
-                        if (data == null)
-                            return false;
-                    }
-                }
-
-                //m_log.DebugFormat("[INVENTORY ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
-
-                AssetBase asset = new AssetBase(assetId, "From IAR", assetType, UUID.Zero.ToString());
-                asset.Data = data;
-
-                m_AssetService.Store(asset);
-
-                return true;
-            }
-            else
+            if (!ArchiveConstants.EXTENSION_TO_ASSET_TYPE.ContainsKey(extension))
             {
                 m_log.ErrorFormat(
                    "[INVENTORY ARCHIVER]: Tried to dearchive data with path {0} with an unknown type extension {1}",
                     assetPath, extension);
-
                 return false;
             }
+
+            sbyte assetType = ArchiveConstants.EXTENSION_TO_ASSET_TYPE[extension];
+            if (assetType == (sbyte)AssetType.Unknown)
+            {
+                m_log.WarnFormat("[INVENTORY ARCHIVER]: Importing {0} byte asset {1} with unknown type", data.Length, assetId);
+                return false;
+            }
+
+            if(assetType == (sbyte)AssetType.Object)
+            {
+                UUID owner = m_userInfo.PrincipalID;
+                bool doCreatorID = m_creatorIdForAssetId.ContainsKey(assetId);
+
+                data = SceneObjectSerializer.ModifySerializedObject(assetId, data,
+                    sog =>
+                    {
+                        foreach(SceneObjectPart sop in sog.Parts)
+                        {
+                            sop.OwnerID = owner;
+                            if(doCreatorID && string.IsNullOrEmpty(sop.CreatorData))
+                                sop.CreatorID = m_creatorIdForAssetId[assetId];
+
+                            foreach(TaskInventoryItem it in sop.Inventory.GetInventoryItems())
+                            {
+                                it.OwnerID = owner;
+                                if(string.IsNullOrEmpty(it.CreatorData) && m_creatorIdForAssetId.ContainsKey(it.AssetID))
+                                    it.CreatorID = m_creatorIdForAssetId[it.AssetID];
+                            }
+                        }
+                        return true;
+                    });
+
+                if(data == null)
+                    return false;
+            }
+
+            //m_log.DebugFormat("[INVENTORY ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
+
+            AssetBase asset = new AssetBase(assetId, "From IAR", assetType, UUID.Zero.ToString());
+            asset.Data = data;
+
+            m_AssetService.Store(asset);
+
+            return true;
         }
 
         /// <summary>
@@ -621,14 +636,38 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                     // If we aren't loading the folder containing the item then well need to update the
                     // viewer separately for that item.
-                    if (!m_loadedNodes.Contains(foundFolder))
-                        m_loadedNodes.Add(item);
+                    if (!m_loadedNodes.ContainsKey(foundFolder.ID))
+                        m_loadedNodes[foundFolder.ID] = item;
                 }
             }
 
             m_inventoryNodesLoaded = true;
         }
 
+        private void LoadInventoryLinks()
+        {
+            foreach(InventoryItemBase it in m_invLinks)
+            {
+                UUID target = it.AssetID;
+                if(m_itemIDs.ContainsKey(target))
+                {
+                    it.AssetID = m_itemIDs[target];
+                    if(!m_InventoryService.AddItem(it))
+                        m_log.WarnFormat("[INVENTORY ARCHIVER]: Unable to save item {0} in folder {1}",it.Name,it.Folder);
+                    else
+                    {
+                        m_successfulItemRestores++;
+                        UUID fid = it.Folder;
+                        if (!m_loadedNodes.ContainsKey(fid) && m_invLinksFolders.ContainsKey(fid))
+                            m_loadedNodes[fid] = m_invLinksFolders[fid];
+                    }
+                }
+            }
+
+            m_itemIDs.Clear();
+            m_invLinks.Clear();
+            m_invLinksFolders.Clear();
+        }
         /// <summary>
         /// Load asset file
         /// </summary>
