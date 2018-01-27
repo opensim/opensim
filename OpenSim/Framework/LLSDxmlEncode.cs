@@ -128,6 +128,18 @@ namespace OpenSim.Framework
             }
         }
 
+        public static void AddElem(byte[] e, StringBuilder sb)
+        {
+            if(e == null || e.Length == 0)
+                sb.Append("binary />");
+            else
+            {
+                sb.Append("<binary>"); // encode64 is default
+                sb.Append(Convert.ToBase64String(e,Base64FormattingOptions.None));     
+                sb.Append("</binary>");
+            }
+        }
+
         public static void AddElem(int e, StringBuilder sb)
         {
             if(e == 0)
@@ -149,6 +161,101 @@ namespace OpenSim.Framework
                 sb.Append("<real>");
                 sb.Append(e.ToString(CultureInfo.InvariantCulture));     
                 sb.Append("</real>");
+            }
+        }
+
+        public static void AddElem(Vector2 e, StringBuilder sb)
+        {
+            sb.Append("<map><key>x</key>");
+
+            if(e.X == 0)
+                sb.Append("<real /><key>y</key>");
+            else
+            {
+                sb.Append("<real>");
+                sb.Append(e.X.ToString(CultureInfo.InvariantCulture));     
+                sb.Append("</real><key>y</key>");
+            }
+
+            if(e.Y == 0)
+                sb.Append("<real /></map>");
+            else
+            {
+                sb.Append("<real>");
+                sb.Append(e.Y.ToString(CultureInfo.InvariantCulture));
+                sb.Append("</real></map>");
+            }
+        }
+
+        public static void AddElem(Vector3 e, StringBuilder sb)
+        {
+            sb.Append("<map>key>x</key>");
+
+            if(e.X == 0)
+                sb.Append("<real /><key>y</key>");
+            else
+            {
+                sb.Append("<real>");
+                sb.Append(e.X.ToString(CultureInfo.InvariantCulture));     
+                sb.Append("</real><key>y</key>");
+            }
+
+            if(e.Y == 0)
+                sb.Append("<real /><key>z</key>");
+            else
+            {
+                sb.Append("<real>");
+                sb.Append(e.Y.ToString(CultureInfo.InvariantCulture));
+                sb.Append("</real><key>z</key>");
+            }
+
+            if(e.Z == 0)
+                sb.Append("<real /></map>");
+            else
+            {
+                sb.Append("<real>");
+                sb.Append(e.Z.ToString(CultureInfo.InvariantCulture));
+                sb.Append("</real></map>");
+            }
+        }
+
+        public static void AddElem(Quaternion e, StringBuilder sb)
+        {
+            sb.Append("<map><key>x</key>");
+
+            if(e.X == 0)
+                sb.Append("<real /><key>y</key>");
+            else
+            {
+                sb.Append("<real>");
+                sb.Append(e.X.ToString(CultureInfo.InvariantCulture));     
+                sb.Append("</real><key>y</key>");
+            }
+
+            if(e.Y == 0)
+                sb.Append("<real /><key>z</key>");
+            else
+            {
+                sb.Append("<real>");
+                sb.Append(e.Y.ToString(CultureInfo.InvariantCulture));
+                sb.Append("</real><key>z</key>");
+            }
+            if(e.Z == 0)
+                sb.Append("<real /><key>w</key>");
+            else
+            {
+                sb.Append("<real>");
+                sb.Append(e.Z.ToString(CultureInfo.InvariantCulture));
+                sb.Append("</real><key>w</key>");
+            }
+
+            if(e.W == 0)
+                sb.Append("<real /></map>");
+            else
+            {
+                sb.Append("<real>");
+                sb.Append(e.W.ToString(CultureInfo.InvariantCulture));
+                sb.Append("</real></map>");
             }
         }
 
@@ -312,6 +419,22 @@ namespace OpenSim.Framework
             }
         }
 
+        public static void AddElem(string name, byte[] e, StringBuilder sb)
+        {
+            sb.Append("<key>");
+            sb.Append(name);
+            sb.Append("</key>");
+
+            if(e == null || e.Length == 0)
+                sb.Append("binary />");
+            else
+            {
+                sb.Append("<binary>"); // encode64 is default
+                sb.Append(Convert.ToBase64String(e,Base64FormattingOptions.None));     
+                sb.Append("</binary>");
+            }
+        }
+
         public static void AddElem(string name, int e, StringBuilder sb)
         {
             sb.Append("<key>");
@@ -341,6 +464,107 @@ namespace OpenSim.Framework
                 sb.Append("<real>");
                 sb.Append(e.ToString(CultureInfo.InvariantCulture));     
                 sb.Append("</real>");
+            }
+        }
+
+        public static void AddElem(string name, Vector2 e, StringBuilder sb)
+        {
+            sb.Append("<key>");
+            sb.Append(name);
+            sb.Append("</key><map><key>x</key>");
+
+            if(e.X == 0)
+                sb.Append("<real /><key>y</key>");
+            else
+            {
+                sb.Append("<real>");
+                sb.Append(e.X.ToString(CultureInfo.InvariantCulture));     
+                sb.Append("</real><key>y</key>");
+            }
+
+            if(e.Y == 0)
+                sb.Append("<real /></map>");
+            else
+            {
+                sb.Append("<real>");
+                sb.Append(e.Y.ToString(CultureInfo.InvariantCulture));
+                sb.Append("</real></map>");
+            }
+        }
+
+        public static void AddElem(string name, Vector3 e, StringBuilder sb)
+        {
+            sb.Append("<key>");
+            sb.Append(name);
+            sb.Append("</key><map>key>x</key>");
+
+            if(e.X == 0)
+                sb.Append("<real /><key>y</key>");
+            else
+            {
+                sb.Append("<real>");
+                sb.Append(e.X.ToString(CultureInfo.InvariantCulture));     
+                sb.Append("</real><key>y</key>");
+            }
+
+            if(e.Y == 0)
+                sb.Append("<real /><key>z</key>");
+            else
+            {
+                sb.Append("<real>");
+                sb.Append(e.Y.ToString(CultureInfo.InvariantCulture));
+                sb.Append("</real><key>z</key>");
+            }
+
+            if(e.Z == 0)
+                sb.Append("<real /></map>");
+            else
+            {
+                sb.Append("<real>");
+                sb.Append(e.Z.ToString(CultureInfo.InvariantCulture));
+                sb.Append("</real></map>");
+            }
+        }
+
+        public static void AddElem(string name, Quaternion e, StringBuilder sb)
+        {
+            sb.Append("<key>");
+            sb.Append(name);
+            sb.Append("</key><map><key>x</key>");
+
+            if(e.X == 0)
+                sb.Append("<real /><key>y</key>");
+            else
+            {
+                sb.Append("<real>");
+                sb.Append(e.X.ToString(CultureInfo.InvariantCulture));     
+                sb.Append("</real><key>y</key>");
+            }
+
+            if(e.Y == 0)
+                sb.Append("<real /><key>z</key>");
+            else
+            {
+                sb.Append("<real>");
+                sb.Append(e.Y.ToString(CultureInfo.InvariantCulture));
+                sb.Append("</real><key>z</key>");
+            }
+            if(e.Z == 0)
+                sb.Append("<real /><key>w</key>");
+            else
+            {
+                sb.Append("<real>");
+                sb.Append(e.Z.ToString(CultureInfo.InvariantCulture));
+                sb.Append("</real><key>w</key>");
+            }
+
+            if(e.W == 0)
+                sb.Append("<real /></map>");
+            else
+            {
+                sb.Append("<real>");
+                sb.Append(e.W.ToString(CultureInfo.InvariantCulture));
+                sb.Append("</real></map>");
             }
         }
 

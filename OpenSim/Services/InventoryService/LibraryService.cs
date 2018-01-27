@@ -304,7 +304,6 @@ namespace OpenSim.Services.InventoryService
         public InventoryItemBase[] GetMultipleItems(UUID[] ids)
         {
             List<InventoryItemBase> items = new List<InventoryItemBase>();
-            int i = 0;
             foreach (UUID id in ids)
             {
                 if(m_items.ContainsKey(id))
