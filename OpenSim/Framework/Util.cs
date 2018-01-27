@@ -92,6 +92,7 @@ namespace OpenSim.Framework
         // explicitly given
         All = 0x8e000,
         AllAndExport = 0x9e000,
+        AllAndExportNoMod = 0x9a000,
         AllEffective = 0x9e000,
         UnfoldedMask = 0x1e000
     }
