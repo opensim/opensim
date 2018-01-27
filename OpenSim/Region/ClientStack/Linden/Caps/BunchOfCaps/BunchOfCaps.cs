@@ -1381,7 +1381,7 @@ namespace OpenSim.Region.ClientStack.Linden
             StringBuilder lsl = LLSDxmlEncode.Start();
             
             if(object_ids.Count == 0)
-                LLSDxmlEncode.AddEmpyMap(lsl);
+                LLSDxmlEncode.AddEmptyMap(lsl);
             else
             {
                 LLSDxmlEncode.AddMap(lsl);
@@ -1419,7 +1419,7 @@ namespace OpenSim.Region.ClientStack.Linden
             StringBuilder lsl = LLSDxmlEncode.Start(512);
             
             if(object_ids.Count == 0)
-                LLSDxmlEncode.AddEmpyMap(lsl);
+                LLSDxmlEncode.AddEmptyMap(lsl);
             else
             {
                 bool haveone = false;
@@ -1854,7 +1854,7 @@ namespace OpenSim.Region.ClientStack.Linden
             StringBuilder lsl = LLSDxmlEncode.Start(names.Count * 256 + 256);
             LLSDxmlEncode.AddMap(lsl);
             if(names.Count == 0)
-                LLSDxmlEncode.AddEmpyArray("agents", lsl);
+                LLSDxmlEncode.AddEmptyArray("agents", lsl);
             else
             {
                 LLSDxmlEncode.AddArray("agents", lsl);

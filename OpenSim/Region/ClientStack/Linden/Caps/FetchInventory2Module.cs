@@ -51,8 +51,9 @@ namespace OpenSim.Region.ClientStack.Linden
         private Scene m_scene;
 
         private IInventoryService m_inventoryService;
-
+        private ILibraryService m_LibraryService;
         private string m_fetchInventory2Url;
+        private string m_fetchLib2Url;
 
         #region ISharedRegionModule Members
 
@@ -63,6 +64,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
 
             m_fetchInventory2Url = config.GetString("Cap_FetchInventory2", string.Empty);
+            m_fetchLib2Url = config.GetString("Cap_FetchLib2", "localhost");
 
             if (m_fetchInventory2Url != string.Empty)
                 Enabled = true;
@@ -91,7 +93,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
 
             m_inventoryService = m_scene.InventoryService;
-
+            m_LibraryService = m_scene.LibraryService;
             m_scene.EventManager.OnRegisterCaps += RegisterCaps;
         }
 
@@ -111,6 +113,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private void RegisterCaps(UUID agentID, Caps caps)
         {
             RegisterFetchCap(agentID, caps, "FetchInventory2", m_fetchInventory2Url);
+            RegisterFetchLibCap(agentID, caps, "FetchLib2", m_fetchLib2Url);
         }
 
         private void RegisterFetchCap(UUID agentID, Caps caps, string capName, string url)
@@ -126,6 +129,34 @@ namespace OpenSim.Region.ClientStack.Linden
                 IRequestHandler reqHandler
                     = new RestStreamHandler(
                         "POST", capUrl, fetchHandler.FetchInventoryRequest, capName, agentID.ToString());
+
+                caps.RegisterHandler(capName, reqHandler);
+            }
+            else
+            {
+                capUrl = url;
+
+                caps.RegisterHandler(capName, capUrl);
+            }
+
+//            m_log.DebugFormat(
+//                "[FETCH INVENTORY2 MODULE]: Registered capability {0} at {1} in region {2} for {3}",
+//                capName, capUrl, m_scene.RegionInfo.RegionName, agentID);
+        }
+
+        private void RegisterFetchLibCap(UUID agentID, Caps caps, string capName, string url)
+        {
+            string capUrl;
+
+            if (url == "localhost")
+            {
+                capUrl = "/CAPS/" + UUID.Random();
+
+                FetchLib2Handler fetchHandler = new FetchLib2Handler(m_inventoryService, m_LibraryService, agentID);
+
+                IRequestHandler reqHandler
+                    = new RestStreamHandler(
+                        "POST", capUrl, fetchHandler.FetchLibRequest, capName, agentID.ToString());
 
                 caps.RegisterHandler(capName, reqHandler);
             }

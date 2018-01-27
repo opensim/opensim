@@ -50,25 +50,35 @@ namespace OpenSim.Services.InventoryService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private InventoryFolderImpl m_LibraryRootFolder;
+        static private InventoryFolderImpl m_LibraryRootFolder;
 
         public InventoryFolderImpl LibraryRootFolder
         {
             get { return m_LibraryRootFolder; }
         }
 
-        private UUID libOwner = new UUID("11111111-1111-0000-0000-000100bba000");
+        static private UUID libOwner = new UUID("11111111-1111-0000-0000-000100bba000");
 
         /// <summary>
         /// Holds the root library folder and all its descendents.  This is really only used during inventory
         /// setup so that we don't have to repeatedly search the tree of library folders.
         /// </summary>
-        protected Dictionary<UUID, InventoryFolderImpl> libraryFolders
-            = new Dictionary<UUID, InventoryFolderImpl>();
+        static protected Dictionary<UUID, InventoryFolderImpl> libraryFolders
+            = new Dictionary<UUID, InventoryFolderImpl>(32);
 
-        public LibraryService(IConfigSource config)
-            : base(config)
+        static protected Dictionary<UUID, InventoryItemBase> m_items = new Dictionary<UUID, InventoryItemBase>(256);
+        static LibraryService m_root;
+        static object m_rootLock = new object();
+
+        public LibraryService(IConfigSource config):base(config)
         {
+            lock(m_rootLock)
+            {
+                if(m_root != null)
+                    return;
+                m_root = this;
+            }
+
             string pLibrariesLocation = Path.Combine("inventory", "Libraries.xml");
             string pLibName = "OpenSim Library";
 
@@ -187,7 +197,8 @@ namespace OpenSim.Services.InventoryService
             InventoryItemBase item = new InventoryItemBase();
             item.Owner = libOwner;
             item.CreatorId = libOwner.ToString();
-            item.ID = new UUID(config.GetString("inventoryID", m_LibraryRootFolder.ID.ToString()));
+            UUID itID = new UUID(config.GetString("inventoryID", m_LibraryRootFolder.ID.ToString()));
+            item.ID = itID; 
             item.AssetID = new UUID(config.GetString("assetID", item.ID.ToString()));
             item.Folder = new UUID(config.GetString("folderID", m_LibraryRootFolder.ID.ToString()));
             item.Name = config.GetString("name", String.Empty);
@@ -204,11 +215,12 @@ namespace OpenSim.Services.InventoryService
             if (libraryFolders.ContainsKey(item.Folder))
             {
                 InventoryFolderImpl parentFolder = libraryFolders[item.Folder];
-                try
+                if(!parentFolder.Items.ContainsKey(itID))
                 {
-                    parentFolder.Items.Add(item.ID, item);
+                    parentFolder.Items.Add(itID, item);
+                    m_items[itID] = item;
                 }
-                catch (Exception)
+                else
                 {
                     m_log.WarnFormat("[LIBRARY INVENTORY] Item {1} [{0}] not added, duplicate item", item.ID, item.Name);
                 }
@@ -280,6 +292,28 @@ namespace OpenSim.Services.InventoryService
 
             folders.AddRange(subs);
             return folders;
+        }
+
+        public InventoryItemBase GetItem(UUID itemID)
+        {
+            if(m_items.ContainsKey(itemID))
+                return m_items[itemID];
+            return null;
+        }
+
+        public InventoryItemBase[] GetMultipleItems(UUID[] ids)
+        {
+            List<InventoryItemBase> items = new List<InventoryItemBase>();
+            int i = 0;
+            foreach (UUID id in ids)
+            {
+                if(m_items.ContainsKey(id))
+                    items.Add(m_items[id]);
+            }
+
+            if(items.Count == 0)
+                return null;
+            return items.ToArray();
         }
     }
 }

@@ -81,7 +81,7 @@ namespace OpenSim.Framework
             sb.Append("</map>");
         }
 
-        public static void AddEmpyMap(StringBuilder sb)
+        public static void AddEmptyMap(StringBuilder sb)
         {
             sb.Append("<map />");
         }
@@ -97,7 +97,7 @@ namespace OpenSim.Framework
             sb.Append("</array>");
         }
 
-        public static void AddEmpyArray(StringBuilder sb)
+        public static void AddEmptyArray(StringBuilder sb)
         {
             sb.Append("<array />");
         }
@@ -254,7 +254,7 @@ namespace OpenSim.Framework
             sb.Append("</key><map>");
         }
 
-        public static void AddEmpyMap(string name, StringBuilder sb)
+        public static void AddEmptyMap(string name, StringBuilder sb)
         {
             sb.Append("<key>");
             sb.Append(name);
@@ -269,7 +269,7 @@ namespace OpenSim.Framework
             sb.Append("</key><array>");
         }
 
-        public static void AddEmpyArray(string name, StringBuilder sb)
+        public static void AddEmptyArray(string name, StringBuilder sb)
         {
             sb.Append("<key>");
             sb.Append(name);

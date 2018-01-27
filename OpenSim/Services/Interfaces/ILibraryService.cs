@@ -38,6 +38,7 @@ namespace OpenSim.Services.Interfaces
         InventoryFolderImpl LibraryRootFolder { get; }
 
         Dictionary<UUID, InventoryFolderImpl> GetAllFolders();
+        InventoryItemBase GetItem(UUID itemID);
+        InventoryItemBase[] GetMultipleItems(UUID[] itemIDs);
     }
-
 }
