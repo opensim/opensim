@@ -364,7 +364,6 @@ namespace OpenSim.Region.ClientStack.Linden
                     response["str_response_string"] = "Script timeout";
                     response["content_type"] = "text/plain";
                     response["keepalive"] = false;
-                    response["reusecontext"] = false;
 
                     return response;
                 };
@@ -394,8 +393,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 response["int_response_code"] = 200;
                 response["content_type"] = "text/plain";
-                response["keepalive"] = false;
-                response["reusecontext"] = false;
 
                 response["str_response_string"] = m_webFetchHandler.FetchInventoryDescendentsRequest(
                         requestinfo.request["body"].ToString(), String.Empty, String.Empty, null, null);

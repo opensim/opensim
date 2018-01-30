@@ -333,7 +333,6 @@ namespace OpenSim.Region.ClientStack.Linden
                         response["str_response_string"] = "Script timeout";
                         response["content_type"] = "text/plain";
                         response["keepalive"] = false;
-                        response["reusecontext"] = false;
 
                         responses[requestID] = new APollResponse() {bytes = 0, response = response};
 

@@ -687,7 +687,6 @@ namespace OpenSim.Framework.Console
             result["int_response_code"] = 200;
             result["content_type"] = "application/xml";
             result["keepalive"] = false;
-            result["reusecontext"] = false;
             result = CheckOrigin(result);
 
             return result;
