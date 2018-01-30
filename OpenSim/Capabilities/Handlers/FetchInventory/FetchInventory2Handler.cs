@@ -90,7 +90,7 @@ namespace OpenSim.Capabilities.Handlers
                     items[i++] = m_inventoryService.GetItem(UUID.Zero, id);
             }
 
-            StringBuilder lsl = LLSDxmlEncode.Start(2048);
+            StringBuilder lsl = LLSDxmlEncode.Start(4096);
             LLSDxmlEncode.AddMap(lsl);
 
             if(m_agentID == UUID.Zero && items.Length > 0)
@@ -100,49 +100,15 @@ namespace OpenSim.Capabilities.Handlers
 
             if(items == null || items.Length == 0)
             {
-                LLSDxmlEncode.AddEmptyArray("items",lsl);
+                LLSDxmlEncode.AddEmptyArray("items", lsl);
             }
             else
             {
-                LLSDxmlEncode.AddArray("items",lsl);
+                LLSDxmlEncode.AddArray("items", lsl);
                 foreach (InventoryItemBase item in items)
                 {
                     if (item != null)
-                    {
-                        // this is as FecthLib, possible to move to a shared location later
-                        LLSDxmlEncode.AddMap(lsl);
-                            LLSDxmlEncode.AddElem("parent_id", item.Folder, lsl);
-                            LLSDxmlEncode.AddElem("asset_id", item.AssetID, lsl);
-                            LLSDxmlEncode.AddElem("item_id", item.ID, lsl);
-
-                            LLSDxmlEncode.AddMap("permissions",lsl);
-                                LLSDxmlEncode.AddElem("creator_id", item.CreatorIdAsUuid, lsl);
-                                LLSDxmlEncode.AddElem("owner_id", item.Owner, lsl);
-                                LLSDxmlEncode.AddElem("group_id", item.GroupID, lsl);
-                                LLSDxmlEncode.AddElem("base_mask", (int)item.CurrentPermissions, lsl);
-                                LLSDxmlEncode.AddElem("owner_mask", (int)item.CurrentPermissions, lsl);
-                                LLSDxmlEncode.AddElem("group_mask", (int)item.GroupPermissions, lsl);
-                                LLSDxmlEncode.AddElem("everyone_mask", (int)item.EveryOnePermissions, lsl);
-                                LLSDxmlEncode.AddElem("next_owner_mask", (int)item.NextPermissions, lsl);
-                                LLSDxmlEncode.AddElem("is_owner_group", item.GroupOwned, lsl);               
-                            LLSDxmlEncode.AddEndMap(lsl);
-
-                            LLSDxmlEncode.AddElem("type", item.AssetType, lsl);               
-                            LLSDxmlEncode.AddElem("inv_type", item.InvType, lsl);               
-                            LLSDxmlEncode.AddElem("flags", ((int)item.Flags) & 0xff, lsl);               
-                            LLSDxmlEncode.AddElem("flags", ((int)item.Flags) & 0xff, lsl);               
-
-                            LLSDxmlEncode.AddMap("sale_info",lsl);
-                                LLSDxmlEncode.AddElem("sale_price", item.SalePrice, lsl);               
-                                LLSDxmlEncode.AddElem("sale_type", item.SaleType, lsl);               
-                            LLSDxmlEncode.AddEndMap(lsl);
-
-                            LLSDxmlEncode.AddElem("name", item.Name, lsl);               
-                            LLSDxmlEncode.AddElem("desc", item.Description, lsl);               
-                            LLSDxmlEncode.AddElem("created_at", item.CreationDate, lsl);               
-
-                        LLSDxmlEncode.AddEndMap(lsl);
-                    }
+                        item.ToLLSDxml(lsl);
                 }
                 LLSDxmlEncode.AddEndArray(lsl);
             }            

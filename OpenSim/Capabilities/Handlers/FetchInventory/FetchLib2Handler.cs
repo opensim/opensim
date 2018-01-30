@@ -50,7 +50,6 @@ namespace OpenSim.Capabilities.Handlers
         private UUID libOwner;
 
         public FetchLib2Handler(IInventoryService invService, ILibraryService libraryService, UUID agentId)
-
         {
             m_inventoryService = invService;
             m_agentID = agentId;
@@ -63,14 +62,11 @@ namespace OpenSim.Capabilities.Handlers
         {
             //m_log.DebugFormat("[FETCH INVENTORY HANDLER]: Received FetchInventory capability request {0}", request);
 
-            if (m_LibraryService == null)
+            if (m_LibraryService == null || m_agentID == UUID.Zero)
                 return "<llsd><map><key><agent_id></key><uuid /><key>items</key><array /></map></llsd>";
 
             OSDMap requestmap = (OSDMap)OSDParser.DeserializeLLSDXml(Utils.StringToBytes(request));
             OSDArray itemsRequested = (OSDArray)requestmap["items"];
-
-            if (m_agentID == UUID.Zero)
-                return "<llsd><map><key><agent_id></key><uuid /><key>items</key><array /></map></llsd>";
 
             UUID[] itemIDs = new UUID[itemsRequested.Count];
             int i = 0;
@@ -88,48 +84,15 @@ namespace OpenSim.Capabilities.Handlers
             LLSDxmlEncode.AddElem("agent_id", m_agentID, lsl);
             if(items == null || items.Length == 0)
             {
-                LLSDxmlEncode.AddEmptyArray("items",lsl);
+                LLSDxmlEncode.AddEmptyArray("items", lsl);
             }
             else
             {
-                LLSDxmlEncode.AddArray("items",lsl);
+                LLSDxmlEncode.AddArray("items", lsl);
                 foreach (InventoryItemBase item in items)
                 {
                     if (item != null)
-                    {
-                        LLSDxmlEncode.AddMap(lsl);
-                            LLSDxmlEncode.AddElem("parent_id", item.Folder, lsl);
-                            LLSDxmlEncode.AddElem("asset_id", item.AssetID, lsl);
-                            LLSDxmlEncode.AddElem("item_id", item.ID, lsl);
-
-                            LLSDxmlEncode.AddMap("permissions",lsl);
-                                LLSDxmlEncode.AddElem("creator_id", item.CreatorIdAsUuid, lsl);
-                                LLSDxmlEncode.AddElem("owner_id", item.Owner, lsl);
-                                LLSDxmlEncode.AddElem("group_id", item.GroupID, lsl);
-                                LLSDxmlEncode.AddElem("base_mask", (int)item.CurrentPermissions, lsl);
-                                LLSDxmlEncode.AddElem("owner_mask", (int)item.CurrentPermissions, lsl);
-                                LLSDxmlEncode.AddElem("group_mask", (int)item.GroupPermissions, lsl);
-                                LLSDxmlEncode.AddElem("everyone_mask", (int)item.EveryOnePermissions, lsl);
-                                LLSDxmlEncode.AddElem("next_owner_mask", (int)item.NextPermissions, lsl);
-                                LLSDxmlEncode.AddElem("is_owner_group", item.GroupOwned, lsl);               
-                            LLSDxmlEncode.AddEndMap(lsl);
-
-                            LLSDxmlEncode.AddElem("type", item.AssetType, lsl);               
-                            LLSDxmlEncode.AddElem("inv_type", item.InvType, lsl);               
-                            LLSDxmlEncode.AddElem("flags", ((int)item.Flags) & 0xff, lsl);               
-                            LLSDxmlEncode.AddElem("flags", ((int)item.Flags) & 0xff, lsl);               
-
-                            LLSDxmlEncode.AddMap("sale_info",lsl);
-                                LLSDxmlEncode.AddElem("sale_price", item.SalePrice, lsl);               
-                                LLSDxmlEncode.AddElem("sale_type", item.SaleType, lsl);               
-                            LLSDxmlEncode.AddEndMap(lsl);
-
-                            LLSDxmlEncode.AddElem("name", item.Name, lsl);               
-                            LLSDxmlEncode.AddElem("desc", item.Description, lsl);               
-                            LLSDxmlEncode.AddElem("created_at", item.CreationDate, lsl);               
-
-                        LLSDxmlEncode.AddEndMap(lsl);
-                    }
+                        item.ToLLSDxml(lsl);
                 }
                 LLSDxmlEncode.AddEndArray(lsl);
             }            

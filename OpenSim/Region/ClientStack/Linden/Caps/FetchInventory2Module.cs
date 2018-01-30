@@ -47,6 +47,7 @@ namespace OpenSim.Region.ClientStack.Linden
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public bool Enabled { get; private set; }
+        private bool m_enabledLib;
 
         private Scene m_scene;
 
@@ -68,6 +69,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (m_fetchInventory2Url != string.Empty)
                 Enabled = true;
+            if (m_fetchInventory2Url != string.Empty)
+                m_enabledLib = true;
         }
 
         public void AddRegion(Scene s)
@@ -113,7 +116,8 @@ namespace OpenSim.Region.ClientStack.Linden
         private void RegisterCaps(UUID agentID, Caps caps)
         {
             RegisterFetchCap(agentID, caps, "FetchInventory2", m_fetchInventory2Url);
-            RegisterFetchLibCap(agentID, caps, "FetchLib2", m_fetchLib2Url);
+            if(m_enabledLib)
+                RegisterFetchLibCap(agentID, caps, "FetchLib2", m_fetchLib2Url);
         }
 
         private void RegisterFetchCap(UUID agentID, Caps caps, string capName, string url)
