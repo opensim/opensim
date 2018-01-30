@@ -37,5 +37,6 @@ namespace OpenSim.Framework.Capabilities
         public string name;
         public int type;
         public int preferred_type;
+        public int version;
     }
 }
