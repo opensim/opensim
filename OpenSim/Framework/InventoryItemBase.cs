@@ -439,7 +439,6 @@ namespace OpenSim.Framework
                 LLSDxmlEncode.AddElem("type", AssetType, lsl);               
                 LLSDxmlEncode.AddElem("inv_type", InvType, lsl);               
                 LLSDxmlEncode.AddElem("flags", ((int)Flags) & 0xff, lsl);               
-                LLSDxmlEncode.AddElem("flags", ((int)Flags) & 0xff, lsl);               
 
                 LLSDxmlEncode.AddMap("sale_info",lsl);
                     LLSDxmlEncode.AddElem("sale_price", SalePrice, lsl);               
