@@ -144,6 +144,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal bool m_debuggerSafe = false;
         internal Dictionary<string, FunctionPerms > m_FunctionPerms = new Dictionary<string, FunctionPerms >();
         protected IUrlModule m_UrlModule = null;
+        internal IConfig m_osslconfig;
 
         public void Initialize(
             IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item)
@@ -151,11 +152,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_ScriptEngine = scriptEngine;
             m_host = host;
             m_item = item;
+
+            m_osslconfig = m_ScriptEngine.ConfigSource.Configs["OSSL"];
+            if(m_osslconfig == null)
+                m_osslconfig = m_ScriptEngine.Config;
+
             m_debuggerSafe = m_ScriptEngine.Config.GetBoolean("DebuggerSafe", false);
 
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
-
-            if (m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            if (m_osslconfig.GetBoolean("AllowOSFunctions", false))
             {
                 m_OSFunctionsEnabled = true;
                 // m_log.Warn("[OSSL] OSSL FUNCTIONS ENABLED");
@@ -166,7 +171,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_ScriptDistanceFactor =
                     m_ScriptEngine.Config.GetFloat("ScriptDistanceLimitFactor", 1.0f);
 
-            string risk = m_ScriptEngine.Config.GetString("OSFunctionThreatLevel", "VeryLow");
+            string risk = m_osslconfig.GetString("OSFunctionThreatLevel", "VeryLow");
             switch (risk)
             {
             case "NoAccess":
@@ -292,8 +297,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 FunctionPerms perms = new FunctionPerms();
                 m_FunctionPerms[function] = perms;
 
-                string ownerPerm = m_ScriptEngine.Config.GetString("Allow_" + function, "");
-                string creatorPerm = m_ScriptEngine.Config.GetString("Creators_" + function, "");
+                string ownerPerm = m_osslconfig.GetString("Allow_" + function, "");
+                string creatorPerm = m_osslconfig.GetString("Creators_" + function, "");
                 if (ownerPerm == "" && creatorPerm == "")
                 {
                     // Default behavior
