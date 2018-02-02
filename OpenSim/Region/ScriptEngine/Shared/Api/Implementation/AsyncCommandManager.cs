@@ -284,22 +284,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // Remove from: Timers
                 m_Timer[engine].UnSetTimerEvents(localID, itemID);
 
-                // Remove from: HttpRequest
-                IHttpRequestModule iHttpReq = engine.World.RequestModuleInterface<IHttpRequestModule>();
-                if (iHttpReq != null)
-                    iHttpReq.StopHttpRequest(localID, itemID);
-
-                IWorldComm comms = engine.World.RequestModuleInterface<IWorldComm>();
-                if (comms != null)
-                    comms.DeleteListener(itemID);
-
-                IXMLRPC xmlrpc = engine.World.RequestModuleInterface<IXMLRPC>();
-                if (xmlrpc != null)
+                if(engine.World != null)
                 {
-                    xmlrpc.DeleteChannels(itemID);
-                    xmlrpc.CancelSRDRequests(itemID);
-                }
+                    // Remove from: HttpRequest
+                    IHttpRequestModule iHttpReq = engine.World.RequestModuleInterface<IHttpRequestModule>();
+                    if (iHttpReq != null)
+                        iHttpReq.StopHttpRequest(localID, itemID);
 
+                    IWorldComm comms = engine.World.RequestModuleInterface<IWorldComm>();
+                    if (comms != null)
+                        comms.DeleteListener(itemID);
+
+                    IXMLRPC xmlrpc = engine.World.RequestModuleInterface<IXMLRPC>();
+                    if (xmlrpc != null)
+                    {
+                        xmlrpc.DeleteChannels(itemID);
+                        xmlrpc.CancelSRDRequests(itemID);
+                    }
+                }
                 // Remove Sensors
                 m_SensorRepeat[engine].UnSetSenseRepeaterEvents(localID, itemID);
             }
