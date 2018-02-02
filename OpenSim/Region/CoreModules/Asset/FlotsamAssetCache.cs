@@ -1193,7 +1193,7 @@ namespace OpenSim.Region.CoreModules.Asset
                                 m_cleanupRunning = false;
                             }
                             con.OutputFormat("Completed check with {0} assets.", assetReferenceTotal);
-                        }, null, "TouchAllSceneAssets");
+                        }, null, "TouchAllSceneAssets", false);
 
                         break;
 
