@@ -261,9 +261,13 @@
     ; edit the line ulimit -s 262144, and change this last value
     
     ;# {DefaultScriptEngine} {} {Default script engine} {XEngine} XEngine
-    ;; Default script engine to use. Currently, we only have XEngine
+    ;; Default script engine to use (Xengine if all commented)
     ; DefaultScriptEngine = "XEngine"
-
+    ;; ***DANGER***DANGER***
+    ;; experimental engine
+    ;; see section [XMREngine} below
+    ; DefaultScriptEngine = "XMREngine"
+    
     ;# {HttpProxy} {} {Proxy URL for llHTTPRequest and dynamic texture loading} {} http://proxy.com:8080
     ;; Http proxy setting for llHTTPRequest and dynamic texture loading, if
     ;; required
@@ -915,6 +919,21 @@
     ;; Money Unit fee to create groups.  Default is 0.
     ; PriceGroupCreate = 0
 
+[XMREngine]
+    ;; experimental engine
+    ;; implements microthreading, so fixing problems like llSleep or long events handlers
+    ;; but those will suffer from timeslicing, so will be slower.
+    ;; compiles LSL directly to IL, so only suports LSL scripting ( no C# etc) 
+    ;; shares the Xengine APIs like LSL, OSSL, etc.
+    ;; DANGER, do not use with HG, don't leave regions running alone with it.
+    ;; TPs or crossings to/from Xengine will recompile scripts losing state.
+    ;; attachment scripts may misbehave, cars will stop on crossings, etc.
+    Enabled = false
+    UThreadModel = sys
+    ScriptStackSize = 256
+    ScriptHeapSize = 256
+    UseSourceHashCode = true
+    MinTimerInterval = 0.1    
 
 [XEngine]
     ;# {Enabled} {} {Enable the XEngine scripting engine?} {true false} true
