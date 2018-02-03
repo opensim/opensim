@@ -682,25 +682,33 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
              * one to finish (ie, script gets to CheckRun() call).
              */
             m_Exiting = true;
-            for (int i = 0; i < numThreadScriptWorkers; i ++) {
+            for (int i = 0; i < numThreadScriptWorkers; i ++)
+            {
                 XMRScriptThread scriptThread = m_ScriptThreads[i];
-                if (scriptThread != null) {
+                if (scriptThread != null)
+                {
                     scriptThread.Terminate();
                     m_ScriptThreads[i] = null;
                 }
             }
-            if (m_SleepThread != null) {
-                lock (m_SleepQueue) {
+
+            if (m_SleepThread != null)
+            {
+                lock (m_SleepQueue)
+                {
                     Monitor.PulseAll (m_SleepQueue);
                 }
-                m_SleepThread.Join();
+                if(!m_SleepThread.Join(250))
+                    m_SleepThread.Abort();
                 m_SleepThread = null;
             }
-            if (m_SliceThread != null) {
+/*
+            if (m_SliceThread != null)
+            {
                 m_SliceThread.Join();
                 m_SliceThread = null;
             }
-
+*/
             m_Scene.EventManager.OnFrame -= OnFrame;
             m_Scene.EventManager.OnRezScript -= OnRezScript;
             m_Scene.EventManager.OnRemoveScript -= OnRemoveScript;
@@ -1759,29 +1767,30 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         /**
          * @brief Thread that runs a time slicer.
          */
+/*
         private void RunSliceThread()
         {
             int ms = m_Config.GetInt ("TimeSlice", 50);
             while (!m_Exiting) {
                 UpdateMyThread ();
-
+*/
                 /*
                  * Let script run for a little bit.
                  */
-                System.Threading.Thread.Sleep (ms);
+//                System.Threading.Thread.Sleep (ms);
 
                 /*
                  * If some script is running, flag it to suspend
                  * next time it calls CheckRun().
                  */
-                for (int i = 0; i < numThreadScriptWorkers; i ++) {
+/*                for (int i = 0; i < numThreadScriptWorkers; i ++) {
                     XMRScriptThread st = m_ScriptThreads[i];
                     if (st != null) st.TimeSlice();
                 }
             }
             MyThreadExiting ();
         }
-
+*/
         public void Suspend(UUID itemID, int ms)
         {
             XMRInstance instance = GetInstance (itemID);
@@ -1960,6 +1969,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             Thread thread   = new Thread (start);
             thread.Name     = name;
             thread.Priority = priority;
+            thread.IsBackground = true;
             thread.Start ();
 
             Watchdog.ThreadWatchdogInfo info = new Watchdog.ThreadWatchdogInfo (thread, Watchdog.DEFAULT_WATCHDOG_TIMEOUT_MS, name);

@@ -105,7 +105,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         {
             m_Exiting = true;
             WakeUpScriptThread();
-            thd.Join();
+            if(!thd.Join(250))
+                thd.Abort();
             lock (m_AllThreads)
                 m_AllThreads.Remove (thd);
 
