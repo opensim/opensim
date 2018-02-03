@@ -97,7 +97,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         private int m_HeapSize;
         private XMRScriptThread[] m_ScriptThreads;
         private Thread m_SleepThread = null;
-        private Thread m_SliceThread = null;
+//        private Thread m_SliceThread = null;
         private bool m_Exiting = false;
 
         private int m_MaintenanceInterval = 10;

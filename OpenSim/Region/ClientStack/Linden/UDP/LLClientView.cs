@@ -99,8 +99,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event AgentRequestSit OnAgentRequestSit;
         public event AgentSit OnAgentSit;
         public event AvatarPickerRequest OnAvatarPickerRequest;
-        public event StartAnim OnStartAnim;
-        public event StopAnim OnStopAnim;
         public event ChangeAnim OnChangeAnim;
         public event Action<IClientAPI> OnRequestAvatarsData;
         public event LinkObjects OnLinkObjects;
@@ -131,12 +129,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event UpdatePrimTexture OnUpdatePrimTexture;
         public event ClientChangeObject onClientChangeObject;
         public event UpdateVector OnUpdatePrimGroupPosition;
-        public event UpdateVector OnUpdatePrimSinglePosition;
         public event UpdatePrimRotation OnUpdatePrimGroupRotation;
-        public event UpdatePrimSingleRotation OnUpdatePrimSingleRotation;
-        public event UpdatePrimSingleRotationPosition OnUpdatePrimSingleRotationPosition;
-        public event UpdatePrimGroupRotation OnUpdatePrimGroupMouseRotation;
-        public event UpdateVector OnUpdatePrimScale;
         public event UpdateVector OnUpdatePrimGroupScale;
         public event RequestMapBlocks OnRequestMapBlocks;
         public event RequestMapName OnMapNameRequest;
@@ -292,7 +285,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdate;
         public event GenericCall2 OnUpdateThrottles;
 
+
 #pragma warning disable 0067
+        // still unused
         public event GenericMessage OnGenericMessage;
         public event TextureRequest OnRequestTexture;
         public event StatusChange OnChildAgentStatus;
@@ -304,6 +299,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event SetEstateTerrainBaseTexture OnSetEstateTerrainBaseTexture;
         public event TerrainUnacked OnUnackedTerrain;
         public event CachedTextureRequest OnCachedTextureRequest;
+
+        public event UpdateVector OnUpdatePrimSinglePosition;
+        public event StartAnim OnStartAnim;
+        public event StopAnim OnStopAnim;
+        public event UpdatePrimSingleRotation OnUpdatePrimSingleRotation;
+        public event UpdatePrimSingleRotationPosition OnUpdatePrimSingleRotationPosition;
+        public event UpdatePrimGroupRotation OnUpdatePrimGroupMouseRotation;
+        public event UpdateVector OnUpdatePrimScale;
+
+
 #pragma warning restore 0067
 
         #endregion Events
@@ -339,12 +344,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private PriorityQueue m_entityUpdates;
         private PriorityQueue m_entityProps;
         private Prioritizer m_prioritizer;
-        private bool m_disableFacelights = false;
+        private bool m_disableFacelights;
 
         // needs optimazation
         private HashSet<SceneObjectGroup> GroupsInView = new HashSet<SceneObjectGroup>();
-
-        private bool m_VelocityInterpolate = false;
+#pragma warning disable 0414
+        private bool m_VelocityInterpolate;
+#pragma warning restore 0414
         private const uint MaxTransferBytesPerPacket = 600;
 
         /// <value>
@@ -503,8 +509,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             RegisterInterface<IClientChat>(this);
 
             m_scene = scene;
-            m_entityUpdates = new PriorityQueue(m_scene.Entities.Count);
-            m_entityProps = new PriorityQueue(m_scene.Entities.Count);
+            int pcap = 512;
+            if(pcap > m_scene.Entities.Count)
+                pcap = m_scene.Entities.Count;
+            m_entityUpdates = new PriorityQueue(pcap);
+            m_entityProps = new PriorityQueue(pcap);
             m_killRecord = new List<uint>();
 //            m_attachmentsSent = new HashSet<uint>();
 
@@ -617,8 +626,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ImageManager.Close();
             ImageManager = null;
 
-            m_entityUpdates = new PriorityQueue(1);
-            m_entityProps = new PriorityQueue(1);
+            m_entityUpdates.Close();
+            m_entityProps.Close();
             m_killRecord.Clear();
             GroupsInView.Clear();
 
