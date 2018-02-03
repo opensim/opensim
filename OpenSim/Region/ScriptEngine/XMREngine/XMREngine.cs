@@ -250,7 +250,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             }
 
             m_SleepThread = StartMyThread (RunSleepThread, "xmrengine sleep", ThreadPriority.Normal);
-            m_SliceThread = StartMyThread (RunSliceThread, "xmrengine slice", ThreadPriority.Normal);
+//            m_SliceThread = StartMyThread (RunSliceThread, "xmrengine slice", ThreadPriority.Normal);
 
             /*
              * Verify that our ScriptEventCode's match OpenSim's scriptEvent's.
@@ -895,8 +895,10 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             m_log.Error("[XMREngine]: XMREngine.SaveAllState() called!!");
         }
 
+#pragma warning disable 0067
         public event ScriptRemoved OnScriptRemoved;
         public event ObjectRemoved OnObjectRemoved;
+#pragma warning restore 0067
 
         // Events targeted at a specific script
         // ... like listen() for an llListen() call

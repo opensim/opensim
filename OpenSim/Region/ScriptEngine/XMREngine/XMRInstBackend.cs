@@ -27,17 +27,9 @@
 
 using System;
 using System.Threading;
-using System.Reflection;
-using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.Remoting.Lifetime;
-using System.Security.Policy;
-using System.IO;
-using System.Xml;
-using System.Text;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
@@ -331,7 +323,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             ScriptEventCode evc = ScriptEventCode.None;
 
             callNo = -1;
-            try {
+            try
+            {
                 if (callMode == CallMode_NORMAL) goto findevent;
 
                 /*
@@ -344,9 +337,11 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                 returnMask2 = (int)sv[2];
                 mask1       = (int)sv[3];
                 mask2       = (int)sv[4];
-                switch (callNo) {
+                switch (callNo)
+                {
                     case 0: goto __call0;
-                    case 1: {
+                    case 1:
+                    {
                         evc1 = (int)sv[5];
                         evc  = (ScriptEventCode)(int)sv[6];
                         DetectParams[] detprms = ObjArrToDetPrms ((object[])sv[7]);
@@ -362,13 +357,15 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                  */
             findevent:
                 Monitor.Enter (m_QueueLock);
-                for (lln = m_EventQueue.First; lln != null; lln = lln.Next) {
+                for (lln = m_EventQueue.First; lln != null; lln = lln.Next)
+                {
                     evt  = lln.Value;
                     evc  = (ScriptEventCode)Enum.Parse (typeof (ScriptEventCode), evt.EventName);
                     evc1 = (int)evc;
                     evc2 = evc1 - 32;
                     if ((((uint)evc1 < (uint)32) && (((mask1 >> evc1) & 1) != 0)) ||
-                        (((uint)evc2 < (uint)32) && (((mask2 >> evc2) & 1) != 0))) goto remfromq;
+                        (((uint)evc2 < (uint)32) && (((mask2 >> evc2) & 1) != 0)))
+                        goto remfromq;
                 }
 
                 /*
@@ -389,9 +386,9 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                  */
             remfromq:
                 m_EventQueue.Remove (lln);
-                if ((uint)evc1 < (uint)m_EventCounts.Length) {
+                if ((uint)evc1 < (uint)m_EventCounts.Length)
                     m_EventCounts[evc1] --;
-                }
+
                 Monitor.Exit (m_QueueLock);
                 m_InstEHEvent ++;
 
@@ -399,7 +396,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                  * See if returnable or background event.
                  */
                 if ((((uint)evc1 < (uint)32) && (((returnMask1 >> evc1) & 1) != 0)) ||
-                    (((uint)evc2 < (uint)32) && (((returnMask2 >> evc2) & 1) != 0))) {
+                    (((uint)evc2 < (uint)32) && (((returnMask2 >> evc2) & 1) != 0)))
+                {
 
                     /*
                      * Returnable event, return its parameters in a list.
@@ -408,11 +406,15 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                     int plen = evt.Params.Length;
                     object[] plist = new object[plen+1];
                     plist[0] = (LSL_Integer)evc1;
-                    for (int i = 0; i < plen;) {
+                    for (int i = 0; i < plen;)
+                    {
                         object ob = evt.Params[i];
-                             if (ob is int)         ob = (LSL_Integer)(int)ob;
-                        else if (ob is double) ob = (LSL_Float)(double)ob;
-                        else if (ob is string)      ob = (LSL_String)(string)ob;
+                        if (ob is int)
+                            ob = (LSL_Integer)(int)ob;
+                        else if (ob is double)
+                            ob = (LSL_Float)(double)ob;
+                        else if (ob is string)
+                            ob = (LSL_String)(string)ob;
                         plist[++i] = ob;
                     }
                     m_DetectParams = evt.DetectParams;
@@ -426,7 +428,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                 callNo = 1;
             __call1:
                 ScriptEventHandler seh = m_ObjCode.scriptEventHandlerTable[stateCode,evc1];
-                if (seh == null) goto checktmo;
+                if (seh == null)
+                    goto checktmo;
 
                 DetectParams[]  saveDetParams = this.m_DetectParams;
                 object[]        saveEHArgs    = this.ehArgs;
@@ -436,26 +439,33 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                 this.ehArgs         = evt.Params;
                 this.eventCode      = evc;
 
-                try {
+                try
+                {
                     seh (this);
-                } finally {
-                    this.m_DetectParams = saveDetParams;
-                    this.ehArgs         = saveEHArgs;
-                    this.eventCode      = saveEventCode;
+                }
+                finally
+                {
+                    m_DetectParams = saveDetParams;
+                    ehArgs         = saveEHArgs;
+                    eventCode      = saveEventCode;
                 }
 
                 /*
                  * Keep waiting until we find a returnable event or timeout.
                  */
             checktmo:
-                if (DateTime.UtcNow < sleepUntil) goto findevent;
+                if (DateTime.UtcNow < sleepUntil)
+                    goto findevent;
 
                 /*
                  * We timed out, return an empty list.
                  */
                 return emptyList;
-            } finally {
-                if (callMode != CallMode_NORMAL) {
+            }
+            finally
+            {
+                if (callMode != CallMode_NORMAL)
+                {
 
                     /*
                      * Stack frame is being saved by CheckRun...().
@@ -468,7 +478,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                     sv[2] = returnMask2;                             // needed at __call0,__call1
                     sv[3] = mask1;                                   // needed at __call0,__call1
                     sv[4] = mask2;                                   // needed at __call0,__call1
-                    if (callNo == 1) {
+                    if (callNo == 1)
+                    {
                         sv[5] = evc1;                                // needed at __call1
                         sv[6] = (int)evc;                            // needed at __call1
                         sv[7] = DetPrmsToObjArr (evt.DetectParams);  // needed at __call1
@@ -515,7 +526,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             object[] obs = new object[len*16+1];
             int j = 0;
             obs[j++] = (LSL_Integer)saveDPVer;
-            for (int i = 0; i < len; i ++) {
+            for (int i = 0; i < len; i ++)
+            {
                 DetectParams dp = dps[i];
                 obs[j++] = (LSL_String)dp.Key.ToString();    // UUID
                 obs[j++] = dp.OffsetPos;                     // vector
@@ -550,14 +562,14 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         private static DetectParams[] ObjArrToDetPrms (object[] objs)
         {
             int j = 0;
-            if ((objs.Length % 16 != 1) || (ListInt (objs[j++]) != saveDPVer)) {
+            if ((objs.Length % 16 != 1) || (ListInt (objs[j++]) != saveDPVer))
                 throw new Exception ("invalid detect param format");
-            }
 
             int len = objs.Length / 16;
             DetectParams[] dps = new DetectParams[len];
 
-            for (int i = 0; i < len; i ++) {
+            for (int i = 0; i < len; i ++)
+            {
                 DetectParams dp = new DetectParams ();
 
                 dp.Key         = new UUID (ListStr (objs[j++]));
@@ -612,9 +624,11 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             /*
              * Clear out any old events from the queue.
              */
-            lock (m_QueueLock) {
+            lock (m_QueueLock)
+            {
                 m_EventQueue.Clear();
-                for (int i = m_EventCounts.Length; -- i >= 0;) m_EventCounts[i] = 0;
+                for (int i = m_EventCounts.Length; -- i >= 0;)
+                    m_EventCounts[i] = 0;
             }
         }
 

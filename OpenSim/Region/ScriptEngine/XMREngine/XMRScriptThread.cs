@@ -39,7 +39,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
      *        Each sits in a loop checking the Start and Yield queues for 
      *        a script to run and calls the script as a microthread.
      */
-    public class XMRScriptThread {
+    public class XMRScriptThread
+    {
         private static int    m_WakeUpOne  = 0;
         public  static object m_WakeUpLock = new object();
         private static Dictionary<Thread,XMRScriptThread> m_AllThreads = new Dictionary<Thread,XMRScriptThread> ();
@@ -81,10 +82,11 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         {
             engine = eng;
             m_Continuations = engine.uThreadCtor.DeclaringType == typeof (ScriptUThread_Con);
-            thd = XMREngine.StartMyThread (RunScriptThread, "xmrengine script", ThreadPriority.BelowNormal);
-            lock (m_AllThreads) {
+//            thd = XMREngine.StartMyThread (RunScriptThread, "xmrengine script", ThreadPriority.BelowNormal);
+            thd = XMREngine.StartMyThread (RunScriptThread, "xmrengine script", ThreadPriority.Normal);
+            lock (m_AllThreads)
                 m_AllThreads.Add (thd, this);
-            }
+
         }
 
         public void SuspendThread()
@@ -104,18 +106,17 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             m_Exiting = true;
             WakeUpScriptThread();
             thd.Join();
-            lock (m_AllThreads) {
+            lock (m_AllThreads)
                 m_AllThreads.Remove (thd);
-            }
+
             thd = null;
         }
 
         public void TimeSlice()
         {
             XMRInstance instance = m_RunInstance;
-            if (instance != null) {
+            if (instance != null)
                 instance.suspendOnCheckRunTemp = true;
-            }
         }
 
         /**

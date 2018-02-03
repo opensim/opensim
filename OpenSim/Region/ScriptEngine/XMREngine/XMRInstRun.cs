@@ -27,14 +27,7 @@
 
 using System;
 using System.Threading;
-using System.Reflection;
-using System.Collections;
 using System.Collections.Generic;
-using System.Reflection.Emit;
-using System.Runtime.Remoting.Lifetime;
-using System.Security.Policy;
-using System.IO;
-using System.Xml;
 using System.Text;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -140,22 +133,23 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                      * of all others so the m_DetachQuantum won't run out
                      * before attach(NULL_KEY) is executed.
                      */
-                    case ScriptEventCode.attach: {
+                    case ScriptEventCode.attach:
+                    {
                         if (evt.Params[0].ToString() == UUID.Zero.ToString())
                         {
                             LinkedListNode<EventParams> lln2 = null;
-                            for (lln2 = m_EventQueue.First; lln2 != null; lln2 = lln2.Next) {
+                            for (lln2 = m_EventQueue.First; lln2 != null; lln2 = lln2.Next)
+                            {
                                 EventParams evt2 = lln2.Value;
                                 ScriptEventCode evc2 = (ScriptEventCode)Enum.Parse (typeof (ScriptEventCode), 
                                                                          evt2.EventName);
                                 if ((evc2 != ScriptEventCode.state_entry) &&
                                     (evc2 != ScriptEventCode.attach)) break;
                             }
-                            if (lln2 == null) {
+                            if (lln2 == null)
                                 m_EventQueue.AddLast(lln);
-                            } else {
+                            else
                                 m_EventQueue.AddBefore(lln2, lln);
-                            }
                             /* If we're detaching, limit the qantum. This will also
                              * cause the script to self-suspend after running this
                              * event
@@ -165,16 +159,15 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                             m_DetachQuantum = 100;
                         }
                         else
-                        {
                             m_EventQueue.AddLast(lln);
-                        }
                         break;
                     }
 
                     /*
                      * All others just go on end in the order queued.
                      */
-                    default: {
+                    default:
+                    {
                         m_EventQueue.AddLast(lln);
                         break;
                     }
@@ -187,7 +180,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                  * to do the same thing right now.
                  * Dont' flag it if it's still suspended!
                  */
-                if ((m_IState == XMRInstState.IDLE) && !m_Suspended) {
+                if ((m_IState == XMRInstState.IDLE) && !m_Suspended)
+                {
                     m_IState = XMRInstState.ONSTARTQ;
                     startIt = true;
                 }
@@ -196,11 +190,13 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                  * If instance is sleeping (ie, possibly in xmrEventDequeue),
                  * wake it up if event is in the mask.
                  */
-                if ((m_SleepUntil > DateTime.UtcNow) && !m_Suspended) {
+                if ((m_SleepUntil > DateTime.UtcNow) && !m_Suspended)
+                {
                     int evc1 = (int)evc;
                     int evc2 = evc1 - 32;
                     if ((((uint)evc1 < (uint)32) && (((m_SleepEventMask1 >> evc1) & 1) != 0)) ||
-                        (((uint)evc2 < (uint)32) && (((m_SleepEventMask2 >> evc2) & 1) != 0))) {
+                        (((uint)evc2 < (uint)32) && (((m_SleepEventMask2 >> evc2) & 1) != 0)))
+                    {
                         wakeIt = true;
                     }
                 }
@@ -210,14 +206,14 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
              * If transitioned from IDLE->ONSTARTQ, actually go insert it
              * on m_StartQueue and give the RunScriptThread() a wake-up.
              */
-            if (startIt) {
+            if (startIt)
                 m_Engine.QueueToStart(this);
-            }
 
             /*
              * Likewise, if the event mask triggered a wake, wake it up.
              */
-            if (wakeIt) {
+            if (wakeIt)
+            {
                 m_SleepUntil = DateTime.MinValue;
                 m_Engine.WakeFromSleep(this);
             }
@@ -231,6 +227,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         public XMRInstState RunOne()
         {
             DateTime now = DateTime.UtcNow;
+            m_SliceStart = Util.GetTimeStampMS();
 
             /*
              * If script has called llSleep(), don't do any more until time is
@@ -247,7 +244,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
              * Also, someone may have called Suspend().
              */
             m_RunOnePhase = "check m_SuspendCount";
-            if (m_SuspendCount > 0) {
+            if (m_SuspendCount > 0)
+            {
                 m_RunOnePhase = "return is suspended";
                 return XMRInstState.SUSPENDED;
             }
@@ -258,7 +256,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
              * back right away, delay a bit so we don't get in infinite loop.
              */
             m_RunOnePhase = "lock m_RunLock";
-            if (!Monitor.TryEnter (m_RunLock)) {
+            if (!Monitor.TryEnter (m_RunLock))
+            {
                 m_SleepUntil = now.AddMilliseconds(3);
                 m_RunOnePhase = "return was locked";
                 return XMRInstState.ONSLEEPQ;
@@ -282,7 +281,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                 /*
                  * Do some more of the last event if it didn't finish.
                  */
-                else if (this.eventCode != ScriptEventCode.None)
+                else if (eventCode != ScriptEventCode.None)
                 {
                     lock (m_QueueLock)
                     {
@@ -336,10 +335,10 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                         if (m_EventQueue.First != null)
                         {
                             evt = m_EventQueue.First.Value;
+                            evc = (ScriptEventCode)Enum.Parse (typeof (ScriptEventCode), 
+                                                               evt.EventName);
                             if (m_DetachQuantum > 0)
                             {
-                                evc = (ScriptEventCode)Enum.Parse (typeof (ScriptEventCode), 
-                                                               evt.EventName);
                                 if (evc != ScriptEventCode.attach)
                                 {
                                     /*
@@ -356,9 +355,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                                 }
                             }
                             m_EventQueue.RemoveFirst();
-                            evc = (ScriptEventCode)Enum.Parse (typeof (ScriptEventCode), 
-                                                               evt.EventName);
-                            if ((int)evc >= 0) m_EventCounts[(int)evc] --;
+                            if (evc >= 0)
+                                m_EventCounts[(int)evc] --;
                         }
 
                         /*
@@ -483,28 +481,25 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
              * We use this.eventCode == ScriptEventCode.None to indicate we are idle.
              * So trying to execute ScriptEventCode.None might make a mess.
              */
-            if (eventCode == ScriptEventCode.None) {
+            if (eventCode == ScriptEventCode.None)
                 return new Exception ("Can't process ScriptEventCode.None");
-            }
 
             /*
              * Silly to even try if there is no handler defined for this event.
              */
-            if (((int)eventCode >= 0) && (m_ObjCode.scriptEventHandlerTable[this.stateCode,(int)eventCode] == null)) {
+            if ((eventCode >= 0) && (m_ObjCode.scriptEventHandlerTable[this.stateCode,(int)eventCode] == null))
                 return null;
-            }
 
             /*
              * The microthread shouldn't be processing any event code.
              * These are assert checks so we throw them directly as exceptions.
              */
-            if (this.eventCode != ScriptEventCode.None) {
+            if (this.eventCode != ScriptEventCode.None)
                 throw new Exception ("still processing event " + this.eventCode.ToString ());
-            }
+
             int active = microthread.Active ();
-            if (active != 0) {
+            if (active != 0)
                 throw new Exception ("microthread is active " + active.ToString ());
-            }
 
             /*
              * Save eventCode so we know what event handler to run in the microthread.
@@ -956,19 +951,28 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
          */
         public override void CheckRunWork ()
         {
+            if(!suspendOnCheckRunHold && ! suspendOnCheckRunTemp)
+            {
+                if(Util.GetTimeStampMS() - m_SliceStart < 60.0)
+                    return;
+                suspendOnCheckRunTemp = true;
+            }
+
             m_CheckRunPhase = "entered";
 
             /*
              * Stay stuck in this loop as long as something wants us suspended.
              */
-            while (suspendOnCheckRunHold || suspendOnCheckRunTemp) {
+            while (suspendOnCheckRunHold || suspendOnCheckRunTemp)
+            {
                 m_CheckRunPhase = "top of while";
 
                 /*
                  * See if MigrateOutEventHandler() has been called.
                  * If so, dump our stack to stackFrames and unwind.
                  */
-                if (this.captureStackFrames) {
+                if (this.captureStackFrames)
+                {
 
                     /*
                      * Puque our stack to the output stream.
@@ -986,7 +990,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                  * within the functions should do their normal processing instead of trying to 
                  * restore their state.
                  */
-                if (this.callMode == CallMode_RESTORE) {
+                if (this.callMode == CallMode_RESTORE)
+                {
                     stackFramesRestored = true;
                     this.callMode = CallMode_NORMAL;
                 }

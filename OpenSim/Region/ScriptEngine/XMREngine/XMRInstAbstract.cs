@@ -63,7 +63,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
 
         private static readonly XMR_Array[]      noArrays      = new XMR_Array[0];
         private static readonly char[]           noChars       = new char[0];
-        private static readonly double[]    noFloats      = new double[0];
+        private static readonly double[]         noFloats      = new double[0];
         private static readonly int[]            noIntegers    = new int[0];
         private static readonly LSL_List[]       noLists       = new LSL_List[0];
         private static readonly object[]         noObjects     = new object[0];
@@ -97,7 +97,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
 
             iarArrays      = (ars.iasArrays      > 0) ? new XMR_Array     [ars.iasArrays]        : noArrays;
             iarChars       = (ars.iasChars       > 0) ? new char          [ars.iasChars]         : noChars;
-            iarFloats      = (ars.iasFloats      > 0) ? new double   [ars.iasFloats]        : noFloats;
+            iarFloats      = (ars.iasFloats      > 0) ? new double        [ars.iasFloats]        : noFloats;
             iarIntegers    = (ars.iasIntegers    > 0) ? new int           [ars.iasIntegers]      : noIntegers;
             iarLists       = (ars.iasLists       > 0) ? new LSL_List      [ars.iasLists]         : noLists;
             iarObjects     = (ars.iasObjects     > 0) ? new object        [ars.iasObjects]       : noObjects;
@@ -170,7 +170,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
 
             iarArrays           = (XMR_Array[])      recver ();
             char[] chrs         = (char[])           recver ();
-            double[] flts  = (double[])    recver ();
+            double[] flts       = (double[])    recver ();
             int[] ints          = (int[])            recver ();
             LSL_List[] liss     = (LSL_List[])       recver ();
             object[] objs       = (object[])         recver ();
@@ -191,15 +191,14 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             newheapuse += dels.Length * HeapTrackerObject.HT_DELE;
 
             // lists, objects, strings are the sum of the size of each element
-            foreach (LSL_List lis in liss) {
+            foreach (LSL_List lis in liss)
                 newheapuse += HeapTrackerList.Size (lis);
-            }
-            foreach (object obj in objs) {
+
+            foreach (object obj in objs)
                 newheapuse += HeapTrackerObject.Size (obj);
-            }
-            foreach (string str in strs) {
+
+            foreach (string str in strs)
                 newheapuse += HeapTrackerString.Size (str);
-            }
 
             // others (XMR_Array, XMRSDTypeClObj) keep track of their own heap usage
 
@@ -222,46 +221,55 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             int newheapuse = heapUse;
 
             iarArrays = null;
-            if (iarChars != null) {
+            if (iarChars != null)
+            {
                 newheapuse -= iarChars.Length * HeapTrackerObject.HT_CHAR;
                 iarChars = null;
             }
-            if (iarFloats != null) {
+            if (iarFloats != null)
+            {
                 newheapuse -= iarFloats.Length * HeapTrackerObject.HT_SFLT;
                 iarFloats = null;
             }
-            if (iarIntegers != null) {
+            if (iarIntegers != null)
+            {
                 newheapuse -= iarIntegers.Length * HeapTrackerObject.HT_INT;
                 iarIntegers = null;
             }
-            if (iarLists != null) {
-                foreach (LSL_List lis in iarLists) {
+            if (iarLists != null)
+            {
+                foreach (LSL_List lis in iarLists)
                     newheapuse -= HeapTrackerList.Size (lis);
-                }
+
                 iarLists = null;
             }
-            if (iarObjects != null) {
-                foreach (object obj in iarObjects) {
+            if (iarObjects != null)
+            {
+                foreach (object obj in iarObjects)
                     newheapuse -= HeapTrackerObject.Size (obj);
-                }
+
                 iarObjects = null;
             }
-            if (iarRotations != null) {
+            if (iarRotations != null)
+            {
                 newheapuse -= iarRotations.Length * HeapTrackerObject.HT_ROT;
                 iarRotations = null;
             }
-            if (iarStrings != null) {
-                foreach (string str in iarStrings) {
+            if (iarStrings != null)
+            {
+                foreach (string str in iarStrings)
                     newheapuse -= HeapTrackerString.Size (str);
-                }
+
                 iarStrings = null;
             }
-            if (iarVectors != null) {
+            if (iarVectors != null)
+            {
                 newheapuse -= iarVectors.Length * HeapTrackerObject.HT_VEC;
                 iarVectors = null;
             }
             iarSDTClObjs = null;
-            if (iarSDTIntfObjs != null) {
+            if (iarSDTIntfObjs != null)
+            {
                 newheapuse -= iarSDTIntfObjs.Length * HeapTrackerObject.HT_DELE;
                 iarSDTIntfObjs = null;
             }
@@ -270,7 +278,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         }
     }
 
-    public class XMRInstArSizes {
+    public class XMRInstArSizes
+    {
         public int iasArrays;
         public int iasChars;
         public int iasFloats;
@@ -327,7 +336,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         }
     }
 
-    public class XMRStackFrame {
+    public class XMRStackFrame
+    {
         public XMRStackFrame nextSF;
         public string funcName;
         public int callNo;
@@ -478,8 +488,10 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             callMode = (stackFrames == null) ? XMRInstAbstract.CallMode_NORMAL :
                                                XMRInstAbstract.CallMode_RESTORE;
 
-            while (true) {
-                if (this.newStateCode < 0) {
+            while (true)
+            {
+                if (this.newStateCode < 0)
+                {
 
                     /*
                      * Process event given by 'stateCode' and 'eventCode'.
@@ -487,10 +499,14 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                      */
                     int newState = this.stateCode;
                     seh = this.m_ObjCode.scriptEventHandlerTable[newState,(int)this.eventCode];
-                    if (seh != null) {
-                        try {
+                    if (seh != null)
+                    {
+                        try
+                        {
                             seh (this);
-                        } catch (ScriptChangeStateException scse) {
+                        }
+                        catch (ScriptChangeStateException scse)
+                        {
                             newState = scse.newState;
                         }
                     }
@@ -503,7 +519,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                      * It does not execute the state_exit() or state_entry() handlers.
                      * See http://wiki.secondlife.com/wiki/State
                      */
-                    if (newState == this.stateCode) break;
+                    if (newState == this.stateCode)
+                        break;
 
                     /*
                      * Save new state in a more permanent location in case we
@@ -517,10 +534,14 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                  */
                 this.eventCode = ScriptEventCode.state_exit;
                 seh = this.m_ObjCode.scriptEventHandlerTable[this.stateCode,(int)ScriptEventCode.state_exit];
-                if (seh != null) {
-                    try {
+                if (seh != null)
+                {
+                    try
+                    {
                         seh (this);
-                    } catch (ScriptChangeStateException scse) {
+                    }
+                    catch (ScriptChangeStateException scse)
+                    {
                         this.newStateCode = scse.newState;
                     }
                 }
@@ -563,7 +584,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
          */
         public void CheckRunStack ()
         {
-            if (xmrStackLeft () < stackLimit) {
+            if (xmrStackLeft () < stackLimit)
+            {
                 throw new OutOfStackException ();
             }
             CheckRunQuick ();
@@ -574,9 +596,9 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
          */
         public void CheckRunQuick ()
         {
-            if (suspendOnCheckRunHold || suspendOnCheckRunTemp) {
+//            if (suspendOnCheckRunHold || suspendOnCheckRunTemp) {
                 CheckRunWork ();
-            }
+//            }
         }
 
         /**
@@ -608,7 +630,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         public object[] RestoreStackFrame (string funcName, out int callNo)
         {
             XMRStackFrame sf = stackFrames;
-            if (sf.funcName != funcName) {
+            if (sf.funcName != funcName)
+            {
                 throw new Exception ("frame mismatch " + sf.funcName + " vs " + funcName);
             }
             callNo = sf.callNo;
@@ -625,7 +648,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             object[] oldarray = oldlist.Data;
             int len = oldarray.Length;
             object[] newarray = new object[len];
-            for (int i = 0; i < len; i ++) {
+            for (int i = 0; i < len; i ++)
+            {
                 object obj = oldarray[i];
                 if (obj is LSL_Integer) obj = (int)(LSL_Integer)obj;
                 newarray[i] = obj;
@@ -643,18 +667,25 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             int len = oldarray.Length;
             object[] newarray = new object[len];
             int verbatim = 0;
-            for (int i = 0; i < len; i ++) {
+            for (int i = 0; i < len; i ++)
+            {
                 object obj = oldarray[i];
-                if (-- verbatim < 0) {
-                    if (obj is LSL_Integer) obj = (int)(LSL_Integer)obj;
-                    if (obj is int) {
-                        switch ((int)obj) {
-                            case ScriptBaseClass.PARCEL_MEDIA_COMMAND_AUTO_ALIGN: {
+                if (-- verbatim < 0)
+                {
+                    if (obj is LSL_Integer)
+                        obj = (int)(LSL_Integer)obj;
+                    if (obj is int)
+                    {
+                        switch ((int)obj)
+                        {
+                            case ScriptBaseClass.PARCEL_MEDIA_COMMAND_AUTO_ALIGN:
+                            {
                                 // leave next integer as LSL_Integer
                                 verbatim = 1;
                                 break;
                             }
-                            case ScriptBaseClass.PARCEL_MEDIA_COMMAND_SIZE: {
+                            case ScriptBaseClass.PARCEL_MEDIA_COMMAND_SIZE:
+                            {
                                 // leave next two integers as LSL_Integer
                                 verbatim = 2;
                                 break;
@@ -715,7 +746,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
              * class that is implementing the interface.  This should let the next 
              * step get the script-defined type name of the object.
              */
-            if (o is Delegate[]) {
+            if (o is Delegate[])
+            {
                 o = ((Delegate[])o)[0].Target;
             }
 
@@ -723,7 +755,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
              * If script-defined class instance, get the script-defined 
              * type name.
              */
-            if (o is XMRSDTypeClObj) {
+            if (o is XMRSDTypeClObj)
+            {
                 return ((XMRSDTypeClObj)o).sdtcClass.longName.val;
             }
 
@@ -731,7 +764,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
              * If it's a delegate, maybe we can look up its script-defined type name.
              */
             Type ot = o.GetType ();
-            if (o is Delegate) {
+            if (o is Delegate)
+            {
                 String os;
                 if (m_ObjCode.sdDelTypes.TryGetValue (ot, out os)) return os;
             }
@@ -754,7 +788,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             object[] data = ev.Data;
             int evc = (int)(ev.GetLSLIntegerItem (0).value & 0xFFFFFFFF);
             ScriptEventHandler seh = m_ObjCode.scriptEventHandlerTable[stateCode,evc];
-            if (seh != null) {
+            if (seh != null)
+            {
                 int nargs = data.Length - 1;
                 object[] args = new object[nargs];
                 Array.Copy (data, 1, args, 0, nargs);
@@ -777,23 +812,30 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
          */
         public string xmrSubstring (string s, int offset)
         {
-            if (offset >= s.Length) return "";
+            if (offset >= s.Length)
+                return "";
             return s.Substring (offset);
         }
         // C# style
         public string xmrSubstring (string s, int offset, int length)
         {
-            if (length <= 0) return "";
-            if (offset >= s.Length) return "";
-            if (length > s.Length - offset) length = s.Length - offset;
+            if (length <= 0)
+                return "";
+            if (offset >= s.Length)
+                return "";
+            if (length > s.Length - offset)
+                length = s.Length - offset;
             return s.Substring (offset, length);
         }
         // java style
         public string xmrJSubstring (string s, int beg, int end)
         {
-            if (end <= beg) return "";
-            if (beg >= s.Length) return "";
-            if (end >  s.Length) end = s.Length;
+            if (end <= beg)
+                return "";
+            if (beg >= s.Length)
+                return "";
+            if (end >  s.Length)
+                end = s.Length;
             return s.Substring (beg, end - beg);
         }
 
@@ -839,22 +881,22 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         public int xmrString2Integer (string s)
         {
             s = s.Trim ();
-            if (s.StartsWith ("0x") || s.StartsWith ("0X")) {
+            if (s.StartsWith ("0x") || s.StartsWith ("0X"))
                 return int.Parse (s.Substring (2), NumberStyles.HexNumber);
-            }
+
             return int.Parse (s, CultureInfo.InvariantCulture);
         }
         public LSL_Rotation xmrString2Rotation (string s)
         {
             s = s.Trim ();
-            if (!s.StartsWith ("<") || !s.EndsWith (">")) {
+            if (!s.StartsWith ("<") || !s.EndsWith (">"))
                 throw new FormatException ("doesn't begin with < and end with >");
-            }
+
             s = s.Substring (1, s.Length - 2);
             string[] splitup = s.Split (justacomma, 5);
-            if (splitup.Length != 4) {
+            if (splitup.Length != 4)
                 throw new FormatException ("doesn't have exactly 3 commas");
-            }
+
             double x = double.Parse (splitup[0], CultureInfo.InvariantCulture);
             double y = double.Parse (splitup[1], CultureInfo.InvariantCulture);
             double z = double.Parse (splitup[2], CultureInfo.InvariantCulture);
@@ -864,14 +906,14 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         public LSL_Vector xmrString2Vector (string s)
         {
             s = s.Trim ();
-            if (!s.StartsWith ("<") || !s.EndsWith (">")) {
+            if (!s.StartsWith ("<") || !s.EndsWith (">"))
                 throw new FormatException ("doesn't begin with < and end with >");
-            }
+
             s = s.Substring (1, s.Length - 2);
             string[] splitup = s.Split (justacomma, 4);
-            if (splitup.Length != 3) {
+            if (splitup.Length != 3)
                 throw new FormatException ("doesn't have exactly 2 commas");
-            }
+
             double x = double.Parse (splitup[0], CultureInfo.InvariantCulture);
             double y = double.Parse (splitup[1], CultureInfo.InvariantCulture);
             double z = double.Parse (splitup[2], CultureInfo.InvariantCulture);
@@ -933,14 +975,14 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             /*
              * If it is a script-defined interface object, convert to the original XMRSDTypeClObj.
              */
-            if (thrown is Delegate[]) {
+            if (thrown is Delegate[])
                 thrown = ((Delegate[])thrown)[0].Target;
-            }
 
             /*
              * If it is a script-defined delegate object, make sure it is an instance of the expected type.
              */
-            if (thrown is Delegate) {
+            if (thrown is Delegate)
+            {
                 Type ot = thrown.GetType ();
                 Type tt = sdType.GetSysType ();
                 return (ot == tt) ? thrown : null;
@@ -949,15 +991,18 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             /*
              * If it is a script-defined class object, make sure it is an instance of the expected class.
              */
-            if (thrown is XMRSDTypeClObj) {
+            if (thrown is XMRSDTypeClObj)
+            {
 
                 /*
                  * Step from the object's actual class rootward.
                  * If we find the requested class along the way, the cast is valid.
                  * If we run off the end of the root, the cast is not valid.
                  */
-                for (TokenDeclSDTypeClass ac = ((XMRSDTypeClObj)thrown).sdtcClass; ac != null; ac = ac.extends) {
-                    if (ac == sdType) return thrown;
+                for (TokenDeclSDTypeClass ac = ((XMRSDTypeClObj)thrown).sdtcClass; ac != null; ac = ac.extends)
+                {
+                    if (ac == sdType)
+                        return thrown;
                 }
             }
 
@@ -1015,10 +1060,11 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
              */
             int i = srctypename.IndexOf ('[');
             int j = dsttypename.IndexOf ('[');
-            if ((i < 0) || (j < 0)) throw new InvalidCastException ("non-array passed: " + srctypename + " and/or " + dsttypename);
-            if ((i != j) || !srctypename.StartsWith (dsttypename.Substring (0, j))) {
+            if ((i < 0) || (j < 0))
+                throw new InvalidCastException ("non-array passed: " + srctypename + " and/or " + dsttypename);
+            if ((i != j) || !srctypename.StartsWith (dsttypename.Substring (0, j)))
                 throw new ArrayTypeMismatchException (srctypename + " vs " + dsttypename);
-            }
+
 
             /*
              * The number of brackets must match exactly.
@@ -1030,11 +1076,15 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             int dstlen  = dsttypename.Length;
             int srcjags = 0;
             int dstjags = 0;
-            while (++ i < srclen) if (srctypename[i] == ']') srcjags ++;
-            while (++ j < dstlen) if (dsttypename[j] == ']') dstjags ++;
-            if (dstjags != srcjags) {
+            while (++ i < srclen)
+                if (srctypename[i] == ']')
+                    srcjags ++;
+            while (++ j < dstlen)
+                if (dsttypename[j] == ']')
+                    dstjags ++;
+            if (dstjags != srcjags)
                 throw new ArrayTypeMismatchException (srctypename + " vs " + dsttypename);
-            }
+
 
             /*
              * Perform the copy.
@@ -1059,9 +1109,9 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
              */
             XMRSDTypeClObj array = (XMRSDTypeClObj)srcar;
             TokenDeclSDTypeClass sdtClass = array.sdtcClass;
-            if (sdtClass.arrayOfRank == 0) {
+            if (sdtClass.arrayOfRank == 0)
                 throw new InvalidCastException ("only do arrays not " + sdtClass.longName.val);
-            }
+
 
             /*
              * Validate objects they want to put in the list.
@@ -1069,26 +1119,33 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
              */
             Array srcarray = (Array)array.instVars.iarObjects[0];
             object[] output = new object[count];
-            for (int i = 0; i < count; i ++) {
+            for (int i = 0; i < count; i ++)
+            {
                 object src = srcarray.GetValue (i + start);
-                if (src == null) throw new NullReferenceException ("null element " + i);
-                if (src is double) {
+                if (src == null)
+                    throw new NullReferenceException ("null element " + i);
+                if (src is double)
+                {
                     output[i] = new LSL_Float ((double)src);
                     continue;
                 }
-                if (src is int) {
+                if (src is int)
+                {
                     output[i] = new LSL_Integer ((int)src);
                     continue;
                 }
-                if (src is LSL_Rotation) {
+                if (src is LSL_Rotation)
+                {
                     output[i] = src;
                     continue;
                 }
-                if (src is LSL_Vector) {
+                if (src is LSL_Vector)
+                {
                     output[i] = src;
                     continue;
                 }
-                if (src is string) {
+                if (src is string)
+                {
                     output[i] = new LSL_String ((string)src);
                     continue;
                 }
@@ -1117,9 +1174,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
              */
             XMRSDTypeClObj dstarray = (XMRSDTypeClObj)dstobj;
             TokenDeclSDTypeClass sdtClass = dstarray.sdtcClass;
-            if (sdtClass.arrayOfType == null) {
+            if (sdtClass.arrayOfType == null)
                 throw new InvalidCastException ("only do arrays not " + sdtClass.longName.val);
-            }
 
             /*
              * Copy from the immutable array to the mutable array.
@@ -1128,11 +1184,12 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             object[] srcarr = srclist.Data;
             Array dstarr    = (Array)dstarray.instVars.iarObjects[0];
 
-            for (int i = 0; i < count; i ++) {
+            for (int i = 0; i < count; i ++)
+            {
                 object obj = srcarr[i+srcstart];
                 if (obj is LSL_Float)   obj = ((LSL_Float)obj).value;
-                if (obj is LSL_Integer) obj = ((LSL_Integer)obj).value;
-                if (obj is LSL_String)  obj = ((LSL_String)obj).m_string;
+                else if (obj is LSL_Integer) obj = ((LSL_Integer)obj).value;
+                else if (obj is LSL_String)  obj = ((LSL_String)obj).m_string;
                 dstarr.SetValue (obj, i + dststart);
             }
         }
@@ -1151,9 +1208,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
              */
             XMRSDTypeClObj array = (XMRSDTypeClObj)srcar;
             TokenDeclSDTypeClass sdtClass = array.sdtcClass;
-            if (sdtClass.arrayOfRank == 0) {
+            if (sdtClass.arrayOfRank == 0)
                 throw new InvalidCastException ("only do arrays not " + sdtClass.longName.val);
-            }
 
             /*
              * We get a type cast error from mono if they didn't give us a character array.
@@ -1178,18 +1234,16 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
              */
             XMRSDTypeClObj dstarray = (XMRSDTypeClObj)dstobj;
             TokenDeclSDTypeClass sdtClass = dstarray.sdtcClass;
-            if (sdtClass.arrayOfType == null) {
+            if (sdtClass.arrayOfType == null)
                 throw new InvalidCastException ("only do arrays not " + sdtClass.longName.val);
-            }
 
             /*
              * We get a type cast error from mono if they didn't give us a character array.
              * But if it is ok, copy from the string to the character array.
              */
             char[] dstarr = (char[])dstarray.instVars.iarObjects[0];
-            for (int i = 0; i < count; i ++) {
+            for (int i = 0; i < count; i ++)
                 dstarr[i+dststart] = srcstr[i+srcstart];
-            }
         }
 
         /**
@@ -1202,8 +1256,10 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         {
             XMR_Array dict = new XMR_Array (this);
             int idx = ParseJSON (dict, nullList, json, 0);
-            while (idx < json.Length) {
-                if (json[idx] > ' ') throw new Exception ("left-over json " + json);
+            while (idx < json.Length)
+            {
+                if (json[idx] > ' ')
+                    throw new Exception ("left-over json " + json);
                 idx ++;
             }
             return dict;
@@ -1214,35 +1270,46 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             char c;
 
             while ((c = json[idx++]) <= ' ') { }
-            switch (c) {
+            switch (c)
+            {
 
                 // '{' <keystring> ':' <value> [ ',' <keystring> ':' <value> ... ] '}'
-                case '{': {
-                    do {
+                case '{':
+                {
+                    do
+                    {
                         string key = ParseJSONString (json, ref idx);
                         while ((c = json[idx++]) <= ' ') { }
-                        if (c != ':') throw new Exception ("missing : after key");
+                        if (c != ':')
+                            throw new Exception ("missing : after key");
                         idx = ParseJSON (dict, ParseJSONKeyAdd (keys, key), json, idx);
                         while ((c = json[idx++]) <= ' ') { }
                     } while (c == ',');
-                    if (c != '}') throw new Exception ("missing , or } after value");
+
+                    if (c != '}')
+                        throw new Exception ("missing , or } after value");
                     break;
                 }
 
                 // '[' <value> [ ',' <value> ... ] ']'
-                case '[': {
+                case '[':
+                {
                     int index = 0;
-                    do {
+                    do
+                    {
                         object key = index ++;
                         idx = ParseJSON (dict, ParseJSONKeyAdd (keys, key), json, idx);
                         while ((c = json[idx++]) <= ' ') { }
                     } while (c == ',');
-                    if (c != ']') throw new Exception ("missing , or ] after value");
+
+                    if (c != ']')
+                        throw new Exception ("missing , or ] after value");
                     break;
                 }
 
                 // '"'<string>'"'
-                case '"': {
+                case '"':
+                {
                     -- idx;
                     string val = ParseJSONString (json, ref idx);
                     dict.SetByKey (keys, val);
@@ -1250,29 +1317,36 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                 }
 
                 // true false null
-                case 't': {
-                    if (json.Substring (idx, 3) != "rue") throw new Exception ("bad true in json");
+                case 't':
+                {
+                    if (json.Substring (idx, 3) != "rue")
+                        throw new Exception ("bad true in json");
                     idx += 3;
                     dict.SetByKey (keys, 1);
                     break;
                 }
 
-                case 'f': {
-                    if (json.Substring (idx, 4) != "alse") throw new Exception ("bad false in json");
+                case 'f':
+                {
+                    if (json.Substring (idx, 4) != "alse")
+                        throw new Exception ("bad false in json");
                     idx += 4;
                     dict.SetByKey (keys, 0);
                     break;
                 }
 
-                case 'n': {
-                    if (json.Substring (idx, 3) != "ull") throw new Exception ("bad null in json");
+                case 'n':
+                {
+                    if (json.Substring (idx, 3) != "ull")
+                        throw new Exception ("bad null in json");
                     idx += 3;
                     dict.SetByKey (keys, null);
                     break;
                 }
 
                 // otherwise assume it's a number
-                default: {
+                default:
+                {
                     -- idx;
                     object val = ParseJSONNumber (json, ref idx);
                     dict.SetByKey (keys, val);
@@ -1302,36 +1376,39 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             if (c != '"') throw new Exception ("bad start of json string");
 
             StringBuilder sb = new StringBuilder ();
-            while ((c = json[idx++]) != '"') {
-                if (c == '\\') {
+            while ((c = json[idx++]) != '"')
+            {
+                if (c == '\\')
+                {
                     c = json[idx++];
-                    switch (c) {
-                        case 'b': {
+                    switch (c)
+                    {
+                        case 'b':
                             c = '\b';
                             break;
-                        }
-                        case 'f': {
+
+                        case 'f':
                             c = '\f';
                             break;
-                        }
-                        case 'n': {
+
+                        case 'n':
                             c = '\n';
                             break;
-                        }
-                        case 'r': {
+
+                        case 'r':
                             c = '\r';
                             break;
-                        }
-                        case 't': {
+
+                        case 't':
                             c = '\t';
                             break;
-                        }
-                        case 'u': {
+
+                        case 'u':
                             c = (char) Int32.Parse (json.Substring (idx, 4), 
                                                     System.Globalization.NumberStyles.HexNumber);
                             idx += 4;
                             break;
-                        }
+
                         default: break;
                     }
                 }
@@ -1358,49 +1435,65 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                 isneg = true;
                 c = json[idx++];
             }
-            if ((c < '0') || (c > '9')) {
+            if ((c < '0') || (c > '9'))
                 throw new Exception ("bad json number");
-            }
-            while ((c >= '0') && (c <= '9')) {
+
+            while ((c >= '0') && (c <= '9'))
+            {
                 dval *= 10;
                 ival *= 10;
                 dval += c - '0';
                 ival += c - '0';
                 c = '\0';
-                if (idx < json.Length) c = json[idx++];
+                if (idx < json.Length)
+                    c = json[idx++];
             }
-            if (c == '.') {
+            if (c == '.')
+            {
                 decpt = 0;
                 c = '\0';
-                if (idx < json.Length) c = json[idx++];
+                if (idx < json.Length)
+                    c = json[idx++];
                 while ((c >= '0') && (c <= '9')) {
                     dval *= 10;
                     dval += c - '0';
                     decpt ++;
                     c = '\0';
-                    if (idx < json.Length) c = json[idx++];
+                    if (idx < json.Length)
+                        c = json[idx++];
                 }
             }
-            if ((c == 'e') || (c == 'E')) {
-                if (decpt < 0) decpt = 0;
+            if ((c == 'e') || (c == 'E'))
+            {
+                if (decpt < 0)
+                    decpt = 0;
                 c = json[idx++];
-                if (c == '-') expneg = true;
-                if ((c == '-') || (c == '+')) c = json[idx++];
-                while ((c >= '0') && (c <= '9')) {
+                if (c == '-')
+                    expneg = true;
+                if ((c == '-') || (c == '+'))
+                    c = json[idx++];
+                while ((c >= '0') && (c <= '9'))
+                {
                     expon *= 10;
                     expon += c - '0';
                     c = '\0';
-                    if (idx < json.Length) c = json[idx++];
+                    if (idx < json.Length)
+                        c = json[idx++];
                 }
-                if (expneg) expon = -expon;
+                if (expneg)
+                    expon = -expon;
             }
 
-            if (c != 0) -- idx;
-            if (decpt < 0) {
-                if (isneg) ival = -ival;
+            if (c != 0)
+                --idx;
+            if (decpt < 0)
+            {
+                if (isneg)
+                    ival = -ival;
                 return ival;
             } else {
-                if (isneg) dval = -dval;
+                if (isneg)
+                    dval = -dval;
                 dval *= Math.Pow (10, expon - decpt);
                 return dval;
             }
