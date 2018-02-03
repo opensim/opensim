@@ -626,8 +626,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ImageManager.Close();
             ImageManager = null;
 
-            m_entityUpdates.Close();
-            m_entityProps.Close();
+//            m_entityUpdates.Close();
+//            m_entityProps.Close();
+            m_entityUpdates = new PriorityQueue(1);
+            m_entityProps = new PriorityQueue(1);
             m_killRecord.Clear();
             GroupsInView.Clear();
 
