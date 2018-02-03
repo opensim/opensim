@@ -923,7 +923,7 @@
     ;; experimental engine
     ;; implements microthreading, so fixing problems like llSleep or long events handlers
     ;; but those will suffer from timeslicing, so will be slower.
-    ;; compiles LSL directly to IL, so only suports LSL scripting ( no C# etc) 
+    ;; compiles LSL directly to IL, so only suports LSL scripting (no C# etc) 
     ;; shares the Xengine APIs like LSL, OSSL, etc.
     ;; DANGER, do not use with HG, don't leave regions running alone with it.
     ;; TPs or crossings to/from Xengine will recompile scripts losing state.
@@ -933,7 +933,8 @@
     ScriptStackSize = 256
     ScriptHeapSize = 256
     UseSourceHashCode = true
-    MinTimerInterval = 0.1    
+    MinTimerInterval = 0.1
+    ;ScriptBasePath="ScriptData"
 
 [XEngine]
     ;# {Enabled} {} {Enable the XEngine scripting engine?} {true false} true
