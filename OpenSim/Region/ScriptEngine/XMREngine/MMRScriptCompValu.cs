@@ -1313,7 +1313,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         {
             scg.ilGen.Emit (errorAt, OpCodes.Ldloc, localBuilder);
             if (type.ToHeapTrackerType () != null) {
-                scg.ilGen.Emit (errorAt, OpCodes.Call, type.GetHeapTrackerPushMeth ());
+                type.CallHeapTrackerPushMeth (errorAt, scg.ilGen);
             }
         }
         public override void PushRef (ScriptCodeGen scg, Token errorAt)
@@ -1335,7 +1335,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         public override void PopPost (ScriptCodeGen scg, Token errorAt)
         {
             if (type.ToHeapTrackerType () != null) {
-                scg.ilGen.Emit (errorAt, OpCodes.Call, type.GetHeapTrackerPopMeth ());
+                type.CallHeapTrackerPopMeth (errorAt, scg.ilGen);
             } else {
                 scg.ilGen.Emit (errorAt, OpCodes.Stloc, localBuilder);
             }
@@ -1352,7 +1352,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                 scg.ilGen.Emit (errorAt, OpCodes.Stloc, htpop);
                 scg.ilGen.Emit (errorAt, OpCodes.Ldloc, localBuilder);
                 scg.ilGen.Emit (errorAt, OpCodes.Ldloc, htpop);
-                scg.ilGen.Emit (errorAt, OpCodes.Call,  type.GetHeapTrackerPopMeth ());
+                type.CallHeapTrackerPopMeth (errorAt, scg.ilGen);
             } else {
 
                 /*

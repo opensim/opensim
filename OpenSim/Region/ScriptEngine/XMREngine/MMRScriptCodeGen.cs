@@ -141,9 +141,6 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                                                                                new Type[] { typeof (LSL_Vector) });
         private static MethodInfo scriptRestoreCatchExceptionUnwrap = GetStaticMethod (typeof (ScriptRestoreCatchException), "Unwrap", new Type[] { typeof (Exception) });
         private static MethodInfo thrownExceptionWrapMethodInfo  = GetStaticMethod (typeof (ScriptThrownException), "Wrap", new Type[] { typeof (object) });
-        private static MethodInfo heapTrackerListPush   = typeof (HeapTrackerList).  GetMethod ("Push", new Type[0]);
-        private static MethodInfo heapTrackerObjectPush = typeof (HeapTrackerObject).GetMethod ("Push", new Type[0]);
-        private static MethodInfo heapTrackerStringPush = typeof (HeapTrackerString).GetMethod ("Push", new Type[0]);
 
         private static MethodInfo catchExcToStrMethodInfo = GetStaticMethod (typeof (ScriptCodeGen),
                                                                              "CatchExcToStr",
@@ -1510,16 +1507,13 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                 ilGen.Emit (curDeclFunc, OpCodes.Ldloc, lcl);
                 Type t = lcl.type;
                 if (t == typeof (HeapTrackerList)) {
-                    ilGen.Emit (curDeclFunc, OpCodes.Call, heapTrackerListPush);
-                    t = typeof (LSL_List);
+                    t = HeapTrackerList.GenPush (curDeclFunc, ilGen);
                 }
                 if (t == typeof (HeapTrackerObject)) {
-                    ilGen.Emit (curDeclFunc, OpCodes.Call, heapTrackerObjectPush);
-                    t = typeof (object);
+                    t = HeapTrackerObject.GenPush (curDeclFunc, ilGen);
                 }
-                if (t == typeof (HeapTrackerString)) {
-                    ilGen.Emit (curDeclFunc, OpCodes.Call, heapTrackerStringPush);
-                    t = typeof (string);
+                if (t == typeof(HeapTrackerString)) {
+                    t = HeapTrackerString.GenPush (curDeclFunc, ilGen);
                 }
                 if (t.IsValueType) {
                     ilGen.Emit (curDeclFunc, OpCodes.Box, t);
@@ -1615,7 +1609,9 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                     ilGen.Emit (curDeclFunc, OpCodes.Castclass, u);
                 }
                 if (u != t) {
-                    ilGen.Emit (curDeclFunc, OpCodes.Call, t.GetMethod ("Pop", new Type[] { u }));
+                    if (t == typeof (HeapTrackerList))   HeapTrackerList.GenPop   (curDeclFunc, ilGen);
+                    if (t == typeof (HeapTrackerObject)) HeapTrackerObject.GenPop (curDeclFunc, ilGen);
+                    if (t == typeof (HeapTrackerString)) HeapTrackerString.GenPop (curDeclFunc, ilGen);
                 } else {
                     ilGen.Emit (curDeclFunc, OpCodes.Stloc, lcl);
                 }

@@ -54,7 +54,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine {
             }
             bool https = uri.Scheme == "https";
             if (!https && (uri.Scheme != "http")) {
-                throw new WebException ("only support " + supported + ", not " + uri.Scheme);
+                throw new WebException ("only support " + supported + ", not " + uri.Scheme + " in " + requestUrl);
             }
             string host = uri.Host;
             int port = uri.Port;

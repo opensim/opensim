@@ -25,11 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
-using OpenSim.Region.ScriptEngine.XMREngine;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -43,9 +39,18 @@ using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 
 namespace OpenSim.Region.ScriptEngine.XMREngine
 {
+    /**
+     * One instance of this class for lsl base objects that take a variable
+     * amount of memory.  They are what the script-visible list,object,string
+     * variables are declared as at the CIL level.  Generally, temp vars used
+     * by the compiler get their basic type (list,object,string).
+     *
+     * Note that the xmr arrays and script-defined objects have their own
+     * heap tracking built in so do not need any of this stuff.
+     */
     public class HeapTrackerBase {
-        private int usage;
-        private XMRInstAbstract instance;
+        protected int usage;                    // num bytes used by object
+        protected XMRInstAbstract instance;     // what script it is in
 
         public HeapTrackerBase (XMRInstAbstract inst)
         {
@@ -57,36 +62,78 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         {
             usage = instance.UpdateHeapUse (usage, 0);
         }
-
-        protected void NewUse (int newuse)
-        {
-            usage = instance.UpdateHeapUse (usage, newuse);
-        }
     }
 
+    /**
+     * Wrapper around lists to keep track of how much memory they use.
+     */
     public class HeapTrackerList : HeapTrackerBase {
-        private LSL_List value;
+        private static FieldInfo listValueField = typeof (HeapTrackerList).GetField ("value");
+        private static MethodInfo listSaveMethod = typeof (HeapTrackerList).GetMethod ("Save");
+
+        public LSL_List value;
 
         public HeapTrackerList (XMRInstAbstract inst) : base (inst) { }
 
-        public void Pop (LSL_List lis)
+        // generate CIL code to pop the value from the CIL stack
+        //  input:
+        //   'this' pointer already pushed on CIL stack
+        //   new value pushed on CIL stack
+        //  output:
+        //   'this' pointer popped from stack
+        //   new value popped from CIL stack
+        //   heap usage updated
+        public static void GenPop (Token errorAt, ScriptMyILGen ilGen)
         {
-            NewUse (Size (lis));
+            ilGen.Emit(errorAt, OpCodes.Call, listSaveMethod);
+        }
+
+        // generate CIL code to push the value on the CIL stack
+        //  input:
+        //   'this' pointer already pushed on CIL stack
+        //  output:
+        //   'this' pointer popped from stack
+        //   value pushed on CIL stack replacing 'this' pointer
+        //   returns typeof value pushed on stack
+        public static Type GenPush (Token errorAt, ScriptMyILGen ilGen)
+        {
+            ilGen.Emit (errorAt, OpCodes.Ldfld, listValueField);
+            return typeof (LSL_List);
+        }
+
+        public void Save (LSL_List lis)
+        {
+            int newuse = Size (lis);
+            usage = instance.UpdateHeapUse (usage, newuse);
             value = lis;
         }
 
-        public LSL_List Push ()
-        {
-            return value;
-        }
-
+        //private static int counter = 5;
         public static int Size (LSL_List lis)
         {
-            return (!typeof (LSL_List).IsValueType && (lis == null)) ? 0 : lis.Size;
+            // VS2017 in debug mode seems to have a problem running this statement quickly:
+            //SLOW: return (!typeof(LSL_List).IsValueType && (lis == null)) ? 0 : lis.Size;
+
+            //FAST: return 33;
+            //SLOW: return (lis == null) ? 0 : 99;
+            //FAST: return ++ counter;
+
+            // VS2017 in debug mode seems content to run this quickly though:
+            try {
+                return lis.Size;
+            } catch {
+                return 0;
+            }
         }
     }
 
+    /**
+     * Wrapper around objects to keep track of how much memory they use.
+     */
     public class HeapTrackerObject : HeapTrackerBase {
+        private static FieldInfo objectValueField = typeof (HeapTrackerObject).GetField ("value");
+        private static MethodInfo objectSaveMethod = typeof (HeapTrackerObject).GetMethod ("Save");
+
         public const int HT_CHAR = 2;
         public const int HT_DELE = 8;
         public const int HT_DOUB = 8;
@@ -96,21 +143,44 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         public const int HT_VEC  = HT_DOUB * 3;
         public const int HT_ROT  = HT_DOUB * 4;
 
-        private object value;
+        public object value;
 
         public HeapTrackerObject (XMRInstAbstract inst) : base (inst) { }
 
-        public void Pop (object obj)
+        // generate CIL code to pop the value from the CIL stack
+        //  input:
+        //   'this' pointer already pushed on CIL stack
+        //   new value pushed on CIL stack
+        //  output:
+        //   'this' pointer popped from stack
+        //   new value popped from CIL stack
+        //   heap usage updated
+        public static void GenPop (Token errorAt, ScriptMyILGen ilGen)
         {
-            NewUse (Size (obj));
+            ilGen.Emit(errorAt, OpCodes.Call, objectSaveMethod);
+        }
+
+        // generate CIL code to push the value on the CIL stack
+        //  input:
+        //   'this' pointer already pushed on CIL stack
+        //  output:
+        //   'this' pointer popped from stack
+        //   value pushed on CIL stack replacing 'this' pointer
+        //   returns typeof value pushed on stack
+        public static Type GenPush (Token errorAt, ScriptMyILGen ilGen)
+        {
+            ilGen.Emit (errorAt, OpCodes.Ldfld, objectValueField);
+            return typeof (object);
+        }
+
+        public void Save (object obj)
+        {
+            int newuse = Size (obj);
+            usage = instance.UpdateHeapUse (usage, newuse);
             value = obj;
         }
 
-        public object Push ()
-        {
-            return value;
-        }
-
+        // public so it can be used by XMRArray
         public static int Size (object obj)
         {
             if (obj == null) return 0;
@@ -148,20 +218,48 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         }
     }
 
+    /**
+     * Wrapper around strings to keep track of how much memory they use.
+     */
     public class HeapTrackerString : HeapTrackerBase {
-        private string value;
+        private static FieldInfo stringValueField = typeof (HeapTrackerString).GetField ("value");
+        private static MethodInfo stringSaveMethod = typeof (HeapTrackerString).GetMethod ("Save");
+
+        public string value;
 
         public HeapTrackerString (XMRInstAbstract inst) : base (inst) { }
 
-        public void Pop (string str)
+        // generate CIL code to pop the value from the CIL stack
+        //  input:
+        //   'this' pointer already pushed on CIL stack
+        //   new value pushed on CIL stack
+        //  output:
+        //   'this' pointer popped from stack
+        //   new value popped from CIL stack
+        //   heap usage updated
+        public static void GenPop (Token errorAt, ScriptMyILGen ilGen)
         {
-            NewUse (Size (str));
-            value = str;
+            ilGen.Emit (errorAt, OpCodes.Call, stringSaveMethod);
         }
 
-        public string Push ()
+        // generate CIL code to push the value on the CIL stack
+        //  input:
+        //   'this' pointer already pushed on CIL stack
+        //  output:
+        //   'this' pointer popped from stack
+        //   value pushed on CIL stack replacing 'this' pointer
+        //   returns typeof value pushed on stack
+        public static Type GenPush (Token errorAt, ScriptMyILGen ilGen)
         {
-            return value;
+            ilGen.Emit (errorAt, OpCodes.Ldfld, stringValueField);
+            return typeof (string);
+        }
+
+        public void Save (string str)
+        {
+            int newuse = Size (str);
+            usage = instance.UpdateHeapUse (usage, newuse);
+            value = str;
         }
 
         public static int Size (string str)

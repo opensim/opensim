@@ -1504,6 +1504,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine {
 
         /**
          * @brief Get heap tracking type.
+         *        null indicates there is no heap tracker for the type.
          */
         public virtual Type ToHeapTrackerType ()
         {
@@ -1511,15 +1512,15 @@ namespace OpenSim.Region.ScriptEngine.XMREngine {
         }
         public virtual ConstructorInfo GetHeapTrackerCtor ()
         {
-            return null;
+            throw new ApplicationException("no GetHeapTrackerCtor for " + this.GetType());
         }
-        public virtual MethodInfo GetHeapTrackerPopMeth ()
+        public virtual void CallHeapTrackerPopMeth (Token errorAt, ScriptMyILGen ilGen)
         {
-            return null;
+            throw new ApplicationException("no CallHeapTrackerPopMeth for " + this.GetType());
         }
-        public virtual MethodInfo GetHeapTrackerPushMeth ()
+        public virtual void CallHeapTrackerPushMeth(Token errorAt, ScriptMyILGen ilGen)
         {
-            return null;
+            throw new ApplicationException("no CallHeapTrackerPushMeth for " + this.GetType());
         }
     }
 
@@ -1610,8 +1611,6 @@ namespace OpenSim.Region.ScriptEngine.XMREngine {
     public class TokenTypeList : TokenType {
         private static readonly FieldInfo iarListsFieldInfo = typeof (XMRInstArrays).GetField ("iarLists");
         private static readonly ConstructorInfo htListCtor  = typeof (HeapTrackerList).GetConstructor (new Type [] { typeof (XMRInstAbstract) });
-        private static readonly MethodInfo htListPopMeth    = typeof (HeapTrackerList).GetMethod ("Pop", new Type[] { typeof (LSL_List) });
-        private static readonly MethodInfo htListPushMeth   = typeof (HeapTrackerList).GetMethod ("Push", new Type[0]);
 
         public TokenTypeList (TokenErrorMessage emsg, string file, int line, int posn) : base (emsg, file, line, posn) { }
         public TokenTypeList (Token original) : base (original) { }
@@ -1624,14 +1623,12 @@ namespace OpenSim.Region.ScriptEngine.XMREngine {
         }
         public override Type ToHeapTrackerType () { return typeof (HeapTrackerList); }
         public override ConstructorInfo GetHeapTrackerCtor () { return htListCtor; }
-        public override MethodInfo GetHeapTrackerPopMeth ()   { return htListPopMeth; }
-        public override MethodInfo GetHeapTrackerPushMeth ()  { return htListPushMeth; }
+        public override void CallHeapTrackerPopMeth (Token errorAt, ScriptMyILGen ilGen)   { HeapTrackerList.GenPop(errorAt, ilGen); }
+        public override void CallHeapTrackerPushMeth (Token errorAt, ScriptMyILGen ilGen)  { HeapTrackerList.GenPush(errorAt, ilGen); }
     }
     public class TokenTypeObject : TokenType {
         private static readonly FieldInfo iarObjectsFieldInfo = typeof (XMRInstArrays).GetField ("iarObjects");
         private static readonly ConstructorInfo htObjectCtor  = typeof (HeapTrackerObject).GetConstructor (new Type [] { typeof (XMRInstAbstract) });
-        private static readonly MethodInfo htObjectPopMeth    = typeof (HeapTrackerObject).GetMethod ("Pop", new Type[] { typeof (object) });
-        private static readonly MethodInfo htObjectPushMeth   = typeof (HeapTrackerObject).GetMethod ("Push", new Type[0]);
 
         public TokenTypeObject (TokenErrorMessage emsg, string file, int line, int posn) : base (emsg, file, line, posn) { }
         public TokenTypeObject (Token original) : base (original) { }
@@ -1644,8 +1641,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine {
         }
         public override Type ToHeapTrackerType () { return typeof (HeapTrackerObject); }
         public override ConstructorInfo GetHeapTrackerCtor () { return htObjectCtor; }
-        public override MethodInfo GetHeapTrackerPopMeth ()   { return htObjectPopMeth; }
-        public override MethodInfo GetHeapTrackerPushMeth ()  { return htObjectPushMeth; }
+        public override void CallHeapTrackerPopMeth(Token errorAt, ScriptMyILGen ilGen)   { HeapTrackerObject.GenPop (errorAt, ilGen); }
+        public override void CallHeapTrackerPushMeth(Token errorAt, ScriptMyILGen ilGen)  { HeapTrackerObject.GenPush(errorAt, ilGen); }
     }
     public class TokenTypeRot : TokenType {
         private static readonly FieldInfo iarRotationsFieldInfo = typeof (XMRInstArrays).GetField ("iarRotations");
@@ -1663,8 +1660,6 @@ namespace OpenSim.Region.ScriptEngine.XMREngine {
     public class TokenTypeStr : TokenType {
         private static readonly FieldInfo iarStringsFieldInfo = typeof (XMRInstArrays).GetField ("iarStrings");
         private static readonly ConstructorInfo htStringCtor  = typeof (HeapTrackerString).GetConstructor (new Type [] { typeof (XMRInstAbstract) });
-        private static readonly MethodInfo htStringPopMeth    = typeof (HeapTrackerString).GetMethod ("Pop", new Type[] { typeof (string) });
-        private static readonly MethodInfo htStringPushMeth   = typeof (HeapTrackerString).GetMethod ("Push", new Type[0]);
 
         public TokenTypeStr (TokenErrorMessage emsg, string file, int line, int posn) : base (emsg, file, line, posn) { }
         public TokenTypeStr (Token original) : base (original) { }
@@ -1677,8 +1672,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine {
         }
         public override Type ToHeapTrackerType () { return typeof (HeapTrackerString); }
         public override ConstructorInfo GetHeapTrackerCtor () { return htStringCtor; }
-        public override MethodInfo GetHeapTrackerPopMeth ()   { return htStringPopMeth; }
-        public override MethodInfo GetHeapTrackerPushMeth ()  { return htStringPushMeth; }
+        public override void CallHeapTrackerPopMeth(Token errorAt, ScriptMyILGen ilGen)   { HeapTrackerString.GenPop(errorAt, ilGen); }
+        public override void CallHeapTrackerPushMeth (Token errorAt, ScriptMyILGen ilGen)  { HeapTrackerString.GenPush(errorAt, ilGen); }
     }
     public class TokenTypeUndef : TokenType {  // for the 'undef' constant, ie, null object pointer
         public TokenTypeUndef (TokenErrorMessage emsg, string file, int line, int posn) : base (emsg, file, line, posn) { }
