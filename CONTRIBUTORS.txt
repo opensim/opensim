@@ -149,6 +149,7 @@ what it is today.
 * Micheil Merlin
 * Mike Osias (IBM)
 * Mike Pitman (IBM)
+* Mike Rieker (Dreamnation)
 * mikemig
 * mikkopa/_someone - RealXtend
 * Misterblue
