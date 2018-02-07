@@ -589,11 +589,11 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
      * @brief Generate code for the usual ll...() functions.
      */
     public class TokenDeclInline_BEApi : TokenDeclInline {
-        private static readonly MethodInfo fixLLParcelMediaQuery = ScriptCodeGen.GetStaticMethod 
-                (typeof (XMRInstAbstract), "FixLLParcelMediaQuery", new Type[] { typeof (LSL_List) });
+//        private static readonly MethodInfo fixLLParcelMediaQuery = ScriptCodeGen.GetStaticMethod 
+//                (typeof (XMRInstAbstract), "FixLLParcelMediaQuery", new Type[] { typeof (LSL_List) });
 
-        private static readonly MethodInfo fixLLParcelMediaCommandList = ScriptCodeGen.GetStaticMethod 
-                (typeof (XMRInstAbstract), "FixLLParcelMediaCommandList", new Type[] { typeof (LSL_List) });
+//        private static readonly MethodInfo fixLLParcelMediaCommandList = ScriptCodeGen.GetStaticMethod 
+//                (typeof (XMRInstAbstract), "FixLLParcelMediaCommandList", new Type[] { typeof (LSL_List) });
 
         public bool doCheckRun;
         private FieldInfo apiContextField;
@@ -626,39 +626,41 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
          */
         public override void CodeGen (ScriptCodeGen scg, Token errorAt, CompValuTemp result, CompValu[] args)
         {
-            if (isTaggedCallsCheckRun) {                         // see if 'xmr' method that calls CheckRun() internally
-                new ScriptCodeGen.CallLabel (scg, errorAt);  // if so, put a call label immediately before it
-                                                                 // .. so restoring the frame will jump immediately to the
-                                                                 // .. call without re-executing any code before this
+            if (isTaggedCallsCheckRun)
+            {                                                   // see if 'xmr' method that calls CheckRun() internally
+                new ScriptCodeGen.CallLabel (scg, errorAt);     // if so, put a call label immediately before it
+                                                                // .. so restoring the frame will jump immediately to the
+                                                                // .. call without re-executing any code before this
             }
-            if (!methInfo.IsStatic) {
+            if (!methInfo.IsStatic)
+            {
                 scg.PushXMRInst ();                          // XMRInstanceSuperType pointer
-                if (apiContextField != null) {
+                if (apiContextField != null)                 // 'this' pointer for API function
                     scg.ilGen.Emit (errorAt, OpCodes.Ldfld, apiContextField);
-                                                             // 'this' pointer for API function
-                }
+                                                             
             }
-            for (int i = 0; i < args.Length; i ++) {             // push arguments, boxing/unboxing as needed
+            for (int i = 0; i < args.Length; i ++)             // push arguments, boxing/unboxing as needed
                 args[i].PushVal (scg, errorAt, argDecl.types[i]);
-            }
-            if (methInfo.Name == "llParcelMediaQuery") {
-                scg.ilGen.Emit (errorAt, OpCodes.Call, fixLLParcelMediaQuery);
-            }
-            if (methInfo.Name == "llParcelMediaCommandList") {
-                scg.ilGen.Emit (errorAt, OpCodes.Call, fixLLParcelMediaCommandList);
-            }
-            if (methInfo.IsVirtual) {                            // call API function
+
+            // this should not be needed
+//            if (methInfo.Name == "llParcelMediaQuery") {
+//                scg.ilGen.Emit (errorAt, OpCodes.Call, fixLLParcelMediaQuery);
+//            }
+            // this should not be needed
+//            if (methInfo.Name == "llParcelMediaCommandList") {
+//                scg.ilGen.Emit (errorAt, OpCodes.Call, fixLLParcelMediaCommandList);
+//            }
+            if (methInfo.IsVirtual)                            // call API function
                 scg.ilGen.Emit (errorAt, OpCodes.Callvirt, methInfo);
-            } else {
+            else
                 scg.ilGen.Emit (errorAt, OpCodes.Call, methInfo);
-            }
+
             result.Pop (scg, errorAt, retType);                  // pop result, boxing/unboxing as needed
-            if (isTaggedCallsCheckRun) {
+            if (isTaggedCallsCheckRun)
                 scg.openCallLabel = null;
-            }
-            if (doCheckRun) {
+
+            if (doCheckRun)
                 scg.EmitCallCheckRun (errorAt, false);       // maybe call CheckRun()
-            }
         }
     }
 }

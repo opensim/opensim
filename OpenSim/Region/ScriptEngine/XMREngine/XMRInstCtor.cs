@@ -695,7 +695,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             // do all the work in the MigrateInEventHandlerThread() method below
             miehstream = stream;
 
-            XMRScriptThread cst = XMRScriptThread.CurrentScriptThread ();
+            XMRScriptThread cst = m_Engine.CurrentScriptThread ();
             if (cst != null)
             {
                 // in case we are getting called inside some LSL Api function
@@ -704,11 +704,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             else
             {
                 // some other thread, do migration via a script thread
-                lock (XMRScriptThread.m_WakeUpLock)
-                {
-                    m_Engine.m_ThunkQueue.Enqueue (this.MigrateInEventHandlerThread);
-                }
-                XMRScriptThread.WakeUpOne ();
+                m_Engine.QueueToTrunk(this.MigrateInEventHandlerThread);
 
                 // wait for it to complete
                 lock (miehdone)
@@ -776,80 +772,6 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                     Monitor.Pulse (miehdone);
                 }
             }
-        }
-
-        /**
-         * See if permitted by configuration file.
-         * See OSSL_Api.CheckThreatLevelTest().
-         */
-        public string CheckFetchbinaryAllowed ()
-        {
-            string ownerPerm = m_Engine.Config.GetString ("Allow_fetchbinary", "");
-            UUID ownerID = m_Item.OwnerID;
-            string[] ids = ownerPerm.Split (new char[] { ',' });
-            foreach (string id in ids)
-            {
-                string curuc = id.Trim().ToUpperInvariant();
-
-                switch (curuc)
-                {
-                    case "ESTATE_MANAGER":
-                        if (m_Engine.m_Scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner (ownerID) &&
-                                (m_Engine.m_Scene.RegionInfo.EstateSettings.EstateOwner != ownerID))
-                            return null;
-
-                        break;
-
-                    case "ESTATE_OWNER":
-                        if (m_Engine.m_Scene.RegionInfo.EstateSettings.EstateOwner == ownerID)
-                            return null;
-
-                        break;
-
-                    case "PARCEL_GROUP_MEMBER":
-                        ILandObject land = m_Engine.m_Scene.LandChannel.GetLandObject (m_Part.AbsolutePosition);
-                        if (land.LandData.GroupID == m_Item.GroupID && land.LandData.GroupID != UUID.Zero)
-                            return null;
-
-                        break;
-
-                    case "PARCEL_OWNER":
-                        ILandObject Oland = m_Engine.m_Scene.LandChannel.GetLandObject (m_Part.AbsolutePosition);
-                        if (Oland.LandData.OwnerID == ownerID)
-                            return null;
-
-                        break;
-
-                    case "TRUE":
-                        return null;
-
-                    default:
-                        UUID uuid;
-                        if (UUID.TryParse (curuc, out uuid))
-                            if (uuid == ownerID) return null;
-
-                        break;
-                }
-            }
-
-            string creatorPerm = m_Engine.Config.GetString ("Creators_fetchbinary", "");
-            UUID creatorID = m_Item.CreatorID;
-            ids = creatorPerm.Split (new char[] { ',' });
-            foreach (string id in ids)
-            {
-                string current = id.Trim ();
-                UUID uuid;
-                if (UUID.TryParse (current, out uuid))
-                {
-                    if (uuid != UUID.Zero)
-                    {
-                        if (creatorID == uuid)
-                            return null;
-                    }
-                }
-            }
-
-            return "fetchbinary not enabled for owner " + ownerID + " creator " + creatorID;
         }
     }
 }

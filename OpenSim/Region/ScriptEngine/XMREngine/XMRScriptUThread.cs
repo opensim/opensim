@@ -57,21 +57,28 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         public Exception StartEx ()
         {
              // We should only be called when no event handler running.
-            if (active != 0) throw new Exception ("active=" + active);
+            if (active != 0)
+                throw new Exception ("active=" + active);
 
              // Start script event handler from very beginning.
             active = 1;
             Exception except = null;
             instance.callMode = XMRInstance.CallMode_NORMAL;
-            try {
+            try
+            {
                 instance.CallSEH ();        // run script event handler
                 active = 0;
-            } catch (StackHibernateException) {
-                if (instance.callMode != XMRInstance.CallMode_SAVE) {
+            }
+            catch (StackHibernateException)
+            {
+                if (instance.callMode != XMRInstance.CallMode_SAVE)
+                {
                     throw new Exception ("callMode=" + instance.callMode);
                 }
                 active = -1;                // it is hibernating, can be resumed
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 active = 0;
                 except = e;                 // threw exception, save for Start()/Resume()
             }
@@ -88,21 +95,28 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         public Exception ResumeEx ()
         {
              // We should only be called when script is hibernating.
-            if (active >= 0) throw new Exception ("active=" + active);
+            if (active >= 0)
+                throw new Exception ("active=" + active);
 
              // Resume script from captured stack.
             instance.callMode = XMRInstance.CallMode_RESTORE;
             instance.suspendOnCheckRunTemp = true;
             Exception except = null;
-            try {
+            try
+            {
                 instance.CallSEH ();        // run script event handler
                 active = 0;
-            } catch (StackHibernateException) {
-                if (instance.callMode != XMRInstance.CallMode_SAVE) {
+            }
+            catch (StackHibernateException)
+            {
+                if (instance.callMode != XMRInstance.CallMode_SAVE)
+                {
                     throw new Exception ("callMode=" + instance.callMode);
                 }
                 active = -1;
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 active = 0;
                 except = e;                 // threw exception, save for Start()/Resume()
             }

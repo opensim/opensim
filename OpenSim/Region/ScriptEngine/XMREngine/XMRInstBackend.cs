@@ -32,11 +32,6 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;
-using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
-using OpenSim.Region.ScriptEngine.XMREngine;
-using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Framework.Scenes.Scripting;
-using OpenSim.Region.Framework.Interfaces;
 using log4net;
 
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
@@ -88,6 +83,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
          *         -2: no av granted perms
          *         -3: av not in region
          */
+/* engines should not have own API
         public int xmrSeatAvatar (bool owner)
         {
             // Get avatar to be seated and make sure they have given us ANIMATION permission
@@ -118,7 +114,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             presence.HandleAgentRequestSit (null, UUID.Zero, m_host.UUID, OpenMetaverse.Vector3.Zero);
             return 0;
         }
-
+*/
         /**
          * @brief llTeleportAgent() is broken in that if you pass it a landmark,
          *        it still subjects the position to spawn points, as it always
@@ -129,6 +125,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
          * @param landmark = inventory name or UUID of a landmark object
          * @param lookat   = looking direction after teleport
          */
+/* engines should not have own API
         public void xmrTeleportAgent2Landmark (string agent, string landmark, LSL_Vector lookat)
         {
             // find out about agent to be teleported
@@ -172,13 +169,14 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                                            lookat,
                                            (uint)TeleportFlags.ViaLandmark);
         }
-
+*/
         /**
          * @brief Allow any member of group given by config SetParcelMusicURLGroup to set music URL.
          *        Code modelled after llSetParcelMusicURL().
          * @param newurl = new URL to set (or "" to leave it alone)
          * @returns previous URL string
          */
+/* engines should not have own API
         public string xmrSetParcelMusicURLGroup (string newurl)
         {
             string groupname = m_ScriptEngine.Config.GetString ("SetParcelMusicURLGroup", "");
@@ -200,6 +198,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             if ((newurl != null) && (newurl != "")) land.SetMusicUrl (newurl);
             return oldurl;
         }
+*/
     }
 
     public partial class XMRInstance

@@ -491,11 +491,9 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             {
                 if (this.newStateCode < 0)
                 {
+                     // Process event given by 'stateCode' and 'eventCode'.
+                     // The event handler should call CheckRun() as often as convenient.
 
-                    /*
-                     * Process event given by 'stateCode' and 'eventCode'.
-                     * The event handler should call CheckRun() as often as convenient.
-                     */
                     int newState = this.stateCode;
                     seh = this.m_ObjCode.scriptEventHandlerTable[newState,(int)this.eventCode];
                     if (seh != null)
@@ -512,25 +510,19 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                     this.ehArgs = null;  // we are done with them and no args for
                                          // exit_state()/enter_state() anyway
 
-                    /*
-                     * The usual case is no state change.
-                     * Even a 'state <samestate>;' statement has no effect except to exit out.
-                     * It does not execute the state_exit() or state_entry() handlers.
-                     * See http://wiki.secondlife.com/wiki/State
-                     */
+                     // The usual case is no state change.
+                     // Even a 'state <samestate>;' statement has no effect except to exit out.
+                     // It does not execute the state_exit() or state_entry() handlers.
+                     // See http://wiki.secondlife.com/wiki/State
                     if (newState == this.stateCode)
                         break;
 
-                    /*
-                     * Save new state in a more permanent location in case we
-                     * get serialized out while in the state_exit() handler.
-                     */
+                     // Save new state in a more permanent location in case we
+                     // get serialized out while in the state_exit() handler.
                     this.newStateCode = newState;
                 }
 
-                /*
-                 * Call old state's state_exit() handler.
-                 */
+                 // Call old state's state_exit() handler.
                 this.eventCode = ScriptEventCode.state_exit;
                 seh = this.m_ObjCode.scriptEventHandlerTable[this.stateCode,(int)ScriptEventCode.state_exit];
                 if (seh != null)
@@ -545,27 +537,19 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                     }
                 }
 
-                /*
-                 * Switch over to the new state's state_entry() handler.
-                 */
+                 // Switch over to the new state's state_entry() handler.
                 this.stateCode    = this.newStateCode;
                 this.eventCode    = ScriptEventCode.state_entry;
                 this.newStateCode = -1;
 
-                /*
-                 * Now that the old state can't possibly start any more activity,
-                 * cancel any listening handlers, etc, of the old state.
-                 */
+                 // Now that the old state can't possibly start any more activity,
+                 // cancel any listening handlers, etc, of the old state.
                 this.StateChange ();
 
-                /*
-                 * Loop back to execute new state's state_entry() handler.
-                 */
+                 // Loop back to execute new state's state_entry() handler.
             }
 
-            /*
-             * Event no longer being processed.
-             */
+             // Event no longer being processed.
             this.eventCode = ScriptEventCode.None;
         }
 
@@ -642,6 +626,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
          * @brief Convert all LSL_Integers in a list to System.Int32s, 
          *        as required by llParcelMediaQuery().
          */
+/*
         public static LSL_List FixLLParcelMediaQuery (LSL_List oldlist)
         {
             object[] oldarray = oldlist.Data;
@@ -655,11 +640,12 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             }
             return new LSL_List (newarray);
         }
-
+*/
         /**
          * @brief Convert *SOME* LSL_Integers in a list to System.Int32s, 
          *        as required by llParcelMediaCommandList().
          */
+/*
         public static LSL_List FixLLParcelMediaCommandList (LSL_List oldlist)
         {
             object[] oldarray = oldlist.Data;
@@ -696,7 +682,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             }
             return new LSL_List (newarray);
         }
-
+*/
         public static int xmrHashCode (int i)
         {
             return i.GetHashCode ();

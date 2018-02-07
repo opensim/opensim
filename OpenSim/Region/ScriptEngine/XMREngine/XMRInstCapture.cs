@@ -27,22 +27,10 @@
 
 using System;
 using System.Threading;
-using System.Reflection;
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.Remoting.Lifetime;
-using System.Security.Policy;
 using System.IO;
 using System.Xml;
-using System.Text;
-using OpenMetaverse;
-using OpenSim.Framework;
-using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;
-using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
-using OpenSim.Region.ScriptEngine.XMREngine;
-using OpenSim.Region.Framework.Scenes;
 using log4net;
 
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
@@ -78,9 +66,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
          */
         public XmlElement GetExecutionState(XmlDocument doc)
         {
-            /*
-             * When we're detaching an attachment, we need to wait here.
-             */
+            // When we're detaching an attachment, we need to wait here.
 
             // Change this to a 5 second timeout. If things do mess up,
             // we don't want to be stuck forever.
@@ -92,20 +78,16 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             scriptStateN.SetAttribute("Asset", m_Item.AssetID.ToString());
             scriptStateN.SetAttribute ("SourceHash", m_ObjCode.sourceHash);
 
-            /*
-             * Make sure we aren't executing part of the script so it stays 
-             * stable.  Setting suspendOnCheckRun tells CheckRun() to suspend
-             * and return out so RunOne() will release the lock asap.
-             */
+             // Make sure we aren't executing part of the script so it stays 
+             // stable.  Setting suspendOnCheckRun tells CheckRun() to suspend
+             // and return out so RunOne() will release the lock asap.
             suspendOnCheckRunHold = true;
             lock (m_RunLock)
             {
                 m_RunOnePhase = "GetExecutionState enter";
                 CheckRunLockInvariants(true);
 
-                /*
-                 * Get copy of script globals and stack in relocateable form.
-                 */
+                 // Get copy of script globals and stack in relocateable form.
                 MemoryStream snapshotStream = new MemoryStream();
                 MigrateOutEventHandler(snapshotStream);
                 Byte[] snapshotBytes = snapshotStream.ToArray();
@@ -116,25 +98,19 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                 scriptStateN.AppendChild(snapshotN);
                 m_RunOnePhase = "GetExecutionState B"; CheckRunLockInvariants(true);
 
-                /*
-                 * "Running" says whether or not we are accepting new events.
-                 */
+                 // "Running" says whether or not we are accepting new events.
                 XmlElement runningN = doc.CreateElement("", "Running", "");
                 runningN.AppendChild(doc.CreateTextNode(m_Running.ToString()));
                 scriptStateN.AppendChild(runningN);
                 m_RunOnePhase = "GetExecutionState C"; CheckRunLockInvariants(true);
 
-                /*
-                 * "DoGblInit" says whether or not default:state_entry() will init global vars.
-                 */
+                 // "DoGblInit" says whether or not default:state_entry() will init global vars.
                 XmlElement doGblInitN = doc.CreateElement("", "DoGblInit", "");
                 doGblInitN.AppendChild(doc.CreateTextNode(doGblInit.ToString()));
                 scriptStateN.AppendChild(doGblInitN);
                 m_RunOnePhase = "GetExecutionState D"; CheckRunLockInvariants(true);
 
-                /*
-                 * More misc data.
-                 */
+                 // More misc data.
                 XmlNode permissionsN = doc.CreateElement("", "Permissions", "");
                 scriptStateN.AppendChild(permissionsN);
 
@@ -147,10 +123,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                 permissionsN.Attributes.Append(maskA);
                 m_RunOnePhase = "GetExecutionState E"; CheckRunLockInvariants(true);
 
-                /*
-                 * "DetectParams" are returned by llDetected...() script functions
-                 * for the currently active event, if any.
-                 */
+                 // "DetectParams" are returned by llDetected...() script functions
+                 // for the currently active event, if any.
                 if (m_DetectParams != null)
                 {
                     XmlElement detParArrayN = doc.CreateElement("", "DetectArray", "");
@@ -159,16 +133,14 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                 }
                 m_RunOnePhase = "GetExecutionState F"; CheckRunLockInvariants(true);
 
-                /*
-                 * Save any events we have in the queue.
-                 * <EventQueue>
-                 *   <Event Name="...">
-                 *     <param>...</param> ...
-                 *     <DetectParams>...</DetectParams> ...
-                 *   </Event>
-                 *   ...
-                 * </EventQueue>
-                 */
+                 // Save any events we have in the queue.
+                 // <EventQueue>
+                 //   <Event Name="...">
+                 //     <param>...</param> ...
+                 //     <DetectParams>...</DetectParams> ...
+                 //   </Event>
+                 //   ...
+                 // </EventQueue>
                 XmlElement queuedEventsN = doc.CreateElement("", "EventQueue", "");
                 lock (m_QueueLock)
                 {
@@ -184,31 +156,24 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                 scriptStateN.AppendChild(queuedEventsN);
                 m_RunOnePhase = "GetExecutionState G"; CheckRunLockInvariants(true);
 
-                /*
-                 * "Plugins" indicate enabled timers and listens, etc.
-                 */
+                 // "Plugins" indicate enabled timers and listens, etc.
                 Object[] pluginData = 
-                        AsyncCommandManager.GetSerializationData(m_Engine,
-                                m_ItemID);
+                        AsyncCommandManager.GetSerializationData(m_Engine, m_ItemID);
 
                 XmlNode plugins = doc.CreateElement("", "Plugins", "");
                 AppendXMLObjectArray(doc, plugins, pluginData, "plugin");
                 scriptStateN.AppendChild(plugins);
                 m_RunOnePhase = "GetExecutionState H"; CheckRunLockInvariants(true);
 
-                /*
-                 * Let script run again.
-                 */
+                 // Let script run again.
                 suspendOnCheckRunHold = false;
 
                 m_RunOnePhase = "GetExecutionState leave";
                 CheckRunLockInvariants(true);
             }
 
-            /*
-             * scriptStateN represents the contents of the .state file so
-             * write the .state file while we are here.
-             */
+             // scriptStateN represents the contents of the .state file so
+             // write the .state file while we are here.
             FileStream fs = File.Create(m_StateFileName);
             StreamWriter sw = new StreamWriter(fs);
             sw.Write(scriptStateN.OuterXml);
@@ -233,32 +198,33 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             // do all the work in the MigrateOutEventHandlerThread() method below
             moehstream = stream;
 
-            XMRScriptThread cst = XMRScriptThread.CurrentScriptThread ();
-            if (cst != null) {
+            XMRScriptThread cst = m_Engine.CurrentScriptThread ();
+            if (cst != null)
+            {
 
                 // we might be getting called inside some LSL Api function
                 // so we are already in script thread and thus must do
                 // migration directly
                 MigrateOutEventHandlerThread ();
-            } else {
-
+            }
+            else
+            {
                 // some other thread, do migration via a script thread
-                lock (XMRScriptThread.m_WakeUpLock) {
-                    m_Engine.m_ThunkQueue.Enqueue (this.MigrateOutEventHandlerThread);
-                }
-                XMRScriptThread.WakeUpOne ();
+                m_Engine.QueueToTrunk(this.MigrateOutEventHandlerThread);
 
                 // wait for it to complete
-                lock (moehdone) {
-                    while (moehstream != null) {
+                lock (moehdone)
+                {
+                    while (moehstream != null)
                         Monitor.Wait (moehdone);
-                    }
                 }
             }
 
             // maybe it threw up
-            if (moehexcep != null) throw moehexcep;
+            if (moehexcep != null)
+                throw moehexcep;
         }
+
         private Exception moehexcep;
         private object moehdone = new object ();
         private Stream moehstream;
@@ -266,64 +232,65 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         {
             Exception except;
 
-            try {
-
-                /*
-                 * Resume the microthread and it will throw a StackCaptureException()
-                 * with the stack frames saved to this.stackFrames.
-                 * Then write the saved stack frames to the output stream.
-                 *
-                 * There is a stack only if the event code is not None.
-                 */
-                if (this.eventCode != ScriptEventCode.None) {
-
+            try
+            {
+                 // Resume the microthread and it will throw a StackCaptureException()
+                 // with the stack frames saved to this.stackFrames.
+                 // Then write the saved stack frames to the output stream.
+                 //
+                 // There is a stack only if the event code is not None.
+                if (this.eventCode != ScriptEventCode.None)
+                {
                     // tell microthread to continue
                     // it should see captureStackFrames and throw StackCaptureException()
                     // ...generating XMRStackFrames as it unwinds
                     this.captureStackFrames = true;
+//                    this.suspendOnCheckRunTemp = true;
                     except = this.microthread.ResumeEx ();
                     this.captureStackFrames = false;
-                    if (except == null) {
+
+                    if (except == null)
                         throw new Exception ("stack save did not complete");
-                    }
-                    if (!(except is StackCaptureException)) {
+
+                    if (!(except is StackCaptureException))
                         throw except;
-                    }
                 }
 
-                /*
-                 * Write script state out, frames and all, to the stream.
-                 * Does not change script state.
-                 */
+                 // Write script state out, frames and all, to the stream.
+                 // Does not change script state.
+
                 moehstream.WriteByte (migrationVersion);
                 moehstream.WriteByte ((byte)16);
                 this.MigrateOut (new BinaryWriter (moehstream));
 
-                /*
-                 * Now restore script stack.
-                 * Microthread will suspend inside CheckRun() when restore is complete.
-                 */
-                if (this.eventCode != ScriptEventCode.None) {
+                 // Now restore script stack.
+                 // Microthread will suspend inside CheckRun() when restore is complete.
+                if (this.eventCode != ScriptEventCode.None)
+                {
                     this.stackFramesRestored = false;
                     except = this.microthread.StartEx ();
-                    if (except != null) {
-                        throw except;
-                    }
-                    if (!this.stackFramesRestored) {
-                        throw new Exception ("restore after save did not complete");
-                    }
-                }
-            } catch (Exception e) {
-                moehexcep = e;
-            } finally {
 
-                // make sure CheckRunLockInvariants() won't puque
-                if (this.microthread.Active () == 0) {
-                    this.eventCode = ScriptEventCode.None;
+                    if (except != null)
+                        throw except;
+
+                    if (!this.stackFramesRestored)
+                        throw new Exception ("restore after save did not complete");
+
                 }
+            }
+            catch (Exception e)
+            {
+                moehexcep = e;
+            }
+            finally
+            {
+                // make sure CheckRunLockInvariants() won't puque
+                if (this.microthread.Active () == 0)
+                    this.eventCode = ScriptEventCode.None;
 
                 // wake the MigrateOutEventHandler() method above
-                lock (moehdone) {
+                lock (moehdone)
+                {
                     moehstream = null;
                     Monitor.Pulse (moehdone);
                 }
