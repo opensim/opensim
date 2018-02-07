@@ -25,7 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using Mono.Tasklets;
 using OpenSim.Framework.Monitoring;
 using System;
 using System.Collections.Generic;
@@ -70,7 +69,6 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         private bool        m_Exiting = false;
         private bool        m_SuspendScriptThreadFlag = false;
         private bool        m_WakeUpThis = false;
-        private bool        m_Continuations = false;
         public  DateTime    m_LastRanAt = DateTime.MinValue;
         public  int         m_ScriptThreadTID = 0;
         public  long        m_ScriptExecTime = 0;
@@ -78,15 +76,15 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         private XMREngine   engine;
         public  XMRInstance m_RunInstance = null;
 
-        public XMRScriptThread(XMREngine eng)
+        public XMRScriptThread(XMREngine eng, int i)
         {
             engine = eng;
-            m_Continuations = engine.uThreadCtor.DeclaringType == typeof (ScriptUThread_Con);
-//            thd = XMREngine.StartMyThread (RunScriptThread, "xmrengine script", ThreadPriority.BelowNormal);
-            thd = XMREngine.StartMyThread (RunScriptThread, "xmrengine script", ThreadPriority.Normal);
+            if(i < 0)
+                thd = XMREngine.StartMyThread (RunScriptThread, "xmrengine script", ThreadPriority.Normal);
+            else
+                thd = XMREngine.StartMyThread (RunScriptThread, "xmrengineExec" + i.ToString(), ThreadPriority.Normal);
             lock (m_AllThreads)
                 m_AllThreads.Add (thd, this);
-
         }
 
         public void SuspendThread()
@@ -125,7 +123,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
          */
         private void WakeUpScriptThread()
         {
-            lock (m_WakeUpLock) {
+            lock (m_WakeUpLock)
+            {
                 m_WakeUpThis = true;
                 Monitor.PulseAll (m_WakeUpLock);
             }
@@ -137,24 +136,22 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         private void RunScriptThread()
         {
             XMRInstance inst;
-            Mono.Tasklets.Continuation engstack = null;
-            if (m_Continuations) {
-                engstack = new Mono.Tasklets.Continuation ();
-                engstack.Mark ();
-            }
             m_ScriptThreadTID = System.Threading.Thread.CurrentThread.ManagedThreadId;
 
-            while (!m_Exiting) {
+            while (!m_Exiting)
+            {
                 XMREngine.UpdateMyThread ();
 
                 /*
                  * Handle 'xmr resume/suspend' commands.
                  */
-                if (m_SuspendScriptThreadFlag) {
+                if (m_SuspendScriptThreadFlag)
+                {
                     lock (m_WakeUpLock) {
                         while (m_SuspendScriptThreadFlag &&
                                !m_Exiting &&
-                               (engine.m_ThunkQueue.Count == 0)) {
+                               (engine.m_ThunkQueue.Count == 0))
+                        {
                             Monitor.Wait (m_WakeUpLock, Watchdog.DEFAULT_WATCHDOG_TIMEOUT_MS / 2);
                             XMREngine.UpdateMyThread ();
                         }
@@ -165,81 +162,72 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                  * Maybe there are some scripts waiting to be migrated in or out.
                  */
                 ThreadStart thunk = null;
-                lock (m_WakeUpLock) {
-                    if (engine.m_ThunkQueue.Count > 0) {
+                lock (m_WakeUpLock)
+                {
+                    if (engine.m_ThunkQueue.Count > 0)
                         thunk = engine.m_ThunkQueue.Dequeue ();
-                    }
                 }
-                if (thunk != null) {
+                if (thunk != null)
+                {
                     inst = (XMRInstance)thunk.Target;
-                    if (m_Continuations && (inst.scrstack == null)) {
-                        inst.engstack = engstack;
-                        inst.scrstack = new Mono.Tasklets.Continuation ();
-                        inst.scrstack.Mark ();
-                    }
                     thunk ();
                     continue;
                 }
 
-                if (engine.m_StartProcessing) {
+                if (engine.m_StartProcessing)
+                {
+                     // If event just queued to any idle scripts
+                     // start them right away.  But only start so
+                     // many so we can make some progress on yield
+                     // queue.
 
-                    /*
-                     * If event just queued to any idle scripts
-                     * start them right away.  But only start so
-                     * many so we can make some progress on yield
-                     * queue.
-                     */
                     int numStarts;
-                    for (numStarts = 5; -- numStarts >= 0;) {
-                        lock (engine.m_StartQueue) {
+                    for (numStarts = 5; -- numStarts >= 0;)
+                    {
+                        lock (engine.m_StartQueue)
+                        {
                             inst = engine.m_StartQueue.RemoveHead();
                         }
                         if (inst == null) break;
                         if (inst.m_IState != XMRInstState.ONSTARTQ) throw new Exception("bad state");
-                        if (m_Continuations && (inst.scrstack == null)) {
-                            inst.engstack = engstack;
-                            inst.scrstack = new Mono.Tasklets.Continuation ();
-                            inst.scrstack.Mark ();
-                        }
                         RunInstance (inst);
                     }
 
-                    /*
-                     * If there is something to run, run it
-                     * then rescan from the beginning in case
-                     * a lot of things have changed meanwhile.
-                     *
-                     * These are considered lower priority than
-                     * m_StartQueue as they have been taking at
-                     * least one quantum of CPU time and event
-                     * handlers are supposed to be quick.
-                     */
-                    lock (engine.m_YieldQueue) {
+                     // If there is something to run, run it
+                     // then rescan from the beginning in case
+                     // a lot of things have changed meanwhile.
+                     //
+                     // These are considered lower priority than
+                     // m_StartQueue as they have been taking at
+                     // least one quantum of CPU time and event
+                     // handlers are supposed to be quick.
+
+                    lock (engine.m_YieldQueue)
+                    {
                         inst = engine.m_YieldQueue.RemoveHead();
                     }
-                    if (inst != null) {
+                    if (inst != null)
+                    {
                         if (inst.m_IState != XMRInstState.ONYIELDQ) throw new Exception("bad state");
-                        RunInstance (inst);
+                        RunInstance(inst);
                         numStarts = -1;
                     }
 
-                    /*
-                     * If we left something dangling in the m_StartQueue or m_YieldQueue, go back to check it.
-                     */
-                    if (numStarts < 0) continue;
+                     // If we left something dangling in the m_StartQueue or m_YieldQueue, go back to check it.
+                    if (numStarts < 0)
+                        continue;
                 }
 
-                /*
-                 * Nothing to do, sleep.
-                 */
-                lock (m_WakeUpLock) {
-                    if (!m_WakeUpThis && (m_WakeUpOne <= 0) && !m_Exiting) {
-                        Monitor.Wait (m_WakeUpLock, Watchdog.DEFAULT_WATCHDOG_TIMEOUT_MS / 2);
-                    }
+                 // Nothing to do, sleep.
+
+                lock (m_WakeUpLock)
+                {
+                    if (!m_WakeUpThis && (m_WakeUpOne <= 0) && !m_Exiting)
+                        Monitor.Wait(m_WakeUpLock, Watchdog.DEFAULT_WATCHDOG_TIMEOUT_MS / 2);
+
                     m_WakeUpThis = false;
-                    if ((m_WakeUpOne > 0) && (-- m_WakeUpOne > 0)) {
+                    if ((m_WakeUpOne > 0) && (-- m_WakeUpOne > 0))
                         Monitor.Pulse (m_WakeUpLock);
-                    }
                 }
             }
             XMREngine.MyThreadExiting ();

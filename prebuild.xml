@@ -2418,28 +2418,7 @@
       </Files>
     </Project>
 
-    <!-- XMRengine -->
-    <Project frameworkVersion="v4_6" name="Mono.Tasklets" path="OpenSim/Region/ScriptEngine/XMREngine" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-
-      <Files>
-        <Match pattern="MonoTaskletsDummy.cs" recurse="true">
-             <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
-    </Project>   
-    
+    <!-- XMRengine -->   
     <Project frameworkVersion="v4_6" name="OpenSim.Region.ScriptEngine.XMREngine" path="OpenSim/Region/ScriptEngine/XMREngine" type="Library">
       <Configuration name="Debug">
         <Options>

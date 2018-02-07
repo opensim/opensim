@@ -119,6 +119,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             //FAST: return ++ counter;
 
             // VS2017 in debug mode seems content to run this quickly though:
+
             try {
                 return lis.Size;
             } catch {

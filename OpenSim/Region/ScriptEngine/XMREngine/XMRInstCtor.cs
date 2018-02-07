@@ -78,9 +78,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             if (stackSize < 16384) stackSize = 16384;
             if (heapSize  < 16384) heapSize  = 16384;
 
-            /*
-             * Save all call parameters in instance vars for easy access.
-             */
+             // Save all call parameters in instance vars for easy access.
             m_Engine         = engine;
             m_ScriptBasePath = scriptBasePath;
             m_StackSize      = stackSize;
@@ -88,185 +86,167 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             m_CompilerErrors = errors;
             m_StateFileName  = GetStateFileName(scriptBasePath, m_ItemID);
 
-            /*
-             * Not in any XMRInstQueue.
-             */
+             // Not in any XMRInstQueue.
             m_NextInst = this;
             m_PrevInst = this;
 
-            /*
-             * Set up list of API calls it has available.
-             * This also gets the API modules ready to accept setup data, such as
-             * active listeners being restored.
-             */
+             // Set up list of API calls it has available.
+             // This also gets the API modules ready to accept setup data, such as
+             // active listeners being restored.
             IScriptApi scriptApi;
             ApiManager am = new ApiManager();
             foreach (string api in am.GetApis())
             {
-                /*
-                 * Instantiate the API for this script instance.
-                 */
+                 // Instantiate the API for this script instance.
                 if (api != "LSL") {
                     scriptApi = am.CreateApi(api);
                 } else {
                     scriptApi = m_XMRLSLApi = new XMRLSL_Api();
                 }
 
-                /*
-                 * Connect it up to the instance.
-                 */
+                 // Connect it up to the instance.
                 InitScriptApi (engine, api, scriptApi);
             }
 
             m_XMRLSLApi.InitXMRLSLApi(this);
 
-            /*
-             * Get object loaded, compiling script and reading .state file as
-             * necessary to restore the state.
-             */
+             // Get object loaded, compiling script and reading .state file as
+             // necessary to restore the state.
             suspendOnCheckRunHold = true;
             InstantiateScript();
             m_SourceCode = null;
             if (m_ObjCode == null) throw new ArgumentNullException ("m_ObjCode");
-            if (m_ObjCode.scriptEventHandlerTable == null) {
+            if (m_ObjCode.scriptEventHandlerTable == null)
                 throw new ArgumentNullException ("m_ObjCode.scriptEventHandlerTable");
-            }
 
             suspendOnCheckRunHold = false;
             suspendOnCheckRunTemp = false;
 
-            /*
-             * Declare which events the script's current state can handle.
-             */
+             // Declare which events the script's current state can handle.
             int eventMask = GetStateEventFlags(stateCode);
             m_Part.SetScriptEvents(m_ItemID, eventMask);
         }
 
         private void InitScriptApi (XMREngine engine, string api, IScriptApi scriptApi)
         {
-            /*
-             * Set up m_ApiManager_<APINAME> = instance pointer.
-             */
+             // Set up m_ApiManager_<APINAME> = instance pointer.
             engine.m_XMRInstanceApiCtxFieldInfos[api].SetValue (this, scriptApi);
 
-            /*
-             * Initialize the API instance.
-             */
+             // Initialize the API instance.
             scriptApi.Initialize(m_Engine, m_Part, m_Item);
             this.InitApi (api, scriptApi);
         }
 
-
-        // Get script object code loaded in memory and all ready to run,
-        // ready to resume it from where the .state file says it was last
+        /*
+         * Get script object code loaded in memory and all ready to run,
+         * ready to resume it from where the .state file says it was last
+         */
         private void InstantiateScript()
         {
             bool compiledIt = false;
             ScriptObjCode objCode;
 
-            /*
-             * If source code string is empty, use the asset ID as the object file name.
-             * Allow lines of // comments at the beginning (for such as engine selection).
-             */
+             // If source code string is empty, use the asset ID as the object file name.
+             // Allow lines of // comments at the beginning (for such as engine selection).
             int i, j, len;
             if (m_SourceCode == null) m_SourceCode = String.Empty;
-            for (len = m_SourceCode.Length; len > 0; -- len) {
-                if (m_SourceCode[len-1] > ' ') break;
+            for (len = m_SourceCode.Length; len > 0; --len)
+            {
+                if (m_SourceCode[len-1] > ' ')
+                    break;
             }
-            for (i = 0; i < len; i ++) {
+            for (i = 0; i < len; i ++)
+            {
                 char c = m_SourceCode[i];
-                if (c <= ' ') continue;
-                if (c != '/') break;
-                if ((i + 1 >= len) || (m_SourceCode[i+1] != '/')) break;
+                if (c <= ' ')
+                    continue;
+                if (c != '/')
+                    break;
+                if ((i + 1 >= len) || (m_SourceCode[i+1] != '/'))
+                    break;
                 i = m_SourceCode.IndexOf ('\n', i);
-                if (i < 0) i = len - 1;
+                if (i < 0)
+                    i = len - 1;
             }
-            if ((i >= len) || !m_Engine.m_UseSourceHashCode) {
- 
-                /*
-                 * Source consists of nothing but // comments and whitespace,
-                 * or we are being forced to use the asset-id as the key, to
-                 * open an already existing object code file.
-                 */
+            if ((i >= len) || !m_Engine.m_UseSourceHashCode)
+            {
+                 // Source consists of nothing but // comments and whitespace,
+                 // or we are being forced to use the asset-id as the key, to
+                 // open an already existing object code file.
                 m_ScriptObjCodeKey = m_Item.AssetID.ToString ();
-                if (i >= len) m_SourceCode = "";
-            } else {
-
-                /*
-                 * Make up dictionary key for the object code.
-                 * Use the same object code for identical source code
-                 * regardless of asset ID, so we don't care if they
-                 * copy scripts or not.
-                 */
+                if (i >= len)
+                    m_SourceCode = "";
+            }
+            else
+            {
+                 // Make up dictionary key for the object code.
+                 // Use the same object code for identical source code
+                 // regardless of asset ID, so we don't care if they
+                 // copy scripts or not.
                 byte[] scbytes   = System.Text.Encoding.UTF8.GetBytes (m_SourceCode);
                 StringBuilder sb = new StringBuilder ((256 + 5) / 6);
                 ByteArrayToSixbitStr (sb, System.Security.Cryptography.SHA256.Create ().ComputeHash (scbytes));
                 m_ScriptObjCodeKey = sb.ToString ();
 
-                /*
-                 * But source code can be just a sixbit string itself
-                 * that identifies an already existing object code file.
-                 */
-                if (len - i == m_ScriptObjCodeKey.Length) {
-                    for (j = len; -- j >= i;) {
-                        if (sixbit.IndexOf (m_SourceCode[j]) < 0) break;
+                 // But source code can be just a sixbit string itself
+                 // that identifies an already existing object code file.
+                if (len - i == m_ScriptObjCodeKey.Length)
+                {
+                    for (j = len; -- j >= i;)
+                    {
+                        if (sixbit.IndexOf (m_SourceCode[j]) < 0)
+                            break;
                     }
-                    if (j < i) {
+                    if (j < i)
+                    {
                         m_ScriptObjCodeKey = m_SourceCode.Substring (i, len - i);
                         m_SourceCode = "";
                     }
                 }
             }
 
-            /*
-             * There may already be an ScriptObjCode struct in memory that
-             * we can use.  If not, try to compile it.
-             */
-            lock (m_CompileLock) {
-                if (!m_CompiledScriptObjCode.TryGetValue (m_ScriptObjCodeKey, out objCode) || m_ForceRecomp) {
+             // There may already be an ScriptObjCode struct in memory that
+             // we can use.  If not, try to compile it.
+            lock (m_CompileLock)
+            {
+                if (!m_CompiledScriptObjCode.TryGetValue (m_ScriptObjCodeKey, out objCode) || m_ForceRecomp)
+                {
                     objCode = TryToCompile ();
                     compiledIt = true;
                 }
 
-                /*
-                 * Loaded successfully, increment reference count.
-                 *
-                 * If we just compiled it though, reset count to 0 first as
-                 * this is the one-and-only existance of this objCode struct,
-                 * and we want any old ones for this source code to be garbage
-                 * collected.
-                 */
-                if (compiledIt) {
+                 // Loaded successfully, increment reference count.
+
+                 // If we just compiled it though, reset count to 0 first as
+                 // this is the one-and-only existance of this objCode struct,
+                 // and we want any old ones for this source code to be garbage
+                 // collected.
+
+                if (compiledIt)
+                {
                     m_CompiledScriptObjCode[m_ScriptObjCodeKey] = objCode;
                     objCode.refCount = 0;
                 }
                 objCode.refCount ++;
 
-                /*
-                 * Now set up to decrement ref count on dispose.
-                 */
+                 // Now set up to decrement ref count on dispose.
                 m_ObjCode = objCode;
             }
 
-            try {
-    
-                /*
-                 * Fill in script instance from object code
-                 * Script instance is put in a "never-ever-has-run-before" state.
-                 */
+            try
+            {   
+                 // Fill in script instance from object code
+                 // Script instance is put in a "never-ever-has-run-before" state.
                 LoadObjCode();
 
-                /*
-                 * Fill in script intial state
-                 * - either as loaded from a .state file
-                 * - or initial default state_entry() event
-                 */
+                 // Fill in script intial state
+                 // - either as loaded from a .state file
+                 // - or initial default state_entry() event
                 LoadInitialState();
-            } catch {
-
-                /*
-                 * If any error loading, decrement object code reference count.
-                 */
+            }
+            catch
+            {
+                 // If any error loading, decrement object code reference count.
                 DecObjCodeRefCount ();
                 throw;
             }
@@ -277,42 +257,41 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         {
             int bit = 0;
             int val = 0;
-            foreach (byte b in bytes) {
+            foreach (byte b in bytes)
+            {
                 val |= (int)((uint)b << bit);
                 bit += 8;
-                while (bit >= 6) {
+                while (bit >= 6)
+                {
                     sb.Append (sixbit[val&63]);
                     val >>= 6;
                     bit  -= 6;
                 }
             }
-            if (bit > 0) {
+            if (bit > 0)
                 sb.Append (sixbit[val&63]);
-            }
         }
 
-        // Try to create object code from source code
-        // If error, just throw exception
+        /*
+         * Try to create object code from source code
+         * If error, just throw exception
+         */
         private ScriptObjCode TryToCompile ()
         {
             m_CompilerErrors.Clear();
 
-            /*
-             * If object file exists, create ScriptObjCode directly from that.
-             * Otherwise, compile the source to create object file then create
-             * ScriptObjCode from that.
-             */
+             // If object file exists, create ScriptObjCode directly from that.
+             // Otherwise, compile the source to create object file then create
+             // ScriptObjCode from that.
+
             string assetID  = m_Item.AssetID.ToString();
             m_CameFrom = "asset://" + assetID;
             ScriptObjCode objCode = Compile ();
             if (m_CompilerErrors.Count != 0)
-            {
                 throw new Exception ("compilation errors");
-            }
+
             if (objCode == null)
-            {
                 throw new Exception ("compilation failed");
-            }
 
             return objCode;
         }
@@ -323,18 +302,18 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         private string FetchSource (string cameFrom)
         {
             m_log.Debug ("[XMREngine]: fetching source " + cameFrom);
-            if (!cameFrom.StartsWith ("asset://")) {
+            if (!cameFrom.StartsWith ("asset://"))
                 throw new Exception ("unable to retrieve source from " + cameFrom);
-            }
+
             string assetID = cameFrom.Substring (8);
             AssetBase asset = m_Engine.World.AssetService.Get(assetID);
-            if (asset == null) {
+            if (asset == null)
                 throw new Exception ("source not found " + cameFrom);
-            }
+
             string source = Encoding.UTF8.GetString (asset.Data);
-            if (EmptySource (source)) {
+            if (EmptySource (source))
                 throw new Exception ("fetched source empty " + cameFrom);
-            }
+
             return source;
         }
 
@@ -344,53 +323,47 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
          */
         private void LoadObjCode ()
         {
-            /*
-             * Script must leave this much stack remaining on calls to CheckRun().
-             */
+             // Script must leave this much stack remaining on calls to CheckRun().
+
             this.stackLimit = m_StackSize / 2;
 
-            /*
-             * This is how many total heap bytes script is allowed to use.
-             */
+             // This is how many total heap bytes script is allowed to use.
             this.heapLimit = m_HeapSize;
 
-            /*
-             * Allocate global variable arrays.
-             */
+             // Allocate global variable arrays.
             this.glblVars.AllocVarArrays (m_ObjCode.glblSizes);
 
-            /*
-             * Script can handle these event codes.
-             */
+             // Script can handle these event codes.
             m_HaveEventHandlers = new bool[m_ObjCode.scriptEventHandlerTable.GetLength(1)];
-            for (int i = m_ObjCode.scriptEventHandlerTable.GetLength(0); -- i >= 0;) {
-                for (int j = m_ObjCode.scriptEventHandlerTable.GetLength(1); -- j >= 0;) {
-                    if (m_ObjCode.scriptEventHandlerTable[i,j] != null) {
+            for (int i = m_ObjCode.scriptEventHandlerTable.GetLength(0); -- i >= 0;)
+            {
+                for (int j = m_ObjCode.scriptEventHandlerTable.GetLength(1); -- j >= 0;)
+                {
+                    if (m_ObjCode.scriptEventHandlerTable[i,j] != null)
+                     {
                         m_HaveEventHandlers[j] = true;
                     }
                 }
             }
 
-            /*
-             * Set up microthread object which actually calls the script event handler functions.
-             */
+             // Set up microthread object which actually calls the script event handler functions.
             this.microthread = (IScriptUThread)m_Engine.uThreadCtor.Invoke (new object[] { this });
         }
 
-        //  LoadInitialState()
-        //      if no state XML file exists for the asset,
-        //          post initial default state events
-        //      else
-        //          try to restore from .state file
-        //  If any error, throw exception
-        //
+        /*
+         *  LoadInitialState()
+         *      if no state XML file exists for the asset,
+         *          post initial default state events
+         *      else
+         *          try to restore from .state file
+         *  If any error, throw exception
+         */
         private void LoadInitialState()
         {
-            /*
-             * If no .state file exists, start from default state
-             * Otherwise, read initial state from the .state file
-             */
-            if (!File.Exists(m_StateFileName)) {
+             // If no .state file exists, start from default state
+             // Otherwise, read initial state from the .state file
+            if (!File.Exists(m_StateFileName))
+            {
                 m_Running = true;                  // event processing is enabled
                 eventCode = ScriptEventCode.None;  // not processing any event
 
@@ -401,7 +374,9 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                 PostEvent(new EventParams("state_entry", 
                                           zeroObjectArray,
                                           zeroDetectParams));
-            } else {
+            }
+            else
+            {
                 FileStream fs = File.Open(m_StateFileName, 
                                           FileMode.Open, 
                                           FileAccess.Read);
@@ -415,31 +390,29 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                 LoadScriptState(doc);
             }
 
-            /*
-             * Post event(s) saying what caused the script to start.
-             */
-            if (m_PostOnRez) {
+             // Post event(s) saying what caused the script to start.
+            if (m_PostOnRez)
+            {
                 PostEvent(new EventParams("on_rez",
                           new Object[] { m_StartParam }, 
                           zeroDetectParams));
             }
 
-            switch (m_StateSource) {
-                case StateSource.AttachedRez: {
+            switch (m_StateSource)
+            {
+                case StateSource.AttachedRez:
 //                    PostEvent(new EventParams("attach",
 //                              new object[] { m_Part.ParentGroup.AttachedAvatar.ToString() }, 
 //                              zeroDetectParams));
                     break;
-                }
 
-                case StateSource.PrimCrossing: {
+                case StateSource.PrimCrossing:
                     PostEvent(new EventParams("changed",
                               sbcCR, 
                               zeroDetectParams));
                     break;
-                }
 
-                case StateSource.Teleporting: {
+                case StateSource.Teleporting:
                     PostEvent(new EventParams("changed",
                               sbcCR, 
                               zeroDetectParams));
@@ -447,14 +420,12 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                               sbcCT, 
                               zeroDetectParams));
                     break;
-                }
 
-                case StateSource.RegionStart: {
+                case StateSource.RegionStart:
                     PostEvent(new EventParams("changed",
                               sbcCRS, 
                               zeroDetectParams));
                     break;
-                }
             }
         }
 
@@ -468,17 +439,19 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
          */
         private void ErrorHandler(Token token, string message)
         {
-            if (token != null) {
+            if (token != null)
+            {
                 string srcloc = token.SrcLoc;
-                if (srcloc.StartsWith (m_CameFrom)) {
+                if (srcloc.StartsWith (m_CameFrom))
                     srcloc = srcloc.Substring (m_CameFrom.Length);
-                }
+
                 m_CompilerErrors.Add(srcloc + " Error: " + message);
-            } else if (message != null) {
-                m_CompilerErrors.Add("(0,0) Error: " + message);
-            } else {
-                m_CompilerErrors.Add("(0,0) Error compiling, see exception in log");
             }
+            else if (message != null)
+                m_CompilerErrors.Add("(0,0) Error: " + message);
+
+            else
+                m_CompilerErrors.Add("(0,0) Error compiling, see exception in log");
         }
 
         /**
@@ -503,28 +476,25 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
 
             // Everything we know is enclosed in <ScriptState>...</ScriptState>
             XmlElement scriptStateN = (XmlElement)doc.SelectSingleNode("ScriptState");
-            if (scriptStateN == null) {
+            if (scriptStateN == null)
                 throw new Exception("no <ScriptState> tag");
-            }
+
             string sen = scriptStateN.GetAttribute("Engine");
-            if ((sen == null) || (sen != m_Engine.ScriptEngineName)) {
+            if ((sen == null) || (sen != m_Engine.ScriptEngineName))
                 throw new Exception("<ScriptState> missing Engine=\"XMREngine\" attribute");
-            }
+
 
             // AssetID is unique for the script source text so make sure the
             // state file was written for that source file
             string assetID = scriptStateN.GetAttribute("Asset");
             if (assetID != m_Item.AssetID.ToString())
-            {
                 throw new Exception("<ScriptState> assetID mismatch");
-            }
 
             // Also match the sourceHash in case script was
             // loaded via 'xmroption fetchsource' and has changed
             string sourceHash = scriptStateN.GetAttribute ("SourceHash");
-            if ((sourceHash == null) || (sourceHash != m_ObjCode.sourceHash)) {
+            if ((sourceHash == null) || (sourceHash != m_ObjCode.sourceHash))
                 throw new Exception ("<ScriptState> SourceHash mismatch");
-            }
 
             // Get various attributes
             XmlElement runningN = (XmlElement)scriptStateN.SelectSingleNode("Running");
@@ -549,8 +519,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             Object[] pluginData = ExtractXMLObjectArray(pluginN, "plugin");
 
             // Script's global variables and stack contents
-            XmlElement snapshotN = 
-                    (XmlElement)scriptStateN.SelectSingleNode("Snapshot");
+            XmlElement snapshotN = (XmlElement)scriptStateN.SelectSingleNode("Snapshot");
 
             Byte[] data = Convert.FromBase64String(snapshotN.InnerText);
             MemoryStream ms = new MemoryStream();
@@ -561,18 +530,21 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
 
             // Restore event queues, preserving any events that queued
             // whilst we were restoring the state
-            lock (m_QueueLock) {
+            lock (m_QueueLock)
+            {
                 m_DetectParams = detParams;
-                foreach (EventParams evt in m_EventQueue) {
+                foreach (EventParams evt in m_EventQueue)
                     eventQueue.AddLast (evt);
-                }
-                m_EventQueue   = eventQueue;
-                for (int i = m_EventCounts.Length; -- i >= 0;) m_EventCounts[i] = 0;
+
+                m_EventQueue = eventQueue;
+                for (int i = m_EventCounts.Length; -- i >= 0;)
+                    m_EventCounts[i] = 0;
+
                 foreach (EventParams evt in m_EventQueue)
                 {
-                    ScriptEventCode eventCode = (ScriptEventCode)Enum.Parse (typeof (ScriptEventCode),
+                    ScriptEventCode eventCode = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode),
                                                                              evt.EventName);
-                    m_EventCounts[(int)eventCode] ++;
+                    m_EventCounts[(int)eventCode]++;
                 }
             }
 
@@ -594,7 +566,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
         private LinkedList<EventParams> RestoreEventQueue(XmlNode eventsN)
         {
             LinkedList<EventParams> eventQueue = new LinkedList<EventParams>();
-            if (eventsN != null) {
+            if (eventsN != null)
+            {
                 XmlNodeList eventL = eventsN.SelectNodes("Event");
                 foreach (XmlNode evnt in eventL)
                 {
@@ -629,8 +602,10 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             XmlNodeList detectL = detectedN.SelectNodes("DetectParams");
 
             DetectParams detprm = new DetectParams();
-            foreach (XmlNode detxml in detectL) {
-                try {
+            foreach (XmlNode detxml in detectL)
+            {
+                try
+                {
                     detprm.Group     = new UUID(detxml.Attributes.GetNamedItem("group").Value);
                     detprm.Key       = new UUID(detxml.Attributes.GetNamedItem("key").Value);
                     detprm.Owner     = new UUID(detxml.Attributes.GetNamedItem("owner").Value);
@@ -648,7 +623,9 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
 
                     detected.Add(detprm);
                     detprm = new DetectParams();
-                } catch (Exception e) {
+                }
+                catch (Exception e)
+                {
                     m_log.Warn("[XMREngine]: RestoreDetectParams bad XML: " + detxml.ToString());
                     m_log.Warn("[XMREngine]: ... " + e.ToString());
                 }
@@ -670,9 +647,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
 
             XmlNodeList itemL = parent.SelectNodes(tag);
             foreach (XmlNode item in itemL)
-            {
                 olist.Add(ExtractXMLObjectValue(item));
-            }
 
             return olist.ToArray();
         }
@@ -682,9 +657,7 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             string itemType = item.Attributes.GetNamedItem("type").Value;
 
             if (itemType == "list")
-            {
                 return new LSL_List(ExtractXMLObjectArray(item, "item"));
-            }
 
             if (itemType == "OpenMetaverse.UUID")
             {
@@ -701,9 +674,8 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
                 string assembly = itemType + ", OpenSim.Region.ScriptEngine.Shared";
                 itemT = Type.GetType(assembly);
                 if (itemT == null)
-                {
                     return null;
-                }
+
                 return Activator.CreateInstance(itemT, args);
             }
 
@@ -724,77 +696,82 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
             miehstream = stream;
 
             XMRScriptThread cst = XMRScriptThread.CurrentScriptThread ();
-            if (cst != null) {
-
+            if (cst != null)
+            {
                 // in case we are getting called inside some LSL Api function
                 MigrateInEventHandlerThread ();
-            } else {
-
+            }
+            else
+            {
                 // some other thread, do migration via a script thread
-                lock (XMRScriptThread.m_WakeUpLock) {
+                lock (XMRScriptThread.m_WakeUpLock)
+                {
                     m_Engine.m_ThunkQueue.Enqueue (this.MigrateInEventHandlerThread);
                 }
                 XMRScriptThread.WakeUpOne ();
 
                 // wait for it to complete
-                lock (miehdone) {
-                    while (miehstream != null) {
-                        Monitor.Wait (miehdone);
-                    }
+                lock (miehdone)
+                {
+                    while (miehstream != null)
+                        Monitor.Wait(miehdone);
                 }
             }
 
             // maybe it threw up
-            if (miehexcep != null) throw miehexcep;
+            if (miehexcep != null)
+                throw miehexcep;
         }
+
         private Exception miehexcep;
         private object miehdone = new object ();
         private Stream miehstream;
         private void MigrateInEventHandlerThread ()
         {
-            try {
+            try
+            {
                 int mv = miehstream.ReadByte ();
-                if (mv != migrationVersion) {
+                if (mv != migrationVersion)
                     throw new Exception ("incoming migration version " + mv + " but accept only " + migrationVersion);
-                }
+
                 miehstream.ReadByte ();  // ignored
 
-                /*
-                 * Restore script variables and stack and other state from stream.
-                 * And it also marks us busy (by setting this.eventCode) so we can't be
-                 * started again and this event lost.
-                 */
+                 // Restore script variables and stack and other state from stream.
+                 // And it also marks us busy (by setting this.eventCode) so we can't be
+                 // started again and this event lost.
+
                 BinaryReader br = new BinaryReader (miehstream);
                 this.MigrateIn (br);
 
-                /*
-                 * If eventCode is None, it means the script was idle when migrated.
-                 */
-                if (this.eventCode != ScriptEventCode.None) {
+                 // If eventCode is None, it means the script was idle when migrated.
 
-                    /*
-                     * So microthread.Start() calls XMRScriptUThread.Main() which calls the
-                     * event handler function.  The event handler function sees the stack
-                     * frames in this.stackFrames and restores its args and locals, then calls
-                     * whatever it was calling when the snapshot was taken.  That function also
-                     * sees this.stackFrames and restores its args and locals, and so on...
-                     * Eventually it gets to the point of calling CheckRun() which sees we are
-                     * doing a restore and it suspends, returning here with the microthread
-                     * stack all restored.  It shouldn't ever throw an exception.
-                     */
+                if (this.eventCode != ScriptEventCode.None)
+                {
+                     // So microthread.Start() calls XMRScriptUThread.Main() which calls the
+                     // event handler function.  The event handler function sees the stack
+                     // frames in this.stackFrames and restores its args and locals, then calls
+                     // whatever it was calling when the snapshot was taken.  That function also
+                     // sees this.stackFrames and restores its args and locals, and so on...
+                     // Eventually it gets to the point of calling CheckRun() which sees we are
+                     // doing a restore and it suspends, returning here with the microthread
+                     // stack all restored.  It shouldn't ever throw an exception.
+
                     this.stackFramesRestored = false;
                     Exception te = microthread.StartEx ();
                     if (te != null) throw te;
-                    if (!this.stackFramesRestored) throw new Exception ("migrate in did not complete");
+                    if (!this.stackFramesRestored)
+                        throw new Exception ("migrate in did not complete");
                 }
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 miehexcep = e;
-            } finally {
-
-                /*
-                 * Wake the MigrateInEventHandler() method above.
-                 */
-                lock (miehdone) {
+            }
+            finally
+            {
+                 // Wake the MigrateInEventHandler() method above.
+                lock (miehdone)
+                {
                     miehstream = null;
                     Monitor.Pulse (miehdone);
                 }
@@ -807,67 +784,67 @@ namespace OpenSim.Region.ScriptEngine.XMREngine
          */
         public string CheckFetchbinaryAllowed ()
         {
-            string ownerPerm = m_Engine.Config.GetString ("Allow_fetchbinary",    "");
+            string ownerPerm = m_Engine.Config.GetString ("Allow_fetchbinary", "");
             UUID ownerID = m_Item.OwnerID;
             string[] ids = ownerPerm.Split (new char[] { ',' });
-            foreach (string id in ids) {
-                string curuc = id.Trim ().ToUpperInvariant ();
+            foreach (string id in ids)
+            {
+                string curuc = id.Trim().ToUpperInvariant();
 
-                switch (curuc) {
-                    case "ESTATE_MANAGER": {
+                switch (curuc)
+                {
+                    case "ESTATE_MANAGER":
                         if (m_Engine.m_Scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner (ownerID) &&
-                                (m_Engine.m_Scene.RegionInfo.EstateSettings.EstateOwner != ownerID)) {
+                                (m_Engine.m_Scene.RegionInfo.EstateSettings.EstateOwner != ownerID))
                             return null;
-                        }
-                        break;
-                    }
 
-                    case "ESTATE_OWNER": {
-                        if (m_Engine.m_Scene.RegionInfo.EstateSettings.EstateOwner == ownerID) {
+                        break;
+
+                    case "ESTATE_OWNER":
+                        if (m_Engine.m_Scene.RegionInfo.EstateSettings.EstateOwner == ownerID)
                             return null;
-                        }
-                        break;
-                    }
 
-                    case "PARCEL_GROUP_MEMBER": {
+                        break;
+
+                    case "PARCEL_GROUP_MEMBER":
                         ILandObject land = m_Engine.m_Scene.LandChannel.GetLandObject (m_Part.AbsolutePosition);
-                        if (land.LandData.GroupID == m_Item.GroupID && land.LandData.GroupID != UUID.Zero) {
+                        if (land.LandData.GroupID == m_Item.GroupID && land.LandData.GroupID != UUID.Zero)
                             return null;
-                        }
-                        break;
-                    }
 
-                    case "PARCEL_OWNER": {
-                        ILandObject land = m_Engine.m_Scene.LandChannel.GetLandObject (m_Part.AbsolutePosition);
-                        if (land.LandData.OwnerID == ownerID) {
+                        break;
+
+                    case "PARCEL_OWNER":
+                        ILandObject Oland = m_Engine.m_Scene.LandChannel.GetLandObject (m_Part.AbsolutePosition);
+                        if (Oland.LandData.OwnerID == ownerID)
                             return null;
-                        }
-                        break;
-                    }
 
-                    case "TRUE": {
+                        break;
+
+                    case "TRUE":
                         return null;
-                    }
 
-                    default: {
+                    default:
                         UUID uuid;
-                        if (UUID.TryParse (curuc, out uuid)) {
+                        if (UUID.TryParse (curuc, out uuid))
                             if (uuid == ownerID) return null;
-                        }
+
                         break;
-                    }
                 }
             }
 
             string creatorPerm = m_Engine.Config.GetString ("Creators_fetchbinary", "");
             UUID creatorID = m_Item.CreatorID;
             ids = creatorPerm.Split (new char[] { ',' });
-            foreach (string id in ids) {
+            foreach (string id in ids)
+            {
                 string current = id.Trim ();
                 UUID uuid;
-                if (UUID.TryParse (current, out uuid)) {
-                    if (uuid != UUID.Zero) {
-                        if (creatorID == uuid) return null;
+                if (UUID.TryParse (current, out uuid))
+                {
+                    if (uuid != UUID.Zero)
+                    {
+                        if (creatorID == uuid)
+                            return null;
                     }
                 }
             }
