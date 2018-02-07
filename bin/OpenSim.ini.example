@@ -921,6 +921,7 @@
 
 [XMREngine]
     ;; experimental engine
+    ;; ONLY SUPORTS ONE REGION PER INSTANCE at this point
     ;; implements microthreading, so fixing problems like llSleep or long events handlers
     ;; but those will suffer from timeslicing, so will be slower.
     ;; compiles LSL directly to IL, so only suports LSL scripting (no C# etc) 
