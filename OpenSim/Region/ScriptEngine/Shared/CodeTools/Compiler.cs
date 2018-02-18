@@ -369,14 +369,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 {
                     case enumCompileType.cs:
                         compileScript = CreateCSCompilerScript(
-                            compileScript,
+                            source,
                             m_scriptEngine.ScriptClassName,
                             m_scriptEngine.ScriptBaseClassName,
                             m_scriptEngine.ScriptBaseClassParameters);
                         break;
                     case enumCompileType.vb:
                         compileScript = CreateVBCompilerScript(
-                            compileScript, m_scriptEngine.ScriptClassName, m_scriptEngine.ScriptBaseClassName);
+                            source, m_scriptEngine.ScriptClassName, m_scriptEngine.ScriptBaseClassName);
                         break;
                 }
             }
@@ -548,6 +548,10 @@ namespace SecondLife
             //parameters.WarningLevel = 1; // Should be 4?
             parameters.TreatWarningsAsErrors = false;
             parameters.GenerateInMemory = false;
+
+//          this seems to cause issues on some windows servers
+//            parameters.TempFiles = new TempFileCollection(Path.Combine(ScriptEnginesPath,
+//                        m_scriptEngine.World.RegionInfo.RegionID.ToString()), CompileWithDebugInformation);
 
             CompilerResults results;
 
