@@ -549,8 +549,9 @@ namespace SecondLife
             parameters.TreatWarningsAsErrors = false;
             parameters.GenerateInMemory = false;
 
-            parameters.TempFiles = new TempFileCollection(Path.Combine(ScriptEnginesPath,
-                        m_scriptEngine.World.RegionInfo.RegionID.ToString()), CompileWithDebugInformation);
+//          this seems to cause issues on some windows servers
+//            parameters.TempFiles = new TempFileCollection(Path.Combine(ScriptEnginesPath,
+//                        m_scriptEngine.World.RegionInfo.RegionID.ToString()), CompileWithDebugInformation);
 
             CompilerResults results;
 
