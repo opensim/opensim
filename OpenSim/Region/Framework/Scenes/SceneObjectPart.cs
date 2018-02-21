@@ -3930,25 +3930,25 @@ namespace OpenSim.Region.Framework.Scenes
                     break;
                 case PrimType.SPHERE:
                     ret = 1;
-                    if (hasCut) ret += 2;
+                    if (hasCut || Shape.PathSkew != 0) ret += 2;
                     if (hasDimple) ret += 2;
                     if (hasHollow) ret += 1;
                     break;
                 case PrimType.TORUS:
                     ret = 1;
-                    if (hasCut) ret += 2;
+                    if (hasCut || Shape.PathSkew != 0) ret += 2;
                     if (hasProfileCut) ret += 2;
                     if (hasHollow) ret += 1;
                     break;
                 case PrimType.TUBE:
                     ret = 4;
-                    if (hasCut) ret += 2;
+                    if (hasCut  || Shape.PathSkew != 0) ret += 2;
                     if (hasProfileCut) ret += 2;
                     if (hasHollow) ret += 1;
                     break;
                 case PrimType.RING:
                     ret = 3;
-                    if (hasCut) ret += 2;
+                    if (hasCut || Shape.PathSkew != 0) ret += 2;
                     if (hasProfileCut) ret += 2;
                     if (hasHollow) ret += 1;
                     break;
