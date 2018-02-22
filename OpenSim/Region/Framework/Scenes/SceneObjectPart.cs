@@ -3892,10 +3892,6 @@ namespace OpenSim.Region.Framework.Scenes
         public int GetNumberOfSides()
         {
             int ret = 0;
-            bool hasCut;
-            bool hasHollow;
-            bool hasDimple;
-            bool hasProfileCut;
 
             if(Shape.SculptEntry)
             {
@@ -3909,50 +3905,96 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             PrimType primType = GetPrimType(true);
-            HasCutHollowDimpleProfileCut(primType, Shape, out hasCut, out hasHollow, out hasDimple, out hasProfileCut);
 
             switch (primType)
             {
                 case PrimType.BOX:
                     ret = 6;
-                    if (hasCut) ret += 2;
-                    if (hasHollow) ret += 1;
-                    break;
-                case PrimType.CYLINDER:
-                    ret = 3;
-                    if (hasCut) ret += 2;
-                    if (hasHollow) ret += 1;
+                    if (Shape.ProfileBegin > 0 || Shape.ProfileEnd > 0) // cut case
+                    {
+                        // removed sides
+                        int cut = (Shape.ProfileEnd + Shape.ProfileBegin);
+                        if(cut > 50000)
+                            cut = 50000;
+                        cut /= 12500;
+                        ret -= cut;
+                        ret += 2; // both cut faces
+                    }
                     break;
                 case PrimType.PRISM:
                     ret = 5;
-                    if (hasCut) ret += 2;
-                    if (hasHollow) ret += 1;
+                    if (Shape.ProfileBegin > 0 || Shape.ProfileEnd > 0) // cut case
+                    {
+                        // removed faces
+                        int cut = (Shape.ProfileEnd + Shape.ProfileBegin);
+                        if(cut >= 16667 )
+                            ret--;
+                        if(cut >= 33333 )
+                            ret--;
+                        ret += 2; // both cut faces
+                    }
+                    break;
+                case PrimType.CYLINDER:
+                    ret = 3;
+                    if (Shape.ProfileBegin > 0 || Shape.ProfileEnd > 0) // cut
+                        ret += 2;
                     break;
                 case PrimType.SPHERE:
                     ret = 1;
-                    if (hasCut || Shape.PathSkew != 0) ret += 2;
-                    if (hasDimple) ret += 2;
-                    if (hasHollow) ret += 1;
+                    // cut faces exist if cut or skew or unequal twist limits
+                    if (Shape.PathBegin > 0 || Shape.PathEnd > 0 || Shape.PathSkew != 0 || (Shape.PathTwistBegin != Shape.PathTwist))
+                        ret += 2;
+                    if (Shape.ProfileBegin > 0 || Shape.ProfileEnd > 0 || Shape.ProfileHollow > 0) // dimple also if hollow
+                        ret += 2;
                     break;
                 case PrimType.TORUS:
                     ret = 1;
-                    if (hasCut || Shape.PathSkew != 0) ret += 2;
-                    if (hasProfileCut) ret += 2;
-                    if (hasHollow) ret += 1;
+                    if (Shape.PathBegin > 0 || Shape.PathEnd > 0 || Shape.PathSkew != 0
+                            || Shape.PathTaperX != 0 || Shape.PathTaperY != 0 || Shape.PathRevolutions > 0
+                            || Shape.PathRadiusOffset != 0 || (Shape.PathTwistBegin != Shape.PathTwist))
+                        ret += 2;
+                    if (Shape.ProfileBegin > 0 || Shape.ProfileEnd > 0) // profile cut
+                        ret += 2;
                     break;
                 case PrimType.TUBE:
                     ret = 4;
-                    if (hasCut  || Shape.PathSkew != 0) ret += 2;
-                    if (hasProfileCut) ret += 2;
-                    if (hasHollow) ret += 1;
+                    if (Shape.PathBegin > 0 || Shape.PathEnd > 0 || Shape.PathSkew != 0
+                            || Shape.PathTaperX != 0 || Shape.PathTaperY != 0 || Shape.PathRevolutions > 0
+                            || Shape.PathRadiusOffset != 0 || (Shape.PathTwistBegin != Shape.PathTwist))
+                        ret += 2;
+                    if (Shape.ProfileBegin > 0 || Shape.ProfileEnd > 0) // profile cut
+                    {
+                        // removed sides
+                        int cut = (Shape.ProfileEnd + Shape.ProfileBegin);
+                        if(cut > 50000)
+                            cut = 50000;
+                        cut /= 12500;
+                        ret -= cut;
+                        ret += 2; // both cut faces
+                    }
                     break;
                 case PrimType.RING:
                     ret = 3;
-                    if (hasCut || Shape.PathSkew != 0) ret += 2;
-                    if (hasProfileCut) ret += 2;
-                    if (hasHollow) ret += 1;
+                    if (Shape.PathBegin > 0 || Shape.PathEnd > 0 || Shape.PathSkew != 0
+                            || Shape.PathTaperX != 0 || Shape.PathTaperY != 0 || Shape.PathRevolutions > 0
+                            || Shape.PathRadiusOffset != 0 || (Shape.PathTwistBegin != Shape.PathTwist))
+                        ret += 2;
+                    if (Shape.ProfileBegin > 0 || Shape.ProfileEnd > 0) // profile cut
+                    {
+                        // removed faces
+                        int cut = (Shape.ProfileEnd + Shape.ProfileBegin);
+                        if(cut >= 16667 )
+                            ret--;
+                        if(cut >= 33333 )
+                            ret--;
+                        ret += 2; // both cut faces
+                    }
                     break;
             }
+
+            // hollow face commum to all
+            if (Shape.ProfileHollow > 0)
+                ret += 1;
 
             return ret;
         }
@@ -3996,33 +4038,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             return PrimType.BOX;
-        }
-
-        /// <summary>
-        /// Tell us if this object has cut, hollow, dimple, and other factors affecting the number of faces
-        /// </summary>
-        /// <param name="primType"></param>
-        /// <param name="shape"></param>
-        /// <param name="hasCut"></param>
-        /// <param name="hasHollow"></param>
-        /// <param name="hasDimple"></param>
-        /// <param name="hasProfileCut"></param>
-        protected static void HasCutHollowDimpleProfileCut(PrimType primType, PrimitiveBaseShape shape, out bool hasCut, out bool hasHollow,
-            out bool hasDimple, out bool hasProfileCut)
-        {
-            if (primType == PrimType.BOX
-                ||
-                primType == PrimType.CYLINDER
-                ||
-                primType == PrimType.PRISM)
-
-                hasCut = (shape.ProfileBegin > 0) || (shape.ProfileEnd > 0);
-            else
-                hasCut = (shape.PathBegin > 0) || (shape.PathEnd > 0);
-
-            hasHollow = shape.ProfileHollow > 0;
-            hasDimple = (shape.ProfileBegin > 0) || (shape.ProfileEnd > 0); // taken from llSetPrimitiveParms
-            hasProfileCut = hasDimple; // is it the same thing?
         }
 
         public void SetGroup(UUID groupID, IClientAPI client)
