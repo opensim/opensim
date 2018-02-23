@@ -68,7 +68,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
                 if(args[i] == "-help")
                 {
-                    m_log.Info("[YEngine]: xmr ls -full -max=<number> -out=<filename> -queues -topcpu");
+                    m_log.Info("[YEngine]: yeng ls -full -max=<number> -out=<filename> -queues -topcpu");
                     return;
                 }
                 if(args[i].StartsWith("-max="))
@@ -101,7 +101,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
                 if(args[i][0] == '-')
                 {
-                    m_log.Error("[YEngine]: unknown option " + args[i] + ", try 'xmr ls -help'");
+                    m_log.Error("[YEngine]: unknown option " + args[i] + ", try 'yeng ls -help'");
                     return;
                 }
             }
@@ -221,12 +221,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
                 if(arg == "-help")
                 {
-                    m_log.Info("[YEngine]: xmr pev -all | <part-of-script-name> <event-name> <params...>");
+                    m_log.Info("[YEngine]: yeng pev -all | <part-of-script-name> <event-name> <params...>");
                     return;
                 }
                 if(arg[0] == '-')
                 {
-                    m_log.Error("[YEngine]: unknown option " + arg + ", try 'xmr pev -help'");
+                    m_log.Error("[YEngine]: unknown option " + arg + ", try 'yeng pev -help'");
                     return;
                 }
                 for(j = 0; j < eventmethods.Length; j++)
@@ -237,7 +237,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
                 selargs.Add(arg);
             }
-            m_log.Error("[YEngine]: missing <event-name> <params...>, try 'xmr pev -help'");
+            m_log.Error("[YEngine]: missing <event-name> <params...>, try 'yeng pev -help'");
             return;
             gotevent:
             string eventname = eventmethod.Name;
@@ -427,12 +427,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
                 if(args[i] == "-help")
                 {
-                    m_log.Info("[YEngine]: xmr reset -all | <part-of-script-name>");
+                    m_log.Info("[YEngine]: yeng reset -all | <part-of-script-name>");
                     return;
                 }
                 if(args[i][0] == '-')
                 {
-                    m_log.Error("[YEngine]: unknown option " + args[i] + ", try 'xmr reset -help'");
+                    m_log.Error("[YEngine]: unknown option " + args[i] + ", try 'yeng reset -help'");
                     return;
                 }
             }

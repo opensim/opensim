@@ -280,7 +280,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             MainConsole.Instance.Commands.AddCommand("yeng", false,
                     "yeng",
                     "yeng [...|help|...] ...",
-                    "Run Yengine script engine commands",
+                    "Run YEngine script engine commands",
                     RunTest);
 
             TraceCalls("[YEngine]: Initialize successful");
@@ -746,7 +746,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             if(args.Length < 2)
             {
-                m_log.Info("[YEngine]: missing command, try 'xmr help'");
+                m_log.Info("[YEngine]: missing command, try 'yeng help'");
                 return;
             }
 
@@ -761,15 +761,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                 case "help":
                 case "?":
-                    m_log.Info("[YEngine]: xmr cvv - show compiler version value");
-                    m_log.Info("[YEngine]: xmr ls [-help ...]");
-                    m_log.Info("[YEngine]: xmr mv [<newvalue>] - show migration version value");
-                    m_log.Info("[YEngine]: xmr pev [-help ...] - post event");
-                    m_log.Info("[YEngine]: xmr reset [-help ...]");
-                    m_log.Info("[YEngine]: xmr resume - resume script processing");
-                    m_log.Info("[YEngine]: xmr suspend - suspend script processing");
-                    m_log.Info("[YEngine]: xmr tracecalls [yes | no]");
-                    m_log.Info("[YEngine]: xmr verbose [yes | no]");
+                    m_log.Info("[YEngine]: yeng reset [-help ...]");
+                    m_log.Info("[YEngine]: yeng resume - resume script processing");
+                    m_log.Info("[YEngine]: yeng suspend - suspend script processing");
+                    m_log.Info("[YEngine]: yeng ls [-help ...]");
+                    m_log.Info("[YEngine]: yeng cvv - show compiler version value");
+                    m_log.Info("[YEngine]: yeng mvv [<newvalue>] - show migration version value");
+                    m_log.Info("[YEngine]: yeng tracecalls [yes | no]");
+                    m_log.Info("[YEngine]: yeng verbose [yes | no]");
+                    m_log.Info("[YEngine]: yeng pev [-help ...] - post event");
                     break;
 
                 case "ls":
@@ -812,7 +812,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     break;
 
                 default:
-                    m_log.Error("[YEngine]: unknown command " + args[1] + ", try 'xmr help'");
+                    m_log.Error("[YEngine]: unknown command " + args[1] + ", try 'yeng help'");
                     break;
             }
         }
