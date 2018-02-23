@@ -919,7 +919,7 @@
     ;; Money Unit fee to create groups.  Default is 0.
     ; PriceGroupCreate = 0
 
-[XMREngine]
+[YEngine]
     ;; experimental engine
     ;; ONLY SUPORTS ONE REGION PER INSTANCE at this point
     ;; implements non preemptive microthreading, so fixing problems like llSleep or long events handlers
