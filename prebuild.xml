@@ -2418,8 +2418,8 @@
       </Files>
     </Project>
 
-    <!-- XMRengine -->   
-    <Project frameworkVersion="v4_6" name="OpenSim.Region.ScriptEngine.XMREngine" path="OpenSim/Region/ScriptEngine/XMREngine" type="Library">
+    <!-- YEngine/core XMRengine -->   
+    <Project frameworkVersion="v4_6" name="OpenSim.Region.ScriptEngine.YEngine" path="OpenSim/Region/ScriptEngine/YEngine" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../../bin/</OutputPath>

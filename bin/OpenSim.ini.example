@@ -265,8 +265,8 @@
     ; DefaultScriptEngine = "XEngine"
     ;; ***DANGER***DANGER***
     ;; experimental engine
-    ;; see section [XMREngine} below
-    ; DefaultScriptEngine = "XMREngine"
+    ;; see section [YEngine} below
+    ; DefaultScriptEngine = "YEngine"
     
     ;# {HttpProxy} {} {Proxy URL for llHTTPRequest and dynamic texture loading} {} http://proxy.com:8080
     ;; Http proxy setting for llHTTPRequest and dynamic texture loading, if
@@ -922,20 +922,19 @@
 [XMREngine]
     ;; experimental engine
     ;; ONLY SUPORTS ONE REGION PER INSTANCE at this point
-    ;; implements microthreading, so fixing problems like llSleep or long events handlers
+    ;; implements non preemptive microthreading, so fixing problems like llSleep or long events handlers
     ;; but those will suffer from timeslicing, so will be slower.
     ;; compiles LSL directly to IL, so only suports LSL scripting (no C# etc) 
     ;; shares the Xengine APIs like LSL, OSSL, etc.
     ;; DANGER, do not use with HG, don't leave regions running alone with it.
-    ;; TPs or crossings to/from Xengine will recompile scripts losing state.
+    ;; TPs or crossings to/from Xengine will full recompile scripts losing state.
     ;; attachment scripts may misbehave, cars will stop on crossings, etc.
     Enabled = false
-    UThreadModel = sys
     ScriptStackSize = 256
     ScriptHeapSize = 256
     UseSourceHashCode = true
     MinTimerInterval = 0.1
-    ;ScriptBasePath="ScriptData"
+    ;ScriptBasePath="ScriptEngines"
 
 [XEngine]
     ;# {Enabled} {} {Enable the XEngine scripting engine?} {true false} true
