@@ -412,7 +412,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                               zeroDetectParams));
                     break;
 
-
                 case StateSource.Teleporting:
                     PostEvent(new EventParams("changed",
                               sbcCR,

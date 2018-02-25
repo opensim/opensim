@@ -42,13 +42,12 @@ using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 
 /**
- * Contains classes that disassemble or decompile an xmrobj file.
+ * Contains classes that disassemble or decompile an yobj file.
  * See xmrengcomp.cx utility program.
  */
 
 namespace OpenSim.Region.ScriptEngine.Yengine
 {
-
     /*
      * Encapsulate object code for a method.
      */

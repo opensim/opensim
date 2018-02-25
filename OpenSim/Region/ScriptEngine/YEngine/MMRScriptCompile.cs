@@ -48,8 +48,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             string sourceHash = null;
             TextWriter saveSource = null;
 
-            string objFileName = GetScriptFileName (m_ScriptObjCodeKey + ".xmrobj");
-            string tmpFileName = GetScriptFileName (m_ScriptObjCodeKey + ".xmrtmp");
+            string objFileName = GetScriptFileName (m_ScriptObjCodeKey + ".yobj");
+            string tmpFileName = GetScriptFileName (m_ScriptObjCodeKey + ".ytmp");
 
              // If we already have an object file, don't bother compiling.
             if (!m_ForceRecomp && File.Exists(objFileName))
@@ -139,7 +139,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                  // Since we just wrote the .xmrobj file, maybe save disassembly.
                 if (m_Engine.m_ScriptDebugSaveIL)
                 {
-                    string asmFileName = GetScriptFileName (m_ScriptObjCodeKey + ".xmrasm");
+                    string asmFileName = GetScriptFileName (m_ScriptObjCodeKey + ".yasm");
 //                    m_log.Debug ("[YEngine]: MMRScriptCompileSaveILGen: saving to " + asmFileName);
                     asmFileWriter = File.CreateText (asmFileName);
                 }

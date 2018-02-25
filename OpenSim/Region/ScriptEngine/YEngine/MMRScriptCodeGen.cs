@@ -67,7 +67,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private static readonly bool DEBUG_STACKCAPRES = false;
         private static readonly bool DEBUG_TRYSTMT = false;
 
-        public static readonly string OBJECT_CODE_MAGIC = "XMRObjectCode";
+        public static readonly string OBJECT_CODE_MAGIC = "YObjectCode";
         // reserve positive version values for original xmr
         public static int COMPILED_VERSION_VALUE = -1;  // decremented when compiler or object file changes
 
