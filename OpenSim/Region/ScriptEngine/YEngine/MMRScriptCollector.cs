@@ -511,20 +511,16 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             public override bool MoveNext()
             {
-                /*
-                 * First off, return any targets the instruction can come up with.
-                 */
+                 // First off, return any targets the instruction can come up with.
                 if(realEnumerator.MoveNext())
                 {
                     nn = realEnumerator.Current;
                     return true;
                 }
 
-                /*
-                 * Then if this instruction is in a try section, say this instruction 
-                 * can potentially branch to the beginning of the corresponding 
-                 * catch/finally.
-                 */
+                 // Then if this instruction is in a try section, say this instruction 
+                 // can potentially branch to the beginning of the corresponding 
+                 // catch/finally.
                 if((index == 0) && (gn.tryBlock != null))
                 {
                     index++;
@@ -532,9 +528,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     return true;
                 }
 
-                /*
-                 * That's all we can do.
-                 */
+                 // That's all we can do.
                 nn = null;
                 return false;
             }
@@ -1875,9 +1869,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             public override bool MoveNext()
             {
-                /*
-                 * Return next from list of switch case labels.
-                 */
+                 // Return next from list of switch case labels.
                 while(index < gn.myLabels.Length)
                 {
                     nn = gn.myLabels[index++].whereAmI;
@@ -1885,9 +1877,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         return true;
                 }
 
-                /*
-                 * If all ran out, the switch instruction falls through.
-                 */
+                 // If all ran out, the switch instruction falls through.
                 if(index == gn.myLabels.Length)
                 {
                     index++;
@@ -1895,9 +1885,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     return true;
                 }
 
-                /*
-                 * Even ran out of that, say there's nothing more.
-                 */
+                 // Even ran out of that, say there's nothing more.
                 nn = null;
                 return false;
             }
@@ -2527,10 +2515,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if(curExcBlock != null)
                 throw new Exception("exception block still open");
 
-            /*
-             * If an instruction says it doesn't fall through, remove all instructions to
-             * the end of the block.
-             */
+             // If an instruction says it doesn't fall through, remove all instructions to
+             // the end of the block.
             for(GraphNode gn = firstLin; gn != null; gn = gn.nextLin)
             {
                 if(!gn.CanFallThrough())
@@ -2547,12 +2533,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
             }
 
-            /*
-             * Scan for OpCodes.Leave instructions.
-             * For each found, its target for flow analysis purposes is the beginning of the corresponding
-             * finally block.  And the end of the finally block gets a conditional branch target of the 
-             * leave instruction's target.  A leave instruction can unwind zero or more finally blocks.
-             */
+             // Scan for OpCodes.Leave instructions.
+             // For each found, its target for flow analysis purposes is the beginning of the corresponding
+             // finally block.  And the end of the finally block gets a conditional branch target of the 
+             // leave instruction's target.  A leave instruction can unwind zero or more finally blocks.
             for(GraphNode gn = firstLin; gn != null; gn = gn.nextLin)
             {
                 if(gn is GraphNodeEmitLabelLeave)
@@ -2562,12 +2546,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     GraphNodeBeginExceptionBlock leaveTargetsTryBlock =                       // try block directly enclosing leave target
                         (leaveTarget == null) ? null : leaveTarget.tryBlock;              // ...it must not be unwound
 
-                    /*
-                     * Step through try { }s from the leave instruction towards its target looking for try { }s with finally { }s.
-                     * The leave instruction unconditionally branches to the beginning of the innermost one found.
-                     * The end of the last one found conditionally branches to the leave instruction's target.
-                     * If none found, the leave is a simple unconditional branch to its target.
-                     */
+                     // Step through try { }s from the leave instruction towards its target looking for try { }s with finally { }s.
+                     // The leave instruction unconditionally branches to the beginning of the innermost one found.
+                     // The end of the last one found conditionally branches to the leave instruction's target.
+                     // If none found, the leave is a simple unconditional branch to its target.
                     GraphNodeBeginFinallyBlock innerFinallyBlock = null;
                     for(GraphNodeBeginExceptionBlock tryBlock = leaveInstr.tryBlock;
                          tryBlock != leaveTargetsTryBlock;
@@ -2586,10 +2568,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         }
                     }
 
-                    /*
-                     * The end of the outermost finally being unwound can conditionally jump to the target of the leave instruction.
-                     * In the case of no finallies being unwound, the leave is just a simple unconditional branch.
-                     */
+                     // The end of the outermost finally being unwound can conditionally jump to the target of the leave instruction.
+                     // In the case of no finallies being unwound, the leave is just a simple unconditional branch.
                     if(innerFinallyBlock == null)
                     {
                         leaveInstr.unwindTo = leaveTarget;
@@ -2601,10 +2581,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
             }
 
-            /*
-             * See which variables a particular block reads before writing.
-             * This just considers the block itself and nothing that it branches to or fallsthru to.
-             */
+             // See which variables a particular block reads before writing.
+             // This just considers the block itself and nothing that it branches to or fallsthru to.
             GraphNodeBlock currentBlock = null;
             for(GraphNode gn = firstLin; gn != null; gn = gn.nextLin)
             {
@@ -2626,13 +2604,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
             }
 
-            /*
-             * For every block we branch to, add that blocks readables to our list of readables,
-             * because we need to have those values valid on entry to our block.  But if we write the 
-             * variable before we can possibly branch to that block, then we don't need to have it valid 
-             * on entry to our block.  So basically it looks like the branch instruction is reading 
-             * everything required by any blocks it can branch to.
-             */
+             // For every block we branch to, add that blocks readables to our list of readables,
+             // because we need to have those values valid on entry to our block.  But if we write the 
+             // variable before we can possibly branch to that block, then we don't need to have it valid 
+             // on entry to our block.  So basically it looks like the branch instruction is reading 
+             // everything required by any blocks it can branch to.
             do
             {
                 this.resolvedSomething = false;
@@ -2640,17 +2616,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 this.ResolveBlock((GraphNodeBlock)firstLin);
             } while(this.resolvedSomething);
 
-            /*
-             * Repeat the cutting loops as long as we keep finding stuff.
-             */
+             // Repeat the cutting loops as long as we keep finding stuff.
             bool didSomething;
             do
             {
                 didSomething = false;
 
-                /*
-                 * Strip out ldc.i4.1/xor/ldc.i4.1/xor
-                 */
+                 // Strip out ldc.i4.1/xor/ldc.i4.1/xor
                 for(GraphNode gn = firstLin; gn != null; gn = gn.nextLin)
                 {
                     if(!(gn is GraphNodeEmit))
@@ -2678,9 +2650,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     didSomething = true;
                 }
 
-                /*
-                 * Replace c{cond}/ldc.i4.1/xor/br{false,true} -> c{cond}/br{true,false}
-                 */
+                 // Replace c{cond}/ldc.i4.1/xor/br{false,true} -> c{cond}/br{true,false}
                 for(GraphNode gn = firstLin; gn != null; gn = gn.nextLin)
                 {
                     if(!(gn is GraphNodeEmit))
@@ -2711,9 +2681,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     didSomething = true;
                 }
 
-                /*
-                 * Replace c{cond}/br{false,true} -> b{!,}{cond}
-                 */
+                 // Replace c{cond}/br{false,true} -> b{!,}{cond}
                 for(GraphNode gn = firstLin; gn != null; gn = gn.nextLin)
                 {
                     if(!(gn is GraphNodeEmit))
@@ -2746,9 +2714,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     didSomething = true;
                 }
 
-                /*
-                 * Replace ld{c.i4.0,null}/br{ne.un,eq} -> br{true,false}
-                 */
+                 // Replace ld{c.i4.0,null}/br{ne.un,eq} -> br{true,false}
                 for(GraphNode gn = firstLin; gn != null; gn = gn.nextLin)
                 {
                     if(!(gn is GraphNodeEmit))
@@ -2767,17 +2733,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     didSomething = true;
                 }
 
-                /*
-                 * Replace:
-                 *    ldloc v1
-                 *    stloc v2
-                 *    ld<anything> except ld<anything> v2
-                 *    ldloc v2
-                 *      ...v2 unreferenced hereafter
-                 * With:
-                 *    ld<anything> except ld<anything> v2
-                 *    ldloc v1
-                 */
+                 // Replace:
+                 //    ldloc v1
+                 //    stloc v2
+                 //    ld<anything> except ld<anything> v2
+                 //    ldloc v2
+                 //      ...v2 unreferenced hereafter
+                 // With:
+                 //    ld<anything> except ld<anything> v2
+                 //    ldloc v1
                 for(GraphNode gn = firstLin; gn != null; gn = gn.nextLin)
                 {
 
@@ -2833,11 +2797,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     didSomething = true;
                 }
 
-                /*
-                 * Remove all the stloc/ldloc that are back-to-back without the local
-                 * being needed afterwards.  If it is needed afterwards, replace the 
-                 * stloc/ldloc with dup/stloc.
-                 */
+                 // Remove all the stloc/ldloc that are back-to-back without the local
+                 // being needed afterwards.  If it is needed afterwards, replace the 
+                 // stloc/ldloc with dup/stloc.
                 for(GraphNode gn = firstLin; gn != null; gn = gn.nextLin)
                 {
                     if((gn is GraphNodeEmitLocal) &&
@@ -2871,10 +2833,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     }
                 }
 
-                /*
-                 * Remove all write-only local variables, ie, those with no ldloc[a] references.
-                 * Replace any stloc instructions with pops.
-                 */
+                 // Remove all write-only local variables, ie, those with no ldloc[a] references.
+                 // Replace any stloc instructions with pops.
                 for(GraphNode gn = firstLin; gn != null; gn = gn.nextLin)
                 {
                     ScriptMyLocal rdlcl = gn.ReadsLocal();
@@ -2900,9 +2860,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     }
                 }
 
-                /*
-                 * Remove any Ld<const>/Dup,Pop.
-                 */
+                 // Remove any Ld<const>/Dup,Pop.
                 for(GraphNode gn = firstLin; gn != null; gn = gn.nextLin)
                 {
                     if((gn is GraphNodeEmit) &&
@@ -2921,9 +2879,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
             } while(didSomething);
 
-            /*
-             * Dump out the results.
-             */
+             // Dump out the results.
             if(DEBUG)
             {
                 Console.WriteLine("");
@@ -2982,55 +2938,39 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if(currentBlock.hasBeenResolved == this.resolveSequence)
                 return;
 
-            /*
-             * So we don't recurse forever on a backward branch.
-             */
+             // So we don't recurse forever on a backward branch.
             currentBlock.hasBeenResolved = this.resolveSequence;
 
-            /*
-             * Assume we haven't written any locals yet.
-             */
+             // Assume we haven't written any locals yet.
             List<ScriptMyLocal> localsWrittenSoFar = new List<ScriptMyLocal>();
 
-            /*
-             * Scan through the instructions in this block.
-             */
+             // Scan through the instructions in this block.
             for(GraphNode gn = currentBlock; gn != null;)
             {
 
-                /*
-                 * See if the instruction writes a local we don't know about yet.
-                 */
+                 // See if the instruction writes a local we don't know about yet.
                 ScriptMyLocal wrlcl = gn.WritesLocal();
                 if((wrlcl != null) && !localsWrittenSoFar.Contains(wrlcl))
                 {
                     localsWrittenSoFar.Add(wrlcl);
                 }
 
-                /*
-                 * Scan through all the possible next instructions after this.
-                 * Note that if we are in the first part of a try/catch/finally block, 
-                 * every instruction conditionally branches to the beginning of the 
-                 * second part (the catch/finally block).
-                 */
+                 // Scan through all the possible next instructions after this.
+                 // Note that if we are in the first part of a try/catch/finally block, 
+                 // every instruction conditionally branches to the beginning of the 
+                 // second part (the catch/finally block).
                 GraphNode nextFallthruNode = null;
                 foreach(GraphNode nn in gn.NextNodes)
                 {
                     if(nn is GraphNodeBlock)
                     {
-
-                        /*
-                         * Start of a block, go through all locals needed by that block on entry.
-                         */
+                         // Start of a block, go through all locals needed by that block on entry.
                         GraphNodeBlock nextBlock = (GraphNodeBlock)nn;
                         ResolveBlock(nextBlock);
                         foreach(ScriptMyLocal readByNextBlock in nextBlock.localsReadBeforeWritten)
                         {
-
-                            /*
-                             * If this block hasn't written it by now and this block doesn't already
-                             * require it on entry, say this block requires it on entry.
-                             */
+                             // If this block hasn't written it by now and this block doesn't already
+                             // require it on entry, say this block requires it on entry.
                             if(!localsWrittenSoFar.Contains(readByNextBlock) &&
                                 !currentBlock.localsReadBeforeWritten.Contains(readByNextBlock))
                             {
@@ -3041,19 +2981,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     }
                     else
                     {
-
-                        /*
-                         * Not start of a block, should be normal fallthru instruction.
-                         */
+                         // Not start of a block, should be normal fallthru instruction.
                         if(nextFallthruNode != null)
                             throw new Exception("more than one fallthru from " + gn.ToString());
                         nextFallthruNode = nn;
                     }
                 }
 
-                /*
-                 * Process next instruction if it isn't the start of a block.
-                 */
+                 // Process next instruction if it isn't the start of a block.
                 if(nextFallthruNode == gn)
                     throw new Exception("can't fallthru to self");
                 gn = nextFallthruNode;

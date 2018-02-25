@@ -501,10 +501,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public override void EndMethod()
         {
-            /*
-             * Convert CIL code to primitive statements.
-             * There are a bunch of labels and internal code such as call stack save restore.
-             */
+             // Convert CIL code to primitive statements.
+             // There are a bunch of labels and internal code such as call stack save restore.
             topBlock = new OTStmtBlock();
             blockstack.Push(topBlock);
             for(LinkedListNode<OTCilInstr> link = cilinstrs.First; link != null; link = link.Next)
@@ -512,10 +510,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 link.Value.BuildStatements(this, link);
             }
 
-            /*
-             * Strip out stuff we don't want, such as references to callMode.
-             * This strips out stack frame capture and restore code.
-             */
+             // Strip out stuff we don't want, such as references to callMode.
+             // This strips out stack frame capture and restore code.
             topBlock.StripStuff(null);
 
             // including a possible final return statement
@@ -532,22 +528,16 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
             }
 
-            /**
-             * At this point, all behind-the-scenes references are removed except
-             * that the do/for/if/while blocks are represented by OTStmtCont-style
-             * if/jumps.  So try to convert them to the higher-level structures.
-             */
+             // At this point, all behind-the-scenes references are removed except
+             // that the do/for/if/while blocks are represented by OTStmtCont-style
+             // if/jumps.  So try to convert them to the higher-level structures.
             topBlock.DetectDoForIfWhile(null);
 
-            /*
-             * Final strip to get rid of unneeded @forbreak_<suffix>; labels and the like.
-             */
+             // Final strip to get rid of unneeded @forbreak_<suffix>; labels and the like.
             topBlock.StripStuff(null);
 
-            /*
-             * Build reference counts so we don't output unneeded declarations,
-             * especially temps and internal variables.
-             */
+             // Build reference counts so we don't output unneeded declarations,
+             // especially temps and internal variables.
             foreach(OTLocal local in locals.Values)
             {
                 local.nlclreads = 0;
@@ -564,10 +554,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
             }
 
-            /*
-             * Strip the $n off of local vars that are not ambiguous.
-             * Make sure they don't mask globals and arguments as well.
-             */
+             // Strip the $n off of local vars that are not ambiguous.
+             // Make sure they don't mask globals and arguments as well.
             Dictionary<string, int> namecounts = new Dictionary<string, int>();
             foreach(Dictionary<int, string> varnames in scriptObjCode.globalVarNames.Values)
             {
@@ -607,9 +595,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     local.name = name;
             }
 
-            /*
-             * Print out result.
-             */
+             // Print out result.
             if(method.Name == _globalvarinit)
             {
                 GlobalsDump();
@@ -725,10 +711,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private void GlobalsDump()
         {
-            /*
-             * Scan $globalvarinit().  It should only have global var assignments in it.
-             * Also gather up list of variables it initializes.
-             */
+             // Scan $globalvarinit().  It should only have global var assignments in it.
+             // Also gather up list of variables it initializes.
             bool badinit = false;
             Dictionary<string, string> inittypes = new Dictionary<string, string>();
             foreach(OTStmt stmt in topBlock.blkstmts)
@@ -748,11 +732,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 inittypes[globalop.PrintableString] = "";
             }
 
-            /*
-             * Scan through list of all global variables in the script.
-             * Output declarations for those what don't have any init statement for them.
-             * Save the type for those that do have init statements.
-             */
+             // Scan through list of all global variables in the script.
+             // Output declarations for those what don't have any init statement for them.
+             // Save the type for those that do have init statements.
             bool first = true;
             foreach(string iartypename in scriptObjCode.globalVarNames.Keys)
             {
@@ -778,10 +760,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
             }
 
-            /*
-             * If $globalvarinit() has anything bad in it, output it as a function.
-             * Otherwise, output it as a series of global declarations with init values.
-             */
+             // If $globalvarinit() has anything bad in it, output it as a function.
+             // Otherwise, output it as a series of global declarations with init values.
             if(badinit)
             {
                 MethodDump();
@@ -809,19 +789,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             string indent;
 
-            /*
-             * Event handlers don't have an argument list as such in the original
-             * code.  Instead they have a series of assignments from ehargs[] to
-             * local variables.  So make those local variables look like they are
-             * an argument list.
-             */
+             // Event handlers don't have an argument list as such in the original
+             // code.  Instead they have a series of assignments from ehargs[] to
+             // local variables.  So make those local variables look like they are
+             // an argument list.
             int i = method.Name.IndexOf(' ');
             if(i >= 0)
             {
-
-                /*
-                 * Maybe we have to output the state name.
-                 */
+                 // Maybe we have to output the state name.
                 string statename = method.Name.Substring(0, i);
                 string eventname = method.Name.Substring(++i);
 
@@ -844,10 +819,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     twout.Write('\n');
                 }
 
-                /*
-                 * Output event name and argument list.
-                 * Remove from locals list so they don't print below.
-                 */
+                 // Output event name and argument list.
+                 // Remove from locals list so they don't print below.
                 twout.Write('\n' + INDENT + eventname + " (");
                 MethodInfo meth = typeof(IEventHandlers).GetMethod(eventname);
                 i = 0;
@@ -873,35 +846,26 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
                 twout.Write(')');
 
-                /*
-                 * Indent method body by 4 spaces.
-                 */
+                 // Indent method body by 4 spaces.
                 indent = INDENT;
             }
             else
             {
-
-                /*
-                 * Maybe need to close out previous state.
-                 */
+                 // Maybe need to close out previous state.
                 if(laststate != null)
                 {
                     twout.Write("\n}");
                     laststate = null;
                 }
 
-                /*
-                 * Output blank line and return type (if any).
-                 */
+                 // Output blank line and return type (if any).
                 twout.Write("\n\n");
                 if(method.ReturnType != typeof(void))
                 {
                     twout.Write(AbbrType(method.ReturnType) + ' ');
                 }
 
-                /*
-                 * Output method name and argument list.
-                 */
+                 // Output method name and argument list.
                 int j = method.Name.IndexOf('(');
                 if(j < 0)
                 {
@@ -926,15 +890,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     twout.Write(')');
                 }
 
-                /*
-                 * Don't indent method body at all.
-                 */
+                 // Don't indent method body at all.
                 indent = "";
             }
 
-            /*
-             * Output local variable declarations.
-             */
+             // Output local variable declarations.
             twout.Write('\n' + indent + '{');
             bool didOne = false;
             foreach(OTLocal local in locals.Values)
@@ -945,9 +905,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if(didOne)
                 twout.Write('\n');
 
-            /*
-             * Output statements.
-             */
+             // Output statements.
             if(topBlock.blkstmts.Count == 0)
             {
                 twout.Write(" }");
@@ -1634,22 +1592,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 switch(opCode.ToString())
                 {
-
-                    /*
-                     * We don't handle non-empty stack at branch points.
-                     *
-                     * So handle this case specially:
-                     *
-                     *    dup
-                     *    ldc.i4.0
-                     *    bge.s  llAbstemp  << we are here
-                     *    neg
-                     *  llAbstemp:
-                     *
-                     * becomes:
-                     *
-                     *    call llAbs
-                     */
+                     // We don't handle non-empty stack at branch points.
+                     //
+                     // So handle this case specially:
+                     //
+                     //    dup
+                     //    ldc.i4.0
+                     //    bge.s  llAbstemp  << we are here
+                     //    neg
+                     //  llAbstemp:
+                     //
+                     // becomes:
+                     //
+                     //    call llAbs
                     case "bge.s":
                         {
                             OTOpnd rite = decompile.opstack.Pop();  // alleged zero
@@ -2103,50 +2058,33 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             public static OTOpnd Make(OTOpnd array, OTOpnd index, bool byref, OTDecompile decompile)
             {
-                /*
-                 * arg$0.glblVars.iar<type>[<intconst>] is a reference to a global variable
-                 * likewise so is __xmrinst.glblVars.iar<type>[<intconst>]
-                 */
+                 // arg$0.glblVars.iar<type>[<intconst>] is a reference to a global variable
+                 // likewise so is __xmrinst.glblVars.iar<type>[<intconst>]
                 if((array is OTOpndField) && (index is OTOpndInt))
                 {
-
-                    /*
-                     * arrayfield = (arg$0.glblVars).iar<type>
-                     * arrayfieldobj = arg$0.glblVars
-                     * iartypename = iar<type>
-                     */
+                     // arrayfield = (arg$0.glblVars).iar<type>
+                     // arrayfieldobj = arg$0.glblVars
+                     // iartypename = iar<type>
                     OTOpndField arrayfield = (OTOpndField)array;
                     OTOpnd arrayfieldobj = arrayfield.obj;
                     string iartypename = arrayfield.field.Name;
 
-                    /*
-                     * See if they are what they are supposed to be.
-                     */
+                     // See if they are what they are supposed to be.
                     if((arrayfieldobj is OTOpndField) && iartypename.StartsWith("iar"))
                     {
-
-                        /*
-                         * arrayfieldobjfield = arg$0.glblVars
-                         */
+                         // arrayfieldobjfield = arg$0.glblVars
                         OTOpndField arrayfieldobjfield = (OTOpndField)arrayfieldobj;
 
-                        /*
-                         * See if the parts are what they are supposed to be.
-                         */
+                         // See if the parts are what they are supposed to be.
                         if(IsArg0OrXMRInst(arrayfieldobjfield.obj) && (arrayfieldobjfield.field.Name == "glblVars"))
                         {
-
-                            /*
-                             * Everything matches up, make a global variable instead of an array reference.
-                             */
+                             // Everything matches up, make a global variable instead of an array reference.
                             return new OTOpndGlobal(iartypename, ((OTOpndInt)index).value, byref, decompile.scriptObjCode);
                         }
                     }
                 }
 
-                /*
-                 * Other array reference.
-                 */
+                 // Other array reference.
                 OTOpndArrayElem it = new OTOpndArrayElem();
                 it.array = array;
                 it.index = index;
@@ -3097,17 +3035,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     return false;
                 int listsize = ((OTOpndInt)storeval.index).value;
 
-                /*
-                 * Good chance of having list initializer, malloc an object to hold it.
-                 */
+                 // Good chance of having list initializer, malloc an object to hold it.
                 OTOpndListIni it = new OTOpndListIni();
                 it.values = new OTOpnd[listsize];
 
-                /*
-                 * There should be exactly listsize statements following that of the form:
-                 *    dup$<n>[<i>] = bla
-                 * If so, save the bla values in the values[] array.
-                 */
+                 // There should be exactly listsize statements following that of the form:
+                 //    dup$<n>[<i>] = bla
+                 // If so, save the bla values in the values[] array.
                 LinkedListNode<OTStmt> vallink = link;
                 for(int i = 0; i < listsize; i++)
                 {
@@ -3129,10 +3063,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     it.values[i] = valstore.value;
                 }
 
-                /*
-                 * The next statement should have a 'newobj list (dup$<n>)' in it somewhere
-                 * that we want to replace with 'it'.
-                 */
+                 // The next statement should have a 'newobj list (dup$<n>)' in it somewhere
+                 // that we want to replace with 'it'.
                 ConstructorInfo protoctor = typeof(LSL_List).GetConstructor(new Type[] { typeof(object[]) });
                 OTOpnd[] protoargs = new OTOpnd[] { storevar };
                 OTOpnd proto = OTOpndNewobj.Make(protoctor, protoargs);
@@ -3140,9 +3072,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 vallink = vallink.Next;
                 bool rc = vallink.Value.ReplaceOperand(proto, it);
 
-                /*
-                 * If successful, delete 'dup$n =' and all 'dup$n[i] =' statements.
-                 */
+                 // If successful, delete 'dup$n =' and all 'dup$n[i] =' statements.
                 if(rc)
                 {
                     do

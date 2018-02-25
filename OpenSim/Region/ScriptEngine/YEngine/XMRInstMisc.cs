@@ -74,14 +74,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public void Dispose()
         {
-            /*
-             * Tell script stop executing next time it calls CheckRun().
-             */
+             // Tell script stop executing next time it calls CheckRun().
             suspendOnCheckRunHold = true;
 
-            /*
-             * Don't send us any more events.
-             */
+             // Don't send us any more events.
             lock(m_RunLock)
             {
                 if(m_Part != null)
@@ -92,10 +88,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
             }
 
-            /*
-             * Let script methods get garbage collected if no one else is using
-             * them.
-             */
+             // Let script methods get garbage collected if no one else is using
+             // them.
             DecObjCodeRefCount();
         }
 
@@ -244,26 +238,20 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public static string GetScriptFileName(string scriptBasePath, string filename)
         {
-            /*
-             * Get old path, ie, all files lumped in a single huge directory.
-             */
+             // Get old path, ie, all files lumped in a single huge directory.
             string oldPath = Path.Combine(scriptBasePath, filename);
 
-            /*
-             * Get new path, ie, files split up based on first 2 chars of name.
-             */
-            //           string subdir = filename.Substring (0, 2);
-            //           filename = filename.Substring (2);
+             // Get new path, ie, files split up based on first 2 chars of name.
+             //           string subdir = filename.Substring (0, 2);
+             //           filename = filename.Substring (2);
             string subdir = filename.Substring(0, 1);
             filename = filename.Substring(1);
             scriptBasePath = Path.Combine(scriptBasePath, subdir);
             Directory.CreateDirectory(scriptBasePath);
             string newPath = Path.Combine(scriptBasePath, filename);
 
-            /*
-             * If file exists only in old location, move to new location.
-             * If file exists in both locations, delete old location.
-             */
+             // If file exists only in old location, move to new location.
+             // If file exists in both locations, delete old location.
             if(File.Exists(oldPath))
             {
                 if(File.Exists(newPath))
@@ -276,9 +264,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
             }
 
-            /*
-             * Always return new location.
-             */
+             // Always return new location.
             return newPath;
         }
 

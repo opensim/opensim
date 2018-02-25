@@ -249,22 +249,16 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             lock(m_QueueLock)
             {
-                /*
-                 * Say how long to sleep.
-                 */
+                 // Say how long to sleep.
                 m_SleepUntil = DateTime.UtcNow + TimeSpan.FromMilliseconds(ms);
 
-                /*
-                 * Don't wake on any events.
-                 */
+                 // Don't wake on any events.
                 m_SleepEventMask1 = 0;
                 m_SleepEventMask2 = 0;
             }
 
-            /*
-             * The compiler follows all calls to llSleep() with a call to CheckRun().
-             * So tell CheckRun() to suspend the microthread.
-             */
+             // The compiler follows all calls to llSleep() with a call to CheckRun().
+             // So tell CheckRun() to suspend the microthread.
             suspendOnCheckRunTemp = true;
         }
 
@@ -327,10 +321,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 if(callMode == CallMode_NORMAL)
                     goto findevent;
 
-                /*
-                 * Stack frame is being restored as saved via CheckRun...().
-                 * Restore necessary values then jump to __call<n> label to resume processing.
-                 */
+                 // Stack frame is being restored as saved via CheckRun...().
+                 // Restore necessary values then jump to __call<n> label to resume processing.
                 sv = RestoreStackFrame("xmrEventDequeue", out callNo);
                 sleepUntil = DateTime.Parse((string)sv[0]);
                 returnMask1 = (int)sv[1];
@@ -353,9 +345,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
                 throw new ScriptBadCallNoException(callNo);
 
-                /*
-                 * Find first event that matches either the return or background masks.
-                 */
+                 // Find first event that matches either the return or background masks.
                 findevent:
                 Monitor.Enter(m_QueueLock);
                 for(lln = m_EventQueue.First; lln != null; lln = lln.Next)
@@ -369,9 +359,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         goto remfromq;
                 }
 
-                /*
-                 * Nothing found, sleep while one comes in.
-                 */
+                 // Nothing found, sleep while one comes in.
                 m_SleepUntil = sleepUntil;
                 m_SleepEventMask1 = mask1;
                 m_SleepEventMask2 = mask2;
@@ -382,9 +370,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 CheckRunQuick();
                 goto checktmo;
 
-                /*
-                 * Found one, remove it from queue.
-                 */
+                 // Found one, remove it from queue.
                 remfromq:
                 m_EventQueue.Remove(lln);
                 if((uint)evc1 < (uint)m_EventCounts.Length)
@@ -393,16 +379,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 Monitor.Exit(m_QueueLock);
                 m_InstEHEvent++;
 
-                /*
-                 * See if returnable or background event.
-                 */
+                 // See if returnable or background event.
                 if((((uint)evc1 < (uint)32) && (((returnMask1 >> evc1) & 1) != 0)) ||
                     (((uint)evc2 < (uint)32) && (((returnMask2 >> evc2) & 1) != 0)))
                 {
-                    /*
-                     * Returnable event, return its parameters in a list.
-                     * Also set the detect parameters to what the event has.
-                     */
+                     // Returnable event, return its parameters in a list.
+                     // Also set the detect parameters to what the event has.
                     int plen = evt.Params.Length;
                     object[] plist = new object[plen + 1];
                     plist[0] = (LSL_Integer)evc1;
@@ -421,10 +403,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     return new LSL_List(plist);
                 }
 
-                /*
-                 * It is a background event, simply call its event handler,
-                 * then check event queue again.
-                 */
+                 // It is a background event, simply call its event handler,
+                 // then check event queue again.
                 callNo = 1;
                 __call1:
                 ScriptEventHandler seh = m_ObjCode.scriptEventHandlerTable[stateCode, evc1];
@@ -450,28 +430,21 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     this.eventCode = saveEventCode;
                 }
 
-                /*
-                 * Keep waiting until we find a returnable event or timeout.
-                 */
+                 // Keep waiting until we find a returnable event or timeout.
                 checktmo:
                 if(DateTime.UtcNow < sleepUntil)
                     goto findevent;
 
-                /*
-                 * We timed out, return an empty list.
-                 */
+                 // We timed out, return an empty list.
                 return emptyList;
             }
             finally
             {
                 if(callMode != CallMode_NORMAL)
                 {
-
-                    /*
-                     * Stack frame is being saved by CheckRun...().
-                     * Save everything we need at the __call<n> labels so we can restore it
-                     * when we need to.
-                     */
+                     // Stack frame is being saved by CheckRun...().
+                     // Save everything we need at the __call<n> labels so we can restore it
+                     // when we need to.
                     sv = CaptureStackFrame("xmrEventDequeue", callNo, 9);
                     sv[0] = sleepUntil.ToString();                  // needed at __call0,__call1
                     sv[1] = returnMask1;                             // needed at __call0,__call1
@@ -606,22 +579,16 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public override void StateChange()
         {
-            /*
-             * Cancel any llListen()s etc.
-             * But llSetTimerEvent() should persist.
-             */
+             // Cancel any llListen()s etc.
+             // But llSetTimerEvent() should persist.
             object[] timers = m_XMRLSLApi.acm.TimerPlugin.GetSerializationData(m_ItemID);
             AsyncCommandManager.RemoveScript(m_Engine, m_LocalID, m_ItemID);
             m_XMRLSLApi.acm.TimerPlugin.CreateFromData(m_LocalID, m_ItemID, UUID.Zero, timers);
 
-            /*
-             * Tell whoever cares which event handlers the new state has.
-             */
+             // Tell whoever cares which event handlers the new state has.
             m_Part.SetScriptEvents(m_ItemID, GetStateEventFlags(stateCode));
 
-            /*
-             * Clear out any old events from the queue.
-             */
+             // Clear out any old events from the queue.
             lock(m_QueueLock)
             {
                 m_EventQueue.Clear();

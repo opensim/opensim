@@ -473,10 +473,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             ScriptEventHandler seh;
 
-            /*
-             * CallMode_NORMAL:  run event handler from the beginning normally
-             * CallMode_RESTORE: restore event handler stack from stackFrames
-             */
+            // CallMode_NORMAL:  run event handler from the beginning normally
+            // CallMode_RESTORE: restore event handler stack from stackFrames
             callMode = (stackFrames == null) ? XMRInstAbstract.CallMode_NORMAL :
                                                XMRInstAbstract.CallMode_RESTORE;
 
@@ -723,25 +721,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if(o is LSL_Vector)
                 return "vector";
 
-            /*
-             * A script-defined interface is represented as an array of delegates.
-             * If that is the case, convert it to the object of the script-defined 
-             * class that is implementing the interface.  This should let the next 
-             * step get the script-defined type name of the object.
-             */
+            // A script-defined interface is represented as an array of delegates.
+            // If that is the case, convert it to the object of the script-defined 
+            // class that is implementing the interface.  This should let the next 
+            // step get the script-defined type name of the object.
             if(o is Delegate[])
                 o = ((Delegate[])o)[0].Target;
 
-            /*
-             * If script-defined class instance, get the script-defined 
-             * type name.
-             */
+            // If script-defined class instance, get the script-defined 
+            // type name.
             if(o is XMRSDTypeClObj)
                 return ((XMRSDTypeClObj)o).sdtcClass.longName.val;
 
-            /*
-             * If it's a delegate, maybe we can look up its script-defined type name.
-             */
+            // If it's a delegate, maybe we can look up its script-defined type name.
             Type ot = o.GetType();
             if(o is Delegate)
             {
@@ -750,9 +742,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     return os;
             }
 
-            /*
-             * Don't know what it is, get the C#-level type name.
-             */
+            // Don't know what it is, get the C#-level type name.
             return ot.ToString();
         }
 
@@ -964,17 +954,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             TokenDeclSDType sdType = inst.m_ObjCode.sdObjTypesIndx[sdtypeindex];
 
-            /*
-             * If it is a script-defined interface object, convert to the original XMRSDTypeClObj.
-             */
+            // If it is a script-defined interface object, convert to the original XMRSDTypeClObj.
             if(thrown is Delegate[])
             {
                 thrown = ((Delegate[])thrown)[0].Target;
             }
 
-            /*
-             * If it is a script-defined delegate object, make sure it is an instance of the expected type.
-             */
+            // If it is a script-defined delegate object, make sure it is an instance of the expected type.
             if(thrown is Delegate)
             {
                 Type ot = thrown.GetType();
@@ -982,17 +968,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return (ot == tt) ? thrown : null;
             }
 
-            /*
-             * If it is a script-defined class object, make sure it is an instance of the expected class.
-             */
+            // If it is a script-defined class object, make sure it is an instance of the expected class.
             if(thrown is XMRSDTypeClObj)
             {
-
-                /*
-                 * Step from the object's actual class rootward.
-                 * If we find the requested class along the way, the cast is valid.
-                 * If we run off the end of the root, the cast is not valid.
-                 */
+                // Step from the object's actual class rootward.
+                // If we find the requested class along the way, the cast is valid.
+                // If we run off the end of the root, the cast is not valid.
                 for(TokenDeclSDTypeClass ac = ((XMRSDTypeClObj)thrown).sdtcClass; ac != null; ac = ac.extends)
                 {
                     if(ac == sdType)
@@ -1000,9 +981,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
             }
 
-            /*
-             * Don't know what it is, assume it is not what caller wants.
-             */
+            // Don't know what it is, assume it is not what caller wants.
             return null;
         }
 
@@ -1070,24 +1049,18 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public static void xmrArrayCopy(object srcobj, int srcstart, object dstobj, int dststart, int count)
         {
-            /*
-             * The script writer should only pass us script-defined class objects.
-             * Throw exception otherwise.
-             */
+            // The script writer should only pass us script-defined class objects.
+            // Throw exception otherwise.
             XMRSDTypeClObj srcsdt = (XMRSDTypeClObj)srcobj;
             XMRSDTypeClObj dstsdt = (XMRSDTypeClObj)dstobj;
 
-            /*
-             * Get the script-visible type name of the arrays, brackets and all.
-             */
+            // Get the script-visible type name of the arrays, brackets and all.
             string srctypename = srcsdt.sdtcClass.longName.val;
             string dsttypename = dstsdt.sdtcClass.longName.val;
 
-            /*
-             * The part before the first '[' of each should match exactly,
-             * meaning the basic data type (eg, float, List<string>) is the same.
-             * And there must be a '[' in each meaning that it is a script-defined array type.
-             */
+            // The part before the first '[' of each should match exactly,
+            // meaning the basic data type (eg, float, List<string>) is the same.
+            // And there must be a '[' in each meaning that it is a script-defined array type.
             int i = srctypename.IndexOf('[');
             int j = dsttypename.IndexOf('[');
             if((i < 0) || (j < 0))
@@ -1095,12 +1068,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if((i != j) || !srctypename.StartsWith(dsttypename.Substring(0, j)))
                 throw new ArrayTypeMismatchException(srctypename + " vs " + dsttypename);
 
-            /*
-             * The number of brackets must match exactly.
-             * This permits copying from something like a float[,][] to something like a float[][].
-             * But you cannot copy from a float[][] to a float[] or wisa wersa.
-             * Counting either '[' or ']' would work equally well.
-             */
+            // The number of brackets must match exactly.
+            // This permits copying from something like a float[,][] to something like a float[][].
+            // But you cannot copy from a float[][] to a float[] or wisa wersa.
+            // Counting either '[' or ']' would work equally well.
             int srclen = srctypename.Length;
             int dstlen = dsttypename.Length;
             int srcjags = 0;
@@ -1114,9 +1085,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if(dstjags != srcjags)
                 throw new ArrayTypeMismatchException(srctypename + " vs " + dsttypename);
 
-            /*
-             * Perform the copy.
-             */
+            // Perform the copy.
             Array srcarray = (Array)srcsdt.instVars.iarObjects[0];
             Array dstarray = (Array)dstsdt.instVars.iarObjects[0];
             Array.Copy(srcarray, srcstart, dstarray, dststart, count);
@@ -1131,19 +1100,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public static LSL_List xmrArray2List(object srcar, int start, int count)
         {
-            /*
-             * Get the script-visible type of the array.
-             * We only do arrays.
-             */
+            // Get the script-visible type of the array.
+            // We only do arrays.
             XMRSDTypeClObj array = (XMRSDTypeClObj)srcar;
             TokenDeclSDTypeClass sdtClass = array.sdtcClass;
             if(sdtClass.arrayOfRank == 0)
                 throw new InvalidCastException("only do arrays not " + sdtClass.longName.val);
 
-            /*
-             * Validate objects they want to put in the list.
-             * We can't allow anything funky that OpenSim runtime doesn't expect.
-             */
+            // Validate objects they want to put in the list.
+            // We can't allow anything funky that OpenSim runtime doesn't expect.
             Array srcarray = (Array)array.instVars.iarObjects[0];
             object[] output = new object[count];
             for(int i = 0; i < count; i++)
@@ -1179,9 +1144,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 throw new InvalidCastException("invalid element " + i + " type " + src.GetType().Name);
             }
 
-            /*
-             * Make a list out of that now immutable array.
-             */
+            // Make a list out of that now immutable array.
             return new LSL_List(output);
         }
 
@@ -1195,19 +1158,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public static void xmrList2Array(LSL_List srclist, int srcstart, object dstobj, int dststart, int count)
         {
-            /*
-             * Get the script-visible type of the destination.
-             * We only do arrays.
-             */
+            // Get the script-visible type of the destination.
+            // We only do arrays.
             XMRSDTypeClObj dstarray = (XMRSDTypeClObj)dstobj;
             TokenDeclSDTypeClass sdtClass = dstarray.sdtcClass;
             if(sdtClass.arrayOfType == null)
                 throw new InvalidCastException("only do arrays not " + sdtClass.longName.val);
 
-            /*
-             * Copy from the immutable array to the mutable array.
-             * Strip off any LSL wrappers as the script code doesn't expect any.
-             */
+            // Copy from the immutable array to the mutable array.
+            // Strip off any LSL wrappers as the script code doesn't expect any.
             object[] srcarr = srclist.Data;
             Array dstarr = (Array)dstarray.instVars.iarObjects[0];
 
@@ -1233,18 +1192,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public static string xmrChars2String(object srcar, int start, int count)
         {
-            /*
-             * Make sure they gave us a script-defined array object.
-             */
+            // Make sure they gave us a script-defined array object.
             XMRSDTypeClObj array = (XMRSDTypeClObj)srcar;
             TokenDeclSDTypeClass sdtClass = array.sdtcClass;
             if(sdtClass.arrayOfRank == 0)
                 throw new InvalidCastException("only do arrays not " + sdtClass.longName.val);
 
-            /*
-             * We get a type cast error from mono if they didn't give us a character array.
-             * But if it is ok, create a string from the requested characters.
-             */
+            // We get a type cast error from mono if they didn't give us a character array.
+            // But if it is ok, create a string from the requested characters.
             char[] srcarray = (char[])array.instVars.iarObjects[0];
             return new string(srcarray, start, count);
         }
@@ -1259,18 +1214,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public static void xmrString2Chars(string srcstr, int srcstart, object dstobj, int dststart, int count)
         {
-            /*
-             * Make sure they gave us a script-defined array object.
-             */
+            // Make sure they gave us a script-defined array object.
             XMRSDTypeClObj dstarray = (XMRSDTypeClObj)dstobj;
             TokenDeclSDTypeClass sdtClass = dstarray.sdtcClass;
             if(sdtClass.arrayOfType == null)
                 throw new InvalidCastException("only do arrays not " + sdtClass.longName.val);
 
-            /*
-             * We get a type cast error from mono if they didn't give us a character array.
-             * But if it is ok, copy from the string to the character array.
-             */
+            // We get a type cast error from mono if they didn't give us a character array.
+            // But if it is ok, copy from the string to the character array.
             char[] dstarr = (char[])dstarray.instVars.iarObjects[0];
             for(int i = 0; i < count; i++)
                 dstarr[i + dststart] = srcstr[i + srcstart];
@@ -1343,12 +1294,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                 // '"'<string>'"'
                 case '"':
-                    {
-                        --idx;
-                        string val = ParseJSONString(json, ref idx);
-                        dict.SetByKey(keys, val);
-                        break;
-                    }
+                {
+                    --idx;
+                    string val = ParseJSONString(json, ref idx);
+                    dict.SetByKey(keys, val);
+                    break;
+                }
                 // true false null
                 case 't':
                     if(json.Substring(idx, 3) != "rue")
@@ -1373,12 +1324,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                 // otherwise assume it's a number
                 default:
-                    {
-                        --idx;
-                        object val = ParseJSONNumber(json, ref idx);
-                        dict.SetByKey(keys, val);
-                        break;
-                    }
+                {
+                    --idx;
+                    object val = ParseJSONNumber(json, ref idx);
+                    dict.SetByKey(keys, val);
+                    break;
+                }
             }
             return idx;
         }
@@ -1805,9 +1756,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             BinaryWriter mow = this.migrateOutWriter;
 
-            /*
-             * Value types (including nulls) are always output directly.
-             */
+            // Value types (including nulls) are always output directly.
             if(graph == null)
             {
                 mow.Write((byte)Ser.NULL);
@@ -1893,20 +1842,16 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return;
             }
 
-            /*
-             * Script instance pointer is always just that.
-             */
+            // Script instance pointer is always just that.
             if(graph == this)
             {
                 mow.Write((byte)Ser.XMRINST);
                 return;
             }
 
-            /*
-             * Convert lists to object type.
-             * This is compatible with old migration data and also
-             * two vars pointing to same list won't duplicate it.
-             */
+            // Convert lists to object type.
+            // This is compatible with old migration data and also
+            // two vars pointing to same list won't duplicate it.
             if(graph is LSL_List)
             {
                 object[] data = ((LSL_List)graph).Data;
@@ -1920,14 +1865,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 graph = oll;
             }
 
-            /*
-             * If this same exact object was already serialized,
-             * just output an index telling the receiver to use
-             * that same old object, rather than creating a whole
-             * new object with the same values.  Also this prevents
-             * self-referencing objects (like arrays) from causing
-             * an infinite loop.
-             */
+            // If this same exact object was already serialized,
+            // just output an index telling the receiver to use
+            // that same old object, rather than creating a whole
+            // new object with the same values.  Also this prevents
+            // self-referencing objects (like arrays) from causing
+            // an infinite loop.
             int ident;
             if(this.migrateOutObjects.TryGetValue(graph, out ident))
             {
@@ -1936,20 +1879,16 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return;
             }
 
-            /*
-             * Object not seen before, save its address with an unique
-             * ident number that the receiver can easily regenerate.
-             */
+            // Object not seen before, save its address with an unique
+            // ident number that the receiver can easily regenerate.
             ident = this.migrateOutObjects.Count;
             this.migrateOutObjects.Add(graph, ident);
 
-            /*
-             * Now output the object's value(s).
-             * If the object self-references, the object is alreay entered
-             * in the dictionary and so the self-reference will just emit
-             * a DUPREF tag instead of trying to output the whole object 
-             * again.
-             */
+            // Now output the object's value(s).
+            // If the object self-references, the object is alreay entered
+            // in the dictionary and so the self-reference will just emit
+            // a DUPREF tag instead of trying to output the whole object 
+            // again.
             if(graph is ObjLslList)
             {
                 mow.Write((byte)Ser.LSLLIST);
@@ -2182,43 +2121,43 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     return new LSL_Key((string)RecvObjValue());
 
                 case Ser.LSLLIST:
-                    {
-                        this.migrateInObjects.Add(ident, null);    // placeholder
-                        object[] data = (object[])RecvObjValue();  // read data, maybe using another index
-                        LSL_List list = new LSL_List(data);        // make LSL-level list
-                        this.migrateInObjects[ident] = list;        // fill in slot
-                        return list;
-                    }
+                {
+                    this.migrateInObjects.Add(ident, null);    // placeholder
+                    object[] data = (object[])RecvObjValue();  // read data, maybe using another index
+                    LSL_List list = new LSL_List(data);        // make LSL-level list
+                    this.migrateInObjects[ident] = list;        // fill in slot
+                    return list;
+                }
 
                 case Ser.LSLROT:
-                    {
-                        double x = mir.ReadDouble();
-                        double y = mir.ReadDouble();
-                        double z = mir.ReadDouble();
-                        double w = mir.ReadDouble();
-                        return new LSL_Rotation(x, y, z, w);
-                    }
+                {
+                    double x = mir.ReadDouble();
+                    double y = mir.ReadDouble();
+                    double z = mir.ReadDouble();
+                    double w = mir.ReadDouble();
+                    return new LSL_Rotation(x, y, z, w);
+                }
                 case Ser.LSLSTR:
                     return new LSL_String((string)RecvObjValue());
 
                 case Ser.LSLVEC:
-                    {
-                        double x = mir.ReadDouble();
-                        double y = mir.ReadDouble();
-                        double z = mir.ReadDouble();
-                        return new LSL_Vector(x, y, z);
-                    }
+                {
+                    double x = mir.ReadDouble();
+                    double y = mir.ReadDouble();
+                    double z = mir.ReadDouble();
+                    return new LSL_Vector(x, y, z);
+                }
 
                 case Ser.SYSARRAY:
-                    {
-                        Type eletype = String2SysType(mir.ReadString());
-                        int length = mir.ReadInt32();
-                        Array array = Array.CreateInstance(eletype, length);
-                        this.migrateInObjects.Add(ident, array);
-                        for(int i = 0; i < length; i++)
-                            array.SetValue(RecvObjValue(), i);
-                        return array;
-                    }
+                {
+                    Type eletype = String2SysType(mir.ReadString());
+                    int length = mir.ReadInt32();
+                    Array array = Array.CreateInstance(eletype, length);
+                    this.migrateInObjects.Add(ident, array);
+                    for(int i = 0; i < length; i++)
+                        array.SetValue(RecvObjValue(), i);
+                    return array;
+                }
 
                 case Ser.SYSBOOL:
                     return mir.ReadBoolean();
@@ -2241,21 +2180,21 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     return s;
 
                 case Ser.XMRARRAY:
-                    {
-                        XMR_Array array = new XMR_Array(this);
-                        this.migrateInObjects.Add(ident, array);
-                        array.RecvArrayObj(this.RecvObjValue);
-                        return array;
-                    }
+                {
+                    XMR_Array array = new XMR_Array(this);
+                    this.migrateInObjects.Add(ident, array);
+                    array.RecvArrayObj(this.RecvObjValue);
+                    return array;
+                }
 
                 case Ser.DUPREF:
-                    {
-                        ident = mir.ReadInt32();
-                        object obj = this.migrateInObjects[ident];
-                        if(obj is ObjLslList)
-                            obj = new LSL_List(((ObjLslList)obj).objarray);
-                        return obj;
-                    }
+                {
+                    ident = mir.ReadInt32();
+                    object obj = this.migrateInObjects[ident];
+                    if(obj is ObjLslList)
+                        obj = new LSL_List(((ObjLslList)obj).objarray);
+                    return obj;
+                }
 
                 case Ser.XMRINST:
                     return this;
@@ -2276,29 +2215,29 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     return clobj;
 
                 case Ser.SYSERIAL:
-                    {
-                        int rawLength = mir.ReadInt32();
-                        byte[] rawBytes = mir.ReadBytes(rawLength);
-                        MemoryStream memoryStream = new MemoryStream(rawBytes);
-                        System.Runtime.Serialization.Formatters.Binary.BinaryFormatter bformatter =
-                                new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                        object graph = bformatter.Deserialize(memoryStream);
-                        this.migrateInObjects.Add(ident, graph);
-                        return graph;
-                    }
+                {
+                    int rawLength = mir.ReadInt32();
+                    byte[] rawBytes = mir.ReadBytes(rawLength);
+                    MemoryStream memoryStream = new MemoryStream(rawBytes);
+                    System.Runtime.Serialization.Formatters.Binary.BinaryFormatter bformatter =
+                            new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+                    object graph = bformatter.Deserialize(memoryStream);
+                    this.migrateInObjects.Add(ident, graph);
+                    return graph;
+                }
 
                 case Ser.THROWNEX:
-                    {
-                        int rawLength = mir.ReadInt32();
-                        byte[] rawBytes = mir.ReadBytes(rawLength);
-                        MemoryStream memoryStream = new MemoryStream(rawBytes);
-                        System.Runtime.Serialization.Formatters.Binary.BinaryFormatter bformatter =
-                                new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                        object graph = bformatter.Deserialize(memoryStream);
-                        this.migrateInObjects.Add(ident, graph);
-                        ((ScriptThrownException)graph).thrown = RecvObjValue();
-                        return graph;
-                    }
+                {
+                    int rawLength = mir.ReadInt32();
+                    byte[] rawBytes = mir.ReadBytes(rawLength);
+                    MemoryStream memoryStream = new MemoryStream(rawBytes);
+                    System.Runtime.Serialization.Formatters.Binary.BinaryFormatter bformatter =
+                            new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+                    object graph = bformatter.Deserialize(memoryStream);
+                    this.migrateInObjects.Add(ident, graph);
+                    ((ScriptThrownException)graph).thrown = RecvObjValue();
+                    return graph;
+                }
 
                 default:
                     throw new Exception("bad stream code " + code.ToString());

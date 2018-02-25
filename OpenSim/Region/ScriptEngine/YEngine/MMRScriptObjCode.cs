@@ -87,9 +87,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public ScriptObjCode(BinaryReader objFileReader, TextWriter asmFileWriter, TextWriter srcFileWriter)
         {
-            /*
-             * Check version number to make sure we know how to process file contents.
-             */
+             // Check version number to make sure we know how to process file contents.
             char[] ocm = objFileReader.ReadChars(ScriptCodeGen.OBJECT_CODE_MAGIC.Length);
             if(new String(ocm) != ScriptCodeGen.OBJECT_CODE_MAGIC)
                 throw new Exception("not an XMR object file (bad magic)");
@@ -206,14 +204,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public void EndMethod(DynamicMethod method, Dictionary<int, ScriptSrcLoc> srcLocs)
         {
-            /*
-             * Save method object code pointer.
-             */
+             // Save method object code pointer.
             dynamicMethods.Add(method.Name, method);
 
-            /*
-             * Build and sort iloffset -> source code location array.
-             */
+             // Build and sort iloffset -> source code location array.
             int n = srcLocs.Count;
             KeyValuePair<int, ScriptSrcLoc>[] srcLocArray = new KeyValuePair<int, ScriptSrcLoc>[n];
             n = 0;
@@ -221,9 +215,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 srcLocArray[n++] = kvp;
             Array.Sort(srcLocArray, endMethodWrapper);
 
-            /*
-             * Save sorted array.
-             */
+             // Save sorted array.
             scriptSrcLocss.Add(method.Name, srcLocArray);
         }
 

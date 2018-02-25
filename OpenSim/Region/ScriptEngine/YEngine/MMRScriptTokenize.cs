@@ -219,9 +219,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             sourceHash = null;
 
-            /*
-             * Now do the tokenization.
-             */
+             // Now do the tokenization.
             TokenBegin tokenBegin = new TokenBegin(emsg, "", 0, 0);
             tokenBegin.cameFrom = cameFrom;
             tokenBegin.saveSource = saveSource;
@@ -384,17 +382,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 if(c == '\n')
                 {
 
-                    /*
-                     * Increment source line number and set char index of beg of next line.
-                     */
+                     // Increment source line number and set char index of beg of next line.
                     lineNo++;
                     bolIdx = i + 1;
 
-                    /*
-                     * Check for '#' lineno filename newline
-                     * lineno is line number of next line in file
-                     * If found, save values and remove tokens from stream
-                     */
+                     // Check for '#' lineno filename newline
+                     // lineno is line number of next line in file
+                     // If found, save values and remove tokens from stream
                     if((lastToken is TokenStr) &&
                         (lastToken.prevToken is TokenInt) &&
                         (lastToken.prevToken.prevToken is TokenKwHash))
@@ -407,15 +401,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * Skip over whitespace.
-                 */
+                 // Skip over whitespace.
                 if(c <= ' ')
                     continue;
 
-                /*
-                 * Skip over comments.
-                 */
+                 // Skip over comments.
                 if((i + 2 <= source.Length) && source.Substring(i, 2).Equals("//"))
                 {
                     while((i < source.Length) && (source[i] != '\n'))
@@ -440,9 +430,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * Check for numbers.
-                 */
+                 // Check for numbers.
                 if((c >= '0') && (c <= '9'))
                 {
                     int j = TryParseFloat(i);
@@ -459,9 +447,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * Check for quoted strings.
-                 */
+                 // Check for quoted strings.
                 if(c == '"')
                 {
                     StringBuilder sb = new StringBuilder();
@@ -509,9 +495,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * Check for quoted characters.
-                 */
+                 // Check for quoted characters.
                 if(c == '\'')
                 {
                     char cb = (char)0;
@@ -560,9 +544,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * Check for keywords/names.
-                 */
+                 // Check for keywords/names.
                 if((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_') || (c == '$' && options.dollarsigns))
                 {
                     int j;
@@ -629,9 +611,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * Check for option enables.
-                 */
+                 // Check for option enables.
                 if((c == ';') && (lastToken is TokenName) &&
                         (lastToken.prevToken is TokenName) &&
                         (strcasecmp(((TokenName)lastToken.prevToken).val, "yoption") == 0))
@@ -669,9 +649,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * Lastly, check for delimeters.
-                 */
+                 // Lastly, check for delimeters.
                 {
                     int j;
                     int len = 0;
@@ -692,9 +670,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     }
                 }
 
-                /*
-                 * Don't know what it is!
-                 */
+                 // Don't know what it is!
                 TokenError(i, "unknown character '" + c + "'");
             }
         }

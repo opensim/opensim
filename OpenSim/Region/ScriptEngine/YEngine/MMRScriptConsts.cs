@@ -64,9 +64,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             Dictionary<string, ScriptConst> sc = new Dictionary<string, ScriptConst>();
 
-            /*
-             * For every event code, define XMREVENTCODE_<eventname> and XMREVENTMASKn_<eventname> symbols.
-             */
+             // For every event code, define XMREVENTCODE_<eventname> and XMREVENTMASKn_<eventname> symbols.
             for(int i = 0; i < 64; i++)
             {
                 try
@@ -87,9 +85,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 catch { }
             }
 
-            /*
-             * Also get all the constants from XMRInstAbstract and ScriptBaseClass etc as well.
-             */
+             // Also get all the constants from XMRInstAbstract and ScriptBaseClass etc as well.
             for(Type t = typeof(XMRInstAbstract); t != typeof(object); t = t.BaseType)
             {
                 AddInterfaceConstants(sc, t.GetFields());
@@ -132,10 +128,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 Type fieldType = constField.FieldType;
                 CompValu cv;
 
-                /*
-                 * The location of a simple number is the number itself.
-                 * Access to the value gets compiled as an ldc instruction.
-                 */
+                 // The location of a simple number is the number itself.
+                 // Access to the value gets compiled as an ldc instruction.
                 if(fieldType == typeof(double))
                 {
                     cv = new CompValuFloat(new TokenTypeFloat(null),
@@ -152,10 +146,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                                               ((LSL_Integer)constField.GetValue(null)).value);
                 }
 
-                /*
-                 * The location of a string is the string itself.
-                 * Access to the value gets compiled as an ldstr instruction.
-                 */
+                 // The location of a string is the string itself.
+                 // Access to the value gets compiled as an ldstr instruction.
                 else if(fieldType == typeof(string))
                 {
                     cv = new CompValuString(new TokenTypeStr(null),
@@ -167,18 +159,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                                              (string)(LSL_String)constField.GetValue(null));
                 }
 
-                /*
-                 * The location of everything else (objects) is the static field in the interface definition.
-                 * Access to the value gets compiled as an ldsfld instruction.
-                 */
+                 // The location of everything else (objects) is the static field in the interface definition.
+                 // Access to the value gets compiled as an ldsfld instruction.
                 else
                 {
                     cv = new CompValuSField(TokenType.FromSysType(null, fieldType), constField);
                 }
 
-                /*
-                 * Add to dictionary.
-                 */
+                 // Add to dictionary.
                 new ScriptConst(sc, constField.Name, cv);
             }
         }

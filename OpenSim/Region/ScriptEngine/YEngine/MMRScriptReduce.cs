@@ -58,7 +58,6 @@ using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 
 namespace OpenSim.Region.ScriptEngine.Yengine
 {
-
     public class ScriptReduce
     {
         public const uint SDT_PRIVATE = 1;
@@ -177,25 +176,21 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private ScriptReduce(TokenBegin tokenBegin)
         {
-            /*
-             * Create a place to put the top-level script components,
-             * eg, state bodies, functions, global variables.
-             */
+             // Create a place to put the top-level script components,
+             // eg, state bodies, functions, global variables.
             tokenScript = new TokenScript(tokenBegin.nextToken);
 
-            /*
-             * 'class', 'delegate', 'instance' all define types.
-             * So we pre-scan the source tokens for those keywords
-             * to build a script-defined type table and substitute
-             * type tokens for those names in the source.  This is
-             * done as a separate scan so they can cross-reference
-             * each other.  Also does likewise for fixed array types.
-             *
-             * Also, all 'typedef's are processed here.  Their definitions 
-             * remain in the source token stream after this, but they can 
-             * be skipped over, because their bodies have been substituted 
-             * in the source for any references.
-             */
+             // 'class', 'delegate', 'instance' all define types.
+             // So we pre-scan the source tokens for those keywords
+             // to build a script-defined type table and substitute
+             // type tokens for those names in the source.  This is
+             // done as a separate scan so they can cross-reference
+             // each other.  Also does likewise for fixed array types.
+             //
+             // Also, all 'typedef's are processed here.  Their definitions 
+             // remain in the source token stream after this, but they can 
+             // be skipped over, because their bodies have been substituted 
+             // in the source for any references.
             ParseSDTypePreScanPassOne(tokenBegin);  // catalog definitions
             ParseSDTypePreScanPassTwo(tokenBegin);  // substitute references
 
@@ -226,10 +221,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             */
 
-            /*
-             * Create a function $globalvarinit to hold all explicit
-             * global variable initializations.
-             */
+             // Create a function $globalvarinit to hold all explicit
+             // global variable initializations.
             TokenDeclVar gviFunc = new TokenDeclVar(tokenBegin, null, tokenScript);
             gviFunc.name = new TokenName(gviFunc, "$globalvarinit");
             gviFunc.retType = new TokenTypeVoid(gviFunc);
@@ -240,9 +233,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             tokenScript.globalVarInit = gviFunc;
             tokenScript.AddVarEntry(gviFunc);
 
-            /*
-             * Scan through the tokens until we reach the end.
-             */
+             // Scan through the tokens until we reach the end.
             for(Token token = tokenBegin.nextToken; !(token is TokenEnd);)
             {
                 if(token is TokenKwSemi)
@@ -251,25 +242,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * Script-defined type declarations.
-                 */
+                 // Script-defined type declarations.
                 if(ParseDeclSDTypes(ref token, null, SDT_PUBLIC))
                     continue;
 
-                /*
-                 * constant <name> = <rval> ;
-                 */
+                 // constant <name> = <rval> ;
                 if(token is TokenKwConst)
                 {
                     ParseDeclVar(ref token, null);
                     continue;
                 }
 
-                /*
-                 * <type> <name> ;
-                 * <type> <name> = <rval> ;
-                 */
+                 // <type> <name> ;
+                 // <type> <name> = <rval> ;
                 if((token is TokenType) &&
                     (token.nextToken is TokenName) &&
                     ((token.nextToken.nextToken is TokenKwSemi) ||
@@ -285,9 +270,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * <type> <name> { [ get { <body> } ] [ set { <body> } ] }
-                 */
+                 // <type> <name> { [ get { <body> } ] [ set { <body> } ] }
                 if((token is TokenType) &&
                     (token.nextToken is TokenName) &&
                     (token.nextToken.nextToken is TokenKwBrcOpen))
@@ -296,10 +279,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * <type> <name> <funcargs> <funcbody>
-                 * global function returning specified type
-                 */
+                 // <type> <name> <funcargs> <funcbody>
+                 // global function returning specified type
                 if(token is TokenType)
                 {
                     TokenType tokenType = (TokenType)token;
@@ -330,10 +311,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * <name> <funcargs> <funcbody>
-                 * global function returning void
-                 */
+                 // <name> <funcargs> <funcbody>
+                 // global function returning void
                 if(token is TokenName)
                 {
                     TokenName tokenName = (TokenName)token;
@@ -355,9 +334,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * default <statebody>
-                 */
+                 // default <statebody>
                 if(token is TokenKwDefault)
                 {
                     TokenDeclState tokenDeclState = new TokenDeclState(token);
@@ -374,9 +351,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * state <name> <statebody>
-                 */
+                 // state <name> <statebody>
                 if(token is TokenKwState)
                 {
                     TokenDeclState tokenDeclState = new TokenDeclState(token);
@@ -401,25 +376,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * Doesn't fit any of those forms, output message and skip to next statement.
-                 */
+                 // Doesn't fit any of those forms, output message and skip to next statement.
                 ErrorMsg(token, "looking for var name, type, state or default, script-defined type declaration");
                 token = SkipPastSemi(token);
                 continue;
             }
 
-            /*
-             * Must have a default state to start in.
-             */
+             // Must have a default state to start in.
             if(!errors && (tokenScript.defaultState == null))
             {
                 ErrorMsg(tokenScript, "no default state defined");
             }
 
-            /*
-             * If any error messages were written out, set return value to null.
-             */
+             // If any error messages were written out, set return value to null.
             if(errors)
                 tokenScript = null;
         }
@@ -444,10 +413,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             for(Token t = tokenBegin; !((t = t.nextToken) is TokenEnd);)
             {
-                /*
-                 * Keep track of nested definitions so we can link them up.
-                 * We also need to detect the end of class and interface definitions.
-                 */
+                 // Keep track of nested definitions so we can link them up.
+                 // We also need to detect the end of class and interface definitions.
                 if(t is TokenKwBrcOpen)
                 {
                     openBraceLevel++;
@@ -468,11 +435,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * Check for 'class' or 'interface'.
-                 * They always define a new class or interface.
-                 * They can contain nested script-defined type definitions.
-                 */
+                 // Check for 'class' or 'interface'.
+                 // They always define a new class or interface.
+                 // They can contain nested script-defined type definitions.
                 if((t is TokenKwClass) || (t is TokenKwInterface))
                 {
                     Token kw = t;
@@ -486,9 +451,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     TokenName name = (TokenName)t;
                     t = t.nextToken;
 
-                    /*
-                     * Malloc the script-defined type object.
-                     */
+                     // Malloc the script-defined type object.
                     TokenDeclSDType decl;
                     if(kw is TokenKwClass)
                         decl = new TokenDeclSDTypeClass(name, kw.prevToken is TokenKwPartial);
@@ -496,56 +459,43 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         decl = new TokenDeclSDTypeInterface(name);
                     decl.outerSDType = outerLevels.Peek();
 
-                    /*
-                     * Check for generic parameter list.
-                     */
+                     // Check for generic parameter list.
                     if(!ParseGenProtoParamList(ref t, decl))
                         continue;
 
-                    /*
-                     * Splice in a TokenDeclSDType token that replaces the keyword and the name tokens 
-                     * and any generic parameters including the '<', ','s and '>'.
-                     *   kw = points to 'class' or 'interface' keyword.
-                     *    t = points to just past last part of class name parsed, hopefully a ':' or '{'.
-                     */
+                     // Splice in a TokenDeclSDType token that replaces the keyword and the name tokens 
+                     // and any generic parameters including the '<', ','s and '>'.
+                     //   kw = points to 'class' or 'interface' keyword.
+                     //    t = points to just past last part of class name parsed, hopefully a ':' or '{'.
                     decl.prevToken = decl.isPartial ? kw.prevToken.prevToken : kw.prevToken;
                     decl.nextToken = t;
                     decl.prevToken.nextToken = decl;
                     decl.nextToken.prevToken = decl;
 
-                    /*
-                     * Enter it in name lists so it can be seen by others.
-                     */
+                     // Enter it in name lists so it can be seen by others.
                     Token partialNewBody = CatalogSDTypeDecl(decl);
 
-                    /*
-                     * Start inner type definitions.
-                     */
+                     // Start inner type definitions.
                     braceLevels.Push(openBraceLevel);
                     outerLevels.Push(decl);
 
-                    /*
-                     * Scan the body starting on for before the '{'.
-                     *
-                     * If this body had an old partial merged into it,
-                     * resume scanning at the beginning of the new body, 
-                     * ie, what used to be the first token after the '{' 
-                     * before the old body was spliced in.
-                     */
+                     // Scan the body starting on for before the '{'.
+                     //
+                     // If this body had an old partial merged into it,
+                     // resume scanning at the beginning of the new body, 
+                     // ie, what used to be the first token after the '{' 
+                     // before the old body was spliced in.
                     if(partialNewBody != null)
                     {
-
-                        /*
-                         * We have a partial that has had old partial body merged 
-                         * into new partial body.  So resume scanning at the beginning 
-                         * of the new partial body so we don't get any duplicate scanning 
-                         * of the old partial body.
-                         *
-                         *   <decl> ... { <oldbody> <newbody> }
-                         *                          ^- resume scanning here
-                         *                             but inc openBraceLevel because
-                         *                             we skipped scanning the '{'
-                         */
+                         // We have a partial that has had old partial body merged 
+                         // into new partial body.  So resume scanning at the beginning 
+                         // of the new partial body so we don't get any duplicate scanning 
+                         // of the old partial body.
+                         //
+                         //   <decl> ... { <oldbody> <newbody> }
+                         //                          ^- resume scanning here
+                         //                             but inc openBraceLevel because
+                         //                             we skipped scanning the '{'
                         openBraceLevel++;
                         t = partialNewBody;
                     }
@@ -553,23 +503,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * Check for 'delegate'.
-                 * It always defines a new delegate.
-                 * Delegates never define nested types.
-                 */
+                 // Check for 'delegate'.
+                 // It always defines a new delegate.
+                 // Delegates never define nested types.
                 if(t is TokenKwDelegate)
                 {
                     Token kw = t;
                     t = t.nextToken;
 
-                    /*
-                     * Next thing might be an explicit return type or the delegate's name.
-                     * If it's a type token, then it's the return type, simple enough.
-                     * But if it's a name token, it might be the name of some other script-defined type.
-                     * The way to tell is that the delegate name is followed by a '(', whereas an 
-                     * explicit return type is followed by the delegate name.
-                     */
+                     // Next thing might be an explicit return type or the delegate's name.
+                     // If it's a type token, then it's the return type, simple enough.
+                     // But if it's a name token, it might be the name of some other script-defined type.
+                     // The way to tell is that the delegate name is followed by a '(', whereas an 
+                     // explicit return type is followed by the delegate name.
                     Token retType = t;
                     TokenName delName = null;
                     Token u;
@@ -602,29 +548,21 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     if(retType == delName)
                         retType = null;
 
-                    /*
-                     * Malloc the script-defined type object.
-                     */
+                     // Malloc the script-defined type object.
                     TokenDeclSDTypeDelegate decl = new TokenDeclSDTypeDelegate(delName);
                     decl.outerSDType = outerLevels.Peek();
 
-                    /*
-                     * Check for generic parameter list.
-                     */
+                     // Check for generic parameter list.
                     t = delName.nextToken;
                     if(!ParseGenProtoParamList(ref t, decl))
                         continue;
 
-                    /*
-                     * Enter it in name lists so it can be seen by others.
-                     */
+                     // Enter it in name lists so it can be seen by others.
                     CatalogSDTypeDecl(decl);
 
-                    /*
-                     * Splice in the token that replaces the 'delegate' keyword and the whole name 
-                     * (including the '<' name ... '>' parts). The return type token(s), if any, 
-                     * follow the splice token and come before the '('.
-                     */
+                     // Splice in the token that replaces the 'delegate' keyword and the whole name 
+                     // (including the '<' name ... '>' parts). The return type token(s), if any, 
+                     // follow the splice token and come before the '('.
                     decl.prevToken = kw.prevToken;
                     kw.prevToken.nextToken = decl;
 
@@ -641,10 +579,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         t.prevToken = retType;
                     }
 
-                    /*
-                     * Scan for terminating ';'.
-                     * There cannot be an intervening class, delegate, interfate, typedef, { or }.
-                     */
+                     // Scan for terminating ';'.
+                     // There cannot be an intervening class, delegate, interfate, typedef, { or }.
                     for(t = decl; !(t is TokenKwSemi); t = u)
                     {
                         u = t.nextToken;
@@ -664,11 +600,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * Check for 'typedef'.
-                 * It always defines a new macro.
-                 * Typedefs never define nested types.
-                 */
+                 // Check for 'typedef'.
+                 // It always defines a new macro.
+                 // Typedefs never define nested types.
                 if(t is TokenKwTypedef)
                 {
                     Token kw = t;
@@ -683,37 +617,27 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     TokenName tdName = (TokenName)t;
                     t = t.nextToken;
 
-                    /*
-                     * Malloc the script-defined type object.
-                     */
+                     // Malloc the script-defined type object.
                     TokenDeclSDTypeTypedef decl = new TokenDeclSDTypeTypedef(tdName);
                     decl.outerSDType = outerLevels.Peek();
 
-                    /*
-                     * Check for generic parameter list.
-                     */
+                     // Check for generic parameter list.
                     if(!ParseGenProtoParamList(ref t, decl))
                         continue;
 
-                    /*
-                     * Enter it in name lists so it can be seen by others.
-                     */
+                     // Enter it in name lists so it can be seen by others.
                     CatalogSDTypeDecl(decl);
                     numTypedefs++;
 
-                    /*
-                     * Splice in the token that replaces the 'typedef' keyword and the whole name 
-                     * (including the '<' name ... '>' parts).
-                     */
+                     // Splice in the token that replaces the 'typedef' keyword and the whole name 
+                     // (including the '<' name ... '>' parts).
                     decl.prevToken = kw.prevToken;
                     kw.prevToken.nextToken = decl;
                     decl.nextToken = t;
                     t.prevToken = decl;
 
-                    /*
-                     * Scan for terminating ';'.
-                     * There cannot be an intervening class, delegate, interfate, typedef, { or }.
-                     */
+                     // Scan for terminating ';'.
+                     // There cannot be an intervening class, delegate, interfate, typedef, { or }.
                     Token u;
                     for(t = decl; !(t is TokenKwSemi); t = u)
                     {
@@ -747,16 +671,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private bool ParseGenProtoParamList(ref Token t, TokenDeclSDType decl)
         {
-            /*
-             * Maybe there aren't any generic parameters.
-             * If so, leave decl.genParams = null.
-             */
+             // Maybe there aren't any generic parameters.
+             // If so, leave decl.genParams = null.
             if(!(t is TokenKwCmpLT))
                 return true;
 
-            /*
-             * Build list of generic parameter names.
-             */
+             // Build list of generic parameter names.
             Dictionary<string, int> parms = new Dictionary<string, int>();
             do
             {
@@ -813,17 +733,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if(!GenericParametersMatch(decl, dupDecl))
                 ErrorMsg(decl, "all partial class generic parameters must match");
 
-            /*
-             * Have new declaration be the cataloged one because body is going to get 
-             * snipped out of old declaration and pasted into new declaration.
-             */
+             // Have new declaration be the cataloged one because body is going to get 
+             // snipped out of old declaration and pasted into new declaration.
             tokenScript.sdSrcTypesRep(longName, decl);
             if(decl.outerSDType != null)
                 decl.outerSDType.innerSDTypes[decl.shortName.val] = decl;
 
-            /*
-             * Find old partial definition's opening brace.
-             */
+             // Find old partial definition's opening brace.
             Token dupBrcOpen;
             for(dupBrcOpen = dupDecl; !(dupBrcOpen is TokenKwBrcOpen); dupBrcOpen = dupBrcOpen.nextToken)
             {
@@ -834,9 +750,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
             }
 
-            /*
-             * Find new partial definition's opening brace.
-             */
+             // Find new partial definition's opening brace.
             Token brcOpen;
             for(brcOpen = decl; !(brcOpen is TokenKwBrcOpen); brcOpen = brcOpen.nextToken)
             {
@@ -848,25 +762,23 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             Token body = brcOpen.nextToken;
 
-            /*
-             * Stick old partial definition's extends/implementeds list just 
-             * in front of new partial definition's extends/implementeds list.
-             *
-             *    class    oldextimp    {          oldbody    }                 ...
-             *   dupDecl               dupBrcOpen            dupDecl.endToken
-             *
-             *    class    newextimp    {          newbody    }                 ...
-             *   decl                  brcOpen    body       decl.endToken
-             *
-             * becomes
-             *
-             *    class             ...
-             *   dupDecl
-             *   dupDecl.endToken
-             *
-             *    class    oldextimp   newextimp    {          oldbody   newbody    }              ...
-             *   decl                              brcOpen              body       decl.endToken
-             */
+             // Stick old partial definition's extends/implementeds list just 
+             // in front of new partial definition's extends/implementeds list.
+             //
+             //    class    oldextimp    {          oldbody    }                 ...
+             //   dupDecl               dupBrcOpen            dupDecl.endToken
+             //
+             //    class    newextimp    {          newbody    }                 ...
+             //   decl                  brcOpen    body       decl.endToken
+             //
+             // becomes
+             //
+             //    class             ...
+             //   dupDecl
+             //   dupDecl.endToken
+             //
+             //    class    oldextimp   newextimp    {          oldbody   newbody    }              ...
+             //   decl                              brcOpen              body       decl.endToken
             if(dupBrcOpen != dupDecl.nextToken)
             {
                 dupBrcOpen.prevToken.nextToken = decl.nextToken;
@@ -875,10 +787,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 decl.nextToken = dupDecl.nextToken;
             }
 
-            /*
-             * Stick old partial definition's body just 
-             * in front of new partial definition's body.
-             */
+             // Stick old partial definition's body just 
+             // in front of new partial definition's body.
             if(dupBrcOpen.nextToken != dupDecl.endToken)
             {
                 dupBrcOpen.nextToken.prevToken = brcOpen;
@@ -887,10 +797,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 brcOpen.nextToken = dupBrcOpen.nextToken;
             }
 
-            /*
-             * Null out old definition's extends/implementeds list and body 
-             * by having the declaration token be the only thing left.
-             */
+             // Null out old definition's extends/implementeds list and body 
+             // by having the declaration token be the only thing left.
             dupDecl.nextToken = dupDecl.endToken.nextToken;
             dupDecl.nextToken.prevToken = dupDecl;
             dupDecl.endToken = dupDecl;
@@ -946,41 +854,34 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                 for(Token t = tokenBegin; !((t = t.nextToken) is TokenEnd);)
                 {
-
-                    /*
-                     * Maybe it's time to pop out of an outer class definition.
-                     */
+                     // Maybe it's time to pop out of an outer class definition.
                     if((outerSDType != null) && (outerSDType.endToken == t))
                     {
                         outerSDType = outerSDType.outerSDType;
                         continue;
                     }
 
-                    /*
-                     * Skip completely over any script-defined generic prototypes.
-                     * We only need to process their instantiations which are non-
-                     * generic versions of the generics.
-                     */
+                     // Skip completely over any script-defined generic prototypes.
+                     // We only need to process their instantiations which are non-
+                     // generic versions of the generics.
                     if((t is TokenDeclSDType) && (((TokenDeclSDType)t).genParams != null))
                     {
                         t = ((TokenDeclSDType)t).endToken;
                         continue;
                     }
 
-                    /*
-                     * Check for beginning of non-generic script-defined type definitions.
-                     * They can have nested definitions in their innerSDTypes[] that match 
-                     * name tokens, so add them to the stack.
-                     *
-                     * But just ignore any preliminary partial definitions as they have had 
-                     * their entire contents spliced out and spliced into a subsequent partial 
-                     * definition.  So if we originally had:
-                     *    partial class Abc { public intenger one; }
-                     *    partial class Abc { public intenger two; }
-                     * We now have:
-                     *    partial_class_Abc    <== if we are here, just ignore the partial_class_Abc token
-                     *    partial_class_Abc { public intenger one; public intenger two; }
-                     */
+                     // Check for beginning of non-generic script-defined type definitions.
+                     // They can have nested definitions in their innerSDTypes[] that match 
+                     // name tokens, so add them to the stack.
+                     //
+                     // But just ignore any preliminary partial definitions as they have had 
+                     // their entire contents spliced out and spliced into a subsequent partial 
+                     // definition.  So if we originally had:
+                     //    partial class Abc { public intenger one; }
+                     //    partial class Abc { public intenger two; }
+                     // We now have:
+                     //    partial_class_Abc    <== if we are here, just ignore the partial_class_Abc token
+                     //    partial_class_Abc { public intenger one; public intenger two; }
                     if(t is TokenDeclSDType)
                     {
                         if(((TokenDeclSDType)t).endToken != t)
@@ -989,22 +890,18 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         continue;
                     }
 
-                    /*
-                     * For names not preceded by a '.', scan the script-defined type definition 
-                     * stack for that name.  Splice the name out and replace with equivalent token.
-                     */
+                     // For names not preceded by a '.', scan the script-defined type definition 
+                     // stack for that name.  Splice the name out and replace with equivalent token.
                     if((t is TokenName) && !(t.prevToken is TokenKwDot))
                         t = TrySpliceTypeRef(t, outerSDType, ref repeat, noTypes);
 
-                    /*
-                     * This handles types such as integer[,][], List<string>[], etc.
-                     * They are an instantiation of an internally generated type of the same name, brackets and all.
-                     * Note that to malloc an array, use something like 'new float[,][](3,5)', not 'new float[3,5][]'.
-                     *
-                     * Note that we must not get confused by $idxprop property declarations such as:
-                     *    float [string kee] { get { ... } }
-                     * ... and try to convert 'float' '[' to an array type.
-                     */
+                     // This handles types such as integer[,][], List<string>[], etc.
+                     // They are an instantiation of an internally generated type of the same name, brackets and all.
+                     // Note that to malloc an array, use something like 'new float[,][](3,5)', not 'new float[3,5][]'.
+                     //
+                     // Note that we must not get confused by $idxprop property declarations such as:
+                     //    float [string kee] { get { ... } }
+                     // ... and try to convert 'float' '[' to an array type.
                     if((t is TokenType) && (t.nextToken is TokenKwBrkOpen))
                     {
                         if((t.nextToken.nextToken is TokenKwBrkClose) ||
@@ -1015,19 +912,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     }
                 }
 
-                /*
-                 * If we instantiated a generic, loop back to process its contents
-                 * just as if the source code had the instantiated code to begin with.
-                 * Also repeat if we found a non-type inside the <> of a generic reference 
-                 * provided we have made at least one name->type substitution.
-                 */
+                 // If we instantiated a generic, loop back to process its contents
+                 // just as if the source code had the instantiated code to begin with.
+                 // Also repeat if we found a non-type inside the <> of a generic reference 
+                 // provided we have made at least one name->type substitution.
             } while(((repeat & REPEAT_INSTGEN) != 0) ||
                      ((repeat & (REPEAT_NOTYPE | REPEAT_SUBST)) == (REPEAT_NOTYPE | REPEAT_SUBST)));
 
-            /*
-             * These are places where we required a type be present, 
-             * eg, a generic type argument or the body of a typedef.
-             */
+             // These are places where we required a type be present, 
+             // eg, a generic type argument or the body of a typedef.
             foreach(Token t in noTypes)
                 ErrorMsg(t, "looking for type");
         }
@@ -1048,11 +941,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             Token start = t;
             string tnamestr = ((TokenName)t).val;
 
-            /*
-             * Look for the name as a type declared by outerSDType or anything
-             * even farther out than that.  If not found, simply return 
-             * without updating t, meaning that t isn't the name of a type.
-             */
+             // Look for the name as a type declared by outerSDType or anything
+             // even farther out than that.  If not found, simply return 
+             // without updating t, meaning that t isn't the name of a type.
             TokenDeclSDType decl = null;
             while(outerSDType != null)
             {
@@ -1066,10 +957,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             TokenDeclSDType instdecl;
             while(true)
             {
-
-                /*
-                 * If it is a generic type, it must be followed by instantiation arguments.
-                 */
+                 // If it is a generic type, it must be followed by instantiation arguments.
                 instdecl = decl;
                 if(decl.genParams != null)
                 {
@@ -1134,12 +1022,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         tokenScript.sdSrcTypesTryGetValue(tnamestr, out instdecl);
                     }
 
-                    /*
-                     * Couldn't find 'List<string>' but found 'List' and we have genArgs = 'string'.
-                     * Instantiate the generic to create 'List<string>'.  This splices the definition 
-                     * of 'List<string>' into the source token stream just as if it had been there all 
-                     * along.  We have to then repeat the scan to process the instance's contents.
-                     */
+                     // Couldn't find 'List<string>' but found 'List' and we have genArgs = 'string'.
+                     // Instantiate the generic to create 'List<string>'.  This splices the definition 
+                     // of 'List<string>' into the source token stream just as if it had been there all 
+                     // along.  We have to then repeat the scan to process the instance's contents.
                     if(instdecl == null)
                     {
                         instdecl = decl.InstantiateGeneric(tnamestr, genArgs, this);
@@ -1148,9 +1034,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     }
                 }
 
-                /*
-                 * Maybe caller wants a subtype by putting a '.' following all that.
-                 */
+                 // Maybe caller wants a subtype by putting a '.' following all that.
                 if(!(t.nextToken is TokenKwDot))
                     break;
                 if(!(t.nextToken.nextToken is TokenName))
@@ -1162,14 +1046,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 outerSDType = instdecl;
             }
 
-            /*
-             * Create a reference in the source to the definition
-             * that encapsulates the long dotted type name given in
-             * the source, and replace the long dotted type name in
-             * the source with the reference token, eg, replace 
-             * 'Dictionary' '<' 'string' ',' 'integer' '>' '.' 'ValueList'
-             * with 'Dictionary<string,integer>.ValueList'.
-             */
+             // Create a reference in the source to the definition
+             // that encapsulates the long dotted type name given in
+             // the source, and replace the long dotted type name in
+             // the source with the reference token, eg, replace 
+             // 'Dictionary' '<' 'string' ',' 'integer' '>' '.' 'ValueList'
+             // with 'Dictionary<string,integer>.ValueList'.
             TokenType refer = instdecl.MakeRefToken(start);
             if(refer == null)
             {
@@ -1203,11 +1085,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             Stack<int> ranks = new Stack<int>();
 
-            /*
-             * When script specifies 'float[,][]' it means a two-dimensional matrix
-             * that points to one-dimensional vectors of floats.  So we would push 
-             * a 2 then a 1 in this parsing code...
-             */
+             // When script specifies 'float[,][]' it means a two-dimensional matrix
+             // that points to one-dimensional vectors of floats.  So we would push 
+             // a 2 then a 1 in this parsing code...
             do
             {
                 t = t.nextToken;                // point at '['
@@ -1225,14 +1105,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 ranks.Push(rank);
             } while(t.nextToken is TokenKwBrkOpen);
 
-            /*
-             * Now we build the types in reverse order.  For the example above we will:
-             *   first, create a type that is a one-dimensional vector of floats, float[]
-             *   second, create a type that is a two-dimensional matrix of that.
-             * This keeps declaration and referencing similar, eg, 
-             *   float[,][] jag = new float[,][] (3,4);
-             *     jag[i,j][k] ... is used to access the elements
-             */
+             // Now we build the types in reverse order.  For the example above we will:
+             //   first, create a type that is a one-dimensional vector of floats, float[]
+             //   second, create a type that is a two-dimensional matrix of that.
+             // This keeps declaration and referencing similar, eg, 
+             //   float[,][] jag = new float[,][] (3,4);
+             //     jag[i,j][k] ... is used to access the elements
             do
             {
                 int rank = ranks.Pop();
@@ -1240,17 +1118,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 ofType = decl.MakeRefToken(ofType);
             } while(ranks.Count > 0);
 
-            /*
-             * Finally splice in the resultant array type to replace the original tokens.
-             */
+             // Finally splice in the resultant array type to replace the original tokens.
             ofType.prevToken = start.prevToken;
             ofType.nextToken = t.nextToken;
             ofType.prevToken.nextToken = ofType;
             ofType.nextToken.prevToken = ofType;
 
-            /*
-             * Resume parsing just after the spliced-in array type token.
-             */
+             // Resume parsing just after the spliced-in array type token.
             return ofType;
         }
 
@@ -1262,13 +1136,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private TokenDeclSDType InstantiateFixedArray(int rank, TokenType ofType, Token tokenBegin, ref uint repeat)
         {
-            /*
-             * Create the array type's name.
-             * If starting with a non-array type, just append the rank to it, eg, float + rank=1 -> float[]
-             * If starting with an array type, slip this rank in front of existing array, eg, float[] + rank=2 -> float[,][].
-             * This makes it consistent with what the script-writer sees for both a type specification and when 
-             * referencing elements in a jagged array.
-             */
+             // Create the array type's name.
+             // If starting with a non-array type, just append the rank to it, eg, float + rank=1 -> float[]
+             // If starting with an array type, slip this rank in front of existing array, eg, float[] + rank=2 -> float[,][].
+             // This makes it consistent with what the script-writer sees for both a type specification and when 
+             // referencing elements in a jagged array.
             string name = ofType.ToString();
             StringBuilder sb = new StringBuilder(name);
             int ix = name.IndexOf('[');
@@ -1293,12 +1165,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 if(ofType is TokenTypeInt)
                     suffix = 'I';
 
-                /*
-                 * Don't already have one, create a new skeleton struct.
-                 * Splice in a definition for the class at beginning of source file.
-                 *
-                 *    class <arraytypename> {
-                 */
+                 // Don't already have one, create a new skeleton struct.
+                 // Splice in a definition for the class at beginning of source file.
+                 //
+                 //    class <arraytypename> {
                 fa = new TokenDeclSDTypeClass(new TokenName(tokenScript, name), false);
                 CatalogSDTypeDecl(fa);
                 repeat |= REPEAT_INSTGEN;
@@ -1308,12 +1178,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 Token t = SpliceAfter(tokenBegin, fa);
                 t = SpliceAfter(t, new TokenKwBrcOpen(t));
 
-                /*
-                 *        public integer len0;
-                 *        public integer len1;
-                 *        ...
-                 *        public object obj;
-                 */
+                 //        public integer len0;
+                 //        public integer len1;
+                 //        ...
+                 //        public object obj;
                 for(int i = 0; i < rank; i++)
                 {
                     t = SpliceAfter(t, new TokenKwPublic(t));
@@ -1327,14 +1195,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 t = SpliceAfter(t, new TokenName(t, "obj"));
                 t = SpliceAfter(t, new TokenKwSemi(t));
 
-                /*
-                 *        public constructor (integer len0, integer len1, ...) {
-                 *            this.len0 = len0;
-                 *            this.len1 = len1;
-                 *            ...
-                 *            this.obj = xmrFixedArrayAlloc<suffix> (len0 * len1 * ...);
-                 *        }
-                 */
+                 //        public constructor (integer len0, integer len1, ...) {
+                 //            this.len0 = len0;
+                 //            this.len1 = len1;
+                 //            ...
+                 //            this.obj = xmrFixedArrayAlloc<suffix> (len0 * len1 * ...);
+                 //        }
                 t = SpliceAfter(t, new TokenKwPublic(t));
                 t = SpliceAfter(t, new TokenKwConstructor(t));
                 t = SpliceAfter(t, new TokenKwParOpen(t));
@@ -1374,11 +1240,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 t = SpliceAfter(t, new TokenKwSemi(t));
                 t = SpliceAfter(t, new TokenKwBrcClose(t));
 
-                /*
-                 *        public integer Length { get {
-                 *            return this.len0 * this.len1 * ... ;
-                 *        } }
-                 */
+                 //        public integer Length { get {
+                 //            return this.len0 * this.len1 * ... ;
+                 //        } }
                 t = SpliceAfter(t, new TokenKwPublic(t));
                 t = SpliceAfter(t, new TokenTypeInt(t));
                 t = SpliceAfter(t, new TokenName(t, "Length"));
@@ -1400,16 +1264,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 t = SpliceAfter(t, new TokenKwBrcClose(t));
                 t = SpliceAfter(t, new TokenKwBrcClose(t));
 
-                /*
-                 *        public integer Length (integer dim) {
-                 *            switch (dim) {
-                 *                case 0: return this.len0;
-                 *                case 1: return this.len1;
-                 *                ...
-                 *            }
-                 *            return 0;
-                 *        }
-                 */
+                 //        public integer Length (integer dim) {
+                 //            switch (dim) {
+                 //                case 0: return this.len0;
+                 //                case 1: return this.len1;
+                 //                ...
+                 //            }
+                 //            return 0;
+                 //        }
                 t = SpliceAfter(t, new TokenKwPublic(t));
                 t = SpliceAfter(t, new TokenTypeInt(t));
                 t = SpliceAfter(t, new TokenName(t, "Length"));
@@ -1443,15 +1305,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 t = SpliceAfter(t, new TokenKwSemi(t));
                 t = SpliceAfter(t, new TokenKwBrcClose(t));
 
-                /*
-                 *        public integer Index (integer idx0, integet idx1, ...) {
-                 *            integer idx = idx0;
-                 *            idx *= this.len1; idx += idx1;
-                 *            idx *= this.len2; idx += idx2;
-                 *            ...
-                 *            return idx;
-                 *        }
-                 */
+                 //        public integer Index (integer idx0, integet idx1, ...) {
+                 //            integer idx = idx0;
+                 //            idx *= this.len1; idx += idx1;
+                 //            idx *= this.len2; idx += idx2;
+                 //            ...
+                 //            return idx;
+                 //        }
                 t = SpliceAfter(t, new TokenKwPublic(t));
                 t = SpliceAfter(t, new TokenTypeInt(t));
                 t = SpliceAfter(t, new TokenName(t, "Index"));
@@ -1491,15 +1351,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 t = SpliceAfter(t, new TokenKwSemi(t));
                 t = SpliceAfter(t, new TokenKwBrcClose(t));
 
-                /*
-                 *        public <oftype> Get (integer idx0, integet idx1, ...) {
-                 *            integer idx = idx0;
-                 *            idx *= this.len1; idx += idx1;
-                 *            idx *= this.len2; idx += idx2;
-                 *            ...
-                 *            return (<oftype>) xmrFixedArrayGet<suffix> (this.obj, idx);
-                 *        }
-                 */
+                 //        public <oftype> Get (integer idx0, integet idx1, ...) {
+                 //            integer idx = idx0;
+                 //            idx *= this.len1; idx += idx1;
+                 //            idx *= this.len2; idx += idx2;
+                 //            ...
+                 //            return (<oftype>) xmrFixedArrayGet<suffix> (this.obj, idx);
+                 //        }
                 t = SpliceAfter(t, new TokenKwPublic(t));
                 t = SpliceAfter(t, ofType.CopyToken(t));
                 t = SpliceAfter(t, new TokenName(t, "Get"));
@@ -1552,15 +1410,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 t = SpliceAfter(t, new TokenKwSemi(t));
                 t = SpliceAfter(t, new TokenKwBrcClose(t));
 
-                /*
-                 *        public void Set (integer idx0, integer idx1, ..., <oftype> val) {
-                 *            integer idx = idx0;
-                 *            idx *= this.len1; idx += idx1;
-                 *            idx *= this.len2; idx += idx2;
-                 *            ...
-                 *            xmrFixedArraySet<suffix> (this.obj, idx, val);
-                 *        }
-                 */
+                 //        public void Set (integer idx0, integer idx1, ..., <oftype> val) {
+                 //            integer idx = idx0;
+                 //            idx *= this.len1; idx += idx1;
+                 //            idx *= this.len2; idx += idx2;
+                 //            ...
+                 //            xmrFixedArraySet<suffix> (this.obj, idx, val);
+                 //        }
                 t = SpliceAfter(t, new TokenKwPublic(t));
                 t = SpliceAfter(t, new TokenTypeVoid(t));
                 t = SpliceAfter(t, new TokenName(t, "Set"));
@@ -1764,10 +1620,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             tokdeclcl.members.thisClass = tokdeclcl;
             tokenScript.PushVarFrame(tokdeclcl.members);
 
-            /*
-             * Create a function $instfieldnit to hold all explicit
-             * instance field initializations.
-             */
+             // Create a function $instfieldnit to hold all explicit
+             // instance field initializations.
             TokenDeclVar ifiFunc = new TokenDeclVar(tokdeclcl, null, tokenScript);
             ifiFunc.name = new TokenName(ifiFunc, "$instfieldinit");
             ifiFunc.retType = new TokenTypeVoid(ifiFunc);
@@ -1780,10 +1634,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             tokdeclcl.instFieldInit = ifiFunc;
             tokenScript.AddVarEntry(ifiFunc);
 
-            /*
-             * Create a function $staticfieldnit to hold all explicit
-             * static field initializations.
-             */
+             // Create a function $staticfieldnit to hold all explicit
+             // static field initializations.
             TokenDeclVar sfiFunc = new TokenDeclVar(tokdeclcl, null, tokenScript);
             sfiFunc.name = new TokenName(sfiFunc, "$staticfieldinit");
             sfiFunc.retType = new TokenTypeVoid(sfiFunc);
@@ -1805,25 +1657,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * Check for all qualifiers.
-                 * typedef has an implied 'public' qualifier.
-                 */
+                 // Check for all qualifiers.
+                 // typedef has an implied 'public' qualifier.
                 flags = SDT_PUBLIC;
                 if(!(token is TokenDeclSDTypeTypedef))
                 {
                     flags = ParseQualifierFlags(ref token);
                 }
 
-                /*
-                 * Parse nested script-defined type definitions.
-                 */
+                 // Parse nested script-defined type definitions.
                 if(ParseDeclSDTypes(ref token, tokdeclcl, flags))
                     continue;
 
-                /*
-                 * constant <name> = <rval> ;
-                 */
+                 // constant <name> = <rval> ;
                 if(token is TokenKwConst)
                 {
                     if((flags & (SDT_ABSTRACT | SDT_NEW | SDT_OVERRIDE | SDT_VIRTUAL)) != 0)
@@ -1839,10 +1685,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * <type> <name> ;
-                 * <type> <name> = <rval> ;
-                 */
+                 // <type> <name> ;
+                 // <type> <name> = <rval> ;
                 if((token is TokenType) &&
                     (token.nextToken is TokenName) &&
                     ((token.nextToken.nextToken is TokenKwSemi) ||
@@ -1877,10 +1721,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * <type> <name> [ : <implintfs> ] { [ get { <body> } ] [ set { <body> } ] }
-                 * <type> '[' ... ']' [ : <implintfs> ] { [ get { <body> } ] [ set { <body> } ] }
-                 */
+                 // <type> <name> [ : <implintfs> ] { [ get { <body> } ] [ set { <body> } ] }
+                 // <type> '[' ... ']' [ : <implintfs> ] { [ get { <body> } ] [ set { <body> } ] }
                 bool prop = (token is TokenType) &&
                     (token.nextToken is TokenName) &&
                     (token.nextToken.nextToken is TokenKwBrcOpen ||
@@ -1907,9 +1749,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * 'constructor' '(' arglist ')' [ ':' [ 'base' ] '(' baseconstructorcall ')' ] '{' body '}'
-                 */
+                 // 'constructor' '(' arglist ')' [ ':' [ 'base' ] '(' baseconstructorcall ')' ] '{' body '}'
                 if(token is TokenKwConstructor)
                 {
                     ParseSDTClassCtorDecl(ref token, flags, tokdeclcl);
@@ -1917,36 +1757,28 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * <type> <name> <funcargs> <funcbody>
-                 * method with explicit return type
-                 */
+                 // <type> <name> <funcargs> <funcbody>
+                 // method with explicit return type
                 if(token is TokenType)
                 {
                     ParseSDTClassMethodDecl(ref token, flags, tokdeclcl);
                     continue;
                 }
 
-                /*
-                 * <name> <funcargs> <funcbody>
-                 * method returning void
-                 */
+                 // <name> <funcargs> <funcbody>
+                 // method returning void
                 if((token is TokenName) || ((token is TokenKw) && ((TokenKw)token).sdtClassOp))
                 {
                     ParseSDTClassMethodDecl(ref token, flags, tokdeclcl);
                     continue;
                 }
 
-                /*
-                 * That's all we support in a class declaration.
-                 */
+                 // That's all we support in a class declaration.
                 ErrorMsg(token, "expecting field or method declaration");
                 token = SkipPastSemi(token);
             }
 
-            /*
-             * If script didn't specify any constructor, create a default no-argument one.
-             */
+             // If script didn't specify any constructor, create a default no-argument one.
             if(!haveExplicitConstructor)
             {
                 TokenDeclVar tokenDeclFunc = new TokenDeclVar(token, null, tokenScript);
@@ -1971,9 +1803,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 tokenScript.AddVarEntry(tokenDeclFunc);
             }
 
-            /*
-             * Skip over the closing brace and pop corresponding var frame.
-             */
+             // Skip over the closing brace and pop corresponding var frame.
             token = token.nextToken;
             tokenScript.PopVarFrame();
             ret:
@@ -2079,10 +1909,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private TokenDeclVar ParseProperty(ref Token token, bool abs, bool imp)
         {
-            /*
-             * Parse out the property's type and name.
-             *   <type> <name>
-             */
+             // Parse out the property's type and name.
+             //   <type> <name>
             TokenType type = (TokenType)token;
             TokenName name;
             TokenArgDecl args;
@@ -2101,10 +1929,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 args = new TokenArgDecl(token);
             }
 
-            /*
-             * Maybe it claims to implement some interface properties.
-             *   [ ':' <ifacetype>[.<propname>] ',' ... ]
-             */
+             // Maybe it claims to implement some interface properties.
+             //   [ ':' <ifacetype>[.<propname>] ',' ... ]
             TokenIntfImpl implements = null;
             if(token is TokenKwColon)
             {
@@ -2117,9 +1943,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
             }
 
-            /*
-             * Should have an opening brace.
-             */
+             // Should have an opening brace.
             if(!(token is TokenKwBrcOpen))
             {
                 ErrorMsg(token, "expect { to open property definition");
@@ -2128,19 +1952,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             token = token.nextToken;
 
-            /*
-             * Parse out the getter and/or setter.
-             *   'get' { <body> | ';' }
-             *   'set' { <body> | ';' }
-             */
+             // Parse out the getter and/or setter.
+             //   'get' { <body> | ';' }
+             //   'set' { <body> | ';' }
             TokenDeclVar getFunc = null;
             TokenDeclVar setFunc = null;
             while(!(token is TokenKwBrcClose))
             {
-
-                /*
-                 * Maybe create a getter function.
-                 */
+                 // Maybe create a getter function.
                 if(token is TokenKwGet)
                 {
                     getFunc = new TokenDeclVar(token, null, tokenScript);
@@ -2161,9 +1980,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * Maybe create a setter function.
-                 */
+                 // Maybe create a setter function.
                 if(token is TokenKwSet)
                 {
                     TokenArgDecl argDecl = args;
@@ -2204,18 +2021,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return null;
             }
 
-            /*
-             * Set up a variable for the property.
-             */
+             // Set up a variable for the property.
             TokenDeclVar tokenDeclVar = new TokenDeclVar(name, null, tokenScript);
             tokenDeclVar.type = type;
             tokenDeclVar.name = name;
             tokenDeclVar.getProp = getFunc;
             tokenDeclVar.setProp = setFunc;
 
-            /*
-             * Can't be same name already in block.
-             */
+             // Can't be same name already in block.
             if(!tokenScript.AddVarEntry(tokenDeclVar))
             {
                 ErrorMsg(tokenDeclVar, "duplicate member " + name.val);
@@ -2279,17 +2092,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             tokenScript.PushVarFrame(tokenDeclFunc.argDecl.varDict);
             try
             {
-                /*
-                 * Set up reference to base constructor.
-                 */
+                 // Set up reference to base constructor.
                 TokenLValBaseField baseCtor = new TokenLValBaseField(token,
                                               new TokenName(token, "$ctor"),
                                               tokdeclcl);
 
-                /*
-                 * Parse any base constructor call as if it were the first statement of the
-                 * constructor itself.
-                 */
+                 // Parse any base constructor call as if it were the first statement of the
+                 // constructor itself.
                 if(token is TokenKwColon)
                 {
                     token = token.nextToken;
@@ -2318,17 +2127,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
                 else if(tokdeclcl.extends != null)
                 {
-
-                    /*
-                     * Caller didn't specify a constructor but we are extending, so we will 
-                     * call the extended class's default constructor.
-                     */
+                     // Caller didn't specify a constructor but we are extending, so we will 
+                     // call the extended class's default constructor.
                     SetUpDefaultBaseCtorCall(tokenDeclFunc);
                 }
 
-                /*
-                 * Parse the constructor body.
-                 */
+                 // Parse the constructor body.
                 tokenDeclFunc.body = ParseStmtBlock(ref token);
                 if(tokenDeclFunc.body == null)
                     return;
@@ -2341,10 +2145,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 currentDeclFunc = saveDeclFunc;
             }
 
-            /*
-             * Add to list of methods defined by this class.
-             * It has the name "$ctor(argsig)".
-             */
+             // Add to list of methods defined by this class.
+             // It has the name "$ctor(argsig)".
             if(!tokenScript.AddVarEntry(tokenDeclFunc))
             {
                 ErrorMsg(tokenDeclFunc, "duplicate constructor definition");
@@ -2443,7 +2245,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
                 else
                 {
-
                     // other times should have ',' <type>
                     if(!(u is TokenKwComma))
                     {
@@ -2550,16 +2351,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * Parse nested script-defined type definitions.
-                 */
+                 // Parse nested script-defined type definitions.
                 if(ParseDeclSDTypes(ref token, tokdeclin, SDT_PUBLIC))
                     continue;
 
-                /*
-                 * <type> <name> <funcargs> ;
-                 * abstract method with explicit return type
-                 */
+                 // <type> <name> <funcargs> ;
+                 // abstract method with explicit return type
                 if((token is TokenType) &&
                     (token.nextToken is TokenName) &&
                     (token.nextToken.nextToken is TokenKwParOpen))
@@ -2576,10 +2373,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * <name> <funcargs> ;
-                 * abstract method returning void
-                 */
+                 // <name> <funcargs> ;
+                 // abstract method returning void
                 if((token is TokenName) &&
                     (token.nextToken is TokenKwParOpen))
                 {
@@ -2594,11 +2389,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * <type> <name> { [ get ; ] [ set ; ] }
-                 * <type> '[' ... ']' { [ get ; ] [ set ; ] }
-                 * abstract property
-                 */
+                 // <type> <name> { [ get ; ] [ set ; ] }
+                 // <type> '[' ... ']' { [ get ; ] [ set ; ] }
+                 // abstract property
                 bool prop = (token is TokenType) &&
                     (token.nextToken is TokenName) &&
                     (token.nextToken.nextToken is TokenKwBrcOpen ||
@@ -2610,16 +2403,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                /*
-                 * That's all we support in an interface declaration.
-                 */
+                 // That's all we support in an interface declaration.
                 ErrorMsg(token, "expecting method or property prototype");
                 token = SkipPastSemi(token);
             }
 
-            /*
-             * Skip over the closing brace and pop the corresponding var frame.
-             */
+             // Skip over the closing brace and pop the corresponding var frame.
             token = token.nextToken;
             tokenScript.PopVarFrame();
         }
@@ -2807,29 +2596,21 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return true;
             }
 
-            /*
-             * Declare this function as being the one currently being processed
-             * for anything that cares.  We also start a variable frame that 
-             * includes all the declared parameters.
-             */
+             // Declare this function as being the one currently being processed
+             // for anything that cares.  We also start a variable frame that 
+             // includes all the declared parameters.
             TokenDeclVar saveDeclFunc = currentDeclFunc;
             currentDeclFunc = tokenDeclFunc;
             tokenScript.PushVarFrame(tokenDeclFunc.argDecl.varDict);
 
-            /*
-             * Now parse the function statement block.
-             */
+             // Now parse the function statement block.
             tokenDeclFunc.body = ParseStmtBlock(ref token);
 
-            /*
-             * Pop the var frame that contains the arguments.
-             */
+             // Pop the var frame that contains the arguments.
             tokenScript.PopVarFrame();
             currentDeclFunc = saveDeclFunc;
 
-            /*
-             * Check final errors.
-             */
+             // Check final errors.
             if(tokenDeclFunc.body == null)
                 return false;
             if(abs)
@@ -2851,9 +2632,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private TokenStmt ParseStmt(ref Token token)
         {
-            /*
-             * Statements that begin with a specific keyword.
-             */
+             // Statements that begin with a specific keyword.
             if(token is TokenKwAt)
                 return ParseStmtLabel(ref token);
             if(token is TokenKwBrcOpen)
@@ -2887,10 +2666,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if(token is TokenKwWhile)
                 return ParseStmtWhile(ref token);
 
-            /*
-             * Try to parse anything else as an expression, possibly calling
-             * something and/or writing to a variable.
-             */
+             // Try to parse anything else as an expression, possibly calling
+             // something and/or writing to a variable.
             TokenRVal tokenRVal = ParseRVal(ref token, semiOnly);
             if(tokenRVal != null)
             {
@@ -2899,9 +2676,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return tokenStmtRVal;
             }
 
-            /*
-             * Who knows what it is...
-             */
+             // Who knows what it is...
             ErrorMsg(token, "unknown statement");
             token = SkipPastSemi(token);
             return null;
@@ -3053,9 +2828,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             currentDeclFunc.triviality = Triviality.complex;
 
-            /*
-             * Create encapsulating token and skip past 'for ('
-             */
+             // Create encapsulating token and skip past 'for ('
             TokenStmtFor tokenStmtFor = new TokenStmtFor(token);
             token = token.nextToken;
             if(!(token is TokenKwParOpen))
@@ -3065,9 +2838,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             token = token.nextToken;
 
-            /*
-             * If a plain for, ie, not declaring a variable, it's straightforward.
-             */
+             // If a plain for, ie, not declaring a variable, it's straightforward.
             if(!(token is TokenType))
             {
                 tokenStmtFor.initStmt = ParseStmt(ref token);
@@ -3076,10 +2847,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return ParseStmtFor2(tokenStmtFor, ref token) ? tokenStmtFor : null;
             }
 
-            /*
-             * Initialization declares a variable, so encapsulate it in a block so
-             * variable has scope only in the for statement, including its body.
-             */
+             // Initialization declares a variable, so encapsulate it in a block so
+             // variable has scope only in the for statement, including its body.
             TokenStmtBlock forStmtBlock = new TokenStmtBlock(tokenStmtFor);
             forStmtBlock.outerStmtBlock = currentStmtBlock;
             forStmtBlock.function = currentDeclFunc;
@@ -3148,9 +2917,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             currentDeclFunc.triviality = Triviality.complex;
 
-            /*
-             * Create encapsulating token and skip past 'foreach ('
-             */
+             // Create encapsulating token and skip past 'foreach ('
             TokenStmtForEach tokenStmtForEach = new TokenStmtForEach(token);
             token = token.nextToken;
             if(!(token is TokenKwParOpen))
@@ -3222,9 +2989,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         private TokenStmtJump ParseStmtJump(ref Token token)
         {
-            /*
-             * Create jump statement token to encapsulate the whole statement.
-             */
+             // Create jump statement token to encapsulate the whole statement.
             TokenStmtJump tokenStmtJump = new TokenStmtJump(token);
             token = token.nextToken;
             if(!(token is TokenName) || !(token.nextToken is TokenKwSemi))
@@ -3236,11 +3001,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             tokenStmtJump.label = (TokenName)token;
             token = token.nextToken.nextToken;
 
-            /*
-             * If label is already defined, it means this is a backward (looping)
-             * jump, so remember the label has backward jump references.
-             * We also then assume the function is complex, ie, it has a loop.
-             */
+             // If label is already defined, it means this is a backward (looping)
+             // jump, so remember the label has backward jump references.
+             // We also then assume the function is complex, ie, it has a loop.
             if(currentDeclFunc.labels.ContainsKey(tokenStmtJump.label.val))
             {
                 currentDeclFunc.labels[tokenStmtJump.label.val].hasBkwdRefs = true;
@@ -3450,9 +3213,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private TokenStmtTry ParseStmtTry(ref Token token)
         {
-            /*
-             * Parse out the 'try { ... }' part
-             */
+             // Parse out the 'try { ... }' part
             Token tryKw = token;
             token = token.nextToken;
             TokenStmt body = ParseStmtBlock(ref token);
@@ -3585,14 +3346,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             TokenDeclVar tokenDeclVar = new TokenDeclVar(token.nextToken, currentDeclFunc, tokenScript);
 
-            /*
-             * Handle constant declaration.
-             * It ends up in the declared variables list for the statement block just like
-             * any other variable, except it has .constant = true.
-             * The code generator will test that the initialization expression is constant.
-             *
-             *  constant <name> = <value> ;
-             */
+             // Handle constant declaration.
+             // It ends up in the declared variables list for the statement block just like
+             // any other variable, except it has .constant = true.
+             // The code generator will test that the initialization expression is constant.
+             //
+             //  constant <name> = <value> ;
             if(token is TokenKwConst)
             {
                 token = token.nextToken;
@@ -3618,14 +3377,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 tokenDeclVar.constant = true;
             }
 
-            /*
-             * Otherwise, normal variable declaration with optional initialization value.
-             */
+             // Otherwise, normal variable declaration with optional initialization value.
             else
             {
-                /*
-                 * Build basic encapsulating token with type and name.
-                 */
+                 // Build basic encapsulating token with type and name.
                 tokenDeclVar.type = (TokenType)token;
                 token = token.nextToken;
                 if(!(token is TokenName))
@@ -3637,10 +3392,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 tokenDeclVar.name = (TokenName)token;
                 token = token.nextToken;
 
-                /*
-                 * If just a ;, there is no explicit initialization value.
-                 * Otherwise, look for an =RVal; expression that has init value.
-                 */
+                 // If just a ;, there is no explicit initialization value.
+                 // Otherwise, look for an =RVal; expression that has init value.
                 if(token is TokenKwSemi)
                 {
                     token = token.nextToken;
@@ -3673,18 +3426,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
             }
 
-            /*
-             * If doing local vars, each var goes in its own var frame,
-             * to make sure no code before this point can reference it.
-             */
+             // If doing local vars, each var goes in its own var frame,
+             // to make sure no code before this point can reference it.
             if(currentStmtBlock != null)
             {
                 tokenScript.PushVarFrame(true);
             }
 
-            /*
-             * Can't be same name already in block.
-             */
+             // Can't be same name already in block.
             if(!tokenScript.AddVarEntry(tokenDeclVar))
             {
                 ErrorMsg(tokenDeclVar, "duplicate variable " + tokenDeclVar.name.val);
@@ -3702,9 +3451,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private void DoVarInit(TokenDeclVar initFunc, TokenLVal left, TokenRVal init)
         {
-            /*
-             * Make a statement that assigns the initialization value to the variable.
-             */
+             // Make a statement that assigns the initialization value to the variable.
             TokenStmt stmt;
             if(init == null)
             {
@@ -3720,11 +3467,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 stmt = tsrv;
             }
 
-            /*
-             * Add statement to end of initialization function.
-             * Be sure to execute them in same order as in source
-             * as some doofus scripts depend on it.
-             */
+             // Add statement to end of initialization function.
+             // Be sure to execute them in same order as in source
+             // as some doofus scripts depend on it.
             Token lastStmt = initFunc.body.statements;
             if(lastStmt == null)
             {
@@ -3805,17 +3550,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public TokenRVal ParseRVal(ref Token token, Type[] termTokenTypes)
         {
-            /*
-             * Start with pushing the first operand on operand stack.
-             */
+             // Start with pushing the first operand on operand stack.
             BinOp binOps = null;
             TokenRVal operands = GetOperand(ref token);
             if(operands == null)
                 return null;
 
-            /*
-             * Keep scanning until we hit the termination token.
-             */
+             // Keep scanning until we hit the termination token.
             while(true)
             {
                 Type tokType = token.GetType();
@@ -3825,59 +3566,47 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         goto done;
                 }
 
-                /*
-                 * Special form:
-                 *   <operand> is <typeexp>
-                 */
+                 // Special form:
+                 //   <operand> is <typeexp>
                 if(token is TokenKwIs)
                 {
                     TokenRValIsType tokenRValIsType = new TokenRValIsType(token);
                     token = token.nextToken;
 
-                    /*
-                     * Parse the <typeexp>.
-                     */
+                     // Parse the <typeexp>.
                     tokenRValIsType.typeExp = ParseTypeExp(ref token);
                     if(tokenRValIsType.typeExp == null)
                         return null;
 
-                    /*
-                     * Replace top operand with result of <operand> is <typeexp>
-                     */
+                     // Replace top operand with result of <operand> is <typeexp>
                     tokenRValIsType.rValExp = operands;
                     tokenRValIsType.nextToken = operands.nextToken;
                     operands = tokenRValIsType;
 
-                    /*
-                     * token points just past <typeexp> so see if it is another operator.
-                     */
+                     // token points just past <typeexp> so see if it is another operator.
                     continue;
                 }
 
-                /*
-                 * Peek at next operator.
-                 */
+                 // Peek at next operator.
                 BinOp binOp = GetOperator(ref token);
                 if(binOp == null)
                     return null;
 
-                /*
-                 * If there are stacked operators of higher or same precedence than new one,
-                 * perform their computation then push result back on operand stack.
-                 *
-                 *  higher or same = left-to-right application of operators
-                 *                   eg, a - b - c becomes (a - b) - c
-                 *
-                 *  higher precedence = right-to-left application of operators
-                 *                      eg, a - b - c becomes a - (b - c)
-                 *
-                 * Now of course, there is some ugliness necessary:
-                 *      we want:  a  - b - c  =>  (a - b) - c    so we do 'higher or same'
-                 *  but we want:  a += b = c  =>  a += (b = c)   so we do 'higher only'
-                 *
-                 * binOps is the first operator (or null if only one)
-                 * binOp is the second operator (or first if only one)
-                 */
+                 // If there are stacked operators of higher or same precedence than new one,
+                 // perform their computation then push result back on operand stack.
+                 //
+                 //  higher or same = left-to-right application of operators
+                 //                   eg, a - b - c becomes (a - b) - c
+                 //
+                 //  higher precedence = right-to-left application of operators
+                 //                      eg, a - b - c becomes a - (b - c)
+                 //
+                 // Now of course, there is some ugliness necessary:
+                 //      we want:  a  - b - c  =>  (a - b) - c    so we do 'higher or same'
+                 //  but we want:  a += b = c  =>  a += (b = c)   so we do 'higher only'
+                 //
+                 // binOps is the first operator (or null if only one)
+                 // binOp is the second operator (or first if only one)
                 while(binOps != null)
                 {
                     if(binOps.preced < binOp.preced)
@@ -3894,10 +3623,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     binOps = binOps.pop;
                 }
 
-                /*
-                 * Handle conditional expression as a special form:
-                 *    <condexp> ? <trueexp> : <falseexp>
-                 */
+                 // Handle conditional expression as a special form:
+                 //    <condexp> ? <trueexp> : <falseexp>
                 if(binOp.token is TokenKwQMark)
                 {
                     TokenRValCondExpr condExpr = new TokenRValCondExpr(binOp.token);
@@ -3910,15 +3637,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     goto done;
                 }
 
-                /*
-                 * Push new operator on its stack.
-                 */
+                 // Push new operator on its stack.
                 binOp.pop = binOps;
                 binOps = binOp;
 
-                /*
-                 * Push next operand on its stack.
-                 */
+                 // Push next operand on its stack.
                 TokenRVal operand = GetOperand(ref token);
                 if(operand == null)
                     return null;
@@ -3927,9 +3650,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             done:
 
-            /*
-             * At end of expression, perform any stacked computations.
-             */
+             // At end of expression, perform any stacked computations.
             while(binOps != null)
             {
                 TokenRVal result = PerformBinOp((TokenRVal)operands.prevToken, binOps, (TokenRVal)operands);
@@ -3938,15 +3659,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 binOps = binOps.pop;
             }
 
-            /*
-             * There should be exactly one remaining operand on the stack which is our final result.
-             */
+             // There should be exactly one remaining operand on the stack which is our final result.
             if(operands.prevToken != null)
                 throw new Exception("too many operands");
 
-            /*
-             * If only one terminator type possible, advance past the terminator.
-             */
+             // If only one terminator type possible, advance past the terminator.
             if(termTokenTypes.Length == 1)
                 token = token.nextToken;
 
@@ -4028,9 +3745,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private TokenRVal GetOperand(ref Token token)
         {
-            /*
-             * Prefix unary operators (eg ++, --) requiring an L-value.
-             */
+             // Prefix unary operators (eg ++, --) requiring an L-value.
             if((token is TokenKwIncr) || (token is TokenKwDecr))
             {
                 TokenRValAsnPre asnPre = new TokenRValAsnPre(token);
@@ -4048,17 +3763,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return asnPre;
             }
 
-            /*
-             * Get the bulk of the operand, ie, without any of the below suffixes.
-             */
+             // Get the bulk of the operand, ie, without any of the below suffixes.
             TokenRVal operand = GetOperandNoMods(ref token);
             if(operand == null)
                 return null;
             modifiers:
 
-            /*
-             * If followed by '++' or '--', it is post-{in,de}cremented.
-             */
+             // If followed by '++' or '--', it is post-{in,de}cremented.
             if((token is TokenKwIncr) || (token is TokenKwDecr))
             {
                 TokenRValAsnPost asnPost = new TokenRValAsnPost(token);
@@ -4073,9 +3784,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return asnPost;
             }
 
-            /*
-             * If followed by a '.', it is an instance field or instance method reference.
-             */
+             // If followed by a '.', it is an instance field or instance method reference.
             if(token is TokenKwDot)
             {
                 token = token.nextToken;
@@ -4092,17 +3801,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 goto modifiers;
             }
 
-            /*
-             * If followed by a '[', it is an array subscript.
-             */
+             // If followed by a '[', it is an array subscript.
             if(token is TokenKwBrkOpen)
             {
                 TokenLValArEle tokenLValArEle = new TokenLValArEle(token);
                 token = token.nextToken;
 
-                /*
-                 * Parse subscript(s) expression.
-                 */
+                 // Parse subscript(s) expression.
                 tokenLValArEle.subRVal = ParseRVal(ref token, brkCloseOnly);
                 if(tokenLValArEle.subRVal == null)
                 {
@@ -4110,44 +3815,33 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     return null;
                 }
 
-                /*
-                 * See if comma-separated list of values.
-                 */
+                 // See if comma-separated list of values.
                 TokenRVal subscriptRVals;
                 int numSubscripts = SplitCommaRVals(tokenLValArEle.subRVal, out subscriptRVals);
                 if(numSubscripts > 1)
                 {
-
-                    /*
-                     * If so, put the values in an LSL_List object.
-                     */
+                     // If so, put the values in an LSL_List object.
                     TokenRValList rValList = new TokenRValList(tokenLValArEle);
                     rValList.rVal = subscriptRVals;
                     rValList.nItems = numSubscripts;
                     tokenLValArEle.subRVal = rValList;
                 }
 
-                /*
-                 * Either way, save array variable name
-                 * and substitute whole reference for L-value
-                 */
+                 // Either way, save array variable name
+                 // and substitute whole reference for L-value
                 tokenLValArEle.baseRVal = operand;
                 operand = tokenLValArEle;
                 goto modifiers;
             }
 
-            /*
-             * If followed by a '(', it is a function/method call.
-             */
+             // If followed by a '(', it is a function/method call.
             if(token is TokenKwParOpen)
             {
                 operand = ParseRValCall(ref token, operand);
                 goto modifiers;
             }
 
-            /*
-             * If 'new' arraytipe '{', it is an array initializer.
-             */
+             // If 'new' arraytipe '{', it is an array initializer.
             if((token is TokenKwBrcOpen) && (operand is TokenLValSField) &&
                 (((TokenLValSField)operand).fieldName.val == "$new") &&
                 ((TokenLValSField)operand).baseType.ToString().EndsWith("]"))
@@ -4165,9 +3859,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private TokenRVal GetOperandNoMods(ref Token token)
         {
-            /*
-             * Simple unary operators.
-             */
+             // Simple unary operators.
             if((token is TokenKwSub) ||
                 (token is TokenKwTilde) ||
                 (token is TokenKwExclam))
@@ -4180,9 +3872,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return PerformUnOp(uop, rVal);
             }
 
-            /*
-             * Type casting.
-             */
+             // Type casting.
             if((token is TokenKwParOpen) &&
                 (token.nextToken is TokenType) &&
                 (token.nextToken.nextToken is TokenKwParClose))
@@ -4195,17 +3885,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return new TokenRValCast(type, rVal);
             }
 
-            /*
-             * Parenthesized expression.
-             */
+             // Parenthesized expression.
             if(token is TokenKwParOpen)
             {
                 return ParseRValParen(ref token);
             }
 
-            /*
-             * Constants.
-             */
+             // Constants.
             if(token is TokenChar)
             {
                 TokenRValConst rValConst = new TokenRValConst(token, ((TokenChar)token).val);
@@ -4237,9 +3923,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return rValUndef;
             }
 
-            /*
-             * '<'value,...'>', ie, rotation or vector
-             */
+             // '<'value,...'>', ie, rotation or vector
             if(token is TokenKwCmpLT)
             {
                 Token openBkt = token;
@@ -4277,9 +3961,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
             }
 
-            /*
-             * '['value,...']', ie, list
-             */
+             // '['value,...']', ie, list
             if(token is TokenKwBrkOpen)
             {
                 TokenRValList rValList = new TokenRValList(token);
@@ -4298,9 +3980,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return rValList;
             }
 
-            /*
-             * Maybe we have <type>.<name> referencing a static field or method of some type.
-             */
+             // Maybe we have <type>.<name> referencing a static field or method of some type.
             if((token is TokenType) && (token.nextToken is TokenKwDot) && (token.nextToken.nextToken is TokenName))
             {
                 TokenLValSField field = new TokenLValSField(token.nextToken.nextToken);
@@ -4310,9 +3990,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return field;
             }
 
-            /*
-             * Maybe we have 'this' referring to the object of the instance method.
-             */
+             // Maybe we have 'this' referring to the object of the instance method.
             if(token is TokenKwThis)
             {
                 if((currentDeclSDType == null) || !(currentDeclSDType is TokenDeclSDTypeClass))
@@ -4326,9 +4004,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return zhis;
             }
 
-            /*
-             * Maybe we have 'base' referring to a field/method of the extended class.
-             */
+             // Maybe we have 'base' referring to a field/method of the extended class.
             if(token is TokenKwBase)
             {
                 if((currentDeclFunc == null) || (currentDeclFunc.sdtClass == null) || !(currentDeclFunc.sdtClass is TokenDeclSDTypeClass))
@@ -4351,11 +4027,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return baseField;
             }
 
-            /*
-             * Maybe we have 'new <script-defined-type>' saying to create an object instance.
-             * This ends up generating a call to static function <script-defined-type>.$new(...)
-             * whose CIL code is generated by GenerateNewobjBody().
-             */
+             // Maybe we have 'new <script-defined-type>' saying to create an object instance.
+             // This ends up generating a call to static function <script-defined-type>.$new(...)
+             // whose CIL code is generated by GenerateNewobjBody().
             if(token is TokenKwNew)
             {
                 if(!(token.nextToken is TokenType))
@@ -4371,9 +4045,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return field;
             }
 
-            /*
-             * All we got left is <name>, eg, arg, function, global or local variable reference
-             */
+             // All we got left is <name>, eg, arg, function, global or local variable reference
             if(token is TokenName)
             {
                 TokenLValName name = new TokenLValName((TokenName)token, tokenScript.variablesStack);
@@ -4381,9 +4053,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return name;
             }
 
-            /*
-             * Who knows what it is supposed to be?
-             */
+             // Who knows what it is supposed to be?
             ErrorMsg(token, "invalid operand token");
             token = SkipPastSemi(token);
             return null;
@@ -4398,15 +4068,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private TokenRValCall ParseRValCall(ref Token token, TokenRVal meth)
         {
-            /*
-             * Set up basic function call struct with function name.
-             */
+             // Set up basic function call struct with function name.
             TokenRValCall rValCall = new TokenRValCall(token);
             rValCall.meth = meth;
 
-            /*
-             * Parse the call parameters, if any.
-             */
+             // Parse the call parameters, if any.
             token = token.nextToken;
             if(token is TokenKwParClose)
             {
@@ -4747,24 +4413,18 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public TokenDeclSDType InstantiateGeneric(string name, TokenType[] genArgs, ScriptReduce reduce)
         {
-            /*
-             * Malloc the struct and give it a name.
-             */
+             // Malloc the struct and give it a name.
             TokenDeclSDType instdecl = this.MakeBlank(new TokenName(this, name));
 
-            /*
-             * If the original had an outer type, then so does the new one.
-             * The outer type will never be a generic prototype, eg, if this 
-             * is 'ValueList' it will always be inside 'Dictionary<string,integer>'
-             * not 'Dictionary' at this point.
-             */
+             // If the original had an outer type, then so does the new one.
+             // The outer type will never be a generic prototype, eg, if this 
+             // is 'ValueList' it will always be inside 'Dictionary<string,integer>'
+             // not 'Dictionary' at this point.
             if((this.outerSDType != null) && (this.outerSDType.genParams != null))
                 throw new Exception();
             instdecl.outerSDType = this.outerSDType;
 
-            /*
-             * The generic prototype may have stuff like 'public' just before it and we need to copy that too.
-             */
+             // The generic prototype may have stuff like 'public' just before it and we need to copy that too.
             Token prefix;
             for(prefix = this; (prefix = prefix.prevToken) != null;)
             {
@@ -4773,108 +4433,78 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             this.begToken = prefix.nextToken;
 
-            /*
-             * Splice in a copy of the prefix tokens, just before the beginning token of prototype (this.begToken).
-             */
+             // Splice in a copy of the prefix tokens, just before the beginning token of prototype (this.begToken).
             while((prefix = prefix.nextToken) != this)
             {
                 SpliceSourceToken(prefix.CopyToken(prefix));
             }
 
-            /*
-             * Splice instantiation (instdecl) in just before the beginning token of prototype (this.begToken).
-             */
+             // Splice instantiation (instdecl) in just before the beginning token of prototype (this.begToken).
             SpliceSourceToken(instdecl);
 
-            /*
-             * Now for the fun part...  Copy the rest of the prototype body to the 
-             * instantiated body, replacing all generic parameter type tokens with 
-             * the corresponding generic argument types.  Note that the parameters 
-             * are numbered starting with the outermost so we need the full genArgs 
-             * array.  Eg if we are doing 'Converter<V=float>' from 
-             * 'Dictionary<T=string,U=integer>.Converter<V=float>', any V's are 
-             * numbered [2].  Any [0]s or [1]s should be gone by now but it doesn't 
-             * matter.
-             */
+             // Now for the fun part...  Copy the rest of the prototype body to the 
+             // instantiated body, replacing all generic parameter type tokens with 
+             // the corresponding generic argument types.  Note that the parameters 
+             // are numbered starting with the outermost so we need the full genArgs 
+             // array.  Eg if we are doing 'Converter<V=float>' from 
+             // 'Dictionary<T=string,U=integer>.Converter<V=float>', any V's are 
+             // numbered [2].  Any [0]s or [1]s should be gone by now but it doesn't 
+             // matter.
             int index;
             Token it, pt;
             TokenDeclSDType innerProto = this;
             TokenDeclSDType innerInst = instdecl;
             for(pt = this; (pt = pt.nextToken) != this.endToken;)
             {
-
-                /*
-                 * Coming across a sub-type's declaration involves a deep copy of the 
-                 * declaration token.  Fortunately we are early on in parsing, so there 
-                 * really isn't much to copy:
-                 *   1) short name is the same, eg, doing List of Dictionary<string,integer>.List is same short name as Dictionary<T,U>.List
-                 *      if generic, eg doing Converter<W> of Dictionary<T,U>.Converter<W>, we have to manually copy the W as well.
-                 *   2) outerSDType is transformed from Dictionary<T,U> to Dictionary<string,integer>.
-                 *   3) innerSDTypes is rebuilt when/if we find classes that are inner to this one.
-                 */
+                 // Coming across a sub-type's declaration involves a deep copy of the 
+                 // declaration token.  Fortunately we are early on in parsing, so there 
+                 // really isn't much to copy:
+                 //   1) short name is the same, eg, doing List of Dictionary<string,integer>.List is same short name as Dictionary<T,U>.List
+                 //      if generic, eg doing Converter<W> of Dictionary<T,U>.Converter<W>, we have to manually copy the W as well.
+                 //   2) outerSDType is transformed from Dictionary<T,U> to Dictionary<string,integer>.
+                 //   3) innerSDTypes is rebuilt when/if we find classes that are inner to this one.
                 if(pt is TokenDeclSDType)
                 {
-
-                    /*
-                     * Make a new TokenDeclSDType{Class,Delegate,Interface}.
-                     */
+                     // Make a new TokenDeclSDType{Class,Delegate,Interface}.
                     TokenDeclSDType ptSDType = (TokenDeclSDType)pt;
                     TokenDeclSDType itSDType = ptSDType.MakeBlank(new TokenName(ptSDType.shortName, ptSDType.shortName.val));
 
-                    /*
-                     * Set up the transformed outerSDType.
-                     * Eg, if we are creating Enumerator of Dictionary<string,integer>.Enumerator,
-                     * innerProto = Dictionary<T,U> and innerInst = Dictionary<string,integer>.
-                     */
+                     // Set up the transformed outerSDType.
+                     // Eg, if we are creating Enumerator of Dictionary<string,integer>.Enumerator,
+                     // innerProto = Dictionary<T,U> and innerInst = Dictionary<string,integer>.
                     itSDType.outerSDType = innerInst;
 
-                    /*
-                     * This clone is an inner type of its next outer level.
-                     */
+                     // This clone is an inner type of its next outer level.
                     reduce.CatalogSDTypeDecl(itSDType);
 
-                    /*
-                     * We need to manually copy any generic parameters of the class declaration being cloned.
-                     * eg, if we are cloning Converter<W>, this is where the W gets copied.
-                     * Since it is an immutable array of strings, just copy the array pointer, if any.
-                     */
+                     // We need to manually copy any generic parameters of the class declaration being cloned.
+                     // eg, if we are cloning Converter<W>, this is where the W gets copied.
+                     // Since it is an immutable array of strings, just copy the array pointer, if any.
                     itSDType.genParams = ptSDType.genParams;
 
-                    /*
-                     * We are now processing tokens for this cloned type declaration.
-                     */
+                     // We are now processing tokens for this cloned type declaration.
                     innerProto = ptSDType;
                     innerInst = itSDType;
 
-                    /*
-                     * Splice this clone token in.
-                     */
+                     // Splice this clone token in.
                     it = itSDType;
                 }
 
-                /*
-                 * Check for an generic parameter to substitute out.
-                 */
+                 // Check for an generic parameter to substitute out.
                 else if((pt is TokenName) && this.genParams.TryGetValue(((TokenName)pt).val, out index))
                 {
                     it = genArgs[index].CopyToken(pt);
                 }
 
-                /*
-                 * Everything else is a simple copy.
-                 */
+                 // Everything else is a simple copy.
                 else
                     it = pt.CopyToken(pt);
 
-                /*
-                 * Whatever we came up with, splice it into the source token stream.
-                 */
+                 // Whatever we came up with, splice it into the source token stream.
                 SpliceSourceToken(it);
 
-                /*
-                 * Maybe we just finished copying an inner type definition.
-                 * If so, remember where it ends and pop it from the stack.
-                 */
+                 // Maybe we just finished copying an inner type definition.
+                 // If so, remember where it ends and pop it from the stack.
                 if(innerProto.endToken == pt)
                 {
                     innerInst.endToken = it;
@@ -4883,9 +4513,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
             }
 
-            /*
-             * Clone and insert the terminator, either '}' or ';'
-             */
+             // Clone and insert the terminator, either '}' or ';'
             it = pt.CopyToken(pt);
             SpliceSourceToken(it);
             instdecl.endToken = it;
@@ -5225,16 +4853,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             if((numVirtFuncs > 0) && (stackedMethods != null))
             {
-
-                /*
-                 * Allocate arrays big enough for mine plus type we are extending.
-                 */
+                 // Allocate arrays big enough for mine plus type we are extending.
                 vDynMeths = new DynamicMethod[numVirtFuncs];
                 vMethTypes = new Type[numVirtFuncs];
 
-                /*
-                 * Fill in low parts from type we are extending.
-                 */
+                 // Fill in low parts from type we are extending.
                 if(extends != null)
                 {
                     int n = extends.numVirtFuncs;
@@ -5245,10 +4868,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     }
                 }
 
-                /*
-                 * Fill in high parts with my own methods.
-                 * Might also overwrite lower ones with 'override' methods.
-                 */
+                 // Fill in high parts with my own methods.
+                 // Might also overwrite lower ones with 'override' methods.
                 foreach(StackedMethod sm in stackedMethods)
                 {
                     int i = sm.methVTI;
@@ -5294,16 +4915,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public override void DebString(StringBuilder sb)
         {
-            /*
-             * Don't output if array of some type.
-             * They will be re-instantiated as referenced by rest of script.
-             */
+             // Don't output if array of some type.
+             // They will be re-instantiated as referenced by rest of script.
             if(arrayOfType != null)
                 return;
 
-            /*
-             * This class name and extended/implemented type declaration.
-             */
+             // This class name and extended/implemented type declaration.
             sb.Append("class ");
             sb.Append(shortName.val);
             bool first = true;
@@ -5321,17 +4938,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             sb.Append(" {");
 
-            /*
-             * Inner type definitions.
-             */
+             // Inner type definitions.
             foreach(TokenDeclSDType subs in innerSDTypes.Values)
             {
                 subs.DebString(sb);
             }
 
-            /*
-             * Members (fields, methods, properties).
-             */
+             // Members (fields, methods, properties).
             foreach(TokenDeclVar memb in members)
             {
                 if((memb == instFieldInit) || (memb == staticFieldInit))
@@ -5511,12 +5124,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             int nArgs;
 
-            /*
-             * This happens when the node was restored via ReadFromFile().
-             * It leaves the types in retStr/argStrs for resolution after
-             * all definitions have been read from the object file in case
-             * there are forward references.
-             */
+             // This happens when the node was restored via ReadFromFile().
+             // It leaves the types in retStr/argStrs for resolution after
+             // all definitions have been read from the object file in case
+             // there are forward references.
             if(retType == null)
             {
                 retType = MakeTypeToken(retStr);
@@ -5531,10 +5142,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
             }
 
-            /*
-             * Fill in system types from token types.
-             * Might as well build the signature strings too from token types.
-             */
+             // Fill in system types from token types.
+             // Might as well build the signature strings too from token types.
             retSysType = retType.ToSysType();
 
             nArgs = argTypes.Length;
@@ -5552,11 +5161,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             argSig = sb.ToString();
             wholeSig = retType.ToString() + argSig;
 
-            /*
-             * Now we can create a system delegate type from the given
-             * return and argument types.  Give it an unique name using
-             * the whole signature string.
-             */
+             // Now we can create a system delegate type from the given
+             // return and argument types.  Give it an unique name using
+             // the whole signature string.
             sysType = DelegateCommon.GetType(retSysType, argSysTypes, wholeSig);
         }
 
@@ -5570,9 +5177,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             TokenDeclSDTypeDelegate decldel;
 
-            /*
-             * Name it after the whole signature string.
-             */
+             // Name it after the whole signature string.
             StringBuilder sb = new StringBuilder("$inline");
             sb.Append(retType.ToString());
             sb.Append("(");
@@ -5588,10 +5193,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             string inlname = sb.ToString();
             if(!inlines.TryGetValue(inlname, out decldel))
             {
-
-                /*
-                 * Create the corresponding declaration and link to it
-                 */
+                 // Create the corresponding declaration and link to it
                 TokenName name = new TokenName(null, inlname);
                 decldel = new TokenDeclSDTypeDelegate(name);
                 decldel.retType = retType;
@@ -5860,9 +5462,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             TokenDeclSDTypeDelegate decldel;
 
-            /*
-             * See if we already have a matching declared one cataloged.
-             */
+             // See if we already have a matching declared one cataloged.
             int nArgs = argTypes.Length;
             foreach(TokenDeclSDType decl in tokenScript.sdSrcTypesValues)
             {
@@ -5886,9 +5486,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 ;
             }
 
-            /*
-             * No such luck, create a new anonymous declaration.
-             */
+             // No such luck, create a new anonymous declaration.
             StringBuilder sb = new StringBuilder("$anondel$");
             sb.Append(retType.ToString());
             sb.Append("(");
@@ -6309,50 +5907,36 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public bool IsFuncTrivial(ScriptCodeGen scg)
         {
-            /*
-             * If not really a function, assume it's a delegate.
-             * And since we don't really know what functions it can point to, 
-             * assume it can point to a non-trivial one.
-             */
+             // If not really a function, assume it's a delegate.
+             // And since we don't really know what functions it can point to, 
+             // assume it can point to a non-trivial one.
             if(retType == null)
                 return false;
 
-            /*
-             * All virtual functions are non-trivial because although a particular 
-             * one might be trivial, it might be overidden with a non-trivial one.
-             */
+             // All virtual functions are non-trivial because although a particular 
+             // one might be trivial, it might be overidden with a non-trivial one.
             if((sdtFlags & (ScriptReduce.SDT_ABSTRACT | ScriptReduce.SDT_OVERRIDE |
                              ScriptReduce.SDT_VIRTUAL)) != 0)
             {
                 return false;
             }
 
-            /*
-             * Check the triviality status of the function.
-             */
+             // Check the triviality status of the function.
             switch(triviality)
             {
-
-                /*
-                 * Don't yet know if it is trivial.
-                 * We know at this point it doesn't have any direct looping.
-                 * But if it calls something that has loops, it isn't trivial.
-                 * Otherwise it is trivial.
-                 */
+                 // Don't yet know if it is trivial.
+                 // We know at this point it doesn't have any direct looping.
+                 // But if it calls something that has loops, it isn't trivial.
+                 // Otherwise it is trivial.
                 case Triviality.unknown:
                     {
-
-                        /*
-                         * Mark that we are analyzing this function now.  So if there are 
-                         * any recursive call loops, that will show that the function is 
-                         * non-trivial and the analysis will terminate at that point.
-                         */
+                         // Mark that we are analyzing this function now.  So if there are 
+                         // any recursive call loops, that will show that the function is 
+                         // non-trivial and the analysis will terminate at that point.
                         triviality = Triviality.analyzing;
 
-                        /*
-                         * Check out everything else this function calls.  If any say they 
-                         * aren't trivial, then we say this function isn't trivial.
-                         */
+                         // Check out everything else this function calls.  If any say they 
+                         // aren't trivial, then we say this function isn't trivial.
                         foreach(TokenRValCall call in unknownTrivialityCalls)
                         {
                             if(!call.IsRValTrivial(scg, null))
@@ -6362,28 +5946,22 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                             }
                         }
 
-                        /*
-                         * All functions called by this function are trivial, and this 
-                         * function's code doesn't have any loops, so we can mark this 
-                         * function as being trivial.
-                         */
+                         // All functions called by this function are trivial, and this 
+                         // function's code doesn't have any loops, so we can mark this 
+                         // function as being trivial.
                         triviality = Triviality.trivial;
                         return true;
                     }
 
-                /*
-                 * We already know that it is trivial.
-                 */
+                 // We already know that it is trivial.
                 case Triviality.trivial:
                     {
                         return true;
                     }
 
-                /*
-                 * We either know it is complex or are trying to analyze it already.
-                 * If we are already analyzing it, it means it has a recursive loop
-                 * and we assume those are non-trivial.
-                 */
+                 // We either know it is complex or are trying to analyze it already.
+                 // If we are already analyzing it, it means it has a recursive loop
+                 // and we assume those are non-trivial.
                 default:
                     return false;
             }
@@ -6450,22 +6028,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             for(Token stmt = body.statements; stmt != null; stmt = stmt.nextToken)
             {
-
-                /*
-                 * Body of the function should all be arithmetic statements (not eg for loops, if statements etc).
-                 */
+                 // Body of the function should all be arithmetic statements (not eg for loops, if statements etc).
                 TokenRVal rval = ((TokenStmtRVal)stmt).rVal;
 
-                /*
-                 * And the opcode should be a simple assignment operator.
-                 */
+                 // And the opcode should be a simple assignment operator.
                 TokenRValOpBin rvob = (TokenRValOpBin)rval;
                 if(!(rvob.opcode is TokenKwAssign))
                     throw new Exception("bad op type " + rvob.opcode.GetType().Name);
 
-                /*
-                 * Get field or variable being assigned to.
-                 */
+                 // Get field or variable being assigned to.
                 TokenDeclVar var = null;
                 TokenRVal left = rvob.rValLeft;
                 if(left is TokenLValIField)
@@ -6490,28 +6061,22 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 if(var == null)
                     throw new Exception("unknown var type " + left.GetType().Name);
 
-                /*
-                 * Output flags, type name and bare variable name.
-                 * This should look like a declaration in the 'sb'
-                 * as it is not enclosed in a function.
-                 */
+                 // Output flags, type name and bare variable name.
+                 // This should look like a declaration in the 'sb'
+                 // as it is not enclosed in a function.
                 var.DebStringSDTFlags(sb);
                 var.type.DebString(sb);
                 sb.Append(' ');
                 sb.Append(var.name.val);
 
-                /*
-                 * Maybe it has a non-default initialization value.
-                 */
+                 // Maybe it has a non-default initialization value.
                 if((var.init != null) && !(var.init is TokenRValInitDef))
                 {
                     sb.Append(" = ");
                     var.init.DebString(sb);
                 }
 
-                /*
-                 * End of declaration statement.
-                 */
+                 // End of declaration statement.
                 sb.Append(';');
             }
         }
@@ -6578,17 +6143,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             TokenType baseType = baseRVal.GetRValType(scg, null);
 
-            /*
-             * Maybe referencing element of a fixed-dimension array.
-             */
+             // Maybe referencing element of a fixed-dimension array.
             if((baseType is TokenTypeSDTypeClass) && (((TokenTypeSDTypeClass)baseType).decl.arrayOfType != null))
             {
                 return ((TokenTypeSDTypeClass)baseType).decl.arrayOfType;
             }
 
-            /*
-             * Maybe referencing $idxprop property of script-defined class or interface.
-             */
+             // Maybe referencing $idxprop property of script-defined class or interface.
             if(baseType is TokenTypeSDTypeClass)
             {
                 TokenDeclSDTypeClass sdtDecl = ((TokenTypeSDTypeClass)baseType).decl;
@@ -6604,17 +6165,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     return idxProp.type;
             }
 
-            /*
-             * Maybe referencing single character of a string.
-             */
+             // Maybe referencing single character of a string.
             if((baseType is TokenTypeKey) || (baseType is TokenTypeStr))
             {
                 return new TokenTypeChar(this);
             }
 
-            /*
-             * Assume XMR_Array element or extracting element from list.
-             */
+             // Assume XMR_Array element or extracting element from list.
             if((baseType is TokenTypeArray) || (baseType is TokenTypeList))
             {
                 return new TokenTypeObject(this);
@@ -6714,19 +6271,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public override bool IsRValTrivial(ScriptCodeGen scg, TokenType[] argsig)
         {
-            /*
-             * If getting pointer to instance isn't trivial, then accessing the member isn't trivial either.
-             */
+             // If getting pointer to instance isn't trivial, then accessing the member isn't trivial either.
             if(!baseRVal.IsRValTrivial(scg, null))
                 return false;
 
-            /*
-             * Accessing a member of a class depends on the member.
-             * In the case of a method, this is accessing it as a delegate, not calling it, and 
-             * argsig simply serves as selecting which of possibly overloaded methods to select.
-             * The case of accessing a property, however, depends on the property implementation, 
-             * as there could be looping inside the property code.
-             */
+             // Accessing a member of a class depends on the member.
+             // In the case of a method, this is accessing it as a delegate, not calling it, and 
+             // argsig simply serves as selecting which of possibly overloaded methods to select.
+             // The case of accessing a property, however, depends on the property implementation, 
+             // as there could be looping inside the property code.
             TokenType baseType = baseRVal.GetRValType(scg, null);
             if(baseType is TokenTypeSDTypeClass)
             {
@@ -6734,9 +6287,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return (var != null) && var.IsVarTrivial(scg);
             }
 
-            /*
-             * Accessing the members of anything else (arrays, rotations, vectors) is always trivial.
-             */
+             // Accessing the members of anything else (arrays, rotations, vectors) is always trivial.
             return true;
         }
 
@@ -6748,15 +6299,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public override bool IsCallTrivial(ScriptCodeGen scg, TokenType[] argsig)
         {
-            /*
-             * If getting pointer to instance isn't trivial, then calling the method isn't trivial either.
-             */
+             // If getting pointer to instance isn't trivial, then calling the method isn't trivial either.
             if(!baseRVal.IsRValTrivial(scg, null))
                 return false;
 
-            /*
-             * Calling a method of a class depends on the method.
-             */
+             // Calling a method of a class depends on the method.
             TokenType baseType = baseRVal.GetRValType(scg, null);
             if(baseType is TokenTypeSDTypeClass)
             {
@@ -6764,21 +6311,17 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return (var != null) && var.IsFuncTrivial(scg);
             }
 
-            /*
-             * Calling via a pointer to an interface instance is never trivial.
-             * (It is really a pointer to an array of delegates).
-             * We can't tell for this call site whether the actual method being called is trivial or not,
-             * so we have to assume it isn't.
-             * ??? We could theoretically check to see if *all* implementations of this method of 
-             *     this interface are trivial, then we could conclude that this call is trivial.
-             */
+             // Calling via a pointer to an interface instance is never trivial.
+             // (It is really a pointer to an array of delegates).
+             // We can't tell for this call site whether the actual method being called is trivial or not,
+             // so we have to assume it isn't.
+             // ??? We could theoretically check to see if *all* implementations of this method of 
+             //     this interface are trivial, then we could conclude that this call is trivial.
             if(baseType is TokenTypeSDTypeInterface)
                 return false;
 
-            /*
-             * Calling a method of anything else (arrays, rotations, vectors) is always trivial.
-             * Even methods of delegates, such as ".GetArgTypes()" that we may someday do is trivial.
-             */
+             // Calling a method of anything else (arrays, rotations, vectors) is always trivial.
+             // Even methods of delegates, such as ".GetArgTypes()" that we may someday do is trivial.
             return true;
         }
 
@@ -6801,23 +6344,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public TokenLValName(TokenName name, VarDict stack) : base(name)
         {
-            /*
-             * Save name of variable/method/function/field.
-             */
+             // Save name of variable/method/function/field.
             this.name = name;
 
-            /*
-             * Save where in the stack it can be looked up.
-             * If the current stack is for locals, do not allow forward references.
-             *     this allows idiocy like:
-             *         list buttons = [ 1, 2, 3 ];
-             *         x () {
-             *             list buttons = llList2List (buttons, 0, 1);
-             *             llOwnerSay (llList2CSV (buttons));
-             *         }
-             * If it is not locals, allow forward references.
-             *     this allows function X() to call Y() and Y() to call X().
-             */
+             // Save where in the stack it can be looked up.
+             // If the current stack is for locals, do not allow forward references.
+             //     this allows idiocy like:
+             //         list buttons = [ 1, 2, 3 ];
+             //         x () {
+             //             list buttons = llList2List (buttons, 0, 1);
+             //             llOwnerSay (llList2CSV (buttons));
+             //         }
+             // If it is not locals, allow forward references.
+             //     this allows function X() to call Y() and Y() to call X().
             this.stack = stack.FreezeLocals();
         }
 
@@ -6879,22 +6418,18 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public override bool IsRValTrivial(ScriptCodeGen scg, TokenType[] argsig)
         {
-            /*
-             * Accessing a member of a class depends on the member.
-             * In the case of a method, this is accessing it as a delegate, not calling it, and 
-             * argsig simply serves as selecting which of possibly overloaded methods to select.
-             * The case of accessing a property, however, depends on the property implementation, 
-             * as there could be looping inside the property code.
-             */
+             // Accessing a member of a class depends on the member.
+             // In the case of a method, this is accessing it as a delegate, not calling it, and 
+             // argsig simply serves as selecting which of possibly overloaded methods to select.
+             // The case of accessing a property, however, depends on the property implementation, 
+             // as there could be looping inside the property code.
             if(baseType is TokenTypeSDTypeClass)
             {
                 TokenDeclVar var = scg.FindThisMember((TokenTypeSDTypeClass)baseType, fieldName, argsig);
                 return (var != null) && var.IsVarTrivial(scg);
             }
 
-            /*
-             * Accessing the fields/methods/properties of anything else (arrays, rotations, vectors) is always trivial.
-             */
+             // Accessing the fields/methods/properties of anything else (arrays, rotations, vectors) is always trivial.
             return true;
         }
 
@@ -6906,18 +6441,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public override bool IsCallTrivial(ScriptCodeGen scg, TokenType[] argsig)
         {
-            /*
-             * Calling a static method of a class depends on the method.
-             */
+             // Calling a static method of a class depends on the method.
             if(baseType is TokenTypeSDTypeClass)
             {
                 TokenDeclVar var = scg.FindThisMember((TokenTypeSDTypeClass)baseType, fieldName, argsig);
                 return (var != null) && var.IsFuncTrivial(scg);
             }
 
-            /*
-             * Calling a static method of anything else (arrays, rotations, vectors) is always trivial.
-             */
+             // Calling a static method of anything else (arrays, rotations, vectors) is always trivial.
             return true;
         }
 
@@ -7075,9 +6606,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public override TokenType GetRValType(ScriptCodeGen scg, TokenType[] argsig)
         {
-            /*
-             * Build type signature so we select correct overloaded function.
-             */
+             // Build type signature so we select correct overloaded function.
             if(myArgSig == null)
             {
                 myArgSig = new TokenType[nArgs];
@@ -7088,9 +6617,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
             }
 
-            /*
-             * Get the type of the method itself.  This should get us a delegate type.
-             */
+             // Get the type of the method itself.  This should get us a delegate type.
             TokenType delType = meth.GetRValType(scg, myArgSig);
             if(!(delType is TokenTypeSDTypeDelegate))
             {
@@ -7098,9 +6625,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return new TokenTypeVoid(meth);
             }
 
-            /*
-             * Get the return type from the delegate type.
-             */
+             // Get the return type from the delegate type.
             return ((TokenTypeSDTypeDelegate)delType).decl.GetRetType();
         }
 
@@ -7112,9 +6637,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public override bool IsRValTrivial(ScriptCodeGen scg, TokenType[] argsig)
         {
-            /*
-             * Build type signature so we select correct overloaded function.
-             */
+             // Build type signature so we select correct overloaded function.
             if(myArgSig == null)
             {
                 myArgSig = new TokenType[nArgs];
@@ -7125,18 +6648,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
             }
 
-            /*
-             * Make sure all arguments can be computed trivially.
-             */
+             // Make sure all arguments can be computed trivially.
             for(Token t = args; t != null; t = t.nextToken)
             {
                 if(!((TokenRVal)t).IsRValTrivial(scg, null))
                     return false;
             }
 
-            /*
-             * See if the function call itself and the function body are trivial.
-             */
+             // See if the function call itself and the function body are trivial.
             return meth.IsCallTrivial(scg, myArgSig);
         }
 
@@ -7717,9 +7236,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public override TokenType GetRValType(ScriptCodeGen scg, TokenType[] argsig)
         {
-            /*
-             * Comparisons and the like always return bool.
-             */
+             // Comparisons and the like always return bool.
             string opstr = opcode.ToString();
             if((opstr == "==") || (opstr == "!=") || (opstr == ">=") || (opstr == ">") ||
                 (opstr == "&&") || (opstr == "||") || (opstr == "<=") || (opstr == "<") ||
@@ -7728,25 +7245,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return new TokenTypeBool(opcode);
             }
 
-            /*
-             * Comma is always type of right-hand operand.
-             */
+             // Comma is always type of right-hand operand.
             if(opstr == ",")
                 return rValRight.GetRValType(scg, argsig);
 
-            /*
-             * Assignments are always the type of the left-hand operand, 
-             * including stuff like "+=".
-             */
+             // Assignments are always the type of the left-hand operand, 
+             // including stuff like "+=".
             if(opstr.EndsWith("="))
             {
                 return rValLeft.GetRValType(scg, argsig);
             }
 
-            /*
-             * string+something or something+string is always string.
-             * except list+something or something+list is always a list.
-             */
+             // string+something or something+string is always string.
+             // except list+something or something+list is always a list.
             string lType = rValLeft.GetRValType(scg, argsig).ToString();
             string rType = rValRight.GetRValType(scg, argsig).ToString();
             if((opstr == "+") && ((lType == "list") || (rType == "list")))
@@ -7759,9 +7270,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return new TokenTypeStr(opcode);
             }
 
-            /*
-             * Everything else depends on both operands.
-             */
+             // Everything else depends on both operands.
             string key = lType + opstr + rType;
             BinOpStr binOpStr;
             if(BinOpStr.defined.TryGetValue(key, out binOpStr))
@@ -8234,7 +7743,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
      */
     public class TokenStmtBlock: TokenStmt
     {
-
         public Token statements;               // null-terminated list of statements, can also have TokenDeclVar's in here
         public TokenStmtBlock outerStmtBlock;  // next outer stmtBlock or null if top-level, ie, function definition
         public TokenDeclVar function;          // function it is part of
@@ -8262,7 +7770,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
      */
     public class TokenStmtLabel: TokenStmt
     {
-
         public TokenName name;        // the label's name
         public TokenStmtBlock block;  // which block it is defined in
         public bool hasBkwdRefs = false;
@@ -8437,7 +7944,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
     public class TokenStmtNull: TokenStmt
     {
-
         public TokenStmtNull(Token original) : base(original) { }
 
         public override void DebString(StringBuilder sb)
@@ -8448,7 +7954,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
     public class TokenStmtRet: TokenStmt
     {
-
         public TokenRVal rVal;  // null if void
 
         public TokenStmtRet(Token original) : base(original) { }
@@ -8470,7 +7975,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
      */
     public class TokenStmtState: TokenStmt
     {
-
         public TokenName state;  // null for default
 
         public TokenStmtState(Token original) : base(original) { }
@@ -8488,7 +7992,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
      */
     public class TokenStmtSwitch: TokenStmt
     {
-
         public TokenRValParen testRVal;          // the integer index expression
         public TokenSwitchCase cases = null;     // list of all cases, linked by .nextCase
         public TokenSwitchCase lastCase = null;  // used during reduce to point to last in 'cases' list
@@ -8558,7 +8061,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
     public class TokenStmtThrow: TokenStmt
     {
-
         public TokenRVal rVal;  // null if rethrow style
 
         public TokenStmtThrow(Token original) : base(original) { }
@@ -8576,7 +8078,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
      */
     public class TokenStmtTry: TokenStmt
     {
-
         public TokenStmtBlock tryStmt;
         public TokenDeclVar catchVar;       // null iff catchStmt is null
         public TokenStmtBlock catchStmt;    // can be null
@@ -8620,7 +8121,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
     public class TokenStmtWhile: TokenStmt
     {
-
         public TokenRValParen testRVal;
         public TokenStmt bodyStmt;
 

@@ -107,8 +107,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             return (type.ToLSLWrapType() != null) ? type.ToLSLWrapType() : type.ToSysType();
         }
 
-        // if a field of an XMRInstArrays array cannot be directly written,
-        // get the method that can write it
+        /*
+         * if a field of an XMRInstArrays array cannot be directly written,
+         * get the method that can write it
+         */
         private static MethodInfo ArrVarPopMeth(FieldInfo fi)
         {
             if(fi.Name == "iarLists")
@@ -120,7 +122,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             return null;
         }
 
-        // emit code to push value onto stack
+        /*
+         * emit code to push value onto stack
+         */
         public void PushVal(ScriptCodeGen scg, Token errorAt, TokenType stackType)
         {
             this.PushVal(scg, errorAt, stackType, false);
@@ -133,7 +137,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public abstract void PushVal(ScriptCodeGen scg, Token errorAt);
         public abstract void PushRef(ScriptCodeGen scg, Token errorAt);
 
-        // emit code to pop value from stack
+        /*
+         * emit code to pop value from stack
+         */
         public void PopPost(ScriptCodeGen scg, Token errorAt, TokenType stackType)
         {
             TypeCast.CastTopOfStack(scg, errorAt, stackType, this.type, false);
@@ -141,11 +147,18 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         }
         public virtual void PopPre(ScriptCodeGen scg, Token errorAt)
         {
-        }  // call this before pushing value to be popped
+        }
+
+        /*
+         * call this before pushing value to be popped
+         */   
         public abstract void PopPost(ScriptCodeGen scg, Token errorAt);   // call this after pushing value to be popped
 
-        // return true: doing a PushVal() does not involve CheckRun()
-        //       false: otherwise
+
+        /*
+         * return true: doing a PushVal() does not involve CheckRun()
+         *       false: otherwise
+         */
         public virtual bool IsReadTrivial(ScriptCodeGen scg, Token readAt)
         {
             return true;
@@ -173,12 +186,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             return ((TokenTypeSDTypeDelegate)type).decl.GetArgSig();
         }
 
-        // These are used only if type is a delegate too
-        // - but it is a real delegate pointer in a global or local variable or a field, etc
-        //   ie, PushVal() pushes a delegate pointer
-        // - so we must have CallPre() push the delegate pointer as a 'this' for this.Invoke(...)
-        // - and CallPost() call the delegate's Invoke() method
-        // - we assume the target function is non-trivial so we always use a call label
+        /*
+         * These are used only if type is a delegate too
+         * - but it is a real delegate pointer in a global or local variable or a field, etc
+         * - ie, PushVal() pushes a delegate pointer
+         * - so we must have CallPre() push the delegate pointer as a 'this' for this.Invoke(...)
+         * - and CallPost() call the delegate's Invoke() method
+         * - we assume the target function is non-trivial so we always use a call label
+         */
         public virtual void CallPre(ScriptCodeGen scg, Token errorAt)   // call this before pushing arguments
         {
             new ScriptCodeGen.CallLabel(scg, errorAt);

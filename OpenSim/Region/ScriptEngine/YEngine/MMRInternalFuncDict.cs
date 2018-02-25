@@ -35,7 +35,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
     public class InternalFuncDict: VarDict
     {
-
         /**
          * @brief build dictionary of internal functions from an interface.
          * @param iface = interface with function definitions
@@ -46,27 +45,20 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public InternalFuncDict(Type iface, bool inclSig)
             : base(false)
         {
-            /*
-             * Loop through list of all methods declared in the interface.
-             */
+             // Loop through list of all methods declared in the interface.
             System.Reflection.MethodInfo[] ifaceMethods = iface.GetMethods();
             foreach(System.Reflection.MethodInfo ifaceMethod in ifaceMethods)
             {
                 string key = ifaceMethod.Name;
 
-                /*
-                 * Only do ones that begin with lower-case letters...
-                 * as any others can't be referenced by scripts
-                 */
+                 // Only do ones that begin with lower-case letters...
+                 // as any others can't be referenced by scripts
                 if((key[0] < 'a') || (key[0] > 'z'))
                     continue;
 
                 try
                 {
-
-                    /*
-                     * Create a corresponding TokenDeclVar struct.
-                     */
+                     // Create a corresponding TokenDeclVar struct.
                     System.Reflection.ParameterInfo[] parameters = ifaceMethod.GetParameters();
                     TokenArgDecl argDecl = new TokenArgDecl(null);
                     for(int i = 0; i < parameters.Length; i++)
@@ -81,9 +73,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     declFunc.retType = TokenType.FromSysType(null, ifaceMethod.ReturnType);
                     declFunc.argDecl = argDecl;
 
-                    /*
-                     * Add the TokenDeclVar struct to the dictionary.
-                     */
+                     // Add the TokenDeclVar struct to the dictionary.
                     this.AddEntry(declFunc);
                 }
                 catch(Exception except)

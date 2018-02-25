@@ -56,9 +56,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             string outName = null;
             XMRInstance[] instances;
 
-            /*
-             * Decode command line options.
-             */
+             // Decode command line options.
             for(int i = indx; i < args.Length; i++)
             {
                 if(args[i] == "-full")
@@ -126,10 +124,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             try
             {
-
-                /*
-                 * Scan instance list to find those that match selection criteria.
-                 */
+                 // Scan instance list to find those that match selection criteria.
                 if(!Monitor.TryEnter(m_InstancesDict, 100))
                 {
                     m_log.Error("[YEngine]: deadlock m_LockedDict=" + m_LockedDict);
@@ -151,17 +146,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     Monitor.Exit(m_InstancesDict);
                 }
 
-                /*
-                 * Maybe sort by descending CPU time.
-                 */
+                 // Maybe sort by descending CPU time.
                 if(flagTopCPU)
                 {
                     Array.Sort<XMRInstance>(instances, CompareInstancesByCPUTime);
                 }
 
-                /*
-                 * Print the entries.
-                 */
+                 // Print the entries.
                 if(!flagFull)
                 {
                     outFile.WriteLine("                              ItemID" +
@@ -176,15 +167,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     outFile.WriteLine(instances[i].RunTestLs(flagFull));
                 }
 
-                /*
-                 * Print number of scripts that match selection criteria,
-                 * even if we were told to print fewer.
-                 */
+                 // Print number of scripts that match selection criteria,
+                 // even if we were told to print fewer.
                 outFile.WriteLine("total of {0} script(s)", numScripts);
 
-                /*
-                 * If -queues given, print out queue contents too.
-                 */
+                 // If -queues given, print out queue contents too.
                 if(flagQueues)
                 {
                     LsQueue(outFile, "start", m_StartQueue, args, indx);
@@ -204,9 +191,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             int numScripts = 0;
             XMRInstance[] instances;
 
-            /*
-             * Decode command line options.
-             */
+             // Decode command line options.
             int i, j;
             List<string> selargs = new List<string>(args.Length);
             MethodInfo[] eventmethods = typeof(IEventHandlers).GetMethods();
@@ -271,9 +256,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             OpenSim.Region.ScriptEngine.Shared.EventParams eps =
                     new OpenSim.Region.ScriptEngine.Shared.EventParams(eventname, paramvalues, zeroDetectParams);
 
-            /*
-             * Scan instance list to find those that match selection criteria.
-             */
+             // Scan instance list to find those that match selection criteria.
             if(!Monitor.TryEnter(m_InstancesDict, 100))
             {
                 m_log.Error("[YEngine]: deadlock m_LockedDict=" + m_LockedDict);
@@ -296,9 +279,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 Monitor.Exit(m_InstancesDict);
             }
 
-            /*
-             * Post event to the matching instances.
-             */
+             // Post event to the matching instances.
             for(i = 0; i < numScripts; i++)
             {
                 XMRInstance inst = instances[i];
@@ -415,9 +396,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return;
             }
 
-            /*
-             * Decode command line options.
-             */
+             // Decode command line options.
             for(int i = indx; i < args.Length; i++)
             {
                 if(args[i] == "-all")
@@ -437,9 +416,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
             }
 
-            /*
-             * Scan instance list to find those that match selection criteria.
-             */
+             // Scan instance list to find those that match selection criteria.
             if(!Monitor.TryEnter(m_InstancesDict, 100))
             {
                 m_log.Error("[YEngine]: deadlock m_LockedDict=" + m_LockedDict);
@@ -462,9 +439,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 Monitor.Exit(m_InstancesDict);
             }
 
-            /*
-             * Reset the instances as if someone clicked their "Reset" button.
-             */
+             // Reset the instances as if someone clicked their "Reset" button.
             for(int i = 0; i < numScripts; i++)
             {
                 XMRInstance inst = instances[i];
@@ -499,10 +474,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 {
                     try
                     {
-
-                        /*
-                         * Try to print instance name.
-                         */
+                         // Try to print instance name.
                         if(InstanceMatchesArgs(inst, args, indx))
                         {
                             outFile.WriteLine("   " + inst.ItemID.ToString() + " " + inst.m_DescName);
@@ -510,10 +482,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     }
                     catch(Exception e)
                     {
-
-                        /*
-                         * Sometimes there are instances in the queue that are disposed.
-                         */
+                         // Sometimes there are instances in the queue that are disposed.
                         outFile.WriteLine("   " + inst.ItemID.ToString() + " " + inst.m_DescName + ": " + e.Message);
                     }
                 }

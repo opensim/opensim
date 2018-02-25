@@ -177,11 +177,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public static bool IsAssignableFrom(TokenType dstType, TokenType srcType)
         {
-            /*
-             * Do a 'dry run' of the casting operation, discarding any emits and not printing any errors.
-             * But if the casting tries to print error(s), return false.
-             * Otherwise assume the cast is allowed and return true.
-             */
+             // Do a 'dry run' of the casting operation, discarding any emits and not printing any errors.
+             // But if the casting tries to print error(s), return false.
+             // Otherwise assume the cast is allowed and return true.
             SCGIAF scg = new SCGIAF();
             scg.ok = true;
             scg._ilGen = migiaf;
@@ -305,9 +303,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             string oldString = oldType.ToString();
             string newString = newType.ToString();
 
-            /*
-             * 'key' -> 'bool' is the only time we care about key being different than string.
-             */
+             // 'key' -> 'bool' is the only time we care about key being different than string.
             if((oldString == "key") && (newString == "bool"))
             {
                 LSLUnwrap(scg, errorAt, oldType);
@@ -316,18 +312,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return;
             }
 
-            /*
-             * Treat key and string as same type for all other type casts.
-             */
+             // Treat key and string as same type for all other type casts.
             if(oldString == "key")
                 oldString = "string";
             if(newString == "key")
                 newString = "string";
 
-            /*
-             * If the types are the same, there is no conceptual casting needed.
-             * However, there may be wraping/unwraping to/from the LSL wrappers.
-             */
+             // If the types are the same, there is no conceptual casting needed.
+             // However, there may be wraping/unwraping to/from the LSL wrappers.
             if(oldString == newString)
             {
                 if(oldType.ToLSLWrapType() != newType.ToLSLWrapType())
@@ -338,9 +330,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return;
             }
 
-            /*
-             * Script-defined classes can be cast up and down the tree.
-             */
+             // Script-defined classes can be cast up and down the tree.
             if((oldType is TokenTypeSDTypeClass) && (newType is TokenTypeSDTypeClass))
             {
                 TokenDeclSDTypeClass oldSDTC = ((TokenTypeSDTypeClass)oldType).decl;
@@ -369,11 +359,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 goto illcast;
             }
 
-            /*
-             * One script-defined interface type cannot be cast to another script-defined interface type, 
-             * unless the old interface declares that it implements the new interface.  That proves that 
-             * the underlying object, no matter what type, implements the new interface.
-             */
+             // One script-defined interface type cannot be cast to another script-defined interface type, 
+             // unless the old interface declares that it implements the new interface.  That proves that 
+             // the underlying object, no matter what type, implements the new interface.
             if((oldType is TokenTypeSDTypeInterface) && (newType is TokenTypeSDTypeInterface))
             {
                 TokenDeclSDTypeInterface oldDecl = ((TokenTypeSDTypeInterface)oldType).decl;
@@ -385,11 +373,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return;
             }
 
-            /*
-             * A script-defined class type can be implicitly cast to a script-defined interface type that it 
-             * implements.  The result is an array of delegates that give the class's implementation of the 
-             * various methods defined by the interface.
-             */
+             // A script-defined class type can be implicitly cast to a script-defined interface type that it 
+             // implements.  The result is an array of delegates that give the class's implementation of the 
+             // various methods defined by the interface.
             if((oldType is TokenTypeSDTypeClass) && (newType is TokenTypeSDTypeInterface))
             {
                 TokenDeclSDTypeClass oldSDTC = ((TokenTypeSDTypeClass)oldType).decl;
@@ -402,13 +388,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return;
             }
 
-            /*
-             * A script-defined interface type can be explicitly cast to a script-defined class type by 
-             * extracting the Target property from element 0 of the delegate array that is the interface
-             * object and making sure it casts to the correct script-defined class type.
-             *
-             * But then only if the class type implements the interface type.
-             */
+             // A script-defined interface type can be explicitly cast to a script-defined class type by 
+             // extracting the Target property from element 0 of the delegate array that is the interface
+             // object and making sure it casts to the correct script-defined class type.
+             //
+             // But then only if the class type implements the interface type.
             if((oldType is TokenTypeSDTypeInterface) && (newType is TokenTypeSDTypeClass))
             {
                 TokenTypeSDTypeInterface oldSDTI = (TokenTypeSDTypeInterface)oldType;
@@ -423,17 +407,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return;
             }
 
-            /*
-             * A script-defined interface type can be implicitly cast to object.
-             */
+             // A script-defined interface type can be implicitly cast to object.
             if((oldType is TokenTypeSDTypeInterface) && (newType is TokenTypeObject))
             {
                 return;
             }
 
-            /*
-             * An object can be explicitly cast to a script-defined interface.
-             */
+             // An object can be explicitly cast to a script-defined interface.
             if((oldType is TokenTypeObject) && (newType is TokenTypeSDTypeInterface))
             {
                 ExplCheck(scg, errorAt, explicitAllowed, oldString, newString);
@@ -442,18 +422,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return;
             }
 
-            /*
-             * Cast to void is always allowed, such as discarding value from 'i++' or function return value.
-             */
+             // Cast to void is always allowed, such as discarding value from 'i++' or function return value.
             if(newType is TokenTypeVoid)
             {
                 scg.ilGen.Emit(errorAt, OpCodes.Pop);
                 return;
             }
 
-            /*
-             * Cast from undef to object or script-defined type is always allowed.
-             */
+             // Cast from undef to object or script-defined type is always allowed.
             if((oldType is TokenTypeUndef) &&
                 ((newType is TokenTypeObject) ||
                  (newType is TokenTypeSDTypeClass) ||
@@ -462,19 +438,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return;
             }
 
-            /*
-             * Script-defined classes can be implicitly cast to objects.
-             */
+             // Script-defined classes can be implicitly cast to objects.
             if((oldType is TokenTypeSDTypeClass) && (newType is TokenTypeObject))
             {
                 return;
             }
 
-            /*
-             * Script-defined classes can be explicitly cast from objects and other script-defined classes.
-             * Note that we must manually check that it is the correct SDTypeClass however because as far as 
-             * mono is concerned, all SDTypeClass's are the same.
-             */
+             // Script-defined classes can be explicitly cast from objects and other script-defined classes.
+             // Note that we must manually check that it is the correct SDTypeClass however because as far as 
+             // mono is concerned, all SDTypeClass's are the same.
             if((oldType is TokenTypeObject) && (newType is TokenTypeSDTypeClass))
             {
                 ExplCheck(scg, errorAt, explicitAllowed, oldString, newString);
@@ -483,9 +455,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return;
             }
 
-            /*
-             * Delegates can be implicitly cast to/from objects.
-             */
+             // Delegates can be implicitly cast to/from objects.
             if((oldType is TokenTypeSDTypeDelegate) && (newType is TokenTypeObject))
             {
                 return;
@@ -496,9 +466,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return;
             }
 
-            /*
-             * Some actual conversion is needed, see if it is in table of legal casts.
-             */
+             // Some actual conversion is needed, see if it is in table of legal casts.
             string key = oldString + " " + newString;
             if(!legalTypeCasts.TryGetValue(key, out castDelegate))
             {
@@ -508,11 +476,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 ExplCheck(scg, errorAt, explicitAllowed, oldString, newString);
             }
 
-            /*
-             * Ok, output cast.  But make sure it is in native form without any LSL wrapping
-             * before passing to our casting routine.  Then if caller is expecting an LSL-
-             * wrapped value on the stack upon return, wrap it up after our casting.
-             */
+             // Ok, output cast.  But make sure it is in native form without any LSL wrapping
+             // before passing to our casting routine.  Then if caller is expecting an LSL-
+             // wrapped value on the stack upon return, wrap it up after our casting.
             LSLUnwrap(scg, errorAt, oldType);
             castDelegate(scg, errorAt);
             LSLWrap(scg, errorAt, newType);

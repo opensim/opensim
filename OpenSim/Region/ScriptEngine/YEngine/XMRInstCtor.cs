@@ -390,9 +390,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 LoadScriptState(doc);
             }
 
-            /*
-             * Post event(s) saying what caused the script to start.
-             */
+             // Post event(s) saying what caused the script to start.
             if(m_PostOnRez)
             {
                 PostEvent(new EventParams("on_rez",

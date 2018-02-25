@@ -108,10 +108,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             key = FixKey(key);
 
-            /*
-             * Update heap use throwing an exception on failure
-             * before making any changes to the array.
-             */
+             // Update heap use throwing an exception on failure
+             // before making any changes to the array.
             int keysize = HeapTrackerObject.Size(key);
             int newheapuse = heapUse;
             object oldval;
@@ -125,10 +123,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             heapUse = inst.UpdateHeapUse(heapUse, newheapuse);
 
-            /*
-             * Save new value in array, replacing one of same key if there.
-             * null means remove the value, ie, script did array[key] = undef.
-             */
+             // Save new value in array, replacing one of same key if there.
+             // null means remove the value, ie, script did array[key] = undef.
             if(value != null)
             {
                 dnary[key] = value;
@@ -137,19 +133,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 dnary.Remove(key);
 
-                /*
-                 * Shrink the enumeration array, but always leave at least one element.
-                 */
+                 // Shrink the enumeration array, but always leave at least one element.
                 if((array != null) && (dnary.Count < array.Length / 2))
                 {
                     Array.Resize<KeyValuePair<object, object>>(ref array, array.Length / 2);
                 }
             }
 
-            /*
-             * The enumeration array is invalid because the dictionary has been modified.
-             * Next time a ForEach() call happens, it will repopulate 'array' as elements are retrieved.
-             */
+             // The enumeration array is invalid because the dictionary has been modified.
+             // Next time a ForEach() call happens, it will repopulate 'array' as elements are retrieved.
             arrayValid = 0;
         }
 
@@ -236,29 +228,23 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private bool ForEach(int number)
         {
-            /*
-             * If we don't have any array, we can't have ever done
-             * any calls here before, so allocate an array big enough
-             * and set everything else to the beginning.
-             */
+             // If we don't have any array, we can't have ever done
+             // any calls here before, so allocate an array big enough
+             // and set everything else to the beginning.
             if(array == null)
             {
                 array = new KeyValuePair<object, object>[dnary.Count];
                 arrayValid = 0;
             }
 
-            /*
-             * If dictionary modified since last enumeration, get a new enumerator.
-             */
+             // If dictionary modified since last enumeration, get a new enumerator.
             if(arrayValid == 0)
             {
                 enumr = dnary.GetEnumerator();
                 enumrValid = true;
             }
 
-            /*
-             * Make sure we have filled the array up enough for requested element.
-             */
+             // Make sure we have filled the array up enough for requested element.
             while((arrayValid <= number) && enumrValid && enumr.MoveNext())
             {
                 if(arrayValid >= array.Length)
@@ -268,9 +254,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 array[arrayValid++] = enumr.Current;
             }
 
-            /*
-             * If we don't have that many elements, return end-of-array status.
-             */
+             // If we don't have that many elements, return end-of-array status.
             return number < arrayValid;
         }
 
@@ -281,10 +265,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public delegate void SendArrayObjDelegate(object graph);
         public void SendArrayObj(SendArrayObjDelegate sendObj)
         {
-            /*
-             * Set the count then the elements themselves.
-             * UnfixKey() because sendObj doesn't handle XMRArrayListKeys.
-             */
+             // Set the count then the elements themselves.
+             // UnfixKey() because sendObj doesn't handle XMRArrayListKeys.
             sendObj(dnary.Count);
             foreach(KeyValuePair<object, object> kvp in dnary)
             {
@@ -304,17 +286,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             heapUse = inst.UpdateHeapUse(heapUse, EMPTYHEAP);
 
-            /*
-             * Cause any enumeration to refill the array from the sorted dictionary.
-             * Since it is a sorted dictionary, any enumerations will be in the same 
-             * order as on the sending side.
-             */
+             // Cause any enumeration to refill the array from the sorted dictionary.
+             // Since it is a sorted dictionary, any enumerations will be in the same 
+             // order as on the sending side.
             arrayValid = 0;
             enumrValid = false;
 
-            /*
-             * Fill dictionary.
-             */
+             // Fill dictionary.
             dnary.Clear();
             int count = (int)recvObj();
             while(--count >= 0)
@@ -375,9 +353,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public int Compare(object x, object y)  // IComparer<object>
         {
-            /*
-             * Use short type name (eg, String, Int32, XMRArrayListKey) as most significant part of key.
-             */
+             // Use short type name (eg, String, Int32, XMRArrayListKey) as most significant part of key.
             string xtn = x.GetType().Name;
             string ytn = y.GetType().Name;
             int ctn = String.CompareOrdinal(xtn, ytn);

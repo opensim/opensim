@@ -130,9 +130,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 throw new Exception("var dict is frozen");
             }
 
-            /*
-             * Make sure we have a sub-dictionary based on the bare name (ie, no signature)
-             */
+             // Make sure we have a sub-dictionary based on the bare name (ie, no signature)
             Dictionary<ArgTypes, TDVEntry> typedic;
             if(!master.TryGetValue(var.name.val, out typedic))
             {
@@ -140,19 +138,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 master.Add(var.name.val, typedic);
             }
 
-            /*
-             * See if there is an entry in the sub-dictionary that matches the argument signature.
-             * Note that fields have null argument lists.
-             * Methods always have a non-null argument list, even if only 0 entries long.
-             */
+             // See if there is an entry in the sub-dictionary that matches the argument signature.
+             // Note that fields have null argument lists.
+             // Methods always have a non-null argument list, even if only 0 entries long.
             ArgTypes types;
             types.argTypes = (var.argDecl == null) ? null : KeyTypesToStringTypes(var.argDecl.types);
             if(typedic.ContainsKey(types))
                 return false;
 
-            /*
-             * It is unique, add to its name-specific sub-dictionary.
-             */
+             // It is unique, add to its name-specific sub-dictionary.
             TDVEntry entry;
             entry.count = ++count;
             entry.var = var;
@@ -175,28 +169,21 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public VarDict FreezeLocals()
         {
-            /*
-             * If not local var frame, return original frame as is.
-             * This will allow forward references as the future additions
-             * will be seen by lookups done in this dictionary.
-             */
+             // If not local var frame, return original frame as is.
+             // This will allow forward references as the future additions
+             // will be seen by lookups done in this dictionary.
             if(!locals)
                 return this;
 
-            /*
-             * If local var frame, return a copy frozen at this point.
-             * This disallows forward referenes as those future additions
-             * will not be seen by lookups done in the frozen dictionary.
-             */
+             // If local var frame, return a copy frozen at this point.
+             // This disallows forward referenes as those future additions
+             // will not be seen by lookups done in the frozen dictionary.
             if((frozenLocals == null) || (frozenLocals.count != this.count))
             {
-
-                /*
-                 * Make a copy of the current var dictionary frame.
-                 * We copy a reference to the dictionary, and though it may
-                 * contain additions made after this point, those additions
-                 * will have a count .gt. frozen count and will be ignored.
-                 */
+                 // Make a copy of the current var dictionary frame.
+                 // We copy a reference to the dictionary, and though it may
+                 // contain additions made after this point, those additions
+                 // will have a count .gt. frozen count and will be ignored.
                 frozenLocals = new VarDict(true);
 
                 frozenLocals.outerVarDict = this.outerVarDict;
@@ -205,11 +192,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 frozenLocals.count = this.count;
                 frozenLocals.frozenLocals = frozenLocals;
 
-                /*
-                 * Mark it as being frozen.
-                 * - assert fail if any attempt is made to add to it
-                 * - ignore any additions to the dictionary with greater count
-                 */
+                 // Mark it as being frozen.
+                 // - assert fail if any attempt is made to add to it
+                 // - ignore any additions to the dictionary with greater count
                 frozenLocals.isFrozen = true;
             }
             return frozenLocals;
@@ -257,46 +242,34 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public TokenDeclVar FindExact(string name, TokenType[] argTypes)
         {
-            /*
-             * Look for list of stuff that matches the given name.
-             */
+             // Look for list of stuff that matches the given name.
             Dictionary<ArgTypes, TDVEntry> typedic;
             if(!master.TryGetValue(name, out typedic))
                 return null;
 
-            /*
-             * Loop through all fields/methods declared by that name, regardless of arg signature.
-             */
+             // Loop through all fields/methods declared by that name, regardless of arg signature.
             foreach(TDVEntry entry in typedic.Values)
             {
                 if(entry.count > this.count)
                     continue;
                 TokenDeclVar var = entry.var;
 
-                /*
-                 * Get argument types of declaration.
-                 *   fields are always null
-                 *   methods are always non-null, though may be zero-length
-                 */
+                 // Get argument types of declaration.
+                 //   fields are always null
+                 //   methods are always non-null, though may be zero-length
                 TokenType[] declArgs = (var.argDecl == null) ? null : var.argDecl.types;
 
-                /*
-                 * Convert any key args to string args.
-                 */
+                 // Convert any key args to string args.
                 declArgs = KeyTypesToStringTypes(declArgs);
 
-                /*
-                 * If both are null, they are signature-less (ie, both are fields), and so match.
-                 */
+                 // If both are null, they are signature-less (ie, both are fields), and so match.
                 if((declArgs == null) && (argTypes == null))
                     return var;
 
-                /*
-                 * If calling a delegate, it is a match, regardless of delegate arg types.
-                 * If it turns out the arg types do not match, the compiler will give an error
-                 * trying to cast the arguments to the delegate arg types.
-                 * We don't allow overloading same field name with different delegate types.
-                 */
+                 // If calling a delegate, it is a match, regardless of delegate arg types.
+                 // If it turns out the arg types do not match, the compiler will give an error
+                 // trying to cast the arguments to the delegate arg types.
+                 // We don't allow overloading same field name with different delegate types.
                 if((declArgs == null) && (argTypes != null))
                 {
                     TokenType fieldType = var.type;
@@ -304,15 +277,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         return var;
                 }
 
-                /*
-                 * If not both null, no match, keep looking.
-                 */
+                 // If not both null, no match, keep looking.
                 if((declArgs == null) || (argTypes == null))
                     continue;
 
-                /*
-                 * Both not null, match argument types to make sure we have correct overload.
-                 */
+                 // Both not null, match argument types to make sure we have correct overload.
                 int i = declArgs.Length;
                 if(i != argTypes.Length)
                     continue;
@@ -331,9 +300,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     return var;
             }
 
-            /*
-             * No match.
-             */
+             // No match.
             return null;
         }
 
