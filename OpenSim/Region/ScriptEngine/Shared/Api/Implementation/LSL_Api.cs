@@ -5464,15 +5464,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected int GetNumberOfSides(SceneObjectPart part)
         {
-            int sides = part.GetNumberOfSides();
-
-            if (part.GetPrimType() == PrimType.SPHERE && part.Shape.ProfileHollow > 0)
-            {
-                // Make up for a bug where LSL shows 4 sides rather than 2
-                sides += 2;
-            }
-
-            return sides;
+            return part.GetNumberOfSides();
         }
 
 
