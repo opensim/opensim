@@ -1404,7 +1404,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return detectedParams.Name;
         }
 
-        public LSL_String llDetectedKey(int number)
+        public LSL_Key llDetectedKey(int number)
         {
             m_host.AddScriptLPS(1);
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
@@ -1413,7 +1413,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return detectedParams.Key.ToString();
         }
 
-        public LSL_String llDetectedOwner(int number)
+        public LSL_Key llDetectedOwner(int number)
         {
             m_host.AddScriptLPS(1);
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
@@ -3878,7 +3878,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Deprecated("llReleaseCamera", "Use llClearCameraParams instead");
         }
 
-        public LSL_String llGetOwner()
+        public LSL_Key llGetOwner()
         {
             m_host.AddScriptLPS(1);
 
@@ -4010,7 +4010,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         }
 
-        public LSL_String llGetKey()
+        public LSL_Key llGetKey()
         {
             m_host.AddScriptLPS(1);
             return m_host.UUID.ToString();
@@ -4336,7 +4336,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     new DetectParams[0]));
         }
 
-        public LSL_String llGetPermissionsKey()
+        public LSL_Key llGetPermissionsKey()
         {
             m_host.AddScriptLPS(1);
 
@@ -4587,7 +4587,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             parentPrim.ScheduleGroupForFullUpdate();
         }
 
-        public LSL_String llGetLinkKey(int linknum)
+        public LSL_Key llGetLinkKey(int linknum)
         {
             m_host.AddScriptLPS(1);
             SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknum);
@@ -4849,7 +4849,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_host.PassTouches = false;
         }
 
-        public LSL_String llRequestAgentData(string id, int data)
+        public LSL_Key llRequestAgentData(string id, int data)
         {
             m_host.AddScriptLPS(1);
 
@@ -4967,7 +4967,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return "";
         }
 
-        public LSL_String llRequestInventoryData(string name)
+        public LSL_Key llRequestInventoryData(string name)
         {
             m_host.AddScriptLPS(1);
 
@@ -5595,7 +5595,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return Math.Acos(2 * quotient - 1);
         }
 
-        public LSL_String llGetInventoryKey(string name)
+        public LSL_Key llGetInventoryKey(string name)
         {
             m_host.AddScriptLPS(1);
 
@@ -5715,7 +5715,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return source.IndexOf(pattern);
         }
 
-        public LSL_String llGetOwnerKey(string id)
+        public LSL_Key llGetOwnerKey(string id)
         {
             m_host.AddScriptLPS(1);
             UUID key = new UUID();
@@ -6891,7 +6891,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return 0;
         }
 
-        public LSL_String llGetLandOwnerAt(LSL_Vector pos)
+        public LSL_Key llGetLandOwnerAt(LSL_Vector pos)
         {
             m_host.AddScriptLPS(1);
             ILandObject land = World.LandChannel.GetLandObject((float)pos.x, (float)pos.y);
@@ -7841,14 +7841,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public LSL_String llAvatarOnSitTarget()
+        public LSL_Key llAvatarOnSitTarget()
         {
             m_host.AddScriptLPS(1);
             return m_host.SitTargetAvatar.ToString();
         }
 
         // http://wiki.secondlife.com/wiki/LlAvatarOnLinkSitTarget
-        public LSL_String llAvatarOnLinkSitTarget(int linknum)
+        public LSL_Key llAvatarOnLinkSitTarget(int linknum)
         {
             m_host.AddScriptLPS(1);
             if(linknum == ScriptBaseClass.LINK_SET ||
@@ -8153,7 +8153,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScriptSleep(m_sleepMsOnOpenRemoteDataChannel);
         }
 
-        public LSL_String llSendRemoteData(string channel, string dest, int idata, string sdata)
+        public LSL_Key llSendRemoteData(string channel, string dest, int idata, string sdata)
         {
             m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
@@ -10598,7 +10598,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.Description = desc!=null?desc:String.Empty;
         }
 
-        public LSL_String llGetCreator()
+        public LSL_Key llGetCreator()
         {
             m_host.AddScriptLPS(1);
             return m_host.CreatorID.ToString();
@@ -12329,7 +12329,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public LSL_String llGetInventoryCreator(string itemName)
+        public LSL_Key llGetInventoryCreator(string itemName)
         {
             m_host.AddScriptLPS(1);
 
@@ -12355,7 +12355,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 //            wComm.DeliverMessage(ChatTypeEnum.Owner, 0, m_host.Name, m_host.UUID, msg);
         }
 
-        public LSL_String llRequestSecureURL()
+        public LSL_Key llRequestSecureURL()
         {
             m_host.AddScriptLPS(1);
             if (m_UrlModule != null)
@@ -12363,7 +12363,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return UUID.Zero.ToString();
         }
 
-        public LSL_String llRequestSimulatorData(string simulator, int data)
+        public LSL_Key llRequestSimulatorData(string simulator, int data)
         {
             IOSSL_Api ossl = (IOSSL_Api)m_ScriptEngine.GetApi(m_item.ItemID, "OSSL");
 
@@ -12472,7 +12472,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public LSL_String llRequestURL()
+        public LSL_Key llRequestURL()
         {
             m_host.AddScriptLPS(1);
 
@@ -13418,7 +13418,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return Convert.ToBase64String(data1);
         }
 
-        public LSL_String llHTTPRequest(string url, LSL_List parameters, string body)
+        public LSL_Key llHTTPRequest(string url, LSL_List parameters, string body)
         {
             // Partial implementation: support for parameter flags needed
             //   see http://wiki.secondlife.com/wiki/LlHTTPRequest
@@ -14274,7 +14274,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 });
         }
 
-        public LSL_String llGetNumberOfNotecardLines(string name)
+        public LSL_Key llGetNumberOfNotecardLines(string name)
         {
             m_host.AddScriptLPS(1);
 
@@ -14325,7 +14325,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return tid.ToString();
         }
 
-        public LSL_String llGetNotecardLine(string name, int line)
+        public LSL_Key llGetNotecardLine(string name, int line)
         {
             m_host.AddScriptLPS(1);
 
@@ -14452,7 +14452,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return Name2Username(llKey2Name(id));
         }
 
-        public LSL_String llRequestUsername(string id)
+        public LSL_Key llRequestUsername(string id)
         {
             UUID rq = UUID.Random();
 
@@ -14468,7 +14468,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return llKey2Name(id);
         }
 
-        public LSL_String llRequestDisplayName(string id)
+        public LSL_Key llRequestDisplayName(string id)
         {
             UUID rq = UUID.Random();
 
@@ -16050,7 +16050,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     new DetectParams[0]));
         }
 
-        public LSL_String llTransferLindenDollars(string destination, int amount)
+        public LSL_Key llTransferLindenDollars(string destination, int amount)
         {
             UUID txn = UUID.Random();
 

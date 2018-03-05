@@ -456,7 +456,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetColor(face);
         }
 
-        public LSL_String llGetCreator()
+        public LSL_Key llGetCreator()
         {
             return m_LSL_Functions.llGetCreator();
         }
@@ -611,7 +611,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llGetNextEmail(address, subject);
         }
 
-        public LSL_String llGetNotecardLine(string name, int line)
+        public LSL_Key llGetNotecardLine(string name, int line)
         {
             return m_LSL_Functions.llGetNotecardLine(name, line);
         }
@@ -891,7 +891,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGiveMoney(destination, amount);
         }
 
-        public LSL_String llTransferLindenDollars(string destination, int amount)
+        public LSL_Key llTransferLindenDollars(string destination, int amount)
         {
             return m_LSL_Functions.llTransferLindenDollars(destination, amount);
         }
@@ -926,7 +926,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGroundSlope(offset);
         }
 
-        public LSL_String llHTTPRequest(string url, LSL_List parameters, string body)
+        public LSL_Key llHTTPRequest(string url, LSL_List parameters, string body)
         {
             return m_LSL_Functions.llHTTPRequest(url, parameters, body);
         }
@@ -961,7 +961,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetUsername(id);
         }
 
-        public LSL_String llRequestUsername(string id)
+        public LSL_Key llRequestUsername(string id)
         {
             return m_LSL_Functions.llRequestUsername(id);
         }
@@ -971,7 +971,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetDisplayName(id);
         }
 
-        public LSL_String llRequestDisplayName(string id)
+        public LSL_Key llRequestDisplayName(string id)
         {
             return m_LSL_Functions.llRequestDisplayName(id);
         }
@@ -1346,7 +1346,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llRequestPermissions(agent, perm);
         }
 
-        public LSL_String llRequestSecureURL()
+        public LSL_Key llRequestSecureURL()
         {
             return m_LSL_Functions.llRequestSecureURL();
         }
