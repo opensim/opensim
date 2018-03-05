@@ -3914,9 +3914,9 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         // removed sides
                         int cut = (Shape.ProfileEnd + Shape.ProfileBegin);
-                        if(cut > 50000)
+                        if(cut > 50000) // range is 0 to 50000
                             cut = 50000;
-                        cut /= 12500;
+                        cut /= 12500; // ie 1/4 
                         ret -= cut;
                         ret += 2; // both cut faces
                     }
@@ -3927,9 +3927,9 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         // removed faces
                         int cut = (Shape.ProfileEnd + Shape.ProfileBegin);
-                        if(cut >= 16667 )
+                        if(cut >= 16667 ) // ie 1/3 
                             ret--;
-                        if(cut >= 33333 )
+                        if(cut >= 33333 ) // ie 2/3
                             ret--;
                         ret += 2; // both cut faces
                     }
@@ -3944,7 +3944,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // cut faces exist if cut or skew or unequal twist limits
                     if (Shape.PathBegin > 0 || Shape.PathEnd > 0 || Shape.PathSkew != 0 || (Shape.PathTwistBegin != Shape.PathTwist))
                         ret += 2;
-                    if (Shape.ProfileBegin > 0 || Shape.ProfileEnd > 0 || Shape.ProfileHollow > 0) // dimple also if hollow
+                    if (Shape.ProfileBegin > 0 || Shape.ProfileEnd > 0 || Shape.ProfileHollow > 0) // dimple faces also if hollow
                         ret += 2;
                     break;
                 case PrimType.TORUS:
