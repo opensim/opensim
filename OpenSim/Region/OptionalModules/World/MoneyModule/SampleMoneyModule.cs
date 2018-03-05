@@ -65,10 +65,10 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         /// </summary>
         // private UUID EconomyBaseAccount = UUID.Zero;
 
-        private float EnergyEfficiency = 0f;
+        private float EnergyEfficiency = 1f;
         // private ObjectPaid handerOnObjectPaid;
         private bool m_enabled = true;
-        private bool m_sellEnabled = false;
+        private bool m_sellEnabled = true;
 
         private IConfigSource m_gConfig;
 
@@ -85,12 +85,12 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
         private int ObjectCount = 0;
         private int PriceEnergyUnit = 0;
-        private int PriceGroupCreate = 0;
+        private int PriceGroupCreate = -1;
         private int PriceObjectClaim = 0;
         private float PriceObjectRent = 0f;
-        private float PriceObjectScaleFactor = 0f;
+        private float PriceObjectScaleFactor = 10f;
         private int PriceParcelClaim = 0;
-        private float PriceParcelClaimFactor = 0f;
+        private float PriceParcelClaimFactor = 1f;
         private int PriceParcelRent = 0;
         private int PricePublicObjectDecay = 0;
         private int PricePublicObjectDelete = 0;
@@ -98,7 +98,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         private int PriceUpload = 0;
         private int TeleportMinPrice = 0;
 
-        private float TeleportPriceExponent = 0f;
+        private float TeleportPriceExponent = 2f;
 
 
         #region IMoneyModule Members
@@ -124,13 +124,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         public void Initialise(IConfigSource config)
         {
             m_gConfig = config;
-
-            IConfig startupConfig = m_gConfig.Configs["Startup"];
-            IConfig economyConfig = m_gConfig.Configs["Economy"];
-
-
-            ReadConfigAndPopulate(startupConfig, "Startup");
-            ReadConfigAndPopulate(economyConfig, "Economy");
+            ReadConfigAndPopulate();
         }
 
         public void AddRegion(Scene scene)
@@ -241,35 +235,51 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         /// <summary>
         /// Parse Configuration
         /// </summary>
-        /// <param name="scene"></param>
-        /// <param name="startupConfig"></param>
-        /// <param name="config"></param>
-        private void ReadConfigAndPopulate(IConfig startupConfig, string config)
+        private void ReadConfigAndPopulate()
         {
-            if (config == "Startup" && startupConfig != null)
+            // we are enabled by default
+
+            IConfig startupConfig = m_gConfig.Configs["Startup"];
+
+            if(startupConfig == null) // should not happen
+                return;
+
+            IConfig economyConfig = m_gConfig.Configs["Economy"];
+
+            // economymodule may be at startup or Economy (legacy)
+            string mmodule = startupConfig.GetString("economymodule","");
+            if(String.IsNullOrEmpty(mmodule))
             {
-                m_enabled = (startupConfig.GetString("economymodule", "BetaGridLikeMoneyModule") == "BetaGridLikeMoneyModule");
+                if(economyConfig != null)
+                    mmodule = economyConfig.GetString("economymodule","");
             }
 
-            if (config == "Economy" && startupConfig != null)
+            if(!String.IsNullOrEmpty(mmodule) && mmodule != Name)
             {
-                PriceEnergyUnit = startupConfig.GetInt("PriceEnergyUnit", 100);
-                PriceObjectClaim = startupConfig.GetInt("PriceObjectClaim", 10);
-                PricePublicObjectDecay = startupConfig.GetInt("PricePublicObjectDecay", 4);
-                PricePublicObjectDelete = startupConfig.GetInt("PricePublicObjectDelete", 4);
-                PriceParcelClaim = startupConfig.GetInt("PriceParcelClaim", 1);
-                PriceParcelClaimFactor = startupConfig.GetFloat("PriceParcelClaimFactor", 1f);
-                PriceUpload = startupConfig.GetInt("PriceUpload", 0);
-                PriceRentLight = startupConfig.GetInt("PriceRentLight", 5);
-                TeleportMinPrice = startupConfig.GetInt("TeleportMinPrice", 2);
-                TeleportPriceExponent = startupConfig.GetFloat("TeleportPriceExponent", 2f);
-                EnergyEfficiency = startupConfig.GetFloat("EnergyEfficiency", 1);
-                PriceObjectRent = startupConfig.GetFloat("PriceObjectRent", 1);
-                PriceObjectScaleFactor = startupConfig.GetFloat("PriceObjectScaleFactor", 10);
-                PriceParcelRent = startupConfig.GetInt("PriceParcelRent", 1);
-                PriceGroupCreate = startupConfig.GetInt("PriceGroupCreate", -1);
-                m_sellEnabled = startupConfig.GetBoolean("SellEnabled", false);
+                // some other money module selected
+                m_enabled = false;
+                return;
             }
+            
+            if(economyConfig == null)
+                return;
+
+            PriceEnergyUnit = economyConfig.GetInt("PriceEnergyUnit", 0);
+            PriceObjectClaim = economyConfig.GetInt("PriceObjectClaim", 0);
+            PricePublicObjectDecay = economyConfig.GetInt("PricePublicObjectDecay", 4);
+            PricePublicObjectDelete = economyConfig.GetInt("PricePublicObjectDelete", 0);
+            PriceParcelClaim = economyConfig.GetInt("PriceParcelClaim", 0);
+            PriceParcelClaimFactor = economyConfig.GetFloat("PriceParcelClaimFactor", 1f);
+            PriceUpload = economyConfig.GetInt("PriceUpload", 0);
+            PriceRentLight = economyConfig.GetInt("PriceRentLight", 0);
+            TeleportMinPrice = economyConfig.GetInt("TeleportMinPrice", 0);
+            TeleportPriceExponent = economyConfig.GetFloat("TeleportPriceExponent", 2f);
+            EnergyEfficiency = economyConfig.GetFloat("EnergyEfficiency", 1);
+            PriceObjectRent = economyConfig.GetFloat("PriceObjectRent", 0);
+            PriceObjectScaleFactor = economyConfig.GetFloat("PriceObjectScaleFactor", 10);
+            PriceParcelRent = economyConfig.GetInt("PriceParcelRent", 0);
+            PriceGroupCreate = economyConfig.GetInt("PriceGroupCreate", -1);
+            m_sellEnabled = economyConfig.GetBoolean("SellEnabled", true);
         }
 
         private void GetClientFunds(IClientAPI client)
