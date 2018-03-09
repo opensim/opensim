@@ -90,46 +90,44 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                  // Create object file one way or another.
                 try
                 {
-                    objFileStream = File.Create (tmpFileName);
-
                      // Create abstract syntax tree from raw tokens.
                     TokenScript tokenScript = ScriptReduce.Reduce(tokenBegin);
                     if (tokenScript == null)
                     {
                         m_log.Warn ("[YEngine]: reduction errors on " + m_ScriptObjCodeKey + " (" + m_CameFrom + ")");
                         PrintCompilerErrors();
-                        objFileStream.Close();
                         return null;
                     }
 
                      // Compile abstract syntax tree to write object file.
-                    BinaryWriter objFileWriter = new BinaryWriter (objFileStream);
-                    bool ok = ScriptCodeGen.CodeGen(tokenScript, objFileWriter, sourceHash);
-                    if (!ok)
+                    using(BinaryWriter objFileWriter = new BinaryWriter(File.Create(tmpFileName)))
                     {
-                        m_log.Warn ("[YEngine]: compile error on " + m_ScriptObjCodeKey + " (" + m_CameFrom + ")");
-                        PrintCompilerErrors ();
-                        objFileWriter.Close ();
-                        return null;
+                        bool ok = ScriptCodeGen.CodeGen(tokenScript, objFileWriter, sourceHash);
+                        if (!ok)
+                        {
+                            m_log.Warn ("[YEngine]: compile error on " + m_ScriptObjCodeKey + " (" + m_CameFrom + ")");
+                            PrintCompilerErrors ();
+                            return null;
+                        }
                     }
-                    objFileWriter.Close ();
 
                      // File has been completely written.
                      // If there is an old one laying around, delete it now.
                      // Then re-open the new file for reading from the beginning.
-                    if (File.Exists (objFileName))
-                        File.Replace (tmpFileName, objFileName, null);
+                    if (File.Exists(objFileName))
+                        File.Replace(tmpFileName, objFileName, null);
                     else
-                        File.Move (tmpFileName, objFileName);
+                        File.Move(tmpFileName, objFileName);
 
-                    objFileStream = File.OpenRead (objFileName);
+                    objFileStream = File.OpenRead(objFileName);
                 }
                 finally
                 {
                      // In case something went wrong writing temp file, delete it.
                     try
                     {
-                        File.Delete (tmpFileName);
+                        if(File.Exists(tmpFileName))
+                            File.Delete (tmpFileName);
                     }
                     catch
                     {
@@ -169,7 +167,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private void PrintCompilerErrors ()
         {
             m_log.Info ("[YEngine]: - " + m_Part.GetWorldPosition () + " " + m_DescName);
-            foreach (string error in m_CompilerErrors) {
+            foreach (string error in m_CompilerErrors)
+            {
                 m_log.Info ("[YEngine]: - " + error);
             }
         }

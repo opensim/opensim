@@ -399,8 +399,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          * Start event handler.
          *
          * Input:
-         *  eventCode = code of event to be processed
-         *  ehArgs    = arguments for the event handler
+         *  newEventCode = code of event to be processed
+         *  newEhArgs    = arguments for the event handler
          *
          * Caution:
          *  It is up to the caller to make sure ehArgs[] is correct for
@@ -409,15 +409,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          *  from ehArgs[] and will throw an array bounds or cast exception 
          *  if it can't.
          */
-        private Exception StartEventHandler(ScriptEventCode eventCode, object[] ehArgs)
+        private Exception StartEventHandler(ScriptEventCode newEventCode, object[] newEhArgs)
         {
              // We use this.eventCode == ScriptEventCode.None to indicate we are idle.
              // So trying to execute ScriptEventCode.None might make a mess.
-            if(eventCode == ScriptEventCode.None)
+            if(newEventCode == ScriptEventCode.None)
                 return new Exception("Can't process ScriptEventCode.None");
 
              // Silly to even try if there is no handler defined for this event.
-            if(((int)eventCode >= 0) && (m_ObjCode.scriptEventHandlerTable[this.stateCode, (int)eventCode] == null))
+            if(((int)newEventCode >= 0) && (m_ObjCode.scriptEventHandlerTable[this.stateCode, (int)newEventCode] == null))
                 return null;
 
              // The microthread shouldn't be processing any event code.
@@ -427,8 +427,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
              // Save eventCode so we know what event handler to run in the microthread.
              // And it also marks us busy so we can't be started again and this event lost.
-            this.eventCode = eventCode;
-            this.ehArgs = ehArgs;
+            this.eventCode = newEventCode;
+            this.ehArgs = newEhArgs;
 
              // This calls ScriptUThread.Main() directly, and returns when Main() [indirectly]
              // calls Suspend() or when Main() returns, whichever occurs first.
@@ -580,7 +580,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public void Reset()
         {
-            checkstate:
+        checkstate:
             XMRInstState iState = m_IState;
             switch(iState)
             {
@@ -834,17 +834,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                 switch(this.callMode)
                 {
-                    // Now we are ready to suspend the microthread.
-                    // This is like a longjmp() to the most recent StartEx() or ResumeEx()
-                    // with a simultaneous setjmp() so ResumeEx() can longjmp() back here.
-
-                    // the script event handler wants to hibernate
-                    // capture stack frames and unwind to Start() or Resume()
+                    // Now we are ready to suspend or resume.
                     case CallMode_NORMAL:
                         m_CheckRunPhase = "suspending";
                         callMode = XMRInstance.CallMode_SAVE;
                         stackFrames = null;
-                        throw new StackHibernateException();
+                        throw new StackHibernateException(); // does not return
 
                     // We get here when the script state has been read in by MigrateInEventHandler().
                     // Since the stack is completely restored at this point, any subsequent calls

@@ -835,33 +835,41 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Do both global functions, script-defined class static methods and 
              // script-defined instance methods, as we handle the differences
              // during compilation of the functions/methods themselves.
-            for(int pass = 0; pass < 2; pass++)
+
+            // headers
+            foreach(TokenDeclVar declFunc in tokenScript.variablesStack)
             {
-                foreach(TokenDeclVar declFunc in tokenScript.variablesStack)
+                if(declFunc.retType != null)
+                    GenerateMethodHeader(declFunc);
+            }
+            foreach(TokenDeclSDType sdType in tokenScript.sdSrcTypesValues)
+            {
+                if(sdType is TokenDeclSDTypeClass)
                 {
-                    if(declFunc.retType != null)
+                    TokenDeclSDTypeClass sdtClass = (TokenDeclSDTypeClass)sdType;
+                    foreach(TokenDeclVar declFunc in sdtClass.members)
                     {
-                        if(pass == 0)
+                        if((declFunc.retType != null) && ((declFunc.sdtFlags & ScriptReduce.SDT_ABSTRACT) == 0))
                             GenerateMethodHeader(declFunc);
-                        else
-                            GenerateMethodBody(declFunc);
                     }
                 }
-                foreach(TokenDeclSDType sdType in tokenScript.sdSrcTypesValues)
+            }
+
+            // now bodies
+            foreach(TokenDeclVar declFunc in tokenScript.variablesStack)
+            {
+                if(declFunc.retType != null)
+                    GenerateMethodBody(declFunc);
+            }
+            foreach(TokenDeclSDType sdType in tokenScript.sdSrcTypesValues)
+            {
+                if(sdType is TokenDeclSDTypeClass)
                 {
-                    if(sdType is TokenDeclSDTypeClass)
+                    TokenDeclSDTypeClass sdtClass = (TokenDeclSDTypeClass)sdType;
+                    foreach(TokenDeclVar declFunc in sdtClass.members)
                     {
-                        TokenDeclSDTypeClass sdtClass = (TokenDeclSDTypeClass)sdType;
-                        foreach(TokenDeclVar declFunc in sdtClass.members)
-                        {
-                            if((declFunc.retType != null) && ((declFunc.sdtFlags & ScriptReduce.SDT_ABSTRACT) == 0))
-                            {
-                                if(pass == 0)
-                                    GenerateMethodHeader(declFunc);
-                                else
-                                    GenerateMethodBody(declFunc);
-                            }
-                        }
+                        if((declFunc.retType != null) && ((declFunc.sdtFlags & ScriptReduce.SDT_ABSTRACT) == 0))
+                            GenerateMethodBody(declFunc);
                     }
                 }
             }
