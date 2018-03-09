@@ -1283,7 +1283,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 initerr = e1;
             }
-            if((initerr != null) && !instance.m_ForceRecomp)
+            if(initerr != null && !instance.m_ForceRecomp && initerr is CVVMismatchException)
             {
                 UUID itemID = instance.m_ItemID;
                 Verbose("[YEngine]: {0}/{2} first load failed ({1}), retrying after recompile",

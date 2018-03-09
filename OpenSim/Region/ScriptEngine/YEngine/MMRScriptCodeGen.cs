@@ -6540,14 +6540,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
     public class CVVMismatchException: Exception
     {
-        public int oldcvv;
-        public int newcvv;
-
-        public CVVMismatchException(int oldcvv, int newcvv) : base("object version is " + oldcvv.ToString() +
-                                                             " but accept only " + newcvv.ToString())
+        public CVVMismatchException(string msg) : base(msg)
         {
-            this.oldcvv = oldcvv;
-            this.newcvv = newcvv;
         }
     }
 }

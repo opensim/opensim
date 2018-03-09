@@ -124,13 +124,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 finally
                 {
                      // In case something went wrong writing temp file, delete it.
-                    try
-                    {
-                        File.Delete (tmpFileName);
-                    }
-                    catch
-                    {
-                    }
+                     File.Delete (tmpFileName);
                 }
 
                  // Since we just wrote the .xmrobj file, maybe save disassembly.
