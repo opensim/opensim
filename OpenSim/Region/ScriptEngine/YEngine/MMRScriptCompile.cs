@@ -126,8 +126,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                      // In case something went wrong writing temp file, delete it.
                     try
                     {
-                        if(File.Exists(tmpFileName))
-                            File.Delete (tmpFileName);
+                        File.Delete (tmpFileName);
                     }
                     catch
                     {
