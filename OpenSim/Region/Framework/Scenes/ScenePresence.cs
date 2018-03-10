@@ -1247,14 +1247,14 @@ namespace OpenSim.Region.Framework.Scenes
         // other uses need fix
         private bool MakeRootAgent(Vector3 pos, bool isFlying, ref Vector3 lookat)
         {
-            int ts = Util.EnvironmentTickCount();
+            //int ts = Util.EnvironmentTickCount();
 
             lock (m_completeMovementLock)
             {
                 if (!IsChildAgent)
                     return false;
 
-                m_log.DebugFormat("[MakeRootAgent] enter lock: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                //m_log.DebugFormat("[MakeRootAgent] enter lock: {0}ms", Util.EnvironmentTickCountSubtract(ts));
                 //m_log.DebugFormat("[SCENE]: known regions in {0}: {1}", Scene.RegionInfo.RegionName, KnownChildRegionHandles.Count);
 
                 //            m_log.InfoFormat(
@@ -1304,7 +1304,7 @@ namespace OpenSim.Region.Framework.Scenes
                 IsChildAgent = false;
             }
 
-            m_log.DebugFormat("[MakeRootAgent] out lock: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+            //m_log.DebugFormat("[MakeRootAgent] out lock: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
             // Must reset this here so that a teleport to a region next to an existing region does not keep the flag
             // set and prevent the close of the connection on a subsequent re-teleport.
@@ -1314,7 +1314,7 @@ namespace OpenSim.Region.Framework.Scenes
             RegionHandle = m_scene.RegionInfo.RegionHandle;
 
             m_scene.EventManager.TriggerSetRootAgentScene(m_uuid, m_scene);
-            m_log.DebugFormat("[MakeRootAgent] TriggerSetRootAgentScene: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+            //m_log.DebugFormat("[MakeRootAgent] TriggerSetRootAgentScene: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
             if (ParentID == 0)
             {
@@ -1453,7 +1453,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            m_log.DebugFormat("[MakeRootAgent] position and physical: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+            //m_log.DebugFormat("[MakeRootAgent] position and physical: {0}ms", Util.EnvironmentTickCountSubtract(ts));
             m_scene.SwapRootAgentCount(false);
 
             // If we don't reset the movement flag here, an avatar that crosses to a neighbouring sim and returns will
@@ -1462,7 +1462,7 @@ namespace OpenSim.Region.Framework.Scenes
             MovementFlag = 0;
 
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
-            m_log.DebugFormat("[MakeRootAgent] TriggerOnMakeRootAgent and done: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+            //m_log.DebugFormat("[MakeRootAgent] TriggerOnMakeRootAgent and done: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
             return true;
         }
@@ -2058,7 +2058,7 @@ namespace OpenSim.Region.Framework.Scenes
                         return;
                 }
 
-                m_log.DebugFormat("[CompleteMovement] WaitForUpdateAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                //m_log.DebugFormat("[CompleteMovement] WaitForUpdateAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 bool flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
 
@@ -2086,7 +2086,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
 
-                m_log.DebugFormat("[CompleteMovement] MakeRootAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                //m_log.DebugFormat("[CompleteMovement] MakeRootAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 if(!haveGroupInformation && !IsChildAgent && !IsNPC)
                 {
@@ -2094,7 +2094,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (gm != null)
                         Grouptitle = gm.GetGroupTitle(m_uuid);
 
-                    m_log.DebugFormat("[CompleteMovement] Missing Grouptitle: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                    //m_log.DebugFormat("[CompleteMovement] Missing Grouptitle: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                     InventoryFolderBase cof = m_scene.InventoryService.GetFolderForType(client.AgentId, (FolderType)46);
                     if (cof == null)
@@ -2125,7 +2125,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     Scene.SimulationService.ReleaseAgent(originID, UUID, m_callbackURI);
                     m_callbackURI = null;
-                    m_log.DebugFormat("[CompleteMovement] ReleaseAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                    //m_log.DebugFormat("[CompleteMovement] ReleaseAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
                 }
 //            else
 //            {
@@ -2137,7 +2137,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // Tell the client that we're totally ready
                 ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
-                m_log.DebugFormat("[CompleteMovement] MoveAgentIntoRegion: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                //m_log.DebugFormat("[CompleteMovement] MoveAgentIntoRegion: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 bool isHGTP = (m_teleportFlags & TeleportFlags.ViaHGLogin) != 0;
 
@@ -2172,7 +2172,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 m_scene.AvatarFactory.QueueAppearanceSave(UUID);
                         }
                     }
-                    m_log.DebugFormat("[CompleteMovement] Baked check: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                    //m_log.DebugFormat("[CompleteMovement] Baked check: {0}ms", Util.EnvironmentTickCountSubtract(ts));
                 }
 
                 if(m_teleportFlags > 0)
@@ -2260,7 +2260,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     } // greys if
 
-                    m_log.DebugFormat("[CompleteMovement] ValidateAndSendAppearanceAndAgentData: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                    //m_log.DebugFormat("[CompleteMovement] ValidateAndSendAppearanceAndAgentData: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                     // attachments
                     if (IsNPC || IsRealLogin(m_teleportFlags))
@@ -2309,7 +2309,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
 
-                    m_log.DebugFormat("[CompleteMovement] attachments: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                    //m_log.DebugFormat("[CompleteMovement] attachments: {0}ms", Util.EnvironmentTickCountSubtract(ts));
                     if (openChildAgents)
                     {
                         // Create child agents in neighbouring regions
@@ -2327,7 +2327,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_childUpdatesBusy = false; // allow them
                 }
 
-                m_log.DebugFormat("[CompleteMovement] openChildAgents: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                //m_log.DebugFormat("[CompleteMovement] openChildAgents: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 // send the rest of the world
                 if (m_teleportFlags > 0 && !IsNPC || m_currentParcelHide)
@@ -2339,7 +2339,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                m_reprioritizationLastTime = Util.EnvironmentTickCount() + 15000; // delay it
 //                m_reprioritizationBusy = false;
 
-                m_log.DebugFormat("[CompleteMovement] SendInitialDataToMe: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                //m_log.DebugFormat("[CompleteMovement] SendInitialDataToMe: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 if (!IsChildAgent && openChildAgents)
                 {
@@ -2351,7 +2351,7 @@ namespace OpenSim.Region.Framework.Scenes
                         else
                             friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
                     }
-                    m_log.DebugFormat("[CompleteMovement] friendsModule: {0}ms",    Util.EnvironmentTickCountSubtract(ts));
+                    //m_log.DebugFormat("[CompleteMovement] friendsModule: {0}ms",    Util.EnvironmentTickCountSubtract(ts));
 
                 }
             }

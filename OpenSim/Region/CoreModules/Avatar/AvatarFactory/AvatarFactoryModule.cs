@@ -528,7 +528,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 WearableCacheItem[] wearableCache = sp.Appearance.WearableCacheItems;
 
                 // big debug
-                m_log.DebugFormat("[AVFACTORY]: ValidateBakedTextureCache start for {0} {1}", sp.Name, sp.UUID);
+                //m_log.DebugFormat("[AVFACTORY]: ValidateBakedTextureCache start for {0} {1}", sp.Name, sp.UUID);
 /*
                 for (int iter = 0; iter < AvatarAppearance.BAKE_INDICES.Length; iter++)
                 {
@@ -600,7 +600,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
                     wearableCacheValid = (wearableCacheValid && (hits >= AvatarAppearance.BAKE_INDICES.Length - 1));
                     if (wearableCacheValid)
-                        m_log.Debug("[ValidateBakedCache] have valid local cache");
+                    {
+                        //m_log.Debug("[ValidateBakedCache] have valid local cache");
+                    }
                     else
                         wearableCache[19].TextureAsset = null; // clear optional skirt
                 }
@@ -640,7 +642,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
                     if (bakedModuleCache != null)
                     {
-                        m_log.Debug("[ValidateBakedCache] got bakedModule " + bakedModuleCache.Length + " cached textures");
+                        //m_log.Debug("[ValidateBakedCache] got bakedModule " + bakedModuleCache.Length + " cached textures");
 
                         for (int i = 0; i < bakedModuleCache.Length; i++)
                         {
@@ -695,7 +697,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             }
 
             // debug
-            m_log.DebugFormat("[ValidateBakedCache]: Completed texture check for {0} {1} with {2} hits", sp.Name, sp.UUID, hits);
+            //m_log.DebugFormat("[ValidateBakedCache]: Completed texture check for {0} {1} with {2} hits", sp.Name, sp.UUID, hits);
 /*
             for (int iter = 0; iter < AvatarAppearance.BAKE_INDICES.Length; iter++)
             {
