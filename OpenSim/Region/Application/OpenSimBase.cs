@@ -455,7 +455,7 @@ namespace OpenSim
 
             if (scene.SnmpService != null)
             {
-                scene.SnmpService.BootInfo("Loading prins", scene);
+                scene.SnmpService.BootInfo("Loading prims", scene);
             }
 
             while (regionInfo.EstateSettings.EstateOwner == UUID.Zero && MainConsole.Instance != null)
