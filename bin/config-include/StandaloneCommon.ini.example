@@ -85,20 +85,20 @@
     ;; Next, we can specify properties of regions, including default and fallback regions
     ;; The syntax is: Region_<RegionName> = "<flags>"
     ;; where <flags> can be DefaultRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut
-    ;;  
+    ;;
     ;; DefaultRegion    If a local login cannot be placed in the required region (e.g. home region does not exist, avatar is not allowed entry, etc.)
     ;;                  then this region becomes the destination.  Only the first online default region will be used.  If no DefaultHGRegion
     ;;                  is specified then this will also be used as the region for hypergrid connections that require it (commonly because they have not specified
     ;;                  an explicit region.
-    ;;  
+    ;;
     ;; DefaultHGRegion  If an avatar connecting via the hypergrid does not specify a region, then they are placed here.  Only the first online
     ;;                  region will be used.
-    ;;  
-    ;; FallbackRegion   If the DefaultRegion is not available for a local login, then any FallbackRegions are tried instead.  These are tried in the 
+    ;;
+    ;; FallbackRegion   If the DefaultRegion is not available for a local login, then any FallbackRegions are tried instead.  These are tried in the
     ;;                  order specified.  This only applies to local logins at this time, not Hypergrid connections.
-    ;;  
+    ;;
     ;; NoDirectLogin    A hypergrid user cannot directly connect to this region.  This does not apply to local logins.
-    ;;  
+    ;;
     ;; Persistent       When the simulator is shutdown, the region is signalled as offline but left registered on the grid.
     ;;
     ;; For example:
@@ -121,7 +121,7 @@
     ;; If you have Gatekeeper set under [Hypergrid], no need to set it here, leave it commented
     ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
 
-    SRV_HomeURI = "${Const|BaseURL}:${Const|PublicPort}"    
+    SRV_HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
     SRV_InventoryServerURI = "${Const|BaseURL}:${Const|PublicPort}"
     SRV_AssetServerURI = "${Const|BaseURL}:${Const|PublicPort}"
     SRV_ProfileServerURI = "${Const|BaseURL}:${Const|PublicPort}"
@@ -163,7 +163,7 @@
     ; ;
     ; ; The amount of time that a specific endpoint is blocked.    Default 2 minutes.
     ; DOSForgiveClientAfterMS = 120000
-    ; ; 
+    ; ;
     ; ; To turn off basic dos protection, set the DOSMaxRequestsInTimeFrame to 0.
 
 [FreeswitchService]
@@ -197,7 +197,7 @@
     ;; The following parameters are for STUN = Simple Traversal of UDP through NATs
     ;; See http://wiki.freeswitch.org/wiki/NAT_Traversal
     ;; stun.freeswitch.org is not guaranteed to be running so use it in
-    ;; production at your own risk    
+    ;; production at your own risk
     ; EchoServer = 127.0.0.1
     ; EchoPort = 50505
     ; AttemptSTUN = false
@@ -341,11 +341,11 @@
     ;; The asset types that this grid can export to / import from other grids.
     ;; Comma separated.
     ;; Valid values are all the asset types in OpenMetaverse.AssetType, namely:
-    ;; Unknown, Texture, Sound, CallingCard, Landmark, Clothing, Object, Notecard, LSLText, 
-    ;; LSLBytecode, TextureTGA, Bodypart, SoundWAV, ImageTGA, ImageJPEG, Animation, Gesture, Mesh 
+    ;; Unknown, Texture, Sound, CallingCard, Landmark, Clothing, Object, Notecard, LSLText,
+    ;; LSLBytecode, TextureTGA, Bodypart, SoundWAV, ImageTGA, ImageJPEG, Animation, Gesture, Mesh
     ;;
     ;; Leave blank or commented if you don't want to apply any restrictions.
-    ;; A more strict, but still reasonable, policy may be to disallow the exchange 
+    ;; A more strict, but still reasonable, policy may be to disallow the exchange
     ;; of scripts, like so:
     ; DisallowExport ="LSLText"
     ; DisallowImport ="LSLBytecode"
