@@ -326,7 +326,7 @@
 [AuthenticationService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
-    ; Realm = "useraccounts"
+    ; Realm = "auth"
 
     ;; Allow the service to process HTTP getauthinfo calls.
     ;; Default is false.
@@ -355,7 +355,7 @@
 [UserAccountService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.UserAccountService.dll:UserAccountService"
-    ; Realm = "useraccounts"
+    ; Realm = "UserAccounts"
 
     ; These are for creating new accounts by the service
     AuthenticationService = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
