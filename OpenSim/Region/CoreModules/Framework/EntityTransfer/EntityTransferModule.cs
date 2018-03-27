@@ -1178,7 +1178,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 agent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
 
             agent.SenderWantsToWaitForRoot = true;
-
             //SetCallbackURL(agent, sp.Scene.RegionInfo);
 
             // Reset the do not close flag.  This must be done before the destination opens child connections (here
