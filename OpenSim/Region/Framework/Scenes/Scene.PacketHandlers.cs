@@ -703,10 +703,17 @@ namespace OpenSim.Region.Framework.Scenes
         {
             InventoryFolderBase folder = new InventoryFolderBase(folderID, userID);
 
-            if (InventoryService.PurgeFolder(folder))
-                m_log.DebugFormat("[AGENT INVENTORY]: folder {0} purged successfully", folderID);
-            else
-                m_log.WarnFormat("[AGENT INVENTORY]: could not purge folder {0}", folderID);
+            try
+            {
+                if (InventoryService.PurgeFolder(folder))
+                    m_log.DebugFormat("[AGENT INVENTORY]: folder {0} purged successfully", folderID);
+                else
+                    m_log.WarnFormat("[AGENT INVENTORY]: could not purge folder {0}", folderID);
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[AGENT INVENTORY]: Exception on async purge folder for user {0}: {1}", userID, e.Message);
+            }
         }
 
         private void PurgeFolderCompleted(IAsyncResult iar)
