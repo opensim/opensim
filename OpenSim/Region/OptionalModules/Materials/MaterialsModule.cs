@@ -359,7 +359,7 @@ namespace OpenSim.Region.OptionalModules.Materials
 
                 byte[] data = matAsset.Data;
 
-                string txt = System.Text.Encoding.ASCII.GetString(data);
+                // string txt = System.Text.Encoding.ASCII.GetString(data);
                 try
                 {
                     mat = (OSDMap)OSDParser.DeserializeLLSDXml(data);
