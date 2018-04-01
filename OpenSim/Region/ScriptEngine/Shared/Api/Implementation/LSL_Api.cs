@@ -124,6 +124,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected bool m_debuggerSafe = false;
         protected IUrlModule m_UrlModule = null;
 
+        protected IMaterialsModule m_materialsModule = null;
+
         protected Dictionary<UUID, UserInfoCacheEntry> m_userInfoCache = new Dictionary<UUID, UserInfoCacheEntry>();
         protected int EMAIL_PAUSE_TIME = 20;  // documented delay value for smtp.
         protected int m_sleepMsOnSetTexture = 200;
@@ -306,6 +308,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
             m_SoundModule = m_ScriptEngine.World.RequestModuleInterface<ISoundModule>();
+            m_materialsModule = m_ScriptEngine.World.RequestModuleInterface<IMaterialsModule>();
 
             AsyncCommands = new AsyncCommandManager(m_ScriptEngine);
         }
@@ -2457,7 +2460,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!UUID.TryParse(texture, out textureID))
                     return;
             }
-
 
             Primitive.TextureEntry tex = part.Shape.Textures;
             int nsides = GetNumberOfSides(part); 
@@ -8910,6 +8912,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             SceneObjectGroup parentgrp = part.ParentGroup;
 
             bool positionChanged = false;
+            bool materialChanged = false;
             LSL_Vector currentPosition = GetPartLocalPos(part);
 
             try
@@ -10206,6 +10209,231 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             break;
 
+                        case ScriptBaseClass.PRIM_ALPHA_MODE:
+                            if (remain < 3)
+                                return new LSL_List();
+
+                            try
+                            {
+                                face = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_ALPHA_MODE: arg #{1} - must be integer", rulesParsed, idx - idxStart - 1));
+                               return new LSL_List();
+                            }
+
+                            int materialAlphaMode;
+                            try
+                            {
+                                materialAlphaMode = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_ALPHA_MODE: arg #{1} - must be integer", rulesParsed, idx - idxStart - 1));
+                               return new LSL_List();
+                            }
+
+                            if(materialAlphaMode < 0 || materialAlphaMode > 3)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_ALPHA_MODE: arg #{1} - must be 0 to 3", rulesParsed, idx - idxStart - 1));
+                               return new LSL_List();
+                            }
+
+                            int materialMaskCutoff;
+                            try
+                            {
+                                materialMaskCutoff = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_ALPHA_MODE: arg #{1} - must be integer", rulesParsed, idx - idxStart - 1));
+                               return new LSL_List();
+                            }
+
+                            if(materialMaskCutoff < 0 || materialMaskCutoff > 255)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_ALPHA_MODE: arg #{1} - must be 0 to 255", rulesParsed, idx - idxStart - 1));
+                               return new LSL_List();
+                            }
+    
+                            materialChanged |= SetMaterialAlphaMode(part, face, materialAlphaMode, materialMaskCutoff);
+                            break;
+
+                        case ScriptBaseClass.PRIM_NORMAL:
+                            if (remain < 5)
+                                return new LSL_List();
+
+                            try
+                            {
+                                face = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_NORMAL: arg #{1} - must be integer", rulesParsed, idx - idxStart - 1));
+                               return new LSL_List();
+                            }
+
+                            string mapname = rules.Data[idx++].ToString();
+
+                            UUID mapID = ScriptUtils.GetAssetIdFromItemName(m_host, mapname, (int)AssetType.Texture);
+                            if (mapID == UUID.Zero)
+                            {
+                                if (!UUID.TryParse(mapname, out mapID))
+                                {
+                                    Error(originFunc, string.Format("Error running rule #{0} -> PRIM_NORMAL: arg #{1} - must be a UUID or a texture name on object inventory", rulesParsed, idx - idxStart - 1));
+                                    return new LSL_List();
+                                }
+                            }
+
+                            LSL_Vector mnrepeat;
+                            try
+                            {
+                                mnrepeat = rules.GetVector3Item(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_NORMAL: arg #{1} - must be vector", rulesParsed, idx - idxStart - 1));
+                                return new LSL_List();
+                            }
+
+                            LSL_Vector mnoffset;
+                            try
+                            {
+                                mnoffset = rules.GetVector3Item(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_NORMAL: arg #{1} - must be vector", rulesParsed, idx - idxStart - 1));
+                                return new LSL_List();
+                            }
+
+                            LSL_Float mnrot;
+                            try
+                            {
+                                mnrot = rules.GetLSLFloatItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_NORMAL: arg #{1} - must be float", rulesParsed, idx - idxStart - 1));
+                                return new LSL_List();
+                            }
+    
+                            float repeatX = (float)Util.Clamp(mnrepeat.x,-100.0, 100.0);
+                            float repeatY = (float)Util.Clamp(mnrepeat.y,-100.0, 100.0);
+                            float offsetX = (float)Util.Clamp(mnoffset.x, 0, 1.0);
+                            float offsetY = (float)Util.Clamp(mnoffset.y, 0, 1.0);
+
+                            materialChanged |= SetMaterialNormalMap(part, face, mapID, repeatX, repeatY, offsetX, offsetY, (float)mnrot);
+                            break;
+
+                        case ScriptBaseClass.PRIM_SPECULAR:
+                            if (remain < 8)
+                                return new LSL_List();
+
+                            try
+                            {
+                                face = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SPECULAR: arg #{1} - must be integer", rulesParsed, idx - idxStart - 1));
+                               return new LSL_List();
+                            }
+
+                            string smapname = rules.Data[idx++].ToString();
+
+                            UUID smapID = ScriptUtils.GetAssetIdFromItemName(m_host, smapname, (int)AssetType.Texture);
+                            if (smapID == UUID.Zero)
+                            {
+                                if (!UUID.TryParse(smapname, out smapID))
+                                {
+                                    Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SPECULAR: arg #{1} - must be a UUID or a texture name on object inventory", rulesParsed, idx - idxStart - 1));
+                                    return new LSL_List();
+                                }
+                            }
+
+                            LSL_Vector msrepeat;
+                            try
+                            {
+                                msrepeat = rules.GetVector3Item(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SPECULAR: arg #{1} - must be vector", rulesParsed, idx - idxStart - 1));
+                                return new LSL_List();
+                            }
+
+                            LSL_Vector msoffset;
+                            try
+                            {
+                                msoffset = rules.GetVector3Item(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SPECULAR: arg #{1} - must be vector", rulesParsed, idx - idxStart - 1));
+                                return new LSL_List();
+                            }
+
+                            LSL_Float msrot;
+                            try
+                            {
+                                msrot = rules.GetLSLFloatItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SPECULAR: arg #{1} - must be float", rulesParsed, idx - idxStart - 1));
+                                return new LSL_List();
+                            }
+
+                            LSL_Vector mscolor;
+                            try
+                            {
+                                mscolor = rules.GetVector3Item(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SPECULAR: arg #{1} - must be vector", rulesParsed, idx - idxStart - 1));
+                                return new LSL_List();
+                            }
+
+                            LSL_Integer msgloss;
+                            try
+                            {
+                                msgloss = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SPECULAR: arg #{1} - must be integer", rulesParsed, idx - idxStart - 1));
+                               return new LSL_List();
+                            }
+
+                            LSL_Integer msenv;
+                            try
+                            {
+                                msenv = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SPECULAR: arg #{1} - must be integer", rulesParsed, idx - idxStart - 1));
+                               return new LSL_List();
+                            }
+   
+                            float srepeatX = (float)Util.Clamp(msrepeat.x, -100.0, 100.0);
+                            float srepeatY = (float)Util.Clamp(msrepeat.y, -100.0, 100.0);
+                            float soffsetX = (float)Util.Clamp(msoffset.x, -1.0, 1.0);
+                            float soffsetY = (float)Util.Clamp(msoffset.y, -1.0, 1.0);
+                            byte colorR = (byte)(255.0 * Util.Clamp(mscolor.x, 0, 1.0) + 0.5);
+                            byte colorG = (byte)(255.0 * Util.Clamp(mscolor.y, 0, 1.0) + 0.5);
+                            byte colorB = (byte)(255.0 * Util.Clamp(mscolor.z, 0, 1.0) + 0.5);
+                            byte gloss = (byte)Util.Clamp((int)msgloss, 0, 255);
+                            byte env = (byte)Util.Clamp((int)msenv, 0, 255);
+
+                            materialChanged |= SetMaterialSpecMap(part, face, smapID, srepeatX, srepeatY, soffsetX, soffsetY,
+                                                (float)msrot, colorR, colorG, colorB, gloss, env);
+
+                            break;
+
                         case ScriptBaseClass.PRIM_LINK_TARGET:
                             if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
                                 return new LSL_List();
@@ -10242,9 +10470,192 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         part.ScheduleTerseUpdate();
                     }
                 }
+                if(materialChanged)
+                {
+                    if (part.ParentGroup != null && !part.ParentGroup.IsDeleted)
+                    {
+                        part.TriggerScriptChangedEvent(Changed.TEXTURE);
+                        part.ScheduleFullUpdate();
+                        part.ParentGroup.HasGroupChanged = true;
+                    }
+                }
             }
 
             return new LSL_List();
+        }
+
+        protected bool SetMaterialAlphaMode(SceneObjectPart part, int face, int materialAlphaMode, int materialMaskCutoff)
+        {
+            if(m_materialsModule == null)
+                return false;
+           
+            int nsides =  part.GetNumberOfSides();                      
+
+            if(face == ScriptBaseClass.ALL_SIDES)
+            {
+                bool changed = false;
+                for(int i = 0; i < nsides; i++)
+                    changed |= SetFaceMaterialAlphaMode(part, i, materialAlphaMode, materialMaskCutoff);
+                return changed;
+            }
+
+            if( face >= 0 && face < nsides)
+                return SetFaceMaterialAlphaMode(part, face, materialAlphaMode, materialMaskCutoff);
+
+            return false;
+        }
+
+        protected bool SetFaceMaterialAlphaMode(SceneObjectPart part, int face, int materialAlphaMode, int materialMaskCutoff)
+        {
+            Primitive.TextureEntry tex = part.Shape.Textures;
+            Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
+            if(texface == null)
+                return false;
+
+            FaceMaterial mat = null;
+            UUID oldid = texface.MaterialID;
+
+            if(oldid != UUID.Zero)
+                mat = m_materialsModule.GetMaterialCopy(oldid);
+
+            if(mat == null)
+                mat = new FaceMaterial();
+
+            mat.DiffuseAlphaMode = (byte)materialAlphaMode;
+            mat.AlphaMaskCutoff = (byte)materialMaskCutoff;
+
+            UUID id = m_materialsModule.AddNewMaterial(mat);
+            if(oldid == id)
+                return false;
+
+            texface.MaterialID = id;
+            part.Shape.TextureEntry = tex.GetBytes();
+            m_materialsModule.RemoveMaterial(oldid);
+            return true;
+        }
+
+        protected bool SetMaterialNormalMap(SceneObjectPart part, int face, UUID mapID, float repeatX, float repeatY,
+                                            float offsetX, float offsetY, float rot)
+        {
+            if(m_materialsModule == null)
+                return false;
+           
+            int nsides =  part.GetNumberOfSides();                      
+
+            if(face == ScriptBaseClass.ALL_SIDES)
+            {
+                bool changed = false;
+                for(int i = 0; i < nsides; i++)
+                    changed |= SetFaceMaterialNormalMap(part, i, mapID, repeatX, repeatY, offsetX, offsetY, rot);
+                return changed;
+            }
+
+            if( face >= 0 && face < nsides)
+                return SetFaceMaterialNormalMap(part, face, mapID, repeatX, repeatY, offsetX, offsetY, rot);
+
+            return false;
+        }
+
+        protected bool SetFaceMaterialNormalMap(SceneObjectPart part, int face, UUID mapID, float repeatX, float repeatY,
+                                                float offsetX, float offsetY, float rot)
+
+        {
+            Primitive.TextureEntry tex = part.Shape.Textures;
+            Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
+            if(texface == null)
+                return false;
+
+            FaceMaterial mat = null;
+            UUID oldid = texface.MaterialID;
+
+            if(oldid != UUID.Zero)
+                mat = m_materialsModule.GetMaterialCopy(oldid);
+
+            if(mat == null)
+                mat = new FaceMaterial();
+
+            mat.NormalMapID = mapID;
+            mat.NormalOffsetX = offsetX;
+            mat.NormalOffsetY = offsetY;
+            mat.NormalRepeatX = repeatX;
+            mat.NormalRepeatY = repeatY;
+            mat.NormalRotation = rot;
+
+            UUID id = m_materialsModule.AddNewMaterial(mat);
+            if(oldid == id)
+                return false;
+
+            texface.MaterialID = id;
+            part.Shape.TextureEntry = tex.GetBytes();
+            m_materialsModule.RemoveMaterial(oldid);
+            return true;
+        }
+
+        protected bool SetMaterialSpecMap(SceneObjectPart part, int face, UUID mapID, float repeatX, float repeatY,
+                                            float offsetX, float offsetY, float rot,
+                                            byte colorR, byte colorG,  byte colorB,
+                                            byte gloss, byte env)
+        {
+            if(m_materialsModule == null)
+                return false;
+           
+            int nsides =  part.GetNumberOfSides();                      
+
+            if(face == ScriptBaseClass.ALL_SIDES)
+            {
+                bool changed = false;
+                for(int i = 0; i < nsides; i++)
+                    changed |= SetFaceMaterialSpecMap(part, i, mapID, repeatX, repeatY, offsetX, offsetY, rot,
+                                            colorR, colorG, colorB, gloss, env);
+                return changed;
+            }
+
+            if( face >= 0 && face < nsides)
+                return SetFaceMaterialSpecMap(part, face, mapID, repeatX, repeatY, offsetX, offsetY, rot,
+                                            colorR, colorG, colorB, gloss, env);
+
+            return false;
+        }
+
+        protected bool SetFaceMaterialSpecMap(SceneObjectPart part, int face, UUID mapID, float repeatX, float repeatY,
+                                            float offsetX, float offsetY, float rot,
+                                            byte colorR, byte colorG, byte colorB,
+                                            byte gloss, byte env)
+        {
+            Primitive.TextureEntry tex = part.Shape.Textures;
+            Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
+            if(texface == null)
+                return false;
+
+            FaceMaterial mat = null;
+            UUID oldid = texface.MaterialID;
+
+            if(oldid != UUID.Zero)
+                mat = m_materialsModule.GetMaterialCopy(oldid);
+
+            if(mat == null)
+                mat = new FaceMaterial();
+
+            mat.SpecularMapID = mapID;
+            mat.SpecularOffsetX = offsetX;
+            mat.SpecularOffsetY = offsetY;
+            mat.SpecularRepeatX = repeatX;
+            mat.SpecularRepeatY = repeatY;
+            mat.SpecularRotation = rot;
+            mat.SpecularLightColorR = colorR;
+            mat.SpecularLightColorG = colorG;
+            mat.SpecularLightColorB = colorB;
+            mat.SpecularLightExponent = gloss;
+            mat.EnvironmentIntensity = env;
+
+            UUID id = m_materialsModule.AddNewMaterial(mat);
+            if(oldid == id)
+                return false;
+
+            texface.MaterialID = id;
+            part.Shape.TextureEntry = tex.GetBytes();
+            m_materialsModule.RemoveMaterial(oldid);
+            return true;
         }
 
         protected LSL_List SetAgentParams(ScenePresence sp, LSL_List rules, string originFunc, ref uint rulesParsed)
@@ -11363,106 +11774,82 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_List();
         }
 
-/*
-        private string filterTextureUUIDbyRights(UUID origID, SceneObjectPart part, bool checkTaskInventory, bool returnInvName)
+        private string GetMaterialTextureUUIDbyRights(UUID origID, SceneObjectPart part)
         {
-            if(checkTaskInventory)
-            {
-                lock (part.TaskInventory)
-                {
-                    foreach (KeyValuePair<UUID, TaskInventoryItem> inv in part.TaskInventory)
-                    {
-                        if (inv.Value.AssetID == origID)
-                        {
-                            if(inv.Value.InvType == (int)InventoryType.Texture)
-                            {
-                                if(returnInvName)
-                                    return inv.Value.Name;
-                                else
-                                    return origID.ToString();
-                            }
-                            else
-                                return UUID.Zero.ToString();
-                        }
-                    }
-                }
-            }
-
             if(World.Permissions.CanEditObject(m_host.ParentGroup.UUID, m_host.ParentGroup.RootPart.OwnerID))
                 return origID.ToString();
 
+            lock(part.TaskInventory)
+            {
+                foreach(KeyValuePair<UUID, TaskInventoryItem> inv in part.TaskInventory)
+                {
+                    if(inv.Value.InvType == (int)InventoryType.Texture && inv.Value.AssetID == origID)
+                        return origID.ToString();
+                }
+            }
+
             return UUID.Zero.ToString();
         }
-*/
+
         private void getLSLFaceMaterial(ref LSL_List res, int code, SceneObjectPart part, Primitive.TextureEntryFace texface)
         {
-            UUID matID = texface.MaterialID;
+            UUID matID = UUID.Zero;
+            if(m_materialsModule != null)
+                matID = texface.MaterialID;
+
             if(matID != UUID.Zero)
             {
-                AssetBase MatAsset = World.AssetService.Get(matID.ToString());
-                if(MatAsset != null)
+                FaceMaterial mat = m_materialsModule.GetMaterial(matID);
+                if(mat != null)
                 {
-                    Byte[] data = MatAsset.Data;
-                    OSDMap osdmat = (OSDMap)OSDParser.DeserializeLLSDXml(data);
-                    if(osdmat != null && osdmat.ContainsKey("NormMap"))
+                    if(code == ScriptBaseClass.PRIM_NORMAL)
                     {
-                        string mapIDstr;
-                        FaceMaterial mat = new FaceMaterial(matID, osdmat);
-                        if(code == ScriptBaseClass.PRIM_NORMAL)
-                        {
-//                            mapIDstr = filterTextureUUIDbyRights(mat.NormalMapID, part, true, false);
-                            mapIDstr = mat.NormalMapID.ToString();
-                            res.Add(new LSL_String(mapIDstr));
-                            res.Add(new LSL_Vector(mat.NormalRepeatX, mat.NormalRepeatY, 0));
-                            res.Add(new LSL_Vector(mat.NormalOffsetX, mat.NormalOffsetY, 0));
-                            res.Add(new LSL_Float(mat.NormalRotation));
-                        }
-                        else if(code == ScriptBaseClass.PRIM_SPECULAR )
-                        {
-//                            mapIDstr = filterTextureUUIDbyRights(mat.SpecularMapID, part, true, false);
-                            const float colorScale = 1.0f/255f;
-                            mapIDstr = mat.SpecularMapID.ToString();
-                            res.Add(new LSL_String(mapIDstr));
-                            res.Add(new LSL_Vector(mat.SpecularRepeatX, mat.SpecularRepeatY, 0));
-                            res.Add(new LSL_Vector(mat.SpecularOffsetX, mat.SpecularOffsetY, 0));
-                            res.Add(new LSL_Float(mat.SpecularRotation));
-                            res.Add(new LSL_Vector(mat.SpecularLightColor.R * colorScale,
-                                    mat.SpecularLightColor.G * colorScale,
-                                    mat.SpecularLightColor.B  * colorScale));
-                            res.Add(new LSL_Integer(mat.SpecularLightExponent));
-                            res.Add(new LSL_Integer(mat.EnvironmentIntensity));
-                        }
-                        else if(code == ScriptBaseClass.PRIM_ALPHA_MODE)
-                        {
-                            res.Add(new LSL_Integer(mat.DiffuseAlphaMode));
-                            res.Add(new LSL_Integer(mat.AlphaMaskCutoff));
-                        }
-                        return;
+                        res.Add(new LSL_String(GetMaterialTextureUUIDbyRights(mat.NormalMapID, part)));
+                        res.Add(new LSL_Vector(mat.NormalRepeatX, mat.NormalRepeatY, 0));
+                        res.Add(new LSL_Vector(mat.NormalOffsetX, mat.NormalOffsetY, 0));
+                        res.Add(new LSL_Float(mat.NormalRotation));
                     }
+                    else if(code == ScriptBaseClass.PRIM_SPECULAR)
+                    {
+                        const float colorScale = 1.0f / 255f;
+                        res.Add(new LSL_String(GetMaterialTextureUUIDbyRights(mat.SpecularMapID, part)));
+                        res.Add(new LSL_Vector(mat.SpecularRepeatX, mat.SpecularRepeatY, 0));
+                        res.Add(new LSL_Vector(mat.SpecularOffsetX, mat.SpecularOffsetY, 0));
+                        res.Add(new LSL_Float(mat.SpecularRotation));
+                        res.Add(new LSL_Vector(mat.SpecularLightColorR * colorScale,
+                                mat.SpecularLightColorG * colorScale,
+                                mat.SpecularLightColorB * colorScale));
+                        res.Add(new LSL_Integer(mat.SpecularLightExponent));
+                        res.Add(new LSL_Integer(mat.EnvironmentIntensity));
+                    }
+                    else if(code == ScriptBaseClass.PRIM_ALPHA_MODE)
+                    {
+                        res.Add(new LSL_Integer(mat.DiffuseAlphaMode));
+                        res.Add(new LSL_Integer(mat.AlphaMaskCutoff));
+                    }
+                    return;
                 }
-                matID = UUID.Zero;
             }
-            if(matID == UUID.Zero)
+
+            // material not found
+            if(code == (int)ScriptBaseClass.PRIM_NORMAL || code == (int)ScriptBaseClass.PRIM_SPECULAR)
             {
-                if(code == (int)ScriptBaseClass.PRIM_NORMAL || code == (int)ScriptBaseClass.PRIM_SPECULAR )
+                res.Add(new LSL_String(UUID.Zero.ToString()));
+                res.Add(new LSL_Vector(1.0, 1.0, 0));
+                res.Add(new LSL_Vector(0, 0, 0));
+                res.Add(new LSL_Float(0));
+
+                if(code == (int)ScriptBaseClass.PRIM_SPECULAR)
                 {
-                    res.Add(new LSL_String(UUID.Zero.ToString()));
-                    res.Add(new LSL_Vector(1.0, 1.0, 0));
-                    res.Add(new LSL_Vector(0, 0, 0));
-                    res.Add(new LSL_Float(0));
-                
-                    if(code == (int)ScriptBaseClass.PRIM_SPECULAR)
-                    {
-                        res.Add(new LSL_Vector(1.0, 1.0, 1.0));
-                        res.Add(new LSL_Integer(51));
-                        res.Add(new LSL_Integer(0));
-                    }
-                }
-                else if(code == (int)ScriptBaseClass.PRIM_ALPHA_MODE)
-                {
-                    res.Add(new LSL_Integer(1));
+                    res.Add(new LSL_Vector(1.0, 1.0, 1.0));
+                    res.Add(new LSL_Integer(51));
                     res.Add(new LSL_Integer(0));
                 }
+            }
+            else if(code == (int)ScriptBaseClass.PRIM_ALPHA_MODE)
+            {
+                res.Add(new LSL_Integer(1));
+                res.Add(new LSL_Integer(0));
             }
         }
 
