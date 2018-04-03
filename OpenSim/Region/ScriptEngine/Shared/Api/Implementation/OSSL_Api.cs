@@ -4804,5 +4804,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return -1;
             return sog.GetLinkNumber(name);
         }
+
+        // rounds to the nearest number with provided number of decimal places
+        public LSL_Float osRound(LSL_Float value, LSL_Integer ndigits)
+        {
+            if(ndigits <= 0)
+                return Math.Round(value, MidpointRounding.AwayFromZero);
+            if(ndigits > 15)
+                ndigits = 15;
+            return Math.Round(value, ndigits, MidpointRounding.AwayFromZero);
+        }
+
+        public LSL_Float osVecMagSquare(LSL_Vector a)
+        {
+            return LSL_Vector.MagSquare(a);
+        }
+
+        public LSL_Float osVecDistSquare(LSL_Vector a, LSL_Vector b)
+        {
+            return LSL_Vector.MagSquare(a - b);
+        }
+
+        // returns the angle between 2 vectors -pi to pi
+        public LSL_Float osAngleBetween(LSL_Vector a, LSL_Vector b)
+        {
+            double dot = LSL_Vector.Dot(a,b);
+            double mcross = LSL_Vector.Mag(LSL_Vector.Cross(a,b));   
+            return Math.Atan2(mcross, dot);
+        }
     }
 }

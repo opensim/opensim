@@ -506,5 +506,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         LSL_Integer osTeleportObject(LSL_Key objectUUID, vector targetPos, rotation targetrotation, LSL_Integer flags);
         LSL_Integer osGetLinkNumber(LSL_String name);
+
+        LSL_Float osRound(LSL_Float value, LSL_Integer digits);
+
+        LSL_Float osVecMagSquare(vector a);
+        LSL_Float osVecDistSquare(vector a, vector b);
+        LSL_Float osAngleBetween(vector a, vector b);
     }
 }

@@ -304,6 +304,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     );
             }
 
+            public static double MagSquare(Vector3 v)
+            {
+                return v.x * v.x + v.y * v.y + v.z * v.z;
+            }
+
             public static double Mag(Vector3 v)
             {
                 return Math.Sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
