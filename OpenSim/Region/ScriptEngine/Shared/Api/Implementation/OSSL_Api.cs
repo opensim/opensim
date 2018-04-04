@@ -4825,11 +4825,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return LSL_Vector.MagSquare(a - b);
         }
 
-        // returns the angle between 2 vectors -pi to pi
+        // returns the angle between 2 vectors 0 to pi
         public LSL_Float osAngleBetween(LSL_Vector a, LSL_Vector b)
         {
             double dot = LSL_Vector.Dot(a,b);
-            double mcross = LSL_Vector.Mag(LSL_Vector.Cross(a,b));   
+            double mcross = LSL_Vector.Mag(LSL_Vector.Cross(a,b));
             return Math.Atan2(mcross, dot);
         }
     }
