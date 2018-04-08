@@ -144,6 +144,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal bool m_debuggerSafe = false;
         internal Dictionary<string, FunctionPerms > m_FunctionPerms = new Dictionary<string, FunctionPerms >();
         protected IUrlModule m_UrlModule = null;
+        protected ISoundModule m_SoundModule = null;
         internal IConfig m_osslconfig;
 
         public void Initialize(
@@ -160,6 +161,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_debuggerSafe = m_ScriptEngine.Config.GetBoolean("DebuggerSafe", false);
 
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
+            m_SoundModule = m_ScriptEngine.World.RequestModuleInterface<ISoundModule>();
+
             if (m_osslconfig.GetBoolean("AllowOSFunctions", false))
             {
                 m_OSFunctionsEnabled = true;
@@ -4831,6 +4834,196 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             double dot = LSL_Vector.Dot(a,b);
             double mcross = LSL_Vector.Mag(LSL_Vector.Cross(a,b));
             return Math.Atan2(mcross, dot);
+        }
+
+
+//******* link sound
+       public void osAdjustSoundVolume(LSL_Integer linknum, LSL_Float volume)
+        {
+            m_host.AddScriptLPS(1);
+            SceneObjectPart sop = GetSingleLinkPart(linknum);
+            if(sop == null)
+                return;
+            sop.AdjustSoundGain(volume);
+            ScriptSleep(100);
+        }
+
+        public void osSetSoundRadius(LSL_Integer linknum, LSL_Float radius)
+        {
+            m_host.AddScriptLPS(1);
+            SceneObjectPart sop = GetSingleLinkPart(linknum);
+            if(sop == null)
+                return;
+            m_host.SoundRadius = radius;
+        }
+
+        public void osPlaySound(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_SoundModule == null)
+                return;
+
+            SceneObjectPart sop = GetSingleLinkPart(linknum);
+            if(sop == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(sop, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
+            // send the sound, once, to all clients in range
+            m_SoundModule.SendSound(sop.UUID, soundID, volume, false, 0, 0, false, false);
+        }
+
+        public void osLoopSound(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_SoundModule == null)
+                return;
+
+            SceneObjectPart sop = GetSingleLinkPart(linknum);
+            if(sop == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(sop, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
+            m_SoundModule.LoopSound(sop.UUID, soundID, volume, 20, false,false);
+        }
+
+        public void osLoopSoundMaster(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
+        {
+            m_host.AddScriptLPS(1);
+
+            SceneObjectPart sop = GetSingleLinkPart(linknum);
+            if(sop == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(sop, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
+            m_SoundModule.LoopSound(sop.UUID, soundID, volume, 20, true, false);
+        }
+
+        public void osLoopSoundSlave(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_SoundModule == null)
+                return;
+
+            SceneObjectPart sop = GetSingleLinkPart(linknum);
+            if(sop == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(sop, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
+            m_SoundModule.LoopSound(sop.UUID, soundID, volume, 20, false, true);
+        }
+
+        public void osPlaySoundSlave(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_SoundModule == null)
+                return;
+
+            SceneObjectPart sop = GetSingleLinkPart(linknum);
+            if(sop == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(sop, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
+            // send the sound, once, to all clients in range
+            m_SoundModule.SendSound(sop.UUID, soundID, volume, false, 0, 0, true, false);
+        }
+
+        public void osTriggerSound(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_SoundModule == null)
+                return;
+
+            SceneObjectPart sop = GetSingleLinkPart(linknum);
+            if(sop == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(sop, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
+            // send the sound, once, to all clients in rangeTrigger or play an attached sound in this part's inventory.
+            m_SoundModule.SendSound(sop.UUID, soundID, volume, true, 0, 0, false, false);
+        }
+
+        public void osStopSound(LSL_Integer linknum)
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_SoundModule == null)
+                return;
+
+            SceneObjectPart sop = GetSingleLinkPart(linknum);
+            if(sop == null)
+                return;
+
+            m_SoundModule.StopSound(sop.UUID);
+        }
+
+        public void osPreloadSound(LSL_Integer linknum, LSL_String sound)
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_SoundModule == null)
+                return;
+
+            SceneObjectPart sop = GetSingleLinkPart(linknum);
+            if(sop == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(sop, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
+            m_SoundModule.PreloadSound(sop.UUID, soundID, 0);
+            ScriptSleep(1000);
+        }
+
+        // get only one part
+        private SceneObjectPart GetSingleLinkPart(int linkType)
+        {
+            if (m_host.ParentGroup == null || m_host.ParentGroup.IsDeleted)
+                return null;
+
+            switch (linkType)
+            {
+                case ScriptBaseClass.LINK_SET:
+                case ScriptBaseClass.LINK_ALL_OTHERS:
+                case ScriptBaseClass.LINK_ALL_CHILDREN:
+                    return null;
+
+                case 0:
+                case ScriptBaseClass.LINK_ROOT:
+                    return m_host.ParentGroup.RootPart;
+
+                case ScriptBaseClass.LINK_THIS:
+                    return m_host;
+
+                default:
+                    if(linkType < 0)
+                        return null;
+
+                return m_host.ParentGroup.GetLinkNumPart(linkType);
+            }
         }
     }
 }

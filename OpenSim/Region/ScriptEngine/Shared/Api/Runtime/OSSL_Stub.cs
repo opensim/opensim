@@ -1216,5 +1216,54 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osAngleBetween(a, b);
         }
 
+        public void osAdjustSoundVolume(LSL_Integer linknum, LSL_Float volume)
+        {
+            m_OSSL_Functions.osAdjustSoundVolume(linknum, volume);
+        }
+
+        public void osSetSoundRadius(LSL_Integer linknum, LSL_Float radius)
+        {
+            m_OSSL_Functions.osSetSoundRadius(linknum, radius);
+        }
+
+        public void osPlaySound(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
+        {
+            m_OSSL_Functions.osPlaySound(linknum, sound, volume);
+        }
+
+        public void osLoopSound(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
+        {
+            m_OSSL_Functions.osLoopSound(linknum, sound, volume);
+        }
+
+        public void osLoopSoundMaster(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
+        {
+            m_OSSL_Functions.osLoopSoundMaster(linknum, sound, volume);
+        }
+
+        public void osLoopSoundSlave(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
+        {
+            m_OSSL_Functions.osLoopSoundSlave(linknum, sound, volume);
+        }
+
+        public void osPlaySoundSlave(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
+        {
+            m_OSSL_Functions.osPlaySoundSlave(linknum, sound, volume);
+        }
+
+        public void osTriggerSound(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
+        {
+            m_OSSL_Functions.osTriggerSound(linknum, sound, volume);
+        }
+
+        public void osStopSound(LSL_Integer linknum)
+        {
+            m_OSSL_Functions.osStopSound(linknum);
+        }
+
+        public void osPreloadSound(LSL_Integer linknum, LSL_String sound)
+        {
+            m_OSSL_Functions.osPreloadSound(linknum, sound);
+        }
     }
 }

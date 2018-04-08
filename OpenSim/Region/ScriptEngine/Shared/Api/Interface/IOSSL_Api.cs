@@ -512,5 +512,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Float osVecMagSquare(vector a);
         LSL_Float osVecDistSquare(vector a, vector b);
         LSL_Float osAngleBetween(vector a, vector b);
+
+        void osAdjustSoundVolume(LSL_Integer linknum, LSL_Float volume);
+        void osLoopSound(LSL_Integer linknum, LSL_String sound, LSL_Float volume);
+        void osLoopSoundMaster(LSL_Integer linknum, LSL_String sound, LSL_Float volume);
+        void osLoopSoundSlave(LSL_Integer linknum, LSL_String sound, LSL_Float volume);
+        void osPlaySound(LSL_Integer linknum, LSL_String sound, LSL_Float volume);
+        void osPlaySoundSlave(LSL_Integer linknum, LSL_String sound, LSL_Float volume);
+        void osPreloadSound(LSL_Integer linknum, LSL_String sound);
+        void osSetSoundRadius(LSL_Integer linknum, LSL_Float radius);
+        void osStopSound(LSL_Integer linknum);
+        void osTriggerSound(LSL_Integer linknum, LSL_String sound, LSL_Float volume);
     }
 }
