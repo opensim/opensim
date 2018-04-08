@@ -3170,70 +3170,87 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            // send the sound, once, to all clients in range
-            if (m_SoundModule != null)
-            {
-                m_SoundModule.SendSound(
-                    m_host.UUID,
-                    ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound),
-                    volume, false, 0,
-                    0, false, false);
-            }
+            if (m_SoundModule == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
+            // send the sound, once, to all clients in range           
+            m_SoundModule.SendSound(m_host.UUID, soundID, volume, false, 0, 0, false, false);
         }
 
         public void llLoopSound(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
-            if (m_SoundModule != null)
-            {
-                m_SoundModule.LoopSound(m_host.UUID, ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound),
-                        volume, 20, false,false);
-            }
+
+            if (m_SoundModule == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
+            m_SoundModule.LoopSound(m_host.UUID, soundID, volume, 20, false,false);
         }
 
         public void llLoopSoundMaster(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
-            if (m_SoundModule != null)
-            {
-                m_SoundModule.LoopSound(m_host.UUID, ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound),
-                        volume, 20, true, false);
-            }
+
+            if (m_SoundModule == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
+            m_SoundModule.LoopSound(m_host.UUID, soundID, volume, 20, true, false);
         }
 
         public void llLoopSoundSlave(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
-            if (m_SoundModule != null)
-            {
-                m_SoundModule.LoopSound(m_host.UUID, ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound),
-                        volume, 20, false, true);
-            }
+
+            if (m_SoundModule == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
+            m_SoundModule.LoopSound(m_host.UUID, soundID, volume, 20, false, true);
         }
 
         public void llPlaySoundSlave(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
 
+            if (m_SoundModule == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
             // send the sound, once, to all clients in range
-            if (m_SoundModule != null)
-            {
-                m_SoundModule.SendSound(m_host.UUID,
-                        ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound), volume, false, 0,
-                        0, true, false);
-            }
+            m_SoundModule.SendSound(m_host.UUID, soundID, volume, false, 0, 0, true, false);
         }
 
         public void llTriggerSound(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
+
+            if (m_SoundModule == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
             // send the sound, once, to all clients in rangeTrigger or play an attached sound in this part's inventory.
-            if (m_SoundModule != null)
-            {
-                m_SoundModule.SendSound(m_host.UUID,
-                        ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound), volume, true, 0, 0,
-                        false, false);
-            }
+            m_SoundModule.SendSound(m_host.UUID, soundID, volume, true, 0, 0, false, false);
         }
 
         public void llStopSound()
@@ -3247,8 +3264,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llPreloadSound(string sound)
         {
             m_host.AddScriptLPS(1);
-            if (m_SoundModule != null)
-                m_SoundModule.PreloadSound(m_host.UUID, ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound), 0);
+
+            if (m_SoundModule == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
+            m_SoundModule.PreloadSound(m_host.UUID, soundID, 0);
             ScriptSleep(m_sleepMsOnPreloadSound);
         }
 
