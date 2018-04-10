@@ -383,10 +383,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if(((ec == ScriptEventCode.None) && active) ||
                 ((ec != ScriptEventCode.None) && !active))
             {
-                Console.WriteLine("CheckRunLockInvariants: script=" + m_DescName);
-                Console.WriteLine("CheckRunLockInvariants: eventcode=" + ec.ToString() + ", active=" + active.ToString());
-                Console.WriteLine("CheckRunLockInvariants: m_RunOnePhase=" + m_RunOnePhase);
-                Console.WriteLine("CheckRunLockInvariants: lastec=" + lastEventCode + ", lastAct=" + lastActive + ", lastPhase=" + lastRunPhase);
+                m_log.Error("CheckRunLockInvariants: script=" + m_DescName);
+                m_log.Error("CheckRunLockInvariants: eventcode=" + ec.ToString() + ", active=" + active.ToString());
+                m_log.Error("CheckRunLockInvariants: m_RunOnePhase=" + m_RunOnePhase);
+                m_log.Error("CheckRunLockInvariants: lastec=" + lastEventCode + ", lastAct=" + lastActive + ", lastPhase=" + lastRunPhase);
                 if(throwIt)
                     throw new Exception("CheckRunLockInvariants: eventcode=" + ec.ToString() + ", active=" + active.ToString());
             }
@@ -766,6 +766,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Tell next call to 'default state_entry()' to reset all global
              // vars to their initial values.
             doGblInit = true;
+
+            // Throw away all its stack frames. 
+            // If the script is resetting itself, there shouldn't be any stack frames. 
+            // If the script is being reset by something else, we throw them away cuz we want to start from the beginning of an event handler. 
+             stackFrames = null;
 
              // Set script to 'default' state and queue call to its 
              // 'state_entry()' event handler.
