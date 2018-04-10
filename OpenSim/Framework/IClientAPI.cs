@@ -443,7 +443,7 @@ namespace OpenSim.Framework
     public delegate void DeclineCallingCard(IClientAPI remoteClient, UUID transactionID);
 
     public delegate void SoundTrigger(
-        UUID soundId, UUID ownerid, UUID objid, UUID parentid, double Gain, Vector3 Position, UInt64 Handle, float radius);
+        UUID soundId, UUID ownerid, UUID objid, UUID parentid, double Gain, Vector3 Position, UInt64 Handle);
 
     public delegate void StartLure(byte lureType, string message, UUID targetID, IClientAPI client);
     public delegate void TeleportLureRequest(UUID lureID, uint teleportFlags, IClientAPI client);
