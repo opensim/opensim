@@ -231,7 +231,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             if (soundModule != null)
             {
                 soundModule.TriggerSound(audio, UUID.Zero, UUID.Zero, UUID.Zero, volume, position,
-                                         m_internalScene.RegionInfo.RegionHandle, 0);
+                                         m_internalScene.RegionInfo.RegionHandle);
             }
         }
 
@@ -241,7 +241,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             if (soundModule != null)
             {
                 soundModule.TriggerSound(audio, UUID.Zero, UUID.Zero, UUID.Zero, 1.0, position,
-                                         m_internalScene.RegionInfo.RegionHandle, 0);
+                                         m_internalScene.RegionInfo.RegionHandle);
             }
         }
 

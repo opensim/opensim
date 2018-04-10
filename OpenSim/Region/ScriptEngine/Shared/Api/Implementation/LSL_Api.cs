@@ -3178,7 +3178,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             // send the sound, once, to all clients in range           
-            m_SoundModule.SendSound(m_host.UUID, soundID, volume, false, 0, 0, false, false);
+            m_SoundModule.SendSound(m_host.UUID, soundID, volume, false, 0, false, false);
         }
 
         public void llLoopSound(string sound, double volume)
@@ -3192,7 +3192,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(soundID == UUID.Zero)
                 return;
 
-            m_SoundModule.LoopSound(m_host.UUID, soundID, volume, 20, false,false);
+            m_SoundModule.LoopSound(m_host.UUID, soundID, volume, false,false);
         }
 
         public void llLoopSoundMaster(string sound, double volume)
@@ -3206,7 +3206,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(soundID == UUID.Zero)
                 return;
 
-            m_SoundModule.LoopSound(m_host.UUID, soundID, volume, 20, true, false);
+            m_SoundModule.LoopSound(m_host.UUID, soundID, volume, true, false);
         }
 
         public void llLoopSoundSlave(string sound, double volume)
@@ -3220,7 +3220,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(soundID == UUID.Zero)
                 return;
 
-            m_SoundModule.LoopSound(m_host.UUID, soundID, volume, 20, false, true);
+            m_SoundModule.LoopSound(m_host.UUID, soundID, volume, false, true);
         }
 
         public void llPlaySoundSlave(string sound, double volume)
@@ -3235,7 +3235,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             // send the sound, once, to all clients in range
-            m_SoundModule.SendSound(m_host.UUID, soundID, volume, false, 0, 0, true, false);
+            m_SoundModule.SendSound(m_host.UUID, soundID, volume, false, 0, true, false);
         }
 
         public void llTriggerSound(string sound, double volume)
@@ -3250,7 +3250,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             // send the sound, once, to all clients in rangeTrigger or play an attached sound in this part's inventory.
-            m_SoundModule.SendSound(m_host.UUID, soundID, volume, true, 0, 0, false, false);
+            m_SoundModule.SendSound(m_host.UUID, soundID, volume, true, 0, false, false);
         }
 
         public void llStopSound()
@@ -3272,7 +3272,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(soundID == UUID.Zero)
                 return;
 
-            m_SoundModule.PreloadSound(m_host.UUID, soundID, 0);
+            m_SoundModule.PreloadSound(m_host.UUID, soundID);
             ScriptSleep(m_sleepMsOnPreloadSound);
         }
 

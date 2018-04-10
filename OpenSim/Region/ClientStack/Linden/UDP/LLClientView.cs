@@ -7515,8 +7515,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 handlerSoundTrigger(soundTriggerPacket.SoundData.SoundID, AgentId,
                     AgentId, AgentId,
                     soundTriggerPacket.SoundData.Gain, soundTriggerPacket.SoundData.Position,
-                    soundTriggerPacket.SoundData.Handle, 0);
-
+                    soundTriggerPacket.SoundData.Handle);
             }
             return true;
         }

@@ -4873,7 +4873,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             // send the sound, once, to all clients in range
-            m_SoundModule.SendSound(sop.UUID, soundID, volume, false, 0, 0, false, false);
+            m_SoundModule.SendSound(sop.UUID, soundID, volume, false, 0, false, false);
         }
 
         public void osLoopSound(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
@@ -4891,7 +4891,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(soundID == UUID.Zero)
                 return;
 
-            m_SoundModule.LoopSound(sop.UUID, soundID, volume, 20, false,false);
+            m_SoundModule.LoopSound(sop.UUID, soundID, volume, false,false);
         }
 
         public void osLoopSoundMaster(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
@@ -4906,7 +4906,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(soundID == UUID.Zero)
                 return;
 
-            m_SoundModule.LoopSound(sop.UUID, soundID, volume, 20, true, false);
+            m_SoundModule.LoopSound(sop.UUID, soundID, volume, true, false);
         }
 
         public void osLoopSoundSlave(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
@@ -4924,7 +4924,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(soundID == UUID.Zero)
                 return;
 
-            m_SoundModule.LoopSound(sop.UUID, soundID, volume, 20, false, true);
+            m_SoundModule.LoopSound(sop.UUID, soundID, volume, false, true);
         }
 
         public void osPlaySoundSlave(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
@@ -4943,7 +4943,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             // send the sound, once, to all clients in range
-            m_SoundModule.SendSound(sop.UUID, soundID, volume, false, 0, 0, true, false);
+            m_SoundModule.SendSound(sop.UUID, soundID, volume, false, 0, true, false);
         }
 
         public void osTriggerSound(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
@@ -4962,7 +4962,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             // send the sound, once, to all clients in rangeTrigger or play an attached sound in this part's inventory.
-            m_SoundModule.SendSound(sop.UUID, soundID, volume, true, 0, 0, false, false);
+            m_SoundModule.SendSound(sop.UUID, soundID, volume, true, 0, false, false);
         }
 
        public void osTriggerSoundLimited(LSL_Integer linknum, LSL_String sound, LSL_Float volume,
@@ -5014,7 +5014,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(soundID == UUID.Zero)
                 return;
 
-            m_SoundModule.PreloadSound(sop.UUID, soundID, 0);
+            m_SoundModule.PreloadSound(sop.UUID, soundID);
             ScriptSleep(1000);
         }
 

@@ -3077,7 +3077,7 @@ namespace OpenSim.Region.Framework.Scenes
             UUID parentID = ParentGroup.UUID;
             ulong regionHandle = ParentGroup.Scene.RegionInfo.RegionHandle;
 
-            soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, 0 );
+            soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle);
         }
 
         public void PhysicsOutOfBounds(Vector3 pos)
