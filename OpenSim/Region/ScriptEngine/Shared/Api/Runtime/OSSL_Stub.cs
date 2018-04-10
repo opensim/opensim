@@ -1256,6 +1256,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osTriggerSound(linknum, sound, volume);
         }
 
+        public void osTriggerSoundLimited(LSL_Integer linknum, LSL_String sound, LSL_Float volume,
+                 vector top_north_east, vector bottom_south_west)
+        {
+            m_OSSL_Functions.osTriggerSoundLimited(linknum, sound, volume,
+                                            top_north_east, bottom_south_west);
+        }
+
         public void osStopSound(LSL_Integer linknum)
         {
             m_OSSL_Functions.osStopSound(linknum);

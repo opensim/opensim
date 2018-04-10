@@ -4965,6 +4965,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_SoundModule.SendSound(sop.UUID, soundID, volume, true, 0, 0, false, false);
         }
 
+       public void osTriggerSoundLimited(LSL_Integer linknum, LSL_String sound, LSL_Float volume,
+                 LSL_Vector top_north_east, LSL_Vector bottom_south_west)
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_SoundModule == null)
+                return;
+
+            SceneObjectPart sop = GetSingleLinkPart(linknum);
+            if(sop == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(sop, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
+            m_SoundModule.TriggerSoundLimited(sop.UUID, soundID, volume,
+                        bottom_south_west, top_north_east);
+        }
+
         public void osStopSound(LSL_Integer linknum)
         {
             m_host.AddScriptLPS(1);
