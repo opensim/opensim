@@ -131,6 +131,8 @@ namespace OpenSim.Region.CoreModules.World.Sound
             if (!m_scene.TryGetSceneObjectPart(objectID, out part))
                 return;
 
+            part.SoundFlags = 0;
+
             SceneObjectGroup grp = part.ParentGroup;
 
             if (radius == 0)
@@ -199,6 +201,8 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 }
             }
 
+            part.SoundFlags = 0;
+
             if (radius == 0)
                 radius = MaxDistance;
 
@@ -225,7 +229,6 @@ namespace OpenSim.Region.CoreModules.World.Sound
 
         private static void StopSound(SceneObjectPart m_host)
         {
-//            m_host.AdjustSoundGain(0);
             m_host.Sound = UUID.Zero;
             m_host.SoundFlags = (byte)SoundFlags.STOP;
             m_host.SoundRadius = 0;
