@@ -407,7 +407,7 @@ namespace OpenSim.Services.UserAccountService
             else email = cmdparams[5];
 
             if (cmdparams.Length < 7)
-                rawPrincipalId = MainConsole.Instance.CmdPrompt("User ID", UUID.Random().ToString());
+                rawPrincipalId = MainConsole.Instance.CmdPrompt("User ID (enter for random)", "");
             else
                 rawPrincipalId = cmdparams[6];
 
@@ -417,7 +417,9 @@ namespace OpenSim.Services.UserAccountService
                 model = cmdparams[7];
 
             UUID principalId = UUID.Zero;
-            if (!UUID.TryParse(rawPrincipalId, out principalId))
+            if(String.IsNullOrWhiteSpace(rawPrincipalId))
+                principalId = UUID.Random();
+            else if (!UUID.TryParse(rawPrincipalId, out principalId))
                 throw new Exception(string.Format("ID {0} is not a valid UUID", rawPrincipalId));
 
             CreateUser(UUID.Zero, principalId, firstName, lastName, password, email, model);
@@ -823,6 +825,7 @@ namespace OpenSim.Services.UserAccountService
                 return;
             }
 
+
             try
             {
                 CopyWearablesAndAttachments(destinationAgent, modelAccount.PrincipalID, modelAppearance);
@@ -876,11 +879,19 @@ namespace OpenSim.Services.UserAccountService
             for (int i = 0; i < wearables.Length; i++)
             {
                 wearable = wearables[i];
-                m_log.DebugFormat("[XXX]: Getting item {0} from avie {1}", wearable[0].ItemID, source);
                 if (wearable[0].ItemID != UUID.Zero)
                 {
+                    m_log.DebugFormat("[XXX]: Getting item {0} from avie {1}", wearable[0].ItemID, source);
                     // Get inventory item and copy it
                     InventoryItemBase item = m_InventoryService.GetItem(source, wearable[0].ItemID);
+
+                    if(item != null && item.AssetType == (int)AssetType.Link)
+                    {
+                        if(item.AssetID == UUID.Zero )
+                            item = null;
+                        else
+                          item = m_InventoryService.GetItem(source, item.AssetID);
+                    }
 
                     if (item != null)
                     {
