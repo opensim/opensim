@@ -270,13 +270,15 @@ namespace OpenSim.Region.ScriptEngine.Shared
             // Vector-Rotation Math
             public static Vector3 operator *(Vector3 v, Quaternion r)
             {
-                Quaternion vq = new Quaternion(v.x, v.y, v.z, 0);
-                Quaternion nq = new Quaternion(-r.x, -r.y, -r.z, r.s);
+                double rx = r.s * v.x + r.y * v.z - r.z * v.y;
+                double ry = r.s * v.y + r.z * v.x - r.x * v.z;
+                double rz = r.s * v.z + r.x * v.y - r.y * v.x;
 
-                // adapted for operator * computing "b * a"
-                Quaternion result = nq * (vq * r);
+                v.x += 2.0f * (rz * r.y - ry * r.z);
+                v.y += 2.0f * (rx * r.z - rz * r.x);
+                v.z += 2.0f * (ry * r.x - rx * r.y);
 
-                return new Vector3(result.x, result.y, result.z);
+                return v;
             }
 
             public static Vector3 operator /(Vector3 v, Quaternion r)
