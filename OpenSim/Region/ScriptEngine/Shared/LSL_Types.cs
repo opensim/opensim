@@ -392,8 +392,8 @@ namespace OpenSim.Region.ScriptEngine.Shared
             #region Methods
             public Quaternion Normalize()
             {
-                double length = Math.Sqrt(x * x + y * y + z * z + s * s);
-                if (length < float.Epsilon)
+                double lengthsq = x * x + y * y + z * z + s * s;
+                if (lengthsq < float.Epsilon)
                 {
                     x = 0;
                     y = 0;
@@ -403,7 +403,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 else
                 {
 
-                    double invLength = 1.0 / length;
+                    double invLength = 1.0 / Math.Sqrt(lengthsq);
                     x *= invLength;
                     y *= invLength;
                     z *= invLength;
@@ -474,7 +474,8 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 // LSL quaternions can normalize to 0, normal Quaternions can't.
                 if (rot.s == 0 && rot.x == 0 && rot.y == 0 && rot.z == 0)
-                    rot.z = 1; // ZERO_ROTATION = 0,0,0,1
+                    return OMV_Quaternion.Identity; // ZERO_ROTATION = 0,0,0,1
+
                 OMV_Quaternion omvrot = new OMV_Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s);
                 omvrot.Normalize();
                 return omvrot;
@@ -510,6 +511,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public static Quaternion operator /(Quaternion a, Quaternion b)
             {
+                // assuming normalized
                 b.s = -b.s;
                 return a * b;
             }
