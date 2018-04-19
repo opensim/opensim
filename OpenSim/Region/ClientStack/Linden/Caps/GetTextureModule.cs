@@ -450,46 +450,31 @@ namespace OpenSim.Region.ClientStack.Linden
                 if(pBytes < 10000)
                     pBytes = 10000;
                 ThrottleBytes = pBytes;
-                lastTimeElapsed = Util.GetTimeStampMS();
+                lastTimeElapsed = Util.GetTimeStamp();
             }
             public bool hasEvents(UUID key, Dictionary<UUID, GetTextureModule.APollResponse> responses)
             {
                 PassTime();
                 // Note, this is called IN LOCK
-                bool haskey = responses.ContainsKey(key);
-                if (!haskey)
-                {
-                    return false;
-                }
                 GetTextureModule.APollResponse response;
                 if (responses.TryGetValue(key, out response))
                 {
-                    // This is any error response
-                    if (response.bytes == 0)
-                        return true;
-
-                    // Normal
-                    if (BytesSent <= ThrottleBytes)
+                    if (response.bytes == 0 || BytesSent <= ThrottleBytes)
                     {
                         BytesSent += response.bytes;
                         return true;
                     }
-                    else
-                    {
-                        return false;
-                    }
                 }
-
-                return haskey;
+                return false;
             }
 
             public void PassTime()
             {
-                double currenttime = Util.GetTimeStampMS();
+                double currenttime = Util.GetTimeStamp();
                 double timeElapsed = currenttime - lastTimeElapsed;
-                if(timeElapsed < 50.0)
+                if(timeElapsed < .05)
                     return;
-                int add = (int)(ThrottleBytes * timeElapsed * 0.001);
+                int add = (int)(ThrottleBytes * timeElapsed);
                 if (add >= 1000)
             {
                     lastTimeElapsed = currenttime;
