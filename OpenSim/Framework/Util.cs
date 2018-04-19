@@ -262,10 +262,7 @@ namespace OpenSim.Framework
         /// <returns>The distance between the two vectors</returns>
         public static double GetDistanceTo(Vector3 a, Vector3 b)
         {
-            float dx = a.X - b.X;
-            float dy = a.Y - b.Y;
-            float dz = a.Z - b.Z;
-            return Math.Sqrt(dx * dx + dy * dy + dz * dz);
+            return Vector3.Distance(a,b);
         }
 
         /// <summary>
@@ -277,10 +274,7 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public static bool DistanceLessThan(Vector3 a, Vector3 b, double amount)
         {
-            float dx = a.X - b.X;
-            float dy = a.Y - b.Y;
-            float dz = a.Z - b.Z;
-            return (dx*dx + dy*dy + dz*dz) < (amount*amount);
+            return Vector3.DistanceSquared(a,b) < (amount * amount);
         }
 
         /// <summary>
@@ -381,15 +375,17 @@ namespace OpenSim.Framework
             get { return randomClass; }
         }
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static ulong UIntsToLong(uint X, uint Y)
         {
-            return Utils.UIntsToLong(X, Y);
+            return ((ulong)X << 32) | (ulong)Y;
         }
 
         // Regions are identified with a 'handle' made up of its world coordinates packed into a ulong.
         // Region handles are based on the coordinate of the region corner with lower X and Y
         // var regions need more work than this to get that right corner from a generic world position
         // this corner must be on a grid point
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static ulong RegionWorldLocToHandle(uint X, uint Y)
         {
            ulong handle = X & 0xffffff00; // make sure it matchs grid coord points.
@@ -398,6 +394,7 @@ namespace OpenSim.Framework
            return handle;
         }
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static ulong RegionGridLocToHandle(uint X, uint Y)
         {
             ulong handle = X;
@@ -406,12 +403,14 @@ namespace OpenSim.Framework
             return handle;
         }
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static void RegionHandleToWorldLoc(ulong handle, out uint X, out uint Y)
         {
             X = (uint)(handle >> 32);
             Y = (uint)(handle & 0xfffffffful);
         }
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static void RegionHandleToRegionLoc(ulong handle, out uint X, out uint Y)
         {
             X = (uint)(handle >> 40) & 0x00ffffffu; //  bring from higher half, divide by 256 and clean
@@ -421,12 +420,14 @@ namespace OpenSim.Framework
 
         // A region location can be 'world coordinates' (meters) or 'region grid coordinates'
         // grid coordinates have a fixed step of 256m as defined by viewers
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static uint WorldToRegionLoc(uint worldCoord)
         {
             return worldCoord >> 8;
         }
 
         // Convert a region's 'region grid coordinate' to its 'world coordinate'.
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static uint RegionToWorldLoc(uint regionCoord)
         {
             return regionCoord << 8;
@@ -576,14 +577,15 @@ namespace OpenSim.Framework
         }
 
         // Clamp the maximum magnitude of a vector
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static Vector3 ClampV(Vector3 x, float max)
         {
             float lenSq = x.LengthSquared();
             if (lenSq > (max * max))
             {
-                x = x / x.Length() * max;
+                lenSq = max / (float)Math.Sqrt(lenSq);
+                x = x * lenSq;
             }
-
             return x;
         }
 
@@ -826,8 +828,8 @@ namespace OpenSim.Framework
 
         private static byte[] ComputeMD5Hash(string data, Encoding encoding)
         {
-            MD5 md5 = MD5.Create();
-            return md5.ComputeHash(encoding.GetBytes(data));
+            using(MD5 md5 = MD5.Create())
+                return md5.ComputeHash(encoding.GetBytes(data));
         }
 
         /// <summary>
@@ -1915,7 +1917,9 @@ namespace OpenSim.Framework
             string ru = String.Empty;
 
             if (Environment.OSVersion.Platform == PlatformID.Unix)
-                ru = "Unix/Mono";
+            {
+               ru = "Unix/Mono";
+            }
             else
                 if (Environment.OSVersion.Platform == PlatformID.MacOSX)
                     ru = "OSX/Mono";
@@ -3025,16 +3029,36 @@ namespace OpenSim.Framework
             return tcA - tcB;
         }
 
-        // returns a timestamp in ms as double
-        // using the time resolution avaiable to StopWatch
-        public static double GetTimeStamp()
+        public static long GetPhysicalMemUse()
         {
-            return (double)Stopwatch.GetTimestamp() * TimeStampClockPeriod;
+            return System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
         }
 
+        // returns a timestamp in ms as double
+        // using the time resolution avaiable to StopWatch
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]  
+        public static double GetTimeStamp()
+        {
+            return Stopwatch.GetTimestamp() * TimeStampClockPeriod;
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static double GetTimeStampMS()
         {
-            return (double)Stopwatch.GetTimestamp() * TimeStampClockPeriodMS;
+            return Stopwatch.GetTimestamp() * TimeStampClockPeriodMS;
+        }
+
+        // doing math in ticks is usefull to avoid loss of resolution
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        public static long GetTimeStampTicks()
+        {
+            return Stopwatch.GetTimestamp();
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        public static double TimeStampTicksToMS(long ticks)
+        {
+            return ticks * TimeStampClockPeriodMS;
         }
 
         /// <summary>
