@@ -493,7 +493,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             Point endPoint = new Point(0, 0);
             Pen drawPen = null;
             Font myFont = null;
-            FontStyle myFontStyle;
+            
             SolidBrush myBrush = null;
 
             try
@@ -664,7 +664,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     }
                     else if (nextLine.StartsWith("FontProp"))
                     {
-                        myFontStyle = FontStyle.Regular;
+                        FontStyle myFontStyle = myFont.Style;
 
                         nextLine = nextLine.Remove(0, 8);
                         nextLine = nextLine.Trim();
@@ -691,10 +691,12 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                                     break;
                             }
                         }
-
-                        Font newFont = new Font(myFont, myFontStyle);
-                        myFont.Dispose();
-                        myFont = newFont;
+                        if(myFontStyle != myFont.Style)
+                        {
+                            Font newFont = new Font(myFont, myFontStyle);
+                            myFont.Dispose();
+                            myFont = newFont;
+                        }
                     }
                     else if (nextLine.StartsWith("FontName"))
                     {
