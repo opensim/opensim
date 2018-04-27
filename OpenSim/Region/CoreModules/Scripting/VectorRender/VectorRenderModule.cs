@@ -493,7 +493,6 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             Point endPoint = new Point(0, 0);
             Pen drawPen = null;
             Font myFont = null;
-            
             SolidBrush myBrush = null;
 
             try
