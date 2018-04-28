@@ -685,12 +685,12 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                                 case "S":
                                     myFontStyle |= FontStyle.Strikeout;
                                     break;
-                                case "R":
+                                case "R":  //This special case resets all font properties
                                     myFontStyle = FontStyle.Regular;
                                     break;
                             }
                         }
-                        if(myFontStyle != myFont.Style)
+                        if (myFontStyle != myFont.Style)
                         {
                             Font newFont = new Font(myFont, myFontStyle);
                             myFont.Dispose();
