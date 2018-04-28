@@ -362,7 +362,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                         {
                             graph.FillRectangle(bgFillBrush, 0, 0, width, height);
                         }
-                    }                   
+                    }
                     else
                     {
                         bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
