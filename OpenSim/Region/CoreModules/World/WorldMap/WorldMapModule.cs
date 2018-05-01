@@ -1399,46 +1399,78 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             m_log.InfoFormat(
                 "[WORLD MAP]: Exporting world map for {0} to {1}", m_scene.RegionInfo.RegionName, exportPath);
 
-            List<MapBlockData> mapBlocks = new List<MapBlockData>();
-            List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
-                    (int)Util.RegionToWorldLoc(m_scene.RegionInfo.RegionLocX - 9),
-                    (int)Util.RegionToWorldLoc(m_scene.RegionInfo.RegionLocX + 9),
-                    (int)Util.RegionToWorldLoc(m_scene.RegionInfo.RegionLocY - 9),
-                    (int)Util.RegionToWorldLoc(m_scene.RegionInfo.RegionLocY + 9));
-            List<AssetBase> textures = new List<AssetBase>();
-            List<Image> bitImages = new List<Image>();
-
-            foreach (GridRegion r in regions)
-            {
-                MapBlockData mapBlock = new MapBlockData();
-                MapBlockFromGridRegion(mapBlock, r, 0);
-                AssetBase texAsset = m_scene.AssetService.Get(mapBlock.MapImageId.ToString());
-
-                if (texAsset != null)
-                {
-                    textures.Add(texAsset);
-                }
-            }
-
-            foreach (AssetBase asset in textures)
-            {
-                ManagedImage managedImage;
-                Image image;
-
-                if (OpenJPEG.DecodeToImage(asset.Data, out managedImage, out image))
-                    bitImages.Add(image);
-            }
-
-            Bitmap mapTexture = new Bitmap(2560, 2560);
+            const int TEXTURESIZE = 2048;
+            Bitmap mapTexture = new Bitmap(TEXTURESIZE, TEXTURESIZE);
             Graphics g = Graphics.FromImage(mapTexture);
             SolidBrush sea = new SolidBrush(Color.DarkBlue);
-            g.FillRectangle(sea, 0, 0, 2560, 2560);
+            g.FillRectangle(sea, 0, 0, TEXTURESIZE, TEXTURESIZE);
 
-            for (int i = 0; i < mapBlocks.Count; i++)
+            // assumed this is 1m less than next grid line
+            int regionsView = (int)m_scene.MaxRegionViewDistance;
+
+            int regionSizeX = (int)m_scene.RegionInfo.RegionSizeX;
+            int regionSizeY = (int)m_scene.RegionInfo.RegionSizeY;
+
+            int regionX = (int)m_scene.RegionInfo.WorldLocX;
+            int regionY = (int)m_scene.RegionInfo.WorldLocY;
+
+            int startX = regionX - regionsView;
+            int startY = regionY - regionsView;
+
+            int endX = regionX + regionSizeX + regionsView;
+            int endY = regionY + regionSizeY + regionsView;
+
+            List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
+                    startX, startY, endX, endY);
+
+            if(regions.Count > 0)
             {
-                ushort x = (ushort)((mapBlocks[i].X - m_scene.RegionInfo.RegionLocX) + 10);
-                ushort y = (ushort)((mapBlocks[i].Y - m_scene.RegionInfo.RegionLocY) + 10);
-                g.DrawImage(bitImages[i], (x * 128), 2560 - (y * 128), 128, 128); // y origin is top
+                Font drawFont = new Font("Arial", 32);
+                SolidBrush drawBrush = new SolidBrush(Color.White);
+
+                ManagedImage managedImage = null;
+                Image image = null;
+
+                startX--;
+                startY--;
+
+                int spanX = endX - startX + 1;
+                float scaleX = (float)TEXTURESIZE / (float)spanX;
+                int spanY = endY - startY + 1;
+                float scaleY = (float)TEXTURESIZE / (float)spanY;
+
+                foreach(GridRegion r in regions)
+                {
+                    if(r.TerrainImage == UUID.Zero)
+                        continue;
+
+                    AssetBase texAsset = m_scene.AssetService.Get(r.TerrainImage.ToString());
+                    if(texAsset == null)
+                        continue;
+
+                    if(OpenJPEG.DecodeToImage(texAsset.Data, out managedImage, out image))
+                    {
+                        int x = (int)((r.RegionLocX - startX) * scaleX);
+                        int y = (int)((r.RegionLocY - startY ) * scaleY);
+                        int sx = (int)(r.RegionSizeX * scaleX);
+                        int sy = (int)(r.RegionSizeY * scaleY);
+                        g.DrawImage(image, x, TEXTURESIZE - y - sy, sx, sy); // y origin is top
+                        if(r.RegionHandle == m_scene.RegionInfo.RegionHandle)
+                        {
+                            SizeF stringSize = g.MeasureString(r.RegionName, drawFont);
+                            g.DrawString(r.RegionName, drawFont, drawBrush, x + 30, TEXTURESIZE - y - 30 - stringSize.Height);
+                        }
+                    }
+                }
+
+                if(image != null)
+                    image.Dispose();
+
+                String drawString = string.Format("{0}m x {1}m", spanX, spanY);
+                g.DrawString(drawString, drawFont, drawBrush, 30, 30);
+
+                drawBrush.Dispose();
+                drawFont.Dispose();
             }
 
             mapTexture.Save(exportPath, ImageFormat.Jpeg);
