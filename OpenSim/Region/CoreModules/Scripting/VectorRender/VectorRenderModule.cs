@@ -389,7 +389,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
                 try
                 {
-                    imageJ2000 = OpenJPEG.EncodeFromImage(bitmap, true);
+                    imageJ2000 = OpenJPEG.EncodeFromImage(bitmap, false);
                 }
                 catch (Exception e)
                 {
@@ -685,7 +685,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                                 case "S":
                                     myFontStyle |= FontStyle.Strikeout;
                                     break;
-                                case "R":  //This special case resets all font properties
+                                case "R":   //This special case resets all font properties
                                     myFontStyle = FontStyle.Regular;
                                     break;
                             }

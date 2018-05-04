@@ -251,7 +251,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             try
             {
                 using (Bitmap mapbmp = CreateMapTile())
-                    return OpenJPEG.EncodeFromImage(mapbmp, true);
+                    return OpenJPEG.EncodeFromImage(mapbmp, false);
             }
             catch (Exception e)
             {

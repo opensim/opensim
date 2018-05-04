@@ -1673,13 +1673,13 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                             newsize.Height = (int)(by * scale);
 
                             using(Bitmap scaledbmp = new Bitmap(mapbmp,newsize))
-                                data = OpenJPEG.EncodeFromImage(scaledbmp, true);
+                                data = OpenJPEG.EncodeFromImage(scaledbmp, false);
                         }
                         else
-                            data = OpenJPEG.EncodeFromImage(mapbmp, true);
+                            data = OpenJPEG.EncodeFromImage(mapbmp, false);
                     }
                     else
-                        data = OpenJPEG.EncodeFromImage(mapbmp, true);
+                        data = OpenJPEG.EncodeFromImage(mapbmp, false);
 
                     if (data != null && data.Length > 0)
                     {
@@ -1857,7 +1857,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
                 try
                 {
-                    return OpenJPEG.EncodeFromImage(overlay, true);
+                    return OpenJPEG.EncodeFromImage(overlay, false);
                 }
                 catch (Exception e)
                 {
