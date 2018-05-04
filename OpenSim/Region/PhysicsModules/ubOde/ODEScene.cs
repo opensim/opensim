@@ -2260,8 +2260,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             float val;
 
 
-            uint maxXX = regionsizeX - 1;
-            uint maxYY = regionsizeY - 1;
+            uint maxXX = regionsizeX + 1;
+            uint maxYY = regionsizeY + 1;
             // adding one margin all around so things don't fall in edges
 
             uint xx;
