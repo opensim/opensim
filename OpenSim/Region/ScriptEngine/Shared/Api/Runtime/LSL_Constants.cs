@@ -447,6 +447,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
 
         // parameters
+
+        public const int PRIM_ALPHA_MODE_NONE = 0;
+        public const int PRIM_ALPHA_MODE_BLEND = 1;
+        public const int PRIM_ALPHA_MODE_MASK = 2;
+        public const int PRIM_ALPHA_MODE_EMISSIVE = 3;
+
         public const int PRIM_TEXGEN_DEFAULT = 0;
         public const int PRIM_TEXGEN_PLANAR = 1;
 
