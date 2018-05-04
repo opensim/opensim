@@ -166,8 +166,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             }
 
             Vector3 camPos = new Vector3(
-                            m_scene.RegionInfo.RegionSizeX / 2 - 0.5f,
-                            m_scene.RegionInfo.RegionSizeY / 2 - 0.5f,
+                            (m_scene.RegionInfo.RegionSizeX - 1) * 0.5f,
+                            (m_scene.RegionInfo.RegionSizeY - 1) * 0.5f,
                             221.7025033688163f);
             // Viewport viewing down onto the region
             Viewport viewport = new Viewport(camPos, -Vector3.UnitZ, 1024f, 0.1f,
@@ -284,7 +284,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         }
 
         // Add a terrain to the renderer.
-        // Note that we create a 'low resolution' 256x256 vertex terrain rather than trying for
+        // Note that we create a 'low resolution' 257x257 vertex terrain rather than trying for
         //    full resolution. This saves a lot of memory especially for very large regions.
         private void CreateTerrain(WarpRenderer renderer, bool textureTerrain)
         {
@@ -296,49 +296,56 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             // 'diff' is the difference in scale between the real region size and the size of terrain we're buiding
             float diff = regionsx / 256f;
 
-            int npointsx =(int)(regionsx / diff);
-            int npointsy =(int)(regionsy / diff);
+            int npointsx = (int)(regionsx / diff) + 1;
+            int npointsy = (int)(regionsy / diff) + 1;
 
             float invsx = 1.0f / regionsx;
-            float invsy = 1.0f / (float)m_scene.RegionInfo.RegionSizeY;
+            float invsy = 1.0f / regionsy;
 
             // Create all the vertices for the terrain
             warp_Object obj = new warp_Object();
-            for (float y = 0; y < regionsy; y += diff)
+            warp_Vector pos;
+            float x, y;
+            for (y = 0; y < regionsy; y += diff)
             {
-                for (float x = 0; x < regionsx; x += diff)
+                for (x = 0; x < regionsx; x += diff)
                 {
-                    warp_Vector pos = ConvertVector(x , y , (float)terrain[(int)x, (int)y]);
+                    pos = ConvertVector(x , y , (float)terrain[(int)x, (int)y]);
                     obj.addVertex(new warp_Vertex(pos, x *  invsx, 1.0f - y * invsy));
                 }
+                pos = ConvertVector(x , y , (float)terrain[(int)(x - diff), (int)y]);
+                obj.addVertex(new warp_Vertex(pos, 1.0f, 1.0f - y * invsy));
             }
+
+            int lastY = (int)(y - diff);
+            for (x = 0; x < regionsx; x += diff)
+            {
+                pos = ConvertVector(x , y , (float)terrain[(int)x, lastY]);
+                obj.addVertex(new warp_Vertex(pos, x *  invsx, 1.0f - y * invsy));
+            }
+            pos = ConvertVector(x , y , (float)terrain[(int)(x - diff), lastY]);
+            obj.addVertex(new warp_Vertex(pos, 1.0f, 1.0f));
 
             // Now that we have all the vertices, make another pass and
             // create the list of triangle indices.
-            float invdiff = 1.0f / diff;
             int limx = npointsx - 1;
             int limy = npointsy - 1;
-            for (float y = 0; y < regionsy; y += diff)
+            for (int j = 0; j < limy; j++)
             {
-                for (float x = 0; x < regionsx; x += diff)
+                for (int i = 0; i < limx; i++)
                 {
-                    float newX = x * invdiff;
-                    float newY = y * invdiff;
-                    if (newX < limx && newY < limy)
-                    {
-                        int v = (int)newY * npointsx + (int)newX;
+                    int v = j * npointsx + i;
 
-                        // Make two triangles for each of the squares in the grid of vertices
-                        obj.addTriangle(
-                            v,
-                            v + 1,
-                            v + npointsx);
+                    // Make two triangles for each of the squares in the grid of vertices
+                    obj.addTriangle(
+                        v,
+                        v + 1,
+                        v + npointsx);
 
-                        obj.addTriangle(
-                            v + npointsx + 1,
-                            v + npointsx,
-                            v + 1);
-                    }
+                    obj.addTriangle(
+                        v + npointsx + 1,
+                        v + npointsx,
+                        v + 1);
                 }
             }
 
