@@ -1399,12 +1399,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             m_log.InfoFormat(
                 "[WORLD MAP]: Exporting world map for {0} to {1}", m_scene.RegionInfo.RegionName, exportPath);
 
-            const int TEXTURESIZE = 2048;
-            Bitmap mapTexture = new Bitmap(TEXTURESIZE, TEXTURESIZE);
-            Graphics g = Graphics.FromImage(mapTexture);
-            SolidBrush sea = new SolidBrush(Color.DarkBlue);
-            g.FillRectangle(sea, 0, 0, TEXTURESIZE, TEXTURESIZE);
-
             // assumed this is 1m less than next grid line
             int regionsView = (int)m_scene.MaxRegionViewDistance;
 
@@ -1420,6 +1414,20 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             int endX = regionX + regionSizeX + regionsView;
             int endY = regionY + regionSizeY + regionsView;
 
+            int spanX = endX - startX + 2;
+            int spanY = endY - startY + 2;
+
+            Bitmap mapTexture = new Bitmap(spanX, spanY);
+            Graphics g = Graphics.FromImage(mapTexture);
+            g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+            g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+
+            SolidBrush sea = new SolidBrush(Color.DarkBlue);
+            g.FillRectangle(sea, 0, 0, spanX - 1, spanY - 1);
+            sea.Dispose();
+
             List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
                     startX, startY, endX, endY);
 
@@ -1434,11 +1442,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 startX--;
                 startY--;
 
-                int spanX = endX - startX + 1;
-                float scaleX = (float)TEXTURESIZE / (float)spanX;
-                int spanY = endY - startY + 1;
-                float scaleY = (float)TEXTURESIZE / (float)spanY;
-
                 foreach(GridRegion r in regions)
                 {
                     if(r.TerrainImage == UUID.Zero)
@@ -1450,15 +1453,15 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
                     if(OpenJPEG.DecodeToImage(texAsset.Data, out managedImage, out image))
                     {
-                        int x = (int)((r.RegionLocX - startX) * scaleX);
-                        int y = (int)((r.RegionLocY - startY ) * scaleY);
-                        int sx = (int)(r.RegionSizeX * scaleX);
-                        int sy = (int)(r.RegionSizeY * scaleY);
-                        g.DrawImage(image, x, TEXTURESIZE - y - sy, sx, sy); // y origin is top
+                        int x = r.RegionLocX - startX;
+                        int y = r.RegionLocY - startY;
+                        int sx = r.RegionSizeX;
+                        int sy = r.RegionSizeY;
+                        g.DrawImage(image, x, spanY - y - sy, sx, sy); // y origin is top
                         if(r.RegionHandle == m_scene.RegionInfo.RegionHandle)
                         {
                             SizeF stringSize = g.MeasureString(r.RegionName, drawFont);
-                            g.DrawString(r.RegionName, drawFont, drawBrush, x + 30, TEXTURESIZE - y - 30 - stringSize.Height);
+                            g.DrawString(r.RegionName, drawFont, drawBrush, x + 30, spanY - y - 30 - stringSize.Height);
                         }
                     }
                 }
@@ -1473,11 +1476,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 drawFont.Dispose();
             }
 
-            mapTexture.Save(exportPath, ImageFormat.Jpeg);
-
             g.Dispose();
+
+            mapTexture.Save(exportPath, ImageFormat.Jpeg);
             mapTexture.Dispose();
-            sea.Dispose();
 
             m_log.InfoFormat(
                 "[WORLD MAP]: Successfully exported world map for {0} to {1}",

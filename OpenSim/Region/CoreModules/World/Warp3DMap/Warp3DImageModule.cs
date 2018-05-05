@@ -166,8 +166,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             }
 
             Vector3 camPos = new Vector3(
-                            (m_scene.RegionInfo.RegionSizeX - 1) * 0.5f,
-                            (m_scene.RegionInfo.RegionSizeY - 1) * 0.5f,
+                            (m_scene.RegionInfo.RegionSizeX) * 0.5f,
+                            (m_scene.RegionInfo.RegionSizeY) * 0.5f,
                             221.7025033688163f);
             // Viewport viewing down onto the region
             Viewport viewport = new Viewport(camPos, -Vector3.UnitZ, 1024f, 0.1f,
@@ -241,7 +241,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             m_colors.Clear();
             GC.Collect();
-            m_log.Debug("[WARP 3D IMAGE MODULE]: GC.Collect()");
+//            m_log.Debug("[WARP 3D IMAGE MODULE]: GC.Collect()");
 
             return bitmap;
         }
@@ -271,10 +271,10 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         {
             float waterHeight = (float)m_scene.RegionInfo.RegionSettings.WaterHeight;
 
-            renderer.AddPlane("Water", m_scene.RegionInfo.RegionSizeX * 0.5f);
-            renderer.Scene.sceneobject("Water").setPos(m_scene.RegionInfo.RegionSizeX * 0.5f - 0.5f,
+            renderer.AddPlane("Water", m_scene.RegionInfo.RegionSizeX * 0.5f + 1.0f);
+            renderer.Scene.sceneobject("Water").setPos(m_scene.RegionInfo.RegionSizeX * 0.5f,
                                                        waterHeight,
-                                                       m_scene.RegionInfo.RegionSizeY * 0.5f - 0.5f);
+                                                       m_scene.RegionInfo.RegionSizeY * 0.5f);
 
             warp_Material waterColorMaterial = new warp_Material(ConvertColor(WATER_COLOR));
             waterColorMaterial.setReflectivity(0);  // match water color with standard map module thanks lkalif
@@ -299,8 +299,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             int npointsx = (int)(regionsx / diff) + 1;
             int npointsy = (int)(regionsy / diff) + 1;
 
-            float invsx = 1.0f / regionsx;
-            float invsy = 1.0f / regionsy;
+            float invsx = 1.0f / (npointsx * diff);
+            float invsy = 1.0f / (npointsy * diff);
 
             // Create all the vertices for the terrain
             warp_Object obj = new warp_Object();
@@ -321,10 +321,10 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             for (x = 0; x < regionsx; x += diff)
             {
                 pos = ConvertVector(x , y , (float)terrain[(int)x, lastY]);
-                obj.addVertex(new warp_Vertex(pos, x *  invsx, 1.0f - y * invsy));
+                obj.addVertex(new warp_Vertex(pos, x *  invsx, 0f));
             }
             pos = ConvertVector(x , y , (float)terrain[(int)(x - diff), lastY]);
-            obj.addVertex(new warp_Vertex(pos, 1.0f, 1.0f));
+            obj.addVertex(new warp_Vertex(pos, 1.0f, 0f));
 
             // Now that we have all the vertices, make another pass and
             // create the list of triangle indices.
