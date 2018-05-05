@@ -440,8 +440,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                                 Image sculpt = imgDecoder.DecodeToImage(sculptAsset);
                                 if(sculpt != null)
                                 {
-                                    renderMesh = m_primMesher.GenerateFacetedSculptMesh(omvPrim,(Bitmap)sculpt,
-                                                                                            DetailLevel.Medium);
+                                    renderMesh = m_primMesher.GenerateFacetedSculptMesh(omvPrim,(Bitmap)sculpt, DetailLevel.High);
                                     sculpt.Dispose();
                                 }
                             }
@@ -453,7 +452,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             // If not a mesh or sculptie, try the regular mesher
             if (renderMesh == null)
             {
-                renderMesh = m_primMesher.GenerateFacetedMesh(omvPrim, DetailLevel.Medium);
+                renderMesh = m_primMesher.GenerateFacetedMesh(omvPrim, DetailLevel.High);
             }
 
             if (renderMesh == null)
@@ -477,7 +476,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 {
                     Vertex v = face.Vertices[j];
                     warp_Vector pos = ConvertVector(v.Position);
-                    warp_Vertex vert = new warp_Vertex(pos, v.TexCoord.X, v.TexCoord.Y);
+                    warp_Vertex vert = new warp_Vertex(pos, v.TexCoord.X, 1.0f - v.TexCoord.Y);
                     faceObj.addVertex(vert);
                 }
 
@@ -497,12 +496,13 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 else
                     materialName = GetOrCreateMaterial(renderer, faceColor);
 
+                faceObj.scaleSelf(prim.Scale.X, prim.Scale.Z, prim.Scale.Y);
+
                 warp_Vector primPos = ConvertVector(prim.GetWorldPosition());
                 warp_Quaternion primRot = ConvertQuaternion(prim.GetWorldRotation());
                 warp_Matrix m = warp_Matrix.quaternionMatrix(primRot);
                 faceObj.transform(m);
                 faceObj.setPos(primPos);
-                faceObj.scaleSelf(prim.Scale.X, prim.Scale.Z, prim.Scale.Y);
 
                 renderer.Scene.addObject(meshName, faceObj);
                 renderer.SetObjectMaterial(meshName, materialName);
