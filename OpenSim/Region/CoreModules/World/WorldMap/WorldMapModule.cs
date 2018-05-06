@@ -1427,8 +1427,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             Bitmap mapTexture = new Bitmap(spanX, spanY);
             ImageAttributes gatrib = new ImageAttributes();
-            Graphics g = Graphics.FromImage(mapTexture);
             gatrib.SetWrapMode(System.Drawing.Drawing2D.WrapMode.TileFlipXY);
+
+            Graphics g = Graphics.FromImage(mapTexture);           
             g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
             g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
@@ -1687,11 +1688,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         if(mb > Constants.RegionSize && mb > 0)
                         {
                             float scale = (float)Constants.RegionSize/(float)mb;
-                            Size newsize = new Size();
-                            newsize.Width = (int)(bx * scale);
-                            newsize.Height = (int)(by * scale);
-
-                            using(Bitmap scaledbmp = new Bitmap(mapbmp,newsize))
+                            using(Bitmap scaledbmp = Util.ResizeImageSolid(mapbmp, (int)(bx * scale), (int)(by * scale)))
                                 data = OpenJPEG.EncodeFromImage(scaledbmp, false);
                         }
                         else

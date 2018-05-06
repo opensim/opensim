@@ -161,7 +161,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                                 if(detailTexture[i].PixelFormat != PixelFormat.Format24bppRgb ||
                                    detailTexture[i].Width != 16 || detailTexture[i].Height != 16)
                                     using(Bitmap origBitmap = detailTexture[i])
-                                        detailTexture[i] = ImageUtils.ResizeImageSolid(origBitmap, 16, 16);
+                                        detailTexture[i] = Util.ResizeImageSolid(origBitmap, 16, 16);
 
                                 // Save the decoded and resized texture to the cache
                                 byte[] data;
@@ -260,7 +260,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                             if(detailTexture[i].Width != 16 || detailTexture[i].Height != 16)
                             {
                                 using(Bitmap origBitmap = detailTexture[i])
-                                    detailTexture[i] = ImageUtils.ResizeImageSolid(origBitmap, 16, 16);
+                                    detailTexture[i] = Util.ResizeImageSolid(origBitmap, 16, 16);
                             }
                         }
                     }

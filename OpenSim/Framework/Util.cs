@@ -30,6 +30,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -3442,6 +3444,34 @@ namespace OpenSim.Framework
             m_log.ErrorFormat("{0} Failed XML ({1} bytes) = {2}", message, length, xml);
         }
 
+        /// <summary>
+        /// Performs a high quality image resize
+        /// </summary>
+        /// <param name="image">Image to resize</param>
+        /// <param name="width">New width</param>
+        /// <param name="height">New height</param>
+        /// <returns>Resized image</returns>
+        public static Bitmap ResizeImageSolid(Image image, int width, int height)
+        {
+            Bitmap result = new Bitmap(width, height, PixelFormat.Format24bppRgb);
+
+            using (ImageAttributes atrib = new ImageAttributes())
+            using (Graphics graphics = Graphics.FromImage(result))
+            {
+                atrib.SetWrapMode(System.Drawing.Drawing2D.WrapMode.TileFlipXY);
+                atrib.SetWrapMode(System.Drawing.Drawing2D.WrapMode.TileFlipXY);
+                graphics.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+                graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.None;
+
+                graphics.DrawImage(image,new Rectangle(0,0, result.Width, result.Height),
+                    0, 0, image.Width, image.Height, GraphicsUnit.Pixel, atrib);
+            }
+
+            return result;
+        }
+
     }
 
 /*  don't like this code
@@ -3606,5 +3636,6 @@ namespace OpenSim.Framework
         {
             rng.GetBytes(buff);
         }
+
     }
 }

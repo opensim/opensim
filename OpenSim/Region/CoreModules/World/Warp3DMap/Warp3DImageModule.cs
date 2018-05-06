@@ -296,8 +296,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             int npointsx = (int)(regionsx / diff);
             int npointsy = (int)(regionsy / diff);
 
-            float invsx = 1.0f / (npointsx);
-            float invsy = 1.0f / (npointsy);
+            float invsx = 1.0f / (npointsx * diff);
+            float invsy = 1.0f / (npointsy * diff);
 
             npointsx++;
             npointsy++;
@@ -387,9 +387,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 texture = new warp_Texture(image);
 
             warp_Material material = new warp_Material(texture);
-//            material.setReflectivity(50);
             renderer.Scene.addMaterial("TerrainColor", material);
-//            renderer.Scene.material("TerrainColor").setReflectivity(0); // reduces tile seams a bit thanks lkalif
             renderer.SetObjectMaterial("Terrain", "TerrainColor");
         }
 
@@ -774,33 +772,6 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         public static float Bilinear(float v00, float v01, float v10, float v11, float xPercent, float yPercent)
         {
             return Utils.Lerp(Utils.Lerp(v00, v01, xPercent), Utils.Lerp(v10, v11, xPercent), yPercent);
-        }
-
-        /// <summary>
-        /// Performs a high quality image resize
-        /// </summary>
-        /// <param name="image">Image to resize</param>
-        /// <param name="width">New width</param>
-        /// <param name="height">New height</param>
-        /// <returns>Resized image</returns>
-        public static Bitmap ResizeImageSolid(Image image, int width, int height)
-        {
-            Bitmap result = new Bitmap(width, height, PixelFormat.Format24bppRgb);
-
-            using (ImageAttributes atrib = new ImageAttributes())
-            using (Graphics graphics = Graphics.FromImage(result))
-            {
-                atrib.SetWrapMode(System.Drawing.Drawing2D.WrapMode.TileFlipXY);
-                graphics.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
-                graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-                graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.None;
-
-                graphics.DrawImage(image,new Rectangle(0,0, result.Width, result.Height),
-                    0, 0, image.Width, image.Height, GraphicsUnit.Pixel, atrib);
-            }
-
-            return result;
         }
     }
 }
