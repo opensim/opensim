@@ -56,9 +56,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
         private static readonly Color[] DEFAULT_TERRAIN_COLOR = new Color[]
         {
-//            Color.FromArgb(255, 164, 136, 117),
-            Color.FromArgb(255, 255, 136, 117),
-
+            Color.FromArgb(255, 164, 136, 117),
             Color.FromArgb(255, 65, 87, 47),
             Color.FromArgb(255, 157, 145, 131),
             Color.FromArgb(255, 125, 128, 130)
@@ -395,7 +393,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             output.UnlockBits(outputData);
 
-output.Save("terr.png",ImageFormat.Png);
+//output.Save("terr.png",ImageFormat.Png);
 
             #endregion Texture Compositing
 
