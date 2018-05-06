@@ -57,6 +57,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             NearPlaneDistance = nearPlaneDist;
             Width = width;
             Height = height;
+            Orthographic = false;
         }
 
         public Viewport(Vector3 position, Vector3 lookDirection, float farPlaneDist, float nearPlaneDist, int width, int height, float orthoWindowWidth, float orthoWindowHeight)

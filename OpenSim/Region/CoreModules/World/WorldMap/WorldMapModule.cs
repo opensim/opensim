@@ -93,6 +93,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         private const double expireResponsesTime = 120.0; // 2 minutes ?
         //private int CacheRegionsDistance = 256;
 
+        private bool m_exportPrintScale = false; // prints the scale of map in meters on exported map
+        private bool m_exportPrintRegionName = false; // prints the region name exported map
+
         #region INonSharedRegionModule Members
         public virtual void Initialise(IConfigSource config)
         {
@@ -103,6 +106,11 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 m_Enabled = true;
 
             expireBlackListTime = (double)Util.GetConfigVarFromSections<int>(config, "BlacklistTimeout", configSections, 10 * 60);
+
+            m_exportPrintScale =
+                Util.GetConfigVarFromSections<bool>(config, "ExportMapAddScale", configSections, m_exportPrintScale);
+            m_exportPrintRegionName =
+                Util.GetConfigVarFromSections<bool>(config, "ExportMapAddRegionName", configSections, m_exportPrintRegionName);
         }
 
         public virtual void AddRegion(Scene scene)
@@ -1418,14 +1426,16 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             int spanY = endY - startY + 2;
 
             Bitmap mapTexture = new Bitmap(spanX, spanY);
+            ImageAttributes gatrib = new ImageAttributes();
             Graphics g = Graphics.FromImage(mapTexture);
+            gatrib.SetWrapMode(System.Drawing.Drawing2D.WrapMode.TileFlipXY);
             g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
             g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-            g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+            g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.None;
 
             SolidBrush sea = new SolidBrush(Color.DarkBlue);
-            g.FillRectangle(sea, 0, 0, spanX - 1, spanY - 1);
+            g.FillRectangle(sea, 0, 0, spanX, spanY);
             sea.Dispose();
 
             List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
@@ -1457,8 +1467,11 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         int y = r.RegionLocY - startY;
                         int sx = r.RegionSizeX;
                         int sy = r.RegionSizeY;
-                        g.DrawImage(image, x, spanY - y - sy, sx, sy); // y origin is top
-                        if(r.RegionHandle == m_scene.RegionInfo.RegionHandle)
+                        // y origin is top
+                        g.DrawImage(image,new Rectangle(x, spanY - y - sy, sx, sy),
+                                0, 0, image.Width, image.Height, GraphicsUnit.Pixel, gatrib);
+
+                        if(m_exportPrintRegionName && r.RegionHandle == m_scene.RegionInfo.RegionHandle)
                         {
                             SizeF stringSize = g.MeasureString(r.RegionName, drawFont);
                             g.DrawString(r.RegionName, drawFont, drawBrush, x + 30, spanY - y - 30 - stringSize.Height);
@@ -1469,13 +1482,17 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 if(image != null)
                     image.Dispose();
 
-                String drawString = string.Format("{0}m x {1}m", spanX, spanY);
-                g.DrawString(drawString, drawFont, drawBrush, 30, 30);
+                if(m_exportPrintScale)
+                {
+                    String drawString = string.Format("{0}m x {1}m", spanX, spanY);
+                    g.DrawString(drawString, drawFont, drawBrush, 30, 30);
+                }
 
                 drawBrush.Dispose();
                 drawFont.Dispose();
             }
 
+            gatrib.Dispose();
             g.Dispose();
 
             mapTexture.Save(exportPath, ImageFormat.Jpeg);
