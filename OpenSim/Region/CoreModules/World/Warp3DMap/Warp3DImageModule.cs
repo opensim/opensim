@@ -73,7 +73,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private IConfigSource m_config;
         private bool m_drawPrimVolume = true;   // true if should render the prims on the tile
         private bool m_textureTerrain = true;   // true if to create terrain splatting texture
-        private bool m_textureAvegareTerrain = true; // replace terrain textures by their average color
+        private bool m_textureAvegareTerrain = false; // replace terrain textures by their average color
         private bool m_texturePrims = true;     // true if should texture the rendered prims
         private float m_texturePrimSize = 48f;  // size of prim before we consider texturing it
         private bool m_renderMeshes = false;    // true if to render meshes rather than just bounding boxes
