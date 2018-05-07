@@ -220,8 +220,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             renderer.Scene.defaultCamera.lookAt(lookat);
             #endregion Camera
 
-            renderer.Scene.addLight("Light1", new warp_Light(new warp_Vector(1.0f, 0.5f, 1f), 0xffffff, 0, 320, 40));
-            renderer.Scene.addLight("Light2", new warp_Light(new warp_Vector(-1f, -1f, 1f), 0xffffff, 0, 100, 40));
+            renderer.Scene.setAmbient(warp_Color.getColor(192,191,173));
+            renderer.Scene.addLight("Light1", new warp_Light(new warp_Vector(0f, 1f, 8f), 0xffffff, 0, 320, 40));
 
             CreateWater(renderer);
             CreateTerrain(renderer);
@@ -310,10 +310,6 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             {
                 for (x = 0; x < regionsx; x += diff)
                 {
-                    if(x == 48 && y == 36)
-                    {
-
-                    }
                     pos = ConvertVector(x , y , (float)terrain[(int)x, (int)y]);
                     obj.addVertex(new warp_Vertex(pos, x *  invsx, 1.0f - y * invsy));
                 }
