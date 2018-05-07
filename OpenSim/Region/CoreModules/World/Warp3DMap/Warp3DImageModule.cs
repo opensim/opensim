@@ -156,65 +156,74 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
         #region IMapImageGenerator Members
 
+        private Vector3 cameraPos;
+        private Vector3 cameraDir;
+        private int viewWitdh = 256;
+        private int viewHeigth = 256;
+        private float fov;
+        private bool orto;
+
         public Bitmap CreateMapTile()
         {
-            /* this must be on all map, not just its image
-            if ((DateTime.Now - lastImageTime).TotalSeconds < 3600)
-            {
-                return (Bitmap)lastImage.Clone();
-            }
-            */
-
             List<string> renderers = RenderingLoader.ListRenderers(Util.ExecutingDirectory());
             if (renderers.Count > 0)
             {
                 m_primMesher = RenderingLoader.LoadRenderer(renderers[0]);
             }
 
-            Vector3 camPos = new Vector3(
+            cameraPos = new Vector3(
                             (m_scene.RegionInfo.RegionSizeX) * 0.5f,
                             (m_scene.RegionInfo.RegionSizeY) * 0.5f,
                             250f);
-            // Viewport viewing down onto the region
-            Viewport viewport = new Viewport(camPos, -Vector3.UnitZ, 1024f, 0.1f,
-                        (int)m_scene.RegionInfo.RegionSizeX, (int)m_scene.RegionInfo.RegionSizeY,
-                        (float)m_scene.RegionInfo.RegionSizeX, (float)m_scene.RegionInfo.RegionSizeY);
 
-            Bitmap tile = CreateMapTile(viewport);
+            cameraDir = -Vector3.UnitZ;
+            viewWitdh = (int)m_scene.RegionInfo.RegionSizeX;
+            viewHeigth = (int)m_scene.RegionInfo.RegionSizeY;
+            orto = true;
+
+            Bitmap tile = GenMapTile();
             m_primMesher = null;
             return tile;
-/*
-            lastImage = tile;
-            lastImageTime = DateTime.Now;
-            return (Bitmap)lastImage.Clone();
- */
         }
 
-        public Bitmap CreateViewImage(Vector3 camPos, Vector3 camDir, float fov, int width, int height, bool useTextures)
+        public Bitmap CreateViewImage(Vector3 camPos, Vector3 camDir, float pfov, int width, int height, bool useTextures)
         {
-            Viewport viewport = new Viewport(camPos, camDir, fov, Constants.RegionSize,  0.1f, width, height);
-            return CreateMapTile(viewport);
+            List<string> renderers = RenderingLoader.ListRenderers(Util.ExecutingDirectory());
+            if (renderers.Count > 0)
+            {
+                m_primMesher = RenderingLoader.LoadRenderer(renderers[0]);
+            }
+
+            cameraPos = camPos;
+            cameraDir = camDir;
+            viewWitdh = width;
+            viewHeigth = height;
+            fov = pfov;
+            orto = false;
+
+            Bitmap tile = GenMapTile();
+            m_primMesher = null;
+            return tile;
         }
 
-        public Bitmap CreateMapTile(Viewport viewport)
+        private Bitmap GenMapTile()
         {
             m_colors.Clear();
 
-            int width = viewport.Width;
-            int height = viewport.Height;
-
             WarpRenderer renderer = new WarpRenderer();
 
-            if(!renderer.CreateScene(width, height))
-                return new Bitmap(width,height);
+            if(!renderer.CreateScene(viewWitdh, viewHeigth))
+                return new Bitmap(viewWitdh, viewHeigth);
 
             #region Camera
 
-            warp_Vector pos = ConvertVector(viewport.Position);
-            warp_Vector lookat = warp_Vector.add(ConvertVector(viewport.Position), ConvertVector(viewport.LookDirection));
+            warp_Vector pos = ConvertVector(cameraPos);
+            warp_Vector lookat = warp_Vector.add(pos, ConvertVector(cameraDir));
 
- 
-            renderer.Scene.defaultCamera.setOrthographic(true, viewport.OrthoWindowWidth, viewport.OrthoWindowHeight);
+            if(orto)
+                renderer.Scene.defaultCamera.setOrthographic(true, viewWitdh, viewHeigth);
+            else
+               renderer.Scene.defaultCamera.setFov(fov);
  
             renderer.Scene.defaultCamera.setPos(pos);
             renderer.Scene.defaultCamera.lookAt(lookat);
@@ -234,7 +243,6 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             renderer.Scene.destroy();
             renderer.Reset();
             renderer = null;
-            viewport = null;
 
             m_colors.Clear();
             GC.Collect();
@@ -303,28 +311,31 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             npointsy++;
 
             // Create all the vertices for the terrain
+            // for texture fliped on Y
             warp_Object obj = new warp_Object();
             warp_Vector pos;
             float x, y;
+            float tv;
             for (y = 0; y < regionsy; y += diff)
             {
+                tv = y * invsy;
                 for (x = 0; x < regionsx; x += diff)
                 {
                     pos = ConvertVector(x , y , (float)terrain[(int)x, (int)y]);
-                    obj.addVertex(new warp_Vertex(pos, x *  invsx, 1.0f - y * invsy));
+                    obj.addVertex(new warp_Vertex(pos, x *  invsx, tv ));
                 }
                 pos = ConvertVector(x , y , (float)terrain[(int)(x - diff), (int)y]);
-                obj.addVertex(new warp_Vertex(pos, 1.0f, 1.0f - y * invsy));
+                obj.addVertex(new warp_Vertex(pos, 1.0f, tv));
             }
 
             int lastY = (int)(y - diff);
             for (x = 0; x < regionsx; x += diff)
             {
                 pos = ConvertVector(x , y , (float)terrain[(int)x, lastY]);
-                obj.addVertex(new warp_Vertex(pos, x *  invsx, 0f));
+                obj.addVertex(new warp_Vertex(pos, x *  invsx, 1.0f));
             }
             pos = ConvertVector(x , y , (float)terrain[(int)(x - diff), lastY]);
-            obj.addVertex(new warp_Vertex(pos, 1.0f, 0f));
+            obj.addVertex(new warp_Vertex(pos, 1.0f, 1.0f));
 
             // Now that we have all the vertices, make another pass and
             // create the list of triangle indices.
@@ -376,10 +387,11 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             Util.RegionHandleToWorldLoc(m_scene.RegionInfo.RegionHandle, out globalX, out globalY);
 
             warp_Texture texture;
+            // get texture fliped on Y
             using (Bitmap image = TerrainSplat.Splat(
                         terrain, textureIDs, startHeights, heightRanges,
                         m_scene.RegionInfo.WorldLocX, m_scene.RegionInfo.WorldLocY,
-                        m_scene.AssetService, m_textureTerrain, m_textureAvegareTerrain))
+                        m_scene.AssetService, m_textureTerrain, m_textureAvegareTerrain, true))
                 texture = new warp_Texture(image);
 
             warp_Material material = new warp_Material(texture);
