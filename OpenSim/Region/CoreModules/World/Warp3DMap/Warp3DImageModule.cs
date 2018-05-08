@@ -490,13 +490,73 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                     continue;
 
                 warp_Object faceObj = new warp_Object();
-                for (int j = 0; j < face.Vertices.Count; j++)
+
+                Primitive.TextureEntryFace teFace = prim.Shape.Textures.GetFace((uint)i);
+                Color4 faceColor = teFace.RGBA;
+
+                string materialName = String.Empty;
+                if (m_texturePrims && primScaleLenSquared > m_texturePrimSize*m_texturePrimSize)
+                    materialName = GetOrCreateMaterial(renderer, faceColor, teFace.TextureID);
+                else
+                    materialName = GetOrCreateMaterial(renderer,  GetFaceColor(teFace));
+
+                if(renderer.Scene.material(materialName).getTexture() == null)
                 {
-                    Vertex v = face.Vertices[j];
-                    warp_Vector pos = ConvertVector(v.Position);
-                    warp_Vertex vert = new warp_Vertex(pos, v.TexCoord.X, 1.0f - v.TexCoord.Y);
-                    faceObj.addVertex(vert);
-                }
+                    for (int j = 0; j < face.Vertices.Count; j++)
+                    {
+                        Vertex v = face.Vertices[j];
+                        warp_Vector pos = ConvertVector(v.Position);
+                        warp_Vertex vert = new warp_Vertex(pos, v.TexCoord.X, 1.0f - v.TexCoord.Y);
+                        faceObj.addVertex(vert);
+                    }
+                }    
+                else
+                {
+                    float tu;
+                    float tv;
+                    float offsetu = teFace.OffsetU + 0.5f;
+                    float offsetv = teFace.OffsetV + 0.5f;
+                    float scaleu = teFace.RepeatU;
+                    float scalev = teFace.RepeatV;
+                    float rotation = teFace.Rotation;
+                    float rc = 0;
+                    float rs = 0;
+                    if(rotation != 0)
+                    {
+                        rc = (float)Math.Cos(rotation);
+                        rs = (float)Math.Sin(rotation);
+                    }
+
+                    for (int j = 0; j < face.Vertices.Count; j++)
+                    {
+                        warp_Vertex vert;
+                        Vertex v = face.Vertices[j];
+                        warp_Vector pos = ConvertVector(v.Position);
+                        tu = v.TexCoord.X - 0.5f;
+                        tv = 0.5f - v.TexCoord.Y;
+                        if(rotation != 0)
+                        {
+                            float tur = tu * rc - tv * rs;
+                            float tvr = tu * rs + tv * rc;
+                            tur *= scaleu;
+                            tur += offsetu;
+
+                            tvr *= scalev;
+                            tvr += offsetv;
+                            vert = new warp_Vertex(pos, tur, tvr);
+                        }
+                        else
+                        {
+                            tu *= scaleu;
+                            tu += offsetu;
+                            tv *= scalev;
+                            tv += offsetv;
+                            vert = new warp_Vertex(pos, tu, tv);
+                        }
+                         
+                        faceObj.addVertex(vert);
+                    }
+                }    
 
                 for (int j = 0; j < face.Indices.Count; j += 3)
                 {
@@ -505,15 +565,6 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                         face.Indices[j + 1],
                         face.Indices[j + 2]);
                 }
-
-                Primitive.TextureEntryFace teFace = prim.Shape.Textures.GetFace((uint)i);
-                Color4 faceColor = teFace.RGBA;
-                string materialName = String.Empty;
-
-                if (m_texturePrims && primScaleLenSquared > m_texturePrimSize*m_texturePrimSize)
-                    materialName = GetOrCreateMaterial(renderer, faceColor, teFace.TextureID);
-                else
-                    materialName = GetOrCreateMaterial(renderer,  GetFaceColor(teFace));
 
                 faceObj.scaleSelf(prim.Scale.X, prim.Scale.Z, prim.Scale.Y);
                 faceObj.transform(m);
