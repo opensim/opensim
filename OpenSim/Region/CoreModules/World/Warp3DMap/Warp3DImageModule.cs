@@ -174,12 +174,15 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             cameraPos = new Vector3(
                             (m_scene.RegionInfo.RegionSizeX) * 0.5f,
                             (m_scene.RegionInfo.RegionSizeY) * 0.5f,
-                            250f);
+                            4096f);
 
             cameraDir = -Vector3.UnitZ;
             viewWitdh = (int)m_scene.RegionInfo.RegionSizeX;
             viewHeigth = (int)m_scene.RegionInfo.RegionSizeY;
             orto = true;
+
+//            fov = warp_Math.rad2deg(2f * (float)Math.Atan2(viewWitdh,4096f));
+//            orto = false;
 
             Bitmap tile = GenMapTile();
             m_primMesher = null;
@@ -395,6 +398,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 texture = new warp_Texture(image);
 
             warp_Material material = new warp_Material(texture);
+            material.setColor(warp_Color.getColor(255,255,255));
             renderer.Scene.addMaterial("TerrainColor", material);
             renderer.SetObjectMaterial("Terrain", "TerrainColor");
         }
@@ -470,6 +474,10 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             string primID = prim.UUID.ToString();
 
+            warp_Vector primPos = ConvertVector(prim.GetWorldPosition());
+            warp_Quaternion primRot = ConvertQuaternion(prim.GetWorldRotation());
+            warp_Matrix m = warp_Matrix.quaternionMatrix(primRot);
+
             // Create the prim faces
             // TODO: Implement the useTextures flag behavior
             for (int i = 0; i < renderMesh.Faces.Count; i++)
@@ -501,18 +509,14 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 Primitive.TextureEntryFace teFace = prim.Shape.Textures.GetFace((uint)i);
                 Color4 faceColor = teFace.RGBA;
                 string materialName = String.Empty;
+
                 if (m_texturePrims && primScaleLenSquared > m_texturePrimSize*m_texturePrimSize)
                     materialName = GetOrCreateMaterial(renderer, faceColor, teFace.TextureID);
                 else
                     materialName = GetOrCreateMaterial(renderer,  GetFaceColor(teFace));
 
                 faceObj.scaleSelf(prim.Scale.X, prim.Scale.Z, prim.Scale.Y);
-
-                warp_Quaternion primRot = ConvertQuaternion(prim.GetWorldRotation());
-                warp_Matrix m = warp_Matrix.quaternionMatrix(primRot);
                 faceObj.transform(m);
-
-                warp_Vector primPos = ConvertVector(prim.GetWorldPosition());
                 faceObj.setPos(primPos);
 
                 renderer.Scene.addObject(meshName, faceObj);
