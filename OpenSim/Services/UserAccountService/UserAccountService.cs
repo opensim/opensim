@@ -878,72 +878,73 @@ namespace OpenSim.Services.UserAccountService
 
             // Wearables
             AvatarWearable basewearable;
-            AvatarWearable newbasewearable;
             WearableItem wearable;
 
+            AvatarWearable newbasewearable = new AvatarWearable();
             // copy wearables creating new inventory entries
-            // converting from v1.0 wearables to v2.0
             for (int i = 0; i < wearables.Length; i++)
             {
                 basewearable = wearables[i];
                 if(basewearable == null || basewearable.Count == 0)
                     continue;
 
-                newbasewearable = new AvatarWearable();
-                int j = basewearable.Count - 1;
-
-                wearable = basewearable[j];
-                if (wearable.ItemID != UUID.Zero)
+                newbasewearable.Clear();
+                for(int j = 0; j < basewearable.Count; j++)
                 {
-                    m_log.DebugFormat("[XXX]: Getting item {0} from avie {1}", wearable.ItemID, source);
-                    // Get inventory item and copy it
-                    InventoryItemBase item = m_InventoryService.GetItem(source, wearable.ItemID);
-
-                    if(item != null && item.AssetType == (int)AssetType.Link)
+                    wearable = basewearable[j];
+                    if (wearable.ItemID != UUID.Zero)
                     {
-                        if(item.AssetID == UUID.Zero )
-                            item = null;
+                        m_log.DebugFormat("[XXX]: Getting item {0} from avie {1} for {2} {3}",
+                            wearable.ItemID, source, i, j);
+                        // Get inventory item and copy it
+                        InventoryItemBase item = m_InventoryService.GetItem(source, wearable.ItemID);
+
+                        if(item != null && item.AssetType == (int)AssetType.Link)
+                        {
+                            if(item.AssetID == UUID.Zero )
+                                item = null;
+                            else
+                              item = m_InventoryService.GetItem(source, item.AssetID);
+                        }
+
+                        if (item != null)
+                        {
+                            InventoryItemBase destinationItem = new InventoryItemBase(UUID.Random(), destination);
+                            destinationItem.Name = item.Name;
+                            destinationItem.Owner = destination;
+                            destinationItem.Description = item.Description;
+                            destinationItem.InvType = item.InvType;
+                            destinationItem.CreatorId = item.CreatorId;
+                            destinationItem.CreatorData = item.CreatorData;
+                            destinationItem.NextPermissions = item.NextPermissions;
+                            destinationItem.CurrentPermissions = item.CurrentPermissions;
+                            destinationItem.BasePermissions = item.BasePermissions;
+                            destinationItem.EveryOnePermissions = item.EveryOnePermissions;
+                            destinationItem.GroupPermissions = item.GroupPermissions;
+                            destinationItem.AssetType = item.AssetType;
+                            destinationItem.AssetID = item.AssetID;
+                            destinationItem.GroupID = item.GroupID;
+                            destinationItem.GroupOwned = item.GroupOwned;
+                            destinationItem.SalePrice = item.SalePrice;
+                            destinationItem.SaleType = item.SaleType;
+                            destinationItem.Flags = item.Flags;
+                            destinationItem.CreationDate = item.CreationDate;
+                            destinationItem.Folder = destinationFolder.ID;
+                            ApplyNextOwnerPermissions(destinationItem);
+
+                            m_InventoryService.AddItem(destinationItem);
+                            m_log.DebugFormat("[USER ACCOUNT SERVICE]: Added item {0} to folder {1}", destinationItem.ID, destinationFolder.ID);
+
+                            // Wear item
+                            newbasewearable.Add(destinationItem.ID,wearable.AssetID);
+
+                            // Add to Current Outfit
+                            CreateCurrentOutfitLink((int)InventoryType.Wearable, item.Flags, item.Name, destinationItem.ID, destination, currentOutfitFolder.ID);
+                        }
                         else
-                          item = m_InventoryService.GetItem(source, item.AssetID);
-                    }
-
-                    if (item != null)
-                    {
-                        InventoryItemBase destinationItem = new InventoryItemBase(UUID.Random(), destination);
-                        destinationItem.Name = item.Name;
-                        destinationItem.Owner = destination;
-                        destinationItem.Description = item.Description;
-                        destinationItem.InvType = item.InvType;
-                        destinationItem.CreatorId = item.CreatorId;
-                        destinationItem.CreatorData = item.CreatorData;
-                        destinationItem.NextPermissions = item.NextPermissions;
-                        destinationItem.CurrentPermissions = item.CurrentPermissions;
-                        destinationItem.BasePermissions = item.BasePermissions;
-                        destinationItem.EveryOnePermissions = item.EveryOnePermissions;
-                        destinationItem.GroupPermissions = item.GroupPermissions;
-                        destinationItem.AssetType = item.AssetType;
-                        destinationItem.AssetID = item.AssetID;
-                        destinationItem.GroupID = item.GroupID;
-                        destinationItem.GroupOwned = item.GroupOwned;
-                        destinationItem.SalePrice = item.SalePrice;
-                        destinationItem.SaleType = item.SaleType;
-                        destinationItem.Flags = item.Flags;
-                        destinationItem.CreationDate = item.CreationDate;
-                        destinationItem.Folder = destinationFolder.ID;
-                        ApplyNextOwnerPermissions(destinationItem);
-
-                        m_InventoryService.AddItem(destinationItem);
-                        m_log.DebugFormat("[USER ACCOUNT SERVICE]: Added item {0} to folder {1}", destinationItem.ID, destinationFolder.ID);
-
-                        // Wear item
-                        newbasewearable.Add(destinationItem.ID,wearable.AssetID);
-
-                        // Add to Current Outfit
-                        CreateCurrentOutfitLink((int)InventoryType.Wearable, item.Flags, item.Name, destinationItem.ID, destination, currentOutfitFolder.ID);
-                    }
-                    else
-                    {
-                        m_log.WarnFormat("[USER ACCOUNT SERVICE]: Error transferring {0} to folder {1}", wearable.ItemID, destinationFolder.ID);
+                        {
+                            m_log.WarnFormat("[USER ACCOUNT SERVICE]: Error transferring {0} to folder {1}", wearable.ItemID, destinationFolder.ID);
+                        }
                     }
                 }
                 avatarAppearance.SetWearable(i, newbasewearable);
