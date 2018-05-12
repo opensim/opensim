@@ -407,15 +407,21 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                     {
                         sb.AppendFormat("Wearables checks for {0}\n\n", sp.Name);
 
-                        for (int i = (int)WearableType.Shape; i < (int)WearableType.Physics; i++)
+                        AvatarWearable[] wearables = sp.Appearance.Wearables;
+                        if(wearables.Count() == 0)
                         {
-                            AvatarWearable aw = sp.Appearance.Wearables[i];
+                            MainConsole.Instance.OutputFormat("avatar has no wearables");
+                            return;
+                        }
+                        
+                        for (int i = 0; i < wearables.Count(); i++)
+                        {
+                            AvatarWearable aw = wearables[i];
 
+                            sb.Append(Enum.GetName(typeof(WearableType), i));
+                            sb.Append("\n");
                             if (aw.Count > 0)
                             {
-                                sb.Append(Enum.GetName(typeof(WearableType), i));
-                                sb.Append("\n");
-
                                 for (int j = 0; j < aw.Count; j++)
                                 {
                                     WearableItem wi = aw[j];
@@ -448,6 +454,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                                     sb.Append("\n");
                                 }
                             }
+                            else
+                                sb.Append("  Empty\n");
                         }
                     }
                 }
