@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 
 using OpenSim.Framework;
 
@@ -150,7 +151,6 @@ namespace OpenSim.Services.Interfaces
             // Wearables
             Data["AvatarHeight"] = appearance.AvatarHeight.ToString();
 
-            // TODO: With COF, is this even needed?
             for (int i = 0 ; i < AvatarWearable.LEGACY_VERSION_MAX_WEARABLES ; i++)
             {
                 for (int j = 0 ; j < appearance.Wearables[i].Count ; j++)
@@ -162,21 +162,18 @@ namespace OpenSim.Services.Interfaces
                 }
             }
 
-            // Visual Params
-            //string[] vps = new string[AvatarAppearance.VISUALPARAM_COUNT];
-            //byte[] binary = appearance.VisualParams;
-
-            //            for (int i = 0 ; i < AvatarAppearance.VISUALPARAM_COUNT ; i++)
-
             byte[] binary = appearance.VisualParams;
-            string[] vps = new string[binary.Length];
+            int len = binary.Length;
+            int last = len - 1;
 
-            for (int i = 0; i < binary.Length; i++)
+            StringBuilder sb = new StringBuilder(5 * len);
+            for (int i = 0; i < len; i++)
             {
-                vps[i] = binary[i].ToString();
+                sb.Append(binary[i].ToString());
+                if (i < last)
+                    sb.Append(",");
             }
-
-            Data["VisualParams"] = String.Join(",", vps);
+            Data["VisualParams"] = sb.ToString();
 
             // Attachments
             List<AvatarAttachment> attachments = appearance.GetAttachments();
@@ -213,7 +210,6 @@ namespace OpenSim.Services.Interfaces
                     if( h == 0f)
                         h = 1.9f;
                     appearance.SetSize(new Vector3(0.45f, 0.6f, h ));
-//                    appearance.AvatarHeight = float.Parse(Data["AvatarHeight"]);
                 }
 
                 // Legacy Wearables
@@ -285,9 +281,6 @@ namespace OpenSim.Services.Interfaces
                 if (Data.ContainsKey("VisualParams"))
                 {
                     string[] vps = Data["VisualParams"].Split(new char[] {','});
-                    //byte[] binary = new byte[AvatarAppearance.VISUALPARAM_COUNT];
-
-                    //for (int i = 0 ; i < vps.Length && i < binary.Length ; i++)
                     byte[] binary = new byte[vps.Length];
 
                     for (int i = 0; i < vps.Length; i++)
@@ -296,10 +289,12 @@ namespace OpenSim.Services.Interfaces
                     appearance.VisualParams = binary;
                 }
 
-                // New style wearables
+                AvatarWearable[] wearables = appearance.Wearables;
+                int currentLength = wearables.Length;
                 foreach (KeyValuePair<string, string> _kvp in Data)
                 {
-                    if (_kvp.Key.StartsWith("Wearable "))
+                    // New style wearables
+                    if (_kvp.Key.StartsWith("Wearable ")  && _kvp.Key.Length > 9)
                     {
                         string wearIndex = _kvp.Key.Substring(9);
                         string[] wearIndices = wearIndex.Split(new char[] {':'});
@@ -308,33 +303,33 @@ namespace OpenSim.Services.Interfaces
                         string[] ids = _kvp.Value.Split(new char[] {':'});
                         UUID itemID = new UUID(ids[0]);
                         UUID assetID = new UUID(ids[1]);
-
-                        appearance.Wearables[index].Add(itemID, assetID);
-                    }
-                }
-
-                // Attachments
-                Dictionary<string, string> attchs = new Dictionary<string, string>();
-                foreach (KeyValuePair<string, string> _kvp in Data)
-                    if (_kvp.Key.StartsWith("_ap_"))
-                        attchs[_kvp.Key] = _kvp.Value;
-
-                foreach (KeyValuePair<string, string> _kvp in attchs)
-                {
-                    string pointStr = _kvp.Key.Substring(4);
-                    int point = 0;
-                    if (!Int32.TryParse(pointStr, out point))
+                        if (index >= currentLength)
+                        {
+                            Array.Resize(ref wearables, index + 1);
+                            for (int i = currentLength ; i < wearables.Length ; i++)
+                                wearables[i] = new AvatarWearable();
+                            currentLength = wearables.Length;           
+                        }   
+                        wearables[index].Add(itemID, assetID);
                         continue;
-
-                    List<string> idList = new List<string>(_kvp.Value.Split(new char[] {','}));
-
-                    appearance.SetAttachment(point, UUID.Zero, UUID.Zero);
-                    foreach (string id in idList)
+                    }
+                    // Attachments
+                    if (_kvp.Key.StartsWith("_ap_") && _kvp.Key.Length > 4)
                     {
-                        UUID uuid = UUID.Zero;
-                        UUID.TryParse(id, out uuid);
+                        string pointStr = _kvp.Key.Substring(4);
+                        int point = 0;
+                        if (Int32.TryParse(pointStr, out point))
+                        {
+                            List<string> idList = new List<string>(_kvp.Value.Split(new char[] {','}));
 
-                        appearance.SetAttachment(point | 0x80, uuid, UUID.Zero);
+                            appearance.SetAttachment(point, UUID.Zero, UUID.Zero);
+                            foreach (string id in idList)
+                            {
+                                UUID uuid = UUID.Zero;
+                                if(UUID.TryParse(id, out uuid))
+                                    appearance.SetAttachment(point | 0x80, uuid, UUID.Zero);
+                            }
+                        }
                     }
                 }
 
