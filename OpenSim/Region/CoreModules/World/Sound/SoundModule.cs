@@ -169,6 +169,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
         public virtual void TriggerSound(
             UUID soundId, UUID ownerID, UUID objectID, UUID parentID, double gain, Vector3 position, UInt64 handle)
         {
+            float radius;
             SceneObjectPart part;
             ScenePresence ssp = null;
             if (!m_scene.TryGetSceneObjectPart(objectID, out part))
@@ -177,28 +178,31 @@ namespace OpenSim.Region.CoreModules.World.Sound
                     return;
                 if (!ssp.ParcelAllowThisAvatarSounds)
                     return;
+
+                radius = MaxDistance;
             }
             else
             {
                 SceneObjectGroup grp = part.ParentGroup;
 
-                if (grp.IsAttachment)
+                if(grp.IsAttachment)
                 {
-                    if (!m_scene.TryGetScenePresence(grp.AttachedAvatar, out ssp))
+                    if(!m_scene.TryGetScenePresence(grp.AttachedAvatar, out ssp))
                         return;
 
-                    if (!ssp.ParcelAllowThisAvatarSounds)
+                    if(!ssp.ParcelAllowThisAvatarSounds)
                         return;
+
                 }
-            }
 
-            float radius = (float)part.SoundRadius;
-            if (radius == 0)
-            {
-                radius = MaxDistance;
-                part.SoundRadius = MaxDistance;
+                radius = (float)part.SoundRadius;
+                if(radius == 0)
+                {
+                    radius = MaxDistance;
+                    part.SoundRadius = MaxDistance;
+                }
+                part.SoundFlags = 0;
             }
-            part.SoundFlags = 0;
 
             radius *= radius;
             m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
