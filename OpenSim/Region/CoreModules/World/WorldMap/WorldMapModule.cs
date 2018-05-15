@@ -1409,6 +1409,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             // assumed this is 1m less than next grid line
             int regionsView = (int)m_scene.MaxRegionViewDistance;
+            
+            string regionName = m_scene.RegionInfo.RegionName;
+            ulong regionHandle = m_scene.RegionInfo.RegionHandle;
 
             int regionSizeX = (int)m_scene.RegionInfo.RegionSizeX;
             int regionSizeY = (int)m_scene.RegionInfo.RegionSizeY;
@@ -1439,23 +1442,50 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             g.FillRectangle(sea, 0, 0, spanX, spanY);
             sea.Dispose();
 
+            Font drawFont = new Font("Arial", 32);
+            SolidBrush drawBrush = new SolidBrush(Color.White);
+
             List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
                     startX, startY, endX, endY);
 
+            startX--;
+            startY--;
+
+            bool doneLocal = false;
+            string filename = "MAP-" + m_scene.RegionInfo.RegionID.ToString() + ".png";
+            try
+            {
+                using(Image localMap = Bitmap.FromFile(filename))
+                {
+                    int x = regionX - startX;
+                    int y = regionY - startY;
+                    int sx = regionSizeX;
+                    int sy = regionSizeY;
+                    // y origin is top
+                    g.DrawImage(localMap,new Rectangle(x, spanY - y - sy, sx, sy),
+                                0, 0, localMap.Width, localMap.Height, GraphicsUnit.Pixel, gatrib);
+
+                    if(m_exportPrintRegionName)
+                    {
+                        SizeF stringSize = g.MeasureString(regionName, drawFont);
+                        g.DrawString(regionName, drawFont, drawBrush, x + 30, spanY - y - 30 - stringSize.Height);
+                    }
+                }
+                doneLocal = true;
+            }
+            catch {}
+
             if(regions.Count > 0)
             {
-                Font drawFont = new Font("Arial", 32);
-                SolidBrush drawBrush = new SolidBrush(Color.White);
-
                 ManagedImage managedImage = null;
                 Image image = null;
-
-                startX--;
-                startY--;
 
                 foreach(GridRegion r in regions)
                 {
                     if(r.TerrainImage == UUID.Zero)
+                        continue;
+
+                    if(doneLocal && r.RegionHandle == regionHandle)
                         continue;
 
                     AssetBase texAsset = m_scene.AssetService.Get(r.TerrainImage.ToString());
@@ -1472,7 +1502,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         g.DrawImage(image,new Rectangle(x, spanY - y - sy, sx, sy),
                                 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, gatrib);
 
-                        if(m_exportPrintRegionName && r.RegionHandle == m_scene.RegionInfo.RegionHandle)
+                        if(m_exportPrintRegionName && r.RegionHandle == regionHandle)
                         {
                             SizeF stringSize = g.MeasureString(r.RegionName, drawFont);
                             g.DrawString(r.RegionName, drawFont, drawBrush, x + 30, spanY - y - 30 - stringSize.Height);
@@ -1483,16 +1513,16 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 if(image != null)
                     image.Dispose();
 
-                if(m_exportPrintScale)
-                {
-                    String drawString = string.Format("{0}m x {1}m", spanX, spanY);
-                    g.DrawString(drawString, drawFont, drawBrush, 30, 30);
-                }
-
-                drawBrush.Dispose();
-                drawFont.Dispose();
             }
 
+            if(m_exportPrintScale)
+            {
+                String drawString = string.Format("{0}m x {1}m", spanX, spanY);
+                g.DrawString(drawString, drawFont, drawBrush, 30, 30);
+            }
+
+            drawBrush.Dispose();
+            drawFont.Dispose();
             gatrib.Dispose();
             g.Dispose();
 
@@ -1689,13 +1719,13 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         {
                             float scale = (float)Constants.RegionSize/(float)mb;
                             using(Bitmap scaledbmp = Util.ResizeImageSolid(mapbmp, (int)(bx * scale), (int)(by * scale)))
-                                data = OpenJPEG.EncodeFromImage(scaledbmp, false);
+                                data = OpenJPEG.EncodeFromImage(scaledbmp, true);
                         }
                         else
-                            data = OpenJPEG.EncodeFromImage(mapbmp, false);
+                            data = OpenJPEG.EncodeFromImage(mapbmp, true);
                     }
                     else
-                        data = OpenJPEG.EncodeFromImage(mapbmp, false);
+                        data = OpenJPEG.EncodeFromImage(mapbmp, true);
 
                     if (data != null && data.Length > 0)
                     {
