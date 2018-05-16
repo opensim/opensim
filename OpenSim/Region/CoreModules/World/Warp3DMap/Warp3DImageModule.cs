@@ -70,7 +70,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private IRendering m_primMesher;
         internal IJ2KDecoder m_imgDecoder;
 
-        // caches per rendering 
+        // caches per rendering
         private Dictionary<string, warp_Texture> m_warpTextures = new Dictionary<string, warp_Texture>();
         private Dictionary<UUID, int> m_colors = new Dictionary<UUID, int>();
 
@@ -236,7 +236,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 renderer.Scene.defaultCamera.setOrthographic(true, viewWitdh, viewHeigth);
             else
                renderer.Scene.defaultCamera.setFov(fov);
- 
+
             renderer.Scene.defaultCamera.setPos(pos);
             renderer.Scene.defaultCamera.lookAt(lookat);
             #endregion Camera
@@ -439,7 +439,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 }
             );
         }
-            
+
         private void CreatePrim(WarpRenderer renderer, SceneObjectPart prim)
         {
             if ((PCode)prim.Shape.PCode != PCode.Prim)
@@ -554,7 +554,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                         warp_Vertex vert = new warp_Vertex(pos, v.TexCoord.X, v.TexCoord.Y);
                         faceObj.addVertex(vert);
                     }
-                }    
+                }
                 else
                 {
                     float tu;
@@ -598,10 +598,10 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                             tv += offsetv;
                             vert = new warp_Vertex(pos, tu, tv);
                         }
-                         
+
                         faceObj.addVertex(vert);
                     }
-                }    
+                }
 
                 for (int j = 0; j < face.Indices.Count; j += 3)
                 {
@@ -716,7 +716,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             }
             else
                 color =  warp_Color.multiply(color, warp_Color.Grey);
-                
+
             mat.setColor(color);
             renderer.Scene.addMaterial(materialName, mat);
 
@@ -735,7 +735,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             byte[] asset = m_scene.AssetService.GetData(id.ToString());
 
             if (asset != null)
-            {                  
+            {
                 IJ2KDecoder imgDecoder = m_scene.RequestModuleInterface<IJ2KDecoder>();
                 try
                 {
