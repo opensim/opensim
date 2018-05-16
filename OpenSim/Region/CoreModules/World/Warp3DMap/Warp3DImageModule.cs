@@ -136,6 +136,9 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
         public void RegionLoaded(Scene scene)
         {
+            if (!m_Enabled)
+                return;
+
             m_imgDecoder = m_scene.RequestModuleInterface<IJ2KDecoder>();
         }
 
