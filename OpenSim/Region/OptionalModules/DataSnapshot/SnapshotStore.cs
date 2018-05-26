@@ -82,8 +82,14 @@ namespace OpenSim.Region.DataSnapshot
             }
         }
 
-        public void ForceSceneStale(Scene scene) {
+        public void ForceSceneStale(Scene scene)
+        {
             m_scenes[scene] = true;
+            foreach(IDataSnapshotProvider pv in m_providers)
+            {
+                if(pv.GetParentScene == scene && pv.Name == "LandSnapshot")
+                    pv.Stale = true;
+            }
         }
 
         #region Fragment storage
