@@ -172,7 +172,7 @@ namespace OpenSim.Region.DataSnapshot
             if (m_snapStore == null)
             {
                 m_hostname = scene.RegionInfo.ExternalHostName;
-                m_snapStore = new SnapshotStore(m_snapsDir, m_gridinfo, m_listener_port, m_hostname);
+                m_snapStore = new SnapshotStore(m_snapsDir, m_gridinfo);
             }
 
             m_snapStore.AddScene(scene);

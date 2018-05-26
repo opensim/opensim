@@ -82,9 +82,9 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
         public static Bitmap Splat(ITerrainChannel terrain, UUID[] textureIDs,
                 float[] startHeights, float[] heightRanges,
-                uint regionPositionX,uint regionPositionY,
+                uint regionPositionX, uint regionPositionY,
                 IAssetService assetService, IJ2KDecoder decoder,
-                bool textureTerrain, bool averagetextureTerrain, bool FlipedY,
+                bool textureTerrain, bool averagetextureTerrain,
                 int twidth, int theight)
         {
             Debug.Assert(textureIDs.Length == 4);
@@ -303,87 +303,48 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             float layerDiff;
             int l0;
             int l1;
+            uint yglobalpos;
 
             if(usecolors)
             {
                 float a;
                 float b;
-                if(FlipedY)
+                unsafe
                 {
-                    unsafe
+                    byte* ptrO;
+                    for(int y = 0; y < theight; ++y)
                     {
-                        for(int y = 0; y < theight; ++y)
+                        pcty = y * invtheightMinus1;
+                        ptrO = (byte*)outputData.Scan0 + y * outputData.Stride;
+                        ty = (int)(y * yFactor);
+                        yglobalpos = (uint)ty + regionPositionY;
+
+                        for(int x = 0; x < twidth; ++x)
                         {
-                            ty = (int)(y * yFactor);
-                            pcty = y * invtheightMinus1;
-                            byte* ptrO = (byte*)outputData.Scan0 + y * outputData.Stride;
+                            tx = (int)(x * xFactor);
+                            pctx = x  * invtwitdthMinus1;
+                            height = (float)terrain[tx, ty];
+                            layer = getLayerTex(height, pctx, pcty,
+                                (uint)tx + regionPositionX, yglobalpos,
+                                startHeights, heightRanges);
 
-                            for(int x = 0; x < twidth; ++x)
-                            {
-                                tx = (int)(x * xFactor);
-                                pctx = x  * invtwitdthMinus1;
-                                height = (float)terrain[tx, ty];
-                                layer = getLayerTex(height, pctx, pcty,
-                                    (uint)tx + regionPositionX, (uint)ty + regionPositionY,
-                                    startHeights, heightRanges);
+                            // Select two textures
+                            l0 = (int)layer;
+                            l1 = Math.Min(l0 + 1, 3);
 
-                                // Select two textures
-                                l0 = (int)layer;
-                                l1 = Math.Min(l0 + 1, 3);
+                            layerDiff = layer - l0;
 
-                                layerDiff = layer - l0;
+                            a = mapColorsRed[l0];
+                            b = mapColorsRed[l1];
+                            *(ptrO++) = (byte)(a + layerDiff * (b - a));
 
-                                a = mapColorsRed[l0];
-                                b = mapColorsRed[l1];
-                                *(ptrO++) = (byte)(a + layerDiff * (b - a));
+                            a = mapColorsGreen[l0];
+                            b = mapColorsGreen[l1];
+                            *(ptrO++) = (byte)(a + layerDiff * (b - a));
 
-                                a = mapColorsGreen[l0];
-                                b = mapColorsGreen[l1];
-                                *(ptrO++) = (byte)(a + layerDiff * (b - a));
-
-                                a = mapColorsBlue[l0];
-                                b = mapColorsBlue[l1];
-                                *(ptrO++) = (byte)(a + layerDiff * (b - a));
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    unsafe
-                    {
-                        for(int y = 0; y < theight; ++y)
-                        {
-                            ty = (int)((theight - y -1) * yFactor);
-                            pcty = 1.0f - y * invtheightMinus1;
-                            byte* ptrO = (byte*)outputData.Scan0 + y * outputData.Stride;
-
-                            for(int x = 0; x < twidth; ++x)
-                            {
-                                tx = (int)(x * xFactor);
-                                pctx = x  * invtwitdthMinus1;
-                                height = (float)terrain[tx, ty];
-                                layer = getLayerTex(height, pctx , pcty,
-                                    (uint)tx + regionPositionX, (uint)ty + regionPositionY,
-                                    startHeights, heightRanges);
-
-                                // Select two textures
-                                l0 = (int)layer;
-                                l1 = Math.Min(l0 + 1, 3);
-
-                                layerDiff = layer - l0;
-                                a = mapColorsRed[l0];
-                                b = mapColorsRed[l1];
-                                *(ptrO++) = (byte)(a + layerDiff * (b - a));
-
-                                a = mapColorsGreen[l0];
-                                b = mapColorsGreen[l1];
-                                *(ptrO++) = (byte)(a + layerDiff * (b - a));
-
-                                a = mapColorsBlue[l0];
-                                b = mapColorsBlue[l1];
-                                *(ptrO++) = (byte)(a + layerDiff * (b - a));
-                            }
+                            a = mapColorsBlue[l0];
+                            b = mapColorsBlue[l1];
+                            *(ptrO++) = (byte)(a + layerDiff * (b - a));
                         }
                     }
                 }
@@ -396,100 +357,59 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 float bB;
                 float bG;
                 float bR;
+
                 unsafe
                 {
                     // Get handles to all of the texture data arrays
                     BitmapData[] datas = new BitmapData[]
                     {
-                    detailTexture[0].LockBits(new Rectangle(0, 0, 16, 16), ImageLockMode.ReadOnly, detailTexture[0].PixelFormat),
-                    detailTexture[1].LockBits(new Rectangle(0, 0, 16, 16), ImageLockMode.ReadOnly, detailTexture[1].PixelFormat),
-                    detailTexture[2].LockBits(new Rectangle(0, 0, 16, 16), ImageLockMode.ReadOnly, detailTexture[2].PixelFormat),
-                    detailTexture[3].LockBits(new Rectangle(0, 0, 16, 16), ImageLockMode.ReadOnly, detailTexture[3].PixelFormat)
+                        detailTexture[0].LockBits(new Rectangle(0, 0, 16, 16), ImageLockMode.ReadOnly, detailTexture[0].PixelFormat),
+                        detailTexture[1].LockBits(new Rectangle(0, 0, 16, 16), ImageLockMode.ReadOnly, detailTexture[1].PixelFormat),
+                        detailTexture[2].LockBits(new Rectangle(0, 0, 16, 16), ImageLockMode.ReadOnly, detailTexture[2].PixelFormat),
+                        detailTexture[3].LockBits(new Rectangle(0, 0, 16, 16), ImageLockMode.ReadOnly, detailTexture[3].PixelFormat)
                     };
 
-                    if(FlipedY)
+                    byte* ptr;
+                    byte* ptrO;
+                    for(int y = 0; y < theight; y++)
                     {
-                        for(int y = 0; y < theight; y++)
+                        pcty = y * invtheightMinus1;
+                        int ypatch = ((int)(y * yFactor) & 0x0f) * datas[0].Stride;
+                        ptrO = (byte*)outputData.Scan0 + y * outputData.Stride;
+                        ty = (int)(y * yFactor);
+                        yglobalpos = (uint)ty + regionPositionY;
+
+                        for(int x = 0; x < twidth; x++)
                         {
-                            ty = (int)(y * yFactor);
-                            pcty = y * invtheightMinus1;
-                            int ypatch = ((int)(y * yFactor) & 0x0f) * datas[0].Stride;
-                            for(int x = 0; x < twidth; x++)
-                            {
-                                tx = (int)(x * xFactor);
-                                pctx = x  * invtwitdthMinus1;
-                                height = (float)terrain[tx, ty];
-                                layer = getLayerTex(height, pctx, pcty,
-                                    (uint)tx + regionPositionX, (uint)ty + regionPositionY,
-                                    startHeights, heightRanges);
+                            tx = (int)(x * xFactor);
+                            pctx = x  * invtwitdthMinus1;
+                            height = (float)terrain[tx, ty];
+                            layer = getLayerTex(height, pctx, pcty,
+                                (uint)tx + regionPositionX, yglobalpos,
+                                startHeights, heightRanges);
 
-                                // Select two textures
-                                l0 = (int)layer;
-                                l1 = Math.Min(l0 + 1, 3);
+                            // Select two textures
+                            l0 = (int)layer;
+                            layerDiff = layer - l0;
 
-                                int patchOffset = (tx & 0x0f) * 3 + ypatch;
-                                byte* ptrA = (byte*)datas[l0].Scan0 + patchOffset;
-                                byte* ptrB = (byte*)datas[l1].Scan0 + patchOffset;
-                                byte* ptrO = (byte*)outputData.Scan0 + y * outputData.Stride + x * 3;
+                            int patchOffset = (tx & 0x0f) * 3 + ypatch;
 
-                                aB = *(ptrA + 0);
-                                aG = *(ptrA + 1);
-                                aR = *(ptrA + 2);
+                            ptr = (byte*)datas[l0].Scan0 + patchOffset;
+                            aB = *(ptr++);
+                            aG = *(ptr++);
+                            aR = *(ptr);
 
-                                bB = *(ptrB + 0);
-                                bG = *(ptrB + 1);
-                                bR = *(ptrB + 2);
+                            l1 = Math.Min(l0 + 1, 3);
+                            ptr = (byte*)datas[l1].Scan0 + patchOffset;
+                            bB = *(ptr++);
+                            bG = *(ptr++);
+                            bR = *(ptr);
 
-                                layerDiff = layer - l0;
 
-                                // Interpolate between the two selected textures
-                                *(ptrO + 0) = (byte)(aB + layerDiff * (bB - aB));
-                                *(ptrO + 1) = (byte)(aG + layerDiff * (bG - aG));
-                                *(ptrO + 2) = (byte)(aR + layerDiff * (bR - aR));
-                            }
-                        }
-                    }
-                    else
-                    {
-                        for(int y = 0; y < theight; y++)
-                        {
-                            ty = (int)((theight - y - 1) * yFactor);
-                            pcty = 1.0f - y * invtheightMinus1;
-                            int ypatch = ((int)(y * yFactor) & 0x0f) * datas[0].Stride;
-
-                            for(int x = 0; x < twidth; x++)
-                            {
-                                tx = (int)(x * xFactor);
-                                pctx = x  * invtwitdthMinus1;
-                                height = (float)terrain[tx, ty];
-                                layer = getLayerTex(height, pctx, pcty,
-                                    (uint)tx + regionPositionX, (uint)ty + regionPositionY,
-                                    startHeights, heightRanges);
-
-                                // Select two textures
-                                l0 = (int)layer;
-                                l1 = Math.Min(l0 + 1, 3);
-
-                                int patchOffset = (tx & 0x0f) * 3 + ypatch;
-                                byte* ptrA = (byte*)datas[l0].Scan0 + patchOffset;
-                                byte* ptrB = (byte*)datas[l1].Scan0 + patchOffset;
-                                byte* ptrO = (byte*)outputData.Scan0 + y * outputData.Stride + x * 3;
-
-                                aB = *(ptrA + 0);
-                                aG = *(ptrA + 1);
-                                aR = *(ptrA + 2);
-
-                                bB = *(ptrB + 0);
-                                bG = *(ptrB + 1);
-                                bR = *(ptrB + 2);
-
-                                layerDiff = layer - l0;
-
-                                // Interpolate between the two selected textures
-                                *(ptrO + 0) = (byte)(aB + layerDiff * (bB - aB));
-                                *(ptrO + 1) = (byte)(aG + layerDiff * (bG - aG));
-                                *(ptrO + 2) = (byte)(aR + layerDiff * (bR - aR));
-                            }
+                            // Interpolate between the two selected textures
+                            *(ptrO++) = (byte)(aB + layerDiff * (bB - aB));
+                            *(ptrO++) = (byte)(aG + layerDiff * (bG - aG));
+                            *(ptrO++) = (byte)(aR + layerDiff * (bR - aR));
                         }
                     }
 
@@ -512,7 +432,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private static float getLayerTex(float height, float pctX, float pctY, uint sourceX, uint sourceY,
+        private static float getLayerTex(float height, float pctX, float pctY, uint X, uint Y,
              float[] startHeights, float[] heightRanges)
         {
             // Use bilinear interpolation between the four corners of start height and
@@ -533,15 +453,11 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             // Generate two frequencies of perlin noise based on our global position
             // The magic values were taken from http://opensimulator.org/wiki/Terrain_Splatting
-            Vector3 vec = new Vector3
-            (
-                sourceX * 0.20319f,
-                sourceY * 0.20319f,
-                height * 0.25f
-            );
+            float sX = X * 0.20319f;
+            float sY = Y * 0.20319f;
 
-            float noise = Perlin.noise2(vec.X * 0.222222f, vec.Y * 0.222222f) * 13.0f;
-            noise += Perlin.turbulence2(vec.X, vec.Y, 2f) * 4.5f;
+            float noise = Perlin.noise2(sX * 0.222222f, sY * 0.222222f) * 13.0f;
+            noise += Perlin.turbulence2(sX, sY, 2f) * 4.5f;
 
             // Combine the current height, generated noise, start height, and height range parameters, then scale all of it
             float layer = ((height + noise - startHeight) / heightRange) * 4f;
