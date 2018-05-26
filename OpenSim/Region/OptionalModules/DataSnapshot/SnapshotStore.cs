@@ -47,17 +47,13 @@ namespace OpenSim.Region.DataSnapshot
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Dictionary<String, String> m_gridinfo = null;
         private bool m_cacheEnabled = true;
-        private string m_listener_port = "9000"; //TODO: Set default port over 9000
-        private string m_hostname = "127.0.0.1";
         #endregion
 
-        public SnapshotStore(string directory, Dictionary<String, String> gridinfo, string port, string hostname) {
+        public SnapshotStore(string directory, Dictionary<String, String> gridinfo) {
             m_directory = directory;
             m_scenes = new Dictionary<Scene, bool>();
             m_providers = new List<IDataSnapshotProvider>();
             m_gridinfo = gridinfo;
-            m_listener_port = port;
-            m_hostname = hostname;
 
             if (Directory.Exists(m_directory))
             {
@@ -270,7 +266,7 @@ namespace OpenSim.Region.DataSnapshot
             infoblock.AppendChild(infopiece);
 
             infopiece = basedoc.CreateNode(XmlNodeType.Element, "url", "");
-            infopiece.InnerText = "http://" + m_hostname + ":" + m_listener_port;
+            infopiece.InnerText = scene.RegionInfo.ServerURI;
             infoblock.AppendChild(infopiece);
 
             infopiece = basedoc.CreateNode(XmlNodeType.Element, "name", "");
