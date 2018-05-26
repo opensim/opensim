@@ -77,7 +77,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private IConfigSource m_config;
         private bool m_drawPrimVolume = true;   // true if should render the prims on the tile
         private bool m_textureTerrain = true;   // true if to create terrain splatting texture
-        private bool m_textureAvegareTerrain = false; // replace terrain textures by their average color
+        private bool m_textureAverageTerrain = false; // replace terrain textures by their average color
         private bool m_texturePrims = true;     // true if should texture the rendered prims
         private float m_texturePrimSize = 48f;  // size of prim before we consider texturing it
         private bool m_renderMeshes = false;    // true if to render meshes rather than just bounding boxes
@@ -105,9 +105,9 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 Util.GetConfigVarFromSections<bool>(m_config, "DrawPrimOnMapTile", configSections, m_drawPrimVolume);
             m_textureTerrain =
                 Util.GetConfigVarFromSections<bool>(m_config, "TextureOnMapTile", configSections, m_textureTerrain);
-            m_textureAvegareTerrain =
-                Util.GetConfigVarFromSections<bool>(m_config, "AverageTextureColorOnMapTile", configSections, m_textureAvegareTerrain);
-            if(m_textureAvegareTerrain)
+            m_textureAverageTerrain =
+                Util.GetConfigVarFromSections<bool>(m_config, "AverageTextureColorOnMapTile", configSections, m_textureAverageTerrain);
+            if(m_textureAverageTerrain)
                 m_textureTerrain = true;
             m_texturePrims =
                 Util.GetConfigVarFromSections<bool>(m_config, "TexturePrims", configSections, m_texturePrims);
@@ -341,7 +341,6 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             npointsy++;
 
             // Create all the vertices for the terrain
-            // for texture fliped on Y
             warp_Object obj = new warp_Object();
             warp_Vector pos;
             float x, y;
@@ -367,8 +366,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             pos = ConvertVector(x , y , (float)terrain[(int)(x - diff), lastY]);
             obj.addVertex(new warp_Vertex(pos, 1.0f, 1.0f));
 
-            // Now that we have all the vertices, make another pass and
-            // create the list of triangle indices.
+            // create triangles.
             int limx = npointsx - 1;
             int limy = npointsy - 1;
             for (int j = 0; j < limy; j++)
@@ -412,15 +410,11 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             heightRanges[1] = (float)regionInfo.Elevation2NW;
             heightRanges[2] = (float)regionInfo.Elevation2SE;
             heightRanges[3] = (float)regionInfo.Elevation2NE;
-
-            uint globalX, globalY;
-            Util.RegionHandleToWorldLoc(m_scene.RegionInfo.RegionHandle, out globalX, out globalY);
-
+ 
             warp_Texture texture;
-            // get texture fliped on Y
             using (Bitmap image = TerrainSplat.Splat(terrain, textureIDs, startHeights, heightRanges,
                         m_scene.RegionInfo.WorldLocX, m_scene.RegionInfo.WorldLocY,
-                        m_scene.AssetService, m_imgDecoder, m_textureTerrain, m_textureAvegareTerrain, true,
+                        m_scene.AssetService, m_imgDecoder, m_textureTerrain, m_textureAverageTerrain,
                         twidth, twidth))
                 texture = new warp_Texture(image);
 
@@ -737,10 +731,9 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             if (asset != null)
             {                  
-                IJ2KDecoder imgDecoder = m_scene.RequestModuleInterface<IJ2KDecoder>();
                 try
                 {
-                    using (Bitmap img = (Bitmap)imgDecoder.DecodeToImage(asset))
+                    using (Bitmap img = (Bitmap)m_imgDecoder.DecodeToImage(asset))
                         ret = new warp_Texture(img);
                 }
                 catch (Exception e)
