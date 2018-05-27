@@ -3892,6 +3892,7 @@ namespace OpenSim.Region.Framework.Scenes
         public int GetNumberOfSides()
         {
             int ret = 0;
+            int cut;
 
             if(Shape.SculptEntry)
             {
@@ -3913,24 +3914,42 @@ namespace OpenSim.Region.Framework.Scenes
                     if (Shape.ProfileBegin > 0 || Shape.ProfileEnd > 0) // cut case
                     {
                         // removed sides
-                        int cut = (Shape.ProfileEnd + Shape.ProfileBegin);
-                        if(cut > 50000) // range is 0 to 50000
-                            cut = 50000;
-                        cut /= 12500; // ie 1/4 
-                        ret -= cut;
-                        ret += 2; // both cut faces
+                        if (Shape.ProfileBegin > 0)
+                        {
+                            cut = Shape.ProfileBegin;
+                            cut /= 12500;
+                            ret -= cut;
+                        }
+                        if (Shape.ProfileEnd > 0)
+                        {
+                            cut = Shape.ProfileEnd;
+                            cut /= 12500;
+                            ret -= cut;
+                        }
+                        ret += 2;
                     }
                     break;
                 case PrimType.PRISM:
                     ret = 5;
                     if (Shape.ProfileBegin > 0 || Shape.ProfileEnd > 0) // cut case
                     {
-                        // removed faces
-                        int cut = (Shape.ProfileEnd + Shape.ProfileBegin);
-                        if(cut >= 16667 ) // ie 1/3 
-                            ret--;
-                        if(cut >= 33333 ) // ie 2/3
-                            ret--;
+                        // removed sides
+                        if (Shape.ProfileBegin > 0)
+                        {
+                            cut = (Shape.ProfileBegin);
+                            if(cut >= 16667 )
+                                ret--;
+                            if(cut >= 33333 )
+                                ret--;
+                        }
+                        if (Shape.ProfileEnd > 0)
+                        {
+                            cut = (Shape.ProfileEnd);
+                            if(cut >= 16667 )
+                                ret--;
+                            if(cut >= 33333 )
+                                ret--;
+                        }
                         ret += 2; // both cut faces
                     }
                     break;
@@ -3944,7 +3963,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // cut faces exist if cut or skew or unequal twist limits
                     if (Shape.PathBegin > 0 || Shape.PathEnd > 0 || Shape.PathSkew != 0 || (Shape.PathTwistBegin != Shape.PathTwist))
                         ret += 2;
-                    if (Shape.ProfileBegin > 0 || Shape.ProfileEnd > 0 || Shape.ProfileHollow > 0) // dimple faces also if hollow
+                    if (Shape.ProfileBegin > 0 || Shape.ProfileEnd > 0 || Shape.ProfileHollow > 0) // dimple also if hollow
                         ret += 2;
                     break;
                 case PrimType.TORUS:
@@ -3964,13 +3983,19 @@ namespace OpenSim.Region.Framework.Scenes
                         ret += 2;
                     if (Shape.ProfileBegin > 0 || Shape.ProfileEnd > 0) // profile cut
                     {
-                        // removed sides
-                        int cut = (Shape.ProfileEnd + Shape.ProfileBegin);
-                        if(cut > 50000)
-                            cut = 50000;
-                        cut /= 12500;
-                        ret -= cut;
-                        ret += 2; // both cut faces
+                        if (Shape.ProfileBegin > 0)
+                        {
+                            cut = Shape.ProfileBegin;
+                            cut /= 12500;
+                            ret -= cut;
+                        }
+                        if (Shape.ProfileEnd > 0)
+                        {
+                            cut = Shape.ProfileEnd;
+                            cut /= 12500;
+                            ret -= cut;
+                        }
+                        ret += 2;
                     }
                     break;
                 case PrimType.RING:
@@ -3981,13 +4006,23 @@ namespace OpenSim.Region.Framework.Scenes
                         ret += 2;
                     if (Shape.ProfileBegin > 0 || Shape.ProfileEnd > 0) // profile cut
                     {
-                        // removed faces
-                        int cut = (Shape.ProfileEnd + Shape.ProfileBegin);
-                        if(cut >= 16667 )
-                            ret--;
-                        if(cut >= 33333 )
-                            ret--;
-                        ret += 2; // both cut faces
+                        if (Shape.ProfileBegin > 0)
+                        {
+                            cut = Shape.ProfileBegin;
+                            if(cut >= 16667 )
+                                ret--;
+                            if(cut >= 33333 )
+                                ret--;
+                        }
+                        if (Shape.ProfileEnd > 0)
+                        {
+                            cut = Shape.ProfileEnd;
+                            if(cut >= 16667 )
+                                ret--;
+                            if(cut >= 33333 )
+                                ret--;
+                        }
+                        ret += 2;
                     }
                     break;
             }
