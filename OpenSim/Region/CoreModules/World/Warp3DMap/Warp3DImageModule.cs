@@ -167,7 +167,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private Vector3 cameraPos;
         private Vector3 cameraDir;
         private int viewWitdh = 256;
-        private int viewHeigtht = 256;
+        private int viewHeight = 256;
         private float fov;
         private bool orto;
 
@@ -186,7 +186,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             cameraDir = -Vector3.UnitZ;
             viewWitdh = (int)m_scene.RegionInfo.RegionSizeX;
-            viewHeigtht = (int)m_scene.RegionInfo.RegionSizeY;
+            viewHeight = (int)m_scene.RegionInfo.RegionSizeY;
             orto = true;
 
 //            fov = warp_Math.rad2deg(2f * (float)Math.Atan2(viewWitdh, 4096f));
@@ -211,7 +211,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             cameraPos = camPos;
             cameraDir = camDir;
             viewWitdh = width;
-            viewHeigtht = height;
+            viewHeight = height;
             fov = pfov;
             orto = false;
 
@@ -227,8 +227,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             WarpRenderer renderer = new WarpRenderer();
 
-            if (!renderer.CreateScene(viewWitdh, viewHeigtht))
-                return new Bitmap(viewWitdh, viewHeigtht);
+            if (!renderer.CreateScene(viewWitdh, viewHeight))
+                return new Bitmap(viewWitdh, viewHeight);
 
             #region Camera
 
@@ -236,7 +236,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             warp_Vector lookat = warp_Vector.add(pos, ConvertVector(cameraDir));
 
             if (orto)
-                renderer.Scene.defaultCamera.setOrthographic(true, viewWitdh, viewHeigtht);
+                renderer.Scene.defaultCamera.setOrthographic(true, viewWitdh, viewHeight);
             else
                 renderer.Scene.defaultCamera.setFov(fov);
 
