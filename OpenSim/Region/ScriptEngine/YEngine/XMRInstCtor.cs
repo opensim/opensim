@@ -401,9 +401,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             switch(m_StateSource)
             {
                 case StateSource.AttachedRez:
-                    //                    PostEvent(new EventParams("attach",
-                    //                              new object[] { m_Part.ParentGroup.AttachedAvatar.ToString() }, 
-                    //                              zeroDetectParams));
+                    PostEvent(new EventParams("attach",
+                              new object[] { m_Part.ParentGroup.AttachedAvatar.ToString() }, 
+                              zeroDetectParams));
                     break;
 
                 case StateSource.PrimCrossing:
