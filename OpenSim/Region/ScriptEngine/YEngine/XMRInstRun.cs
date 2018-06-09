@@ -447,8 +447,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // The script threw some kind of exception that was not caught at
              // script level, so the script is no longer running an event handler.
             eventCode = ScriptEventCode.None;
+            stackFrames = null;
 
-            if(e is ScriptDeleteException)
+            if (e is ScriptDeleteException)
             {
                  // Script did something like llRemoveInventory(llGetScriptName());
                  // ... to delete itself from the object.
@@ -474,7 +475,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                  // Some general script error.
                 SendErrorMessage(e);
             }
-            return;
         }
 
         /**
