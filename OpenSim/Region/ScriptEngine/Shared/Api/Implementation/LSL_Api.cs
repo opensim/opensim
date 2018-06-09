@@ -6896,22 +6896,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID key = new UUID();
             if (UUID.TryParse(id, out key))
             {
-                ScenePresence presence = World.GetScenePresence(key);
-                if (presence != null) // object is an avatar
+                try
                 {
-                    if (m_host.OwnerID == World.LandChannel.GetLandObject(presence.AbsolutePosition).LandData.OwnerID)
-                        return 1;
-                }
-                else // object is not an avatar
-                {
-                    SceneObjectPart obj = World.GetSceneObjectPart(key);
-
-                    if (obj != null)
+                    ScenePresence presence = World.GetScenePresence(key);
+                    if (presence != null) // object is an avatar
                     {
-                        if (m_host.OwnerID == World.LandChannel.GetLandObject(obj.AbsolutePosition).LandData.OwnerID)
+                        if (m_host.OwnerID == World.LandChannel.GetLandObject(presence.AbsolutePosition).LandData.OwnerID)
                             return 1;
                     }
+                    else // object is not an avatar
+                    {
+                        SceneObjectPart obj = World.GetSceneObjectPart(key);
+
+                        if (obj != null &&
+                            m_host.OwnerID == World.LandChannel.GetLandObject(obj.AbsolutePosition).LandData.OwnerID)
+                        return 1;
+                    }
                 }
+                catch { }
             }
 
             return 0;
@@ -14780,7 +14782,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                  return;
                              }
 
-                             string data = Encoding.UTF8.GetString(a.Data);
+                             //string data = Encoding.UTF8.GetString(a.Data);
                              //m_log.Debug(data);
                              NotecardCache.Cache(id, a.Data);
                              AsyncCommands.DataserverPlugin.DataserverReply(
