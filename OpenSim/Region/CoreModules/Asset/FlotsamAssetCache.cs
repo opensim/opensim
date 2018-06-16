@@ -1160,13 +1160,13 @@ namespace OpenSim.Region.CoreModules.Asset
                         {
                             if(m_cleanupRunning)
                             {
-                                con.OutputFormat("FloatSam assets check already running");
+                                con.OutputFormat("Floatsam assets check already running");
                                 return;
                             }
                             m_cleanupRunning = true;
                         }
 
-                        con.Output("FloatSam Ensuring assets are cached for all scenes.");
+                        con.Output("Floatsam Ensuring assets are cached for all scenes.");
 
                         WorkManager.RunInThreadPool(delegate
                         {
