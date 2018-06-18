@@ -1334,16 +1334,42 @@ namespace OpenSim.Framework
             public static TResponse LogAndDeserialize<TRequest, TResponse>(int reqnum, Stream respStream, long contentLength)
             {
                 XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
-
                 if (WebUtil.DebugLevel >= 5)
                 {
-                    byte[] data = new byte[contentLength];
-                    Util.ReadStream(respStream, data);
+                    const int blockLength = 4096;
+                    byte[] dataBuffer = new byte[blockLength];
+                    int curcount;
+                    using (MemoryStream ms = new MemoryStream(4 * blockLength))
+                    {
+                        if(contentLength == -1)
+                        {
+                            while (true)
+                            {
+                                curcount = respStream.Read(dataBuffer, 0, blockLength);
+                                if (curcount <= 0)
+                                    break;
+                                ms.Write(dataBuffer, 0, curcount);
+                            }
+                        }
+                        else
+                        {
+                            int remaining = (int)contentLength;
+                            while (remaining > 0)
+                            {
+                                curcount = respStream.Read(dataBuffer, 0, remaining);
+                                if (curcount <= 0)
+                                    throw new EndOfStreamException(String.Format("End of stream reached with {0} bytes left to read", remaining));
+                                ms.Write(dataBuffer, 0, curcount);
+                                remaining -= curcount;
+                            }
+                        }
 
-                    WebUtil.LogResponseDetail(reqnum, System.Text.Encoding.UTF8.GetString(data));
+                        dataBuffer = ms.ToArray();
+                        WebUtil.LogResponseDetail(reqnum, System.Text.Encoding.UTF8.GetString(dataBuffer));
 
-                    using (MemoryStream temp = new MemoryStream(data))
-                        return (TResponse)deserializer.Deserialize(temp);
+                        ms.Position = 0;
+                        return (TResponse)deserializer.Deserialize(ms);
+                    }
                 }
                 else
                 {
@@ -1427,6 +1453,5 @@ namespace OpenSim.Framework
                 }
             }
         }
-
     }
 }
