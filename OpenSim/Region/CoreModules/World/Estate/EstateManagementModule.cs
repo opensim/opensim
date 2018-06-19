@@ -1556,20 +1556,21 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 // Warning: FixedSun should be set to True, otherwise this sun position won't be used.
             }
 
-            if ((parms1 & 0x00000010) != 0)
-                Scene.RegionInfo.EstateSettings.FixedSun = true;
-            else
-                Scene.RegionInfo.EstateSettings.FixedSun = false;
-
             if ((parms1 & 0x00008000) != 0)
                 Scene.RegionInfo.EstateSettings.PublicAccess = true;
             else
                 Scene.RegionInfo.EstateSettings.PublicAccess = false;
 
-            if ((parms1 & 0x10000000) != 0)
-                Scene.RegionInfo.EstateSettings.AllowVoice = true;
+            if ((parms1 & 0x00000010) != 0)
+                Scene.RegionInfo.EstateSettings.FixedSun = true;
             else
-                Scene.RegionInfo.EstateSettings.AllowVoice = false;
+                Scene.RegionInfo.EstateSettings.FixedSun = false;
+
+            // taxfree is now AllowAccessOverride
+            if ((parms1 & 0x00000020) != 0)
+                Scene.RegionInfo.EstateSettings.TaxFree = true;
+            else
+                Scene.RegionInfo.EstateSettings.TaxFree = false;
 
             if ((parms1 & 0x00100000) != 0)
                 Scene.RegionInfo.EstateSettings.AllowDirectTeleport = true;
@@ -1581,15 +1582,22 @@ namespace OpenSim.Region.CoreModules.World.Estate
             else
                 Scene.RegionInfo.EstateSettings.DenyAnonymous = false;
 
+            // no longer in used, may be reassigned
             if ((parms1 & 0x01000000) != 0)
                 Scene.RegionInfo.EstateSettings.DenyIdentified = true;
             else
                 Scene.RegionInfo.EstateSettings.DenyIdentified = false;
 
+            // no longer in used, may be reassigned
             if ((parms1 & 0x02000000) != 0)
                 Scene.RegionInfo.EstateSettings.DenyTransacted = true;
             else
                 Scene.RegionInfo.EstateSettings.DenyTransacted = false;
+
+            if ((parms1 & 0x10000000) != 0)
+                Scene.RegionInfo.EstateSettings.AllowVoice = true;
+            else
+                Scene.RegionInfo.EstateSettings.AllowVoice = false;
 
             if ((parms1 & 0x40000000) != 0)
                 Scene.RegionInfo.EstateSettings.DenyMinors = true;

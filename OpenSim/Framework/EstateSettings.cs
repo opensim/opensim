@@ -44,7 +44,6 @@ namespace OpenSim.Framework
         // Only the client uses these
         //
         private uint m_EstateID = 0;
-
         public uint EstateID
         {
             get { return m_EstateID; }
@@ -52,7 +51,6 @@ namespace OpenSim.Framework
         }
 
         private string m_EstateName = "My Estate";
-
         public string EstateName
         {
             get { return m_EstateName; }
@@ -60,7 +58,6 @@ namespace OpenSim.Framework
         }
 
         private bool m_AllowLandmark = true;
-
         public bool AllowLandmark
         {
             get { return m_AllowLandmark; }
@@ -68,7 +65,6 @@ namespace OpenSim.Framework
         }
 
         private bool m_AllowParcelChanges = true;
-
         public bool AllowParcelChanges
         {
             get { return m_AllowParcelChanges; }
@@ -76,7 +72,6 @@ namespace OpenSim.Framework
         }
 
         private bool m_AllowSetHome = true;
-
         public bool AllowSetHome
         {
             get { return m_AllowSetHome; }
@@ -84,7 +79,6 @@ namespace OpenSim.Framework
         }
 
         private uint m_ParentEstateID = 1;
-
         public uint ParentEstateID
         {
             get { return m_ParentEstateID; }
@@ -92,7 +86,6 @@ namespace OpenSim.Framework
         }
 
         private float m_BillableFactor = 0.0f;
-
         public float BillableFactor
         {
             get { return m_BillableFactor; }
@@ -100,7 +93,6 @@ namespace OpenSim.Framework
         }
 
         private int m_PricePerMeter = 1;
-
         public int PricePerMeter
         {
             get { return m_PricePerMeter; }
@@ -108,7 +100,6 @@ namespace OpenSim.Framework
         }
 
         private int m_RedirectGridX = 0;
-
         public int RedirectGridX
         {
             get { return m_RedirectGridX; }
@@ -116,7 +107,6 @@ namespace OpenSim.Framework
         }
 
         private int m_RedirectGridY = 0;
-
         public int RedirectGridY
         {
             get { return m_RedirectGridY; }
@@ -126,7 +116,6 @@ namespace OpenSim.Framework
         // Used by the sim
         //
         private bool m_UseGlobalTime = true;
-
         public bool UseGlobalTime
         {
             get { return m_UseGlobalTime; }
@@ -134,7 +123,6 @@ namespace OpenSim.Framework
         }
 
         private bool m_FixedSun = false;
-
         public bool FixedSun
         {
             get { return m_FixedSun; }
@@ -142,7 +130,6 @@ namespace OpenSim.Framework
         }
 
         private double m_SunPosition = 0.0;
-
         public double SunPosition
         {
             get { return m_SunPosition; }
@@ -150,7 +137,6 @@ namespace OpenSim.Framework
         }
 
         private bool m_AllowVoice = true;
-
         public bool AllowVoice
         {
             get { return m_AllowVoice; }
@@ -158,7 +144,6 @@ namespace OpenSim.Framework
         }
 
         private bool m_AllowDirectTeleport = true;
-
         public bool AllowDirectTeleport
         {
             get { return m_AllowDirectTeleport; }
@@ -166,23 +151,22 @@ namespace OpenSim.Framework
         }
 
         private bool m_DenyAnonymous = false;
-
         public bool DenyAnonymous
         {
             get { return m_DenyAnonymous; }
             set { m_DenyAnonymous = value; }
         }
 
+        // no longer in used, may be reassigned
         private bool m_DenyIdentified = false;
-
         public bool DenyIdentified
         {
             get { return m_DenyIdentified; }
             set { m_DenyIdentified = value; }
         }
 
+        // no longer in used, may be reassigned
         private bool m_DenyTransacted = false;
-
         public bool DenyTransacted
         {
             get { return m_DenyTransacted; }
@@ -190,7 +174,6 @@ namespace OpenSim.Framework
         }
 
         private bool m_AbuseEmailToEstateOwner = false;
-
         public bool AbuseEmailToEstateOwner
         {
             get { return m_AbuseEmailToEstateOwner; }
@@ -198,7 +181,6 @@ namespace OpenSim.Framework
         }
 
         private bool m_BlockDwell = false;
-
         public bool BlockDwell
         {
             get { return m_BlockDwell; }
@@ -206,7 +188,6 @@ namespace OpenSim.Framework
         }
 
         private bool m_EstateSkipScripts = false;
-
         public bool EstateSkipScripts
         {
             get { return m_EstateSkipScripts; }
@@ -214,7 +195,6 @@ namespace OpenSim.Framework
         }
 
         private bool m_ResetHomeOnTeleport = false;
-
         public bool ResetHomeOnTeleport
         {
             get { return m_ResetHomeOnTeleport; }
@@ -222,15 +202,13 @@ namespace OpenSim.Framework
         }
 
         private bool m_TaxFree = false;
-
-        public bool TaxFree
+        public bool TaxFree // this is now AllowAccessOverride, keeping same name to reuse DB entries
         {
             get { return m_TaxFree; }
             set { m_TaxFree = value; }
         }
 
         private bool m_PublicAccess = true;
-
         public bool PublicAccess
         {
             get { return m_PublicAccess; }
