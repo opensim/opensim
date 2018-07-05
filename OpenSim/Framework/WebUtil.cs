@@ -43,8 +43,8 @@ using System.Xml.Linq;
 using log4net;
 using Nwc.XmlRpc;
 using OpenMetaverse.StructuredData;
-using XMLResponseHelper = OpenSim.Framework.SynchronousRestObjectRequester.XMLResponseHelper;
 using OpenSim.Framework.ServiceAuth;
+using XMLResponseHelper = OpenSim.Framework.SynchronousRestObjectRequester.XMLResponseHelper;
 
 namespace OpenSim.Framework
 {
