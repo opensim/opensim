@@ -982,7 +982,7 @@
     ;; at this time some mono versions seem to have problems with the true option
     ;; so default is now false until a fix is found, to simply life of less technical skilled users.
     ;; this should only be a issue if regions stay alive for a long time with lots of scripts added or edited.
-    ; AppDomainLoading = false
+     AppDomainLoading = false
 
     ;; Controls whether scripts are stopped by aborting their threads externally (abort) or by co-operative checks from the compiled script (co-op)
     ;; co-op will be more stable but this option is currently experimental.
@@ -1266,7 +1266,7 @@
     ;; "config-include/StandaloneCommon.ini.example" to "config-include/StandaloneCommon.ini" before
     ;; editing it to set the database and backend services that OpenSim will use.
     ;;
-    ; Include-Architecture = "config-include/Standalone.ini"
+     Include-Architecture = "config-include/Standalone.ini"
     ; Include-Architecture = "config-include/StandaloneHypergrid.ini"
     ; Include-Architecture = "config-include/Grid.ini"
     ; Include-Architecture = "config-include/GridHypergrid.ini"
