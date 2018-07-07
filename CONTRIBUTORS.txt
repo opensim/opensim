@@ -19,8 +19,7 @@ been that active lately, so their voting rights are awaiting their come back.
 * Arthur Rodrigo S Valadares (IBM)
 * BlueWall (James Hughes)
 * Dan Lake 
-* justincc (OSVW Consulting, justincc.org) 
-* Marck
+ * Marck
 * Mic Bowman
 * Oren Hurvitz (Kitely)
 * Snoopy Pfeffer
@@ -57,7 +56,7 @@ where we are today.
 * John Hurliman
 * chi11ken (Genkii)
 * dahlia
-
+* justincc (OSVW Consulting, justincc.org)
 
 = Additional OpenSim Contributors =
 These folks have contributed code patches or content to OpenSimulator to help make it
