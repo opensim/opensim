@@ -4,14 +4,10 @@ The following people have contributed to OpenSim (Thank you for your effort!)
 These folks represent the current core team for OpenSim, and are the
 people that make the day to day of OpenSim happen.
 
-* justincc (OSVW Consulting, justincc.org) 
 * Melanie Thielker
 * Diva (Crista Lopes, University of California, Irvine)
-* BlueWall (James Hughes)
 * Nebadon Izumi (Michael Cerquoni, OSgrid)
-* Snoopy Pfeffer
 * Robert Adams (MisterBlue)
-* Oren Hurvitz (Kitely)
 * Kevin Cozens
 * Leal Duarte (Ubit Umarov)
 
@@ -20,11 +16,15 @@ Core developers who have temporarily (we hope) gone chasing the white rabbit.
 They are in all similar to the active core developers, except that they haven't
 been that active lately, so their voting rights are awaiting their come back. 
 
-* Teravus (w3z)
 * Arthur Rodrigo S Valadares (IBM)
+* BlueWall (James Hughes)
 * Dan Lake 
+* justincc (OSVW Consulting, justincc.org) 
 * Marck
 * Mic Bowman
+* Oren Hurvitz (Kitely)
+* Snoopy Pfeffer
+* Teravus (w3z)
 
 = Past Open Sim Developers =
 These folks are alumns of the OpenSim core group, but are now
