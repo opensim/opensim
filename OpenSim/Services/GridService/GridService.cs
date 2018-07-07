@@ -494,7 +494,7 @@ namespace OpenSim.Services.GridService
         {
 //            m_log.DebugFormat("[GRID SERVICE]: GetRegionsByName {0}", name);
 
-            List<RegionData> rdatas = m_Database.Get(Util.EscapeForLike(name) + "%", scopeID);
+            List<RegionData> rdatas = m_Database.Get("%" + Util.EscapeForLike(name) + "%", scopeID);
 
             int count = 0;
             List<GridRegion> rinfos = new List<GridRegion>();
