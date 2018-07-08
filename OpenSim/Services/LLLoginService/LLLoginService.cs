@@ -301,7 +301,7 @@ namespace OpenSim.Services.LLLoginService
                 //
                 // Check client
                 //
-                if (m_AllowedClients != string.Empty)
+                if (!String.IsNullOrWhiteSpace(m_AllowedClients))
                 {
                     Regex arx = new Regex(m_AllowedClients);
                     Match am = arx.Match(clientVersion);
@@ -315,7 +315,7 @@ namespace OpenSim.Services.LLLoginService
                     }
                 }
 
-                if (m_DeniedClients != string.Empty)
+                if (!String.IsNullOrWhiteSpace(m_DeniedClients))
                 {
                     Regex drx = new Regex(m_DeniedClients);
                     Match dm = drx.Match(clientVersion);
@@ -329,7 +329,7 @@ namespace OpenSim.Services.LLLoginService
                     }
                 }
 
-                if (m_DeniedMacs != string.Empty)
+                if (!String.IsNullOrWhiteSpace(m_DeniedMacs))
                 {
                     m_log.InfoFormat("[LLOGIN SERVICE]: Checking users Mac {0} against list of denied macs {1} ...", curMac, m_DeniedMacs);
                     if (m_DeniedMacs.Contains(curMac))

@@ -284,7 +284,7 @@ namespace OpenSim.Services.HypergridService
             //
             // Check client
             //
-            if (m_AllowedClients != string.Empty)
+            if (!String.IsNullOrWhiteSpace(m_AllowedClients))
             {
                 Regex arx = new Regex(m_AllowedClients);
                 Match am = arx.Match(curViewer);
@@ -297,7 +297,7 @@ namespace OpenSim.Services.HypergridService
                 }
             }
 
-            if (m_DeniedClients != string.Empty)
+            if (!String.IsNullOrWhiteSpace(m_DeniedClients))
             {
                 Regex drx = new Regex(m_DeniedClients);
                 Match dm = drx.Match(curViewer);
@@ -310,7 +310,7 @@ namespace OpenSim.Services.HypergridService
                 }
             }
 
-            if (m_DeniedMacs != string.Empty)
+            if (!String.IsNullOrWhiteSpace(m_DeniedMacs))
             {
                 m_log.InfoFormat("[GATEKEEPER SERVICE]: Checking users Mac {0} against list of denied macs {1} ...", curMac, m_DeniedMacs);
                 if (m_DeniedMacs.Contains(curMac))
