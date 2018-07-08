@@ -88,7 +88,7 @@ namespace OpenSim.Services.LLLoginService
         protected string m_AvatarPicker;
         protected string m_AllowedClients;
         protected string m_DeniedClients;
-		protected string m_DeniedMacs;
+        protected string m_DeniedMacs;
         protected string m_MessageUrl;
         protected string m_DSTZone;
         protected bool m_allowDuplicatePresences = false;
@@ -135,7 +135,7 @@ namespace OpenSim.Services.LLLoginService
                     config, "AllowedClients", possibleAccessControlConfigSections, string.Empty);
             m_DeniedClients = Util.GetConfigVarFromSections<string>(
                     config, "DeniedClients", possibleAccessControlConfigSections, string.Empty);
-			m_DeniedMacs = Util.GetConfigVarFromSections<string>(
+            m_DeniedMacs = Util.GetConfigVarFromSections<string>(
                         config, "DeniedMacs", possibleAccessControlConfigSections, string.Empty);
 
             m_MessageUrl = m_LoginServerConfig.GetString("MessageUrl", string.Empty);
@@ -293,8 +293,8 @@ namespace OpenSim.Services.LLLoginService
 
             m_log.InfoFormat("[LLOGIN SERVICE]: Login request for {0} {1} at {2} using viewer {3}, channel {4}, IP {5}, Mac {6}, Id0 {7}, Possible LibOMVGridProxy: {8} ",
                 firstName, lastName, startLocation, clientVersion, channel, clientIP.Address.ToString(), mac, id0, LibOMVclient.ToString());
-				
-				string curMac = mac.ToString();
+
+            string curMac = mac.ToString();
 
             try
             {
@@ -328,17 +328,17 @@ namespace OpenSim.Services.LLLoginService
                         return LLFailedLoginResponse.LoginBlockedProblem;
                     }
                 }
-				
-				if (m_DeniedMacs != string.Empty)
-				{
-					m_log.InfoFormat("[LLOGIN SERVICE]: Checking users Mac {0} against list of denied macs {1} ...", curMac, m_DeniedMacs);
-					if (m_DeniedMacs.Contains(curMac))
-					{
-						m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: client with mac {0} is denied", curMac);
-						return LLFailedLoginResponse.LoginBlockedProblem;
-					}
-				}
-				
+
+                if (m_DeniedMacs != string.Empty)
+                {
+                    m_log.InfoFormat("[LLOGIN SERVICE]: Checking users Mac {0} against list of denied macs {1} ...", curMac, m_DeniedMacs);
+                    if (m_DeniedMacs.Contains(curMac))
+                    {
+                        m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: client with mac {0} is denied", curMac);
+                        return LLFailedLoginResponse.LoginBlockedProblem;
+                    }
+                }
+
 
                 //
                 // Get the account and check that it exists

@@ -62,7 +62,7 @@ namespace OpenSim.Services.HypergridService
 
         private static string m_AllowedClients = string.Empty;
         private static string m_DeniedClients = string.Empty;
-		private static string m_DeniedMacs = string.Empty;
+        private static string m_DeniedMacs = string.Empty;
         private static bool m_ForeignAgentsAllowed = true;
         private static List<string> m_ForeignsAllowedExceptions = new List<string>();
         private static List<string> m_ForeignsDisallowedExceptions = new List<string>();
@@ -138,7 +138,7 @@ namespace OpenSim.Services.HypergridService
                         config, "AllowedClients", possibleAccessControlConfigSections, string.Empty);
                 m_DeniedClients = Util.GetConfigVarFromSections<string>(
                         config, "DeniedClients", possibleAccessControlConfigSections, string.Empty);
-				m_DeniedMacs = Util.GetConfigVarFromSections<string>(
+                m_DeniedMacs = Util.GetConfigVarFromSections<string>(
                         config, "DeniedMacs", possibleAccessControlConfigSections, string.Empty);
                 m_ForeignAgentsAllowed = serverConfig.GetBoolean("ForeignAgentsAllowed", true);
 
@@ -278,8 +278,8 @@ namespace OpenSim.Services.HypergridService
                 (source == null) ? "Unknown" : string.Format("{0} ({1}){2}", source.RegionName, source.RegionID, (source.RawServerURI == null) ? "" : " @ " + source.ServerURI));
 
             string curViewer = Util.GetViewerName(aCircuit);
-			string curMac = aCircuit.Mac.ToString();
-						
+            string curMac = aCircuit.Mac.ToString();
+
 
             //
             // Check client
@@ -309,17 +309,17 @@ namespace OpenSim.Services.HypergridService
                     return false;
                 }
             }
-			
-			if (m_DeniedMacs != string.Empty)
-			{
-				m_log.InfoFormat("[GATEKEEPER SERVICE]: Checking users Mac {0} against list of denied macs {1} ...", curMac, m_DeniedMacs);
-				if (m_DeniedMacs.Contains(curMac))
-				{
-					reason = "Login failed: client with Mac " + curMac + " is denied";
+
+            if (m_DeniedMacs != string.Empty)
+            {
+                m_log.InfoFormat("[GATEKEEPER SERVICE]: Checking users Mac {0} against list of denied macs {1} ...", curMac, m_DeniedMacs);
+                if (m_DeniedMacs.Contains(curMac))
+                {
+                    reason = "Login failed: client with Mac " + curMac + " is denied";
                     m_log.InfoFormat("[GATEKEEPER SERVICE]: Login failed, reason: client with mac {0} is denied", curMac);
                     return false;
-				}
-			}				
+                }
+            }
 
             //
             // Authenticate the user
