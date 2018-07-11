@@ -84,7 +84,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (neighbourService != null)
                 neighbour = neighbourService.HelloNeighbour(regionhandle, region);
             else
-                m_log.DebugFormat("{0} neighbour service provided for region {0} to inform neigbhours of status", LogHeader, m_scene.Name);
+                m_log.DebugFormat("{0} neighbour service provided for region {1} to inform neigbhours of status", LogHeader, m_scene.Name);
 
             if (neighbour != null)
             {
