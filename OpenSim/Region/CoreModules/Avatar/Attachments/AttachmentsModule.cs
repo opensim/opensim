@@ -493,17 +493,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return false;
             }
 
-            List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
-            if (attachments.Contains(group))
-            {
-//                if (DebugLevel > 0)
-//                    m_log.WarnFormat(
-//                        "[ATTACHMENTS MODULE]: Ignoring request to attach {0} {1} to {2} on {3} since it's already attached",
-//                        group.Name, group.LocalId, sp.Name, attachmentPt);
-
-                return false;
-            }
-
             Vector3 attachPos = group.AbsolutePosition;
 
             // TODO: this short circuits multiple attachments functionality  in  LL viewer 2.1+ and should
@@ -545,6 +534,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 // Stick it on left hand with Zero Offset from the attachment point.
                 attachmentPt = (uint)AttachmentPoint.LeftHand;
                 attachPos = Vector3.Zero;
+            }
+
+            List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
+            if (attachments.Contains(group))
+            {
+//                if (DebugLevel > 0)
+//                    m_log.WarnFormat(
+//                        "[ATTACHMENTS MODULE]: Ignoring request to attach {0} {1} to {2} on {3} since it's already attached",
+//                        group.Name, group.LocalId, sp.Name, attachmentPt);
+
+                return false;
             }
 
             // If we already have 5, remove the oldest until only 4 are left. Skip over temp ones
