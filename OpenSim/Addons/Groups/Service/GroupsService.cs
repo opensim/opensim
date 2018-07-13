@@ -43,16 +43,16 @@ namespace OpenSim.Groups
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public const GroupPowers DefaultEveryonePowers = GroupPowers.AllowSetHome |
-                                                         GroupPowers.Accountable |
-                                                         GroupPowers.JoinChat |
-                                                         GroupPowers.AllowVoiceChat |
-                                                         GroupPowers.ReceiveNotices |
-                                                         GroupPowers.StartProposal |
-                                                         GroupPowers.VoteOnProposal;
+        public const GroupPowers DefaultEveryonePowers =
+            GroupPowers.AllowSetHome |
+            GroupPowers.Accountable |
+            GroupPowers.JoinChat |
+            GroupPowers.AllowVoiceChat |
+            GroupPowers.ReceiveNotices |
+            GroupPowers.StartProposal |
+            GroupPowers.VoteOnProposal;
 
-        public const GroupPowers OfficersPowers = 
-            (GroupPowers)DefaultEveryonePowers |
+        public const GroupPowers OfficersPowers = DefaultEveryonePowers |
             GroupPowers.AllowFly |
             GroupPowers.AllowLandmark |
             GroupPowers.AllowRez |
@@ -87,9 +87,7 @@ namespace OpenSim.Groups
             GroupPowers.SendNotices |
             GroupPowers.SetLandingPoint;
 
-
-        public const GroupPowers OwnerPowers =
-            (GroupPowers)OfficersPowers | 
+        public const GroupPowers OwnerPowers = OfficersPowers | 
             GroupPowers.Accountable |
             GroupPowers.AllowEditLand |
             GroupPowers.AssignMember |
@@ -852,7 +850,7 @@ namespace OpenSim.Groups
                 return false;
             }
 
-            if (!add && data == null) // it deosn't exist, can't update
+            if (!add && data == null) // it dosn't exist, can't update
             {
                 m_log.DebugFormat("[Groups]: Group {0} doesn't exist. Can't update it", groupID);
                 return false;
