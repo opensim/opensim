@@ -850,7 +850,7 @@ namespace OpenSim.Groups
                 return false;
             }
 
-            if (!add && data == null) // it dosn't exist, can't update
+            if (!add && data == null) // it doesn't exist, can't update
             {
                 m_log.DebugFormat("[Groups]: Group {0} doesn't exist. Can't update it", groupID);
                 return false;
