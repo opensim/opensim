@@ -51,52 +51,56 @@ namespace OpenSim.Groups
                                                          GroupPowers.StartProposal |
                                                          GroupPowers.VoteOnProposal;
 
-        public const GroupPowers OwnerPowers = GroupPowers.Accountable |
-                                                GroupPowers.AllowEditLand |
-                                                GroupPowers.AllowFly |
-                                                GroupPowers.AllowLandmark |
-                                                GroupPowers.AllowRez |
-                                                GroupPowers.AllowSetHome |
-                                                GroupPowers.AllowVoiceChat |
-                                                GroupPowers.AssignMember |
-                                                GroupPowers.AssignMemberLimited |
-                                                GroupPowers.ChangeActions |
-                                                GroupPowers.ChangeIdentity |
-                                                GroupPowers.ChangeMedia |
-                                                GroupPowers.ChangeOptions |
-                                                GroupPowers.CreateRole |
-                                                GroupPowers.DeedObject |
-                                                GroupPowers.DeleteRole |
-                                                GroupPowers.Eject |
-                                                GroupPowers.FindPlaces |
-                                                GroupPowers.HostEvent |
-                                                GroupPowers.Invite |
-                                                GroupPowers.JoinChat |
-                                                GroupPowers.LandChangeIdentity |
-                                                GroupPowers.LandDeed |
-                                                GroupPowers.LandDivideJoin |
-                                                GroupPowers.LandEdit |
-                                                GroupPowers.LandEjectAndFreeze |
-                                                GroupPowers.LandGardening |
-                                                GroupPowers.LandManageAllowed |
-                                                GroupPowers.LandManageBanned |
-                                                GroupPowers.LandManagePasses |
-                                                GroupPowers.LandOptions |
-                                                GroupPowers.LandRelease |
-                                                GroupPowers.LandSetSale |
-                                                GroupPowers.ModerateChat |
-                                                GroupPowers.ObjectManipulate |
-                                                GroupPowers.ObjectSetForSale |
-                                                GroupPowers.ReceiveNotices |
-                                                GroupPowers.RemoveMember |
-                                                GroupPowers.ReturnGroupOwned |
-                                                GroupPowers.ReturnGroupSet |
-                                                GroupPowers.ReturnNonGroup |
-                                                GroupPowers.RoleProperties |
-                                                GroupPowers.SendNotices |
-                                                GroupPowers.SetLandingPoint |
-                                                GroupPowers.StartProposal |
-                                                GroupPowers.VoteOnProposal;
+        public const GroupPowers OfficersPowers = 
+            (GroupPowers)DefaultEveryonePowers |
+            GroupPowers.AllowFly |
+            GroupPowers.AllowLandmark |
+            GroupPowers.AllowRez |
+            GroupPowers.AssignMemberLimited |
+            GroupPowers.ChangeIdentity |
+            GroupPowers.ChangeMedia |
+            GroupPowers.ChangeOptions |
+            GroupPowers.DeedObject |
+            GroupPowers.Eject |
+            GroupPowers.FindPlaces |
+            GroupPowers.Invite |
+            GroupPowers.LandChangeIdentity |
+            GroupPowers.LandDeed |
+            GroupPowers.LandDivideJoin |
+            GroupPowers.LandEdit |
+            GroupPowers.LandEjectAndFreeze |
+            GroupPowers.LandGardening |
+            GroupPowers.LandManageAllowed |
+            GroupPowers.LandManageBanned |
+            GroupPowers.LandManagePasses |
+            GroupPowers.LandOptions |
+            GroupPowers.LandRelease |
+            GroupPowers.LandSetSale |
+            GroupPowers.MemberVisible |
+            GroupPowers.ModerateChat |
+            GroupPowers.ObjectManipulate |
+            GroupPowers.ObjectSetForSale |
+            GroupPowers.ReturnGroupOwned |
+            GroupPowers.ReturnGroupSet |
+            GroupPowers.ReturnNonGroup |
+            GroupPowers.RoleProperties |
+            GroupPowers.SendNotices |
+            GroupPowers.SetLandingPoint;
+
+
+        public const GroupPowers OwnerPowers =
+            (GroupPowers)OfficersPowers | 
+            GroupPowers.Accountable |
+            GroupPowers.AllowEditLand |
+            GroupPowers.AssignMember |
+            GroupPowers.ChangeActions |
+            GroupPowers.CreateRole |
+            GroupPowers.DeleteRole |
+            GroupPowers.ExperienceAdmin |
+            GroupPowers.ExperienceCreator |
+            GroupPowers.GroupBanAccess |
+            GroupPowers.HostEvent |
+            GroupPowers.RemoveMember;
 
         #region Daily Cleanup
 
@@ -151,20 +155,25 @@ namespace OpenSim.Groups
             data.Data["ShowInList"] = showInList ? "1" : "0";
             data.Data["AllowPublish"] = allowPublish ? "1" : "0";
             data.Data["MaturePublish"] = maturePublish ? "1" : "0";
-            UUID roleID = UUID.Random();
-            data.Data["OwnerRoleID"] = roleID.ToString();
+            UUID ownerRoleID = UUID.Random();
+            data.Data["OwnerRoleID"] = ownerRoleID.ToString();
 
             if (!m_Database.StoreGroup(data))
                 return UUID.Zero;
 
             // Create Everyone role
-            _AddOrUpdateGroupRole(RequestingAgentID, data.GroupID, UUID.Zero, "Everyone", "Everyone in the group", "Member of " + name, (ulong)DefaultEveryonePowers, true);
+            _AddOrUpdateGroupRole(RequestingAgentID, data.GroupID, UUID.Zero, "Everyone", "Everyone in the group is in the everyone role.", "Member of " + name, (ulong)DefaultEveryonePowers, true);
+
+            // Create Officers role
+            UUID officersRoleID = UUID.Random();
+            _AddOrUpdateGroupRole(RequestingAgentID, data.GroupID, officersRoleID, "Officers", "The officers of the group, with more powers than regular members.", "Officer of " + name, (ulong)OfficersPowers, true);
 
             // Create Owner role
-            _AddOrUpdateGroupRole(RequestingAgentID, data.GroupID, roleID, "Owners", "Owners of the group", "Owner of " + name, (ulong)OwnerPowers, true);
+            _AddOrUpdateGroupRole(RequestingAgentID, data.GroupID, ownerRoleID, "Owners", "Owners of the group", "Owner of " + name, (ulong)OwnerPowers, true);
 
             // Add founder to group
-            _AddAgentToGroup(RequestingAgentID, founderID.ToString(), data.GroupID, roleID);
+            _AddAgentToGroup(RequestingAgentID, founderID.ToString(), data.GroupID, ownerRoleID);
+            _AddAgentToGroup(RequestingAgentID, founderID.ToString(), data.GroupID, officersRoleID);
 
             return data.GroupID;
         }
