@@ -33,7 +33,6 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
-using System.Net.Security;
 using System.Reflection;
 using System.Text;
 using System.Web;
@@ -45,6 +44,7 @@ using Nwc.XmlRpc;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework.ServiceAuth;
 using XMLResponseHelper = OpenSim.Framework.SynchronousRestObjectRequester.XMLResponseHelper;
+
 
 namespace OpenSim.Framework
 {
