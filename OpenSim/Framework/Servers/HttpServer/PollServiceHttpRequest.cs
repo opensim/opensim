@@ -119,7 +119,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             response.SendChunked = false;
             response.ContentLength64 = 0;
             response.ContentEncoding = Encoding.UTF8;
-//            response.ReuseContext = false;
             response.KeepAlive = false;
             response.SendChunked = false;
             response.StatusCode = 503;

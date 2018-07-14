@@ -520,7 +520,6 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 response["str_response_string"] = "Script timeout";
                 response["content_type"] = "text/plain";
                 response["keepalive"] = false;
-                response["reusecontext"] = false;
 
                 //remove from map
                 lock (url.requests)
@@ -619,7 +618,6 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 response["str_response_string"] = "Script timeout";
                 response["content_type"] = "text/plain";
                 response["keepalive"] = false;
-                response["reusecontext"] = false;
                 return response;
             }
             //put response
@@ -627,7 +625,6 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             response["str_response_string"] = requestData.responseBody;
             response["content_type"] = requestData.responseType;
             response["keepalive"] = false;
-            response["reusecontext"] = false;
 
             if (url.allowXss)
                 response["access_control_allow_origin"] = "*";

@@ -117,8 +117,6 @@ namespace OpenSim.Tests.Common
         /// </summary>
         public string StatusDescription { get; set; }
 
-        public bool ReuseContext { get; set; }
-
         /// <summary>
         /// Add a header field and content to the response.
         /// </summary>
