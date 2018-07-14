@@ -41,30 +41,32 @@ namespace OpenSim.Framework.Capabilities
 
         public static string SerialiseLLSDReply(object obj)
         {
-            StringWriter sw = new StringWriter();
-            XmlTextWriter writer = new XmlTextWriter(sw);
-            writer.Formatting = Formatting.None;
-            writer.WriteStartElement(String.Empty, "llsd", String.Empty);
-            SerializeOSDType(writer, obj);
-            writer.WriteEndElement();
-            writer.Close();
-
+            using(StringWriter sw = new StringWriter())
+            using(XmlTextWriter writer = new XmlTextWriter(sw))
+            {
+                writer.Formatting = Formatting.None;
+                writer.WriteStartElement(String.Empty, "llsd", String.Empty);
+                SerializeOSDType(writer, obj);
+                writer.WriteEndElement();
+                writer.Flush();
             //m_log.DebugFormat("[LLSD Helpers]: Generated serialized LLSD reply {0}", sw.ToString());
 
-            return sw.ToString();
+                return sw.ToString();
+            }
         }
 
         public static string SerialiseLLSDReplyNoHeader(object obj)
         {
-            StringWriter sw = new StringWriter();
-            XmlTextWriter writer = new XmlTextWriter(sw);
-            writer.Formatting = Formatting.None;
-            SerializeOSDType(writer, obj);
-            writer.Close();
-
+            using(StringWriter sw = new StringWriter())
+            using(XmlTextWriter writer = new XmlTextWriter(sw))
+            {
+                writer.Formatting = Formatting.None;
+                SerializeOSDType(writer, obj);
+                writer.Flush();
             //m_log.DebugFormat("[LLSD Helpers]: Generated serialized LLSD reply {0}", sw.ToString());
 
-            return sw.ToString();
+                return sw.ToString();
+            }
         }
 
         private static void SerializeOSDType(XmlTextWriter writer, object obj)

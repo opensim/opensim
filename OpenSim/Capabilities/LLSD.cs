@@ -107,17 +107,17 @@ namespace OpenSim.Framework.Capabilities
         /// <returns></returns>
         public static byte[] LLSDSerialize(object obj)
         {
-            StringWriter sw = new StringWriter();
-            XmlTextWriter writer = new XmlTextWriter(sw);
-            writer.Formatting = Formatting.None;
+            using(StringWriter sw = new StringWriter())
+            using(XmlTextWriter writer = new XmlTextWriter(sw))
+            {
+                writer.Formatting = Formatting.None;
 
-            writer.WriteStartElement(String.Empty, "llsd", String.Empty);
-            LLSDWriteOne(writer, obj);
-            writer.WriteEndElement();
-
-            writer.Close();
-
-            return Util.UTF8.GetBytes(sw.ToString());
+                writer.WriteStartElement(String.Empty, "llsd", String.Empty);
+                LLSDWriteOne(writer, obj);
+                writer.WriteEndElement();
+                writer.Flush();
+                return Util.UTF8.GetBytes(sw.ToString());
+            }           
         }
 
         /// <summary>
