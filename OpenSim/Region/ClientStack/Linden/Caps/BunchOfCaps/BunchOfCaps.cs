@@ -636,7 +636,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     {
                         IsAtestUpload = (assetName.Length > 5 && assetName.StartsWith("TEST-"));
                         if(IsAtestUpload)
-                            warning += "Upload for testing purposes only. IItems will be local to region only, Inventory entry will be lost on logout";
+                            warning += "Upload for testing purposes only. Items will be local to region only, Inventory entry will be lost on logout";
                     }
 
                     if (client != null && warning != String.Empty)
@@ -2019,7 +2019,7 @@ namespace OpenSim.Region.ClientStack.Linden
                if (m_IsAtestUpload)
                {
                   LLSDAssetUploadError resperror = new LLSDAssetUploadError();
-                  resperror.message = "Upload SUCESSEFULL for testing purposes only. Other uses are prohibited. Item will not work after 48 hours or on other regions";
+                  resperror.message = "Upload SUCCESSFUL for testing purposes only. Other uses are prohibited. Item will not work after 48 hours or on other regions";
                   resperror.identifier = inv;
                     
                   uploadComplete.error = resperror;
