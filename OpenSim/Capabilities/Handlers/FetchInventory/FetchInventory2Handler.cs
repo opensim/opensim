@@ -73,15 +73,6 @@ namespace OpenSim.Capabilities.Handlers
             if (m_agentID != UUID.Zero)
             {
                 items = m_inventoryService.GetMultipleItems(m_agentID, itemIDs);
-
-                if (items == null)
-                {
-                    // OMG!!! One by one!!! This is fallback code, in case the backend isn't updated
-                    m_log.WarnFormat("[FETCH INVENTORY HANDLER]: GetMultipleItems failed. Falling back to fetching inventory items one by one.");
-                    items = new InventoryItemBase[itemsRequested.Count];
-                    foreach (UUID id in itemIDs)
-                        items[i++] = m_inventoryService.GetItem(m_agentID, id);
-                }
             }
             else
             {
