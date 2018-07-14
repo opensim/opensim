@@ -62,6 +62,9 @@
     ; How many lines of command history should we keep? (default is 100)
     ConsoleHistoryFileLines = 100
 
+    ; Time stamp commands in history file (default false)
+    ; ConsoleHistoryTimeStamp = false
+	
     ; peers SSL certificate validation options
     ; you can allow selfsigned certificates or no official CA with next option set to true
     NoVerifyCertChain = true

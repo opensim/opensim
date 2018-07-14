@@ -87,6 +87,10 @@
     ;; How many lines of command history should we keep? (default is 100)
     ; ConsoleHistoryFileLines = 100
 
+    ;# {ConsoleHistoryTimeStamp} {} {Time stamp commands in history file} {} false
+    ;; Time stamp commands in history file (default false)
+    ; ConsoleHistoryTimeStamp = false
+	
     ;# {save_crashes} {} {Save crashes to disk?} {true false} false
     ;; Set this to true if you want to log crashes to disk
     ;; this can be useful when submitting bug reports.
