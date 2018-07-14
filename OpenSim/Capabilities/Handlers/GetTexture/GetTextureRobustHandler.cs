@@ -131,9 +131,7 @@ namespace OpenSim.Capabilities.Handlers
         /// <returns>False for "caller try another codec"; true otherwise</returns>
         private bool FetchTexture(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, UUID textureID, string format)
         {
-            //            m_log.DebugFormat("[GETTEXTURE]: {0} with requested format {1}", textureID, format);
-            AssetBase texture;
-
+            // m_log.DebugFormat("[GETTEXTURE]: {0} with requested format {1}", textureID, format);
             if(!String.IsNullOrEmpty(m_RedirectURL))
             {
                 string textureUrl = m_RedirectURL + "?texture_id=" + textureID.ToString();
@@ -142,39 +140,37 @@ namespace OpenSim.Capabilities.Handlers
                 httpResponse.RedirectLocation = textureUrl;
                 return true;
             }
-            else // no redirect
-            {
-                texture = m_assetService.Get(textureID.ToString());
-                if(texture != null)
-                {
-                    if(texture.Type != (sbyte)AssetType.Texture)
-                    {
-                        httpResponse.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
-                        return true;
-                    }
-                    if(format == DefaultFormat)
-                    {
-                        WriteTextureData(httpRequest, httpResponse, texture, format);
-                        return true;
-                    }
-                    else
-                    {
-                        AssetBase newTexture = new AssetBase(texture.ID + "-" + format, texture.Name, (sbyte)AssetType.Texture, texture.Metadata.CreatorID);
-                        newTexture.Data = ConvertTextureData(texture, format);
-                        if(newTexture.Data.Length == 0)
-                            return false; // !!! Caller try another codec, please!
 
-                        newTexture.Flags = AssetFlags.Collectable;
-                        newTexture.Temporary = true;
-                        newTexture.Local = true;
-                        WriteTextureData(httpRequest, httpResponse, newTexture, format);
-                        return true;
-                    }
+            // Fetch,  Misses or invalid return a 404
+            AssetBase texture = m_assetService.Get(textureID.ToString());
+            if (texture != null)
+            {
+                if (texture.Type != (sbyte)AssetType.Texture)
+                {
+                    httpResponse.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
+                    return true;
                 }
+                if (format == DefaultFormat)
+                {
+                    WriteTextureData(httpRequest, httpResponse, texture, format);
+                    return true;
+                }
+
+                // need to convert format
+                AssetBase newTexture = new AssetBase(texture.ID + "-" + format, texture.Name, (sbyte)AssetType.Texture, texture.Metadata.CreatorID);
+                newTexture.Data = ConvertTextureData(texture, format);
+                if (newTexture.Data.Length == 0)
+                    return false; // !!! Caller try another codec, please!
+
+                newTexture.Flags = AssetFlags.Collectable;
+                newTexture.Temporary = true;
+                newTexture.Local = true;
+                WriteTextureData(httpRequest, httpResponse, newTexture, format);
+                return true;
             }
 
             // not found
-            //            m_log.Warn("[GETTEXTURE]: Texture " + textureID + " not found");
+            // m_log.Warn("[GETTEXTURE]: Texture " + textureID + " not found");
             httpResponse.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
             return true;
         }
