@@ -64,8 +64,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
         /// If false, region restart requests from the client are blocked even if they are otherwise legitimate.
         /// </summary>
         public bool AllowRegionRestartFromClient { get; set; }
-        public bool IgnoreEstateMinorAccessControl { get; set; }
-        public bool IgnoreEstatePaymentAccessControl { get; set; }
+        private bool m_ignoreEstateMinorAccessControl;
+        private bool m_ignoreEstatePaymentAccessControl;
 
         private EstateTerrainXferHandler TerrainUploader;
         public TelehubManager m_Telehub;
@@ -93,8 +93,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (config != null)
             {
                 AllowRegionRestartFromClient = config.GetBoolean("AllowRegionRestartFromClient", true);
-                IgnoreEstateMinorAccessControl = config.GetBoolean("IgnoreEstateMinorAccessControl", false);
-                IgnoreEstatePaymentAccessControl = config.GetBoolean("IgnoreEstatePaymentAccessControl", false);
+                m_ignoreEstateMinorAccessControl = config.GetBoolean("IgnoreEstateMinorAccessControl", false);
+                m_ignoreEstatePaymentAccessControl = config.GetBoolean("IgnoreEstatePaymentAccessControl", false);
             }
         }
 
@@ -125,8 +125,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             UserManager = scene.RequestModuleInterface<IUserManagement>();
 
-            scene.RegionInfo.EstateSettings.DoDenyMinors = !IgnoreEstateMinorAccessControl;
-            scene.RegionInfo.EstateSettings.DoDenyAnonymous = !IgnoreEstateMinorAccessControl;
+            scene.RegionInfo.EstateSettings.DoDenyMinors = !m_ignoreEstateMinorAccessControl;
+            scene.RegionInfo.EstateSettings.DoDenyAnonymous = !m_ignoreEstateMinorAccessControl;
         }
 
         public void Close()
