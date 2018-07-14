@@ -610,9 +610,8 @@ namespace OpenSim.Region.ClientStack.Linden
                             IsAtestUpload = (assetName.Length > 5 && assetName.StartsWith("TEST-"));
                         }
 
-
                         if(IsAtestUpload) // let user know, still showing cost estimation
-                            warning += "Upload will have no cost, for testing purposes only. Other uses are prohibited. Items will not work after 48 hours or on other regions";
+                            warning += "Upload will have no cost, for testing purposes only. Other uses are prohibited. Items will be local to region only, Inventory entry will be lost on logout";
 
                         // check funds
                         else
@@ -632,6 +631,12 @@ namespace OpenSim.Region.ClientStack.Linden
                                 return errorResponse;
                             }
                         }
+                    }
+                    else if (m_enableFreeTestUpload) // only if prefixed with "TEST-"
+                    {
+                        IsAtestUpload = (assetName.Length > 5 && assetName.StartsWith("TEST-"));
+                        if(IsAtestUpload)
+                            warning += "Upload for testing purposes only. IItems will be local to region only, Inventory entry will be lost on logout";
                     }
 
                     if (client != null && warning != String.Empty)
@@ -715,7 +720,7 @@ namespace OpenSim.Region.ClientStack.Linden
             UUID owner_id = m_HostCapsObj.AgentID;
             UUID creatorID;
 
-            bool istest = IsAtestUpload && m_enableFreeTestUpload && (cost > 0);
+            bool istest = IsAtestUpload && m_enableFreeTestUpload;
 
             bool restrictPerms = m_RestrictFreeTestUploadPerms && istest;
 
@@ -2005,34 +2010,30 @@ namespace OpenSim.Region.ClientStack.Linden
             uploadComplete.new_group_mask = m_groupMask;
             uploadComplete.new_everyone_mask = m_everyoneMask;
 
-            if (m_IsAtestUpload)
+            if (m_error == String.Empty)
             {
-                LLSDAssetUploadError resperror = new LLSDAssetUploadError();
-                resperror.message = "Upload SUCESSEFULL for testing purposes only. Other uses are prohibited. Item will not work after 48 hours or on other regions";
-                resperror.identifier = inv;
-
-                uploadComplete.error = resperror;
-                uploadComplete.state = "Upload4Testing";
+                uploadComplete.new_asset = newAssetID.ToString();
+                uploadComplete.new_inventory_item = inv;
+                //                if (m_texturesFolder != UUID.Zero)
+                //                    uploadComplete.new_texture_folder_id = m_texturesFolder;
+               if (m_IsAtestUpload)
+               {
+                  LLSDAssetUploadError resperror = new LLSDAssetUploadError();
+                  resperror.message = "Upload SUCESSEFULL for testing purposes only. Other uses are prohibited. Item will not work after 48 hours or on other regions";
+                  resperror.identifier = inv;
+                    
+                  uploadComplete.error = resperror;
+               }
+               uploadComplete.state = "complete";
             }
             else
             {
-                if (m_error == String.Empty)
-                {
-                    uploadComplete.new_asset = newAssetID.ToString();
-                    uploadComplete.new_inventory_item = inv;
-                    //                if (m_texturesFolder != UUID.Zero)
-                    //                    uploadComplete.new_texture_folder_id = m_texturesFolder;
-                    uploadComplete.state = "complete";
-                }
-                else
-                {
-                    LLSDAssetUploadError resperror = new LLSDAssetUploadError();
-                    resperror.message = m_error;
-                    resperror.identifier = inv;
+                LLSDAssetUploadError resperror = new LLSDAssetUploadError();
+                resperror.message = m_error;
+                resperror.identifier = inv;
 
-                    uploadComplete.error = resperror;
-                    uploadComplete.state = "failed";
-                }
+                uploadComplete.error = resperror;
+                uploadComplete.state = "failed";
             }
 
             res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
