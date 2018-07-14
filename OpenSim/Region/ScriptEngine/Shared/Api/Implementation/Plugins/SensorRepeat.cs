@@ -555,13 +555,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                     return;
 
                 toRegionPos = presence.AbsolutePosition;
-                dis = Util.GetDistanceTo(toRegionPos, fromRegionPos);
+                dis = Vector3.Distance(toRegionPos, fromRegionPos);
                 if (presence.IsSatOnObject && presence.ParentPart != null &&
                     presence.ParentPart.ParentGroup != null &&
                     presence.ParentPart.ParentGroup.RootPart != null)
                 {
                     Vector3 rpos = presence.ParentPart.ParentGroup.RootPart.AbsolutePosition;
-                    double dis2 = Util.GetDistanceTo(rpos, fromRegionPos);
+                    double dis2 = Vector3.Distance(rpos, fromRegionPos);
                     if (dis > dis2)
                         dis = dis2;
                 }
