@@ -279,8 +279,6 @@ namespace OpenSim.Region.ClientStack.Linden
                     response["str_response_string"] = "Script timeout";
                     response["content_type"] = "text/plain";
                     response["keepalive"] = false;
-                    response["reusecontext"] = false;
-
                     return response;
                 };
             }
@@ -313,7 +311,6 @@ namespace OpenSim.Region.ClientStack.Linden
                         response["str_response_string"] = "Throttled";
                         response["content_type"] = "text/plain";
                         response["keepalive"] = false;
-                        response["reusecontext"] = false;
 
                         Hashtable headers = new Hashtable();
                         headers["Retry-After"] = 30;

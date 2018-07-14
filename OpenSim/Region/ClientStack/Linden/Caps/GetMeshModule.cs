@@ -301,8 +301,6 @@ namespace OpenSim.Region.ClientStack.Linden
                     response["str_response_string"] = "Script timeout";
                     response["content_type"] = "text/plain";
                     response["keepalive"] = false;
-                    response["reusecontext"] = false;
-
                     return response;
                 };
             }
