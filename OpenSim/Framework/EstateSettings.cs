@@ -224,7 +224,6 @@ namespace OpenSim.Framework
         }
 
         private UUID m_EstateOwner = UUID.Zero;
-
         public UUID EstateOwner
         {
             get { return m_EstateOwner; }
@@ -232,7 +231,6 @@ namespace OpenSim.Framework
         }
 
         private bool m_DenyMinors = false;
-
         public bool DenyMinors
         {
             get { return m_DenyMinors; }
@@ -258,7 +256,6 @@ namespace OpenSim.Framework
         }
 
         private List<UUID> l_EstateAccess = new List<UUID>();
-
         public UUID[] EstateAccess
         {
             get { return l_EstateAccess.ToArray(); }
@@ -266,12 +263,14 @@ namespace OpenSim.Framework
         }
 
         private List<UUID> l_EstateGroups = new List<UUID>();
-
         public UUID[] EstateGroups
         {
             get { return l_EstateGroups.ToArray(); }
             set { l_EstateGroups = new List<UUID>(value); }
         }
+
+        public bool DoDenyMinors = true;
+        public bool DoDenyAnonymous = true;
 
         public EstateSettings()
         {
@@ -380,14 +379,14 @@ namespace OpenSim.Framework
 
                 if (!HasAccess(avatarID))
                 {
-                    if (DenyMinors)
+                    if (DoDenyMinors && DenyMinors)
                     {
                         if ((userFlags & 32) == 0)
                         {
                             return true;
                         }
                     }
-                    if (DenyAnonymous)
+                    if (DoDenyAnonymous && DenyAnonymous)
                     {
                         if ((userFlags & 4) == 0)
                         {
