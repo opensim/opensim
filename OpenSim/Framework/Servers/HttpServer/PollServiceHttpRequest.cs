@@ -92,7 +92,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             response.SendChunked = false;
             response.ContentLength64 = buffer.Length;
             response.ContentEncoding = Encoding.UTF8;
-//            response.ReuseContext = false;
 
             try
             {
