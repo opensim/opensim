@@ -588,7 +588,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
                     try
                     {
-                        result = OpenJPEG.EncodeFromImage(joint, true);
+                        result = OpenJPEG.EncodeFromImage(joint, false);
                     }
                     catch (Exception e)
                     {
