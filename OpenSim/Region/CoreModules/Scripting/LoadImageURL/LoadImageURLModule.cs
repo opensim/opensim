@@ -249,10 +249,13 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
                                     newSize.Height = 1024;
                                 }
 
-                                using(Bitmap resize = new Bitmap(image, newSize))
+                                if(newSize.Width != image.Width || newSize.Height != image.Height)
                                 {
-                                    imageJ2000 = OpenJPEG.EncodeFromImage(resize, false);
+                                    using(Bitmap resize = new Bitmap(image, newSize))
+                                     imageJ2000 = OpenJPEG.EncodeFromImage(resize, false);
                                 }
+                                else
+                                    imageJ2000 = OpenJPEG.EncodeFromImage(image, false);
                             }
                         }
                         catch (Exception)
