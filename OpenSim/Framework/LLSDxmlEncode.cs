@@ -290,7 +290,7 @@ namespace OpenSim.Framework
             else
             {
                 sb.Append("<string>");
-                sb.Append(e.ToString());     
+                EscapeToXML(e.ToString(), sb);
                 sb.Append("</string>");
             }
         }
@@ -611,7 +611,7 @@ namespace OpenSim.Framework
             else
             {
                 sb.Append("<string>");
-                sb.Append(e.ToString());     
+                EscapeToXML(e.ToString(), sb);
                 sb.Append("</string>");
             }
         }
