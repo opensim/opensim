@@ -973,7 +973,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 try
                 {
-                        return m_landList[m_landIDList[x / 4, y / 4]];
+                        return m_landList[m_landIDList[x / LandUnit, y / LandUnit]];
                 }
                 catch (IndexOutOfRangeException)
                 {
@@ -2044,7 +2044,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                         // for this region or for somewhere else?
                         if (extLandData.RegionHandle == m_scene.RegionInfo.RegionHandle)
                         {
-                            extLandData.LandData = this.GetLandObject(extLandData.X, extLandData.Y).LandData;
+                            ILandObject extLandObject = this.GetLandObject(extLandData.X, extLandData.Y);
+                            if (extLandObject == null)
+                            {
+                                m_log.DebugFormat("[LAND MANAGEMENT MODULE]: ParcelInfoRequest: a FakeParcelID points to outside the region");
+                                return null;
+                            }
+                            extLandData.LandData = extLandObject.LandData;
                             extLandData.RegionAccess = m_scene.RegionInfo.AccessLevel;
                         }
                         else
