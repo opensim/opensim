@@ -64,6 +64,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal TaskInventoryItem m_item;
         internal bool m_MODFunctionsEnabled = false;
         internal IScriptModuleComms m_comms = null;
+        internal IConfig m_osslconfig;
 
         public void Initialize(
             IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item)
@@ -72,7 +73,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host = host;
             m_item = item;
 
-            if (m_ScriptEngine.Config.GetBoolean("AllowMODFunctions", false))
+            
+            m_osslconfig = m_ScriptEngine.ConfigSource.Configs["OSSL"];
+            if(m_osslconfig == null)
+                m_osslconfig = m_ScriptEngine.Config;
+
+            if (m_osslconfig.GetBoolean("AllowMODFunctions", false))
                 m_MODFunctionsEnabled = true;
 
             m_comms = m_ScriptEngine.World.RequestModuleInterface<IScriptModuleComms>();
