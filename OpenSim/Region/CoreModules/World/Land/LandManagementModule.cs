@@ -116,6 +116,19 @@ namespace OpenSim.Region.CoreModules.World.Land
         // "View distance" for sending parcel layer info if asked for from a view point in the region
         private int parcelLayerViewDistance { get; set; }
 
+        private float m_BanLineSafeHeight = 100.0f;
+        public float BanLineSafeHeight
+        {
+            get { return m_BanLineSafeHeight; }
+            private set
+            {
+                if (value > 20f && value <= 5000f)
+                    m_BanLineSafeHeight = value;
+                else
+                    m_BanLineSafeHeight = 100.0f;
+            }
+        }
+
         #region INonSharedRegionModule Members
 
         public Type ReplaceableInterface
@@ -137,6 +150,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 bool disablebans = landManagementConfig.GetBoolean("DisableParcelBans", !m_allowedForcefulBans);
                 m_allowedForcefulBans = !disablebans;
                 m_showBansLines = landManagementConfig.GetBoolean("ShowParcelBansLines", m_showBansLines);
+                m_BanLineSafeHeight = landManagementConfig.GetFloat("BanLineSafeHeight", m_BanLineSafeHeight);
             }
         }
 
@@ -341,7 +355,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         public bool EnforceBans(ILandObject land, ScenePresence avatar)
         {
             Vector3 agentpos = avatar.AbsolutePosition;
-            float h = m_scene.GetGroundHeight(agentpos.X, agentpos.Y) + LandChannel.BAN_LINE_SAFETY_HEIGHT;
+            float h = m_scene.GetGroundHeight(agentpos.X, agentpos.Y) + m_scene.LandChannel.BanLineSafeHeight;
             float zdif = avatar.AbsolutePosition.Z - h;
             if (zdif > 0 )
             {

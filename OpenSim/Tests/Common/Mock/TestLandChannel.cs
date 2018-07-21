@@ -42,6 +42,8 @@ namespace OpenSim.Tests.Common
         private Scene m_scene;
         private List<ILandObject> m_parcels;
 
+        public float BanLineSafeHeight { get { return 100f; } }
+
         public TestLandChannel(Scene scene)
         {
             m_scene = scene;

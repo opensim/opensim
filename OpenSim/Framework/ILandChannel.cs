@@ -33,6 +33,8 @@ namespace OpenSim.Region.Framework.Interfaces
 {
     public interface ILandChannel
     {
+
+        float BanLineSafeHeight {get;}
         /// <summary>
         /// Get all parcels
         /// </summary>
@@ -97,6 +99,5 @@ namespace OpenSim.Region.Framework.Interfaces
         void Join(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id);
         void Subdivide(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id);
         void sendClientInitialLandInfo(IClientAPI remoteClient);
-
     }
 }
