@@ -398,7 +398,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_List osGetAvatarList();
         LSL_List osGetNPCList();
 
-        LSL_String osUnixTimeToTimestamp(long time);
+        LSL_String osUnixTimeToTimestamp(LSL_Integer time);
 
         LSL_String osGetInventoryDesc(string item);
 

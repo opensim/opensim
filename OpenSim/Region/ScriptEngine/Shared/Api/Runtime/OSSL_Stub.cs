@@ -1051,7 +1051,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetNPCList();
         }
 
-        public LSL_String osUnixTimeToTimestamp(long time)
+        public LSL_String osUnixTimeToTimestamp(LSL_Integer time)
         {
             return m_OSSL_Functions.osUnixTimeToTimestamp(time);
         }
