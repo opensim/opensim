@@ -242,27 +242,50 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
             if (primShape.SculptEntry)
             {
-                if (((OpenMetaverse.SculptType)primShape.SculptType) == SculptType.Mesh)
+                if (((SculptType)primShape.SculptType) == SculptType.Mesh)
                 {
                     if (!useMeshiesPhysicsMesh)
                         return null;
-
-                    if (!GenerateCoordsAndFacesFromPrimMeshData(primName, primShape, out coords, out faces, convex))
+                    try
+                    {
+                        if (!GenerateCoordsAndFacesFromPrimMeshData(primName, primShape, out coords, out faces, convex))
+                            return null;
+                        needsConvexProcessing = false;
+                    }
+                    catch
+                    {
+                        m_log.ErrorFormat("[MESH]: fail to process mesh asset for prim {0}", primName);
                         return null;
-                    needsConvexProcessing = false;
+                    }
                 }
                 else
                 {
-                    if (!GenerateCoordsAndFacesFromPrimSculptData(primName, primShape, lod, out coords, out faces))
+                    try
+                    {
+                        if (!GenerateCoordsAndFacesFromPrimSculptData(primName, primShape, lod, out coords, out faces))
+                            return null;
+                        needsConvexProcessing &= doConvexSculpts;
+                    }
+                    catch
+                    {
+                        m_log.ErrorFormat("[MESH]: fail to process sculpt map for prim {0}", primName);
                         return null;
-                    needsConvexProcessing &= doConvexSculpts;
+                    }
                 }
             }
             else
             {
-                if (!GenerateCoordsAndFacesFromPrimShapeData(primName, primShape, lod, convex, out coords, out faces))
+                try
+                {
+                    if (!GenerateCoordsAndFacesFromPrimShapeData(primName, primShape, lod, convex, out coords, out faces))
+                        return null;
+                     needsConvexProcessing &= doConvexPrims;
+                }
+                catch
+                {
+                    m_log.ErrorFormat("[MESH]: fail to process shape parameters for prim {0}", primName);
                     return null;
-                 needsConvexProcessing &= doConvexPrims;
+                }
             }
 
             int numCoords = coords.Count;
