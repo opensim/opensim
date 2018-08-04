@@ -101,6 +101,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         private bool m_showBansLines = true;
         private UUID DefaultGodParcelGroup;
         private string DefaultGodParcelName;
+        private UUID DefaultGodParcelOwner;
 
         // caches ExtendedLandData
         private Cache parcelInfoCache;
@@ -146,7 +147,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                 shouldLimitParcelLayerInfoToViewDistance = landManagementConfig.GetBoolean("LimitParcelLayerUpdateDistance", shouldLimitParcelLayerInfoToViewDistance);
                 parcelLayerViewDistance = landManagementConfig.GetInt("ParcelLayerViewDistance", parcelLayerViewDistance);
                 DefaultGodParcelGroup = new UUID(landManagementConfig.GetString("DefaultAdministratorGroupUUID", UUID.Zero.ToString()));
-                DefaultGodParcelName = landManagementConfig.GetString("DefaultAdministratorParcelName", "Default Parcel");
+                DefaultGodParcelName = landManagementConfig.GetString("DefaultAdministratorParcelName", "Admin Parcel");
+                DefaultGodParcelOwner = new UUID(landManagementConfig.GetString("DefaultAdministratorOwnerUUID", UUID.Zero.ToString()));
                 bool disablebans = landManagementConfig.GetBoolean("DisableParcelBans", !m_allowedForcefulBans);
                 m_allowedForcefulBans = !disablebans;
                 m_showBansLines = landManagementConfig.GetBoolean("ShowParcelBansLines", m_showBansLines);
@@ -232,6 +234,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnParcelFreezeUser += ClientOnParcelFreezeUser;
             client.OnSetStartLocationRequest += ClientOnSetHome;
             client.OnParcelBuyPass += ClientParcelBuyPass;
+            client.OnParcelGodMark += ClientOnParcelGodMark;
         }
 
         public void EventMakeChildAgent(ScenePresence avatar)
@@ -2138,16 +2141,100 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             ILandObject land = null;
             List<ILandObject> Land = ((Scene)client.Scene).LandChannel.AllParcels();
+            ((Scene)client.Scene).TryGetScenePresence(client.AgentId, out ScenePresence sp);
+
+            if (sp == null)
+                return;
+            if (sp.IsChildAgent || sp.IsDeleted || sp.IsInTransit || sp.IsNPC)
+                return;
+
+            if (!sp.IsGod)
+            {
+                client.SendAlertMessage("Request denied. You're not priviliged.");
+                return;
+            }
+            if (!sp.IsViewerUIGod)
+            {
+                client.SendAlertMessage("Please activate God Mode.");
+                return;
+            }
+
+            bool GodParcelOwner = false;
+            if (m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, DefaultGodParcelOwner) != null)
+                GodParcelOwner = true;
+
+            bool GodParcelGroup = false;
+            if (m_groupManager != null)
+            {
+                if (DefaultGodParcelGroup != UUID.Zero && m_groupManager.GetGroupRecord(DefaultGodParcelGroup) != null)
+                    GodParcelGroup = true;
+            }
+
+            if (!GodParcelOwner && !GodParcelGroup)
+            {
+                client.SendAlertMessage("Please check ini files.\n[LandManagement] config section.");
+                return;
+            }
+
             foreach (ILandObject landObject in Land)
             {
                 if (landObject.LandData.LocalID == landID)
-                {
                     land = landObject;
-                }
             }
-            land.DeedToGroup(DefaultGodParcelGroup);
+            if (land == null)
+                return;
+
+            land.LandData.AnyAVSounds = false;
+            land.LandData.AuthBuyerID = UUID.Zero;
+            land.LandData.Category = ParcelCategory.Linden;
+            land.LandData.ClaimDate = Util.UnixTimeSinceEpoch();
+            land.LandData.Description = String.Empty;
+            land.LandData.Dwell = 0;
+            land.LandData.Flags = (uint)ParcelFlags.None;
+            land.LandData.GroupAVSounds = false;
+            land.LandData.LandingType = (byte)LandingType.Direct;
+            land.LandData.LastDwellTimeMS = Util.GetTimeStampMS();
+            land.LandData.MediaAutoScale = 0;
+            land.LandData.MediaDescription = "";
+            land.LandData.MediaHeight = 0;
+            land.LandData.MediaID = UUID.Zero;
+            land.LandData.MediaLoop = false;
+            land.LandData.MediaType = "none/none";
+            land.LandData.MediaURL = String.Empty;
+            land.LandData.MediaWidth = 0;
+            land.LandData.MusicURL = String.Empty;
+            land.LandData.ObscureMedia = false;
+            land.LandData.ObscureMusic = false;
+            land.LandData.OtherCleanTime = 0;
+            land.LandData.ParcelAccessList = new List<LandAccessEntry>();
+            land.LandData.PassHours = 0;
+            land.LandData.PassPrice = 0;
+            land.LandData.SalePrice = 0;
+            land.LandData.SeeAVs = false;
+            land.LandData.SnapshotID = UUID.Zero;
+            land.LandData.Status = ParcelStatus.Leased;
+
+            if (GodParcelOwner)
+            {
+                land.LandData.OwnerID = DefaultGodParcelOwner;
+                land.LandData.IsGroupOwned = false;
+            }
+            else
+            {
+                land.LandData.OwnerID = DefaultGodParcelGroup;
+                land.LandData.IsGroupOwned = true;
+            }
+
+            if (GodParcelGroup)
+                land.LandData.GroupID = DefaultGodParcelGroup;
+            else
+                land.LandData.GroupID = UUID.Zero;
+
             land.LandData.Name = DefaultGodParcelName;
-            land.SendLandUpdateToAvatarsOverMe();
+            m_scene.ForEachClient(SendParcelOverlay);
+            land.SendLandUpdateToClient(true, client);
+            UpdateLandObject(land.LandData.LocalID, land.LandData);
+            m_scene.EventManager.TriggerParcelPrimCountUpdate();
         }
 
         private void ClientOnSimWideDeletes(IClientAPI client, UUID agentID, int flags, UUID targetID)
