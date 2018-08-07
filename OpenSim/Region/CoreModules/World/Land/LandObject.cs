@@ -1460,7 +1460,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             for (int i = 0; i < bitmapLen; i++)
             {
                 tempByte = LandData.Bitmap[i];
-                for (int bitmask = 0x80; bitmask > 0; bitmask = bitmask >> 1)
+                for (int bitmask = 0x01; bitmask < 0x100; bitmask = bitmask << 1)
                 {
                     bool bit = (tempByte & bitmask) == bitmask;
                     try
