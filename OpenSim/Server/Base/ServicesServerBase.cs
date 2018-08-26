@@ -260,6 +260,8 @@ namespace OpenSim.Server.Base
 
         protected override void ShutdownSpecific()
         {
+            if(!m_Running)
+                return;
             m_Running = false;
             m_log.Info("[CONSOLE] Quitting");
 
