@@ -764,7 +764,6 @@
     <Key Name="fileName" Value="IMG_BLOOM1.jp2" />
   </Section>
   
-  <!-- Smoke from the LL Viewer -->
   <Section Name="Smoke">
      <Key Name="assetID" Value="b4ba225c-373f-446d-9f7e-6cb7b5cf9b3d"/>
      <Key Name="name" Value="Smoke"/>
