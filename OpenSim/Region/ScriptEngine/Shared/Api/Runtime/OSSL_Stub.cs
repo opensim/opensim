@@ -225,6 +225,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osRegionNotice(msg);
         }
 
+        public void osRegionNotice(string agentID, string msg)
+        {
+            m_OSSL_Functions.osRegionNotice(agentID, msg);
+        }
+
         public bool osConsoleCommand(string Command)
         {
             return m_OSSL_Functions.osConsoleCommand(Command);

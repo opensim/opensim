@@ -138,6 +138,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         int osRegionRestart(double seconds);
         int osRegionRestart(double seconds, string msg);
         void osRegionNotice(string msg);
+        void osRegionNotice(string agentID, string msg);
         bool osConsoleCommand(string Command);
         void osSetParcelMediaURL(string url);
         void osSetPrimFloatOnWater(int floatYN);

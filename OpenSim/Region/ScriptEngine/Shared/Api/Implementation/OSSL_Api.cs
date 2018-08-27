@@ -628,16 +628,39 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osRegionNotice(string msg)
         {
-            // This implementation provides absolutely no security
-            // It's high griefing potential makes this classification
-            // necessary
-            //
-            CheckThreatLevel(ThreatLevel.VeryHigh, "osRegionNotice");
+            CheckThreatLevel(ThreatLevel.High, "osRegionNotice");
 
             IDialogModule dm = World.RequestModuleInterface<IDialogModule>();
+            if (dm == null)
+                return;
 
-            if (dm != null)
-                dm.SendGeneralAlert(msg);
+            if (!World.Permissions.CanIssueEstateCommand(m_host.OwnerID, false))
+                return;
+
+            dm.SendGeneralAlert(msg + "\n");
+        }
+
+        public void osRegionNotice(string agentID, string msg)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osRegionNotice");
+
+            if (!UUID.TryParse(agentID, out UUID avatarID))
+                return;
+
+            if (!World.TryGetScenePresence(avatarID, out ScenePresence sp))
+                return;
+
+            if (sp.IsChildAgent || sp.IsDeleted || sp.IsInTransit || sp.IsNPC)
+                return;
+
+            IDialogModule dm = World.RequestModuleInterface<IDialogModule>();
+            if (dm == null)
+                return;
+
+            if (!World.Permissions.CanIssueEstateCommand(m_host.OwnerID, false))
+                return;
+
+            dm.SendAlertToUser(sp.ControllingClient, msg + "\n", false);
         }
 
         public void osSetRot(UUID target, Quaternion rotation)
