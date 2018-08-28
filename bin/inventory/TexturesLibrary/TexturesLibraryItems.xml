@@ -464,6 +464,16 @@
     <Key Name="inventoryType" Value="0" />
   </Section>
 
+   <Section Name="Smoke Texture">
+    <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001044" />
+    <Key Name="assetID" Value="b4ba225c-373f-446d-9f7e-6cb7b5cf9b3d" />
+    <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba001"/>
+    <Key Name="description" Value="Smoke texture" />
+    <Key Name="name" Value="Smoke" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+  </Section>
+  
   <Section Name="bricks Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000001"/>
     <Key Name="assetID" Value="00000000-0000-1111-9999-000000000001"/>
