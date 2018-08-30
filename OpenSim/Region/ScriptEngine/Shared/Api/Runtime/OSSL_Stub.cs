@@ -225,7 +225,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osRegionNotice(msg);
         }
 
-        public void osRegionNotice(string agentID, string msg)
+        public void osRegionNotice(LSL_Key agentID, string msg)
         {
             m_OSSL_Functions.osRegionNotice(agentID, msg);
         }

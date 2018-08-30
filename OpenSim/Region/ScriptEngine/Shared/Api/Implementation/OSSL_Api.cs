@@ -640,9 +640,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             dm.SendGeneralAlert(msg + "\n");
         }
 
-        public void osRegionNotice(string agentID, string msg)
+        public void osRegionNotice(LSL_Key agentID, string msg)
         {
             CheckThreatLevel(ThreatLevel.High, "osRegionNotice");
+
+            if (!World.Permissions.CanIssueEstateCommand(m_host.OwnerID, false))
+                return;
+
+            IDialogModule dm = World.RequestModuleInterface<IDialogModule>();
+            if (dm == null)
+                return;
 
             if (!UUID.TryParse(agentID, out UUID avatarID))
                 return;
@@ -651,13 +658,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             if (sp.IsChildAgent || sp.IsDeleted || sp.IsInTransit || sp.IsNPC)
-                return;
-
-            IDialogModule dm = World.RequestModuleInterface<IDialogModule>();
-            if (dm == null)
-                return;
-
-            if (!World.Permissions.CanIssueEstateCommand(m_host.OwnerID, false))
                 return;
 
             dm.SendAlertToUser(sp.ControllingClient, msg + "\n", false);
