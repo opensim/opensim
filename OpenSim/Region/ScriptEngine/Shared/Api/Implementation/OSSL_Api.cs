@@ -651,13 +651,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (dm == null)
                 return;
 
-            if (!UUID.TryParse(agentID, out UUID avatarID))
+            UUID avatarID;
+            if (!UUID.TryParse(agentID, out avatarID))
                 return;
 
-            if (!World.TryGetScenePresence(avatarID, out ScenePresence sp))
+            ScenePresence sp = null;
+            if (!World.TryGetScenePresence(avatarID, out sp))
                 return;
 
-            if (sp.IsChildAgent || sp.IsDeleted || sp.IsInTransit || sp.IsNPC)
+            if (sp == null || sp.IsChildAgent || sp.IsDeleted || sp.IsInTransit || sp.IsNPC)
                 return;
 
             dm.SendAlertToUser(sp.ControllingClient, msg + "\n", false);
