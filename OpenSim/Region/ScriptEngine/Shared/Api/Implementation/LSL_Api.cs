@@ -443,8 +443,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected virtual void ScriptSleep(int delay)
         {
-            delay = (int)((float)delay * m_ScriptDelayFactor);
-            if (delay == 0)
+            delay = (int)(delay * m_ScriptDelayFactor);
+            if (delay < 10)
                 return;
 
             Sleep(delay);
@@ -453,12 +453,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected virtual void Sleep(int delay)
         {
             if (m_item == null) // Some unit tests don't set this
-            {
                 Thread.Sleep(delay);
-                return;
-            }
-
-            m_ScriptEngine.SleepScript(m_item.ItemID, delay);
+            else
+                m_ScriptEngine.SleepScript(m_item.ItemID, delay);
         }
 
         /// <summary>

@@ -485,10 +485,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void ScriptSleep(int delay)
         {
-            delay = (int)((float)delay * m_ScriptDelayFactor);
-            if (delay == 0)
+            delay = (int)(delay * m_ScriptDelayFactor);
+            if (delay < 10)
                 return;
-            System.Threading.Thread.Sleep(delay);
+            if(m_item != null)
+                m_ScriptEngine.SleepScript(m_item.ItemID, delay);
+            else
+                Thread.Sleep(delay);
         }
 
         public LSL_Integer osSetTerrainHeight(int x, int y, double val)
