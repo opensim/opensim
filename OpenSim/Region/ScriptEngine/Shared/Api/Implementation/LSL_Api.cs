@@ -13055,8 +13055,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             for (int i = 0; i < commandList.Data.Length; i++)
             {
-                int cmd = (LSL_Integer)commandList.Data[i]; // Yengine cast issue
+                int cmd;
+                if(commandList.Data[i] is LSL_Integer)
+                    cmd = (LSL_Integer)commandList.Data[i];
+                else
+                    cmd = (int)commandList.Data[i];
+
                 ParcelMediaCommandEnum command = (ParcelMediaCommandEnum)cmd;
+
                 switch (command)
                 {
                     case ParcelMediaCommandEnum.Agent:
