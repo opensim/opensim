@@ -110,49 +110,8 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
         public HttpRequestModule()
         {
-//            ServicePointManager.ServerCertificateValidationCallback +=ValidateServerCertificate;
         }
 
-        public static bool ValidateServerCertificate(
-            object sender,
-            X509Certificate  certificate,
-            X509Chain  chain,
-            SslPolicyErrors  sslPolicyErrors)
-        {
-            // If this is a web request we need to check the headers first
-            // We may want to ignore SSL
-            if (sender is HttpWebRequest)
-            {
-                HttpWebRequest Request = (HttpWebRequest)sender;
-                ServicePoint sp = Request.ServicePoint;
-
-                // We don't case about encryption, get out of here
-                if (Request.Headers.Get("NoVerifyCert") != null)
-                {
-                    return true;
-                }
-
-                // If there was an upstream cert verification error, bail
-                if ((((int)sslPolicyErrors) & ~4) != 0)
-                    return false;
-
-                // Check for policy and execute it if defined
-#pragma warning disable 0618
-                if (ServicePointManager.CertificatePolicy != null)
-                {
-                    return ServicePointManager.CertificatePolicy.CheckValidationResult (sp, certificate, Request, 0);
-                }
-#pragma warning restore 0618
-
-                return true;
-            }
-
-            // If it's not HTTP, trust .NET to check it
-            if ((((int)sslPolicyErrors) & ~4) != 0)
-                return false;
-
-            return true;
-        }
         #region IHttpRequestModule Members
 
         public UUID MakeHttpRequest(string url, string parameters, string body)
@@ -522,6 +481,47 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             return null;
         }
 
+        public static bool ValidateServerCertificate(
+            object sender,
+            X509Certificate  certificate,
+            X509Chain  chain,
+            SslPolicyErrors  sslPolicyErrors)
+        {
+            // If this is a web request we need to check the headers first
+            // We may want to ignore SSL
+            if (sender is HttpWebRequest)
+            {
+                HttpWebRequest Request = (HttpWebRequest)sender;
+                ServicePoint sp = Request.ServicePoint;
+
+                // We don't case about encryption, get out of here
+                if (Request.Headers.Get("NoVerifyCert") != null)
+                {
+                    return true;
+                }
+
+                // If there was an upstream cert verification error, bail
+                if ((((int)sslPolicyErrors) & ~4) != 0)
+                    return false;
+
+                // Check for policy and execute it if defined
+#pragma warning disable 0618
+                if (ServicePointManager.CertificatePolicy != null)
+                {
+                    return ServicePointManager.CertificatePolicy.CheckValidationResult (sp, certificate, Request, 0);
+                }
+#pragma warning restore 0618
+
+                return true;
+            }
+
+            // If it's not HTTP, trust .NET to check it
+            if ((((int)sslPolicyErrors) & ~4) != 0)
+                return false;
+
+            return true;
+        }
+
         /*
          * TODO: More work on the response codes.  Right now
          * returning 200 for success or 499 for exception
@@ -538,6 +538,8 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             try
             {
                 Request = (HttpWebRequest)WebRequest.Create(Url);
+                Request.ServerCertificateValidationCallback = ValidateServerCertificate;
+
                 Request.AllowAutoRedirect = false;
                 Request.KeepAlive = false;
 
