@@ -13055,7 +13055,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             for (int i = 0; i < commandList.Data.Length; i++)
             {
-                ParcelMediaCommandEnum command = (ParcelMediaCommandEnum)commandList.Data[i];
+                int cmd = (LSL_Integer)commandList.Data[i]; // Yengine cast issue
+                ParcelMediaCommandEnum command = (ParcelMediaCommandEnum)cmd;
                 switch (command)
                 {
                     case ParcelMediaCommandEnum.Agent:
@@ -13252,14 +13253,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (sp.currentParcelUUID == landData.GlobalID)
                         {
                             sp.ControllingClient.SendParcelMediaCommand(0x4, // TODO what is this?
-                                            (ParcelMediaCommandEnum)commandToSend, time);
+                                            commandToSend.Value, time);
                         }
                     });
                 }
                 else if (!presence.IsChildAgent)
                 {
                     presence.ControllingClient.SendParcelMediaCommand(0x4, // TODO what is this?
-                                            (ParcelMediaCommandEnum)commandToSend, time);
+                                            commandToSend.Value, time);
                 }
             }
             ScriptSleep(m_sleepMsOnParcelMediaCommandList);
