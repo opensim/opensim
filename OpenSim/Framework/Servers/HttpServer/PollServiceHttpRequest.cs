@@ -100,6 +100,13 @@ namespace OpenSim.Framework.Servers.HttpServer
                 response.Send();
                 buffer = null;
             }
+            catch (System.Net.Sockets.SocketException ex)
+            {
+                // This is "connection reset by peer", meaning the
+                // requesting server has given up. They need to
+                // fix their timeouts. We don't want to spam the
+                // log with this.
+            }
             catch (Exception ex)
             {
                 m_log.Warn("[POLL SERVICE WORKER THREAD]: Error ", ex);
@@ -131,6 +138,22 @@ namespace OpenSim.Framework.Servers.HttpServer
             catch
             {
             }
+        }
+    }
+
+    class PollServiceHttpRequestComparer : IEqualityComparer<PollServiceHttpRequest>
+    {
+        public bool Equals(PollServiceHttpRequest b1, PollServiceHttpRequest b2)
+        {
+            if (b1.contextHash != b2.contextHash)
+                return false;
+            bool b = Object.ReferenceEquals(b1.HttpContext, b2.HttpContext);
+            return b;
+        }
+
+        public int GetHashCode(PollServiceHttpRequest b2)
+        {
+            return (int)b2.contextHash;
         }
     }
 }
