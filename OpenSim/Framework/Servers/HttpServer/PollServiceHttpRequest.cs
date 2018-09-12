@@ -96,7 +96,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             try
             {
                 response.OutputStream.Write(buffer, 0, buffer.Length);
-                response.OutputStream.Flush();
                 response.Send();
                 buffer = null;
             }
@@ -123,7 +122,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             if(Request.Body.CanRead)
                 Request.Body.Dispose();
 
-            response.SendChunked = false;
             response.ContentLength64 = 0;
             response.ContentEncoding = Encoding.UTF8;
             response.KeepAlive = false;
@@ -132,28 +130,11 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             try
             {
-                response.OutputStream.Flush();
                 response.Send();
             }
             catch
             {
             }
-        }
-    }
-
-    class PollServiceHttpRequestComparer : IEqualityComparer<PollServiceHttpRequest>
-    {
-        public bool Equals(PollServiceHttpRequest b1, PollServiceHttpRequest b2)
-        {
-            if (b1.contextHash != b2.contextHash)
-                return false;
-            bool b = Object.ReferenceEquals(b1.HttpContext, b2.HttpContext);
-            return b;
-        }
-
-        public int GetHashCode(PollServiceHttpRequest b2)
-        {
-            return (int)b2.contextHash;
         }
     }
 }

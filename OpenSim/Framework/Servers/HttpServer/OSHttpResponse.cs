@@ -301,8 +301,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </summary>
         public void Send()
         {
-            _httpResponse.Body.Flush();
-
             _httpResponse.Send();
         }
 

@@ -756,7 +756,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                         using (MemoryStream memoryStream = new MemoryStream())
                         {
                             streamHandler.Handle(path, request.InputStream, memoryStream, request, response);
-                            memoryStream.Flush();
                             buffer = memoryStream.ToArray();
                         }
                     }
