@@ -56,7 +56,7 @@ namespace OpenSim.Server.Handlers.GridUser
             Object[] args = new Object[] { config };
             m_GridUserService = ServerUtils.LoadPlugin<IGridUserService>(service, args);
 
-            IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName); ;
+            IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName);
 
             server.AddStreamHandler(new GridUserServerPostHandler(m_GridUserService, auth));
         }

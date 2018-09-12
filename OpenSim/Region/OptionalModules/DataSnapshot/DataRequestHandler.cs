@@ -45,6 +45,7 @@ namespace OpenSim.Region.DataSnapshot
 //        private Scene m_scene = null;
         private DataSnapshotManager m_externalData = null;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private ExpiringCache<string, int> throotleGen = new ExpiringCache<string, int>();
 
         public DataRequestHandler(Scene scene, DataSnapshotManager externalData)
         {
@@ -52,29 +53,91 @@ namespace OpenSim.Region.DataSnapshot
             m_externalData = externalData;
 
             //Register HTTP handler
-            if (MainServer.Instance.AddHTTPHandler("collector", OnGetSnapshot))
+            if (MainServer.UnSecureInstance.AddHTTPHandler("collector", OnGetSnapshot))
             {
                 m_log.Info("[DATASNAPSHOT]: Set up snapshot service");
             }
             // Register validation callback handler
-            MainServer.Instance.AddHTTPHandler("validate", OnValidate);
+            MainServer.UnSecureInstance.AddHTTPHandler("validate", OnValidate);
 
+        }
+
+        private string GetClientString(Hashtable request)
+        {
+            string clientstring = "";
+            if (!request.ContainsKey("headers"))
+                return clientstring;
+
+            Hashtable requestinfo = (Hashtable)request["headers"];
+            if (requestinfo.ContainsKey("x-forwarded-for"))
+            {
+                object str = requestinfo["x-forwarded-for"];
+                if (str != null)
+                {
+                    if (!string.IsNullOrEmpty(str.ToString()))
+                    {
+                        return str.ToString();
+                    }
+                }
+            }
+            if (!requestinfo.ContainsKey("remote_addr"))
+                return clientstring;
+
+            object remote_addrobj = requestinfo["remote_addr"];
+            if (remote_addrobj != null)
+            {
+                if (!string.IsNullOrEmpty(remote_addrobj.ToString()))
+                {
+                    clientstring = remote_addrobj.ToString();
+                }
+            }
+
+            return clientstring;
         }
 
         public Hashtable OnGetSnapshot(Hashtable keysvals)
         {
-            m_log.Debug("[DATASNAPSHOT] Received collection request");
             Hashtable reply = new Hashtable();
-            int statuscode = 200;
-
+            string reqtag;
             string snapObj = (string)keysvals["region"];
+            if(string.IsNullOrWhiteSpace(snapObj))
+                reqtag = GetClientString(keysvals);
+            else
+                reqtag = snapObj + GetClientString(keysvals);
+
+
+            if(!string.IsNullOrWhiteSpace(reqtag))
+            {
+                if(throotleGen.Contains(reqtag))
+                {
+                    reply["str_response_string"] = "Please try your request again later";
+                    reply["int_response_code"] = 503;
+                    reply["content_type"] = "text/plain";
+                    m_log.Debug("[DATASNAPSHOT] Collection request spam. reply try later");
+                    return reply;
+                }
+
+                throotleGen.AddOrUpdate(reqtag, 0, 60);
+            }
+
+            if(string.IsNullOrWhiteSpace(snapObj))
+                m_log.DebugFormat("[DATASNAPSHOT] Received collection request for all");
+            else
+               m_log.DebugFormat("[DATASNAPSHOT] Received collection request for {0}", snapObj);
 
             XmlDocument response = m_externalData.GetSnapshot(snapObj);
+            if(response == null)
+            {
+                reply["str_response_string"] = "Please try your request again later";
+                reply["int_response_code"] = 503;
+                reply["content_type"] = "text/plain";
+                m_log.Debug("[DATASNAPSHOT] Collection request spam. reply try later");
+                return reply;
+            }
 
             reply["str_response_string"] = response.OuterXml;
-            reply["int_response_code"] = statuscode;
+            reply["int_response_code"] = 200;
             reply["content_type"] = "text/xml";
-
             return reply;
         }
 

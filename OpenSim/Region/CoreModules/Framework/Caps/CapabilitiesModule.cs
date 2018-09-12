@@ -142,9 +142,9 @@ namespace OpenSim.Region.CoreModules.Framework
 
                     if (capsObjectPath == oldCaps.CapsObjectPath)
                     {
-                        m_log.WarnFormat(
-                           "[CAPS]: Reusing caps for agent {0} in region {1}.  Old caps path {2}, new caps path {3}. ",
-                            agentId, m_scene.RegionInfo.RegionName, oldCaps.CapsObjectPath, capsObjectPath);
+//                        m_log.WarnFormat(
+//                           "[CAPS]: Reusing caps for agent {0} in region {1}.  Old caps path {2}, new caps path {3}. ",
+//                            agentId, m_scene.RegionInfo.RegionName, oldCaps.CapsObjectPath, capsObjectPath);
                         return;
                     }
                     else

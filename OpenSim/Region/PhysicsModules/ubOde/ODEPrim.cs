@@ -44,11 +44,8 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Threading;
 using log4net;
 using OpenMetaverse;
-using OdeAPI;
 using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
 
@@ -85,7 +82,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private Vector3 m_lastposition;
         private Vector3 m_rotationalVelocity;
         private Vector3 _size;
-        private Vector3 _acceleration;
+        private Vector3 m_acceleration;
         private IntPtr Amotor;
 
         internal Vector3 m_force;
@@ -109,8 +106,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private float m_waterHeight;
         private float m_buoyancy;                //KF: m_buoyancy should be set by llSetBuoyancy() for non-vehicle.
 
-        private int body_autodisable_frames;
-        public int bodydisablecontrol = 0;
+        private int m_body_autodisable_frames;
+        public int m_bodydisablecontrol = 0;
         private float m_gravmod = 1.0f;
 
         // Default we're a Geometry
@@ -165,6 +162,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private float m_density;
         private byte m_shapetype;
+        private byte m_fakeShapetype;
         public bool _zeroFlag;
         private bool m_lastUpdateSent;
 
@@ -181,19 +179,22 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private float m_physCost;
         private float m_streamCost;
 
-        public d.Mass primdMass; // prim inertia information on it's own referencial
+        internal SafeNativeMethods.Mass primdMass; // prim inertia information on it's own referencial
+        private PhysicsInertiaData m_InertiaOverride;
         float primMass; // prim own mass
         float primVolume; // prim own volume;
-        float _mass; // object mass acording to case
+        float m_mass; // object mass acording to case
 
         public int givefakepos;
         private Vector3 fakepos;
         public int givefakeori;
         private Quaternion fakeori;
+        private PhysicsInertiaData m_fakeInertiaOverride;
 
         private int m_eventsubscription;
         private int m_cureventsubscription;
-        private CollisionEventUpdate CollisionEventsThisFrame = null;
+        private CollisionEventUpdate CollisionEvents = null;
+        private CollisionEventUpdate CollisionVDTCEvents = null;
         private bool SentEmptyCollisionsEvent;
 
         public volatile bool childPrim;
@@ -417,7 +418,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 if (value.IsFinite())
                 {
-                     _parent_scene.m_meshWorker.ChangeActorPhysRep(this, _pbs, value, m_shapetype);
+                     _parent_scene.m_meshWorker.ChangeActorPhysRep(this, _pbs, value, m_fakeShapetype);
                 }
                 else
                 {
@@ -465,24 +466,121 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
         }
 
+        public override PhysicsInertiaData GetInertiaData()
+        {
+            PhysicsInertiaData inertia;
+            if(childPrim)
+            {
+                if(_parent != null)
+                    return _parent.GetInertiaData();
+                else
+                {
+                    inertia = new PhysicsInertiaData();
+                    inertia.TotalMass = -1;
+                    return inertia;
+                }
+            }
+
+            inertia = new PhysicsInertiaData();
+
+            // double buffering
+            if(m_fakeInertiaOverride != null)
+            { 
+                SafeNativeMethods.Mass objdmass = new SafeNativeMethods.Mass();
+                objdmass.I.M00 = m_fakeInertiaOverride.Inertia.X;
+                objdmass.I.M11 = m_fakeInertiaOverride.Inertia.Y;
+                objdmass.I.M22 = m_fakeInertiaOverride.Inertia.Z;
+
+                objdmass.mass = m_fakeInertiaOverride.TotalMass;
+                    
+                if(Math.Abs(m_fakeInertiaOverride.InertiaRotation.W) < 0.999)
+                {
+                    SafeNativeMethods.Matrix3 inertiarotmat = new SafeNativeMethods.Matrix3();
+                    SafeNativeMethods.Quaternion inertiarot = new SafeNativeMethods.Quaternion();
+
+                    inertiarot.X = m_fakeInertiaOverride.InertiaRotation.X;
+                    inertiarot.Y = m_fakeInertiaOverride.InertiaRotation.Y;
+                    inertiarot.Z = m_fakeInertiaOverride.InertiaRotation.Z;
+                    inertiarot.W = m_fakeInertiaOverride.InertiaRotation.W;
+                    SafeNativeMethods.RfromQ(out inertiarotmat, ref inertiarot);
+                    SafeNativeMethods.MassRotate(ref objdmass, ref inertiarotmat);
+                }
+
+                inertia.TotalMass = m_fakeInertiaOverride.TotalMass;
+                inertia.CenterOfMass = m_fakeInertiaOverride.CenterOfMass;
+                inertia.Inertia.X = objdmass.I.M00;
+                inertia.Inertia.Y = objdmass.I.M11;
+                inertia.Inertia.Z = objdmass.I.M22;
+                inertia.InertiaRotation.X =  objdmass.I.M01;
+                inertia.InertiaRotation.Y =  objdmass.I.M02;
+                inertia.InertiaRotation.Z =  objdmass.I.M12;
+                return inertia;
+            }
+
+            inertia.TotalMass = m_mass;
+
+            if(Body == IntPtr.Zero || prim_geom == IntPtr.Zero)
+            {
+                inertia.CenterOfMass = Vector3.Zero;
+                inertia.Inertia = Vector3.Zero;
+                inertia.InertiaRotation =  Vector4.Zero;
+                return inertia;
+            }
+
+            SafeNativeMethods.Vector3 dtmp;
+            SafeNativeMethods.Mass m = new SafeNativeMethods.Mass();
+            lock(_parent_scene.OdeLock)
+            {
+                SafeNativeMethods.AllocateODEDataForThread(0);
+                dtmp = SafeNativeMethods.GeomGetOffsetPosition(prim_geom);
+                SafeNativeMethods.BodyGetMass(Body, out m);
+            }
+
+            Vector3 cm = new Vector3(-dtmp.X, -dtmp.Y, -dtmp.Z);
+            inertia.CenterOfMass = cm;
+            inertia.Inertia = new Vector3(m.I.M00, m.I.M11, m.I.M22);
+            inertia.InertiaRotation = new Vector4(m.I.M01, m.I.M02 , m.I.M12, 0);
+
+            return inertia;
+        }
+
+        public override void SetInertiaData(PhysicsInertiaData inertia)
+        {
+            if(childPrim)
+            {
+                if(_parent != null)
+                    _parent.SetInertiaData(inertia);
+                return;
+            }
+
+            if(inertia.TotalMass > 0)
+                m_fakeInertiaOverride = new PhysicsInertiaData(inertia);
+            else
+                m_fakeInertiaOverride = null;
+
+            if (inertia.TotalMass > _parent_scene.maximumMassObject)
+                inertia.TotalMass = _parent_scene.maximumMassObject;
+            AddChange(changes.SetInertia,(object)m_fakeInertiaOverride);
+        }
+
         public override Vector3 CenterOfMass
         {
             get
             {
                 lock (_parent_scene.OdeLock)
                 {
-                    d.AllocateODEDataForThread(0);
+                    SafeNativeMethods.AllocateODEDataForThread(0);
 
-                    d.Vector3 dtmp;
+                    SafeNativeMethods.Vector3 dtmp;
                     if (!childPrim && Body != IntPtr.Zero)
                     {
-                        dtmp = d.BodyGetPosition(Body);
+                        dtmp = SafeNativeMethods.BodyGetPosition(Body);
                         return new Vector3(dtmp.X, dtmp.Y, dtmp.Z);
                     }
                     else if (prim_geom != IntPtr.Zero)
                     {
-                        d.Quaternion dq;
-                        d.GeomCopyQuaternion(prim_geom, out dq);
+                        SafeNativeMethods.Quaternion dq;
+                        SafeNativeMethods.GeomCopyQuaternion(prim_geom, out dq);
                         Quaternion q;
                         q.X = dq.X;
                         q.Y = dq.Y;
@@ -490,7 +588,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         q.W = dq.W;
 
                         Vector3 Ptot = m_OBBOffset * q;
-                        dtmp = d.GeomGetPosition(prim_geom);
+                        dtmp = SafeNativeMethods.GeomGetPosition(prim_geom);
                         Ptot.X += dtmp.X;
                         Ptot.Y += dtmp.Y;
                         Ptot.Z += dtmp.Z;
@@ -530,7 +628,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             set
             {
 //                AddChange(changes.Shape, value);
-                _parent_scene.m_meshWorker.ChangeActorPhysRep(this, value, _size, m_shapetype);
+                _parent_scene.m_meshWorker.ChangeActorPhysRep(this, value, _size, m_fakeShapetype);
             }
         }
 
@@ -538,11 +636,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             get
             {
-                return m_shapetype;
+                return m_fakeShapetype;
             }
             set
             {
-                m_shapetype = value;
+                m_fakeShapetype = value;
                _parent_scene.m_meshWorker.ChangeActorPhysRep(this, _pbs, _size, value);
             }
         }
@@ -569,7 +667,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 if (value.IsFinite())
                 {
-                    AddChange(changes.Velocity, value);
+                    if(m_outbounds)
+                        _velocity = value;
+                    else
+                        AddChange(changes.Velocity, value);
                 }
                 else
                 {
@@ -642,8 +743,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public override Vector3 Acceleration
         {
-            get { return _acceleration; }
-            set { }
+            get { return m_acceleration; }
+            set
+            {
+                if(m_outbounds)
+                    m_acceleration = value;
+            }
         }
 
         public override Vector3 RotationalVelocity
@@ -663,7 +768,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 if (value.IsFinite())
                 {
-                    AddChange(changes.AngVelocity, value);
+                    if(m_outbounds)
+                        m_rotationalVelocity = value;
+                    else
+                        AddChange(changes.AngVelocity, value);
                 }
                 else
                 {
@@ -837,7 +945,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         }
         public void SetAcceleration(Vector3 accel)
         {
-            _acceleration = accel;
+            m_acceleration = accel;
         }
 
         public override void AddForce(Vector3 force, bool pushforce)
@@ -873,31 +981,69 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public override void CrossingFailure()
         {
-            if (m_outbounds)
+            lock(_parent_scene.OdeLock)
             {
-                _position.X = Util.Clip(_position.X, 0.5f, _parent_scene.WorldExtents.X - 0.5f);
-                _position.Y = Util.Clip(_position.Y, 0.5f, _parent_scene.WorldExtents.Y - 0.5f);
-                _position.Z = Util.Clip(_position.Z + 0.2f, -100f, 50000f);
+                if (m_outbounds)
+                {
+                    _position.X = Util.Clip(_position.X, 0.5f, _parent_scene.WorldExtents.X - 0.5f);
+                    _position.Y = Util.Clip(_position.Y, 0.5f, _parent_scene.WorldExtents.Y - 0.5f);
+                    _position.Z = Util.Clip(_position.Z + 0.2f, -100f, 50000f);
+
+                    m_lastposition = _position;
+                    _velocity.X = 0;
+                    _velocity.Y = 0;
+                    _velocity.Z = 0;
+
+                    SafeNativeMethods.AllocateODEDataForThread(0);
+
+                    m_lastVelocity = _velocity;
+                    if (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE)
+                        m_vehicle.Stop();
+
+                    if(Body != IntPtr.Zero)
+                        SafeNativeMethods.BodySetLinearVel(Body, 0, 0, 0); // stop it
+                    if (prim_geom != IntPtr.Zero)
+                        SafeNativeMethods.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+
+                    m_outbounds = false;
+                    changeDisable(false);
+                    base.RequestPhysicsterseUpdate();
+                }
+            }
+        }
+
+        public override void CrossingStart()
+        {
+            lock(_parent_scene.OdeLock)
+            {
+                if (m_outbounds || childPrim)
+                    return;
+
+                m_outbounds = true;
 
                 m_lastposition = _position;
-                _velocity.X = 0;
-                _velocity.Y = 0;
-                _velocity.Z = 0;
+                m_lastorientation = _orientation;
 
-                d.AllocateODEDataForThread(0);
-
-                m_lastVelocity = _velocity;
-                if (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE)
-                    m_vehicle.Stop();
-
+                SafeNativeMethods.AllocateODEDataForThread(0);
                 if(Body != IntPtr.Zero)
-                    d.BodySetLinearVel(Body, 0, 0, 0); // stop it
-                if (prim_geom != IntPtr.Zero)
-                    d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                {
+                    SafeNativeMethods.Vector3 dtmp = SafeNativeMethods.BodyGetAngularVel(Body);
+                    m_rotationalVelocity.X = dtmp.X;
+                    m_rotationalVelocity.Y = dtmp.Y;
+                    m_rotationalVelocity.Z = dtmp.Z;
 
-                m_outbounds = false;
-                changeDisable(false);
-                base.RequestPhysicsterseUpdate();
+                    dtmp = SafeNativeMethods.BodyGetLinearVel(Body);
+                    _velocity.X = dtmp.X;
+                    _velocity.Y = dtmp.Y;
+                    _velocity.Z = dtmp.Z;
+
+                    SafeNativeMethods.BodySetLinearVel(Body, 0, 0, 0); // stop it
+                    SafeNativeMethods.BodySetAngularVel(Body, 0, 0, 0);
+                }
+                if(prim_geom != IntPtr.Zero)
+                    SafeNativeMethods.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                disableBodySoft(); // stop collisions
+                UnSubscribeEvents();
             }
         }
 
@@ -922,8 +1068,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 float old = m_density;
                 m_density = value / 100f;
-                if(m_density != old)
-                    UpdatePrimBodyData();
+ //               if(m_density != old)
+ //                   UpdatePrimBodyData();
             }
         }
         public override float GravModifier
@@ -989,17 +1135,24 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             m_eventsubscription = ms;
             m_cureventsubscription = 0;
-            if (CollisionEventsThisFrame == null)
-                CollisionEventsThisFrame = new CollisionEventUpdate();
+            if (CollisionEvents == null)
+                CollisionEvents = new CollisionEventUpdate();
+            if (CollisionVDTCEvents == null)
+                CollisionVDTCEvents = new CollisionEventUpdate();
             SentEmptyCollisionsEvent = false;
         }
 
         public override void UnSubscribeEvents()
         {
-            if (CollisionEventsThisFrame != null)
+            if (CollisionVDTCEvents != null)
             {
-                CollisionEventsThisFrame.Clear();
-                CollisionEventsThisFrame = null;
+                CollisionVDTCEvents.Clear();
+                CollisionVDTCEvents = null;
+            }
+            if (CollisionEvents != null)
+            {
+                CollisionEvents.Clear();
+                CollisionEvents = null;
             }
             m_eventsubscription = 0;
            _parent_scene.RemoveCollisionEventReporting(this);
@@ -1007,29 +1160,58 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public override void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
         {
-            if (CollisionEventsThisFrame == null)
-                CollisionEventsThisFrame = new CollisionEventUpdate();
+            if (CollisionEvents == null)
+                CollisionEvents = new CollisionEventUpdate();
 
-            CollisionEventsThisFrame.AddCollider(CollidedWith, contact);
+            CollisionEvents.AddCollider(CollidedWith, contact);
+            _parent_scene.AddCollisionEventReporting(this);
+        }
+
+        public override void AddVDTCCollisionEvent(uint CollidedWith, ContactPoint contact)
+        {
+            if (CollisionVDTCEvents == null)
+                CollisionVDTCEvents = new CollisionEventUpdate();
+
+            CollisionVDTCEvents.AddCollider(CollidedWith, contact);
             _parent_scene.AddCollisionEventReporting(this);
         }
 
         internal void SleeperAddCollisionEvents()
         {
-            if (CollisionEventsThisFrame == null)
-                return;
-            if(CollisionEventsThisFrame.m_objCollisionList.Count == 0)
-                return;
-            foreach(KeyValuePair<uint,ContactPoint> kvp in CollisionEventsThisFrame.m_objCollisionList)
+            if(CollisionEvents != null && CollisionEvents.m_objCollisionList.Count != 0)
             {
-                OdePrim other = _parent_scene.getPrim(kvp.Key);
-                if(other == null)
-                    continue;
-                ContactPoint cp = kvp.Value;
-                cp.SurfaceNormal = - cp.SurfaceNormal;
-                cp.RelativeSpeed = -cp.RelativeSpeed;
-                other.AddCollisionEvent(ParentActor.LocalID,cp);
+                foreach(KeyValuePair<uint,ContactPoint> kvp in CollisionEvents.m_objCollisionList)
+                {
+                    if(kvp.Key == 0)
+                        continue;
+                    OdePrim other = _parent_scene.getPrim(kvp.Key);
+                    if(other == null)
+                        continue;
+                    ContactPoint cp = kvp.Value;
+                    cp.SurfaceNormal = - cp.SurfaceNormal;
+                    cp.RelativeSpeed = -cp.RelativeSpeed;
+                    other.AddCollisionEvent(ParentActor.LocalID,cp);
+                }
             }
+            if(CollisionVDTCEvents != null && CollisionVDTCEvents.m_objCollisionList.Count != 0)
+            {
+                foreach(KeyValuePair<uint,ContactPoint> kvp in CollisionVDTCEvents.m_objCollisionList)
+                {
+                    OdePrim other = _parent_scene.getPrim(kvp.Key);
+                    if(other == null)
+                        continue;
+                    ContactPoint cp = kvp.Value;
+                    cp.SurfaceNormal = - cp.SurfaceNormal;
+                    cp.RelativeSpeed = -cp.RelativeSpeed;
+                    other.AddCollisionEvent(ParentActor.LocalID,cp);
+                }
+            }
+        }
+
+        internal void clearSleeperCollisions()
+        {
+            if(CollisionVDTCEvents != null && CollisionVDTCEvents.Count >0 )
+                CollisionVDTCEvents.Clear();
         }
 
         public void SendCollisions(int timestep)
@@ -1037,17 +1219,18 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (m_cureventsubscription < 50000)
                 m_cureventsubscription += timestep;
 
-            if (CollisionEventsThisFrame == null)
-                return;
-
-            int ncolisions = CollisionEventsThisFrame.m_objCollisionList.Count;
 
             if (m_cureventsubscription < m_eventsubscription)
                 return;
 
+            if (CollisionEvents == null)
+                return;
+
+            int ncolisions = CollisionEvents.m_objCollisionList.Count;
+
             if (!SentEmptyCollisionsEvent || ncolisions > 0)
             {
-                base.SendCollisionUpdate(CollisionEventsThisFrame);
+                base.SendCollisionUpdate(CollisionEvents);
                 m_cureventsubscription = 0;
 
                 if (ncolisions == 0)
@@ -1055,10 +1238,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     SentEmptyCollisionsEvent = true;
 //                    _parent_scene.RemoveCollisionEventReporting(this);
                 }
-                else if(Body == IntPtr.Zero || d.BodyIsEnabled(Body))
+                else if(Body == IntPtr.Zero || (SafeNativeMethods.BodyIsEnabled(Body) && m_bodydisablecontrol >= 0 ))
                 {
                     SentEmptyCollisionsEvent = false;
-                    CollisionEventsThisFrame.Clear();
+                    CollisionEvents.Clear();
                 }
             }
         }
@@ -1093,7 +1276,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_invTimeStep = 1f / m_timeStep;
 
             m_density = parent_scene.geomDefaultDensity;
-            body_autodisable_frames = parent_scene.bodyFramesAutoDisable;
+            m_body_autodisable_frames = parent_scene.bodyFramesAutoDisable;
 
             prim_geom = IntPtr.Zero;
             collide_geom = IntPtr.Zero;
@@ -1145,7 +1328,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             _triMeshData = IntPtr.Zero;
 
-            m_shapetype = _shapeType;
+            m_fakeShapetype = _shapeType;
 
             m_lastdoneSelected = false;
             m_isSelected = false;
@@ -1162,7 +1345,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             AddChange(changes.Add, null);
 
             // get basic mass parameters
-            ODEPhysRepData repData = _parent_scene.m_meshWorker.NewActorPhysRep(this, _pbs, _size, m_shapetype);
+            ODEPhysRepData repData = _parent_scene.m_meshWorker.NewActorPhysRep(this, _pbs, _size, _shapeType);
 
             primVolume = repData.volume;
             m_OBB = repData.OBB;
@@ -1264,16 +1447,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         {
                             if (prm.m_NoColide)
                             {
-                                d.GeomSetCategoryBits(prm.prim_geom, 0);
+                                SafeNativeMethods.GeomSetCategoryBits(prm.prim_geom, 0);
                                 if (m_isphysical)
-                                    d.GeomSetCollideBits(prm.prim_geom, (int)CollisionCategories.Land);
+                                    SafeNativeMethods.GeomSetCollideBits(prm.prim_geom, (int)CollisionCategories.Land);
                                 else
-                                    d.GeomSetCollideBits(prm.prim_geom, 0);
+                                    SafeNativeMethods.GeomSetCollideBits(prm.prim_geom, 0);
                             }
                             else
                             {
-                                d.GeomSetCategoryBits(prm.prim_geom, (uint)prm.m_collisionCategories);
-                                d.GeomSetCollideBits(prm.prim_geom, (uint)prm.m_collisionFlags);
+                                SafeNativeMethods.GeomSetCategoryBits(prm.prim_geom, (uint)prm.m_collisionCategories);
+                                SafeNativeMethods.GeomSetCollideBits(prm.prim_geom, (uint)prm.m_collisionFlags);
                             }
                         }
                     }
@@ -1281,22 +1464,22 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 if (m_NoColide)
                 {
-                    d.GeomSetCategoryBits(prim_geom, 0);
-                    d.GeomSetCollideBits(prim_geom, (uint)CollisionCategories.Land);
+                    SafeNativeMethods.GeomSetCategoryBits(prim_geom, 0);
+                    SafeNativeMethods.GeomSetCollideBits(prim_geom, (uint)CollisionCategories.Land);
                     if (collide_geom != prim_geom && collide_geom != IntPtr.Zero)
                     {
-                        d.GeomSetCategoryBits(collide_geom, 0);
-                        d.GeomSetCollideBits(collide_geom, (uint)CollisionCategories.Land);
+                        SafeNativeMethods.GeomSetCategoryBits(collide_geom, 0);
+                        SafeNativeMethods.GeomSetCollideBits(collide_geom, (uint)CollisionCategories.Land);
                     }
                 }
                 else
                 {
-                    d.GeomSetCategoryBits(prim_geom, (uint)m_collisionCategories);
-                    d.GeomSetCollideBits(prim_geom, (uint)m_collisionFlags);
+                    SafeNativeMethods.GeomSetCategoryBits(prim_geom, (uint)m_collisionCategories);
+                    SafeNativeMethods.GeomSetCollideBits(prim_geom, (uint)m_collisionFlags);
                     if (collide_geom != prim_geom && collide_geom != IntPtr.Zero)
                     {
-                        d.GeomSetCategoryBits(collide_geom, (uint)m_collisionCategories);
-                        d.GeomSetCollideBits(collide_geom, (uint)m_collisionFlags);
+                        SafeNativeMethods.GeomSetCategoryBits(collide_geom, (uint)m_collisionCategories);
+                        SafeNativeMethods.GeomSetCollideBits(collide_geom, (uint)m_collisionFlags);
                     }
                 }
             }
@@ -1309,7 +1492,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             if (Amotor != IntPtr.Zero)
             {
-                d.JointDestroy(Amotor);
+                SafeNativeMethods.JointDestroy(Amotor);
                 Amotor = IntPtr.Zero;
             }
 
@@ -1336,19 +1519,19 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if(axisnum == 0)
                 return;
             // stop it
-            d.BodySetTorque(Body, 0, 0, 0);
-            d.BodySetAngularVel(Body, 0, 0, 0);
+            SafeNativeMethods.BodySetTorque(Body, 0, 0, 0);
+            SafeNativeMethods.BodySetAngularVel(Body, 0, 0, 0);
 
-            Amotor = d.JointCreateAMotor(_parent_scene.world, IntPtr.Zero);
-            d.JointAttach(Amotor, Body, IntPtr.Zero);
+            Amotor = SafeNativeMethods.JointCreateAMotor(_parent_scene.world, IntPtr.Zero);
+            SafeNativeMethods.JointAttach(Amotor, Body, IntPtr.Zero);
 
-            d.JointSetAMotorMode(Amotor, 0);
+            SafeNativeMethods.JointSetAMotorMode(Amotor, 0);
 
-            d.JointSetAMotorNumAxes(Amotor, axisnum);
+            SafeNativeMethods.JointSetAMotorNumAxes(Amotor, axisnum);
 
             // get current orientation to lock
 
-            d.Quaternion dcur = d.BodyGetQuaternion(Body);
+            SafeNativeMethods.Quaternion dcur = SafeNativeMethods.BodyGetQuaternion(Body);
             Quaternion curr; // crap convertion between identical things
             curr.X = dcur.X;
             curr.Y = dcur.Y;
@@ -1361,17 +1544,17 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (axisX)
             {
                 ax = (new Vector3(1, 0, 0)) * curr; // rotate world X to current local X
-                d.JointSetAMotorAxis(Amotor, 0, 0, ax.X, ax.Y, ax.Z);
-                d.JointSetAMotorAngle(Amotor, 0, 0);
-                d.JointSetAMotorParam(Amotor, (int)d.JointParam.LoStop, 0f);
-                d.JointSetAMotorParam(Amotor, (int)d.JointParam.HiStop, 0f);
-                d.JointSetAMotorParam(Amotor, (int)d.JointParam.Vel, 0);
-                d.JointSetAMotorParam(Amotor, (int)d.JointParam.FudgeFactor, 0.0001f);
-                d.JointSetAMotorParam(Amotor, (int)d.JointParam.Bounce, 0f);
-                d.JointSetAMotorParam(Amotor, (int)d.JointParam.CFM, 0f);
-                d.JointSetAMotorParam(Amotor, (int)d.JointParam.FMax, 5e8f);
-                d.JointSetAMotorParam(Amotor, (int)d.JointParam.StopCFM, 0f);
-                d.JointSetAMotorParam(Amotor, (int)d.JointParam.StopERP, 0.8f);
+                SafeNativeMethods.JointSetAMotorAxis(Amotor, 0, 0, ax.X, ax.Y, ax.Z);
+                SafeNativeMethods.JointSetAMotorAngle(Amotor, 0, 0);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, (int)SafeNativeMethods.JointParam.LoStop, 0f);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, (int)SafeNativeMethods.JointParam.HiStop, 0f);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, (int)SafeNativeMethods.JointParam.Vel, 0);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, (int)SafeNativeMethods.JointParam.FudgeFactor, 0.0001f);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, (int)SafeNativeMethods.JointParam.Bounce, 0f);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, (int)SafeNativeMethods.JointParam.CFM, 0f);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, (int)SafeNativeMethods.JointParam.FMax, 5e8f);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, (int)SafeNativeMethods.JointParam.StopCFM, 0f);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, (int)SafeNativeMethods.JointParam.StopERP, 0.8f);
                 i++;
                 j = 256; // move to next axis set
             }
@@ -1379,17 +1562,17 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (axisY)
             {
                 ax = (new Vector3(0, 1, 0)) * curr;
-                d.JointSetAMotorAxis(Amotor, i, 0, ax.X, ax.Y, ax.Z);
-                d.JointSetAMotorAngle(Amotor, i, 0);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.LoStop, 0f);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.HiStop, 0f);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.Vel, 0);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.FudgeFactor, 0.0001f);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.Bounce, 0f);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.CFM, 0f);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.FMax, 5e8f);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.StopCFM, 0f);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.StopERP, 0.8f);
+                SafeNativeMethods.JointSetAMotorAxis(Amotor, i, 0, ax.X, ax.Y, ax.Z);
+                SafeNativeMethods.JointSetAMotorAngle(Amotor, i, 0);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, j + (int)SafeNativeMethods.JointParam.LoStop, 0f);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, j + (int)SafeNativeMethods.JointParam.HiStop, 0f);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, j + (int)SafeNativeMethods.JointParam.Vel, 0);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, j + (int)SafeNativeMethods.JointParam.FudgeFactor, 0.0001f);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, j + (int)SafeNativeMethods.JointParam.Bounce, 0f);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, j + (int)SafeNativeMethods.JointParam.CFM, 0f);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, j + (int)SafeNativeMethods.JointParam.FMax, 5e8f);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, j + (int)SafeNativeMethods.JointParam.StopCFM, 0f);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, j + (int)SafeNativeMethods.JointParam.StopERP, 0.8f);
                 i++;
                 j += 256;
             }
@@ -1397,17 +1580,17 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (axisZ)
             {
                 ax = (new Vector3(0, 0, 1)) * curr;
-                d.JointSetAMotorAxis(Amotor, i, 0, ax.X, ax.Y, ax.Z);
-                d.JointSetAMotorAngle(Amotor, i, 0);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.LoStop, 0f);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.HiStop, 0f);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.Vel, 0);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.FudgeFactor, 0.0001f);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.Bounce, 0f);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.CFM, 0f);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.FMax, 5e8f);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.StopCFM, 0f);
-                d.JointSetAMotorParam(Amotor, j + (int)d.JointParam.StopERP, 0.8f);
+                SafeNativeMethods.JointSetAMotorAxis(Amotor, i, 0, ax.X, ax.Y, ax.Z);
+                SafeNativeMethods.JointSetAMotorAngle(Amotor, i, 0);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, j + (int)SafeNativeMethods.JointParam.LoStop, 0f);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, j + (int)SafeNativeMethods.JointParam.HiStop, 0f);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, j + (int)SafeNativeMethods.JointParam.Vel, 0);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, j + (int)SafeNativeMethods.JointParam.FudgeFactor, 0.0001f);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, j + (int)SafeNativeMethods.JointParam.Bounce, 0f);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, j + (int)SafeNativeMethods.JointParam.CFM, 0f);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, j + (int)SafeNativeMethods.JointParam.FMax, 5e8f);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, j + (int)SafeNativeMethods.JointParam.StopCFM, 0f);
+                SafeNativeMethods.JointSetAMotorParam(Amotor, j + (int)SafeNativeMethods.JointParam.StopERP, 0.8f);
             }
         }
 
@@ -1421,21 +1604,21 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 if (m_NoColide)
                 {
-                    d.GeomSetCategoryBits(prim_geom, 0);
+                    SafeNativeMethods.GeomSetCategoryBits(prim_geom, 0);
                     if (m_isphysical)
                     {
-                        d.GeomSetCollideBits(prim_geom, (uint)CollisionCategories.Land);
+                        SafeNativeMethods.GeomSetCollideBits(prim_geom, (uint)CollisionCategories.Land);
                     }
                     else
                     {
-                        d.GeomSetCollideBits(prim_geom, 0);
-                        d.GeomDisable(prim_geom);
+                        SafeNativeMethods.GeomSetCollideBits(prim_geom, 0);
+                        SafeNativeMethods.GeomDisable(prim_geom);
                     }
                 }
                 else
                 {
-                    d.GeomSetCategoryBits(prim_geom, (uint)m_collisionCategories);
-                    d.GeomSetCollideBits(prim_geom, (uint)m_collisionFlags);
+                    SafeNativeMethods.GeomSetCategoryBits(prim_geom, (uint)m_collisionCategories);
+                    SafeNativeMethods.GeomSetCollideBits(prim_geom, (uint)m_collisionFlags);
                 }
 
                 UpdatePrimBodyData();
@@ -1503,12 +1686,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             try
             {
-                _triMeshData = d.GeomTriMeshDataCreate();
+                _triMeshData = SafeNativeMethods.GeomTriMeshDataCreate();
 
-                d.GeomTriMeshDataBuildSimple(_triMeshData, vertices, vertexStride, vertexCount, indices, indexCount, triStride);
-                d.GeomTriMeshDataPreprocess(_triMeshData);
+                SafeNativeMethods.GeomTriMeshDataBuildSimple(_triMeshData, vertices, vertexStride, vertexCount, indices, indexCount, triStride);
+                SafeNativeMethods.GeomTriMeshDataPreprocess(_triMeshData);
 
-                geo = d.CreateTriMesh(m_targetSpace, _triMeshData, null, null, null);
+                geo = SafeNativeMethods.CreateTriMesh(m_targetSpace, _triMeshData, null, null, null);
             }
 
             catch (Exception e)
@@ -1518,7 +1701,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     try
                     {
-                        d.GeomTriMeshDataDestroy(_triMeshData);
+                        SafeNativeMethods.GeomTriMeshDataDestroy(_triMeshData);
                     }
                     catch
                     {
@@ -1547,7 +1730,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             return true;
         }
 
-        private void CreateGeom()
+        private void CreateGeom(bool OverrideToBox)
         {
             bool hasMesh = false;
 
@@ -1556,7 +1739,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if ((m_meshState & MeshState.MeshNoColide) != 0)
                 m_NoColide = true;
 
-            else if(m_mesh != null)
+            else if(!OverrideToBox && m_mesh != null)
             {
                 if (GetMeshGeom())
                     hasMesh = true;
@@ -1574,7 +1757,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 { // it's a sphere
                     try
                     {
-                        geo = d.CreateSphere(m_targetSpace, _size.X * 0.5f);
+                        geo = SafeNativeMethods.CreateSphere(m_targetSpace, _size.X * 0.5f);
                     }
                     catch (Exception e)
                     {
@@ -1586,7 +1769,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {// do it as a box
                     try
                     {
-                        geo = d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
+                        geo = SafeNativeMethods.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z);
                     }
                     catch (Exception e)
                     {
@@ -1608,10 +1791,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 try
                 {
-                    d.GeomDestroy(prim_geom);
+                    SafeNativeMethods.GeomDestroy(prim_geom);
                     if (_triMeshData != IntPtr.Zero)
                     {
-                        d.GeomTriMeshDataDestroy(_triMeshData);
+                        SafeNativeMethods.GeomTriMeshDataDestroy(_triMeshData);
                         _triMeshData = IntPtr.Zero;
                     }
                 }
@@ -1646,7 +1829,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         // should only be called for non physical prims unless they are becoming non physical
         private void SetInStaticSpace(OdePrim prim)
         {
-            IntPtr targetSpace = _parent_scene.MoveGeomToStaticSpace(prim.prim_geom, prim._position, prim.m_targetSpace);
+            IntPtr targetSpace = _parent_scene.MoveGeomToStaticSpace(prim.prim_geom, prim.m_targetSpace);
             prim.m_targetSpace = targetSpace;
             collide_geom = IntPtr.Zero;
         }
@@ -1662,8 +1845,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     ApplyCollisionCatFlags();
 
                     _zeroFlag = true;
-                    d.BodyEnable(Body);
-
+                    SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                    SafeNativeMethods.BodyEnable(Body);
                 }
             }
             resetCollisionAccounting();
@@ -1682,7 +1865,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         m_collisionCategories = 0;
                     m_collisionFlags = 0;
                     ApplyCollisionCatFlags();
-                    d.BodyDisable(Body);
+                    SafeNativeMethods.BodyDisable(Body);
                 }
             }
         }
@@ -1710,38 +1893,41 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 m_log.Warn("[PHYSICS]: MakeBody called having a body");
             }
 
-            if (d.GeomGetBody(prim_geom) != IntPtr.Zero)
+            if (SafeNativeMethods.GeomGetBody(prim_geom) != IntPtr.Zero)
             {
-                d.GeomSetBody(prim_geom, IntPtr.Zero);
+                SafeNativeMethods.GeomSetBody(prim_geom, IntPtr.Zero);
                 m_log.Warn("[PHYSICS]: MakeBody root geom already had a body");
             }
 
-            d.Matrix3 mymat = new d.Matrix3();
-            d.Quaternion myrot = new d.Quaternion();
-            d.Mass objdmass = new d.Mass { };
+            bool noInertiaOverride = (m_InertiaOverride == null);
 
-            Body = d.BodyCreate(_parent_scene.world);
+            Body = SafeNativeMethods.BodyCreate(_parent_scene.world);
 
-            objdmass = primdMass;
+            SafeNativeMethods.Matrix3 mymat = new SafeNativeMethods.Matrix3();
+            SafeNativeMethods.Quaternion myrot = new SafeNativeMethods.Quaternion();
+            SafeNativeMethods.Mass objdmass = new SafeNativeMethods.Mass { };
 
-            // rotate inertia
             myrot.X = _orientation.X;
             myrot.Y = _orientation.Y;
             myrot.Z = _orientation.Z;
             myrot.W = _orientation.W;
-
-            d.RfromQ(out mymat, ref myrot);
-            d.MassRotate(ref objdmass, ref mymat);
+            SafeNativeMethods.RfromQ(out mymat, ref myrot);
 
             // set the body rotation
-            d.BodySetRotation(Body, ref mymat);
+            SafeNativeMethods.BodySetRotation(Body, ref mymat);
 
+            if(noInertiaOverride)
+            {
+                objdmass = primdMass;
+                SafeNativeMethods.MassRotate(ref objdmass, ref mymat);
+            }
+    
             // recompute full object inertia if needed
             if (childrenPrim.Count > 0)
             {
-                d.Matrix3 mat = new d.Matrix3();
-                d.Quaternion quat = new d.Quaternion();
-                d.Mass tmpdmass = new d.Mass { };
+                SafeNativeMethods.Matrix3 mat = new SafeNativeMethods.Matrix3();
+                SafeNativeMethods.Quaternion quat = new SafeNativeMethods.Quaternion();
+                SafeNativeMethods.Mass tmpdmass = new SafeNativeMethods.Mass { };
                 Vector3 rcm;
 
                 rcm.X = _position.X;
@@ -1758,75 +1944,119 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             continue;
                         }
 
-                        tmpdmass = prm.primdMass;
-
-                        // apply prim current rotation to inertia
                         quat.X = prm._orientation.X;
                         quat.Y = prm._orientation.Y;
                         quat.Z = prm._orientation.Z;
                         quat.W = prm._orientation.W;
-                        d.RfromQ(out mat, ref quat);
-                        d.MassRotate(ref tmpdmass, ref mat);
+                        SafeNativeMethods.RfromQ(out mat, ref quat);
 
-                        Vector3 ppos = prm._position;
-                        ppos.X -= rcm.X;
-                        ppos.Y -= rcm.Y;
-                        ppos.Z -= rcm.Z;
-                        // refer inertia to root prim center of mass position
-                        d.MassTranslate(ref tmpdmass,
-                            ppos.X,
-                            ppos.Y,
-                            ppos.Z);
-
-                        d.MassAdd(ref objdmass, ref tmpdmass); // add to total object inertia
                         // fix prim colision cats
 
-                        if (d.GeomGetBody(prm.prim_geom) != IntPtr.Zero)
+                        if (SafeNativeMethods.GeomGetBody(prm.prim_geom) != IntPtr.Zero)
                         {
-                            d.GeomSetBody(prm.prim_geom, IntPtr.Zero);
+                            SafeNativeMethods.GeomSetBody(prm.prim_geom, IntPtr.Zero);
                             m_log.Warn("[PHYSICS]: MakeBody child geom already had a body");
                         }
 
-                        d.GeomClearOffset(prm.prim_geom);
-                        d.GeomSetBody(prm.prim_geom, Body);
+                        SafeNativeMethods.GeomClearOffset(prm.prim_geom);
+                        SafeNativeMethods.GeomSetBody(prm.prim_geom, Body);
                         prm.Body = Body;
-                        d.GeomSetOffsetWorldRotation(prm.prim_geom, ref mat); // set relative rotation
+                        SafeNativeMethods.GeomSetOffsetWorldRotation(prm.prim_geom, ref mat); // set relative rotation
+
+                        if(noInertiaOverride)
+                        {
+                            tmpdmass = prm.primdMass;
+
+                            SafeNativeMethods.MassRotate(ref tmpdmass, ref mat);
+                            Vector3 ppos = prm._position;
+                            ppos.X -= rcm.X;
+                            ppos.Y -= rcm.Y;
+                            ppos.Z -= rcm.Z;
+                            // refer inertia to root prim center of mass position
+                            SafeNativeMethods.MassTranslate(ref tmpdmass,
+                                ppos.X,
+                                ppos.Y,
+                                ppos.Z);
+
+                            SafeNativeMethods.MassAdd(ref objdmass, ref tmpdmass); // add to total object inertia
+                        }
                     }
                 }
             }
 
-            d.GeomClearOffset(prim_geom); // make sure we don't have a hidden offset
+            SafeNativeMethods.GeomClearOffset(prim_geom); // make sure we don't have a hidden offset
             // associate root geom with body
-            d.GeomSetBody(prim_geom, Body);
+            SafeNativeMethods.GeomSetBody(prim_geom, Body);
 
-            d.BodySetPosition(Body, _position.X + objdmass.c.X, _position.Y + objdmass.c.Y, _position.Z + objdmass.c.Z);
-            d.GeomSetOffsetWorldPosition(prim_geom, _position.X, _position.Y, _position.Z);
+            if(noInertiaOverride)
+                SafeNativeMethods.BodySetPosition(Body, _position.X + objdmass.c.X, _position.Y + objdmass.c.Y, _position.Z + objdmass.c.Z);
+            else
+            {
+                Vector3 ncm =  m_InertiaOverride.CenterOfMass * _orientation;
+                SafeNativeMethods.BodySetPosition(Body,
+                    _position.X + ncm.X,
+                    _position.Y + ncm.Y,
+                    _position.Z + ncm.Z);
+            }
 
-            d.MassTranslate(ref objdmass, -objdmass.c.X, -objdmass.c.Y, -objdmass.c.Z); // ode wants inertia at center of body
-            myrot.X = -myrot.X;
-            myrot.Y = -myrot.Y;
-            myrot.Z = -myrot.Z;
+            SafeNativeMethods.GeomSetOffsetWorldPosition(prim_geom, _position.X, _position.Y, _position.Z);
 
-            d.RfromQ(out mymat, ref myrot);
-            d.MassRotate(ref objdmass, ref mymat);
+            if(noInertiaOverride)
+            {
+                SafeNativeMethods.MassTranslate(ref objdmass, -objdmass.c.X, -objdmass.c.Y, -objdmass.c.Z); // ode wants inertia at center of body
+                myrot.X = -myrot.X;
+                myrot.Y = -myrot.Y;
+                myrot.Z = -myrot.Z;
 
-            d.BodySetMass(Body, ref objdmass);
-            _mass = objdmass.mass;
+                SafeNativeMethods.RfromQ(out mymat, ref myrot);
+                SafeNativeMethods.MassRotate(ref objdmass, ref mymat);
+
+                SafeNativeMethods.BodySetMass(Body, ref objdmass);
+                m_mass = objdmass.mass;
+            }
+            else
+            {
+                objdmass.c.X = 0;
+                objdmass.c.Y = 0;
+                objdmass.c.Z = 0;
+
+                objdmass.I.M00 = m_InertiaOverride.Inertia.X;
+                objdmass.I.M11 = m_InertiaOverride.Inertia.Y;
+                objdmass.I.M22 = m_InertiaOverride.Inertia.Z;
+
+                objdmass.mass = m_InertiaOverride.TotalMass;
+
+                if(Math.Abs(m_InertiaOverride.InertiaRotation.W) < 0.999)
+                {
+                    SafeNativeMethods.Matrix3 inertiarotmat = new SafeNativeMethods.Matrix3();
+                    SafeNativeMethods.Quaternion inertiarot = new SafeNativeMethods.Quaternion();
+
+                    inertiarot.X = m_InertiaOverride.InertiaRotation.X;
+                    inertiarot.Y = m_InertiaOverride.InertiaRotation.Y;
+                    inertiarot.Z = m_InertiaOverride.InertiaRotation.Z;
+                    inertiarot.W = m_InertiaOverride.InertiaRotation.W;
+                    SafeNativeMethods.RfromQ(out inertiarotmat, ref inertiarot);
+                    SafeNativeMethods.MassRotate(ref objdmass, ref inertiarotmat);
+                }
+                SafeNativeMethods.BodySetMass(Body, ref objdmass);
+
+                m_mass = objdmass.mass;
+            }
 
             // disconnect from world gravity so we can apply buoyancy
-            d.BodySetGravityMode(Body, false);
+            SafeNativeMethods.BodySetGravityMode(Body, false);
 
-            d.BodySetAutoDisableFlag(Body, true);
-            d.BodySetAutoDisableSteps(Body, body_autodisable_frames);
-            d.BodySetAutoDisableAngularThreshold(Body, 0.05f);
-            d.BodySetAutoDisableLinearThreshold(Body, 0.05f);
-            d.BodySetDamping(Body, .004f, .001f);
+            SafeNativeMethods.BodySetAutoDisableFlag(Body, true);
+            SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+            SafeNativeMethods.BodySetAutoDisableAngularThreshold(Body, 0.05f);
+            SafeNativeMethods.BodySetAutoDisableLinearThreshold(Body, 0.05f);
+            SafeNativeMethods.BodySetDamping(Body, .004f, .001f);
 
             if (m_targetSpace != IntPtr.Zero)
             {
                 _parent_scene.waitForSpaceUnlock(m_targetSpace);
-                if (d.SpaceQuery(m_targetSpace, prim_geom))
-                    d.SpaceRemove(m_targetSpace, prim_geom);
+                if (SafeNativeMethods.SpaceQuery(m_targetSpace, prim_geom))
+                    SafeNativeMethods.SpaceRemove(m_targetSpace, prim_geom);
             }
 
             if (childrenPrim.Count == 0)
@@ -1836,21 +2066,23 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
             else
             {
-                m_targetSpace = d.HashSpaceCreate(_parent_scene.ActiveSpace);
-                d.HashSpaceSetLevels(m_targetSpace, -2, 8);
-                d.SpaceSetSublevel(m_targetSpace, 3);
-                d.SpaceSetCleanup(m_targetSpace, false);
+                m_targetSpace = SafeNativeMethods.SimpleSpaceCreate(_parent_scene.ActiveSpace);
+                SafeNativeMethods.SpaceSetSublevel(m_targetSpace, 3);
+                SafeNativeMethods.SpaceSetCleanup(m_targetSpace, false);
 
-                d.GeomSetCategoryBits(m_targetSpace, (uint)(CollisionCategories.Space |
+                SafeNativeMethods.GeomSetCategoryBits(m_targetSpace, (uint)(CollisionCategories.Space |
                                                             CollisionCategories.Geom |
                                                             CollisionCategories.Phantom |
                                                             CollisionCategories.VolumeDtc
                                                             ));
-                d.GeomSetCollideBits(m_targetSpace, 0);
+                SafeNativeMethods.GeomSetCollideBits(m_targetSpace, 0);
                 collide_geom = m_targetSpace;
             }
 
-            d.SpaceAdd(m_targetSpace, prim_geom);
+            if (SafeNativeMethods.SpaceQuery(m_targetSpace, prim_geom))
+                m_log.Debug("[PRIM]: parent already in target space");
+            else
+                SafeNativeMethods.SpaceAdd(m_targetSpace, prim_geom);
 
             if (m_delaySelect)
             {
@@ -1869,22 +2101,27 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 foreach (OdePrim prm in childrenPrim)
                 {
-                    if (prm.prim_geom == IntPtr.Zero)
+                    IntPtr prmgeom = prm.prim_geom;
+                    if (prmgeom == IntPtr.Zero)
                         continue;
 
                     Vector3 ppos = prm._position;
-                    d.GeomSetOffsetWorldPosition(prm.prim_geom, ppos.X, ppos.Y, ppos.Z); // set relative position
+                    SafeNativeMethods.GeomSetOffsetWorldPosition(prm.prim_geom, ppos.X, ppos.Y, ppos.Z); // set relative position
 
-                    if (prm.m_targetSpace != m_targetSpace)
+                    IntPtr prmspace = prm.m_targetSpace;
+                    if (prmspace != m_targetSpace)
                     {
-                        if (prm.m_targetSpace != IntPtr.Zero)
+                        if (prmspace != IntPtr.Zero)
                         {
-                            _parent_scene.waitForSpaceUnlock(prm.m_targetSpace);
-                            if (d.SpaceQuery(prm.m_targetSpace, prm.prim_geom))
-                                d.SpaceRemove(prm.m_targetSpace, prm.prim_geom);
+                            _parent_scene.waitForSpaceUnlock(prmspace);
+                            if (SafeNativeMethods.SpaceQuery(prmspace, prmgeom))
+                                SafeNativeMethods.SpaceRemove(prmspace, prmgeom);
                         }
                         prm.m_targetSpace = m_targetSpace;
-                        d.SpaceAdd(m_targetSpace, prm.prim_geom);
+                        if (SafeNativeMethods.SpaceQuery(m_targetSpace, prmgeom))
+                            m_log.Debug("[PRIM]: child already in target space");
+                        else
+                            SafeNativeMethods.SpaceAdd(m_targetSpace, prmgeom);
                     }
 
                     prm.m_collisionscore = 0;
@@ -1904,15 +2141,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             if (m_isSelected || m_disabled)
             {
-                d.BodyDisable(Body);
+                SafeNativeMethods.BodyDisable(Body);
                 _zeroFlag = true;
             }
             else
             {
-                d.BodySetAngularVel(Body, m_rotationalVelocity.X, m_rotationalVelocity.Y, m_rotationalVelocity.Z);
-                d.BodySetLinearVel(Body, _velocity.X, _velocity.Y, _velocity.Z);
+                SafeNativeMethods.BodySetAngularVel(Body, m_rotationalVelocity.X, m_rotationalVelocity.Y, m_rotationalVelocity.Z);
+                SafeNativeMethods.BodySetLinearVel(Body, _velocity.X, _velocity.Y, _velocity.Z);
+
                 _zeroFlag = false;
-                bodydisablecontrol = 0;
+                m_bodydisablecontrol = 0;
             }
             _parent_scene.addActiveGroups(this);
         }
@@ -1942,16 +2180,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     if (m_NoColide)
                     {
-                        d.GeomSetCategoryBits(prim_geom, 0);
-                        d.GeomSetCollideBits(prim_geom, 0);
+                        SafeNativeMethods.GeomSetCategoryBits(prim_geom, 0);
+                        SafeNativeMethods.GeomSetCollideBits(prim_geom, 0);
                     }
                     else
                     {
-                        d.GeomSetCategoryBits(prim_geom, (uint)m_collisionCategories);
-                        d.GeomSetCollideBits(prim_geom, (uint)m_collisionFlags);
+                        SafeNativeMethods.GeomSetCategoryBits(prim_geom, (uint)m_collisionCategories);
+                        SafeNativeMethods.GeomSetCollideBits(prim_geom, (uint)m_collisionFlags);
                     }
                     UpdateDataFromGeom();
-                    d.GeomSetBody(prim_geom, IntPtr.Zero);
+                    SafeNativeMethods.GeomSetBody(prim_geom, IntPtr.Zero);
                     SetInStaticSpace(this);
                 }
 
@@ -1978,62 +2216,62 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             {
                                 if (prm.m_NoColide)
                                 {
-                                    d.GeomSetCategoryBits(prm.prim_geom, 0);
-                                    d.GeomSetCollideBits(prm.prim_geom, 0);
+                                    SafeNativeMethods.GeomSetCategoryBits(prm.prim_geom, 0);
+                                    SafeNativeMethods.GeomSetCollideBits(prm.prim_geom, 0);
                                 }
                                 else
                                 {
-                                    d.GeomSetCategoryBits(prm.prim_geom, (uint)prm.m_collisionCategories);
-                                    d.GeomSetCollideBits(prm.prim_geom, (uint)prm.m_collisionFlags);
+                                    SafeNativeMethods.GeomSetCategoryBits(prm.prim_geom, (uint)prm.m_collisionCategories);
+                                    SafeNativeMethods.GeomSetCollideBits(prm.prim_geom, (uint)prm.m_collisionFlags);
                                 }
                                 prm.UpdateDataFromGeom();
                                 SetInStaticSpace(prm);
                             }
                             prm.Body = IntPtr.Zero;
-                            prm._mass = prm.primMass;
+                            prm.m_mass = prm.primMass;
                             prm.m_collisionscore = 0;
                         }
                     }
                     if (Amotor != IntPtr.Zero)
                     {
-                        d.JointDestroy(Amotor);
+                        SafeNativeMethods.JointDestroy(Amotor);
                         Amotor = IntPtr.Zero;
                     }
                     _parent_scene.remActiveGroup(this);
-                    d.BodyDestroy(Body);
+                    SafeNativeMethods.BodyDestroy(Body);
                 }
                 Body = IntPtr.Zero;
             }
-            _mass = primMass;
+            m_mass = primMass;
             m_collisionscore = 0;
         }
 
         private void FixInertia(Vector3 NewPos,Quaternion newrot)
         {
-            d.Matrix3 mat = new d.Matrix3();
-            d.Quaternion quat = new d.Quaternion();
+            SafeNativeMethods.Matrix3 mat = new SafeNativeMethods.Matrix3();
+            SafeNativeMethods.Quaternion quat = new SafeNativeMethods.Quaternion();
 
-            d.Mass tmpdmass = new d.Mass { };
-            d.Mass objdmass = new d.Mass { };
+            SafeNativeMethods.Mass tmpdmass = new SafeNativeMethods.Mass { };
+            SafeNativeMethods.Mass objdmass = new SafeNativeMethods.Mass { };
 
-            d.BodyGetMass(Body, out tmpdmass);
+            SafeNativeMethods.BodyGetMass(Body, out tmpdmass);
             objdmass = tmpdmass;
 
-            d.Vector3 dobjpos;
-            d.Vector3 thispos;
+            SafeNativeMethods.Vector3 dobjpos;
+            SafeNativeMethods.Vector3 thispos;
 
             // get current object position and rotation
-            dobjpos = d.BodyGetPosition(Body);
+            dobjpos = SafeNativeMethods.BodyGetPosition(Body);
 
             // get prim own inertia in its local frame
             tmpdmass = primdMass;
 
             // transform to object frame
-            mat = d.GeomGetOffsetRotation(prim_geom);
-            d.MassRotate(ref tmpdmass, ref mat);
+            mat = SafeNativeMethods.GeomGetOffsetRotation(prim_geom);
+            SafeNativeMethods.MassRotate(ref tmpdmass, ref mat);
 
-            thispos = d.GeomGetOffsetPosition(prim_geom);
-            d.MassTranslate(ref tmpdmass,
+            thispos = SafeNativeMethods.GeomGetOffsetPosition(prim_geom);
+            SafeNativeMethods.MassTranslate(ref tmpdmass,
                             thispos.X,
                             thispos.Y,
                             thispos.Z);
@@ -2046,66 +2284,66 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             // update to new position and orientation
             _position = NewPos;
-            d.GeomSetOffsetWorldPosition(prim_geom, NewPos.X, NewPos.Y, NewPos.Z);
+            SafeNativeMethods.GeomSetOffsetWorldPosition(prim_geom, NewPos.X, NewPos.Y, NewPos.Z);
             _orientation = newrot;
             quat.X = newrot.X;
             quat.Y = newrot.Y;
             quat.Z = newrot.Z;
             quat.W = newrot.W;
-            d.GeomSetOffsetWorldQuaternion(prim_geom, ref quat);
+            SafeNativeMethods.GeomSetOffsetWorldQuaternion(prim_geom, ref quat);
 
-            mat = d.GeomGetOffsetRotation(prim_geom);
-            d.MassRotate(ref tmpdmass, ref mat);
+            mat = SafeNativeMethods.GeomGetOffsetRotation(prim_geom);
+            SafeNativeMethods.MassRotate(ref tmpdmass, ref mat);
 
-            thispos = d.GeomGetOffsetPosition(prim_geom);
-            d.MassTranslate(ref tmpdmass,
+            thispos = SafeNativeMethods.GeomGetOffsetPosition(prim_geom);
+            SafeNativeMethods.MassTranslate(ref tmpdmass,
                             thispos.X,
                             thispos.Y,
                             thispos.Z);
 
-            d.MassAdd(ref objdmass, ref tmpdmass);
+            SafeNativeMethods.MassAdd(ref objdmass, ref tmpdmass);
 
             // fix all positions
-            IntPtr g = d.BodyGetFirstGeom(Body);
+            IntPtr g = SafeNativeMethods.BodyGetFirstGeom(Body);
             while (g != IntPtr.Zero)
             {
-                thispos = d.GeomGetOffsetPosition(g);
+                thispos = SafeNativeMethods.GeomGetOffsetPosition(g);
                 thispos.X -= objdmass.c.X;
                 thispos.Y -= objdmass.c.Y;
                 thispos.Z -= objdmass.c.Z;
-                d.GeomSetOffsetPosition(g, thispos.X, thispos.Y, thispos.Z);
-                g = d.dBodyGetNextGeom(g);
+                SafeNativeMethods.GeomSetOffsetPosition(g, thispos.X, thispos.Y, thispos.Z);
+                g = SafeNativeMethods.dBodyGetNextGeom(g);
             }
-            d.BodyVectorToWorld(Body,objdmass.c.X, objdmass.c.Y, objdmass.c.Z,out thispos);
+            SafeNativeMethods.BodyVectorToWorld(Body,objdmass.c.X, objdmass.c.Y, objdmass.c.Z,out thispos);
 
-            d.BodySetPosition(Body, dobjpos.X + thispos.X, dobjpos.Y + thispos.Y, dobjpos.Z + thispos.Z);
-            d.MassTranslate(ref objdmass, -objdmass.c.X, -objdmass.c.Y, -objdmass.c.Z); // ode wants inertia at center of body
-            d.BodySetMass(Body, ref objdmass);
-            _mass = objdmass.mass;
+            SafeNativeMethods.BodySetPosition(Body, dobjpos.X + thispos.X, dobjpos.Y + thispos.Y, dobjpos.Z + thispos.Z);
+            SafeNativeMethods.MassTranslate(ref objdmass, -objdmass.c.X, -objdmass.c.Y, -objdmass.c.Z); // ode wants inertia at center of body
+            SafeNativeMethods.BodySetMass(Body, ref objdmass);
+            m_mass = objdmass.mass;
         }
 
         private void FixInertia(Vector3 NewPos)
         {
-            d.Matrix3 primmat = new d.Matrix3();
-            d.Mass tmpdmass = new d.Mass { };
-            d.Mass objdmass = new d.Mass { };
-            d.Mass primmass = new d.Mass { };
+            SafeNativeMethods.Matrix3 primmat = new SafeNativeMethods.Matrix3();
+            SafeNativeMethods.Mass tmpdmass = new SafeNativeMethods.Mass { };
+            SafeNativeMethods.Mass objdmass = new SafeNativeMethods.Mass { };
+            SafeNativeMethods.Mass primmass = new SafeNativeMethods.Mass { };
 
-            d.Vector3 dobjpos;
-            d.Vector3 thispos;
+            SafeNativeMethods.Vector3 dobjpos;
+            SafeNativeMethods.Vector3 thispos;
 
-            d.BodyGetMass(Body, out objdmass);
+            SafeNativeMethods.BodyGetMass(Body, out objdmass);
 
             // get prim own inertia in its local frame
             primmass = primdMass;
             // transform to object frame
-            primmat = d.GeomGetOffsetRotation(prim_geom);
-            d.MassRotate(ref primmass, ref primmat);
+            primmat = SafeNativeMethods.GeomGetOffsetRotation(prim_geom);
+            SafeNativeMethods.MassRotate(ref primmass, ref primmat);
 
             tmpdmass = primmass;
 
-            thispos = d.GeomGetOffsetPosition(prim_geom);
-            d.MassTranslate(ref tmpdmass,
+            thispos = SafeNativeMethods.GeomGetOffsetPosition(prim_geom);
+            SafeNativeMethods.MassTranslate(ref tmpdmass,
                             thispos.X,
                             thispos.Y,
                             thispos.Z);
@@ -2115,58 +2353,58 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             // update to new position
             _position = NewPos;
-            d.GeomSetOffsetWorldPosition(prim_geom, NewPos.X, NewPos.Y, NewPos.Z);
+            SafeNativeMethods.GeomSetOffsetWorldPosition(prim_geom, NewPos.X, NewPos.Y, NewPos.Z);
 
-            thispos = d.GeomGetOffsetPosition(prim_geom);
-            d.MassTranslate(ref primmass,
+            thispos = SafeNativeMethods.GeomGetOffsetPosition(prim_geom);
+            SafeNativeMethods.MassTranslate(ref primmass,
                             thispos.X,
                             thispos.Y,
                             thispos.Z);
 
-            d.MassAdd(ref objdmass, ref primmass);
+            SafeNativeMethods.MassAdd(ref objdmass, ref primmass);
 
             // fix all positions
-            IntPtr g = d.BodyGetFirstGeom(Body);
+            IntPtr g = SafeNativeMethods.BodyGetFirstGeom(Body);
             while (g != IntPtr.Zero)
             {
-                thispos = d.GeomGetOffsetPosition(g);
+                thispos = SafeNativeMethods.GeomGetOffsetPosition(g);
                 thispos.X -= objdmass.c.X;
                 thispos.Y -= objdmass.c.Y;
                 thispos.Z -= objdmass.c.Z;
-                d.GeomSetOffsetPosition(g, thispos.X, thispos.Y, thispos.Z);
-                g = d.dBodyGetNextGeom(g);
+                SafeNativeMethods.GeomSetOffsetPosition(g, thispos.X, thispos.Y, thispos.Z);
+                g = SafeNativeMethods.dBodyGetNextGeom(g);
             }
 
-            d.BodyVectorToWorld(Body, objdmass.c.X, objdmass.c.Y, objdmass.c.Z, out thispos);
+            SafeNativeMethods.BodyVectorToWorld(Body, objdmass.c.X, objdmass.c.Y, objdmass.c.Z, out thispos);
 
             // get current object position and rotation
-            dobjpos = d.BodyGetPosition(Body);
+            dobjpos = SafeNativeMethods.BodyGetPosition(Body);
 
-            d.BodySetPosition(Body, dobjpos.X + thispos.X, dobjpos.Y + thispos.Y, dobjpos.Z + thispos.Z);
-            d.MassTranslate(ref objdmass, -objdmass.c.X, -objdmass.c.Y, -objdmass.c.Z); // ode wants inertia at center of body
-            d.BodySetMass(Body, ref objdmass);
-            _mass = objdmass.mass;
+            SafeNativeMethods.BodySetPosition(Body, dobjpos.X + thispos.X, dobjpos.Y + thispos.Y, dobjpos.Z + thispos.Z);
+            SafeNativeMethods.MassTranslate(ref objdmass, -objdmass.c.X, -objdmass.c.Y, -objdmass.c.Z); // ode wants inertia at center of body
+            SafeNativeMethods.BodySetMass(Body, ref objdmass);
+            m_mass = objdmass.mass;
         }
 
         private void FixInertia(Quaternion newrot)
         {
-            d.Matrix3 mat = new d.Matrix3();
-            d.Quaternion quat = new d.Quaternion();
+            SafeNativeMethods.Matrix3 mat = new SafeNativeMethods.Matrix3();
+            SafeNativeMethods.Quaternion quat = new SafeNativeMethods.Quaternion();
 
-            d.Mass tmpdmass = new d.Mass { };
-            d.Mass objdmass = new d.Mass { };
-            d.Vector3 dobjpos;
-            d.Vector3 thispos;
+            SafeNativeMethods.Mass tmpdmass = new SafeNativeMethods.Mass { };
+            SafeNativeMethods.Mass objdmass = new SafeNativeMethods.Mass { };
+            SafeNativeMethods.Vector3 dobjpos;
+            SafeNativeMethods.Vector3 thispos;
 
-            d.BodyGetMass(Body, out objdmass);
+            SafeNativeMethods.BodyGetMass(Body, out objdmass);
 
             // get prim own inertia in its local frame
             tmpdmass = primdMass;
-            mat = d.GeomGetOffsetRotation(prim_geom);
-            d.MassRotate(ref tmpdmass, ref mat);
+            mat = SafeNativeMethods.GeomGetOffsetRotation(prim_geom);
+            SafeNativeMethods.MassRotate(ref tmpdmass, ref mat);
             // transform to object frame
-            thispos = d.GeomGetOffsetPosition(prim_geom);
-            d.MassTranslate(ref tmpdmass,
+            thispos = SafeNativeMethods.GeomGetOffsetPosition(prim_geom);
+            SafeNativeMethods.MassTranslate(ref tmpdmass,
                             thispos.X,
                             thispos.Y,
                             thispos.Z);
@@ -2180,38 +2418,38 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             quat.Y = newrot.Y;
             quat.Z = newrot.Z;
             quat.W = newrot.W;
-            d.GeomSetOffsetWorldQuaternion(prim_geom, ref quat);
+            SafeNativeMethods.GeomSetOffsetWorldQuaternion(prim_geom, ref quat);
 
             tmpdmass = primdMass;
-            mat = d.GeomGetOffsetRotation(prim_geom);
-            d.MassRotate(ref tmpdmass, ref mat);
-            d.MassTranslate(ref tmpdmass,
+            mat = SafeNativeMethods.GeomGetOffsetRotation(prim_geom);
+            SafeNativeMethods.MassRotate(ref tmpdmass, ref mat);
+            SafeNativeMethods.MassTranslate(ref tmpdmass,
                             thispos.X,
                             thispos.Y,
                             thispos.Z);
 
-            d.MassAdd(ref objdmass, ref tmpdmass);
+            SafeNativeMethods.MassAdd(ref objdmass, ref tmpdmass);
 
             // fix all positions
-            IntPtr g = d.BodyGetFirstGeom(Body);
+            IntPtr g = SafeNativeMethods.BodyGetFirstGeom(Body);
             while (g != IntPtr.Zero)
             {
-                thispos = d.GeomGetOffsetPosition(g);
+                thispos = SafeNativeMethods.GeomGetOffsetPosition(g);
                 thispos.X -= objdmass.c.X;
                 thispos.Y -= objdmass.c.Y;
                 thispos.Z -= objdmass.c.Z;
-                d.GeomSetOffsetPosition(g, thispos.X, thispos.Y, thispos.Z);
-                g = d.dBodyGetNextGeom(g);
+                SafeNativeMethods.GeomSetOffsetPosition(g, thispos.X, thispos.Y, thispos.Z);
+                g = SafeNativeMethods.dBodyGetNextGeom(g);
             }
 
-            d.BodyVectorToWorld(Body, objdmass.c.X, objdmass.c.Y, objdmass.c.Z, out thispos);
+            SafeNativeMethods.BodyVectorToWorld(Body, objdmass.c.X, objdmass.c.Y, objdmass.c.Z, out thispos);
             // get current object position and rotation
-            dobjpos = d.BodyGetPosition(Body);
+            dobjpos = SafeNativeMethods.BodyGetPosition(Body);
 
-            d.BodySetPosition(Body, dobjpos.X + thispos.X, dobjpos.Y + thispos.Y, dobjpos.Z + thispos.Z);
-            d.MassTranslate(ref objdmass, -objdmass.c.X, -objdmass.c.Y, -objdmass.c.Z); // ode wants inertia at center of body
-            d.BodySetMass(Body, ref objdmass);
-            _mass = objdmass.mass;
+            SafeNativeMethods.BodySetPosition(Body, dobjpos.X + thispos.X, dobjpos.Y + thispos.Y, dobjpos.Z + thispos.Z);
+            SafeNativeMethods.MassTranslate(ref objdmass, -objdmass.c.X, -objdmass.c.Y, -objdmass.c.Z); // ode wants inertia at center of body
+            SafeNativeMethods.BodySetMass(Body, ref objdmass);
+            m_mass = objdmass.mass;
         }
 
 
@@ -2226,11 +2464,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (primMass > _parent_scene.maximumMassObject)
                 primMass = _parent_scene.maximumMassObject;
 
-            _mass = primMass; // just in case
+            m_mass = primMass; // just in case
 
-            d.MassSetBoxTotal(out primdMass, primMass, 2.0f * m_OBB.X, 2.0f * m_OBB.Y, 2.0f * m_OBB.Z);
+            SafeNativeMethods.MassSetBoxTotal(out primdMass, primMass, 2.0f * m_OBB.X, 2.0f * m_OBB.Y, 2.0f * m_OBB.Z);
 
-            d.MassTranslate(ref primdMass,
+            SafeNativeMethods.MassTranslate(ref primdMass,
                                 m_OBBOffset.X,
                                 m_OBBOffset.Y,
                                 m_OBBOffset.Z);
@@ -2285,7 +2523,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             if (prm.Body != IntPtr.Zero)
                             {
                                 if (prm.prim_geom != IntPtr.Zero)
-                                    d.GeomSetBody(prm.prim_geom, IntPtr.Zero);
+                                    SafeNativeMethods.GeomSetBody(prm.prim_geom, IntPtr.Zero);
                                 if (prm.Body != prim.Body)
                                     prm.DestroyBody(); // don't loose bodies around
                                 prm.Body = IntPtr.Zero;
@@ -2302,7 +2540,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if (prim.Body != IntPtr.Zero)
                 {
                     if (prim.prim_geom != IntPtr.Zero)
-                        d.GeomSetBody(prim.prim_geom, IntPtr.Zero);
+                        SafeNativeMethods.GeomSetBody(prim.prim_geom, IntPtr.Zero);
                     prim.DestroyBody(); // don't loose bodies around
                     prim.Body = IntPtr.Zero;
                 }
@@ -2327,8 +2565,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             if (prim_geom != IntPtr.Zero)
             {
-                d.Quaternion qtmp;
-                d.GeomCopyQuaternion(prim_geom, out qtmp);
+                SafeNativeMethods.Quaternion qtmp;
+                SafeNativeMethods.GeomCopyQuaternion(prim_geom, out qtmp);
                 _orientation.X = qtmp.X;
                 _orientation.Y = qtmp.Y;
                 _orientation.Z = qtmp.Z;
@@ -2342,7 +2580,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 */
                 _orientation.Normalize();
 
-                d.Vector3 lpos = d.GeomGetPosition(prim_geom);
+                SafeNativeMethods.Vector3 lpos = SafeNativeMethods.GeomGetPosition(prim_geom);
                 _position.X = lpos.X;
                 _position.Y = lpos.Y;
                 _position.Z = lpos.Z;
@@ -2471,7 +2709,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     {
                         if (Amotor != IntPtr.Zero)
                         {
-                            d.JointDestroy(Amotor);
+                            SafeNativeMethods.JointDestroy(Amotor);
                             Amotor = IntPtr.Zero;
                         }
                     }
@@ -2516,7 +2754,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 m_angularForceacc = Vector3.Zero;
 //                m_torque = Vector3.Zero;
                 _velocity = Vector3.Zero;
-                _acceleration = Vector3.Zero;
+                m_acceleration = Vector3.Zero;
                 m_rotationalVelocity = Vector3.Zero;
                 _target_velocity = Vector3.Zero;
                 if (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE)
@@ -2528,10 +2766,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             if (Body != IntPtr.Zero)
             {
-                d.BodySetForce(Body, 0f, 0f, 0f);
-                d.BodySetTorque(Body, 0f, 0f, 0f);
-                d.BodySetLinearVel(Body, 0f, 0f, 0f);
-                d.BodySetAngularVel(Body, 0f, 0f, 0f);
+                SafeNativeMethods.BodySetForce(Body, 0f, 0f, 0f);
+                SafeNativeMethods.BodySetTorque(Body, 0f, 0f, 0f);
+                SafeNativeMethods.BodySetLinearVel(Body, 0f, 0f, 0f);
+                SafeNativeMethods.BodySetAngularVel(Body, 0f, 0f, 0f);
             }
         }
 
@@ -2593,7 +2831,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (newval)
             {
                 if (!childPrim && Body != IntPtr.Zero)
-                    d.BodyDisable(Body);
+                    SafeNativeMethods.BodyDisable(Body);
 
                 if (m_delaySelect || m_isphysical)
                 {
@@ -2612,13 +2850,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                                 if (prm.m_NoColide)
                                 {
-                                    d.GeomSetCategoryBits(prm.prim_geom, 0);
-                                    d.GeomSetCollideBits(prm.prim_geom, 0);
+                                    SafeNativeMethods.GeomSetCategoryBits(prm.prim_geom, 0);
+                                    SafeNativeMethods.GeomSetCollideBits(prm.prim_geom, 0);
                                 }
                                 else
                                 {
-                                    d.GeomSetCategoryBits(prm.prim_geom, (uint)m_collisionCategories);
-                                    d.GeomSetCollideBits(prm.prim_geom, (uint)m_collisionFlags);
+                                    SafeNativeMethods.GeomSetCategoryBits(prm.prim_geom, (uint)m_collisionCategories);
+                                    SafeNativeMethods.GeomSetCollideBits(prm.prim_geom, (uint)m_collisionFlags);
                                 }
                             }
                             prm.m_delaySelect = false;
@@ -2632,23 +2870,23 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     {
                         if (m_NoColide)
                         {
-                            d.GeomSetCategoryBits(prim_geom, 0);
-                            d.GeomSetCollideBits(prim_geom, 0);
+                            SafeNativeMethods.GeomSetCategoryBits(prim_geom, 0);
+                            SafeNativeMethods.GeomSetCollideBits(prim_geom, 0);
                             if (collide_geom != prim_geom && collide_geom != IntPtr.Zero)
                             {
-                                d.GeomSetCategoryBits(collide_geom, 0);
-                                d.GeomSetCollideBits(collide_geom, 0);
+                                SafeNativeMethods.GeomSetCategoryBits(collide_geom, 0);
+                                SafeNativeMethods.GeomSetCollideBits(collide_geom, 0);
                             }
 
                         }
                         else
                         {
-                            d.GeomSetCategoryBits(prim_geom, (uint)m_collisionCategories);
-                            d.GeomSetCollideBits(prim_geom, (uint)m_collisionFlags);
+                            SafeNativeMethods.GeomSetCategoryBits(prim_geom, (uint)m_collisionCategories);
+                            SafeNativeMethods.GeomSetCollideBits(prim_geom, (uint)m_collisionFlags);
                             if (collide_geom != prim_geom && collide_geom != IntPtr.Zero)
                             {
-                                d.GeomSetCategoryBits(collide_geom, (uint)m_collisionCategories);
-                                d.GeomSetCollideBits(collide_geom, (uint)m_collisionFlags);
+                                SafeNativeMethods.GeomSetCategoryBits(collide_geom, (uint)m_collisionCategories);
+                                SafeNativeMethods.GeomSetCollideBits(collide_geom, (uint)m_collisionFlags);
                             }
                         }
                     }
@@ -2667,7 +2905,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (Body != IntPtr.Zero && !m_disabled)
                     {
                         _zeroFlag = true;
-                        d.BodyEnable(Body);
+                        SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                        SafeNativeMethods.BodyEnable(Body);
                     }
                 }
 //                else if (_parent != null)
@@ -2697,10 +2936,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     else if (m_forcePosOrRotation && _position != newPos && Body != IntPtr.Zero)
                     {
                         FixInertia(newPos);
-                        if (!d.BodyIsEnabled(Body))
+                        if (!SafeNativeMethods.BodyIsEnabled(Body))
                         {
                             _zeroFlag = true;
-                            d.BodyEnable(Body);
+                            SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                            SafeNativeMethods.BodyEnable(Body);
                         }
                     }
                 }
@@ -2708,13 +2948,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     if (_position != newPos)
                     {
-                        d.GeomSetPosition(prim_geom, newPos.X, newPos.Y, newPos.Z);
+                        SafeNativeMethods.GeomSetPosition(prim_geom, newPos.X, newPos.Y, newPos.Z);
                         _position = newPos;
                     }
-                    if (Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
+                    if (Body != IntPtr.Zero && !SafeNativeMethods.BodyIsEnabled(Body))
                     {
                         _zeroFlag = true;
-                        d.BodyEnable(Body);
+                        SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                        SafeNativeMethods.BodyEnable(Body);
                     }
                 }
             }
@@ -2724,10 +2965,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     if (newPos != _position)
                     {
-                        d.GeomSetPosition(prim_geom, newPos.X, newPos.Y, newPos.Z);
+                        SafeNativeMethods.GeomSetPosition(prim_geom, newPos.X, newPos.Y, newPos.Z);
                         _position = newPos;
 
-                        m_targetSpace = _parent_scene.MoveGeomToStaticSpace(prim_geom, _position, m_targetSpace);
+                        m_targetSpace = _parent_scene.MoveGeomToStaticSpace(prim_geom, m_targetSpace);
                     }
                 }
             }
@@ -2762,20 +3003,25 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     if (newOri != _orientation)
                     {
-                        d.Quaternion myrot = new d.Quaternion();
+                        SafeNativeMethods.Quaternion myrot = new SafeNativeMethods.Quaternion();
                         myrot.X = newOri.X;
                         myrot.Y = newOri.Y;
                         myrot.Z = newOri.Z;
                         myrot.W = newOri.W;
-                        d.GeomSetQuaternion(prim_geom, ref myrot);
+                        SafeNativeMethods.GeomSetQuaternion(prim_geom, ref myrot);
                         _orientation = newOri;
-                        if (Body != IntPtr.Zero && m_angularlocks != 0)
-                            createAMotor(m_angularlocks);
+                        
+                        if (Body != IntPtr.Zero)
+                        {
+                            if(m_angularlocks != 0)
+                                createAMotor(m_angularlocks);
+                        }
                     }
-                    if (Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
+                    if (Body != IntPtr.Zero && !SafeNativeMethods.BodyIsEnabled(Body))
                     {
                         _zeroFlag = true;
-                        d.BodyEnable(Body);
+                        SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                        SafeNativeMethods.BodyEnable(Body);
                     }
                 }
             }
@@ -2785,12 +3031,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     if (newOri != _orientation)
                     {
-                        d.Quaternion myrot = new d.Quaternion();
+                        SafeNativeMethods.Quaternion myrot = new SafeNativeMethods.Quaternion();
                         myrot.X = newOri.X;
                         myrot.Y = newOri.Y;
                         myrot.Z = newOri.Z;
                         myrot.W = newOri.W;
-                        d.GeomSetQuaternion(prim_geom, ref myrot);
+                        SafeNativeMethods.GeomSetQuaternion(prim_geom, ref myrot);
                         _orientation = newOri;
                     }
                 }
@@ -2815,25 +3061,26 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     if (newOri != _orientation)
                     {
-                        d.Quaternion myrot = new d.Quaternion();
+                        SafeNativeMethods.Quaternion myrot = new SafeNativeMethods.Quaternion();
                         myrot.X = newOri.X;
                         myrot.Y = newOri.Y;
                         myrot.Z = newOri.Z;
                         myrot.W = newOri.W;
-                        d.GeomSetQuaternion(prim_geom, ref myrot);
+                        SafeNativeMethods.GeomSetQuaternion(prim_geom, ref myrot);
                         _orientation = newOri;
                         if (Body != IntPtr.Zero && m_angularlocks != 0)
                             createAMotor(m_angularlocks);
                     }
                     if (_position != newPos)
                     {
-                        d.GeomSetPosition(prim_geom, newPos.X, newPos.Y, newPos.Z);
+                        SafeNativeMethods.GeomSetPosition(prim_geom, newPos.X, newPos.Y, newPos.Z);
                         _position = newPos;
                     }
-                    if (Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
+                    if (Body != IntPtr.Zero && !SafeNativeMethods.BodyIsEnabled(Body))
                     {
                         _zeroFlag = true;
-                        d.BodyEnable(Body);
+                        SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                        SafeNativeMethods.BodyEnable(Body);
                     }
                 }
             }
@@ -2846,21 +3093,21 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     if (newOri != _orientation)
                     {
-                        d.Quaternion myrot = new d.Quaternion();
+                        SafeNativeMethods.Quaternion myrot = new SafeNativeMethods.Quaternion();
                         myrot.X = newOri.X;
                         myrot.Y = newOri.Y;
                         myrot.Z = newOri.Z;
                         myrot.W = newOri.W;
-                        d.GeomSetQuaternion(prim_geom, ref myrot);
+                        SafeNativeMethods.GeomSetQuaternion(prim_geom, ref myrot);
                         _orientation = newOri;
                     }
 
                     if (newPos != _position)
                     {
-                        d.GeomSetPosition(prim_geom, newPos.X, newPos.Y, newPos.Z);
+                        SafeNativeMethods.GeomSetPosition(prim_geom, newPos.X, newPos.Y, newPos.Z);
                         _position = newPos;
 
-                        m_targetSpace = _parent_scene.MoveGeomToStaticSpace(prim_geom, _position, m_targetSpace);
+                        m_targetSpace = _parent_scene.MoveGeomToStaticSpace(prim_geom, m_targetSpace);
                     }
                 }
             }
@@ -2925,7 +3172,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             _size = repData.size; //??
             _pbs = repData.pbs;
-            m_shapetype = repData.shapetype;
 
             m_mesh = repData.mesh;
 
@@ -2938,17 +3184,17 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             primVolume = repData.volume;
 
-            CreateGeom();
+            CreateGeom(repData.isTooSmall);
 
             if (prim_geom != IntPtr.Zero)
             {
-                d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
-                d.Quaternion myrot = new d.Quaternion();
+                SafeNativeMethods.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                SafeNativeMethods.Quaternion myrot = new SafeNativeMethods.Quaternion();
                 myrot.X = _orientation.X;
                 myrot.Y = _orientation.Y;
                 myrot.Z = _orientation.Z;
                 myrot.W = _orientation.W;
-                d.GeomSetQuaternion(prim_geom, ref myrot);
+                SafeNativeMethods.GeomSetQuaternion(prim_geom, ref myrot);
             }
 
             if (!m_isphysical)
@@ -2964,9 +3210,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 repData.size = _size;
                 repData.pbs = _pbs;
-                repData.shapetype = m_shapetype;
+                repData.shapetype = m_fakeShapetype;
                 _parent_scene.m_meshWorker.RequestMesh(repData);
             }
+            else
+                m_shapetype = repData.shapetype;
         }
 
         private void changePhysRepData(ODEPhysRepData repData)
@@ -3000,7 +3248,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             _size = repData.size;
             _pbs = repData.pbs;
-            m_shapetype = repData.shapetype;
 
             m_mesh = repData.mesh;
 
@@ -3013,17 +3260,17 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             primVolume = repData.volume;
 
-            CreateGeom();
+            CreateGeom(repData.isTooSmall);
 
             if (prim_geom != IntPtr.Zero)
             {
-                d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
-                d.Quaternion myrot = new d.Quaternion();
+                SafeNativeMethods.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                SafeNativeMethods.Quaternion myrot = new SafeNativeMethods.Quaternion();
                 myrot.X = _orientation.X;
                 myrot.Y = _orientation.Y;
                 myrot.Z = _orientation.Z;
                 myrot.W = _orientation.W;
-                d.GeomSetQuaternion(prim_geom, ref myrot);
+                SafeNativeMethods.GeomSetQuaternion(prim_geom, ref myrot);
             }
 
             if (m_isphysical)
@@ -3051,9 +3298,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 repData.size = _size;
                 repData.pbs = _pbs;
-                repData.shapetype = m_shapetype;
+                repData.shapetype = m_fakeShapetype;
                 _parent_scene.m_meshWorker.RequestMesh(repData);
             }
+            else
+                m_shapetype = repData.shapetype;
         }
 
         private void changeFloatOnWater(bool newval)
@@ -3066,15 +3315,17 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private void changeSetTorque(Vector3 newtorque)
         {
-            if (!m_isSelected)
+            if (!m_isSelected && !m_outbounds)
             {
                 if (m_isphysical && Body != IntPtr.Zero)
                 {
                     if (m_disabled)
                         enableBodySoft();
-                    else if (!d.BodyIsEnabled(Body))
-                        d.BodyEnable(Body);
-
+                    else if (!SafeNativeMethods.BodyIsEnabled(Body))
+                    {
+                        SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                        SafeNativeMethods.BodyEnable(Body);
+                    }
                 }
                 m_torque = newtorque;
             }
@@ -3083,14 +3334,17 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private void changeForce(Vector3 force)
         {
             m_force = force;
-            if (Body != IntPtr.Zero && !d.BodyIsEnabled(Body))
-                d.BodyEnable(Body);
+            if (!m_isSelected && !m_outbounds && Body != IntPtr.Zero && !SafeNativeMethods.BodyIsEnabled(Body))
+            {
+                SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                SafeNativeMethods.BodyEnable(Body);
+            }
         }
 
         private void changeAddForce(Vector3 theforce)
         {
             m_forceacc += theforce;
-            if (!m_isSelected)
+            if (!m_isSelected && !m_outbounds)
             {
                 lock (this)
                 {
@@ -3099,8 +3353,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     {
                         if (m_disabled)
                             enableBodySoft();
-                        else if (!d.BodyIsEnabled(Body))
-                            d.BodyEnable(Body);
+                        else if (!SafeNativeMethods.BodyIsEnabled(Body))
+                        {
+                            SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                            SafeNativeMethods.BodyEnable(Body);
+                        }
                     }
                 }
                 m_collisionscore = 0;
@@ -3111,7 +3368,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private void changeAddAngularImpulse(Vector3 aimpulse)
         {
             m_angularForceacc += aimpulse * m_invTimeStep;
-            if (!m_isSelected)
+            if (!m_isSelected && !m_outbounds)
             {
                 lock (this)
                 {
@@ -3119,8 +3376,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     {
                         if (m_disabled)
                             enableBodySoft();
-                        else if (!d.BodyIsEnabled(Body))
-                            d.BodyEnable(Body);
+                        else if (!SafeNativeMethods.BodyIsEnabled(Body))
+                        {
+                            SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                            SafeNativeMethods.BodyEnable(Body);
+                        }                            
                     }
                 }
                 m_collisionscore = 0;
@@ -3136,16 +3396,18 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 newVel *= len;
             }
 
-            if (!m_isSelected)
+            if (!m_isSelected && !m_outbounds)
             {
                 if (Body != IntPtr.Zero)
                 {
                     if (m_disabled)
                         enableBodySoft();
-                    else if (!d.BodyIsEnabled(Body))
-                        d.BodyEnable(Body);
-
-                    d.BodySetLinearVel(Body, newVel.X, newVel.Y, newVel.Z);
+                    else if (!SafeNativeMethods.BodyIsEnabled(Body))
+                    {
+                        SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                        SafeNativeMethods.BodyEnable(Body);
+                    }
+                    SafeNativeMethods.BodySetLinearVel(Body, newVel.X, newVel.Y, newVel.Z);
                 }
                 //resetCollisionAccounting();
             }
@@ -3161,17 +3423,18 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 newAngVel *= len;
             }
 
-            if (!m_isSelected)
+            if (!m_isSelected && !m_outbounds)
             {
                 if (Body != IntPtr.Zero)
                 {
                     if (m_disabled)
                         enableBodySoft();
-                    else if (!d.BodyIsEnabled(Body))
-                        d.BodyEnable(Body);
-
-
-                    d.BodySetAngularVel(Body, newAngVel.X, newAngVel.Y, newAngVel.Z);
+                    else if (!SafeNativeMethods.BodyIsEnabled(Body))
+                    {
+                        SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                        SafeNativeMethods.BodyEnable(Body);
+                    }
+                    SafeNativeMethods.BodySetAngularVel(Body, newAngVel.X, newAngVel.Y, newAngVel.Z);
                 }
                 //resetCollisionAccounting();
             }
@@ -3306,6 +3569,15 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_useHoverPID = active;
         }
 
+        private void changeInertia(PhysicsInertiaData inertia)
+        {
+            m_InertiaOverride = inertia;
+
+            if (Body != IntPtr.Zero)
+                DestroyBody();
+            MakeBody();
+        }
+
         #endregion
 
         public void Move()
@@ -3313,27 +3585,28 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (!childPrim && m_isphysical && Body != IntPtr.Zero &&
                 !m_disabled && !m_isSelected && !m_building && !m_outbounds)
             {
-                if (!d.BodyIsEnabled(Body))
+                if (!SafeNativeMethods.BodyIsEnabled(Body))
                 {
                     // let vehicles sleep
                     if (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE)
                         return;
 
-                    if (++bodydisablecontrol < 50)
+                    if (++m_bodydisablecontrol < 50)
                         return;
 
                     // clear residuals
-                    d.BodySetAngularVel(Body,0f,0f,0f);
-                    d.BodySetLinearVel(Body,0f,0f,0f);
+                    SafeNativeMethods.BodySetAngularVel(Body,0f,0f,0f);
+                    SafeNativeMethods.BodySetLinearVel(Body,0f,0f,0f);
                     _zeroFlag = true;
-                    d.BodyEnable(Body);
-                    bodydisablecontrol = -4;
+                    SafeNativeMethods.BodySetAutoDisableSteps(Body, 1);
+                    SafeNativeMethods.BodyEnable(Body);
+                    m_bodydisablecontrol = -3;
                 }
 
-                if(bodydisablecontrol < 0)
-                    bodydisablecontrol ++;
+                if(m_bodydisablecontrol < 0)
+                    m_bodydisablecontrol++;
 
-                d.Vector3 lpos = d.GeomGetPosition(prim_geom); // root position that is seem by rest of simulator
+                SafeNativeMethods.Vector3 lpos = SafeNativeMethods.GeomGetPosition(prim_geom); // root position that is seem by rest of simulator
 
                 if (m_vehicle != null && m_vehicle.Type != Vehicle.TYPE_NONE)
                 {
@@ -3346,7 +3619,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 float fy = 0;
                 float fz = 0;
 
-                float m_mass = _mass;
+                float mass = m_mass;
 
                 if (m_usePID && m_PIDTau > 0)
                 {
@@ -3360,8 +3633,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                     if (_target_velocity.ApproxEquals(Vector3.Zero, 0.02f))
                     {
-                        d.BodySetPosition(Body, m_PIDTarget.X, m_PIDTarget.Y, m_PIDTarget.Z);
-                        d.BodySetLinearVel(Body, 0, 0, 0);
+                        SafeNativeMethods.BodySetPosition(Body, m_PIDTarget.X, m_PIDTarget.Y, m_PIDTarget.Z);
+                        SafeNativeMethods.BodySetLinearVel(Body, 0, 0, 0);
                         return;
                     }
                     else
@@ -3384,7 +3657,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             _target_velocity *= tmp;
                         }
 
-                        d.Vector3 vel = d.BodyGetLinearVel(Body);
+                        SafeNativeMethods.Vector3 vel = SafeNativeMethods.BodyGetLinearVel(Body);
                         fx = (_target_velocity.X - vel.X) * m_invTimeStep;
                         fy = (_target_velocity.Y - vel.Y) * m_invTimeStep;
                         fz = (_target_velocity.Z - vel.Z) * m_invTimeStep;
@@ -3420,15 +3693,15 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                     if (m_targetHoverHeight > m_groundHeight || m_isVolumeDetect)
                     {
-                        d.Vector3 vel = d.BodyGetLinearVel(Body);
+                        SafeNativeMethods.Vector3 vel = SafeNativeMethods.BodyGetLinearVel(Body);
 
                         fz = (m_targetHoverHeight - lpos.Z);
 
                         //  if error is zero, use position control; otherwise, velocity control
                         if (Math.Abs(fz) < 0.01f)
                         {
-                            d.BodySetPosition(Body, lpos.X, lpos.Y, m_targetHoverHeight);
-                            d.BodySetLinearVel(Body, vel.X, vel.Y, 0);
+                            SafeNativeMethods.BodySetPosition(Body, lpos.X, lpos.Y, m_targetHoverHeight);
+                            SafeNativeMethods.BodySetLinearVel(Body, vel.X, vel.Y, 0);
                         }
                         else
                         {
@@ -3453,9 +3726,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     fz = _parent_scene.gravityz * b;
                 }
 
-                fx *= m_mass;
-                fy *= m_mass;
-                fz *= m_mass;
+                fx *= mass;
+                fy *= mass;
+                fz *= mass;
 
                 // constant force
                 fx += m_force.X;
@@ -3471,7 +3744,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 //m_log.Info("[OBJPID]: X:" + fx.ToString() + " Y:" + fy.ToString() + " Z:" + fz.ToString());
                 if (fx != 0 || fy != 0 || fz != 0)
                 {
-                    d.BodyAddForce(Body, fx, fy, fz);
+                    SafeNativeMethods.BodyAddForce(Body, fx, fy, fz);
                     //Console.WriteLine("AddForce " + fx + "," + fy + "," + fz);
                 }
 
@@ -3482,7 +3755,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 m_angularForceacc = Vector3.Zero;
                 if (trq.X != 0 || trq.Y != 0 || trq.Z != 0)
                 {
-                    d.BodyAddTorque(Body, trq.X, trq.Y, trq.Z);
+                    SafeNativeMethods.BodyAddTorque(Body, trq.X, trq.Y, trq.Z);
                 }
             }
             else
@@ -3496,18 +3769,17 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public void UpdatePositionAndVelocity(int frame)
         {
-            if (_parent == null && !m_disabled && !m_building && !m_outbounds && Body != IntPtr.Zero)
+            if (_parent == null && !m_isSelected && !m_disabled && !m_building && !m_outbounds && Body != IntPtr.Zero)
             {
-                bool bodyenabled = d.BodyIsEnabled(Body);
-
-                if(bodydisablecontrol < 0)
+                if(m_bodydisablecontrol < 0)
                     return;
 
+                bool bodyenabled = SafeNativeMethods.BodyIsEnabled(Body);
                 if (bodyenabled || !_zeroFlag)
                 {
                     bool lastZeroFlag = _zeroFlag;
 
-                    d.Vector3 lpos = d.GeomGetPosition(prim_geom);
+                    SafeNativeMethods.Vector3 lpos = SafeNativeMethods.GeomGetPosition(prim_geom);
 
                     // check outside region
                     if (lpos.Z < -100 || lpos.Z > 100000f)
@@ -3515,9 +3787,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         m_outbounds = true;
 
                         lpos.Z = Util.Clip(lpos.Z, -100f, 100000f);
-                        _acceleration.X = 0;
-                        _acceleration.Y = 0;
-                        _acceleration.Z = 0;
+                        m_acceleration.X = 0;
+                        m_acceleration.Y = 0;
+                        m_acceleration.Z = 0;
 
                         _velocity.X = 0;
                         _velocity.Y = 0;
@@ -3526,9 +3798,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         m_rotationalVelocity.Y = 0;
                         m_rotationalVelocity.Z = 0;
 
-                        d.BodySetLinearVel(Body, 0, 0, 0); // stop it
-                        d.BodySetAngularVel(Body, 0, 0, 0); // stop it
-                        d.BodySetPosition(Body, lpos.X, lpos.Y, lpos.Z); // put it somewhere
+                        SafeNativeMethods.BodySetLinearVel(Body, 0, 0, 0); // stop it
+                        SafeNativeMethods.BodySetAngularVel(Body, 0, 0, 0); // stop it
+                        SafeNativeMethods.BodySetPosition(Body, lpos.X, lpos.Y, lpos.Z); // put it somewhere
                         m_lastposition = _position;
                         m_lastorientation = _orientation;
 
@@ -3568,19 +3840,19 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         m_lastposition = _position;
                         m_lastorientation = _orientation;
 
-                        d.Vector3 dtmp = d.BodyGetAngularVel(Body);
+                        SafeNativeMethods.Vector3 dtmp = SafeNativeMethods.BodyGetAngularVel(Body);
                         m_rotationalVelocity.X = dtmp.X;
                         m_rotationalVelocity.Y = dtmp.Y;
                         m_rotationalVelocity.Z = dtmp.Z;
 
-                        dtmp = d.BodyGetLinearVel(Body);
+                        dtmp = SafeNativeMethods.BodyGetLinearVel(Body);
                         _velocity.X = dtmp.X;
                         _velocity.Y = dtmp.Y;
                         _velocity.Z = dtmp.Z;
 
-                        d.BodySetLinearVel(Body, 0, 0, 0); // stop it
-                        d.BodySetAngularVel(Body, 0, 0, 0);
-                        d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
+                        SafeNativeMethods.BodySetLinearVel(Body, 0, 0, 0); // stop it
+                        SafeNativeMethods.BodySetAngularVel(Body, 0, 0, 0);
+                        SafeNativeMethods.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
                         disableBodySoft(); // stop collisions
                         UnSubscribeEvents();
 
@@ -3588,8 +3860,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         return;
                     }
 
-                    d.Quaternion ori;
-                    d.GeomCopyQuaternion(prim_geom, out ori);
+                    SafeNativeMethods.Quaternion ori;
+                    SafeNativeMethods.GeomCopyQuaternion(prim_geom, out ori);
 
                     // decide if moving
                     // use positions since this are integrated quantities
@@ -3640,19 +3912,19 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         _orientation.W = ori.W;
                     }
 
-                    // update velocities and aceleration
+                    // update velocities and acceleration
                     if (_zeroFlag || lastZeroFlag)
                     {
                          // disable interpolators
                         _velocity = Vector3.Zero;
-                        _acceleration = Vector3.Zero;
-                         m_rotationalVelocity = Vector3.Zero;
+                        m_acceleration = Vector3.Zero;
+                        m_rotationalVelocity = Vector3.Zero;
                     }
                     else
                     {
-                        d.Vector3 vel = d.BodyGetLinearVel(Body);
+                        SafeNativeMethods.Vector3 vel = SafeNativeMethods.BodyGetLinearVel(Body);
 
-                        _acceleration = _velocity;
+                        m_acceleration = _velocity;
 
                         if ((Math.Abs(vel.X) < 0.005f) &&
                             (Math.Abs(vel.Y) < 0.005f) &&
@@ -3660,28 +3932,28 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         {
                             _velocity = Vector3.Zero;
                             float t = -m_invTimeStep;
-                            _acceleration = _acceleration * t;
+                            m_acceleration = m_acceleration * t;
                         }
                         else
                         {
                             _velocity.X = vel.X;
                             _velocity.Y = vel.Y;
                             _velocity.Z = vel.Z;
-                            _acceleration = (_velocity - _acceleration) * m_invTimeStep;
+                            m_acceleration = (_velocity - m_acceleration) * m_invTimeStep;
                         }
 
-                        if ((Math.Abs(_acceleration.X) < 0.01f) &&
-                            (Math.Abs(_acceleration.Y) < 0.01f) &&
-                            (Math.Abs(_acceleration.Z) < 0.01f))
+                        if ((Math.Abs(m_acceleration.X) < 0.01f) &&
+                            (Math.Abs(m_acceleration.Y) < 0.01f) &&
+                            (Math.Abs(m_acceleration.Z) < 0.01f))
                         {
-                            _acceleration = Vector3.Zero;
+                            m_acceleration = Vector3.Zero;
                         }
 
-                        vel = d.BodyGetAngularVel(Body);
+                        vel = SafeNativeMethods.BodyGetAngularVel(Body);
                         if ((Math.Abs(vel.X) < 0.0001) &&
-                           (Math.Abs(vel.Y) < 0.0001) &&
-                           (Math.Abs(vel.Z) < 0.0001)
-                           )
+                            (Math.Abs(vel.Y) < 0.0001) &&
+                            (Math.Abs(vel.Z) < 0.0001)
+                            )
                         {
                             m_rotationalVelocity = Vector3.Zero;
                         }
@@ -3723,7 +3995,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             return true;
         }
 
-        internal static void DMassSubPartFromObj(ref d.Mass part, ref d.Mass theobj)
+        internal static void DMassSubPartFromObj(ref SafeNativeMethods.Mass part, ref SafeNativeMethods.Mass theobj)
         {
             // assumes object center of mass is zero
             float smass = part.mass;
@@ -3941,6 +4213,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     changePIDHoverActive((bool)arg);
                     break;
 
+                case changes.SetInertia:
+                    changeInertia((PhysicsInertiaData) arg);
+                    break;
+
                 case changes.Null:
                     donullchange();
                     break;
@@ -3956,7 +4232,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             _parent_scene.AddChange((PhysicsActor) this, what, arg);
         }
-
 
         private struct strVehicleBoolParam
         {

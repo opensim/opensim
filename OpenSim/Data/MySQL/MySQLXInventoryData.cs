@@ -328,7 +328,6 @@ namespace OpenSim.Data.MySQL
                     {
                         return false;
                     }
-                    cmd.Dispose();
                 }
 
                 dbcon.Close();

@@ -66,7 +66,7 @@ namespace OpenSim.Region.PhysicsModule.Meshing
 
         private bool cacheSculptMaps = true;
         private string decodedSculptMapPath = null;
-        private bool useMeshiesPhysicsMesh = false;
+        private bool useMeshiesPhysicsMesh = true;
 
         private float minSizeForComplexMesh = 0.2f; // prims with all dimensions smaller than this will have a bounding box mesh
 

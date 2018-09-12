@@ -83,6 +83,7 @@ namespace OpenSim.Framework
         public bool UseClientAgentPosition;
         public bool NeedsCameraCollision;
         public uint lastpacketSequence;
+        public double lastUpdateTS;
 
         public AgentUpdateArgs()
         {

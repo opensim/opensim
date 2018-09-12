@@ -626,6 +626,7 @@ namespace OpenSim.Tests.Common
             //part.ObjectFlags |= (uint)PrimFlags.Phantom;
 
             scene.AddNewSceneObject(so, true);
+            so.InvalidateDeepEffectivePerms();
 
             return so;
         }
@@ -652,6 +653,7 @@ namespace OpenSim.Tests.Common
             SceneObjectGroup so = CreateSceneObject(parts, ownerId, partNamePrefix, uuidTail);
 
             scene.AddNewSceneObject(so, false);
+            so.InvalidateDeepEffectivePerms();
 
             return so;
         }

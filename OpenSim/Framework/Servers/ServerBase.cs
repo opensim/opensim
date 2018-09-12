@@ -275,18 +275,6 @@ namespace OpenSim.Framework.Servers
                 (string module, string[] args) => Notice(GetThreadsReport()));
 
             m_console.Commands.AddCommand (
-                "Debug", false, "debug comms set",
-                "debug comms set serialosdreq true|false",
-                "Set comms parameters.  For debug purposes.",
-                HandleDebugCommsSet);
-
-            m_console.Commands.AddCommand (
-                "Debug", false, "debug comms status",
-                "debug comms status",
-                "Show current debug comms parameters.",
-                HandleDebugCommsStatus);
-
-            m_console.Commands.AddCommand (
                 "Debug", false, "debug threadpool set",
                 "debug threadpool set worker|iocp min|max <n>",
                 "Set threadpool parameters.  For debug purposes.",
@@ -343,45 +331,11 @@ namespace OpenSim.Framework.Servers
 
         public void RegisterCommonComponents(IConfigSource configSource)
         {
-            IConfig networkConfig = configSource.Configs["Network"];
-
-            if (networkConfig != null)
-            {
-                WebUtil.SerializeOSDRequestsPerEndpoint = networkConfig.GetBoolean("SerializeOSDRequests", false);
-            }
+//            IConfig networkConfig = configSource.Configs["Network"];
 
             m_serverStatsCollector = new ServerStatsCollector();
             m_serverStatsCollector.Initialise(configSource);
             m_serverStatsCollector.Start();
-        }
-
-        private void HandleDebugCommsStatus(string module, string[] args)
-        {
-            Notice("serialosdreq is {0}", WebUtil.SerializeOSDRequestsPerEndpoint);
-        }
-
-        private void HandleDebugCommsSet(string module, string[] args)
-        {
-            if (args.Length != 5)
-            {
-                Notice("Usage: debug comms set serialosdreq true|false");
-                return;
-            }
-
-            if (args[3] != "serialosdreq")
-            {
-                Notice("Usage: debug comms set serialosdreq true|false");
-                return;
-            }
-
-            bool setSerializeOsdRequests;
-
-            if (!ConsoleUtil.TryParseConsoleBool(m_console, args[4], out setSerializeOsdRequests))
-                return;
-
-            WebUtil.SerializeOSDRequestsPerEndpoint = setSerializeOsdRequests;
-
-            Notice("serialosdreq is now {0}", setSerializeOsdRequests);
         }
 
         private void HandleShowThreadpoolCallsActive(string module, string[] args)
@@ -928,16 +882,12 @@ namespace OpenSim.Framework.Servers
                 sb.Append("\n");
             }
 
-            sb.Append("\n");
+            sb.Append(GetThreadPoolReport());
 
-            // For some reason mono 2.6.7 returns an empty threads set!  Not going to confuse people by reporting
-            // zero active threads.
+            sb.Append("\n");
             int totalThreads = Process.GetCurrentProcess().Threads.Count;
             if (totalThreads > 0)
-                sb.AppendFormat("Total threads active: {0}\n\n", totalThreads);
-
-            sb.Append("Main threadpool (excluding script engine pools)\n");
-            sb.Append(GetThreadPoolReport());
+                sb.AppendFormat("Total process threads active: {0}\n\n", totalThreads);
 
             return sb.ToString();
         }
@@ -948,15 +898,46 @@ namespace OpenSim.Framework.Servers
         /// <returns></returns>
         public static string GetThreadPoolReport()
         {
+
+            StringBuilder sb = new StringBuilder();
+
+            // framework pool is alwasy active
+            int maxWorkers;
+            int minWorkers;
+            int curWorkers;
+            int maxComp;
+            int minComp;
+            int curComp;
+
+            try
+            {
+                ThreadPool.GetMaxThreads(out maxWorkers, out maxComp);
+                ThreadPool.GetMinThreads(out minWorkers, out minComp);
+                ThreadPool.GetAvailableThreads(out curWorkers, out curComp);
+                curWorkers = maxWorkers - curWorkers;
+                curComp = maxComp - curComp;
+
+                sb.Append("\nFramework main threadpool \n");
+                sb.AppendFormat("workers:    {0} ({1} / {2})\n", curWorkers, maxWorkers, minWorkers);
+                sb.AppendFormat("Completion: {0} ({1} / {2})\n", curComp, maxComp, minComp);
+            }
+            catch { }
+
+            if (
+                Util.FireAndForgetMethod == FireAndForgetMethod.QueueUserWorkItem
+                    || Util.FireAndForgetMethod == FireAndForgetMethod.UnsafeQueueUserWorkItem)
+            {
+                sb.AppendFormat("\nThread pool used: Framework main threadpool\n");
+                return sb.ToString();
+            }
+
             string threadPoolUsed = null;
             int maxThreads = 0;
             int minThreads = 0;
             int allocatedThreads = 0;
             int inUseThreads = 0;
             int waitingCallbacks = 0;
-            int completionPortThreads = 0;
 
-            StringBuilder sb = new StringBuilder();
             if (Util.FireAndForgetMethod == FireAndForgetMethod.SmartThreadPool)
             {
                 STPInfo stpi = Util.GetSmartThreadPoolInfo();
@@ -972,22 +953,10 @@ namespace OpenSim.Framework.Servers
                     waitingCallbacks = stpi.WaitingCallbacks;
                 }
             }
-            else if (
-                Util.FireAndForgetMethod == FireAndForgetMethod.QueueUserWorkItem
-                    || Util.FireAndForgetMethod == FireAndForgetMethod.UnsafeQueueUserWorkItem)
-            {
-                threadPoolUsed = "BuiltInThreadPool";
-                ThreadPool.GetMaxThreads(out maxThreads, out completionPortThreads);
-                ThreadPool.GetMinThreads(out minThreads, out completionPortThreads);
-                int availableThreads;
-                ThreadPool.GetAvailableThreads(out availableThreads, out completionPortThreads);
-                inUseThreads = maxThreads - availableThreads;
-                allocatedThreads = -1;
-                waitingCallbacks = -1;
-            }
-
+ 
             if (threadPoolUsed != null)
             {
+                sb.Append("\nThreadpool (excluding script engine pools)\n");
                 sb.AppendFormat("Thread pool used           : {0}\n", threadPoolUsed);
                 sb.AppendFormat("Max threads                : {0}\n", maxThreads);
                 sb.AppendFormat("Min threads                : {0}\n", minThreads);

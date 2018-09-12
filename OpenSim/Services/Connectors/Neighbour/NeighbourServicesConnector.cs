@@ -151,7 +151,8 @@ namespace OpenSim.Services.Connectors
                 os.Write(buffer, 0, strBuffer.Length);         //Send it
                 //m_log.InfoFormat("[REST COMMS]: Posted HelloNeighbour request to remote sim {0}", uri);
             }
-            catch (Exception e)
+//            catch (Exception e)
+            catch
             {
 //                m_log.WarnFormat(
 //                    "[NEIGHBOUR SERVICE CONNCTOR]: Unable to send HelloNeighbour from {0} to {1}.  Exception {2}{3}",
@@ -183,8 +184,8 @@ namespace OpenSim.Services.Connectors
                     {
                         using (StreamReader sr = new StreamReader(s))
                         {
+                            sr.ReadToEnd(); // just try to read
                             //reply = sr.ReadToEnd().Trim();
-                            sr.ReadToEnd().Trim();
                             //m_log.InfoFormat("[REST COMMS]: DoHelloNeighbourCall reply was {0} ", reply);
                         }
                     }

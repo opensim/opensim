@@ -247,11 +247,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         {
             FriendInfo[] friends = GetFriendsFromCache(principalID);
             FriendInfo finfo = GetFriend(friends, friendID);
-            if (finfo != null)
+            if (finfo != null && finfo.TheirFlags != -1)
             {
                 return finfo.TheirFlags;
             }
-
             return 0;
         }
 
@@ -512,18 +511,20 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     if (((fi.MyFlags & (int)FriendRights.CanSeeOnline) != 0) && (fi.TheirFlags != -1))
                         friendList.Add(fi);
                 }
+                if(friendList.Count > 0)
+                {
+                    Util.FireAndForget(
+                        delegate
+                        {
+//                            m_log.DebugFormat(
+//                                "[FRIENDS MODULE]: Notifying {0} friends of {1} of online status {2}",
+//                                friendList.Count, agentID, online);
 
-                Util.FireAndForget(
-                    delegate
-                    {
-//                        m_log.DebugFormat(
-//                            "[FRIENDS MODULE]: Notifying {0} friends of {1} of online status {2}",
-//                            friendList.Count, agentID, online);
-
-                        // Notify about this user status
-                        StatusNotify(friendList, agentID, online);
-                    }, null, "FriendsModule.StatusChange"
-                );
+                            // Notify about this user status
+                            StatusNotify(friendList, agentID, online);
+                        }, null, "FriendsModule.StatusChange"
+                    );
+                }
             }
         }
 
@@ -552,6 +553,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             // We do this regrouping so that we can efficiently send a single request rather than one for each
             // friend in what may be a very large friends list.
             PresenceInfo[] friendSessions = PresenceService.GetAgents(remoteFriendStringIds.ToArray());
+            if(friendSessions == null)
+                return;
 
             foreach (PresenceInfo friendSession in friendSessions)
             {
@@ -752,7 +755,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (friend == null)
                 return;
 
-            if((friend.TheirFlags & (int)FriendRights.CanSeeOnMap) == 0)
+            if(friend.TheirFlags == -1 || (friend.TheirFlags & (int)FriendRights.CanSeeOnMap) == 0)
                 return;
 
             Scene hunterScene = (Scene)remoteClient.Scene;

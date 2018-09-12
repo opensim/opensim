@@ -102,6 +102,8 @@ namespace OpenSim.Region.Framework.Interfaces
 
         ScenePresence CrossAgentToNewRegionAsync(ScenePresence agent, Vector3 pos, GridRegion neighbourRegion, bool isFlying, EntityTransferContext ctx);
 
+        bool CrossAgentCreateFarChild(ScenePresence agent, GridRegion neighbourRegion, Vector3 pos, EntityTransferContext ctx);
+
         bool HandleIncomingSceneObject(SceneObjectGroup so, Vector3 newPosition);
     }
 

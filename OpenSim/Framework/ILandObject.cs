@@ -189,5 +189,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <returns>The music url.</returns>
         string GetMusicUrl();
+
+        void Clear();
     }
 }

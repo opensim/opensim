@@ -43,16 +43,16 @@ namespace OpenSim.Region.ClientStack.Linden
         private static byte[] ulongToByteArray(ulong uLongValue)
         {
             // Reverse endianness of RegionHandle
-            return new byte[]
+            return new byte[8]
             {
-                (byte)((uLongValue >> 56) % 256),
-                (byte)((uLongValue >> 48) % 256),
-                (byte)((uLongValue >> 40) % 256),
-                (byte)((uLongValue >> 32) % 256),
-                (byte)((uLongValue >> 24) % 256),
-                (byte)((uLongValue >> 16) % 256),
-                (byte)((uLongValue >> 8) % 256),
-                (byte)(uLongValue % 256)
+                (byte)((uLongValue >> 56) & 0xff),
+                (byte)((uLongValue >> 48) & 0xff),
+                (byte)((uLongValue >> 40) & 0xff),
+                (byte)((uLongValue >> 32) & 0xff),
+                (byte)((uLongValue >> 24) & 0xff),
+                (byte)((uLongValue >> 16) & 0xff),
+                (byte)((uLongValue >> 8) & 0xff),
+                (byte)(uLongValue & 0xff)
             };
         }
 
@@ -90,7 +90,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             return BuildEvent("EnableSimulator", llsdBody);
         }
-
+/*
         public static OSD DisableSimulator(ulong handle)
         {
             //OSDMap llsdSimInfo = new OSDMap(1);
@@ -105,7 +105,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             return BuildEvent("DisableSimulator", llsdBody);
         }
-
+*/
         public static OSD CrossRegion(ulong handle, Vector3 pos, Vector3 lookAt,
                                       IPEndPoint newRegionExternalEndPoint,
                                       string capsURL, UUID agentID, UUID sessionID,

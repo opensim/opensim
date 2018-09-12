@@ -29,6 +29,7 @@ using System;
 using vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 using rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using LSLInteger = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
+using LSLString = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 
 namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
@@ -446,6 +447,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
 
         // parameters
+
+        public const int PRIM_ALPHA_MODE_NONE = 0;
+        public const int PRIM_ALPHA_MODE_BLEND = 1;
+        public const int PRIM_ALPHA_MODE_MASK = 2;
+        public const int PRIM_ALPHA_MODE_EMISSIVE = 3;
+
         public const int PRIM_TEXGEN_DEFAULT = 0;
         public const int PRIM_TEXGEN_PLANAR = 1;
 
@@ -659,6 +666,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int AGENT_LIST_PARCEL = 1;
         public const int AGENT_LIST_PARCEL_OWNER = 2;
         public const int AGENT_LIST_REGION = 4;
+        public const int AGENT_LIST_EXCLUDENPC = 0x4000000; // our flag, not SL and it is a bit mask
 
         // Can not be public const?
         public static readonly vector ZERO_VECTOR = new vector(0.0, 0.0, 0.0);
@@ -696,7 +704,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PARCEL_DETAILS_GROUP = 3;
         public const int PARCEL_DETAILS_AREA = 4;
         public const int PARCEL_DETAILS_ID = 5;
-        public const int PARCEL_DETAILS_SEE_AVATARS = 6; // not implemented
+        public const int PARCEL_DETAILS_SEE_AVATARS = 6;
+        public const int PARCEL_DETAILS_ANY_AVATAR_SOUNDS = 7;
+        public const int PARCEL_DETAILS_GROUP_SOUNDS = 8;
 
         //osSetParcelDetails
         public const int PARCEL_DETAILS_CLAIMDATE = 10;
@@ -834,15 +844,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int KFM_CMD_STOP = 1;
         public const int KFM_CMD_PAUSE = 2;
 
-        public const string JSON_ARRAY = "JSON_ARRAY";
-        public const string JSON_OBJECT = "JSON_OBJECT";
-        public const string JSON_INVALID = "JSON_INVALID";
-        public const string JSON_NUMBER = "JSON_NUMBER";
-        public const string JSON_STRING = "JSON_STRING";
-        public const string JSON_TRUE = "JSON_TRUE";
-        public const string JSON_FALSE = "JSON_FALSE";
-        public const string JSON_NULL = "JSON_NULL";
-        public const string JSON_APPEND = "JSON_APPEND";
+        public const string JSON_INVALID = "\uFDD0";
+        public const string JSON_OBJECT = "\uFDD1";
+        public const string JSON_ARRAY = "\uFDD2";
+        public const string JSON_NUMBER = "\uFDD3";
+        public const string JSON_STRING = "\uFDD4";
+        public const string JSON_NULL = "\uFDD5";
+        public const string JSON_TRUE = "\uFDD6";
+        public const string JSON_FALSE = "\uFDD7";
+        public const string JSON_DELETE = "\uFDD8";
+        public const string JSON_APPEND = "-1";
 
         /// <summary>
         /// process name parameter as regex
@@ -853,5 +864,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         /// process message parameter as regex
         /// </summary>
         public const int OS_LISTEN_REGEX_MESSAGE = 0x2;
+
+        // for osTeleportObject
+        public const int OSTPOBJ_NONE           = 0x0;
+        public const int OSTPOBJ_STOPATTARGET   = 0x1; // stops at destination
+        public const int OSTPOBJ_STOPONFAIL     = 0x2; // stops at jump point if tp fails
+        public const int OSTPOBJ_SETROT         = 0x4; // the rotation is the final rotation, otherwise is a added rotation
+
     }
 }

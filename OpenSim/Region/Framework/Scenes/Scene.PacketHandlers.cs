@@ -306,14 +306,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             // If the touched prim handles touches, deliver it
             if ((part.ScriptEvents & scriptEvents.touch_start) != 0)
-                EventManager.TriggerObjectGrab(part.LocalId, 0, part.OffsetPosition, remoteClient, surfaceArg);
+                EventManager.TriggerObjectGrab(part.LocalId, 0, offsetPos, remoteClient, surfaceArg);
 
             // Deliver to the root prim if the touched prim doesn't handle touches
             // or if we're meant to pass on touches anyway.
             if (((part.ScriptEvents & scriptEvents.touch_start) == 0) ||
                 (part.PassTouches && (part.LocalId != obj.RootPart.LocalId)))
             {
-                EventManager.TriggerObjectGrab(obj.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
+                EventManager.TriggerObjectGrab(obj.RootPart.LocalId, part.LocalId, offsetPos, remoteClient, surfaceArg);
             }
         }
 
@@ -343,15 +343,18 @@ namespace OpenSim.Region.Framework.Scenes
             if (surfaceArgs != null && surfaceArgs.Count > 0)
                 surfaceArg = surfaceArgs[0];
 
+            Vector3 grabOffset = pos - part.AbsolutePosition;
             // If the touched prim handles touches, deliver it
             if ((part.ScriptEvents & scriptEvents.touch) != 0)
-                EventManager.TriggerObjectGrabbing(part.LocalId, 0, part.OffsetPosition, remoteClient, surfaceArg);
+//                EventManager.TriggerObjectGrabbing(part.LocalId, 0, part.OffsetPosition, remoteClient, surfaceArg);
+                EventManager.TriggerObjectGrabbing(part.LocalId, 0, grabOffset, remoteClient, surfaceArg);
             // Deliver to the root prim if the touched prim doesn't handle touches
             // or if we're meant to pass on touches anyway.
             if (((part.ScriptEvents & scriptEvents.touch) == 0) ||
                 (part.PassTouches && (part.LocalId != group.RootPart.LocalId)))
             {
-                EventManager.TriggerObjectGrabbing(group.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
+//                EventManager.TriggerObjectGrabbing(group.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
+                EventManager.TriggerObjectGrabbing(group.RootPart.LocalId, part.LocalId, grabOffset, remoteClient, surfaceArg);
             }
         }
 
@@ -474,7 +477,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (sp.ControllingClient.AgentId != remoteClient.AgentId)
                     {
                         if (!discardableEffects ||
-                            (discardableEffects && ShouldSendDiscardableEffect(remoteClient, sp)))
+                           (discardableEffects && ShouldSendDiscardableEffect(remoteClient, sp)))
                         {
                             //m_log.DebugFormat("[YYY]: Sending to {0}", sp.UUID);
                             sp.ControllingClient.SendViewerEffect(effectBlockArray);
@@ -487,7 +490,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool ShouldSendDiscardableEffect(IClientAPI thisClient, ScenePresence other)
         {
-            return Vector3.Distance(other.CameraPosition, thisClient.SceneAgent.AbsolutePosition) < 10;
+            return Vector3.DistanceSquared(other.CameraPosition, thisClient.SceneAgent.AbsolutePosition) < 100;
         }
 
         private class DescendentsRequestData
@@ -700,10 +703,17 @@ namespace OpenSim.Region.Framework.Scenes
         {
             InventoryFolderBase folder = new InventoryFolderBase(folderID, userID);
 
-            if (InventoryService.PurgeFolder(folder))
-                m_log.DebugFormat("[AGENT INVENTORY]: folder {0} purged successfully", folderID);
-            else
-                m_log.WarnFormat("[AGENT INVENTORY]: could not purge folder {0}", folderID);
+           try
+            {
+                if (InventoryService.PurgeFolder(folder))
+                    m_log.DebugFormat("[AGENT INVENTORY]: folder {0} purged successfully", folderID);
+                else
+                    m_log.WarnFormat("[AGENT INVENTORY]: could not purge folder {0}", folderID);
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[AGENT INVENTORY]: Exception on async purge folder for user {0}: {1}", userID, e.Message);
+            }
         }
 
         private void PurgeFolderCompleted(IAsyncResult iar)

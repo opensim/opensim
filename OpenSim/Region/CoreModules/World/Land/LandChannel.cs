@@ -37,10 +37,8 @@ namespace OpenSim.Region.CoreModules.World.Land
     {
         #region Constants
 
-        public const float BAN_LINE_SAFETY_HEIGHT = 100;
         //Land types set with flags in ParcelOverlay.
         //Only one of these can be used.
-
 
         //RequestResults (I think these are right, they seem to work):
         public const int LAND_RESULT_MULTIPLE = 1; // The request they made contained more than a single peice of land
@@ -77,10 +75,28 @@ namespace OpenSim.Region.CoreModules.World.Land
         private readonly Scene m_scene;
         private readonly LandManagementModule m_landManagementModule;
 
+        private float m_BanLineSafeHeight = 100.0f;
+        public float BanLineSafeHeight
+        {
+            get
+            {
+                return m_BanLineSafeHeight;
+            }
+            private set
+            {
+                if (value >= 20f && value <= 5000f)
+                    m_BanLineSafeHeight = value;
+                else
+                    m_BanLineSafeHeight = 100.0f;
+            }
+        }
+
         public LandChannel(Scene scene, LandManagementModule landManagementMod)
         {
             m_scene = scene;
             m_landManagementModule = landManagementMod;
+            if(landManagementMod != null)
+                m_BanLineSafeHeight = landManagementMod.BanLineSafeHeight;
         }
 
         #region ILandChannel Members
@@ -102,6 +118,15 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (m_landManagementModule != null)
             {
                 return m_landManagementModule.GetLandObject(localID);
+            }
+            return null;
+        }
+
+        public ILandObject GetLandObject(UUID GlobalID)
+        {
+            if (m_landManagementModule != null)
+            {
+                return m_landManagementModule.GetLandObject(GlobalID);
             }
             return null;
         }
@@ -164,6 +189,14 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (m_landManagementModule != null)
             {
                 m_landManagementModule.UpdateLandObject(localID, data);
+            }
+        }
+
+        public void SendParcelsOverlay(IClientAPI client)
+        {
+            if (m_landManagementModule != null)
+            {
+                m_landManagementModule.SendParcelOverlay(client);
             }
         }
 

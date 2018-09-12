@@ -237,7 +237,7 @@ namespace OpenSim
                 string permissionModules = Util.GetConfigVarFromSections<string>(Config, "permissionmodules",
                     new string[] { "Startup", "Permissions" }, "DefaultPermissionsModule");
 
-                m_permsModules = new List<string>(permissionModules.Split(','));
+                m_permsModules =  new List<string>(permissionModules.Split(',').Select(m => m.Trim()));
 
                 managedStatsURI = startupConfig.GetString("ManagedStatsRemoteFetchURI", String.Empty);
                 managedStatsPassword = startupConfig.GetString("ManagedStatsRemoteFetchPassword", String.Empty);
@@ -353,7 +353,18 @@ namespace OpenSim
             if (startupConfig == null || startupConfig.GetBoolean("JobEngineEnabled", true))
                 WorkManager.JobEngine.Start();
 
-            m_httpServerPort = m_networkServersInfo.HttpListenerPort;
+           
+            if(m_networkServersInfo.HttpUsesSSL)
+            {
+                m_httpServerSSL = true;
+                m_httpServerPort = m_networkServersInfo.httpSSLPort;
+            }
+            else
+            {
+                m_httpServerSSL = false;
+                m_httpServerPort = m_networkServersInfo.HttpListenerPort;
+            }
+
             SceneManager.OnRestartSim += HandleRestartRegion;
 
             // Only enable the watchdogs when all regions are ready.  Otherwise we get false positives when cpu is
@@ -406,7 +417,18 @@ namespace OpenSim
 
             // set initial ServerURI
             regionInfo.HttpPort = m_httpServerPort;
-            regionInfo.ServerURI = "http://" + regionInfo.ExternalHostName + ":" + regionInfo.HttpPort.ToString() + "/";
+            if(m_httpServerSSL)
+            {
+                if(!m_httpServer.CheckSSLCertHost(regionInfo.ExternalHostName))
+                    throw new Exception("main http cert CN doesn't match region External IP");
+
+                regionInfo.ServerURI = "https://" + regionInfo.ExternalHostName +
+                         ":" + regionInfo.HttpPort.ToString() + "/";
+            }
+            else
+                regionInfo.ServerURI = "http://" + regionInfo.ExternalHostName +
+                         ":" + regionInfo.HttpPort.ToString() + "/";
+
 
             regionInfo.osSecret = m_osSecret;
 
@@ -455,7 +477,7 @@ namespace OpenSim
 
             if (scene.SnmpService != null)
             {
-                scene.SnmpService.BootInfo("Loading prins", scene);
+                scene.SnmpService.BootInfo("Loading prims", scene);
             }
 
             while (regionInfo.EstateSettings.EstateOwner == UUID.Zero && MainConsole.Instance != null)
@@ -1104,10 +1126,10 @@ namespace OpenSim
                         MainConsole.Instance.Output("Joining the estate failed. Please try again.");
                     }
                 }
-            }
+    	    }
 
-            return true;	// need to update the database
-        }
+    	    return true;	// need to update the database
+    	}
     }
 
     public class OpenSimConfigSource

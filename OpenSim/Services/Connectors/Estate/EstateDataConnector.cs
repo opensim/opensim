@@ -195,6 +195,14 @@ namespace OpenSim.Services.Connectors
             string uri = m_ServerURI + string.Format("/estates/estate/?region={0}&create={1}", regionID, create);
 
             reply = MakeRequest("GET", uri, string.Empty);
+            if(reply == null)
+            {
+                // this is a fatal error
+                m_log.DebugFormat("[ESTATE CONNECTOR] connection to remote estates service failed");
+                m_log.DebugFormat("[ESTATE CONNECTOR] simulator needs to terminate");
+                Environment.Exit(-1);
+            }
+
             if (String.IsNullOrEmpty(reply))
                 return null;
 
@@ -308,7 +316,8 @@ namespace OpenSim.Services.Connectors
             string reply = string.Empty;
             try
             {
-                reply = SynchronousRestFormsRequester.MakeRequest(verb, uri, formdata, m_Auth);
+                reply = SynchronousRestFormsRequester.MakeRequest(verb, uri, formdata, 30, m_Auth);
+                return reply;
             }
             catch (WebException e)
             {
@@ -317,14 +326,17 @@ namespace OpenSim.Services.Connectors
                     if (hwr != null)
                     {
                         if (hwr.StatusCode == HttpStatusCode.NotFound)
+                        {
                             m_log.Error(string.Format("[ESTATE CONNECTOR]: Resource {0} not found ", uri));
+                            return reply;
+                        }
                         if (hwr.StatusCode == HttpStatusCode.Unauthorized)
                             m_log.Error(string.Format("[ESTATE CONNECTOR]: Web request {0} requires authentication ", uri));
                     }
                     else
                         m_log.Error(string.Format(
                             "[ESTATE CONNECTOR]: WebException for {0} {1} {2} {3}",
-                            verb, uri, formdata, e));
+                            verb, uri, formdata, e.Message));
                 }
             }
             catch (Exception e)
@@ -332,7 +344,7 @@ namespace OpenSim.Services.Connectors
                 m_log.DebugFormat("[ESTATE CONNECTOR]: Exception when contacting estate server at {0}: {1}", uri, e.Message);
             }
 
-            return reply;
+            return null;
         }
     }
 }

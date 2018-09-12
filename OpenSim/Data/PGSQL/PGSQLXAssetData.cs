@@ -173,16 +173,18 @@ namespace OpenSim.Data.PGSQL
 
                                     if (m_enableCompression)
                                     {
-                                        using (GZipStream decompressionStream = new GZipStream(new MemoryStream(asset.Data), CompressionMode.Decompress))
+                                        using(MemoryStream ms = new MemoryStream(asset.Data))
+                                        using(GZipStream decompressionStream = new GZipStream(ms, CompressionMode.Decompress))
                                         {
-                                            MemoryStream outputStream = new MemoryStream();
-                                            WebUtil.CopyStream(decompressionStream, outputStream, int.MaxValue);
-    //                                        int compressedLength = asset.Data.Length;
-                                            asset.Data = outputStream.ToArray();
-
-    //                                        m_log.DebugFormat(
-    //                                            "[XASSET DB]: Decompressed {0} {1} to {2} bytes from {3}",
-    //                                            asset.ID, asset.Name, asset.Data.Length, compressedLength);
+                                            using(MemoryStream outputStream = new MemoryStream())
+                                            {
+                                                decompressionStream.CopyTo(outputStream,int.MaxValue);
+                                                //                                        int compressedLength = asset.Data.Length;
+                                                asset.Data = outputStream.ToArray();
+                                            }
+                                            //                                        m_log.DebugFormat(
+                                            //                                            "[XASSET DB]: Decompressed {0} {1} to {2} bytes from {3}",
+                                            //                                            asset.ID, asset.Name, asset.Data.Length, compressedLength);
                                         }
                                     }
 

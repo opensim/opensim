@@ -32,6 +32,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Reflection;
 using System.Globalization;
@@ -43,10 +44,11 @@ using log4net;
 using Nwc.XmlRpc;
 using OpenMetaverse.StructuredData;
 using CoolHTTPListener = HttpServer.HttpListener;
-using HttpListener=System.Net.HttpListener;
-using LogPrio=HttpServer.LogPrio;
+using HttpListener = System.Net.HttpListener;
+using LogPrio = HttpServer.LogPrio;
 using OpenSim.Framework.Monitoring;
 using System.IO.Compression;
+using System.Security.Cryptography;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
@@ -107,19 +109,26 @@ namespace OpenSim.Framework.Servers.HttpServer
             new Dictionary<string, WebSocketRequestDelegate>();
 
         protected uint m_port;
-        protected uint m_sslport;
         protected bool m_ssl;
         private X509Certificate2 m_cert;
-        protected bool m_firstcaps = true;
         protected string m_SSLCommonName = "";
+        protected List<string> m_certNames = new List<string>();
+        protected List<string> m_certIPs = new List<string>();
+        protected string m_certCN= "";
+        protected RemoteCertificateValidationCallback m_certificateValidationCallback = null;
 
         protected IPAddress m_listenIPAddress = IPAddress.Any;
 
         public PollServiceRequestManager PollServiceRequestManager { get; private set; }
 
+        public string Protocol
+        {
+            get { return m_ssl ? "https://" : "http://"; }
+        }
+
         public uint SSLPort
         {
-            get { return m_sslport; }
+            get { return m_port; }
         }
 
         public string SSLCommonName
@@ -148,27 +157,166 @@ namespace OpenSim.Framework.Servers.HttpServer
             m_port = port;
         }
 
-        public BaseHttpServer(uint port, bool ssl) : this (port)
+        private void load_cert(string CPath, string CPass)
         {
-            m_ssl = ssl;
-        }
-
-        public BaseHttpServer(uint port, bool ssl, uint sslport, string CN) : this (port, ssl)
-        {
-            if (m_ssl)
+            try
             {
-                m_sslport = sslport;
+                 m_cert = new X509Certificate2(CPath, CPass);
+                X509Extension ext = m_cert.Extensions["2.5.29.17"];
+                if(ext != null)
+                {
+                    AsnEncodedData asndata = new AsnEncodedData(ext.Oid, ext.RawData);
+                    string datastr = asndata.Format(true);
+                    string[] lines = datastr.Split(new char[] {'\n','\r'});
+                    foreach(string s in lines)
+                    {
+                        if(String.IsNullOrEmpty(s))
+                            continue;
+                        string[] parts = s.Split(new char[] {'='});
+                        if(String.IsNullOrEmpty(parts[0]))
+                            continue;
+                        string entryName = parts[0].Replace(" ","");
+                        if(entryName == "DNSName")
+                            m_certNames.Add(parts[1]);
+                        else if(entryName == "IPAddress")
+                            m_certIPs.Add(parts[1]);
+                        else if(entryName == "Unknown(135)") // stupid mono
+                        {
+                            try
+                            {
+                                if(parts[1].Length == 8)
+                                {
+                                    long tmp = long.Parse(parts[1], NumberStyles.AllowHexSpecifier);
+                                    tmp = IPAddress.HostToNetworkOrder(tmp);
+                                    tmp = (long)((ulong) tmp >> 32);
+                                    IPAddress ia = new IPAddress(tmp);     
+                                    m_certIPs.Add(ia.ToString());
+                                }
+                            }
+                            catch {}
+                        }
+                    }
+                }
+                m_certCN = m_cert.GetNameInfo(X509NameType.SimpleName, false);
+            }
+            catch
+            {
+                throw new Exception("SSL cert load error");
             }
         }
 
-        public BaseHttpServer(uint port, bool ssl, string CPath, string CPass) : this (port, ssl)
+        public BaseHttpServer(uint port, bool ssl, string CN, string CPath, string CPass)
         {
-            if (m_ssl)
+            m_port = port;
+            if (ssl)
             {
-                m_cert = new X509Certificate2(CPath, CPass);
+                if(string.IsNullOrEmpty(CPath))
+                    throw new Exception("invalid main http server cert path");
+
+                if(Uri.CheckHostName(CN) == UriHostNameType.Unknown)
+                    throw new Exception("invalid main http server CN (ExternalHostName)");
+
+                m_certNames.Clear();
+                m_certIPs.Clear();
+                m_certCN= "";
+
+                m_ssl = true;
+                load_cert(CPath, CPass);
+                
+                if(!CheckSSLCertHost(CN))
+                    throw new Exception("invalid main http server CN (ExternalHostName)");
+
+                m_SSLCommonName = CN;
+
+                if(m_cert.Issuer == m_cert.Subject )
+                    m_log.Warn("Self signed certificate. Clients need to allow this (some viewers debug option NoVerifySSLcert must be set to true");
             }
+            else
+                m_ssl = false;
         }
 
+        public BaseHttpServer(uint port, bool ssl, string CPath, string CPass)
+        {
+            m_port = port;
+            if (ssl)
+            {
+                load_cert(CPath, CPass);
+                if(m_cert.Issuer == m_cert.Subject )
+                    m_log.Warn("Self signed certificate. Http clients need to allow this");
+                m_ssl = true;
+            }
+            else
+                m_ssl = false;
+        }
+
+		static bool MatchDNS (string hostname, string dns) 
+ 		{ 
+ 			int indx = dns.IndexOf ('*'); 
+ 			if (indx == -1)
+ 				return (String.Compare(hostname, dns, true, CultureInfo.InvariantCulture) == 0); 
+ 
+            int dnslen = dns.Length;
+            dnslen--;
+            if(indx == dnslen)
+                return true; // just * ?
+
+            if(indx > dnslen - 2)
+                return false; // 2 short ?
+
+       		if (dns[indx + 1] != '.') 
+ 		    	return false; 
+  
+ 			int indx2 = dns.IndexOf ('*', indx + 1); 
+ 			if (indx2 != -1) 
+ 				return false; // there can only be one;
+ 
+ 			string end = dns.Substring(indx + 1); 
+            int hostlen = hostname.Length;
+            int endlen = end.Length;
+ 			int length = hostlen - endlen; 
+ 			if (length <= 0) 
+ 				return false; 
+
+ 			if (String.Compare(hostname, length, end, 0, endlen, true, CultureInfo.InvariantCulture) != 0) 
+ 				return false; 
+ 
+ 			if (indx == 0)
+            { 
+ 				indx2 = hostname.IndexOf ('.'); 
+ 				return ((indx2 == -1) || (indx2 >= length)); 
+ 			} 
+  
+ 			string start = dns.Substring (0, indx); 
+ 			return (String.Compare (hostname, 0, start, 0, start.Length, true, CultureInfo.InvariantCulture) == 0); 
+ 		} 
+
+        public bool CheckSSLCertHost(string hostname)
+        {
+            UriHostNameType htype = Uri.CheckHostName(hostname);
+
+            if(htype == UriHostNameType.Unknown || htype == UriHostNameType.Basic)
+                return false;
+            if(htype == UriHostNameType.Dns)
+            {
+                foreach(string name in m_certNames)
+                {
+                    if(MatchDNS(hostname, name))
+                        return true;
+                }
+                if(MatchDNS(hostname, m_certCN))
+                    return true;
+            }
+            else
+            {
+                foreach(string ip in m_certIPs)
+                {
+                    if (String.Compare(hostname, ip, true, CultureInfo.InvariantCulture) == 0)
+                        return true;
+                }               
+            }
+
+            return false;
+        }
         /// <summary>
         /// Add a stream handler to the http server.  If the handler already exists, then nothing happens.
         /// </summary>
@@ -396,14 +544,10 @@ namespace OpenSim.Framework.Servers.HttpServer
                     if (psEvArgs.Request != null)
                     {
                         OSHttpRequest req = new OSHttpRequest(context, request);
-
-                        Stream requestStream = req.InputStream;
-
+                        string requestBody;
                         Encoding encoding = Encoding.UTF8;
-                        StreamReader reader = new StreamReader(requestStream, encoding);
-
-                        string requestBody = reader.ReadToEnd();
-                        reader.Close();
+                        using(StreamReader reader = new StreamReader(req.InputStream, encoding))
+                            requestBody = reader.ReadToEnd();
 
                         Hashtable keysvals = new Hashtable();
                         Hashtable headervals = new Hashtable();
@@ -461,8 +605,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
 
             OSHttpResponse resp = new OSHttpResponse(new HttpResponse(context, request),context);
-            resp.ReuseContext = true;
-//            resp.ReuseContext = false;
+
             HandleRequest(req, resp);
 
             // !!!HACK ALERT!!!
@@ -494,6 +637,8 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 try
                 {
+                    if(request.InputStream != null && request.InputStream.CanRead) 
+                        request.InputStream.Close();
                     byte[] buffer500 = SendHTML500(response);
                     response.OutputStream.Write(buffer500, 0, buffer500.Length);
                     response.Send();
@@ -541,7 +686,6 @@ namespace OpenSim.Framework.Servers.HttpServer
 //                    }
 //                }
 
-                //response.KeepAlive = true;
                 response.SendChunked = false;
 
                 string path = request.RawUrl;
@@ -565,15 +709,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                     {
                         //m_log.Debug("[BASE HTTP SERVER]: Found Caps based HTTP Handler");
                         IGenericHTTPHandler HTTPRequestHandler = requestHandler as IGenericHTTPHandler;
-                        Stream requestStream = request.InputStream;
 
+                        string requestBody;
                         Encoding encoding = Encoding.UTF8;
-                        StreamReader reader = new StreamReader(requestStream, encoding);
-
-                        string requestBody = reader.ReadToEnd();
-
-                        reader.Close();
-                        //requestStream.Close();
+                        using(StreamReader reader = new StreamReader(request.InputStream, encoding))
+                            requestBody = reader.ReadToEnd();
 
                         Hashtable keysvals = new Hashtable();
                         Hashtable headervals = new Hashtable();
@@ -613,7 +753,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                     else
                     {
                         IStreamHandler streamHandler = (IStreamHandler)requestHandler;
-
                         using (MemoryStream memoryStream = new MemoryStream())
                         {
                             streamHandler.Handle(path, request.InputStream, memoryStream, request, response);
@@ -690,7 +829,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                     }
                 }
 
-                request.InputStream.Close();
+                if(request.InputStream != null && request.InputStream.CanRead)
+                    request.InputStream.Dispose();
 
                 if (buffer != null)
                 {
@@ -723,10 +863,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                 requestEndTick = Environment.TickCount;
 
                 response.Send();
-
-                //response.OutputStream.Close();
-
-                //response.FreeContext();
             }
             catch (SocketException e)
             {
@@ -758,6 +894,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             finally
             {
+                if(request.InputStream != null && request.InputStream.CanRead)
+                    request.InputStream.Close();
+
                 // Every month or so this will wrap and give bad numbers, not really a problem
                 // since its just for reporting
                 int tickdiff = requestEndTick - requestStartTick;
@@ -998,7 +1137,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             String requestBody;
 
-            Stream requestStream = request.InputStream;
+            Stream requestStream = Util.Copy(request.InputStream);
             Stream innerStream = null;
             try
             {
@@ -1009,15 +1148,15 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
 
                 using (StreamReader reader = new StreamReader(requestStream, Encoding.UTF8))
-                {
                     requestBody = reader.ReadToEnd();
+
                 }
-            }
             finally
             {
-                if (innerStream != null)
+                if (innerStream != null && innerStream.CanRead)
                     innerStream.Dispose();
-                requestStream.Dispose();
+                if (requestStream.CanRead)
+                    requestStream.Dispose();
             }
 
             //m_log.Debug(requestBody);
@@ -1098,6 +1237,17 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                         if (gridproxy)
                             xmlRprcRequest.Params.Add("gridproxy");  // Param[4]
+
+                        // reserve this for
+                        // ... by Fumi.Iseki for DTLNSLMoneyServer
+                        // BUT make its presence possible to detect/parse
+                        string rcn = request.IHttpClientContext.SSLCommonName;
+                        if(!string.IsNullOrWhiteSpace(rcn))
+                        {
+                            rcn = "SSLCN:" + rcn;
+                            xmlRprcRequest.Params.Add(rcn); // Param[4] or Param[5]
+                        }
+                
                         try
                         {
                             xmlRpcResponse = method(xmlRprcRequest, request.RemoteIPEndPoint);
@@ -1263,15 +1413,12 @@ namespace OpenSim.Framework.Servers.HttpServer
             //m_log.Warn("[BASE HTTP SERVER]: We've figured out it's a LLSD Request");
             Stream requestStream = request.InputStream;
 
+            string requestBody;
             Encoding encoding = Encoding.UTF8;
-            StreamReader reader = new StreamReader(requestStream, encoding);
-
-            string requestBody = reader.ReadToEnd();
-            reader.Close();
-            requestStream.Close();
+            using(StreamReader reader = new StreamReader(requestStream, encoding))
+                requestBody= reader.ReadToEnd();
 
             //m_log.DebugFormat("[OGP]: {0}:{1}", request.RawUrl, requestBody);
-            response.KeepAlive = true;
 
             OSD llsdRequest = null;
             OSD llsdResponse = null;
@@ -1592,15 +1739,10 @@ namespace OpenSim.Framework.Servers.HttpServer
             byte[] buffer;
 
             Stream requestStream = request.InputStream;
-
+            string requestBody;
             Encoding encoding = Encoding.UTF8;
-            StreamReader reader = new StreamReader(requestStream, encoding);
-
-            string requestBody = reader.ReadToEnd();
-            // avoid warning for now
-            reader.ReadToEnd();
-            reader.Close();
-            requestStream.Close();
+            using(StreamReader reader = new StreamReader(requestStream, encoding))
+                requestBody = reader.ReadToEnd();
 
             Hashtable keysvals = new Hashtable();
             Hashtable headervals = new Hashtable();
@@ -1792,19 +1934,12 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 response.ProtocolVersion = (string)responsedata["http_protocol_version"];
             }
-/*
+
             if (responsedata.ContainsKey("keepalive"))
             {
                 bool keepalive = (bool)responsedata["keepalive"];
                 response.KeepAlive = keepalive;
             }
-
-            if (responsedata.ContainsKey("reusecontext"))
-                response.ReuseContext = (bool) responsedata["reusecontext"];
-*/
-            // disable this things
-            response.KeepAlive = false;
-            response.ReuseContext = false;
 
             // Cross-Origin Resource Sharing with simple requests
             if (responsedata.ContainsKey("access_control_allow_origin"))
@@ -1818,10 +1953,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 contentType = "text/html";
             }
 
-
-
             // The client ignores anything but 200 here for web login, so ensure that this is 200 for that
-
 
             response.StatusCode = responsecode;
 
@@ -1832,13 +1964,12 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
 
             response.AddHeader("Content-Type", contentType);
-
             if (responsedata.ContainsKey("headers"))
             {
                 Hashtable headerdata = (Hashtable)responsedata["headers"];
 
                 foreach (string header in headerdata.Keys)
-                    response.AddHeader(header, (string)headerdata[header]);
+                    response.AddHeader(header, headerdata[header].ToString());
             }
 
             byte[] buffer;
@@ -1906,7 +2037,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void Start()
         {
-            Start(true);
+            Start(true,true);
         }
 
         /// <summary>
@@ -1916,7 +2047,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// If true then poll responses are performed asynchronsly.
         /// Option exists to allow regression tests to perform processing synchronously.
         /// </param>
-        public void Start(bool performPollResponsesAsync)
+        public void Start(bool performPollResponsesAsync, bool runPool)
         {
             m_log.InfoFormat(
                 "[BASE HTTP SERVER]: Starting {0} server on port {1}", UseSSL ? "HTTPS" : "HTTP", Port);
@@ -1945,6 +2076,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                     //m_httpListener.Prefixes.Add("https://+:" + (m_sslport) + "/");
                     //m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
                     m_httpListener2 = CoolHTTPListener.Create(IPAddress.Any, (int)m_port, m_cert);
+                    if(m_certificateValidationCallback != null)
+                        m_httpListener2.CertificateValidationCallback = m_certificateValidationCallback;
                     m_httpListener2.ExceptionThrown += httpServerException;
                     m_httpListener2.LogWriter = httpserverlog;
                 }
@@ -1954,9 +2087,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                 m_httpListener2.Start(64);
 
                 // Long Poll Service Manager with 3 worker threads a 25 second timeout for no events
-
-                PollServiceRequestManager = new PollServiceRequestManager(this, performPollResponsesAsync, 2, 25000);
-                PollServiceRequestManager.Start();
+                if(runPool)
+                {
+                    PollServiceRequestManager = new PollServiceRequestManager(this, performPollResponsesAsync, 2, 25000);
+                    PollServiceRequestManager.Start();
+                }
 
                 HTTPDRunning = true;
 
@@ -1970,7 +2105,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             catch (Exception e)
             {
                 m_log.Error("[BASE HTTP SERVER]: Error - " + e.Message);
-                m_log.Error("[BASE HTTP SERVER]: Tip: Do you have permission to listen on port " + m_port + ", " + m_sslport + "?");
+                m_log.Error("[BASE HTTP SERVER]: Tip: Do you have permission to listen on port " + m_port + "?");
 
                 // We want this exception to halt the entire server since in current configurations we aren't too
                 // useful without inbound HTTP.
@@ -2028,7 +2163,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             try
             {
-                PollServiceRequestManager.Stop();
+                if(PollServiceRequestManager != null)
+                    PollServiceRequestManager.Stop();
 
                 m_httpListener2.ExceptionThrown -= httpServerException;
                 //m_httpListener2.DisconnectHandler = null;
@@ -2135,10 +2271,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             string file = Path.Combine(".", "http_500.html");
             if (!File.Exists(file))
                 return getDefaultHTTP500();
-
-            StreamReader sr = File.OpenText(file);
-            string result = sr.ReadToEnd();
-            sr.Close();
+            string result;
+            using(StreamReader sr = File.OpenText(file))
+                result = sr.ReadToEnd();
             return result;
         }
 

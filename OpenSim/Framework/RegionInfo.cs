@@ -420,6 +420,7 @@ namespace OpenSim.Framework
             set { m_remotingPort = value; }
         }
 
+        
         /// <value>
         /// This accessor can throw all the exceptions that Dns.GetHostAddresses can throw.
         ///
@@ -427,42 +428,7 @@ namespace OpenSim.Framework
         /// </value>
         public IPEndPoint ExternalEndPoint
         {
-            get
-            {
-                // Old one defaults to IPv6
-                //return new IPEndPoint(Dns.GetHostAddresses(m_externalHostName)[0], m_internalEndPoint.Port);
-
-                IPAddress ia = null;
-                // If it is already an IP, don't resolve it - just return directly
-                if (IPAddress.TryParse(m_externalHostName, out ia))
-                    return new IPEndPoint(ia, m_internalEndPoint.Port);
-
-                // Reset for next check
-                ia = null;
-                try
-                {
-                    foreach (IPAddress Adr in Dns.GetHostAddresses(m_externalHostName))
-                    {
-                        if (ia == null)
-                            ia = Adr;
-
-                        if (Adr.AddressFamily == AddressFamily.InterNetwork)
-                        {
-                            ia = Adr;
-                            break;
-                        }
-                    }
-                }
-                catch (SocketException e)
-                {
-                    throw new Exception(
-                        "Unable to resolve local hostname " + m_externalHostName + " innerException of type '" +
-                        e + "' attached to this exception", e);
-                }
-
-                return new IPEndPoint(ia, m_internalEndPoint.Port);
-            }
-
+            get { return Util.getEndPoint(m_externalHostName, m_internalEndPoint.Port); }
             set { m_externalHostName = value.ToString(); }
         }
 

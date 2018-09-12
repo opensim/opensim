@@ -153,6 +153,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osSetDynamicTextureData(dynamicID, contentType, data, extraParams, timer);
         }
 
+        public string osSetDynamicTextureDataFace(string dynamicID, string contentType, string data, string extraParams,
+                                             int timer, int face)
+        {
+            return m_OSSL_Functions.osSetDynamicTextureDataFace(dynamicID, contentType, data, extraParams, timer, face);
+        }
+
         public string osSetDynamicTextureURLBlend(string dynamicID, string contentType, string url, string extraParams,
                                            int timer, int alpha)
         {
@@ -219,6 +225,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osRegionNotice(msg);
         }
 
+        public void osRegionNotice(LSL_Key agentID, string msg)
+        {
+            m_OSSL_Functions.osRegionNotice(agentID, msg);
+        }
+
         public bool osConsoleCommand(string Command)
         {
             return m_OSSL_Functions.osConsoleCommand(Command);
@@ -271,15 +282,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osTeleportOwner(position, lookat);
         }
 
-        // Avatar info functions
-        public string osGetAgentIP(string agent)
-        {
-            return m_OSSL_Functions.osGetAgentIP(agent);
-        }
-
         public LSL_List osGetAgents()
         {
             return m_OSSL_Functions.osGetAgents();
+        }
+
+        public string osGetAgentIP(string agent)
+        {
+            return m_OSSL_Functions.osGetAgentIP(agent);
         }
 
         // Animation Functions
@@ -355,6 +365,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osDrawEllipse(drawList, width, height);
         }
 
+        public string osDrawFilledEllipse(string drawList, int width, int height)
+        {
+            return m_OSSL_Functions.osDrawFilledEllipse(drawList, width, height);
+        }
+
         public string osDrawRectangle(string drawList, int width, int height)
         {
             return m_OSSL_Functions.osDrawRectangle(drawList, width, height);
@@ -373,6 +388,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public string osDrawFilledPolygon(string drawList, LSL_List x, LSL_List y)
         {
             return m_OSSL_Functions.osDrawFilledPolygon(drawList, x, y);
+        }
+
+        public string osDrawResetTransform(string drawList)
+        {
+            return m_OSSL_Functions.osDrawResetTransform(drawList);
+        }
+
+        public string osDrawRotationTransform(string drawList, LSL_Float x)
+        {
+            return m_OSSL_Functions.osDrawRotationTransform(drawList, x);
+        }
+
+        public string osDrawScaleTransform(string drawList, LSL_Float x, LSL_Float y)
+        {
+            return m_OSSL_Functions.osDrawScaleTransform(drawList, x, y);
+        }
+
+        public string osDrawTranslationTransform(string drawList, LSL_Float x, LSL_Float y)
+        {
+            return m_OSSL_Functions.osDrawTranslationTransform(drawList, x, y);
         }
 
         public string osSetFontSize(string drawList, int fontSize)
@@ -399,6 +434,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osSetPenColor(drawList, color);
         }
+
         // Deprecated
         public string osSetPenColour(string drawList, string colour)
         {
@@ -927,12 +963,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
         /// <summary>
         /// Returns the amount of memory in use by the Simulator Daemon.
-        /// Amount in bytes - if >= 4GB, returns 4GB. (LSL is not 64-bit aware)
+        /// Amount in bytes - if >= 2GB, returns 2GB. (LSL is not 64-bit aware)
         /// </summary>
         /// <returns></returns>
         public LSL_Integer osGetSimulatorMemory()
         {
             return m_OSSL_Functions.osGetSimulatorMemory();
+        }
+
+        public LSL_Integer osGetSimulatorMemoryKB()
+        {
+            return m_OSSL_Functions.osGetSimulatorMemoryKB();
         }
 
         public void osKickAvatar(string FirstName,string SurName,string alert)
@@ -1010,7 +1051,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetAvatarList();
         }
 
-        public LSL_String osUnixTimeToTimestamp(long time)
+        public LSL_List osGetNPCList()
+        {
+            return m_OSSL_Functions.osGetNPCList();
+        }
+
+        public LSL_String osUnixTimeToTimestamp(LSL_Integer time)
         {
             return m_OSSL_Functions.osUnixTimeToTimestamp(time);
         }
@@ -1113,6 +1159,123 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void osVolumeDetect(int detect)
         {
             m_OSSL_Functions.osVolumeDetect(detect);
+        }
+
+        public LSL_List osGetInertiaData()
+        {
+            return m_OSSL_Functions.osGetInertiaData();
+        }
+
+        public void osSetInertia(LSL_Float mass, vector centerOfMass, vector principalInertiaScaled,  rotation rot)
+        {
+            m_OSSL_Functions.osSetInertia(mass, centerOfMass, principalInertiaScaled, rot);
+        }
+
+        public void osSetInertiaAsBox(LSL_Float mass, vector boxSize, vector centerOfMass, rotation rot)
+        {
+            m_OSSL_Functions.osSetInertiaAsBox(mass, boxSize, centerOfMass, rot);
+        }
+
+        public void osSetInertiaAsSphere(LSL_Float mass,  LSL_Float radius, vector centerOfMass)
+        {
+            m_OSSL_Functions.osSetInertiaAsSphere(mass, radius, centerOfMass);
+        }
+
+        public void osSetInertiaAsCylinder(LSL_Float mass,  LSL_Float radius, LSL_Float lenght, vector centerOfMass,rotation lslrot)
+        {
+            m_OSSL_Functions.osSetInertiaAsCylinder( mass, radius, lenght, centerOfMass, lslrot);
+        }
+
+        public void osClearInertia()
+        {
+            m_OSSL_Functions.osClearInertia();
+        }
+
+        public LSL_Integer osTeleportObject(LSL_Key objectUUID, vector targetPos, rotation targetrotation, LSL_Integer flags)
+        {
+            return m_OSSL_Functions.osTeleportObject(objectUUID, targetPos, targetrotation, flags);
+        }
+
+        public LSL_Integer osGetLinkNumber(LSL_String name)
+        {
+            return m_OSSL_Functions.osGetLinkNumber(name);
+        }
+
+        public LSL_Float osRound(LSL_Float value, LSL_Integer digits)
+        {
+            return m_OSSL_Functions.osRound(value, digits);
+        }
+
+        public LSL_Float osVecMagSquare(vector a)
+        {
+            return m_OSSL_Functions.osVecMagSquare(a);
+        }
+
+        public LSL_Float osVecDistSquare(vector a, vector b)
+        {
+            return m_OSSL_Functions.osVecDistSquare(a, b);
+        }
+
+        public LSL_Float osAngleBetween(vector a, vector b)
+        {
+            return m_OSSL_Functions.osAngleBetween(a, b);
+        }
+
+        public void osAdjustSoundVolume(LSL_Integer linknum, LSL_Float volume)
+        {
+            m_OSSL_Functions.osAdjustSoundVolume(linknum, volume);
+        }
+
+        public void osSetSoundRadius(LSL_Integer linknum, LSL_Float radius)
+        {
+            m_OSSL_Functions.osSetSoundRadius(linknum, radius);
+        }
+
+        public void osPlaySound(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
+        {
+            m_OSSL_Functions.osPlaySound(linknum, sound, volume);
+        }
+
+        public void osLoopSound(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
+        {
+            m_OSSL_Functions.osLoopSound(linknum, sound, volume);
+        }
+
+        public void osLoopSoundMaster(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
+        {
+            m_OSSL_Functions.osLoopSoundMaster(linknum, sound, volume);
+        }
+
+        public void osLoopSoundSlave(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
+        {
+            m_OSSL_Functions.osLoopSoundSlave(linknum, sound, volume);
+        }
+
+        public void osPlaySoundSlave(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
+        {
+            m_OSSL_Functions.osPlaySoundSlave(linknum, sound, volume);
+        }
+
+        public void osTriggerSound(LSL_Integer linknum, LSL_String sound, LSL_Float volume)
+        {
+            m_OSSL_Functions.osTriggerSound(linknum, sound, volume);
+        }
+
+        public void osTriggerSoundLimited(LSL_Integer linknum, LSL_String sound, LSL_Float volume,
+                 vector top_north_east, vector bottom_south_west)
+        {
+            m_OSSL_Functions.osTriggerSoundLimited(linknum, sound, volume,
+                                            top_north_east, bottom_south_west);
+        }
+
+        public void osStopSound(LSL_Integer linknum)
+        {
+            m_OSSL_Functions.osStopSound(linknum);
+        }
+
+        public void osPreloadSound(LSL_Integer linknum, LSL_String sound)
+        {
+            m_OSSL_Functions.osPreloadSound(linknum, sound);
         }
     }
 }

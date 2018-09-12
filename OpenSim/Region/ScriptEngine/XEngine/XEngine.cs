@@ -78,7 +78,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         /// A parameter to allow us to notify the log if at least one script has a compilation that is not compatible
         /// with ScriptStopStrategy.
         /// </summary>
-        public bool HaveNotifiedLogOfScriptStopMistmatch { get; private set; }
+        public bool HaveNotifiedLogOfScriptStopMismatch { get; private set; }
 
         private SmartThreadPool m_ThreadPool;
         private int m_MaxScriptQueue;
@@ -827,6 +827,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 if (m_ScriptEngines.Contains(this))
                     m_ScriptEngines.Remove(this);
             }
+
+            lock(m_Scripts)
+                m_ThreadPool.Shutdown();
         }
 
         public object DoBackup(object o)
@@ -1076,6 +1079,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                         "[XEngine]: Started {0} scripts in {1}", scriptsStarted, m_Scene.Name);
                         }
                     }
+                    catch (System.Threading.ThreadAbortException) { }
                     catch (Exception e)
                     {
                         m_log.Error(
@@ -1476,7 +1480,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         }
                     }
 
-                    if (m_coopTermination != coopTerminationForThisScript && !HaveNotifiedLogOfScriptStopMistmatch)
+                    if (m_coopTermination != coopTerminationForThisScript && !HaveNotifiedLogOfScriptStopMismatch)
                     {
                         // Notify the log that there is at least one script compile that doesn't match the
                         // ScriptStopStrategy.  Operator has to manually delete old DLLs - we can't do this on Windows
@@ -1486,7 +1490,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             + "\nContinuing with script compiled strategy but to remove this message please set [XEngine] DeleteScriptsOnStartup = true for one simulator session to remove old script DLLs (script state will not be lost).",
                             World.Name, coopTerminationForThisScript ? "co-op" : "abort", m_coopTermination ? "co-op" : "abort");
 
-                        HaveNotifiedLogOfScriptStopMistmatch = true;
+                        HaveNotifiedLogOfScriptStopMismatch = true;
                     }
 
                     instance = new ScriptInstance(this, part,
@@ -2094,6 +2098,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             string xml = instance.GetXMLState();
 
             XmlDocument sdoc = new XmlDocument();
+
             bool loadedState = true;
             try
             {
@@ -2145,10 +2150,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             string fn = Path.GetFileName(assemName);
 
             string assem = String.Empty;
+            string assemNameText = assemName + ".text";
 
-            if (File.Exists(assemName + ".text"))
+            if (File.Exists(assemNameText))
             {
-                FileInfo tfi = new FileInfo(assemName + ".text");
+                FileInfo tfi = new FileInfo(assemNameText);
 
                 if (tfi != null)
                 {
@@ -2156,7 +2162,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                     try
                     {
-                        using (FileStream tfs = File.Open(assemName + ".text",
+                        using (FileStream tfs = File.Open(assemNameText,
                                 FileMode.Open, FileAccess.Read))
                         {
                             tfs.Read(tdata, 0, tdata.Length);

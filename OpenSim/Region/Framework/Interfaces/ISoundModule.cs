@@ -46,11 +46,9 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="gain">Sound volume</param>
         /// <param name="position">Sound source position</param>
         /// <param name="flags">Sound flags</param>
-        /// <param name="radius">
-        /// Radius used to affect gain over distance.
         /// </param>
         void PlayAttachedSound(UUID soundID, UUID ownerID, UUID objectID,
-                double gain, Vector3 position, byte flags, float radius);
+                double gain, Vector3 position, byte flags);
 
         /// <summary>
         /// Trigger a sound in the scene.
@@ -67,7 +65,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </param>
         void TriggerSound(
                 UUID soundId, UUID ownerID, UUID objectID, UUID parentID,
-                double gain, Vector3 position, UInt64 handle, float radius);
+                double gain, Vector3 position, UInt64 handle);
 
         /// <summary>
         /// Stop sounds eminating from an object.
@@ -80,10 +78,8 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         /// <param name="objectID">Sound source ID</param>
         /// <param name="soundID">Sound asset ID</param>
-        /// <param name="radius">
-        /// Radius used to determine which viewers should preload the sound.
         /// </param>
-        void PreloadSound(UUID objectID, UUID soundID, float radius);
+        void PreloadSound(UUID objectID, UUID soundID);
 
         /// <summary>
         /// Loop specified sound at specified volume with specified radius,
@@ -92,10 +88,9 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="objectID">Sound source ID</param>
         /// <param name="soundID">Sound asset ID</param>
         /// <param name="gain">Sound volume</param>
-        /// <param name="radius">Sound radius</param>
         /// <param name="isMaster">Set object to sync master if true</param>
         void LoopSound(UUID objectID, UUID soundID, double gain,
-                double radius, bool isMaster, bool isSlave);
+                bool isMaster, bool isSlave);
 
         /// <summary>
         /// Trigger or play an attached sound in this part's inventory.
@@ -104,11 +99,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="sound">Sound asset ID</param>
         /// <param name="volume">Sound volume</param>
         /// <param name="triggered">Triggered or not.</param>
-        /// <param name="radius">Sound radius</param>
         /// <param name="useMaster">Play using sound master</param>
         /// <param name="isMaster">Play as sound master</param>
         void SendSound(UUID objectID, UUID sound, double volume,
-                bool triggered, byte flags, float radius, bool useMaster,
+                bool triggered, byte flags, bool useMaster,
                 bool isMaster);
 
         /// <summary>

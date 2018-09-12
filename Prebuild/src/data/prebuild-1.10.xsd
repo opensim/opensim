@@ -186,8 +186,9 @@
 		<xs:complexType>
 			<xs:all>
 				<xs:element name="CompilerDefines" type="xs:string" minOccurs="0" />
-				<xs:element name="OptimizeCode" type="xs:boolean" minOccurs="0" />
-				<xs:element name="CheckUnderflowOverflow" type="xs:boolean" minOccurs="0" />
+                <xs:element name="OptimizeCode" type="xs:boolean" minOccurs="0" />
+                <xs:element name="Prefer32Bit" type="xs:boolean" minOccurs="0" />               
+                <xs:element name="CheckUnderflowOverflow" type="xs:boolean" minOccurs="0" />
 				<xs:element name="AllowUnsafe" type="xs:boolean" minOccurs="0" />
 				<xs:element name="PreBuildEvent" type="xs:string" minOccurs="0" />
 				<xs:element name="PostBuildEvent" type="xs:string" minOccurs="0" />

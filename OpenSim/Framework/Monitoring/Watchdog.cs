@@ -180,6 +180,33 @@ namespace OpenSim.Framework.Monitoring
             m_watchdogTimer.Elapsed += WatchdogTimerElapsed;
         }
 
+        public static void Stop()
+        {
+            if(m_threads == null)
+                return;
+
+            lock(m_threads)
+            {
+                m_enabled = false;            
+                if(m_watchdogTimer != null)
+                {
+                    m_watchdogTimer.Dispose();
+                    m_watchdogTimer = null;
+                }
+                
+                foreach(ThreadWatchdogInfo twi in m_threads.Values)
+                {
+                    Thread t = twi.Thread;
+                    // m_log.DebugFormat(
+                    //    "[WATCHDOG]: Stop: Removing thread {0}, ID {1}", twi.Thread.Name, twi.Thread.ManagedThreadId);
+
+                    if(t.IsAlive)
+                        t.Abort();
+                }
+                m_threads.Clear();
+            }
+        }
+
         /// <summary>
         /// Add a thread to the watchdog tracker.
         /// </summary>
@@ -230,14 +257,12 @@ namespace OpenSim.Framework.Monitoring
 
                     twi.Cleanup();
                     m_threads.Remove(threadID);
-
                     return true;
                 }
                 else
                 {
                     m_log.WarnFormat(
                         "[WATCHDOG]: Requested to remove thread with ID {0} but this is not being monitored", threadID);
-
                     return false;
                 }
             }
@@ -317,6 +342,8 @@ namespace OpenSim.Framework.Monitoring
         /// <param name="e"></param>
         private static void WatchdogTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
+            if(!m_enabled)
+                return;
             int now = Environment.TickCount & Int32.MaxValue;
             int msElapsed = now - LastWatchdogThreadTick;
 
@@ -334,21 +361,26 @@ namespace OpenSim.Framework.Monitoring
                 List<ThreadWatchdogInfo> callbackInfos = null;
                 List<ThreadWatchdogInfo> threadsToRemove = null;
 
+                const ThreadState thgone = ThreadState.Stopped;
+
                 lock (m_threads)
                 {
                     foreach(ThreadWatchdogInfo threadInfo in m_threads.Values)
                     {
-                        if(threadInfo.Thread.ThreadState == ThreadState.Stopped)
+                        if(!m_enabled)
+                            return;
+                        if((threadInfo.Thread.ThreadState & thgone) != 0)
                         {
                             if(threadsToRemove == null)
                                 threadsToRemove = new List<ThreadWatchdogInfo>();
 
                             threadsToRemove.Add(threadInfo);
-
+/*
                             if(callbackInfos == null)
                                 callbackInfos = new List<ThreadWatchdogInfo>();
 
                             callbackInfos.Add(threadInfo);
+*/
                         }
                         else if(!threadInfo.IsTimedOut && now - threadInfo.LastTick >= threadInfo.Timeout)
                         {

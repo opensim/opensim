@@ -517,32 +517,30 @@ namespace OpenSim.Server.Handlers.Simulation
 
         protected string GetCallerIP(Hashtable request)
         {
-            if (!m_Proxy)
-                return Util.GetCallerIP(request);
-
-            // We're behind a proxy
-            Hashtable headers = (Hashtable)request["headers"];
-
-            //// DEBUG
-            //foreach (object o in headers.Keys)
-            //    m_log.DebugFormat("XXX {0} = {1}", o.ToString(), (headers[o] == null? "null" : headers[o].ToString()));
-
-            string xff = "X-Forwarded-For";
-            if (headers.ContainsKey(xff.ToLower()))
-                xff = xff.ToLower();
-
-            if (!headers.ContainsKey(xff) || headers[xff] == null)
+            if (request.ContainsKey("headers"))
             {
-                m_log.WarnFormat("[AGENT HANDLER]: No XFF header");
-                return Util.GetCallerIP(request);
+                Hashtable headers = (Hashtable)request["headers"];
+
+                //// DEBUG
+                //foreach (object o in headers.Keys)
+                //    m_log.DebugFormat("XXX {0} = {1}", o.ToString(), (headers[o] == null? "null" : headers[o].ToString()));
+
+                string xff = "X-Forwarded-For";
+                if (!headers.ContainsKey(xff))
+                    xff = xff.ToLower();
+
+                if (!headers.ContainsKey(xff) || headers[xff] == null)
+                {
+//                    m_log.WarnFormat("[AGENT HANDLER]: No XFF header");
+                    return Util.GetCallerIP(request);
+                }
+
+//                m_log.DebugFormat("[AGENT HANDLER]: XFF is {0}", headers[xff]);
+
+                IPEndPoint ep = Util.GetClientIPFromXFF((string)headers[xff]);
+                if (ep != null)
+                    return ep.Address.ToString();
             }
-
-            m_log.DebugFormat("[AGENT HANDLER]: XFF is {0}", headers[xff]);
-
-            IPEndPoint ep = Util.GetClientIPFromXFF((string)headers[xff]);
-            if (ep != null)
-                return ep.Address.ToString();
-
             // Oops
             return Util.GetCallerIP(request);
         }

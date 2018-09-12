@@ -267,6 +267,7 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
         [Test]
         public void Test_005_FolderZero()
         {
+
             TestHelpers.InMethod();
 
             Init();
@@ -283,11 +284,11 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
 
             Assert.That(llsdresponse != null, Is.True, "Incorrect null response");
             Assert.That(llsdresponse != string.Empty, Is.True, "Incorrect empty response");
-            Assert.That(llsdresponse.Contains("bad_folders</key><array><uuid>00000000-0000-0000-0000-000000000000"), Is.True, "Folder Zero should be a bad folder");
+            // we do return a answer now
+            //Assert.That(llsdresponse.Contains("bad_folders</key><array><uuid>00000000-0000-0000-0000-000000000000"), Is.True, "Folder Zero should be a bad folder");
 
             Console.WriteLine(llsdresponse);
         }
-
     }
 
 }

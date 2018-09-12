@@ -7,7 +7,7 @@ using Mono.Addins;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("OpenSim")]
-[assembly: AssemblyDescription("The executable for for simulator")]
+[assembly: AssemblyDescription("The executable for regions simulator")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("http://opensimulator.org")]
 [assembly: AssemblyProduct("OpenSim")]

@@ -47,8 +47,10 @@ namespace OpenSim.Framework.Servers.HttpServer
         public readonly UUID RequestID;
         public int  contextHash;
 
+/*
         private void GenContextHash()
         {
+
             Random rnd = new Random();
             contextHash = 0;
             if (Request.Headers["remote_addr"] != null)
@@ -62,8 +64,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             else
                 contextHash += rnd.Next() & 0xffff;
-        }
 
+        }
+*/
         public PollServiceHttpRequest(
             PollServiceEventArgs pPollServiceArgs, IHttpClientContext pHttpContext, IHttpRequest pRequest)
         {
@@ -72,7 +75,8 @@ namespace OpenSim.Framework.Servers.HttpServer
             Request = pRequest;
             RequestTime = System.Environment.TickCount;
             RequestID = UUID.Random();
-            GenContextHash();
+//            GenContextHash();
+            contextHash = HttpContext.contextID;
         }
 
         internal void DoHTTPGruntWork(BaseHttpServer server, Hashtable responsedata)
@@ -82,10 +86,12 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             byte[] buffer = server.DoHTTPGruntWork(responsedata, response);
 
+            if(Request.Body.CanRead)
+                Request.Body.Dispose();
+
             response.SendChunked = false;
             response.ContentLength64 = buffer.Length;
             response.ContentEncoding = Encoding.UTF8;
-            response.ReuseContext = false;
 
             try
             {
@@ -114,10 +120,12 @@ namespace OpenSim.Framework.Servers.HttpServer
             OSHttpResponse response
                 = new OSHttpResponse(new HttpResponse(HttpContext, Request), HttpContext);
 
+            if(Request.Body.CanRead)
+                Request.Body.Dispose();
+
             response.SendChunked = false;
             response.ContentLength64 = 0;
             response.ContentEncoding = Encoding.UTF8;
-            response.ReuseContext = false;
             response.KeepAlive = false;
             response.SendChunked = false;
             response.StatusCode = 503;
@@ -127,7 +135,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 response.OutputStream.Flush();
                 response.Send();
             }
-            catch (Exception e)
+            catch
             {
             }
         }

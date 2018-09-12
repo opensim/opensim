@@ -1934,7 +1934,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 GetSceneFromRegionParams(requestData, responseData, out scene);
                 health = scene.GetHealth(out flags, out text);
             }
-            catch (Exception e)
+            catch
             {
                 responseData["error"] = null;
             }
@@ -3087,15 +3087,13 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         /// </summary>
         private void ApplyNextOwnerPermissions(InventoryItemBase item)
         {
-            if (item.InvType == (int)InventoryType.Object && (item.CurrentPermissions & 7) != 0)
+            if (item.InvType == (int)InventoryType.Object)
             {
-                if ((item.CurrentPermissions & ((uint)PermissionMask.Copy >> 13)) == 0)
-                    item.CurrentPermissions &= ~(uint)PermissionMask.Copy;
-                if ((item.CurrentPermissions & ((uint)PermissionMask.Transfer >> 13)) == 0)
-                    item.CurrentPermissions &= ~(uint)PermissionMask.Transfer;
-                if ((item.CurrentPermissions & ((uint)PermissionMask.Modify >> 13)) == 0)
-                    item.CurrentPermissions &= ~(uint)PermissionMask.Modify;
+                uint perms = item.CurrentPermissions;
+                PermissionsUtil.ApplyFoldedPermissions(item.CurrentPermissions, ref perms);
+                item.CurrentPermissions = perms;
             }
+
             item.CurrentPermissions &= item.NextPermissions;
             item.BasePermissions &= item.NextPermissions;
             item.EveryOnePermissions &= item.NextPermissions;

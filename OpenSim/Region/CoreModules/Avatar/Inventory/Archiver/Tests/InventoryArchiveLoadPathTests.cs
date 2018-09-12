@@ -212,7 +212,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene);
 
             Dictionary <string, InventoryFolderBase> foldersCreated = new Dictionary<string, InventoryFolderBase>();
-            HashSet<InventoryNodeBase> nodesLoaded = new HashSet<InventoryNodeBase>();
+            Dictionary<UUID, InventoryNodeBase> nodesLoaded = new Dictionary<UUID, InventoryNodeBase>();
 
             string folder1Name = "1";
             string folder2aName = "2a";
@@ -293,7 +293,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             new InventoryArchiveReadRequest(UUID.Random(), null, scene.InventoryService, scene.AssetService, scene.UserAccountService, ua1, null, (Stream)null, false)
                 .ReplicateArchivePathToUserInventory(
                     itemArchivePath, scene.InventoryService.GetRootFolder(ua1.PrincipalID),
-                    new Dictionary<string, InventoryFolderBase>(), new HashSet<InventoryNodeBase>());
+                    new Dictionary<string, InventoryFolderBase>(), new Dictionary<UUID, InventoryNodeBase>());
 
             List<InventoryFolderBase> folder1PostCandidates
                 = InventoryArchiveUtils.FindFoldersByPath(scene.InventoryService, ua1.PrincipalID, folder1ExistingName);
@@ -344,7 +344,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             new InventoryArchiveReadRequest(UUID.Random(), null, scene.InventoryService, scene.AssetService, scene.UserAccountService, ua1, folder1ExistingName, (Stream)null, true)
                 .ReplicateArchivePathToUserInventory(
                     itemArchivePath, scene.InventoryService.GetRootFolder(ua1.PrincipalID),
-                    new Dictionary<string, InventoryFolderBase>(), new HashSet<InventoryNodeBase>());
+                    new Dictionary<string, InventoryFolderBase>(), new Dictionary<UUID, InventoryNodeBase>());
 
             List<InventoryFolderBase> folder1PostCandidates
                 = InventoryArchiveUtils.FindFoldersByPath(scene.InventoryService, ua1.PrincipalID, folder1ExistingName);

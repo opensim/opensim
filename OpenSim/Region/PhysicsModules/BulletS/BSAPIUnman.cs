@@ -1405,6 +1405,19 @@ public override float GetMargin(BulletShape shape)
 }
 
 // =====================================================================================
+// Raycast
+public override SweepHit ConvexSweepTest2(BulletWorld world, BulletBody sweepObject, Vector3 from, Vector3 to, float margin) {
+    BulletWorldUnman worldu = world as BulletWorldUnman;
+    BulletBodyUnman bodyu = sweepObject as BulletBodyUnman;
+    return BSAPICPP.ConvexSweepTest2(worldu.ptr, bodyu.ptr, from, to, margin);
+}
+
+public override RaycastHit RayTest2(BulletWorld world, Vector3 from, Vector3 to, uint filterGroup, uint filterMask) {
+    BulletWorldUnman worldu = world as BulletWorldUnman;
+    return BSAPICPP.RayTest2(worldu.ptr, from, to, filterGroup, filterMask);
+}
+
+// =====================================================================================
 // Debugging
 public override void DumpRigidBody(BulletWorld world, BulletBody collisionObject)
 {
@@ -2083,6 +2096,15 @@ public static extern void SetMargin2(IntPtr shape, float val);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern float GetMargin2(IntPtr shape);
+
+
+// =====================================================================================
+// Raycast
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern SweepHit ConvexSweepTest2(IntPtr sim, IntPtr obj, Vector3 from, Vector3 to, float margin);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern RaycastHit RayTest2(IntPtr sim, Vector3 from, Vector3 to, uint filterGroup, uint filterMask);
 
 // =====================================================================================
 // Debugging

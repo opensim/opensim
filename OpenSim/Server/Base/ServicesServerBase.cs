@@ -61,8 +61,9 @@ namespace OpenSim.Server.Base
         //
         private bool m_Running = true;
 
+#if (_MONO)
         private static Mono.Unix.UnixSignal[] signals;
-
+#endif
 
         // Handle all the automagical stuff
         //
@@ -186,6 +187,7 @@ namespace OpenSim.Server.Base
             RegisterCommonCommands();
             RegisterCommonComponents(Config);
 
+#if (_MONO)
             Thread signal_thread = new Thread (delegate ()
             {
                 while (true)
@@ -209,6 +211,7 @@ namespace OpenSim.Server.Base
                     {
                         new Mono.Unix.UnixSignal(Mono.Unix.Native.Signum.SIGTERM)
                     };
+                    ignal_thread.IsBackground = true;
                     signal_thread.Start();
                 }
                 catch (Exception e)
@@ -218,6 +221,7 @@ namespace OpenSim.Server.Base
                     m_log.Debug("Exception was: ", e);
                 }
             }
+#endif
 
             // Allow derived classes to perform initialization that
             // needs to be done after the console has opened
@@ -246,6 +250,9 @@ namespace OpenSim.Server.Base
                 }
             }
 
+            MemoryWatchdog.Enabled = false;
+            Watchdog.Enabled = false;
+            WorkManager.Stop();
             RemovePIDFile();
 
             return 0;
@@ -253,6 +260,8 @@ namespace OpenSim.Server.Base
 
         protected override void ShutdownSpecific()
         {
+            if(!m_Running)
+                return;
             m_Running = false;
             m_log.Info("[CONSOLE] Quitting");
 

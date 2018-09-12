@@ -60,9 +60,57 @@ namespace OpenSim.Framework
                 str += "C";
             if ((perms & (int)PermissionMask.Transfer) != 0)
                 str += "T";
+            if ((perms & (int)PermissionMask.Export) != 0)
+                str += "X";
             if (str == "")
                 str = ".";
             return str;
+        }
+
+        public static void ApplyFoldedPermissions(uint foldedSourcePerms, ref uint targetPerms)
+        {
+            uint folded = foldedSourcePerms & (uint)PermissionMask.FoldedMask;
+            if(folded == 0 || folded == (uint)PermissionMask.FoldedMask) // invalid we need to ignore, or nothing to do
+                return; 
+
+            folded <<= (int)PermissionMask.FoldingShift;
+            folded |= ~(uint)PermissionMask.UnfoldedMask;
+
+            uint tmp = targetPerms;
+            tmp &= folded;
+            targetPerms = tmp;
+        }
+
+        // do not touch MOD
+        public static void ApplyNoModFoldedPermissions(uint foldedSourcePerms, ref uint target)
+        {
+            uint folded = foldedSourcePerms & (uint)PermissionMask.FoldedMask;
+            if(folded == 0 || folded == (uint)PermissionMask.FoldedMask) // invalid we need to ignore, or nothing to do
+                return; 
+
+            folded <<= (int)PermissionMask.FoldingShift;
+            folded |= (~(uint)PermissionMask.UnfoldedMask | (uint)PermissionMask.Modify);
+
+            uint tmp = target;
+            tmp &= folded;
+            target = tmp;
+        }
+
+        public static uint FixAndFoldPermissions(uint perms)
+        {
+            uint tmp = perms;
+
+            // C & T rule
+            if((tmp & (uint)(PermissionMask.Copy | PermissionMask.Transfer)) == 0)
+                tmp |= (uint)PermissionMask.Transfer;
+
+            // unlock
+            tmp |= (uint)PermissionMask.Move;
+
+            tmp &= ~(uint)PermissionMask.FoldedMask;
+            tmp |= ((tmp >> (int)PermissionMask.FoldingShift) & (uint)PermissionMask.FoldedMask);
+
+            return tmp;
         }
     }
 }

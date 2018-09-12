@@ -69,6 +69,7 @@ namespace OpenSim.Data.MySQL
 
                 Migration m = new Migration(dbcon, Assembly, "UserProfiles");
                 m.Update();
+                dbcon.Close();
             }
         }
         #endregion Member Functions
@@ -89,7 +90,7 @@ namespace OpenSim.Data.MySQL
 
             using (MySqlConnection dbcon = new MySqlConnection(ConnectionString))
             {
-                string query = "SELECT classifieduuid, name FROM classifieds WHERE creatoruuid = ?Id";
+                const string query = "SELECT classifieduuid, name FROM classifieds WHERE creatoruuid = ?Id";
                 dbcon.Open();
                 using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
                 {
@@ -111,8 +112,7 @@ namespace OpenSim.Data.MySQL
                                 }
                                 catch (Exception e)
                                 {
-                                    m_log.ErrorFormat("[PROFILES_DATA]" +
-                                                     ": UserAccount exception {0}", e.Message);
+                                    m_log.ErrorFormat("[PROFILES_DATA] GetClassifiedRecords exception {0}", e.Message);
                                 }
                                 n.Add("classifieduuid", OSD.FromUUID(Id));
                                 n.Add("name", OSD.FromString(Name));
@@ -121,58 +121,58 @@ namespace OpenSim.Data.MySQL
                         }
                     }
                 }
+                dbcon.Close();
             }
             return data;
         }
 
         public bool UpdateClassifiedRecord(UserClassifiedAdd ad, ref string result)
         {
-            string query = string.Empty;
-
-
-            query += "INSERT INTO classifieds (";
-            query += "`classifieduuid`,";
-            query += "`creatoruuid`,";
-            query += "`creationdate`,";
-            query += "`expirationdate`,";
-            query += "`category`,";
-            query += "`name`,";
-            query += "`description`,";
-            query += "`parceluuid`,";
-            query += "`parentestate`,";
-            query += "`snapshotuuid`,";
-            query += "`simname`,";
-            query += "`posglobal`,";
-            query += "`parcelname`,";
-            query += "`classifiedflags`,";
-            query += "`priceforlisting`) ";
-            query += "VALUES (";
-            query += "?ClassifiedId,";
-            query += "?CreatorId,";
-            query += "?CreatedDate,";
-            query += "?ExpirationDate,";
-            query += "?Category,";
-            query += "?Name,";
-            query += "?Description,";
-            query += "?ParcelId,";
-            query += "?ParentEstate,";
-            query += "?SnapshotId,";
-            query += "?SimName,";
-            query += "?GlobalPos,";
-            query += "?ParcelName,";
-            query += "?Flags,";
-            query += "?ListingPrice ) ";
-            query += "ON DUPLICATE KEY UPDATE ";
-            query += "category=?Category, ";
-            query += "expirationdate=?ExpirationDate, ";
-            query += "name=?Name, ";
-            query += "description=?Description, ";
-            query += "parentestate=?ParentEstate, ";
-            query += "posglobal=?GlobalPos, ";
-            query += "parcelname=?ParcelName, ";
-            query += "classifiedflags=?Flags, ";
-            query += "priceforlisting=?ListingPrice, ";
-            query += "snapshotuuid=?SnapshotId";
+             const string query = 
+                "INSERT INTO classifieds ("
+                + "`classifieduuid`,"
+                +  "`creatoruuid`,"
+                +  "`creationdate`,"
+                +  "`expirationdate`,"
+                +  "`category`,"
+                +  "`name`,"
+                +  "`description`,"
+                +  "`parceluuid`,"
+                +  "`parentestate`,"
+                +  "`snapshotuuid`,"
+                +  "`simname`,"
+                +  "`posglobal`,"
+                +  "`parcelname`,"
+                + "`classifiedflags`,"
+                + "`priceforlisting`) "
+                + "VALUES ("
+                + "?ClassifiedId,"
+                + "?CreatorId,"
+                + "?CreatedDate,"
+                + "?ExpirationDate,"
+                + "?Category,"
+                + "?Name,"
+                + "?Description,"
+                + "?ParcelId,"
+                + "?ParentEstate,"
+                + "?SnapshotId,"
+                + "?SimName,"
+                + "?GlobalPos,"
+                + "?ParcelName,"
+                + "?Flags,"
+                + "?ListingPrice ) "
+                + "ON DUPLICATE KEY UPDATE "
+                + "category=?Category, "
+                + "expirationdate=?ExpirationDate, "
+                + "name=?Name, "
+                + "description=?Description, "
+                + "parentestate=?ParentEstate, "
+                + "posglobal=?GlobalPos, "
+                + "parcelname=?ParcelName, "
+                + "classifiedflags=?Flags, "
+                + "priceforlisting=?ListingPrice, "
+                + "snapshotuuid=?SnapshotId"
+                ;
 
             if(string.IsNullOrEmpty(ad.ParcelName))
                 ad.ParcelName = "Unknown";
@@ -228,12 +228,12 @@ namespace OpenSim.Data.MySQL
 
                         cmd.ExecuteNonQuery();
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": ClassifiedesUpdate exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: UpdateClassifiedRecord exception {0}", e.Message);
                 result = e.Message;
                 return false;
             }
@@ -242,10 +242,7 @@ namespace OpenSim.Data.MySQL
 
         public bool DeleteClassifiedRecord(UUID recordId)
         {
-            string query = string.Empty;
-
-            query += "DELETE FROM classifieds WHERE ";
-            query += "classifieduuid = ?recordId";
+            const string query = "DELETE FROM classifieds WHERE classifieduuid = ?recordId";
 
             try
             {
@@ -258,12 +255,12 @@ namespace OpenSim.Data.MySQL
                         cmd.Parameters.AddWithValue("?recordId", recordId.ToString());
                         cmd.ExecuteNonQuery();
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": DeleteClassifiedRecord exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: DeleteClassifiedRecord exception {0}", e.Message);
                 return false;
             }
             return true;
@@ -271,10 +268,8 @@ namespace OpenSim.Data.MySQL
 
         public bool GetClassifiedInfo(ref UserClassifiedAdd ad, ref string result)
         {
-            string query = string.Empty;
 
-            query += "SELECT * FROM classifieds WHERE ";
-            query += "classifieduuid = ?AdId";
+            const string query = "SELECT * FROM classifieds WHERE classifieduuid = ?AdId";
 
             try
             {
@@ -312,8 +307,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": GetPickInfo exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: GetClassifiedInfo exception {0}", e.Message);
             }
             return true;
         }
@@ -322,10 +316,8 @@ namespace OpenSim.Data.MySQL
         #region Picks Queries
         public OSDArray GetAvatarPicks(UUID avatarId)
         {
-            string query = string.Empty;
+            const string query = "SELECT `pickuuid`,`name` FROM userpicks WHERE creatoruuid = ?Id";
 
-            query += "SELECT `pickuuid`,`name` FROM userpicks WHERE ";
-            query += "creatoruuid = ?Id";
             OSDArray data = new OSDArray();
 
             try
@@ -352,24 +344,20 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": GetAvatarPicks exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: GetAvatarPicks exception {0}", e.Message);
             }
             return data;
         }
 
         public UserProfilePick GetPickInfo(UUID avatarId, UUID pickId)
         {
-            string query = string.Empty;
             UserProfilePick pick = new UserProfilePick();
-
-            query += "SELECT * FROM userpicks WHERE ";
-            query += "creatoruuid = ?CreatorId AND ";
-            query += "pickuuid =  ?PickId";
+            const string query = "SELECT * FROM userpicks WHERE creatoruuid = ?CreatorId AND pickuuid =  ?PickId";
 
             try
             {
@@ -414,41 +402,40 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": GetPickInfo exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: GetPickInfo exception {0}", e.Message);
             }
             return pick;
         }
 
         public bool UpdatePicksRecord(UserProfilePick pick)
         {
-            string query = string.Empty;
-
-            query += "INSERT INTO userpicks VALUES (";
-            query += "?PickId,";
-            query += "?CreatorId,";
-            query += "?TopPick,";
-            query += "?ParcelId,";
-            query += "?Name,";
-            query += "?Desc,";
-            query += "?SnapshotId,";
-            query += "?User,";
-            query += "?Original,";
-            query += "?SimName,";
-            query += "?GlobalPos,";
-            query += "?SortOrder,";
-            query += "?Enabled,";
-            query += "?Gatekeeper)";
-            query += "ON DUPLICATE KEY UPDATE ";
-            query += "parceluuid=?ParcelId,";
-            query += "name=?Name,";
-            query += "description=?Desc,";
-            query += "user=?User,";
-            query += "simname=?SimName,";
-            query += "snapshotuuid=?SnapshotId,";
-            query += "pickuuid=?PickId,";
-            query += "posglobal=?GlobalPos,";
-            query += "gatekeeper=?Gatekeeper";
+            const string query =
+                "INSERT INTO userpicks VALUES ("
+                + "?PickId,"
+                + "?CreatorId,"
+                + "?TopPick,"
+                + "?ParcelId,"
+                + "?Name,"
+                + "?Desc,"
+                + "?SnapshotId,"
+                + "?User,"
+                + "?Original,"
+                + "?SimName,"
+                + "?GlobalPos,"
+                + "?SortOrder,"
+                + "?Enabled,"
+                + "?Gatekeeper)"
+                + "ON DUPLICATE KEY UPDATE "
+                + "parceluuid=?ParcelId,"
+                + "name=?Name,"
+                + "description=?Desc,"
+                + "user=?User,"
+                + "simname=?SimName,"
+                + "snapshotuuid=?SnapshotId,"
+                + "pickuuid=?PickId,"
+                + "posglobal=?GlobalPos,"
+                + "gatekeeper=?Gatekeeper"
+                ;
 
             try
             {
@@ -474,12 +461,12 @@ namespace OpenSim.Data.MySQL
 
                         cmd.ExecuteNonQuery();
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": UpdateAvatarNotes exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: UpdatePicksRecord exception {0}", e.Message);
                 return false;
             }
             return true;
@@ -487,10 +474,7 @@ namespace OpenSim.Data.MySQL
 
         public bool DeletePicksRecord(UUID pickId)
         {
-            string query = string.Empty;
-
-            query += "DELETE FROM userpicks WHERE ";
-            query += "pickuuid = ?PickId";
+            string query = "DELETE FROM userpicks WHERE pickuuid = ?PickId";
 
             try
             {
@@ -504,12 +488,12 @@ namespace OpenSim.Data.MySQL
 
                         cmd.ExecuteNonQuery();
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": DeleteUserPickRecord exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: DeletePicksRecord exception {0}", e.Message);
                 return false;
             }
             return true;
@@ -519,11 +503,7 @@ namespace OpenSim.Data.MySQL
         #region Avatar Notes Queries
         public bool GetAvatarNotes(ref UserProfileNotes notes)
         {  // WIP
-            string query = string.Empty;
-
-            query += "SELECT `notes` FROM usernotes WHERE ";
-            query += "useruuid = ?Id AND ";
-            query += "targetuuid = ?TargetId";
+            const string query = "SELECT `notes` FROM usernotes WHERE useruuid = ?Id AND targetuuid = ?TargetId";
 
             try
             {
@@ -548,38 +528,37 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": GetAvatarNotes exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: GetAvatarNotes exception {0}", e.Message);
             }
             return true;
         }
 
         public bool UpdateAvatarNotes(ref UserProfileNotes note, ref string result)
         {
-            string query = string.Empty;
+            string query;
             bool remove;
 
             if(string.IsNullOrEmpty(note.Notes))
             {
                 remove = true;
-                query += "DELETE FROM usernotes WHERE ";
-                query += "useruuid=?UserId AND ";
-                query += "targetuuid=?TargetId";
+                query = "DELETE FROM usernotes WHERE useruuid=?UserId AND targetuuid=?TargetId";
             }
             else
             {
                 remove = false;
-                query += "INSERT INTO usernotes VALUES ( ";
-                query += "?UserId,";
-                query += "?TargetId,";
-                query += "?Notes )";
-                query += "ON DUPLICATE KEY ";
-                query += "UPDATE ";
-                query += "notes=?Notes";
+                query = "INSERT INTO usernotes VALUES (" 
+                    + "?UserId,"
+                    + "?TargetId,"
+                    + "?Notes )"
+                    + "ON DUPLICATE KEY "
+                    + "UPDATE "
+                    + "notes=?Notes"
+                    ;
             }
 
             try
@@ -596,12 +575,12 @@ namespace OpenSim.Data.MySQL
 
                         cmd.ExecuteNonQuery();
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": UpdateAvatarNotes exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: UpdateAvatarNotes exception {0}", e.Message);
                 return false;
             }
             return true;
@@ -612,10 +591,7 @@ namespace OpenSim.Data.MySQL
         #region Avatar Properties
         public bool GetAvatarProperties(ref UserProfileProperties props, ref string result)
         {
-            string query = string.Empty;
-
-            query += "SELECT * FROM userprofile WHERE ";
-            query += "useruuid = ?Id";
+            string query = "SELECT * FROM userprofile WHERE useruuid = ?Id";
 
             try
             {
@@ -664,35 +640,36 @@ namespace OpenSim.Data.MySQL
                                 props.PublishProfile = false;
                                 props.PublishMature = false;
 
-                                query = "INSERT INTO userprofile (";
-                                query += "useruuid, ";
-                                query += "profilePartner, ";
-                                query += "profileAllowPublish, ";
-                                query += "profileMaturePublish, ";
-                                query += "profileURL, ";
-                                query += "profileWantToMask, ";
-                                query += "profileWantToText, ";
-                                query += "profileSkillsMask, ";
-                                query += "profileSkillsText, ";
-                                query += "profileLanguages, ";
-                                query += "profileImage, ";
-                                query += "profileAboutText, ";
-                                query += "profileFirstImage, ";
-                                query += "profileFirstText) VALUES (";
-                                query += "?userId, ";
-                                query += "?profilePartner, ";
-                                query += "?profileAllowPublish, ";
-                                query += "?profileMaturePublish, ";
-                                query += "?profileURL, ";
-                                query += "?profileWantToMask, ";
-                                query += "?profileWantToText, ";
-                                query += "?profileSkillsMask, ";
-                                query += "?profileSkillsText, ";
-                                query += "?profileLanguages, ";
-                                query += "?profileImage, ";
-                                query += "?profileAboutText, ";
-                                query += "?profileFirstImage, ";
-                                query += "?profileFirstText)";
+                                query = "INSERT INTO userprofile ("
+                                    + "useruuid, "
+                                    + "profilePartner, "
+                                    + "profileAllowPublish, "
+                                    + "profileMaturePublish, "
+                                    + "profileURL, "
+                                    + "profileWantToMask, "
+                                    + "profileWantToText, "
+                                    + "profileSkillsMask, "
+                                    + "profileSkillsText, "
+                                    + "profileLanguages, "
+                                    + "profileImage, "
+                                    + "profileAboutText, "
+                                    + "profileFirstImage, "
+                                    + "profileFirstText) VALUES ("
+                                    + "?userId, "
+                                    + "?profilePartner, "
+                                    + "?profileAllowPublish, "
+                                    + "?profileMaturePublish, "
+                                    + "?profileURL, "
+                                    + "?profileWantToMask, "
+                                    + "?profileWantToText, "
+                                    + "?profileSkillsMask, "
+                                    + "?profileSkillsText, "
+                                    + "?profileLanguages, "
+                                    + "?profileImage, "
+                                    + "?profileAboutText, "
+                                    + "?profileFirstImage, "
+                                    + "?profileFirstText)"
+                                    ;
 
                                 dbcon.Close();
                                 dbcon.Open();
@@ -719,12 +696,12 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": Requst properties exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: GetAvatarProperties exception {0}", e.Message);
                 result = e.Message;
                 return false;
             }
@@ -733,15 +710,10 @@ namespace OpenSim.Data.MySQL
 
         public bool UpdateAvatarProperties(ref UserProfileProperties props, ref string result)
         {
-            string query = string.Empty;
-
-            query += "UPDATE userprofile SET ";
-            query += "profileURL=?profileURL, ";
-            query += "profileImage=?image, ";
-            query += "profileAboutText=?abouttext,";
-            query += "profileFirstImage=?firstlifeimage,";
-            query += "profileFirstText=?firstlifetext ";
-            query += "WHERE useruuid=?uuid";
+            const string query = "UPDATE userprofile SET profileURL=?profileURL,"
+                + "profileImage=?image, profileAboutText=?abouttext,"
+                + "profileFirstImage=?firstlifeimage, profileFirstText=?firstlifetext "
+                + "WHERE useruuid=?uuid";
 
             try
             {
@@ -759,12 +731,12 @@ namespace OpenSim.Data.MySQL
 
                         cmd.ExecuteNonQuery();
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": AgentPropertiesUpdate exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: UpdateAvatarProperties exception {0}", e.Message);
 
                 return false;
             }
@@ -775,15 +747,13 @@ namespace OpenSim.Data.MySQL
         #region Avatar Interests
         public bool UpdateAvatarInterests(UserProfileProperties up, ref string result)
         {
-            string query = string.Empty;
-
-            query += "UPDATE userprofile SET ";
-            query += "profileWantToMask=?WantMask, ";
-            query += "profileWantToText=?WantText,";
-            query += "profileSkillsMask=?SkillsMask,";
-            query += "profileSkillsText=?SkillsText, ";
-            query += "profileLanguages=?Languages ";
-            query += "WHERE useruuid=?uuid";
+            const string query = "UPDATE userprofile SET "
+                + "profileWantToMask=?WantMask, "
+                + "profileWantToText=?WantText,"
+                + "profileSkillsMask=?SkillsMask,"
+                + "profileSkillsText=?SkillsText, "
+                + "profileLanguages=?Languages "
+                + "WHERE useruuid=?uuid";
 
             try
             {
@@ -805,8 +775,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": AgentInterestsUpdate exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: UpdateAvatarInterests exception {0}", e.Message);
                 result = e.Message;
                 return false;
             }
@@ -817,10 +786,9 @@ namespace OpenSim.Data.MySQL
         public OSDArray GetUserImageAssets(UUID avatarId)
         {
             OSDArray data = new OSDArray();
-            string query = "SELECT `snapshotuuid` FROM {0} WHERE `creatoruuid` = ?Id";
+            const string queryA = "SELECT `snapshotuuid` FROM {0} WHERE `creatoruuid` = ?Id";
 
             // Get classified image assets
-
 
             try
             {
@@ -828,7 +796,7 @@ namespace OpenSim.Data.MySQL
                 {
                     dbcon.Open();
 
-                    using (MySqlCommand cmd = new MySqlCommand(string.Format (query,"`classifieds`"), dbcon))
+                    using (MySqlCommand cmd = new MySqlCommand(string.Format (queryA,"`classifieds`"), dbcon))
                     {
                         cmd.Parameters.AddWithValue("?Id", avatarId.ToString());
 
@@ -847,7 +815,7 @@ namespace OpenSim.Data.MySQL
                     dbcon.Close();
                     dbcon.Open();
 
-                    using (MySqlCommand cmd = new MySqlCommand(string.Format (query,"`userpicks`"), dbcon))
+                    using (MySqlCommand cmd = new MySqlCommand(string.Format (queryA,"`userpicks`"), dbcon))
                     {
                         cmd.Parameters.AddWithValue("?Id", avatarId.ToString());
 
@@ -866,9 +834,9 @@ namespace OpenSim.Data.MySQL
                     dbcon.Close();
                     dbcon.Open();
 
-                    query = "SELECT `profileImage`, `profileFirstImage` FROM `userprofile` WHERE `useruuid` = ?Id";
+                    const string queryB = "SELECT `profileImage`, `profileFirstImage` FROM `userprofile` WHERE `useruuid` = ?Id";
 
-                    using (MySqlCommand cmd = new MySqlCommand(string.Format (query,"`userpicks`"), dbcon))
+                    using (MySqlCommand cmd = new MySqlCommand(queryB, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?Id", avatarId.ToString());
 
@@ -884,12 +852,12 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                  ": GetAvatarNotes exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: GetUserImageAssets exception {0}", e.Message);
             }
             return data;
         }
@@ -897,11 +865,7 @@ namespace OpenSim.Data.MySQL
         #region User Preferences
         public bool GetUserPreferences(ref UserPreferences pref, ref string result)
         {
-            string query = string.Empty;
-
-            query += "SELECT imviaemail,visible,email FROM ";
-            query += "usersettings WHERE ";
-            query += "useruuid = ?Id";
+            const string query = "SELECT imviaemail,visible,email FROM usersettings WHERE useruuid = ?Id";
 
             try
             {
@@ -925,10 +889,9 @@ namespace OpenSim.Data.MySQL
                                 dbcon.Close();
                                 dbcon.Open();
 
-                                query = "INSERT INTO usersettings VALUES ";
-                                query += "(?uuid,'false','false', ?Email)";
+                                const string queryB = "INSERT INTO usersettings VALUES (?uuid,'false','false', ?Email)";
 
-                                using (MySqlCommand put = new MySqlCommand(query, dbcon))
+                                using (MySqlCommand put = new MySqlCommand(queryB, dbcon))
                                 {
 
                                     put.Parameters.AddWithValue("?Email", pref.EMail);
@@ -939,12 +902,12 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": Get preferences exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: GetUserPreferences exception {0}", e.Message);
                 result = e.Message;
                 return false;
             }
@@ -953,13 +916,9 @@ namespace OpenSim.Data.MySQL
 
         public bool UpdateUserPreferences(ref UserPreferences pref, ref string result)
         {
-            string query = string.Empty;
-
-            query += "UPDATE usersettings SET ";
-            query += "imviaemail=?ImViaEmail, ";
-            query += "visible=?Visible, ";
-            query += "email=?EMail ";
-            query += "WHERE useruuid=?uuid";
+            const string query = "UPDATE usersettings SET imviaemail=?ImViaEmail," 
+                + "visible=?Visible, email=?EMail "
+                + "WHERE useruuid=?uuid";
 
             try
             {
@@ -975,12 +934,12 @@ namespace OpenSim.Data.MySQL
 
                         cmd.ExecuteNonQuery();
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                    ": UserPreferencesUpdate exception {0} {1}", e.Message, e.InnerException);
+                m_log.ErrorFormat("[PROFILES_DATA]: UpdateUserPreferences exception {0} {1}", e.Message, e.InnerException);
                 result = e.Message;
                 return false;
             }
@@ -991,11 +950,7 @@ namespace OpenSim.Data.MySQL
         #region Integration
         public bool GetUserAppData(ref UserAppData props, ref string result)
         {
-            string query = string.Empty;
-
-            query += "SELECT * FROM `userdata` WHERE ";
-            query += "UserId = ?Id AND ";
-            query += "TagId = ?TagId";
+            const string query = "SELECT * FROM `userdata` WHERE UserId = ?Id AND TagId = ?TagId";
 
             try
             {
@@ -1017,13 +972,8 @@ namespace OpenSim.Data.MySQL
                             }
                             else
                             {
-                                query += "INSERT INTO userdata VALUES ( ";
-                                query += "?UserId,";
-                                query += "?TagId,";
-                                query += "?DataKey,";
-                                query +=  "?DataVal) ";
-
-                                using (MySqlCommand put = new MySqlCommand(query, dbcon))
+                                const string queryB = "INSERT INTO userdata VALUES (?UserId, ?TagId, ?DataKey, ?DataVal)";
+                                using (MySqlCommand put = new MySqlCommand(queryB, dbcon))
                                 {
                                     put.Parameters.AddWithValue("?UserId", props.UserId.ToString());
                                     put.Parameters.AddWithValue("?TagId", props.TagId.ToString());
@@ -1035,12 +985,12 @@ namespace OpenSim.Data.MySQL
                             }
                         }
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": Requst application data exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: GetUserAppData exception {0}", e.Message);
                 result = e.Message;
                 return false;
             }
@@ -1049,14 +999,7 @@ namespace OpenSim.Data.MySQL
 
         public bool SetUserAppData(UserAppData props, ref string result)
         {
-            string query = string.Empty;
-
-            query += "UPDATE userdata SET ";
-            query += "TagId = ?TagId, ";
-            query += "DataKey = ?DataKey, ";
-            query += "DataVal = ?DataVal WHERE ";
-            query += "UserId = ?UserId AND ";
-            query += "TagId = ?TagId";
+            const string query = "UPDATE userdata SET TagId = ?TagId, DataKey = ?DataKey, DataVal = ?DataVal WHERE UserId = ?UserId AND TagId = ?TagId";
 
             try
             {
@@ -1072,12 +1015,12 @@ namespace OpenSim.Data.MySQL
 
                         cmd.ExecuteNonQuery();
                     }
+                    dbcon.Close();
                 }
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                 ": SetUserData exception {0}", e.Message);
+                m_log.ErrorFormat("[PROFILES_DATA]: SetUserAppData exception {0}", e.Message);
                 return false;
             }
             return true;

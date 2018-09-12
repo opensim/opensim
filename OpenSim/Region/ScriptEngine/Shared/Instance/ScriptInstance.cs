@@ -771,7 +771,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         /// <returns></returns>
         public object EventProcessor()
         {
-            EventParams data = null;
             // We check here as the thread stopping this instance from running may itself hold the m_Script lock.
             if (!Running)
                 return 0;

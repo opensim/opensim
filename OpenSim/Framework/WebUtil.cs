@@ -33,7 +33,6 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
-using System.Net.Security;
 using System.Reflection;
 using System.Text;
 using System.Web;
@@ -43,9 +42,9 @@ using System.Xml.Linq;
 using log4net;
 using Nwc.XmlRpc;
 using OpenMetaverse.StructuredData;
+using OpenSim.Framework.ServiceAuth;
 using XMLResponseHelper = OpenSim.Framework.SynchronousRestObjectRequester.XMLResponseHelper;
 
-using OpenSim.Framework.ServiceAuth;
 
 namespace OpenSim.Framework
 {
@@ -72,11 +71,6 @@ namespace OpenSim.Framework
         public static int RequestNumber { get; set; }
 
         /// <summary>
-        /// Control where OSD requests should be serialized per endpoint.
-        /// </summary>
-        public static bool SerializeOSDRequestsPerEndpoint { get; set; }
-
-        /// <summary>
         /// this is the header field used to communicate the local request id
         /// used for performance and debugging
         /// </summary>
@@ -97,31 +91,6 @@ namespace OpenSim.Framework
         /// This is also used to truncate messages when using DebugLevel 5.
         /// </remarks>
         public const int MaxRequestDiagLength = 200;
-
-        /// <summary>
-        /// Dictionary of end points
-        /// </summary>
-        private static Dictionary<string,object> m_endpointSerializer = new Dictionary<string,object>();
-
-        private static object EndPointLock(string url)
-        {
-            System.Uri uri = new System.Uri(url);
-            string endpoint = string.Format("{0}:{1}",uri.Host,uri.Port);
-
-            lock (m_endpointSerializer)
-            {
-                object eplock = null;
-
-                if (! m_endpointSerializer.TryGetValue(endpoint,out eplock))
-                {
-                    eplock = new object();
-                    m_endpointSerializer.Add(endpoint,eplock);
-                    // m_log.WarnFormat("[WEB UTIL] add a new host to end point serializer {0}",endpoint);
-                }
-
-                return eplock;
-            }
-        }
 
         #region JSONRequest
 
@@ -152,21 +121,6 @@ namespace OpenSim.Framework
         public static OSDMap GetFromService(string url, int timeout)
         {
             return ServiceOSDRequest(url, null, "GET", timeout, false, false);
-        }
-
-        public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout, bool compressed, bool rpc)
-        {
-            if (SerializeOSDRequestsPerEndpoint)
-            {
-                lock (EndPointLock(url))
-                {
-                    return ServiceOSDRequestWorker(url, data, method, timeout, compressed, rpc);
-                }
-            }
-            else
-            {
-                return ServiceOSDRequestWorker(url, data, method, timeout, compressed, rpc);
-            }
         }
 
         public static void LogOutgoingDetail(Stream outputStream)
@@ -222,7 +176,7 @@ namespace OpenSim.Framework
             LogOutgoingDetail(string.Format("RESPONSE {0}: ", reqnum), input);
         }
 
-        private static OSDMap ServiceOSDRequestWorker(string url, OSDMap data, string method, int timeout, bool compressed, bool rpc)
+        public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout, bool compressed, bool rpc)
         {
             int reqnum = RequestNumber++;
 
@@ -245,7 +199,7 @@ namespace OpenSim.Framework
                 request.Timeout = timeout;
                 request.KeepAlive = false;
                 request.MaximumAutomaticRedirections = 10;
-                request.ReadWriteTimeout = timeout / 4;
+                request.ReadWriteTimeout = timeout / 2;
                 request.Headers[OSHeaderRequestID] = reqnum.ToString();
 
                 // If there is some input, write it into the request
@@ -422,14 +376,6 @@ namespace OpenSim.Framework
 
         public static OSDMap ServiceFormRequest(string url, NameValueCollection data, int timeout)
         {
-            lock (EndPointLock(url))
-            {
-                return ServiceFormRequestWorker(url,data,timeout);
-            }
-        }
-
-        private static OSDMap ServiceFormRequestWorker(string url, NameValueCollection data, int timeout)
-        {
             int reqnum = RequestNumber++;
             string method = (data != null && data["RequestMethod"] != null) ? data["RequestMethod"] : "unknown";
 
@@ -449,7 +395,7 @@ namespace OpenSim.Framework
                 request.Timeout = timeout;
                 request.KeepAlive = false;
                 request.MaximumAutomaticRedirections = 10;
-                request.ReadWriteTimeout = timeout / 4;
+                request.ReadWriteTimeout = timeout / 2;
                 request.Headers[OSHeaderRequestID] = reqnum.ToString();
 
                 if (data != null)
@@ -1315,18 +1261,24 @@ namespace OpenSim.Framework
                         {
                             if (hwr.StatusCode == HttpStatusCode.NotFound)
                                 return deserial;
+
                             if (hwr.StatusCode == HttpStatusCode.Unauthorized)
                             {
-                                m_log.Error(string.Format(
-                                    "[SynchronousRestObjectRequester]: Web request {0} requires authentication ",
-                                    requestUrl));
-                                return deserial;
+                                m_log.ErrorFormat("[SynchronousRestObjectRequester]: Web request {0} requires authentication",
+                                    requestUrl);
+                            }
+                            else
+                            {
+                                m_log.WarnFormat("[SynchronousRestObjectRequester]: Web request {0} returned error: {1}",
+                                    requestUrl, hwr.StatusCode);
                             }
                         }
                         else
-                            m_log.Error(string.Format(
-                                "[SynchronousRestObjectRequester]: WebException for {0} {1} {2} ",
-                                verb, requestUrl, typeof(TResponse).ToString()), e);
+                            m_log.ErrorFormat(
+                                "[SynchronousRestObjectRequester]: WebException for {0} {1} {2} {3}",
+                                verb, requestUrl, typeof(TResponse).ToString(), e.Message);
+
+                       return deserial;
                     }
                 }
                 catch (System.InvalidOperationException)
@@ -1381,16 +1333,42 @@ namespace OpenSim.Framework
             public static TResponse LogAndDeserialize<TRequest, TResponse>(int reqnum, Stream respStream, long contentLength)
             {
                 XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
-
                 if (WebUtil.DebugLevel >= 5)
                 {
-                    byte[] data = new byte[contentLength];
-                    Util.ReadStream(respStream, data);
+                    const int blockLength = 4096;
+                    byte[] dataBuffer = new byte[blockLength];
+                    int curcount;
+                    using (MemoryStream ms = new MemoryStream(4 * blockLength))
+                    {
+                        if(contentLength == -1)
+                        {
+                            while (true)
+                            {
+                                curcount = respStream.Read(dataBuffer, 0, blockLength);
+                                if (curcount <= 0)
+                                    break;
+                                ms.Write(dataBuffer, 0, curcount);
+                            }
+                        }
+                        else
+                        {
+                            int remaining = (int)contentLength;
+                            while (remaining > 0)
+                            {
+                                curcount = respStream.Read(dataBuffer, 0, remaining);
+                                if (curcount <= 0)
+                                    throw new EndOfStreamException(String.Format("End of stream reached with {0} bytes left to read", remaining));
+                                ms.Write(dataBuffer, 0, curcount);
+                                remaining -= curcount;
+                            }
+                        }
 
-                    WebUtil.LogResponseDetail(reqnum, System.Text.Encoding.UTF8.GetString(data));
+                        dataBuffer = ms.ToArray();
+                        WebUtil.LogResponseDetail(reqnum, System.Text.Encoding.UTF8.GetString(dataBuffer));
 
-                    using (MemoryStream temp = new MemoryStream(data))
-                        return (TResponse)deserializer.Deserialize(temp);
+                        ms.Position = 0;
+                        return (TResponse)deserializer.Deserialize(ms);
+                    }
                 }
                 else
                 {
@@ -1474,6 +1452,5 @@ namespace OpenSim.Framework
                 }
             }
         }
-
     }
 }

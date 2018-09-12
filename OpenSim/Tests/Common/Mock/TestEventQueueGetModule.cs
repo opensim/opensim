@@ -108,12 +108,12 @@ namespace OpenSim.Tests.Common
             AddEvent(avatarID, "Enqueue", o);
             return true;
         }
-
+/*
         public void DisableSimulator(ulong handle, UUID avatarID)
         {
             AddEvent(avatarID, "DisableSimulator", handle);
         }
-
+*/
         public void EnableSimulator (ulong handle, IPEndPoint endPoint, UUID avatarID, int regionSizeX, int regionSizeY)
         {
             AddEvent(avatarID, "EnableSimulator", handle);

@@ -118,8 +118,7 @@ namespace OpenSim.Tests.Stress
                         so.UUID,
                         m_tests.Vrm.GetContentType(),
                         string.Format("PenColour BLACK; MoveTo 40,220; FontSize 32; Text {0};", text),
-                        "",
-                        0);
+                        "");
 
                     Assert.That(originalTextureID, Is.Not.EqualTo(so.RootPart.Shape.Textures.GetFace(0).TextureID));
 

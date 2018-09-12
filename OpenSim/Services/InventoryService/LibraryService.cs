@@ -50,25 +50,40 @@ namespace OpenSim.Services.InventoryService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private InventoryFolderImpl m_LibraryRootFolder;
+        static private InventoryFolderImpl m_LibraryRootFolder;
 
         public InventoryFolderImpl LibraryRootFolder
         {
             get { return m_LibraryRootFolder; }
         }
 
-        private UUID libOwner = new UUID("11111111-1111-0000-0000-000100bba000");
+        static private UUID libOwner = new UUID("11111111-1111-0000-0000-000100bba000");
 
         /// <summary>
         /// Holds the root library folder and all its descendents.  This is really only used during inventory
         /// setup so that we don't have to repeatedly search the tree of library folders.
         /// </summary>
-        protected Dictionary<UUID, InventoryFolderImpl> libraryFolders
-            = new Dictionary<UUID, InventoryFolderImpl>();
+        static protected Dictionary<UUID, InventoryFolderImpl> libraryFolders
+            = new Dictionary<UUID, InventoryFolderImpl>(32);
 
-        public LibraryService(IConfigSource config)
-            : base(config)
+        static protected Dictionary<UUID, InventoryItemBase> m_items = new Dictionary<UUID, InventoryItemBase>(256);
+        static LibraryService m_root;
+        static object m_rootLock = new object();
+        static readonly uint m_BasePermissions = (uint)PermissionMask.AllAndExport;
+        static readonly uint m_EveryOnePermissions = (uint)PermissionMask.AllAndExportNoMod;
+        static readonly uint m_CurrentPermissions = (uint)PermissionMask.AllAndExport;
+        static readonly uint m_NextPermissions = (uint)PermissionMask.AllAndExport;
+        static readonly uint m_GroupPermissions = 0;
+
+        public LibraryService(IConfigSource config):base(config)
         {
+            lock(m_rootLock)
+            {
+                if(m_root != null)
+                    return;
+                m_root = this;
+            }
+
             string pLibrariesLocation = Path.Combine("inventory", "Libraries.xml");
             string pLibName = "OpenSim Library";
 
@@ -86,8 +101,8 @@ namespace OpenSim.Services.InventoryService
             m_LibraryRootFolder.ID = new UUID("00000112-000f-0000-0000-000100bba000");
             m_LibraryRootFolder.Name = pLibName;
             m_LibraryRootFolder.ParentID = UUID.Zero;
-            m_LibraryRootFolder.Type = (short)8;
-            m_LibraryRootFolder.Version = (ushort)1;
+            m_LibraryRootFolder.Type = 8;
+            m_LibraryRootFolder.Version = 1;
 
             libraryFolders.Add(m_LibraryRootFolder.ID, m_LibraryRootFolder);
 
@@ -107,10 +122,11 @@ namespace OpenSim.Services.InventoryService
             item.AssetType = assetType;
             item.InvType = invType;
             item.Folder = parentFolderID;
-            item.BasePermissions = 0x7FFFFFFF;
-            item.EveryOnePermissions = 0x7FFFFFFF;
-            item.CurrentPermissions = 0x7FFFFFFF;
-            item.NextPermissions = 0x7FFFFFFF;
+            item.BasePermissions = m_BasePermissions;
+            item.EveryOnePermissions = m_EveryOnePermissions;
+            item.CurrentPermissions = m_CurrentPermissions;
+            item.NextPermissions = m_NextPermissions;
+            item.GroupPermissions = m_GroupPermissions;
             return item;
         }
 
@@ -132,6 +148,7 @@ namespace OpenSim.Services.InventoryService
         protected void ReadLibraryFromConfig(IConfig config, string path)
         {
             string basePath = Path.GetDirectoryName(path);
+            m_LibraryRootFolder.Version = (ushort)config.GetInt("RootVersion", 1);
             string foldersPath
                 = Path.Combine(
                     basePath, config.GetString("foldersFile", String.Empty));
@@ -157,9 +174,8 @@ namespace OpenSim.Services.InventoryService
             folderInfo.Name = config.GetString("name", "unknown");
             folderInfo.ParentID = new UUID(config.GetString("parentFolderID", m_LibraryRootFolder.ID.ToString()));
             folderInfo.Type = (short)config.GetInt("type", 8);
-
+            folderInfo.Version = (ushort)config.GetInt("version", 1);
             folderInfo.Owner = libOwner;
-            folderInfo.Version = 1;
 
             if (libraryFolders.ContainsKey(folderInfo.ParentID))
             {
@@ -187,28 +203,30 @@ namespace OpenSim.Services.InventoryService
             InventoryItemBase item = new InventoryItemBase();
             item.Owner = libOwner;
             item.CreatorId = libOwner.ToString();
-            item.ID = new UUID(config.GetString("inventoryID", m_LibraryRootFolder.ID.ToString()));
+            UUID itID = new UUID(config.GetString("inventoryID", m_LibraryRootFolder.ID.ToString()));
+            item.ID = itID; 
             item.AssetID = new UUID(config.GetString("assetID", item.ID.ToString()));
             item.Folder = new UUID(config.GetString("folderID", m_LibraryRootFolder.ID.ToString()));
             item.Name = config.GetString("name", String.Empty);
             item.Description = config.GetString("description", item.Name);
             item.InvType = config.GetInt("inventoryType", 0);
             item.AssetType = config.GetInt("assetType", item.InvType);
-            item.CurrentPermissions = (uint)config.GetLong("currentPermissions", (uint)PermissionMask.All);
-            item.NextPermissions = (uint)config.GetLong("nextPermissions", (uint)PermissionMask.All);
-            item.EveryOnePermissions
-                = (uint)config.GetLong("everyonePermissions", (uint)PermissionMask.All - (uint)PermissionMask.Modify);
-            item.BasePermissions = (uint)config.GetLong("basePermissions", (uint)PermissionMask.All);
+            item.CurrentPermissions = (uint)config.GetLong("currentPermissions", m_CurrentPermissions);
+            item.NextPermissions = (uint)config.GetLong("nextPermissions", m_NextPermissions);
+            item.EveryOnePermissions = (uint)config.GetLong("everyonePermissions", m_EveryOnePermissions);
+            item.BasePermissions = (uint)config.GetLong("basePermissions", m_BasePermissions);
+            item.GroupPermissions = (uint)config.GetLong("basePermissions", m_GroupPermissions);;
             item.Flags = (uint)config.GetInt("flags", 0);
 
             if (libraryFolders.ContainsKey(item.Folder))
             {
                 InventoryFolderImpl parentFolder = libraryFolders[item.Folder];
-                try
+                if(!parentFolder.Items.ContainsKey(itID))
                 {
-                    parentFolder.Items.Add(item.ID, item);
+                    parentFolder.Items.Add(itID, item);
+                    m_items[itID] = item;
                 }
-                catch (Exception)
+                else
                 {
                     m_log.WarnFormat("[LIBRARY INVENTORY] Item {1} [{0}] not added, duplicate item", item.ID, item.Name);
                 }
@@ -280,6 +298,27 @@ namespace OpenSim.Services.InventoryService
 
             folders.AddRange(subs);
             return folders;
+        }
+
+        public InventoryItemBase GetItem(UUID itemID)
+        {
+            if(m_items.ContainsKey(itemID))
+                return m_items[itemID];
+            return null;
+        }
+
+        public InventoryItemBase[] GetMultipleItems(UUID[] ids)
+        {
+            List<InventoryItemBase> items = new List<InventoryItemBase>();
+            foreach (UUID id in ids)
+            {
+                if(m_items.ContainsKey(id))
+                    items.Add(m_items[id]);
+            }
+
+            if(items.Count == 0)
+                return null;
+            return items.ToArray();
         }
     }
 }

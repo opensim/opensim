@@ -65,10 +65,8 @@ namespace OpenSim.Server.Handlers.BakedTextures
                 return new byte[0];
             }
 
-            StreamReader sr = new StreamReader(request);
-
-            m_BakesService.Store(p[0], sr.ReadToEnd());
-            sr.Close();
+            using(StreamReader sr = new StreamReader(request))
+                m_BakesService.Store(p[0],sr.ReadToEnd());
 
             return new byte[0];
         }

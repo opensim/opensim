@@ -71,6 +71,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         ExpiringCache<UUID, UserProfileCacheEntry> m_profilesCache = new ExpiringCache<UUID, UserProfileCacheEntry>();
         IAssetCache m_assetCache;
 
+        static readonly UUID m_MrOpenSimID = new UUID("11111111-1111-0000-0000-000100bba000");
+        static readonly DateTime m_MrOpenSimBorn = new DateTime(2007,1,1,0,0,0,DateTimeKind.Utc);
+
         private JsonRpcRequestManager rpc = new JsonRpcRequestManager();
         private bool m_allowUserProfileWebURLs = true;
 
@@ -354,6 +357,12 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             UUID targetID;
             if(!UUID.TryParse(args[0], out targetID) || targetID == UUID.Zero)
                 return;
+
+            if (targetID == m_MrOpenSimID)
+            {
+                remoteClient.SendAvatarClassifiedReply(targetID, classifieds);
+                return;
+            }
 
             ScenePresence p = FindPresence(targetID);
             if (p != null && p.IsNPC)
@@ -749,6 +758,12 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 return;
 
             Dictionary<UUID, string> picks = new Dictionary<UUID, string>();
+
+            if (targetId == m_MrOpenSimID)
+            {
+                remoteClient.SendAvatarPicksReply(targetId, picks);
+                return;
+            }
 
             ScenePresence p = FindPresence(targetId);
             if (p != null && p.IsNPC)
@@ -1164,6 +1179,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// </param>
         public void NotesUpdate(IClientAPI remoteClient, UUID queryTargetID, string queryNotes)
         {
+            if (queryTargetID == m_MrOpenSimID)
+                return;
+
             ScenePresence p = FindPresence(queryTargetID);
             if (p != null && p.IsNPC)
             {
@@ -1328,6 +1346,15 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 return;
             }
 
+            if (avatarID == m_MrOpenSimID)
+            {
+                remoteClient.SendAvatarProperties(avatarID, "Creator of OpenSimulator shared assets library", m_MrOpenSimBorn.ToString(),
+                      Utils.StringToBytes("System agent"), "MrOpenSim has no life", 0x10,
+                      UUID.Zero, UUID.Zero, "", UUID.Zero);
+                remoteClient.SendAvatarInterestsReply(avatarID, 0, "",
+                          0, "Getting into trouble", "Droidspeak");
+                return;
+            }
             ScenePresence p = FindPresence(avatarID);
             if (p != null && p.IsNPC)
             {
@@ -1839,12 +1866,12 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             webRequest.ContentType = "application/json-rpc";
             webRequest.Method = "POST";
 
-            using(Stream dataStream = webRequest.GetRequestStream())
-                dataStream.Write(content,0,content.Length);
-
             WebResponse webResponse = null;
             try
             {
+                using(Stream dataStream = webRequest.GetRequestStream())
+                    dataStream.Write(content,0,content.Length);
+
                 webResponse = webRequest.GetResponse();
             }
             catch (WebException e)
@@ -1920,12 +1947,12 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             webRequest.ContentType = "application/json-rpc";
             webRequest.Method = "POST";
 
-            using(Stream dataStream = webRequest.GetRequestStream())
-                dataStream.Write(content,0,content.Length);
-
             WebResponse webResponse = null;
             try
             {
+                using(Stream dataStream = webRequest.GetRequestStream())
+                    dataStream.Write(content,0,content.Length);
+
                 webResponse = webRequest.GetResponse();
             }
             catch (WebException e)

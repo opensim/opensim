@@ -38,56 +38,23 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
     ///
     public class AutoBackupModuleState
     {
-        private Dictionary<Guid, string> m_liveRequests = null;
-
         public AutoBackupModuleState()
         {
-            this.Enabled = false;
-            this.BackupDir = ".";
-            this.BusyCheck = true;
-            this.SkipAssets = false;
-            this.Timer = null;
-            this.NamingType = NamingType.Time;
-            this.Script = null;
-            this.KeepFilesForDays = 0;
+            Enabled = false;
+            SkipAssets = false;
+            NamingType = NamingType.Time;
+            Script = null;
         }
 
-        public Dictionary<Guid, string> LiveRequests
+        public AutoBackupModuleState(AutoBackupModuleState copyFrom)
         {
-            get {
-                return this.m_liveRequests ??
-                       (this.m_liveRequests = new Dictionary<Guid, string>(1));
-            }
+            Enabled = copyFrom.Enabled;
+            SkipAssets = copyFrom.SkipAssets;
+            NamingType = copyFrom.NamingType;
+            Script = copyFrom.Script;
         }
 
         public bool Enabled
-        {
-            get;
-            set;
-        }
-
-        public System.Timers.Timer Timer
-        {
-            get;
-            set;
-        }
-
-        public double IntervalMinutes
-        {
-            get
-            {
-                if (this.Timer == null)
-                {
-                    return -1.0;
-                }
-                else
-                {
-                    return this.Timer.Interval / 60000.0;
-                }
-            }
-        }
-
-        public bool BusyCheck
         {
             get;
             set;
@@ -105,19 +72,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             set;
         }
 
-        public string BackupDir
-        {
-            get;
-            set;
-        }
-
         public NamingType NamingType
-        {
-            get;
-            set;
-        }
-
-        public int KeepFilesForDays
         {
             get;
             set;
@@ -126,15 +81,10 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         public new string ToString()
         {
             string retval = "";
-
             retval += "[AUTO BACKUP]: AutoBackup: " + (Enabled ? "ENABLED" : "DISABLED") + "\n";
-            retval += "[AUTO BACKUP]: Interval: " + IntervalMinutes + " minutes" + "\n";
-            retval += "[AUTO BACKUP]: Do Busy Check: " + (BusyCheck ? "Yes" : "No") + "\n";
             retval += "[AUTO BACKUP]: Naming Type: " + NamingType.ToString() + "\n";
-            retval += "[AUTO BACKUP]: Backup Dir: " + BackupDir + "\n";
             retval += "[AUTO BACKUP]: Script: " + Script + "\n";
             return retval;
         }
     }
 }
-

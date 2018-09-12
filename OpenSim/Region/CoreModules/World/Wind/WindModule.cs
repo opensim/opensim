@@ -47,7 +47,6 @@ namespace OpenSim.Region.CoreModules
 
         private uint m_frame = 0;
         private int m_dataVersion = 0;
-        private int m_regionID = 0;
         private int m_frameUpdateRate = 150;
         //private Random m_rndnums = new Random(Environment.TickCount);
         private Scene m_scene = null;

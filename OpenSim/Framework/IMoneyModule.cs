@@ -41,6 +41,7 @@ namespace OpenSim.Framework
         void ApplyCharge(UUID agentID, int amount, MoneyTransactionType type, string extraData = "");
         void ApplyUploadCharge(UUID agentID, int amount, string text);
         void MoveMoney(UUID fromUser, UUID toUser, int amount, string text);
+        bool MoveMoney(UUID fromUser, UUID toUser, int amount, MoneyTransactionType type, string text);
 
         int UploadCharge { get; }
         int GroupCreationCharge { get; }

@@ -3,30 +3,30 @@
 ; *
 
 ; * Configurations for enabling HG1.5
-; * 
+; *
 ; * HG1.5 handlers are: OpenSim.Server.Handlers.dll:GatekeeperService
 ; *                     OpenSim.Server.Handlers.dll:UserAgentService
-; * Additional OpenSim.Server.Handlers.dll:AssetServiceConnector and 
-; *            OpenSim.Server.Handlers.dll:XInventoryInConnector 
+; * Additional OpenSim.Server.Handlers.dll:AssetServiceConnector and
+; *            OpenSim.Server.Handlers.dll:XInventoryInConnector
 ; * are started in port 8002, outside the firewall
 ; *
 ; **
 ; *
 ; * The Const section allows us to define some basic information that we
-; * will use throughout our configuration. We will provide examples for 
+; * will use throughout our configuration. We will provide examples for
 ; * setting the base url of the Robust server and the public and private ports
 ; * it uses. Changing the values of the constants will set the operating
 ; * parameters thoughout the configuration. Other constants that may prove
-; * to be useful may be added to the followin section. They may be 
+; * to be useful may be added to the followin section. They may be
 ; * referenced anywhere in the configuration by using ${Const|Name}. One
 ; * such use is providing a base path for setting locations that Robust
 ; * uses to write data.
-; * 
+; *
 [Const]
 
     ; The URL of the Robust server
     BaseURL = "http://127.0.0.1"
-    
+
     ; The public port of the Robust server
     PublicPort = "8002"
 
@@ -52,12 +52,12 @@
     ; Set path to directory for plugin registry. Information
     ; about the registered repositories and installed plugins
     ; will be stored here
-    ; The Robust.exe process must have R/W access to the location 
+    ; The Robust.exe process must have R/W access to the location
     RegistryLocation = "."
 
     ; Modular configurations
     ; Set path to directory for modular ini files...
-    ; The Robust.exe process must have R/W access to the location 
+    ; The Robust.exe process must have R/W access to the location
     ConfigDirectory = "robust-include"
 
     ; Console commands can be saved to a file, so the command history persists after a restart. (default is true)
@@ -70,6 +70,17 @@
     ; How many lines of command history should we keep? (default is 100)
     ConsoleHistoryFileLines = 100
 
+    ; Time stamp commands in history file (default false)
+    ; ConsoleHistoryTimeStamp = false
+	
+    ; peers SSL certificate validation options
+    ; you can allow selfsigned certificates or no official CA with next option set to true
+    NoVerifyCertChain = true
+    ; you can also bypass the hostname or domain verification
+    NoVerifyCertHostname = true
+    ; having both options true does provide encryption but with low security
+    ; set both true if you don't care to use SSL, they are needed to contact regions or grids that do use it.
+    
 
 [ServiceList]
     AssetServiceConnector = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:AssetServiceConnector"
@@ -101,6 +112,8 @@
 
     ;; Uncomment if you want to have centralized estate data
     ; EstateDataService = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:EstateDataRobustConnector"
+
+    MuteListConnector = "${Const|PrivatePort}/OpenSim.Server.Handlers.dll:MuteListServiceConnector"
 
     ;; Additions for Hypergrid
 
@@ -151,7 +164,7 @@
     ;; This is useful in cases where you want to protect most of the services,
     ;; but unprotect individual services. Username and Password can also be
     ;; overriden if you want to use different credentials for the different services.
-    ;; Hypergrid services are not affected by this; they are publicly available 
+    ;; Hypergrid services are not affected by this; they are publicly available
     ;; by design.
 
     ;; By default, scripts are not allowed to call private services via llHttpRequest()
@@ -229,27 +242,27 @@
     ;; Choose an asset service (Only one option should be enabled)
     LocalServiceModule = "OpenSim.Services.AssetService.dll:AssetService"
     ;LocalServiceModule = "OpenSim.Services.FSAssetService.dll:FSAssetConnector"
-    
+
     ;; FSAsset Directories. Base directory, where final asset files are stored and Spool directory for temp files
     ;; These directories must be on the same physical filesystem
     ;BaseDirectory = "./fsassets/data"
     ;SpoolDirectory = "./fsassets/tmp"
-    
+
     ;; Original service can be checked if FSAssets can not find an asset
     ;FallbackService = "OpenSim.Services.AssetService.dll:AssetService";
-    
+
     ;; How many days since last updating the access time before its updated again by FSAssets when accessing an asset
     ;; Reduces DB calls if asset is requested often. Default value 0 will always update access time
     ;DaysBetweenAccessTimeUpdates = 30
-    
+
     ;; Should FSAssets print read/write stats to the robust console, default is true
     ;ShowConsoleStats = true
-    
+
     ;; FSAssets Custom Database Config (Leave blank to use grids default database configuration)
     ;StorageProvider = ""
     ;ConnectionString = ""
     ;Realm = "fsassets"
-    
+
     ;; The following are common to both the default asset service and FSAsset service
 
     ;; Common asset service options
@@ -288,7 +301,7 @@
     LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
 
     ; Realm = "regions"
-    ; AllowDuplicateNames = "True"
+    ; AllowDuplicateNames = ""
 
     ;; Perform distance check for the creation of a linked region
     ; Check4096 = "True"
@@ -298,25 +311,25 @@
 
     ;; Directory for map tile images of linked regions
     ; MapTileDirectory = "./maptiles"
- 
+
     ;; Next, we can specify properties of regions, including default and fallback regions
     ;; The syntax is: Region_<RegionName> = "<flags>"
     ;; or:            Region_<RegionID> = "<flags>"
     ;; where <flags> can be DefaultRegion, DefaultHGRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut, Reservation, NoMove, Authenticate
-    ;;  
+    ;;
     ;; DefaultRegion    If a local login cannot be placed in the required region (e.g. home region does not exist, avatar is not allowed entry, etc.)
     ;;                  then this region becomes the destination.  Only the first online default region will be used.  If no DefaultHGRegion
     ;;                  is specified then this will also be used as the region for hypergrid connections that require it (commonly because they have not specified
     ;;                  an explicit region.
-    ;;  
+    ;;
     ;; DefaultHGRegion  If an avatar connecting via the hypergrid does not specify a region, then they are placed here.  Only the first online
     ;;                  region will be used.
-    ;;  
-    ;; FallbackRegion   If the DefaultRegion is not available for a local login, then any FallbackRegions are tried instead.  These are tried in the 
+    ;;
+    ;; FallbackRegion   If the DefaultRegion is not available for a local login, then any FallbackRegions are tried instead.  These are tried in the
     ;;                  order specified.  This only applies to local logins at this time, not Hypergrid connections.
-    ;;  
+    ;;
     ;; NoDirectLogin    A hypergrid user cannot directly connect to this region.  This does not apply to local logins.
-    ;;  
+    ;;
     ;; Persistent       When the simulator is shutdown, the region is signalled as offline but left registered on the grid.
     ;;
     ;; Example specification:
@@ -365,19 +378,19 @@
     ;; The following parameters are for STUN = Simple Traversal of UDP through NATs
     ;; See http://wiki.freeswitch.org/wiki/NAT_Traversal
     ;; stun.freeswitch.org is not guaranteed to be running so use it in
-    ;; production at your own risk    
+    ;; production at your own risk
     ; EchoServer = 127.0.0.1
     ; EchoPort = 50505
     ; AttemptSTUN = false
 
 
 ; * This is the new style authentication service. Currently, only MySQL
-; * is implemented. 
+; * is implemented.
 ; *
 [AuthenticationService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
-    ; Realm = "useraccounts"
+    ; Realm = "auth"
 
     ;; Allow the service to process HTTP getauthinfo calls.
     ;; Default is false.
@@ -400,13 +413,13 @@
 
 ; * This is the new style user service.
 ; * "Realm" is the table that is used for user lookup.
-; * It defaults to "useraccounts", which uses the new style.
+; * It defaults to "UserAccounts", which uses the new style.
 ; * Realm = "users" will use the legacy tables as an authentication source
 ; *
 [UserAccountService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.UserAccountService.dll:UserAccountService"
-    ; Realm = "useraccounts"
+    ; Realm = "UserAccounts"
 
     ; These are for creating new accounts by the service
     AuthenticationService = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
@@ -416,7 +429,7 @@
     AvatarService = "OpenSim.Services.AvatarService.dll:AvatarService"
     GridUserService = "OpenSim.Services.UserAccountService.dll:GridUserService"
 
-    ;; This switch creates the minimum set of body parts and avatar entries for a viewer 2 
+    ;; This switch creates the minimum set of body parts and avatar entries for a viewer 2
     ;; to show a default "Ruth" avatar rather than a cloud for a newly created user.
     ;; Default is false
     CreateDefaultAvatarEntries = true
@@ -443,10 +456,6 @@
 [PresenceService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.PresenceService.dll:PresenceService"
-
-    ; Set this to true to allow the use of advanced web services and multiple
-    ; bots using one account
-    AllowDuplicatePresences = false;
 
 [AvatarService]
     ; for the server connector
@@ -516,7 +525,7 @@
 
     ; If you run this login server behind a proxy, set this to true
     ; HasProxy = false
-    
+
     ; Defaults for the users, if none is specified in the useraccounts table entry (ServiceURLs)
     ;; If you have GatekeeperURI set under [Hypergrid], no need to set it here, leave it commented
     ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
@@ -534,8 +543,8 @@
     ;; However, they do rely on the server to tell them whether it's Daylight Saving Time or not.
     ;; Hence, calculating DST based on a different timezone can result in a misleading viewer display and inconsistencies between grids.
     ;; By default, this setting uses various timezone names to calculate DST with regards to the viewer's standard PST.
-    ;; Options are 
-    ;;   "none"     no DST 
+    ;; Options are
+    ;;   "none"     no DST
     ;;   "local"    use the server's only timezone to calculate DST.  This is previous OpenSimulator behaviour.
     ;;   "America/Los_Angeles;Pacific Standard Time" use these timezone names to look up Daylight savings.
     ;;      'America/Los_Angeles' is used on Linux/Mac systems whilst 'Pacific Standard Time' is used on Windows
@@ -556,7 +565,7 @@
     ;;
     ;; The amount of time that a specific endpoint is blocked.    Default 2 minutes.
     ;DOSForgiveClientAfterMS = 120000
-    ;; 
+    ;;
     ;; To turn off basic dos protection, set the DOSMaxRequestsInTimeFrame to 0.
 
 
@@ -636,10 +645,10 @@
     ;; If you have GatekeeperURI set under [Hypergrid], no need to set it here, leave it commented
     ; ExternalName = "${Const|BaseURL}:${Const|PublicPort}"
 
-    ; Does this grid allow incoming links to any region in it? 
+    ; Does this grid allow incoming links to any region in it?
     ; If false, HG TPs happen only to the Default regions specified in [GridService] section
     AllowTeleportsToAnyRegion = true
-    
+
     ; If you run this gatekeeper server behind a proxy, set this to true
     ; HasProxy = false
 
@@ -701,10 +710,10 @@
 
 ; * The interface that local users get when they are in other grids.
 ; * This restricts the inventory operations while in other grids.
-; * Still not completely safe, especially if users perform inventory operations 
+; * Still not completely safe, especially if users perform inventory operations
 ; * while in those grids. The more the user accesses his/her inventory, the more
 ; * those simulators will know about the user's inventory.
-; * 
+; *
 [HGInventoryService]
     ; For the InventoryServiceInConnector
     LocalServiceModule    = "OpenSim.Services.HypergridService.dll:HGSuitcaseInventoryService"
@@ -717,7 +726,7 @@
     UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
     AvatarService = "OpenSim.Services.AvatarService.dll:AvatarService"
 
-    ; HGInventoryService is a public-facing inventory service that allows users to 
+    ; HGInventoryService is a public-facing inventory service that allows users to
     ; interact with their suitcase folder when on a foreign grid.  This reuses the general inventory service connector.
     ; Hence, if the user has set up authentication in [Network] to protect their private services
     ; make sure it is not set here.
@@ -730,15 +739,15 @@
 ; * The interface that local users get when they are in other grids.
 ; * This restricts the access that the rest of the world has to
 ; * the assets of this world.
-; * 
+; *
 [HGAssetService]
     ;; Use the second option if you have FSAsset service enabled
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGAssetService"
     ;LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGFSAssetService"
-    
+
     UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
 
-    ; HGAssetService is a public-facing service that allows users to  
+    ; HGAssetService is a public-facing service that allows users to
     ; read and create assets when on another grid.  This reuses the general asset service connector.
     ; Hence, if the user has set up authentication in [Network] to protect their private services
     ; make sure it is overriden for this public service.
@@ -750,11 +759,11 @@
     ;; The asset types that this grid can export to / import from other grids.
     ;; Comma separated.
     ;; Valid values are all the asset types in OpenMetaverse.AssetType, namely:
-    ;; Unknown, Texture, Sound, CallingCard, Landmark, Clothing, Object, Notecard, LSLText, 
-    ;; LSLBytecode, TextureTGA, Bodypart, SoundWAV, ImageTGA, ImageJPEG, Animation, Gesture, Mesh 
+    ;; Unknown, Texture, Sound, CallingCard, Landmark, Clothing, Object, Notecard, LSLText,
+    ;; LSLBytecode, TextureTGA, Bodypart, SoundWAV, ImageTGA, ImageJPEG, Animation, Gesture, Mesh
     ;;
     ;; Leave blank or commented if you don't want to apply any restrictions.
-    ;; A more strict, but still reasonable, policy may be to disallow the exchange 
+    ;; A more strict, but still reasonable, policy may be to disallow the exchange
     ;; of scripts, like so:
     ; DisallowExport ="LSLText"
     ; DisallowImport ="LSLBytecode"
@@ -811,3 +820,6 @@
     LocalServiceModule = "OpenSim.Server.Handlers.dll:XBakes"
     ;; This directory must be writable by the user ROBUST runs as. It will be created automatically.
     BaseDirectory = "./bakes"
+
+[MuteListService]
+	LocalServiceModule = "OpenSim.Services.MuteListService.dll:MuteListService"

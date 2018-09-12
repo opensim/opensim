@@ -103,41 +103,39 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
         public static float noise2(float x, float y)
         {
-            int bx0, bx1, by0, by1, b00, b10, b01, b11;
+            int bx, by, b00, b10, b01, b11;
             float rx0, rx1, ry0, ry1, sx, sy, a, b, t, u, v;
             int i, j;
 
             t = x + N;
-            bx0 = ((int)t) & BM;
-            bx1 = (bx0 + 1) & BM;
             rx0 = t - (int)t;
-            rx1 = rx0 - 1f;
+            bx = ((int)t) & BM;
+            i = p[bx];
+            bx = (bx + 1) & BM;
+            j = p[bx];
 
             t = y + N;
-            by0 = ((int)t) & BM;
-            by1 = (by0 + 1) & BM;
             ry0 = t - (int)t;
-            ry1 = ry0 - 1f;
+            by = ((int)t) & BM;
+            b00 = p[i + by];
+            b10 = p[j + by];
 
-            i = p[bx0];
-            j = p[bx1];
-
-            b00 = p[i + by0];
-            b10 = p[j + by0];
-            b01 = p[i + by1];
-            b11 = p[j + by1];
+            by = (by + 1) & BM;
+            b01 = p[i + by];
+            b11 = p[j + by];
 
             sx = s_curve(rx0);
-            sy = s_curve(ry0);
-
             u = rx0 * g2[b00, 0] + ry0 * g2[b00, 1];
+            rx1 = rx0 - 1f;
             v = rx1 * g2[b10, 0] + ry0 * g2[b10, 1];
             a = Utils.Lerp(u, v, sx);
 
+            ry1 = ry0 - 1f;
             u = rx0 * g2[b01, 0] + ry1 * g2[b01, 1];
             v = rx1 * g2[b11, 0] + ry1 * g2[b11, 1];
             b = Utils.Lerp(u, v, sx);
 
+            sy = s_curve(ry0);
             return Utils.Lerp(a, b, sy);
         }
 
@@ -202,12 +200,10 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         public static float turbulence1(float x, float freq)
         {
             float t;
-            float v;
 
             for (t = 0f; freq >= 1f; freq *= 0.5f)
             {
-                v = freq * x;
-                t += noise1(v) / freq;
+                t += noise1(freq * x) / freq;
             }
             return t;
         }
@@ -215,28 +211,20 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         public static float turbulence2(float x, float y, float freq)
         {
             float t;
-            Vector2 vec;
 
             for (t = 0f; freq >= 1f; freq *= 0.5f)
-            {
-                vec.X = freq * x;
-                vec.Y = freq * y;
-                t += noise2(vec.X, vec.Y) / freq;
-            }
+                t += noise2(freq * x, freq * y) / freq;
+
             return t;
         }
 
         public static float turbulence3(float x, float y, float z, float freq)
         {
             float t;
-            Vector3 vec;
 
             for (t = 0f; freq >= 1f; freq *= 0.5f)
             {
-                vec.X = freq * x;
-                vec.Y = freq * y;
-                vec.Z = freq * z;
-                t += noise3(vec.X, vec.Y, vec.Z) / freq;
+                t += noise3(freq * x, freq * y, freq * z) / freq;
             }
             return t;
         }
@@ -244,23 +232,28 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private static void normalize2(float[,] v, int i)
         {
             float s;
+            float a = v[i, 0];
+            float b = v[i, 1];
 
-            s = (float)Math.Sqrt(v[i, 0] * v[i, 0] + v[i, 1] * v[i, 1]);
+            s = (float)Math.Sqrt(a * a +  b * b);
             s = 1.0f / s;
-            v[i, 0] = v[i, 0] * s;
-            v[i, 1] = v[i, 1] * s;
+            v[i, 0] = a * s;
+            v[i, 1] = b * s;
         }
 
         private static void normalize3(float[,] v, int i)
         {
             float s;
+            float a = v[i, 0];
+            float b = v[i, 1];
+            float c = v[i, 2];
 
-            s = (float)Math.Sqrt(v[i, 0] * v[i, 0] + v[i, 1] * v[i, 1] + v[i, 2] * v[i, 2]);
+            s = (float)Math.Sqrt(a * a + b * b + c * c);
             s = 1.0f / s;
 
-            v[i, 0] = v[i, 0] * s;
-            v[i, 1] = v[i, 1] * s;
-            v[i, 2] = v[i, 2] * s;
+            v[i, 0] = a * s;
+            v[i, 1] = b * s;
+            v[i, 2] = c * s;
         }
 
         private static float s_curve(float t)

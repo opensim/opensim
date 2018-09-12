@@ -1,0 +1,16 @@
+:VERSION 1
+
+BEGIN;
+
+CREATE TABLE `MuteList` (
+  `AgentID` char(36) NOT NULL,
+  `MuteID` char(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000',
+  `MuteName` varchar(64) NOT NULL DEFAULT '',
+  `MuteType` int(11) NOT NULL DEFAULT '1',
+  `MuteFlags` int(11) NOT NULL DEFAULT '0',
+  `Stamp` int(11) NOT NULL,
+  UNIQUE KEY `AgentID_2` (`AgentID`,`MuteID`,`MuteName`),
+  KEY `AgentID` (`AgentID`)
+);
+
+COMMIT;

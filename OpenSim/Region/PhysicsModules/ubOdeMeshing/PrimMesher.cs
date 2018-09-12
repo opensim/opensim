@@ -755,8 +755,8 @@ namespace PrimMesher
                             if (hollowAngles.angles[0].angle - angles.angles[i].angle < angles.angles[i].angle - hollowAngles.angles[maxJ].angle + 0.000001f)
                             {
                                 newFace.v1 = 0;
-                                newFace.v2 = numTotalVerts - maxJ - 1;
-                                newFace.v3 = numTotalVerts - 1;
+                                newFace.v2 = numTotalVerts - 1;
+                                newFace.v3 = numTotalVerts - maxJ - 1;
 
                                 faces.Add(newFace);
                             }

@@ -66,8 +66,6 @@ namespace OpenSim.Capabilities.Handlers
             Hashtable ret = new Hashtable();
             ret["int_response_code"] = (int)System.Net.HttpStatusCode.NotFound;
             ret["content_type"] = "text/plain";
-            ret["keepalive"] = false;
-            ret["reusecontext"] = false;
             ret["int_bytes"] = 0;
             string textureStr = (string)request["texture_id"];
             string format = (string)request["format"];
@@ -112,8 +110,6 @@ namespace OpenSim.Capabilities.Handlers
                     ret["error_status_text"] = "not found";
                     ret["str_response_string"] = "not found";
                     ret["content_type"] = "text/plain";
-                    ret["keepalive"] = false;
-                    ret["reusecontext"] = false;
                     ret["int_bytes"] = 0;
                 }
             }
@@ -362,8 +358,6 @@ namespace OpenSim.Capabilities.Handlers
             {
                 // Taking our jpeg2000 data, decoding it, then saving it to a byte array with regular data
 
-                imgstream = new MemoryStream();
-
                 // Decode image to System.Drawing.Image
                 if (OpenJPEG.DecodeToImage(texture.Data, out managedImage, out image) && image != null)
                 {
@@ -404,10 +398,7 @@ namespace OpenSim.Capabilities.Handlers
                 if(managedImage != null)
                     managedImage.Clear();
                 if (imgstream != null)
-                {
-                    imgstream.Close();
                     imgstream.Dispose();
-                }
             }
 
             return data;

@@ -658,7 +658,7 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
         public void Process()
         {
             _finished = false;
-            httpThread = WorkManager.StartThread(SendRequest, "HttpRequestThread", ThreadPriority.BelowNormal, true, false);
+            httpThread = WorkManager.StartThread(SendRequest, "XMLRPCreqThread", ThreadPriority.BelowNormal, true, false, null, int.MaxValue);
         }
 
         /*

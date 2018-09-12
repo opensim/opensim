@@ -1,7 +1,7 @@
 @echo OFF
 
 bin\Prebuild.exe /target nant
-bin\Prebuild.exe /target vs2010
+bin\Prebuild.exe /target vs2015
 
 setlocal ENABLEEXTENSIONS
 set KEY_NAME="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MSBuild\ToolsVersions\4.0"

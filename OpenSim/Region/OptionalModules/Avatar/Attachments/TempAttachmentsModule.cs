@@ -174,7 +174,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
                         child.TriggerScriptChangedEvent(Changed.OWNER);
                         child.ApplyNextOwnerPermissions();
                     }
-                    hostgroup.AggregatePerms();
+                    hostgroup.InvalidateEffectivePerms();
                 }
 
                 hostgroup.RootPart.ObjectSaleType = 0;

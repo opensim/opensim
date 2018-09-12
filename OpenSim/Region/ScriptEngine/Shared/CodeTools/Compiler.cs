@@ -79,12 +79,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
         private List<string> m_warnings = new List<string>();
 
-        // private object m_syncy = new object();
-
-//        private static CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();
-//        private static VBCodeProvider VBcodeProvider = new VBCodeProvider();
-
-        // private static int instanceID = new Random().Next(0, int.MaxValue);                 // Unique number to use on our compiled files
         private static UInt64 scriptCompileCounter = 0;                                     // And a counter
 
         public IScriptEngine m_scriptEngine;
@@ -251,23 +245,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             }
         }
 
-        ////private ICodeCompiler icc = codeProvider.CreateCompiler();
-        //public string CompileFromFile(string LSOFileName)
-        //{
-        //    switch (Path.GetExtension(LSOFileName).ToLower())
-        //    {
-        //        case ".txt":
-        //        case ".lsl":
-        //            Common.ScriptEngineBase.Shared.SendToDebug("Source code is LSL, converting to CS");
-        //            return CompileFromLSLText(File.ReadAllText(LSOFileName));
-        //        case ".cs":
-        //            Common.ScriptEngineBase.Shared.SendToDebug("Source code is CS");
-        //            return CompileFromCSText(File.ReadAllText(LSOFileName));
-        //        default:
-        //            throw new Exception("Unknown script type.");
-        //    }
-        //}
-
         public string GetCompilerOutput(string assetID)
         {
             return Path.Combine(ScriptEnginesPath, Path.Combine(
@@ -392,14 +369,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 {
                     case enumCompileType.cs:
                         compileScript = CreateCSCompilerScript(
-                            compileScript,
+                            source,
                             m_scriptEngine.ScriptClassName,
                             m_scriptEngine.ScriptBaseClassName,
                             m_scriptEngine.ScriptBaseClassParameters);
                         break;
                     case enumCompileType.vb:
                         compileScript = CreateVBCompilerScript(
-                            compileScript, m_scriptEngine.ScriptClassName, m_scriptEngine.ScriptBaseClassName);
+                            source, m_scriptEngine.ScriptClassName, m_scriptEngine.ScriptBaseClassName);
                         break;
                 }
             }
@@ -572,14 +549,15 @@ namespace SecondLife
             parameters.TreatWarningsAsErrors = false;
             parameters.GenerateInMemory = false;
 
+//            parameters.TempFiles = new TempFileCollection(Path.Combine(ScriptEnginesPath,
+//                        m_scriptEngine.World.RegionInfo.RegionID.ToString()), CompileWithDebugInformation);
+
             CompilerResults results;
 
             CodeDomProvider provider;
             switch (lang)
             {
                 case enumCompileType.vb:
-//                    results = VBcodeProvider.CompileAssemblyFromSource(
-//                            parameters, Script);
                     provider = CodeDomProvider.CreateProvider("VisualBasic");
                     break;
                 case enumCompileType.cs:
@@ -594,56 +572,36 @@ namespace SecondLife
             if(provider == null)
                     throw new Exception("Compiler failed to load ");
 
+            bool complete = false;
+            bool retried = false;
 
-                    bool complete = false;
-                    bool retried = false;
-
-                    do
+            do
+            {
+                results = provider.CompileAssemblyFromSource(
+                        parameters, Script);
+                // Deal with an occasional segv in the compiler.
+                // Rarely, if ever, occurs twice in succession.
+                // Line # == 0 and no file name are indications that
+                // this is a native stack trace rather than a normal
+                // error log.
+                if (results.Errors.Count > 0)
+                {
+                    if (!retried && string.IsNullOrEmpty(results.Errors[0].FileName) &&
+                        results.Errors[0].Line == 0)
                     {
-//                        lock (CScodeProvider)
-//                        {
-//                            results = CScodeProvider.CompileAssemblyFromSource(
-//                                parameters, Script);
-//                        }
-
-                        results = provider.CompileAssemblyFromSource(
-                                parameters, Script);
-                        // Deal with an occasional segv in the compiler.
-                        // Rarely, if ever, occurs twice in succession.
-                        // Line # == 0 and no file name are indications that
-                        // this is a native stack trace rather than a normal
-                        // error log.
-                        if (results.Errors.Count > 0)
-                        {
-                            if (!retried && string.IsNullOrEmpty(results.Errors[0].FileName) &&
-                                results.Errors[0].Line == 0)
-                            {
-                                // System.Console.WriteLine("retrying failed compilation");
-                                retried = true;
-                            }
-                            else
-                            {
-                                complete = true;
-                            }
-                        }
-                        else
-                        {
-                            complete = true;
-                        }
-                    } while (!complete);
-//                    break;
-//                default:
-//                    throw new Exception("Compiler is not able to recongnize " +
-//                                        "language type \"" + lang.ToString() + "\"");
-//            }
-
-//            foreach (Type type in results.CompiledAssembly.GetTypes())
-//            {
-//                foreach (MethodInfo method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
-//                {
-//                    m_log.DebugFormat("[COMPILER]: {0}.{1}", type.FullName, method.Name);
-//                }
-//            }
+                        // System.Console.WriteLine("retrying failed compilation");
+                        retried = true;
+                    }
+                    else
+                    {
+                        complete = true;
+                    }
+                }
+                else
+                {
+                    complete = true;
+                }
+            } while (!complete);
 
             //
             // WARNINGS AND ERRORS

@@ -60,6 +60,7 @@ namespace OpenSim.Data.MySQL
                 dbcon.Open();
                 Migration m = new Migration(dbcon, Assembly, "GridStore");
                 m.Update();
+                dbcon.Close();
             }
         }
 
@@ -260,6 +261,8 @@ namespace OpenSim.Data.MySQL
                         retList.Add(ret);
                     }
                 }
+                cmd.Connection = null;
+                dbcon.Close();
             }
 
             return retList;

@@ -123,8 +123,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 "Objects",
                 false,
                 "delete object pos",
-                "delete object pos <start-coord> to <end-coord>",
-                "Delete scene objects within the given area.",
+                "delete object pos <start x, start y , start z> <end x, end y, end z>",
+                "Delete scene objects within the given volume.",
                 ConsoleUtil.CoordHelp,
                 HandleDeleteObject);
 
@@ -162,8 +162,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 "Objects",
                 false,
                 "show object pos",
-                "show object pos [--full] <start-coord> to <end-coord>",
-                "Show details of scene objects within the given area.",
+                "show object pos [--full] <start x, start y , start z> <end x, end y, end z>",
+                "Show details of scene objects within give volume",
                 "The --full option will print out information on all the parts of the object.\n"
                     + "For yet more detailed part information, use the \"show part\" commands.\n"
                     + ConsoleUtil.CoordHelp,
@@ -189,8 +189,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 "Objects",
                 false,
                 "show part pos",
-                "show part pos <start-coord> to <end-coord>",
-                "Show details of scene object parts within the given area.",
+                "show part pos <start x, start y , start z> <end x, end y, end z>",
+                "Show details of scene object parts within the given volume.",
                 ConsoleUtil.CoordHelp,
                 HandleShowPartByPos);
 
@@ -803,12 +803,15 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                     else
                         so = m_scene.GetSceneObjectGroup(localId);
 
-                    if (so!= null && !so.IsAttachment)
-                       deletes.Add(so);
-
-        //                if (deletes.Count == 0)
-        //                    m_console.OutputFormat("No objects were found with uuid {0}", match);
-
+                    if (so!= null)
+                    {
+                        deletes.Add(so);
+                        if(so.IsAttachment)
+                        {
+                            requireConfirmation = true;
+                            m_console.OutputFormat("Warning: object with uuid {0} is a attachment", uuid);
+                        }
+                    }
                     break;
 
                 case "name":
@@ -904,11 +907,11 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             if (useRegex)
             {
                 Regex nameRegex = new Regex(name);
-                searchAction = so => { if (nameRegex.IsMatch(so.Name)) { sceneObjects.Add(so); }};
+                searchAction = so => { if (nameRegex.IsMatch(so.Name)) {if(!so.IsAttachment) sceneObjects.Add(so);}};
             }
             else
             {
-                searchAction = so => { if (so.Name == name) { sceneObjects.Add(so); }};
+                searchAction = so => { if (so.Name == name) {if(!so.IsAttachment) sceneObjects.Add(so);}};
             }
 
             m_scene.ForEachSOG(searchAction);

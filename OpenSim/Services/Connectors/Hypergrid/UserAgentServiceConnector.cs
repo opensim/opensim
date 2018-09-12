@@ -70,9 +70,14 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 {
                     Uri m_Uri = new Uri(m_ServerURL);
                     IPAddress ip = Util.GetHostFromDNS(m_Uri.Host);
-                    m_ServerURL = m_ServerURL.Replace(m_Uri.Host, ip.ToString());
-                    if (!m_ServerURL.EndsWith("/"))
-                        m_ServerURL += "/";
+                    if(ip != null)
+                    {
+                        m_ServerURL = m_ServerURL.Replace(m_Uri.Host, ip.ToString());
+                        if (!m_ServerURL.EndsWith("/"))
+                            m_ServerURL += "/";
+                    }
+                    else
+                        m_log.DebugFormat("[USER AGENT CONNECTOR]: Failed to resolv address of {0}", url);
                 }
                 catch (Exception e)
                 {

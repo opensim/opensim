@@ -183,7 +183,7 @@ namespace OpenSim.Region.Framework.Scenes
                 addFromAllowedDrop = (part.ParentGroup.RootPart.GetEffectiveObjectFlags() & (uint)PrimFlags.AllowInventoryDrop) != 0;
 
             part.Inventory.AddInventoryItem(taskItem, addFromAllowedDrop);
-            part.ParentGroup.AggregatePerms();
+            part.ParentGroup.InvalidateEffectivePerms();
             return true;
 
         }
@@ -252,18 +252,39 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         // new test code, to place in better place later
-        private object PermissionsLock = new object();
+        private object m_PermissionsLock = new object();
+        private bool m_EffectivePermsInvalid = true;
+        private bool m_DeepEffectivePermsInvalid = true;
+
+        // should called when parts chanced  by their contents did not, so we know their cacche is valid
+        // in case of doubt call InvalidateDeepEffectivePerms(), it only costs a bit more cpu time
+        public void InvalidateEffectivePerms()
+        {
+            lock(m_PermissionsLock)
+                m_EffectivePermsInvalid = true;
+        }
+
+        // should called when parts chanced and their contents where accounted for
+        public void InvalidateDeepEffectivePerms()
+        {
+            lock(m_PermissionsLock)
+            {
+                m_DeepEffectivePermsInvalid = true;
+                m_EffectivePermsInvalid = true;
+            }
+        }
 
         private uint m_EffectiveEveryOnePerms;
         public uint EffectiveEveryOnePerms
         {
             get
             {
-                // this can't be done here but on every place where a change may happen (rez, (de)link, contents , perms,  etc)
-                // bc this is on heavy duty code paths
-                // but for now we need to test the concept
-//                AggregateDeepPerms();
-                return m_EffectiveEveryOnePerms;
+                lock(m_PermissionsLock)
+                {
+                    if(m_EffectivePermsInvalid)
+                        AggregatePerms();
+                    return m_EffectiveEveryOnePerms;
+                }
             }
         }
 
@@ -272,11 +293,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                // this can't be done here but on every place where a change may happen (rez, (de)link, contents , perms,  etc)
-                // bc this is on heavy duty code paths
-                // but for now we need to test the concept
-//                AggregateDeepPerms();
-                return m_EffectiveGroupPerms;
+                lock(m_PermissionsLock)
+                {
+                    if(m_EffectivePermsInvalid)
+                        AggregatePerms();
+                    return m_EffectiveGroupPerms;
+                }
             }
         }
 
@@ -285,11 +307,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                // this can't be done here but on every place where a change may happen (rez, (de)link, contents , perms,  etc)
-                // bc this is on heavy duty code paths
-                // but for now we need to test the concept
-//                AggregateDeepPerms();
-                return m_EffectiveGroupOrEveryOnePerms;
+                lock(m_PermissionsLock)
+                {
+                    if(m_EffectivePermsInvalid)
+                        AggregatePerms();
+                    return m_EffectiveGroupOrEveryOnePerms;
+                }
             }
         }
 
@@ -298,86 +321,18 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                // this can't be done here but on every place where a change may happen (rez, (de)link, contents , perms,  etc)
-                // bc this is on heavy duty code paths
-                // but for now we need to test the concept
- //               AggregateDeepPerms();
-                return m_EffectiveOwnerPerms;
-            }
-        }
-
-        // aggregates perms scanning parts and their contents
-        // AggregatePerms does same using cached parts content perms
-        public void AggregateDeepPerms()
-        {
-            lock(PermissionsLock)
-            {
-                // aux
-                const uint allmask = (uint)PermissionMask.AllEffective;
-                const uint movemodmask = (uint)(PermissionMask.Move | PermissionMask.Modify);
-                const uint copytransfermast = (uint)(PermissionMask.Copy | PermissionMask.Transfer);
-
-                uint basePerms = (RootPart.BaseMask & allmask) | (uint)PermissionMask.Move;
-                bool noBaseTransfer = (basePerms & (uint)PermissionMask.Transfer) == 0;
-
-                uint rootOwnerPerms = RootPart.OwnerMask;
-                uint owner = rootOwnerPerms;
-                uint rootGroupPerms = RootPart.GroupMask;
-                uint group = rootGroupPerms;
-                uint rootEveryonePerms = RootPart.EveryoneMask;
-                uint everyone = rootEveryonePerms;
-
-                SceneObjectPart[] parts = m_parts.GetArray();
-                for (int i = 0; i < parts.Length; i++)
+                lock(m_PermissionsLock)
                 {
-                    SceneObjectPart part = parts[i];
-                    part.AggregateInnerPerms();
-                    owner &= part.AggregatedInnerOwnerPerms; 
-                    group &= part.AggregatedInnerGroupPerms;
-                    everyone &= part.AggregatedInnerEveryonePerms;
+                    if(m_EffectivePermsInvalid)
+                        AggregatePerms();
+                    return m_EffectiveOwnerPerms;
                 }
-                // recover modify and move
-                rootOwnerPerms &= movemodmask;
-                owner |= rootOwnerPerms;
-                if((owner & copytransfermast) == 0)
-                    owner |= (uint)PermissionMask.Transfer;
-
-                owner &= basePerms;
-                m_EffectiveOwnerPerms = owner;
-                uint ownertransfermask = owner & (uint)PermissionMask.Transfer;
-
-                // recover modify and move
-                rootGroupPerms &= movemodmask;
-                group |= rootGroupPerms;
-                if(noBaseTransfer)
-                    group &=~(uint)PermissionMask.Copy;
-                else
-                    group |= ownertransfermask;
-
-                uint groupOrEveryone = group;
-                m_EffectiveGroupPerms = group & owner;
-
-                // recover move
-                rootEveryonePerms &= (uint)PermissionMask.Move;
-                everyone |= rootEveryonePerms;
-                everyone &= ~(uint)PermissionMask.Modify;
-                if(noBaseTransfer)
-                    everyone &=~(uint)PermissionMask.Copy;
-                else
-                    everyone |= ownertransfermask;
-
-                groupOrEveryone |= everyone;
-
-                m_EffectiveEveryOnePerms = everyone  & owner;
-                m_EffectiveGroupOrEveryOnePerms = groupOrEveryone  & owner;
             }
         }
 
-        // aggregates perms scanning parts, assuming their contents was already aggregated and cached
-        // ie is AggregateDeepPerms without the part.AggregateInnerPerms() call on parts loop
         public void AggregatePerms()
         {
-            lock(PermissionsLock)
+            lock(m_PermissionsLock)
             {
                 // aux
                 const uint allmask = (uint)PermissionMask.AllEffective;
@@ -394,13 +349,23 @@ namespace OpenSim.Region.Framework.Scenes
                 uint rootEveryonePerms = RootPart.EveryoneMask;
                 uint everyone = rootEveryonePerms;
 
+                bool needUpdate = false;
+                // date is time of writing april 30th 2017
+                bool newobj = (RootPart.CreationDate == 0 || RootPart.CreationDate > 1493574994);
                 SceneObjectPart[] parts = m_parts.GetArray();
                 for (int i = 0; i < parts.Length; i++)
                 {
                     SceneObjectPart part = parts[i];
+
+                    if(m_DeepEffectivePermsInvalid)
+                        part.AggregatedInnerPermsForGroup();
+
                     owner &= part.AggregatedInnerOwnerPerms; 
                     group &= part.AggregatedInnerGroupPerms;
-                    everyone &= part.AggregatedInnerEveryonePerms;
+                    if(newobj)
+                        group &= part.AggregatedInnerGroupPerms;
+                    if(newobj)
+                        everyone &= part.AggregatedInnerEveryonePerms;
                 }
                 // recover modify and move
                 rootOwnerPerms &= movemodmask;
@@ -409,7 +374,12 @@ namespace OpenSim.Region.Framework.Scenes
                     owner |= (uint)PermissionMask.Transfer;
 
                 owner &= basePerms;
-                m_EffectiveOwnerPerms = owner;
+                if(owner != m_EffectiveOwnerPerms)
+                {
+                    needUpdate = true;
+                    m_EffectiveOwnerPerms = owner;
+                }
+
                 uint ownertransfermask = owner & (uint)PermissionMask.Transfer;
 
                 // recover modify and move
@@ -421,7 +391,12 @@ namespace OpenSim.Region.Framework.Scenes
                     group |= ownertransfermask;
 
                 uint groupOrEveryone = group;
-                m_EffectiveGroupPerms = group & owner;
+                uint tmpPerms = group & owner;
+                if(tmpPerms != m_EffectiveGroupPerms)
+                {
+                    needUpdate = true;
+                    m_EffectiveGroupPerms = tmpPerms;
+                }
 
                 // recover move
                 rootEveryonePerms &= (uint)PermissionMask.Move;
@@ -434,35 +409,43 @@ namespace OpenSim.Region.Framework.Scenes
 
                 groupOrEveryone |= everyone;
 
-                m_EffectiveEveryOnePerms = everyone  & owner;
-                m_EffectiveGroupOrEveryOnePerms = groupOrEveryone  & owner;
+                tmpPerms = everyone  & owner;
+                if(tmpPerms != m_EffectiveEveryOnePerms)
+                {
+                    needUpdate = true;
+                    m_EffectiveEveryOnePerms = tmpPerms;
+                }
+
+                tmpPerms = groupOrEveryone  & owner;
+                if(tmpPerms != m_EffectiveGroupOrEveryOnePerms)
+                {
+                    needUpdate = true;
+                    m_EffectiveGroupOrEveryOnePerms = tmpPerms;
+                }
+
+                m_DeepEffectivePermsInvalid = false;
+                m_EffectivePermsInvalid = false;
+              
+                if(needUpdate)
+                    RootPart.ScheduleFullUpdate();
             }
         }
 
-        public uint GetEffectivePermissions()
-        {
-            return GetEffectivePermissions(false);
-        }
-
-        public uint GetEffectivePermissions(bool useBase)
+        public uint CurrentAndFoldedNextPermissions()
         {
             uint perms=(uint)(PermissionMask.Modify |
                               PermissionMask.Copy |
                               PermissionMask.Move |
-                              PermissionMask.Transfer) | 7;
+                              PermissionMask.Transfer |
+                              PermissionMask.FoldedMask);
 
-            uint ownerMask = 0x7fffffff;
+            uint ownerMask = RootPart.OwnerMask;
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
-
-                if (useBase)
-                    ownerMask &= part.BaseMask;
-                else
-                    ownerMask &= part.OwnerMask;
-
+                ownerMask &= part.BaseMask;
                 perms &= part.Inventory.MaskEffectivePermissions();
             }
 
@@ -472,17 +455,8 @@ namespace OpenSim.Region.Framework.Scenes
                 perms &= ~(uint)PermissionMask.Copy;
             if ((ownerMask & (uint)PermissionMask.Transfer) == 0)
                 perms &= ~(uint)PermissionMask.Transfer;
-
-            // If root prim permissions are applied here, this would screw
-            // with in-inventory manipulation of the next owner perms
-            // in a major way. So, let's move this to the give itself.
-            // Yes. I know. Evil.
-//            if ((ownerMask & RootPart.NextOwnerMask & (uint)PermissionMask.Modify) == 0)
-//                perms &= ~((uint)PermissionMask.Modify >> 13);
-//            if ((ownerMask & RootPart.NextOwnerMask & (uint)PermissionMask.Copy) == 0)
-//                perms &= ~((uint)PermissionMask.Copy >> 13);
-//            if ((ownerMask & RootPart.NextOwnerMask & (uint)PermissionMask.Transfer) == 0)
-//                perms &= ~((uint)PermissionMask.Transfer >> 13);
+            if ((ownerMask & (uint)PermissionMask.Export) == 0)
+                perms &= ~(uint)PermissionMask.Export;
 
             return perms;
         }

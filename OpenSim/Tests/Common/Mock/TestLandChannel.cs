@@ -42,6 +42,8 @@ namespace OpenSim.Tests.Common
         private Scene m_scene;
         private List<ILandObject> m_parcels;
 
+        public float BanLineSafeHeight { get { return 100f; } }
+
         public TestLandChannel(Scene scene)
         {
             m_scene = scene;
@@ -96,6 +98,11 @@ namespace OpenSim.Tests.Common
             return GetNoLand();
         }
 
+        public ILandObject GetLandObject(UUID ID)
+        {
+            return GetNoLand();
+        }
+
         public ILandObject GetLandObject(float x, float y)
         {
             return GetNoLand();
@@ -104,6 +111,7 @@ namespace OpenSim.Tests.Common
         public bool IsLandPrimCountTainted() { return false; }
         public bool IsForcefulBansAllowed() { return false; }
         public void UpdateLandObject(int localID, LandData data) {}
+        public void SendParcelsOverlay(IClientAPI client) {}
         public void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient) {}
         public void setParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel) {}
         public void setSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel) {}

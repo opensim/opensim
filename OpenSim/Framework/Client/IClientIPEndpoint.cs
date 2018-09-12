@@ -34,6 +34,6 @@ namespace OpenSim.Framework.Client
 {
     public interface IClientIPEndpoint
     {
-        IPAddress EndPoint { get; }
+        IPEndPoint  RemoteEndPoint { get; }
     }
 }

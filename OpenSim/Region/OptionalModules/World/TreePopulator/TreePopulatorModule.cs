@@ -27,8 +27,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Timers;
+using System.Threading;
+using System.Xml;
+using System.Xml.Serialization;
+
 using OpenMetaverse;
 using log4net;
 using Mono.Addins;
@@ -38,9 +43,7 @@ using OpenSim.Region.CoreModules.Framework.InterfaceCommander;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-using System.Xml;
-using System.Xml.Serialization;
-using System.IO;
+using Timer= System.Timers.Timer;
 
 namespace OpenSim.Region.OptionalModules.World.TreePopulator
 {
@@ -48,7 +51,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
     /// Version 2.02 - Still hacky
     /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "TreePopulatorModule")]
-    public class TreePopulatorModule : INonSharedRegionModule, ICommandableModule, IVegetationModule
+    public class TreePopulatorModule : INonSharedRegionModule, ICommandableModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private readonly Commander m_commander = new Commander("tree");
@@ -82,20 +85,20 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
             {
                 Copse cp = (Copse)DeserializeObject(fileName);
 
-                this.m_name = cp.m_name;
-                this.m_frozen = cp.m_frozen;
-                this.m_tree_quantity = cp.m_tree_quantity;
-                this.m_treeline_high = cp.m_treeline_high;
-                this.m_treeline_low = cp.m_treeline_low;
-                this.m_range = cp.m_range;
-                this.m_tree_type = cp.m_tree_type;
-                this.m_seed_point = cp.m_seed_point;
-                this.m_initial_scale = cp.m_initial_scale;
-                this.m_maximum_scale = cp.m_maximum_scale;
-                this.m_initial_scale = cp.m_initial_scale;
-                this.m_rate = cp.m_rate;
-                this.m_planted = planted;
-                this.m_trees = new List<UUID>();
+                m_name = cp.m_name;
+                m_frozen = cp.m_frozen;
+                m_tree_quantity = cp.m_tree_quantity;
+                m_treeline_high = cp.m_treeline_high;
+                m_treeline_low = cp.m_treeline_low;
+                m_range = cp.m_range;
+                m_tree_type = cp.m_tree_type;
+                m_seed_point = cp.m_seed_point;
+                m_initial_scale = cp.m_initial_scale;
+                m_maximum_scale = cp.m_maximum_scale;
+                m_initial_scale = cp.m_initial_scale;
+                m_rate = cp.m_rate;
+                m_planted = planted;
+                m_trees = new List<UUID>();
             }
 
             public Copse(string copsedef)
@@ -103,61 +106,63 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
                 char[] delimiterChars = {':', ';'};
                 string[] field = copsedef.Split(delimiterChars);
 
-                this.m_name = field[1].Trim();
-                this.m_frozen = (copsedef[0] == 'F');
-                this.m_tree_quantity = int.Parse(field[2]);
-                this.m_treeline_high = float.Parse(field[3], Culture.NumberFormatInfo);
-                this.m_treeline_low = float.Parse(field[4], Culture.NumberFormatInfo);
-                this.m_range = double.Parse(field[5], Culture.NumberFormatInfo);
-                this.m_tree_type = (Tree) Enum.Parse(typeof(Tree),field[6]);
-                this.m_seed_point = Vector3.Parse(field[7]);
-                this.m_initial_scale = Vector3.Parse(field[8]);
-                this.m_maximum_scale = Vector3.Parse(field[9]);
-                this.m_rate = Vector3.Parse(field[10]);
-                this.m_planted = true;
-                this.m_trees = new List<UUID>();
+                m_name = field[1].Trim();
+                m_frozen = (copsedef[0] == 'F');
+                m_tree_quantity = int.Parse(field[2]);
+                m_treeline_high = float.Parse(field[3], Culture.NumberFormatInfo);
+                m_treeline_low = float.Parse(field[4], Culture.NumberFormatInfo);
+                m_range = double.Parse(field[5], Culture.NumberFormatInfo);
+                m_tree_type = (Tree) Enum.Parse(typeof(Tree),field[6]);
+                m_seed_point = Vector3.Parse(field[7]);
+                m_initial_scale = Vector3.Parse(field[8]);
+                m_maximum_scale = Vector3.Parse(field[9]);
+                m_rate = Vector3.Parse(field[10]);
+                m_planted = true;
+                m_trees = new List<UUID>();
             }
 
             public Copse(string name, int quantity, float high, float low, double range, Vector3 point, Tree type, Vector3 scale, Vector3 max_scale, Vector3 rate, List<UUID> trees)
             {
-                this.m_name = name;
-                this.m_frozen = false;
-                this.m_tree_quantity = quantity;
-                this.m_treeline_high = high;
-                this.m_treeline_low = low;
-                this.m_range = range;
-                this.m_tree_type = type;
-                this.m_seed_point = point;
-                this.m_initial_scale = scale;
-                this.m_maximum_scale = max_scale;
-                this.m_rate = rate;
-                this.m_planted = false;
-                this.m_trees = trees;
+                m_name = name;
+                m_frozen = false;
+                m_tree_quantity = quantity;
+                m_treeline_high = high;
+                m_treeline_low = low;
+                m_range = range;
+                m_tree_type = type;
+                m_seed_point = point;
+                m_initial_scale = scale;
+                m_maximum_scale = max_scale;
+                m_rate = rate;
+                m_planted = false;
+                m_trees = trees;
             }
 
             public override string ToString()
             {
-                string frozen = (this.m_frozen ? "F" : "A");
+                string frozen = (m_frozen ? "F" : "A");
 
                 return string.Format("{0}TPM: {1}; {2}; {3:0.0}; {4:0.0}; {5:0.0}; {6}; {7:0.0}; {8:0.0}; {9:0.0}; {10:0.00};",
                     frozen,
-                    this.m_name,
-                    this.m_tree_quantity,
-                    this.m_treeline_high,
-                    this.m_treeline_low,
-                    this.m_range,
-                    this.m_tree_type,
-                    this.m_seed_point.ToString(),
-                    this.m_initial_scale.ToString(),
-                    this.m_maximum_scale.ToString(),
-                    this.m_rate.ToString());
+                    m_name,
+                    m_tree_quantity,
+                    m_treeline_high,
+                    m_treeline_low,
+                    m_range,
+                    m_tree_type,
+                    m_seed_point.ToString(),
+                    m_initial_scale.ToString(),
+                    m_maximum_scale.ToString(),
+                    m_rate.ToString());
             }
         }
 
-        private List<Copse> m_copse;
-
+        private List<Copse> m_copses = new List<Copse>();
+        private object mylock;
         private double m_update_ms = 1000.0; // msec between updates
         private bool m_active_trees = false;
+        private bool m_enabled = true; // original default
+        private bool m_allowGrow = true; // original default
 
         Timer CalculateTrees;
 
@@ -174,51 +179,51 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
 
         public void Initialise(IConfigSource config)
         {
-
-            // ini file settings
-            try
+            IConfig moduleConfig = config.Configs["Trees"];
+            if (moduleConfig != null)
             {
-                m_active_trees = config.Configs["Trees"].GetBoolean("active_trees", m_active_trees);
-            }
-            catch (Exception)
-            {
-                m_log.Debug("[TREES]: ini failure for active_trees - using default");
+                m_enabled = moduleConfig.GetBoolean("enabled", m_enabled);
+                m_active_trees = moduleConfig.GetBoolean("active_trees", m_active_trees);
+                m_allowGrow = moduleConfig.GetBoolean("allowGrow", m_allowGrow);
+                m_update_ms = moduleConfig.GetDouble("update_rate", m_update_ms);
             }
 
-            try
-            {
-                m_update_ms = config.Configs["Trees"].GetDouble("update_rate", m_update_ms);
-            }
-            catch (Exception)
-            {
-                m_log.Debug("[TREES]: ini failure for update_rate - using default");
-            }
+            if(!m_enabled)
+                return;
+
+            m_copses =  new List<Copse>();
+            mylock = new object();
 
             InstallCommands();
 
-            m_log.Debug("[TREES]: Initialised tree module");
+            m_log.Debug("[TREES]: Initialised tree populator module");
         }
 
         public void AddRegion(Scene scene)
         {
+            if(!m_enabled)
+                return;
             m_scene = scene;
             m_scene.RegisterModuleCommander(m_commander);
             m_scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
-
+            m_scene.EventManager.OnPrimsLoaded += EventManager_OnPrimsLoaded;
         }
 
         public void RemoveRegion(Scene scene)
         {
-        }
+            if(!m_enabled)
+                return;
+            if(m_active_trees && CalculateTrees != null)
+            {
+                CalculateTrees.Dispose();
+                CalculateTrees = null;
+            }
+            m_scene.EventManager.OnPluginConsole -= EventManager_OnPluginConsole;
+            m_scene.EventManager.OnPrimsLoaded -= EventManager_OnPrimsLoaded;
+        }   
 
         public void RegionLoaded(Scene scene)
         {
-            ReloadCopse();
-            if (m_copse.Count > 0)
-                m_log.Info("[TREES]: Copse load complete");
-
-            if (m_active_trees)
-                activeizeTreeze(true);
         }
 
         public void Close()
@@ -239,6 +244,16 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
         #endregion
 
         //--------------------------------------------------------------
+
+        private void EventManager_OnPrimsLoaded(Scene s)
+        {
+            ReloadCopse();
+            if (m_copses.Count > 0)
+                m_log.Info("[TREES]: Copses loaded" );
+
+            if (m_active_trees)
+                activeizeTreeze(true);
+        }
 
         #region ICommandableModule Members
 
@@ -267,25 +282,57 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
             string copsename = ((string)args[0]).Trim();
             Boolean freezeState = (Boolean) args[1];
 
-            foreach (Copse cp in m_copse)
+            lock(mylock)
             {
-                if (cp.m_name == copsename && (!cp.m_frozen && freezeState || cp.m_frozen && !freezeState))
+                foreach (Copse cp in m_copses)
                 {
-                    cp.m_frozen = freezeState;
-                    foreach (UUID tree in cp.m_trees)
-                    {
-                        SceneObjectPart sop = ((SceneObjectGroup)m_scene.Entities[tree]).RootPart;
-                        sop.Name = (freezeState ? sop.Name.Replace("ATPM", "FTPM") : sop.Name.Replace("FTPM", "ATPM"));
-                        sop.ParentGroup.HasGroupChanged = true;
-                    }
+                    if (cp.m_name != copsename)
+                        continue;
 
-                    m_log.InfoFormat("[TREES]: Activity for copse {0} is frozen {1}", copsename, freezeState);
-                    return;
-                }
-                else if (cp.m_name == copsename && (cp.m_frozen && freezeState || !cp.m_frozen && !freezeState))
-                {
-                    m_log.InfoFormat("[TREES]: Copse {0} is already in the requested freeze state", copsename);
-                    return;
+                    if(!cp.m_frozen && freezeState || cp.m_frozen && !freezeState)
+                    {
+                        cp.m_frozen = freezeState;
+                        List<UUID> losttrees = new List<UUID>();
+                        foreach (UUID tree in cp.m_trees)
+                        {
+                            SceneObjectGroup sog = m_scene.GetSceneObjectGroup(tree);
+                            if(sog != null && !sog.IsDeleted)
+                            {
+                                SceneObjectPart sop = sog.RootPart;
+                                string name = sop.Name;
+                                if(freezeState)
+                                {
+                                    if(name.StartsWith("FTPM"))
+                                        continue;
+                                    if(!name.StartsWith("ATPM"))
+                                        continue;
+                                    sop.Name = sop.Name.Replace("ATPM", "FTPM");
+                                }
+                                else
+                                {
+                                    if(name.StartsWith("ATPM"))
+                                        continue;
+                                    if(!name.StartsWith("FTPM"))
+                                        continue;
+                                    sop.Name = sop.Name.Replace("FTPM", "ATPM");
+                                }
+                                sop.ParentGroup.HasGroupChanged = true;
+                                sog.ScheduleGroupForFullUpdate();
+                            }
+                            else
+                               losttrees.Add(tree);
+                        }
+                        foreach (UUID tree in losttrees)
+                            cp.m_trees.Remove(tree);
+
+                        m_log.InfoFormat("[TREES]: Activity for copse {0} is frozen {1}", copsename, freezeState);
+                        return;
+                    }
+                    else
+                    {
+                        m_log.InfoFormat("[TREES]: Copse {0} is already in the requested freeze state", copsename);
+                        return;
+                    }
                 }
             }
             m_log.InfoFormat("[TREES]: Copse {0} was not found - command failed", copsename);
@@ -297,17 +344,21 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
 
             m_log.InfoFormat("[TREES]: Loading copse definition....");
 
-            copse = new Copse(((string)args[0]), false);
-            foreach (Copse cp in m_copse)
+            lock(mylock)
             {
-                if (cp.m_name == copse.m_name)
+                copse = new Copse(((string)args[0]), false);
                 {
-                    m_log.InfoFormat("[TREES]: Copse: {0} is already defined - command failed", copse.m_name);
-                    return;
+                    foreach (Copse cp in m_copses)
+                    {
+                        if (cp.m_name == copse.m_name)
+                        {
+                            m_log.InfoFormat("[TREES]: Copse: {0} is already defined - command failed", copse.m_name);
+                            return;
+                        }
+                    }
                 }
+                m_copses.Add(copse);
             }
-
-            m_copse.Add(copse);
             m_log.InfoFormat("[TREES]: Loaded copse: {0}", copse.ToString());
         }
 
@@ -318,20 +369,24 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
             m_log.InfoFormat("[TREES]: New tree planting for copse {0}", copsename);
             UUID uuid = m_scene.RegionInfo.EstateSettings.EstateOwner;
 
-            foreach (Copse copse in m_copse)
+            lock(mylock)
             {
-                if (copse.m_name == copsename)
+                foreach (Copse copse in m_copses)
                 {
-                    if (!copse.m_planted)
+                    if (copse.m_name == copsename)
                     {
-                        // The first tree for a copse is created here
-                        CreateTree(uuid, copse, copse.m_seed_point);
-                        copse.m_planted = true;
-                        return;
-                    }
-                    else
-                    {
-                        m_log.InfoFormat("[TREES]: Copse {0} has already been planted", copsename);
+                        if (!copse.m_planted)
+                        {
+                            // The first tree for a copse is created here
+                            CreateTree(uuid, copse, copse.m_seed_point, true);
+                            copse.m_planted = true;
+                            return;
+                        }
+                        else
+                        {
+                            m_log.InfoFormat("[TREES]: Copse {0} has already been planted", copsename);
+                            return;
+                        }
                     }
                 }
             }
@@ -376,45 +431,49 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
             string copsename = ((string)args[0]).Trim();
             Copse copseIdentity = null;
 
-            foreach (Copse cp in m_copse)
+            lock(mylock)
             {
-                if (cp.m_name == copsename)
+                foreach (Copse cp in m_copses)
                 {
-                    copseIdentity = cp;
+                    if (cp.m_name == copsename)
+                    {
+                        copseIdentity = cp;
+                    }
                 }
-            }
 
-            if (copseIdentity != null)
-            {
-                foreach (UUID tree in copseIdentity.m_trees)
+                if (copseIdentity != null)
                 {
-                    if (m_scene.Entities.ContainsKey(tree))
+                    foreach (UUID tree in copseIdentity.m_trees)
                     {
-                        SceneObjectPart selectedTree = ((SceneObjectGroup)m_scene.Entities[tree]).RootPart;
-                        // Delete tree and alert clients (not silent)
-                        m_scene.DeleteSceneObject(selectedTree.ParentGroup, false);
+                        if (m_scene.Entities.ContainsKey(tree))
+                        {
+                            SceneObjectPart selectedTree = ((SceneObjectGroup)m_scene.Entities[tree]).RootPart;
+                            // Delete tree and alert clients (not silent)
+                            m_scene.DeleteSceneObject(selectedTree.ParentGroup, false);
+                        }
+                        else
+                        {
+                            m_log.DebugFormat("[TREES]: Tree not in scene {0}", tree);
+                        }
                     }
-                    else
-                    {
-                        m_log.DebugFormat("[TREES]: Tree not in scene {0}", tree);
-                    }
+                    copseIdentity.m_trees = null;
+                    m_copses.Remove(copseIdentity);
+                    m_log.InfoFormat("[TREES]: Copse {0} has been removed", copsename);
                 }
-                copseIdentity.m_trees = new List<UUID>();
-                m_copse.Remove(copseIdentity);
-                m_log.InfoFormat("[TREES]: Copse {0} has been removed", copsename);
-            }
-            else
-            {
-                m_log.InfoFormat("[TREES]: Copse {0} was not found - command failed", copsename);
+                else
+                {
+                    m_log.InfoFormat("[TREES]: Copse {0} was not found - command failed", copsename);
+                }
             }
         }
 
         private void HandleTreeStatistics(Object[] args)
         {
-            m_log.InfoFormat("[TREES]: Activity State: {0};  Update Rate: {1}", m_active_trees, m_update_ms);
-            foreach (Copse cp in m_copse)
+            m_log.InfoFormat("[TREES]: region {0}:", m_scene.Name);
+            m_log.InfoFormat("[TREES]:    Activity State: {0};  Update Rate: {1}", m_active_trees, m_update_ms);
+            foreach (Copse cp in m_copses)
             {
-                m_log.InfoFormat("[TREES]: Copse {0}; {1} trees; frozen {2}", cp.m_name, cp.m_trees.Count, cp.m_frozen);
+                m_log.InfoFormat("[TREES]:    Copse {0}; {1} trees; frozen {2}", cp.m_name, cp.m_trees.Count, cp.m_frozen);
             }
         }
 
@@ -442,7 +501,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
             treeRateCommand.AddArgument("updateRate", "The required update rate (minimum 1000.0)", "Double");
 
             Command treeReloadCommand =
-                new Command("reload", CommandIntentions.COMMAND_HAZARDOUS, HandleTreeReload, "Reload copse definitions from the in-scene trees");
+                new Command("reload", CommandIntentions.COMMAND_HAZARDOUS, HandleTreeReload, "Reload copses from the in-scene trees");
 
             Command treeRemoveCommand =
                 new Command("remove", CommandIntentions.COMMAND_HAZARDOUS, HandleTreeRemove, "Remove a copse definition and all its in-scene trees");
@@ -499,34 +558,17 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
             treeShape.Scale = scale;
             treeShape.State = (byte)treeType;
 
-            return m_scene.AddNewPrim(uuid, groupID, position, rotation, treeShape);
-        }
-
-        #endregion
-
-        #region IEntityCreator Members
-
-        protected static readonly PCode[] creationCapabilities = new PCode[] { PCode.NewTree, PCode.Tree };
-        public PCode[] CreationCapabilities { get { return creationCapabilities; } }
-
-        public SceneObjectGroup CreateEntity(
-            UUID ownerID, UUID groupID, Vector3 pos, Quaternion rot, PrimitiveBaseShape shape)
-        {
-            if (Array.IndexOf(creationCapabilities, (PCode)shape.PCode) < 0)
-            {
-                m_log.DebugFormat("[VEGETATION]: PCode {0} not handled by {1}", shape.PCode, Name);
-                return null;
-            }
-
-            SceneObjectGroup sceneObject = new SceneObjectGroup(ownerID, pos, rot, shape);
-            SceneObjectPart rootPart = sceneObject.GetPart(sceneObject.UUID);
+            SceneObjectGroup sog = new SceneObjectGroup(uuid, position, rotation, treeShape);
+            SceneObjectPart rootPart = sog.RootPart;
 
             rootPart.AddFlag(PrimFlags.Phantom);
 
-            sceneObject.SetGroup(groupID, null);
-            m_scene.AddNewSceneObject(sceneObject, true);
-            sceneObject.AggregatePerms();
-            return sceneObject;
+            sog.SetGroup(groupID, null);
+            m_scene.AddNewSceneObject(sog, true, false);
+            sog.IsSelected = false;
+            rootPart.IsSelected = false;
+            sog.InvalidateEffectivePerms();
+            return sog;
         }
 
         #endregion
@@ -569,26 +611,27 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
 
         private void ReloadCopse()
         {
-            m_copse = new List<Copse>();
+            m_copses = new List<Copse>();
 
-            EntityBase[] objs = m_scene.GetEntities();
-            foreach (EntityBase obj in objs)
+            List<SceneObjectGroup> grps = m_scene.GetSceneObjectGroups();
+            foreach (SceneObjectGroup grp in grps)
             {
-                if (obj is SceneObjectGroup)
+                if(grp.RootPart.Shape.PCode != (byte)PCode.NewTree && grp.RootPart.Shape.PCode != (byte)PCode.Tree)
+                    continue;
+
+                if (grp.Name.Length > 5 && (grp.Name.Substring(0, 5) == "ATPM:" || grp.Name.Substring(0, 5) == "FTPM:"))
                 {
-                    SceneObjectGroup grp = (SceneObjectGroup)obj;
-
-                    if (grp.Name.Length > 5 && (grp.Name.Substring(0, 5) == "ATPM:" || grp.Name.Substring(0, 5) == "FTPM:"))
+                    // Create a new copse definition or add uuid to an existing definition
+                    try
                     {
-                        // Create a new copse definition or add uuid to an existing definition
-                        try
-                        {
-                            Boolean copsefound = false;
-                            Copse copse = new Copse(grp.Name);
+                        Boolean copsefound = false;
+                        Copse grpcopse = new Copse(grp.Name);
 
-                            foreach (Copse cp in m_copse)
+                        lock(mylock)
+                        {
+                            foreach (Copse cp in m_copses)
                             {
-                                if (cp.m_name == copse.m_name)
+                                if (cp.m_name == grpcopse.m_name)
                                 {
                                     copsefound = true;
                                     cp.m_trees.Add(grp.UUID);
@@ -598,15 +641,15 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
 
                             if (!copsefound)
                             {
-                                m_log.InfoFormat("[TREES]: Found copse {0}", grp.Name);
-                                m_copse.Add(copse);
-                                copse.m_trees.Add(grp.UUID);
+                                m_log.InfoFormat("[TREES]: adding copse {0}", grpcopse.m_name);
+                                grpcopse.m_trees.Add(grp.UUID);
+                                m_copses.Add(grpcopse);
                             }
                         }
-                        catch
-                        {
-                            m_log.InfoFormat("[TREES]: Ill formed copse definition {0} - ignoring", grp.Name);
-                        }
+                    }
+                    catch
+                    {
+                        m_log.InfoFormat("[TREES]: Ill formed copse definition {0} - ignoring", grp.Name);
                     }
                 }
             }
@@ -617,8 +660,10 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
         {
             if (activeYN)
             {
-                CalculateTrees = new Timer(m_update_ms);
+                if(CalculateTrees == null)
+                    CalculateTrees = new Timer(m_update_ms);
                 CalculateTrees.Elapsed += CalculateTrees_Elapsed;
+                CalculateTrees.AutoReset = false;
                 CalculateTrees.Start();
             }
             else
@@ -629,154 +674,251 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
 
         private void growTrees()
         {
-            foreach (Copse copse in m_copse)
-            {
-                if (!copse.m_frozen)
-                {
-                    foreach (UUID tree in copse.m_trees)
-                    {
-                        if (m_scene.Entities.ContainsKey(tree))
-                        {
-                            SceneObjectPart s_tree = ((SceneObjectGroup)m_scene.Entities[tree]).RootPart;
+            if(!m_allowGrow)
+                return;
 
-                            if (s_tree.Scale.X < copse.m_maximum_scale.X && s_tree.Scale.Y < copse.m_maximum_scale.Y && s_tree.Scale.Z < copse.m_maximum_scale.Z)
-                            {
-                                s_tree.Scale += copse.m_rate;
-                                s_tree.ParentGroup.HasGroupChanged = true;
-                                s_tree.ScheduleFullUpdate();
-                            }
-                        }
-                        else
+            foreach (Copse copse in m_copses)
+            {
+                if (copse.m_frozen)
+                    continue;
+
+                if(copse.m_trees.Count == 0)
+                    continue;
+
+                float maxscale = copse.m_maximum_scale.Z;
+                float ratescale = 1.0f;
+                List<UUID> losttrees = new List<UUID>();
+                foreach (UUID tree in copse.m_trees)
+                {
+                    SceneObjectGroup sog = m_scene.GetSceneObjectGroup(tree);
+
+                    if (sog != null && !sog.IsDeleted)
+                    {
+                        SceneObjectPart s_tree = sog.RootPart;
+                        if (s_tree.Scale.Z < maxscale)
                         {
-                            m_log.DebugFormat("[TREES]: Tree not in scene {0}", tree);
+                            ratescale = (float)Util.RandomClass.NextDouble();
+                            if(ratescale < 0.2f)
+                                ratescale = 0.2f;
+                            s_tree.Scale += copse.m_rate * ratescale;
+                            sog.HasGroupChanged = true;
+                            s_tree.ScheduleFullUpdate();
                         }
                     }
+                    else
+                        losttrees.Add(tree);
                 }
+
+                foreach (UUID tree in losttrees)
+                    copse.m_trees.Remove(tree);
             }
         }
 
         private void seedTrees()
         {
-            foreach (Copse copse in m_copse)
+            foreach (Copse copse in m_copses)
             {
-                if (!copse.m_frozen)
-                {
-                    foreach (UUID tree in copse.m_trees)
-                    {
-                        if (m_scene.Entities.ContainsKey(tree))
-                        {
-                            SceneObjectPart s_tree = ((SceneObjectGroup)m_scene.Entities[tree]).RootPart;
+                if (copse.m_frozen)
+                    continue;
 
-                            if (copse.m_trees.Count < copse.m_tree_quantity)
-                            {
-                                // Tree has grown enough to seed if it has grown by at least 25% of seeded to full grown height
-                                if (s_tree.Scale.Z > copse.m_initial_scale.Z + (copse.m_maximum_scale.Z - copse.m_initial_scale.Z) / 4.0)
-                                {
-                                    if (Util.RandomClass.NextDouble() > 0.75)
-                                    {
-                                        SpawnChild(copse, s_tree);
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            m_log.DebugFormat("[TREES]: Tree not in scene {0}", tree);
-                        }
+                if(copse.m_trees.Count == 0)
+                    return;
+
+                bool low = copse.m_trees.Count < (int)(copse.m_tree_quantity * 0.8f);
+
+                if (!low && Util.RandomClass.NextDouble() < 0.75)
+                    return;
+
+                int maxbirths =  (int)(copse.m_tree_quantity) - copse.m_trees.Count;
+                if(maxbirths <= 1)
+                    return;
+
+                if(maxbirths > 20)
+                    maxbirths = 20;
+
+                float minscale = 0;
+                if(!low && m_allowGrow)
+                    minscale = copse.m_maximum_scale.Z * 0.75f;;
+
+                int i = 0;
+                UUID[] current = copse.m_trees.ToArray();
+                while(--maxbirths > 0)
+                {
+                    if(current.Length > 1)
+                        i = Util.RandomClass.Next(current.Length -1);
+
+                    UUID tree = current[i];
+                    SceneObjectGroup sog = m_scene.GetSceneObjectGroup(tree);
+
+                    if (sog != null && !sog.IsDeleted)
+                    {
+                        SceneObjectPart s_tree = sog.RootPart;
+
+                        // Tree has grown enough to seed if it has grown by at least 25% of seeded to full grown height
+                        if (s_tree.Scale.Z > minscale)
+                                SpawnChild(copse, s_tree, true);
                     }
-                }
+                    else if(copse.m_trees.Contains(tree))
+                        copse.m_trees.Remove(tree);
+                }                   
             }
         }
 
         private void killTrees()
         {
-            foreach (Copse copse in m_copse)
+            foreach (Copse copse in m_copses)
             {
-                if (!copse.m_frozen && copse.m_trees.Count >= copse.m_tree_quantity)
+                if (copse.m_frozen)
+                    continue;
+
+                if (Util.RandomClass.NextDouble() < 0.25)
+                    return;
+
+                int maxbdeaths = copse.m_trees.Count - (int)(copse.m_tree_quantity * .98f) ;
+                if(maxbdeaths < 1)
+                    return;
+
+                float odds;
+                float scale = 1.0f / copse.m_maximum_scale.Z;
+
+                int ntries = maxbdeaths * 4;
+                while(ntries-- > 0 )
                 {
-                    foreach (UUID tree in copse.m_trees)
+                    int next = 0;
+                    if (copse.m_trees.Count > 1)
+                        next = Util.RandomClass.Next(copse.m_trees.Count - 1);
+                    UUID tree = copse.m_trees[next];
+                    SceneObjectGroup sog = m_scene.GetSceneObjectGroup(tree);
+                    if (sog != null && !sog.IsDeleted)
                     {
-                        double killLikelyhood = 0.0;
-
-                        if (m_scene.Entities.ContainsKey(tree))
+                        if(m_allowGrow)
                         {
-                            SceneObjectPart selectedTree = ((SceneObjectGroup)m_scene.Entities[tree]).RootPart;
-                            double selectedTreeScale = Math.Sqrt(Math.Pow(selectedTree.Scale.X, 2) +
-                                                                 Math.Pow(selectedTree.Scale.Y, 2) +
-                                                                 Math.Pow(selectedTree.Scale.Z, 2));
-
-                            foreach (UUID picktree in copse.m_trees)
-                            {
-                                if (picktree != tree)
-                                {
-                                    SceneObjectPart pickedTree = ((SceneObjectGroup)m_scene.Entities[picktree]).RootPart;
-
-                                    double pickedTreeScale = Math.Sqrt(Math.Pow(pickedTree.Scale.X, 2) +
-                                                                       Math.Pow(pickedTree.Scale.Y, 2) +
-                                                                       Math.Pow(pickedTree.Scale.Z, 2));
-
-                                    double pickedTreeDistance = Vector3.Distance(pickedTree.AbsolutePosition, selectedTree.AbsolutePosition);
-
-                                    killLikelyhood += (selectedTreeScale / (pickedTreeScale * pickedTreeDistance)) * 0.1;
-                                }
-                            }
-
-                            if (Util.RandomClass.NextDouble() < killLikelyhood)
-                            {
-                                // Delete tree and alert clients (not silent)
-                                m_scene.DeleteSceneObject(selectedTree.ParentGroup, false);
-                                copse.m_trees.Remove(selectedTree.ParentGroup.UUID);
-                                break;
-                            }
+                            odds = sog.RootPart.Scale.Z * scale;
+                            odds = odds * odds * odds;
+                            odds *= (float)Util.RandomClass.NextDouble();
                         }
                         else
                         {
-                            m_log.DebugFormat("[TREES]: Tree not in scene {0}", tree);
+                            odds = (float)Util.RandomClass.NextDouble();
+                            odds = odds * odds * odds;
                         }
+
+                        if(odds > 0.9f)
+                        {
+                            m_scene.DeleteSceneObject(sog, false);
+                            if(maxbdeaths <= 0)
+                                break;
+                        }
+                    }            
+                    else
+                    {
+                        copse.m_trees.Remove(tree);
+                        if(copse.m_trees.Count - (int)(copse.m_tree_quantity * .98f) <= 0 )
+                            break;
                     }
                 }
             }
         }
 
-        private void SpawnChild(Copse copse, SceneObjectPart s_tree)
+        private void SpawnChild(Copse copse, SceneObjectPart s_tree, bool low)
         {
             Vector3 position = new Vector3();
-
-            double randX = ((Util.RandomClass.NextDouble() * 2.0) - 1.0) * (s_tree.Scale.X * 3);
-            double randY = ((Util.RandomClass.NextDouble() * 2.0) - 1.0) * (s_tree.Scale.X * 3);
-
+           
+            float randX = copse.m_maximum_scale.X * 1.25f;
+            float randY = copse.m_maximum_scale.Y * 1.25f;
+            
+            float r = (float)Util.RandomClass.NextDouble();
+            randX *=  2.0f * r - 1.0f;
             position.X = s_tree.AbsolutePosition.X + (float)randX;
+            
+            r = (float)Util.RandomClass.NextDouble();
+            randY *=  2.0f * r - 1.0f;
             position.Y = s_tree.AbsolutePosition.Y + (float)randY;
 
-            if (position.X <= (m_scene.RegionInfo.RegionSizeX - 1) && position.X >= 0 &&
-                position.Y <= (m_scene.RegionInfo.RegionSizeY - 1) && position.Y >= 0 &&
-                Util.GetDistanceTo(position, copse.m_seed_point) <= copse.m_range)
-            {
-                UUID uuid = m_scene.RegionInfo.EstateSettings.EstateOwner;
+            if (position.X > (m_scene.RegionInfo.RegionSizeX - 1) || position.X <= 0 ||
+                position.Y > (m_scene.RegionInfo.RegionSizeY - 1) || position.Y <= 0)
+                return;
 
-                CreateTree(uuid, copse, position);
-            }
+            randX = position.X - copse.m_seed_point.X;
+            randX *= randX;
+            randY = position.Y - copse.m_seed_point.Y;
+            randY *= randY;
+            randX += randY;
+
+            if(randX > copse.m_range * copse.m_range)
+                return;
+
+            UUID uuid = m_scene.RegionInfo.EstateSettings.EstateOwner;
+            CreateTree(uuid, copse, position, low);
         }
 
-        private void CreateTree(UUID uuid, Copse copse, Vector3 position)
+        private void CreateTree(UUID uuid, Copse copse, Vector3 position, bool randomScale)
         {
-
             position.Z = (float)m_scene.Heightmap[(int)position.X, (int)position.Y];
-            if (position.Z >= copse.m_treeline_low && position.Z <= copse.m_treeline_high)
-            {
-                SceneObjectGroup tree = AddTree(uuid, UUID.Zero, copse.m_initial_scale, Quaternion.Identity, position, copse.m_tree_type, false);
+            if (position.Z < copse.m_treeline_low || position.Z > copse.m_treeline_high)
+                return;
 
-                tree.Name = copse.ToString();
-                copse.m_trees.Add(tree.UUID);
-                tree.SendGroupFullUpdate();
+            Vector3 scale = copse.m_initial_scale;
+            if(randomScale)
+            {
+                try
+                {
+                    float t;
+                    float r = (float)Util.RandomClass.NextDouble();
+                    r *= (float)Util.RandomClass.NextDouble();
+                    r *= (float)Util.RandomClass.NextDouble();
+
+                    t = copse.m_maximum_scale.X / copse.m_initial_scale.X;
+                    if(t < 1.0)
+                        t = 1 / t;
+                    t = t * r + 1.0f;
+                    scale.X *= t;
+
+                    t = copse.m_maximum_scale.Y / copse.m_initial_scale.Y;
+                    if(t < 1.0)
+                        t = 1 / t;
+                    t = t * r + 1.0f;
+                    scale.Y *= t;
+
+                    t = copse.m_maximum_scale.Z / copse.m_initial_scale.Z;
+                    if(t < 1.0)
+                        t = 1 / t;
+                    t = t * r + 1.0f;
+                    scale.Z *= t;
+                }
+                catch
+                {
+                    scale = copse.m_initial_scale;
+                }
             }
+
+            SceneObjectGroup tree = AddTree(uuid, UUID.Zero, scale, Quaternion.Identity, position, copse.m_tree_type, false);
+            tree.Name = copse.ToString();
+            copse.m_trees.Add(tree.UUID);
+            tree.RootPart.ScheduleFullUpdate();
         }
 
         private void CalculateTrees_Elapsed(object sender, ElapsedEventArgs e)
         {
-            growTrees();
-            seedTrees();
-            killTrees();
+            if(!m_scene.IsRunning)
+                return;
+            
+            if(Monitor.TryEnter(mylock))
+            {
+                try
+                {
+                    if(m_scene.LoginsEnabled )
+                    {
+                        growTrees();
+                        seedTrees();
+                        killTrees();
+                    }
+                }
+                catch { }
+                if(CalculateTrees != null)
+                    CalculateTrees.Start();
+                Monitor.Exit(mylock);
+            }
         }
     }
 }

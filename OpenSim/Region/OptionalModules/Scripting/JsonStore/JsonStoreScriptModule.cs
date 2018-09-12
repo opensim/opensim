@@ -665,7 +665,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             taskItem.AssetID = asset.FullID;
 
             host.Inventory.AddInventoryItem(taskItem, false);
-            host.ParentGroup.AggregatePerms();
+            host.ParentGroup.InvalidateEffectivePerms();
             m_comms.DispatchReply(scriptID,1,assetID.ToString(),reqID.ToString());
         }
 

@@ -50,11 +50,10 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         protected override byte[] ProcessRequest(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
+            string requestBody;
             Encoding encoding = Encoding.UTF8;
-            StreamReader streamReader = new StreamReader(request, encoding);
-
-            string requestBody = streamReader.ReadToEnd();
-            streamReader.Close();
+            using(StreamReader streamReader = new StreamReader(request,encoding))
+                requestBody = streamReader.ReadToEnd();
 
             string param = GetParam(path);
             string responseString = m_restMethod(requestBody, path, param, httpRequest, httpResponse);

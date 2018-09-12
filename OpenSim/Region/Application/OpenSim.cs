@@ -33,6 +33,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Timers;
@@ -124,8 +125,11 @@ namespace OpenSim
                 Util.InitThreadPool(stpMinThreads, stpMaxThreads);
 
             m_log.Info("[OPENSIM MAIN]: Using async_call_method " + Util.FireAndForgetMethod);
+
+            m_log.InfoFormat("[OPENSIM MAIN] Running GC in {0} mode", GCSettings.IsServerGC ? "server":"workstation");
         }
 
+#if (_MONO)
         private static Mono.Unix.UnixSignal[] signals;
 
 
@@ -139,7 +143,8 @@ namespace OpenSim
                 //Mono.Unix.Native.Signum signal = signals [index].Signum;
                 MainConsole.Instance.RunCommand("shutdown");
             }
-        });
+        });       
+#endif
 
         /// <summary>
         /// Performs initialisation of the scene, such as loading configuration from disk.
@@ -150,6 +155,7 @@ namespace OpenSim
             m_log.Info("========================= STARTING OPENSIM =========================");
             m_log.Info("====================================================================");
 
+#if (_MONO)
             if(!Util.IsWindows())
             {
                 try
@@ -159,6 +165,7 @@ namespace OpenSim
                     {
                         new Mono.Unix.UnixSignal(Mono.Unix.Native.Signum.SIGTERM)
                     };
+                    signal_thread.IsBackground = true;
                     signal_thread.Start();
                 }
                 catch (Exception e)
@@ -168,6 +175,7 @@ namespace OpenSim
                     m_log.Debug("Exception was: ", e);
                 }
             }
+#endif
             //m_log.InfoFormat("[OPENSIM MAIN]: GC Is Server GC: {0}", GCSettings.IsServerGC.ToString());
             // http://msdn.microsoft.com/en-us/library/bb384202.aspx
             //GCSettings.LatencyMode = GCLatencyMode.Batch;
@@ -478,6 +486,12 @@ namespace OpenSim
                 RunCommandScript(m_shutdownCommandsFile);
             }
 
+            if (m_timedScript != "disabled")
+            {
+                m_scriptTimer.Dispose();
+                m_timedScript = "disabled";
+            }
+
             base.ShutdownSpecific();
         }
 
@@ -497,7 +511,6 @@ namespace OpenSim
         private void WatchdogTimeoutHandler(Watchdog.ThreadWatchdogInfo twi)
         {
             int now = Environment.TickCount & Int32.MaxValue;
-
             m_log.ErrorFormat(
                 "[WATCHDOG]: Timeout detected for thread \"{0}\". ThreadState={1}. Last tick was {2}ms ago.  {3}",
                 twi.Thread.Name,

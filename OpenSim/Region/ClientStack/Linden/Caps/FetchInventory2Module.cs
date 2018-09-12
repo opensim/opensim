@@ -51,7 +51,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private Scene m_scene;
 
         private IInventoryService m_inventoryService;
-
+        private ILibraryService m_LibraryService;
         private string m_fetchInventory2Url;
 
         #region ISharedRegionModule Members
@@ -91,7 +91,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
 
             m_inventoryService = m_scene.InventoryService;
-
+            m_LibraryService = m_scene.LibraryService;
             m_scene.EventManager.OnRegisterCaps += RegisterCaps;
         }
 

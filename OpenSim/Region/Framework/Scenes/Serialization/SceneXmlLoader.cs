@@ -53,10 +53,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             if (fileName.StartsWith("http:") || File.Exists(fileName))
             {
-                XmlTextReader reader = new XmlTextReader(fileName);
-                reader.WhitespaceHandling = WhitespaceHandling.None;
-                doc.Load(reader);
-                reader.Close();
+                using(XmlTextReader reader = new XmlTextReader(fileName))
+                {
+                    reader.WhitespaceHandling = WhitespaceHandling.None;
+
+                    doc.Load(reader);
+                }
                 rootNode = doc.FirstChild;
                 foreach (XmlNode aPrimNode in rootNode.ChildNodes)
                 {
@@ -70,7 +72,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     //obj.RegenerateFullIDs();
 
                     scene.AddNewSceneObject(obj, true);
-                    obj.AggregateDeepPerms();
+                    obj.InvalidateDeepEffectivePerms();
                 }
             }
             else

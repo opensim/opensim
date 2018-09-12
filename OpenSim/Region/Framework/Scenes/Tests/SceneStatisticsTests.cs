@@ -54,8 +54,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             UUID ownerId = TestHelpers.ParseTail(0x1);
             SceneObjectGroup so1 = SceneHelpers.CreateSceneObject(3, ownerId, "so1", 0x10);
-            so1.ScriptSetPhysicsStatus(true);
             m_scene.AddSceneObject(so1);
+            so1.ScriptSetPhysicsStatus(true);
 
             Assert.That(m_scene.SceneGraph.GetTotalObjectsCount(), Is.EqualTo(3));
             Assert.That(m_scene.SceneGraph.GetActiveObjectsCount(), Is.EqualTo(3));

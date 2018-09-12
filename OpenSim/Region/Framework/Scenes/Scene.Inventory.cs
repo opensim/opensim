@@ -338,7 +338,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Update item with new asset
             item.AssetID = asset.FullID;
             group.UpdateInventoryItem(item);
-            group.AggregatePerms();
+            group.InvalidateEffectivePerms();
 
             part.SendPropertiesToClient(remoteClient);
 
@@ -682,30 +682,26 @@ namespace OpenSim.Region.Framework.Scenes
                 // These will be applied to the root prim at next rez.
                 // The legacy slam bit (bit 3) and folded permission (bits 0-2)
                 // are preserved due to the above mangling
-                ownerPerms &= nextPerms;
+//                ownerPerms &= nextPerms;
 
                 // Mask the base permissions. This is a conservative
                 // approach altering only the three main perms
-                basePerms &= nextPerms;
+//                basePerms &= nextPerms;
 
                 // Mask out the folded portion of the base mask.
                 // While the owner mask carries the actual folded
                 // permissions, the base mask carries the original
                 // base mask, before masking with the folded perms.
                 // We need this later for rezzing.
-                basePerms &= ~(uint)PermissionMask.FoldedMask;
-                basePerms |= ((basePerms >> 13) & 7) | (((basePerms & (uint)PermissionMask.Export) != 0) ? (uint)PermissionMask.FoldedExport : 0);
+//                basePerms &= ~(uint)PermissionMask.FoldedMask;
+//                basePerms |= ((basePerms >> 13) & 7) | (((basePerms & (uint)PermissionMask.Export) != 0) ? (uint)PermissionMask.FoldedExport : 0);
 
                 // If this is an object, root prim perms may be more
                 // permissive than folded perms. Use folded perms as
                 // a mask
-                if (item.InvType == (int)InventoryType.Object)
+                uint foldedPerms = (item.CurrentPermissions & (uint)PermissionMask.FoldedMask) << (int)PermissionMask.FoldingShift;
+                if (foldedPerms != 0 && item.InvType == (int)InventoryType.Object)
                 {
-                    // Create a safe mask for the current perms
-                    uint foldedPerms = (item.CurrentPermissions & 7) << 13;
-                    if ((item.CurrentPermissions & (uint)PermissionMask.FoldedExport) != 0)
-                        foldedPerms |= (uint)PermissionMask.Export;
-
                     foldedPerms |= permsMask;
 
                     bool isRootMod = (item.CurrentPermissions &
@@ -729,6 +725,11 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
+                // move here so nextperms are mandatory
+                ownerPerms &= nextPerms;
+                basePerms &= nextPerms;
+                basePerms &= ~(uint)PermissionMask.FoldedMask;
+                basePerms |= ((basePerms >> 13) & 7) | (((basePerms & (uint)PermissionMask.Export) != 0) ? (uint)PermissionMask.FoldedExport : 0);
                 // Assign to the actual item. Make sure the slam bit is
                 // set, if it wasn't set before.
                 itemCopy.BasePermissions = basePerms;
@@ -1208,14 +1209,14 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (group.GetInventoryItem(localID, itemID) != null)
                 {
-                    if (item.Type == 10)
+                    if (item.Type == (int)InventoryType.LSL)
                     {
                         part.RemoveScriptEvents(itemID);
-                        EventManager.TriggerRemoveScript(localID, itemID);
+                        part.ParentGroup.AddActiveScriptCount(-1);
                     }
 
                     group.RemoveInventoryItem(localID, itemID);
-                    group.AggregatePerms();
+                    group.InvalidateEffectivePerms();
                 }
 
                 part.SendPropertiesToClient(remoteClient);
@@ -1266,20 +1267,26 @@ namespace OpenSim.Region.Framework.Scenes
             // TODO: Fix this after the inventory fixer exists and has beenr run
             if ((part.OwnerID != destAgent) && Permissions.PropagatePermissions())
             {
-                agentItem.BasePermissions = taskItem.BasePermissions & (taskItem.NextPermissions | (uint)PermissionMask.Move);
+                uint perms = taskItem.BasePermissions & taskItem.NextPermissions;
                 if (taskItem.InvType == (int)InventoryType.Object)
-                    agentItem.CurrentPermissions = agentItem.BasePermissions & (((taskItem.CurrentPermissions & 7) << 13) | (taskItem.CurrentPermissions & (uint)PermissionMask.Move));
+                {
+                     PermissionsUtil.ApplyFoldedPermissions(taskItem.CurrentPermissions, ref perms );
+                     perms = PermissionsUtil.FixAndFoldPermissions(perms);
+                }
                 else
-                    agentItem.CurrentPermissions = agentItem.BasePermissions & taskItem.CurrentPermissions;
+                    perms &= taskItem.CurrentPermissions;
 
-                agentItem.BasePermissions = agentItem.CurrentPermissions;
-
+                // always unlock
+                perms |= (uint)PermissionMask.Move;
+                            
+                agentItem.BasePermissions = perms;
+                agentItem.CurrentPermissions = perms;
+                agentItem.NextPermissions = perms & taskItem.NextPermissions;
+                agentItem.EveryOnePermissions = perms & taskItem.EveryonePermissions;
+                agentItem.GroupPermissions = perms & taskItem.GroupPermissions;
+ 
                 agentItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
                 agentItem.Flags &= ~(uint)(InventoryItemFlags.ObjectOverwriteBase | InventoryItemFlags.ObjectOverwriteOwner | InventoryItemFlags.ObjectOverwriteGroup | InventoryItemFlags.ObjectOverwriteEveryone | InventoryItemFlags.ObjectOverwriteNextOwner);
-                agentItem.NextPermissions = taskItem.NextPermissions;
-                agentItem.EveryOnePermissions = taskItem.EveryonePermissions & (taskItem.NextPermissions | (uint)PermissionMask.Move);
-                // Group permissions make no sense here
-                agentItem.GroupPermissions = 0;
             }
             else
             {
@@ -1287,7 +1294,7 @@ namespace OpenSim.Region.Framework.Scenes
                 agentItem.CurrentPermissions = taskItem.CurrentPermissions;
                 agentItem.NextPermissions = taskItem.NextPermissions;
                 agentItem.EveryOnePermissions = taskItem.EveryonePermissions;
-                agentItem.GroupPermissions = 0;
+                agentItem.GroupPermissions = taskItem.GroupPermissions;
             }
 
             message = null;
@@ -1310,7 +1317,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (taskItem.Type == (int)AssetType.LSLText)
                     {
                         part.RemoveScriptEvents(itemId);
-                        EventManager.TriggerRemoveScript(part.LocalId, itemId);
+                        part.ParentGroup.AddActiveScriptCount(-1);
                     }
 
                     part.Inventory.RemoveInventoryItem(itemId);
@@ -1381,11 +1388,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             if (!Permissions.CanCopyObjectInventory(itemId, part.UUID, remoteClient.AgentId))
-            {
-                // check also if we can delete the no copy item
-                if(!Permissions.CanEditObject(part.UUID, remoteClient.AgentId))
-                    return;
-            }
+                return;
 
             string message;
             InventoryItemBase item = MoveTaskInventoryItem(remoteClient, folderId, part, itemId, out message);
@@ -1735,7 +1738,24 @@ namespace OpenSim.Region.Framework.Scenes
                 // Check if we're allowed to mess with permissions
                 if (!Permissions.IsGod(remoteClient.AgentId)) // Not a god
                 {
+                    bool noChange;
                     if (remoteClient.AgentId != part.OwnerID) // Not owner
+                    {
+                        noChange = true;
+                        if(itemInfo.OwnerID == UUID.Zero && itemInfo.GroupID != UUID.Zero)
+                        {
+                            if(remoteClient.IsGroupMember(itemInfo.GroupID))
+                            {
+                                ulong powers = remoteClient.GetGroupPowers(itemInfo.GroupID);
+                                if((powers & (ulong)GroupPowers.ObjectManipulate) != 0)
+                                    noChange = false;
+                            }
+                        }
+                    }
+                    else
+                        noChange = false;
+
+                    if(noChange)
                     {
                         // Friends and group members can't change any perms
                         itemInfo.BasePermissions = currentItem.BasePermissions;
@@ -1762,7 +1782,6 @@ namespace OpenSim.Region.Framework.Scenes
                         itemInfo.CurrentPermissions &= currentItem.BasePermissions;
                         itemInfo.NextPermissions &= currentItem.BasePermissions;
                     }
-
                 }
                 else
                 {
@@ -1948,7 +1967,7 @@ namespace OpenSim.Region.Framework.Scenes
             part.Inventory.AddInventoryItem(taskItem, false);
             part.Inventory.CreateScriptInstance(taskItem, 0, false, DefaultScriptEngine, 0);
 
-            part.ParentGroup.AggregatePerms();
+            part.ParentGroup.InvalidateEffectivePerms();
 
             // tell anyone managing scripts that a new script exists
             EventManager.TriggerNewScript(agentID, part, taskItem.ItemID);
@@ -2370,7 +2389,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 using (XmlTextReader wrappedReader = new XmlTextReader(xmlData, XmlNodeType.Element, null))
                 {
-                    using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment }))
+                    using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment}))
                     {
                         reader.Read();
                         bool isSingleObject = reader.Name != "CoalescedObject";
@@ -2636,7 +2655,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // We can only call this after adding the scene object, since the scene object references the scene
                 // to find out if scripts should be activated at all.
-                group.AggregatePerms();
+                group.InvalidateEffectivePerms();
                 group.CreateScriptInstances(param, true, DefaultScriptEngine, 3);
 
                 group.ScheduleGroupForFullUpdate();
@@ -2733,7 +2752,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // and with this comented code, if user does not set next permissions on the object
                     // and on ALL contents of ALL prims, he may loose rights, making the object useless
                     sog.ApplyNextOwnerPermissions();
-                    sog.AggregatePerms();
+                    sog.InvalidateEffectivePerms();
 
                     sog.ScheduleGroupForFullUpdate();
 
@@ -2846,7 +2865,7 @@ namespace OpenSim.Region.Framework.Scenes
                 root.SendPropertiesToClient(sp.ControllingClient);
                 if (oldUsePhysics && (root.Flags & PrimFlags.Physics) == 0)
                 {
-                    sp.ControllingClient.SendAlertMessage("Object physics canceled");
+                    sp.ControllingClient.SendAlertMessage("Object physics cancelled");
                 }
             }
         }

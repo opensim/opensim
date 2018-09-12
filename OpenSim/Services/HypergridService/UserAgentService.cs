@@ -254,7 +254,6 @@ namespace OpenSim.Services.HypergridService
                 }
             }
 
-
             // Take the IP address + port of the gatekeeper (reg) plus the info of finalDestination
             GridRegion region = new GridRegion(gatekeeper);
             region.ServerURI = gatekeeper.ServerURI;

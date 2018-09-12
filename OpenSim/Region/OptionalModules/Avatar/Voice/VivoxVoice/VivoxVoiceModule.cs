@@ -1146,7 +1146,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                     using (HttpWebResponse rsp = (HttpWebResponse)req.GetResponse())
                     using (Stream s = rsp.GetResponseStream())
                     using (XmlTextReader rdr = new XmlTextReader(s))
-                        doc.Load(rdr);
+                            doc.Load(rdr);
                 }
                 catch (Exception e)
                 {

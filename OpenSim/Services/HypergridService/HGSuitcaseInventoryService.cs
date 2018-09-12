@@ -399,7 +399,7 @@ namespace OpenSim.Services.HypergridService
             return false;
         }
 
-        public new InventoryItemBase GetItem(InventoryItemBase item)
+        public InventoryItemBase GetItem(InventoryItemBase item)
         {
             InventoryItemBase it = base.GetItem(item.Owner, item.ID);
             if (it == null)

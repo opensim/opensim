@@ -67,7 +67,7 @@ namespace OpenSim.Capabilities.Handlers
             server.AddStreamHandler(new RestStreamHandler(
                         "POST",
                         "/CAPS/UploadBakedTexture/",
-                        new UploadBakedTextureHandler(caps, m_AssetService, true).UploadBakedTexture,
+                        new UploadBakedTextureHandler(caps, m_AssetService).UploadBakedTexture,
                         "UploadBakedTexture",
                         "Upload Baked Texture Capability"));
 

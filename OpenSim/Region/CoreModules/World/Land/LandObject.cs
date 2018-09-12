@@ -58,6 +58,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         protected ExpiringCache<UUID, bool> m_groupMemberCache = new ExpiringCache<UUID, bool>();
         protected TimeSpan m_groupMemberCacheTimeout = TimeSpan.FromSeconds(30);  // cache invalidation after 30 seconds
+        IDwellModule m_dwellModule;
 
         private bool[,] m_landBitmap;
         public bool[,] LandBitmap
@@ -268,26 +269,45 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             LandData = landData.Copy();
             m_scene = scene;
+            m_scene.EventManager.OnFrame += OnFrame;
+            m_dwellModule = m_scene.RequestModuleInterface<IDwellModule>();
         }
 
-        public LandObject(UUID owner_id, bool is_group_owned, Scene scene)
+        public LandObject(UUID owner_id, bool is_group_owned, Scene scene, LandData data = null)
         {
             m_scene = scene;
             if (m_scene == null)
                 LandBitmap = new bool[Constants.RegionSize / landUnit, Constants.RegionSize / landUnit];
             else
+            {
                 LandBitmap = new bool[m_scene.RegionInfo.RegionSizeX / landUnit, m_scene.RegionInfo.RegionSizeY / landUnit];
+                m_dwellModule = m_scene.RequestModuleInterface<IDwellModule>();
+            }
 
-            LandData = new LandData();
+            if(data == null)
+                LandData = new LandData();
+            else
+                LandData = data;
+
             LandData.OwnerID = owner_id;
             if (is_group_owned)
                 LandData.GroupID = owner_id;
-            else
-                LandData.GroupID = UUID.Zero;
+            
             LandData.IsGroupOwned = is_group_owned;
+
+            if(m_dwellModule == null)
+                LandData.Dwell = 0;
 
             m_scene.EventManager.OnFrame += OnFrame;
         }
+
+        public void Clear()
+        {
+            if(m_scene != null)
+                 m_scene.EventManager.OnFrame -= OnFrame;
+            LandData = null;     
+        }
+
 
         #endregion
 
@@ -520,7 +540,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                         ParcelFlags.UseEstateVoiceChan);
             }
 
-            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId,this, GroupPowers.LandManagePasses, false))
+            // don't allow passes on group owned until we can give money to groups
+            if (!newData.IsGroupOwned && m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId,this, GroupPowers.LandManagePasses, false))
             {
                 newData.PassHours = args.PassHours;
                 newData.PassPrice = args.PassPrice;
@@ -612,7 +633,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool CanBeOnThisLand(UUID avatar, float posHeight)
         {
-            if (posHeight < LandChannel.BAN_LINE_SAFETY_HEIGHT && IsBannedFromLand(avatar))
+            if (posHeight < m_scene.LandChannel.BanLineSafeHeight && IsBannedFromLand(avatar))
             {
                 return false;
             }
@@ -1375,9 +1396,9 @@ namespace OpenSim.Region.CoreModules.World.Land
             byte[] tempConvertArr = new byte[LandBitmap.GetLength(0) * LandBitmap.GetLength(1) / 8];
 
             int tempByte = 0;
-            int i, byteNum = 0;
+            int byteNum = 0;
             int mask = 1;
-            i = 0;
+
             for (int y = 0; y < LandBitmap.GetLength(1); y++)
             {
                 for (int x = 0; x < LandBitmap.GetLength(0); x++)
@@ -1439,9 +1460,9 @@ namespace OpenSim.Region.CoreModules.World.Land
             for (int i = 0; i < bitmapLen; i++)
             {
                 tempByte = LandData.Bitmap[i];
-                for (int bitNum = 0; bitNum < 8; bitNum++)
+                for (int bitmask = 0x01; bitmask < 0x100; bitmask = bitmask << 1)
                 {
-                    bool bit = Convert.ToBoolean(Convert.ToByte(tempByte >> bitNum) & (byte) 1);
+                    bool bit = (tempByte & bitmask) == bitmask;
                     try
                     {
                         tempConvertMap[x, y] = bit;
@@ -1812,6 +1833,37 @@ namespace OpenSim.Region.CoreModules.World.Land
                 ExpireAccessList();
                 m_expiryCounter = 0;
             }
+
+            // need to update dwell here bc landdata has no parent info
+            if(LandData != null && m_dwellModule != null)
+            {
+                double now = Util.GetTimeStampMS();
+                double elapsed = now - LandData.LastDwellTimeMS;
+                if(elapsed > 150000) //2.5 minutes resolution / throttle
+                {
+                    float dwell = LandData.Dwell;
+                    double cur = dwell * 60000.0;
+                    double decay = 1.5e-8 * cur * elapsed;
+                    cur -= decay;
+                    if(cur < 0)
+                        cur = 0;
+
+                    UUID lgid = LandData.GlobalID;
+                    m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
+                    {
+                        if(sp.IsNPC || sp.IsLoggingIn || sp.IsDeleted || sp.currentParcelUUID != lgid)
+                            return;
+                        cur += (now - sp.ParcelDwellTickMS);
+                        sp.ParcelDwellTickMS = now;
+                    });
+                
+                    float newdwell = (float)(cur * 1.666666666667e-5); 
+                    LandData.Dwell = newdwell;
+
+                    if(Math.Abs(newdwell - dwell) >= 0.9)
+                        m_scene.EventManager.TriggerLandObjectAdded(this);
+                }
+            }
         }
 
         private void ExpireAccessList()
@@ -1834,7 +1886,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     if (land.LandData.LocalID == LandData.LocalID)
                     {
                         Vector3 pos = m_scene.GetNearestAllowedPosition(presence, land);
-                        presence.TeleportWithMomentum(pos, null);
+                        presence.TeleportOnEject(pos);
                         presence.ControllingClient.SendAlertMessage("You have been ejected from this land");
                     }
                 }

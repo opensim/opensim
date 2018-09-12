@@ -29,12 +29,13 @@ using log4net;
 using System;
 using System.Threading;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Reflection;
 using System.Timers;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
+using OpenSim.Framework.Monitoring;
 using OpenSim.Services.Interfaces;
 using OpenMetaverse;
 
@@ -135,8 +136,11 @@ namespace OpenSim.Services.Connectors
 
             for (int i = 0 ; i < 2 ; i++)
             {
-                m_fetchThreads[i] = new Thread(AssetRequestProcessor);
-                m_fetchThreads[i].Start();
+                m_fetchThreads[i] = WorkManager.StartThread(AssetRequestProcessor,
+                            String.Format("GetTextureWorker{0}", i),
+                            ThreadPriority.Normal,
+                            true,
+                            false);
             }
         }
 
@@ -349,8 +353,7 @@ namespace OpenSim.Services.Connectors
             public string id;
         }
 
-        private OpenMetaverse.BlockingQueue<QueuedAssetRequest> m_requestQueue =
-                new OpenMetaverse.BlockingQueue<QueuedAssetRequest>();
+        private BlockingCollection<QueuedAssetRequest> m_requestQueue = new BlockingCollection<QueuedAssetRequest>();
 
         private void AssetRequestProcessor()
         {
@@ -358,8 +361,13 @@ namespace OpenSim.Services.Connectors
 
             while (true)
             {
-                r = m_requestQueue.Dequeue();
+                if(!m_requestQueue.TryTake(out r, 4500) || r == null)
+                {
+                    Watchdog.UpdateThread();
+                    continue;
+                }
 
+                Watchdog.UpdateThread();
                 string uri = r.uri;
                 string id = r.id;
 
@@ -427,7 +435,7 @@ namespace OpenSim.Services.Connectors
                     QueuedAssetRequest request = new QueuedAssetRequest();
                     request.id = id;
                     request.uri = uri;
-                    m_requestQueue.Enqueue(request);
+                    m_requestQueue.Add(request);
                 }
             }
             else

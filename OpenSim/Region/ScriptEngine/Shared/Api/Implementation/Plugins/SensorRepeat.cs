@@ -160,7 +160,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             ts.arc = arc;
             ts.host = host;
 
-            ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
+            ts.next = DateTime.UtcNow.AddSeconds(ts.interval);
 
             AddSenseRepeater(ts);
         }
@@ -196,14 +196,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         public void CheckSenseRepeaterEvents()
         {
             // Go through all timers
-            foreach (SensorInfo ts in SenseRepeaters)
+
+            List<SensorInfo> curSensors;
+            lock(SenseRepeatListLock)
+                curSensors = SenseRepeaters;
+
+            DateTime now = DateTime.UtcNow;
+            foreach (SensorInfo ts in curSensors)
             {
                 // Time has passed?
-                if (ts.next.ToUniversalTime() < DateTime.Now.ToUniversalTime())
+                if (ts.next < now)
                 {
                     SensorSweep(ts);
                     // set next interval
-                    ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
+                    ts.next = now.AddSeconds(ts.interval);
                 }
             }
         }
@@ -549,13 +555,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                     return;
 
                 toRegionPos = presence.AbsolutePosition;
-                dis = Util.GetDistanceTo(toRegionPos, fromRegionPos);
+                dis = Vector3.Distance(toRegionPos, fromRegionPos);
                 if (presence.IsSatOnObject && presence.ParentPart != null &&
                     presence.ParentPart.ParentGroup != null &&
                     presence.ParentPart.ParentGroup.RootPart != null)
                 {
                     Vector3 rpos = presence.ParentPart.ParentGroup.RootPart.AbsolutePosition;
-                    double dis2 = Util.GetDistanceTo(rpos, fromRegionPos);
+                    double dis2 = Vector3.Distance(rpos, fromRegionPos);
                     if (dis > dis2)
                         dis = dis2;
                 }

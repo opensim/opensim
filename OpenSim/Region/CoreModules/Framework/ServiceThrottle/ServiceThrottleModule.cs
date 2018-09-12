@@ -119,7 +119,15 @@ namespace OpenSim.Region.CoreModules.Framework
                 if(!client.IsActive)
                     return;
 
-                GridRegion r = m_scenes[0].GridService.GetRegionByUUID(UUID.Zero, regionID);
+                if(m_scenes.Count == 0)
+                    return;
+
+                Scene baseScene = m_scenes[0];
+
+                if(baseScene == null || baseScene.ShuttingDown)
+                    return;
+
+                GridRegion r = baseScene.GridService.GetRegionByUUID(UUID.Zero, regionID);
 
                 if(!client.IsActive)
                     return;

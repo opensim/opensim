@@ -27,13 +27,7 @@
 // Ubit Umarov 2012
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using OpenSim.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
-using OdeAPI;
-using log4net;
 using OpenMetaverse;
 
 namespace OpenSim.Region.PhysicsModule.ubOde
@@ -78,8 +72,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             IntPtr geom = ((OdePrim)actor).prim_geom;
 
-            Vector3 geopos = d.GeomGetPositionOMV(geom);
-            Quaternion geomOri = d.GeomGetQuaternionOMV(geom);
+            Vector3 geopos = SafeNativeMethods.GeomGetPositionOMV(geom);
+            Quaternion geomOri = SafeNativeMethods.GeomGetQuaternionOMV(geom);
 
 //            Vector3 geopos = actor.Position;
 //            Quaternion geomOri = actor.Orientation;
@@ -123,11 +117,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             offset = rayResults[0].Pos - geopos;
 
-            d.GeomClassID geoclass = d.GeomGetClass(geom);
+            SafeNativeMethods.GeomClassID geoclass = SafeNativeMethods.GeomGetClass(geom);
 
-            if (geoclass == d.GeomClassID.SphereClass)
+            if (geoclass == SafeNativeMethods.GeomClassID.SphereClass)
             {
-                float r = d.GeomSphereGetRadius(geom);
+                float r = SafeNativeMethods.GeomSphereGetRadius(geom);
 
                 offset.Normalize();
                 offset *= r;

@@ -69,7 +69,6 @@ namespace OpenSim.Region.CoreModules.World.Serialiser
             MemoryStream stream = new MemoryStream();
             XmlTextWriter formatter = new XmlTextWriter(stream, Encoding.UTF8);
             XmlDocument doc = new XmlDocument();
-
             doc.LoadXml(xmlstream);
             formatter.Formatting = Formatting.Indented;
             doc.WriteContentTo(formatter);

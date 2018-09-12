@@ -106,6 +106,8 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             if (!m_Enabled)
                 return;
 
+            base.RemoveRegion(scene);
+
             scene.EventManager.OnClientClosed -= EventManager_OnClientClosed;
         }
 

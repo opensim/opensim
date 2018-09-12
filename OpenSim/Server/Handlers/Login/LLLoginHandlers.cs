@@ -64,7 +64,7 @@ namespace OpenSim.Server.Handlers.Login
         public XmlRpcResponse HandleXMLRPCLogin(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
-            if (m_Proxy && request.Params[3] != null)
+            if (request.Params[3] != null)
             {
                 IPEndPoint ep = Util.GetClientIPFromXFF((string)request.Params[3]);
                 if (ep != null)

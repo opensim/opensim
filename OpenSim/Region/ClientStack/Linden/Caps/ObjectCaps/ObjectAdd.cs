@@ -357,7 +357,7 @@ namespace OpenSim.Region.ClientStack.Linden
             rootpart.NextOwnerMask = next_owner_mask;
             rootpart.Material = (byte)material;
 
-            obj.AggregatePerms();
+            obj.InvalidateDeepEffectivePerms();
 
             m_scene.PhysicsScene.AddPhysicsActorTaint(rootpart.PhysActor);
 

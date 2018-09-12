@@ -29,11 +29,9 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
-using log4net;
+using System.Text;
 using MySql.Data.MySqlClient;
 using OpenMetaverse;
-using OpenSim.Framework;
-using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Data.MySQL
 {
@@ -129,25 +127,27 @@ namespace OpenSim.Data.MySQL
 
         public virtual T[] Get(string[] fields, string[] keys, string options)
         {
-            if (fields.Length != keys.Length)
+            int flen = fields.Length;
+            if (flen == 0 || flen != keys.Length)
                 return new T[0];
 
-            List<string> terms = new List<string>();
+            int flast = flen - 1;
+            StringBuilder sb = new StringBuilder(1024);
+            sb.AppendFormat("select * from {0} where ", m_Realm);
 
             using (MySqlCommand cmd = new MySqlCommand())
             {
-                for (int i = 0 ; i < fields.Length ; i++)
+                for (int i = 0 ; i < flen ; i++)
                 {
                     cmd.Parameters.AddWithValue(fields[i], keys[i]);
-                    terms.Add("`" + fields[i] + "` = ?" + fields[i]);
+                    if(i< flast)
+                        sb.AppendFormat("`{0}` = ?{0} and ", fields[i]);
+                    else
+                        sb.AppendFormat("`{0}` = ?{0} ", fields[i]);
                 }
 
-                string where = String.Join(" and ", terms.ToArray());
-
-                string query = String.Format("select * from {0} where {1} {2}",
-                                             m_Realm, where, options);
-
-                cmd.CommandText = query;
+                sb.Append(options);
+                cmd.CommandText = sb.ToString();
 
                 return DoQuery(cmd);
             }
@@ -160,8 +160,9 @@ namespace OpenSim.Data.MySQL
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
                     dbcon.Open();
-
-                    return DoQueryWithConnection(cmd, dbcon);
+                    T[] ret = DoQueryWithConnection(cmd, dbcon);
+                    dbcon.Close();
+                    return ret;
                 }
             }
             else
@@ -203,7 +204,7 @@ namespace OpenSim.Data.MySQL
                         if (m_Fields[name].FieldType == typeof(bool))
                         {
                             int v = Convert.ToInt32(reader[name]);
-                            m_Fields[name].SetValue(row, v != 0 ? true : false);
+                            m_Fields[name].SetValue(row, v != 0);
                         }
                         else if (m_Fields[name].FieldType == typeof(UUID))
                         {
@@ -243,7 +244,7 @@ namespace OpenSim.Data.MySQL
                     result.Add(row);
                 }
             }
-
+            cmd.Connection = null;
             return result.ToArray();
         }
 
@@ -402,7 +403,10 @@ namespace OpenSim.Data.MySQL
                     dbcon.Open();
                     cmd.Connection = dbcon;
 
-                    return cmd.ExecuteScalar();
+                    Object ret = cmd.ExecuteScalar();
+                    cmd.Connection = null;
+                    dbcon.Close();
+                    return ret;
                 }
             }
             else

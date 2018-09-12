@@ -443,7 +443,7 @@ namespace OpenSim.Framework
     public delegate void DeclineCallingCard(IClientAPI remoteClient, UUID transactionID);
 
     public delegate void SoundTrigger(
-        UUID soundId, UUID ownerid, UUID objid, UUID parentid, double Gain, Vector3 Position, UInt64 Handle, float radius);
+        UUID soundId, UUID ownerid, UUID objid, UUID parentid, double Gain, Vector3 Position, UInt64 Handle);
 
     public delegate void StartLure(byte lureType, string message, UUID targetID, IClientAPI client);
     public delegate void TeleportLureRequest(UUID lureID, uint teleportFlags, IClientAPI client);
@@ -685,9 +685,10 @@ namespace OpenSim.Framework
         ExtraData = 1 << 20,
         Sound = 1 << 21,
         Joint = 1 << 22,
-        FullUpdate = 0x3fffffff,
-        CancelKill = 0x7fffffff,
-        Kill = 0x80000000
+        FullUpdate =    0x0fffffff,
+        SendInTransit = 0x20000000, 
+        CancelKill =    0x4fffffff, // 1 << 30 
+        Kill =          0x80000000 // 1 << 31
     }
 
 /* included in .net 4.0
@@ -1187,7 +1188,8 @@ namespace OpenSim.Framework
         void SetAgentThrottleSilent(int throttle, int setting);
         int GetAgentThrottleSilent(int throttle);
 
-        void SendAvatarDataImmediate(ISceneEntity avatar);
+        void SendEntityFullUpdateImmediate(ISceneEntity entity);
+        void SendEntityTerseUpdateImmediate(ISceneEntity entity);
 
         /// <summary>
         /// Send a positional, velocity, etc. update to the viewer for a given entity.
@@ -1483,7 +1485,7 @@ namespace OpenSim.Framework
         void SendUserInfoReply(bool imViaEmail, bool visible, string email);
 
         void SendUseCachedMuteList();
-
+        void SendEmpytMuteList();
         void SendMuteListUpdate(string filename);
 
         void SendGroupActiveProposals(UUID groupID, UUID transactionID, GroupActiveProposals[] Proposals);

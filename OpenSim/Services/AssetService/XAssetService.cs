@@ -80,7 +80,7 @@ namespace OpenSim.Services.AssetService
                                 if (existingAsset == null || Util.SHA1Hash(existingAsset.Data) != Util.SHA1Hash(a.Data))
                                 {
 //                                    m_log.DebugFormat("[ASSET]: Storing {0} {1}", a.Name, a.ID);
-                                    Store(a);
+                                    m_Database.StoreAsset(a);
                                 }
                             });
                     }

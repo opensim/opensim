@@ -141,14 +141,30 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
     }
 
     // The passed position is relative to the base of the region.
+    // There are many assumptions herein that the heightmap increment is 1.
     public override float GetTerrainHeightAtXYZ(Vector3 pos)
     {
         float ret = BSTerrainManager.HEIGHT_GETHEIGHT_RET;
 
-        int mapIndex = (int)pos.Y * (int)m_mapInfo.sizeY + (int)pos.X;
-        try
-        {
-            ret = m_mapInfo.heightMap[mapIndex];
+        try {
+            int baseX = (int)pos.X;
+            int baseY = (int)pos.Y;
+            int maxX = (int)m_mapInfo.sizeX;
+            int maxY = (int)m_mapInfo.sizeY;
+            float diffX = pos.X - (float)baseX;
+            float diffY = pos.Y - (float)baseY;
+
+            float mapHeight1 = m_mapInfo.heightMap[baseY * maxY + baseX];
+            float mapHeight2 = m_mapInfo.heightMap[Math.Min(baseY + 1, maxY - 1) * maxY + baseX];
+            float mapHeight3 = m_mapInfo.heightMap[baseY * maxY + Math.Min(baseX + 1, maxX  - 1)];
+            float mapHeight4 = m_mapInfo.heightMap[Math.Min(baseY + 1, maxY - 1) * maxY +  Math.Min(baseX + 1, maxX  - 1)];
+
+            float Xrise = (mapHeight4 - mapHeight3) * diffX;
+            float Yrise = (mapHeight2 - mapHeight1) * diffY;
+
+            ret = mapHeight1 + ((Xrise + Yrise) / 2f);
+            // m_physicsScene.DetailLog("{0},BSTerrainHeightMap,GetTerrainHeightAtXYZ,pos={1},{2}/{3}/{4}/{5},ret={6}",
+            //         BSScene.DetailLogZero, pos, mapHeight1, mapHeight2, mapHeight3, mapHeight4, ret);
         }
         catch
         {

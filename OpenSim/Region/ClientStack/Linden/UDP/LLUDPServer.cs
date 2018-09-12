@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -285,7 +286,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Incoming packets that are awaiting handling</summary>
         //protected OpenMetaverse.BlockingQueue<IncomingPacket> packetInbox = new OpenMetaverse.BlockingQueue<IncomingPacket>();
 
-        protected OpenSim.Framework.BlockingQueue<IncomingPacket> packetInbox = new OpenSim.Framework.BlockingQueue<IncomingPacket>();
+        protected BlockingCollection<IncomingPacket> packetInbox = new BlockingCollection<IncomingPacket>();
 
         /// <summary>Bandwidth throttle for this UDP server</summary>
         public TokenBucket Throttle { get; protected set; }
@@ -311,9 +312,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// is passed up to the operating system and used in the system networking
         /// stack. Use zero to leave this value as the default</summary>
         protected int m_recvBufferSize;
-
-        /// <summary>Flag to process packets asynchronously or synchronously</summary>
-        protected bool m_asyncPacketHandling;
 
         /// <summary>Tracks whether or not a packet was sent each round so we know
         /// whether or not to sleep</summary>
@@ -417,7 +415,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Queue some low priority but potentially high volume async requests so that they don't overwhelm available
         /// threadpool threads.
         /// </summary>
-        public JobEngine IpahEngine { get; protected set; }
+//        public JobEngine IpahEngine { get; protected set; }
 
         /// <summary>
         /// Run queue empty processing within a single persistent thread.
@@ -473,7 +471,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             IConfig config = configSource.Configs["ClientStack.LindenUDP"];
             if (config != null)
             {
-                m_asyncPacketHandling = config.GetBoolean("async_packet_handling", true);
                 m_recvBufferSize = config.GetInt("client_socket_rcvbuf_size", 0);
                 sceneThrottleBps = config.GetInt("scene_throttle_max_bps", 0);
 
@@ -531,7 +528,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             StartInbound();
             StartOutbound();
-            IpahEngine.Start();
+//            IpahEngine.Start();
             OqrEngine.Start();
 
             m_elapsedMSSinceLastStatReport = Environment.TickCount;
@@ -540,10 +537,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void StartInbound()
         {
             m_log.InfoFormat(
-                "[LLUDPSERVER]: Starting inbound packet processing for the LLUDP server in {0} mode with UsePools = {1}",
-                m_asyncPacketHandling ? "asynchronous" : "synchronous", UsePools);
+                "[LLUDPSERVER]: Starting inbound packet processing for the LLUDP server");
 
-            base.StartInbound(m_recvBufferSize, m_asyncPacketHandling);
+            base.StartInbound(m_recvBufferSize);
 
             // This thread will process the packets received that are placed on the packetInbox
             WorkManager.StartThread(
@@ -577,7 +573,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_log.Info("[LLUDPSERVER]: Shutting down the LLUDP server for " + Scene.Name);
             base.StopOutbound();
             base.StopInbound();
-            IpahEngine.Stop();
+//            IpahEngine.Stop();
             OqrEngine.Stop();
         }
 
@@ -696,12 +692,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             Scene = (Scene)scene;
             m_location = new Location(Scene.RegionInfo.RegionHandle);
-
+/*
             IpahEngine
                 = new JobEngine(
                     string.Format("Incoming Packet Async Handling Engine ({0})", Scene.Name),
                     "INCOMING PACKET ASYNC HANDLING ENGINE");
-
+*/
             OqrEngine
                 = new JobEngine(
                     string.Format("Outgoing Queue Refill Engine ({0})", Scene.Name),
@@ -717,7 +713,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     scene.Name,
                     StatType.Pull,
                     MeasuresOfInterest.AverageChangeOverTime,
-                    stat => stat.Value = packetInbox.Count(),
+                    stat => {try{stat.Value = packetInbox.Count;}catch{}},
                     StatVerbosity.Debug));
 
             // XXX: These stats are also pool stats but we register them separately since they are currently not
@@ -786,7 +782,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     MeasuresOfInterest.AverageChangeOverTime,
                     stat => stat.Value = GetTotalQueuedOutgoingPackets(),
                     StatVerbosity.Info));
-
+/*
             StatsManager.RegisterStat(
                 new Stat(
                     "IncomingPacketAsyncRequestsWaiting",
@@ -799,7 +795,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     MeasuresOfInterest.None,
                     stat => stat.Value = IpahEngine.JobsWaiting,
                     StatVerbosity.Debug));
-
+*/
             StatsManager.RegisterStat(
                 new Stat(
                     "OQRERequestsWaiting",
@@ -903,7 +899,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (packet.Type == PacketType.CoarseLocationUpdate && allowSplitting)
                 allowSplitting = false;
 
-            bool packetQueued = false;
+//            bool packetQueued = false;
 
             if (allowSplitting && packet.HasVariableBlocks)
             {
@@ -916,15 +912,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int i = 0; i < packetCount; i++)
                 {
                     byte[] data = datas[i];
-                    if (!SendPacketData(udpClient, data, packet.Type, category, method))
-                        packetQueued = true;
+//                    if (!SendPacketData(udpClient, data, packet.Type, category, method))
+//                        packetQueued = true;
+                    SendPacketData(udpClient, data, packet.Type, category, method);
                 }
             }
             else
             {
                 byte[] data = packet.ToBytes();
-                if (!SendPacketData(udpClient, data, packet.Type, category, method))
-                    packetQueued = true;
+//                if (!SendPacketData(udpClient, data, packet.Type, category, method))
+//                    packetQueued = true;
+                SendPacketData(udpClient, data, packet.Type, category, method);
             }
 
             PacketPool.Instance.ReturnPacket(packet);
@@ -1227,7 +1225,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     outgoingPacket.SequenceNumber, isReliable, isResend, udpClient.AgentID, Scene.Name);
 
             // Put the UDP payload on the wire
-            AsyncBeginSend(buffer);
+//            AsyncBeginSend(buffer);
+            SyncSend(buffer);
 
             // Keep track of when this packet was sent out (right now)
             outgoingPacket.TickCount = Environment.TickCount & Int32.MaxValue;
@@ -1548,10 +1547,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
 //            if (incomingPacket.Packet.Type == PacketType.AgentUpdate ||
 //                incomingPacket.Packet.Type == PacketType.ChatFromViewer)
-            if (incomingPacket.Packet.Type == PacketType.ChatFromViewer)
-                packetInbox.PriorityEnqueue(incomingPacket);
-            else
-                packetInbox.Enqueue(incomingPacket);
+//            if (incomingPacket.Packet.Type == PacketType.ChatFromViewer)
+//                packetInbox.PriorityEnqueue(incomingPacket);
+//            else
+//                packetInbox.Enqueue(incomingPacket);
+            packetInbox.Add(incomingPacket);
 
         }
 
@@ -1912,7 +1912,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             Buffer.BlockCopy(packetData, 0, buffer.Data, 0, length);
 
-            AsyncBeginSend(buffer);
+//            AsyncBeginSend(buffer);
+            SyncSend(buffer);
         }
 
         protected bool IsClientAuthorized(UseCircuitCodePacket useCircuitCode, out AuthenticateResponse sessionInfo)
@@ -2019,7 +2020,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 Scene.ThreadAlive(1);
                 try
                 {
-                    incomingPacket = packetInbox.Dequeue(250);
+                    packetInbox.TryTake(out incomingPacket, 250);
 
                     if (incomingPacket != null && IsRunningInbound)
                     {
@@ -2041,9 +2042,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 Watchdog.UpdateThread();
             }
 
-            if (packetInbox.Count() > 0)
-                m_log.Warn("[LLUDPSERVER]: IncomingPacketHandler is shutting down, dropping " + packetInbox.Count() + " packets");
-            packetInbox.Clear();
+            if (packetInbox.Count > 0)
+                m_log.Warn("[LLUDPSERVER]: IncomingPacketHandler is shutting down, dropping " + packetInbox.Count + " packets");
+            packetInbox.Dispose();
 
             Watchdog.RemoveThread();
         }

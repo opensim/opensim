@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Reflection;
 using System.Threading;
 using log4net;
@@ -51,7 +52,7 @@ namespace OpenSim.Region.ClientStack.Linden
     public class GetTextureModule : INonSharedRegionModule
     {
 
-        struct aPollRequest
+        class APollRequest
         {
             public PollServiceTextureEventArgs thepoll;
             public UUID reqID;
@@ -59,7 +60,7 @@ namespace OpenSim.Region.ClientStack.Linden
             public bool send503;
         }
 
-        public class aPollResponse
+        public class APollResponse
         {
             public Hashtable response;
             public int bytes;
@@ -77,8 +78,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private Dictionary<UUID, string> m_capsDict = new Dictionary<UUID, string>();
         private static Thread[] m_workerThreads = null;
         private static int m_NumberScenes = 0;
-        private static OpenMetaverse.BlockingQueue<aPollRequest> m_queue =
-                new OpenMetaverse.BlockingQueue<aPollRequest>();
+        private static BlockingCollection<APollRequest> m_queue = new BlockingCollection<APollRequest>();
 
         private Dictionary<UUID,PollServiceTextureEventArgs> m_pollservices = new Dictionary<UUID,PollServiceTextureEventArgs>();
 
@@ -107,26 +107,29 @@ namespace OpenSim.Region.ClientStack.Linden
         public void AddRegion(Scene s)
         {
             m_scene = s;
-            m_assetService = s.AssetService;
         }
 
         public void RemoveRegion(Scene s)
         {
-            m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
-            m_scene.EventManager.OnDeregisterCaps -= DeregisterCaps;
-            m_scene.EventManager.OnThrottleUpdate -= ThrottleUpdate;
+            s.EventManager.OnRegisterCaps -= RegisterCaps;
+            s.EventManager.OnDeregisterCaps -= DeregisterCaps;
+            s.EventManager.OnThrottleUpdate -= ThrottleUpdate;
             m_NumberScenes--;
             m_scene = null;
         }
 
         public void RegionLoaded(Scene s)
         {
-            // We'll reuse the same handler for all requests.
-            m_getTextureHandler = new GetTextureHandler(m_assetService);
+            if(m_assetService == null)
+            {
+                m_assetService = s.RequestModuleInterface<IAssetService>();
+                // We'll reuse the same handler for all requests.
+                m_getTextureHandler = new GetTextureHandler(m_assetService);
+            }
 
-            m_scene.EventManager.OnRegisterCaps += RegisterCaps;
-            m_scene.EventManager.OnDeregisterCaps += DeregisterCaps;
-            m_scene.EventManager.OnThrottleUpdate += ThrottleUpdate;
+            s.EventManager.OnRegisterCaps += RegisterCaps;
+            s.EventManager.OnDeregisterCaps += DeregisterCaps;
+            s.EventManager.OnThrottleUpdate += ThrottleUpdate;
 
             m_NumberScenes++;
 
@@ -139,46 +142,20 @@ namespace OpenSim.Region.ClientStack.Linden
                     m_workerThreads[i] = WorkManager.StartThread(DoTextureRequests,
                             String.Format("GetTextureWorker{0}", i),
                             ThreadPriority.Normal,
-                            false,
+                            true,
                             false,
                             null,
                             int.MaxValue);
                 }
             }
         }
-        private int ExtractImageThrottle(byte[] pthrottles)
-        {
-
-            byte[] adjData;
-            int pos = 0;
-
-            if (!BitConverter.IsLittleEndian)
-            {
-                byte[] newData = new byte[7 * 4];
-                Buffer.BlockCopy(pthrottles, 0, newData, 0, 7 * 4);
-
-                for (int i = 0; i < 7; i++)
-                    Array.Reverse(newData, i * 4, 4);
-
-                adjData = newData;
-            }
-            else
-            {
-                adjData = pthrottles;
-            }
-
-            pos = pos + 20;
-            int texture = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f); //pos += 4;
-            //int asset = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f);
-            return texture;
-        }
-
+ 
         // Now we know when the throttle is changed by the client in the case of a root agent or by a neighbor region in the case of a child agent.
         public void ThrottleUpdate(ScenePresence p)
         {
             byte[] throttles = p.ControllingClient.GetThrottlesPacked(1);
             UUID user = p.UUID;
-            int imagethrottle = ExtractImageThrottle(throttles);
+            int imagethrottle = p.ControllingClient.GetAgentThrottleSilent((int)ThrottleOutPacketType.Texture);
             PollServiceTextureEventArgs args;
             if (m_pollservices.TryGetValue(user,out args))
             {
@@ -199,7 +176,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 foreach (Thread t in m_workerThreads)
                     Watchdog.AbortThread(t.ManagedThreadId);
 
-                m_queue.Clear();
+                m_queue.Dispose();
             }
         }
 
@@ -216,26 +193,37 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             private List<Hashtable> requests =
                     new List<Hashtable>();
-            private Dictionary<UUID, aPollResponse> responses =
-                    new Dictionary<UUID, aPollResponse>();
+            private Dictionary<UUID, APollResponse> responses =
+                    new Dictionary<UUID, APollResponse>();
+            private HashSet<UUID> dropedResponses = new HashSet<UUID>();
 
             private Scene m_scene;
-            private CapsDataThrottler m_throttler = new CapsDataThrottler(100000, 1400000,10000);
+            private CapsDataThrottler m_throttler;
             public PollServiceTextureEventArgs(UUID pId, Scene scene) :
-                    base(null, "", null, null, null, pId, int.MaxValue)
+                    base(null, "", null, null, null, null, pId, int.MaxValue)              
             {
                 m_scene = scene;
+                m_throttler = new CapsDataThrottler(100000);
                 // x is request id, y is userid
                 HasEvents = (x, y) =>
                 {
                     lock (responses)
                     {
                         bool ret = m_throttler.hasEvents(x, responses);
-                        m_throttler.ProcessTime();
                         return ret;
 
                     }
                 };
+
+                Drop = (x, y) =>
+                {
+                    lock (responses)
+                    {
+                        responses.Remove(x);
+                        dropedResponses.Add(x);
+                    }
+               };
+
                 GetEvents = (x, y) =>
                 {
                     lock (responses)
@@ -247,13 +235,14 @@ namespace OpenSim.Region.ClientStack.Linden
                         finally
                         {
                             responses.Remove(x);
+                            m_throttler.PassTime();
                         }
                     }
                 };
                 // x is request id, y is request data hashtable
                 Request = (x, y) =>
                 {
-                    aPollRequest reqinfo = new aPollRequest();
+                    APollRequest reqinfo = new APollRequest();
                     reqinfo.thepoll = this;
                     reqinfo.reqID = x;
                     reqinfo.request = y;
@@ -270,7 +259,8 @@ namespace OpenSim.Region.ClientStack.Linden
                             }
                         }
                     }
-                    m_queue.Enqueue(reqinfo);
+                    m_queue.Add(reqinfo);
+                    m_throttler.PassTime();
                 };
 
                 // this should never happen except possible on shutdown
@@ -289,13 +279,11 @@ namespace OpenSim.Region.ClientStack.Linden
                     response["str_response_string"] = "Script timeout";
                     response["content_type"] = "text/plain";
                     response["keepalive"] = false;
-                    response["reusecontext"] = false;
-
                     return response;
                 };
             }
 
-            public void Process(aPollRequest requestinfo)
+            public void Process(APollRequest requestinfo)
             {
                 Hashtable response;
 
@@ -304,61 +292,79 @@ namespace OpenSim.Region.ClientStack.Linden
                 if(m_scene.ShuttingDown)
                     return;
 
-                if (requestinfo.send503)
+                lock (responses)
                 {
-                    response = new Hashtable();
+                    lock(dropedResponses)
+                    {
+                        if(dropedResponses.Contains(requestID))
+                        {
+                            dropedResponses.Remove(requestID);
+                            return;
+                        }
+                    }
 
-                    response["int_response_code"] = 503;
-                    response["str_response_string"] = "Throttled";
-                    response["content_type"] = "text/plain";
-                    response["keepalive"] = false;
-                    response["reusecontext"] = false;
+                    if (requestinfo.send503)
+                    {
+                        response = new Hashtable();
 
-                    Hashtable headers = new Hashtable();
-                    headers["Retry-After"] = 30;
-                    response["headers"] = headers;
+                        response["int_response_code"] = 503;
+                        response["str_response_string"] = "Throttled";
+                        response["content_type"] = "text/plain";
+                        response["keepalive"] = false;
 
-                    lock (responses)
-                        responses[requestID] = new aPollResponse() {bytes = 0, response = response};
+                        Hashtable headers = new Hashtable();
+                        headers["Retry-After"] = 30;
+                        response["headers"] = headers;
 
-                    return;
-                }
+                        responses[requestID] = new APollResponse() {bytes = 0, response = response};
+
+                        return;
+                    }
 
                 // If the avatar is gone, don't bother to get the texture
-                if (m_scene.GetScenePresence(Id) == null)
-                {
-                    response = new Hashtable();
+                    if (m_scene.GetScenePresence(Id) == null)
+                    {
+                        response = new Hashtable();
 
-                    response["int_response_code"] = 500;
-                    response["str_response_string"] = "Script timeout";
-                    response["content_type"] = "text/plain";
-                    response["keepalive"] = false;
-                    response["reusecontext"] = false;
+                        response["int_response_code"] = 500;
+                        response["str_response_string"] = "Script timeout";
+                        response["content_type"] = "text/plain";
+                        response["keepalive"] = false;
 
-                    lock (responses)
-                        responses[requestID] = new aPollResponse() {bytes = 0, response = response};
+                        responses[requestID] = new APollResponse() {bytes = 0, response = response};
 
-                    return;
+                        return;
+                    }
                 }
 
                 response = m_getTextureHandler.Handle(requestinfo.request);
+
                 lock (responses)
                 {
-                    responses[requestID] = new aPollResponse()
-                                               {
-                                                   bytes = (int) response["int_bytes"],
-                                                   response = response
-                                               };
-
-                }
-                m_throttler.ProcessTime();
+                    lock(dropedResponses)
+                    {
+                        if(dropedResponses.Contains(requestID))
+                        {
+                            dropedResponses.Remove(requestID);
+                            m_throttler.PassTime();
+                            return;
+                        }
+                    }
+                    responses[requestID] = new APollResponse()
+                        {
+                            bytes = (int) response["int_bytes"],
+                            response = response
+                        };
+                } 
+                m_throttler.PassTime();
             }
 
             internal void UpdateThrottle(int pimagethrottle)
             {
-                m_throttler.ThrottleBytes = 2 * pimagethrottle;
-                if(m_throttler.ThrottleBytes < 10000)
-                    m_throttler.ThrottleBytes = 10000;
+                int tmp = 2 * pimagethrottle;
+                if(tmp < 10000)
+                    tmp = 10000;
+                m_throttler.ThrottleBytes = tmp;
             }
         }
 
@@ -413,72 +419,63 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private static void DoTextureRequests()
         {
-            while (true)
+            APollRequest poolreq;
+            while (m_NumberScenes > 0)
             {
-                aPollRequest poolreq = m_queue.Dequeue();
+                poolreq = null;
+                if(!m_queue.TryTake(out poolreq, 4500) || poolreq == null)
+                {
+                    Watchdog.UpdateThread();
+                    continue;
+                }
+
+                if(m_NumberScenes <= 0)
+                   break;
+          
                 Watchdog.UpdateThread();
-                poolreq.thepoll.Process(poolreq);
+                if(poolreq.reqID != UUID.Zero)
+                    poolreq.thepoll.Process(poolreq);
             }
         }
 
         internal sealed class CapsDataThrottler
         {
-
-            private volatile int currenttime = 0;
-            private volatile int lastTimeElapsed = 0;
+            private double lastTimeElapsed = 0;
             private volatile int BytesSent = 0;
-            public CapsDataThrottler(int pBytes, int max, int min)
+            public CapsDataThrottler(int pBytes)
             {
+                if(pBytes < 10000)
+                    pBytes = 10000;
                 ThrottleBytes = pBytes;
-                if(ThrottleBytes < 10000)
-                    ThrottleBytes = 10000;
-                lastTimeElapsed = Util.EnvironmentTickCount();
+                lastTimeElapsed = Util.GetTimeStamp();
             }
-            public bool hasEvents(UUID key, Dictionary<UUID, GetTextureModule.aPollResponse> responses)
+            public bool hasEvents(UUID key, Dictionary<UUID, GetTextureModule.APollResponse> responses)
             {
                 PassTime();
                 // Note, this is called IN LOCK
-                bool haskey = responses.ContainsKey(key);
-                if (!haskey)
-                {
-                    return false;
-                }
-                GetTextureModule.aPollResponse response;
+                GetTextureModule.APollResponse response;
                 if (responses.TryGetValue(key, out response))
                 {
-                    // This is any error response
-                    if (response.bytes == 0)
-                        return true;
-
-                    // Normal
-                    if (BytesSent <= ThrottleBytes)
+                    if (response.bytes == 0 || BytesSent <= ThrottleBytes)
                     {
                         BytesSent += response.bytes;
                         return true;
                     }
-                    else
-                    {
-                        return false;
-                    }
                 }
-
-                return haskey;
+                return false;
             }
 
-            public void ProcessTime()
+            public void PassTime()
             {
-                PassTime();
-            }
-
-            private void PassTime()
+                double currenttime = Util.GetTimeStamp();
+                double timeElapsed = currenttime - lastTimeElapsed;
+                if(timeElapsed < .05)
+                    return;
+                int add = (int)(ThrottleBytes * timeElapsed);
+                if (add >= 1000)
             {
-                currenttime = Util.EnvironmentTickCount();
-                int timeElapsed = Util.EnvironmentTickCountSubtract(currenttime, lastTimeElapsed);
-                //processTimeBasedActions(responses);
-                if (timeElapsed >= 100)
-                {
                     lastTimeElapsed = currenttime;
-                    BytesSent -= (ThrottleBytes * timeElapsed / 1000);
+                    BytesSent -= add;
                     if (BytesSent < 0) BytesSent = 0;
                 }
             }

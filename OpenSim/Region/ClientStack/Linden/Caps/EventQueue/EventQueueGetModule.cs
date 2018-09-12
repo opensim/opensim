@@ -30,7 +30,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
-using System.Threading;
+using System.Text;
 using log4net;
 using Nini.Config;
 using Mono.Addins;
@@ -44,7 +44,6 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using BlockingLLSDQueue = OpenSim.Framework.BlockingQueue<OpenMetaverse.StructuredData.OSD>;
 using Caps=OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Region.ClientStack.Linden
@@ -292,8 +291,6 @@ namespace OpenSim.Region.ClientStack.Linden
             Queue<OSD> queue;
             Random rnd = new Random(Environment.TickCount);
             int nrnd = rnd.Next(30000000);
-            if (nrnd < 0)
-                nrnd = -nrnd;
 
             lock (queues)
             {
@@ -307,21 +304,11 @@ namespace OpenSim.Region.ClientStack.Linden
                     queue = new Queue<OSD>();
                     queues[agentID] = queue;
 
-                    // push markers to handle old responses still waiting
-                    // this will cost at most viewer getting two forced noevents
-                    // even being a new queue better be safe
-                    queue.Enqueue(null);
-                    queue.Enqueue(null); // one should be enough
-
                     lock (m_AvatarQueueUUIDMapping)
                     {
                         eventQueueGetUUID = UUID.Random();
-                        if (m_AvatarQueueUUIDMapping.ContainsKey(agentID))
-                        {
-                            // oops this should not happen ?
-                            m_log.DebugFormat("[EVENTQUEUE]: Found Existing UUID without a queue");
-                            eventQueueGetUUID = m_AvatarQueueUUIDMapping[agentID];
-                        }
+                        while(m_AvatarQueueUUIDMapping.ContainsKey(agentID))
+                            eventQueueGetUUID = UUID.Random();
                         m_AvatarQueueUUIDMapping.Add(agentID, eventQueueGetUUID);
                     }
                     lock (m_ids)
@@ -329,18 +316,14 @@ namespace OpenSim.Region.ClientStack.Linden
                         if (!m_ids.ContainsKey(agentID))
                             m_ids.Add(agentID, nrnd);
                         else
-                            m_ids[agentID] = nrnd;
+                            m_ids[agentID]++;
                     }
                 }
                 else
                 {
-                    // push markers to handle old responses still waiting
-                    // this will cost at most viewer getting two forced noevents
-                    // even being a new queue better be safe
                     queue.Enqueue(null);
                     queue.Enqueue(null); // one should be enough
-
-                    // reuse or not to reuse TODO FIX
+                    // reuse or not to reuse
                     lock (m_AvatarQueueUUIDMapping)
                     {
                         // Reuse open queues.  The client does!
@@ -349,30 +332,39 @@ namespace OpenSim.Region.ClientStack.Linden
                         {
                             m_log.DebugFormat("[EVENTQUEUE]: Found Existing UUID!");
                             eventQueueGetUUID = m_AvatarQueueUUIDMapping[agentID];
+                            lock (m_ids)
+                            {
+                                // change to negative numbers so they are changed at end of sending first marker
+                                // old data on a queue may be sent on a response for a new caps
+                                // but at least will be sent with coerent IDs
+                                if (!m_ids.ContainsKey(agentID))
+                                    m_ids.Add(agentID, -nrnd); // should not happen
+                                else
+                                    m_ids[agentID] = -m_ids[agentID];
+                            }
                         }
                         else
                         {
                             eventQueueGetUUID = UUID.Random();
+                            while(m_AvatarQueueUUIDMapping.ContainsKey(agentID))
+                                eventQueueGetUUID = UUID.Random();
                             m_AvatarQueueUUIDMapping.Add(agentID, eventQueueGetUUID);
                             m_log.DebugFormat("[EVENTQUEUE]: Using random UUID!");
+                            lock (m_ids)
+                            {
+                                if (!m_ids.ContainsKey(agentID))
+                                    m_ids.Add(agentID, nrnd);
+                                else
+                                    m_ids[agentID]++;
+                            }
                         }
-                    }
-                    lock (m_ids)
-                    {
-                        // change to negative numbers so they are changed at end of sending first marker
-                        // old data on a queue may be sent on a response for a new caps
-                        // but at least will be sent with coerent IDs
-                        if (!m_ids.ContainsKey(agentID))
-                            m_ids.Add(agentID, -nrnd); // should not happen
-                        else
-                            m_ids[agentID] = -m_ids[agentID];
                     }
                 }
             }
 
-            caps.RegisterPollHandler(
-                "EventQueueGet",
-                new PollServiceEventArgs(null, GenerateEqgCapPath(eventQueueGetUUID), HasEvents, GetEvents, NoEvents, agentID, SERVER_EQ_TIME_NO_EVENTS));
+        caps.RegisterPollHandler(
+            "EventQueueGet",
+                new PollServiceEventArgs(null, GenerateEqgCapPath(eventQueueGetUUID), HasEvents, GetEvents, NoEvents, Drop, agentID, SERVER_EQ_TIME_NO_EVENTS));
         }
 
         public bool HasEvents(UUID requestID, UUID agentID)
@@ -448,7 +440,6 @@ namespace OpenSim.Region.ClientStack.Linden
                     if (DebugLevel > 0)
                         LogOutboundDebugMessage(element, pAgentId);
                     array.Add(element);
-                    thisID++;
                 }
             }
 
@@ -465,8 +456,6 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 Random rnd = new Random(Environment.TickCount);
                 thisID = rnd.Next(30000000);
-                if (thisID < 0)
-                    thisID = -thisID;
             }
 
             lock (m_ids)
@@ -474,16 +463,19 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_ids[pAgentId] = thisID + 1;
             }
 
+            Hashtable responsedata;
             // if there where no elements before a marker send a NoEvents
-            if (array.Count == 0)
-                return NoEvents(requestID, pAgentId);
-
-            Hashtable responsedata = new Hashtable();
-            responsedata["int_response_code"] = 200;
-            responsedata["content_type"] = "application/xml";
-            responsedata["keepalive"] = false;
-            responsedata["reusecontext"] = false;
-            responsedata["str_response_string"] = OSDParser.SerializeLLSDXmlString(events);
+            if (events == null)
+            {
+               return NoEvents(requestID, pAgentId);
+            }
+            else
+            {
+                responsedata = new Hashtable();
+                responsedata["int_response_code"] = 200;
+                responsedata["content_type"] = "application/xml";
+                responsedata["bin_response_data"] = Encoding.UTF8.GetBytes(OSDParser.SerializeLLSDXmlString(events));
+            }
             //m_log.DebugFormat("[EVENTQUEUE]: sending response for {0} in region {1}: {2}", pAgentId, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
             return responsedata;
         }
@@ -493,20 +485,20 @@ namespace OpenSim.Region.ClientStack.Linden
             Hashtable responsedata = new Hashtable();
             responsedata["int_response_code"] = 502;
             responsedata["content_type"] = "text/plain";
-            responsedata["keepalive"] = false;
-            responsedata["reusecontext"] = false;
             responsedata["str_response_string"] = "<llsd></llsd>";
             responsedata["error_status_text"] = "<llsd></llsd>";
             responsedata["http_protocol_version"] = "HTTP/1.0";
+            responsedata["keepalive"] = false;
             return responsedata;
         }
 
+/* this is not a event message
         public void DisableSimulator(ulong handle, UUID avatarID)
         {
             OSD item = EventQueueHelper.DisableSimulator(handle);
             Enqueue(item, avatarID);
         }
-
+*/
         public virtual void EnableSimulator(ulong handle, IPEndPoint endPoint, UUID avatarID, int regionSizeX, int regionSizeY)
         {
             if (DebugLevel > 0)

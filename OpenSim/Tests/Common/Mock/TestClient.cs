@@ -760,7 +760,11 @@ namespace OpenSim.Tests.Common
         {
         }
 
-        public void SendAvatarDataImmediate(ISceneEntity avatar)
+        public void SendEntityFullUpdateImmediate(ISceneEntity ent)
+        {
+        }
+
+        public void SendEntityTerseUpdateImmediate(ISceneEntity ent)
         {
         }
 
@@ -1308,6 +1312,10 @@ namespace OpenSim.Tests.Common
         }
 
         public void SendUseCachedMuteList()
+        {
+        }
+
+        public void SendEmpytMuteList()
         {
         }
 

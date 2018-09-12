@@ -1,3 +1,22 @@
+2017, August Unit Umarov
+	* add Freak Tech patch for prefer32bit default to false
+	* fix comand line target override
+	* fix CSharp target assembly name
+
+2015, June	Fly-Man- <fly.man.opensim@gmail.com>
+	* V2.0.7	(WhiteCore Build)
+	* Added the VS2012/VS2013 targets so .Net 4.5 can be used for WhiteCore
+	* Cleaned up the SharpDevelop2 code part
+	
+2015, April  rowan Deppeler <greythane@gmail.com>
+	* V2.0.6w	(WhiteCore build
+	* No changes to the code as it appears development has now stalled at 1.10
+	- Incorporated (Rev's, I think) patches from Aurora to provide for passing the framework
+	 and additional conditionals in the Prebuild.xml spec
+	- Re-built using Net 4.0 framework to provide for use on unmodified Windows 8 systems (No Net 3.5) 
+	- Included Solution and project files to assist building if required 
+
+
 2008-12-09T02:15	D. Moonfire <d.moonfire@mfgames.com>
 	* src/Core/Kernel.cs
 	- Added a /ppi target to get the results of processing but before

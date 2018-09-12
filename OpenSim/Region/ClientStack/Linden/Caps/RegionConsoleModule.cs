@@ -185,8 +185,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
         protected override byte[] ProcessRequest(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            StreamReader reader = new StreamReader(request);
-            string message = reader.ReadToEnd();
+            string message;
+            using(StreamReader reader = new StreamReader(request))
+                message = reader.ReadToEnd();
 
             OSD osd = OSDParser.DeserializeLLSDXml(message);
 

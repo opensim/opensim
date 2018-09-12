@@ -244,11 +244,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
                             (int)Constants.RegionSize, (int)Constants.RegionSize);
                         using (Bitmap subMapTile = mapTile.Clone(rect, mapTile.PixelFormat))
                         {
-                            ConvertAndUploadMaptile(scene, subMapTile,
+                            if(!ConvertAndUploadMaptile(scene, subMapTile,
                                                     scene.RegionInfo.RegionLocX + (xx / Constants.RegionSize),
                                                     scene.RegionInfo.RegionLocY + (yy / Constants.RegionSize),
-                                                    scene.Name);
-                        }
+                                                    scene.Name))
+                            {
+                                m_log.DebugFormat("{0} Upload maptileS for {1} aborted!", LogHeader, scene.Name);
+                                return; // abort rest;
+                            }
+                        }            
                     }
                 }
             }
@@ -280,7 +284,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
             }
         }
 
-        private void ConvertAndUploadMaptile(IScene scene, Image tileImage, uint locX, uint locY, string regionName)
+        private bool ConvertAndUploadMaptile(IScene scene, Image tileImage, uint locX, uint locY, string regionName)
         {
             byte[] jpgData = Utils.EmptyBytes;
 
@@ -289,19 +293,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
                 tileImage.Save(stream, ImageFormat.Jpeg);
                 jpgData = stream.ToArray();
             }
-            if (jpgData != Utils.EmptyBytes)
-            {
-                string reason = string.Empty;
-                if (!m_MapService.AddMapTile((int)locX, (int)locY, jpgData, scene.RegionInfo.ScopeID, out reason))
-                {
-                    m_log.DebugFormat("{0} Unable to upload tile image for {1} at {2}-{3}: {4}", LogHeader,
-                        regionName, locX, locY, reason);
-                }
-            }
-            else
+
+            if (jpgData == Utils.EmptyBytes)
             {
                 m_log.WarnFormat("{0} Tile image generation failed for region {1}", LogHeader, regionName);
+                return false;
             }
+
+            string reason = string.Empty;
+            if (!m_MapService.AddMapTile((int)locX, (int)locY, jpgData, scene.RegionInfo.ScopeID, out reason))
+            {
+                m_log.DebugFormat("{0} Unable to upload tile image for {1} at {2}-{3}: {4}", LogHeader,
+                    regionName, locX, locY, reason);
+                return false;
+            }
+            return true;
         }
     }
 }

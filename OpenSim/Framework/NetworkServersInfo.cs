@@ -37,6 +37,8 @@ namespace OpenSim.Framework
         public bool isSandbox;
         public bool HttpUsesSSL = false;
         public string HttpSSLCN = "";
+        public string HttpSSLCertPath = "";
+        public string HttpSSLCNCertPass = "";
         public uint httpSSLPort = 9001;
 
         // "Out of band" managemnt https
@@ -62,6 +64,8 @@ namespace OpenSim.Framework
                 (uint)config.Configs["Network"].GetInt("http_listener_sslport", ((int)ConfigSettings.DefaultRegionHttpPort+1));
             HttpUsesSSL = config.Configs["Network"].GetBoolean("http_listener_ssl", false);
             HttpSSLCN = config.Configs["Network"].GetString("http_listener_cn", "localhost");
+            HttpSSLCertPath = config.Configs["Network"].GetString("http_listener_cert_path", HttpSSLCertPath);
+            HttpSSLCNCertPass = config.Configs["Network"].GetString("http_listener_cert_pass", HttpSSLCNCertPass);
 
             // "Out of band management https"
             ssl_listener = config.Configs["Network"].GetBoolean("https_listener",false);

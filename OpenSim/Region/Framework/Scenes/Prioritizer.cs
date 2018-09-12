@@ -172,14 +172,22 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (entity is SceneObjectPart)
                 {
+                    SceneObjectGroup sog = ((SceneObjectPart)entity).ParentGroup;
                     // Attachments are high priority,
-                    if (((SceneObjectPart)entity).ParentGroup.IsAttachment)
+                    if (sog.IsAttachment)
                         return 2;
+                    
+
+                    if(presence.ParentPart != null)
+                    {
+                        if(presence.ParentPart.ParentGroup == sog)
+                            return 2;
+                    }
 
                     pqueue = ComputeDistancePriority(client, entity, false);
 
                     // Non physical prims are lower priority than physical prims
-                    PhysicsActor physActor = ((SceneObjectPart)entity).ParentGroup.RootPart.PhysActor;
+                    PhysicsActor physActor = sog.RootPart.PhysActor;
                     if (physActor == null || !physActor.IsPhysical)
                         pqueue++;
                 }
@@ -302,6 +310,17 @@ namespace OpenSim.Region.Framework.Scenes
             else
             {
                 SceneObjectGroup group = (entity as SceneObjectPart).ParentGroup;
+                if(presence.ParentPart != null)
+                {
+                    if(presence.ParentPart.ParentGroup == group)
+                        return pqueue;
+                }
+                if(group.IsAttachment)
+                {
+                    if(group.RootPart.LocalId == presence.LocalId)
+                        return pqueue;
+                }
+
                 float bradius = group.GetBoundsRadius();
                 Vector3 grppos = group.AbsolutePosition + group.getBoundsCenter();
                 distance = Vector3.Distance(presencePos, grppos);

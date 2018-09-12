@@ -229,6 +229,7 @@ namespace OpenSim.Services.Connectors
                 string reply = SynchronousRestFormsRequester.MakeRequest("POST",
                         uri,
                         reqString,
+                        30,
                         m_Auth);
                 if (reply != string.Empty)
                 {
@@ -271,7 +272,7 @@ namespace OpenSim.Services.Connectors
             {
                 // This just dumps a warning for any operation that takes more than 100 ms
                 int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
-                m_log.DebugFormat("[MAP IMAGE CONNECTOR]: map tile uploaded in {0}ms", tickdiff);
+                m_log.DebugFormat("[MAP IMAGE CONNECTOR]: map tile upload time {0}ms", tickdiff);
             }
 
             return false;

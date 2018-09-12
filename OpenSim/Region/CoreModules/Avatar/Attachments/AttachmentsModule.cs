@@ -42,6 +42,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Services.Interfaces;
+using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.CoreModules.Avatar.Attachments
 {
@@ -367,7 +368,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 {
                     string xmlData;
                     XmlDocument d = null;
-                    UUID asset;
+
                     if (itemData.TryGetValue(attach.ItemID, out xmlData))
                     {
                         d = new XmlDocument();
@@ -492,17 +493,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return false;
             }
 
-            List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
-            if (attachments.Contains(group))
-            {
-//                if (DebugLevel > 0)
-//                    m_log.WarnFormat(
-//                        "[ATTACHMENTS MODULE]: Ignoring request to attach {0} {1} to {2} on {3} since it's already attached",
-//                        group.Name, group.LocalId, sp.Name, attachmentPt);
-
-                return false;
-            }
-
             Vector3 attachPos = group.AbsolutePosition;
 
             // TODO: this short circuits multiple attachments functionality  in  LL viewer 2.1+ and should
@@ -544,6 +534,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 // Stick it on left hand with Zero Offset from the attachment point.
                 attachmentPt = (uint)AttachmentPoint.LeftHand;
                 attachPos = Vector3.Zero;
+            }
+
+            List<SceneObjectGroup> attachments = sp.GetAttachments(attachmentPt);
+            if (attachments.Contains(group))
+            {
+//                if (DebugLevel > 0)
+//                    m_log.WarnFormat(
+//                        "[ATTACHMENTS MODULE]: Ignoring request to attach {0} {1} to {2} on {3} since it's already attached",
+//                        group.Name, group.LocalId, sp.Name, attachmentPt);
+
+                return false;
             }
 
             // If we already have 5, remove the oldest until only 4 are left. Skip over temp ones
@@ -896,6 +897,30 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
                 if (item != null)
                 {
+                    // attach is rez, need to update permissions
+                    item.Flags &= ~(uint)(InventoryItemFlags.ObjectSlamPerm | InventoryItemFlags.ObjectOverwriteBase |
+                            InventoryItemFlags.ObjectOverwriteOwner | InventoryItemFlags.ObjectOverwriteGroup |
+                            InventoryItemFlags.ObjectOverwriteEveryone | InventoryItemFlags.ObjectOverwriteNextOwner);
+
+                    uint permsBase = (uint)(PermissionMask.Copy | PermissionMask.Transfer |
+                                 PermissionMask.Modify | PermissionMask.Move |
+                                 PermissionMask.Export | PermissionMask.FoldedMask);
+                    
+                    permsBase &= grp.CurrentAndFoldedNextPermissions();
+                    permsBase |= (uint)PermissionMask.Move;
+                    item.BasePermissions = permsBase;
+                    item.CurrentPermissions = permsBase;
+                    item.NextPermissions = permsBase & grp.RootPart.NextOwnerMask | (uint)PermissionMask.Move;
+                    item.EveryOnePermissions = permsBase & grp.RootPart.EveryoneMask;
+                    item.GroupPermissions = permsBase & grp.RootPart.GroupMask;
+                    item.CurrentPermissions &=
+                        ((uint)PermissionMask.Copy |
+                         (uint)PermissionMask.Transfer |
+                         (uint)PermissionMask.Modify |
+                         (uint)PermissionMask.Move |
+                         (uint)PermissionMask.Export |
+                         (uint)PermissionMask.FoldedMask); // Preserve folded permissions ??
+
                     AssetBase asset = m_scene.CreateAsset(
                         grp.GetPartName(grp.LocalId),
                         grp.GetPartDescription(grp.LocalId),

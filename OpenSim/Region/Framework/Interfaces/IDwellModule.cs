@@ -33,5 +33,6 @@ namespace OpenSim.Region.Framework.Interfaces
     public interface IDwellModule
     {
         int GetDwell(UUID parcelID);
+        int GetDwell(LandData land);
     }
 }

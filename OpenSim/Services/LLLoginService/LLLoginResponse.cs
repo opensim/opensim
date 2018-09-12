@@ -82,9 +82,8 @@ namespace OpenSim.Services.LLLoginService
                 "false");
             AlreadyLoggedInProblem = new LLFailedLoginResponse("presence",
                 "You appear to be already logged in. " +
-                "If this is not the case please wait for your session to timeout. " +
-                "If this takes longer than a few minutes please contact the grid owner. " +
-                "Please wait 5 minutes if you are going to connect to a region nearby to the region you were at previously.",
+                "Please wait a a minute or two and retry. " +
+                "If this takes longer than a few minutes please contact the grid owner. ",
                 "false");
             InternalError = new LLFailedLoginResponse("Internal Error", "Error generating Login Response", "false");
         }

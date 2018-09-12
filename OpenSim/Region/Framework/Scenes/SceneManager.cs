@@ -196,8 +196,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendSimOnlineNotification(ulong regionHandle)
         {
-            RegionInfo Result = null;
-
             Scene s = m_localScenes.FindValue(delegate(Scene x)
                     {
                         if (x.RegionInfo.RegionHandle == regionHandle)

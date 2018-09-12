@@ -124,9 +124,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         // True if initialized and ready to do simulation steps
         private bool m_initialized = false;
 
-        // Flag which is true when processing taints.
-        // Not guaranteed to be correct all the time (don't depend on this) but good for debugging.
-        public bool InTaintTime { get; private set; }
+        // Object locked whenever execution is inside the physics engine
+        public Object PhysicsEngineLock = new object();
+        // Flag that is true when the simulator is active and shouldn't be touched
+        public bool InSimulationTime { get; private set; }
 
         // Pinned memory used to pass step information between managed and unmanaged
         internal int m_maxCollisionsPerFrame;
@@ -344,7 +345,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             // Put some informational messages into the log file.
             m_log.InfoFormat("{0} Linksets implemented with {1}", LogHeader, (BSLinkset.LinksetImplementation)BSParam.LinksetImplementation);
 
-            InTaintTime = false;
+            InSimulationTime = false;
             m_initialized = true;
 
             // If the physics engine runs on its own thread, start same.
@@ -657,48 +658,57 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
             int beforeTime = Util.EnvironmentTickCount();
             int simTime = 0;
-
-            int numTaints = _taintOperations.Count;
-            InTaintTime = true; // Only used for debugging so locking is not necessary.
-
-            // update the prim states while we know the physics engine is not busy
-            ProcessTaints();
-
-            // Some of the physical objects requre individual, pre-step calls
-            //      (vehicles and avatar movement, in particular)
-            TriggerPreStepEvent(timeStep);
-
-            // the prestep actions might have added taints
-            numTaints += _taintOperations.Count;
-            ProcessTaints();
-
-            InTaintTime = false; // Only used for debugging so locking is not necessary.
-
-            // The following causes the unmanaged code to output ALL the values found in ALL the objects in the world.
-            // Only enable this in a limited test world with few objects.
-            if (m_physicsPhysicalDumpEnabled)
-                PE.DumpAllInfo(World);
-
-            // step the physical world one interval
-            m_simulationStep++;
+            int numTaints = 0;
             int numSubSteps = 0;
-            try
-            {
-                numSubSteps = PE.PhysicsStep(World, timeStep, m_maxSubSteps, m_fixedTimeStep, out updatedEntityCount, out collidersCount);
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("{0},PhysicsStep Exception: nTaints={1}, substeps={2}, updates={3}, colliders={4}, e={5}",
-                            LogHeader, numTaints, numSubSteps, updatedEntityCount, collidersCount, e);
-                DetailLog("{0},PhysicsStepException,call, nTaints={1}, substeps={2}, updates={3}, colliders={4}",
-                            DetailLogZero, numTaints, numSubSteps, updatedEntityCount, collidersCount);
-                updatedEntityCount = 0;
-                collidersCount = 0;
-            }
 
-            // Make the physics engine dump useful statistics periodically
-            if (PhysicsMetricDumpFrames != 0 && ((m_simulationStep % PhysicsMetricDumpFrames) == 0))
-                PE.DumpPhysicsStatistics(World);
+            lock (PhysicsEngineLock)
+            {
+                InSimulationTime = true;
+                // update the prim states while we know the physics engine is not busy
+                numTaints += ProcessTaints();
+
+                // Some of the physical objects requre individual, pre-step calls
+                //      (vehicles and avatar movement, in particular)
+                TriggerPreStepEvent(timeStep);
+
+                // the prestep actions might have added taints
+                numTaints += ProcessTaints();
+
+                // The following causes the unmanaged code to output ALL the values found in ALL the objects in the world.
+                // Only enable this in a limited test world with few objects.
+                if (m_physicsPhysicalDumpEnabled)
+                    PE.DumpAllInfo(World);
+
+                // step the physical world one interval
+                m_simulationStep++;
+                try
+                {
+                    numSubSteps = PE.PhysicsStep(World, timeStep, m_maxSubSteps, m_fixedTimeStep, out updatedEntityCount, out collidersCount);
+                }
+                catch (Exception e)
+                {
+                    m_log.WarnFormat("{0},PhysicsStep Exception: nTaints={1}, substeps={2}, updates={3}, colliders={4}, e={5}",
+                                LogHeader, numTaints, numSubSteps, updatedEntityCount, collidersCount, e);
+                    DetailLog("{0},PhysicsStepException,call, nTaints={1}, substeps={2}, updates={3}, colliders={4}",
+                                DetailLogZero, numTaints, numSubSteps, updatedEntityCount, collidersCount);
+                    updatedEntityCount = 0;
+                    collidersCount = 0;
+                }
+
+                // Make the physics engine dump useful statistics periodically
+                if (PhysicsMetricDumpFrames != 0 && ((m_simulationStep % PhysicsMetricDumpFrames) == 0))
+                    PE.DumpPhysicsStatistics(World);
+
+                InSimulationTime = false;
+
+                // Some actors want to know when the simulation step is complete.
+                TriggerPostStepEvent(timeStep);
+
+                // In case there were any parameter updates that happened during the simulation step
+                numTaints += ProcessTaints();
+
+                InSimulationTime = false;
+            }
 
             // Get a value for 'now' so all the collision and update routines don't have to get their own.
             SimulationNowTime = Util.EnvironmentTickCount();
@@ -747,9 +757,6 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     }
                 }
             }
-
-            // Some actors want to know when the simulation step is complete.
-            TriggerPostStepEvent(timeStep);
 
             simTime = Util.EnvironmentTickCountSubtract(beforeTime);
             if (PhysicsLogging.Enabled)
@@ -956,6 +963,149 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         #endregion // Terrain
 
+        #region Raycast
+
+        public override bool SupportsRayCast()
+        {
+            return BSParam.UseBulletRaycast;
+        }
+
+        public override bool SupportsRaycastWorldFiltered()
+        {
+            return BSParam.UseBulletRaycast;
+        }
+
+
+        /// <summary>
+        /// Queue a raycast against the physics scene.
+        /// The provided callback method will be called when the raycast is complete
+        ///
+        /// Many physics engines don't support collision testing at the same time as
+        /// manipulating the physics scene, so we queue the request up and callback
+        /// a custom method when the raycast is complete.
+        /// This allows physics engines that give an immediate result to callback immediately
+        /// and ones that don't, to callback when it gets a result back.
+        ///      public delegate void RayCallback(List<ContactResult> list);
+        ///
+        /// ODE for example will not allow you to change the scene while collision testing or
+        /// it asserts, 'opteration not valid for locked space'.  This includes adding a ray to the scene.
+        ///
+        /// This is named RayCastWorld to not conflict with modrex's Raycast method.
+        /// </summary>
+        /// <param name="position">Origin of the ray</param>
+        /// <param name="direction">Direction of the ray</param>
+        /// <param name="length">Length of ray in meters</param>
+        /// <param name="retMethod">Method to call when the raycast is complete</param>
+        public override void RaycastWorld(Vector3 position, Vector3 direction, float length, RaycastCallback retMethod)
+        {
+            if (retMethod != null)
+            {
+                if (BSParam.UseBulletRaycast)
+                {
+                    Vector3 posFrom = position;
+                    Vector3 posTo = Vector3.Normalize(direction) * length + position;
+
+                    TaintedObject(DetailLogZero, "BSScene.RaycastWorld1", delegate ()
+                    {
+                        RaycastHit hitInfo = PE.RayTest2(World, posFrom, posTo, 0xffff, 0xffff);
+                        retMethod(true, hitInfo.Point, hitInfo.ID, hitInfo.Fraction, hitInfo.Normal);
+                    });
+                }
+                else
+                {
+                    retMethod(false, Vector3.Zero, 0, 999999999999f, Vector3.Zero);
+                }
+            }
+        }
+
+        public override void RaycastWorld(Vector3 position, Vector3 direction, float length, int count, RayCallback retMethod)
+        {
+            if (retMethod != null)
+            {
+                if (BSParam.UseBulletRaycast)
+                {
+                    List<ContactResult> hitInfo = RaycastWorld(position, direction, length, count);
+                    retMethod(hitInfo);
+                }
+                else
+                {
+                    retMethod(new List<ContactResult>());
+                }
+            }
+        }
+
+        public override List<ContactResult> RaycastWorld(Vector3 position, Vector3 direction, float length, int count)
+        {
+            return (List<ContactResult>)RaycastWorld(position, direction, length, count, RayFilterFlags.All);
+        }
+
+        public override object RaycastWorld(Vector3 position, Vector3 direction, float length, int count, RayFilterFlags filter)
+        {
+            List<ContactResult> ret = new List<ContactResult>();
+            if (BSParam.UseBulletRaycast)
+            {
+                uint collisionFilter = 0;
+                uint collisionMask = 0;
+                if ((filter & RayFilterFlags.land) != 0)
+                {
+                    collisionFilter |= BulletSimData.CollisionTypeMasks[CollisionType.Terrain].group;
+                    collisionMask |= BulletSimData.CollisionTypeMasks[CollisionType.Terrain].mask;
+                }
+                if ((filter & RayFilterFlags.agent) != 0)
+                {
+                    collisionFilter |= BulletSimData.CollisionTypeMasks[CollisionType.Avatar].group;
+                    collisionMask |= BulletSimData.CollisionTypeMasks[CollisionType.Avatar].mask;
+                }
+                if ((filter & RayFilterFlags.nonphysical) != 0)
+                {
+                    collisionFilter |= BulletSimData.CollisionTypeMasks[CollisionType.Static].group;
+                    collisionMask |= BulletSimData.CollisionTypeMasks[CollisionType.Static].mask;
+                }
+                if ((filter & RayFilterFlags.physical) != 0)
+                {
+                    collisionFilter |= BulletSimData.CollisionTypeMasks[CollisionType.Dynamic].group;
+                    collisionMask |= BulletSimData.CollisionTypeMasks[CollisionType.Dynamic].mask;
+                }
+                // if ((filter & RayFilterFlags.phantom) != 0)
+                // {
+                //     collisionFilter |= BulletSimData.CollisionTypeMasks[CollisionType.VolumeDetect].group;
+                //     collisionMask |= BulletSimData.CollisionTypeMasks[CollisionType.VolumeDetect].mask;
+                // }
+                if ((filter & RayFilterFlags.volumedtc) != 0)
+                {
+                    collisionFilter |= BulletSimData.CollisionTypeMasks[CollisionType.VolumeDetect].group;
+                    collisionMask |= BulletSimData.CollisionTypeMasks[CollisionType.VolumeDetect].mask;
+                }
+                DetailLog("{0},RaycastWorld,pos={1},dir={2},len={3},count={4},filter={5},filter={6},mask={7}",
+                        DetailLogZero, position, direction, length, count, filter, collisionFilter, collisionMask);
+                // NOTE: locking ensures the physics engine is not executing.
+                //    The caller might have to wait for the physics engine to finish.
+                lock (PhysicsEngineLock)
+                {
+                    Vector3 posFrom = position;
+                    Vector3 posTo = Vector3.Normalize(direction) * length + position;
+                    DetailLog("{0},RaycastWorld,RayTest2,from={1},to={2}",
+                                DetailLogZero, posFrom, posTo);
+                    RaycastHit hitInfo = PE.RayTest2(World, posFrom, posTo, collisionFilter, collisionMask);
+                    if (hitInfo.hasHit())
+                    {
+                        ContactResult result = new ContactResult();
+                        result.Pos = hitInfo.Point;
+                        result.Normal = hitInfo.Normal;
+                        result.ConsumerID = hitInfo.ID;
+                        result.Depth = hitInfo.Fraction;
+                        ret.Add(result);
+                        DetailLog("{0},RaycastWorld,hit,pos={1},norm={2},depth={3},id={4}",
+                            DetailLogZero, result.Pos, result.Normal, result.Depth, result.ConsumerID);
+                    }
+                }
+            }
+            return ret;
+        }
+
+        #endregion Raycast
+
+
         public override Dictionary<uint, float> GetTopColliders()
         {
             Dictionary<uint, float> topColliders;
@@ -1068,32 +1218,35 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         // Calls to the PhysicsActors can't directly call into the physics engine
         //       because it might be busy. We delay changes to a known time.
         // We rely on C#'s closure to save and restore the context for the delegate.
-        public void TaintedObject(string pOriginator, string pIdent, TaintCallback pCallback)
+        // NOTE: 'inTaintTime' is no longer used. This entry exists so all the calls don't have to be changed.
+        // public void TaintedObject(bool inTaintTime, String pIdent, TaintCallback pCallback)
+        // {
+        //     TaintedObject(BSScene.DetailLogZero, pIdent, pCallback);
+        // }
+        // NOTE: 'inTaintTime' is no longer used. This entry exists so all the calls don't have to be changed.
+        public void TaintedObject(bool inTaintTime, uint pOriginator, String pIdent, TaintCallback pCallback)
         {
-            TaintedObject(false /*inTaintTime*/, pOriginator, pIdent, pCallback);
+            TaintedObject(m_physicsLoggingEnabled ? pOriginator.ToString() : BSScene.DetailLogZero, pIdent, pCallback);
         }
         public void TaintedObject(uint pOriginator, String pIdent, TaintCallback pCallback)
         {
-            TaintedObject(false /*inTaintTime*/, m_physicsLoggingEnabled ? pOriginator.ToString() : BSScene.DetailLogZero, pIdent, pCallback);
-        }
-        public void TaintedObject(bool inTaintTime, String pIdent, TaintCallback pCallback)
-        {
-            TaintedObject(inTaintTime, BSScene.DetailLogZero, pIdent, pCallback);
-        }
-        public void TaintedObject(bool inTaintTime, uint pOriginator, String pIdent, TaintCallback pCallback)
-        {
-            TaintedObject(inTaintTime, m_physicsLoggingEnabled ? pOriginator.ToString() : BSScene.DetailLogZero, pIdent, pCallback);
+            TaintedObject(m_physicsLoggingEnabled ? pOriginator.ToString() : BSScene.DetailLogZero, pIdent, pCallback);
         }
         // Sometimes a potentially tainted operation can be used in and out of taint time.
         // This routine executes the command immediately if in taint-time otherwise it is queued.
-        public void TaintedObject(bool inTaintTime, string pOriginator, string pIdent, TaintCallback pCallback)
+        public void TaintedObject(string pOriginator, string pIdent, TaintCallback pCallback)
         {
             if (!m_initialized) return;
 
-            if (inTaintTime)
+            if (Monitor.TryEnter(PhysicsEngineLock))
+            {
+                // If we can get exclusive access to the physics engine, just do the operation
                 pCallback();
+                Monitor.Exit(PhysicsEngineLock);
+            }
             else
             {
+                // The physics engine is busy, queue the operation
                 lock (_taintLock)
                 {
                     _taintOperations.Add(new TaintCallbackEntry(pOriginator, pIdent, pCallback));
@@ -1120,14 +1273,21 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         // When someone tries to change a property on a BSPrim or BSCharacter, the object queues
         // a callback into itself to do the actual property change. That callback is called
         // here just before the physics engine is called to step the simulation.
-        public void ProcessTaints()
+        // Returns the number of taints processed
+        // NOTE: Called while PhysicsEngineLock is locked
+        public int ProcessTaints()
         {
-            ProcessRegularTaints();
-            ProcessPostTaintTaints();
+            int ret = 0;
+            ret += ProcessRegularTaints();
+            ret += ProcessPostTaintTaints();
+            return ret;
         }
 
-        private void ProcessRegularTaints()
+        // Returns the number of taints processed
+        // NOTE: Called while PhysicsEngineLock is locked
+        private int ProcessRegularTaints()
         {
+            int ret = 0;
             if (m_initialized && _taintOperations.Count > 0)  // save allocating new list if there is nothing to process
             {
                 // swizzle a new list into the list location so we can process what's there
@@ -1144,6 +1304,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     {
                         DetailLog("{0},BSScene.ProcessTaints,doTaint,id={1}", tcbe.originator, tcbe.ident); // DEBUG DEBUG DEBUG
                         tcbe.callback();
+                        ret++;
                     }
                     catch (Exception e)
                     {
@@ -1152,6 +1313,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 }
                 oldList.Clear();
             }
+            return ret;
         }
 
         // Schedule an update to happen after all the regular taints are processed.
@@ -1170,8 +1332,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         }
 
         // Taints that happen after the normal taint processing but before the simulation step.
-        private void ProcessPostTaintTaints()
+        // Returns the number of taints processed
+        // NOTE: Called while PhysicsEngineLock is locked
+        private int ProcessPostTaintTaints()
         {
+            int ret = 0;
             if (m_initialized && _postTaintOperations.Count > 0)
             {
                 Dictionary<string, TaintCallbackEntry> oldList;
@@ -1187,6 +1352,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     {
                         DetailLog("{0},BSScene.ProcessPostTaintTaints,doTaint,id={1}", DetailLogZero, kvp.Key); // DEBUG DEBUG DEBUG
                         kvp.Value.callback();
+                        ret++;
                     }
                     catch (Exception e)
                     {
@@ -1195,20 +1361,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 }
                 oldList.Clear();
             }
+            return ret;
         }
-
-        // Only used for debugging. Does not change state of anything so locking is not necessary.
-        public bool AssertInTaintTime(string whereFrom)
-        {
-            if (!InTaintTime)
-            {
-                DetailLog("{0},BSScene.AssertInTaintTime,NOT IN TAINT TIME,Region={1},Where={2}", DetailLogZero, RegionName, whereFrom);
-                m_log.ErrorFormat("{0} NOT IN TAINT TIME!! Region={1}, Where={2}", LogHeader, RegionName, whereFrom);
-                // Util.PrintCallStack(DetailLog);
-            }
-            return InTaintTime;
-        }
-
         #endregion // Taints
 
         #region IPhysicsParameters

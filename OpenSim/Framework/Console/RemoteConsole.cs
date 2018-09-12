@@ -403,7 +403,7 @@ namespace OpenSim.Framework.Console
             string uri = "/ReadResponses/" + sessionID.ToString() + "/";
 
             m_Server.AddPollServiceHTTPHandler(
-                uri, new PollServiceEventArgs(null, uri, HasEvents, GetEvents, NoEvents, sessionID,25000)); // 25 secs timeout
+                uri, new PollServiceEventArgs(null, uri, HasEvents, GetEvents, NoEvents, null, sessionID,25000)); // 25 secs timeout
 
             // Our reply is an XML document.
             // TODO: Change this to Linq.Xml
@@ -687,7 +687,6 @@ namespace OpenSim.Framework.Console
             result["int_response_code"] = 200;
             result["content_type"] = "application/xml";
             result["keepalive"] = false;
-            result["reusecontext"] = false;
             result = CheckOrigin(result);
 
             return result;
@@ -713,7 +712,6 @@ namespace OpenSim.Framework.Console
             result["int_response_code"] = 200;
             result["content_type"] = "text/xml";
             result["keepalive"] = false;
-            result["reusecontext"] = false;
             result = CheckOrigin(result);
 
             return result;

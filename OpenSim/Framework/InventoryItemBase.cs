@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Text;
 using OpenMetaverse;
 
 namespace OpenSim.Framework
@@ -414,6 +415,41 @@ namespace OpenSim.Framework
         public object Clone()
         {
             return MemberwiseClone();
+        }
+
+        public void ToLLSDxml(StringBuilder lsl)
+        {
+            LLSDxmlEncode.AddMap(lsl);
+                LLSDxmlEncode.AddElem("parent_id", Folder, lsl);
+                LLSDxmlEncode.AddElem("asset_id", AssetID, lsl);
+                LLSDxmlEncode.AddElem("item_id", ID, lsl);
+
+                LLSDxmlEncode.AddMap("permissions",lsl);
+                    LLSDxmlEncode.AddElem("creator_id", CreatorIdAsUuid, lsl);
+                    LLSDxmlEncode.AddElem("owner_id", Owner, lsl);
+                    LLSDxmlEncode.AddElem("group_id", GroupID, lsl);
+                    LLSDxmlEncode.AddElem("base_mask", (int)CurrentPermissions, lsl);
+                    LLSDxmlEncode.AddElem("owner_mask", (int)CurrentPermissions, lsl);
+                    LLSDxmlEncode.AddElem("group_mask", (int)GroupPermissions, lsl);
+                    LLSDxmlEncode.AddElem("everyone_mask", (int)EveryOnePermissions, lsl);
+                    LLSDxmlEncode.AddElem("next_owner_mask", (int)NextPermissions, lsl);
+                    LLSDxmlEncode.AddElem("is_owner_group", GroupOwned, lsl);               
+                LLSDxmlEncode.AddEndMap(lsl);
+
+                LLSDxmlEncode.AddElem("type", AssetType, lsl);               
+                LLSDxmlEncode.AddElem("inv_type", InvType, lsl);               
+                LLSDxmlEncode.AddElem("flags", ((int)Flags) & 0xff, lsl);               
+
+                LLSDxmlEncode.AddMap("sale_info",lsl);
+                    LLSDxmlEncode.AddElem("sale_price", SalePrice, lsl);               
+                    LLSDxmlEncode.AddElem("sale_type", SaleType, lsl);               
+                LLSDxmlEncode.AddEndMap(lsl);
+
+                LLSDxmlEncode.AddElem("name", Name, lsl);               
+                LLSDxmlEncode.AddElem("desc", Description, lsl);               
+                LLSDxmlEncode.AddElem("created_at", CreationDate, lsl);               
+
+            LLSDxmlEncode.AddEndMap(lsl);
         }
     }
 }

@@ -212,6 +212,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (m_Scene.TryGetScenePresence(remoteClient.AgentId, out presence))
             {
                 byte[] data = null;
+                uint everyonemask = 0;
+                uint groupmask = 0;
 
                 if (invType == (sbyte)InventoryType.Landmark && presence != null)
                 {
@@ -220,6 +222,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     data = Encoding.ASCII.GetBytes(strdata);
                     name = prefix + name;
                     description += suffix;
+                    groupmask = (uint)PermissionMask.AllAndExport;
+                    everyonemask = (uint)(PermissionMask.AllAndExport & ~PermissionMask.Modify);                   
                 }
 
                 AssetBase asset = m_Scene.CreateAsset(name, description, assetType, data, remoteClient.AgentId);
@@ -227,9 +231,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 m_Scene.CreateNewInventoryItem(
                         remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
                         name, description, 0, callbackID, asset.FullID, asset.Type, invType,
-                        (uint)PermissionMask.All | (uint)PermissionMask.Export, // Base
-                        (uint)PermissionMask.All | (uint)PermissionMask.Export, // Current
-                        0, nextOwnerMask, 0, creationDate, false); // Data from viewer
+                        (uint)PermissionMask.AllAndExport, // Base
+                        (uint)PermissionMask.AllAndExport, // Current
+                        everyonemask,
+                        nextOwnerMask, groupmask, creationDate, false); // Data from viewer
             }
             else
             {
@@ -294,15 +299,18 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             else if ((CustomInventoryType)item.InvType == CustomInventoryType.AnimationSet)
             {
                 AnimationSet animSet = new AnimationSet(data);
-                if (!animSet.Validate(x => {
+                uint res = animSet.Validate(x => {
+                        const int required = (int)(PermissionMask.Transfer | PermissionMask.Copy);
                         int perms = m_Scene.InventoryService.GetAssetPermissions(remoteClient.AgentId, x);
-                        int required = (int)(PermissionMask.Transfer | PermissionMask.Copy);
+                        // enforce previus perm rule
                         if ((perms & required) != required)
-                            return false;
-                        return true;
-                    }))
+                            return 0;
+                        return (uint) perms;
+                    });
+                if(res == 0)
                 {
-                    data = animSet.ToBytes();
+                    remoteClient.SendAgentAlertMessage("Not enought permissions on asset(s) referenced by animation set '{0}', update failed", false);
+                    return UUID.Zero;
                 }
             }
 
@@ -407,7 +415,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             Dictionary<UUID, Vector3> originalPositions = new Dictionary<UUID, Vector3>();
             Dictionary<UUID, Quaternion> originalRotations = new Dictionary<UUID, Quaternion>();
             // this possible is not needed if keyframes are saved
-            Dictionary<UUID, KeyframeMotion> originalKeyframes = new Dictionary<UUID, KeyframeMotion>();
+//            Dictionary<UUID, KeyframeMotion> originalKeyframes = new Dictionary<UUID, KeyframeMotion>();
 
             foreach (SceneObjectGroup objectGroup in objlist)
             {
@@ -418,8 +426,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 objectGroup.RootPart.SetForce(Vector3.Zero);
                 objectGroup.RootPart.SetAngularImpulse(Vector3.Zero, false);
 
-                originalKeyframes[objectGroup.UUID] = objectGroup.RootPart.KeyframeMotion;
-                objectGroup.RootPart.KeyframeMotion = null;
+//                originalKeyframes[objectGroup.UUID] = objectGroup.RootPart.KeyframeMotion;
+//                objectGroup.RootPart.KeyframeMotion = null;
 
                 Vector3 inventoryStoredPosition = objectGroup.AbsolutePosition;
                 originalPositions[objectGroup.UUID] = inventoryStoredPosition;
@@ -471,7 +479,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             {
                 objectGroup.AbsolutePosition = originalPositions[objectGroup.UUID];
                 objectGroup.RootPart.RotationOffset = originalRotations[objectGroup.UUID];
-                objectGroup.RootPart.KeyframeMotion = originalKeyframes[objectGroup.UUID];
+//                objectGroup.RootPart.KeyframeMotion = originalKeyframes[objectGroup.UUID];
                 if (objectGroup.RootPart.KeyframeMotion != null)
                     objectGroup.RootPart.KeyframeMotion.Resume();
             }
@@ -573,41 +581,27 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             InventoryItemBase item, SceneObjectGroup so, List<SceneObjectGroup> objsForEffectivePermissions,
             IClientAPI remoteClient)
         {
-            uint effectivePerms = (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify | PermissionMask.Move | PermissionMask.Export) | 7;
-            uint allObjectsNextOwnerPerms = 0x7fffffff;
-
-            // For the porposes of inventory, an object is modify if the prims
-            // are modify. This allows renaming an object that contains no
-            // mod items.
+            uint effectivePerms = (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify | PermissionMask.Move | PermissionMask.Export | PermissionMask.FoldedMask);
+       
             foreach (SceneObjectGroup grp in objsForEffectivePermissions)
             {
-                uint groupPerms = grp.GetEffectivePermissions(true);
-                if ((grp.RootPart.BaseMask & (uint)PermissionMask.Modify) != 0)
-                    groupPerms |= (uint)PermissionMask.Modify;
-
-                effectivePerms &= groupPerms;
+                effectivePerms &= grp.CurrentAndFoldedNextPermissions();
             }
-            effectivePerms |= (uint)PermissionMask.Move;
-
+ 
             if (remoteClient != null && (remoteClient.AgentId != so.RootPart.OwnerID) && m_Scene.Permissions.PropagatePermissions())
             {
-                uint perms = effectivePerms;
-                uint nextPerms = (perms & 7) << 13;
-                if ((nextPerms & (uint)PermissionMask.Copy) == 0)
-                    perms &= ~(uint)PermissionMask.Copy;
-                if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
-                    perms &= ~(uint)PermissionMask.Transfer;
-                if ((nextPerms & (uint)PermissionMask.Modify) == 0)
-                    perms &= ~(uint)PermissionMask.Modify;
-                
-//                item.BasePermissions = perms & so.RootPart.NextOwnerMask;
-                
-                uint nextp = so.RootPart.NextOwnerMask | (uint)PermissionMask.FoldedMask;
-                item.BasePermissions = perms & nextp;
-                item.CurrentPermissions = item.BasePermissions;
-                item.NextPermissions = perms & so.RootPart.NextOwnerMask;
-                item.EveryOnePermissions = so.RootPart.EveryoneMask & so.RootPart.NextOwnerMask;
-                item.GroupPermissions = so.RootPart.GroupMask & so.RootPart.NextOwnerMask;
+                // apply parts inventory items next owner
+                PermissionsUtil.ApplyNoModFoldedPermissions(effectivePerms, ref effectivePerms);
+                // change to next owner
+                uint basePerms = effectivePerms & so.RootPart.NextOwnerMask;
+                // fix and update folded
+                basePerms = PermissionsUtil.FixAndFoldPermissions(basePerms);
+               
+                item.BasePermissions = basePerms;               
+                item.CurrentPermissions = basePerms;
+                item.NextPermissions = basePerms & so.RootPart.NextOwnerMask;
+                item.EveryOnePermissions = basePerms & so.RootPart.EveryoneMask;
+                item.GroupPermissions = basePerms & so.RootPart.GroupMask;
 
                 // apply next owner perms on rez
                 item.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
@@ -626,7 +620,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                          (uint)PermissionMask.Modify |
                          (uint)PermissionMask.Move |
                          (uint)PermissionMask.Export |
-                         7); // Preserve folded permissions
+                         (uint)PermissionMask.FoldedMask); // Preserve folded permissions ??
             }    
             
             return item;
@@ -998,11 +992,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 // one full update during the attachment
                 // process causes some clients to fail to display the
                 // attachment properly.
-                m_Scene.AddNewSceneObject(group, true, false);
 
                 if (!attachment)
                 {
                     group.AbsolutePosition = pos + veclist[i];
+                    m_Scene.AddNewSceneObject(group, true, false);
 
                     // Fire on_rez
                     group.CreateScriptInstances(0, true, m_Scene.DefaultScriptEngine, 1);
@@ -1010,6 +1004,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                     group.ScheduleGroupForFullUpdate();
                 }
+                else
+                    m_Scene.AddNewSceneObject(group, true, false);
+
 
 //                m_log.DebugFormat(
 //                    "[INVENTORY ACCESS MODULE]:  Rezzed {0} {1} {2} ownermask={3:X} nextownermask={4:X} groupmask={5:X} everyonemask={6:X} for {7}",
@@ -1144,9 +1141,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                             if ((item.BasePermissions & (uint)PermissionMask.FoldedMask) != 0)
                             {
                                 // We have permissions stored there so use them
-                                part.NextOwnerMask = ((item.BasePermissions & 7) << 13);
-                                if ((item.BasePermissions & (uint)PermissionMask.FoldedExport) != 0)
-                                    part.NextOwnerMask |= (uint)PermissionMask.Export;
+                                part.NextOwnerMask = ((item.BasePermissions & (uint)PermissionMask.FoldedMask) << (int)PermissionMask.FoldingShift);
                                 part.NextOwnerMask |= (uint)PermissionMask.Move;
                             }
                             else
@@ -1193,7 +1188,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
 
                 rootPart.TrimPermissions();
-                so.AggregateDeepPerms();
+                so.InvalidateDeepEffectivePerms();
 
                 if (isAttachment)
                     so.FromItemID = item.ID;

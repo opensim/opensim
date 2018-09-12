@@ -305,17 +305,11 @@ namespace OpenSim.Data.SQLite
 
             using (SqliteCommand cmd = new SqliteCommand())
             {
-                cmd.CommandText = "update inventoryfolders set version=version+1 where folderID = ?folderID";
+                cmd.CommandText = "update inventoryfolders set version=version+1 where folderID = :folderID";
                 cmd.Parameters.Add(new SqliteParameter(":folderID", folderID));
 
-                try
-                {
-                    cmd.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
+                if(ExecuteNonQuery(cmd, m_Connection) == 0)
                     return false;
-                }
             }
 
             return true;

@@ -1195,3 +1195,33 @@ CREATE TABLE bakedterrain
 	);
 
 COMMIT;
+
+:VERSION 45 #---- Add RezzerID filed in table prims
+
+BEGIN TRANSACTION;
+
+ALTER TABLE prims ADD "RezzerID" uuid NULL;
+
+COMMIT;
+
+:VERSION 46 #---- Add physics inertia data to table prims
+
+BEGIN TRANSACTION;
+
+ALTER TABLE prims ADD "PhysInertia" TEXT;
+
+COMMIT;
+
+
+:VERSION 47 #---- Convert field PassCollisions in table prims to BOOLEAN
+
+BEGIN TRANSACTION;
+
+ALTER TABLE "public"."prims" ALTER COLUMN "PassCollisions" DROP DEFAULT;
+ALTER TABLE "public"."prims"
+    ALTER COLUMN "PassCollisions" TYPE BOOLEAN
+        USING CASE WHEN "PassCollisions" = 0 THEN FALSE
+            WHEN "PassCollisions" = 1 THEN TRUE
+            ELSE NULL
+            END;
+COMMIT;

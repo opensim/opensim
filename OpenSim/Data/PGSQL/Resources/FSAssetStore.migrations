@@ -1,0 +1,14 @@
+:VERSION 1
+
+BEGIN TRANSACTION;
+
+CREATE TABLE fsassets (
+  "id" uuid NOT NULL PRIMARY KEY,
+  "type" integer NOT NULL,
+  "hash" char(64) NOT NULL,
+  "create_time" integer NOT NULL DEFAULT '0',
+  "access_time" integer NOT NULL DEFAULT '0',
+  "asset_flags" integer NOT NULL DEFAULT '0'
+);
+
+COMMIT;

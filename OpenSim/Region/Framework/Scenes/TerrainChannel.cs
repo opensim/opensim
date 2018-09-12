@@ -196,13 +196,11 @@ namespace OpenSim.Region.Framework.Scenes
         // ITerrainChannel.LoadFromXmlString()
         public void LoadFromXmlString(string data)
         {
-            StringReader sr = new StringReader(data);
-            XmlTextReader reader = new XmlTextReader(sr);
-            reader.Read();
-
-            ReadXml(reader);
-            reader.Close();
-            sr.Close();
+            using(StringReader sr = new StringReader(data))
+            {
+                using(XmlTextReader reader = new XmlTextReader(sr))
+                    ReadXml(reader);
+            }
         }
 
         // ITerrainChannel.Merge

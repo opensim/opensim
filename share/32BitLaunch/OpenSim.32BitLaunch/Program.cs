@@ -27,33 +27,13 @@
 
 using System;
 
-namespace OpenSim._32BitLaunch
+namespace OpenSim32
 {
     class Program
     {
         static void Main(string[] args)
         {
-            log4net.Config.XmlConfigurator.Configure();
-
-            System.Console.WriteLine("32-bit OpenSim executor");
-            System.Console.WriteLine("-----------------------");
-            System.Console.WriteLine("");
-            System.Console.WriteLine("This application is compiled for 32-bit CPU and will run under WOW32 or similar.");
-            System.Console.WriteLine("All 64-bit incompatibilities should be gone.");
-            System.Console.WriteLine("");
-            System.Threading.Thread.Sleep(300);
-            try
-            {
-                global::OpenSim.Application.Main(args);
-            }
-            catch (Exception ex)
-            {
-                System.Console.WriteLine("OpenSim threw an exception:");
-                System.Console.WriteLine(ex.ToString());
-                System.Console.WriteLine("");
-                System.Console.WriteLine("Application will now terminate!");
-                System.Console.WriteLine("");
-            }
+            global::OpenSim.Application.Main(args);
         }
     }
 }

@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -40,7 +41,7 @@ using Nini.Config;
 using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Assets;
-using OpenMetaverse.StructuredData;
+using OpenMetaverse.StructuredData; // LitJson is hidden on this
 using OpenMetaverse.Packets;
 using OpenMetaverse.Rendering;
 using OpenSim;
@@ -122,6 +123,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected bool m_scriptConsoleChannelEnabled = false;
         protected bool m_debuggerSafe = false;
         protected IUrlModule m_UrlModule = null;
+
+        protected IMaterialsModule m_materialsModule = null;
 
         protected Dictionary<UUID, UserInfoCacheEntry> m_userInfoCache = new Dictionary<UUID, UserInfoCacheEntry>();
         protected int EMAIL_PAUSE_TIME = 20;  // documented delay value for smtp.
@@ -305,6 +308,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
             m_SoundModule = m_ScriptEngine.World.RequestModuleInterface<ISoundModule>();
+            m_materialsModule = m_ScriptEngine.World.RequestModuleInterface<IMaterialsModule>();
 
             AsyncCommands = new AsyncCommandManager(m_ScriptEngine);
         }
@@ -439,8 +443,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected virtual void ScriptSleep(int delay)
         {
-            delay = (int)((float)delay * m_ScriptDelayFactor);
-            if (delay == 0)
+            delay = (int)(delay * m_ScriptDelayFactor);
+            if (delay < 10)
                 return;
 
             Sleep(delay);
@@ -449,12 +453,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected virtual void Sleep(int delay)
         {
             if (m_item == null) // Some unit tests don't set this
-            {
                 Thread.Sleep(delay);
-                return;
-            }
-
-            m_ScriptEngine.SleepScript(m_item.ItemID, delay);
+            else
+                m_ScriptEngine.SleepScript(m_item.ItemID, delay);
         }
 
         /// <summary>
@@ -494,12 +495,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             UUID item;
 
-            m_host.AddScriptLPS(1);
-
-            if ((item = GetScriptByName(name)) != UUID.Zero)
-                m_ScriptEngine.ResetScript(item);
-            else
+            if ((item = GetScriptByName(name)) == UUID.Zero)
+            {
+                m_host.AddScriptLPS(1);
                 Error("llResetOtherScript", "Can't find script '" + name + "'");
+                return;
+            }
+            if(item == m_item.ItemID)
+                llResetScript();
+            else
+            {
+                m_host.AddScriptLPS(1);
+                m_ScriptEngine.ResetScript(item);
+            }
         }
 
         public LSL_Integer llGetScriptState(string name)
@@ -1396,7 +1404,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return detectedParams.Name;
         }
 
-        public LSL_String llDetectedKey(int number)
+        public LSL_Key llDetectedKey(int number)
         {
             m_host.AddScriptLPS(1);
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
@@ -1405,7 +1413,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return detectedParams.Key.ToString();
         }
 
-        public LSL_String llDetectedOwner(int number)
+        public LSL_Key llDetectedOwner(int number)
         {
             m_host.AddScriptLPS(1);
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
@@ -1925,8 +1933,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             Primitive.TextureEntry tex = part.Shape.Textures;
+            int nsides = GetNumberOfSides(part);
             Color4 texcolor;
-            if (face >= 0 && face < GetNumberOfSides(part))
+
+            if (face >= 0 && face < nsides)
             {
                 texcolor = tex.CreateFace((uint)face).RGBA;
                 texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
@@ -1937,8 +1947,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
-            {
-                for (uint i = 0; i < GetNumberOfSides(part); i++)
+            {              
+                for (uint i = 0; i < nsides; i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -2055,7 +2065,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (style == (int)ScriptBaseClass.PRIM_TEXGEN_PLANAR)
                 textype = MappingType.Planar;
 
-            if (face >= 0 && face < GetNumberOfSides(part))
+            int nsides = GetNumberOfSides(part);
+
+            if (face >= 0 && face < nsides)
             {
                 tex.CreateFace((uint) face);
                 tex.FaceTextures[face].TexMapType = textype;
@@ -2064,7 +2076,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
             {
-                for (uint i = 0; i < GetNumberOfSides(part); i++)
+                for (uint i = 0; i < nsides; i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -2083,7 +2095,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             Primitive.TextureEntry tex = part.Shape.Textures;
-            if (face >= 0 && face < GetNumberOfSides(part))
+            int nsides = GetNumberOfSides(part);
+
+            if (face >= 0 && face < nsides)
             {
                 tex.CreateFace((uint) face);
                 tex.FaceTextures[face].Glow = glow;
@@ -2092,7 +2106,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
             {
-                for (uint i = 0; i < GetNumberOfSides(part); i++)
+                for (uint i = 0; i < nsides; i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -2131,8 +2145,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 break;
             }
 
+            int nsides = GetNumberOfSides(part);
+
             Primitive.TextureEntry tex = part.Shape.Textures;
-            if (face >= 0 && face < GetNumberOfSides(part))
+            if (face >= 0 && face < nsides)
             {
                 tex.CreateFace((uint) face);
                 tex.FaceTextures[face].Shiny = sval;
@@ -2142,7 +2158,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
             {
-                for (uint i = 0; i < GetNumberOfSides(part); i++)
+                for (uint i = 0; i < nsides; i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -2162,8 +2178,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return;
 
+             int nsides = GetNumberOfSides(part);
              Primitive.TextureEntry tex = part.Shape.Textures;
-             if (face >= 0 && face < GetNumberOfSides(part))
+             if (face >= 0 && face < nsides)
              {
                  tex.CreateFace((uint) face);
                  tex.FaceTextures[face].Fullbright = bright;
@@ -2172,7 +2189,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
              }
              else if (face == ScriptBaseClass.ALL_SIDES)
              {
-                 for (uint i = 0; i < GetNumberOfSides(part); i++)
+                 for (uint i = 0; i < nsides; i++)
                  {
                      if (tex.FaceTextures[i] != null)
                      {
@@ -2195,15 +2212,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected LSL_Float GetAlpha(SceneObjectPart part, int face)
         {
             Primitive.TextureEntry tex = part.Shape.Textures;
+            int nsides = GetNumberOfSides(part);
             if (face == ScriptBaseClass.ALL_SIDES)
             {
                 int i;
                 double sum = 0.0;
-                for (i = 0 ; i < GetNumberOfSides(part); i++)
+                for (i = 0 ; i < nsides; i++)
                     sum += (double)tex.GetFace((uint)i).RGBA.A;
                 return sum;
             }
-            if (face >= 0 && face < GetNumberOfSides(part))
+            if (face >= 0 && face < nsides)
             {
                 return (double)tex.GetFace((uint)face).RGBA.A;
             }
@@ -2239,8 +2257,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             Primitive.TextureEntry tex = part.Shape.Textures;
+            int nsides = GetNumberOfSides(part);
             Color4 texcolor;
-            if (face >= 0 && face < GetNumberOfSides(part))
+
+            if (face >= 0 && face < nsides)
             {
                 texcolor = tex.CreateFace((uint)face).RGBA;
                 texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
@@ -2250,7 +2270,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
             {
-                for (int i = 0; i < GetNumberOfSides(part); i++)
+                for (int i = 0; i < nsides; i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -2439,8 +2459,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             Primitive.TextureEntry tex = part.Shape.Textures;
+            int nsides = GetNumberOfSides(part); 
 
-            if (face >= 0 && face < GetNumberOfSides(part))
+            if (face >= 0 && face < nsides)
             {
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
                 texface.TextureID = textureID;
@@ -2450,7 +2471,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
             {
-                for (uint i = 0; i < GetNumberOfSides(part); i++)
+                for (uint i = 0; i < nsides; i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -2477,7 +2498,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             Primitive.TextureEntry tex = part.Shape.Textures;
-            if (face >= 0 && face < GetNumberOfSides(part))
+            int nsides = GetNumberOfSides(part);
+
+            if (face >= 0 && face < nsides)
             {
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
                 texface.RepeatU = (float)u;
@@ -2488,7 +2511,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             if (face == ScriptBaseClass.ALL_SIDES)
             {
-                for (int i = 0; i < GetNumberOfSides(part); i++)
+                for (int i = 0; i < nsides; i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -2516,7 +2539,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             Primitive.TextureEntry tex = part.Shape.Textures;
-            if (face >= 0 && face < GetNumberOfSides(part))
+            int nsides = GetNumberOfSides(part);
+
+            if (face >= 0 && face < nsides)
             {
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
                 texface.OffsetU = (float)u;
@@ -2527,7 +2552,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             if (face == ScriptBaseClass.ALL_SIDES)
             {
-                for (int i = 0; i < GetNumberOfSides(part); i++)
+                for (int i = 0; i < nsides; i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -2555,7 +2580,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             Primitive.TextureEntry tex = part.Shape.Textures;
-            if (face >= 0 && face < GetNumberOfSides(part))
+            int nsides = GetNumberOfSides(part);
+
+            if (face >= 0 && face < nsides)
             {
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
                 texface.Rotation = (float)rotation;
@@ -2565,7 +2592,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             if (face == ScriptBaseClass.ALL_SIDES)
             {
-                for (int i = 0; i < GetNumberOfSides(part); i++)
+                for (int i = 0; i < nsides; i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -2587,12 +2614,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected LSL_String GetTexture(SceneObjectPart part, int face)
         {
             Primitive.TextureEntry tex = part.Shape.Textures;
+            int nsides = GetNumberOfSides(part);
+
             if (face == ScriptBaseClass.ALL_SIDES)
             {
                 face = 0;
             }
 
-            if (face >= 0 && face < GetNumberOfSides(part))
+            if (face >= 0 && face < nsides)
             {
                 Primitive.TextureEntryFace texface;
                 texface = tex.GetFace((uint)face);
@@ -2725,9 +2754,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <param name="adjust">if TRUE, will cap the distance to 10m.</param>
         protected void SetPos(SceneObjectPart part, LSL_Vector targetPos, bool adjust)
         {
-            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted || part.ParentGroup.inTransit)
                 return;
 
+            
             LSL_Vector currentPos = GetPartLocalPos(part);
             LSL_Vector toPos = GetSetPosTarget(part, targetPos, currentPos, adjust);
 
@@ -3137,70 +3167,87 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            // send the sound, once, to all clients in range
-            if (m_SoundModule != null)
-            {
-                m_SoundModule.SendSound(
-                    m_host.UUID,
-                    ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound),
-                    volume, false, 0,
-                    0, false, false);
-            }
+            if (m_SoundModule == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
+            // send the sound, once, to all clients in range           
+            m_SoundModule.SendSound(m_host.UUID, soundID, volume, false, 0, false, false);
         }
 
         public void llLoopSound(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
-            if (m_SoundModule != null)
-            {
-                m_SoundModule.LoopSound(m_host.UUID, ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound),
-                        volume, 20, false,false);
-            }
+
+            if (m_SoundModule == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
+            m_SoundModule.LoopSound(m_host.UUID, soundID, volume, false,false);
         }
 
         public void llLoopSoundMaster(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
-            if (m_SoundModule != null)
-            {
-                m_SoundModule.LoopSound(m_host.UUID, ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound),
-                        volume, 20, true, false);
-            }
+
+            if (m_SoundModule == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
+            m_SoundModule.LoopSound(m_host.UUID, soundID, volume, true, false);
         }
 
         public void llLoopSoundSlave(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
-            if (m_SoundModule != null)
-            {
-                m_SoundModule.LoopSound(m_host.UUID, ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound),
-                        volume, 20, false, true);
-            }
+
+            if (m_SoundModule == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
+            m_SoundModule.LoopSound(m_host.UUID, soundID, volume, false, true);
         }
 
         public void llPlaySoundSlave(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
 
+            if (m_SoundModule == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
             // send the sound, once, to all clients in range
-            if (m_SoundModule != null)
-            {
-                m_SoundModule.SendSound(m_host.UUID,
-                        ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound), volume, false, 0,
-                        0, true, false);
-            }
+            m_SoundModule.SendSound(m_host.UUID, soundID, volume, false, 0, true, false);
         }
 
         public void llTriggerSound(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
+
+            if (m_SoundModule == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
             // send the sound, once, to all clients in rangeTrigger or play an attached sound in this part's inventory.
-            if (m_SoundModule != null)
-            {
-                m_SoundModule.SendSound(m_host.UUID,
-                        ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound), volume, true, 0, 0,
-                        false, false);
-            }
+            m_SoundModule.SendSound(m_host.UUID, soundID, volume, true, 0, false, false);
         }
 
         public void llStopSound()
@@ -3214,8 +3261,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llPreloadSound(string sound)
         {
             m_host.AddScriptLPS(1);
-            if (m_SoundModule != null)
-                m_SoundModule.PreloadSound(m_host.UUID, ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound), 0);
+
+            if (m_SoundModule == null)
+                return;
+
+            UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound);
+            if(soundID == UUID.Zero)
+                return;
+
+            m_SoundModule.PreloadSound(m_host.UUID, soundID);
             ScriptSleep(m_sleepMsOnPreloadSound);
         }
 
@@ -3525,32 +3579,34 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void doObjectRez(string inventory, LSL_Vector pos, LSL_Vector vel, LSL_Rotation rot, int param, bool atRoot)
         {
             m_host.AddScriptLPS(1);
+            if (Double.IsNaN(rot.x) || Double.IsNaN(rot.y) || Double.IsNaN(rot.z) || Double.IsNaN(rot.s))
+                return;
+
+            float dist = (float)llVecDist(llGetPos(), pos);
+
+            if (dist > m_ScriptDistanceFactor * 10.0f)
+                return;
+
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(inventory);
+
+            if (item == null)
+            {
+               Error("llRez(AtRoot/Object)", "Can't find object '" + inventory + "'");
+               return;
+            }
+
+            if (item.InvType != (int)InventoryType.Object)
+            {
+               Error("llRez(AtRoot/Object)", "Can't create requested object; object is missing from database");
+               return;
+            }
 
             Util.FireAndForget(x =>
             {
-                if (Double.IsNaN(rot.x) || Double.IsNaN(rot.y) || Double.IsNaN(rot.z) || Double.IsNaN(rot.s))
-                    return;
 
-                float dist = (float)llVecDist(llGetPos(), pos);
-
-                if (dist > m_ScriptDistanceFactor * 10.0f)
-                    return;
-
-                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(inventory);
-
-                if (item == null)
-                {
-                    Error("llRez(AtRoot/Object)", "Can't find object '" + inventory + "'");
-                    return;
-                }
-
-                if (item.InvType != (int)InventoryType.Object)
-                {
-                    Error("llRez(AtRoot/Object)", "Can't create requested object; object is missing from database");
-                    return;
-                }
-
-                List<SceneObjectGroup> new_groups = World.RezObject(m_host, item, pos, rot, vel, param, atRoot);
+                Quaternion wrot = rot;
+                wrot.Normalize();
+                List<SceneObjectGroup> new_groups = World.RezObject(m_host, item, pos, wrot, vel, param, atRoot);
 
                 // If either of these are null, then there was an unknown error.
                 if (new_groups == null)
@@ -3587,9 +3643,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                         }
                     }
-                    // Variable script delay? (see (http://wiki.secondlife.com/wiki/LSL_Delay)
-                }
-
+                 }
             }, null, "LSL_Api.doObjectRez");
 
             //ScriptSleep((int)((groupmass * velmag) / 10));
@@ -3847,7 +3901,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Deprecated("llReleaseCamera", "Use llClearCameraParams instead");
         }
 
-        public LSL_String llGetOwner()
+        public LSL_Key llGetOwner()
         {
             m_host.AddScriptLPS(1);
 
@@ -3979,7 +4033,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         }
 
-        public LSL_String llGetKey()
+        public LSL_Key llGetKey()
         {
             m_host.AddScriptLPS(1);
             return m_host.UUID.ToString();
@@ -4305,7 +4359,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     new DetectParams[0]));
         }
 
-        public LSL_String llGetPermissionsKey()
+        public LSL_Key llGetPermissionsKey()
         {
             m_host.AddScriptLPS(1);
 
@@ -4556,7 +4610,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             parentPrim.ScheduleGroupForFullUpdate();
         }
 
-        public LSL_String llGetLinkKey(int linknum)
+        public LSL_Key llGetLinkKey(int linknum)
         {
             m_host.AddScriptLPS(1);
             SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknum);
@@ -4818,7 +4872,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_host.PassTouches = false;
         }
 
-        public LSL_String llRequestAgentData(string id, int data)
+        public LSL_Key llRequestAgentData(string id, int data)
         {
             m_host.AddScriptLPS(1);
 
@@ -4936,7 +4990,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return "";
         }
 
-        public LSL_String llRequestInventoryData(string name)
+        public LSL_Key llRequestInventoryData(string name)
         {
             m_host.AddScriptLPS(1);
 
@@ -5450,20 +5504,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            return GetNumberOfSides(m_host);
+            return m_host.GetNumberOfSides();
         }
 
         protected int GetNumberOfSides(SceneObjectPart part)
         {
-            int sides = part.GetNumberOfSides();
-
-            if (part.GetPrimType() == PrimType.SPHERE && part.Shape.ProfileHollow > 0)
-            {
-                // Make up for a bug where LSL shows 4 sides rather than 2
-                sides += 2;
-            }
-
-            return sides;
+            return part.GetNumberOfSides();
         }
 
 
@@ -5518,20 +5564,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (Math.Abs(rot.s) > 1) // normalization needed
-                rot.Normalize();
+            rot.Normalize();
 
             double s = Math.Sqrt(1 - rot.s * rot.s);
-            if (s < 0.001)
-            {
-                return new LSL_Vector(1, 0, 0);
-            }
-            else
-            {
-                double invS = 1.0 / s;
-                if (rot.s < 0) invS = -invS;
-                return new LSL_Vector(rot.x * invS, rot.y * invS, rot.z * invS);
-            }
+            if (s < 1e-8)
+                return new LSL_Vector(0, 0, 0);
+
+            double invS = 1.0 / s;
+            if (rot.s < 0)
+                invS = -invS;
+            return new LSL_Vector(rot.x * invS, rot.y * invS, rot.z * invS);
         }
 
 
@@ -5540,8 +5582,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (Math.Abs(rot.s) > 1) // normalization needed
-                rot.Normalize();
+            rot.Normalize();
 
             double angle = 2 * Math.Acos(rot.s);
             if (angle > Math.PI)
@@ -5577,7 +5618,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return Math.Acos(2 * quotient - 1);
         }
 
-        public LSL_String llGetInventoryKey(string name)
+        public LSL_Key llGetInventoryKey(string name)
         {
             m_host.AddScriptLPS(1);
 
@@ -5697,7 +5738,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return source.IndexOf(pattern);
         }
 
-        public LSL_String llGetOwnerKey(string id)
+        public LSL_Key llGetOwnerKey(string id)
         {
             m_host.AddScriptLPS(1);
             UUID key = new UUID();
@@ -5751,29 +5792,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             if (index < 0)
-            {
                 index = src.Length + index;
-            }
+
             if (index >= src.Length || index < 0)
-            {
                 return 0;
-            }
+
+            object item = src.Data[index];
 
             // Vectors & Rotations always return zero in SL, but
             //  keys don't always return zero, it seems to be a bit complex.
-            else if (src.Data[index] is LSL_Vector ||
-                    src.Data[index] is LSL_Rotation)
-            {
+            if (item is LSL_Vector || item is LSL_Rotation)
                 return 0;
-            }
+
             try
             {
-
-                if (src.Data[index] is LSL_Integer)
-                    return (LSL_Integer)src.Data[index];
-                else if (src.Data[index] is LSL_Float)
-                    return Convert.ToInt32(((LSL_Float)src.Data[index]).value);
-                return new LSL_Integer(src.Data[index].ToString());
+                if (item is LSL_Integer)
+                    return (LSL_Integer)item;
+                else if (item is LSL_Float)
+                    return Convert.ToInt32(((LSL_Float)item).value);;
+                return new LSL_Integer(item.ToString());
             }
             catch (FormatException)
             {
@@ -5785,38 +5822,38 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             if (index < 0)
-            {
                 index = src.Length + index;
-            }
+
             if (index >= src.Length || index < 0)
-            {
-                return 0.0;
-            }
+                return 0;
+
+            object item = src.Data[index];
 
             // Vectors & Rotations always return zero in SL
-            else if (src.Data[index] is LSL_Vector ||
-                    src.Data[index] is LSL_Rotation)
-            {
+            if(item is LSL_Vector || item is LSL_Rotation)
                 return 0;
-            }
+
             // valid keys seem to get parsed as integers then converted to floats
-            else
+            if (item is LSL_Key)
             {
                 UUID uuidt;
-                if (src.Data[index] is LSL_Key && UUID.TryParse(src.Data[index].ToString(), out uuidt))
-                {
-                    return Convert.ToDouble(new LSL_Integer(src.Data[index].ToString()).value);
-                }
+                string s = item.ToString();
+                if(UUID.TryParse(s, out uuidt))
+                    return Convert.ToDouble(new LSL_Integer(s).value);
+// we can't do this because a string is also a LSL_Key for now :(
+//                else
+//                    return 0;
             }
+
             try
             {
-                if (src.Data[index] is LSL_Integer)
-                    return Convert.ToDouble(((LSL_Integer)src.Data[index]).value);
-                else if (src.Data[index] is LSL_Float)
-                    return Convert.ToDouble(((LSL_Float)src.Data[index]).value);
-                else if (src.Data[index] is LSL_String)
+               if (item is LSL_Integer)
+                    return Convert.ToDouble(((LSL_Integer)item).value);
+                else if (item is LSL_Float)
+                    return Convert.ToDouble(((LSL_Float)item).value);
+                else if (item is LSL_String)
                 {
-                    string str = ((LSL_String) src.Data[index]).m_string;
+                    string str = ((LSL_String)item).m_string;
                     Match m = Regex.Match(str, "^\\s*(-?\\+?[,0-9]+\\.?[0-9]*)");
                     if (m != Match.Empty)
                     {
@@ -5824,12 +5861,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         double d = 0.0;
                         if (!Double.TryParse(str, out d))
                             return 0.0;
-
                         return d;
                     }
                     return 0.0;
                 }
-                return Convert.ToDouble(src.Data[index]);
+                return Convert.ToDouble(item);
             }
             catch (FormatException)
             {
@@ -5841,13 +5877,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             if (index < 0)
-            {
                 index = src.Length + index;
-            }
+
             if (index >= src.Length || index < 0)
-            {
                 return String.Empty;
-            }
+
             return src.Data[index].ToString();
         }
 
@@ -5855,14 +5889,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             if (index < 0)
-            {
                 index = src.Length + index;
-            }
 
             if (index >= src.Length || index < 0)
-            {
-                return "";
-            }
+                return String.Empty;
+
+            object item = src.Data[index];
 
             // SL spits out an empty string for types other than key & string
             // At the time of patching, LSL_Key is currently LSL_String,
@@ -5871,31 +5903,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // as it's own struct
             // NOTE: 3rd case is needed because a NULL_KEY comes through as
             // type 'obj' and wrongly returns ""
-            else if (!(src.Data[index] is LSL_String ||
-                       src.Data[index] is LSL_Key ||
-                       src.Data[index].ToString() == "00000000-0000-0000-0000-000000000000"))
+            if (!(item is LSL_String ||
+                       item is LSL_Key ||
+                       item.ToString() == "00000000-0000-0000-0000-000000000000"))
             {
-                return "";
+                return String.Empty;
             }
 
-            return src.Data[index].ToString();
+            return item.ToString();
         }
 
         public LSL_Vector llList2Vector(LSL_List src, int index)
         {
             m_host.AddScriptLPS(1);
             if (index < 0)
-            {
                 index = src.Length + index;
-            }
+
             if (index >= src.Length || index < 0)
-            {
                 return new LSL_Vector(0, 0, 0);
-            }
-            if (src.Data[index].GetType() == typeof(LSL_Vector))
-            {
-                return (LSL_Vector)src.Data[index];
-            }
+
+            object item = src.Data[index];
+
+            if (item.GetType() == typeof(LSL_Vector))
+                return (LSL_Vector)item;
 
             // SL spits always out ZERO_VECTOR for anything other than
             // strings or vectors. Although keys always return ZERO_VECTOR,
@@ -5903,28 +5933,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // a string, a key as string and a string that by coincidence
             // is a string, so we're going to leave that up to the
             // LSL_Vector constructor.
-            else if (!(src.Data[index] is LSL_String ||
-                    src.Data[index] is LSL_Vector))
-            {
-                return new LSL_Vector(0, 0, 0);
-            }
-            else
-            {
-                return new LSL_Vector(src.Data[index].ToString());
-            }
+            if(item is LSL_Vector)      
+                return (LSL_Vector) item;
+
+            if (item is LSL_String)
+                return new LSL_Vector(item.ToString());
+
+            return new LSL_Vector(0, 0, 0);
         }
 
         public LSL_Rotation llList2Rot(LSL_List src, int index)
         {
             m_host.AddScriptLPS(1);
             if (index < 0)
-            {
                 index = src.Length + index;
-            }
+
             if (index >= src.Length || index < 0)
-            {
                 return new LSL_Rotation(0, 0, 0, 1);
-            }
+
+            object item = src.Data[index];
 
             // SL spits always out ZERO_ROTATION for anything other than
             // strings or vectors. Although keys always return ZERO_ROTATION,
@@ -5932,19 +5959,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // a string, a key as string and a string that by coincidence
             // is a string, so we're going to leave that up to the
             // LSL_Rotation constructor.
-            else if (!(src.Data[index] is LSL_String ||
-                    src.Data[index] is LSL_Rotation))
-            {
-                return new LSL_Rotation(0, 0, 0, 1);
-            }
-            else if (src.Data[index].GetType() == typeof(LSL_Rotation))
-            {
-                return (LSL_Rotation)src.Data[index];
-            }
-            else
-            {
+            
+            if (item.GetType() == typeof(LSL_Rotation))
+                return (LSL_Rotation)item;
+
+            if (item is LSL_String)
                 return new LSL_Rotation(src.Data[index].ToString());
-            }
+
+            return new LSL_Rotation(0, 0, 0, 1);
         }
 
         public LSL_List llList2List(LSL_List src, int start, int end)
@@ -6654,10 +6676,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// AGENT_LIST_PARCEL - all in the same parcel as the scripted object
         /// AGENT_LIST_PARCEL_OWNER - all in any parcel owned by the owner of the
         /// current parcel.
+        /// AGENT_LIST_EXCLUDENPC ignore NPCs (bit mask)
         /// </summary>
         public LSL_List llGetAgentList(LSL_Integer scope, LSL_List options)
         {
             m_host.AddScriptLPS(1);
+
+            // do our bit masks part
+            bool noNPC = (scope & ScriptBaseClass.AGENT_LIST_EXCLUDENPC) !=0;
+
+            // remove bit masks part
+            scope &= ~ ScriptBaseClass.AGENT_LIST_EXCLUDENPC;
 
             // the constants are 1, 2 and 4 so bits are being set, but you
             // get an error "INVALID_SCOPE" if it is anything but 1, 2 and 4
@@ -6699,6 +6728,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             World.ForEachRootScenePresence(
                 delegate (ScenePresence ssp)
                 {
+                    if(noNPC && ssp.IsNPC)
+                        return;
+
                     // Gods are not listed in SL
                     if (!ssp.IsDeleted && !ssp.IsViewerUIGod && !ssp.IsChildAgent)
                     {
@@ -6842,7 +6874,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (m_host.OwnerID == land.LandData.OwnerID)
                     {
                         Vector3 p = World.GetNearestAllowedPosition(presence, land);
-                        presence.TeleportWithMomentum(p, null);
+                        presence.TeleportOnEject(p);
                         presence.ControllingClient.SendAlertMessage("You have been ejected from this land");
                     }
                 }
@@ -6861,28 +6893,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID key = new UUID();
             if (UUID.TryParse(id, out key))
             {
-                ScenePresence presence = World.GetScenePresence(key);
-                if (presence != null) // object is an avatar
+                try
                 {
-                    if (m_host.OwnerID == World.LandChannel.GetLandObject(presence.AbsolutePosition).LandData.OwnerID)
-                        return 1;
-                }
-                else // object is not an avatar
-                {
-                    SceneObjectPart obj = World.GetSceneObjectPart(key);
-
-                    if (obj != null)
+                    ScenePresence presence = World.GetScenePresence(key);
+                    if (presence != null) // object is an avatar
                     {
-                        if (m_host.OwnerID == World.LandChannel.GetLandObject(obj.AbsolutePosition).LandData.OwnerID)
+                        if (m_host.OwnerID == World.LandChannel.GetLandObject(presence.AbsolutePosition).LandData.OwnerID)
                             return 1;
                     }
+                    else // object is not an avatar
+                    {
+                        SceneObjectPart obj = World.GetSceneObjectPart(key);
+
+                        if (obj != null &&
+                            m_host.OwnerID == World.LandChannel.GetLandObject(obj.AbsolutePosition).LandData.OwnerID)
+                        return 1;
+                    }
                 }
+                catch { }
             }
 
             return 0;
         }
 
-        public LSL_String llGetLandOwnerAt(LSL_Vector pos)
+        public LSL_Key llGetLandOwnerAt(LSL_Vector pos)
         {
             m_host.AddScriptLPS(1);
             ILandObject land = World.LandChannel.GetLandObject((float)pos.x, (float)pos.y);
@@ -7832,14 +7866,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public LSL_String llAvatarOnSitTarget()
+        public LSL_Key llAvatarOnSitTarget()
         {
             m_host.AddScriptLPS(1);
             return m_host.SitTargetAvatar.ToString();
         }
 
         // http://wiki.secondlife.com/wiki/LlAvatarOnLinkSitTarget
-        public LSL_String llAvatarOnLinkSitTarget(int linknum)
+        public LSL_Key llAvatarOnLinkSitTarget(int linknum)
         {
             m_host.AddScriptLPS(1);
             if(linknum == ScriptBaseClass.LINK_SET ||
@@ -7861,7 +7895,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID key;
             ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
 
-            if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageBanned, false))
+            if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManagePasses, false))
             {
                 int expires = 0;
                 if (hours != 0)
@@ -8144,7 +8178,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScriptSleep(m_sleepMsOnOpenRemoteDataChannel);
         }
 
-        public LSL_String llSendRemoteData(string channel, string dest, int idata, string sdata)
+        public LSL_Key llSendRemoteData(string channel, string dest, int idata, string sdata)
         {
             m_host.AddScriptLPS(1);
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
@@ -8901,6 +8935,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             SceneObjectGroup parentgrp = part.ParentGroup;
 
             bool positionChanged = false;
+            bool materialChanged = false;
             LSL_Vector currentPosition = GetPartLocalPos(part);
 
             try
@@ -10197,6 +10232,231 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             break;
 
+                        case ScriptBaseClass.PRIM_ALPHA_MODE:
+                            if (remain < 3)
+                                return new LSL_List();
+
+                            try
+                            {
+                                face = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_ALPHA_MODE: arg #{1} - must be integer", rulesParsed, idx - idxStart - 1));
+                               return new LSL_List();
+                            }
+
+                            int materialAlphaMode;
+                            try
+                            {
+                                materialAlphaMode = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_ALPHA_MODE: arg #{1} - must be integer", rulesParsed, idx - idxStart - 1));
+                               return new LSL_List();
+                            }
+
+                            if(materialAlphaMode < 0 || materialAlphaMode > 3)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_ALPHA_MODE: arg #{1} - must be 0 to 3", rulesParsed, idx - idxStart - 1));
+                               return new LSL_List();
+                            }
+
+                            int materialMaskCutoff;
+                            try
+                            {
+                                materialMaskCutoff = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_ALPHA_MODE: arg #{1} - must be integer", rulesParsed, idx - idxStart - 1));
+                               return new LSL_List();
+                            }
+
+                            if(materialMaskCutoff < 0 || materialMaskCutoff > 255)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_ALPHA_MODE: arg #{1} - must be 0 to 255", rulesParsed, idx - idxStart - 1));
+                               return new LSL_List();
+                            }
+    
+                            materialChanged |= SetMaterialAlphaMode(part, face, materialAlphaMode, materialMaskCutoff);
+                            break;
+
+                        case ScriptBaseClass.PRIM_NORMAL:
+                            if (remain < 5)
+                                return new LSL_List();
+
+                            try
+                            {
+                                face = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_NORMAL: arg #{1} - must be integer", rulesParsed, idx - idxStart - 1));
+                               return new LSL_List();
+                            }
+
+                            string mapname = rules.Data[idx++].ToString();
+
+                            UUID mapID = ScriptUtils.GetAssetIdFromItemName(m_host, mapname, (int)AssetType.Texture);
+                            if (mapID == UUID.Zero)
+                            {
+                                if (!UUID.TryParse(mapname, out mapID))
+                                {
+                                    Error(originFunc, string.Format("Error running rule #{0} -> PRIM_NORMAL: arg #{1} - must be a UUID or a texture name on object inventory", rulesParsed, idx - idxStart - 1));
+                                    return new LSL_List();
+                                }
+                            }
+
+                            LSL_Vector mnrepeat;
+                            try
+                            {
+                                mnrepeat = rules.GetVector3Item(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_NORMAL: arg #{1} - must be vector", rulesParsed, idx - idxStart - 1));
+                                return new LSL_List();
+                            }
+
+                            LSL_Vector mnoffset;
+                            try
+                            {
+                                mnoffset = rules.GetVector3Item(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_NORMAL: arg #{1} - must be vector", rulesParsed, idx - idxStart - 1));
+                                return new LSL_List();
+                            }
+
+                            LSL_Float mnrot;
+                            try
+                            {
+                                mnrot = rules.GetLSLFloatItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_NORMAL: arg #{1} - must be float", rulesParsed, idx - idxStart - 1));
+                                return new LSL_List();
+                            }
+    
+                            float repeatX = (float)Util.Clamp(mnrepeat.x,-100.0, 100.0);
+                            float repeatY = (float)Util.Clamp(mnrepeat.y,-100.0, 100.0);
+                            float offsetX = (float)Util.Clamp(mnoffset.x, 0, 1.0);
+                            float offsetY = (float)Util.Clamp(mnoffset.y, 0, 1.0);
+
+                            materialChanged |= SetMaterialNormalMap(part, face, mapID, repeatX, repeatY, offsetX, offsetY, (float)mnrot);
+                            break;
+
+                        case ScriptBaseClass.PRIM_SPECULAR:
+                            if (remain < 8)
+                                return new LSL_List();
+
+                            try
+                            {
+                                face = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SPECULAR: arg #{1} - must be integer", rulesParsed, idx - idxStart - 1));
+                               return new LSL_List();
+                            }
+
+                            string smapname = rules.Data[idx++].ToString();
+
+                            UUID smapID = ScriptUtils.GetAssetIdFromItemName(m_host, smapname, (int)AssetType.Texture);
+                            if (smapID == UUID.Zero)
+                            {
+                                if (!UUID.TryParse(smapname, out smapID))
+                                {
+                                    Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SPECULAR: arg #{1} - must be a UUID or a texture name on object inventory", rulesParsed, idx - idxStart - 1));
+                                    return new LSL_List();
+                                }
+                            }
+
+                            LSL_Vector msrepeat;
+                            try
+                            {
+                                msrepeat = rules.GetVector3Item(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SPECULAR: arg #{1} - must be vector", rulesParsed, idx - idxStart - 1));
+                                return new LSL_List();
+                            }
+
+                            LSL_Vector msoffset;
+                            try
+                            {
+                                msoffset = rules.GetVector3Item(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SPECULAR: arg #{1} - must be vector", rulesParsed, idx - idxStart - 1));
+                                return new LSL_List();
+                            }
+
+                            LSL_Float msrot;
+                            try
+                            {
+                                msrot = rules.GetLSLFloatItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SPECULAR: arg #{1} - must be float", rulesParsed, idx - idxStart - 1));
+                                return new LSL_List();
+                            }
+
+                            LSL_Vector mscolor;
+                            try
+                            {
+                                mscolor = rules.GetVector3Item(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SPECULAR: arg #{1} - must be vector", rulesParsed, idx - idxStart - 1));
+                                return new LSL_List();
+                            }
+
+                            LSL_Integer msgloss;
+                            try
+                            {
+                                msgloss = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SPECULAR: arg #{1} - must be integer", rulesParsed, idx - idxStart - 1));
+                               return new LSL_List();
+                            }
+
+                            LSL_Integer msenv;
+                            try
+                            {
+                                msenv = rules.GetLSLIntegerItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                               Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SPECULAR: arg #{1} - must be integer", rulesParsed, idx - idxStart - 1));
+                               return new LSL_List();
+                            }
+   
+                            float srepeatX = (float)Util.Clamp(msrepeat.x, -100.0, 100.0);
+                            float srepeatY = (float)Util.Clamp(msrepeat.y, -100.0, 100.0);
+                            float soffsetX = (float)Util.Clamp(msoffset.x, -1.0, 1.0);
+                            float soffsetY = (float)Util.Clamp(msoffset.y, -1.0, 1.0);
+                            byte colorR = (byte)(255.0 * Util.Clamp(mscolor.x, 0, 1.0) + 0.5);
+                            byte colorG = (byte)(255.0 * Util.Clamp(mscolor.y, 0, 1.0) + 0.5);
+                            byte colorB = (byte)(255.0 * Util.Clamp(mscolor.z, 0, 1.0) + 0.5);
+                            byte gloss = (byte)Util.Clamp((int)msgloss, 0, 255);
+                            byte env = (byte)Util.Clamp((int)msenv, 0, 255);
+
+                            materialChanged |= SetMaterialSpecMap(part, face, smapID, srepeatX, srepeatY, soffsetX, soffsetY,
+                                                (float)msrot, colorR, colorG, colorB, gloss, env);
+
+                            break;
+
                         case ScriptBaseClass.PRIM_LINK_TARGET:
                             if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
                                 return new LSL_List();
@@ -10233,9 +10493,192 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         part.ScheduleTerseUpdate();
                     }
                 }
+                if(materialChanged)
+                {
+                    if (part.ParentGroup != null && !part.ParentGroup.IsDeleted)
+                    {
+                        part.TriggerScriptChangedEvent(Changed.TEXTURE);
+                        part.ScheduleFullUpdate();
+                        part.ParentGroup.HasGroupChanged = true;
+                    }
+                }
             }
 
             return new LSL_List();
+        }
+
+        protected bool SetMaterialAlphaMode(SceneObjectPart part, int face, int materialAlphaMode, int materialMaskCutoff)
+        {
+            if(m_materialsModule == null)
+                return false;
+           
+            int nsides =  part.GetNumberOfSides();                      
+
+            if(face == ScriptBaseClass.ALL_SIDES)
+            {
+                bool changed = false;
+                for(int i = 0; i < nsides; i++)
+                    changed |= SetFaceMaterialAlphaMode(part, i, materialAlphaMode, materialMaskCutoff);
+                return changed;
+            }
+
+            if( face >= 0 && face < nsides)
+                return SetFaceMaterialAlphaMode(part, face, materialAlphaMode, materialMaskCutoff);
+
+            return false;
+        }
+
+        protected bool SetFaceMaterialAlphaMode(SceneObjectPart part, int face, int materialAlphaMode, int materialMaskCutoff)
+        {
+            Primitive.TextureEntry tex = part.Shape.Textures;
+            Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
+            if(texface == null)
+                return false;
+
+            FaceMaterial mat = null;
+            UUID oldid = texface.MaterialID;
+
+            if(oldid != UUID.Zero)
+                mat = m_materialsModule.GetMaterialCopy(oldid);
+
+            if(mat == null)
+                mat = new FaceMaterial();
+
+            mat.DiffuseAlphaMode = (byte)materialAlphaMode;
+            mat.AlphaMaskCutoff = (byte)materialMaskCutoff;
+
+            UUID id = m_materialsModule.AddNewMaterial(mat);
+            if(oldid == id)
+                return false;
+
+            texface.MaterialID = id;
+            part.Shape.TextureEntry = tex.GetBytes();
+            m_materialsModule.RemoveMaterial(oldid);
+            return true;
+        }
+
+        protected bool SetMaterialNormalMap(SceneObjectPart part, int face, UUID mapID, float repeatX, float repeatY,
+                                            float offsetX, float offsetY, float rot)
+        {
+            if(m_materialsModule == null)
+                return false;
+           
+            int nsides =  part.GetNumberOfSides();                      
+
+            if(face == ScriptBaseClass.ALL_SIDES)
+            {
+                bool changed = false;
+                for(int i = 0; i < nsides; i++)
+                    changed |= SetFaceMaterialNormalMap(part, i, mapID, repeatX, repeatY, offsetX, offsetY, rot);
+                return changed;
+            }
+
+            if( face >= 0 && face < nsides)
+                return SetFaceMaterialNormalMap(part, face, mapID, repeatX, repeatY, offsetX, offsetY, rot);
+
+            return false;
+        }
+
+        protected bool SetFaceMaterialNormalMap(SceneObjectPart part, int face, UUID mapID, float repeatX, float repeatY,
+                                                float offsetX, float offsetY, float rot)
+
+        {
+            Primitive.TextureEntry tex = part.Shape.Textures;
+            Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
+            if(texface == null)
+                return false;
+
+            FaceMaterial mat = null;
+            UUID oldid = texface.MaterialID;
+
+            if(oldid != UUID.Zero)
+                mat = m_materialsModule.GetMaterialCopy(oldid);
+
+            if(mat == null)
+                mat = new FaceMaterial();
+
+            mat.NormalMapID = mapID;
+            mat.NormalOffsetX = offsetX;
+            mat.NormalOffsetY = offsetY;
+            mat.NormalRepeatX = repeatX;
+            mat.NormalRepeatY = repeatY;
+            mat.NormalRotation = rot;
+
+            UUID id = m_materialsModule.AddNewMaterial(mat);
+            if(oldid == id)
+                return false;
+
+            texface.MaterialID = id;
+            part.Shape.TextureEntry = tex.GetBytes();
+            m_materialsModule.RemoveMaterial(oldid);
+            return true;
+        }
+
+        protected bool SetMaterialSpecMap(SceneObjectPart part, int face, UUID mapID, float repeatX, float repeatY,
+                                            float offsetX, float offsetY, float rot,
+                                            byte colorR, byte colorG,  byte colorB,
+                                            byte gloss, byte env)
+        {
+            if(m_materialsModule == null)
+                return false;
+           
+            int nsides =  part.GetNumberOfSides();                      
+
+            if(face == ScriptBaseClass.ALL_SIDES)
+            {
+                bool changed = false;
+                for(int i = 0; i < nsides; i++)
+                    changed |= SetFaceMaterialSpecMap(part, i, mapID, repeatX, repeatY, offsetX, offsetY, rot,
+                                            colorR, colorG, colorB, gloss, env);
+                return changed;
+            }
+
+            if( face >= 0 && face < nsides)
+                return SetFaceMaterialSpecMap(part, face, mapID, repeatX, repeatY, offsetX, offsetY, rot,
+                                            colorR, colorG, colorB, gloss, env);
+
+            return false;
+        }
+
+        protected bool SetFaceMaterialSpecMap(SceneObjectPart part, int face, UUID mapID, float repeatX, float repeatY,
+                                            float offsetX, float offsetY, float rot,
+                                            byte colorR, byte colorG, byte colorB,
+                                            byte gloss, byte env)
+        {
+            Primitive.TextureEntry tex = part.Shape.Textures;
+            Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
+            if(texface == null)
+                return false;
+
+            FaceMaterial mat = null;
+            UUID oldid = texface.MaterialID;
+
+            if(oldid != UUID.Zero)
+                mat = m_materialsModule.GetMaterialCopy(oldid);
+
+            if(mat == null)
+                mat = new FaceMaterial();
+
+            mat.SpecularMapID = mapID;
+            mat.SpecularOffsetX = offsetX;
+            mat.SpecularOffsetY = offsetY;
+            mat.SpecularRepeatX = repeatX;
+            mat.SpecularRepeatY = repeatY;
+            mat.SpecularRotation = rot;
+            mat.SpecularLightColorR = colorR;
+            mat.SpecularLightColorG = colorG;
+            mat.SpecularLightColorB = colorB;
+            mat.SpecularLightExponent = gloss;
+            mat.EnvironmentIntensity = env;
+
+            UUID id = m_materialsModule.AddNewMaterial(mat);
+            if(oldid == id)
+                return false;
+
+            texface.MaterialID = id;
+            part.Shape.TextureEntry = tex.GetBytes();
+            m_materialsModule.RemoveMaterial(oldid);
+            return true;
         }
 
         protected LSL_List SetAgentParams(ScenePresence sp, LSL_List rules, string originFunc, ref uint rulesParsed)
@@ -10589,7 +11032,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.Description = desc!=null?desc:String.Empty;
         }
 
-        public LSL_String llGetCreator()
+        public LSL_Key llGetCreator()
         {
             m_host.AddScriptLPS(1);
             return m_host.CreatorID.ToString();
@@ -10849,6 +11292,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_List GetPrimParams(SceneObjectPart part, LSL_List rules, ref LSL_List res)
         {
             int idx = 0;
+            int face;
+            Primitive.TextureEntry tex;
+            int nsides = GetNumberOfSides(part);
+
             while (idx < rules.Length)
             {
                 int code = (int)rules.GetLSLIntegerItem(idx++);
@@ -10989,11 +11436,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (remain < 1)
                             return new LSL_List();
 
-                        int face = (int)rules.GetLSLIntegerItem(idx++);
-                        Primitive.TextureEntry tex = part.Shape.Textures;
+                        face = (int)rules.GetLSLIntegerItem(idx++);
+                        tex = part.Shape.Textures;
+
                         if (face == ScriptBaseClass.ALL_SIDES)
                         {
-                            for (face = 0; face < GetNumberOfSides(part); face++)
+                            for (face = 0; face < nsides; face++)
                             {
                                 Primitive.TextureEntryFace texface = tex.GetFace((uint)face);
 
@@ -11009,7 +11457,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         else
                         {
-                            if (face >= 0 && face < GetNumberOfSides(part))
+                            if (face >= 0 && face < nsides)
                             {
                                 Primitive.TextureEntryFace texface = tex.GetFace((uint)face);
 
@@ -11030,12 +11478,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return new LSL_List();
 
                         face = (int)rules.GetLSLIntegerItem(idx++);
-
                         tex = part.Shape.Textures;
                         Color4 texcolor;
+
                         if (face == ScriptBaseClass.ALL_SIDES)
                         {
-                            for (face = 0; face < GetNumberOfSides(part); face++)
+                            for (face = 0; face < nsides; face++)
                             {
                                 texcolor = tex.GetFace((uint)face).RGBA;
                                 res.Add(new LSL_Vector(texcolor.R,
@@ -11055,16 +11503,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
+                    {
                         if (remain < 1)
                             return new LSL_List();
 
                         face = (int)rules.GetLSLIntegerItem(idx++);
-
                         tex = part.Shape.Textures;
                         int shiny;
                         if (face == ScriptBaseClass.ALL_SIDES)
                         {
-                            for (face = 0; face < GetNumberOfSides(part); face++)
+                            for (face = 0; face < nsides; face++)
                             {
                                 Shininess shinyness = tex.GetFace((uint)face).Shiny;
                                 if (shinyness == Shininess.High)
@@ -11110,8 +11558,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             res.Add(new LSL_Integer((int)tex.GetFace((uint)face).Bump));
                         }
                         break;
-
+                    }
                     case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
+                    {
                         if (remain < 1)
                             return new LSL_List();
 
@@ -11121,7 +11570,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         int fullbright;
                         if (face == ScriptBaseClass.ALL_SIDES)
                         {
-                            for (face = 0; face < GetNumberOfSides(part); face++)
+                            for (face = 0; face < nsides; face++)
                             {
                                 if (tex.GetFace((uint)face).Fullbright == true)
                                 {
@@ -11147,7 +11596,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             res.Add(new LSL_Integer(fullbright));
                         }
                         break;
-
+                    }
                     case (int)ScriptBaseClass.PRIM_FLEXIBLE:
                         PrimitiveBaseShape shape = part.Shape;
 
@@ -11175,7 +11624,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         tex = part.Shape.Textures;
                         if (face == ScriptBaseClass.ALL_SIDES)
                         {
-                            for (face = 0; face < GetNumberOfSides(part); face++)
+                            for (face = 0; face < nsides; face++)
                             {
                                 if (tex.GetFace((uint)face).TexMapType == MappingType.Planar)
                                 {
@@ -11225,7 +11674,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         float primglow;
                         if (face == ScriptBaseClass.ALL_SIDES)
                         {
-                            for (face = 0; face < GetNumberOfSides(part); face++)
+                            for (face = 0; face < nsides; face++)
                             {
                                 primglow = tex.GetFace((uint)face).Glow;
                                 res.Add(new LSL_Float(primglow));
@@ -11309,6 +11758,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
+                    case (int)ScriptBaseClass.PRIM_NORMAL:
+                    case (int)ScriptBaseClass.PRIM_SPECULAR:
+                    case (int)ScriptBaseClass.PRIM_ALPHA_MODE:
+                        if (remain < 1)
+                            return new LSL_List();
+
+                        face = (int)rules.GetLSLIntegerItem(idx++);
+                        tex = part.Shape.Textures;
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < nsides; face++)
+                            {
+                                Primitive.TextureEntryFace texface = tex.GetFace((uint)face);
+                                getLSLFaceMaterial(ref res, code, part, texface);
+                            }
+                        }
+                        else
+                        {
+                            if (face >= 0 && face < nsides)
+                            {
+                                Primitive.TextureEntryFace texface = tex.GetFace((uint)face);
+                                getLSLFaceMaterial(ref res, code, part, texface);
+                            }
+                        }
+                        break;
+
                     case (int)ScriptBaseClass.PRIM_LINK_TARGET:
 
                         // TODO: Should be issuing a runtime script warning in this case.
@@ -11322,6 +11797,84 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_List();
         }
 
+        private string GetMaterialTextureUUIDbyRights(UUID origID, SceneObjectPart part)
+        {
+            if(World.Permissions.CanEditObject(m_host.ParentGroup.UUID, m_host.ParentGroup.RootPart.OwnerID))
+                return origID.ToString();
+
+            lock(part.TaskInventory)
+            {
+                foreach(KeyValuePair<UUID, TaskInventoryItem> inv in part.TaskInventory)
+                {
+                    if(inv.Value.InvType == (int)InventoryType.Texture && inv.Value.AssetID == origID)
+                        return origID.ToString();
+                }
+            }
+
+            return UUID.Zero.ToString();
+        }
+
+        private void getLSLFaceMaterial(ref LSL_List res, int code, SceneObjectPart part, Primitive.TextureEntryFace texface)
+        {
+            UUID matID = UUID.Zero;
+            if(m_materialsModule != null)
+                matID = texface.MaterialID;
+
+            if(matID != UUID.Zero)
+            {
+                FaceMaterial mat = m_materialsModule.GetMaterial(matID);
+                if(mat != null)
+                {
+                    if(code == ScriptBaseClass.PRIM_NORMAL)
+                    {
+                        res.Add(new LSL_String(GetMaterialTextureUUIDbyRights(mat.NormalMapID, part)));
+                        res.Add(new LSL_Vector(mat.NormalRepeatX, mat.NormalRepeatY, 0));
+                        res.Add(new LSL_Vector(mat.NormalOffsetX, mat.NormalOffsetY, 0));
+                        res.Add(new LSL_Float(mat.NormalRotation));
+                    }
+                    else if(code == ScriptBaseClass.PRIM_SPECULAR)
+                    {
+                        const float colorScale = 1.0f / 255f;
+                        res.Add(new LSL_String(GetMaterialTextureUUIDbyRights(mat.SpecularMapID, part)));
+                        res.Add(new LSL_Vector(mat.SpecularRepeatX, mat.SpecularRepeatY, 0));
+                        res.Add(new LSL_Vector(mat.SpecularOffsetX, mat.SpecularOffsetY, 0));
+                        res.Add(new LSL_Float(mat.SpecularRotation));
+                        res.Add(new LSL_Vector(mat.SpecularLightColorR * colorScale,
+                                mat.SpecularLightColorG * colorScale,
+                                mat.SpecularLightColorB * colorScale));
+                        res.Add(new LSL_Integer(mat.SpecularLightExponent));
+                        res.Add(new LSL_Integer(mat.EnvironmentIntensity));
+                    }
+                    else if(code == ScriptBaseClass.PRIM_ALPHA_MODE)
+                    {
+                        res.Add(new LSL_Integer(mat.DiffuseAlphaMode));
+                        res.Add(new LSL_Integer(mat.AlphaMaskCutoff));
+                    }
+                    return;
+                }
+            }
+
+            // material not found
+            if(code == (int)ScriptBaseClass.PRIM_NORMAL || code == (int)ScriptBaseClass.PRIM_SPECULAR)
+            {
+                res.Add(new LSL_String(UUID.Zero.ToString()));
+                res.Add(new LSL_Vector(1.0, 1.0, 0));
+                res.Add(new LSL_Vector(0, 0, 0));
+                res.Add(new LSL_Float(0));
+
+                if(code == (int)ScriptBaseClass.PRIM_SPECULAR)
+                {
+                    res.Add(new LSL_Vector(1.0, 1.0, 1.0));
+                    res.Add(new LSL_Integer(51));
+                    res.Add(new LSL_Integer(0));
+                }
+            }
+            else if(code == (int)ScriptBaseClass.PRIM_ALPHA_MODE)
+            {
+                res.Add(new LSL_Integer(1));
+                res.Add(new LSL_Integer(0));
+            }
+        }
 
         public LSL_List llGetPrimMediaParams(int face, LSL_List rules)
         {
@@ -12186,7 +12739,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public LSL_String llGetInventoryCreator(string itemName)
+        public LSL_Key llGetInventoryCreator(string itemName)
         {
             m_host.AddScriptLPS(1);
 
@@ -12212,7 +12765,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 //            wComm.DeliverMessage(ChatTypeEnum.Owner, 0, m_host.Name, m_host.UUID, msg);
         }
 
-        public LSL_String llRequestSecureURL()
+        public LSL_Key llRequestSecureURL()
         {
             m_host.AddScriptLPS(1);
             if (m_UrlModule != null)
@@ -12220,7 +12773,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return UUID.Zero.ToString();
         }
 
-        public LSL_String llRequestSimulatorData(string simulator, int data)
+        public LSL_Key llRequestSimulatorData(string simulator, int data)
         {
             IOSSL_Api ossl = (IOSSL_Api)m_ScriptEngine.GetApi(m_item.ItemID, "OSSL");
 
@@ -12329,7 +12882,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public LSL_String llRequestURL()
+        public LSL_Key llRequestURL()
         {
             m_host.AddScriptLPS(1);
 
@@ -12502,7 +13055,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             for (int i = 0; i < commandList.Data.Length; i++)
             {
-                ParcelMediaCommandEnum command = (ParcelMediaCommandEnum)commandList.Data[i];
+                int cmd;
+                if(commandList.Data[i] is LSL_Integer)
+                    cmd = (LSL_Integer)commandList.Data[i];
+                else
+                    cmd = (int)commandList.Data[i];
+
+                ParcelMediaCommandEnum command = (ParcelMediaCommandEnum)cmd;
+
                 switch (command)
                 {
                     case ParcelMediaCommandEnum.Agent:
@@ -12699,14 +13259,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (sp.currentParcelUUID == landData.GlobalID)
                         {
                             sp.ControllingClient.SendParcelMediaCommand(0x4, // TODO what is this?
-                                            (ParcelMediaCommandEnum)commandToSend, time);
+                                            commandToSend.Value, time);
                         }
                     });
                 }
                 else if (!presence.IsChildAgent)
                 {
                     presence.ControllingClient.SendParcelMediaCommand(0x4, // TODO what is this?
-                                            (ParcelMediaCommandEnum)commandToSend, time);
+                                            commandToSend.Value, time);
                 }
             }
             ScriptSleep(m_sleepMsOnParcelMediaCommandList);
@@ -12955,7 +13515,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             UUID key;
             ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
-            if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageAllowed, false))
+            if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManagePasses, false))
             {
                 if (UUID.TryParse(avatar, out key))
                 {
@@ -13275,7 +13835,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return Convert.ToBase64String(data1);
         }
 
-        public LSL_String llHTTPRequest(string url, LSL_List parameters, string body)
+        public LSL_Key llHTTPRequest(string url, LSL_List parameters, string body)
         {
             // Partial implementation: support for parameter flags needed
             //   see http://wiki.secondlife.com/wiki/LlHTTPRequest
@@ -13288,6 +13848,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             List<string> param = new List<string>();
             bool  ok;
             Int32 flag;
+            int nCustomHeaders = 0;
 
             for (int i = 0; i < parameters.Data.Length; i += 2)
             {
@@ -13314,6 +13875,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     //Second Life documentation for llHTTPRequest.
                     for (int count = 1; count <= 8; ++count)
                     {
+                        if(nCustomHeaders >= 8)
+                        {
+                            Error("llHTTPRequest", "Max number of custom headers is 8, excess ignored");
+                            break;
+                        }
+
                         //Enough parameters remaining for (another) header?
                         if (parameters.Data.Length - i < 2)
                         {
@@ -13328,15 +13895,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         param.Add(parameters.Data[i].ToString());
                         param.Add(parameters.Data[i+1].ToString());
+                        nCustomHeaders++;
 
                         //Have we reached the end of the list of headers?
                         //End is marked by a string with a single digit.
-                        if (i+2 >= parameters.Data.Length ||
-                            Char.IsDigit(parameters.Data[i].ToString()[0]))
+                        if (i + 2 >= parameters.Data.Length ||
+                            Char.IsDigit(parameters.Data[i + 2].ToString()[0]))
                         {
                             break;
                         }
-
                         i += 2;
                     }
                 }
@@ -14124,7 +14691,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 });
         }
 
-        public LSL_String llGetNumberOfNotecardLines(string name)
+        public LSL_Key llGetNumberOfNotecardLines(string name)
         {
             m_host.AddScriptLPS(1);
 
@@ -14175,7 +14742,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return tid.ToString();
         }
 
-        public LSL_String llGetNotecardLine(string name, int line)
+        public LSL_Key llGetNotecardLine(string name, int line)
         {
             m_host.AddScriptLPS(1);
 
@@ -14219,7 +14786,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                  return;
                              }
 
-                             string data = Encoding.UTF8.GetString(a.Data);
+                             //string data = Encoding.UTF8.GetString(a.Data);
                              //m_log.Debug(data);
                              NotecardCache.Cache(id, a.Data);
                              AsyncCommands.DataserverPlugin.DataserverReply(
@@ -14302,7 +14869,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return Name2Username(llKey2Name(id));
         }
 
-        public LSL_String llRequestUsername(string id)
+        public LSL_Key llRequestUsername(string id)
         {
             UUID rq = UUID.Random();
 
@@ -14318,7 +14885,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return llKey2Name(id);
         }
 
-        public LSL_String llRequestDisplayName(string id)
+        public LSL_Key llRequestDisplayName(string id)
         {
             UUID rq = UUID.Random();
 
@@ -15900,7 +16467,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     new DetectParams[0]));
         }
 
-        public LSL_String llTransferLindenDollars(string destination, int amount)
+        public LSL_Key llTransferLindenDollars(string destination, int amount)
         {
             UUID txn = UUID.Random();
 
@@ -16576,92 +17143,158 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return String.Empty;
         }
 
-        public LSL_String llJsonGetValue(LSL_String json, LSL_List specifiers)
-        {
-            OSD o = OSDParser.DeserializeJson(json);
-            OSD specVal = JsonGetSpecific(o, specifiers, 0);
-
-            return specVal.AsString();
-        }
-
         public LSL_List llJson2List(LSL_String json)
         {
+            if(String.IsNullOrEmpty(json))
+                return new LSL_List();
+            if(json == "[]")
+                return new LSL_List();
+            if(json == "{}")
+                return new LSL_List();
+            char first = ((string)json)[0];
+
+            if(first != '[' && first !='{') 
+            {
+                // we already have a single element
+                LSL_List l = new LSL_List();
+                l.Add(json);
+                return l;
+            }
+
+            LitJson.JsonData jsdata;
             try
             {
-                OSD o = OSDParser.DeserializeJson(json);
-                return (LSL_List)ParseJsonNode(o);
+                jsdata = LitJson.JsonMapper.ToObject(json);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                return new LSL_List(ScriptBaseClass.JSON_INVALID);
+                string m = e.Message; // debug point
+                return json;
+            }
+            try
+            {
+                return JsonParseTop(jsdata);
+            }
+            catch   (Exception e)
+            {
+                string m = e.Message; // debug point
+                return (LSL_String)ScriptBaseClass.JSON_INVALID;
             }
         }
 
-        private object ParseJsonNode(OSD node)
+        private LSL_List JsonParseTop(LitJson.JsonData  elem)
         {
-            if (node.Type == OSDType.Integer)
-                return new LSL_Integer(node.AsInteger());
-            if (node.Type == OSDType.Boolean)
-                return new LSL_Integer(node.AsBoolean() ? 1 : 0);
-            if (node.Type == OSDType.Real)
-                return new LSL_Float(node.AsReal());
-            if (node.Type == OSDType.UUID || node.Type == OSDType.String)
-                return new LSL_String(node.AsString());
-            if (node.Type == OSDType.Array)
+            LSL_List retl = new LSL_List();
+            if(elem == null)
+                retl.Add((LSL_String)ScriptBaseClass.JSON_NULL);
+                
+            LitJson.JsonType elemType = elem.GetJsonType();
+            switch (elemType)
             {
-                LSL_List resp = new LSL_List();
-                OSDArray ar = node as OSDArray;
-                foreach (OSD o in ar)
-                    resp.Add(ParseJsonNode(o));
-                return resp;
+                case  LitJson.JsonType.Int:
+                    retl.Add(new LSL_Integer((int)elem));
+                    return retl;
+                case  LitJson.JsonType.Boolean:
+                    retl.Add((LSL_String)((bool)elem ? ScriptBaseClass.JSON_TRUE : ScriptBaseClass.JSON_FALSE));
+                    return retl;
+                case LitJson.JsonType.Double:
+                    retl.Add(new LSL_Float((double)elem));
+                    return retl;
+                case LitJson.JsonType.None:
+                    retl.Add((LSL_String)ScriptBaseClass.JSON_NULL);
+                    return retl;
+                case LitJson.JsonType.String:
+                    retl.Add(new LSL_String((string)elem));
+                    return retl;
+                case LitJson.JsonType.Array:
+                    foreach (LitJson.JsonData subelem in elem)
+                        retl.Add(JsonParseTopNodes(subelem));
+                    return retl;
+                case LitJson.JsonType.Object:
+                    IDictionaryEnumerator e = ((IOrderedDictionary)elem).GetEnumerator();
+                    while (e.MoveNext())
+                    {
+                        retl.Add(new LSL_String((string)e.Key));
+                        retl.Add(JsonParseTopNodes((LitJson.JsonData)e.Value));
+                    }
+                    return retl;
+                default:
+                    throw new Exception(ScriptBaseClass.JSON_INVALID);
             }
-            if (node.Type == OSDType.Map)
+        }
+
+        private object JsonParseTopNodes(LitJson.JsonData  elem)
+        {
+            if(elem == null)
+                return ((LSL_String)ScriptBaseClass.JSON_NULL);
+
+            LitJson.JsonType elemType = elem.GetJsonType();
+            switch (elemType)
             {
-                LSL_List resp = new LSL_List();
-                OSDMap ar = node as OSDMap;
-                foreach (KeyValuePair<string, OSD> o in ar)
-                {
-                    resp.Add(new LSL_String(o.Key));
-                    resp.Add(ParseJsonNode(o.Value));
-                }
-                return resp;
+                case LitJson.JsonType.Int:
+                    return (new LSL_Integer((int)elem));
+                case LitJson.JsonType.Boolean:
+                    return ((bool)elem ? (LSL_String)ScriptBaseClass.JSON_TRUE : (LSL_String)ScriptBaseClass.JSON_FALSE);
+                case LitJson.JsonType.Double:
+                    return (new LSL_Float((double)elem));
+                case LitJson.JsonType.None:
+                    return ((LSL_String)ScriptBaseClass.JSON_NULL);
+                case LitJson.JsonType.String:
+                    return (new LSL_String((string)elem));
+                case LitJson.JsonType.Array:
+                case LitJson.JsonType.Object:
+                    string s = LitJson.JsonMapper.ToJson(elem);
+                    return (LSL_String)s;
+                default:
+                    throw new Exception(ScriptBaseClass.JSON_INVALID);
             }
-            throw new Exception(ScriptBaseClass.JSON_INVALID);
         }
 
         public LSL_String llList2Json(LSL_String type, LSL_List values)
         {
             try
             {
+                StringBuilder sb = new StringBuilder();
                 if (type == ScriptBaseClass.JSON_ARRAY)
                 {
-                    OSDArray array = new OSDArray();
+                    sb.Append("[");
+                    int i= 0;
                     foreach (object o in values.Data)
                     {
-                        array.Add(ListToJson(o));
+                        sb.Append(ListToJson(o));
+                        if((i++) < values.Data.Length - 1)
+                            sb.Append(",");
                     }
-                    return OSDParser.SerializeJsonString(array);
+                    sb.Append("]");
+                    return (LSL_String)sb.ToString();;
                 }
                 else if (type == ScriptBaseClass.JSON_OBJECT)
                 {
-                    OSDMap map = new OSDMap();
+                    sb.Append("{");
                     for (int i = 0; i < values.Data.Length; i += 2)
                     {
                         if (!(values.Data[i] is LSL_String))
                             return ScriptBaseClass.JSON_INVALID;
-                        map.Add(((LSL_String)values.Data[i]).m_string, ListToJson(values.Data[i + 1]));
+                        string key = ((LSL_String)values.Data[i]).m_string;
+                        key = EscapeForJSON(key, true);
+                        sb.Append(key);
+                        sb.Append(":");
+                        sb.Append(ListToJson(values.Data[i+1]));
+                        if(i < values.Data.Length - 2)
+                            sb.Append(",");
                     }
-                    return OSDParser.SerializeJsonString(map);
+                    sb.Append("}");
+                    return (LSL_String)sb.ToString();
                 }
                 return ScriptBaseClass.JSON_INVALID;
             }
-            catch (Exception ex)
+            catch
             {
-                return ex.Message;
+                return ScriptBaseClass.JSON_INVALID;
             }
         }
 
-        private OSD ListToJson(object o)
+        private string ListToJson(object o)
         {
             if (o is LSL_Float || o is double)
             {
@@ -16671,7 +17304,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 else
                     float_val = ((LSL_Float)o).value;
 
-                return OSD.FromReal(float_val);
+                if(double.IsInfinity(float_val))
+                    return  "\"Inf\"";
+                if(double.IsNaN(float_val))
+                    return  "\"NaN\"";
+               
+                return ((LSL_Float)float_val).ToString();
             }
             if (o is LSL_Integer || o is int)
             {
@@ -16680,17 +17318,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     i = ((int)o);
                 else
                     i = ((LSL_Integer)o).value;
-
-                if (i == 0)
-                    return OSD.FromBoolean(false);
-                else if (i == 1)
-                    return OSD.FromBoolean(true);
-                return OSD.FromInteger(i);
+                return i.ToString();
             }
             if (o is LSL_Rotation)
-                return OSD.FromString(((LSL_Rotation)o).ToString());
+            {
+                StringBuilder sb = new StringBuilder(128);
+                sb.Append("\"");
+                LSL_Rotation r = (LSL_Rotation)o;
+                sb.Append(r.ToString());
+                sb.Append("\"");
+                return sb.ToString();
+            }
             if (o is LSL_Vector)
-                return OSD.FromString(((LSL_Vector)o).ToString());
+            {
+                StringBuilder sb = new StringBuilder(128);
+                sb.Append("\"");
+                LSL_Vector v = (LSL_Vector)o;
+                sb.Append(v.ToString());
+                sb.Append("\"");
+                return sb.ToString();
+            }
             if (o is LSL_String || o is string)
             {
                 string str;
@@ -16699,137 +17346,579 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 else
                     str = ((LSL_String)o).m_string;
 
-                if (str == ScriptBaseClass.JSON_NULL)
-                    return new OSD();
-                return OSD.FromString(str);
+                if(str == ScriptBaseClass.JSON_TRUE || str == "true")
+                    return "true";
+                if(str == ScriptBaseClass.JSON_FALSE ||str == "false")
+                    return "false";
+                if(str == ScriptBaseClass.JSON_NULL || str == "null")
+                    return "null";
+                str.Trim();
+                if (str[0] == '{')
+                    return str;
+                if (str[0] == '[')
+                    return str;
+                return EscapeForJSON(str, true);
             }
-            throw new Exception(ScriptBaseClass.JSON_INVALID);
+            throw new IndexOutOfRangeException();
         }
 
-        private OSD JsonGetSpecific(OSD o, LSL_List specifiers, int i)
+        private string EscapeForJSON(string s, bool AddOuter)
         {
-            object spec = specifiers.Data[i];
-            OSD nextVal = null;
-            if (o is OSDArray)
+            int i;
+            char c;
+            String t;
+            int len = s.Length;
+
+            StringBuilder sb = new StringBuilder(len + 64);
+            if(AddOuter)
+                sb.Append("\"");
+
+            for (i = 0; i < len; i++)
             {
-                if (spec is LSL_Integer)
-                    nextVal = ((OSDArray)o)[((LSL_Integer)spec).value];
+                c = s[i];
+                switch (c)
+                {
+                    case '\\':
+                    case '"':
+                    case '/':
+                        sb.Append('\\');
+                        sb.Append(c);
+                        break;
+                    case '\b':
+                        sb.Append("\\b");
+                        break;
+                    case '\t':
+                        sb.Append("\\t");
+                        break;
+                    case '\n':
+                        sb.Append("\\n");
+                        break;
+                    case '\f':
+                        sb.Append("\\f");
+                        break;
+                    case '\r':
+                        sb.Append("\\r");
+                        break;
+                    default:
+                        if (c < ' ')
+                        {
+                            t = "000" + String.Format("{0:X}", c);
+                            sb.Append("\\u" + t.Substring(t.Length - 4));
+                        }
+                        else
+                        {
+                            sb.Append(c);
+                        }
+                        break;
+                }
             }
-            if (o is OSDMap)
-            {
-                if (spec is LSL_String)
-                    nextVal = ((OSDMap)o)[((LSL_String)spec).m_string];
-            }
-            if (nextVal != null)
-            {
-                if (specifiers.Data.Length - 1 > i)
-                    return JsonGetSpecific(nextVal, specifiers, i + 1);
-            }
-            return nextVal;
+            if(AddOuter)
+                sb.Append("\"");
+            return sb.ToString();
         }
 
         public LSL_String llJsonSetValue(LSL_String json, LSL_List specifiers, LSL_String value)
         {
+            bool noSpecifiers = specifiers.Length == 0;
+            LitJson.JsonData workData;
             try
             {
-                OSD o = OSDParser.DeserializeJson(json);
-                JsonSetSpecific(o, specifiers, 0, value);
-                return OSDParser.SerializeJsonString(o);
+                if(noSpecifiers)
+                    specifiers.Add(new LSL_Integer(0));
+
+                if(!String.IsNullOrEmpty(json))
+                    workData = LitJson.JsonMapper.ToObject(json);
+                else
+                {
+                    workData = new  LitJson.JsonData();
+                    workData.SetJsonType(LitJson.JsonType.Array);
+                }
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                string m = e.Message; // debug point
+                return ScriptBaseClass.JSON_INVALID;
+            }
+            try
+            {
+                LitJson.JsonData replace = JsonSetSpecific(workData, specifiers, 0, value);
+                if(replace != null)
+                    workData = replace;
+            }
+            catch (Exception e)
+            {
+                string m = e.Message; // debug point
+                return ScriptBaseClass.JSON_INVALID;
+            }
+
+            try
+            {
+                string r = LitJson.JsonMapper.ToJson(workData);
+                if(noSpecifiers)
+                    r = r.Substring(1,r.Length -2); // strip leading and trailing brakets
+                return r;
+            }
+            catch (Exception e)
+            {
+                string m = e.Message; // debug point
             }
             return ScriptBaseClass.JSON_INVALID;
         }
 
-        private void JsonSetSpecific(OSD o, LSL_List specifiers, int i, LSL_String val)
+        private LitJson.JsonData JsonSetSpecific(LitJson.JsonData elem, LSL_List specifiers, int level, LSL_String val)
         {
-            object spec = specifiers.Data[i];
-            // 20131224 not used            object specNext = i+1 == specifiers.Data.Length ? null : specifiers.Data[i+1];
-            OSD nextVal = null;
-            if (o is OSDArray)
+            object spec = specifiers.Data[level];
+            if(spec is LSL_String)
+                spec = ((LSL_String)spec).m_string;
+            else if (spec is LSL_Integer)
+                spec = ((LSL_Integer)spec).value;
+
+            if(!(spec is string || spec is int))
+                throw new IndexOutOfRangeException();
+
+            int speclen = specifiers.Data.Length - 1;
+
+            bool hasvalue = false;
+            LitJson.JsonData value = null;
+
+            LitJson.JsonType elemType = elem.GetJsonType();
+            if (elemType == LitJson.JsonType.Array)
             {
-                OSDArray array = ((OSDArray)o);
+                if (spec is int)
+                {
+                    int v = (int)spec;
+                    int c = elem.Count;
+                    if(v < 0 || (v != 0 && v > c))
+                        throw new IndexOutOfRangeException();
+                    if(v == c)
+                        elem.Add(JsonBuildRestOfSpec(specifiers, level + 1, val));
+                    else
+                    {
+                        hasvalue = true;
+                        value = elem[v];
+                    }
+                }
+                else if (spec is string)
+                {
+                    if((string)spec == ScriptBaseClass.JSON_APPEND)
+                        elem.Add(JsonBuildRestOfSpec(specifiers, level + 1, val));
+                    else if(elem.Count < 2)
+                    {
+                        // our initial guess of array was wrong
+                        LitJson.JsonData newdata = new LitJson.JsonData();
+                        newdata.SetJsonType(LitJson.JsonType.Object);
+                        IOrderedDictionary no = newdata as IOrderedDictionary;
+                        no.Add((string)spec,JsonBuildRestOfSpec(specifiers, level + 1, val));
+                        return newdata;
+                    }
+                }
+            }
+            else if (elemType == LitJson.JsonType.Object)
+            {
+                if (spec is string)
+                {
+                    IOrderedDictionary e = elem as IOrderedDictionary;
+                    string key = (string)spec;
+                    if(e.Contains(key))
+                    {
+                        hasvalue = true;
+                        value = (LitJson.JsonData)e[key];
+                    }
+                    else
+                        e.Add(key, JsonBuildRestOfSpec(specifiers, level + 1, val));
+                }
+                else if(spec is int && (int)spec == 0)
+                {
+                    //we are replacing a object by a array
+                    LitJson.JsonData newData = new LitJson.JsonData();
+                    newData.SetJsonType(LitJson.JsonType.Array);
+                    newData.Add(JsonBuildRestOfSpec(specifiers, level + 1, val));
+                    return newData;
+                }              
+            }
+            else
+            {
+                LitJson.JsonData newData = JsonBuildRestOfSpec(specifiers, level, val);
+                return newData;
+            }
+
+            if (hasvalue)
+            {
+                if (level < speclen)
+                {
+                    LitJson.JsonData replace = JsonSetSpecific(value, specifiers, level + 1, val);
+                    if(replace != null)
+                    {
+                        if(elemType == LitJson.JsonType.Array)
+                        {
+                            if(spec is int)
+                                elem[(int)spec] = replace;
+                            else if( spec is string)
+                            {
+                                LitJson.JsonData newdata = new LitJson.JsonData();
+                                newdata.SetJsonType(LitJson.JsonType.Object);
+                                IOrderedDictionary no = newdata as IOrderedDictionary;
+                                no.Add((string)spec, replace);
+                                return newdata;
+                            }
+                        }
+                        else if(elemType == LitJson.JsonType.Object)
+                        {
+                            if(spec is string)
+                                elem[(string)spec] = replace;
+                            else if(spec is int && (int)spec == 0)
+                            {
+                                LitJson.JsonData newdata = new LitJson.JsonData();
+                                newdata.SetJsonType(LitJson.JsonType.Array);
+                                newdata.Add(replace);
+                                return newdata;
+                            }
+                        }
+                    }
+                    return null;
+                }
+                else if(speclen == level)
+                {
+                    if(val == ScriptBaseClass.JSON_DELETE)
+                    {
+                        if(elemType == LitJson.JsonType.Array)
+                        {
+                            if(spec is int)
+                            {
+                                IList el = elem as IList;
+                                el.RemoveAt((int)spec);
+                            }
+                        }
+                        else if(elemType == LitJson.JsonType.Object)
+                        {
+                            if(spec is string)
+                            {
+                                IOrderedDictionary eo = elem as IOrderedDictionary;
+                                eo.Remove((string) spec);
+                            }
+                        }
+                        return null;
+                    }
+
+                    LitJson.JsonData newval = null;
+                    float num;
+                    if(val == null || val == ScriptBaseClass.JSON_NULL || val == "null")
+                        newval = null;
+                    else if(val == ScriptBaseClass.JSON_TRUE || val == "true")
+                        newval = new LitJson.JsonData(true);
+                    else if(val == ScriptBaseClass.JSON_FALSE || val == "false")
+                        newval = new LitJson.JsonData(false);
+                    else if(float.TryParse(val, out num))
+                    {
+                        // assuming we are at en.us already
+                        if(num - (int)num == 0.0f && !val.Contains("."))
+                            newval = new LitJson.JsonData((int)num);
+                        else
+                        {
+                            num = (float)Math.Round(num,6);
+                            newval = new LitJson.JsonData((double)num);
+                        }
+                    }
+                    else
+                    {
+                        string str = val.m_string;
+                        newval = new LitJson.JsonData(str);
+                    }
+
+                    if(elemType == LitJson.JsonType.Array)
+                    {
+                        if(spec is int)
+                            elem[(int)spec] = newval;
+                        else if( spec is string)
+                        {
+                            LitJson.JsonData newdata = new LitJson.JsonData();
+                            newdata.SetJsonType(LitJson.JsonType.Object);
+                            IOrderedDictionary no = newdata as IOrderedDictionary;
+                            no.Add((string)spec,newval);
+                            return newdata;
+                        }
+                    }
+                    else if(elemType == LitJson.JsonType.Object)
+                    {
+                        if(spec is string)
+                            elem[(string)spec] = newval;
+                        else if(spec is int && (int)spec == 0)
+                        {
+                            LitJson.JsonData newdata = new LitJson.JsonData();
+                            newdata.SetJsonType(LitJson.JsonType.Array);
+                            newdata.Add(newval);
+                            return newdata;
+                        }
+                    }
+                }
+            }
+            if(val == ScriptBaseClass.JSON_DELETE)
+                throw new IndexOutOfRangeException();
+            return null;
+        }
+
+        private LitJson.JsonData JsonBuildRestOfSpec(LSL_List specifiers, int level, LSL_String val)
+        {
+            object spec = level >= specifiers.Data.Length ? null : specifiers.Data[level];
+            // 20131224 not used            object specNext = i+1 >= specifiers.Data.Length ? null : specifiers.Data[i+1];
+
+            float num;
+            if (spec == null)
+            {
+                if(val == null || val == ScriptBaseClass.JSON_NULL || val == "null")
+                    return null;
+                if(val == ScriptBaseClass.JSON_DELETE)
+                    throw new IndexOutOfRangeException();
+                if(val == ScriptBaseClass.JSON_TRUE || val == "true")
+                    return new LitJson.JsonData(true);
+                if(val == ScriptBaseClass.JSON_FALSE || val == "false")
+                    return new LitJson.JsonData(false);
+                if(val == null || val == ScriptBaseClass.JSON_NULL || val == "null")
+                    return null;
+                if(float.TryParse(val, out num))
+                {
+                    // assuming we are at en.us already
+                    if(num - (int)num == 0.0f && !val.Contains("."))
+                        return new LitJson.JsonData((int)num);
+                    else
+                    {
+                        num = (float)Math.Round(num,6);
+                        return new LitJson.JsonData(num);
+                    }
+                }
+                else
+                {
+                    string str = val.m_string;
+                    return new LitJson.JsonData(str);
+                }
+                throw new IndexOutOfRangeException();
+            }
+
+            if(spec is LSL_String)
+                spec = ((LSL_String)spec).m_string;
+            else if (spec is LSL_Integer)
+                spec = ((LSL_Integer)spec).value;
+
+            if (spec is int ||
+                (spec is string && ((string)spec) == ScriptBaseClass.JSON_APPEND) )
+            {
+                if(spec is int && (int)spec != 0)
+                    throw new IndexOutOfRangeException();
+                LitJson.JsonData newdata = new LitJson.JsonData();
+                newdata.SetJsonType(LitJson.JsonType.Array);
+                newdata.Add(JsonBuildRestOfSpec(specifiers, level + 1, val));
+                return newdata;
+            }
+            else if (spec is string)
+            {
+                LitJson.JsonData newdata = new LitJson.JsonData();
+                newdata.SetJsonType(LitJson.JsonType.Object);
+                IOrderedDictionary no = newdata as IOrderedDictionary;
+                no.Add((string)spec,JsonBuildRestOfSpec(specifiers, level + 1, val));
+                return newdata;
+            }
+            throw new IndexOutOfRangeException();
+        }
+
+        private bool JsonFind(LitJson.JsonData elem, LSL_List specifiers, int level, out LitJson.JsonData value)
+        {
+            value = null;
+            if(elem == null)
+                return false;
+
+            object spec;
+            spec = specifiers.Data[level];
+
+            bool haveVal = false;
+            LitJson.JsonData next = null;
+
+            if (elem.GetJsonType() == LitJson.JsonType.Array)
+            {
                 if (spec is LSL_Integer)
                 {
-                    int v = ((LSL_Integer)spec).value;
-                    if (v >= array.Count)
-                        array.Add(JsonBuildRestOfSpec(specifiers, i + 1, val));
-                    else
-                        nextVal = ((OSDArray)o)[v];
+                    int indx = (LSL_Integer)spec;
+                    if(indx >= 0 && indx < elem.Count)
+                    {
+                        haveVal = true;
+                        next = (LitJson.JsonData)elem[indx];
+                    }
                 }
-                else if (spec is LSL_String && ((LSL_String)spec) == ScriptBaseClass.JSON_APPEND)
-                    array.Add(JsonBuildRestOfSpec(specifiers, i + 1, val));
             }
-            if (o is OSDMap)
+            else if (elem.GetJsonType() == LitJson.JsonType.Object)
             {
                 if (spec is LSL_String)
                 {
-                    OSDMap map = ((OSDMap)o);
-                    if (map.ContainsKey(((LSL_String)spec).m_string))
-                        nextVal = map[((LSL_String)spec).m_string];
-                    else
-                        map.Add(((LSL_String)spec).m_string, JsonBuildRestOfSpec(specifiers, i + 1, val));
+                    IOrderedDictionary e = elem as IOrderedDictionary;
+                    string key = (LSL_String)spec;
+                    if(e.Contains(key))
+                    {
+                        haveVal = true;
+                        next = (LitJson.JsonData)e[key];
+                    }
                 }
             }
-            if (nextVal != null)
+
+            if (haveVal)
             {
-                if (specifiers.Data.Length - 1 > i)
+                if(level == specifiers.Data.Length - 1)
                 {
-                    JsonSetSpecific(nextVal, specifiers, i + 1, val);
-                    return;
+                    value = next;
+                    return true;
                 }
+
+                level++;
+                if(next == null)
+                    return false;
+
+                LitJson.JsonType nextType = next.GetJsonType();
+                if(nextType != LitJson.JsonType.Object && nextType != LitJson.JsonType.Array)
+                    return false;
+
+                return JsonFind(next, specifiers, level, out value);
             }
+            return false;
         }
 
-        private OSD JsonBuildRestOfSpec(LSL_List specifiers, int i, LSL_String val)
+        public LSL_String llJsonGetValue(LSL_String json, LSL_List specifiers)
         {
-            object spec = i >= specifiers.Data.Length ? null : specifiers.Data[i];
-            // 20131224 not used            object specNext = i+1 >= specifiers.Data.Length ? null : specifiers.Data[i+1];
+            if(String.IsNullOrWhiteSpace(json))
+                return ScriptBaseClass.JSON_INVALID;
 
-            if (spec == null)
-                return OSD.FromString(val);
+            if(specifiers.Length > 0 && (json == "{}" || json == "[]"))
+                return ScriptBaseClass.JSON_INVALID;
 
-            if (spec is LSL_Integer ||
-                (spec is LSL_String && ((LSL_String)spec) == ScriptBaseClass.JSON_APPEND))
+            char first = ((string)json)[0];
+            if((first != '[' && first !='{'))
             {
-                OSDArray array = new OSDArray();
-                array.Add(JsonBuildRestOfSpec(specifiers, i + 1, val));
-                return array;
+                if(specifiers.Length > 0)
+                    return ScriptBaseClass.JSON_INVALID;
+                json = "[" + json + "]"; // could handle single element case.. but easier like this
+                specifiers.Add((LSL_Integer)0);
             }
-            else if (spec is LSL_String)
+
+            LitJson.JsonData jsonData;
+            try
             {
-                OSDMap map = new OSDMap();
-                map.Add((LSL_String)spec, JsonBuildRestOfSpec(specifiers, i + 1, val));
-                return map;
+                jsonData = LitJson.JsonMapper.ToObject(json);
             }
-            return new OSD();
+            catch (Exception e)
+            {
+                string m = e.Message; // debug point
+                return ScriptBaseClass.JSON_INVALID;
+            }
+
+            LitJson.JsonData elem = null;
+            if(specifiers.Length == 0)
+                elem = jsonData;
+            else
+            {
+                if(!JsonFind(jsonData, specifiers, 0, out elem))
+                    return ScriptBaseClass.JSON_INVALID;
+            }
+            return JsonElementToString(elem);
+        }
+
+        private LSL_String JsonElementToString(LitJson.JsonData elem)
+        {
+            if(elem == null)
+                return ScriptBaseClass.JSON_NULL;
+
+            LitJson.JsonType elemType = elem.GetJsonType();
+            switch(elemType)
+            {
+                case LitJson.JsonType.Array:
+                    return new LSL_String(LitJson.JsonMapper.ToJson(elem));
+                case LitJson.JsonType.Boolean:
+                    return new LSL_String((bool)elem ? ScriptBaseClass.JSON_TRUE : ScriptBaseClass.JSON_FALSE);
+                case LitJson.JsonType.Double:
+                    double d= (double)elem;
+                    string sd = String.Format(Culture.FormatProvider, "{0:0.0#####}",d);
+                    return new LSL_String(sd);
+                case LitJson.JsonType.Int:
+                    int i = (int)elem;
+                    return new LSL_String(i.ToString());
+                case LitJson.JsonType.Long:
+                    long l = (long)elem;
+                    return new LSL_String(l.ToString());
+                case LitJson.JsonType.Object:
+                    return new LSL_String(LitJson.JsonMapper.ToJson(elem));
+                case LitJson.JsonType.String:
+                    string s = (string)elem;
+                    return new LSL_String(s);
+                case LitJson.JsonType.None:
+                    return ScriptBaseClass.JSON_NULL;
+                default:
+                    return ScriptBaseClass.JSON_INVALID;
+            }
         }
 
         public LSL_String llJsonValueType(LSL_String json, LSL_List specifiers)
         {
-            OSD o = OSDParser.DeserializeJson(json);
-            OSD specVal = JsonGetSpecific(o, specifiers, 0);
-            if (specVal == null)
+            if(String.IsNullOrWhiteSpace(json))
                 return ScriptBaseClass.JSON_INVALID;
-            switch (specVal.Type)
+
+            if(specifiers.Length > 0 && (json == "{}" || json == "[]"))
+                return ScriptBaseClass.JSON_INVALID;
+
+            char first = ((string)json)[0];
+            if((first != '[' && first !='{'))
             {
-                case OSDType.Array:
-                    return ScriptBaseClass.JSON_ARRAY;
-                case OSDType.Boolean:
-                    return specVal.AsBoolean() ? ScriptBaseClass.JSON_TRUE : ScriptBaseClass.JSON_FALSE;
-                case OSDType.Integer:
-                case OSDType.Real:
-                    return ScriptBaseClass.JSON_NUMBER;
-                case OSDType.Map:
-                    return ScriptBaseClass.JSON_OBJECT;
-                case OSDType.String:
-                case OSDType.UUID:
-                    return ScriptBaseClass.JSON_STRING;
-                case OSDType.Unknown:
-                    return ScriptBaseClass.JSON_NULL;
+                if(specifiers.Length > 0)
+                    return ScriptBaseClass.JSON_INVALID;
+                json = "[" + json + "]"; // could handle single element case.. but easier like this
+                specifiers.Add((LSL_Integer)0);
             }
-            return ScriptBaseClass.JSON_INVALID;
+
+            LitJson.JsonData jsonData;
+            try
+            {
+                jsonData = LitJson.JsonMapper.ToObject(json);
+            }
+            catch (Exception e)
+            {
+                string m = e.Message; // debug point
+                return ScriptBaseClass.JSON_INVALID;
+            }
+
+            LitJson.JsonData elem = null;
+            if(specifiers.Length == 0)
+                elem = jsonData;
+            else
+            {
+                if(!JsonFind(jsonData, specifiers, 0, out elem))
+                    return ScriptBaseClass.JSON_INVALID;
+            }
+
+            if(elem == null)
+                return ScriptBaseClass.JSON_NULL;
+
+            LitJson.JsonType elemType = elem.GetJsonType();
+            switch(elemType)
+            {
+                case LitJson.JsonType.Array:
+                    return ScriptBaseClass.JSON_ARRAY;
+                case LitJson.JsonType.Boolean:
+                    return (bool)elem ? ScriptBaseClass.JSON_TRUE : ScriptBaseClass.JSON_FALSE;
+                case LitJson.JsonType.Double:
+                case LitJson.JsonType.Int:
+                case LitJson.JsonType.Long:
+                    return ScriptBaseClass.JSON_NUMBER;
+                case LitJson.JsonType.Object:
+                    return ScriptBaseClass.JSON_OBJECT;
+                case LitJson.JsonType.String:
+                    string s = (string)elem;
+                    if(s == ScriptBaseClass.JSON_NULL)
+                        return ScriptBaseClass.JSON_NULL;
+                    if(s == ScriptBaseClass.JSON_TRUE)
+                        return ScriptBaseClass.JSON_TRUE;
+                    if(s == ScriptBaseClass.JSON_FALSE)
+                        return ScriptBaseClass.JSON_FALSE;
+                    return ScriptBaseClass.JSON_STRING;
+                case LitJson.JsonType.None:
+                    return ScriptBaseClass.JSON_NULL;
+                default:
+                    return ScriptBaseClass.JSON_INVALID;
+            }
         }
     }
 
