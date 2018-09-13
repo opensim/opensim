@@ -99,16 +99,16 @@ namespace OpenSim.Framework.Servers.HttpServer
                 response.Send();
                 buffer = null;
             }
-            catch (System.Net.Sockets.SocketException ex)
-            {
-                // This is "connection reset by peer", meaning the
-                // requesting server has given up. They need to
-                // fix their timeouts. We don't want to spam the
-                // log with this.
-            }
             catch (Exception ex)
             {
-                m_log.Warn("[POLL SERVICE WORKER THREAD]: Error ", ex);
+                if(ex is System.Net.Sockets.SocketException)
+                {
+                    // only mute connection reset by peer so we are not totally blind for now
+                    if(((System.Net.Sockets.SocketException)ex).SocketErrorCode != System.Net.Sockets.SocketError.ConnectionReset)
+                         m_log.Warn("[POLL SERVICE WORKER THREAD]: Error ", ex);
+                }
+                else
+                    m_log.Warn("[POLL SERVICE WORKER THREAD]: Error ", ex);
             }
 
             PollServiceArgs.RequestsHandled++;
