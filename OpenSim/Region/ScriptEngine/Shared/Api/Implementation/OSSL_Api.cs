@@ -134,7 +134,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public const string GridInfoServiceConfigSectionName = "GridInfoService";
 
         internal IScriptEngine m_ScriptEngine;
-        internal ILSL_Api m_LSL_Api = null; // get a reference to the LSL API so we can call methods housed there
+        internal LSL_Api m_LSL_Api = null; // get a reference to the LSL API so we can call methods housed there
         internal SceneObjectPart m_host;
         internal TaskInventoryItem m_item;
         internal bool m_OSFunctionsEnabled = false;
@@ -249,7 +249,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_LSL_Api != null)
                 return;
 
-            m_LSL_Api = (ILSL_Api)m_ScriptEngine.GetApi(m_item.ItemID, "LSL");
+            m_LSL_Api = (LSL_Api)m_ScriptEngine.GetApi(m_item.ItemID, "LSL");
         }
 
         //
@@ -2104,11 +2104,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
+            InitLSL();
             // harakiri check
             if(objUUID == UUID.Zero)
             {
                 if (!m_host.ParentGroup.IsAttachment)
-                    throw new SelfDeleteException();
+                    m_LSL_Api.llDie();
                 return;
             }
 
@@ -2125,7 +2126,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // harakiri check
             if(sceneOG.UUID == m_host.ParentGroup.UUID)
-                throw new SelfDeleteException();
+            {
+                m_LSL_Api.llDie();
+                return;
+            }
 
             // restrict to objects rezzed by host
             if(sceneOG.RezzerID == m_host.ParentGroup.UUID)
@@ -2806,23 +2810,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             InitLSL();
             // One needs to cast m_LSL_Api because we're using functions not
             // on the ILSL_Api interface.
-            LSL_Api LSL_Api = (LSL_Api)m_LSL_Api;
             LSL_List retVal = new LSL_List();
             LSL_List remaining = new LSL_List();
-            List<SceneObjectPart> parts = LSL_Api.GetLinkParts(linknumber);
+            List<SceneObjectPart> parts = m_LSL_Api.GetLinkParts(linknumber);
             foreach (SceneObjectPart part in parts)
             {
-                remaining = LSL_Api.GetPrimParams(part, rules, ref retVal);
+                remaining = m_LSL_Api.GetPrimParams(part, rules, ref retVal);
             }
 
             while (remaining.Length > 2)
             {
                 linknumber = remaining.GetLSLIntegerItem(0);
                 rules = remaining.GetSublist(1, -1);
-                parts = LSL_Api.GetLinkParts(linknumber);
+                parts = m_LSL_Api.GetLinkParts(linknumber);
 
                 foreach (SceneObjectPart part in parts)
-                    remaining = LSL_Api.GetPrimParams(part, rules, ref retVal);
+                    remaining = m_LSL_Api.GetPrimParams(part, rules, ref retVal);
             }
             return retVal;
         }
@@ -2832,7 +2835,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.VeryLow, "osForceCreateLink");
 
             InitLSL();
-            ((LSL_Api)m_LSL_Api).CreateLink(target, parent);
+            m_LSL_Api.CreateLink(target, parent);
         }
 
         public void osForceBreakLink(int linknum)
@@ -2840,7 +2843,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.VeryLow, "osForceBreakLink");
 
             InitLSL();
-            ((LSL_Api)m_LSL_Api).BreakLink(linknum);
+            m_LSL_Api.BreakLink(linknum);
         }
 
         public void osForceBreakAllLinks()
@@ -2848,7 +2851,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.VeryLow, "osForceBreakAllLinks");
 
             InitLSL();
-            ((LSL_Api)m_LSL_Api).BreakAllLinks();
+            m_LSL_Api.BreakAllLinks();
         }
 
         public LSL_Integer osIsNpc(LSL_Key npc)
@@ -4029,7 +4032,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.High, "osForceAttachToAvatar");
 
             InitLSL();
-            ((LSL_Api)m_LSL_Api).AttachToAvatar(attachmentPoint);
+            m_LSL_Api.AttachToAvatar(attachmentPoint);
         }
 
         public void osForceAttachToAvatarFromInventory(string itemName, int attachmentPoint)
@@ -4064,7 +4067,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (item == null)
             {
-                ((LSL_Api)m_LSL_Api).llSay(0, string.Format("Could not find object '{0}'", itemName));
+                m_LSL_Api.llSay(0, string.Format("Could not find object '{0}'", itemName));
                 throw new Exception(String.Format("The inventory item '{0}' could not be found", itemName));
             }
 
@@ -4073,7 +4076,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // FIXME: Temporary null check for regression tests since they dont' have the infrastructure to set
                 // up the api reference.
                 if (m_LSL_Api != null)
-                    ((LSL_Api)m_LSL_Api).llSay(0, string.Format("Unable to attach, item '{0}' is not an object.", itemName));
+                   m_LSL_Api.llSay(0, string.Format("Unable to attach, item '{0}' is not an object.", itemName));
 
                 throw new Exception(String.Format("The inventory item '{0}' is not an object", itemName));
             }
@@ -4091,7 +4094,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_log.ErrorFormat(
                     "[OSSL API]: Could not create user inventory item {0} for {1}, attach point {2} in {3}: {4}",
                     itemName, m_host.Name, attachmentPoint, World.Name, message);
-                ((LSL_Api)m_LSL_Api).llSay(0, message);
+                m_LSL_Api.llSay(0, message);
                 return;
             }
 
@@ -4103,7 +4106,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.High, "osForceDetachFromAvatar");
 
             InitLSL();
-            ((LSL_Api)m_LSL_Api).DetachFromAvatar();
+            m_LSL_Api.DetachFromAvatar();
         }
 
         public LSL_List osGetNumberOfAttachments(LSL_Key avatar, LSL_List attachmentPoints)
