@@ -4513,8 +4513,7 @@ Label_GroupsDone:
                     "[SCENE]: update for {0} in {1} refused: Logins Disabled", cAgentData.AgentID, RegionInfo.RegionName);
                 return false;
             }
-            // We have to wait until the viewer contacts this region after receiving EAC.
-            // That calls AddNewClient, which finally creates the ScenePresence
+
             int flags = GetUserFlags(cAgentData.AgentID);
             if (RegionInfo.EstateSettings.IsBanned(cAgentData.AgentID, flags))
             {
@@ -4551,32 +4550,26 @@ Label_GroupsDone:
                 if (cAgentData.SessionID != sp.ControllingClient.SessionId)
                 {
                     m_log.WarnFormat(
-                        "[SCENE]: Attempt to update agent {0} with invalid session id {1} (possibly from simulator in older version; tell them to update).",
-                        sp.UUID, cAgentData.SessionID);
-
-                    Console.WriteLine(String.Format("[SCENE]: Attempt to update agent {0} ({1}) with invalid session id {2}",
-                        sp.UUID, sp.ControllingClient.SessionId, cAgentData.SessionID));
+                        "[SCENE]: Attempt to update agent {0} with diferent session id {1} != {2}",
+                        sp.UUID, sp.ControllingClient.SessionId, cAgentData.SessionID);
+                    return false;
                 }
 
                 sp.UpdateChildAgent(cAgentData);
 
-                int ntimes = 20;
+                int ntimes = 100;
                 if (cAgentData.SenderWantsToWaitForRoot)
                 {
                     while (sp.IsChildAgent && ntimes-- > 0)
-                        Thread.Sleep(1000);
+                        Thread.Sleep(250);
 
                     if (sp.IsChildAgent)
+                    {
                         m_log.WarnFormat(
                             "[SCENE]: Found presence {0} {1} unexpectedly still child in {2}",
                             sp.Name, sp.UUID, Name);
-                    else
-                        m_log.InfoFormat(
-                            "[SCENE]: Found presence {0} {1} as root in {2} after {3} waits",
-                                sp.Name, sp.UUID, Name, 20 - ntimes);
-
-                    if (sp.IsChildAgent)
                         return false;
+                    }
                 }
 
                 return true;

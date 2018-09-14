@@ -1559,6 +1559,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public void MakeChildAgent(ulong newRegionHandle)
         {
+            m_updateAgentReceivedAfterTransferEvent.Reset();
             haveGroupInformation = false;
             gotCrossUpdate = false;
             crossingFlags = 0;
@@ -2000,6 +2001,10 @@ namespace OpenSim.Region.Framework.Scenes
                }
             }
             catch { }
+            finally
+            {
+                m_updateAgentReceivedAfterTransferEvent.Reset();
+            }
 
             return false;
         }
@@ -2286,8 +2291,8 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if (m_attachments.Count > 0)
                         {
-                            m_log.DebugFormat(
-                                "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
+//                            m_log.DebugFormat(
+//                                "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
 
                             foreach (SceneObjectGroup sog in m_attachments)
                             {
@@ -5713,6 +5718,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 IgnoredControls = ScriptControlled.CONTROL_ZERO;
                 obj.eventControls = (ScriptControlled)controls;
+                obj.ignoreControls = ScriptControlled.CONTROL_ZERO;
             }
 
             lock (scriptedcontrols)
