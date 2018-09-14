@@ -273,8 +273,8 @@ namespace OpenSim.Services.Connectors.Simulation
                 OSDMap result = WebUtil.PutToServiceCompressed(uri, args, timeout);
                 if (result["Success"].AsBoolean())
                     return true;
-
-                result = WebUtil.PutToService(uri, args, timeout);
+                if(ctx.OutboundVersion < 0.2)
+                    result = WebUtil.PutToService(uri, args, timeout);
 
                 return result["Success"].AsBoolean();
             }
