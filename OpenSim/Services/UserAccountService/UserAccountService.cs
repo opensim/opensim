@@ -388,8 +388,8 @@ namespace OpenSim.Services.UserAccountService
             string rawPrincipalId;
             string model;
 
-            List<char> excluded = new List<char>(new char[]{' '});
-
+           // List<char> excluded = new List<char>(new char[]{' '});
+            List<char> excluded = new List<char>(new char[]{' ', '@', '.', ':' }); //Protect user names from using valid HG identifiers.
             if (cmdparams.Length < 3)
                 firstName = MainConsole.Instance.CmdPrompt("First name", "Default", excluded);
             else firstName = cmdparams[2];
