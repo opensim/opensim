@@ -225,6 +225,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llInstantMessage(string user, string message);
         LSL_String llIntegerToBase64(int number);
         LSL_String llKey2Name(string id);
+        LSL_Key    llName2Key(string name);
         LSL_String llGetUsername(string id);
            LSL_Key llRequestUsername(string id);
         LSL_String llGetDisplayName(string id);
