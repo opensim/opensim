@@ -347,8 +347,8 @@ namespace OpenSim.Services.Connectors.Simulation
                         String[] parts = versionString.Split(new char[] {'/'});
                         if (parts.Length > 1)
                         {
-                            ctx.InboundVersion = float.Parse(parts[1]);
-                            ctx.OutboundVersion = float.Parse(parts[1]);
+                            ctx.InboundVersion = float.Parse(parts[1], Culture.FormatProvider);
+                            ctx.OutboundVersion = float.Parse(parts[1], Culture.FormatProvider);
                         }
                     }
 

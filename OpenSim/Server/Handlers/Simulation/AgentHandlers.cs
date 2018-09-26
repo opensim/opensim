@@ -156,7 +156,7 @@ namespace OpenSim.Server.Handlers.Simulation
                 string theirVersionStr = args["my_version"].AsString();
                 string[] parts = theirVersionStr.Split(new char[] {'/'});
                 if (parts.Length > 1)
-                    theirVersion = float.Parse(parts[1]);
+                    theirVersion = float.Parse(parts[1], Culture.FormatProvider);
             }
 
             if (args.ContainsKey("context"))
@@ -266,7 +266,7 @@ namespace OpenSim.Server.Handlers.Simulation
 
             resp["success"] = OSD.FromBoolean(result);
             resp["reason"] = OSD.FromString(reason);
-            string legacyVersion = String.Format("SIMULATION/{0}", version);
+            string legacyVersion = String.Format(Culture.FormatProvider,"SIMULATION/{0}", version);
             resp["version"] = OSD.FromString(legacyVersion);
             resp["negotiated_inbound_version"] = OSD.FromReal(inboundVersion);
             resp["negotiated_outbound_version"] = OSD.FromReal(outboundVersion);
