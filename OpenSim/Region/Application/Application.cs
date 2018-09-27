@@ -74,6 +74,9 @@ namespace OpenSim
             AppDomain.CurrentDomain.UnhandledException +=
                 new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
+            Culture.SetCurrentCulture();
+            Culture.SetDefaultCurrentCulture();
+
             if(Util.IsWindows())
                 ServicePointManager.DefaultConnectionLimit = 32;
             else
@@ -183,8 +186,9 @@ namespace OpenSim
                 m_log.Warn("[OPENSIM MAIN]: Environment is not supported by OpenSimulator (" + supported + ")\n");
             }
 
+            m_log.InfoFormat("Default culture changed to {0}",Culture.GetDefaultCurrentCulture().DisplayName);
+
             // Configure nIni aliases and localles
-            Culture.SetCurrentCulture();
 
             // Validate that the user has the most basic configuration done
             // If not, offer to do the most basic configuration for them warning them along the way of the importance of

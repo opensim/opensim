@@ -52,5 +52,15 @@ namespace OpenSim.Framework
         {
             Thread.CurrentThread.CurrentCulture = m_cultureInfo;
         }
+
+        public static void SetDefaultCurrentCulture()
+        {
+            CultureInfo.DefaultThreadCurrentCulture = m_cultureInfo;
+        }
+
+        public static CultureInfo GetDefaultCurrentCulture()
+        {
+            return CultureInfo.DefaultThreadCurrentCulture;
+        }
     }
 }

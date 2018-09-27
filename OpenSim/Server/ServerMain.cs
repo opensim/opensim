@@ -77,6 +77,9 @@ namespace OpenSim.Server
 
         public static int Main(string[] args)
         {
+            Culture.SetCurrentCulture();
+            Culture.SetDefaultCurrentCulture();
+
             ServicePointManager.DefaultConnectionLimit = 64;
             ServicePointManager.Expect100Continue = false;
             ServicePointManager.UseNagleAlgorithm = false;
