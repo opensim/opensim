@@ -985,7 +985,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_OSSL_Functions.osSetSpeed(UUID, SpeedModifier);
         }
-
+        
+		public void osSetOwnerSpeed(LSL_Float SpeedModifier)
+        {
+            m_OSSL_Functions.osSetOwnerSpeed(SpeedModifier);
+        }
+		
         public LSL_Float osGetHealth(string avatar)
         {
             return m_OSSL_Functions.osGetHealth(avatar);
