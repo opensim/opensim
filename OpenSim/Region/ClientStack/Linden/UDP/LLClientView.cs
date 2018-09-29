@@ -30,6 +30,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
+using System.Runtime;
 using System.Text;
 using System.Threading;
 using System.Timers;
@@ -635,9 +636,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if(m_scene.GetNumberOfClients() == 0)
             {
+                GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
                 GC.Collect();
+                GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.Default;
             }
         }
 

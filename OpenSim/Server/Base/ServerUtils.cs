@@ -204,8 +204,7 @@ namespace OpenSim.Server.Base
                 xw.Flush();
 
                 ms.Seek(0, SeekOrigin.Begin);
-                byte[] ret = ms.GetBuffer();
-                Array.Resize(ref ret, (int)ms.Length);
+                byte[] ret = ms.ToArray();
 
                 return ret;
             }
@@ -579,9 +578,12 @@ namespace OpenSim.Server.Base
             // Try to read it
             try
             {
-                XmlReader r = XmlReader.Create(url);
-                IConfigSource cs = new XmlConfigSource(r);
-                source.Merge(cs);
+                IConfigSource cs;
+                using( XmlReader r = XmlReader.Create(url))
+                {
+                    cs = new XmlConfigSource(r);
+                    source.Merge(cs);
+                }
             }
             catch (Exception e)
             {

@@ -31,6 +31,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Reflection;
+using System.Runtime;
 
 using CSJ2K;
 using Nini.Config;
@@ -261,8 +262,11 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             m_colors.Clear();
             m_warpTextures.Clear();
+            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
             GC.Collect();
-//            m_log.Debug("[WARP 3D IMAGE MODULE]: GC.Collect()");
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.Default;
 
             return bitmap;
         }
