@@ -3646,26 +3646,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return (int)pws;
         }
 
-        public void osSetSpeed(string UUID, LSL_Float SpeedModifier)
+        public void osSetSpeed(string ID, LSL_Float SpeedModifier)
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osSetSpeed");
 
-            ScenePresence avatar = World.GetScenePresence(new UUID(UUID));
+            UUID avid;
+            if(!UUID.TryParse(ID, out avid))
+                return;
 
+            ScenePresence avatar = World.GetScenePresence(avid);
             if (avatar != null)
                 avatar.SpeedModifier = (float)SpeedModifier;
         }
-		
+
         public void osSetOwnerSpeed(LSL_Float SpeedModifier)
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osSetOwnerSpeed");
-               if(SpeedModifier > 4)SpeedModifier = 4;
-            ScenePresence avatar = World.GetScenePresence(m_host.OwnerID);
 
+            if(SpeedModifier > 4)
+                SpeedModifier = 4;
+
+            ScenePresence avatar = World.GetScenePresence(m_host.OwnerID);
             if (avatar != null)
                 avatar.SpeedModifier = (float)SpeedModifier;
         }
-		
+
         public void osKickAvatar(string FirstName, string SurName, string alert)
         {
             CheckThreatLevel(ThreatLevel.Severe, "osKickAvatar");
@@ -3699,25 +3704,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.High, "osCauseDamage");
 
-            UUID avatarId = new UUID(avatar);
-            Vector3 pos = m_host.GetWorldPosition();
+            UUID avatarId;
+            if (!UUID.TryParse(avatar, out avatarId))
+                return;
 
             ScenePresence presence = World.GetScenePresence(avatarId);
-            if (presence != null)
+            if (presence == null)
+                return;
+
+            Vector3 pos = m_host.GetWorldPosition();
+            LandData land = World.GetLandData(pos);
+            if ((land.Flags & (uint)ParcelFlags.AllowDamage) == (uint)ParcelFlags.AllowDamage)
             {
-                LandData land = World.GetLandData(pos);
-                if ((land.Flags & (uint)ParcelFlags.AllowDamage) == (uint)ParcelFlags.AllowDamage)
+                float health = presence.Health;
+                health -= (float)damage;
+                presence.setHealthWithUpdate(health);
+                if (health <= 0)
                 {
-                    float health = presence.Health;
-                    health -= (float)damage;
-                    presence.setHealthWithUpdate(health);
-                    if (health <= 0)
-                    {
-                        float healthliveagain = 100;
-                        presence.ControllingClient.SendAgentAlertMessage("You died!", true);
-                        presence.setHealthWithUpdate(healthliveagain);
-                        presence.Scene.TeleportClientHome(presence.UUID, presence.ControllingClient);
-                    }
+                    float healthliveagain = 100;
+                    presence.ControllingClient.SendAgentAlertMessage("You died!", true);
+                    presence.setHealthWithUpdate(healthliveagain);
+                    presence.Scene.TeleportClientHome(presence.UUID, presence.ControllingClient);
                 }
             }
         }
@@ -3726,19 +3733,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.High, "osCauseHealing");
 
-            UUID avatarId = new UUID(avatar);
+            UUID avatarId;
+            if (!UUID.TryParse(avatar, out avatarId))
+                return;
+
             ScenePresence presence = World.GetScenePresence(avatarId);
+            if (presence == null)
+                return;
 
-            if (presence != null)
-            {
-                float health = presence.Health;
-                health += (float)healing;
+            float health = presence.Health;
+            health += (float)healing;
 
-                if (health >= 100)
-                    health = 100;
+            if (health >= 100)
+                health = 100;
 
-                presence.setHealthWithUpdate(health);
-            }
+            presence.setHealthWithUpdate(health);
         }
 
         public void osSetHealth(string avatar, double health)
@@ -3763,11 +3772,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.High, "osSetHealRate");
 
-            UUID avatarId = new UUID(avatar);
-            ScenePresence presence = World.GetScenePresence(avatarId);
+            UUID avatarId;
+            if (!UUID.TryParse(avatar, out avatarId))
+                return;
 
-            if (presence != null)
-                 presence.HealRate = (float)healrate;
+            ScenePresence presence = World.GetScenePresence(avatarId);
+            if (presence == null)
+                return;
+
+            presence.HealRate = (float)healrate;
         }
 
         public LSL_Float osGetHealRate(string avatar)
@@ -3775,7 +3788,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.None, "osGetHealRate");
 
             LSL_Float rate = new LSL_Float(0);
-            ScenePresence presence = World.GetScenePresence(new UUID(avatar));
+
+            UUID avatarId;
+            if (!UUID.TryParse(avatar, out avatarId))
+                return rate;
+
+            ScenePresence presence = World.GetScenePresence(avatarId);
             if (presence != null)
                 rate = presence.HealRate;
             return rate;
