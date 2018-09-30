@@ -2139,7 +2139,8 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void ClientOnParcelGodMark(IClientAPI client, UUID god, int landID)
         {
-            ((Scene)client.Scene).TryGetScenePresence(client.AgentId, out ScenePresence sp);
+            ScenePresence sp = null;
+            ((Scene)client.Scene).TryGetScenePresence(client.AgentId, out sp);
             if (sp == null)
                 return;
             if (sp.IsChildAgent || sp.IsDeleted || sp.IsInTransit || sp.IsNPC)
