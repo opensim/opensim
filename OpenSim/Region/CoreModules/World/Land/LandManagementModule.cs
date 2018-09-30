@@ -2139,59 +2139,60 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void ClientOnParcelGodMark(IClientAPI client, UUID god, int landID)
         {
-            ILandObject land = null;
-            List<ILandObject> Land = ((Scene)client.Scene).LandChannel.AllParcels();
             ((Scene)client.Scene).TryGetScenePresence(client.AgentId, out ScenePresence sp);
-
             if (sp == null)
                 return;
             if (sp.IsChildAgent || sp.IsDeleted || sp.IsInTransit || sp.IsNPC)
                 return;
-
             if (!sp.IsGod)
             {
                 client.SendAlertMessage("Request denied. You're not priviliged.");
                 return;
             }
-            if (!sp.IsViewerUIGod)
+
+            ILandObject land = null;
+            List<ILandObject> Lands = ((Scene)client.Scene).LandChannel.AllParcels();
+            foreach (ILandObject landObject in Lands)
             {
-                client.SendAlertMessage("Please activate God Mode.");
-                return;
+                if (landObject.LandData.LocalID == landID)
+                { 
+                    land = landObject;
+                    break;
+                }
             }
+            if (land == null)
+                return;
 
-            bool GodParcelOwner = false;
-            if (m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, DefaultGodParcelOwner) != null)
-                GodParcelOwner = true;
+            bool validParcelOwner = false;
+            if (DefaultGodParcelOwner != UUID.Zero && m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, DefaultGodParcelOwner) != null)
+                validParcelOwner = true;
 
-            bool GodParcelGroup = false;
+            bool validParcelGroup = false;
             if (m_groupManager != null)
             {
                 if (DefaultGodParcelGroup != UUID.Zero && m_groupManager.GetGroupRecord(DefaultGodParcelGroup) != null)
-                    GodParcelGroup = true;
+                    validParcelGroup = true;
             }
 
-            if (!GodParcelOwner && !GodParcelGroup)
+            if (!validParcelOwner && !validParcelGroup)
             {
                 client.SendAlertMessage("Please check ini files.\n[LandManagement] config section.");
                 return;
             }
 
-            foreach (ILandObject landObject in Land)
-            {
-                if (landObject.LandData.LocalID == landID)
-                    land = landObject;
-            }
-            if (land == null)
-                return;
-
-            land.LandData.AnyAVSounds = false;
+            land.LandData.AnyAVSounds = true;
+            land.LandData.SeeAVs = true;
+            land.LandData.GroupAVSounds = true;
             land.LandData.AuthBuyerID = UUID.Zero;
-            land.LandData.Category = ParcelCategory.Linden;
+            land.LandData.Category = ParcelCategory.None;
             land.LandData.ClaimDate = Util.UnixTimeSinceEpoch();
             land.LandData.Description = String.Empty;
             land.LandData.Dwell = 0;
-            land.LandData.Flags = (uint)ParcelFlags.None;
-            land.LandData.GroupAVSounds = false;
+            land.LandData.Flags = (uint)ParcelFlags.AllowFly | (uint)ParcelFlags.AllowLandmark |
+                                (uint)ParcelFlags.AllowAPrimitiveEntry |
+                                (uint)ParcelFlags.AllowDeedToGroup |
+                                (uint)ParcelFlags.CreateObjects | (uint)ParcelFlags.AllowOtherScripts |
+                                (uint)ParcelFlags.AllowVoiceChat;
             land.LandData.LandingType = (byte)LandingType.Direct;
             land.LandData.LastDwellTimeMS = Util.GetTimeStampMS();
             land.LandData.MediaAutoScale = 0;
@@ -2210,11 +2211,10 @@ namespace OpenSim.Region.CoreModules.World.Land
             land.LandData.PassHours = 0;
             land.LandData.PassPrice = 0;
             land.LandData.SalePrice = 0;
-            land.LandData.SeeAVs = false;
             land.LandData.SnapshotID = UUID.Zero;
             land.LandData.Status = ParcelStatus.Leased;
 
-            if (GodParcelOwner)
+            if (validParcelOwner)
             {
                 land.LandData.OwnerID = DefaultGodParcelOwner;
                 land.LandData.IsGroupOwned = false;
@@ -2225,7 +2225,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 land.LandData.IsGroupOwned = true;
             }
 
-            if (GodParcelGroup)
+            if (validParcelGroup)
                 land.LandData.GroupID = DefaultGodParcelGroup;
             else
                 land.LandData.GroupID = UUID.Zero;
