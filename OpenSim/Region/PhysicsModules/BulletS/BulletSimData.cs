@@ -27,6 +27,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Runtime.InteropServices;
 using OMV = OpenMetaverse;
 
 namespace OpenSim.Region.PhysicsModule.BulletS
@@ -169,7 +170,7 @@ public class BulletHMapInfo
     public BulletHMapInfo(uint id, float[] hm, float pSizeX, float pSizeY) {
         ID = id;
         heightMap = hm;
-        terrainRegionBase = OMV.Vector3.Zero;
+        heightMapHandle = GCHandle.Alloc(heightMap, GCHandleType.Pinned);
         minCoords = new OMV.Vector3(100f, 100f, 25f);
         maxCoords = new OMV.Vector3(101f, 101f, 26f);
         minZ = maxZ = 0f;
@@ -185,6 +186,13 @@ public class BulletHMapInfo
     public float minZ, maxZ;
     public BulletShape terrainShape;
     public BulletBody terrainBody;
+    private GCHandle heightMapHandle;
+
+    public void Release()
+    {
+        if(heightMapHandle.IsAllocated)
+            heightMapHandle.Free();
+    }
 }
 
 // The general class of collsion object.

@@ -136,6 +136,7 @@ public sealed class BSTerrainHeightmap : BSTerrainPhys
                 // Frees both the body and the shape.
                 m_physicsScene.PE.DestroyObject(m_physicsScene.World, m_mapInfo.terrainBody);
             }
+            m_mapInfo.Release();
         }
         m_mapInfo = null;
     }
