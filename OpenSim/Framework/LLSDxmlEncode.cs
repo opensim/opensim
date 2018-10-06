@@ -159,7 +159,7 @@ namespace OpenSim.Framework
             else
             {
                 sb.Append("<real>");
-                sb.Append(e.ToString(CultureInfo.InvariantCulture));     
+                sb.Append(e.ToString(CultureInfo.InvariantCulture));
                 sb.Append("</real>");
             }
         }
@@ -173,7 +173,7 @@ namespace OpenSim.Framework
             else
             {
                 sb.Append("<real>");
-                sb.Append(e.X.ToString(CultureInfo.InvariantCulture));     
+                sb.Append(e.X.ToString(CultureInfo.InvariantCulture));
                 sb.Append("</real><key>y</key>");
             }
 
@@ -196,7 +196,7 @@ namespace OpenSim.Framework
             else
             {
                 sb.Append("<real>");
-                sb.Append(e.X.ToString(CultureInfo.InvariantCulture));     
+                sb.Append(e.X.ToString(CultureInfo.InvariantCulture));
                 sb.Append("</real><key>y</key>");
             }
 
@@ -228,7 +228,7 @@ namespace OpenSim.Framework
             else
             {
                 sb.Append("<real>");
-                sb.Append(e.X.ToString(CultureInfo.InvariantCulture));     
+                sb.Append(e.X.ToString(CultureInfo.InvariantCulture));
                 sb.Append("</real><key>y</key>");
             }
 
@@ -347,7 +347,7 @@ namespace OpenSim.Framework
             else
                 format = "yyyy-MM-ddTHH:mm:ssZ";
             sb.Append("<date>");
-            sb.Append(u.ToString(format,CultureInfo.InvariantCulture));     
+            sb.Append(u.ToString(format,CultureInfo.InvariantCulture));
             sb.Append("</date>");
         }
 
@@ -478,7 +478,7 @@ namespace OpenSim.Framework
             else
             {
                 sb.Append("<real>");
-                sb.Append(e.X.ToString(CultureInfo.InvariantCulture));     
+                sb.Append(e.X.ToString(CultureInfo.InvariantCulture));
                 sb.Append("</real><key>y</key>");
             }
 
@@ -503,7 +503,7 @@ namespace OpenSim.Framework
             else
             {
                 sb.Append("<real>");
-                sb.Append(e.X.ToString(CultureInfo.InvariantCulture));     
+                sb.Append(e.X.ToString(CultureInfo.InvariantCulture));
                 sb.Append("</real><key>y</key>");
             }
 
@@ -537,7 +537,7 @@ namespace OpenSim.Framework
             else
             {
                 sb.Append("<real>");
-                sb.Append(e.X.ToString(CultureInfo.InvariantCulture));     
+                sb.Append(e.X.ToString(CultureInfo.InvariantCulture));
                 sb.Append("</real><key>y</key>");
             }
 
@@ -680,7 +680,7 @@ namespace OpenSim.Framework
             else
                 format = "yyyy-MM-ddTHH:mm:ssZ";
             sb.Append("<date>");
-            sb.Append(u.ToString(format,CultureInfo.InvariantCulture));     
+            sb.Append(u.ToString(format,CultureInfo.InvariantCulture));
             sb.Append("</date>");
         }
 

@@ -40,5 +40,6 @@ namespace OpenSim.Framework
         public UUID OwnerID;
         public UUID FolderID;
         public int Version;
+        public int Descendents;
     }
 }

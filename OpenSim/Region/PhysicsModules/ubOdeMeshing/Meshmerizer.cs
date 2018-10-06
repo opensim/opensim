@@ -442,7 +442,6 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                                 while ((readLen = decompressionStream.Read(readBuffer, 0, readBuffer.Length)) > 0)
                                     outMs.Write(readBuffer, 0, readLen);
 
-                                outMs.Flush();
                                 outMs.Seek(0, SeekOrigin.Begin);
 
                                 byte[] decompressedBuf = outMs.GetBuffer();

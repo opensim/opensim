@@ -121,8 +121,8 @@ namespace OpenSim.Region.Framework.Scenes
         public byte SpecularLightColorB = 255;
         public byte SpecularLightColorA = 255;
         // data size 12 ints so far
-        public UUID   NormalMapID = UUID.Zero;
-	    public UUID   SpecularMapID = UUID.Zero;
+        public UUID NormalMapID = UUID.Zero;
+        public UUID SpecularMapID = UUID.Zero;
 
         // other data
         public UUID ID;
@@ -134,7 +134,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public FaceMaterial(FaceMaterial other)
         {
-            if(other == null)
+            if (other == null)
                 return;
 
             DiffuseAlphaMode = other.DiffuseAlphaMode;
@@ -160,32 +160,32 @@ namespace OpenSim.Region.Framework.Scenes
 
         public FaceMaterial(OSDMap mat)
         {
-            if(mat == null)
+            if (mat == null)
                 return;
             const float scale = 0.0001f;
             NormalMapID = mat["NormMap"].AsUUID();
             NormalOffsetX = scale * (float)mat["NormOffsetX"].AsReal();
-	        NormalOffsetY = scale * (float)mat["NormOffsetY"].AsReal();
-	        NormalRepeatX = scale * (float)mat["NormRepeatX"].AsReal();
-	        NormalRepeatY = scale * (float)mat["NormRepeatY"].AsReal();
-	        NormalRotation = scale * (float)mat["NormRotation"].AsReal();
+            NormalOffsetY = scale * (float)mat["NormOffsetY"].AsReal();
+            NormalRepeatX = scale * (float)mat["NormRepeatX"].AsReal();
+            NormalRepeatY = scale * (float)mat["NormRepeatY"].AsReal();
+            NormalRotation = scale * (float)mat["NormRotation"].AsReal();
 
-	        SpecularMapID = mat["SpecMap"].AsUUID();
-    	    SpecularOffsetX = scale * (float)mat["SpecOffsetX"].AsReal();
-    	    SpecularOffsetY = scale * (float)mat["SpecOffsetY"].AsReal();
-    	    SpecularRepeatX = scale * (float)mat["SpecRepeatX"].AsReal();
-    	    SpecularRepeatY = scale * (float)mat["SpecRepeatY"].AsReal();
-    	    SpecularRotation = scale * (float)mat["SpecRotation"].AsReal();
-           
+            SpecularMapID = mat["SpecMap"].AsUUID();
+            SpecularOffsetX = scale * (float)mat["SpecOffsetX"].AsReal();
+            SpecularOffsetY = scale * (float)mat["SpecOffsetY"].AsReal();
+            SpecularRepeatX = scale * (float)mat["SpecRepeatX"].AsReal();
+            SpecularRepeatY = scale * (float)mat["SpecRepeatY"].AsReal();
+            SpecularRotation = scale * (float)mat["SpecRotation"].AsReal();
+
             Color4 SpecularLightColortmp = mat["SpecColor"].AsColor4(); // we can read as color4
             SpecularLightColorR = (byte)(SpecularLightColortmp.R);
             SpecularLightColorG = (byte)(SpecularLightColortmp.G);
             SpecularLightColorB = (byte)(SpecularLightColortmp.B);
 
-    	    SpecularLightExponent = (Byte)mat["SpecExp"].AsUInteger();
-	        EnvironmentIntensity = (Byte)mat["EnvIntensity"].AsUInteger();
-	        DiffuseAlphaMode = (Byte)mat["DiffuseAlphaMode"].AsUInteger();
-	        AlphaMaskCutoff = (Byte)mat["AlphaMaskCutoff"].AsUInteger();
+            SpecularLightExponent = (Byte)mat["SpecExp"].AsUInteger();
+            EnvironmentIntensity = (Byte)mat["EnvIntensity"].AsUInteger();
+            DiffuseAlphaMode = (Byte)mat["DiffuseAlphaMode"].AsUInteger();
+            AlphaMaskCutoff = (Byte)mat["AlphaMaskCutoff"].AsUInteger();
         }
 
         public void genID()
@@ -198,29 +198,29 @@ namespace OpenSim.Region.Framework.Scenes
 
         public unsafe override int GetHashCode()
         {
-            if(!validinthash)
+            if (!validinthash)
             {
                 unchecked
                 {
                     // if you don't like this, don't read...
                     int* ptr;
-                    fixed(byte* ptrbase = &DiffuseAlphaMode)
+                    fixed (byte* ptrbase = &DiffuseAlphaMode)
                     {
                         ptr = (int*)ptrbase;
                         inthash = *ptr;
-                        for(int i = 0; i < 11; i++)
+                        for (int i = 0; i < 11; i++)
                             inthash ^= *ptr++;
                     }
-                    fixed(Guid* ptrbase = &NormalMapID.Guid)
+                    fixed (Guid* ptrbase = &NormalMapID.Guid)
                     {
                         ptr = (int*)ptrbase;
-                        for(int i = 0; i < 16; i++)
+                        for (int i = 0; i < 16; i++)
                             inthash ^= ptr[i];
                     }
-                    fixed(Guid* ptrbase = &SpecularMapID.Guid)
+                    fixed (Guid* ptrbase = &SpecularMapID.Guid)
                     {
                         ptr = (int*)ptrbase;
-                        for(int i = 0; i < 16; i++)
+                        for (int i = 0; i < 16; i++)
                             inthash ^= ptr[i];
                     }
                 }
@@ -231,7 +231,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public override bool Equals(Object o)
         {
-            if(o == null || !(o is FaceMaterial))
+            if (o == null || !(o is FaceMaterial))
                 return false;
 
             FaceMaterial other = (FaceMaterial)o;
@@ -264,18 +264,18 @@ namespace OpenSim.Region.Framework.Scenes
             float scale = 10000f;
 
             mat["NormMap"] = NormalMapID;
-            mat["NormOffsetX"] = (int) (scale * NormalOffsetX);
-	        mat["NormOffsetY"] = (int) (scale * NormalOffsetY);
-	        mat["NormRepeatX"] = (int) (scale * NormalRepeatX);
-	        mat["NormRepeatY"] = (int) (scale * NormalRepeatY);
-	        mat["NormRotation"] = (int) (scale * NormalRotation);
+            mat["NormOffsetX"] = (int)(scale * NormalOffsetX);
+            mat["NormOffsetY"] = (int)(scale * NormalOffsetY);
+            mat["NormRepeatX"] = (int)(scale * NormalRepeatX);
+            mat["NormRepeatY"] = (int)(scale * NormalRepeatY);
+            mat["NormRotation"] = (int)(scale * NormalRotation);
 
-	        mat["SpecMap"] = SpecularMapID;
-    	    mat["SpecOffsetX"] = (int) (scale * SpecularOffsetX);
-    	    mat["SpecOffsetY"] = (int) (scale * SpecularOffsetY);
-    	    mat["SpecRepeatX"] = (int) (scale * SpecularRepeatX);
-    	    mat["SpecRepeatY"] = (int) (scale * SpecularRepeatY);
-    	    mat["SpecRotation"] = (int) (scale * SpecularRotation);
+            mat["SpecMap"] = SpecularMapID;
+            mat["SpecOffsetX"] = (int)(scale * SpecularOffsetX);
+            mat["SpecOffsetY"] = (int)(scale * SpecularOffsetY);
+            mat["SpecRepeatX"] = (int)(scale * SpecularRepeatX);
+            mat["SpecRepeatY"] = (int)(scale * SpecularRepeatY);
+            mat["SpecRotation"] = (int)(scale * SpecularRotation);
 
             OSDArray carray = new OSDArray(4);
             carray.Add(SpecularLightColorR);
@@ -283,10 +283,10 @@ namespace OpenSim.Region.Framework.Scenes
             carray.Add(SpecularLightColorB);
             carray.Add(255); // solid color
             mat["SpecColor"] = carray;
-    	    mat["SpecExp"] = SpecularLightExponent;
-	        mat["EnvIntensity"] = EnvironmentIntensity;
-	        mat["DiffuseAlphaMode"] = DiffuseAlphaMode;
-	        mat["AlphaMaskCutoff"] = AlphaMaskCutoff;
+            mat["SpecExp"] = SpecularLightExponent;
+            mat["EnvIntensity"] = EnvironmentIntensity;
+            mat["DiffuseAlphaMode"] = DiffuseAlphaMode;
+            mat["AlphaMaskCutoff"] = AlphaMaskCutoff;
 
             return mat;
         }
@@ -295,27 +295,27 @@ namespace OpenSim.Region.Framework.Scenes
         {
             const float scale = 10000f;
             bool fullLLSD = false;
-            if(sb == null)
+            if (sb == null)
             {
-    
-                sb = LLSDxmlEncode.Start(1024,false);
+
+                sb = LLSDxmlEncode.Start(1024, false);
                 fullLLSD = true;
             }
-            
+
             LLSDxmlEncode.AddMap(sb);
             LLSDxmlEncode.AddElem("NormMap", NormalMapID, sb);
-            LLSDxmlEncode.AddElem("NormOffsetX", (int) (scale * NormalOffsetX + 0.5f), sb);
-	        LLSDxmlEncode.AddElem("NormOffsetY", (int) (scale * NormalOffsetY + 0.5f), sb);
-	        LLSDxmlEncode.AddElem("NormRepeatX", (int) (scale * NormalRepeatX + 0.5f), sb);
-	        LLSDxmlEncode.AddElem("NormRepeatY", (int) (scale * NormalRepeatY + 0.5f), sb);
-	        LLSDxmlEncode.AddElem("NormRotation", (int) (scale * NormalRotation + 0.5f), sb);
+            LLSDxmlEncode.AddElem("NormOffsetX", (int)(scale * NormalOffsetX + 0.5f), sb);
+            LLSDxmlEncode.AddElem("NormOffsetY", (int)(scale * NormalOffsetY + 0.5f), sb);
+            LLSDxmlEncode.AddElem("NormRepeatX", (int)(scale * NormalRepeatX + 0.5f), sb);
+            LLSDxmlEncode.AddElem("NormRepeatY", (int)(scale * NormalRepeatY + 0.5f), sb);
+            LLSDxmlEncode.AddElem("NormRotation", (int)(scale * NormalRotation + 0.5f), sb);
 
-	        LLSDxmlEncode.AddElem("SpecMap", SpecularMapID, sb);
-    	    LLSDxmlEncode.AddElem("SpecOffsetX", (int) (scale * SpecularOffsetX + 0.5f), sb);
-    	    LLSDxmlEncode.AddElem("SpecOffsetY", (int) (scale * SpecularOffsetY + 0.5f), sb);
-    	    LLSDxmlEncode.AddElem("SpecRepeatX", (int) (scale * SpecularRepeatX + 0.5f), sb);
-    	    LLSDxmlEncode.AddElem("SpecRepeatY", (int) (scale * SpecularRepeatY + 0.5f), sb);
-    	    LLSDxmlEncode.AddElem("SpecRotation", (int) (scale * SpecularRotation + 0.5f), sb);
+            LLSDxmlEncode.AddElem("SpecMap", SpecularMapID, sb);
+            LLSDxmlEncode.AddElem("SpecOffsetX", (int)(scale * SpecularOffsetX + 0.5f), sb);
+            LLSDxmlEncode.AddElem("SpecOffsetY", (int)(scale * SpecularOffsetY + 0.5f), sb);
+            LLSDxmlEncode.AddElem("SpecRepeatX", (int)(scale * SpecularRepeatX + 0.5f), sb);
+            LLSDxmlEncode.AddElem("SpecRepeatY", (int)(scale * SpecularRepeatY + 0.5f), sb);
+            LLSDxmlEncode.AddElem("SpecRotation", (int)(scale * SpecularRotation + 0.5f), sb);
 
             LLSDxmlEncode.AddArray("SpecColor", sb);
             LLSDxmlEncode.AddElem(SpecularLightColorR, sb);
@@ -324,14 +324,14 @@ namespace OpenSim.Region.Framework.Scenes
             LLSDxmlEncode.AddElem(255, sb);
             LLSDxmlEncode.AddEndArray(sb);
 
-    	    LLSDxmlEncode.AddElem("SpecExp", SpecularLightExponent, sb);
-	        LLSDxmlEncode.AddElem("EnvIntensity", EnvironmentIntensity, sb);
-	        LLSDxmlEncode.AddElem("DiffuseAlphaMode", DiffuseAlphaMode, sb);
-	        LLSDxmlEncode.AddElem("AlphaMaskCutoff", AlphaMaskCutoff, sb);
+            LLSDxmlEncode.AddElem("SpecExp", SpecularLightExponent, sb);
+            LLSDxmlEncode.AddElem("EnvIntensity", EnvironmentIntensity, sb);
+            LLSDxmlEncode.AddElem("DiffuseAlphaMode", DiffuseAlphaMode, sb);
+            LLSDxmlEncode.AddElem("AlphaMaskCutoff", AlphaMaskCutoff, sb);
 
             LLSDxmlEncode.AddEndMap(sb);
 
-            if(fullLLSD)
+            if (fullLLSD)
             {
                 return LLSDxmlEncode.End(sb);
             }
