@@ -46,7 +46,7 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
     [TestFixture]
     public class FetchInventoryDescendents2HandlerTests : OpenSimTestCase
     {
-        private UUID m_userID = UUID.Zero;
+        private UUID m_userID = new UUID("00000000-0000-0000-0000-000000000001");
         private Scene m_scene;
         private UUID m_rootFolderID;
         private int m_rootDescendents;
@@ -103,6 +103,7 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
 
             // Add a folder
             InventoryFolderBase folder = new InventoryFolderBase(new UUID("f0000000-0000-0000-0000-00000000000f"), "Test Folder", m_userID, m_rootFolderID);
+            folder.Type = (short)FolderType.None;
             m_scene.InventoryService.AddFolder(folder);
 
             // Add a link to notecard 2 in Test Folder
@@ -139,13 +140,15 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
 
             string request = "<llsd><map><key>folders</key><array><map><key>fetch_folders</key><integer>1</integer><key>fetch_items</key><boolean>1</boolean><key>folder_id</key><uuid>";
             request += m_rootFolderID;
-            request += "</uuid><key>owner_id</key><uuid>00000000-0000-0000-0000-000000000000</uuid><key>sort_order</key><integer>1</integer></map></array></map></llsd>";
+            request += "</uuid><key>owner_id</key><uuid>";
+            request += m_userID.ToString();
+            request += "</uuid><key>sort_order</key><integer>1</integer></map></array></map></llsd>";
 
             string llsdresponse = handler.FetchInventoryDescendentsRequest(request, "/FETCH", string.Empty, req, resp);
 
             Assert.That(llsdresponse != null, Is.True, "Incorrect null response");
             Assert.That(llsdresponse != string.Empty, Is.True, "Incorrect empty response");
-            Assert.That(llsdresponse.Contains("00000000-0000-0000-0000-000000000000"), Is.True, "Response should contain userID");
+            Assert.That(llsdresponse.Contains(m_userID.ToString()), Is.True, "Response should contain userID");
 
             string descendents = "descendents</key><integer>" + m_rootDescendents + "</integer>";
             Assert.That(llsdresponse.Contains(descendents), Is.True, "Incorrect number of descendents");
@@ -164,10 +167,10 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
             string request = "<llsd><map><key>folders</key><array>";
             request += "<map><key>fetch_folders</key><integer>1</integer><key>fetch_items</key><boolean>1</boolean><key>folder_id</key><uuid>";
             request += m_rootFolderID;
-            request += "</uuid><key>owner_id</key><uuid>00000000-0000-0000-0000-000000000000</uuid><key>sort_order</key><integer>1</integer></map>";
+            request += "</uuid><key>owner_id</key><uuid>00000000-0000-0000-0000-000000000001</uuid><key>sort_order</key><integer>1</integer></map>";
             request += "<map><key>fetch_folders</key><integer>1</integer><key>fetch_items</key><boolean>1</boolean><key>folder_id</key><uuid>";
             request += m_notecardsFolder;
-            request += "</uuid><key>owner_id</key><uuid>00000000-0000-0000-0000-000000000000</uuid><key>sort_order</key><integer>1</integer></map>";
+            request += "</uuid><key>owner_id</key><uuid>00000000-0000-0000-0000-000000000001</uuid><key>sort_order</key><integer>1</integer></map>";
             request += "</array></map></llsd>";
 
             string llsdresponse = handler.FetchInventoryDescendentsRequest(request, "/FETCH", string.Empty, req, resp);
@@ -193,7 +196,7 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
 
             string request = "<llsd><map><key>folders</key><array><map><key>fetch_folders</key><integer>1</integer><key>fetch_items</key><boolean>1</boolean><key>folder_id</key><uuid>";
             request += "f0000000-0000-0000-0000-00000000000f";
-            request += "</uuid><key>owner_id</key><uuid>00000000-0000-0000-0000-000000000000</uuid><key>sort_order</key><integer>1</integer></map></array></map></llsd>";
+            request += "</uuid><key>owner_id</key><uuid>00000000-0000-0000-0000-000000000001</uuid><key>sort_order</key><integer>1</integer></map></array></map></llsd>";
 
             string llsdresponse = handler.FetchInventoryDescendentsRequest(request, "/FETCH", string.Empty, req, resp);
             Console.WriteLine(llsdresponse);
