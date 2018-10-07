@@ -771,4 +771,12 @@
      <Key Name="fileName" Value="b4ba225c-373f-446d-9f7e-6cb7b5cf9b3d.j2c"/>
   </Section>
 
+  <!-- Water texture shown when Transparent Water is disabled in the viewer graphics prefs -->
+  <Section Name="Water">
+    <Key Name="assetID" Value="43c32285-d658-1793-c123-bf86315de055"/>
+    <Key Name="name" Value="Water"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="43c32285-d658-1793-c123-bf86315de055.jp2" />
+  </Section>
+
 </Nini>
